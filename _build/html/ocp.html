@@ -1,0 +1,607 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Optimal Control Problems &#8212; Reinforcement Learning: beyond the Agent Interaction Loop</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
+    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="_static/proof.css?v=ca93fcec" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=87e54e7c" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'ocp';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Introduction" href="intro.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="intro.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Reinforcement Learning: beyond the Agent Interaction Loop</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="intro.html">
+                    Introduction
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Optimal Control Problems</a></li>
+
+
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/executablebooks/jupyter-book" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/executablebooks/jupyter-book/issues/new?title=Issue%20on%20page%20%2Focp.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/ocp.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Optimal Control Problems</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Optimal Control Problems</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#different-flavors-of-optimal-control-problems">Different Flavors of Optimal Control Problems</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#reduction-to-mayer-problems">Reduction to Mayer Problems</a></li>
+</ul>
+
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="optimal-control-problems">
+<h1>Optimal Control Problems<a class="headerlink" href="#optimal-control-problems" title="Link to this heading">#</a></h1>
+<blockquote class="epigraph">
+<div><p>The sciences do not try to explain, they hardly even try to interpret, they mainly make models. By a model is meant a mathematical construct which, with the addition of certain verbal interpretations, describes observed phenomena. The justification of such a mathematical construct is solely and precisely that it is expected to work.</p>
+<p class="attribution">—John von Neumann</p>
+</div></blockquote>
+<p>This course considers two broad categories of environments, each with its own specialized solution methods: deterministic and stochastic environments. Stochastic problems are mathematically more general than their deterministic counterparts. However, despite this generality, it’s important to note that algorithms for stochastic problems are not necessarily more powerful than those designed for deterministic ones when used in practice. We should in keep in mind that stochasticity and determinism are assumed properties of the world, which we model—perhaps imperfectly—into our algorithms. In this course, we adopt a pragmatic perspective on that matter, and will make assumptions only to the extent that those assumptions help us design algorithms which are ultimately useful in practice: a lesson which we have certainly learned from the sucess of deep learning methods over the last years.</p>
+<p>With this pragmatic stance, it makes sense to start our journey with perhaps the simplest kind of model for optimal control: one where we model the world deterministically and where we assume that time evolves in a discrete manner. A particular instance of this family of problems is known as a resource allocation problems and can be found across various fields of operations research. To make things more concrete, let’s consider the problem of irrigation management as posed by  <span id="id1">Hall and Butcher [<a class="reference internal" href="#id3" title="Warren A. Hall and William S. Butcher. Optimal timing of irrigation. Journal of the Irrigation and Drainage Division, 94(2):267–275, June 1968. URL: http://dx.doi.org/10.1061/JRCEA4.0000569, doi:10.1061/jrcea4.0000569.">HB68</a>]</span>, in which a decision maker is tasked with finding the optimal amount of water to allocate throughout the various growth stages of a plant in order to maximize the yield. Clearly, allocating all the water – thereby flooding the crop – in the first stage would be a bad idea. Similarly, letting the crop dry out and only watering at the end is also suboptimal. Our solution – that is a prescription for the amount of water to use at any point in time – should balance those two extremes. In order to achieve this goal, our system should ideally be informed by the expected growth dynamics of the given crops as a function of the water provided: a process which depends at the very least on physical properties known to influence the soil moisture. The basic model considered in this paper describes the evolution of the moisture constent through the equation:</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{align*}
+w_{t+1} = w_t+\texttip{\eta}{efficiency} u_t-e_t + \phi_t
+\end{align*}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\eta\)</span> is a fixed “efficiency” constant determining the soil moisture response to irrigation, and <span class="math notranslate nohighlight">\(e_t\)</span> is a known quantity summarizing the effects of water loss due to evaporation and finally <span class="math notranslate nohighlight">\(\phi_t\)</span> represents the expected added moisture due to precipitation. Furthermore, we should ensure that the total amount of water used throughout the season should not exceed the maximum allowed amount.To avoid situations where our crop receives too little or too much water, we further impose the condition that <span class="math notranslate nohighlight">\(w_p \leq w_{t+1} \leq w_f\)</span> for all stages for some given values of the so-called permanent wilting percentage <span class="math notranslate nohighlight">\(w_p\)</span> and field capacity <span class="math notranslate nohighlight">\(w_f\)</span>. Depending on the moisture content of the soil, the yield will vary up to a maximum value <span class="math notranslate nohighlight">\(Y_max\)</span> depending on the water deficiencies incurred throughout the season. The authors make the assumptions that such deficiencies interact multiplicatively across stages such that the total yield is given by
+<span class="math notranslate nohighlight">\(\left[\prod_{t=1}^N d_t(w_t)\right] Y_{\max}\)</span>. Due to the operating cost of watering operations (fog example, energy consumption of the pumps, human labor, etc), are more meaningful objective is to maximize <span class="math notranslate nohighlight">\(\prod_{t=1}^N d_t\left(w_t\right) Y_{\max } - \sum_{t=1}^N c_t\left(u_t\right)\)</span>.
+The problem specification laid out above can be turned into the following mathematical program:</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{alignat*}{2}
+\text{minimize} \quad &amp; \sum_{t=1}^N c_t(u_t) - a_N Y_{\max} &amp; \\
+\text{such that} \quad 
+&amp; w_{t+1} = w_t + \eta u_t - e_t + \phi_t, &amp; \quad &amp; t = 1, \dots, N-1, \\
+&amp; q_{t+1} = q_t - u_t, &amp; \quad &amp; t = 1, \dots, N-1, \\
+&amp; a_{t+1} = d_t(w_t) a_t, &amp; \quad &amp; t = 1, \dots, N-1, \\
+&amp; w_p \leq w_{t} \leq w_f, &amp; \quad &amp; t = 1, \dots, N, \\
+&amp; 0 \leq u_t \leq q_t, &amp; \quad &amp; t = 1, \dots, N, \\
+&amp; 0 \leq q_t, &amp; \quad &amp; t = 1, \dots, N, \\
+&amp; a_0 = 1, &amp; &amp; \\
+\text{given} \quad &amp; w_1, q_N. &amp;
+\end{alignat*}\]</div>
+<p>The multiplicative form of the objective function coming from the yield term has been eliminated through by adding a new variable, <span class="math notranslate nohighlight">\(a_t\)</span>, representing the product accumulation of water deficiencies since the begining of the season. The three quantities <span class="math notranslate nohighlight">\((w_t, q_t, a_t)\)</span> summarize the entirety of what the decision maker needs to know in order to make good decisions. We say that it is a state variable whose time evolution is specified via so-called dynamics function, which we commonly denote by <span class="math notranslate nohighlight">\(f_t\)</span>. In the context of optimal control theory, we refer more generally to <span class="math notranslate nohighlight">\(u_t\)</span> as a “control” variable while in other communities it is called an “action”. Whether the problem is posed as a minimization problem or maximization problem is also a matter of communities, with control theory typically posing problems in terms of cost minimization while OR and RL commmunities usual adopt a reward maximization perspective. In this course, we will alternate between the two equivalent formulations while ensuring that context is sufficiently clear to understand which one is used.</p>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="different-flavors-of-optimal-control-problems">
+<h1>Different Flavors of Optimal Control Problems<a class="headerlink" href="#different-flavors-of-optimal-control-problems" title="Link to this heading">#</a></h1>
+<p>The problem stated above, is known as a Discrete-Time Optimal Control Problem (DOCP), which we write more generically as:</p>
+<div class="proof definition admonition" id="bolza-docp">
+<p class="admonition-title"><span class="caption-number">Definition 1 </span> (Discrete-Time Optimal Control Problem of Bolza Type)</p>
+<section class="definition-content" id="proof-content">
+<div class="amsmath math notranslate nohighlight">
+\[\begin{alignat*}{2}
+\text{minimize} \quad &amp; c_T(\mathbf{x}_T) + \sum_{t=1}^T c_t(\mathbf{x}_t, \mathbf{u}_t) &amp; \\
+\text{such that} \quad 
+&amp; \mathbf{x}_{t+1} = \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t), &amp; \quad &amp; t = 1, \dots, T-1, \\
+&amp; \mathbf{u}_{lb} \leq \mathbf{u}_t \leq \mathbf{u}_{ub}, &amp; \quad &amp; t = 1, \dots, T, \\
+&amp; \mathbf{x}_{lb} \leq \mathbf{x}_t \leq \mathbf{x}_{ub}, &amp; \quad &amp; t = 1, \dots, T, \\
+\text{given} \quad &amp; \mathbf{x}_1. &amp;
+\end{alignat*}\]</div>
+</section>
+</div><p>The objective function in a Bolza problem comprises of two terms: the sum of immediate cost or rewards per stage, and a terminal cost function (sometimes called “scrap value”). If the terminal cost function is omited from the objective function, then the resulting DOCP is said to be of Lagrange type.</p>
+<div class="proof definition admonition" id="lagrange-docp">
+<p class="admonition-title"><span class="caption-number">Definition 2 </span> (Discrete-Time Optimal Control Problem of Lagrange Type)</p>
+<section class="definition-content" id="proof-content">
+<div class="amsmath math notranslate nohighlight">
+\[\begin{alignat*}{2}
+\text{minimize} \quad &amp; \sum_{t=1}^T c_t(\mathbf{x}_t, \mathbf{u}_t) &amp; \\
+\text{such that} \quad 
+&amp; \mathbf{x}_{t+1} = \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t), &amp; \quad &amp; t = 1, \dots, T-1, \\
+&amp; \mathbf{u}_{lb} \leq \mathbf{u}_t \leq \mathbf{u}_{ub}, &amp; \quad &amp; t = 1, \dots, T, \\
+&amp; \mathbf{x}_{lb} \leq \mathbf{x}_t \leq \mathbf{x}_{ub}, &amp; \quad &amp; t = 1, \dots, T, \\
+\text{given} \quad &amp; \mathbf{x}_1. &amp;
+\end{alignat*}\]</div>
+</section>
+</div><p>Finally, a Mayer problem is one in which the objective function only contains a terminal cost function without explicitely accounting for immediate costs encountered across stages:</p>
+<div class="proof definition admonition" id="mayer-docp">
+<p class="admonition-title"><span class="caption-number">Definition 3 </span> (Discrete-Time Optimal Control Problem of Mayer Type)</p>
+<section class="definition-content" id="proof-content">
+<div class="amsmath math notranslate nohighlight">
+\[\begin{alignat*}{2}
+\text{minimize} \quad &amp; c_T(\mathbf{x}_T) &amp; \\
+\text{such that} \quad 
+&amp; \mathbf{x}_{t+1} = \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t), &amp; \quad &amp; t = 1, \dots, T-1, \\
+&amp; \mathbf{u}_{lb} \leq \mathbf{u}_t \leq \mathbf{u}_{ub}, &amp; \quad &amp; t = 1, \dots, T, \\
+&amp; \mathbf{x}_{lb} \leq \mathbf{x}_t \leq \mathbf{x}_{ub}, &amp; \quad &amp; t = 1, \dots, T, \\
+\text{given} \quad &amp; \mathbf{x}_1. &amp;
+\end{alignat*}\]</div>
+</section>
+</div></section>
+<section class="tex2jax_ignore mathjax_ignore" id="reduction-to-mayer-problems">
+<h1>Reduction to Mayer Problems<a class="headerlink" href="#reduction-to-mayer-problems" title="Link to this heading">#</a></h1>
+<p>While it might appear at first glance that Bolza problems are somehow more expressive or powerful, we can show that both Lagrange and Bolza problems can be reduced to a Mayer problem through the idea of “state augmentation”.
+The overall idea is that the explicit sum of costs can be eliminated by maininting a running sum of costs as an additional state variable <span class="math notranslate nohighlight">\(y_t\)</span>. The augmented system equation then becomes:</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{align*}
+\tilde{f}_t\left(\tilde{x}_t, u_t\right) \triangleq \left(\begin{array}{c}
+f_t\left(x_t, u_t\right) \\
+y_t+c_t\left(x_t, u_t\right)
+\end{array}\right) 
+\end{align*}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\mathbf{\tilde{x}}_t \triangleq (\mathbf{x}_t, y_t)\)</span> is the concatenation of the running cost so far and the underlying state of the original system. The terminal cost function is finally computed with</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{align*}
+\tilde{c}_T(\mathbf{\tilde{x}_T})  \triangleq c_T\left(x_T\right)+y_T \equiv \tilde{c}_T\left(\tilde{x}_T\right)
+\end{align*}\]</div>
+<p>This transformation is often helpful to simplify mathematical derivations (as are about to see shortly) but could also be used to streamline algorithmic implementation (by maintaining one version of the code rather than three with many if/else statements). That being said, there could also be computational advantanges to working with the specific problem types rather than the one size-fits-for-all Mayer reduction. This is true for example with the collocation-type methods where we want to avoid treating <span class="math notranslate nohighlight">\(y\)</span> as any state variable.</p>
+<div class="docutils container" id="id2">
+<div role="list" class="citation-list">
+<div class="citation" id="id3" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">HB68</a><span class="fn-bracket">]</span></span>
+<p>Warren A. Hall and William S. Butcher. Optimal timing of irrigation. <em>Journal of the Irrigation and Drainage Division</em>, 94(2):267–275, June 1968. URL: <a class="reference external" href="http://dx.doi.org/10.1061/JRCEA4.0000569">http://dx.doi.org/10.1061/JRCEA4.0000569</a>, <a class="reference external" href="https://doi.org/10.1061/jrcea4.0000569">doi:10.1061/jrcea4.0000569</a>.</p>
+</div>
+</div>
+</div>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./."
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="intro.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Introduction</p>
+      </div>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Optimal Control Problems</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#different-flavors-of-optimal-control-problems">Different Flavors of Optimal Control Problems</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#reduction-to-mayer-problems">Reduction to Mayer Problems</a></li>
+</ul>
+
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Pierre-Luc Bacon
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

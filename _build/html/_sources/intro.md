@@ -1,0 +1,3 @@
+# Introduction 
+
+Reinforcement Learning (RL) is fundamentally about learning to take right actions from data, whether that data is obtained online or offline. This course adopts a broader perspective on RL than is typically presented in other textbooks. Rather than emphasizing only the trial-and-error aspect of RL, which has been historically prominent due to the pioneering work of Sutton and Barto, we view RL as a more general paradigm which seeks to transform data into useful policies. This perspective allows us to consider a variety of techniques encompassing optimal control, system identification methods, and ideas from simulation, in addition to the usual machinery of temporal difference learning.
