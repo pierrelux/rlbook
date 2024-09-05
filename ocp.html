@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Mathematical Programming Approach &#8212; Reinforcement Learning: beyond the Agent Interaction Loop</title>
+    <title>1. Mathematical Programming Approach &#8212; Reinforcement Learning: beyond the Agent Interaction Loop</title>
   
   
   
@@ -176,7 +176,7 @@
             </li>
         </ul>
         <ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Mathematical Programming Approach</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">1. Mathematical Programming Approach</a></li>
 
 </ul>
 
@@ -249,7 +249,7 @@
       
       
       
-      <li><a href="https://github.com/pierrelux/rlbook/edit/gh-pages/ocp.md" target="_blank"
+      <li><a href="https://github.com/pierrelux/rlbook/edit/main/ocp.md" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -390,20 +390,20 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Mathematical Programming Approach</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#irrigation-management-example">Irrigation Management Example</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#discrete-time-optimal-control-problems-in-general">Discrete-Time Optimal Control Problems in General</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#reduction-to-mayer-problems">Reduction to Mayer Problems</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">1. Mathematical Programming Approach</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#irrigation-management-example">1.1. Irrigation Management Example</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#discrete-time-optimal-control-problems-in-general">1.2. Discrete-Time Optimal Control Problems in General</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#reduction-to-mayer-problems">1.2.1. Reduction to Mayer Problems</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#numerical-methods-for-solving-docps">Numerical Methods for Solving DOCPs</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#constrained-optimization-approach">Constrained Optimization Approach</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nonlinear-programming-and-kkt-conditions">Nonlinear Programming and KKT Conditions</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#numerical-methods-for-solving-docps">2. Numerical Methods for Solving DOCPs</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#constrained-optimization-approach">2.1. Constrained Optimization Approach</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nonlinear-programming-and-kkt-conditions">2.1.1. Nonlinear Programming and KKT Conditions</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#transformation-to-an-unconstrained-problem-single-shooting-methods">Transformation to an Unconstrained Problem: Single Shooting Methods</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#transformation-to-an-unconstrained-problem-single-shooting-methods">2.2. Transformation to an Unconstrained Problem: Single Shooting Methods</a></li>
 </ul>
 </li>
 </ul>
@@ -419,14 +419,14 @@ document.write(`
                 <article class="bd-article">
                   
   <section class="tex2jax_ignore mathjax_ignore" id="mathematical-programming-approach">
-<h1>Mathematical Programming Approach<a class="headerlink" href="#mathematical-programming-approach" title="Link to this heading">#</a></h1>
+<h1><span class="section-number">1. </span>Mathematical Programming Approach<a class="headerlink" href="#mathematical-programming-approach" title="Link to this heading">#</a></h1>
 <blockquote class="epigraph">
 <div><p>The sciences do not try to explain, they hardly even try to interpret, they mainly make models. By a model is meant a mathematical construct which, with the addition of certain verbal interpretations, describes observed phenomena. The justification of such a mathematical construct is solely and precisely that it is expected to work.</p>
 <p class="attribution">—John von Neumann</p>
 </div></blockquote>
 <p>This course considers two broad categories of environments, each with its own specialized solution methods: deterministic and stochastic environments. Stochastic problems are mathematically more general than their deterministic counterparts. However, despite this generality, it’s important to note that algorithms for stochastic problems are not necessarily more powerful than those designed for deterministic ones when used in practice. We should keep in mind that stochasticity and determinism are assumed properties of the world, which we model—perhaps imperfectly—into our algorithms. In this course, we adopt a pragmatic perspective on that matter, and will make assumptions only to the extent that those assumptions help us design algorithms which are ultimately useful in practice: a lesson which we have certainly learned from the success of deep learning methods over the last years. With this pragmatic stance, we start our journey with deterministic discrete-time models.</p>
 <section id="irrigation-management-example">
-<h2>Irrigation Management Example<a class="headerlink" href="#irrigation-management-example" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">1.1. </span>Irrigation Management Example<a class="headerlink" href="#irrigation-management-example" title="Link to this heading">#</a></h2>
 <p>Resource allocation problems, found across various fields of operations research, are a specific kind of deterministic discrete-time optimal control problems. For example, consider the problem of irrigation management as posed by <span id="id1">Hall and Butcher [<a class="reference internal" href="#id7" title="Warren A. Hall and William S. Butcher. Optimal timing of irrigation. Journal of the Irrigation and Drainage Division, 94(2):267–275, June 1968. URL: http://dx.doi.org/10.1061/JRCEA4.0000569, doi:10.1061/jrcea4.0000569.">HB68</a>]</span>, in which a decision maker is tasked with finding the optimal amount of water to allocate throughout the various growth stages of a plant in order to maximize the yield. Clearly, allocating all the water – thereby flooding the crop – in the first stage would be a bad idea. Similarly, letting the crop dry out and only watering at the end is also suboptimal. Our solution – that is a prescription for the amount of water to use at any point in time – should balance those two extremes. In order to achieve this goal, our system should ideally be informed by the expected growth dynamics of the given crops as a function of the water provided: a process which depends at the very least on physical properties known to influence the soil moisture. The basic model considered in this paper describes the evolution of the moisture content through the equation:</p>
 <div class="amsmath math notranslate nohighlight">
 \[\begin{align*}
@@ -453,11 +453,11 @@ The problem specification laid out above can be turned into the following mathem
 <p>Clearly, this model is a simplification of real phenomena at play: that of the physical process of water absorption by a plant through its root system. Many more aspects of the world would have to be included to have a more faithful reproduction of the real process: for example by taking into account the real-time meteorological data, pressure, soil type, solar irradiance, shading and topology of the terrain etc. We could go to the level of even modelling the inner workings of the plant itself to understand exactly how much water will get absorbed. More crucially, our assumption that the water absorption takes place instantaneously at discrete points in time is certainly not true. So should we go back to the drawing board and consider a better model? The answer is that “it depends”. It depends on the adequacy of the solution when deployed in the real world, or whether it helped provide insights to the user. Put simply: is the system useful to those who interact with it? Answering this question requires us to think more broadly about our system and how it will interact more broadly with the end users and the society.</p>
 </section>
 <section id="discrete-time-optimal-control-problems-in-general">
-<h2>Discrete-Time Optimal Control Problems in General<a class="headerlink" href="#discrete-time-optimal-control-problems-in-general" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">1.2. </span>Discrete-Time Optimal Control Problems in General<a class="headerlink" href="#discrete-time-optimal-control-problems-in-general" title="Link to this heading">#</a></h2>
 <p>The three quantities <span class="math notranslate nohighlight">\((w_t, q_t, a_t)\)</span> appearing in the model of <span id="id2">Hall and Butcher [<a class="reference internal" href="#id7" title="Warren A. Hall and William S. Butcher. Optimal timing of irrigation. Journal of the Irrigation and Drainage Division, 94(2):267–275, June 1968. URL: http://dx.doi.org/10.1061/JRCEA4.0000569, doi:10.1061/jrcea4.0000569.">HB68</a>]</span> above have the property that they encompass all of the information necessary to simulate the process. We say that it is a “<strong>state variable</strong>”, and its time evolution is specified via so-called <strong>dynamics function</strong>, which we commonly denote by <span class="math notranslate nohighlight">\(f_t\)</span>. In discrete-time systems, the dynamics are often described by “difference equations,” as opposed to the “differential equations” used for continuous-time systems. When the dynamics function depends on the time index <span class="math notranslate nohighlight">\(t\)</span>, we refer to it as “non-stationary” dynamics. Conversely, if the function <span class="math notranslate nohighlight">\(f\)</span> remains constant across all time steps, we call it “stationary” dynamics. In the context of optimal control theory, we refer more generally to <span class="math notranslate nohighlight">\(u_t\)</span> as a “control” variable while in other communities it is called an “action”. Whether the problem is posed as a minimization problem or maximization problem is also a matter of communities, with control theory typically posing problems in terms of cost minimization while OR and RL communities usually adopt a reward maximization perspective. In this course, we will alternate between the two equivalent formulations while ensuring that context is sufficiently clear to understand which one is used.</p>
 <p>The problem stated above, is known as a Discrete-Time Optimal Control Problem (DOCP), which we write more generically as:</p>
 <div class="proof definition admonition" id="bolza-docp">
-<p class="admonition-title"><span class="caption-number">Definition 1 </span> (Discrete-Time Optimal Control Problem of Bolza Type)</p>
+<p class="admonition-title"><span class="caption-number">Definition 1.1 </span> (Discrete-Time Optimal Control Problem of Bolza Type)</p>
 <section class="definition-content" id="proof-content">
 <div class="amsmath math notranslate nohighlight">
 \[\begin{alignat*}{2}
@@ -471,7 +471,7 @@ The problem specification laid out above can be turned into the following mathem
 </section>
 </div><p>The objective function (sometimes called a “performance index”) in a Bolza problem comprises of two terms: the sum of immediate cost or rewards per stage, and a terminal cost function (sometimes called “scrap value”). If the terminal cost function is omitted from the objective function, then the resulting DOCP is said to be of Lagrange type.</p>
 <div class="proof definition admonition" id="lagrange-docp">
-<p class="admonition-title"><span class="caption-number">Definition 2 </span> (Discrete-Time Optimal Control Problem of Lagrange Type)</p>
+<p class="admonition-title"><span class="caption-number">Definition 1.2 </span> (Discrete-Time Optimal Control Problem of Lagrange Type)</p>
 <section class="definition-content" id="proof-content">
 <div class="amsmath math notranslate nohighlight">
 \[\begin{alignat*}{2}
@@ -485,7 +485,7 @@ The problem specification laid out above can be turned into the following mathem
 </section>
 </div><p>Finally, a Mayer problem is one in which the objective function only contains a terminal cost function without explicitly accounting for immediate costs encountered across stages:</p>
 <div class="proof definition admonition" id="mayer-docp">
-<p class="admonition-title"><span class="caption-number">Definition 3 </span> (Discrete-Time Optimal Control Problem of Mayer Type)</p>
+<p class="admonition-title"><span class="caption-number">Definition 1.3 </span> (Discrete-Time Optimal Control Problem of Mayer Type)</p>
 <section class="definition-content" id="proof-content">
 <div class="amsmath math notranslate nohighlight">
 \[\begin{alignat*}{2}
@@ -499,7 +499,7 @@ The problem specification laid out above can be turned into the following mathem
 </section>
 </div><p>When writing the optimal control problem in any of those three forms, it is implied that both <span class="math notranslate nohighlight">\(u_1, ..., u_T\)</span> and the state trajectory <span class="math notranslate nohighlight">\(x_1, ..., x_T\)</span> are optimization variables. Since we ultimately care about the decisions themselves, the idea of posing the states themselves as optimization variables seems uncessary given that we have access to the dynamics. We will soon see that there indeed exists a way in which we get rid of the state variables as constraints through a process of explicit simulation with the class of “shooting methods”, thereby turning what would otherwise be an constrained optimization problem into an unconstrained one.</p>
 <section id="reduction-to-mayer-problems">
-<h3>Reduction to Mayer Problems<a class="headerlink" href="#reduction-to-mayer-problems" title="Link to this heading">#</a></h3>
+<h3><span class="section-number">1.2.1. </span>Reduction to Mayer Problems<a class="headerlink" href="#reduction-to-mayer-problems" title="Link to this heading">#</a></h3>
 <p>While it might appear at first glance that Bolza problems are somehow more expressive or powerful, we can show that both Lagrange and Bolza problems can be reduced to a Mayer problem through the idea of “state augmentation”.
 The overall idea is that the explicit sum of costs can be eliminated by maintaining a running sum of costs as an additional state variable <span class="math notranslate nohighlight">\(y_t\)</span>. The augmented system equation then becomes:</p>
 <div class="amsmath math notranslate nohighlight">
@@ -519,11 +519,11 @@ y_t+c_t\left(\boldsymbol{x}_t, \boldsymbol{u}_t\right)
 </section>
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="numerical-methods-for-solving-docps">
-<h1>Numerical Methods for Solving DOCPs<a class="headerlink" href="#numerical-methods-for-solving-docps" title="Link to this heading">#</a></h1>
+<h1><span class="section-number">2. </span>Numerical Methods for Solving DOCPs<a class="headerlink" href="#numerical-methods-for-solving-docps" title="Link to this heading">#</a></h1>
 <p>Let’s assume that an optimal control problem has been formulated in one of the forms presented earlier and has been given to us to solve. The following section explores numerical solutions applicable to these problems, focusing on trajectory optimization. Our goal is to output an optimal control (and state trajectory) based on the given cost function and dynamics structure.</p>
 <p>It’s important to note that the methods presented here are not learning methods; they don’t involve ingesting data or inferring unknown quantities from it. However, these methods represent a central component of any decision-learning system, and we will later explore how learning concepts can be incorporated.</p>
 <section id="constrained-optimization-approach">
-<h2>Constrained Optimization Approach<a class="headerlink" href="#constrained-optimization-approach" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">2.1. </span>Constrained Optimization Approach<a class="headerlink" href="#constrained-optimization-approach" title="Link to this heading">#</a></h2>
 <p>The mathematical programming formulation presented earlier lends itself readily to off-the-shelf solvers for nonlinear mathematical programs. For example, we can use the <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code> function along with the SLSQP (Sequential Least Squares Programming) solver to obtain a solution to any feasible Bolza problem of the form presented below.</p>
 <p>Before delving into the details of the numerical solver itself, let’s consider an electric vehicle energy management problem. We will use this as a test bed for our algorithms, allowing us to demonstrate the practical application of these optimization techniques.
 Consider an electric vehicle traversing a planned route, where we aim to optimize its energy consumption over a 20-minute journey. Our simplified model represents the vehicle’s state using two variables: <span class="math notranslate nohighlight">\(x_1\)</span>, the battery state of charge as a percentage, and <span class="math notranslate nohighlight">\(x_2\)</span>, denoting the vehicle’s speed in meters per second. The control input <span class="math notranslate nohighlight">\(u\)</span>, ranging from -1 to 1, represents the motor power, with negative values indicating regenerative braking and positive values representing acceleration. The problem can be formally expressed as a mathematical program in Bolza form:</p>
@@ -542,11 +542,12 @@ Consider an electric vehicle traversing a planned route, where we aim to optimiz
 &amp; x_t = \begin{bmatrix} x_{t,1} \\ x_{t,2} \end{bmatrix} \in \mathbb{R}^2, \quad u_t \in \mathbb{R}
 \end{align*} \end{split}\]</div>
 <p>The system dynamics, represented by <span class="math notranslate nohighlight">\(f_t(x_t, u_t)\)</span>, describe how the battery charge and vehicle speed evolve based on the current state and control input. The initial condition <span class="math notranslate nohighlight">\(x_1 = [1, 0]^T\)</span> indicates that the vehicle starts with a fully charged battery and zero initial speed. The constraints <span class="math notranslate nohighlight">\(-1 \leq u_t \leq 1\)</span> and <span class="math notranslate nohighlight">\(-5 \leq x_{t,1}, x_{t,2} \leq 5\)</span> ensure that the control inputs and state variables remain within acceptable ranges throughout the journey. This model is of course highly simplistic and neglects the nonlinear nature of battery discharge and vehicle motion due to air resistance, road grade, and vehicle mass, etc. Furthermore, our model ignores the effect of environmental factors like wind and temperature on regenerative breaking. Route-specific information such as elevation changes and speed limits are absent, as is the consideration of auxiliary power consumption such as heating and entertainment. These are all possible improvements to our models which we ignore at the moment for the sake of simplicity.</p>
-<div class="cell tag_hide-cell docutils container">
+<p>The following code demonstrate how this problem can be solved directly using <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code> in a black box fashion. In the next sections, we will dive deeper into the mathematical underpinnings of constrained optimization and implement our own solvers. For the moment, I simply want to bring to your attention that the solution to this problem, as expressed in its original form, involves solving for two interdependent quantities: the optimal sequence of controls, and that of the states encountered when applying them to the system. Is that bug, or a feature? We’ll see that it depends…</p>
+<div class="cell tag_hide-input docutils container">
 <details class="hide above-input">
 <summary aria-label="Toggle hidden content">
-<span class="collapsed">Show code cell content</span>
-<span class="expanded">Hide code cell content</span>
+<span class="collapsed">Show code cell source</span>
+<span class="expanded">Hide code cell source</span>
 </summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -698,6 +699,7 @@ Consider an electric vehicle traversing a planned route, where we aim to optimiz
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization successful: True
 Optimal cost: 1.4233413233781695
@@ -747,10 +749,9 @@ Optimal controls:
 </div>
 <img alt="_images/cf7adb0d61523f821f694194e1cd7054b85f1cd5e0c779a8482d1b035b07413b.png" src="_images/cf7adb0d61523f821f694194e1cd7054b85f1cd5e0c779a8482d1b035b07413b.png" />
 </div>
-</details>
 </div>
 <section id="nonlinear-programming-and-kkt-conditions">
-<h3>Nonlinear Programming and KKT Conditions<a class="headerlink" href="#nonlinear-programming-and-kkt-conditions" title="Link to this heading">#</a></h3>
+<h3><span class="section-number">2.1.1. </span>Nonlinear Programming and KKT Conditions<a class="headerlink" href="#nonlinear-programming-and-kkt-conditions" title="Link to this heading">#</a></h3>
 <p>Unless specific assumptions are made on the dynamics and cost structure, a DOCP is, in its most general form, a nonlinear mathematical program (commonly referred to as an NLP, not to be confused with Natural Language Processing). An NLP can be formulated as follows:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
@@ -892,7 +893,7 @@ This result relies on the construction of an auxiliary function called the Lagra
 <li><p>The gradient of the Lagrangian with respect to <span class="math notranslate nohighlight">\(\mathbf{x}\)</span> must be zero at the optimal point (<strong>stationarity</strong>):</p>
 <div class="math notranslate nohighlight">
 \[\nabla_x \mathcal{L}(\mathbf{x}^*, \boldsymbol{\mu}^*, \boldsymbol{\lambda}^*) = \nabla f(\mathbf{x}^*) + \sum_{i=1}^m \mu_i^* \nabla g_i(\mathbf{x}^*) + \sum_{j=1}^\ell \lambda_j^* \nabla h_j(\mathbf{x}^*) = \mathbf{0}\]</div>
-<p>Graphically speaking, this means that the gradient of the objective and that of constraint are parallel to each other at the optimum but point in opposite directions.</p>
+<p>In the case where we only have equality constraints, this means that the gradient of the objective and that of constraint are parallel to each other at the optimum but point in opposite directions.</p>
 </li>
 <li><p>A valid solution of a NLP is one which satisfies all the constraints (<strong>primal feasibility</strong>)</p>
 <div class="math notranslate nohighlight">
@@ -914,7 +915,7 @@ This result relies on the construction of an auxiliary function called the Lagra
 </section>
 </section>
 <section id="transformation-to-an-unconstrained-problem-single-shooting-methods">
-<h2>Transformation to an Unconstrained Problem: Single Shooting Methods<a class="headerlink" href="#transformation-to-an-unconstrained-problem-single-shooting-methods" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">2.2. </span>Transformation to an Unconstrained Problem: Single Shooting Methods<a class="headerlink" href="#transformation-to-an-unconstrained-problem-single-shooting-methods" title="Link to this heading">#</a></h2>
 <p>Given access to unconstrained optimization solver, the easiest method to implement is by far what is known as “single shooting” in control theory. The idea of simple: rather than having to solve for the state variables as equality constraints, we transform the original equality constraint problem into an unconstrained one through “simulation”, ie by recursively computing the evolution of our system for any given set of controls and initial state. In the deterministic setting, given an initial state, we can always exactly reconstruct the resulting sequence of states by “rolling out” our model, a process which some communities would refer to as “time marching”. Mathematically, this amounts to forming the following unconstrained program:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
@@ -931,7 +932,7 @@ This result relies on the construction of an auxiliary function called the Lagra
 \end{align*}
 \end{split}\]</div>
 <div class="proof algorithm admonition" id="naive-single-shooting">
-<p class="admonition-title"><span class="caption-number">Algorithm 1 </span> (Naive Single Shooting: re-computation/checkpointing)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 2.1 </span> (Naive Single Shooting: re-computation/checkpointing)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Inputs</strong> Initial state <span class="math notranslate nohighlight">\(\mathbf{x}_1\)</span>, time horizon <span class="math notranslate nohighlight">\(T\)</span>, control bounds <span class="math notranslate nohighlight">\(\mathbf{u}_{lb}\)</span> and <span class="math notranslate nohighlight">\(\mathbf{u}_{ub}\)</span>, state transition functions <span class="math notranslate nohighlight">\(\mathbf{f}_t\)</span>, cost functions <span class="math notranslate nohighlight">\(c_t\)</span></p>
 <p><strong>Output</strong> Optimal control sequence <span class="math notranslate nohighlight">\(\mathbf{u}^*_{1:T-1}\)</span></p>
@@ -1126,10 +1127,10 @@ Optimal control sequence: [-0.84949356 -0.76774836 -0.6298094  -0.4975385  -0.38
 </div>
 </details>
 </div>
-<p>The approach outlined in <a class="reference internal" href="#naive-single-shooting">Algorithm 1</a> , and  implemented in code <span class="xref std std-ref">naive-single-shooting-impl</span>, stems directly from the mathematical definition and involves recomputing the sequence of states from the begining every time that the instantenous cost function along the trajectory needs to be evaluated. This implementation has the benefit that it requires very little storage, as the only quantity that we have to maintain in addition to the running cost is the last state. However, this simplicitity and storage savings come at a steep computation cost as it requires re-computing the trajectory up to any given stage starting from the initial state.
+<p>The approach outlined in <a class="reference internal" href="#naive-single-shooting">Algorithm 2.1</a> , and  implemented in code <span class="xref std std-ref">naive-single-shooting-impl</span>, stems directly from the mathematical definition and involves recomputing the sequence of states from the begining every time that the instantenous cost function along the trajectory needs to be evaluated. This implementation has the benefit that it requires very little storage, as the only quantity that we have to maintain in addition to the running cost is the last state. However, this simplicitity and storage savings come at a steep computation cost as it requires re-computing the trajectory up to any given stage starting from the initial state.
 A more practical and efficient implementation combines trajectory unrolling with cost accumulation. This process can be realized through a simple for-loop in frameworks like JAX, which can trace code execution through control flows. Alternatively, a more efficient <code class="docutils literal notranslate"><span class="pre">scan</span></code> operation could be employed. By simultaneously computing the trajectory and summing costs, we eliminate redundant calculations, effectively trading computation for storage—a strategy reminiscent of checkpointing in automatic differentiation.</p>
 <div class="proof algorithm admonition" id="shooting-trajectory-storage">
-<p class="admonition-title"><span class="caption-number">Algorithm 2 </span> (Single Shooting: Trajectory Storage)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 2.2 </span> (Single Shooting: Trajectory Storage)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Inputs</strong> Initial state <span class="math notranslate nohighlight">\(\mathbf{x}_1\)</span>, time horizon <span class="math notranslate nohighlight">\(T\)</span>, control bounds <span class="math notranslate nohighlight">\(\mathbf{u}_{lb}\)</span> and <span class="math notranslate nohighlight">\(\mathbf{u}_{ub}\)</span>, state transition functions <span class="math notranslate nohighlight">\(\mathbf{f}_t\)</span>, cost functions <span class="math notranslate nohighlight">\(c_t\)</span></p>
 <p><strong>Output</strong> Optimal control sequence <span class="math notranslate nohighlight">\(\mathbf{u}^*_{1:T-1}\)</span></p>
@@ -1402,20 +1403,20 @@ Optimal control sequence: [-0.84949344 -0.7677488  -0.6298097  -0.4975385  -0.38
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Mathematical Programming Approach</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#irrigation-management-example">Irrigation Management Example</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#discrete-time-optimal-control-problems-in-general">Discrete-Time Optimal Control Problems in General</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#reduction-to-mayer-problems">Reduction to Mayer Problems</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">1. Mathematical Programming Approach</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#irrigation-management-example">1.1. Irrigation Management Example</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#discrete-time-optimal-control-problems-in-general">1.2. Discrete-Time Optimal Control Problems in General</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#reduction-to-mayer-problems">1.2.1. Reduction to Mayer Problems</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#numerical-methods-for-solving-docps">Numerical Methods for Solving DOCPs</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#constrained-optimization-approach">Constrained Optimization Approach</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nonlinear-programming-and-kkt-conditions">Nonlinear Programming and KKT Conditions</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#numerical-methods-for-solving-docps">2. Numerical Methods for Solving DOCPs</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#constrained-optimization-approach">2.1. Constrained Optimization Approach</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nonlinear-programming-and-kkt-conditions">2.1.1. Nonlinear Programming and KKT Conditions</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#transformation-to-an-unconstrained-problem-single-shooting-methods">Transformation to an Unconstrained Problem: Single Shooting Methods</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#transformation-to-an-unconstrained-problem-single-shooting-methods">2.2. Transformation to an Unconstrained Problem: Single Shooting Methods</a></li>
 </ul>
 </li>
 </ul>
