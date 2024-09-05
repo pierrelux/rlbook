@@ -5,3 +5,5 @@ format: jb-book
 root: intro
 chapters:
 - file: ocp.md
+options:
+  numbered: true

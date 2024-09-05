@@ -145,8 +145,10 @@ $$ \begin{align*}
 
 The system dynamics, represented by $f_t(x_t, u_t)$, describe how the battery charge and vehicle speed evolve based on the current state and control input. The initial condition $x_1 = [1, 0]^T$ indicates that the vehicle starts with a fully charged battery and zero initial speed. The constraints $-1 \leq u_t \leq 1$ and $-5 \leq x_{t,1}, x_{t,2} \leq 5$ ensure that the control inputs and state variables remain within acceptable ranges throughout the journey. This model is of course highly simplistic and neglects the nonlinear nature of battery discharge and vehicle motion due to air resistance, road grade, and vehicle mass, etc. Furthermore, our model ignores the effect of environmental factors like wind and temperature on regenerative breaking. Route-specific information such as elevation changes and speed limits are absent, as is the consideration of auxiliary power consumption such as heating and entertainment. These are all possible improvements to our models which we ignore at the moment for the sake of simplicity.
 
+The following code demonstrate how this problem can be solved directly using `scipy.optimize.minimize` in a black box fashion. In the next sections, we will dive deeper into the mathematical underpinnings of constrained optimization and implement our own solvers. For the moment, I simply want to bring to your attention that the solution to this problem, as expressed in its original form, involves solving for two interdependent quantities: the optimal sequence of controls, and that of the states encountered when applying them to the system. Is that bug, or a feature? We'll see that it depends...
+
 ```{code-cell} ipython3
-:tags: [hide-cell]
+:tags: [hide-input]
 import numpy as np
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
@@ -431,7 +433,7 @@ where $\boldsymbol{\mu} \in \mathbb{R}^m$ and $\boldsymbol{\lambda} \in \mathbb{
 
    $$\nabla_x \mathcal{L}(\mathbf{x}^*, \boldsymbol{\mu}^*, \boldsymbol{\lambda}^*) = \nabla f(\mathbf{x}^*) + \sum_{i=1}^m \mu_i^* \nabla g_i(\mathbf{x}^*) + \sum_{j=1}^\ell \lambda_j^* \nabla h_j(\mathbf{x}^*) = \mathbf{0}$$
 
-   Graphically speaking, this means that the gradient of the objective and that of constraint are parallel to each other at the optimum but point in opposite directions. 
+   In the case where we only have equality constraints, this means that the gradient of the objective and that of constraint are parallel to each other at the optimum but point in opposite directions. 
 
 2. A valid solution of a NLP is one which satisfies all the constraints (**primal feasibility**)
 
