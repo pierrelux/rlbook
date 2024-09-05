@@ -177,6 +177,7 @@
         </ul>
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Mathematical Programming Approach</a></li>
+
 </ul>
 
     </div>
@@ -389,16 +390,24 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Mathematical Programming Approach</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#irrigation-management-example">Irrigation Management Example</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#discrete-time-optimal-control-problems-in-general">Discrete-Time Optimal Control Problems in General</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#reduction-to-mayer-problems">Reduction to Mayer Problems</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#solving-an-docp-by-gradient-descent">Solving an DOCP by Gradient Descent</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#single-shooting-method">Single Shooting Method</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#numerical-methods-for-solving-docps">Numerical Methods for Solving DOCPs</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#constrained-optimization-approach">Constrained Optimization Approach</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nonlinear-programming-and-kkt-conditions">Nonlinear Programming and KKT Conditions</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#transformation-to-an-unconstrained-problem-single-shooting-methods">Transformation to an Unconstrained Problem: Single Shooting Methods</a></li>
 </ul>
 </li>
 </ul>
+
             </nav>
         </div>
     </div>
@@ -418,7 +427,7 @@ document.write(`
 <p>This course considers two broad categories of environments, each with its own specialized solution methods: deterministic and stochastic environments. Stochastic problems are mathematically more general than their deterministic counterparts. However, despite this generality, it’s important to note that algorithms for stochastic problems are not necessarily more powerful than those designed for deterministic ones when used in practice. We should keep in mind that stochasticity and determinism are assumed properties of the world, which we model—perhaps imperfectly—into our algorithms. In this course, we adopt a pragmatic perspective on that matter, and will make assumptions only to the extent that those assumptions help us design algorithms which are ultimately useful in practice: a lesson which we have certainly learned from the success of deep learning methods over the last years. With this pragmatic stance, we start our journey with deterministic discrete-time models.</p>
 <section id="irrigation-management-example">
 <h2>Irrigation Management Example<a class="headerlink" href="#irrigation-management-example" title="Link to this heading">#</a></h2>
-<p>Resource allocation problems, found across various fields of operations research, are a specific kind of deterministic discrete-time optimal control problems. For example, consider the problem of irrigation management as posed by <span id="id1">Hall and Butcher [<a class="reference internal" href="#id5" title="Warren A. Hall and William S. Butcher. Optimal timing of irrigation. Journal of the Irrigation and Drainage Division, 94(2):267–275, June 1968. URL: http://dx.doi.org/10.1061/JRCEA4.0000569, doi:10.1061/jrcea4.0000569.">HB68</a>]</span>, in which a decision maker is tasked with finding the optimal amount of water to allocate throughout the various growth stages of a plant in order to maximize the yield. Clearly, allocating all the water – thereby flooding the crop – in the first stage would be a bad idea. Similarly, letting the crop dry out and only watering at the end is also suboptimal. Our solution – that is a prescription for the amount of water to use at any point in time – should balance those two extremes. In order to achieve this goal, our system should ideally be informed by the expected growth dynamics of the given crops as a function of the water provided: a process which depends at the very least on physical properties known to influence the soil moisture. The basic model considered in this paper describes the evolution of the moisture content through the equation:</p>
+<p>Resource allocation problems, found across various fields of operations research, are a specific kind of deterministic discrete-time optimal control problems. For example, consider the problem of irrigation management as posed by <span id="id1">Hall and Butcher [<a class="reference internal" href="#id7" title="Warren A. Hall and William S. Butcher. Optimal timing of irrigation. Journal of the Irrigation and Drainage Division, 94(2):267–275, June 1968. URL: http://dx.doi.org/10.1061/JRCEA4.0000569, doi:10.1061/jrcea4.0000569.">HB68</a>]</span>, in which a decision maker is tasked with finding the optimal amount of water to allocate throughout the various growth stages of a plant in order to maximize the yield. Clearly, allocating all the water – thereby flooding the crop – in the first stage would be a bad idea. Similarly, letting the crop dry out and only watering at the end is also suboptimal. Our solution – that is a prescription for the amount of water to use at any point in time – should balance those two extremes. In order to achieve this goal, our system should ideally be informed by the expected growth dynamics of the given crops as a function of the water provided: a process which depends at the very least on physical properties known to influence the soil moisture. The basic model considered in this paper describes the evolution of the moisture content through the equation:</p>
 <div class="amsmath math notranslate nohighlight">
 \[\begin{align*}
 w_{t+1} = w_t+\texttip{\eta}{efficiency} u_t-e_t + \phi_t
@@ -445,7 +454,7 @@ The problem specification laid out above can be turned into the following mathem
 </section>
 <section id="discrete-time-optimal-control-problems-in-general">
 <h2>Discrete-Time Optimal Control Problems in General<a class="headerlink" href="#discrete-time-optimal-control-problems-in-general" title="Link to this heading">#</a></h2>
-<p>The three quantities <span class="math notranslate nohighlight">\((w_t, q_t, a_t)\)</span> appearing in the model of <span id="id2">Hall and Butcher [<a class="reference internal" href="#id5" title="Warren A. Hall and William S. Butcher. Optimal timing of irrigation. Journal of the Irrigation and Drainage Division, 94(2):267–275, June 1968. URL: http://dx.doi.org/10.1061/JRCEA4.0000569, doi:10.1061/jrcea4.0000569.">HB68</a>]</span> above have the property that they encompass all of the information necessary to simulate the process. We say that it is a “<strong>state variable</strong>”, and its time evolution is specified via so-called <strong>dynamics function</strong>, which we commonly denote by <span class="math notranslate nohighlight">\(f_t\)</span>. In discrete-time systems, the dynamics are often described by “difference equations,” as opposed to the “differential equations” used for continuous-time systems. When the dynamics function depends on the time index <span class="math notranslate nohighlight">\(t\)</span>, we refer to it as “non-stationary” dynamics. Conversely, if the function <span class="math notranslate nohighlight">\(f\)</span> remains constant across all time steps, we call it “stationary” dynamics. In the context of optimal control theory, we refer more generally to <span class="math notranslate nohighlight">\(u_t\)</span> as a “control” variable while in other communities it is called an “action”. Whether the problem is posed as a minimization problem or maximization problem is also a matter of communities, with control theory typically posing problems in terms of cost minimization while OR and RL communities usually adopt a reward maximization perspective. In this course, we will alternate between the two equivalent formulations while ensuring that context is sufficiently clear to understand which one is used.</p>
+<p>The three quantities <span class="math notranslate nohighlight">\((w_t, q_t, a_t)\)</span> appearing in the model of <span id="id2">Hall and Butcher [<a class="reference internal" href="#id7" title="Warren A. Hall and William S. Butcher. Optimal timing of irrigation. Journal of the Irrigation and Drainage Division, 94(2):267–275, June 1968. URL: http://dx.doi.org/10.1061/JRCEA4.0000569, doi:10.1061/jrcea4.0000569.">HB68</a>]</span> above have the property that they encompass all of the information necessary to simulate the process. We say that it is a “<strong>state variable</strong>”, and its time evolution is specified via so-called <strong>dynamics function</strong>, which we commonly denote by <span class="math notranslate nohighlight">\(f_t\)</span>. In discrete-time systems, the dynamics are often described by “difference equations,” as opposed to the “differential equations” used for continuous-time systems. When the dynamics function depends on the time index <span class="math notranslate nohighlight">\(t\)</span>, we refer to it as “non-stationary” dynamics. Conversely, if the function <span class="math notranslate nohighlight">\(f\)</span> remains constant across all time steps, we call it “stationary” dynamics. In the context of optimal control theory, we refer more generally to <span class="math notranslate nohighlight">\(u_t\)</span> as a “control” variable while in other communities it is called an “action”. Whether the problem is posed as a minimization problem or maximization problem is also a matter of communities, with control theory typically posing problems in terms of cost minimization while OR and RL communities usually adopt a reward maximization perspective. In this course, we will alternate between the two equivalent formulations while ensuring that context is sufficiently clear to understand which one is used.</p>
 <p>The problem stated above, is known as a Discrete-Time Optimal Control Problem (DOCP), which we write more generically as:</p>
 <div class="proof definition admonition" id="bolza-docp">
 <p class="admonition-title"><span class="caption-number">Definition 1 </span> (Discrete-Time Optimal Control Problem of Bolza Type)</p>
@@ -508,11 +517,16 @@ y_t+c_t\left(\boldsymbol{x}_t, \boldsymbol{u}_t\right)
 <p>This transformation is often helpful to simplify mathematical derivations (as we are about to see shortly) but could also be used to streamline algorithmic implementation (by maintaining one version of the code rather than three with many if/else statements). That being said, there could also be computational advantages to working with the specific problem types rather than the one size-fits-for-all Mayer reduction.</p>
 </section>
 </section>
-<section id="solving-an-docp-by-gradient-descent">
-<h2>Solving an DOCP by Gradient Descent<a class="headerlink" href="#solving-an-docp-by-gradient-descent" title="Link to this heading">#</a></h2>
-<p>The mathematical programming formulation presented above readily lend themselves to general-purpose solvers for nonlinear mathematical program. For example, we can use the function scipy.minimize along with SLSQP solver to obtain a solution to any (feasible) Bolza problem of the form presented above.
-Consider an electric vehicle traversing a planned route, where we aim to optimize its energy consumption over a 20-minute journey. Our simplified model encapsulates the vehicle’s state using two variables: <span class="math notranslate nohighlight">\(x_1\)</span>, representing the battery state of charge as a percentage, and <span class="math notranslate nohighlight">\(x_2\)</span>, denoting the vehicle’s speed in meters per second. The control input <span class="math notranslate nohighlight">\(u\)</span>, ranging from -1 to 1, represents the motor power, with negative values indicating regenerative braking and positive values representing acceleration.</p>
-<p>The problem can be formally expressed as a mathematical program in Bolza form:</p>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="numerical-methods-for-solving-docps">
+<h1>Numerical Methods for Solving DOCPs<a class="headerlink" href="#numerical-methods-for-solving-docps" title="Link to this heading">#</a></h1>
+<p>Let’s assume that an optimal control problem has been formulated in one of the forms presented earlier and has been given to us to solve. The following section explores numerical solutions applicable to these problems, focusing on trajectory optimization. Our goal is to output an optimal control (and state trajectory) based on the given cost function and dynamics structure.</p>
+<p>It’s important to note that the methods presented here are not learning methods; they don’t involve ingesting data or inferring unknown quantities from it. However, these methods represent a central component of any decision-learning system, and we will later explore how learning concepts can be incorporated.</p>
+<section id="constrained-optimization-approach">
+<h2>Constrained Optimization Approach<a class="headerlink" href="#constrained-optimization-approach" title="Link to this heading">#</a></h2>
+<p>The mathematical programming formulation presented earlier lends itself readily to off-the-shelf solvers for nonlinear mathematical programs. For example, we can use the <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code> function along with the SLSQP (Sequential Least Squares Programming) solver to obtain a solution to any feasible Bolza problem of the form presented below.</p>
+<p>Before delving into the details of the numerical solver itself, let’s consider an electric vehicle energy management problem. We will use this as a test bed for our algorithms, allowing us to demonstrate the practical application of these optimization techniques.
+Consider an electric vehicle traversing a planned route, where we aim to optimize its energy consumption over a 20-minute journey. Our simplified model represents the vehicle’s state using two variables: <span class="math notranslate nohighlight">\(x_1\)</span>, the battery state of charge as a percentage, and <span class="math notranslate nohighlight">\(x_2\)</span>, denoting the vehicle’s speed in meters per second. The control input <span class="math notranslate nohighlight">\(u\)</span>, ranging from -1 to 1, represents the motor power, with negative values indicating regenerative braking and positive values representing acceleration. The problem can be formally expressed as a mathematical program in Bolza form:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split} \begin{align*}
 \min_{x, u} \quad &amp; J = \underbrace{x_{T,1}^2 + x_{T,2}^2}_{\text{Mayer term}} + \underbrace{\sum_{t=1}^{T-1} 0.1(x_{t,1}^2 + x_{t,2}^2 + u_t^2)}_{\text{Lagrange term}} \\[2ex]
@@ -527,8 +541,7 @@ Consider an electric vehicle traversing a planned route, where we aim to optimiz
 &amp; T = 20 \\[1ex]
 &amp; x_t = \begin{bmatrix} x_{t,1} \\ x_{t,2} \end{bmatrix} \in \mathbb{R}^2, \quad u_t \in \mathbb{R}
 \end{align*} \end{split}\]</div>
-<p>The system dynamics, represented by <span class="math notranslate nohighlight">\(f_t(x_t, u_t)\)</span>, describe how the battery charge and vehicle speed evolve based on the current state and control input. The initial condition <span class="math notranslate nohighlight">\(x_1 = [1, 0]^T\)</span> indicates that the vehicle starts with a fully charged battery and zero initial speed. The constraints <span class="math notranslate nohighlight">\(-1 \leq u_t \leq 1\)</span> and <span class="math notranslate nohighlight">\(-5 \leq x_{t,1}, x_{t,2} \leq 5\)</span> ensure that the control inputs and state variables remain within acceptable ranges throughout the journey. While this model captures the essence of electric vehicle energy management, it has several limitations. The use of linear dynamics oversimplifies the complex, nonlinear nature of battery discharge and vehicle motion. It neglects factors such as air resistance, road grade, and vehicle mass. The treatment of regenerative braking is basic, and the model ignores environmental factors like wind and temperature. Route-specific information such as elevation changes and speed limits are absent, as is the consideration of auxiliary power consumption such as heating and entertainment.</p>
-<p>Given these simplifications, the optimal solution to this problem would likely exhibit a smooth speed profile, avoiding rapid accelerations or decelerations. It would make efficient use of regenerative braking to recapture energy and aim for a final state that balances remaining battery charge with appropriate speed. The following code verifies this intuition and provides a template for translating a general Bolza problem in a form that scipy accepts. The solution computed by this function returns both the state and the control trajectories, as implied by the original formulation.</p>
+<p>The system dynamics, represented by <span class="math notranslate nohighlight">\(f_t(x_t, u_t)\)</span>, describe how the battery charge and vehicle speed evolve based on the current state and control input. The initial condition <span class="math notranslate nohighlight">\(x_1 = [1, 0]^T\)</span> indicates that the vehicle starts with a fully charged battery and zero initial speed. The constraints <span class="math notranslate nohighlight">\(-1 \leq u_t \leq 1\)</span> and <span class="math notranslate nohighlight">\(-5 \leq x_{t,1}, x_{t,2} \leq 5\)</span> ensure that the control inputs and state variables remain within acceptable ranges throughout the journey. This model is of course highly simplistic and neglects the nonlinear nature of battery discharge and vehicle motion due to air resistance, road grade, and vehicle mass, etc. Furthermore, our model ignores the effect of environmental factors like wind and temperature on regenerative breaking. Route-specific information such as elevation changes and speed limits are absent, as is the consideration of auxiliary power consumption such as heating and entertainment. These are all possible improvements to our models which we ignore at the moment for the sake of simplicity.</p>
 <div class="cell tag_hide-cell docutils container">
 <details class="hide above-input">
 <summary aria-label="Toggle hidden content">
@@ -736,11 +749,173 @@ Optimal controls:
 </div>
 </details>
 </div>
-<p>The solver used by <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html">scipy.optimize.minimize</a> is designed for solving constrained optimization problems. In deep learning, we often tend to shy away from such methods and fall back to our go-to approach: (stochastic) gradient descent for unconstrained problems. Moreover, modern deep learning is characterized by the automatic and exact evaluation of gradients using automatic differentiation.
-This contrasts with many existing methods in constrained optimization literature, which often consider settings where gradients are computed approximately using finite-difference methods (as in Scipy’s SLSQP <span id="id3">Kraft [<a class="reference internal" href="#id6" title="Dieter Kraft. A software package for sequential quadratic programming. DFVLR Obersfaffeheim Report, 88(28):1–20, 1988.">Kra88</a>]</span>). While conceptually easy to understand and implement, finite difference gradients are expensive to compute. They require propagating as many perturbations as there are components in the gradient, a property inherently incompatible with most deep learning workloads involving millions or billions of parameters (and thus, gradient components).</p>
-<section id="single-shooting-method">
-<h3>Single Shooting Method<a class="headerlink" href="#single-shooting-method" title="Link to this heading">#</a></h3>
-<p>Given access to an automatic differentiation framework, the easiest method to implement is by far what is known as “single shooting” in control theory. The idea of simple: rather than having to solve for the state variables as equality constraints, we transform the original equality constraint problem into an unconstrained one through “simulation”, ie by recursively computing the evolution of our system for any given set of controls and initial state. In the deterministic setting, given an initial state, we can always exactly reconstruct the resulting sequence of states by “rolling out” our model, a process which some communities would refer to as “time marching”. Mathematically, this amounts to forming the following unconstrained program:</p>
+<section id="nonlinear-programming-and-kkt-conditions">
+<h3>Nonlinear Programming and KKT Conditions<a class="headerlink" href="#nonlinear-programming-and-kkt-conditions" title="Link to this heading">#</a></h3>
+<p>Unless specific assumptions are made on the dynamics and cost structure, a DOCP is, in its most general form, a nonlinear mathematical program (commonly referred to as an NLP, not to be confused with Natural Language Processing). An NLP can be formulated as follows:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+\text{minimize } &amp; f(\mathbf{x}) \\
+\text{subject to } &amp; \mathbf{g}(\mathbf{x}) \leq \mathbf{0} \\
+&amp; \mathbf{h}(\mathbf{x}) = \mathbf{0}
+\end{aligned}
+\end{split}\]</div>
+<p>Where:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(f: \mathbb{R}^n \to \mathbb{R}\)</span> is the objective function</p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathbf{g}: \mathbb{R}^n \to \mathbb{R}^m\)</span> represents inequality constraints</p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathbf{h}: \mathbb{R}^n \to \mathbb{R}^\ell\)</span> represents equality constraints</p></li>
+</ul>
+<p>Unlike unconstrained optimization commonly used in deep learning, the optimality of a solution in constrained optimization must consider both the objective value and constraint feasibility. To illustrate this, consider the following problem, which includes both equality and inequality constraints:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{align*}
+\text{Minimize} \quad &amp; f(x_1, x_2) = (x_1 - 1)^2 + (x_2 - 2.5)^2 \\
+\text{subject to} \quad &amp; g(x_1, x_2) = (x_1 - 1)^2 + (x_2 - 1)^2 \leq 1.5, \\
+&amp; h(x_1, x_2) = x_2 - \left(0.5 \sin(2 \pi x_1) + 1.5\right) = 0.
+\end{align*}
+\end{split}\]</div>
+<p>In this example, the objective function <span class="math notranslate nohighlight">\(f(x_1, x_2)\)</span> is quadratic, which can be advantageous in solution methods, especially when combined with linear constraints. The inequality constraint <span class="math notranslate nohighlight">\(g(x_1, x_2)\)</span> defines a circular feasible region centered at <span class="math notranslate nohighlight">\((1, 1)\)</span> with a radius of <span class="math notranslate nohighlight">\(\sqrt{1.5}\)</span>. Additionally, the equality constraint <span class="math notranslate nohighlight">\(h(x_1, x_2)\)</span> requires <span class="math notranslate nohighlight">\(x_2\)</span> to lie on a sine wave function. The following code demonstrates the difference between the unconstrained, and constrained solutions to this problem.</p>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Show code cell source</span>
+<span class="expanded">Hide code cell source</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize</span>
+
+<span class="c1"># Define the objective function</span>
+<span class="k">def</span> <span class="nf">objective</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">2.5</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+
+<span class="c1"># Define the inequality constraint function</span>
+<span class="k">def</span> <span class="nf">constraint</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="o">-</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="mf">1.5</span>
+
+<span class="c1"># Define the gradient of the objective function</span>
+<span class="k">def</span> <span class="nf">objective_gradient</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">2.5</span><span class="p">)])</span>
+
+<span class="c1"># Define the gradient of the inequality constraint function</span>
+<span class="k">def</span> <span class="nf">constraint_gradient</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)])</span>
+
+<span class="c1"># Define the sine wave equality constraint function</span>
+<span class="k">def</span> <span class="nf">sine_wave_equality_constraint</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="mf">1.5</span><span class="p">)</span>
+
+<span class="c1"># Define the gradient of the sine wave equality constraint function</span>
+<span class="k">def</span> <span class="nf">sine_wave_equality_constraint_gradient</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="mi">1</span><span class="p">])</span>
+
+<span class="c1"># Define the constraints including the sine wave equality constraint</span>
+<span class="n">sine_wave_constraints</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;ineq&#39;</span><span class="p">,</span> <span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="n">constraint</span><span class="p">,</span> <span class="s1">&#39;jac&#39;</span><span class="p">:</span> <span class="n">constraint_gradient</span><span class="p">},</span>  <span class="c1"># Inequality constraint</span>
+                         <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;eq&#39;</span><span class="p">,</span> <span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="n">sine_wave_equality_constraint</span><span class="p">,</span> <span class="s1">&#39;jac&#39;</span><span class="p">:</span> <span class="n">sine_wave_equality_constraint_gradient</span><span class="p">}]</span>  <span class="c1"># Sine wave equality constraint</span>
+
+<span class="c1"># Define only the inequality constraint</span>
+<span class="n">inequality_constraints</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;ineq&#39;</span><span class="p">,</span> <span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="n">constraint</span><span class="p">,</span> <span class="s1">&#39;jac&#39;</span><span class="p">:</span> <span class="n">constraint_gradient</span><span class="p">}]</span>
+
+<span class="c1"># Initial guess</span>
+<span class="n">x0</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.25</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">]</span>
+
+<span class="c1"># Solve the optimization problem with the sine wave equality constraint</span>
+<span class="n">res_sine_wave_constraint</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;SLSQP&#39;</span><span class="p">,</span> <span class="n">jac</span><span class="o">=</span><span class="n">objective_gradient</span><span class="p">,</span> 
+                                    <span class="n">constraints</span><span class="o">=</span><span class="n">sine_wave_constraints</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;disp&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
+
+<span class="n">x_opt_sine_wave_constraint</span> <span class="o">=</span> <span class="n">res_sine_wave_constraint</span><span class="o">.</span><span class="n">x</span>
+
+<span class="c1"># Solve the optimization problem with only the inequality constraint</span>
+<span class="n">res_inequality_only</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;SLSQP&#39;</span><span class="p">,</span> <span class="n">jac</span><span class="o">=</span><span class="n">objective_gradient</span><span class="p">,</span> 
+                               <span class="n">constraints</span><span class="o">=</span><span class="n">inequality_constraints</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;disp&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
+
+<span class="n">x_opt_inequality_only</span> <span class="o">=</span> <span class="n">res_inequality_only</span><span class="o">.</span><span class="n">x</span>
+
+<span class="c1"># Solve the unconstrained optimization problem for reference</span>
+<span class="n">res_unconstrained</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;SLSQP&#39;</span><span class="p">,</span> <span class="n">jac</span><span class="o">=</span><span class="n">objective_gradient</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;disp&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
+<span class="n">x_opt_unconstrained</span> <span class="o">=</span> <span class="n">res_unconstrained</span><span class="o">.</span><span class="n">x</span>
+
+<span class="c1"># Generate data for visualization</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">400</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">400</span><span class="p">)</span>
+<span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="n">Z</span> <span class="o">=</span> <span class="p">(</span><span class="n">X</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">Y</span> <span class="o">-</span> <span class="mf">2.5</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>  <span class="c1"># Objective function values</span>
+<span class="n">constraint_values</span> <span class="o">=</span> <span class="p">(</span><span class="n">X</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">Y</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+
+<span class="c1"># Data for sine wave constraint</span>
+<span class="n">x_sine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">400</span><span class="p">)</span>
+<span class="n">y_sine</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">x_sine</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1.5</span>
+
+<span class="c1"># Visualization with Improved Color Scheme</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">contourf</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span>  <span class="c1"># Heatmap for the objective function</span>
+
+<span class="c1"># Plot all the optimal points</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_opt_inequality_only</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x_opt_inequality_only</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;ro&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Optimal Solution (Inequality Only)&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">markeredgecolor</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_opt_sine_wave_constraint</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x_opt_sine_wave_constraint</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;mo&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Optimal Solution (Sine Wave Equality &amp; Inequality)&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">markeredgecolor</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_opt_unconstrained</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x_opt_unconstrained</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;co&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Unconstrained Minimum&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">markeredgecolor</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
+
+<span class="c1"># Adjust constraint boundary colors</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">constraint_values</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="p">[</span><span class="mf">1.5</span><span class="p">],</span> <span class="n">colors</span><span class="o">=</span><span class="s1">&#39;navy&#39;</span><span class="p">,</span> <span class="n">linewidths</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">linestyles</span><span class="o">=</span><span class="s1">&#39;dashed&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">contourf</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">constraint_values</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">],</span> <span class="n">colors</span><span class="o">=</span><span class="s1">&#39;skyblue&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+
+<span class="c1"># Plot the sine wave equality constraint with a high contrast color</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_sine</span><span class="p">,</span> <span class="n">y_sine</span><span class="p">,</span> <span class="s1">&#39;lime&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Sine Wave Equality Constraint&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;x1&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;x2&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Example NLP&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper left&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="s1">&#39;small&#39;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">fancybox</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># Set the aspect ratio to be equal so the circle appears correctly</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">,</span> <span class="n">adjustable</span><span class="o">=</span><span class="s1">&#39;box&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<img alt="_images/af05192d0312dcb3309548c3ceedd4468f282e991b9cef83452557dfe3eef22a.png" src="_images/af05192d0312dcb3309548c3ceedd4468f282e991b9cef83452557dfe3eef22a.png" />
+</div>
+</div>
+<p>While this example is simple enough to convince ourselves visually of the solution to this particular problem, it falls short of providing us with actionable chracterization of what constitutes and optimal solution in general.
+The Karush-Kuhn-Tucker (KKT) conditions provide us with an answer to this problem by generalizing the first-order optimality conditions in unconstrained optimization to problems involving both equality and inequality constraints.
+This result relies on the construction of an auxiliary function called the Lagrangian, defined as:</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{L}(\mathbf{x}, \boldsymbol{\mu}, \boldsymbol{\lambda})=f(\mathbf{x})+\boldsymbol{\mu}^{\top} \mathbf{g}(\mathbf{x})+\boldsymbol{\lambda}^{\top} \mathbf{h}(\mathbf{x})\]</div>
+<p>where <span class="math notranslate nohighlight">\(\boldsymbol{\mu} \in \mathbb{R}^m\)</span> and <span class="math notranslate nohighlight">\(\boldsymbol{\lambda} \in \mathbb{R}^\ell\)</span> are known as Lagrange multipliers. The first-order optimality conditions then state that if <span class="math notranslate nohighlight">\(\mathbf{x}^*\)</span>, then there must exist corresponding Lagrange multipliers <span class="math notranslate nohighlight">\(\boldsymbol{\mu}^*\)</span> and <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^*\)</span> such that:</p>
+<ol class="arabic">
+<li><p>The gradient of the Lagrangian with respect to <span class="math notranslate nohighlight">\(\mathbf{x}\)</span> must be zero at the optimal point (<strong>stationarity</strong>):</p>
+<div class="math notranslate nohighlight">
+\[\nabla_x \mathcal{L}(\mathbf{x}^*, \boldsymbol{\mu}^*, \boldsymbol{\lambda}^*) = \nabla f(\mathbf{x}^*) + \sum_{i=1}^m \mu_i^* \nabla g_i(\mathbf{x}^*) + \sum_{j=1}^\ell \lambda_j^* \nabla h_j(\mathbf{x}^*) = \mathbf{0}\]</div>
+<p>Graphically speaking, this means that the gradient of the objective and that of constraint are parallel to each other at the optimum but point in opposite directions.</p>
+</li>
+<li><p>A valid solution of a NLP is one which satisfies all the constraints (<strong>primal feasibility</strong>)</p>
+<div class="math notranslate nohighlight">
+\[\begin{aligned}
+   \mathbf{g}(\mathbf{x}^*) &amp;\leq \mathbf{0}, \enspace \text{and} \enspace \mathbf{h}(\mathbf{x}^*) &amp;= \mathbf{0}
+   \end{aligned}\]</div>
+</li>
+<li><p>Furthermore, the Lagrange multipliers for <strong>inequality</strong> constraints must be non-negative (<strong>dual feasibility</strong>)</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\mu}^* \geq \mathbf{0}\]</div>
+<p>This condition stems from the fact that the inequality constraints can only push the solution in one direction.</p>
+</li>
+<li><p>Finally, for each inequality constraint, either the constraint is active (equality holds) or its corresponding Lagrange multiplier is zero at an optimal solution(<strong>complementary slackness</strong>)</p>
+<div class="math notranslate nohighlight">
+\[\mu_i^* g_i(\mathbf{x}^*) = 0, \quad \forall i = 1,\ldots,m\]</div>
+</li>
+</ol>
+<p>Let’s first convince ourselves of the validity of this result through an example.</p>
+</section>
+</section>
+<section id="transformation-to-an-unconstrained-problem-single-shooting-methods">
+<h2>Transformation to an Unconstrained Problem: Single Shooting Methods<a class="headerlink" href="#transformation-to-an-unconstrained-problem-single-shooting-methods" title="Link to this heading">#</a></h2>
+<p>Given access to unconstrained optimization solver, the easiest method to implement is by far what is known as “single shooting” in control theory. The idea of simple: rather than having to solve for the state variables as equality constraints, we transform the original equality constraint problem into an unconstrained one through “simulation”, ie by recursively computing the evolution of our system for any given set of controls and initial state. In the deterministic setting, given an initial state, we can always exactly reconstruct the resulting sequence of states by “rolling out” our model, a process which some communities would refer to as “time marching”. Mathematically, this amounts to forming the following unconstrained program:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
 \begin{align*}
@@ -755,9 +930,8 @@ This contrasts with many existing methods in constrained optimization literature
 &amp;\text{with}\quad \boldsymbol{\phi}_1(\boldsymbol{u}_{1:T}, \boldsymbol{x}_1) \triangleq \boldsymbol{x}_1
 \end{align*}
 \end{split}\]</div>
-<p>More concretely, these functions can be conceptualized as running a for loop from <span class="math notranslate nohighlight">\(x_1\)</span> all the way to <span class="math notranslate nohighlight">\(t\)</span>, applying the controls and carrying the updated state along the way:</p>
 <div class="proof algorithm admonition" id="naive-single-shooting">
-<p class="admonition-title"><span class="caption-number">Algorithm 1 </span> (Naive Single Shooting (re-computation/checkpointing))</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 1 </span> (Naive Single Shooting: re-computation/checkpointing)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Inputs</strong> Initial state <span class="math notranslate nohighlight">\(\mathbf{x}_1\)</span>, time horizon <span class="math notranslate nohighlight">\(T\)</span>, control bounds <span class="math notranslate nohighlight">\(\mathbf{u}_{lb}\)</span> and <span class="math notranslate nohighlight">\(\mathbf{u}_{ub}\)</span>, state transition functions <span class="math notranslate nohighlight">\(\mathbf{f}_t\)</span>, cost functions <span class="math notranslate nohighlight">\(c_t\)</span></p>
 <p><strong>Output</strong> Optimal control sequence <span class="math notranslate nohighlight">\(\mathbf{u}^*_{1:T-1}\)</span></p>
@@ -800,8 +974,7 @@ subject to <span class="math notranslate nohighlight">\(\mathbf{u}_{lb} \leq \ma
 <li><p>Return <span class="math notranslate nohighlight">\(\mathbf{u}^*_{1:T-1}\)</span></p></li>
 </ol>
 </section>
-</div><p>This approach could be implemented in an automatic differention framework such as Jax, which readily supports differentation through for loops, as demonstrated in the following code.</p>
-<div class="cell tag_hide-cell docutils container">
+</div><div class="cell tag_hide-cell docutils container">
 <details class="hide above-input">
 <summary aria-label="Toggle hidden content">
 <span class="collapsed">Show code cell content</span>
@@ -953,34 +1126,33 @@ Optimal control sequence: [-0.84949356 -0.76774836 -0.6298094  -0.4975385  -0.38
 </div>
 </details>
 </div>
-<div class="proof algorithm admonition" id="efficient-min-cost-trajectory">
-<p class="admonition-title"><span class="caption-number">Algorithm 2 </span> (Single Shooting (storage))</p>
+<p>The approach outlined in <a class="reference internal" href="#naive-single-shooting">Algorithm 1</a> , and  implemented in code <span class="xref std std-ref">naive-single-shooting-impl</span>, stems directly from the mathematical definition and involves recomputing the sequence of states from the begining every time that the instantenous cost function along the trajectory needs to be evaluated. This implementation has the benefit that it requires very little storage, as the only quantity that we have to maintain in addition to the running cost is the last state. However, this simplicitity and storage savings come at a steep computation cost as it requires re-computing the trajectory up to any given stage starting from the initial state.
+A more practical and efficient implementation combines trajectory unrolling with cost accumulation. This process can be realized through a simple for-loop in frameworks like JAX, which can trace code execution through control flows. Alternatively, a more efficient <code class="docutils literal notranslate"><span class="pre">scan</span></code> operation could be employed. By simultaneously computing the trajectory and summing costs, we eliminate redundant calculations, effectively trading computation for storage—a strategy reminiscent of checkpointing in automatic differentiation.</p>
+<div class="proof algorithm admonition" id="shooting-trajectory-storage">
+<p class="admonition-title"><span class="caption-number">Algorithm 2 </span> (Single Shooting: Trajectory Storage)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Inputs</strong> Initial state <span class="math notranslate nohighlight">\(\mathbf{x}_1\)</span>, time horizon <span class="math notranslate nohighlight">\(T\)</span>, control bounds <span class="math notranslate nohighlight">\(\mathbf{u}_{lb}\)</span> and <span class="math notranslate nohighlight">\(\mathbf{u}_{ub}\)</span>, state transition functions <span class="math notranslate nohighlight">\(\mathbf{f}_t\)</span>, cost functions <span class="math notranslate nohighlight">\(c_t\)</span></p>
 <p><strong>Output</strong> Optimal control sequence <span class="math notranslate nohighlight">\(\mathbf{u}^*_{1:T-1}\)</span></p>
 <ol class="arabic simple">
 <li><p>Initialize <span class="math notranslate nohighlight">\(\mathbf{u}_{1:T-1}\)</span> within bounds <span class="math notranslate nohighlight">\([\mathbf{u}_{lb}, \mathbf{u}_{ub}]\)</span></p></li>
-<li><p>Define function ComputeTrajectory(<span class="math notranslate nohighlight">\(\mathbf{u}_{1:T-1}, \mathbf{x}_1\)</span>):</p>
+<li><p>Define function ComputeTrajectoryAndCost(<span class="math notranslate nohighlight">\(\mathbf{u}_{1:T-1}, \mathbf{x}_1\)</span>):</p>
 <ol class="arabic simple">
 <li><p>Initialize <span class="math notranslate nohighlight">\(\mathbf{x} \leftarrow [\mathbf{x}_1]\)</span>  // List to store states</p></li>
+<li><p>Initialize <span class="math notranslate nohighlight">\(J \leftarrow 0\)</span>  // Total cost</p></li>
 <li><p>For <span class="math notranslate nohighlight">\(t = 1\)</span> to <span class="math notranslate nohighlight">\(T-1\)</span>:</p>
 <ol class="arabic simple">
+<li><p><span class="math notranslate nohighlight">\(J \leftarrow J + c_t(\mathbf{x}[t], \mathbf{u}_t)\)</span></p></li>
 <li><p><span class="math notranslate nohighlight">\(\mathbf{x}_{\text{next}} \leftarrow \mathbf{f}_t(\mathbf{x}[t], \mathbf{u}_t)\)</span></p></li>
 <li><p>Append <span class="math notranslate nohighlight">\(\mathbf{x}_{\text{next}}\)</span> to <span class="math notranslate nohighlight">\(\mathbf{x}\)</span></p></li>
 </ol>
 </li>
-<li><p>Return <span class="math notranslate nohighlight">\(\mathbf{x}\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(J \leftarrow J + c_T(\mathbf{x}[T])\)</span>  // Add final state cost</p></li>
+<li><p>Return <span class="math notranslate nohighlight">\(\mathbf{x}, J\)</span></p></li>
 </ol>
 </li>
 <li><p>Define objective function <span class="math notranslate nohighlight">\(J(\mathbf{u}_{1:T-1})\)</span>:</p>
 <ol class="arabic simple">
-<li><p><span class="math notranslate nohighlight">\(\mathbf{x} \leftarrow\)</span> ComputeTrajectory(<span class="math notranslate nohighlight">\(\mathbf{u}_{1:T-1}, \mathbf{x}_1\)</span>)</p></li>
-<li><p><span class="math notranslate nohighlight">\(J \leftarrow c_T(\mathbf{x}[T])\)</span></p></li>
-<li><p>For <span class="math notranslate nohighlight">\(t = 1\)</span> to <span class="math notranslate nohighlight">\(T-1\)</span>:</p>
-<ol class="arabic simple">
-<li><p><span class="math notranslate nohighlight">\(J \leftarrow J + c_t(\mathbf{x}[t], \mathbf{u}_t)\)</span></p></li>
-</ol>
-</li>
+<li><p><span class="math notranslate nohighlight">\(\_, J \leftarrow\)</span> ComputeTrajectoryAndCost(<span class="math notranslate nohighlight">\(\mathbf{u}_{1:T-1}, \mathbf{x}_1\)</span>)</p></li>
 <li><p>Return <span class="math notranslate nohighlight">\(J\)</span></p></li>
 </ol>
 </li>
@@ -990,20 +1162,188 @@ subject to <span class="math notranslate nohighlight">\(\mathbf{u}_{lb} \leq \ma
 <li><p>Return <span class="math notranslate nohighlight">\(\mathbf{u}^*_{1:T-1}\)</span></p></li>
 </ol>
 </section>
-</div><div class="docutils container" id="id4">
+</div><div class="cell tag_hide-cell docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Show code demonstration</span>
+<span class="expanded">Hide code demonstration</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">jax</span>
+<span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
+<span class="kn">from</span> <span class="nn">jax</span> <span class="kn">import</span> <span class="n">grad</span><span class="p">,</span> <span class="n">jit</span>
+<span class="kn">from</span> <span class="nn">jax.example_libraries</span> <span class="kn">import</span> <span class="n">optimizers</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="k">def</span> <span class="nf">single_shooting_ev_optimization</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">num_iterations</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">step_size</span><span class="o">=</span><span class="mf">0.01</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Implements the single shooting method for the electric vehicle energy optimization problem.</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">    T: time horizon</span>
+<span class="sd">    num_iterations: number of optimization iterations</span>
+<span class="sd">    step_size: step size for the optimizer</span>
+<span class="sd">    </span>
+<span class="sd">    Returns:</span>
+<span class="sd">    optimal_u: optimal control sequence</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+            <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.05</span> <span class="o">*</span> <span class="n">u</span><span class="p">,</span>
+            <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">u</span>
+        <span class="p">])</span>
+    
+    <span class="k">def</span> <span class="nf">c</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">t</span> <span class="o">==</span> <span class="n">T</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">u</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">compute_trajectory_and_cost</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">x1</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x1</span>
+        <span class="n">total_cost</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
+            <span class="n">total_cost</span> <span class="o">+=</span> <span class="n">c</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">[</span><span class="n">t</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">t</span><span class="p">)</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">[</span><span class="n">t</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">t</span><span class="p">)</span>
+        <span class="n">total_cost</span> <span class="o">+=</span> <span class="n">c</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>  <span class="c1"># No control at final step</span>
+        <span class="k">return</span> <span class="n">total_cost</span>
+    
+    <span class="k">def</span> <span class="nf">objective</span><span class="p">(</span><span class="n">u</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">compute_trajectory_and_cost</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">x1</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">clip_controls</span><span class="p">(</span><span class="n">u</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    
+    <span class="n">x1</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>  <span class="c1"># Initial state: full battery, zero speed</span>
+    
+    <span class="c1"># Initialize controls</span>
+    <span class="n">u_init</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">T</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    
+    <span class="c1"># Setup optimizer</span>
+    <span class="n">optimizer</span> <span class="o">=</span> <span class="n">optimizers</span><span class="o">.</span><span class="n">adam</span><span class="p">(</span><span class="n">step_size</span><span class="p">)</span>
+    <span class="n">opt_init</span><span class="p">,</span> <span class="n">opt_update</span><span class="p">,</span> <span class="n">get_params</span> <span class="o">=</span> <span class="n">optimizer</span>
+    <span class="n">opt_state</span> <span class="o">=</span> <span class="n">opt_init</span><span class="p">(</span><span class="n">u_init</span><span class="p">)</span>
+    
+    <span class="nd">@jit</span>
+    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">opt_state</span><span class="p">):</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">get_params</span><span class="p">(</span><span class="n">opt_state</span><span class="p">)</span>
+        <span class="n">value</span><span class="p">,</span> <span class="n">grads</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">value_and_grad</span><span class="p">(</span><span class="n">objective</span><span class="p">)(</span><span class="n">u</span><span class="p">)</span>
+        <span class="n">opt_state</span> <span class="o">=</span> <span class="n">opt_update</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">grads</span><span class="p">,</span> <span class="n">opt_state</span><span class="p">)</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">get_params</span><span class="p">(</span><span class="n">opt_state</span><span class="p">)</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">clip_controls</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+        <span class="n">opt_state</span> <span class="o">=</span> <span class="n">opt_init</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span><span class="p">,</span> <span class="n">opt_state</span>
+    
+    <span class="c1"># Run optimization</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_iterations</span><span class="p">):</span>
+        <span class="n">value</span><span class="p">,</span> <span class="n">opt_state</span> <span class="o">=</span> <span class="n">step</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">opt_state</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">100</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Iteration </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">, Cost: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+    <span class="n">optimal_u</span> <span class="o">=</span> <span class="n">get_params</span><span class="p">(</span><span class="n">opt_state</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">optimal_u</span>
+
+<span class="k">def</span> <span class="nf">plot_results</span><span class="p">(</span><span class="n">optimal_u</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
+    <span class="c1"># Compute state trajectory</span>
+    <span class="n">x1</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+    <span class="n">x_trajectory</span> <span class="o">=</span> <span class="p">[</span><span class="n">x1</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">T</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">x_next</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+            <span class="n">x_trajectory</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">x_trajectory</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.05</span> <span class="o">*</span> <span class="n">optimal_u</span><span class="p">[</span><span class="n">t</span><span class="p">],</span>
+            <span class="n">x_trajectory</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">optimal_u</span><span class="p">[</span><span class="n">t</span><span class="p">]</span>
+        <span class="p">])</span>
+        <span class="n">x_trajectory</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x_next</span><span class="p">)</span>
+    <span class="n">x_trajectory</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x_trajectory</span><span class="p">)</span>
+
+    <span class="n">time</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">T</span><span class="p">)</span>
+    
+    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+    
+    <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">x_trajectory</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Battery State of Charge&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">x_trajectory</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Vehicle Speed&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Time Step&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;State Value&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Optimal State Trajectories&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    
+    <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">optimal_u</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Motor Power Input&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Time Step&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Control Input&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Optimal Control Inputs&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    
+    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1"># Run the optimization</span>
+<span class="n">optimal_u</span> <span class="o">=</span> <span class="n">single_shooting_ev_optimization</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Optimal control sequence:&quot;</span><span class="p">,</span> <span class="n">optimal_u</span><span class="p">)</span>
+
+<span class="c1"># Plot the results</span>
+<span class="n">plot_results</span><span class="p">(</span><span class="n">optimal_u</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Iteration 0, Cost: 2.9000003337860107
+Iteration 100, Cost: 1.4151430130004883
+Iteration 200, Cost: 1.408848762512207
+Iteration 300, Cost: 1.4091217517852783
+Iteration 400, Cost: 1.4093775749206543
+Iteration 500, Cost: 1.409614086151123
+Iteration 600, Cost: 1.4098315238952637
+Iteration 700, Cost: 1.4100300073623657
+Iteration 800, Cost: 1.4102115631103516
+Iteration 900, Cost: 1.4103766679763794
+Optimal control sequence: [-0.84949344 -0.7677488  -0.6298097  -0.4975385  -0.38879827 -0.30575562
+ -0.2055591  -0.14967042 -0.07521399 -0.02217961  0.01586013  0.05557559
+  0.09427615  0.1138996   0.13218467  0.15617764  0.1723922   0.17151831
+  0.18140292]
+</pre></div>
+</div>
+<img alt="_images/7be885c5bf1716da04cc1070af32a86fd451119c4e327e700dacb98c8ad5d7e1.png" src="_images/7be885c5bf1716da04cc1070af32a86fd451119c4e327e700dacb98c8ad5d7e1.png" />
+</div>
+</details>
+</div>
+<p>Despite frequent mentions of automatic differentiation, it’s important to note that the single shooting approaches outlined in this section need not rely on gradient-based optimization methods. In fact, one could use any method provided by <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code>, which offers a range of options such as:</p>
+<ul class="simple">
+<li><p>Derivative-free methods like <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/optimize.minimize-neldermead.html">Nelder-Mead Simplex</a>, suitable for problems where gradients are unavailable or difficult to compute.</p></li>
+<li><p>Quasi-Newton methods like <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/optimize.minimize-bfgs.html">BFGS (Broyden-Fletcher-Goldfarb-Shanno)</a>, which by default uses finite differences rather than automatic differentiation to approximate gradients.</p></li>
+</ul>
+<p>Another common strategy for single shooting methods is to use stochastic optimization techniques. For instance, random search generates a number of candidate solutions randomly and evaluates them. This approach is useful for problems with badly behaved loss landscapes or when gradient information is unreliable. More sophisticated stochastic methods include:</p>
+<ul class="simple">
+<li><p>Genetic Algorithms: These mimic biological evolution, using mechanisms like selection, crossover, and mutation to evolve a population of solutions over generations <span id="id3">[<a class="reference internal" href="#id9" title="John H Holland. Genetic algorithms. Scientific american, 267(1):66–73, 1992.">Hol92</a>]</span>. (Implemented in <a class="reference external" href="https://github.com/DEAP/deap">DEAP</a> library)</p></li>
+<li><p>Simulated Annealing: Inspired by the annealing process in metallurgy, this method allows for occasional “uphill” moves to escape local minima <span id="id4">[<a class="reference internal" href="#id10" title="Scott Kirkpatrick, C Daniel Gelatt Jr, and Mario P Vecchi. Optimization by simulated annealing. science, 220(4598):671–680, 1983.">KGJV83</a>]</span>. (Available in <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.dual_annealing.html">SciPy</a>)</p></li>
+<li><p>Particle Swarm Optimization: This technique simulates the social behavior of organisms in a swarm, with particles (candidate solutions) moving through the search space and influencing each other <span id="id5">[<a class="reference internal" href="#id11" title="James Kennedy and Russell Eberhart. Particle swarm optimization. In Proceedings of ICNN'95-International Conference on Neural Networks, volume 4, 1942–1948. IEEE, 1995.">KE95</a>]</span>. (Implemented in <a class="reference external" href="https://github.com/ljvmiranda921/pyswarms">PySwarms</a> library)</p></li>
+</ul>
+<p>The selection of an optimization method for single shooting is influenced by multiple factors: problem-specific characteristics, available computational resources, and the balance between exploring the solution space and exploiting known good solutions. While gradient-based methods generally offer faster convergence when applicable, derivative-free and stochastic approaches tend to be more robust to complex non-convex loss landscapes, albeit at the cost of increased computational demands.</p>
+<p>In practice, however, this choice is often guided by the tools at hand and the practitioners’ familiarity with them. For instance, researchers with a background in deep learning tend to gravitate towards first-order gradient-based optimization techniques along with automatic differentiation for efficient derivative computation.</p>
+<div class="docutils container" id="id6">
 <div role="list" class="citation-list">
-<div class="citation" id="id5" role="doc-biblioentry">
+<div class="citation" id="id7" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>HB68<span class="fn-bracket">]</span></span>
 <span class="backrefs">(<a role="doc-backlink" href="#id1">1</a>,<a role="doc-backlink" href="#id2">2</a>)</span>
 <p>Warren A. Hall and William S. Butcher. Optimal timing of irrigation. <em>Journal of the Irrigation and Drainage Division</em>, 94(2):267–275, June 1968. URL: <a class="reference external" href="http://dx.doi.org/10.1061/JRCEA4.0000569">http://dx.doi.org/10.1061/JRCEA4.0000569</a>, <a class="reference external" href="https://doi.org/10.1061/jrcea4.0000569">doi:10.1061/jrcea4.0000569</a>.</p>
 </div>
-<div class="citation" id="id6" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">Kra88</a><span class="fn-bracket">]</span></span>
-<p>Dieter Kraft. A software package for sequential quadratic programming. <em>DFVLR Obersfaffeheim Report</em>, 88(28):1–20, 1988.</p>
+<div class="citation" id="id9" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">Hol92</a><span class="fn-bracket">]</span></span>
+<p>John H Holland. Genetic algorithms. <em>Scientific american</em>, 267(1):66–73, 1992.</p>
+</div>
+<div class="citation" id="id11" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id5">KE95</a><span class="fn-bracket">]</span></span>
+<p>James Kennedy and Russell Eberhart. Particle swarm optimization. In <em>Proceedings of ICNN'95-International Conference on Neural Networks</em>, volume 4, 1942–1948. IEEE, 1995.</p>
+</div>
+<div class="citation" id="id10" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">KGJV83</a><span class="fn-bracket">]</span></span>
+<p>Scott Kirkpatrick, C Daniel Gelatt Jr, and Mario P Vecchi. Optimization by simulated annealing. <em>science</em>, 220(4598):671–680, 1983.</p>
 </div>
 </div>
 </div>
-</section>
 </section>
 </section>
 
@@ -1062,16 +1402,24 @@ subject to <span class="math notranslate nohighlight">\(\mathbf{u}_{lb} \leq \ma
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Mathematical Programming Approach</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#irrigation-management-example">Irrigation Management Example</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#discrete-time-optimal-control-problems-in-general">Discrete-Time Optimal Control Problems in General</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#reduction-to-mayer-problems">Reduction to Mayer Problems</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#solving-an-docp-by-gradient-descent">Solving an DOCP by Gradient Descent</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#single-shooting-method">Single Shooting Method</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#numerical-methods-for-solving-docps">Numerical Methods for Solving DOCPs</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#constrained-optimization-approach">Constrained Optimization Approach</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nonlinear-programming-and-kkt-conditions">Nonlinear Programming and KKT Conditions</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#transformation-to-an-unconstrained-problem-single-shooting-methods">Transformation to an Unconstrained Problem: Single Shooting Methods</a></li>
 </ul>
 </li>
 </ul>
+
   </nav></div>
 
 </div></div>

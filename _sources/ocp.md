@@ -116,12 +116,18 @@ where $\boldsymbol{\tilde{x}}_t \triangleq (\mathbf{x}_t, y_t)$ is the concatena
 
 This transformation is often helpful to simplify mathematical derivations (as we are about to see shortly) but could also be used to streamline algorithmic implementation (by maintaining one version of the code rather than three with many if/else statements). That being said, there could also be computational advantages to working with the specific problem types rather than the one size-fits-for-all Mayer reduction.
 
-## Solving an DOCP by Gradient Descent
+# Numerical Methods for Solving DOCPs
 
-The mathematical programming formulation presented above readily lend themselves to general-purpose solvers for nonlinear mathematical program. For example, we can use the function scipy.minimize along with SLSQP solver to obtain a solution to any (feasible) Bolza problem of the form presented above.
-Consider an electric vehicle traversing a planned route, where we aim to optimize its energy consumption over a 20-minute journey. Our simplified model encapsulates the vehicle's state using two variables: $x_1$, representing the battery state of charge as a percentage, and $x_2$, denoting the vehicle's speed in meters per second. The control input $u$, ranging from -1 to 1, represents the motor power, with negative values indicating regenerative braking and positive values representing acceleration.
+Let's assume that an optimal control problem has been formulated in one of the forms presented earlier and has been given to us to solve. The following section explores numerical solutions applicable to these problems, focusing on trajectory optimization. Our goal is to output an optimal control (and state trajectory) based on the given cost function and dynamics structure.
 
-The problem can be formally expressed as a mathematical program in Bolza form:
+It's important to note that the methods presented here are not learning methods; they don't involve ingesting data or inferring unknown quantities from it. However, these methods represent a central component of any decision-learning system, and we will later explore how learning concepts can be incorporated.
+
+## Constrained Optimization Approach
+
+The mathematical programming formulation presented earlier lends itself readily to off-the-shelf solvers for nonlinear mathematical programs. For example, we can use the `scipy.optimize.minimize` function along with the SLSQP (Sequential Least Squares Programming) solver to obtain a solution to any feasible Bolza problem of the form presented below.
+
+Before delving into the details of the numerical solver itself, let's consider an electric vehicle energy management problem. We will use this as a test bed for our algorithms, allowing us to demonstrate the practical application of these optimization techniques.
+Consider an electric vehicle traversing a planned route, where we aim to optimize its energy consumption over a 20-minute journey. Our simplified model represents the vehicle's state using two variables: $x_1$, the battery state of charge as a percentage, and $x_2$, denoting the vehicle's speed in meters per second. The control input $u$, ranging from -1 to 1, represents the motor power, with negative values indicating regenerative braking and positive values representing acceleration. The problem can be formally expressed as a mathematical program in Bolza form:
 
 $$ \begin{align*}
 \min_{x, u} \quad & J = \underbrace{x_{T,1}^2 + x_{T,2}^2}_{\text{Mayer term}} + \underbrace{\sum_{t=1}^{T-1} 0.1(x_{t,1}^2 + x_{t,2}^2 + u_t^2)}_{\text{Lagrange term}} \\[2ex]
@@ -137,9 +143,7 @@ $$ \begin{align*}
 & x_t = \begin{bmatrix} x_{t,1} \\ x_{t,2} \end{bmatrix} \in \mathbb{R}^2, \quad u_t \in \mathbb{R}
 \end{align*} $$
 
-The system dynamics, represented by $f_t(x_t, u_t)$, describe how the battery charge and vehicle speed evolve based on the current state and control input. The initial condition $x_1 = [1, 0]^T$ indicates that the vehicle starts with a fully charged battery and zero initial speed. The constraints $-1 \leq u_t \leq 1$ and $-5 \leq x_{t,1}, x_{t,2} \leq 5$ ensure that the control inputs and state variables remain within acceptable ranges throughout the journey. While this model captures the essence of electric vehicle energy management, it has several limitations. The use of linear dynamics oversimplifies the complex, nonlinear nature of battery discharge and vehicle motion. It neglects factors such as air resistance, road grade, and vehicle mass. The treatment of regenerative braking is basic, and the model ignores environmental factors like wind and temperature. Route-specific information such as elevation changes and speed limits are absent, as is the consideration of auxiliary power consumption such as heating and entertainment.
-
-Given these simplifications, the optimal solution to this problem would likely exhibit a smooth speed profile, avoiding rapid accelerations or decelerations. It would make efficient use of regenerative braking to recapture energy and aim for a final state that balances remaining battery charge with appropriate speed. The following code verifies this intuition and provides a template for translating a general Bolza problem in a form that scipy accepts. The solution computed by this function returns both the state and the control trajectories, as implied by the original formulation. 
+The system dynamics, represented by $f_t(x_t, u_t)$, describe how the battery charge and vehicle speed evolve based on the current state and control input. The initial condition $x_1 = [1, 0]^T$ indicates that the vehicle starts with a fully charged battery and zero initial speed. The constraints $-1 \leq u_t \leq 1$ and $-5 \leq x_{t,1}, x_{t,2} \leq 5$ ensure that the control inputs and state variables remain within acceptable ranges throughout the journey. This model is of course highly simplistic and neglects the nonlinear nature of battery discharge and vehicle motion due to air resistance, road grade, and vehicle mass, etc. Furthermore, our model ignores the effect of environmental factors like wind and temperature on regenerative breaking. Route-specific information such as elevation changes and speed limits are absent, as is the consideration of auxiliary power consumption such as heating and entertainment. These are all possible improvements to our models which we ignore at the moment for the sake of simplicity.
 
 ```{code-cell} ipython3
 :tags: [hide-cell]
@@ -291,12 +295,167 @@ if __name__ == "__main__":
     example_docp()
 ```
 
-The solver used by [scipy.optimize.minimize](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html) is designed for solving constrained optimization problems. In deep learning, we often tend to shy away from such methods and fall back to our go-to approach: (stochastic) gradient descent for unconstrained problems. Moreover, modern deep learning is characterized by the automatic and exact evaluation of gradients using automatic differentiation.
-This contrasts with many existing methods in constrained optimization literature, which often consider settings where gradients are computed approximately using finite-difference methods (as in Scipy's SLSQP {cite:t}`kraft1988`). While conceptually easy to understand and implement, finite difference gradients are expensive to compute. They require propagating as many perturbations as there are components in the gradient, a property inherently incompatible with most deep learning workloads involving millions or billions of parameters (and thus, gradient components).
+### Nonlinear Programming and KKT Conditions
 
-### Single Shooting Method
+Unless specific assumptions are made on the dynamics and cost structure, a DOCP is, in its most general form, a nonlinear mathematical program (commonly referred to as an NLP, not to be confused with Natural Language Processing). An NLP can be formulated as follows:
 
-Given access to an automatic differentiation framework, the easiest method to implement is by far what is known as "single shooting" in control theory. The idea of simple: rather than having to solve for the state variables as equality constraints, we transform the original equality constraint problem into an unconstrained one through "simulation", ie by recursively computing the evolution of our system for any given set of controls and initial state. In the deterministic setting, given an initial state, we can always exactly reconstruct the resulting sequence of states by "rolling out" our model, a process which some communities would refer to as "time marching". Mathematically, this amounts to forming the following unconstrained program: 
+$$
+\begin{aligned}
+\text{minimize } & f(\mathbf{x}) \\
+\text{subject to } & \mathbf{g}(\mathbf{x}) \leq \mathbf{0} \\
+& \mathbf{h}(\mathbf{x}) = \mathbf{0}
+\end{aligned}
+$$
+
+Where:
+- $f: \mathbb{R}^n \to \mathbb{R}$ is the objective function
+- $\mathbf{g}: \mathbb{R}^n \to \mathbb{R}^m$ represents inequality constraints
+- $\mathbf{h}: \mathbb{R}^n \to \mathbb{R}^\ell$ represents equality constraints
+
+Unlike unconstrained optimization commonly used in deep learning, the optimality of a solution in constrained optimization must consider both the objective value and constraint feasibility. To illustrate this, consider the following problem, which includes both equality and inequality constraints:
+
+$$
+\begin{align*}
+\text{Minimize} \quad & f(x_1, x_2) = (x_1 - 1)^2 + (x_2 - 2.5)^2 \\
+\text{subject to} \quad & g(x_1, x_2) = (x_1 - 1)^2 + (x_2 - 1)^2 \leq 1.5, \\
+& h(x_1, x_2) = x_2 - \left(0.5 \sin(2 \pi x_1) + 1.5\right) = 0.
+\end{align*}
+$$
+
+In this example, the objective function $f(x_1, x_2)$ is quadratic, which can be advantageous in solution methods, especially when combined with linear constraints. The inequality constraint $g(x_1, x_2)$ defines a circular feasible region centered at $(1, 1)$ with a radius of $\sqrt{1.5}$. Additionally, the equality constraint $h(x_1, x_2)$ requires $x_2$ to lie on a sine wave function. The following code demonstrates the difference between the unconstrained, and constrained solutions to this problem. 
+
+```{code-cell} ipython3
+:tags: [hide-input]
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.optimize import minimize
+
+# Define the objective function
+def objective(x):
+    return (x[0] - 1)**2 + (x[1] - 2.5)**2
+
+# Define the inequality constraint function
+def constraint(x):
+    return -(x[0] - 1)**2 - (x[1] - 1)**2 + 1.5
+
+# Define the gradient of the objective function
+def objective_gradient(x):
+    return np.array([2*(x[0] - 1), 2*(x[1] - 2.5)])
+
+# Define the gradient of the inequality constraint function
+def constraint_gradient(x):
+    return np.array([-2*(x[0] - 1), -2*(x[1] - 1)])
+
+# Define the sine wave equality constraint function
+def sine_wave_equality_constraint(x):
+    return x[1] - (0.5 * np.sin(2 * np.pi * x[0]) + 1.5)
+
+# Define the gradient of the sine wave equality constraint function
+def sine_wave_equality_constraint_gradient(x):
+    return np.array([-np.pi * np.cos(2 * np.pi * x[0]), 1])
+
+# Define the constraints including the sine wave equality constraint
+sine_wave_constraints = [{'type': 'ineq', 'fun': constraint, 'jac': constraint_gradient},  # Inequality constraint
+                         {'type': 'eq', 'fun': sine_wave_equality_constraint, 'jac': sine_wave_equality_constraint_gradient}]  # Sine wave equality constraint
+
+# Define only the inequality constraint
+inequality_constraints = [{'type': 'ineq', 'fun': constraint, 'jac': constraint_gradient}]
+
+# Initial guess
+x0 = [1.25, 1.5]
+
+# Solve the optimization problem with the sine wave equality constraint
+res_sine_wave_constraint = minimize(objective, x0, method='SLSQP', jac=objective_gradient, 
+                                    constraints=sine_wave_constraints, options={'disp': False})
+
+x_opt_sine_wave_constraint = res_sine_wave_constraint.x
+
+# Solve the optimization problem with only the inequality constraint
+res_inequality_only = minimize(objective, x0, method='SLSQP', jac=objective_gradient, 
+                               constraints=inequality_constraints, options={'disp': False})
+
+x_opt_inequality_only = res_inequality_only.x
+
+# Solve the unconstrained optimization problem for reference
+res_unconstrained = minimize(objective, x0, method='SLSQP', jac=objective_gradient, options={'disp': False})
+x_opt_unconstrained = res_unconstrained.x
+
+# Generate data for visualization
+x = np.linspace(-1, 4, 400)
+y = np.linspace(-1, 4, 400)
+X, Y = np.meshgrid(x, y)
+Z = (X - 1)**2 + (Y - 2.5)**2  # Objective function values
+constraint_values = (X - 1)**2 + (Y - 1)**2
+
+# Data for sine wave constraint
+x_sine = np.linspace(-1, 4, 400)
+y_sine = 0.5 * np.sin(2 * np.pi * x_sine) + 1.5
+
+# Visualization with Improved Color Scheme
+plt.figure(figsize=(8, 6))
+plt.contourf(X, Y, Z, levels=100, cmap='viridis', alpha=0.6)  # Heatmap for the objective function
+
+# Plot all the optimal points
+plt.plot(x_opt_inequality_only[0], x_opt_inequality_only[1], 'ro', label='Optimal Solution (Inequality Only)', markersize=8, markeredgecolor='black')
+plt.plot(x_opt_sine_wave_constraint[0], x_opt_sine_wave_constraint[1], 'mo', label='Optimal Solution (Sine Wave Equality & Inequality)', markersize=8, markeredgecolor='black')
+plt.plot(x_opt_unconstrained[0], x_opt_unconstrained[1], 'co', label='Unconstrained Minimum', markersize=8, markeredgecolor='black')
+
+# Adjust constraint boundary colors
+plt.contour(X, Y, constraint_values, levels=[1.5], colors='navy', linewidths=2, linestyles='dashed')
+plt.contourf(X, Y, constraint_values, levels=[0, 1.5], colors='skyblue', alpha=0.3)
+
+# Plot the sine wave equality constraint with a high contrast color
+plt.plot(x_sine, y_sine, 'lime', linestyle='--', linewidth=2, label='Sine Wave Equality Constraint')
+
+plt.xlim([-1, 4])
+plt.ylim([-1, 4])
+plt.xlabel('x1')
+plt.ylabel('x2')
+plt.title('Example NLP')
+plt.legend(loc='upper left', fontsize='small', edgecolor='black', fancybox=True)
+plt.grid(True)
+# Set the aspect ratio to be equal so the circle appears correctly
+plt.gca().set_aspect('equal', adjustable='box')
+plt.show()
+```
+
+While this example is simple enough to convince ourselves visually of the solution to this particular problem, it falls short of providing us with actionable chracterization of what constitutes and optimal solution in general. 
+The Karush-Kuhn-Tucker (KKT) conditions provide us with an answer to this problem by generalizing the first-order optimality conditions in unconstrained optimization to problems involving both equality and inequality constraints.
+This result relies on the construction of an auxiliary function called the Lagrangian, defined as: 
+
+$$\mathcal{L}(\mathbf{x}, \boldsymbol{\mu}, \boldsymbol{\lambda})=f(\mathbf{x})+\boldsymbol{\mu}^{\top} \mathbf{g}(\mathbf{x})+\boldsymbol{\lambda}^{\top} \mathbf{h}(\mathbf{x})$$
+
+where $\boldsymbol{\mu} \in \mathbb{R}^m$ and $\boldsymbol{\lambda} \in \mathbb{R}^\ell$ are known as Lagrange multipliers. The first-order optimality conditions then state that if $\mathbf{x}^*$, then there must exist corresponding Lagrange multipliers $\boldsymbol{\mu}^*$ and $\boldsymbol{\lambda}^*$ such that: 
+
+1. The gradient of the Lagrangian with respect to $\mathbf{x}$ must be zero at the optimal point (**stationarity**):
+
+   $$\nabla_x \mathcal{L}(\mathbf{x}^*, \boldsymbol{\mu}^*, \boldsymbol{\lambda}^*) = \nabla f(\mathbf{x}^*) + \sum_{i=1}^m \mu_i^* \nabla g_i(\mathbf{x}^*) + \sum_{j=1}^\ell \lambda_j^* \nabla h_j(\mathbf{x}^*) = \mathbf{0}$$
+
+   Graphically speaking, this means that the gradient of the objective and that of constraint are parallel to each other at the optimum but point in opposite directions. 
+
+2. A valid solution of a NLP is one which satisfies all the constraints (**primal feasibility**)
+
+   $$\begin{aligned}
+   \mathbf{g}(\mathbf{x}^*) &\leq \mathbf{0}, \enspace \text{and} \enspace \mathbf{h}(\mathbf{x}^*) &= \mathbf{0}
+   \end{aligned}$$
+
+3. Furthermore, the Lagrange multipliers for **inequality** constraints must be non-negative (**dual feasibility**)
+
+   $$\boldsymbol{\mu}^* \geq \mathbf{0}$$
+
+   This condition stems from the fact that the inequality constraints can only push the solution in one direction.
+
+4. Finally, for each inequality constraint, either the constraint is active (equality holds) or its corresponding Lagrange multiplier is zero at an optimal solution(**complementary slackness**)
+
+   $$\mu_i^* g_i(\mathbf{x}^*) = 0, \quad \forall i = 1,\ldots,m$$
+  
+ Let's first convince ourselves of the validity of this result through an example. 
+
+
+
+## Transformation to an Unconstrained Problem: Single Shooting Methods
+
+Given access to unconstrained optimization solver, the easiest method to implement is by far what is known as "single shooting" in control theory. The idea of simple: rather than having to solve for the state variables as equality constraints, we transform the original equality constraint problem into an unconstrained one through "simulation", ie by recursively computing the evolution of our system for any given set of controls and initial state. In the deterministic setting, given an initial state, we can always exactly reconstruct the resulting sequence of states by "rolling out" our model, a process which some communities would refer to as "time marching". Mathematically, this amounts to forming the following unconstrained program: 
 
 $$
 \begin{align*}
@@ -313,10 +472,7 @@ $$
 \end{align*}
 $$
 
-More concretely, these functions can be conceptualized as running a for loop from $x_1$ all the way to $t$, applying the controls and carrying the updated state along the way: 
-
-
-```{prf:algorithm} Naive Single Shooting (re-computation/checkpointing)
+```{prf:algorithm} Naive Single Shooting: re-computation/checkpointing
 :label: naive-single-shooting
 
 **Inputs** Initial state $\mathbf{x}_1$, time horizon $T$, control bounds $\mathbf{u}_{lb}$ and $\mathbf{u}_{ub}$, state transition functions $\mathbf{f}_t$, cost functions $c_t$
@@ -347,10 +503,8 @@ More concretely, these functions can be conceptualized as running a for loop fro
 5. Return $\mathbf{u}^*_{1:T-1}$
 ```
 
-This approach could be implemented in an automatic differention framework such as Jax, which readily supports differentation through for loops, as demonstrated in the following code. 
-
-
 ```{code-cell} ipython3
+:label: naive-single-shooting-impl
 :tags: [hide-cell]
 import jax
 import jax.numpy as jnp
@@ -475,8 +629,11 @@ print("Optimal control sequence:", optimal_u)
 plot_results(optimal_u, T=20)
 ```
 
-```{prf:algorithm} Single Shooting (storage)
-:label: efficient-min-cost-trajectory
+The approach outlined in {prf:ref}`naive-single-shooting` , and  implemented in code {ref}`naive-single-shooting-impl`, stems directly from the mathematical definition and involves recomputing the sequence of states from the begining every time that the instantenous cost function along the trajectory needs to be evaluated. This implementation has the benefit that it requires very little storage, as the only quantity that we have to maintain in addition to the running cost is the last state. However, this simplicitity and storage savings come at a steep computation cost as it requires re-computing the trajectory up to any given stage starting from the initial state. 
+A more practical and efficient implementation combines trajectory unrolling with cost accumulation. This process can be realized through a simple for-loop in frameworks like JAX, which can trace code execution through control flows. Alternatively, a more efficient `scan` operation could be employed. By simultaneously computing the trajectory and summing costs, we eliminate redundant calculations, effectively trading computation for storage—a strategy reminiscent of checkpointing in automatic differentiation.
+
+```{prf:algorithm} Single Shooting: Trajectory Storage
+:label: shooting-trajectory-storage
 
 **Inputs** Initial state $\mathbf{x}_1$, time horizon $T$, control bounds $\mathbf{u}_{lb}$ and $\mathbf{u}_{ub}$, state transition functions $\mathbf{f}_t$, cost functions $c_t$
 
@@ -484,19 +641,19 @@ plot_results(optimal_u, T=20)
 
 1. Initialize $\mathbf{u}_{1:T-1}$ within bounds $[\mathbf{u}_{lb}, \mathbf{u}_{ub}]$
 
-2. Define function ComputeTrajectory($\mathbf{u}_{1:T-1}, \mathbf{x}_1$):
+2. Define function ComputeTrajectoryAndCost($\mathbf{u}_{1:T-1}, \mathbf{x}_1$):
     1. Initialize $\mathbf{x} \leftarrow [\mathbf{x}_1]$  // List to store states
-    2. For $t = 1$ to $T-1$:
-        1. $\mathbf{x}_{\text{next}} \leftarrow \mathbf{f}_t(\mathbf{x}[t], \mathbf{u}_t)$
-        2. Append $\mathbf{x}_{\text{next}}$ to $\mathbf{x}$
-    3. Return $\mathbf{x}$
-
-3. Define objective function $J(\mathbf{u}_{1:T-1})$:
-    1. $\mathbf{x} \leftarrow$ ComputeTrajectory($\mathbf{u}_{1:T-1}, \mathbf{x}_1$)
-    2. $J \leftarrow c_T(\mathbf{x}[T])$
+    2. Initialize $J \leftarrow 0$  // Total cost
     3. For $t = 1$ to $T-1$:
         1. $J \leftarrow J + c_t(\mathbf{x}[t], \mathbf{u}_t)$
-    4. Return $J$
+        2. $\mathbf{x}_{\text{next}} \leftarrow \mathbf{f}_t(\mathbf{x}[t], \mathbf{u}_t)$
+        3. Append $\mathbf{x}_{\text{next}}$ to $\mathbf{x}$
+    4. $J \leftarrow J + c_T(\mathbf{x}[T])$  // Add final state cost
+    5. Return $\mathbf{x}, J$
+
+3. Define objective function $J(\mathbf{u}_{1:T-1})$:
+    1. $\_, J \leftarrow$ ComputeTrajectoryAndCost($\mathbf{u}_{1:T-1}, \mathbf{x}_1$)
+    2. Return $J$
 
 4. Solve optimization problem:
    $\mathbf{u}^*_{1:T-1} \leftarrow \arg\min_{\mathbf{u}_{1:T-1}} J(\mathbf{u}_{1:T-1})$
@@ -504,6 +661,147 @@ plot_results(optimal_u, T=20)
 
 5. Return $\mathbf{u}^*_{1:T-1}$
 ```
+
+```{code-cell} ipython3
+:tags: [hide-cell]
+:mystnb:
+:  code_prompt_show: "Show code demonstration"
+:  code_prompt_hide: "Hide code demonstration"
+
+import jax
+import jax.numpy as jnp
+from jax import grad, jit
+from jax.example_libraries import optimizers
+import matplotlib.pyplot as plt
+
+def single_shooting_ev_optimization(T=20, num_iterations=1000, step_size=0.01):
+    """
+    Implements the single shooting method for the electric vehicle energy optimization problem.
+    
+    Args:
+    T: time horizon
+    num_iterations: number of optimization iterations
+    step_size: step size for the optimizer
+    
+    Returns:
+    optimal_u: optimal control sequence
+    """
+    
+    def f(x, u, t):
+        return jnp.array([
+            x[0] + 0.1 * x[1] + 0.05 * u,
+            x[1] + 0.1 * u
+        ])
+    
+    def c(x, u, t):
+        if t == T:
+            return x[0]**2 + x[1]**2
+        else:
+            return 0.1 * (x[0]**2 + x[1]**2 + u**2)
+    
+    def compute_trajectory_and_cost(u, x1):
+        x = x1
+        total_cost = 0
+        for t in range(1, T):
+            total_cost += c(x, u[t-1], t)
+            x = f(x, u[t-1], t)
+        total_cost += c(x, 0.0, T)  # No control at final step
+        return total_cost
+    
+    def objective(u):
+        return compute_trajectory_and_cost(u, x1)
+    
+    def clip_controls(u):
+        return jnp.clip(u, -1.0, 1.0)
+    
+    x1 = jnp.array([1.0, 0.0])  # Initial state: full battery, zero speed
+    
+    # Initialize controls
+    u_init = jnp.zeros(T-1)
+    
+    # Setup optimizer
+    optimizer = optimizers.adam(step_size)
+    opt_init, opt_update, get_params = optimizer
+    opt_state = opt_init(u_init)
+    
+    @jit
+    def step(i, opt_state):
+        u = get_params(opt_state)
+        value, grads = jax.value_and_grad(objective)(u)
+        opt_state = opt_update(i, grads, opt_state)
+        u = get_params(opt_state)
+        u = clip_controls(u)
+        opt_state = opt_init(u)
+        return value, opt_state
+    
+    # Run optimization
+    for i in range(num_iterations):
+        value, opt_state = step(i, opt_state)
+        if i % 100 == 0:
+            print(f"Iteration {i}, Cost: {value}")
+    
+    optimal_u = get_params(opt_state)
+    return optimal_u
+
+def plot_results(optimal_u, T):
+    # Compute state trajectory
+    x1 = jnp.array([1.0, 0.0])
+    x_trajectory = [x1]
+    for t in range(T-1):
+        x_next = jnp.array([
+            x_trajectory[-1][0] + 0.1 * x_trajectory[-1][1] + 0.05 * optimal_u[t],
+            x_trajectory[-1][1] + 0.1 * optimal_u[t]
+        ])
+        x_trajectory.append(x_next)
+    x_trajectory = jnp.array(x_trajectory)
+
+    time = jnp.arange(T)
+    
+    plt.figure(figsize=(12, 8))
+    
+    plt.subplot(2, 1, 1)
+    plt.plot(time, x_trajectory[:, 0], label='Battery State of Charge')
+    plt.plot(time, x_trajectory[:, 1], label='Vehicle Speed')
+    plt.xlabel('Time Step')
+    plt.ylabel('State Value')
+    plt.title('Optimal State Trajectories')
+    plt.legend()
+    plt.grid(True)
+    
+    plt.subplot(2, 1, 2)
+    plt.plot(time[:-1], optimal_u, label='Motor Power Input')
+    plt.xlabel('Time Step')
+    plt.ylabel('Control Input')
+    plt.title('Optimal Control Inputs')
+    plt.legend()
+    plt.grid(True)
+    
+    plt.tight_layout()
+    plt.show()
+
+# Run the optimization
+optimal_u = single_shooting_ev_optimization()
+print("Optimal control sequence:", optimal_u)
+
+# Plot the results
+plot_results(optimal_u, T=20)
+```
+
+Despite frequent mentions of automatic differentiation, it's important to note that the single shooting approaches outlined in this section need not rely on gradient-based optimization methods. In fact, one could use any method provided by `scipy.optimize.minimize`, which offers a range of options such as:
+
+- Derivative-free methods like [Nelder-Mead Simplex](https://docs.scipy.org/doc/scipy/reference/optimize.minimize-neldermead.html), suitable for problems where gradients are unavailable or difficult to compute.
+- Quasi-Newton methods like [BFGS (Broyden-Fletcher-Goldfarb-Shanno)](https://docs.scipy.org/doc/scipy/reference/optimize.minimize-bfgs.html), which by default uses finite differences rather than automatic differentiation to approximate gradients.
+
+Another common strategy for single shooting methods is to use stochastic optimization techniques. For instance, random search generates a number of candidate solutions randomly and evaluates them. This approach is useful for problems with badly behaved loss landscapes or when gradient information is unreliable. More sophisticated stochastic methods include:
+
+- Genetic Algorithms: These mimic biological evolution, using mechanisms like selection, crossover, and mutation to evolve a population of solutions over generations {cite}`holland1992genetic`. (Implemented in [DEAP](https://github.com/DEAP/deap) library)
+- Simulated Annealing: Inspired by the annealing process in metallurgy, this method allows for occasional "uphill" moves to escape local minima {cite}`kirkpatrick1983optimization`. (Available in [SciPy](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.dual_annealing.html))
+- Particle Swarm Optimization: This technique simulates the social behavior of organisms in a swarm, with particles (candidate solutions) moving through the search space and influencing each other {cite}`kennedy1995particle`. (Implemented in [PySwarms](https://github.com/ljvmiranda921/pyswarms) library)
+
+The selection of an optimization method for single shooting is influenced by multiple factors: problem-specific characteristics, available computational resources, and the balance between exploring the solution space and exploiting known good solutions. While gradient-based methods generally offer faster convergence when applicable, derivative-free and stochastic approaches tend to be more robust to complex non-convex loss landscapes, albeit at the cost of increased computational demands.
+
+In practice, however, this choice is often guided by the tools at hand and the practitioners' familiarity with them. For instance, researchers with a background in deep learning tend to gravitate towards first-order gradient-based optimization techniques along with automatic differentiation for efficient derivative computation.  
+
 
 
 ```{bibliography}
