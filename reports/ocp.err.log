@@ -1,15 +1,4 @@
 Traceback (most recent call last):
-  File "/Users/pierre-lucbacon/Library/Python/3.9/lib/python/site-packages/nbclient/client.py", line 782, in _async_poll_for_reply
-    msg = await ensure_async(self.kc.shell_channel.get_msg(timeout=new_timeout))
-  File "/Users/pierre-lucbacon/Library/Python/3.9/lib/python/site-packages/jupyter_core/utils/__init__.py", line 198, in ensure_async
-    result = await obj
-  File "/Users/pierre-lucbacon/Library/Python/3.9/lib/python/site-packages/jupyter_client/channels.py", line 313, in get_msg
-    raise Empty
-_queue.Empty
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
   File "/Users/pierre-lucbacon/Library/Python/3.9/lib/python/site-packages/jupyter_cache/executors/utils.py", line 58, in single_nb_execution
     executenb(
   File "/Users/pierre-lucbacon/Library/Python/3.9/lib/python/site-packages/nbclient/client.py", line 1314, in execute
@@ -20,18 +9,132 @@ Traceback (most recent call last):
     return future.result()
   File "/Users/pierre-lucbacon/Library/Python/3.9/lib/python/site-packages/nbclient/client.py", line 709, in async_execute
     await self.async_execute_cell(
-  File "/Users/pierre-lucbacon/Library/Python/3.9/lib/python/site-packages/nbclient/client.py", line 1005, in async_execute_cell
-    exec_reply = await self.task_poll_for_reply
-  File "/Users/pierre-lucbacon/Library/Python/3.9/lib/python/site-packages/nbclient/client.py", line 806, in _async_poll_for_reply
-    error_on_timeout_execute_reply = await self._async_handle_timeout(timeout, cell)
-  File "/Users/pierre-lucbacon/Library/Python/3.9/lib/python/site-packages/nbclient/client.py", line 856, in _async_handle_timeout
-    raise CellTimeoutError.error_from_timeout_and_cell(
-nbclient.exceptions.CellTimeoutError: A cell timed out while it was being executed, after 30 seconds.
-The message was: Cell execution timed out.
-Here is a preview of the cell contents:
--------------------
-['import jax', 'import jax.numpy as jnp', 'from jax import grad, jit', 'from jax.example_libraries import optimizers', 'import matplotlib.pyplot as plt']
-...
-['optimal_u = single_shooting_ev_optimization()', 'print("Optimal control sequence:", optimal_u)', '', '# Plot the results', 'plot_results(optimal_u, T=20)']
--------------------
+  File "/Users/pierre-lucbacon/Library/Python/3.9/lib/python/site-packages/nbclient/client.py", line 1062, in async_execute_cell
+    await self._check_raise_for_error(cell, cell_index, exec_reply)
+  File "/Users/pierre-lucbacon/Library/Python/3.9/lib/python/site-packages/nbclient/client.py", line 918, in _check_raise_for_error
+    raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
+nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
+------------------
+from pyomo.environ import *
+from pyomo.opt import SolverFactory
+import math
+
+# Define the Pyomo model
+model = ConcreteModel()
+
+# Define the variables
+model.x1 = Var(initialize=1.25)
+model.x2 = Var(initialize=1.5)
+
+# Define the objective function
+def objective_rule(model):
+    return (model.x1 - 1)**2 + (model.x2 - 2.5)**2
+model.obj = Objective(rule=objective_rule, sense=minimize)
+
+# Define the inequality constraint (circle)
+def inequality_constraint_rule(model):
+    return (model.x1 - 1)**2 + (model.x2 - 1)**2 <= 1.5
+model.ineq_constraint = Constraint(rule=inequality_constraint_rule)
+
+# Define the equality constraint (sine wave) using Pyomo's math functions
+def equality_constraint_rule(model):
+    return model.x2 == 0.5 * sin(2 * math.pi * model.x1) + 1.5
+model.eq_constraint = Constraint(rule=equality_constraint_rule)
+
+# Create a suffix component to capture dual values
+model.dual = Suffix(direction=Suffix.IMPORT)
+
+# Create a solver
+solver=SolverFactory('ipopt', executable='/content/ipopt')
+
+# Solve the problem
+results = solver.solve(model, tee=True)
+
+# Check if the solver found an optimal solution
+if (results.solver.status == SolverStatus.ok and 
+    results.solver.termination_condition == TerminationCondition.optimal):
+    
+    # Print the results
+    print(f"x1: {value(model.x1)}")
+    print(f"x2: {value(model.x2)}")
+    
+    # Print the objective value
+    print(f"Objective value: {value(model.obj)}")
+
+    # Print the Lagrange multipliers (dual values)
+    print("\nLagrange multipliers:")
+    for c in model.component_objects(Constraint, active=True):
+        for index in c:
+            print(f"{c.name}[{index}]: {model.dual[c[index]]}")
+else:
+    print("Solver did not find an optimal solution.")
+    print(f"Solver Status: {results.solver.status}")
+    print(f"Termination Condition: {results.solver.termination_condition}")
+
+------------------
+
+----- stdout -----
+WARNING: Failed to create solver with name 'ipopt': Failed to set executable
+for solver ipopt. File with name=/content/ipopt either does not exist or it is
+not executable. To skip this validation, call set_executable with
+validate=False.
+Traceback (most recent call last):
+  File "/Users/pierre-lucbacon/Library/Python/3.9/lib/python/site-packages/pyomo/opt/base/solvers.py", line 148, in __call__
+    opt = self._cls[_name](**kwds)
+  File "/Users/pierre-lucbacon/Library/Python/3.9/lib/python/site-packages/pyomo/solvers/plugins/solvers/IPOPT.py", line 44, in __init__
+    super(IPOPT, self).__init__(**kwds)
+  File "/Users/pierre-lucbacon/Library/Python/3.9/lib/python/site-packages/pyomo/opt/solver/shellcmd.py", line 66, in __init__
+    self.set_executable(name=executable, validate=validate)
+  File "/Users/pierre-lucbacon/Library/Python/3.9/lib/python/site-packages/pyomo/opt/solver/shellcmd.py", line 115, in set_executable
+    raise ValueError(
+ValueError: Failed to set executable for solver ipopt. File with name=/content/ipopt either does not exist or it is not executable. To skip this validation, call set_executable with validate=False.
+------------------
+
+[0;31m---------------------------------------------------------------------------[0m
+[0;31mRuntimeError[0m                              Traceback (most recent call last)
+Cell [0;32mIn[3], line 34[0m
+[1;32m     31[0m solver[38;5;241m=[39mSolverFactory([38;5;124m'[39m[38;5;124mipopt[39m[38;5;124m'[39m, executable[38;5;241m=[39m[38;5;124m'[39m[38;5;124m/content/ipopt[39m[38;5;124m'[39m)
+[1;32m     33[0m [38;5;66;03m# Solve the problem[39;00m
+[0;32m---> 34[0m results [38;5;241m=[39m [43msolver[49m[38;5;241;43m.[39;49m[43msolve[49m[43m([49m[43mmodel[49m[43m,[49m[43m [49m[43mtee[49m[38;5;241;43m=[39;49m[38;5;28;43;01mTrue[39;49;00m[43m)[49m
+[1;32m     36[0m [38;5;66;03m# Check if the solver found an optimal solution[39;00m
+[1;32m     37[0m [38;5;28;01mif[39;00m (results[38;5;241m.[39msolver[38;5;241m.[39mstatus [38;5;241m==[39m SolverStatus[38;5;241m.[39mok [38;5;129;01mand[39;00m 
+[1;32m     38[0m     results[38;5;241m.[39msolver[38;5;241m.[39mtermination_condition [38;5;241m==[39m TerminationCondition[38;5;241m.[39moptimal):
+[1;32m     39[0m     
+[1;32m     40[0m     [38;5;66;03m# Print the results[39;00m
+
+File [0;32m~/Library/Python/3.9/lib/python/site-packages/pyomo/opt/base/solvers.py:99[0m, in [0;36mUnknownSolver.solve[0;34m(self, *args, **kwds)[0m
+[1;32m     97[0m [38;5;28;01mdef[39;00m [38;5;21msolve[39m([38;5;28mself[39m, [38;5;241m*[39margs, [38;5;241m*[39m[38;5;241m*[39mkwds):
+[1;32m     98[0m [38;5;250m    [39m[38;5;124;03m"""Perform optimization and return an SolverResults object."""[39;00m
+[0;32m---> 99[0m     [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43m_solver_error[49m[43m([49m[38;5;124;43m'[39;49m[38;5;124;43msolve[39;49m[38;5;124;43m'[39;49m[43m)[49m
+
+File [0;32m~/Library/Python/3.9/lib/python/site-packages/pyomo/opt/base/solvers.py:116[0m, in [0;36mUnknownSolver._solver_error[0;34m(self, method_name)[0m
+[1;32m    115[0m     [38;5;28;01mdef[39;00m [38;5;21m_solver_error[39m([38;5;28mself[39m, method_name):
+[0;32m--> 116[0m         [38;5;28;01mraise[39;00m [38;5;167;01mRuntimeError[39;00m(
+[1;32m    117[0m [38;5;250m            [39m[38;5;124;03m"""Attempting to use an unavailable solver.[39;00m
+[1;32m    118[0m 
+[1;32m    119[0m [38;5;124;03mThe SolverFactory was unable to create the solver "%s"[39;00m
+[1;32m    120[0m [38;5;124;03mand returned an UnknownSolver object.  This error is raised at the point[39;00m
+[1;32m    121[0m [38;5;124;03mwhere the UnknownSolver object was used as if it were valid (by calling[39;00m
+[1;32m    122[0m [38;5;124;03mmethod "%s").[39;00m
+[1;32m    123[0m 
+[1;32m    124[0m [38;5;124;03mThe original solver was created with the following parameters:[39;00m
+[1;32m    125[0m [38;5;124;03m\t"""[39;00m
+[1;32m    126[0m             [38;5;241m%[39m ([38;5;28mself[39m[38;5;241m.[39mtype, method_name)
+[1;32m    127[0m             [38;5;241m+[39m [38;5;124m"[39m[38;5;130;01m\n[39;00m[38;5;130;01m\t[39;00m[38;5;124m"[39m[38;5;241m.[39mjoin([38;5;124m"[39m[38;5;132;01m%s[39;00m[38;5;124m: [39m[38;5;132;01m%s[39;00m[38;5;124m"[39m [38;5;241m%[39m i [38;5;28;01mfor[39;00m i [38;5;129;01min[39;00m [38;5;28msorted[39m([38;5;28mself[39m[38;5;241m.[39m_kwds[38;5;241m.[39mitems()))
+[1;32m    128[0m             [38;5;241m+[39m [38;5;124m"[39m[38;5;130;01m\n[39;00m[38;5;130;01m\t[39;00m[38;5;124m_args: [39m[38;5;132;01m%s[39;00m[38;5;124m"[39m [38;5;241m%[39m ([38;5;28mself[39m[38;5;241m.[39m_args,)
+[1;32m    129[0m             [38;5;241m+[39m [38;5;124m"[39m[38;5;130;01m\n[39;00m[38;5;130;01m\t[39;00m[38;5;124moptions: [39m[38;5;132;01m%s[39;00m[38;5;124m"[39m [38;5;241m%[39m ([38;5;28mself[39m[38;5;241m.[39moptions,)
+[1;32m    130[0m         )
+
+[0;31mRuntimeError[0m: Attempting to use an unavailable solver.
+
+The SolverFactory was unable to create the solver "ipopt"
+and returned an UnknownSolver object.  This error is raised at the point
+where the UnknownSolver object was used as if it were valid (by calling
+method "solve").
+
+The original solver was created with the following parameters:
+	executable: /content/ipopt
+	type: ipopt
+	_args: ()
+	options: {}
 
