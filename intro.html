@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Foreword &#8212; Reinforcement Learning: beyond the Agent Interaction Loop</title>
+    <title>Introduction &#8212; Reinforcement Learning: beyond the Agent Interaction Loop</title>
   
   
   
@@ -174,7 +174,7 @@
         <ul class="nav bd-sidenav bd-sidenav__home-link">
             <li class="toctree-l1 current active">
                 <a class="reference internal" href="#">
-                    Foreword
+                    Introduction
                 </a>
             </li>
         </ul>
@@ -383,7 +383,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Foreword</h1>
+    <h1>Introduction</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -393,10 +393,8 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Foreword</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#the-reinforcement-learning-problem">The Reinforcement Learning Problem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-reinforcement-learning-problem">The Reinforcement Learning Problem</a></li>
 </ul>
-
             </nav>
         </div>
     </div>
@@ -407,13 +405,12 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="foreword">
-<h1>Foreword<a class="headerlink" href="#foreword" title="Link to this heading">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">#</a></h1>
 <p>Reinforcement Learning (RL) is fundamentally about learning to take right actions from data, whether that data is obtained online or offline. This course adopts a broader perspective on RL than is typically presented in other textbooks. Rather than emphasizing only the trial-and-error aspect of RL, which has been historically prominent due to the pioneering work of Sutton and Barto, we view RL as a more general paradigm which seeks to transform data into useful policies. This perspective allows us to consider a variety of techniques encompassing optimal control, system identification methods, and ideas from simulation, in addition to the usual machinery of temporal difference learning.</p>
-<p>Traditional RL research often prioritizes “solving” benchmark problems within pre-defined environments. While valuable for theoretical exploration, this narrow focus neglects the crucial step of formulating these environments themselves. This creates a gap between RL as a powerful tool for addressing real-world challenges and its current position as an idealized theoretical model of human intelligence. \cite{Iskhakov2020} echo this sentiment when highlighting that the “daunting problem” hindering wider adoption of decision-making algorithms in econometrics is ``the difficulty of learning about the objective function and environment facing real-world decision-makers’’. When venturing beyond academia, numerous challenges beyond choosing an RL algorithm emerge: defining time units (discrete, continuous, start points, durations), identifying states, determining actions, and understanding their evolution over time. Crucially, defining the objective the system should achieve is non-trivial as real-world systems interacting with humans demand factoring in preferences, values, and judgments that even domain experts often struggle to formalize.</p>
-</section>
-<section class="tex2jax_ignore mathjax_ignore" id="the-reinforcement-learning-problem">
-<h1>The Reinforcement Learning Problem<a class="headerlink" href="#the-reinforcement-learning-problem" title="Link to this heading">#</a></h1>
+<p>Traditional RL research often prioritizes “solving” benchmark problems within pre-defined environments. While valuable for theoretical exploration, this narrow focus neglects the crucial step of formulating these environments themselves. This creates a gap between RL as a powerful tool for addressing real-world challenges and its current position as an idealized theoretical model of human intelligence. <span id="id1">Iskhakov <em>et al.</em> [<a class="reference internal" href="ocp.html#id12" title="Fedor Iskhakov, John Rust, and Bertel Schjerning. Machine learning and structural econometrics: contrasts and synergies. The Econometrics Journal, 23(3):S81–S124, August 2020. URL: http://dx.doi.org/10.1093/ectj/utaa019, doi:10.1093/ectj/utaa019.">IRS20</a>]</span> echo this sentiment when highlighting that the “daunting problem” hindering wider adoption of decision-making algorithms in econometrics is “the difficulty of learning about the objective function and environment facing real-world decision-makers”. When venturing beyond academia, numerous challenges beyond choosing an RL algorithm emerge: defining time units (discrete, continuous, start points, durations), identifying states, determining actions, and understanding their evolution over time. Crucially, defining the objective the system should achieve is non-trivial as real-world systems interacting with humans demand factoring in preferences, values, and judgments that even domain experts often struggle to formalize.</p>
+<section id="the-reinforcement-learning-problem">
+<h2>The Reinforcement Learning Problem<a class="headerlink" href="#the-reinforcement-learning-problem" title="Link to this heading">#</a></h2>
 <p>Reinforcement Learning is a field that has evolved from its roots in animal psychology and AI in the 1980s. However, it doesn’t have exclusivity on the problem of figuring out how to make good decisions automatically. This broader question has been a burgeoning topic during and post-World War II, with significant efforts put into ballistics and resource planning. These advances led to the creation of different lines of research, including control theory and operations research (OR). While not explicitly called “learning,” both control theory and OR have also developed learning ideas through the concepts of adaptation (with strong influence from Wiener’s cybernetics) and system identification.</p>
 <p>But what is learning, after all? While I won’t venture into crafting a perfect definition for the term, I think we can all agree that learning involves data, i.e., measurements of some phenomenon of interest. However, data alone is not enough; we must do something with it. In the decision-making context, what we are mostly interested in doing with that data is refining the quality of our decisions: to adapt. Supervised learning, the main flavor of machine learning in our everyday lives, also involves data and a process of adapting the model’s weights. So, how can we cast the problem of learning how to make good decisions from data as a supervised learning problem?</p>
 <p>One approach is to ask experts to provide demonstrations of what the right thing to do is in many different situations. Using supervised learning methods, we would then hope that our model will be capable of filling in the blanks and generalizing to situations that haven’t been seen in the dataset. However, this approach, called imitation learning (IL), suffers from two main challenges: the availability of quality data and sufficient data coverage (quantity). Often, the very reason we want to develop a learning-based decision-making system (i.e., an RL agent) is that we either don’t know how to solve the problem of interest well at all (hence can’t provide demonstrations) or want to outperform what has been shown in the dataset (superhuman AI).</p>
@@ -421,6 +418,7 @@ document.write(`
 <p>To appreciate the complexity of specifying those quantities, consider the complex task of dynamically adjusting temperature setpoints in a building to minimize energy usage while maintaining thermal comfort and adhering to equipment limitations. Defining this problem is challenging because thermal comfort preferences vary greatly between individuals and are impacted by elements like humidity, which sensors might not always accurately capture. Furthermore, responsible deployment demands safeguards, as pushing close to equipment limitations could cause service interruption, damage trust, and hinder user adoption. To add to the challenge, practical knowledge about controlling building HVAC systems is often held tacitly by experienced building managers and passed down primarily through on-the-job interactions and undocumented practices, presenting a potential knowledge loss with staff turnover. This very same challenge, understanding the complex decision-making preferences of human operators, also arises in other industries. Take water treatment plants, where the overarching goal is to maintain sufficient water outflow under fluctuating demands while simultaneously controlling turbidity and pH levels. This task necessitates difficult-to-quantify factors related to the operator’s forecasting, risk perception, and overall intuition about the plant’s state.</p>
 <p>It is this need for understanding what people want that drives the field of preference elicitation, which goes hand-in-hand with that of inferring optimal ways of acting. In preference modeling, we are typically interested in determining preferences from data (typically of human provenance) obtained through a process of preference elicitation. Preference modeling is, therefore, also a learning problem, one which is closely related to supervised learning. However, the difference is that we are interested in obtaining a preference ordering from that data, and this ordering is not directly represented in the data, hence the need for inference. Preference data is typically obtained in a pairwise fashion, and under the right conditions in the Von Neumann theorem, those preferences are preserved by their equivalent representation as a scalar objective function: the utility function. It is under this form as a utility function inferred from pairwise preferences that many state-of-the-art Large Language Models (LLMs) are currently being developed, a methodology referred to as Reinforcement Learning from Human Feedback (RLHF). Compared to IL, this approach shines in the ease with which one can collect supervisory data: preferences tend to be easier to harvest at scale than expert demonstrations of the thing that one wants to achieve. Furthermore, this approach also facilitates the process of data reuse as preference queries can be collected offline and relabeled later; it is harder to correct demonstrations post hoc.</p>
 <p>Ultimately, whether we choose to go for IL, preference-based modeling, or direct modeling of objectives and environment comes down to a matter of ease of expressing our intents to a machine. In a sense (which, as far as I know, hasn’t been studied in this way very much), this is a human-computer interaction (HCI) problem. Throughout this course, I want to provide you with an array of tools to let you find what’s right for your problem by choosing or mixing these techniques together.</p>
+</section>
 <div class="toctree-wrapper compound">
 </div>
 </section>
@@ -480,10 +478,8 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Foreword</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#the-reinforcement-learning-problem">The Reinforcement Learning Problem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-reinforcement-learning-problem">The Reinforcement Learning Problem</a></li>
 </ul>
-
   </nav></div>
 
 </div></div>
