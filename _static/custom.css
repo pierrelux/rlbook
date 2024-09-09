@@ -1,0 +1,5 @@
+/* Adjust the overall width of the middle content column */
+.bd-main {
+    max-width: 80%; /* Adjust this value to set the desired width */
+    margin: 0 auto; /* Center the content */
+}

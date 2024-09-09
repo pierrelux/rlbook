@@ -36,6 +36,7 @@
     <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
     <link rel="stylesheet" type="text/css" href="_static/proof.css?v=ca93fcec" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=87e54e7c" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=1f1b58a8" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -399,11 +400,14 @@ document.write(`
 </ul>
 </li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#numerical-methods-for-solving-docps">2. Numerical Methods for Solving DOCPs</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#constrained-optimization-approach">2.1. Constrained Optimization Approach</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nonlinear-programming-and-kkt-conditions">2.1.1. Nonlinear Programming and KKT Conditions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#single-shooting-methods">2.1. Single Shooting Methods</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#constrained-optimization-approach">2.2. Constrained Optimization Approach</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nonlinear-programming">2.2.1. Nonlinear Programming</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#karush-kuhn-tucker-kkt-conditions">2.2.1.1. Karush-Kuhn-Tucker (KKT) conditions</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#transformation-to-an-unconstrained-problem-single-shooting-methods">2.2. Transformation to an Unconstrained Problem: Single Shooting Methods</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -520,13 +524,8 @@ y_t+c_t\left(\boldsymbol{x}_t, \boldsymbol{u}_t\right)
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="numerical-methods-for-solving-docps">
 <h1><span class="section-number">2. </span>Numerical Methods for Solving DOCPs<a class="headerlink" href="#numerical-methods-for-solving-docps" title="Link to this heading">#</a></h1>
-<p>Let’s assume that an optimal control problem has been formulated in one of the forms presented earlier and has been given to us to solve. The following section explores numerical solutions applicable to these problems, focusing on trajectory optimization. Our goal is to output an optimal control (and state trajectory) based on the given cost function and dynamics structure.</p>
-<p>It’s important to note that the methods presented here are not learning methods; they don’t involve ingesting data or inferring unknown quantities from it. However, these methods represent a central component of any decision-learning system, and we will later explore how learning concepts can be incorporated.</p>
-<section id="constrained-optimization-approach">
-<h2><span class="section-number">2.1. </span>Constrained Optimization Approach<a class="headerlink" href="#constrained-optimization-approach" title="Link to this heading">#</a></h2>
-<p>The mathematical programming formulation presented earlier lends itself readily to off-the-shelf solvers for nonlinear mathematical programs. For example, we can use the <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code> function along with the SLSQP (Sequential Least Squares Programming) solver to obtain a solution to any feasible Bolza problem of the form presented below.</p>
-<p>Before delving into the details of the numerical solver itself, let’s consider an electric vehicle energy management problem. We will use this as a test bed for our algorithms, allowing us to demonstrate the practical application of these optimization techniques.
-Consider an electric vehicle traversing a planned route, where we aim to optimize its energy consumption over a 20-minute journey. Our simplified model represents the vehicle’s state using two variables: <span class="math notranslate nohighlight">\(x_1\)</span>, the battery state of charge as a percentage, and <span class="math notranslate nohighlight">\(x_2\)</span>, denoting the vehicle’s speed in meters per second. The control input <span class="math notranslate nohighlight">\(u\)</span>, ranging from -1 to 1, represents the motor power, with negative values indicating regenerative braking and positive values representing acceleration. The problem can be formally expressed as a mathematical program in Bolza form:</p>
+<p>Let’s assume that an optimal control problem has been formulated in one of the forms presented earlier and has been given to us to solve. The following section explores numerical solutions applicable to these problems, focusing on trajectory optimization. Our goal is to output an optimal control (and state trajectory) based on the given cost function and dynamics structure. It’s important to note that the methods presented here are not learning methods just yet; they don’t involve ingesting data or inferring unknown quantities from it. However, these methods represent a central component of any decision-learning system, and we will later explore how learning concepts can be incorporated.</p>
+<p>Before delving into the solution methods, let’s consider an electric vehicle energy management problem which we will use this as a test bed throughout this section. Consider an electric vehicle traversing a planned route, where we aim to optimize its energy consumption over a 20-minute journey. Our simplified model represents the vehicle’s state using two variables: <span class="math notranslate nohighlight">\(x_1\)</span>, the battery state of charge as a percentage, and <span class="math notranslate nohighlight">\(x_2\)</span>, denoting the vehicle’s speed in meters per second. The control input <span class="math notranslate nohighlight">\(u\)</span>, ranging from -1 to 1, represents the motor power, with negative values indicating regenerative braking and positive values representing acceleration. The problem can be formally expressed as a mathematical program in Bolza form:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split} \begin{align*}
 \min_{x, u} \quad &amp; J = \underbrace{x_{T,1}^2 + x_{T,2}^2}_{\text{Mayer term}} + \underbrace{\sum_{t=1}^{T-1} 0.1(x_{t,1}^2 + x_{t,2}^2 + u_t^2)}_{\text{Lagrange term}} \\[2ex]
@@ -542,459 +541,9 @@ Consider an electric vehicle traversing a planned route, where we aim to optimiz
 &amp; x_t = \begin{bmatrix} x_{t,1} \\ x_{t,2} \end{bmatrix} \in \mathbb{R}^2, \quad u_t \in \mathbb{R}
 \end{align*} \end{split}\]</div>
 <p>The system dynamics, represented by <span class="math notranslate nohighlight">\(f_t(x_t, u_t)\)</span>, describe how the battery charge and vehicle speed evolve based on the current state and control input. The initial condition <span class="math notranslate nohighlight">\(x_1 = [1, 0]^T\)</span> indicates that the vehicle starts with a fully charged battery and zero initial speed. The constraints <span class="math notranslate nohighlight">\(-1 \leq u_t \leq 1\)</span> and <span class="math notranslate nohighlight">\(-5 \leq x_{t,1}, x_{t,2} \leq 5\)</span> ensure that the control inputs and state variables remain within acceptable ranges throughout the journey. This model is of course highly simplistic and neglects the nonlinear nature of battery discharge and vehicle motion due to air resistance, road grade, and vehicle mass, etc. Furthermore, our model ignores the effect of environmental factors like wind and temperature on regenerative breaking. Route-specific information such as elevation changes and speed limits are absent, as is the consideration of auxiliary power consumption such as heating and entertainment. These are all possible improvements to our models which we ignore at the moment for the sake of simplicity.</p>
-<p>The following code demonstrate how this problem can be solved directly using <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code> in a black box fashion. In the next sections, we will dive deeper into the mathematical underpinnings of constrained optimization and implement our own solvers. For the moment, I simply want to bring to your attention that the solution to this problem, as expressed in its original form, involves solving for two interdependent quantities: the optimal sequence of controls, and that of the states encountered when applying them to the system. Is that bug, or a feature? We’ll see that it depends…</p>
-<div class="cell tag_hide-input docutils container">
-<details class="hide above-input">
-<summary aria-label="Toggle hidden content">
-<span class="collapsed">Show code cell source</span>
-<span class="expanded">Hide code cell source</span>
-</summary>
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-
-<span class="k">def</span> <span class="nf">solve_docp</span><span class="p">(</span><span class="n">c_T</span><span class="p">,</span> <span class="n">c_t</span><span class="p">,</span> <span class="n">f_t</span><span class="p">,</span> <span class="n">x_1</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">u_lb</span><span class="p">,</span> <span class="n">u_ub</span><span class="p">,</span> <span class="n">x_lb</span><span class="p">,</span> <span class="n">x_ub</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Solve a Discrete-Time Optimal Control Problem of Bolza Type using scipy.minimize with SLSQP.</span>
-<span class="sd">    </span>
-<span class="sd">    Parameters:</span>
-<span class="sd">    - c_T: function, terminal cost c_T(x_T)</span>
-<span class="sd">    - c_t: function, stage cost c_t(x_t, u_t)</span>
-<span class="sd">    - f_t: function, state transition f_t(x_t, u_t)</span>
-<span class="sd">    - x_1: array, initial state</span>
-<span class="sd">    - T: int, time horizon</span>
-<span class="sd">    - u_lb, u_ub: arrays, lower and upper bounds for control inputs</span>
-<span class="sd">    - x_lb, x_ub: arrays, lower and upper bounds for states</span>
-<span class="sd">    </span>
-<span class="sd">    Returns:</span>
-<span class="sd">    - result: OptimizeResult object from scipy.optimize.minimize</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    
-    <span class="n">n_x</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_1</span><span class="p">)</span>
-    <span class="n">n_u</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">u_lb</span><span class="p">)</span>
-    
-    <span class="k">def</span> <span class="nf">objective</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">z</span><span class="p">[:</span><span class="n">T</span><span class="o">*</span><span class="n">n_x</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">n_x</span><span class="p">)</span>
-        <span class="n">u</span> <span class="o">=</span> <span class="n">z</span><span class="p">[</span><span class="n">T</span><span class="o">*</span><span class="n">n_x</span><span class="p">:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">n_u</span><span class="p">)</span>
-        
-        <span class="n">cost</span> <span class="o">=</span> <span class="n">c_T</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">T</span><span class="p">):</span>
-            <span class="n">cost</span> <span class="o">+=</span> <span class="n">c_t</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">t</span><span class="p">],</span> <span class="n">u</span><span class="p">[</span><span class="n">t</span><span class="p">])</span>
-        
-        <span class="k">return</span> <span class="n">cost</span>
-    
-    <span class="k">def</span> <span class="nf">constraints</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">z</span><span class="p">[:</span><span class="n">T</span><span class="o">*</span><span class="n">n_x</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">n_x</span><span class="p">)</span>
-        <span class="n">u</span> <span class="o">=</span> <span class="n">z</span><span class="p">[</span><span class="n">T</span><span class="o">*</span><span class="n">n_x</span><span class="p">:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">n_u</span><span class="p">)</span>
-        
-        <span class="n">cons</span> <span class="o">=</span> <span class="p">[]</span>
-        
-        <span class="c1"># State transition constraints</span>
-        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">T</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
-            <span class="n">cons</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">f_t</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">t</span><span class="p">],</span> <span class="n">u</span><span class="p">[</span><span class="n">t</span><span class="p">]))</span>
-        
-        <span class="c1"># Initial state constraint</span>
-        <span class="n">cons</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">x_1</span><span class="p">)</span>
-        
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cons</span><span class="p">)</span>
-    
-    <span class="c1"># Set up bounds</span>
-    <span class="n">bounds</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">T</span><span class="p">):</span>
-        <span class="n">bounds</span><span class="o">.</span><span class="n">extend</span><span class="p">([(</span><span class="n">xl</span><span class="p">,</span> <span class="n">xu</span><span class="p">)</span> <span class="k">for</span> <span class="n">xl</span><span class="p">,</span> <span class="n">xu</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">x_lb</span><span class="p">,</span> <span class="n">x_ub</span><span class="p">)])</span>
-    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">T</span><span class="p">):</span>
-        <span class="n">bounds</span><span class="o">.</span><span class="n">extend</span><span class="p">([(</span><span class="n">ul</span><span class="p">,</span> <span class="n">uu</span><span class="p">)</span> <span class="k">for</span> <span class="n">ul</span><span class="p">,</span> <span class="n">uu</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">u_lb</span><span class="p">,</span> <span class="n">u_ub</span><span class="p">)])</span>
-    
-    <span class="c1"># Initial guess</span>
-    <span class="n">z0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">T</span> <span class="o">*</span> <span class="p">(</span><span class="n">n_x</span> <span class="o">+</span> <span class="n">n_u</span><span class="p">))</span>
-    
-    <span class="c1"># Solve the optimization problem</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span>
-        <span class="n">objective</span><span class="p">,</span>
-        <span class="n">z0</span><span class="p">,</span>
-        <span class="n">method</span><span class="o">=</span><span class="s1">&#39;SLSQP&#39;</span><span class="p">,</span>
-        <span class="n">constraints</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;eq&#39;</span><span class="p">,</span> <span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="n">constraints</span><span class="p">},</span>
-        <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span>
-        <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;ftol&#39;</span><span class="p">:</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="s1">&#39;maxiter&#39;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">}</span>
-    <span class="p">)</span>
-    
-    <span class="k">return</span> <span class="n">result</span>
-
-<span class="k">def</span> <span class="nf">plot_results</span><span class="p">(</span><span class="n">x_opt</span><span class="p">,</span> <span class="n">u_opt</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Plot the optimal states and control inputs.</span>
-<span class="sd">    </span>
-<span class="sd">    Parameters:</span>
-<span class="sd">    - x_opt: array, optimal states</span>
-<span class="sd">    - u_opt: array, optimal control inputs</span>
-<span class="sd">    - T: int, time horizon</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">T</span><span class="p">)</span>
-    
-    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
-    
-    <span class="c1"># Plot states</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Battery State of Charge&#39;</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Vehicle Speed&#39;</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Time Step&#39;</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;State Value&#39;</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Optimal State Trajectories&#39;</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-    
-    <span class="c1"># Plot control inputs</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">u_opt</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Motor Power Input&#39;</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Time Step&#39;</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Control Input&#39;</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Optimal Control Inputs&#39;</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-    
-    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-
-<span class="k">def</span> <span class="nf">example_docp</span><span class="p">():</span>
-    <span class="c1"># Define problem-specific functions and parameters</span>
-    <span class="k">def</span> <span class="nf">c_T</span><span class="p">(</span><span class="n">x_T</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">x_T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">x_T</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span>
-    
-    <span class="k">def</span> <span class="nf">c_t</span><span class="p">(</span><span class="n">x_t</span><span class="p">,</span> <span class="n">u_t</span><span class="p">):</span>
-        <span class="k">return</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="p">(</span><span class="n">x_t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">x_t</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">u_t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
-    
-    <span class="k">def</span> <span class="nf">f_t</span><span class="p">(</span><span class="n">x_t</span><span class="p">,</span> <span class="n">u_t</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
-            <span class="n">x_t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">x_t</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.05</span> <span class="o">*</span> <span class="n">u_t</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-            <span class="n">x_t</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">u_t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="p">])</span>
-    
-    <span class="n">x_1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
-    <span class="n">T</span> <span class="o">=</span> <span class="mi">20</span>
-    <span class="n">u_lb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">1.0</span><span class="p">])</span>
-    <span class="n">u_ub</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">])</span>
-    <span class="n">x_lb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">5.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">5.0</span><span class="p">])</span>
-    <span class="n">x_ub</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">])</span>
-    
-    <span class="n">result</span> <span class="o">=</span> <span class="n">solve_docp</span><span class="p">(</span><span class="n">c_T</span><span class="p">,</span> <span class="n">c_t</span><span class="p">,</span> <span class="n">f_t</span><span class="p">,</span> <span class="n">x_1</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">u_lb</span><span class="p">,</span> <span class="n">u_ub</span><span class="p">,</span> <span class="n">x_lb</span><span class="p">,</span> <span class="n">x_ub</span><span class="p">)</span>
-    
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Optimization successful:&quot;</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">success</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Optimal cost:&quot;</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">fun</span><span class="p">)</span>
-    
-    <span class="c1"># Extract optimal states and controls</span>
-    <span class="n">x_opt</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">x</span><span class="p">[:</span><span class="n">T</span><span class="o">*</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-    <span class="n">u_opt</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">T</span><span class="o">*</span><span class="mi">2</span><span class="p">:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-    
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Optimal states:&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">x_opt</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Optimal controls:&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">u_opt</span><span class="p">)</span>
-    
-    <span class="c1"># Plot the results</span>
-    <span class="n">plot_results</span><span class="p">(</span><span class="n">x_opt</span><span class="p">,</span> <span class="n">u_opt</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">example_docp</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-</details>
-<div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization successful: True
-Optimal cost: 1.4233413233781695
-Optimal states:
-[[ 1.00000000e+00 -4.38415751e-19]
- [ 9.53308083e-01 -9.33838348e-02]
- [ 9.05334198e-01 -1.70654837e-01]
- [ 8.56730665e-01 -2.33730936e-01]
- [ 8.08051721e-01 -2.84342636e-01]
- [ 7.59765028e-01 -3.24047495e-01]
- [ 7.12262141e-01 -3.54243770e-01]
- [ 6.65868050e-01 -3.76183199e-01]
- [ 6.20849825e-01 -3.90983009e-01]
- [ 5.77424459e-01 -3.99637139e-01]
- [ 5.35765971e-01 -4.03026688e-01]
- [ 4.96011845e-01 -4.01929602e-01]
- [ 4.58268833e-01 -3.97029704e-01]
- [ 4.22618229e-01 -3.88924971e-01]
- [ 3.89120605e-01 -3.78135227e-01]
- [ 3.57820102e-01 -3.65109185e-01]
- [ 3.28748325e-01 -3.50230903e-01]
- [ 3.01927831e-01 -3.33825710e-01]
- [ 2.77375326e-01 -3.16165578e-01]
- [ 2.55104530e-01 -2.97474055e-01]]
-Optimal controls:
-[[-9.33838348e-01]
- [-7.72710023e-01]
- [-6.30760993e-01]
- [-5.06117000e-01]
- [-3.97048581e-01]
- [-3.01962756e-01]
- [-2.19394288e-01]
- [-1.47998099e-01]
- [-8.65413015e-02]
- [-3.38954871e-02]
- [ 1.09708598e-02]
- [ 4.89989725e-02]
- [ 8.10473324e-02]
- [ 1.07897446e-01]
- [ 1.30260412e-01]
- [ 1.48782824e-01]
- [ 1.64051930e-01]
- [ 1.76601316e-01]
- [ 1.86915230e-01]
- [-3.21985557e-08]]
-</pre></div>
-</div>
-<img alt="_images/cf7adb0d61523f821f694194e1cd7054b85f1cd5e0c779a8482d1b035b07413b.png" src="_images/cf7adb0d61523f821f694194e1cd7054b85f1cd5e0c779a8482d1b035b07413b.png" />
-</div>
-</div>
-<section id="nonlinear-programming-and-kkt-conditions">
-<h3><span class="section-number">2.1.1. </span>Nonlinear Programming and KKT Conditions<a class="headerlink" href="#nonlinear-programming-and-kkt-conditions" title="Link to this heading">#</a></h3>
-<p>Unless specific assumptions are made on the dynamics and cost structure, a DOCP is, in its most general form, a nonlinear mathematical program (commonly referred to as an NLP, not to be confused with Natural Language Processing). An NLP can be formulated as follows:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}
-\begin{aligned}
-\text{minimize } &amp; f(\mathbf{x}) \\
-\text{subject to } &amp; \mathbf{g}(\mathbf{x}) \leq \mathbf{0} \\
-&amp; \mathbf{h}(\mathbf{x}) = \mathbf{0}
-\end{aligned}
-\end{split}\]</div>
-<p>Where:</p>
-<ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(f: \mathbb{R}^n \to \mathbb{R}\)</span> is the objective function</p></li>
-<li><p><span class="math notranslate nohighlight">\(\mathbf{g}: \mathbb{R}^n \to \mathbb{R}^m\)</span> represents inequality constraints</p></li>
-<li><p><span class="math notranslate nohighlight">\(\mathbf{h}: \mathbb{R}^n \to \mathbb{R}^\ell\)</span> represents equality constraints</p></li>
-</ul>
-<p>Unlike unconstrained optimization commonly used in deep learning, the optimality of a solution in constrained optimization must consider both the objective value and constraint feasibility. To illustrate this, consider the following problem, which includes both equality and inequality constraints:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}
-\begin{align*}
-\text{Minimize} \quad &amp; f(x_1, x_2) = (x_1 - 1)^2 + (x_2 - 2.5)^2 \\
-\text{subject to} \quad &amp; g(x_1, x_2) = (x_1 - 1)^2 + (x_2 - 1)^2 \leq 1.5, \\
-&amp; h(x_1, x_2) = x_2 - \left(0.5 \sin(2 \pi x_1) + 1.5\right) = 0.
-\end{align*}
-\end{split}\]</div>
-<p>In this example, the objective function <span class="math notranslate nohighlight">\(f(x_1, x_2)\)</span> is quadratic, which can be advantageous in solution methods, especially when combined with linear constraints. The inequality constraint <span class="math notranslate nohighlight">\(g(x_1, x_2)\)</span> defines a circular feasible region centered at <span class="math notranslate nohighlight">\((1, 1)\)</span> with a radius of <span class="math notranslate nohighlight">\(\sqrt{1.5}\)</span>. Additionally, the equality constraint <span class="math notranslate nohighlight">\(h(x_1, x_2)\)</span> requires <span class="math notranslate nohighlight">\(x_2\)</span> to lie on a sine wave function. The following code demonstrates the difference between the unconstrained, and constrained solutions to this problem.</p>
-<div class="cell tag_hide-input docutils container">
-<details class="hide above-input">
-<summary aria-label="Toggle hidden content">
-<span class="collapsed">Show code cell source</span>
-<span class="expanded">Hide code cell source</span>
-</summary>
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize</span>
-
-<span class="c1"># Define the objective function</span>
-<span class="k">def</span> <span class="nf">objective</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">2.5</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
-
-<span class="c1"># Define the inequality constraint function</span>
-<span class="k">def</span> <span class="nf">constraint</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-    <span class="k">return</span> <span class="o">-</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="mf">1.5</span>
-
-<span class="c1"># Define the gradient of the objective function</span>
-<span class="k">def</span> <span class="nf">objective_gradient</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">2.5</span><span class="p">)])</span>
-
-<span class="c1"># Define the gradient of the inequality constraint function</span>
-<span class="k">def</span> <span class="nf">constraint_gradient</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)])</span>
-
-<span class="c1"># Define the sine wave equality constraint function</span>
-<span class="k">def</span> <span class="nf">sine_wave_equality_constraint</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="mf">1.5</span><span class="p">)</span>
-
-<span class="c1"># Define the gradient of the sine wave equality constraint function</span>
-<span class="k">def</span> <span class="nf">sine_wave_equality_constraint_gradient</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="mi">1</span><span class="p">])</span>
-
-<span class="c1"># Define the constraints including the sine wave equality constraint</span>
-<span class="n">sine_wave_constraints</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;ineq&#39;</span><span class="p">,</span> <span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="n">constraint</span><span class="p">,</span> <span class="s1">&#39;jac&#39;</span><span class="p">:</span> <span class="n">constraint_gradient</span><span class="p">},</span>  <span class="c1"># Inequality constraint</span>
-                         <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;eq&#39;</span><span class="p">,</span> <span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="n">sine_wave_equality_constraint</span><span class="p">,</span> <span class="s1">&#39;jac&#39;</span><span class="p">:</span> <span class="n">sine_wave_equality_constraint_gradient</span><span class="p">}]</span>  <span class="c1"># Sine wave equality constraint</span>
-
-<span class="c1"># Define only the inequality constraint</span>
-<span class="n">inequality_constraints</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;ineq&#39;</span><span class="p">,</span> <span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="n">constraint</span><span class="p">,</span> <span class="s1">&#39;jac&#39;</span><span class="p">:</span> <span class="n">constraint_gradient</span><span class="p">}]</span>
-
-<span class="c1"># Initial guess</span>
-<span class="n">x0</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.25</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">]</span>
-
-<span class="c1"># Solve the optimization problem with the sine wave equality constraint</span>
-<span class="n">res_sine_wave_constraint</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;SLSQP&#39;</span><span class="p">,</span> <span class="n">jac</span><span class="o">=</span><span class="n">objective_gradient</span><span class="p">,</span> 
-                                    <span class="n">constraints</span><span class="o">=</span><span class="n">sine_wave_constraints</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;disp&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
-
-<span class="n">x_opt_sine_wave_constraint</span> <span class="o">=</span> <span class="n">res_sine_wave_constraint</span><span class="o">.</span><span class="n">x</span>
-
-<span class="c1"># Solve the optimization problem with only the inequality constraint</span>
-<span class="n">res_inequality_only</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;SLSQP&#39;</span><span class="p">,</span> <span class="n">jac</span><span class="o">=</span><span class="n">objective_gradient</span><span class="p">,</span> 
-                               <span class="n">constraints</span><span class="o">=</span><span class="n">inequality_constraints</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;disp&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
-
-<span class="n">x_opt_inequality_only</span> <span class="o">=</span> <span class="n">res_inequality_only</span><span class="o">.</span><span class="n">x</span>
-
-<span class="c1"># Solve the unconstrained optimization problem for reference</span>
-<span class="n">res_unconstrained</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;SLSQP&#39;</span><span class="p">,</span> <span class="n">jac</span><span class="o">=</span><span class="n">objective_gradient</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;disp&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
-<span class="n">x_opt_unconstrained</span> <span class="o">=</span> <span class="n">res_unconstrained</span><span class="o">.</span><span class="n">x</span>
-
-<span class="c1"># Generate data for visualization</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">400</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">400</span><span class="p">)</span>
-<span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
-<span class="n">Z</span> <span class="o">=</span> <span class="p">(</span><span class="n">X</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">Y</span> <span class="o">-</span> <span class="mf">2.5</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>  <span class="c1"># Objective function values</span>
-<span class="n">constraint_values</span> <span class="o">=</span> <span class="p">(</span><span class="n">X</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">Y</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
-
-<span class="c1"># Data for sine wave constraint</span>
-<span class="n">x_sine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">400</span><span class="p">)</span>
-<span class="n">y_sine</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">x_sine</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1.5</span>
-
-<span class="c1"># Visualization with Improved Color Scheme</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">contourf</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span>  <span class="c1"># Heatmap for the objective function</span>
-
-<span class="c1"># Plot all the optimal points</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_opt_inequality_only</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x_opt_inequality_only</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;ro&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Optimal Solution (Inequality Only)&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">markeredgecolor</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_opt_sine_wave_constraint</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x_opt_sine_wave_constraint</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;mo&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Optimal Solution (Sine Wave Equality &amp; Inequality)&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">markeredgecolor</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_opt_unconstrained</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x_opt_unconstrained</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;co&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Unconstrained Minimum&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">markeredgecolor</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
-
-<span class="c1"># Adjust constraint boundary colors</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">constraint_values</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="p">[</span><span class="mf">1.5</span><span class="p">],</span> <span class="n">colors</span><span class="o">=</span><span class="s1">&#39;navy&#39;</span><span class="p">,</span> <span class="n">linewidths</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">linestyles</span><span class="o">=</span><span class="s1">&#39;dashed&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">contourf</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">constraint_values</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">],</span> <span class="n">colors</span><span class="o">=</span><span class="s1">&#39;skyblue&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
-
-<span class="c1"># Plot the sine wave equality constraint with a high contrast color</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_sine</span><span class="p">,</span> <span class="n">y_sine</span><span class="p">,</span> <span class="s1">&#39;lime&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Sine Wave Equality Constraint&#39;</span><span class="p">)</span>
-
-<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;x1&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;x2&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Example NLP&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper left&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="s1">&#39;small&#39;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">fancybox</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-<span class="c1"># Set the aspect ratio to be equal so the circle appears correctly</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">,</span> <span class="n">adjustable</span><span class="o">=</span><span class="s1">&#39;box&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-</details>
-<div class="cell_output docutils container">
-<img alt="_images/af05192d0312dcb3309548c3ceedd4468f282e991b9cef83452557dfe3eef22a.png" src="_images/af05192d0312dcb3309548c3ceedd4468f282e991b9cef83452557dfe3eef22a.png" />
-</div>
-</div>
-<p>While this example is simple enough to convince ourselves visually of the solution to this particular problem, it falls short of providing us with actionable chracterization of what constitutes and optimal solution in general.
-The Karush-Kuhn-Tucker (KKT) conditions provide us with an answer to this problem by generalizing the first-order optimality conditions in unconstrained optimization to problems involving both equality and inequality constraints.
-This result relies on the construction of an auxiliary function called the Lagrangian, defined as:</p>
-<div class="math notranslate nohighlight">
-\[\mathcal{L}(\mathbf{x}, \boldsymbol{\mu}, \boldsymbol{\lambda})=f(\mathbf{x})+\boldsymbol{\mu}^{\top} \mathbf{g}(\mathbf{x})+\boldsymbol{\lambda}^{\top} \mathbf{h}(\mathbf{x})\]</div>
-<p>where <span class="math notranslate nohighlight">\(\boldsymbol{\mu} \in \mathbb{R}^m\)</span> and <span class="math notranslate nohighlight">\(\boldsymbol{\lambda} \in \mathbb{R}^\ell\)</span> are known as Lagrange multipliers. The first-order optimality conditions then state that if <span class="math notranslate nohighlight">\(\mathbf{x}^*\)</span>, then there must exist corresponding Lagrange multipliers <span class="math notranslate nohighlight">\(\boldsymbol{\mu}^*\)</span> and <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^*\)</span> such that:</p>
-<ol class="arabic">
-<li><p>The gradient of the Lagrangian with respect to <span class="math notranslate nohighlight">\(\mathbf{x}\)</span> must be zero at the optimal point (<strong>stationarity</strong>):</p>
-<div class="math notranslate nohighlight">
-\[\nabla_x \mathcal{L}(\mathbf{x}^*, \boldsymbol{\mu}^*, \boldsymbol{\lambda}^*) = \nabla f(\mathbf{x}^*) + \sum_{i=1}^m \mu_i^* \nabla g_i(\mathbf{x}^*) + \sum_{j=1}^\ell \lambda_j^* \nabla h_j(\mathbf{x}^*) = \mathbf{0}\]</div>
-<p>In the case where we only have equality constraints, this means that the gradient of the objective and that of constraint are parallel to each other at the optimum but point in opposite directions.</p>
-</li>
-<li><p>A valid solution of a NLP is one which satisfies all the constraints (<strong>primal feasibility</strong>)</p>
-<div class="math notranslate nohighlight">
-\[\begin{aligned}
-   \mathbf{g}(\mathbf{x}^*) &amp;\leq \mathbf{0}, \enspace \text{and} \enspace \mathbf{h}(\mathbf{x}^*) &amp;= \mathbf{0}
-   \end{aligned}\]</div>
-</li>
-<li><p>Furthermore, the Lagrange multipliers for <strong>inequality</strong> constraints must be non-negative (<strong>dual feasibility</strong>)</p>
-<div class="math notranslate nohighlight">
-\[\boldsymbol{\mu}^* \geq \mathbf{0}\]</div>
-<p>This condition stems from the fact that the inequality constraints can only push the solution in one direction.</p>
-</li>
-<li><p>Finally, for each inequality constraint, either the constraint is active (equality holds) or its corresponding Lagrange multiplier is zero at an optimal solution(<strong>complementary slackness</strong>)</p>
-<div class="math notranslate nohighlight">
-\[\mu_i^* g_i(\mathbf{x}^*) = 0, \quad \forall i = 1,\ldots,m\]</div>
-</li>
-</ol>
-<p>Going back to our example above, let’s inspect the primal-dual pair returned by the solver ipopt, accessed through the pyomo interface. We find that:</p>
-<div class="cell tag_hide-input docutils container">
-<details class="hide above-input">
-<summary aria-label="Toggle hidden content">
-<span class="collapsed">Show code cell source</span>
-<span class="expanded">Hide code cell source</span>
-</summary>
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pyomo.environ</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">pyomo.opt</span> <span class="kn">import</span> <span class="n">SolverFactory</span>
-<span class="kn">import</span> <span class="nn">math</span>
-
-<span class="c1"># Define the Pyomo model</span>
-<span class="n">model</span> <span class="o">=</span> <span class="n">ConcreteModel</span><span class="p">()</span>
-
-<span class="c1"># Define the variables</span>
-<span class="n">model</span><span class="o">.</span><span class="n">x1</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="n">initialize</span><span class="o">=</span><span class="mf">1.25</span><span class="p">)</span>
-<span class="n">model</span><span class="o">.</span><span class="n">x2</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="n">initialize</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
-
-<span class="c1"># Define the objective function</span>
-<span class="k">def</span> <span class="nf">objective_rule</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">x1</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">x2</span> <span class="o">-</span> <span class="mf">2.5</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
-<span class="n">model</span><span class="o">.</span><span class="n">obj</span> <span class="o">=</span> <span class="n">Objective</span><span class="p">(</span><span class="n">rule</span><span class="o">=</span><span class="n">objective_rule</span><span class="p">,</span> <span class="n">sense</span><span class="o">=</span><span class="n">minimize</span><span class="p">)</span>
-
-<span class="c1"># Define the inequality constraint (circle)</span>
-<span class="k">def</span> <span class="nf">inequality_constraint_rule</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">x1</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">x2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">&lt;=</span> <span class="mf">1.5</span>
-<span class="n">model</span><span class="o">.</span><span class="n">ineq_constraint</span> <span class="o">=</span> <span class="n">Constraint</span><span class="p">(</span><span class="n">rule</span><span class="o">=</span><span class="n">inequality_constraint_rule</span><span class="p">)</span>
-
-<span class="c1"># Define the equality constraint (sine wave) using Pyomo&#39;s math functions</span>
-<span class="k">def</span> <span class="nf">equality_constraint_rule</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">x2</span> <span class="o">==</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">x1</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1.5</span>
-<span class="n">model</span><span class="o">.</span><span class="n">eq_constraint</span> <span class="o">=</span> <span class="n">Constraint</span><span class="p">(</span><span class="n">rule</span><span class="o">=</span><span class="n">equality_constraint_rule</span><span class="p">)</span>
-
-<span class="c1"># Create a suffix component to capture dual values</span>
-<span class="n">model</span><span class="o">.</span><span class="n">dual</span> <span class="o">=</span> <span class="n">Suffix</span><span class="p">(</span><span class="n">direction</span><span class="o">=</span><span class="n">Suffix</span><span class="o">.</span><span class="n">IMPORT</span><span class="p">)</span>
-
-<span class="c1"># Create a solver</span>
-<span class="n">solver</span><span class="o">=</span><span class="n">SolverFactory</span><span class="p">(</span><span class="s1">&#39;ipopt&#39;</span><span class="p">)</span>
-
-<span class="c1"># Solve the problem</span>
-<span class="n">results</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">tee</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-
-<span class="c1"># Check if the solver found an optimal solution</span>
-<span class="k">if</span> <span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">SolverStatus</span><span class="o">.</span><span class="n">ok</span> <span class="ow">and</span> 
-    <span class="n">results</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">termination_condition</span> <span class="o">==</span> <span class="n">TerminationCondition</span><span class="o">.</span><span class="n">optimal</span><span class="p">):</span>
-    
-    <span class="c1"># Print the results</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;x1: </span><span class="si">{</span><span class="n">value</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">x1</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;x2: </span><span class="si">{</span><span class="n">value</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">x2</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    
-    <span class="c1"># Print the objective value</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Objective value: </span><span class="si">{</span><span class="n">value</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">obj</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-    <span class="c1"># Print the Lagrange multipliers (dual values)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Lagrange multipliers:&quot;</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">component_objects</span><span class="p">(</span><span class="n">Constraint</span><span class="p">,</span> <span class="n">active</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">c</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">[</span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s2">]: </span><span class="si">{</span><span class="n">model</span><span class="o">.</span><span class="n">dual</span><span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="n">index</span><span class="p">]]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Solver did not find an optimal solution.&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Solver Status: </span><span class="si">{</span><span class="n">results</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">status</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Termination Condition: </span><span class="si">{</span><span class="n">results</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">termination_condition</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</details>
-<div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>x1: 1.2271417639244486
-x2: 1.994852000302119
-Objective value: 0.3067678825174803
-
-Lagrange multipliers:
-ineq_constraint[None]: -5.466075458072094e-09
-eq_constraint[None]: -1.0102959885190541
-</pre></div>
-</div>
-</div>
-</div>
-</section>
-</section>
-<section id="transformation-to-an-unconstrained-problem-single-shooting-methods">
-<h2><span class="section-number">2.2. </span>Transformation to an Unconstrained Problem: Single Shooting Methods<a class="headerlink" href="#transformation-to-an-unconstrained-problem-single-shooting-methods" title="Link to this heading">#</a></h2>
-<p>Given access to unconstrained optimization solver, the easiest method to implement is by far what is known as “single shooting” in control theory. The idea of simple: rather than having to solve for the state variables as equality constraints, we transform the original equality constraint problem into an unconstrained one through “simulation”, ie by recursively computing the evolution of our system for any given set of controls and initial state. In the deterministic setting, given an initial state, we can always exactly reconstruct the resulting sequence of states by “rolling out” our model, a process which some communities would refer to as “time marching”. Mathematically, this amounts to forming the following unconstrained program:</p>
+<section id="single-shooting-methods">
+<h2><span class="section-number">2.1. </span>Single Shooting Methods<a class="headerlink" href="#single-shooting-methods" title="Link to this heading">#</a></h2>
+<p>Given access to unconstrained optimization solver, the easiest method to implement is by far what is known as “single shooting” in control theory. The idea of simple: rather than having to solve for the state variables as equality constraints, we transform the original constrained problem into an unconstrained one through “simulation”, ie by recursively computing the evolution of our system for any given set of controls and initial state. In the deterministic setting, given an initial state, we can always exactly reconstruct the resulting sequence of states by “rolling out” our model, a process which some communities would refer to as “time marching”. Mathematically, this amounts to forming the following unconstrained program:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
 \begin{align*}
@@ -1402,6 +951,469 @@ Optimal control sequence: [-0.84949344 -0.7677488  -0.6298097  -0.4975385  -0.38
 </ul>
 <p>The selection of an optimization method for single shooting is influenced by multiple factors: problem-specific characteristics, available computational resources, and the balance between exploring the solution space and exploiting known good solutions. While gradient-based methods generally offer faster convergence when applicable, derivative-free and stochastic approaches tend to be more robust to complex non-convex loss landscapes, albeit at the cost of increased computational demands.</p>
 <p>In practice, however, this choice is often guided by the tools at hand and the practitioners’ familiarity with them. For instance, researchers with a background in deep learning tend to gravitate towards first-order gradient-based optimization techniques along with automatic differentiation for efficient derivative computation.</p>
+</section>
+<section id="constrained-optimization-approach">
+<h2><span class="section-number">2.2. </span>Constrained Optimization Approach<a class="headerlink" href="#constrained-optimization-approach" title="Link to this heading">#</a></h2>
+<p>The mathematical programming formulation presented earlier lends itself readily to off-the-shelf solvers for nonlinear mathematical programs. For example, we can use the <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code> function along with the SLSQP (Sequential Least Squares Programming) solver to obtain a solution to any feasible Bolza problem of the form presented below.</p>
+<p>The following code demonstrate how the car charging problem can be solved directly using <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code> in a black box fashion. In the next sections, we will dive deeper into the mathematical underpinnings of constrained optimization and implement our own solvers. For the moment, I simply want to bring to your attention that the solution to this problem, as expressed in its original form, involves solving for two interdependent quantities: the optimal sequence of controls, and that of the states encountered when applying them to the system. Is that bug, or a feature? We’ll see that it depends…</p>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Show code cell source</span>
+<span class="expanded">Hide code cell source</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="k">def</span> <span class="nf">solve_docp</span><span class="p">(</span><span class="n">c_T</span><span class="p">,</span> <span class="n">c_t</span><span class="p">,</span> <span class="n">f_t</span><span class="p">,</span> <span class="n">x_1</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">u_lb</span><span class="p">,</span> <span class="n">u_ub</span><span class="p">,</span> <span class="n">x_lb</span><span class="p">,</span> <span class="n">x_ub</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Solve a Discrete-Time Optimal Control Problem of Bolza Type using scipy.minimize with SLSQP.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters:</span>
+<span class="sd">    - c_T: function, terminal cost c_T(x_T)</span>
+<span class="sd">    - c_t: function, stage cost c_t(x_t, u_t)</span>
+<span class="sd">    - f_t: function, state transition f_t(x_t, u_t)</span>
+<span class="sd">    - x_1: array, initial state</span>
+<span class="sd">    - T: int, time horizon</span>
+<span class="sd">    - u_lb, u_ub: arrays, lower and upper bounds for control inputs</span>
+<span class="sd">    - x_lb, x_ub: arrays, lower and upper bounds for states</span>
+<span class="sd">    </span>
+<span class="sd">    Returns:</span>
+<span class="sd">    - result: OptimizeResult object from scipy.optimize.minimize</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">n_x</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_1</span><span class="p">)</span>
+    <span class="n">n_u</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">u_lb</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">objective</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">z</span><span class="p">[:</span><span class="n">T</span><span class="o">*</span><span class="n">n_x</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">n_x</span><span class="p">)</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">z</span><span class="p">[</span><span class="n">T</span><span class="o">*</span><span class="n">n_x</span><span class="p">:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">n_u</span><span class="p">)</span>
+        
+        <span class="n">cost</span> <span class="o">=</span> <span class="n">c_T</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">T</span><span class="p">):</span>
+            <span class="n">cost</span> <span class="o">+=</span> <span class="n">c_t</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">t</span><span class="p">],</span> <span class="n">u</span><span class="p">[</span><span class="n">t</span><span class="p">])</span>
+        
+        <span class="k">return</span> <span class="n">cost</span>
+    
+    <span class="k">def</span> <span class="nf">constraints</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">z</span><span class="p">[:</span><span class="n">T</span><span class="o">*</span><span class="n">n_x</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">n_x</span><span class="p">)</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">z</span><span class="p">[</span><span class="n">T</span><span class="o">*</span><span class="n">n_x</span><span class="p">:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">n_u</span><span class="p">)</span>
+        
+        <span class="n">cons</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="c1"># State transition constraints</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">T</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">cons</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">f_t</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">t</span><span class="p">],</span> <span class="n">u</span><span class="p">[</span><span class="n">t</span><span class="p">]))</span>
+        
+        <span class="c1"># Initial state constraint</span>
+        <span class="n">cons</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">x_1</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cons</span><span class="p">)</span>
+    
+    <span class="c1"># Set up bounds</span>
+    <span class="n">bounds</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">T</span><span class="p">):</span>
+        <span class="n">bounds</span><span class="o">.</span><span class="n">extend</span><span class="p">([(</span><span class="n">xl</span><span class="p">,</span> <span class="n">xu</span><span class="p">)</span> <span class="k">for</span> <span class="n">xl</span><span class="p">,</span> <span class="n">xu</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">x_lb</span><span class="p">,</span> <span class="n">x_ub</span><span class="p">)])</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">T</span><span class="p">):</span>
+        <span class="n">bounds</span><span class="o">.</span><span class="n">extend</span><span class="p">([(</span><span class="n">ul</span><span class="p">,</span> <span class="n">uu</span><span class="p">)</span> <span class="k">for</span> <span class="n">ul</span><span class="p">,</span> <span class="n">uu</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">u_lb</span><span class="p">,</span> <span class="n">u_ub</span><span class="p">)])</span>
+    
+    <span class="c1"># Initial guess</span>
+    <span class="n">z0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">T</span> <span class="o">*</span> <span class="p">(</span><span class="n">n_x</span> <span class="o">+</span> <span class="n">n_u</span><span class="p">))</span>
+    
+    <span class="c1"># Solve the optimization problem</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span>
+        <span class="n">objective</span><span class="p">,</span>
+        <span class="n">z0</span><span class="p">,</span>
+        <span class="n">method</span><span class="o">=</span><span class="s1">&#39;SLSQP&#39;</span><span class="p">,</span>
+        <span class="n">constraints</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;eq&#39;</span><span class="p">,</span> <span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="n">constraints</span><span class="p">},</span>
+        <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span>
+        <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;ftol&#39;</span><span class="p">:</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="s1">&#39;maxiter&#39;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">}</span>
+    <span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">result</span>
+
+<span class="k">def</span> <span class="nf">plot_results</span><span class="p">(</span><span class="n">x_opt</span><span class="p">,</span> <span class="n">u_opt</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot the optimal states and control inputs.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters:</span>
+<span class="sd">    - x_opt: array, optimal states</span>
+<span class="sd">    - u_opt: array, optimal control inputs</span>
+<span class="sd">    - T: int, time horizon</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">T</span><span class="p">)</span>
+    
+    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+    
+    <span class="c1"># Plot states</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Battery State of Charge&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Vehicle Speed&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Time Step&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;State Value&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Optimal State Trajectories&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    
+    <span class="c1"># Plot control inputs</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">u_opt</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Motor Power Input&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Time Step&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Control Input&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Optimal Control Inputs&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    
+    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">example_docp</span><span class="p">():</span>
+    <span class="c1"># Define problem-specific functions and parameters</span>
+    <span class="k">def</span> <span class="nf">c_T</span><span class="p">(</span><span class="n">x_T</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">x_T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">x_T</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span>
+    
+    <span class="k">def</span> <span class="nf">c_t</span><span class="p">(</span><span class="n">x_t</span><span class="p">,</span> <span class="n">u_t</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="p">(</span><span class="n">x_t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">x_t</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">u_t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">f_t</span><span class="p">(</span><span class="n">x_t</span><span class="p">,</span> <span class="n">u_t</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+            <span class="n">x_t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">x_t</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.05</span> <span class="o">*</span> <span class="n">u_t</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">x_t</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">u_t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="p">])</span>
+    
+    <span class="n">x_1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+    <span class="n">T</span> <span class="o">=</span> <span class="mi">20</span>
+    <span class="n">u_lb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">1.0</span><span class="p">])</span>
+    <span class="n">u_ub</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">])</span>
+    <span class="n">x_lb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">5.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">5.0</span><span class="p">])</span>
+    <span class="n">x_ub</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">])</span>
+    
+    <span class="n">result</span> <span class="o">=</span> <span class="n">solve_docp</span><span class="p">(</span><span class="n">c_T</span><span class="p">,</span> <span class="n">c_t</span><span class="p">,</span> <span class="n">f_t</span><span class="p">,</span> <span class="n">x_1</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">u_lb</span><span class="p">,</span> <span class="n">u_ub</span><span class="p">,</span> <span class="n">x_lb</span><span class="p">,</span> <span class="n">x_ub</span><span class="p">)</span>
+    
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Optimization successful:&quot;</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">success</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Optimal cost:&quot;</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">fun</span><span class="p">)</span>
+    
+    <span class="c1"># Extract optimal states and controls</span>
+    <span class="n">x_opt</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">x</span><span class="p">[:</span><span class="n">T</span><span class="o">*</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">u_opt</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">T</span><span class="o">*</span><span class="mi">2</span><span class="p">:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Optimal states:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">x_opt</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Optimal controls:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">u_opt</span><span class="p">)</span>
+    
+    <span class="c1"># Plot the results</span>
+    <span class="n">plot_results</span><span class="p">(</span><span class="n">x_opt</span><span class="p">,</span> <span class="n">u_opt</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">example_docp</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization successful: True
+Optimal cost: 1.4233413233781695
+Optimal states:
+[[ 1.00000000e+00 -4.38415751e-19]
+ [ 9.53308083e-01 -9.33838348e-02]
+ [ 9.05334198e-01 -1.70654837e-01]
+ [ 8.56730665e-01 -2.33730936e-01]
+ [ 8.08051721e-01 -2.84342636e-01]
+ [ 7.59765028e-01 -3.24047495e-01]
+ [ 7.12262141e-01 -3.54243770e-01]
+ [ 6.65868050e-01 -3.76183199e-01]
+ [ 6.20849825e-01 -3.90983009e-01]
+ [ 5.77424459e-01 -3.99637139e-01]
+ [ 5.35765971e-01 -4.03026688e-01]
+ [ 4.96011845e-01 -4.01929602e-01]
+ [ 4.58268833e-01 -3.97029704e-01]
+ [ 4.22618229e-01 -3.88924971e-01]
+ [ 3.89120605e-01 -3.78135227e-01]
+ [ 3.57820102e-01 -3.65109185e-01]
+ [ 3.28748325e-01 -3.50230903e-01]
+ [ 3.01927831e-01 -3.33825710e-01]
+ [ 2.77375326e-01 -3.16165578e-01]
+ [ 2.55104530e-01 -2.97474055e-01]]
+Optimal controls:
+[[-9.33838348e-01]
+ [-7.72710023e-01]
+ [-6.30760993e-01]
+ [-5.06117000e-01]
+ [-3.97048581e-01]
+ [-3.01962756e-01]
+ [-2.19394288e-01]
+ [-1.47998099e-01]
+ [-8.65413015e-02]
+ [-3.38954871e-02]
+ [ 1.09708598e-02]
+ [ 4.89989725e-02]
+ [ 8.10473324e-02]
+ [ 1.07897446e-01]
+ [ 1.30260412e-01]
+ [ 1.48782824e-01]
+ [ 1.64051930e-01]
+ [ 1.76601316e-01]
+ [ 1.86915230e-01]
+ [-3.21985557e-08]]
+</pre></div>
+</div>
+<img alt="_images/cf7adb0d61523f821f694194e1cd7054b85f1cd5e0c779a8482d1b035b07413b.png" src="_images/cf7adb0d61523f821f694194e1cd7054b85f1cd5e0c779a8482d1b035b07413b.png" />
+</div>
+</div>
+<section id="nonlinear-programming">
+<h3><span class="section-number">2.2.1. </span>Nonlinear Programming<a class="headerlink" href="#nonlinear-programming" title="Link to this heading">#</a></h3>
+<p>Unless specific assumptions are made on the dynamics and cost structure, a DOCP is, in its most general form, a nonlinear mathematical program (commonly referred to as an NLP, not to be confused with Natural Language Processing). An NLP can be formulated as follows:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+\text{minimize } &amp; f(\mathbf{x}) \\
+\text{subject to } &amp; \mathbf{g}(\mathbf{x}) \leq \mathbf{0} \\
+&amp; \mathbf{h}(\mathbf{x}) = \mathbf{0}
+\end{aligned}
+\end{split}\]</div>
+<p>Where:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(f: \mathbb{R}^n \to \mathbb{R}\)</span> is the objective function</p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathbf{g}: \mathbb{R}^n \to \mathbb{R}^m\)</span> represents inequality constraints</p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathbf{h}: \mathbb{R}^n \to \mathbb{R}^\ell\)</span> represents equality constraints</p></li>
+</ul>
+<p>Unlike unconstrained optimization commonly used in deep learning, the optimality of a solution in constrained optimization must consider both the objective value and constraint feasibility. To illustrate this, consider the following problem, which includes both equality and inequality constraints:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{align*}
+\text{Minimize} \quad &amp; f(x_1, x_2) = (x_1 - 1)^2 + (x_2 - 2.5)^2 \\
+\text{subject to} \quad &amp; g(x_1, x_2) = (x_1 - 1)^2 + (x_2 - 1)^2 \leq 1.5, \\
+&amp; h(x_1, x_2) = x_2 - \left(0.5 \sin(2 \pi x_1) + 1.5\right) = 0.
+\end{align*}
+\end{split}\]</div>
+<p>In this example, the objective function <span class="math notranslate nohighlight">\(f(x_1, x_2)\)</span> is quadratic, the inequality constraint <span class="math notranslate nohighlight">\(g(x_1, x_2)\)</span> defines a circular feasible region centered at <span class="math notranslate nohighlight">\((1, 1)\)</span> with a radius of <span class="math notranslate nohighlight">\(\sqrt{1.5}\)</span> and the equality constraint <span class="math notranslate nohighlight">\(h(x_1, x_2)\)</span> requires <span class="math notranslate nohighlight">\(x_2\)</span> to lie on a sine wave function. The following code demonstrates the difference between the unconstrained, and constrained solutions to this problem.</p>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Show code cell source</span>
+<span class="expanded">Hide code cell source</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize</span>
+
+<span class="c1"># Define the objective function</span>
+<span class="k">def</span> <span class="nf">objective</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">2.5</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+
+<span class="c1"># Define the inequality constraint function</span>
+<span class="k">def</span> <span class="nf">constraint</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="o">-</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="mf">1.5</span>
+
+<span class="c1"># Define the gradient of the objective function</span>
+<span class="k">def</span> <span class="nf">objective_gradient</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">2.5</span><span class="p">)])</span>
+
+<span class="c1"># Define the gradient of the inequality constraint function</span>
+<span class="k">def</span> <span class="nf">constraint_gradient</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)])</span>
+
+<span class="c1"># Define the sine wave equality constraint function</span>
+<span class="k">def</span> <span class="nf">sine_wave_equality_constraint</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="mf">1.5</span><span class="p">)</span>
+
+<span class="c1"># Define the gradient of the sine wave equality constraint function</span>
+<span class="k">def</span> <span class="nf">sine_wave_equality_constraint_gradient</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="mi">1</span><span class="p">])</span>
+
+<span class="c1"># Define the constraints including the sine wave equality constraint</span>
+<span class="n">sine_wave_constraints</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;ineq&#39;</span><span class="p">,</span> <span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="n">constraint</span><span class="p">,</span> <span class="s1">&#39;jac&#39;</span><span class="p">:</span> <span class="n">constraint_gradient</span><span class="p">},</span>  <span class="c1"># Inequality constraint</span>
+                         <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;eq&#39;</span><span class="p">,</span> <span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="n">sine_wave_equality_constraint</span><span class="p">,</span> <span class="s1">&#39;jac&#39;</span><span class="p">:</span> <span class="n">sine_wave_equality_constraint_gradient</span><span class="p">}]</span>  <span class="c1"># Sine wave equality constraint</span>
+
+<span class="c1"># Define only the inequality constraint</span>
+<span class="n">inequality_constraints</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;ineq&#39;</span><span class="p">,</span> <span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="n">constraint</span><span class="p">,</span> <span class="s1">&#39;jac&#39;</span><span class="p">:</span> <span class="n">constraint_gradient</span><span class="p">}]</span>
+
+<span class="c1"># Initial guess</span>
+<span class="n">x0</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.25</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">]</span>
+
+<span class="c1"># Solve the optimization problem with the sine wave equality constraint</span>
+<span class="n">res_sine_wave_constraint</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;SLSQP&#39;</span><span class="p">,</span> <span class="n">jac</span><span class="o">=</span><span class="n">objective_gradient</span><span class="p">,</span> 
+                                    <span class="n">constraints</span><span class="o">=</span><span class="n">sine_wave_constraints</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;disp&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
+
+<span class="n">x_opt_sine_wave_constraint</span> <span class="o">=</span> <span class="n">res_sine_wave_constraint</span><span class="o">.</span><span class="n">x</span>
+
+<span class="c1"># Solve the optimization problem with only the inequality constraint</span>
+<span class="n">res_inequality_only</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;SLSQP&#39;</span><span class="p">,</span> <span class="n">jac</span><span class="o">=</span><span class="n">objective_gradient</span><span class="p">,</span> 
+                               <span class="n">constraints</span><span class="o">=</span><span class="n">inequality_constraints</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;disp&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
+
+<span class="n">x_opt_inequality_only</span> <span class="o">=</span> <span class="n">res_inequality_only</span><span class="o">.</span><span class="n">x</span>
+
+<span class="c1"># Solve the unconstrained optimization problem for reference</span>
+<span class="n">res_unconstrained</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;SLSQP&#39;</span><span class="p">,</span> <span class="n">jac</span><span class="o">=</span><span class="n">objective_gradient</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;disp&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
+<span class="n">x_opt_unconstrained</span> <span class="o">=</span> <span class="n">res_unconstrained</span><span class="o">.</span><span class="n">x</span>
+
+<span class="c1"># Generate data for visualization</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">400</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">400</span><span class="p">)</span>
+<span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="n">Z</span> <span class="o">=</span> <span class="p">(</span><span class="n">X</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">Y</span> <span class="o">-</span> <span class="mf">2.5</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>  <span class="c1"># Objective function values</span>
+<span class="n">constraint_values</span> <span class="o">=</span> <span class="p">(</span><span class="n">X</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">Y</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+
+<span class="c1"># Data for sine wave constraint</span>
+<span class="n">x_sine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">400</span><span class="p">)</span>
+<span class="n">y_sine</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">x_sine</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1.5</span>
+
+<span class="c1"># Visualization with Improved Color Scheme</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">contourf</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span>  <span class="c1"># Heatmap for the objective function</span>
+
+<span class="c1"># Plot all the optimal points</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_opt_inequality_only</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x_opt_inequality_only</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;ro&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Optimal Solution (Inequality Only)&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">markeredgecolor</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_opt_sine_wave_constraint</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x_opt_sine_wave_constraint</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;mo&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Optimal Solution (Sine Wave Equality &amp; Inequality)&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">markeredgecolor</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_opt_unconstrained</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x_opt_unconstrained</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;co&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Unconstrained Minimum&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">markeredgecolor</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
+
+<span class="c1"># Adjust constraint boundary colors</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">constraint_values</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="p">[</span><span class="mf">1.5</span><span class="p">],</span> <span class="n">colors</span><span class="o">=</span><span class="s1">&#39;navy&#39;</span><span class="p">,</span> <span class="n">linewidths</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">linestyles</span><span class="o">=</span><span class="s1">&#39;dashed&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">contourf</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">constraint_values</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">],</span> <span class="n">colors</span><span class="o">=</span><span class="s1">&#39;skyblue&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+
+<span class="c1"># Plot the sine wave equality constraint with a high contrast color</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_sine</span><span class="p">,</span> <span class="n">y_sine</span><span class="p">,</span> <span class="s1">&#39;lime&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Sine Wave Equality Constraint&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;x1&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;x2&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Example NLP&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper left&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="s1">&#39;small&#39;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">fancybox</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># Set the aspect ratio to be equal so the circle appears correctly</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">,</span> <span class="n">adjustable</span><span class="o">=</span><span class="s1">&#39;box&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<img alt="_images/af05192d0312dcb3309548c3ceedd4468f282e991b9cef83452557dfe3eef22a.png" src="_images/af05192d0312dcb3309548c3ceedd4468f282e991b9cef83452557dfe3eef22a.png" />
+</div>
+</div>
+<section id="karush-kuhn-tucker-kkt-conditions">
+<h4><span class="section-number">2.2.1.1. </span>Karush-Kuhn-Tucker (KKT) conditions<a class="headerlink" href="#karush-kuhn-tucker-kkt-conditions" title="Link to this heading">#</a></h4>
+<p>While this example is simple enough to convince ourselves visually of the solution to this particular problem, it falls short of providing us with actionable chracterization of what constitutes and optimal solution in general.
+The Karush-Kuhn-Tucker (KKT) conditions provide us with an answer to this problem by generalizing the first-order optimality conditions in unconstrained optimization to problems involving both equality and inequality constraints.
+This result relies on the construction of an auxiliary function called the Lagrangian, defined as:</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{L}(\mathbf{x}, \boldsymbol{\mu}, \boldsymbol{\lambda})=f(\mathbf{x})+\boldsymbol{\mu}^{\top} \mathbf{g}(\mathbf{x})+\boldsymbol{\lambda}^{\top} \mathbf{h}(\mathbf{x})\]</div>
+<p>where <span class="math notranslate nohighlight">\(\boldsymbol{\mu} \in \mathbb{R}^m\)</span> and <span class="math notranslate nohighlight">\(\boldsymbol{\lambda} \in \mathbb{R}^\ell\)</span> are known as Lagrange multipliers. The first-order optimality conditions then state that if <span class="math notranslate nohighlight">\(\mathbf{x}^*\)</span>, then there must exist corresponding Lagrange multipliers <span class="math notranslate nohighlight">\(\boldsymbol{\mu}^*\)</span> and <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^*\)</span> such that:</p>
+<div class="proof definition admonition" id="kkt-conditions">
+<p class="admonition-title"><span class="caption-number">Definition 2.1 </span></p>
+<section class="definition-content" id="proof-content">
+<ol class="arabic">
+<li><p>The gradient of the Lagrangian with respect to <span class="math notranslate nohighlight">\(\mathbf{x}\)</span> must be zero at the optimal point (<strong>stationarity</strong>):</p>
+<div class="math notranslate nohighlight">
+\[\nabla_x \mathcal{L}(\mathbf{x}^*, \boldsymbol{\mu}^*, \boldsymbol{\lambda}^*) = \nabla f(\mathbf{x}^*) + \sum_{i=1}^m \mu_i^* \nabla g_i(\mathbf{x}^*) + \sum_{j=1}^\ell \lambda_j^* \nabla h_j(\mathbf{x}^*) = \mathbf{0}\]</div>
+<p>In the case where we only have equality constraints, this means that the gradient of the objective and that of constraint are parallel to each other at the optimum but point in opposite directions.</p>
+</li>
+<li><p>A valid solution of a NLP is one which satisfies all the constraints (<strong>primal feasibility</strong>)</p>
+<div class="math notranslate nohighlight">
+\[\begin{aligned}
+   \mathbf{g}(\mathbf{x}^*) &amp;\leq \mathbf{0}, \enspace \text{and} \enspace \mathbf{h}(\mathbf{x}^*) &amp;= \mathbf{0}
+   \end{aligned}\]</div>
+</li>
+<li><p>Furthermore, the Lagrange multipliers for <strong>inequality</strong> constraints must be non-negative (<strong>dual feasibility</strong>)</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\mu}^* \geq \mathbf{0}\]</div>
+<p>This condition stems from the fact that the inequality constraints can only push the solution in one direction.</p>
+</li>
+<li><p>Finally, for each inequality constraint, either the constraint is active (equality holds) or its corresponding Lagrange multiplier is zero at an optimal solution(<strong>complementary slackness</strong>)</p>
+<div class="math notranslate nohighlight">
+\[\mu_i^* g_i(\mathbf{x}^*) = 0, \quad \forall i = 1,\ldots,m\]</div>
+</li>
+</ol>
+</section>
+</div><p>Going back to our example above, let’s inspect the primal-dual pair returned by the solver ipopt, accessed through the pyomo interface. We find that the lagrange multiplier associated with the
+inequality constraint is about <span class="pasted-text">-0.00</span> while that of the equality constraint is <span class="pasted-text">-1.01</span>.</p>
+<div class="cell tag_hide-cell docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Show code cell content</span>
+<span class="expanded">Hide code cell content</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pyomo.environ</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">pyomo.opt</span> <span class="kn">import</span> <span class="n">SolverFactory</span>
+<span class="kn">from</span> <span class="nn">myst_nb</span> <span class="kn">import</span> <span class="n">glue</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="c1"># Define the Pyomo model</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">ConcreteModel</span><span class="p">()</span>
+
+<span class="c1"># Define the variables</span>
+<span class="n">model</span><span class="o">.</span><span class="n">x1</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="n">initialize</span><span class="o">=</span><span class="mf">1.25</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">x2</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="n">initialize</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+
+<span class="c1"># Define the objective function</span>
+<span class="k">def</span> <span class="nf">objective_rule</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">x1</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">x2</span> <span class="o">-</span> <span class="mf">2.5</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+<span class="n">model</span><span class="o">.</span><span class="n">obj</span> <span class="o">=</span> <span class="n">Objective</span><span class="p">(</span><span class="n">rule</span><span class="o">=</span><span class="n">objective_rule</span><span class="p">,</span> <span class="n">sense</span><span class="o">=</span><span class="n">minimize</span><span class="p">)</span>
+
+<span class="c1"># Define the inequality constraint (circle)</span>
+<span class="k">def</span> <span class="nf">inequality_constraint_rule</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">x1</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">x2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">&lt;=</span> <span class="mf">1.5</span>
+<span class="n">model</span><span class="o">.</span><span class="n">ineq_constraint</span> <span class="o">=</span> <span class="n">Constraint</span><span class="p">(</span><span class="n">rule</span><span class="o">=</span><span class="n">inequality_constraint_rule</span><span class="p">)</span>
+
+<span class="c1"># Define the equality constraint (sine wave) using Pyomo&#39;s math functions</span>
+<span class="k">def</span> <span class="nf">equality_constraint_rule</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">x2</span> <span class="o">==</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">x1</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1.5</span>
+<span class="n">model</span><span class="o">.</span><span class="n">eq_constraint</span> <span class="o">=</span> <span class="n">Constraint</span><span class="p">(</span><span class="n">rule</span><span class="o">=</span><span class="n">equality_constraint_rule</span><span class="p">)</span>
+
+<span class="c1"># Create a suffix component to capture dual values</span>
+<span class="n">model</span><span class="o">.</span><span class="n">dual</span> <span class="o">=</span> <span class="n">Suffix</span><span class="p">(</span><span class="n">direction</span><span class="o">=</span><span class="n">Suffix</span><span class="o">.</span><span class="n">IMPORT</span><span class="p">)</span>
+
+<span class="c1"># Create a solver</span>
+<span class="n">solver</span><span class="o">=</span><span class="n">SolverFactory</span><span class="p">(</span><span class="s1">&#39;ipopt&#39;</span><span class="p">)</span>
+
+<span class="c1"># Solve the problem</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">tee</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># Check if the solver found an optimal solution</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">SolverStatus</span><span class="o">.</span><span class="n">ok</span> <span class="ow">and</span> 
+    <span class="n">results</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">termination_condition</span> <span class="o">==</span> <span class="n">TerminationCondition</span><span class="o">.</span><span class="n">optimal</span><span class="p">):</span>
+    
+    <span class="c1"># Print the results</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;x1: </span><span class="si">{</span><span class="n">value</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">x1</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;x2: </span><span class="si">{</span><span class="n">value</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">x2</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Print the objective value</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Objective value: </span><span class="si">{</span><span class="n">value</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">obj</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Print the Lagrange multipliers (dual values)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Lagrange multipliers:&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">component_objects</span><span class="p">(</span><span class="n">Constraint</span><span class="p">,</span> <span class="n">active</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">c</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">[</span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s2">]: </span><span class="si">{</span><span class="n">model</span><span class="o">.</span><span class="n">dual</span><span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="n">index</span><span class="p">]]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">glue</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">[</span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">dual</span><span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="n">index</span><span class="p">]],</span> <span class="n">display</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Solver did not find an optimal solution.&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Solver Status: </span><span class="si">{</span><span class="n">results</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">status</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Termination Condition: </span><span class="si">{</span><span class="n">results</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">termination_condition</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>x1: 1.2271417639244486
+x2: 1.994852000302119
+Objective value: 0.3067678825174803
+
+Lagrange multipliers:
+ineq_constraint[None]: -5.466075458072094e-09
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>eq_constraint[None]: -1.0102959885190541
+</pre></div>
+</div>
+</div>
+</details>
+</div>
 <div class="docutils container" id="id6">
 <div role="list" class="citation-list">
 <div class="citation" id="id7" role="doc-biblioentry">
@@ -1423,6 +1435,8 @@ Optimal control sequence: [-0.84949344 -0.7677488  -0.6298097  -0.4975385  -0.38
 </div>
 </div>
 </div>
+</section>
+</section>
 </section>
 </section>
 
@@ -1490,11 +1504,14 @@ Optimal control sequence: [-0.84949344 -0.7677488  -0.6298097  -0.4975385  -0.38
 </ul>
 </li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#numerical-methods-for-solving-docps">2. Numerical Methods for Solving DOCPs</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#constrained-optimization-approach">2.1. Constrained Optimization Approach</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nonlinear-programming-and-kkt-conditions">2.1.1. Nonlinear Programming and KKT Conditions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#single-shooting-methods">2.1. Single Shooting Methods</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#constrained-optimization-approach">2.2. Constrained Optimization Approach</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nonlinear-programming">2.2.1. Nonlinear Programming</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#karush-kuhn-tucker-kkt-conditions">2.2.1.1. Karush-Kuhn-Tucker (KKT) conditions</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#transformation-to-an-unconstrained-problem-single-shooting-methods">2.2. Transformation to an Unconstrained Problem: Single Shooting Methods</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
