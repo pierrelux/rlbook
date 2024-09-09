@@ -1,5 +1,6 @@
 from pyomo.environ import *
 from pyomo.opt import SolverFactory
+from myst_nb import glue
 import math
 
 # Define the Pyomo model
@@ -49,6 +50,7 @@ if (results.solver.status == SolverStatus.ok and
     for c in model.component_objects(Constraint, active=True):
         for index in c:
             print(f"{c.name}[{index}]: {model.dual[c[index]]}")
+            glue(f"{c.name}[{index}]", model.dual[c[index]], display=False)
 else:
     print("Solver did not find an optimal solution.")
     print(f"Solver Status: {results.solver.status}")

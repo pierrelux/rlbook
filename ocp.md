@@ -118,16 +118,9 @@ This transformation is often helpful to simplify mathematical derivations (as we
 
 # Numerical Methods for Solving DOCPs
 
-Let's assume that an optimal control problem has been formulated in one of the forms presented earlier and has been given to us to solve. The following section explores numerical solutions applicable to these problems, focusing on trajectory optimization. Our goal is to output an optimal control (and state trajectory) based on the given cost function and dynamics structure.
+Let's assume that an optimal control problem has been formulated in one of the forms presented earlier and has been given to us to solve. The following section explores numerical solutions applicable to these problems, focusing on trajectory optimization. Our goal is to output an optimal control (and state trajectory) based on the given cost function and dynamics structure. It's important to note that the methods presented here are not learning methods just yet; they don't involve ingesting data or inferring unknown quantities from it. However, these methods represent a central component of any decision-learning system, and we will later explore how learning concepts can be incorporated.
 
-It's important to note that the methods presented here are not learning methods; they don't involve ingesting data or inferring unknown quantities from it. However, these methods represent a central component of any decision-learning system, and we will later explore how learning concepts can be incorporated.
-
-## Constrained Optimization Approach
-
-The mathematical programming formulation presented earlier lends itself readily to off-the-shelf solvers for nonlinear mathematical programs. For example, we can use the `scipy.optimize.minimize` function along with the SLSQP (Sequential Least Squares Programming) solver to obtain a solution to any feasible Bolza problem of the form presented below.
-
-Before delving into the details of the numerical solver itself, let's consider an electric vehicle energy management problem. We will use this as a test bed for our algorithms, allowing us to demonstrate the practical application of these optimization techniques.
-Consider an electric vehicle traversing a planned route, where we aim to optimize its energy consumption over a 20-minute journey. Our simplified model represents the vehicle's state using two variables: $x_1$, the battery state of charge as a percentage, and $x_2$, denoting the vehicle's speed in meters per second. The control input $u$, ranging from -1 to 1, represents the motor power, with negative values indicating regenerative braking and positive values representing acceleration. The problem can be formally expressed as a mathematical program in Bolza form:
+Before delving into the solution methods, let's consider an electric vehicle energy management problem which we will use this as a test bed throughout this section. Consider an electric vehicle traversing a planned route, where we aim to optimize its energy consumption over a 20-minute journey. Our simplified model represents the vehicle's state using two variables: $x_1$, the battery state of charge as a percentage, and $x_2$, denoting the vehicle's speed in meters per second. The control input $u$, ranging from -1 to 1, represents the motor power, with negative values indicating regenerative braking and positive values representing acceleration. The problem can be formally expressed as a mathematical program in Bolza form:
 
 $$ \begin{align*}
 \min_{x, u} \quad & J = \underbrace{x_{T,1}^2 + x_{T,2}^2}_{\text{Mayer term}} + \underbrace{\sum_{t=1}^{T-1} 0.1(x_{t,1}^2 + x_{t,2}^2 + u_t^2)}_{\text{Lagrange term}} \\[2ex]
@@ -145,88 +138,9 @@ $$ \begin{align*}
 
 The system dynamics, represented by $f_t(x_t, u_t)$, describe how the battery charge and vehicle speed evolve based on the current state and control input. The initial condition $x_1 = [1, 0]^T$ indicates that the vehicle starts with a fully charged battery and zero initial speed. The constraints $-1 \leq u_t \leq 1$ and $-5 \leq x_{t,1}, x_{t,2} \leq 5$ ensure that the control inputs and state variables remain within acceptable ranges throughout the journey. This model is of course highly simplistic and neglects the nonlinear nature of battery discharge and vehicle motion due to air resistance, road grade, and vehicle mass, etc. Furthermore, our model ignores the effect of environmental factors like wind and temperature on regenerative breaking. Route-specific information such as elevation changes and speed limits are absent, as is the consideration of auxiliary power consumption such as heating and entertainment. These are all possible improvements to our models which we ignore at the moment for the sake of simplicity.
 
-The following code demonstrate how this problem can be solved directly using `scipy.optimize.minimize` in a black box fashion. In the next sections, we will dive deeper into the mathematical underpinnings of constrained optimization and implement our own solvers. For the moment, I simply want to bring to your attention that the solution to this problem, as expressed in its original form, involves solving for two interdependent quantities: the optimal sequence of controls, and that of the states encountered when applying them to the system. Is that bug, or a feature? We'll see that it depends...
+## Single Shooting Methods
 
-```{code-cell} ipython3
-:tags: [hide-input]
-:load: code/example_docp.py
-```
-
-### Nonlinear Programming and KKT Conditions
-
-Unless specific assumptions are made on the dynamics and cost structure, a DOCP is, in its most general form, a nonlinear mathematical program (commonly referred to as an NLP, not to be confused with Natural Language Processing). An NLP can be formulated as follows:
-
-$$
-\begin{aligned}
-\text{minimize } & f(\mathbf{x}) \\
-\text{subject to } & \mathbf{g}(\mathbf{x}) \leq \mathbf{0} \\
-& \mathbf{h}(\mathbf{x}) = \mathbf{0}
-\end{aligned}
-$$
-
-Where:
-- $f: \mathbb{R}^n \to \mathbb{R}$ is the objective function
-- $\mathbf{g}: \mathbb{R}^n \to \mathbb{R}^m$ represents inequality constraints
-- $\mathbf{h}: \mathbb{R}^n \to \mathbb{R}^\ell$ represents equality constraints
-
-Unlike unconstrained optimization commonly used in deep learning, the optimality of a solution in constrained optimization must consider both the objective value and constraint feasibility. To illustrate this, consider the following problem, which includes both equality and inequality constraints:
-
-$$
-\begin{align*}
-\text{Minimize} \quad & f(x_1, x_2) = (x_1 - 1)^2 + (x_2 - 2.5)^2 \\
-\text{subject to} \quad & g(x_1, x_2) = (x_1 - 1)^2 + (x_2 - 1)^2 \leq 1.5, \\
-& h(x_1, x_2) = x_2 - \left(0.5 \sin(2 \pi x_1) + 1.5\right) = 0.
-\end{align*}
-$$
-
-In this example, the objective function $f(x_1, x_2)$ is quadratic, which can be advantageous in solution methods, especially when combined with linear constraints. The inequality constraint $g(x_1, x_2)$ defines a circular feasible region centered at $(1, 1)$ with a radius of $\sqrt{1.5}$. Additionally, the equality constraint $h(x_1, x_2)$ requires $x_2$ to lie on a sine wave function. The following code demonstrates the difference between the unconstrained, and constrained solutions to this problem. 
-
-```{code-cell} ipython3
-:tags: [hide-input]
-:load: code/nlp_geometry.py
-```
-
-While this example is simple enough to convince ourselves visually of the solution to this particular problem, it falls short of providing us with actionable chracterization of what constitutes and optimal solution in general. 
-The Karush-Kuhn-Tucker (KKT) conditions provide us with an answer to this problem by generalizing the first-order optimality conditions in unconstrained optimization to problems involving both equality and inequality constraints.
-This result relies on the construction of an auxiliary function called the Lagrangian, defined as: 
-
-$$\mathcal{L}(\mathbf{x}, \boldsymbol{\mu}, \boldsymbol{\lambda})=f(\mathbf{x})+\boldsymbol{\mu}^{\top} \mathbf{g}(\mathbf{x})+\boldsymbol{\lambda}^{\top} \mathbf{h}(\mathbf{x})$$
-
-where $\boldsymbol{\mu} \in \mathbb{R}^m$ and $\boldsymbol{\lambda} \in \mathbb{R}^\ell$ are known as Lagrange multipliers. The first-order optimality conditions then state that if $\mathbf{x}^*$, then there must exist corresponding Lagrange multipliers $\boldsymbol{\mu}^*$ and $\boldsymbol{\lambda}^*$ such that: 
-
-1. The gradient of the Lagrangian with respect to $\mathbf{x}$ must be zero at the optimal point (**stationarity**):
-
-   $$\nabla_x \mathcal{L}(\mathbf{x}^*, \boldsymbol{\mu}^*, \boldsymbol{\lambda}^*) = \nabla f(\mathbf{x}^*) + \sum_{i=1}^m \mu_i^* \nabla g_i(\mathbf{x}^*) + \sum_{j=1}^\ell \lambda_j^* \nabla h_j(\mathbf{x}^*) = \mathbf{0}$$
-
-   In the case where we only have equality constraints, this means that the gradient of the objective and that of constraint are parallel to each other at the optimum but point in opposite directions. 
-
-2. A valid solution of a NLP is one which satisfies all the constraints (**primal feasibility**)
-
-   $$\begin{aligned}
-   \mathbf{g}(\mathbf{x}^*) &\leq \mathbf{0}, \enspace \text{and} \enspace \mathbf{h}(\mathbf{x}^*) &= \mathbf{0}
-   \end{aligned}$$
-
-3. Furthermore, the Lagrange multipliers for **inequality** constraints must be non-negative (**dual feasibility**)
-
-   $$\boldsymbol{\mu}^* \geq \mathbf{0}$$
-
-   This condition stems from the fact that the inequality constraints can only push the solution in one direction.
-
-4. Finally, for each inequality constraint, either the constraint is active (equality holds) or its corresponding Lagrange multiplier is zero at an optimal solution(**complementary slackness**)
-
-   $$\mu_i^* g_i(\mathbf{x}^*) = 0, \quad \forall i = 1,\ldots,m$$
-  
-Going back to our example above, let's inspect the primal-dual pair returned by the solver ipopt, accessed through the pyomo interface. We find that:
-
-```{code-cell} ipython3
-:tags: [hide-input]
-:load: code/kkt_lagrangian_verif.py
-```
-
-
-## Transformation to an Unconstrained Problem: Single Shooting Methods
-
-Given access to unconstrained optimization solver, the easiest method to implement is by far what is known as "single shooting" in control theory. The idea of simple: rather than having to solve for the state variables as equality constraints, we transform the original equality constraint problem into an unconstrained one through "simulation", ie by recursively computing the evolution of our system for any given set of controls and initial state. In the deterministic setting, given an initial state, we can always exactly reconstruct the resulting sequence of states by "rolling out" our model, a process which some communities would refer to as "time marching". Mathematically, this amounts to forming the following unconstrained program: 
+Given access to unconstrained optimization solver, the easiest method to implement is by far what is known as "single shooting" in control theory. The idea of simple: rather than having to solve for the state variables as equality constraints, we transform the original constrained problem into an unconstrained one through "simulation", ie by recursively computing the evolution of our system for any given set of controls and initial state. In the deterministic setting, given an initial state, we can always exactly reconstruct the resulting sequence of states by "rolling out" our model, a process which some communities would refer to as "time marching". Mathematically, this amounts to forming the following unconstrained program: 
 
 $$
 \begin{align*}
@@ -335,6 +249,94 @@ Another common strategy for single shooting methods is to use stochastic optimiz
 The selection of an optimization method for single shooting is influenced by multiple factors: problem-specific characteristics, available computational resources, and the balance between exploring the solution space and exploiting known good solutions. While gradient-based methods generally offer faster convergence when applicable, derivative-free and stochastic approaches tend to be more robust to complex non-convex loss landscapes, albeit at the cost of increased computational demands.
 
 In practice, however, this choice is often guided by the tools at hand and the practitioners' familiarity with them. For instance, researchers with a background in deep learning tend to gravitate towards first-order gradient-based optimization techniques along with automatic differentiation for efficient derivative computation.  
+
+## Constrained Optimization Approach
+
+The mathematical programming formulation presented earlier lends itself readily to off-the-shelf solvers for nonlinear mathematical programs. For example, we can use the `scipy.optimize.minimize` function along with the SLSQP (Sequential Least Squares Programming) solver to obtain a solution to any feasible Bolza problem of the form presented below.
+
+The following code demonstrate how the car charging problem can be solved directly using `scipy.optimize.minimize` in a black box fashion. In the next sections, we will dive deeper into the mathematical underpinnings of constrained optimization and implement our own solvers. For the moment, I simply want to bring to your attention that the solution to this problem, as expressed in its original form, involves solving for two interdependent quantities: the optimal sequence of controls, and that of the states encountered when applying them to the system. Is that bug, or a feature? We'll see that it depends...
+
+```{code-cell} ipython3
+:tags: [hide-input]
+:load: code/example_docp.py
+```
+
+### Nonlinear Programming
+
+Unless specific assumptions are made on the dynamics and cost structure, a DOCP is, in its most general form, a nonlinear mathematical program (commonly referred to as an NLP, not to be confused with Natural Language Processing). An NLP can be formulated as follows:
+
+$$
+\begin{aligned}
+\text{minimize } & f(\mathbf{x}) \\
+\text{subject to } & \mathbf{g}(\mathbf{x}) \leq \mathbf{0} \\
+& \mathbf{h}(\mathbf{x}) = \mathbf{0}
+\end{aligned}
+$$
+
+Where:
+- $f: \mathbb{R}^n \to \mathbb{R}$ is the objective function
+- $\mathbf{g}: \mathbb{R}^n \to \mathbb{R}^m$ represents inequality constraints
+- $\mathbf{h}: \mathbb{R}^n \to \mathbb{R}^\ell$ represents equality constraints
+
+Unlike unconstrained optimization commonly used in deep learning, the optimality of a solution in constrained optimization must consider both the objective value and constraint feasibility. To illustrate this, consider the following problem, which includes both equality and inequality constraints:
+
+$$
+\begin{align*}
+\text{Minimize} \quad & f(x_1, x_2) = (x_1 - 1)^2 + (x_2 - 2.5)^2 \\
+\text{subject to} \quad & g(x_1, x_2) = (x_1 - 1)^2 + (x_2 - 1)^2 \leq 1.5, \\
+& h(x_1, x_2) = x_2 - \left(0.5 \sin(2 \pi x_1) + 1.5\right) = 0.
+\end{align*}
+$$
+
+In this example, the objective function $f(x_1, x_2)$ is quadratic, the inequality constraint $g(x_1, x_2)$ defines a circular feasible region centered at $(1, 1)$ with a radius of $\sqrt{1.5}$ and the equality constraint $h(x_1, x_2)$ requires $x_2$ to lie on a sine wave function. The following code demonstrates the difference between the unconstrained, and constrained solutions to this problem. 
+
+```{code-cell} ipython3
+:tags: [hide-input]
+:load: code/nlp_geometry.py
+```
+
+#### Karush-Kuhn-Tucker (KKT) conditions
+
+While this example is simple enough to convince ourselves visually of the solution to this particular problem, it falls short of providing us with actionable chracterization of what constitutes and optimal solution in general. 
+The Karush-Kuhn-Tucker (KKT) conditions provide us with an answer to this problem by generalizing the first-order optimality conditions in unconstrained optimization to problems involving both equality and inequality constraints.
+This result relies on the construction of an auxiliary function called the Lagrangian, defined as: 
+
+$$\mathcal{L}(\mathbf{x}, \boldsymbol{\mu}, \boldsymbol{\lambda})=f(\mathbf{x})+\boldsymbol{\mu}^{\top} \mathbf{g}(\mathbf{x})+\boldsymbol{\lambda}^{\top} \mathbf{h}(\mathbf{x})$$
+
+where $\boldsymbol{\mu} \in \mathbb{R}^m$ and $\boldsymbol{\lambda} \in \mathbb{R}^\ell$ are known as Lagrange multipliers. The first-order optimality conditions then state that if $\mathbf{x}^*$, then there must exist corresponding Lagrange multipliers $\boldsymbol{\mu}^*$ and $\boldsymbol{\lambda}^*$ such that: 
+
+````{prf:definition}
+:label: kkt-conditions
+1. The gradient of the Lagrangian with respect to $\mathbf{x}$ must be zero at the optimal point (**stationarity**):
+
+   $$\nabla_x \mathcal{L}(\mathbf{x}^*, \boldsymbol{\mu}^*, \boldsymbol{\lambda}^*) = \nabla f(\mathbf{x}^*) + \sum_{i=1}^m \mu_i^* \nabla g_i(\mathbf{x}^*) + \sum_{j=1}^\ell \lambda_j^* \nabla h_j(\mathbf{x}^*) = \mathbf{0}$$
+
+   In the case where we only have equality constraints, this means that the gradient of the objective and that of constraint are parallel to each other at the optimum but point in opposite directions. 
+
+2. A valid solution of a NLP is one which satisfies all the constraints (**primal feasibility**)
+
+   $$\begin{aligned}
+   \mathbf{g}(\mathbf{x}^*) &\leq \mathbf{0}, \enspace \text{and} \enspace \mathbf{h}(\mathbf{x}^*) &= \mathbf{0}
+   \end{aligned}$$
+
+3. Furthermore, the Lagrange multipliers for **inequality** constraints must be non-negative (**dual feasibility**)
+
+   $$\boldsymbol{\mu}^* \geq \mathbf{0}$$
+
+   This condition stems from the fact that the inequality constraints can only push the solution in one direction.
+
+4. Finally, for each inequality constraint, either the constraint is active (equality holds) or its corresponding Lagrange multiplier is zero at an optimal solution(**complementary slackness**)
+
+   $$\mu_i^* g_i(\mathbf{x}^*) = 0, \quad \forall i = 1,\ldots,m$$
+````
+
+Going back to our example above, let's inspect the primal-dual pair returned by the solver ipopt, accessed through the pyomo interface. We find that the lagrange multiplier associated with the 
+inequality constraint is about {glue:text}`ineq_constraint[None]:.2f` while that of the equality constraint is {glue:text}`eq_constraint[None]:.2f`.  
+
+```{code-cell} ipython3
+:tags: [hide-cell]
+:load: code/kkt_lagrangian_verif.py
+```
 
 
 
