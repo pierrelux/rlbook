@@ -400,7 +400,11 @@ document.write(`
 </ul>
 </li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#numerical-methods-for-solving-docps">2. Numerical Methods for Solving DOCPs</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#single-shooting-methods">2.1. Single Shooting Methods</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#single-shooting-methods">2.1. Single Shooting Methods</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dealing-with-bound-constraints">2.1.1. Dealing with Bound Constraints</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#on-the-choice-of-optimizer">2.1.2. On the choice of optimizer</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#constrained-optimization-approach">2.2. Constrained Optimization Approach</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nonlinear-programming">2.2.1. Nonlinear Programming</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#karush-kuhn-tucker-kkt-conditions">2.2.1.1. Karush-Kuhn-Tucker (KKT) conditions</a></li>
@@ -554,7 +558,7 @@ y_t+c_t\left(\boldsymbol{x}_t, \boldsymbol{u}_t\right)
 <div class="math notranslate nohighlight">
 \[\begin{split}
 \begin{align*}
-&amp;\boldsymbol{\phi}_t(\boldsymbol{u}, \boldsymbol{x}_1) \triangleq \boldsymbol{f}_{t-1}(\boldsymbol{\phi}_{t-1}(\boldsymbol{u}_{1:T-1}, \boldsymbol{x}_1), \boldsymbol{u}_{t-1}), \quad t=2,...,T\\
+&amp;\boldsymbol{\phi}_t(\boldsymbol{u}_{1:T-1}, \boldsymbol{x}_1) \triangleq \boldsymbol{f}_{t-1}(\boldsymbol{\phi}_{t-1}(\boldsymbol{u}_{1:T-1}, \boldsymbol{x}_1), \boldsymbol{u}_{t-1}), \quad t=2,...,T\\
 &amp;\text{with}\quad \boldsymbol{\phi}_1(\boldsymbol{u}_{1:T}, \boldsymbol{x}_1) \triangleq \boldsymbol{x}_1
 \end{align*}
 \end{split}\]</div>
@@ -938,6 +942,60 @@ Optimal control sequence: [-0.84949344 -0.7677488  -0.6298097  -0.4975385  -0.38
 </div>
 </details>
 </div>
+<section id="dealing-with-bound-constraints">
+<h3><span class="section-number">2.1.1. </span>Dealing with Bound Constraints<a class="headerlink" href="#dealing-with-bound-constraints" title="Link to this heading">#</a></h3>
+<p>While we have successfully eliminated the dynamics as explicit constraints through what essentially amounts to a “reparametrization” of our problem, we’ve been silent regarding the bound constraints. The view of single shooting as a perfect transformation from a constrained problem to an unconstrained one is not entirely accurate: we must leave something on the table, and that something is the ability to easily impose state constraints.</p>
+<p>By directly simulating the process from the initial state, there is one and only one corresponding induced path, and there’s no way to let our optimizer know that it can adjust within some bounds, even if that means the generated trajectory is no longer feasible (realistic).</p>
+<p>Fortunately, the situation is much better for bound constraints on the controls. If we choose gradient descent as our method for solving this problem, we can consider a simple extension to readily support these kinds of bound constraints. The approach, in this case, would be what we call projected gradient descent. The general form of a projected gradient descent step can be expressed as:</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{u}_{k+1} = \mathcal{P}_C(\mathbf{u}_k - \alpha \nabla J(\mathbf{u}_k))
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(\mathcal{P}_C\)</span> denotes the projection onto the feasible set <span class="math notranslate nohighlight">\(C\)</span>, <span class="math notranslate nohighlight">\(\alpha\)</span> is the step size, and <span class="math notranslate nohighlight">\(\nabla J(\mathbf{u}_k)\)</span> is the gradient of the objective function at the current point <span class="math notranslate nohighlight">\(\mathbf{u}_k\)</span>. In general, the projection operation can be computationally expensive or even intractable. However, in the case of box constraints (i.e., bound constraints), the projection simplifies to an element-wise clipping operation:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+[\mathcal{P}_C(\mathbf{u})]_i = \begin{cases}
+    [\mathbf{u}_{lb}]_i &amp; \text{if } [\mathbf{u}]_i &lt; [\mathbf{u}_{lb}]_i \\
+    [\mathbf{u}]_i &amp; \text{if } [\mathbf{u}_{lb}]_i \leq [\mathbf{u}]_i \leq [\mathbf{u}_{ub}]_i \\
+    [\mathbf{u}_{ub}]_i &amp; \text{if } [\mathbf{u}]_i &gt; [\mathbf{u}_{ub}]_i
+\end{cases}
+\end{split}\]</div>
+<p>With this simple change, we can maintain the computational simplicity of unconstrained optimization while enforcing the bound constraints at each iteration: ie ensuring that we are feasible throughout optimization. Moreover, it can be shown that this projection preserves the convergence properties of the gradient descent method, and that under suitable conditions (such as Lipschitz continuity of the gradient), projected gradient descent converges to a stationary point of the constrained problem.</p>
+<p>Here’s the algorithm for projected gradient descent with bound constraint for a general problem of the form:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{align*}
+\min_{\mathbf{u}} \quad &amp; J(\mathbf{u}) \\
+\text{subject to} \quad &amp; \mathbf{u}_{lb} \leq \mathbf{u} \leq \mathbf{u}_{ub}
+\end{align*}
+\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(J(\mathbf{u})\)</span> is our objective function, and <span class="math notranslate nohighlight">\(\mathbf{u}_{lb}\)</span> and <span class="math notranslate nohighlight">\(\mathbf{u}_{ub}\)</span> are the lower and upper bounds on the control variables, respectively.</p>
+<div class="proof algorithm admonition" id="proj-grad-descent-bound-constraints">
+<p class="admonition-title"><span class="caption-number">Algorithm 2.3 </span> (Projected Gradient Descent for Bound Constraints)</p>
+<section class="algorithm-content" id="proof-content">
+<p><strong>Input:</strong> Initial point <span class="math notranslate nohighlight">\(\mathbf{u}_0\)</span>, learning rate <span class="math notranslate nohighlight">\(\alpha\)</span>, bounds <span class="math notranslate nohighlight">\(\mathbf{u}_{lb}\)</span> and <span class="math notranslate nohighlight">\(\mathbf{u}_{ub}\)</span>,
+maximum iterations <span class="math notranslate nohighlight">\(\max_\text{iter}\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon\)</span></p>
+<ol class="arabic simple">
+<li><p>Initialize <span class="math notranslate nohighlight">\(k = 0\)</span></p></li>
+<li><p>While <span class="math notranslate nohighlight">\(k &lt; \max_\text{iter}\)</span> and not converged:</p>
+<ol class="arabic simple">
+<li><p>Compute gradient: <span class="math notranslate nohighlight">\(\mathbf{g}_k = \nabla J(\mathbf{u}_k)\)</span></p></li>
+<li><p>Update: <span class="math notranslate nohighlight">\(\mathbf{u}_{k+1} = \text{clip}(\mathbf{u}_k - \alpha \mathbf{g}_k, \mathbf{u}_{lb}, \mathbf{u}_{ub})\)</span></p></li>
+<li><p>Check convergence: if <span class="math notranslate nohighlight">\(\|\mathbf{u}_{k+1} - \mathbf{u}_k\| &lt; \varepsilon\)</span>, mark as converged</p></li>
+<li><p><span class="math notranslate nohighlight">\(k = k + 1\)</span></p></li>
+</ol>
+</li>
+<li><p>Return <span class="math notranslate nohighlight">\(\mathbf{u}_k\)</span></p></li>
+</ol>
+</section>
+</div><p>In this algorithm, the <code class="docutils literal notranslate"><span class="pre">clip</span></code> function projects the updated point back onto the feasible region defined by the bounds:</p>
+<div class="math notranslate nohighlight">
+\[
+\text{clip}(u, u_{lb}, u_{ub}) = \max(\min(u, u_{ub}), u_{lb})
+\]</div>
+</section>
+<section id="on-the-choice-of-optimizer">
+<h3><span class="section-number">2.1.2. </span>On the choice of optimizer<a class="headerlink" href="#on-the-choice-of-optimizer" title="Link to this heading">#</a></h3>
 <p>Despite frequent mentions of automatic differentiation, it’s important to note that the single shooting approaches outlined in this section need not rely on gradient-based optimization methods. In fact, one could use any method provided by <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code>, which offers a range of options such as:</p>
 <ul class="simple">
 <li><p>Derivative-free methods like <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/optimize.minimize-neldermead.html">Nelder-Mead Simplex</a>, suitable for problems where gradients are unavailable or difficult to compute.</p></li>
@@ -951,6 +1009,7 @@ Optimal control sequence: [-0.84949344 -0.7677488  -0.6298097  -0.4975385  -0.38
 </ul>
 <p>The selection of an optimization method for single shooting is influenced by multiple factors: problem-specific characteristics, available computational resources, and the balance between exploring the solution space and exploiting known good solutions. While gradient-based methods generally offer faster convergence when applicable, derivative-free and stochastic approaches tend to be more robust to complex non-convex loss landscapes, albeit at the cost of increased computational demands.</p>
 <p>In practice, however, this choice is often guided by the tools at hand and the practitioners’ familiarity with them. For instance, researchers with a background in deep learning tend to gravitate towards first-order gradient-based optimization techniques along with automatic differentiation for efficient derivative computation.</p>
+</section>
 </section>
 <section id="constrained-optimization-approach">
 <h2><span class="section-number">2.2. </span>Constrained Optimization Approach<a class="headerlink" href="#constrained-optimization-approach" title="Link to this heading">#</a></h2>
@@ -1508,7 +1567,11 @@ ineq_constraint[None]: -5.466075458072094e-09
 </ul>
 </li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#numerical-methods-for-solving-docps">2. Numerical Methods for Solving DOCPs</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#single-shooting-methods">2.1. Single Shooting Methods</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#single-shooting-methods">2.1. Single Shooting Methods</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dealing-with-bound-constraints">2.1.1. Dealing with Bound Constraints</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#on-the-choice-of-optimizer">2.1.2. On the choice of optimizer</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#constrained-optimization-approach">2.2. Constrained Optimization Approach</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nonlinear-programming">2.2.1. Nonlinear Programming</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#karush-kuhn-tucker-kkt-conditions">2.2.1.1. Karush-Kuhn-Tucker (KKT) conditions</a></li>

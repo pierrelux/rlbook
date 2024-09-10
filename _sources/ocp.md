@@ -152,7 +152,7 @@ To implement this transform, we construct a set of helper functions $\boldsymbol
 
 $$
 \begin{align*}
-&\boldsymbol{\phi}_t(\boldsymbol{u}, \boldsymbol{x}_1) \triangleq \boldsymbol{f}_{t-1}(\boldsymbol{\phi}_{t-1}(\boldsymbol{u}_{1:T-1}, \boldsymbol{x}_1), \boldsymbol{u}_{t-1}), \quad t=2,...,T\\
+&\boldsymbol{\phi}_t(\boldsymbol{u}_{1:T-1}, \boldsymbol{x}_1) \triangleq \boldsymbol{f}_{t-1}(\boldsymbol{\phi}_{t-1}(\boldsymbol{u}_{1:T-1}, \boldsymbol{x}_1), \boldsymbol{u}_{t-1}), \quad t=2,...,T\\
 &\text{with}\quad \boldsymbol{\phi}_1(\boldsymbol{u}_{1:T}, \boldsymbol{x}_1) \triangleq \boldsymbol{x}_1
 \end{align*}
 $$
@@ -234,6 +234,66 @@ A more practical and efficient implementation combines trajectory unrolling with
 :  code_prompt_hide: "Hide code demonstration"
 :load: code/single_shooting_unrolled.py
 ```
+
+### Dealing with Bound Constraints
+
+While we have successfully eliminated the dynamics as explicit constraints through what essentially amounts to a "reparametrization" of our problem, we've been silent regarding the bound constraints. The view of single shooting as a perfect transformation from a constrained problem to an unconstrained one is not entirely accurate: we must leave something on the table, and that something is the ability to easily impose state constraints.
+
+By directly simulating the process from the initial state, there is one and only one corresponding induced path, and there's no way to let our optimizer know that it can adjust within some bounds, even if that means the generated trajectory is no longer feasible (realistic).
+
+Fortunately, the situation is much better for bound constraints on the controls. If we choose gradient descent as our method for solving this problem, we can consider a simple extension to readily support these kinds of bound constraints. The approach, in this case, would be what we call projected gradient descent. The general form of a projected gradient descent step can be expressed as:
+
+$$
+\mathbf{u}_{k+1} = \mathcal{P}_C(\mathbf{u}_k - \alpha \nabla J(\mathbf{u}_k))
+$$
+
+where $\mathcal{P}_C$ denotes the projection onto the feasible set $C$, $\alpha$ is the step size, and $\nabla J(\mathbf{u}_k)$ is the gradient of the objective function at the current point $\mathbf{u}_k$. In general, the projection operation can be computationally expensive or even intractable. However, in the case of box constraints (i.e., bound constraints), the projection simplifies to an element-wise clipping operation:
+
+$$
+[\mathcal{P}_C(\mathbf{u})]_i = \begin{cases}
+    [\mathbf{u}_{lb}]_i & \text{if } [\mathbf{u}]_i < [\mathbf{u}_{lb}]_i \\
+    [\mathbf{u}]_i & \text{if } [\mathbf{u}_{lb}]_i \leq [\mathbf{u}]_i \leq [\mathbf{u}_{ub}]_i \\
+    [\mathbf{u}_{ub}]_i & \text{if } [\mathbf{u}]_i > [\mathbf{u}_{ub}]_i
+\end{cases}
+$$
+
+With this simple change, we can maintain the computational simplicity of unconstrained optimization while enforcing the bound constraints at each iteration: ie ensuring that we are feasible throughout optimization. Moreover, it can be shown that this projection preserves the convergence properties of the gradient descent method, and that under suitable conditions (such as Lipschitz continuity of the gradient), projected gradient descent converges to a stationary point of the constrained problem. 
+
+Here's the algorithm for projected gradient descent with bound constraint for a general problem of the form:
+
+$$
+\begin{align*}
+\min_{\mathbf{u}} \quad & J(\mathbf{u}) \\
+\text{subject to} \quad & \mathbf{u}_{lb} \leq \mathbf{u} \leq \mathbf{u}_{ub}
+\end{align*}
+$$
+
+where $J(\mathbf{u})$ is our objective function, and $\mathbf{u}_{lb}$ and $\mathbf{u}_{ub}$ are the lower and upper bounds on the control variables, respectively.
+
+
+```{prf:algorithm} Projected Gradient Descent for Bound Constraints
+:label: proj-grad-descent-bound-constraints
+
+**Input:** Initial point $\mathbf{u}_0$, learning rate $\alpha$, bounds $\mathbf{u}_{lb}$ and $\mathbf{u}_{ub}$, 
+           maximum iterations $\max_\text{iter}$, tolerance $\varepsilon$
+
+1. Initialize $k = 0$
+2. While $k < \max_\text{iter}$ and not converged:
+    1. Compute gradient: $\mathbf{g}_k = \nabla J(\mathbf{u}_k)$
+    2. Update: $\mathbf{u}_{k+1} = \text{clip}(\mathbf{u}_k - \alpha \mathbf{g}_k, \mathbf{u}_{lb}, \mathbf{u}_{ub})$
+    3. Check convergence: if $\|\mathbf{u}_{k+1} - \mathbf{u}_k\| < \varepsilon$, mark as converged
+    4. $k = k + 1$
+3. Return $\mathbf{u}_k$
+```
+
+In this algorithm, the `clip` function projects the updated point back onto the feasible region defined by the bounds:
+
+$$
+\text{clip}(u, u_{lb}, u_{ub}) = \max(\min(u, u_{ub}), u_{lb})
+$$
+
+
+### On the choice of optimizer
 
 Despite frequent mentions of automatic differentiation, it's important to note that the single shooting approaches outlined in this section need not rely on gradient-based optimization methods. In fact, one could use any method provided by `scipy.optimize.minimize`, which offers a range of options such as:
 
