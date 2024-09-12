@@ -795,6 +795,12 @@ Here, $[\cdot]_+$ denotes the projection onto the non-negative orthant, ensuring
 
 However, as it is widely known from the lessons of GAN (Generative Adversarial Network) training {cite}`goodfellow2014generative`, Gradient Descent Ascent (GDA) can fail to converge or suffer from instability. The Arrow-Hurwicz-Uzawa algorithm, also known as the first-order Lagrangian method, is known to converge only locally, in the vicinity of an optimal primal-dual pair.
 
+```{code-cell} ipython3
+:tags: [hide-input]
+:load: code/arrow_hurwicz_uzawa_jax.py
+```
+
+
 # References 
 
 ```{bibliography}
