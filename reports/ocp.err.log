@@ -17,9 +17,8 @@ nbclient.exceptions.CellExecutionError: An error occurred while executing the fo
 ------------------
 import jax
 import jax.numpy as jnp
-from jax import grad, jit, jacfwd, hessian
-import numpy as np
-import cvxpy as cp
+from jax import grad, jit, value_and_grad
+import optax
 import matplotlib.pyplot as plt
 
 # Define the objective function and constraints
@@ -33,71 +32,73 @@ def g(x):
 
 @jit
 def h(x):
-    return jnp.array([x[0]**2 - x[1]])  # Corrected inequality constraint: x[1] <= x[0]^2
+    return jnp.array([x[0]**2 - x[1]])  # Inequality constraint: x[1] <= x[0]^2
 
-# Compute gradients and Jacobians using JAX
-grad_f = jit(grad(f))
-hess_f = jit(hessian(f))
-jac_g = jit(jacfwd(g))
-jac_h = jit(jacfwd(h))
-
+# Define the Lagrangian
 @jit
-def lagrangian(x, lambda_, nu):
-    return f(x) + jnp.dot(lambda_, g(x)) + jnp.dot(nu, h(x))
+def lagrangian(x, lambda_, mu):
+    return f(x) + jnp.dot(lambda_, g(x)) + jnp.dot(mu, h(x))
 
-hess_L = jit(hessian(lagrangian, argnums=0))
+# Compute gradients of the Lagrangian
+grad_L_x = jit(grad(lagrangian, argnums=0))
+grad_L_lambda = jit(grad(lagrangian, argnums=1))
+grad_L_mu = jit(grad(lagrangian, argnums=2))
 
-def solve_qp_subproblem(x, lambda_, nu):
-    n = len(x)
-    delta_x = cp.Variable(n)
+# Define the Arrow-Hurwicz-Uzawa update step
+@jit
+def update(carry, t):
+    x, lambda_, mu, opt_state_x, opt_state_lambda, opt_state_mu = carry
     
-    # Convert JAX arrays to numpy for cvxpy
-    grad_f_np = np.array(grad_f(x))
-    hess_L_np = np.array(hess_L(x, lambda_, nu))
-    jac_g_np = np.array(jac_g(x))
-    jac_h_np = np.array(jac_h(x))
-    g_np = np.array(g(x))
-    h_np = np.array(h(x))
+    # Compute gradients
+    grad_x = grad_L_x(x, lambda_, mu)
+    grad_lambda = grad_L_lambda(x, lambda_, mu)
+    grad_mu = grad_L_mu(x, lambda_, mu)
     
-    obj = cp.Minimize(grad_f_np.T @ delta_x + 0.5 * cp.quad_form(delta_x, hess_L_np))
+    # Update primal variables (minimization)
+    updates_x, opt_state_x = optimizer_x.update(grad_x, opt_state_x)
+    x = optax.apply_updates(x, updates_x)
     
-    constraints = [
-        jac_g_np @ delta_x + g_np == 0,
-        jac_h_np @ delta_x + h_np <= 0
-    ]
+    # Update dual variables (maximization)
+    updates_lambda, opt_state_lambda = optimizer_lambda.update(grad_lambda, opt_state_lambda)
+    lambda_ = optax.apply_updates(lambda_, -updates_lambda)  # Positive update for maximization
     
-    prob = cp.Problem(obj, constraints)
-    prob.solve()
+    updates_mu, opt_state_mu = optimizer_mu.update(grad_mu, opt_state_mu)
+    mu = optax.apply_updates(mu, -updates_mu)  # Positive update for maximization
     
-    return delta_x.value, prob.constraints[0].dual_value, prob.constraints[1].dual_value
+    # Project mu onto the non-negative orthant
+    mu = jnp.maximum(mu, 0)
+    
+    return (x, lambda_, mu, opt_state_x, opt_state_lambda, opt_state_mu), x
 
-def sqp(x0, max_iter=100, tol=1e-6):
-    x = x0
-    lambda_ = jnp.zeros(1)
-    nu = jnp.zeros(1)
+def arrow_hurwicz_uzawa(x0, lambda0, mu0, max_iter=1000):
+    # Initialize optimizers
+    global optimizer_x, optimizer_lambda, optimizer_mu
+    optimizer_x = optax.adam(learning_rate=0.01)
+    optimizer_lambda = optax.adam(learning_rate=0.01)
+    optimizer_mu = optax.adam(learning_rate=0.01)
     
-    for i in range(max_iter):
-        delta_x, new_lambda, new_nu = solve_qp_subproblem(x, lambda_, nu)
-        
-        if jnp.linalg.norm(delta_x) < tol:
-            break
-        
-        x = x + delta_x
-        lambda_ = new_lambda
-        nu = new_nu
-        
-    return x, lambda_, nu, i+1
+    opt_state_x = optimizer_x.init(x0)
+    opt_state_lambda = optimizer_lambda.init(lambda0)
+    opt_state_mu = optimizer_mu.init(mu0)
+    
+    init_carry = (x0, lambda0, mu0, opt_state_x, opt_state_lambda, opt_state_mu)
+    
+    # Use jax.lax.scan for the optimization loop
+    (x, lambda_, mu, _, _, _), trajectory = jax.lax.scan(update, init_carry, jnp.arange(max_iter))
+    
+    return x, lambda_, mu, trajectory
 
 # Initial point
 x0 = jnp.array([0.5, 0.5])
+lambda0 = jnp.zeros(1)
+mu0 = jnp.zeros(1)
 
-# Solve using SQP
-x_opt, lambda_opt, nu_opt, iterations = sqp(x0)
+# Solve using Arrow-Hurwicz-Uzawa
+x_opt, lambda_opt, mu_opt, trajectory = arrow_hurwicz_uzawa(x0, lambda0, mu0, max_iter=1000)
 
-print(f"Optimal x: {x_opt}")
-print(f"Optimal lambda: {lambda_opt}")
-print(f"Optimal nu: {nu_opt}")
-print(f"Iterations: {iterations}")
+print(f"Final x: {x_opt}")
+print(f"Final lambda: {lambda_opt}")
+print(f"Final mu: {mu_opt}")
 
 # Visualize the result
 plt.figure(figsize=(12, 10))
@@ -128,14 +129,19 @@ x2_lower = jnp.minimum(x2_ineq, 2.5)
 plt.fill_between(x1_ineq, -1.5, x2_lower, color='gray', alpha=0.2, hatch='\\/...', label='Feasible Region')
 
 # Plot the optimal and initial points
-plt.scatter(x_opt[0], x_opt[1], color='red', s=100, edgecolor='white', linewidth=2, label='Optimal Point')
+plt.scatter(x_opt[0], x_opt[1], color='red', s=100, edgecolor='white', linewidth=2, label='Final Point')
 plt.scatter(x0[0], x0[1], color='green', s=100, edgecolor='white', linewidth=2, label='Initial Point')
+
+# Plot the optimization trajectory using scatter plot
+scatter = plt.scatter(trajectory[:, 0], trajectory[:, 1], c=jnp.arange(len(trajectory)), 
+                      cmap='cool', s=10, alpha=0.5)
+plt.colorbar(scatter, label='Iteration')
 
 # Add labels and title
 plt.xlabel('x1', fontsize=12)
 plt.ylabel('x2', fontsize=12)
-plt.title('SQP for Inequality Constraints with CVXPY and JAX', fontsize=14)
-plt.legend(fontsize=10, loc='upper center')
+plt.title('Arrow-Hurwicz-Uzawa Algorithm with JAX and Adam (Corrected Min/Max)', fontsize=14)
+plt.legend(fontsize=10, loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=3)
 plt.grid(True, linestyle='--', alpha=0.7)
 
 # Set the axis limits explicitly
@@ -149,17 +155,18 @@ plt.show()
 print(f"\nEquality constraint violation: {g(x_opt)[0]:.6f}")
 print(f"Inequality constraint violation: {h(x_opt)[0]:.6f}")
 print(f"Objective function value: {f(x_opt):.6f}")
+
 ------------------
 
 
 [0;31m---------------------------------------------------------------------------[0m
 [0;31mModuleNotFoundError[0m                       Traceback (most recent call last)
-Cell [0;32mIn[7], line 5[0m
-[1;32m      3[0m [38;5;28;01mfrom[39;00m [38;5;21;01mjax[39;00m [38;5;28;01mimport[39;00m grad, jit, jacfwd, hessian
-[1;32m      4[0m [38;5;28;01mimport[39;00m [38;5;21;01mnumpy[39;00m [38;5;28;01mas[39;00m [38;5;21;01mnp[39;00m
-[0;32m----> 5[0m [38;5;28;01mimport[39;00m [38;5;21;01mcvxpy[39;00m [38;5;28;01mas[39;00m [38;5;21;01mcp[39;00m
-[1;32m      6[0m [38;5;28;01mimport[39;00m [38;5;21;01mmatplotlib[39;00m[38;5;21;01m.[39;00m[38;5;21;01mpyplot[39;00m [38;5;28;01mas[39;00m [38;5;21;01mplt[39;00m
-[1;32m      8[0m [38;5;66;03m# Define the objective function and constraints[39;00m
+Cell [0;32mIn[8], line 4[0m
+[1;32m      2[0m [38;5;28;01mimport[39;00m [38;5;21;01mjax[39;00m[38;5;21;01m.[39;00m[38;5;21;01mnumpy[39;00m [38;5;28;01mas[39;00m [38;5;21;01mjnp[39;00m
+[1;32m      3[0m [38;5;28;01mfrom[39;00m [38;5;21;01mjax[39;00m [38;5;28;01mimport[39;00m grad, jit, value_and_grad
+[0;32m----> 4[0m [38;5;28;01mimport[39;00m [38;5;21;01moptax[39;00m
+[1;32m      5[0m [38;5;28;01mimport[39;00m [38;5;21;01mmatplotlib[39;00m[38;5;21;01m.[39;00m[38;5;21;01mpyplot[39;00m [38;5;28;01mas[39;00m [38;5;21;01mplt[39;00m
+[1;32m      7[0m [38;5;66;03m# Define the objective function and constraints[39;00m
 
-[0;31mModuleNotFoundError[0m: No module named 'cvxpy'
+[0;31mModuleNotFoundError[0m: No module named 'optax'
 

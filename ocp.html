@@ -2156,6 +2156,172 @@ Objective function value: 1.619326
 </section>
 </div><p>Here, <span class="math notranslate nohighlight">\([\cdot]_+\)</span> denotes the projection onto the non-negative orthant, ensuring that <span class="math notranslate nohighlight">\(\boldsymbol{\mu}\)</span> remains non-negative.</p>
 <p>However, as it is widely known from the lessons of GAN (Generative Adversarial Network) training <span id="id9">[<a class="reference internal" href="#id20" title="Ian Goodfellow, Jean Pouget-Abadie, Mehdi Mirza, Bing Xu, David Warde-Farley, Sherjil Ozair, Aaron Courville, and Yoshua Bengio. Generative adversarial nets. In Advances in neural information processing systems, volume 27. 2014.">GPAM+14</a>]</span>, Gradient Descent Ascent (GDA) can fail to converge or suffer from instability. The Arrow-Hurwicz-Uzawa algorithm, also known as the first-order Lagrangian method, is known to converge only locally, in the vicinity of an optimal primal-dual pair.</p>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Show code cell source</span>
+<span class="expanded">Hide code cell source</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">jax</span>
+<span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
+<span class="kn">from</span> <span class="nn">jax</span> <span class="kn">import</span> <span class="n">grad</span><span class="p">,</span> <span class="n">jit</span><span class="p">,</span> <span class="n">value_and_grad</span>
+<span class="kn">import</span> <span class="nn">optax</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="c1"># Define the objective function and constraints</span>
+<span class="nd">@jit</span>
+<span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+
+<span class="nd">@jit</span>
+<span class="k">def</span> <span class="nf">g</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+
+<span class="nd">@jit</span>
+<span class="k">def</span> <span class="nf">h</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>  <span class="c1"># Inequality constraint: x[1] &lt;= x[0]^2</span>
+
+<span class="c1"># Define the Lagrangian</span>
+<span class="nd">@jit</span>
+<span class="k">def</span> <span class="nf">lagrangian</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">lambda_</span><span class="p">,</span> <span class="n">mu</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="n">jnp</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">lambda_</span><span class="p">,</span> <span class="n">g</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="o">+</span> <span class="n">jnp</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">h</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+<span class="c1"># Compute gradients of the Lagrangian</span>
+<span class="n">grad_L_x</span> <span class="o">=</span> <span class="n">jit</span><span class="p">(</span><span class="n">grad</span><span class="p">(</span><span class="n">lagrangian</span><span class="p">,</span> <span class="n">argnums</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+<span class="n">grad_L_lambda</span> <span class="o">=</span> <span class="n">jit</span><span class="p">(</span><span class="n">grad</span><span class="p">(</span><span class="n">lagrangian</span><span class="p">,</span> <span class="n">argnums</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">grad_L_mu</span> <span class="o">=</span> <span class="n">jit</span><span class="p">(</span><span class="n">grad</span><span class="p">(</span><span class="n">lagrangian</span><span class="p">,</span> <span class="n">argnums</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+
+<span class="c1"># Define the Arrow-Hurwicz-Uzawa update step</span>
+<span class="nd">@jit</span>
+<span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="n">carry</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">lambda_</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">opt_state_x</span><span class="p">,</span> <span class="n">opt_state_lambda</span><span class="p">,</span> <span class="n">opt_state_mu</span> <span class="o">=</span> <span class="n">carry</span>
+    
+    <span class="c1"># Compute gradients</span>
+    <span class="n">grad_x</span> <span class="o">=</span> <span class="n">grad_L_x</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">lambda_</span><span class="p">,</span> <span class="n">mu</span><span class="p">)</span>
+    <span class="n">grad_lambda</span> <span class="o">=</span> <span class="n">grad_L_lambda</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">lambda_</span><span class="p">,</span> <span class="n">mu</span><span class="p">)</span>
+    <span class="n">grad_mu</span> <span class="o">=</span> <span class="n">grad_L_mu</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">lambda_</span><span class="p">,</span> <span class="n">mu</span><span class="p">)</span>
+    
+    <span class="c1"># Update primal variables (minimization)</span>
+    <span class="n">updates_x</span><span class="p">,</span> <span class="n">opt_state_x</span> <span class="o">=</span> <span class="n">optimizer_x</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">grad_x</span><span class="p">,</span> <span class="n">opt_state_x</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">optax</span><span class="o">.</span><span class="n">apply_updates</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">updates_x</span><span class="p">)</span>
+    
+    <span class="c1"># Update dual variables (maximization)</span>
+    <span class="n">updates_lambda</span><span class="p">,</span> <span class="n">opt_state_lambda</span> <span class="o">=</span> <span class="n">optimizer_lambda</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">grad_lambda</span><span class="p">,</span> <span class="n">opt_state_lambda</span><span class="p">)</span>
+    <span class="n">lambda_</span> <span class="o">=</span> <span class="n">optax</span><span class="o">.</span><span class="n">apply_updates</span><span class="p">(</span><span class="n">lambda_</span><span class="p">,</span> <span class="o">-</span><span class="n">updates_lambda</span><span class="p">)</span>  <span class="c1"># Positive update for maximization</span>
+    
+    <span class="n">updates_mu</span><span class="p">,</span> <span class="n">opt_state_mu</span> <span class="o">=</span> <span class="n">optimizer_mu</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">grad_mu</span><span class="p">,</span> <span class="n">opt_state_mu</span><span class="p">)</span>
+    <span class="n">mu</span> <span class="o">=</span> <span class="n">optax</span><span class="o">.</span><span class="n">apply_updates</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="o">-</span><span class="n">updates_mu</span><span class="p">)</span>  <span class="c1"># Positive update for maximization</span>
+    
+    <span class="c1"># Project mu onto the non-negative orthant</span>
+    <span class="n">mu</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">lambda_</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">opt_state_x</span><span class="p">,</span> <span class="n">opt_state_lambda</span><span class="p">,</span> <span class="n">opt_state_mu</span><span class="p">),</span> <span class="n">x</span>
+
+<span class="k">def</span> <span class="nf">arrow_hurwicz_uzawa</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">lambda0</span><span class="p">,</span> <span class="n">mu0</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+    <span class="c1"># Initialize optimizers</span>
+    <span class="k">global</span> <span class="n">optimizer_x</span><span class="p">,</span> <span class="n">optimizer_lambda</span><span class="p">,</span> <span class="n">optimizer_mu</span>
+    <span class="n">optimizer_x</span> <span class="o">=</span> <span class="n">optax</span><span class="o">.</span><span class="n">adam</span><span class="p">(</span><span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+    <span class="n">optimizer_lambda</span> <span class="o">=</span> <span class="n">optax</span><span class="o">.</span><span class="n">adam</span><span class="p">(</span><span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+    <span class="n">optimizer_mu</span> <span class="o">=</span> <span class="n">optax</span><span class="o">.</span><span class="n">adam</span><span class="p">(</span><span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+    
+    <span class="n">opt_state_x</span> <span class="o">=</span> <span class="n">optimizer_x</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">x0</span><span class="p">)</span>
+    <span class="n">opt_state_lambda</span> <span class="o">=</span> <span class="n">optimizer_lambda</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">lambda0</span><span class="p">)</span>
+    <span class="n">opt_state_mu</span> <span class="o">=</span> <span class="n">optimizer_mu</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">mu0</span><span class="p">)</span>
+    
+    <span class="n">init_carry</span> <span class="o">=</span> <span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">lambda0</span><span class="p">,</span> <span class="n">mu0</span><span class="p">,</span> <span class="n">opt_state_x</span><span class="p">,</span> <span class="n">opt_state_lambda</span><span class="p">,</span> <span class="n">opt_state_mu</span><span class="p">)</span>
+    
+    <span class="c1"># Use jax.lax.scan for the optimization loop</span>
+    <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">lambda_</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">),</span> <span class="n">trajectory</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">lax</span><span class="o">.</span><span class="n">scan</span><span class="p">(</span><span class="n">update</span><span class="p">,</span> <span class="n">init_carry</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">max_iter</span><span class="p">))</span>
+    
+    <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">lambda_</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">trajectory</span>
+
+<span class="c1"># Initial point</span>
+<span class="n">x0</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">])</span>
+<span class="n">lambda0</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">mu0</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># Solve using Arrow-Hurwicz-Uzawa</span>
+<span class="n">x_opt</span><span class="p">,</span> <span class="n">lambda_opt</span><span class="p">,</span> <span class="n">mu_opt</span><span class="p">,</span> <span class="n">trajectory</span> <span class="o">=</span> <span class="n">arrow_hurwicz_uzawa</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">lambda0</span><span class="p">,</span> <span class="n">mu0</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Final x: </span><span class="si">{</span><span class="n">x_opt</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Final lambda: </span><span class="si">{</span><span class="n">lambda_opt</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Final mu: </span><span class="si">{</span><span class="n">mu_opt</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Visualize the result</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+
+<span class="c1"># Create a mesh for the contour plot</span>
+<span class="n">x1_range</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="n">x2_range</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="n">X1</span><span class="p">,</span> <span class="n">X2</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x1_range</span><span class="p">,</span> <span class="n">x2_range</span><span class="p">)</span>
+<span class="n">Z</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">f</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">]))</span> <span class="k">for</span> <span class="n">x1</span> <span class="ow">in</span> <span class="n">x1_range</span><span class="p">]</span> <span class="k">for</span> <span class="n">x2</span> <span class="ow">in</span> <span class="n">x2_range</span><span class="p">])</span>
+
+<span class="c1"># Plot filled contours</span>
+<span class="n">contour</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">contourf</span><span class="p">(</span><span class="n">X1</span><span class="p">,</span> <span class="n">X2</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">contour</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Objective Function Value&#39;</span><span class="p">)</span>
+
+<span class="c1"># Plot the equality constraint</span>
+<span class="n">theta</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">jnp</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="n">x1_eq</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+<span class="n">x2_eq</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x1_eq</span><span class="p">,</span> <span class="n">x2_eq</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Equality Constraint&#39;</span><span class="p">)</span>
+
+<span class="c1"># Plot the inequality constraint and shade the feasible region</span>
+<span class="n">x1_ineq</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="n">x2_ineq</span> <span class="o">=</span> <span class="n">x1_ineq</span><span class="o">**</span><span class="mi">2</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x1_ineq</span><span class="p">,</span> <span class="n">x2_ineq</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;orange&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Inequality Constraint&#39;</span><span class="p">)</span>
+
+<span class="c1"># Shade the feasible region for the inequality constraint</span>
+<span class="n">x2_lower</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">x2_ineq</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">x1_ineq</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">x2_lower</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">hatch</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">/...&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Feasible Region&#39;</span><span class="p">)</span>
+
+<span class="c1"># Plot the optimal and initial points</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x_opt</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x_opt</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Final Point&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x0</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x0</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;green&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Initial Point&#39;</span><span class="p">)</span>
+
+<span class="c1"># Plot the optimization trajectory using scatter plot</span>
+<span class="n">scatter</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">trajectory</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">trajectory</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">trajectory</span><span class="p">)),</span> 
+                      <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;cool&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">scatter</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Iteration&#39;</span><span class="p">)</span>
+
+<span class="c1"># Add labels and title</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;x1&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;x2&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Arrow-Hurwicz-Uzawa Algorithm with JAX and Adam (Corrected Min/Max)&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper center&#39;</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.05</span><span class="p">),</span> <span class="n">ncol</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+
+<span class="c1"># Set the axis limits explicitly</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="o">-</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="o">-</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+
+<span class="c1"># Verify the result</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Equality constraint violation: </span><span class="si">{</span><span class="n">g</span><span class="p">(</span><span class="n">x_opt</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Inequality constraint violation: </span><span class="si">{</span><span class="n">h</span><span class="p">(</span><span class="n">x_opt</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Objective function value: </span><span class="si">{</span><span class="n">f</span><span class="p">(</span><span class="n">x_opt</span><span class="p">)</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Final x: [0.7861006 0.6180657]
+Final lambda: [1.0322342]
+Final mu: [0.5120836]
+</pre></div>
+</div>
+<img alt="_images/2969475050904e8f5c16bbb03dd8909d609cffcd6749c6d5a33bb9a8e04280c4.png" src="_images/2969475050904e8f5c16bbb03dd8909d609cffcd6749c6d5a33bb9a8e04280c4.png" />
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Equality constraint violation: -0.000041
+Inequality constraint violation: -0.000112
+Objective function value: 1.619425
+</pre></div>
+</div>
+</div>
+</div>
 </section>
 </section>
 </section>
