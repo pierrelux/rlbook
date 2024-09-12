@@ -15,126 +15,151 @@ Traceback (most recent call last):
     raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
 nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
 ------------------
-from pyomo.environ import *
-from pyomo.opt import SolverFactory
-import math
+import jax
+import jax.numpy as jnp
+from jax import grad, jit, jacfwd, hessian
+import numpy as np
+import cvxpy as cp
+import matplotlib.pyplot as plt
 
-# Define the Pyomo model
-model = ConcreteModel()
+# Define the objective function and constraints
+@jit
+def f(x):
+    return (x[0] - 2)**2 + (x[1] - 1)**2
 
-# Define the variables
-model.x1 = Var(initialize=1.25)
-model.x2 = Var(initialize=1.5)
+@jit
+def g(x):
+    return jnp.array([x[0]**2 + x[1]**2 - 1])
 
-# Define the objective function
-def objective_rule(model):
-    return (model.x1 - 1)**2 + (model.x2 - 2.5)**2
-model.obj = Objective(rule=objective_rule, sense=minimize)
+@jit
+def h(x):
+    return jnp.array([x[0]**2 - x[1]])  # Corrected inequality constraint: x[1] <= x[0]^2
 
-# Define the inequality constraint (circle)
-def inequality_constraint_rule(model):
-    return (model.x1 - 1)**2 + (model.x2 - 1)**2 <= 1.5
-model.ineq_constraint = Constraint(rule=inequality_constraint_rule)
+# Compute gradients and Jacobians using JAX
+grad_f = jit(grad(f))
+hess_f = jit(hessian(f))
+jac_g = jit(jacfwd(g))
+jac_h = jit(jacfwd(h))
 
-# Define the equality constraint (sine wave) using Pyomo's math functions
-def equality_constraint_rule(model):
-    return model.x2 == 0.5 * sin(2 * math.pi * model.x1) + 1.5
-model.eq_constraint = Constraint(rule=equality_constraint_rule)
+@jit
+def lagrangian(x, lambda_, nu):
+    return f(x) + jnp.dot(lambda_, g(x)) + jnp.dot(nu, h(x))
 
-# Create a suffix component to capture dual values
-model.dual = Suffix(direction=Suffix.IMPORT)
+hess_L = jit(hessian(lagrangian, argnums=0))
 
-# Create a solver
-solver=SolverFactory('ipopt', executable='/content/ipopt')
-
-# Solve the problem
-results = solver.solve(model, tee=True)
-
-# Check if the solver found an optimal solution
-if (results.solver.status == SolverStatus.ok and 
-    results.solver.termination_condition == TerminationCondition.optimal):
+def solve_qp_subproblem(x, lambda_, nu):
+    n = len(x)
+    delta_x = cp.Variable(n)
     
-    # Print the results
-    print(f"x1: {value(model.x1)}")
-    print(f"x2: {value(model.x2)}")
+    # Convert JAX arrays to numpy for cvxpy
+    grad_f_np = np.array(grad_f(x))
+    hess_L_np = np.array(hess_L(x, lambda_, nu))
+    jac_g_np = np.array(jac_g(x))
+    jac_h_np = np.array(jac_h(x))
+    g_np = np.array(g(x))
+    h_np = np.array(h(x))
     
-    # Print the objective value
-    print(f"Objective value: {value(model.obj)}")
+    obj = cp.Minimize(grad_f_np.T @ delta_x + 0.5 * cp.quad_form(delta_x, hess_L_np))
+    
+    constraints = [
+        jac_g_np @ delta_x + g_np == 0,
+        jac_h_np @ delta_x + h_np <= 0
+    ]
+    
+    prob = cp.Problem(obj, constraints)
+    prob.solve()
+    
+    return delta_x.value, prob.constraints[0].dual_value, prob.constraints[1].dual_value
 
-    # Print the Lagrange multipliers (dual values)
-    print("\nLagrange multipliers:")
-    for c in model.component_objects(Constraint, active=True):
-        for index in c:
-            print(f"{c.name}[{index}]: {model.dual[c[index]]}")
-else:
-    print("Solver did not find an optimal solution.")
-    print(f"Solver Status: {results.solver.status}")
-    print(f"Termination Condition: {results.solver.termination_condition}")
+def sqp(x0, max_iter=100, tol=1e-6):
+    x = x0
+    lambda_ = jnp.zeros(1)
+    nu = jnp.zeros(1)
+    
+    for i in range(max_iter):
+        delta_x, new_lambda, new_nu = solve_qp_subproblem(x, lambda_, nu)
+        
+        if jnp.linalg.norm(delta_x) < tol:
+            break
+        
+        x = x + delta_x
+        lambda_ = new_lambda
+        nu = new_nu
+        
+    return x, lambda_, nu, i+1
 
+# Initial point
+x0 = jnp.array([0.5, 0.5])
+
+# Solve using SQP
+x_opt, lambda_opt, nu_opt, iterations = sqp(x0)
+
+print(f"Optimal x: {x_opt}")
+print(f"Optimal lambda: {lambda_opt}")
+print(f"Optimal nu: {nu_opt}")
+print(f"Iterations: {iterations}")
+
+# Visualize the result
+plt.figure(figsize=(12, 10))
+
+# Create a mesh for the contour plot
+x1_range = jnp.linspace(-1.5, 2.5, 100)
+x2_range = jnp.linspace(-1.5, 2.5, 100)
+X1, X2 = jnp.meshgrid(x1_range, x2_range)
+Z = jnp.array([[f(jnp.array([x1, x2])) for x1 in x1_range] for x2 in x2_range])
+
+# Plot filled contours
+contour = plt.contourf(X1, X2, Z, levels=50, cmap='viridis', alpha=0.7)
+plt.colorbar(contour, label='Objective Function Value')
+
+# Plot the equality constraint
+theta = jnp.linspace(0, 2*jnp.pi, 100)
+x1_eq = jnp.cos(theta)
+x2_eq = jnp.sin(theta)
+plt.plot(x1_eq, x2_eq, color='red', linewidth=2, label='Equality Constraint')
+
+# Plot the inequality constraint and shade the feasible region
+x1_ineq = jnp.linspace(-1.5, 2.5, 100)
+x2_ineq = x1_ineq**2
+plt.plot(x1_ineq, x2_ineq, color='orange', linewidth=2, label='Inequality Constraint')
+
+# Shade the feasible region for the inequality constraint
+x2_lower = jnp.minimum(x2_ineq, 2.5)
+plt.fill_between(x1_ineq, -1.5, x2_lower, color='gray', alpha=0.2, hatch='\\/...', label='Feasible Region')
+
+# Plot the optimal and initial points
+plt.scatter(x_opt[0], x_opt[1], color='red', s=100, edgecolor='white', linewidth=2, label='Optimal Point')
+plt.scatter(x0[0], x0[1], color='green', s=100, edgecolor='white', linewidth=2, label='Initial Point')
+
+# Add labels and title
+plt.xlabel('x1', fontsize=12)
+plt.ylabel('x2', fontsize=12)
+plt.title('SQP for Inequality Constraints with CVXPY and JAX', fontsize=14)
+plt.legend(fontsize=10, loc='upper center')
+plt.grid(True, linestyle='--', alpha=0.7)
+
+# Set the axis limits explicitly
+plt.xlim(-1.5, 2.5)
+plt.ylim(-1.5, 2.5)
+
+plt.tight_layout()
+plt.show()
+
+# Verify the result
+print(f"\nEquality constraint violation: {g(x_opt)[0]:.6f}")
+print(f"Inequality constraint violation: {h(x_opt)[0]:.6f}")
+print(f"Objective function value: {f(x_opt):.6f}")
 ------------------
 
------ stdout -----
-WARNING: Failed to create solver with name 'ipopt': Failed to set executable
-for solver ipopt. File with name=/content/ipopt either does not exist or it is
-not executable. To skip this validation, call set_executable with
-validate=False.
-Traceback (most recent call last):
-  File "/Users/pierre-lucbacon/Library/Python/3.9/lib/python/site-packages/pyomo/opt/base/solvers.py", line 148, in __call__
-    opt = self._cls[_name](**kwds)
-  File "/Users/pierre-lucbacon/Library/Python/3.9/lib/python/site-packages/pyomo/solvers/plugins/solvers/IPOPT.py", line 44, in __init__
-    super(IPOPT, self).__init__(**kwds)
-  File "/Users/pierre-lucbacon/Library/Python/3.9/lib/python/site-packages/pyomo/opt/solver/shellcmd.py", line 66, in __init__
-    self.set_executable(name=executable, validate=validate)
-  File "/Users/pierre-lucbacon/Library/Python/3.9/lib/python/site-packages/pyomo/opt/solver/shellcmd.py", line 115, in set_executable
-    raise ValueError(
-ValueError: Failed to set executable for solver ipopt. File with name=/content/ipopt either does not exist or it is not executable. To skip this validation, call set_executable with validate=False.
-------------------
 
 [0;31m---------------------------------------------------------------------------[0m
-[0;31mRuntimeError[0m                              Traceback (most recent call last)
-Cell [0;32mIn[3], line 34[0m
-[1;32m     31[0m solver[38;5;241m=[39mSolverFactory([38;5;124m'[39m[38;5;124mipopt[39m[38;5;124m'[39m, executable[38;5;241m=[39m[38;5;124m'[39m[38;5;124m/content/ipopt[39m[38;5;124m'[39m)
-[1;32m     33[0m [38;5;66;03m# Solve the problem[39;00m
-[0;32m---> 34[0m results [38;5;241m=[39m [43msolver[49m[38;5;241;43m.[39;49m[43msolve[49m[43m([49m[43mmodel[49m[43m,[49m[43m [49m[43mtee[49m[38;5;241;43m=[39;49m[38;5;28;43;01mTrue[39;49;00m[43m)[49m
-[1;32m     36[0m [38;5;66;03m# Check if the solver found an optimal solution[39;00m
-[1;32m     37[0m [38;5;28;01mif[39;00m (results[38;5;241m.[39msolver[38;5;241m.[39mstatus [38;5;241m==[39m SolverStatus[38;5;241m.[39mok [38;5;129;01mand[39;00m 
-[1;32m     38[0m     results[38;5;241m.[39msolver[38;5;241m.[39mtermination_condition [38;5;241m==[39m TerminationCondition[38;5;241m.[39moptimal):
-[1;32m     39[0m     
-[1;32m     40[0m     [38;5;66;03m# Print the results[39;00m
+[0;31mModuleNotFoundError[0m                       Traceback (most recent call last)
+Cell [0;32mIn[7], line 5[0m
+[1;32m      3[0m [38;5;28;01mfrom[39;00m [38;5;21;01mjax[39;00m [38;5;28;01mimport[39;00m grad, jit, jacfwd, hessian
+[1;32m      4[0m [38;5;28;01mimport[39;00m [38;5;21;01mnumpy[39;00m [38;5;28;01mas[39;00m [38;5;21;01mnp[39;00m
+[0;32m----> 5[0m [38;5;28;01mimport[39;00m [38;5;21;01mcvxpy[39;00m [38;5;28;01mas[39;00m [38;5;21;01mcp[39;00m
+[1;32m      6[0m [38;5;28;01mimport[39;00m [38;5;21;01mmatplotlib[39;00m[38;5;21;01m.[39;00m[38;5;21;01mpyplot[39;00m [38;5;28;01mas[39;00m [38;5;21;01mplt[39;00m
+[1;32m      8[0m [38;5;66;03m# Define the objective function and constraints[39;00m
 
-File [0;32m~/Library/Python/3.9/lib/python/site-packages/pyomo/opt/base/solvers.py:99[0m, in [0;36mUnknownSolver.solve[0;34m(self, *args, **kwds)[0m
-[1;32m     97[0m [38;5;28;01mdef[39;00m [38;5;21msolve[39m([38;5;28mself[39m, [38;5;241m*[39margs, [38;5;241m*[39m[38;5;241m*[39mkwds):
-[1;32m     98[0m [38;5;250m    [39m[38;5;124;03m"""Perform optimization and return an SolverResults object."""[39;00m
-[0;32m---> 99[0m     [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43m_solver_error[49m[43m([49m[38;5;124;43m'[39;49m[38;5;124;43msolve[39;49m[38;5;124;43m'[39;49m[43m)[49m
-
-File [0;32m~/Library/Python/3.9/lib/python/site-packages/pyomo/opt/base/solvers.py:116[0m, in [0;36mUnknownSolver._solver_error[0;34m(self, method_name)[0m
-[1;32m    115[0m     [38;5;28;01mdef[39;00m [38;5;21m_solver_error[39m([38;5;28mself[39m, method_name):
-[0;32m--> 116[0m         [38;5;28;01mraise[39;00m [38;5;167;01mRuntimeError[39;00m(
-[1;32m    117[0m [38;5;250m            [39m[38;5;124;03m"""Attempting to use an unavailable solver.[39;00m
-[1;32m    118[0m 
-[1;32m    119[0m [38;5;124;03mThe SolverFactory was unable to create the solver "%s"[39;00m
-[1;32m    120[0m [38;5;124;03mand returned an UnknownSolver object.  This error is raised at the point[39;00m
-[1;32m    121[0m [38;5;124;03mwhere the UnknownSolver object was used as if it were valid (by calling[39;00m
-[1;32m    122[0m [38;5;124;03mmethod "%s").[39;00m
-[1;32m    123[0m 
-[1;32m    124[0m [38;5;124;03mThe original solver was created with the following parameters:[39;00m
-[1;32m    125[0m [38;5;124;03m\t"""[39;00m
-[1;32m    126[0m             [38;5;241m%[39m ([38;5;28mself[39m[38;5;241m.[39mtype, method_name)
-[1;32m    127[0m             [38;5;241m+[39m [38;5;124m"[39m[38;5;130;01m\n[39;00m[38;5;130;01m\t[39;00m[38;5;124m"[39m[38;5;241m.[39mjoin([38;5;124m"[39m[38;5;132;01m%s[39;00m[38;5;124m: [39m[38;5;132;01m%s[39;00m[38;5;124m"[39m [38;5;241m%[39m i [38;5;28;01mfor[39;00m i [38;5;129;01min[39;00m [38;5;28msorted[39m([38;5;28mself[39m[38;5;241m.[39m_kwds[38;5;241m.[39mitems()))
-[1;32m    128[0m             [38;5;241m+[39m [38;5;124m"[39m[38;5;130;01m\n[39;00m[38;5;130;01m\t[39;00m[38;5;124m_args: [39m[38;5;132;01m%s[39;00m[38;5;124m"[39m [38;5;241m%[39m ([38;5;28mself[39m[38;5;241m.[39m_args,)
-[1;32m    129[0m             [38;5;241m+[39m [38;5;124m"[39m[38;5;130;01m\n[39;00m[38;5;130;01m\t[39;00m[38;5;124moptions: [39m[38;5;132;01m%s[39;00m[38;5;124m"[39m [38;5;241m%[39m ([38;5;28mself[39m[38;5;241m.[39moptions,)
-[1;32m    130[0m         )
-
-[0;31mRuntimeError[0m: Attempting to use an unavailable solver.
-
-The SolverFactory was unable to create the solver "ipopt"
-and returned an UnknownSolver object.  This error is raised at the point
-where the UnknownSolver object was used as if it were valid (by calling
-method "solve").
-
-The original solver was created with the following parameters:
-	executable: /content/ipopt
-	type: ipopt
-	_args: ()
-	options: {}
+[0;31mModuleNotFoundError[0m: No module named 'cvxpy'
 
