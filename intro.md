@@ -20,4 +20,44 @@ It is this need for understanding what people want that drives the field of pref
 
 Ultimately, whether we choose to go for IL, preference-based modeling, or direct modeling of objectives and environment comes down to a matter of ease of expressing our intents to a machine. In a sense (which, as far as I know, hasn't been studied in this way very much), this is a human-computer interaction (HCI) problem. Throughout this course, I want to provide you with an array of tools to let you find what's right for your problem by choosing or mixing these techniques together.
 
+# Mathematical Programming Approach
+
+```{epigraph}
+The sciences do not try to explain, they hardly even try to interpret, they mainly make models. By a model is meant a mathematical construct which, with the addition of certain verbal interpretations, describes observed phenomena. The justification of such a mathematical construct is solely and precisely that it is expected to work.
+
+-- John von Neumann
+```
+
+This course considers two broad categories of environments, each with its own specialized solution methods: deterministic and stochastic environments. Stochastic problems are mathematically more general than their deterministic counterparts. However, despite this generality, it's important to note that algorithms for stochastic problems are not necessarily more powerful than those designed for deterministic ones when used in practice. We should keep in mind that stochasticity and determinism are assumed properties of the world, which we model—perhaps imperfectly—into our algorithms. In this course, we adopt a pragmatic perspective on that matter, and will make assumptions only to the extent that those assumptions help us design algorithms which are ultimately useful in practice: a lesson which we have certainly learned from the success of deep learning methods over the last years. With this pragmatic stance, we start our journey with deterministic discrete-time models. 
+
+## Irrigation Management Example
+
+Resource allocation problems, found across various fields of operations research, are a specific kind of deterministic discrete-time optimal control problems. For example, consider the problem of irrigation management as posed by {cite:t}`Hall1968`, in which a decision maker is tasked with finding the optimal amount of water to allocate throughout the various growth stages of a plant in order to maximize the yield. Clearly, allocating all the water -- thereby flooding the crop -- in the first stage would be a bad idea. Similarly, letting the crop dry out and only watering at the end is also suboptimal. Our solution -- that is a prescription for the amount of water to use at any point in time -- should balance those two extremes. In order to achieve this goal, our system should ideally be informed by the expected growth dynamics of the given crops as a function of the water provided: a process which depends at the very least on physical properties known to influence the soil moisture. The basic model considered in this paper describes the evolution of the moisture content through the equation: 
+
+\begin{align*}
+w_{t+1} = w_t+\texttip{\eta}{efficiency} u_t-e_t + \phi_t
+\end{align*}
+
+where $\eta$ is a fixed "efficiency" constant determining the soil moisture response to irrigation, and $e_t$ is a known quantity summarizing the effects of water loss due to evaporation and finally $\phi_t$ represents the expected added moisture due to precipitation. 
+
+Furthermore, we should ensure that the total amount of water used throughout the season does not exceed the maximum allowed amount. To avoid situations where our crop receives too little or too much water, we further impose the condition that $w_p \leq w_{t+1} \leq w_f$ for all stages, for some given values of the so-called permanent wilting percentage $w_p$ and field capacity $w_f$. Depending on the moisture content of the soil, the yield will vary up to a maximum value $Y_max$ depending on the water deficiencies incurred throughout the season. The authors make the assumptions that such deficiencies interact multiplicatively across stages such that the total yield is given by
+$\left[\prod_{t=1}^N d_t(w_t)\right] Y_{\max}$. Due to the operating cost of watering operations (for example, energy consumption of the pumps, human labor, etc), a more meaningful objective is to maximize $\prod_{t=1}^N d_t\left(w_t\right) Y_{\max } - \sum_{t=1}^N c_t\left(u_t\right)$. 
+ The problem specification laid out above can be turned into the following mathematical program:
+
+\begin{alignat*}{2}
+\text{minimize} \quad & \sum_{t=1}^N c_t(u_t) - a_N Y_{\max} & \\
+\text{such that} \quad 
+& w_{t+1} = w_t + \eta u_t - e_t + \phi_t, & \quad & t = 1, \dots, N-1, \\
+& q_{t+1} = q_t - u_t, & \quad & t = 1, \dots, N-1, \\
+& a_{t+1} = d_t(w_t) a_t, & \quad & t = 1, \dots, N-1, \\
+& w_p \leq w_{t} \leq w_f, & \quad & t = 1, \dots, N, \\
+& 0 \leq u_t \leq q_t, & \quad & t = 1, \dots, N, \\
+& 0 \leq q_t, & \quad & t = 1, \dots, N, \\
+& a_0 = 1, & & \\
+\text{given} \quad & w_1, q_N. &
+\end{alignat*}
+
+The multiplicative form of the objective function coming from the yield term has been eliminated through by adding a new variable, $a_t$, representing the product accumulation of water deficiencies since the beginning of the season. 
+
+Clearly, this model is a simplification of real phenomena at play: that of the physical process of water absorption by a plant through its root system. Many more aspects of the world would have to be included to have a more faithful reproduction of the real process: for example by taking into account the real-time meteorological data, pressure, soil type, solar irradiance, shading and topology of the terrain etc. We could go to the level of even modelling the inner workings of the plant itself to understand exactly how much water will get absorbed. More crucially, our assumption that the water absorption takes place instantaneously at discrete points in time is certainly not true. So should we go back to the drawing board and consider a better model? The answer is that "it depends". It depends on the adequacy of the solution when deployed in the real world, or whether it helped provide insights to the user. Put simply: is the system useful to those who interact with it? Answering this question requires us to think more broadly about our system and how it will interact more broadly with the end users and the society.
 
