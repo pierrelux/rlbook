@@ -229,7 +229,7 @@ The state variable is the stock of DDT pollution $P(t)$, and the control variabl
 
 The dynamics of DDT pollution are governed by the rate of DDT output $a(v)$ and the natural exponential decay rate $\delta$. The initial condition for the pollution stock is given by $P(0) = P_0$.
 
-## Govergnment Corruption 
+## Government Corruption 
 
 In this model from Feichtinger and Wirl (1994), we aim to understand the incentives for politicians to engage in corrupt activities or to combat corruption. The model considers a politician's popularity as a dynamic process that is influenced by the public's memory of recent and past corruption. The objective is to find conditions under which self-interested politicians would choose to be honest or dishonest.
 
@@ -257,10 +257,10 @@ The evolution of the politician's popularity $P(t)$ is governed by:
 \dot{P}(t) &= g(P(t)) - f(C(t)), \quad P(0) = P_0
 \end{align*}
 
-The politician's objective is to maximize the intertemporal utility functional:
+The politician's objective is to maximize the following objective:
 
 \begin{equation*}
-V(u(\cdot)) = \int_0^{\infty} e^{-rt} [U_1(P(t)) + U_2(u(t))] \, \mathrm{d}t
+\int_0^{\infty} e^{-rt} [U_1(P(t)) + U_2(u(t))] \, \mathrm{d}t
 \end{equation*}
 
 subject to the dynamics of corruption awareness and popularity.
@@ -268,7 +268,7 @@ subject to the dynamics of corruption awareness and popularity.
 The optimal control problem can be formulated as follows:
 
 \begin{align*}
-\max_{u(\cdot)} \quad & V(u(\cdot)) = \int_0^{\infty} e^{-rt} [U_1(P(t)) + U_2(u(t))] \, \mathrm{d}t \\
+\max_{u(\cdot)} \quad & \int_0^{\infty} e^{-rt} [U_1(P(t)) + U_2(u(t))] \, \mathrm{d}t \\
 \text{s.t.} \quad & \dot{C}(t) = u(t) - \delta C(t), \quad C(0) = C_0 \\
 & \dot{P}(t) = g(P(t)) - f(C(t)), \quad P(0) = P_0
 \end{align*}
