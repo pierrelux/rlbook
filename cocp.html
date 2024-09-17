@@ -405,7 +405,7 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pollution-control">4.3.3. Pollution Control</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#govergnment-corruption">4.4. Govergnment Corruption</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#government-corruption">4.4. Government Corruption</a></li>
 </ul>
             </nav>
         </div>
@@ -441,8 +441,8 @@ document.write(`
 <h3><span class="section-number">4.1.1. </span>Inverted Pendulum<a class="headerlink" href="#inverted-pendulum" title="Link to this heading">#</a></h3>
 <p>The inverted pendulum is a classic problem in control theory and robotics where the goal is to stabilize a pendulum in an upright position by applying a control force at its base.
 Let’s consider a simplified version of the inverted pendulum, where we focus on stabilizing the pendulum’s upright orientation without controlling the base’s location. The state of the system can be described by the angle <span class="math notranslate nohighlight">\(\theta(t)\)</span> and its angular velocity <span class="math notranslate nohighlight">\(\dot{\theta}(t)\)</span>. The dynamics of the system are governed by the following ordinary differential equation:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-60623894-321b-4193-aa62-3ecacd14b43b">
-<span class="eqno">(4.1)<a class="headerlink" href="#equation-60623894-321b-4193-aa62-3ecacd14b43b" title="Permalink to this equation">#</a></span>\[\begin{equation}
+<div class="amsmath math notranslate nohighlight" id="equation-ec4042cf-0eb4-4c4a-9c7f-197848a925d2">
+<span class="eqno">(4.1)<a class="headerlink" href="#equation-ec4042cf-0eb4-4c4a-9c7f-197848a925d2" title="Permalink to this equation">#</a></span>\[\begin{equation}
 \begin{bmatrix} \dot{\theta}(t) \\ \ddot{\theta}(t) \end{bmatrix} = \begin{bmatrix} \dot{\theta}(t) \\ \frac{mgl}{J_t} \sin{\theta(t)} - \frac{\gamma}{J_t} \dot{\theta}(t) + \frac{l}{J_t} u(t) \cos{\theta(t)} \end{bmatrix}, \quad y(t) = \theta(t)
 \end{equation}\]</div>
 <p>where:</p>
@@ -460,8 +460,8 @@ Let’s consider a simplified version of the inverted pendulum, where we focus o
 <h3><span class="section-number">4.1.2. </span>Water Heater<a class="headerlink" href="#water-heater" title="Link to this heading">#</a></h3>
 <p>The water heater can be modeled using a cylindrical tank with cross-section <span class="math notranslate nohighlight">\(A\)</span>. The state of the system is described by the total mass of the water <span class="math notranslate nohighlight">\(m(t)\)</span> and its temperature <span class="math notranslate nohighlight">\(T(t)\)</span>. The control variables are the input power <span class="math notranslate nohighlight">\(P(t)\)</span> and the inflow rate <span class="math notranslate nohighlight">\(q_\text{in}(t)\)</span>, while the disturbances are the temperature of the inflow <span class="math notranslate nohighlight">\(T_\text{in}(t)\)</span> and the outflow rate <span class="math notranslate nohighlight">\(q_\text{out}(t)\)</span>.</p>
 <p>The dynamics of the water heater can be described by the following system of ordinary differential equations:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-966d3c34-4b13-46bc-97d5-534a9fa3f1ec">
-<span class="eqno">(4.2)<a class="headerlink" href="#equation-966d3c34-4b13-46bc-97d5-534a9fa3f1ec" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-74856b6b-eb41-42eb-9c3b-5fb9c56894e5">
+<span class="eqno">(4.2)<a class="headerlink" href="#equation-74856b6b-eb41-42eb-9c3b-5fb9c56894e5" title="Permalink to this equation">#</a></span>\[\begin{align}
 \dot{m}(t) &amp;= q_\text{in}(t) - q_\text{out}(t) \\
 \dot{T}(t) &amp;= \frac{q_\text{in}(t)}{m(t)}(T_\text{in}(t) - T(t)) + \frac{1}{m(t)C}P(t)
 \end{align}\]</div>
@@ -637,8 +637,8 @@ v &amp;\geq 0
 <p>The dynamics of DDT pollution are governed by the rate of DDT output <span class="math notranslate nohighlight">\(a(v)\)</span> and the natural exponential decay rate <span class="math notranslate nohighlight">\(\delta\)</span>. The initial condition for the pollution stock is given by <span class="math notranslate nohighlight">\(P(0) = P_0\)</span>.</p>
 </section>
 </section>
-<section id="govergnment-corruption">
-<h2><span class="section-number">4.4. </span>Govergnment Corruption<a class="headerlink" href="#govergnment-corruption" title="Link to this heading">#</a></h2>
+<section id="government-corruption">
+<h2><span class="section-number">4.4. </span>Government Corruption<a class="headerlink" href="#government-corruption" title="Link to this heading">#</a></h2>
 <p>In this model from Feichtinger and Wirl (1994), we aim to understand the incentives for politicians to engage in corrupt activities or to combat corruption. The model considers a politician’s popularity as a dynamic process that is influenced by the public’s memory of recent and past corruption. The objective is to find conditions under which self-interested politicians would choose to be honest or dishonest.</p>
 <p>The model introduces the following notation:</p>
 <ul class="simple">
@@ -662,16 +662,16 @@ v &amp;\geq 0
 \[\begin{align*}
 \dot{P}(t) &amp;= g(P(t)) - f(C(t)), \quad P(0) = P_0
 \end{align*}\]</div>
-<p>The politician’s objective is to maximize the intertemporal utility functional:</p>
+<p>The politician’s objective is to maximize the following objective:</p>
 <div class="amsmath math notranslate nohighlight">
 \[\begin{equation*}
-V(u(\cdot)) = \int_0^{\infty} e^{-rt} [U_1(P(t)) + U_2(u(t))] \, \mathrm{d}t
+\int_0^{\infty} e^{-rt} [U_1(P(t)) + U_2(u(t))] \, \mathrm{d}t
 \end{equation*}\]</div>
 <p>subject to the dynamics of corruption awareness and popularity.</p>
 <p>The optimal control problem can be formulated as follows:</p>
 <div class="amsmath math notranslate nohighlight">
 \[\begin{align*}
-\max_{u(\cdot)} \quad &amp; V(u(\cdot)) = \int_0^{\infty} e^{-rt} [U_1(P(t)) + U_2(u(t))] \, \mathrm{d}t \\
+\max_{u(\cdot)} \quad &amp; \int_0^{\infty} e^{-rt} [U_1(P(t)) + U_2(u(t))] \, \mathrm{d}t \\
 \text{s.t.} \quad &amp; \dot{C}(t) = u(t) - \delta C(t), \quad C(0) = C_0 \\
 &amp; \dot{P}(t) = g(P(t)) - f(C(t)), \quad P(0) = P_0
 \end{align*}\]</div>
@@ -746,7 +746,7 @@ V(u(\cdot)) = \int_0^{\infty} e^{-rt} [U_1(P(t)) + U_2(u(t))] \, \mathrm{d}t
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pollution-control">4.3.3. Pollution Control</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#govergnment-corruption">4.4. Govergnment Corruption</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#government-corruption">4.4. Government Corruption</a></li>
 </ul>
   </nav></div>
 

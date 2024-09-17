@@ -2386,27 +2386,24 @@ J(\mathbf{u}_{1:T-1}) = c_T(\boldsymbol{\phi}_T(\mathbf{u}_{1:T-1}, \mathbf{x}_1
 \[\begin{align*}
 L(\mathbf{x}, \mathbf{u}, \boldsymbol{\lambda}) &amp;\triangleq c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t, \mathbf{u}_t) + \sum_{t=1}^{T-1} \boldsymbol{\lambda}_{t+1}^\top \left( \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t) - \mathbf{x}_{t+1} \right).
 \end{align*}\]</div>
-<p>The existence of a feasible solution <span class="math notranslate nohighlight">\((\mathbf{x}, \mathbf{u})\)</span> implies that there exists a unique set of Lagrange multipliers <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}_t\)</span> such that the derivative of the Lagrangian with respect to all variables equals zero:</p>
-<div class="math notranslate nohighlight">
-\[
-\nabla L(\mathbf{x}, \mathbf{u}, \boldsymbol{\lambda}) = 0.
-\]</div>
+<p>The existence of an optimal constrained solution <span class="math notranslate nohighlight">\((\mathbf{x}^\star, \mathbf{u})^\star\)</span> implies that there exists a unique set of Lagrange multipliers <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}_t^\star\)</span> such that the derivative of the Lagrangian with respect to all variables equals zero: <span class="math notranslate nohighlight">\(\nabla L(\mathbf{x}^\star, \mathbf{u}^\star, \boldsymbol{\lambda}^\star) = 0.\)</span></p>
 <p>To simplify, we rearrange the Lagrangian so that each state variable <span class="math notranslate nohighlight">\(\mathbf{x}_t\)</span> appears only once in the summation:</p>
 <div class="amsmath math notranslate nohighlight">
 \[\begin{align*}
-L(\mathbf{x}, \mathbf{u}, \boldsymbol{\lambda}) &amp;= c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} \left( c_t(\mathbf{x}_t, \mathbf{u}_t) + \boldsymbol{\lambda}_{t+1}^\top \left( \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t) - \mathbf{x}_{t+1} \right) \right) \\
-&amp;= c_T(\mathbf{x}_T) - \boldsymbol{\lambda}_1^\top \mathbf{x}_1 + \sum_{t=1}^{T-1} \left( c_t(\mathbf{x}_t, \mathbf{u}_t) + \boldsymbol{\lambda}_{t+1}^\top \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t) - \boldsymbol{\lambda}_t^\top \mathbf{x}_t \right).
+L(\mathbf{x}, \mathbf{u}, \boldsymbol{\lambda}) &amp;= c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} \left( c_t(\mathbf{x}_t, \mathbf{u}_t) + \boldsymbol{\lambda}_{t+1}^\top (\mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t) - \mathbf{x}_{t+1}) \right). \\
+&amp;= c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t, \mathbf{u}_t) + \sum_{t=1}^{T-1} \boldsymbol{\lambda}_{t+1}^\top \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t) - \sum_{t=1}^{T-1} \boldsymbol{\lambda}_{t+1}^\top \mathbf{x}_{t+1}.
 \end{align*}\]</div>
-<p>This follows from noting that:</p>
+<p>Note that by adding and subtracting, we can write:</p>
 <div class="math notranslate nohighlight">
 \[
-\sum_{t=1}^{T-1} \boldsymbol{\lambda}_{t+1}^\top \mathbf{x}_{t+1} = \boldsymbol{\lambda}_T^\top \mathbf{x}_T - \mathbf{x}_1^\top \boldsymbol{\lambda}_1 + \sum_{t=1}^{T-1} \boldsymbol{\lambda}_t^\top \mathbf{x}_t.
+\sum_{t=1}^{T-1} \boldsymbol{\lambda}_{t+1}^\top \mathbf{x}_{t+1} = \boldsymbol{\lambda}_T^\top \mathbf{x}_T - \boldsymbol{\lambda}_1^\top \mathbf{x}_1 + \sum_{t=1}^{T-1} \boldsymbol{\lambda}_t^\top \mathbf{x}_t.
 \]</div>
-<p>If <span class="math notranslate nohighlight">\((\mathbf{x}, \mathbf{u})\)</span> is a feasible local minimum, there exists a Lagrange multiplier <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}\)</span> such that:</p>
-<div class="math notranslate nohighlight">
-\[
-\frac{\partial L(\mathbf{x}, \mathbf{u}, \boldsymbol{\lambda})}{\partial \mathbf{x}_i} = 0.
-\]</div>
+<p>Substituting this back into the Lagrangian gives:</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{align*}
+L(\mathbf{x}, \mathbf{u}, \boldsymbol{\lambda}) &amp;= c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t, \mathbf{u}_t) + \sum_{t=1}^{T-1} \boldsymbol{\lambda}_{t+1}^\top \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t) - \left( \boldsymbol{\lambda}_T^\top \mathbf{x}_T - \boldsymbol{\lambda}_1^\top \mathbf{x}_1 + \sum_{t=1}^{T-1} \boldsymbol{\lambda}_t^\top \mathbf{x}_t \right). \\
+&amp;= c_T(\mathbf{x}_T) + \boldsymbol{\lambda}_T^\top \mathbf{x}_T - \boldsymbol{\lambda}_1^\top \mathbf{x}_1 + \sum_{t=1}^{T-1} \left( c_t(\mathbf{x}_t, \mathbf{u}_t) + \boldsymbol{\lambda}_{t+1}^\top \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t) - \boldsymbol{\lambda}_t^\top \mathbf{x}_t \right).
+\end{align*}\]</div>
 <p>By differentiating the Lagrangian with respect to each state <span class="math notranslate nohighlight">\(\mathbf{x}_i\)</span>, we obtain:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
@@ -2416,25 +2413,21 @@ L(\mathbf{x}, \mathbf{u}, \boldsymbol{\lambda}) &amp;= c_T(\mathbf{x}_T) + \sum_
 \frac{\partial c_t(\mathbf{x}_t, \mathbf{u}_t)}{\partial \mathbf{x}_t} + \boldsymbol{\lambda}_{t+1}^\top \frac{\partial \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t)}{\partial \mathbf{x}_t} - \boldsymbol{\lambda}_t, &amp; \text{if } i = 1, \dots, T-1.
 \end{cases}
 \end{split}\]</div>
-<p>Rearranging gives the adjoint equations:</p>
+<p>We finally obtain the adjoint equation by setting the above expression to zero at an optimal primal-dual pair, and re-arranging the terms:</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{align*}
+\boldsymbol{\lambda}^*_T &amp;= \frac{\partial c_T(\mathbf{x}^*_T)}{\partial \mathbf{x}^*_T}\\
+\boldsymbol{\lambda}^*_t &amp;= \frac{\partial c_t(\mathbf{x}^*_t, \mathbf{u}^*_t)}{\partial \mathbf{x}^*_t} + (\boldsymbol{\lambda}^*_{t+1})^\top \frac{\partial \mathbf{f}_t(\mathbf{x}^*_t, \mathbf{u}^*_t)}{\partial \mathbf{x}^*_t}, \enspace t = T-1, \dots, 1
+\end{align*}\]</div>
+<p>The optimality condition for the controls is obtained by differentiating the Lagrangian with respect to <span class="math notranslate nohighlight">\(\mathbf{u}^*_t\)</span>:</p>
 <div class="math notranslate nohighlight">
 \[
-\boldsymbol{\lambda}_T = \frac{\partial c_T(\mathbf{x}_T)}{\partial \mathbf{x}_T},
+\frac{\partial L(\mathbf{x}^*, \mathbf{u}^*, \boldsymbol{\lambda}^*)}{\partial \mathbf{u}^*_t} = \frac{\partial c_t(\mathbf{x}^*_t, \mathbf{u}^*_t)}{\partial \mathbf{u}^*_t} + (\boldsymbol{\lambda}^*_{t+1})^\top \frac{\partial \mathbf{f}_t(\mathbf{x}^*_t, \mathbf{u}^*_t)}{\partial \mathbf{u}^*_t} = 0.
 \]</div>
-<p>and for <span class="math notranslate nohighlight">\(t = T-1, \dots, 1\)</span>:</p>
+<p>As expected from the general theory of constrained optimization, we finally recover the fact that the constraints must be satisfied at an optimal solution:</p>
 <div class="math notranslate nohighlight">
 \[
-\boldsymbol{\lambda}_t = \frac{\partial c_t(\mathbf{x}_t, \mathbf{u}_t)}{\partial \mathbf{x}_t} + \boldsymbol{\lambda}_{t+1}^\top \frac{\partial \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t)}{\partial \mathbf{x}_t}.
-\]</div>
-<p>The optimality condition for the controls is obtained by differentiating the Lagrangian with respect to <span class="math notranslate nohighlight">\(\mathbf{u}_t\)</span>:</p>
-<div class="math notranslate nohighlight">
-\[
-\frac{\partial L(\mathbf{x}, \mathbf{u}, \boldsymbol{\lambda})}{\partial \mathbf{u}_t} = \frac{\partial c_t(\mathbf{x}_t, \mathbf{u}_t)}{\partial \mathbf{u}_t} + \boldsymbol{\lambda}_{t+1}^\top \frac{\partial \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t)}{\partial \mathbf{u}_t} = 0.
-\]</div>
-<p>Note that the systems dynamics are respected, we must have:</p>
-<div class="math notranslate nohighlight">
-\[
-\frac{\partial L(\mathbf{x}, \mathbf{u}, \boldsymbol{\lambda})}{\partial \boldsymbol{\lambda}_{t+1}} = \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t) - \mathbf{x}_{t+1} = 0.
+\frac{\partial L(\mathbf{x}^*, \mathbf{u}^*, \boldsymbol{\lambda}^*)}{\partial \boldsymbol{\lambda}^*_{t+1}} = \mathbf{f}_t(\mathbf{x}^*_t, \mathbf{u}^*_t) - \mathbf{x}^*_{t+1} = 0.
 \]</div>
 </section>
 <section id="hamiltonian-formulation">
