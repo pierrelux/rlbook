@@ -1,0 +1,804 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>4. Continuous-Time Trajectory Optimization &#8212; Reinforcement Learning: beyond the Agent Interaction Loop</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
+    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="_static/proof.css?v=ca93fcec" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=87e54e7c" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=1f1b58a8" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"tex": {"macros": {"bm": ["{\\boldsymbol #1}", 1]}}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'cocp';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="1. Discrete-Time Trajectory Optimization" href="ocp.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="intro.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Reinforcement Learning: beyond the Agent Interaction Loop</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="intro.html">
+                    Introduction
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="ocp.html">1. Discrete-Time Trajectory Optimization</a></li>
+
+
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">4. Continuous-Time Trajectory Optimization</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/pierrelux/rlbook" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/pierrelux/rlbook/edit/main/cocp.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/pierrelux/rlbook/issues/new?title=Issue%20on%20page%20%2Fcocp.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/cocp.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Continuous-Time Trajectory Optimization</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-dynamical-systems">4.1. Example Dynamical Systems</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#inverted-pendulum">4.1.1. Inverted Pendulum</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#water-heater">4.1.2. Water Heater</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#canonical-forms">4.2. Canonical Forms</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-problems">4.3. Example Problems</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nuclear-reactor">4.3.1. Nuclear Reactor</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#chemotherapy">4.3.2. Chemotherapy</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pollution-control">4.3.3. Pollution Control</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#govergnment-corruption">4.4. Govergnment Corruption</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="continuous-time-trajectory-optimization">
+<h1><span class="section-number">4. </span>Continuous-Time Trajectory Optimization<a class="headerlink" href="#continuous-time-trajectory-optimization" title="Link to this heading">#</a></h1>
+<p>We extend our focus from the discrete-time setting to trajectory optimization in continuous time. Such models are omnipresent in various branches of science and engineering, where the dynamics of physical, biological, or economic systems are often described in terms of continuous-time differential equations. Here, we consider models given by ordinary differential equations (ODEs). However, continuous-time optimal control methods also exist beyond ODEs; for example, using stochastic differential equations (SDEs) or partial differential equations (PDEs).</p>
+<p>An example of such state-space representation is the following:</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{align*}
+\dot{\mathbf{x}}(t) &amp;= \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
+\mathbf{y}(t) &amp;= \mathbf{h}(\mathbf{x}(t), \mathbf{u}(t))
+\end{align*}\]</div>
+<p>The function <span class="math notranslate nohighlight">\(\mathbf{f}\)</span> describes the dynamics of the system, giving the rate of change of the state vector as a function of the current state <span class="math notranslate nohighlight">\(\mathbf{x}(t)\)</span> and control input <span class="math notranslate nohighlight">\(\mathbf{u}(t)\)</span>. The function <span class="math notranslate nohighlight">\(\mathbf{h}\)</span> is the output mapping, which determines the measured output <span class="math notranslate nohighlight">\(\mathbf{y}(t)\)</span> based on the current state <span class="math notranslate nohighlight">\(\mathbf{x}(t)\)</span> and control input <span class="math notranslate nohighlight">\(\mathbf{u}(t)\)</span>. This state-space representation is reminiscent of recurrent neural networks (RNNs), albeit in discrete time, where we maintain a hidden state and then map it to an observable space.</p>
+<p>A state space model is called a linear state space model (or simply a linear system) if the functions <span class="math notranslate nohighlight">\(\mathbf{f}\)</span> and <span class="math notranslate nohighlight">\(\mathbf{h}\)</span> are linear in <span class="math notranslate nohighlight">\(\mathbf{x}(t)\)</span> and <span class="math notranslate nohighlight">\(\mathbf{u}(t)\)</span>. In this case, the model can be written as:</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{align*}
+\dot{\mathbf{x}}(t) &amp;= \mathbf{A}\mathbf{x}(t) + \mathbf{B}\mathbf{u}(t) \\
+\mathbf{y}(t) &amp;= \mathbf{C}\mathbf{x}(t) + \mathbf{D}\mathbf{u}(t)
+\end{align*}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\mathbf{A}\)</span>, <span class="math notranslate nohighlight">\(\mathbf{B}\)</span>, <span class="math notranslate nohighlight">\(\mathbf{C}\)</span>, and <span class="math notranslate nohighlight">\(\mathbf{D}\)</span> are constant matrices. The matrix <span class="math notranslate nohighlight">\(\mathbf{A}\)</span> is called the dynamics matrix, <span class="math notranslate nohighlight">\(\mathbf{B}\)</span> is the control matrix, <span class="math notranslate nohighlight">\(\mathbf{C}\)</span> is the sensor matrix, and <span class="math notranslate nohighlight">\(\mathbf{D}\)</span> is the direct term matrix. If the model does not have a direct term, it means that the control input <span class="math notranslate nohighlight">\(\mathbf{u}(t)\)</span> does not directly influence the output <span class="math notranslate nohighlight">\(\mathbf{y}(t)\)</span>.</p>
+<p>It is worth noting that linear models like the one presented above are becoming increasingly popular thanks to the development of structured state space models (S4 and such) [Gu et al., 2022]. These models leverage the inherent structure and properties of linear systems to design more efficient and interpretable neural networks for processing sequential data.</p>
+<section id="example-dynamical-systems">
+<h2><span class="section-number">4.1. </span>Example Dynamical Systems<a class="headerlink" href="#example-dynamical-systems" title="Link to this heading">#</a></h2>
+<section id="inverted-pendulum">
+<h3><span class="section-number">4.1.1. </span>Inverted Pendulum<a class="headerlink" href="#inverted-pendulum" title="Link to this heading">#</a></h3>
+<p>The inverted pendulum is a classic problem in control theory and robotics where the goal is to stabilize a pendulum in an upright position by applying a control force at its base.
+Let’s consider a simplified version of the inverted pendulum, where we focus on stabilizing the pendulum’s upright orientation without controlling the base’s location. The state of the system can be described by the angle <span class="math notranslate nohighlight">\(\theta(t)\)</span> and its angular velocity <span class="math notranslate nohighlight">\(\dot{\theta}(t)\)</span>. The dynamics of the system are governed by the following ordinary differential equation:</p>
+<div class="amsmath math notranslate nohighlight" id="equation-60623894-321b-4193-aa62-3ecacd14b43b">
+<span class="eqno">(4.1)<a class="headerlink" href="#equation-60623894-321b-4193-aa62-3ecacd14b43b" title="Permalink to this equation">#</a></span>\[\begin{equation}
+\begin{bmatrix} \dot{\theta}(t) \\ \ddot{\theta}(t) \end{bmatrix} = \begin{bmatrix} \dot{\theta}(t) \\ \frac{mgl}{J_t} \sin{\theta(t)} - \frac{\gamma}{J_t} \dot{\theta}(t) + \frac{l}{J_t} u(t) \cos{\theta(t)} \end{bmatrix}, \quad y(t) = \theta(t)
+\end{equation}\]</div>
+<p>where:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(m\)</span> is the mass of the pendulum</p></li>
+<li><p><span class="math notranslate nohighlight">\(g\)</span> is the acceleration due to gravity</p></li>
+<li><p><span class="math notranslate nohighlight">\(l\)</span> is the length of the pendulum</p></li>
+<li><p><span class="math notranslate nohighlight">\(\gamma\)</span> is the coefficient of rotational friction</p></li>
+<li><p><span class="math notranslate nohighlight">\(J_t = J + ml^2\)</span> is the total moment of inertia, with <span class="math notranslate nohighlight">\(J\)</span> being the pendulum’s moment of inertia about its center of mass</p></li>
+<li><p><span class="math notranslate nohighlight">\(u(t)\)</span> is the control force applied at the base</p></li>
+<li><p><span class="math notranslate nohighlight">\(y(t) = \theta(t)\)</span> is the measured output (the pendulum’s angle)</p></li>
+</ul>
+</section>
+<section id="water-heater">
+<h3><span class="section-number">4.1.2. </span>Water Heater<a class="headerlink" href="#water-heater" title="Link to this heading">#</a></h3>
+<p>The water heater can be modeled using a cylindrical tank with cross-section <span class="math notranslate nohighlight">\(A\)</span>. The state of the system is described by the total mass of the water <span class="math notranslate nohighlight">\(m(t)\)</span> and its temperature <span class="math notranslate nohighlight">\(T(t)\)</span>. The control variables are the input power <span class="math notranslate nohighlight">\(P(t)\)</span> and the inflow rate <span class="math notranslate nohighlight">\(q_\text{in}(t)\)</span>, while the disturbances are the temperature of the inflow <span class="math notranslate nohighlight">\(T_\text{in}(t)\)</span> and the outflow rate <span class="math notranslate nohighlight">\(q_\text{out}(t)\)</span>.</p>
+<p>The dynamics of the water heater can be described by the following system of ordinary differential equations:</p>
+<div class="amsmath math notranslate nohighlight" id="equation-966d3c34-4b13-46bc-97d5-534a9fa3f1ec">
+<span class="eqno">(4.2)<a class="headerlink" href="#equation-966d3c34-4b13-46bc-97d5-534a9fa3f1ec" title="Permalink to this equation">#</a></span>\[\begin{align}
+\dot{m}(t) &amp;= q_\text{in}(t) - q_\text{out}(t) \\
+\dot{T}(t) &amp;= \frac{q_\text{in}(t)}{m(t)}(T_\text{in}(t) - T(t)) + \frac{1}{m(t)C}P(t)
+\end{align}\]</div>
+<p>where:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\rho\)</span> is the density of water</p></li>
+<li><p><span class="math notranslate nohighlight">\(h(t)\)</span> is the water level in the tank</p></li>
+<li><p><span class="math notranslate nohighlight">\(C\)</span> is the specific heat capacity of water</p></li>
+</ul>
+<p>These equations are derived from the mass balance and energy balance principles, assuming that the specific heat capacity <span class="math notranslate nohighlight">\(C\)</span> is constant and neglecting energy losses. The first equation represents the change in total mass over time, while the second equation describes the change in temperature over time.</p>
+</section>
+</section>
+<section id="canonical-forms">
+<h2><span class="section-number">4.2. </span>Canonical Forms<a class="headerlink" href="#canonical-forms" title="Link to this heading">#</a></h2>
+<p>These formulations use a state-space representation, where <span class="math notranslate nohighlight">\(\mathbf{x}(t)\)</span> denotes the state variables and <span class="math notranslate nohighlight">\(\mathbf{u}(t)\)</span> the control inputs. The time horizon <span class="math notranslate nohighlight">\([t_0, t_f]\)</span> represents the initial and final times, which may be fixed or free depending on the problem. While we’ve specified an initial condition <span class="math notranslate nohighlight">\(\mathbf{x}(t_0) = \mathbf{x}_0\)</span>, problems may also include terminal state constraints or free terminal states. Additionally, many practical applications involve path constraints on states and controls.</p>
+<p>As studied earlier in the discrete-time setting, we consider three variants of the continuous-time optimal control problem (COCP) with path constraints and bounds:</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{align*}
+    &amp;\textbf{Mayer Problem:} \\
+    &amp;\text{minimize} \quad c(\mathbf{x}(t_f)) \\
+    &amp;\text{subject to} \quad \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
+    &amp;\phantom{\text{subject to}} \quad \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
+    &amp;\phantom{\text{subject to}} \quad \mathbf{x}_{\text{min}} \leq \mathbf{x}(t) \leq \mathbf{x}_{\text{max}} \\
+    &amp;\phantom{\text{subject to}} \quad \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
+    &amp;\text{given} \quad \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
+\end{align*}\]</div>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{align*}
+    &amp;\textbf{Lagrange Problem:} \\
+    &amp;\text{minimize} \quad \int_{t_0}^{t_f} c(\mathbf{x}(t), \mathbf{u}(t)) \, dt \\
+    &amp;\text{subject to} \quad \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
+    &amp;\phantom{\text{subject to}} \quad \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
+    &amp;\phantom{\text{subject to}} \quad \mathbf{x}_{\text{min}} \leq \mathbf{x}(t) \leq \mathbf{x}_{\text{max}} \\
+    &amp;\phantom{\text{subject to}} \quad \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
+    &amp;\text{given} \quad \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
+\end{align*}\]</div>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{align*}
+    &amp;\textbf{Bolza Problem:} \\
+    &amp;\text{minimize} \quad c(\mathbf{x}(t_f)) + \int_{t_0}^{t_f} c(\mathbf{x}(t), \mathbf{u}(t)) \, dt \\
+    &amp;\text{subject to} \quad \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
+    &amp;\phantom{\text{subject to}} \quad \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
+    &amp;\phantom{\text{subject to}} \quad \mathbf{x}_{\text{min}} \leq \mathbf{x}(t) \leq \mathbf{x}_{\text{max}} \\
+    &amp;\phantom{\text{subject to}} \quad \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
+    &amp;\text{given} \quad \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
+\end{align*}\]</div>
+<p>In these formulations, the additional constraints are:</p>
+<ul class="simple">
+<li><p>Path constraints: <span class="math notranslate nohighlight">\(\mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0}\)</span>, which represent constraints that must be satisfied at all times along the trajectory.</p></li>
+<li><p>State bounds: <span class="math notranslate nohighlight">\(\mathbf{x}_{\text{min}} \leq \mathbf{x}(t) \leq \mathbf{x}_{\text{max}}\)</span>, which specify the lower and upper bounds on the state variables.</p></li>
+<li><p>Control bounds: <span class="math notranslate nohighlight">\(\mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}}\)</span>, which specify the lower and upper bounds on the control inputs.</p></li>
+</ul>
+<p>Furthermore, we may also encounter variations of the above problems under the assumption that horizon is infinite. For example:</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{align*}
+    &amp;\textbf{Infinite Horizon Problem:} \\
+    &amp;\text{minimize} \quad \int_{t_0}^{\infty} e^{-\rho t} c(\mathbf{x}(t), \mathbf{u}(t)) \, dt \\
+    &amp;\text{subject to} \quad \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
+    &amp;\phantom{\text{subject to}} \quad \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
+    &amp;\phantom{\text{subject to}} \quad \mathbf{x}_{\text{min}} \leq \mathbf{x}(t) \leq \mathbf{x}_{\text{max}} \\
+    &amp;\phantom{\text{subject to}} \quad \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
+    &amp;\text{given} \quad \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
+\end{align*}\]</div>
+</section>
+<section id="example-problems">
+<h2><span class="section-number">4.3. </span>Example Problems<a class="headerlink" href="#example-problems" title="Link to this heading">#</a></h2>
+<section id="nuclear-reactor">
+<h3><span class="section-number">4.3.1. </span>Nuclear Reactor<a class="headerlink" href="#nuclear-reactor" title="Link to this heading">#</a></h3>
+<p>In a nuclear reactor, neutrons interact with fissile nuclei, causing nuclear fission. This process produces more neutrons and smaller fissile nuclei called precursors. The precursors subsequently absorb more neutrons, generating “delayed” neutrons. The kinetic energy of these products is converted into thermal energy through collisions with neighboring atoms. The reactor’s power output is determined by the concentration of neutrons available for nuclear fission.</p>
+<p>The reaction kinetics can be modeled using a system of ordinary differential equations:</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{align*}
+\dot{x}(t) &amp;= \frac{r(t)x(t) - \alpha x^2(t) - \beta x(t)}{\tau} + \mu y(t), &amp; x(0) &amp;= x_0 \\
+\dot{y}(t) &amp;= \frac{\beta x(t)}{\tau} - \mu y(t), &amp; y(0) &amp;= y_0
+\end{align*}\]</div>
+<p>where:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(x(t)\)</span>: concentration of neutrons at time <span class="math notranslate nohighlight">\(t\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(y(t)\)</span>: concentration of precursors at time <span class="math notranslate nohighlight">\(t\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(t\)</span>: time</p></li>
+<li><p><span class="math notranslate nohighlight">\(r(t) = r[u(t)]\)</span>: degree of change in neutron multiplication at time <span class="math notranslate nohighlight">\(t\)</span> as a function of control rod displacement <span class="math notranslate nohighlight">\(u(t)\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\alpha\)</span>: reactivity coefficient</p></li>
+<li><p><span class="math notranslate nohighlight">\(\beta\)</span>: fraction of delayed neutrons</p></li>
+<li><p><span class="math notranslate nohighlight">\(\mu\)</span>: decay constant for precursors</p></li>
+<li><p><span class="math notranslate nohighlight">\(\tau\)</span>: average time taken by a neutron to produce a neutron or precursor</p></li>
+</ul>
+<p>The power output can be adjusted based on demand by inserting or retracting a neutron-absorbing control rod. Inserting the control rod absorbs neutrons, reducing the heat flux and power output, while retracting the rod has the opposite effect.</p>
+<p>The objective is to change the neutron concentration <span class="math notranslate nohighlight">\(x(t)\)</span> from an initial value <span class="math notranslate nohighlight">\(x_0\)</span> to a stable value <span class="math notranslate nohighlight">\(x_\mathrm{f}\)</span> at time <span class="math notranslate nohighlight">\(t_\mathrm{f}\)</span> while minimizing the displacement of the control rod. This can be formulated as an optimal control problem, where the goal is to find the control function <span class="math notranslate nohighlight">\(u(t)\)</span> that minimizes the objective functional:</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*}
+I = \int_0^{t_\mathrm{f}} u^2(t) \, \mathrm{d}t
+\end{equation*}\]</div>
+<p>subject to the final conditions:</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{align*}
+x(t_\mathrm{f}) &amp;= x_\mathrm{f} \\
+\dot{x}(t_\mathrm{f}) &amp;= 0
+\end{align*}\]</div>
+<p>and the constraint <span class="math notranslate nohighlight">\(|u(t)| \leq u_\mathrm{max}\)</span></p>
+</section>
+<section id="chemotherapy">
+<h3><span class="section-number">4.3.2. </span>Chemotherapy<a class="headerlink" href="#chemotherapy" title="Link to this heading">#</a></h3>
+<p>Chemotherapy is a common treatment for cancer that involves the use of drugs to kill cancer cells. However, these drugs can also have toxic effects on healthy cells in the body. To optimize the effectiveness of chemotherapy while minimizing its side effects, we can formulate an optimal control problem. Let’s explore this problem in more detail.</p>
+<p>The drug concentration <span class="math notranslate nohighlight">\(y_1(t)\)</span> and the number of immune cells <span class="math notranslate nohighlight">\(y_2(t)\)</span>, healthy cells <span class="math notranslate nohighlight">\(y_3(t)\)</span>, and cancer cells <span class="math notranslate nohighlight">\(y_4(t)\)</span> in an organ at any time <span class="math notranslate nohighlight">\(t\)</span> during chemotherapy can be modeled using a system of ordinary differential equations:</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{align*}
+\dot{y}_1(t) &amp;= u(t) - \gamma_6 y_1(t) \\
+\dot{y}_2(t) &amp;= \dot{y}_{2,\text{in}} + r_2 \frac{y_2(t) y_4(t)}{\beta_2 + y_4(t)} - \gamma_3 y_2(t) y_4(t) - \gamma_4 y_2(t) - \alpha_2 y_2(t) \left(1 - e^{-y_1(t) \lambda_2}\right) \\
+\dot{y}_3(t) &amp;= r_3 y_3(t) \left(1 - \beta_3 y_3(t)\right) - \gamma_5 y_3(t) y_4(t) - \alpha_3 y_3(t) \left(1 - e^{-y_1(t) \lambda_3}\right) \\
+\dot{y}_4(t) &amp;= r_1 y_4(t) \left(1 - \beta_1 y_4(t)\right) - \gamma_1 y_3(t) y_4(t) - \gamma_2 y_2(t) y_4(t) - \alpha_1 y_4(t) \left(1 - e^{-y_1(t) \lambda_1}\right)
+\end{align*}\]</div>
+<p>where:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(y_1(t)\)</span>: drug concentration in the organ at time <span class="math notranslate nohighlight">\(t\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(y_2(t)\)</span>: number of immune cells in the organ at time <span class="math notranslate nohighlight">\(t\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(y_3(t)\)</span>: number of healthy cells in the organ at time <span class="math notranslate nohighlight">\(t\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(y_4(t)\)</span>: number of cancer cells in the organ at time <span class="math notranslate nohighlight">\(t\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\dot{y}_{2,\text{in}}\)</span>: constant rate of immune cells entering the organ to fight cancer cells</p></li>
+<li><p><span class="math notranslate nohighlight">\(u(t)\)</span>: rate of drug injection into the organ at time <span class="math notranslate nohighlight">\(t\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(r_i, \beta_i\)</span>: constants in the growth terms</p></li>
+<li><p><span class="math notranslate nohighlight">\(\alpha_i, \lambda_i\)</span>: constants in the decay terms due to the action of the drug</p></li>
+<li><p><span class="math notranslate nohighlight">\(\gamma_i\)</span>: constants in the remaining decay terms</p></li>
+</ul>
+<p>The objective is to minimize the number of cancer cells <span class="math notranslate nohighlight">\(y_4(t)\)</span> in a specified time <span class="math notranslate nohighlight">\(t_\mathrm{f}\)</span> while using the minimum amount of drug to reduce its toxic effects. This can be formulated as an optimal control problem, where the goal is to find the control function <span class="math notranslate nohighlight">\(u(t)\)</span> that minimizes the objective functional:</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*}
+I = y_4(t_\mathrm{f}) + \int_0^{t_\mathrm{f}} u(t) \, \mathrm{d}t
+\end{equation*}\]</div>
+<p>subject to the system dynamics, initial conditions, and the constraint <span class="math notranslate nohighlight">\(u(t) \geq 0\)</span>.</p>
+<p>Additional constraints may include:</p>
+<ul>
+<li><p>Maintaining a minimum number of healthy cells during treatment:</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*}
+  y_3(t) \geq y_{3,\min}
+  \end{equation*}\]</div>
+</li>
+<li><p>Imposing an upper limit on the drug dosage:</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*}
+  u(t) \leq u_\max
+  \end{equation*}\]</div>
+</li>
+</ul>
+</section>
+<section id="pollution-control">
+<h3><span class="section-number">4.3.3. </span>Pollution Control<a class="headerlink" href="#pollution-control" title="Link to this heading">#</a></h3>
+<p>In this pollution control model, the objective is to maximize the total present value of the utility derived from food consumption while minimizing the disutility caused by DDT pollution. The model assumes that labor is the only primary factor of production, which is allocated between food production and DDT production. DDT is used as a secondary factor of production in food output but also causes pollution that can only be reduced by natural decay.</p>
+<p>The model introduces the following notation:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(L\)</span>: total labor force, assumed to be constant</p></li>
+<li><p><span class="math notranslate nohighlight">\(v\)</span>: amount of labor used for DDT production</p></li>
+<li><p><span class="math notranslate nohighlight">\(L - v\)</span>: amount of labor used for food production</p></li>
+<li><p><span class="math notranslate nohighlight">\(P\)</span>: stock of DDT pollution at time <span class="math notranslate nohighlight">\(t\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(a(v)\)</span>: rate of DDT output; <span class="math notranslate nohighlight">\(a(0) = 0\)</span>, <span class="math notranslate nohighlight">\(a'(v) &gt; 0\)</span>, <span class="math notranslate nohighlight">\(a''(v) &lt; 0\)</span> for <span class="math notranslate nohighlight">\(v \geq 0\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\delta\)</span>: natural exponential decay rate of DDT pollution</p></li>
+<li><p><span class="math notranslate nohighlight">\(C(v) = f[L - v, a(v)]\)</span>: rate of food output to be consumed; <span class="math notranslate nohighlight">\(C(v)\)</span> is concave, <span class="math notranslate nohighlight">\(C(0) &gt; 0\)</span>, <span class="math notranslate nohighlight">\(C(L) = 0\)</span>; <span class="math notranslate nohighlight">\(C(v)\)</span> attains a unique maximum at <span class="math notranslate nohighlight">\(v = V &gt; 0\)</span> (see Fig. 11.4)</p></li>
+<li><p><span class="math notranslate nohighlight">\(u(C)\)</span>: utility function of consuming the food output <span class="math notranslate nohighlight">\(C \geq 0\)</span>; <span class="math notranslate nohighlight">\(u'(0) = \infty\)</span>, <span class="math notranslate nohighlight">\(u'(C) &gt; 0\)</span>, <span class="math notranslate nohighlight">\(u''(C) &lt; 0\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(h(P)\)</span>: disutility function of pollution stock <span class="math notranslate nohighlight">\(P \geq 0\)</span>; <span class="math notranslate nohighlight">\(h'(0) = 0\)</span>, <span class="math notranslate nohighlight">\(h'(P) &gt; 0\)</span>, <span class="math notranslate nohighlight">\(h''(P) &gt; 0\)</span></p></li>
+</ul>
+<p>The optimal control problem is to maximize the objective functional:</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*}
+J = \int_0^{\infty} e^{-\rho t} [u(C(v)) - h(P)] \, \mathrm{d}t
+\end{equation*}\]</div>
+<p>subject to the dynamics of DDT pollution:</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{align*}
+\dot{P}(t) &amp;= a(v) - \delta P(t), \quad P(0) = P_0 \\
+v &amp;\geq 0
+\end{align*}\]</div>
+<p>The state variable is the stock of DDT pollution <span class="math notranslate nohighlight">\(P(t)\)</span>, and the control variable is the amount of labor allocated to DDT production <span class="math notranslate nohighlight">\(v\)</span>. The objective functional represents the total present value of the utility of food consumption minus the disutility of pollution, discounted at a rate <span class="math notranslate nohighlight">\(\rho\)</span>.</p>
+<p>The dynamics of DDT pollution are governed by the rate of DDT output <span class="math notranslate nohighlight">\(a(v)\)</span> and the natural exponential decay rate <span class="math notranslate nohighlight">\(\delta\)</span>. The initial condition for the pollution stock is given by <span class="math notranslate nohighlight">\(P(0) = P_0\)</span>.</p>
+</section>
+</section>
+<section id="govergnment-corruption">
+<h2><span class="section-number">4.4. </span>Govergnment Corruption<a class="headerlink" href="#govergnment-corruption" title="Link to this heading">#</a></h2>
+<p>In this model from Feichtinger and Wirl (1994), we aim to understand the incentives for politicians to engage in corrupt activities or to combat corruption. The model considers a politician’s popularity as a dynamic process that is influenced by the public’s memory of recent and past corruption. The objective is to find conditions under which self-interested politicians would choose to be honest or dishonest.</p>
+<p>The model introduces the following notation:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(C(t)\)</span>: accumulated awareness (knowledge) of past corruption at time <span class="math notranslate nohighlight">\(t\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(u(t)\)</span>: extent of corruption (politician’s control variable) at time <span class="math notranslate nohighlight">\(t\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\delta\)</span>: rate of forgetting past corruption</p></li>
+<li><p><span class="math notranslate nohighlight">\(P(t)\)</span>: politician’s popularity at time <span class="math notranslate nohighlight">\(t\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(g(P)\)</span>: growth function of popularity; <span class="math notranslate nohighlight">\(g''(P) &lt; 0\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(f(C)\)</span>: function measuring the loss of popularity caused by <span class="math notranslate nohighlight">\(C\)</span>; <span class="math notranslate nohighlight">\(f'(C) &gt; 0\)</span>, <span class="math notranslate nohighlight">\(f''(C) \geq 0\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(U_1(P)\)</span>: benefits associated with being popular; <span class="math notranslate nohighlight">\(U_1'(P) &gt; 0\)</span>, <span class="math notranslate nohighlight">\(U_1''(P) \leq 0\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(U_2(u)\)</span>: benefits resulting from bribery and fraud; <span class="math notranslate nohighlight">\(U_2'(u) &gt; 0\)</span>, <span class="math notranslate nohighlight">\(U_2''(u) &lt; 0\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(r\)</span>: discount rate</p></li>
+</ul>
+<p>The dynamics of the public’s memory of recent and past corruption <span class="math notranslate nohighlight">\(C(t)\)</span> are modeled as:</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{align*}
+\dot{C}(t) &amp;= u(t) - \delta C(t), \quad C(0) = C_0
+\end{align*}\]</div>
+<p>The evolution of the politician’s popularity <span class="math notranslate nohighlight">\(P(t)\)</span> is governed by:</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{align*}
+\dot{P}(t) &amp;= g(P(t)) - f(C(t)), \quad P(0) = P_0
+\end{align*}\]</div>
+<p>The politician’s objective is to maximize the intertemporal utility functional:</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*}
+V(u(\cdot)) = \int_0^{\infty} e^{-rt} [U_1(P(t)) + U_2(u(t))] \, \mathrm{d}t
+\end{equation*}\]</div>
+<p>subject to the dynamics of corruption awareness and popularity.</p>
+<p>The optimal control problem can be formulated as follows:</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{align*}
+\max_{u(\cdot)} \quad &amp; V(u(\cdot)) = \int_0^{\infty} e^{-rt} [U_1(P(t)) + U_2(u(t))] \, \mathrm{d}t \\
+\text{s.t.} \quad &amp; \dot{C}(t) = u(t) - \delta C(t), \quad C(0) = C_0 \\
+&amp; \dot{P}(t) = g(P(t)) - f(C(t)), \quad P(0) = P_0
+\end{align*}\]</div>
+<p>The state variables are the accumulated awareness of past corruption <span class="math notranslate nohighlight">\(C(t)\)</span> and the politician’s popularity <span class="math notranslate nohighlight">\(P(t)\)</span>. The control variable is the extent of corruption <span class="math notranslate nohighlight">\(u(t)\)</span>. The objective functional represents the discounted stream of benefits coming from being honest (popularity) and from being dishonest (corruption).</p>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./."
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="ocp.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title"><span class="section-number">1. </span>Discrete-Time Trajectory Optimization</p>
+      </div>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-dynamical-systems">4.1. Example Dynamical Systems</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#inverted-pendulum">4.1.1. Inverted Pendulum</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#water-heater">4.1.2. Water Heater</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#canonical-forms">4.2. Canonical Forms</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-problems">4.3. Example Problems</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nuclear-reactor">4.3.1. Nuclear Reactor</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#chemotherapy">4.3.2. Chemotherapy</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pollution-control">4.3.3. Pollution Control</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#govergnment-corruption">4.4. Govergnment Corruption</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Pierre-Luc Bacon
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

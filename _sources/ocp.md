@@ -11,48 +11,7 @@ kernelspec:
   name: python3
 ---
 
-# Mathematical Programming Approach
-
-```{epigraph}
-The sciences do not try to explain, they hardly even try to interpret, they mainly make models. By a model is meant a mathematical construct which, with the addition of certain verbal interpretations, describes observed phenomena. The justification of such a mathematical construct is solely and precisely that it is expected to work.
-
--- John von Neumann
-```
-
-This course considers two broad categories of environments, each with its own specialized solution methods: deterministic and stochastic environments. Stochastic problems are mathematically more general than their deterministic counterparts. However, despite this generality, it's important to note that algorithms for stochastic problems are not necessarily more powerful than those designed for deterministic ones when used in practice. We should keep in mind that stochasticity and determinism are assumed properties of the world, which we model—perhaps imperfectly—into our algorithms. In this course, we adopt a pragmatic perspective on that matter, and will make assumptions only to the extent that those assumptions help us design algorithms which are ultimately useful in practice: a lesson which we have certainly learned from the success of deep learning methods over the last years. With this pragmatic stance, we start our journey with deterministic discrete-time models. 
-
-## Irrigation Management Example
-
-Resource allocation problems, found across various fields of operations research, are a specific kind of deterministic discrete-time optimal control problems. For example, consider the problem of irrigation management as posed by {cite:t}`Hall1968`, in which a decision maker is tasked with finding the optimal amount of water to allocate throughout the various growth stages of a plant in order to maximize the yield. Clearly, allocating all the water -- thereby flooding the crop -- in the first stage would be a bad idea. Similarly, letting the crop dry out and only watering at the end is also suboptimal. Our solution -- that is a prescription for the amount of water to use at any point in time -- should balance those two extremes. In order to achieve this goal, our system should ideally be informed by the expected growth dynamics of the given crops as a function of the water provided: a process which depends at the very least on physical properties known to influence the soil moisture. The basic model considered in this paper describes the evolution of the moisture content through the equation: 
-
-\begin{align*}
-w_{t+1} = w_t+\texttip{\eta}{efficiency} u_t-e_t + \phi_t
-\end{align*}
-
-where $\eta$ is a fixed "efficiency" constant determining the soil moisture response to irrigation, and $e_t$ is a known quantity summarizing the effects of water loss due to evaporation and finally $\phi_t$ represents the expected added moisture due to precipitation. 
-
-Furthermore, we should ensure that the total amount of water used throughout the season does not exceed the maximum allowed amount. To avoid situations where our crop receives too little or too much water, we further impose the condition that $w_p \leq w_{t+1} \leq w_f$ for all stages, for some given values of the so-called permanent wilting percentage $w_p$ and field capacity $w_f$. Depending on the moisture content of the soil, the yield will vary up to a maximum value $Y_max$ depending on the water deficiencies incurred throughout the season. The authors make the assumptions that such deficiencies interact multiplicatively across stages such that the total yield is given by
-$\left[\prod_{t=1}^N d_t(w_t)\right] Y_{\max}$. Due to the operating cost of watering operations (for example, energy consumption of the pumps, human labor, etc), a more meaningful objective is to maximize $\prod_{t=1}^N d_t\left(w_t\right) Y_{\max } - \sum_{t=1}^N c_t\left(u_t\right)$. 
- The problem specification laid out above can be turned into the following mathematical program:
-
-\begin{alignat*}{2}
-\text{minimize} \quad & \sum_{t=1}^N c_t(u_t) - a_N Y_{\max} & \\
-\text{such that} \quad 
-& w_{t+1} = w_t + \eta u_t - e_t + \phi_t, & \quad & t = 1, \dots, N-1, \\
-& q_{t+1} = q_t - u_t, & \quad & t = 1, \dots, N-1, \\
-& a_{t+1} = d_t(w_t) a_t, & \quad & t = 1, \dots, N-1, \\
-& w_p \leq w_{t} \leq w_f, & \quad & t = 1, \dots, N, \\
-& 0 \leq u_t \leq q_t, & \quad & t = 1, \dots, N, \\
-& 0 \leq q_t, & \quad & t = 1, \dots, N, \\
-& a_0 = 1, & & \\
-\text{given} \quad & w_1, q_N. &
-\end{alignat*}
-
-The multiplicative form of the objective function coming from the yield term has been eliminated through by adding a new variable, $a_t$, representing the product accumulation of water deficiencies since the beginning of the season. 
-
-Clearly, this model is a simplification of real phenomena at play: that of the physical process of water absorption by a plant through its root system. Many more aspects of the world would have to be included to have a more faithful reproduction of the real process: for example by taking into account the real-time meteorological data, pressure, soil type, solar irradiance, shading and topology of the terrain etc. We could go to the level of even modelling the inner workings of the plant itself to understand exactly how much water will get absorbed. More crucially, our assumption that the water absorption takes place instantaneously at discrete points in time is certainly not true. So should we go back to the drawing board and consider a better model? The answer is that "it depends". It depends on the adequacy of the solution when deployed in the real world, or whether it helped provide insights to the user. Put simply: is the system useful to those who interact with it? Answering this question requires us to think more broadly about our system and how it will interact more broadly with the end users and the society.
-
-## Discrete-Time Optimal Control Problems in General
+# Discrete-Time Trajectory Optimization
 
 The three quantities $(w_t, q_t, a_t)$ appearing in the model of {cite:t}`Hall1968` above have the property that they encompass all of the information necessary to simulate the process. We say that it is a "**state variable**", and its time evolution is specified via so-called **dynamics function**, which we commonly denote by $f_t$. In discrete-time systems, the dynamics are often described by "difference equations," as opposed to the "differential equations" used for continuous-time systems. When the dynamics function depends on the time index $t$, we refer to it as "non-stationary" dynamics. Conversely, if the function $f$ remains constant across all time steps, we call it "stationary" dynamics. In the context of optimal control theory, we refer more generally to $u_t$ as a "control" variable while in other communities it is called an "action". Whether the problem is posed as a minimization problem or maximization problem is also a matter of communities, with control theory typically posing problems in terms of cost minimization while OR and RL communities usually adopt a reward maximization perspective. In this course, we will alternate between the two equivalent formulations while ensuring that context is sufficiently clear to understand which one is used. 
 
@@ -97,7 +56,7 @@ Finally, a Mayer problem is one in which the objective function only contains a 
 
 When writing the optimal control problem in any of those three forms, it is implied that both $u_1, ..., u_T$ and the state trajectory $x_1, ..., x_T$ are optimization variables. Since we ultimately care about the decisions themselves, the idea of posing the states themselves as optimization variables seems uncessary given that we have access to the dynamics. We will soon see that there indeed exists a way in which we get rid of the state variables as constraints through a process of explicit simulation with the class of "shooting methods", thereby turning what would otherwise be an constrained optimization problem into an unconstrained one.  
 
-### Reduction to Mayer Problems
+## Reduction to Mayer Problems
 
 While it might appear at first glance that Bolza problems are somehow more expressive or powerful, we can show that both Lagrange and Bolza problems can be reduced to a Mayer problem through the idea of "state augmentation". 
 The overall idea is that the explicit sum of costs can be eliminated by maintaining a running sum of costs as an additional state variable $y_t$. The augmented system equation then becomes: 
@@ -122,19 +81,19 @@ Let's assume that an optimal control problem has been formulated in one of the f
 
 Before delving into the solution methods, let's consider an electric vehicle energy management problem which we will use this as a test bed throughout this section. Consider an electric vehicle traversing a planned route, where we aim to optimize its energy consumption over a 20-minute journey. Our simplified model represents the vehicle's state using two variables: $x_1$, the battery state of charge as a percentage, and $x_2$, denoting the vehicle's speed in meters per second. The control input $u$, ranging from -1 to 1, represents the motor power, with negative values indicating regenerative braking and positive values representing acceleration. The problem can be formally expressed as a mathematical program in Bolza form:
 
-$$ \begin{align*}
-\min_{x, u} \quad & J = \underbrace{x_{T,1}^2 + x_{T,2}^2}_{\text{Mayer term}} + \underbrace{\sum_{t=1}^{T-1} 0.1(x_{t,1}^2 + x_{t,2}^2 + u_t^2)}_{\text{Lagrange term}} \\[2ex]
-\text{subject to:} \quad & x_{t+1} = f_t(x_t, u_t), \quad t = 1, \ldots, T-1 \\[1ex]
-& x_1 = \begin{bmatrix} 1 \\ 0 \end{bmatrix} \\[1ex]
-& -1 \leq u_t \leq 1, \quad t = 1, \ldots, T-1 \\[1ex]
-& -5 \leq x_{t,1}, x_{t,2} \leq 5, \quad t = 1, \ldots, T \\[2ex]
+\begin{align*}
+\min_{\mathbf{x}, \mathbf{u}} \quad & J = \underbrace{x_{T,1}^2 + x_{T,2}^2}_{\text{Mayer term}} + \underbrace{\sum_{t=1}^{T-1} 0.1(x_{t,1}^2 + x_{t,2}^2 + u_t^2)}_{\text{Lagrange term}} \\
+\text{subject to:} \quad & x_{t+1} = f_t(x_t, u_t), \quad t = 1, \ldots, T-1 \\
+& x_1 = \begin{bmatrix} 1 \\ 0 \end{bmatrix} \\
+& -1 \leq u_t \leq 1, \quad t = 1, \ldots, T-1 \\
+& -5 \leq x_{t,1}, x_{t,2} \leq 5, \quad t = 1, \ldots, T \\
 \text{where:} \quad & f_t(x_t, u_t) = \begin{bmatrix}
    x_{t,1} + 0.1x_{t,2} + 0.05u_t \\
    x_{t,2} + 0.1u_t
-   \end{bmatrix} \\[1ex]
-& T = 20 \\[1ex]
-& x_t = \begin{bmatrix} x_{t,1} \\ x_{t,2} \end{bmatrix} \in \mathbb{R}^2, \quad u_t \in \mathbb{R}
-\end{align*} $$
+   \end{bmatrix} \\
+& T = 20 \\
+& x_t = \begin{bmatrix} x_{t,1} \\ x_{t,2} \end{bmatrix} \in \mathbb{R}^2, \quad u_t \in \mathbb{R}.
+\end{align*}
 
 The system dynamics, represented by $f_t(x_t, u_t)$, describe how the battery charge and vehicle speed evolve based on the current state and control input. The initial condition $x_1 = [1, 0]^T$ indicates that the vehicle starts with a fully charged battery and zero initial speed. The constraints $-1 \leq u_t \leq 1$ and $-5 \leq x_{t,1}, x_{t,2} \leq 5$ ensure that the control inputs and state variables remain within acceptable ranges throughout the journey. This model is of course highly simplistic and neglects the nonlinear nature of battery discharge and vehicle motion due to air resistance, road grade, and vehicle mass, etc. Furthermore, our model ignores the effect of environmental factors like wind and temperature on regenerative breaking. Route-specific information such as elevation changes and speed limits are absent, as is the consideration of auxiliary power consumption such as heating and entertainment. These are all possible improvements to our models which we ignore at the moment for the sake of simplicity.
 
@@ -194,7 +153,7 @@ $$
 :load: code/naive_single_shooting.py
 ```
 
-The approach outlined in {prf:ref}`naive-single-shooting` , and  implemented in code {ref}`naive-single-shooting-impl`, stems directly from the mathematical definition and involves recomputing the sequence of states from the begining every time that the instantenous cost function along the trajectory needs to be evaluated. This implementation has the benefit that it requires very little storage, as the only quantity that we have to maintain in addition to the running cost is the last state. However, this simplicitity and storage savings come at a steep computation cost as it requires re-computing the trajectory up to any given stage starting from the initial state. 
+The approach outlined in {prf:ref}`naive-single-shooting` stems directly from the mathematical definition and involves recomputing the sequence of states from the begining every time that the instantenous cost function along the trajectory needs to be evaluated. This implementation has the benefit that it requires very little storage, as the only quantity that we have to maintain in addition to the running cost is the last state. However, this simplicitity and storage savings come at a steep computation cost as it requires re-computing the trajectory up to any given stage starting from the initial state. 
 A more practical and efficient implementation combines trajectory unrolling with cost accumulation. This process can be realized through a simple for-loop in frameworks like JAX, which can trace code execution through control flows. Alternatively, a more efficient `scan` operation could be employed. By simultaneously computing the trajectory and summing costs, we eliminate redundant calculations, effectively trading computation for storage—a strategy reminiscent of checkpointing in automatic differentiation.
 
 ```{prf:algorithm} Single Shooting: Trajectory Storage
@@ -623,7 +582,7 @@ We summarize the SQP algorithm in the following pseudo-code:
 3. **Repeat Until Convergence:** Continue iterating until $\|\Delta \mathbf{x}^k\| < \epsilon$ and the KKT conditions are satisfied.
 ````
 
-##### Connection to Newton's Method in the Equality-Constrained Case
+#### Connection to Newton's Method in the Equality-Constrained Case
 
 The QP subproblem in SQP is directly related to applying Newton's method for equality-constrained optimization. To see this, note that the KKT matrix of the QP subproblem is: 
 
@@ -666,7 +625,7 @@ As we did earlier, we approximate this problem by constructing a quadratic appro
 & \nabla \mathbf{h}(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{h}(\mathbf{x}^k) \leq \mathbf{0},
 \end{align*}
 
-where \(\Delta \mathbf{x} = \mathbf{x} - \mathbf{x}^k\) represents the step direction for the primal variables. The following pseudocode outlines the steps involved in applying SQP to a problem with both equality and inequality constraints:
+where $\Delta \mathbf{x} = \mathbf{x} - \mathbf{x}^k$ represents the step direction for the primal variables. The following pseudocode outlines the steps involved in applying SQP to a problem with both equality and inequality constraints:
 
 ````{prf:algorithm} Sequential Quadratic Programming (SQP) with Inequality Constraints
 :label: alg-sqp-ineq
@@ -800,8 +759,188 @@ However, as it is widely known from the lessons of GAN (Generative Adversarial N
 :load: code/arrow_hurwicz_uzawa_jax.py
 ```
 
+# The Discrete-Time Pontryagin Maximum Principle
 
-# References 
+Discrete-time optimal control problems (DOCPs) form a specific class of nonlinear programming problems. Therefore, we can apply the general results from the Karush-Kuhn-Tucker (KKT) conditions to characterize the structure of optimal solutions to DOCPs in any of their three forms. The discrete-time analogue of the KKT conditions for DOCPs is known as the discrete-time Pontryagin Maximum Principle (PMP). The PMP was first described by Pontryagin in 1956 {cite}`pontryagin1962mathematical` for continuous-time systems, with the discrete-time version following shortly after. Similar to the KKT conditions, the PMP is useful from both theoretical and practical perspectives. It not only allows us to sometimes find closed-form solutions but also inspires the development of algorithms.
+
+Importantly, the PMP goes beyond the KKT conditions by demonstrating the existence of a particular recursive equation—the adjoint equation. This equation governs the evolution of the derivative of the Hamiltonian, a close cousin to the Lagrangian. The adjoint equation enables us to transform the PMP into an algorithmic procedure, which has much in common with backpropagation {cite}`rumelhart1986learning` in deep learning. This connection between optimal control theory has been noted by several researchers, including Griewank {cite}`griewank1989automatic` in the context of automatic differentiation, and LeCun {cite}`lecun1988theoretical` in his early work on neural networks.
+
+## PMP for Mayer Problems 
+
+Before delving into more general cases, let's consider a Mayer problem where the goal is to minimize a terminal cost function $c_T(\mathbf{x}_T)$:
+
+$$
+\begin{alignat*}{2}
+\text{minimize} \quad & c_T(\mathbf{x}_T) & \\
+\text{such that} \quad 
+& \mathbf{x}_{t+1} = \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t), & \quad & t = 1, \dots, T-1, \\
+& \mathbf{u}_{lb} \leq \mathbf{u}_t \leq \mathbf{u}_{ub}, & \quad & t = 1, \dots, T, \\
+& \mathbf{x}_{lb} \leq \mathbf{x}_t \leq \mathbf{x}_{ub}, & \quad & t = 1, \dots, T, \\
+\text{given} \quad & \mathbf{x}_1. &
+\end{alignat*}
+$$
+
+As done previously using the single shooting method, we reformulate this problem as an unconstrained optimization problem (excluding the state bound constraints since we lack a straightforward way to incorporate them directly). This reformulation is:
+
+\begin{align*}
+J(\mathbf{u}_{1:T-1}) = c_T(\boldsymbol{\phi}_T(\mathbf{u}_{1:T-1}, \mathbf{x}_1)),
+\end{align*}
+where the state evolution functions $\boldsymbol{\phi}_t$ are defined recursively as:
+
+\begin{align*}
+\boldsymbol{\phi}_t(\mathbf{u}_{1:T-1}, \mathbf{x}_1) = 
+\begin{cases}
+\mathbf{x}_1, & \text{if } t = 1, \\
+\mathbf{f}_{t-1}(\boldsymbol{\phi}_{t-1}(\mathbf{u}_{1:T-1}, \mathbf{x}_1), \mathbf{u}_{t-1}), & \text{if } t = 2, \ldots, T.
+\end{cases}
+\end{align*}
+
+To find the first-order optimality condition, we differentiate the objective function $J(\mathbf{u}_{1:T-1})$ with respect to each control variable $\mathbf{u}_t$ and set it to zero:
+
+$$
+\frac{\partial J(\mathbf{u}_{1:T-1})}{\partial \mathbf{u}_t} = \frac{\partial c_T(\boldsymbol{\phi}_T)}{\partial \mathbf{u}_t} = 0, \quad t = 1, \ldots, T-1.
+$$
+
+Applying the chain rule, we get:
+
+$$
+\frac{\partial c_T(\boldsymbol{\phi}_T)}{\partial \mathbf{u}_t} = \frac{\partial c_T(\boldsymbol{\phi}_T)}{\partial \boldsymbol{\phi}_T} \frac{\partial \boldsymbol{\phi}_T}{\partial \mathbf{u}_t}.
+$$
+
+Now, let's expand the derivative $\frac{\partial \boldsymbol{\phi}_T}{\partial \mathbf{u}_t}$ using its non-recursive form. From the definition of the state evolution functions, we have:
+
+\begin{align*}
+\boldsymbol{\phi}_T = \mathbf{f}_{T-1}(\boldsymbol{\phi}_{T-1}, \mathbf{u}_{T-1}), \quad \boldsymbol{\phi}_{T-1} = \mathbf{f}_{T-2}(\boldsymbol{\phi}_{T-2}, \mathbf{u}_{T-2}), \quad \ldots, \quad \boldsymbol{\phi}_{t+1} = \mathbf{f}_t(\boldsymbol{\phi}_t, \mathbf{u}_t).
+\end{align*}
+
+The above can also be written more recursively. For $s \geq t$, the derivative of $\boldsymbol{\phi}_s$ with respect to $\mathbf{u}_t$ is:
+
+$$
+\frac{\partial \boldsymbol{\phi}_s}{\partial \mathbf{u}_t} = \frac{\partial \mathbf{f}_{s-1}}{\partial \boldsymbol{\phi}_{s-1}} \frac{\partial \boldsymbol{\phi}_{s-1}}{\partial \mathbf{u}_t}, \quad s = t+1, \ldots, T,
+$$
+
+and
+
+$$
+\frac{\partial \boldsymbol{\phi}_t}{\partial \mathbf{u}_t} = \frac{\partial \mathbf{f}_{t-1}}{\partial \mathbf{u}_t}.
+$$
+
+The overall derivative is then of the form:
+\begin{align*}
+\frac{\partial J(\mathbf{u}_{1:T-1})}{\partial \mathbf{u}_t} = \underbrace{\underbrace{\underbrace{\frac{\partial c_T(\boldsymbol{\phi}_T)}{\partial \boldsymbol{\phi}_T}}_{\boldsymbol{\lambda}_T} \frac{\partial \mathbf{f}_{T-1}}{\partial \boldsymbol{\phi}_{T-1}}}_{\boldsymbol{\lambda}_{T-1}} \cdots \frac{\partial \mathbf{f}_{t+1}}{\partial \boldsymbol{\phi}_{t+1}}}_{\boldsymbol{\lambda}_{t+1}} \frac{\partial \mathbf{f}_t}{\partial \mathbf{u}_t}.
+\end{align*}
+where $\boldsymbol{\lambda}_t$ is called the adjoint (co-state) variable, and contains the reverse accumulation of the derivative. The evolution of this variable also obeys a difference equation, but one which runs backward in time: the adjoint equation. The recursive relationship for the adjoint equation is then: 
+
+$$
+\boldsymbol{\lambda}_t = \frac{\partial \mathbf{f}_t}{\partial \boldsymbol{\phi}_t}^\top \boldsymbol{\lambda}_{t+1}, \quad t = 1, \ldots, T-1,
+$$
+
+with the terminal condition:
+
+$$
+\boldsymbol{\lambda}_T = \frac{\partial c_T}{\partial \boldsymbol{\phi}_T}.
+$$
+
+The first-order optimality condition in terms of the adjoint variable can finally be written as:
+
+$$
+\frac{\partial J(\mathbf{u}_{1:T-1})}{\partial \mathbf{u}_t} = \frac{\partial \mathbf{f}_t}{\partial \mathbf{u}_t}^\top \boldsymbol{\lambda}_{t+1} = 0, \quad t = 1, \ldots, T-1.
+$$
+
+## PMP for Bolza Problems
+
+To derive the adjoint equation for the Bolza problem, we consider the optimal control problem where the objective is to minimize both a terminal cost $c_T(\mathbf{x}_T)$ and the sum of intermediate costs $c_t(\mathbf{x}_t, \mathbf{u}_t)$:
+
+\begin{align*}
+\text{minimize} \quad & c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t, \mathbf{u}_t) \\
+\text{such that} \quad 
+& \mathbf{x}_{t+1} = \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t), \quad t = 1, \dots, T-1, \\
+\text{given} \quad & \mathbf{x}_1.
+\end{align*}
+
+To handle the constraints, we introduce the Lagrangian function with multipliers $\boldsymbol{\lambda}_t$ for each constraint $\mathbf{x}_{t+1} = \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t)$:
+
+\begin{align*}
+L(\mathbf{x}, \mathbf{u}, \boldsymbol{\lambda}) &\triangleq c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t, \mathbf{u}_t) + \sum_{t=1}^{T-1} \boldsymbol{\lambda}_{t+1}^\top \left( \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t) - \mathbf{x}_{t+1} \right).
+\end{align*}
+
+The existence of a feasible solution $(\mathbf{x}, \mathbf{u})$ implies that there exists a unique set of Lagrange multipliers $\boldsymbol{\lambda}_t$ such that the derivative of the Lagrangian with respect to all variables equals zero:
+
+$$
+\nabla L(\mathbf{x}, \mathbf{u}, \boldsymbol{\lambda}) = 0.
+$$
+
+To simplify, we rearrange the Lagrangian so that each state variable $\mathbf{x}_t$ appears only once in the summation:
+
+\begin{align*}
+L(\mathbf{x}, \mathbf{u}, \boldsymbol{\lambda}) &= c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} \left( c_t(\mathbf{x}_t, \mathbf{u}_t) + \boldsymbol{\lambda}_{t+1}^\top \left( \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t) - \mathbf{x}_{t+1} \right) \right) \\
+&= c_T(\mathbf{x}_T) - \boldsymbol{\lambda}_1^\top \mathbf{x}_1 + \sum_{t=1}^{T-1} \left( c_t(\mathbf{x}_t, \mathbf{u}_t) + \boldsymbol{\lambda}_{t+1}^\top \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t) - \boldsymbol{\lambda}_t^\top \mathbf{x}_t \right).
+\end{align*}
+
+This follows from noting that:
+
+$$
+\sum_{t=1}^{T-1} \boldsymbol{\lambda}_{t+1}^\top \mathbf{x}_{t+1} = \boldsymbol{\lambda}_T^\top \mathbf{x}_T - \mathbf{x}_1^\top \boldsymbol{\lambda}_1 + \sum_{t=1}^{T-1} \boldsymbol{\lambda}_t^\top \mathbf{x}_t.
+$$
+
+If $(\mathbf{x}, \mathbf{u})$ is a feasible local minimum, there exists a Lagrange multiplier $\boldsymbol{\lambda}$ such that:
+
+$$
+\frac{\partial L(\mathbf{x}, \mathbf{u}, \boldsymbol{\lambda})}{\partial \mathbf{x}_i} = 0.
+$$
+
+By differentiating the Lagrangian with respect to each state $\mathbf{x}_i$, we obtain:
+
+$$
+\frac{\partial L(\mathbf{x}, \mathbf{u}, \boldsymbol{\lambda})}{\partial \mathbf{x}_i} = 
+\begin{cases}
+\frac{\partial c_T (\mathbf{x}_T)}{\partial \mathbf{x}_T} + \boldsymbol{\lambda}_T, & \text{if } i = T, \\
+\frac{\partial c_t(\mathbf{x}_t, \mathbf{u}_t)}{\partial \mathbf{x}_t} + \boldsymbol{\lambda}_{t+1}^\top \frac{\partial \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t)}{\partial \mathbf{x}_t} - \boldsymbol{\lambda}_t, & \text{if } i = 1, \dots, T-1.
+\end{cases}
+$$
+
+Rearranging gives the adjoint equations:
+
+$$
+\boldsymbol{\lambda}_T = \frac{\partial c_T(\mathbf{x}_T)}{\partial \mathbf{x}_T},
+$$
+and for $t = T-1, \dots, 1$:
+
+$$
+\boldsymbol{\lambda}_t = \frac{\partial c_t(\mathbf{x}_t, \mathbf{u}_t)}{\partial \mathbf{x}_t} + \boldsymbol{\lambda}_{t+1}^\top \frac{\partial \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t)}{\partial \mathbf{x}_t}.
+$$
+
+The optimality condition for the controls is obtained by differentiating the Lagrangian with respect to $\mathbf{u}_t$:
+
+$$
+\frac{\partial L(\mathbf{x}, \mathbf{u}, \boldsymbol{\lambda})}{\partial \mathbf{u}_t} = \frac{\partial c_t(\mathbf{x}_t, \mathbf{u}_t)}{\partial \mathbf{u}_t} + \boldsymbol{\lambda}_{t+1}^\top \frac{\partial \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t)}{\partial \mathbf{u}_t} = 0.
+$$
+
+Note that the systems dynamics are respected, we must have:
+
+$$
+\frac{\partial L(\mathbf{x}, \mathbf{u}, \boldsymbol{\lambda})}{\partial \boldsymbol{\lambda}_{t+1}} = \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t) - \mathbf{x}_{t+1} = 0.
+$$
+
+## Hamiltonian Formulation
+
+The first-order optimality condition for the Bolza problem obtained above can be expressed using the so-called Hamiltonian function:
+
+$$
+H_t(\mathbf{x}_t, \mathbf{u}_t, \boldsymbol{\lambda}_{t+1}) = c_t(\mathbf{x}_t, \mathbf{u}_t) + \boldsymbol{\lambda}_{t+1}^\top \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t).
+$$
+
+If $(\mathbf{x}^*, \mathbf{u}^*)$ is a local minimum control trajectory, then:
+
+$$
+\frac{\partial H_t(\mathbf{x}_t^*, \mathbf{u}_t^*, \boldsymbol{\lambda}_{t+1}^*)}{\partial \mathbf{u}_t} = 0, \quad t = 1, \ldots, T-1,
+$$
+where the adjoint variables (costate vectors) \(\boldsymbol{\lambda}_t^*\) are computed from:
+
+$$
+\boldsymbol{\lambda}_t^* = \frac{\partial H_t(\mathbf{x}_t^*, \mathbf{u}_t^*, \boldsymbol{\lambda}_{t+1}^*)}{\partial \mathbf{x}_t}, \quad t = 1, \ldots, T-1, \quad \boldsymbol{\lambda}_T^* = \frac{\partial c_T(\mathbf{x}_T^*)}{\partial \mathbf{x}_T}.
+$$
+
 
 ```{bibliography}
 ```
