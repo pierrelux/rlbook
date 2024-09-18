@@ -368,20 +368,20 @@ Consider the constrained optimization problem:
 $$
 \begin{aligned}
 \min_{\mathbf{x}} \quad & f(\mathbf{x}) \\
-\text{subject to} \quad & g_i(\mathbf{x}) = 0, \quad i = 1, \ldots, m
+\text{subject to} \quad & h_i(\mathbf{x}) = 0, \quad i = 1, \ldots, m
 \end{aligned}
 $$
 
-where $\mathbf{x} \in \mathbb{R}^n$, $f: \mathbb{R}^n \to \mathbb{R}$, and $g_i: \mathbb{R}^n \to \mathbb{R}$ for $i = 1, \ldots, m$.
+where $\mathbf{x} \in \mathbb{R}^n$, $f: \mathbb{R}^n \to \mathbb{R}$, and $h_i: \mathbb{R}^n \to \mathbb{R}$ for $i = 1, \ldots, m$.
 
 Assume that:
-1. $f$ and $g_i$ are continuously differentiable functions.
-2. The gradients $\nabla g_i(\mathbf{x}^*)$ are linearly independent at the optimal point $\mathbf{x}^*$.
+1. $f$ and $h_i$ are continuously differentiable functions.
+2. The gradients $\nabla h_i(\mathbf{x}^*)$ are linearly independent at the optimal point $\mathbf{x}^*$.
 
 Then, there exist unique Lagrange multipliers $\lambda_i^* \in \mathbb{R}$, $i = 1, \ldots, m$, such that the following first-order optimality conditions hold:
 
-1. Stationarity: $\nabla f(\mathbf{x}^*) + \sum_{i=1}^m \lambda_i^* \nabla g_i(\mathbf{x}^*) = \mathbf{0}$
-2. Primal feasibility: $g_i(\mathbf{x}^*) = 0$, for $i = 1, \ldots, m$
+1. Stationarity: $\nabla f(\mathbf{x}^*) + \sum_{i=1}^m \lambda_i^* \nabla h_i(\mathbf{x}^*) = \mathbf{0}$
+2. Primal feasibility: $h_i(\mathbf{x}^*) = 0$, for $i = 1, \ldots, m$
 ````
 
 Note that both the stationarity and primal feasibility statements are simply saying that the derivative of the Lagrangian in either the primal or dual variables must be zero at an optimal constrained solution. In other words:
@@ -431,7 +431,7 @@ By inspecting the structure of matrix $\mathbf{A}$ in the specific application w
 To solve equality-constrained optimization problems using Newton's method, we begin by recognizing that the problem reduces to finding a zero of the function $\mathbf{F}(\mathbf{z}) = \nabla_{\mathbf{x}, \boldsymbol{\lambda}} L(\mathbf{x}, \boldsymbol{\lambda})$. Here, $\mathbf{F}$ represents the derivative of the Lagrangian function, and $\mathbf{z} = (\mathbf{x}, \boldsymbol{\lambda})$ combines both the primal variables $\mathbf{x}$ and the dual variables (Lagrange multipliers) $\boldsymbol{\lambda}$. Explicitly, we have:
 
 $$
-\mathbf{F}(\mathbf{z}) = \begin{bmatrix} \nabla_{\mathbf{x}} L(\mathbf{x}, \boldsymbol{\lambda}) \\ \mathbf{g}(\mathbf{x}) \end{bmatrix} = \begin{bmatrix} \nabla f(\mathbf{x}) + \sum_{i=1}^m \lambda_i \nabla g_i(\mathbf{x}) \\ \mathbf{g}(\mathbf{x}) \end{bmatrix}.
+\mathbf{F}(\mathbf{z}) = \begin{bmatrix} \nabla_{\mathbf{x}} L(\mathbf{x}, \boldsymbol{\lambda}) \\ \mathbf{h}(\mathbf{x}) \end{bmatrix} = \begin{bmatrix} \nabla f(\mathbf{x}) + \sum_{i=1}^m \lambda_i \nabla h_i(\mathbf{x}) \\ \mathbf{h}(\mathbf{x}) \end{bmatrix}.
 $$
 
 Newton's method involves linearizing $\mathbf{F}(\mathbf{z})$ around the current iterate $\mathbf{z}^k = (\mathbf{x}^k, \boldsymbol{\lambda}^k)$ and then solving the resulting linear system. At each iteration $k$, Newton's method updates the current estimate by solving the linear system:
@@ -450,8 +450,8 @@ where $\Delta \mathbf{z}^k = (\Delta \mathbf{x}^k, \Delta \boldsymbol{\lambda}^k
 
 $$
 \begin{bmatrix}
-\nabla^2_{\mathbf{x}\mathbf{x}} L(\mathbf{x}^k, \boldsymbol{\lambda}^k) & \nabla \mathbf{g}(\mathbf{x}^k)^T \\
-\nabla \mathbf{g}(\mathbf{x}^k) & \mathbf{0}
+\nabla^2_{\mathbf{x}\mathbf{x}} L(\mathbf{x}^k, \boldsymbol{\lambda}^k) & \nabla \mathbf{h}(\mathbf{x}^k)^T \\
+\nabla \mathbf{h}(\mathbf{x}^k) & \mathbf{0}
 \end{bmatrix}
 \begin{bmatrix}
 \Delta \mathbf{x}^k \\
@@ -460,8 +460,8 @@ $$
 =
 -
 \begin{bmatrix}
-\nabla f(\mathbf{x}^k) + \nabla \mathbf{g}(\mathbf{x}^k)^T \boldsymbol{\lambda}^k \\
-\mathbf{g}(\mathbf{x}^k)
+\nabla f(\mathbf{x}^k) + \nabla \mathbf{h}(\mathbf{x}^k)^T \boldsymbol{\lambda}^k \\
+\mathbf{h}(\mathbf{x}^k)
 \end{bmatrix}.
 $$
 
@@ -478,14 +478,14 @@ The following code demonstates how we can implement this idea in Jax. In this de
 $$
 \begin{aligned}
 \min_{x \in \mathbb{R}^2} \quad & f(x) = (x_1 - 2)^2 + (x_2 - 1)^2 \\
-\text{subject to} \quad & g(x) = x_1^2 + x_2^2 - 1 = 0
+\text{subject to} \quad & h(x) = x_1^2 + x_2^2 - 1 = 0
 \end{aligned}
 $$
 
-Geometrically speaking, the constraint $g(x)$ describes a unit circle centered at the origin. To solve this problem using the method of Lagrange multipliers, we form the Lagrangian:
+Geometrically speaking, the constraint $h(x)$ describes a unit circle centered at the origin. To solve this problem using the method of Lagrange multipliers, we form the Lagrangian:
 
 $$
-L(x, \lambda) = f(x) + \lambda g(x) = (x_1 - 2)^2 + (x_2 - 1)^2 + \lambda(x_1^2 + x_2^2 - 1)
+L(x, \lambda) = f(x) + \lambda h(x) = (x_1 - 2)^2 + (x_2 - 1)^2 + \lambda(x_1^2 + x_2^2 - 1)
 $$
 
 For this particular problem, it happens so that we can also find an analytical without even having to use Newton's method. From the first-order optimality conditions, we obtain the following linear system of equations: 
@@ -519,7 +519,7 @@ Sequential Quadratic Programming (SQP) tackles the problem of solving constraine
 $$
 \begin{aligned}
 \min_{\mathbf{x}} \quad & f(\mathbf{x}) \\
-\text{subject to} \quad & \mathbf{g}(\mathbf{x}) = \mathbf{0}.
+\text{subject to} \quad & \mathbf{h}(\mathbf{x}) = \mathbf{0}.
 \end{aligned}
 $$
 
@@ -535,10 +535,10 @@ $$
 f(\mathbf{x}) \approx f(\mathbf{x}^k) + \nabla f(\mathbf{x}^k)^T (\mathbf{x} - \mathbf{x}^k) + \frac{1}{2} (\mathbf{x} - \mathbf{x}^k)^T \nabla^2_{\mathbf{x}\mathbf{x}} L(\mathbf{x}^k, \boldsymbol{\lambda}^k) (\mathbf{x} - \mathbf{x}^k).
 $$
 
-Similarly, the equality constraints $\mathbf{g}(\mathbf{x})$ are linearized around $\mathbf{x}^k$:
+Similarly, the equality constraints $\mathbf{h}(\mathbf{x})$ are linearized around $\mathbf{x}^k$:
 
 $$
-\mathbf{g}(\mathbf{x}) \approx \mathbf{g}(\mathbf{x}^k) + \nabla \mathbf{g}(\mathbf{x}^k) (\mathbf{x} - \mathbf{x}^k).
+\mathbf{h}(\mathbf{x}) \approx \mathbf{h}(\mathbf{x}^k) + \nabla \mathbf{h}(\mathbf{x}^k) (\mathbf{x} - \mathbf{x}^k).
 $$
 
 Combining these approximations, we obtain a Quadratic Programming (QP) subproblem, which approximates our original problem locally at $\mathbf{x}^k$ but is easier to solve:
@@ -546,7 +546,7 @@ Combining these approximations, we obtain a Quadratic Programming (QP) subproble
 $$
 \begin{aligned}
 \text{Minimize} \quad & \nabla f(\mathbf{x}^k)^T \Delta \mathbf{x} + \frac{1}{2} \Delta \mathbf{x}^T \nabla^2_{\mathbf{x}\mathbf{x}} L(\mathbf{x}^k, \boldsymbol{\lambda}^k) \Delta \mathbf{x} \\
-\text{subject to} \quad & \nabla \mathbf{g}(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{g}(\mathbf{x}^k) = \mathbf{0},
+\text{subject to} \quad & \nabla \mathbf{h}(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{h}(\mathbf{x}^k) = \mathbf{0},
 \end{aligned}
 $$
 
@@ -588,18 +588,18 @@ The QP subproblem in SQP is directly related to applying Newton's method for equ
 
 \begin{align*}
 \begin{bmatrix}
-\nabla^2_{\mathbf{x}\mathbf{x}} L(\mathbf{x}_k, \boldsymbol{\mu}_k) & \nabla \mathbf{h}(\mathbf{x}_k)^T \\
-\nabla \mathbf{h}(\mathbf{x}_k) & \mathbf{0}
+\nabla^2_{\mathbf{x}\mathbf{x}} L(\mathbf{x}^k, \boldsymbol{\lambda}^k) & \nabla \mathbf{h}(\mathbf{x}^k)^T \\
+\nabla \mathbf{h}(\mathbf{x}^k) & \mathbf{0}
 \end{bmatrix}
 \begin{bmatrix}
-\Delta \mathbf{x}_k \\
-\Delta \boldsymbol{\mu}_k
+\Delta \mathbf{x}^k \\
+\Delta \boldsymbol{\lambda}^k
 \end{bmatrix}
 =
 -
 \begin{bmatrix}
-\nabla f(\mathbf{x}_k) + \nabla \mathbf{h}(\mathbf{x}_k)^T \boldsymbol{\mu}_k \\
-\mathbf{h}(\mathbf{x}_k)
+\nabla f(\mathbf{x}^k) + \nabla \mathbf{h}(\mathbf{x}^k)^T \boldsymbol{\lambda}^k \\
+\mathbf{h}(\mathbf{x}^k)
 \end{bmatrix}
 \end{align*}
 
@@ -613,16 +613,16 @@ Consider a general nonlinear optimization problem that includes both equality an
 
 \begin{align*}
 \min_{\mathbf{x}} \quad & f(\mathbf{x}) \\
-\text{subject to} \quad & \mathbf{g}(\mathbf{x}) = \mathbf{0}, \\
-& \mathbf{h}(\mathbf{x}) \leq \mathbf{0}.
+\text{subject to} \quad & \mathbf{g}(\mathbf{x}) \leq \mathbf{0}, \\
+& \mathbf{h}(\mathbf{x}) = \mathbf{0}.
 \end{align*}
 
 As we did earlier, we approximate this problem by constructing a quadratic approximation to the objective and a linearization of the constraints. QP subproblem at each iteration is then formulated as:
 
 \begin{align*}
 \text{Minimize} \quad & \nabla f(\mathbf{x}^k)^T \Delta \mathbf{x} + \frac{1}{2} \Delta \mathbf{x}^T \nabla^2_{\mathbf{x}\mathbf{x}} L(\mathbf{x}^k, \boldsymbol{\lambda}^k, \boldsymbol{\nu}^k) \Delta \mathbf{x} \\
-\text{subject to} \quad & \nabla \mathbf{g}(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{g}(\mathbf{x}^k) = \mathbf{0}, \\
-& \nabla \mathbf{h}(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{h}(\mathbf{x}^k) \leq \mathbf{0},
+\text{subject to} \quad & \nabla \mathbf{g}(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{g}(\mathbf{x}^k) \leq \mathbf{0}, \\
+& \nabla \mathbf{h}(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{h}(\mathbf{x}^k) = \mathbf{0},
 \end{align*}
 
 where $\Delta \mathbf{x} = \mathbf{x} - \mathbf{x}^k$ represents the step direction for the primal variables. The following pseudocode outlines the steps involved in applying SQP to a problem with both equality and inequality constraints:
@@ -647,8 +647,8 @@ where $\Delta \mathbf{x} = \mathbf{x} - \mathbf{x}^k$ represents the step direct
    $$
    \begin{aligned}
    \text{Minimize} \quad & \nabla f(\mathbf{x}^k)^T \Delta \mathbf{x} + \frac{1}{2} \Delta \mathbf{x}^T \nabla^2_{\mathbf{x}\mathbf{x}} L(\mathbf{x}^k, \boldsymbol{\lambda}^k, \boldsymbol{\nu}^k) \Delta \mathbf{x} \\
-   \text{subject to} \quad & \nabla \mathbf{g}(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{g}(\mathbf{x}^k) = \mathbf{0}, \\
-   & \nabla \mathbf{h}(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{h}(\mathbf{x}^k) \leq \mathbf{0}.
+   \text{subject to} \quad & \nabla \mathbf{g}(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{g}(\mathbf{x}^k) \leq \mathbf{0}, \\
+   & \nabla \mathbf{h}(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{h}(\mathbf{x}^k) = \mathbf{0}.
    \end{aligned}
    $$
 
@@ -675,8 +675,8 @@ Consider the following equality and inequality-constrained problem:
 
 \begin{align*}
 \min_{x \in \mathbb{R}^2} \quad & f(x) = (x_1 - 2)^2 + (x_2 - 1)^2 \\
-\text{subject to} \quad & g(x) = x_1^2 + x_2^2 - 1 = 0 \\
-& h(x) = x_1^2 - x_2 \leq 0
+\text{subject to} \quad & g(x) = x_1^2 - x_2 \leq 0  \\
+& h(x) = x_1^2 + x_2^2 - 1 = 0
 \end{align*}
 
 This example builds on our previous one but adds a parabola-shaped inequality constraint. We require our solution to lie not only on the circle defining our equality constraint but also below the parabola. To solve the QP subproblem, we will be using the [CVXPY](https://www.cvxpy.org/) package. While the Lagrangian and derivatives could be computed easily by hand, we use [JAX](https://jax.readthedocs.io/) for generality:
@@ -693,12 +693,12 @@ While the SQP method addresses constrained optimization problems by sequentially
 $$
 \begin{aligned}
 \min_{\mathbf{x}} \quad & f(\mathbf{x}) \\
-\text{subject to} \quad & \mathbf{g}(\mathbf{x}) = \mathbf{0} \\
-& \mathbf{h}(\mathbf{x}) \leq \mathbf{0}
+\text{subject to} \quad & \mathbf{g}(\mathbf{x}) \leq \mathbf{0} \\
+& \mathbf{h}(\mathbf{x}) = \mathbf{0}
 \end{aligned}
 $$
 
-Using the Lagrangian function $L(\mathbf{x}, \boldsymbol{\lambda}, \boldsymbol{\mu}) = f(\mathbf{x}) + \boldsymbol{\lambda}^T \mathbf{g}(\mathbf{x}) + \boldsymbol{\mu}^T \mathbf{h}(\mathbf{x})$, we can reformulate this problem as the following min-max problem:
+Using the Lagrangian function $L(\mathbf{x}, \boldsymbol{\lambda}, \boldsymbol{\mu}) = f(\mathbf{x}) + \boldsymbol{\mu}^T \mathbf{g}(\mathbf{x}) + \boldsymbol{\lambda}^T \mathbf{h}(\mathbf{x})$, we can reformulate this problem as the following min-max problem:
 
 $$
 \min_{\mathbf{x}} \max_{\boldsymbol{\lambda}, \boldsymbol{\mu} \geq 0} L(\mathbf{x}, \boldsymbol{\lambda}, \boldsymbol{\mu})
@@ -707,8 +707,8 @@ $$
 The role of each component in this min-max structure can be understood as follows:
 
 1. The outer minimization over $\mathbf{x}$ finds the feasible point that minimizes the objective function $f(\mathbf{x})$.
-2. The maximization over $\boldsymbol{\lambda}$ ensures that equality constraints $\mathbf{g}(\mathbf{x}) = \mathbf{0}$ are satisfied.
-3. The maximization over $\boldsymbol{\mu} \geq 0$ ensures that inequality constraints $\mathbf{h}(\mathbf{x}) \leq \mathbf{0}$ are satisfied. If any inequality constraint is violated, the corresponding term in $\boldsymbol{\mu}^T \mathbf{h}(\mathbf{x})$ can be made arbitrarily large by choosing a large enough $\mu_i$.
+2. The maximization over $\boldsymbol{\mu} \geq 0$ ensures that inequality constraints $\mathbf{g}(\mathbf{x}) \leq \mathbf{0}$ are satisfied. If any inequality constraint is violated, the corresponding term in $\boldsymbol{\mu}^T \mathbf{g}(\mathbf{x})$ can be made arbitrarily large by choosing a large enough $\mu_i$.
+3. The maximization over $\boldsymbol{\lambda}$ ensures that equality constraints $\mathbf{h}(\mathbf{x}) = \mathbf{0}$ are satisfied. 
 
 Using this observation, we can devise an algorithm which, like SQP, will update both the primal and dual variables at every step. But rather than using second-order optimization, we will simply use a first-order gradient update step: a descent step in the primal variable, and an ascent step in the dual one. The corresponding procedure, when implemented by gradient descent, is called Gradient Ascent Descent in the learning and optimization communities. In the case of equality constraints only, the algorithm looks like the following:
 
