@@ -1,0 +1,136 @@
+Traceback (most recent call last):
+  File "/Users/pierre-lucbacon/Library/Python/3.9/lib/python/site-packages/jupyter_cache/executors/utils.py", line 58, in single_nb_execution
+    executenb(
+  File "/Users/pierre-lucbacon/Library/Python/3.9/lib/python/site-packages/nbclient/client.py", line 1314, in execute
+    return NotebookClient(nb=nb, resources=resources, km=km, **kwargs).execute()
+  File "/Users/pierre-lucbacon/Library/Python/3.9/lib/python/site-packages/jupyter_core/utils/__init__.py", line 165, in wrapped
+    return loop.run_until_complete(inner)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/asyncio/base_events.py", line 642, in run_until_complete
+    return future.result()
+  File "/Users/pierre-lucbacon/Library/Python/3.9/lib/python/site-packages/nbclient/client.py", line 709, in async_execute
+    await self.async_execute_cell(
+  File "/Users/pierre-lucbacon/Library/Python/3.9/lib/python/site-packages/nbclient/client.py", line 1062, in async_execute_cell
+    await self._check_raise_for_error(cell, cell_index, exec_reply)
+  File "/Users/pierre-lucbacon/Library/Python/3.9/lib/python/site-packages/nbclient/client.py", line 918, in _check_raise_for_error
+    raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
+nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
+------------------
+import numpy as np
+from scipy.integrate import odeint
+import json
+
+def simulate_water_heater(t, initial_conditions, params):
+    # ... (keep your existing simulation code here)
+
+# Run simulation
+t = np.linspace(0, 100, 1000)
+initial_conditions = [1000, 20]  # Initial mass (kg) and temperature (°C)
+params = [0.1, 1000, 4186, 0.1, 0.1, 15, 5000]  # Example parameters
+solution = simulate_water_heater(t, initial_conditions, params)
+
+# Prepare data
+data = [{"time": float(t[i]), "mass": float(solution[i, 0]), "temperature": float(solution[i, 1])} for i in range(len(t))]
+
+# Write data and visualization code directly into a JavaScript file
+with open('_static/water_heater_combined.js', 'w') as f:
+    f.write("const waterHeaterData = ")
+    json.dump(data, f)
+    f.write(";\n\n")
+    
+    # Add the visualization code
+    f.write("""
+    function initializeVisualization() {
+        const width = 300;
+        const height = 400;
+        const svg = d3.select("#water-heater")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+        // Draw tank
+        svg.append("rect")
+            .attr("x", 50)
+            .attr("y", 50)
+            .attr("width", 200)
+            .attr("height", 300)
+            .attr("fill", "none")
+            .attr("stroke", "black")
+            .attr("stroke-width", 2);
+
+        // Water level (initially empty)
+        const waterLevel = svg.append("rect")
+            .attr("x", 50)
+            .attr("y", 350)
+            .attr("width", 200)
+            .attr("height", 0)
+            .attr("fill", "#3498db");
+
+        // Labels
+        svg.append("text")
+            .attr("x", 100)
+            .attr("y", 30)
+            .attr("font-family", "Arial")
+            .attr("font-size", 16)
+            .text("Water Heater Model");
+
+        const tempLabel = svg.append("text")
+            .attr("x", 10)
+            .attr("y", 200)
+            .attr("font-family", "Arial")
+            .attr("font-size", 12)
+            .text("T(t): 0°C");
+
+        const massLabel = svg.append("text")
+            .attr("x", 10)
+            .attr("y", 220)
+            .attr("font-family", "Arial")
+            .attr("font-size", 12)
+            .text("m(t): 0%");
+
+        // Time slider
+        const slider = d3.select("#water-heater")
+            .append("input")
+            .attr("type", "range")
+            .attr("min", 0)
+            .attr("max", waterHeaterData.length - 1)
+            .attr("value", 0)
+            .attr("step", 1)
+            .style("width", "100%");
+
+        const maxMass = Math.max(...waterHeaterData.map(d => d.mass));
+
+        function updateWaterHeater(index) {
+            const massPercentage = (waterHeaterData[index].mass / maxMass) * 100;
+            const temperature = waterHeaterData[index].temperature;
+
+            const newHeight = (massPercentage / 100) * 300;
+            waterLevel
+                .attr("height", newHeight)
+                .attr("y", 350 - newHeight);
+
+            tempLabel.text(`T(t): ${temperature.toFixed(1)}°C`);
+            massLabel.text(`m(t): ${massPercentage.toFixed(1)}%`);
+        }
+
+        slider.on("input", function() {
+            updateWaterHeater(+this.value);
+        });
+
+        // Initialize with first data point
+        updateWaterHeater(0);
+    }
+
+    // Call the initialization function when the page loads
+    window.onload = initializeVisualization;
+    """)
+
+print("Combined data and visualization code exported to _static/water_heater_combined.js")
+------------------
+
+
+[0;36m  Cell [0;32mIn[1], line 9[0;36m[0m
+[0;31m    t = np.linspace(0, 100, 1000)[0m
+[0m    ^[0m
+[0;31mIndentationError[0m[0;31m:[0m expected an indented block
+
+

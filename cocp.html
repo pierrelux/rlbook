@@ -35,8 +35,8 @@
     <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
     <link rel="stylesheet" type="text/css" href="_static/proof.css?v=ca93fcec" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=87e54e7c" />
-    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=1f1b58a8" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -181,6 +181,7 @@
 
 
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">4. Continuous-Time Trajectory Optimization</a></li>
+
 </ul>
 
     </div>
@@ -393,20 +394,21 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-dynamical-systems">4.1. Example Dynamical Systems</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#inverted-pendulum">4.1.1. Inverted Pendulum</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#water-heater">4.1.2. Water Heater</a></li>
-</ul>
-</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">4. Continuous-Time Trajectory Optimization</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#state-space-models">4.1. State-Space Models</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#canonical-forms">4.2. Canonical Forms</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-problems">4.3. Example Problems</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nuclear-reactor">4.3.1. Nuclear Reactor</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#chemotherapy">4.3.2. Chemotherapy</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pollution-control">4.3.3. Pollution Control</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#government-corruption">4.4. Government Corruption</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#example-problems">5. Example Problems</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inverted-pendulum">5.1. Inverted Pendulum</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#nuclear-reactor">5.2. Nuclear Reactor</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#chemotherapy">5.3. Chemotherapy</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pollution-control">5.4. Pollution Control</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#government-corruption">5.5. Government Corruption</a></li>
 </ul>
+</li>
+</ul>
+
             </nav>
         </div>
     </div>
@@ -419,6 +421,8 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="continuous-time-trajectory-optimization">
 <h1><span class="section-number">4. </span>Continuous-Time Trajectory Optimization<a class="headerlink" href="#continuous-time-trajectory-optimization" title="Link to this heading">#</a></h1>
+<section id="state-space-models">
+<h2><span class="section-number">4.1. </span>State-Space Models<a class="headerlink" href="#state-space-models" title="Link to this heading">#</a></h2>
 <p>We extend our focus from the discrete-time setting to trajectory optimization in continuous time. Such models are omnipresent in various branches of science and engineering, where the dynamics of physical, biological, or economic systems are often described in terms of continuous-time differential equations. Here, we consider models given by ordinary differential equations (ODEs). However, continuous-time optimal control methods also exist beyond ODEs; for example, using stochastic differential equations (SDEs) or partial differential equations (PDEs).</p>
 <p>An example of such state-space representation is the following:</p>
 <div class="amsmath math notranslate nohighlight">
@@ -435,79 +439,66 @@ document.write(`
 \end{align*}\]</div>
 <p>where <span class="math notranslate nohighlight">\(\mathbf{A}\)</span>, <span class="math notranslate nohighlight">\(\mathbf{B}\)</span>, <span class="math notranslate nohighlight">\(\mathbf{C}\)</span>, and <span class="math notranslate nohighlight">\(\mathbf{D}\)</span> are constant matrices. The matrix <span class="math notranslate nohighlight">\(\mathbf{A}\)</span> is called the dynamics matrix, <span class="math notranslate nohighlight">\(\mathbf{B}\)</span> is the control matrix, <span class="math notranslate nohighlight">\(\mathbf{C}\)</span> is the sensor matrix, and <span class="math notranslate nohighlight">\(\mathbf{D}\)</span> is the direct term matrix. If the model does not have a direct term, it means that the control input <span class="math notranslate nohighlight">\(\mathbf{u}(t)\)</span> does not directly influence the output <span class="math notranslate nohighlight">\(\mathbf{y}(t)\)</span>.</p>
 <p>It is worth noting that linear models like the one presented above are becoming increasingly popular thanks to the development of structured state space models (S4 and such) [Gu et al., 2022]. These models leverage the inherent structure and properties of linear systems to design more efficient and interpretable neural networks for processing sequential data.</p>
-<section id="example-dynamical-systems">
-<h2><span class="section-number">4.1. </span>Example Dynamical Systems<a class="headerlink" href="#example-dynamical-systems" title="Link to this heading">#</a></h2>
-<section id="inverted-pendulum">
-<h3><span class="section-number">4.1.1. </span>Inverted Pendulum<a class="headerlink" href="#inverted-pendulum" title="Link to this heading">#</a></h3>
-<p>The inverted pendulum is a classic problem in control theory and robotics where the goal is to stabilize a pendulum in an upright position by applying a control force at its base.
-Let’s consider a simplified version of the inverted pendulum, where we focus on stabilizing the pendulum’s upright orientation without controlling the base’s location. The state of the system can be described by the angle <span class="math notranslate nohighlight">\(\theta(t)\)</span> and its angular velocity <span class="math notranslate nohighlight">\(\dot{\theta}(t)\)</span>. The dynamics of the system are governed by the following ordinary differential equation:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-ec4042cf-0eb4-4c4a-9c7f-197848a925d2">
-<span class="eqno">(4.1)<a class="headerlink" href="#equation-ec4042cf-0eb4-4c4a-9c7f-197848a925d2" title="Permalink to this equation">#</a></span>\[\begin{equation}
-\begin{bmatrix} \dot{\theta}(t) \\ \ddot{\theta}(t) \end{bmatrix} = \begin{bmatrix} \dot{\theta}(t) \\ \frac{mgl}{J_t} \sin{\theta(t)} - \frac{\gamma}{J_t} \dot{\theta}(t) + \frac{l}{J_t} u(t) \cos{\theta(t)} \end{bmatrix}, \quad y(t) = \theta(t)
-\end{equation}\]</div>
-<p>where:</p>
-<ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(m\)</span> is the mass of the pendulum</p></li>
-<li><p><span class="math notranslate nohighlight">\(g\)</span> is the acceleration due to gravity</p></li>
-<li><p><span class="math notranslate nohighlight">\(l\)</span> is the length of the pendulum</p></li>
-<li><p><span class="math notranslate nohighlight">\(\gamma\)</span> is the coefficient of rotational friction</p></li>
-<li><p><span class="math notranslate nohighlight">\(J_t = J + ml^2\)</span> is the total moment of inertia, with <span class="math notranslate nohighlight">\(J\)</span> being the pendulum’s moment of inertia about its center of mass</p></li>
-<li><p><span class="math notranslate nohighlight">\(u(t)\)</span> is the control force applied at the base</p></li>
-<li><p><span class="math notranslate nohighlight">\(y(t) = \theta(t)\)</span> is the measured output (the pendulum’s angle)</p></li>
-</ul>
-</section>
-<section id="water-heater">
-<h3><span class="section-number">4.1.2. </span>Water Heater<a class="headerlink" href="#water-heater" title="Link to this heading">#</a></h3>
-<p>The water heater can be modeled using a cylindrical tank with cross-section <span class="math notranslate nohighlight">\(A\)</span>. The state of the system is described by the total mass of the water <span class="math notranslate nohighlight">\(m(t)\)</span> and its temperature <span class="math notranslate nohighlight">\(T(t)\)</span>. The control variables are the input power <span class="math notranslate nohighlight">\(P(t)\)</span> and the inflow rate <span class="math notranslate nohighlight">\(q_\text{in}(t)\)</span>, while the disturbances are the temperature of the inflow <span class="math notranslate nohighlight">\(T_\text{in}(t)\)</span> and the outflow rate <span class="math notranslate nohighlight">\(q_\text{out}(t)\)</span>.</p>
-<p>The dynamics of the water heater can be described by the following system of ordinary differential equations:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-74856b6b-eb41-42eb-9c3b-5fb9c56894e5">
-<span class="eqno">(4.2)<a class="headerlink" href="#equation-74856b6b-eb41-42eb-9c3b-5fb9c56894e5" title="Permalink to this equation">#</a></span>\[\begin{align}
-\dot{m}(t) &amp;= q_\text{in}(t) - q_\text{out}(t) \\
-\dot{T}(t) &amp;= \frac{q_\text{in}(t)}{m(t)}(T_\text{in}(t) - T(t)) + \frac{1}{m(t)C}P(t)
-\end{align}\]</div>
-<p>where:</p>
-<ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(\rho\)</span> is the density of water</p></li>
-<li><p><span class="math notranslate nohighlight">\(h(t)\)</span> is the water level in the tank</p></li>
-<li><p><span class="math notranslate nohighlight">\(C\)</span> is the specific heat capacity of water</p></li>
-</ul>
-<p>These equations are derived from the mass balance and energy balance principles, assuming that the specific heat capacity <span class="math notranslate nohighlight">\(C\)</span> is constant and neglecting energy losses. The first equation represents the change in total mass over time, while the second equation describes the change in temperature over time.</p>
-</section>
 </section>
 <section id="canonical-forms">
 <h2><span class="section-number">4.2. </span>Canonical Forms<a class="headerlink" href="#canonical-forms" title="Link to this heading">#</a></h2>
 <p>These formulations use a state-space representation, where <span class="math notranslate nohighlight">\(\mathbf{x}(t)\)</span> denotes the state variables and <span class="math notranslate nohighlight">\(\mathbf{u}(t)\)</span> the control inputs. The time horizon <span class="math notranslate nohighlight">\([t_0, t_f]\)</span> represents the initial and final times, which may be fixed or free depending on the problem. While we’ve specified an initial condition <span class="math notranslate nohighlight">\(\mathbf{x}(t_0) = \mathbf{x}_0\)</span>, problems may also include terminal state constraints or free terminal states. Additionally, many practical applications involve path constraints on states and controls.</p>
 <p>As studied earlier in the discrete-time setting, we consider three variants of the continuous-time optimal control problem (COCP) with path constraints and bounds:</p>
-<div class="amsmath math notranslate nohighlight">
-\[\begin{align*}
-    &amp;\textbf{Mayer Problem:} \\
-    &amp;\text{minimize} \quad c(\mathbf{x}(t_f)) \\
-    &amp;\text{subject to} \quad \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
-    &amp;\phantom{\text{subject to}} \quad \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
-    &amp;\phantom{\text{subject to}} \quad \mathbf{x}_{\text{min}} \leq \mathbf{x}(t) \leq \mathbf{x}_{\text{max}} \\
-    &amp;\phantom{\text{subject to}} \quad \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
-    &amp;\text{given} \quad \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
-\end{align*}\]</div>
-<div class="amsmath math notranslate nohighlight">
-\[\begin{align*}
-    &amp;\textbf{Lagrange Problem:} \\
-    &amp;\text{minimize} \quad \int_{t_0}^{t_f} c(\mathbf{x}(t), \mathbf{u}(t)) \, dt \\
-    &amp;\text{subject to} \quad \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
-    &amp;\phantom{\text{subject to}} \quad \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
-    &amp;\phantom{\text{subject to}} \quad \mathbf{x}_{\text{min}} \leq \mathbf{x}(t) \leq \mathbf{x}_{\text{max}} \\
-    &amp;\phantom{\text{subject to}} \quad \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
-    &amp;\text{given} \quad \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
-\end{align*}\]</div>
-<div class="amsmath math notranslate nohighlight">
-\[\begin{align*}
-    &amp;\textbf{Bolza Problem:} \\
-    &amp;\text{minimize} \quad c(\mathbf{x}(t_f)) + \int_{t_0}^{t_f} c(\mathbf{x}(t), \mathbf{u}(t)) \, dt \\
-    &amp;\text{subject to} \quad \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
-    &amp;\phantom{\text{subject to}} \quad \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
-    &amp;\phantom{\text{subject to}} \quad \mathbf{x}_{\text{min}} \leq \mathbf{x}(t) \leq \mathbf{x}_{\text{max}} \\
-    &amp;\phantom{\text{subject to}} \quad \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
-    &amp;\text{given} \quad \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
-\end{align*}\]</div>
+<div class="sd-container-fluid sd-sphinx-override sd-mb-4 docutils">
+<div class="sd-row sd-g-1 sd-g-xs-1 sd-g-sm-1 sd-g-md-1 sd-g-lg-1 docutils">
+<div class="sd-col sd-d-flex-column docutils">
+<div class="proof definition admonition" id="definition-0">
+<p class="admonition-title"><span class="caption-number">Definition 4.1 </span> (Mayer Problem)</p>
+<section class="definition-content" id="proof-content">
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+    \text{minimize} \quad &amp; c(\mathbf{x}(t_f)) \\
+    \text{subject to} \quad &amp; \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
+                            &amp; \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
+                            &amp; \mathbf{x}_{\text{min}} \leq \mathbf{x}(t) \leq \mathbf{x}_{\text{max}} \\
+                            &amp; \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
+    \text{given} \quad &amp; \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
+\end{aligned}
+\end{split}\]</div>
+</section>
+</div></div>
+<div class="sd-col sd-d-flex-column docutils">
+<div class="proof definition admonition" id="definition-1">
+<p class="admonition-title"><span class="caption-number">Definition 4.2 </span> (Lagrange Problem)</p>
+<section class="definition-content" id="proof-content">
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+    \text{minimize} \quad &amp; \int_{t_0}^{t_f} c(\mathbf{x}(t), \mathbf{u}(t)) \, dt \\
+    \text{subject to} \quad &amp; \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
+                            &amp; \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
+                            &amp; \mathbf{x}_{\text{min}} \leq \mathbf{x}(t) \leq \mathbf{x}_{\text{max}} \\
+                            &amp; \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
+    \text{given} \quad &amp; \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
+\end{aligned}
+\end{split}\]</div>
+</section>
+</div></div>
+<div class="sd-col sd-d-flex-column docutils">
+<div class="proof definition admonition" id="definition-2">
+<p class="admonition-title"><span class="caption-number">Definition 4.3 </span> (Bolza Problem)</p>
+<section class="definition-content" id="proof-content">
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+    \text{minimize} \quad &amp; c(\mathbf{x}(t_f)) + \int_{t_0}^{t_f} c(\mathbf{x}(t), \mathbf{u}(t)) \, dt \\
+    \text{subject to} \quad &amp; \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
+                            &amp; \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
+                            &amp; \mathbf{x}_{\text{min}} \leq \mathbf{x}(t) \leq \mathbf{x}_{\text{max}} \\
+                            &amp; \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
+    \text{given} \quad &amp; \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
+\end{aligned}
+\end{split}\]</div>
+</section>
+</div></div>
+</div>
+</div>
 <p>In these formulations, the additional constraints are:</p>
 <ul class="simple">
 <li><p>Path constraints: <span class="math notranslate nohighlight">\(\mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0}\)</span>, which represent constraints that must be satisfied at all times along the trajectory.</p></li>
@@ -526,10 +517,32 @@ Let’s consider a simplified version of the inverted pendulum, where we focus o
     &amp;\text{given} \quad \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
 \end{align*}\]</div>
 </section>
-<section id="example-problems">
-<h2><span class="section-number">4.3. </span>Example Problems<a class="headerlink" href="#example-problems" title="Link to this heading">#</a></h2>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="example-problems">
+<h1><span class="section-number">5. </span>Example Problems<a class="headerlink" href="#example-problems" title="Link to this heading">#</a></h1>
+<section id="inverted-pendulum">
+<h2><span class="section-number">5.1. </span>Inverted Pendulum<a class="headerlink" href="#inverted-pendulum" title="Link to this heading">#</a></h2>
+<p><img alt="Inverted Pendulum" src="_images/inverted_pendulum.svg" /></p>
+<p>The inverted pendulum is a classic problem in control theory and robotics where the goal is to stabilize a pendulum in an upright position by applying a control force at its base.
+Let’s consider a simplified version of the inverted pendulum, where we focus on stabilizing the pendulum’s upright orientation without controlling the base’s location. The state of the system can be described by the angle <span class="math notranslate nohighlight">\(\theta(t)\)</span> and its angular velocity <span class="math notranslate nohighlight">\(\dot{\theta}(t)\)</span>. The dynamics of the system are governed by the following ordinary differential equation:</p>
+<div class="amsmath math notranslate nohighlight" id="equation-0ccb0940-ad49-4aa4-a61a-210d02fab588">
+<span class="eqno">(5.1)<a class="headerlink" href="#equation-0ccb0940-ad49-4aa4-a61a-210d02fab588" title="Permalink to this equation">#</a></span>\[\begin{equation}
+\begin{bmatrix} \dot{\theta}(t) \\ \ddot{\theta}(t) \end{bmatrix} = \begin{bmatrix} \dot{\theta}(t) \\ \frac{mgl}{J_t} \sin{\theta(t)} - \frac{\gamma}{J_t} \dot{\theta}(t) + \frac{l}{J_t} u(t) \cos{\theta(t)} \end{bmatrix}, \quad y(t) = \theta(t)
+\end{equation}\]</div>
+<p>where:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(m\)</span> is the mass of the pendulum</p></li>
+<li><p><span class="math notranslate nohighlight">\(g\)</span> is the acceleration due to gravity</p></li>
+<li><p><span class="math notranslate nohighlight">\(l\)</span> is the length of the pendulum</p></li>
+<li><p><span class="math notranslate nohighlight">\(\gamma\)</span> is the coefficient of rotational friction</p></li>
+<li><p><span class="math notranslate nohighlight">\(J_t = J + ml^2\)</span> is the total moment of inertia, with <span class="math notranslate nohighlight">\(J\)</span> being the pendulum’s moment of inertia about its center of mass</p></li>
+<li><p><span class="math notranslate nohighlight">\(u(t)\)</span> is the control force applied at the base</p></li>
+<li><p><span class="math notranslate nohighlight">\(y(t) = \theta(t)\)</span> is the measured output (the pendulum’s angle)</p></li>
+</ul>
+</section>
 <section id="nuclear-reactor">
-<h3><span class="section-number">4.3.1. </span>Nuclear Reactor<a class="headerlink" href="#nuclear-reactor" title="Link to this heading">#</a></h3>
+<h2><span class="section-number">5.2. </span>Nuclear Reactor<a class="headerlink" href="#nuclear-reactor" title="Link to this heading">#</a></h2>
+<p><img alt="Nuclear Reactor Diagram" src="_images/nuclear_reactor.svg" /></p>
 <p>In a nuclear reactor, neutrons interact with fissile nuclei, causing nuclear fission. This process produces more neutrons and smaller fissile nuclei called precursors. The precursors subsequently absorb more neutrons, generating “delayed” neutrons. The kinetic energy of these products is converted into thermal energy through collisions with neighboring atoms. The reactor’s power output is determined by the concentration of neutrons available for nuclear fission.</p>
 <p>The reaction kinetics can be modeled using a system of ordinary differential equations:</p>
 <div class="amsmath math notranslate nohighlight">
@@ -563,7 +576,7 @@ x(t_\mathrm{f}) &amp;= x_\mathrm{f} \\
 <p>and the constraint <span class="math notranslate nohighlight">\(|u(t)| \leq u_\mathrm{max}\)</span></p>
 </section>
 <section id="chemotherapy">
-<h3><span class="section-number">4.3.2. </span>Chemotherapy<a class="headerlink" href="#chemotherapy" title="Link to this heading">#</a></h3>
+<h2><span class="section-number">5.3. </span>Chemotherapy<a class="headerlink" href="#chemotherapy" title="Link to this heading">#</a></h2>
 <p>Chemotherapy is a common treatment for cancer that involves the use of drugs to kill cancer cells. However, these drugs can also have toxic effects on healthy cells in the body. To optimize the effectiveness of chemotherapy while minimizing its side effects, we can formulate an optimal control problem. Let’s explore this problem in more detail.</p>
 <p>The drug concentration <span class="math notranslate nohighlight">\(y_1(t)\)</span> and the number of immune cells <span class="math notranslate nohighlight">\(y_2(t)\)</span>, healthy cells <span class="math notranslate nohighlight">\(y_3(t)\)</span>, and cancer cells <span class="math notranslate nohighlight">\(y_4(t)\)</span> in an organ at any time <span class="math notranslate nohighlight">\(t\)</span> during chemotherapy can be modeled using a system of ordinary differential equations:</p>
 <div class="amsmath math notranslate nohighlight">
@@ -608,7 +621,7 @@ I = y_4(t_\mathrm{f}) + \int_0^{t_\mathrm{f}} u(t) \, \mathrm{d}t
 </ul>
 </section>
 <section id="pollution-control">
-<h3><span class="section-number">4.3.3. </span>Pollution Control<a class="headerlink" href="#pollution-control" title="Link to this heading">#</a></h3>
+<h2><span class="section-number">5.4. </span>Pollution Control<a class="headerlink" href="#pollution-control" title="Link to this heading">#</a></h2>
 <p>In this pollution control model, the objective is to maximize the total present value of the utility derived from food consumption while minimizing the disutility caused by DDT pollution. The model assumes that labor is the only primary factor of production, which is allocated between food production and DDT production. DDT is used as a secondary factor of production in food output but also causes pollution that can only be reduced by natural decay.</p>
 <p>The model introduces the following notation:</p>
 <ul class="simple">
@@ -636,9 +649,8 @@ v &amp;\geq 0
 <p>The state variable is the stock of DDT pollution <span class="math notranslate nohighlight">\(P(t)\)</span>, and the control variable is the amount of labor allocated to DDT production <span class="math notranslate nohighlight">\(v\)</span>. The objective functional represents the total present value of the utility of food consumption minus the disutility of pollution, discounted at a rate <span class="math notranslate nohighlight">\(\rho\)</span>.</p>
 <p>The dynamics of DDT pollution are governed by the rate of DDT output <span class="math notranslate nohighlight">\(a(v)\)</span> and the natural exponential decay rate <span class="math notranslate nohighlight">\(\delta\)</span>. The initial condition for the pollution stock is given by <span class="math notranslate nohighlight">\(P(0) = P_0\)</span>.</p>
 </section>
-</section>
 <section id="government-corruption">
-<h2><span class="section-number">4.4. </span>Government Corruption<a class="headerlink" href="#government-corruption" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">5.5. </span>Government Corruption<a class="headerlink" href="#government-corruption" title="Link to this heading">#</a></h2>
 <p>In this model from Feichtinger and Wirl (1994), we aim to understand the incentives for politicians to engage in corrupt activities or to combat corruption. The model considers a politician’s popularity as a dynamic process that is influenced by the public’s memory of recent and past corruption. The objective is to find conditions under which self-interested politicians would choose to be honest or dishonest.</p>
 <p>The model introduces the following notation:</p>
 <ul class="simple">
@@ -734,20 +746,21 @@ v &amp;\geq 0
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-dynamical-systems">4.1. Example Dynamical Systems</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#inverted-pendulum">4.1.1. Inverted Pendulum</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#water-heater">4.1.2. Water Heater</a></li>
-</ul>
-</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">4. Continuous-Time Trajectory Optimization</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#state-space-models">4.1. State-Space Models</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#canonical-forms">4.2. Canonical Forms</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-problems">4.3. Example Problems</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nuclear-reactor">4.3.1. Nuclear Reactor</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#chemotherapy">4.3.2. Chemotherapy</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pollution-control">4.3.3. Pollution Control</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#government-corruption">4.4. Government Corruption</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#example-problems">5. Example Problems</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inverted-pendulum">5.1. Inverted Pendulum</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#nuclear-reactor">5.2. Nuclear Reactor</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#chemotherapy">5.3. Chemotherapy</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pollution-control">5.4. Pollution Control</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#government-corruption">5.5. Government Corruption</a></li>
 </ul>
+</li>
+</ul>
+
   </nav></div>
 
 </div></div>
