@@ -1,4 +1,19 @@
+---
+jupytext:
+  text_representation:
+    extension: .md
+    format_name: myst
+    format_version: 0.13
+    jupytext_version: 1.16.3
+kernelspec:
+  display_name: Python 3
+  language: python
+  name: python3
+---
+
 # Continuous-Time Trajectory Optimization 
+
+## State-Space Models 
 
 We extend our focus from the discrete-time setting to trajectory optimization in continuous time. Such models are omnipresent in various branches of science and engineering, where the dynamics of physical, biological, or economic systems are often described in terms of continuous-time differential equations. Here, we consider models given by ordinary differential equations (ODEs). However, continuous-time optimal control methods also exist beyond ODEs; for example, using stochastic differential equations (SDEs) or partial differential equations (PDEs).
 
@@ -22,45 +37,6 @@ where $\mathbf{A}$, $\mathbf{B}$, $\mathbf{C}$, and $\mathbf{D}$ are constant ma
 
 It is worth noting that linear models like the one presented above are becoming increasingly popular thanks to the development of structured state space models (S4 and such) [Gu et al., 2022]. These models leverage the inherent structure and properties of linear systems to design more efficient and interpretable neural networks for processing sequential data.
 
-## Example Dynamical Systems
-
-### Inverted Pendulum
-
-The inverted pendulum is a classic problem in control theory and robotics where the goal is to stabilize a pendulum in an upright position by applying a control force at its base.
-Let's consider a simplified version of the inverted pendulum, where we focus on stabilizing the pendulum's upright orientation without controlling the base's location. The state of the system can be described by the angle $\theta(t)$ and its angular velocity $\dot{\theta}(t)$. The dynamics of the system are governed by the following ordinary differential equation:
-
-\begin{equation}
-\begin{bmatrix} \dot{\theta}(t) \\ \ddot{\theta}(t) \end{bmatrix} = \begin{bmatrix} \dot{\theta}(t) \\ \frac{mgl}{J_t} \sin{\theta(t)} - \frac{\gamma}{J_t} \dot{\theta}(t) + \frac{l}{J_t} u(t) \cos{\theta(t)} \end{bmatrix}, \quad y(t) = \theta(t)
-\end{equation}
-
-where:
-- $m$ is the mass of the pendulum
-- $g$ is the acceleration due to gravity
-- $l$ is the length of the pendulum
-- $\gamma$ is the coefficient of rotational friction
-- $J_t = J + ml^2$ is the total moment of inertia, with $J$ being the pendulum's moment of inertia about its center of mass
-- $u(t)$ is the control force applied at the base
-- $y(t) = \theta(t)$ is the measured output (the pendulum's angle)
-
-### Water Heater
-
-
-The water heater can be modeled using a cylindrical tank with cross-section $A$. The state of the system is described by the total mass of the water $m(t)$ and its temperature $T(t)$. The control variables are the input power $P(t)$ and the inflow rate $q_\text{in}(t)$, while the disturbances are the temperature of the inflow $T_\text{in}(t)$ and the outflow rate $q_\text{out}(t)$.
-
-The dynamics of the water heater can be described by the following system of ordinary differential equations:
-
-\begin{align}
-\dot{m}(t) &= q_\text{in}(t) - q_\text{out}(t) \\
-\dot{T}(t) &= \frac{q_\text{in}(t)}{m(t)}(T_\text{in}(t) - T(t)) + \frac{1}{m(t)C}P(t)
-\end{align}
-
-where:
-- $\rho$ is the density of water
-- $h(t)$ is the water level in the tank
-- $C$ is the specific heat capacity of water
-
-These equations are derived from the mass balance and energy balance principles, assuming that the specific heat capacity $C$ is constant and neglecting energy losses. The first equation represents the change in total mass over time, while the second equation describes the change in temperature over time.
-
 
 ## Canonical Forms
 
@@ -68,35 +44,59 @@ These formulations use a state-space representation, where $\mathbf{x}(t)$ denot
 
 As studied earlier in the discrete-time setting, we consider three variants of the continuous-time optimal control problem (COCP) with path constraints and bounds:
 
-\begin{align*}
-    &\textbf{Mayer Problem:} \\
-    &\text{minimize} \quad c(\mathbf{x}(t_f)) \\
-    &\text{subject to} \quad \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
-    &\phantom{\text{subject to}} \quad \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
-    &\phantom{\text{subject to}} \quad \mathbf{x}_{\text{min}} \leq \mathbf{x}(t) \leq \mathbf{x}_{\text{max}} \\
-    &\phantom{\text{subject to}} \quad \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
-    &\text{given} \quad \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
-\end{align*}
+::::{grid}
+:gutter: 1
 
-\begin{align*}
-    &\textbf{Lagrange Problem:} \\
-    &\text{minimize} \quad \int_{t_0}^{t_f} c(\mathbf{x}(t), \mathbf{u}(t)) \, dt \\
-    &\text{subject to} \quad \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
-    &\phantom{\text{subject to}} \quad \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
-    &\phantom{\text{subject to}} \quad \mathbf{x}_{\text{min}} \leq \mathbf{x}(t) \leq \mathbf{x}_{\text{max}} \\
-    &\phantom{\text{subject to}} \quad \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
-    &\text{given} \quad \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
-\end{align*}
+:::{grid-item}
+````{prf:definition} Mayer Problem
+$$
+\begin{aligned}
+    \text{minimize} \quad & c(\mathbf{x}(t_f)) \\
+    \text{subject to} \quad & \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
+                            & \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
+                            & \mathbf{x}_{\text{min}} \leq \mathbf{x}(t) \leq \mathbf{x}_{\text{max}} \\
+                            & \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
+    \text{given} \quad & \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
+\end{aligned}
+$$
 
-\begin{align*}
-    &\textbf{Bolza Problem:} \\
-    &\text{minimize} \quad c(\mathbf{x}(t_f)) + \int_{t_0}^{t_f} c(\mathbf{x}(t), \mathbf{u}(t)) \, dt \\
-    &\text{subject to} \quad \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
-    &\phantom{\text{subject to}} \quad \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
-    &\phantom{\text{subject to}} \quad \mathbf{x}_{\text{min}} \leq \mathbf{x}(t) \leq \mathbf{x}_{\text{max}} \\
-    &\phantom{\text{subject to}} \quad \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
-    &\text{given} \quad \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
-\end{align*}
+````
+:::
+
+:::{grid-item}
+````{prf:definition} Lagrange Problem
+$$
+\begin{aligned}
+    \text{minimize} \quad & \int_{t_0}^{t_f} c(\mathbf{x}(t), \mathbf{u}(t)) \, dt \\
+    \text{subject to} \quad & \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
+                            & \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
+                            & \mathbf{x}_{\text{min}} \leq \mathbf{x}(t) \leq \mathbf{x}_{\text{max}} \\
+                            & \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
+    \text{given} \quad & \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
+\end{aligned}
+$$
+
+````
+:::
+
+:::{grid-item}
+````{prf:definition} Bolza Problem
+$$
+\begin{aligned}
+    \text{minimize} \quad & c(\mathbf{x}(t_f)) + \int_{t_0}^{t_f} c(\mathbf{x}(t), \mathbf{u}(t)) \, dt \\
+    \text{subject to} \quad & \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
+                            & \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
+                            & \mathbf{x}_{\text{min}} \leq \mathbf{x}(t) \leq \mathbf{x}_{\text{max}} \\
+                            & \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
+    \text{given} \quad & \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
+\end{aligned}
+$$
+
+````
+:::
+::::
+
+
 
 In these formulations, the additional constraints are:
 
@@ -115,9 +115,31 @@ Furthermore, we may also encounter variations of the above problems under the as
     &\text{given} \quad \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
 \end{align*}
 
-## Example Problems
+# Example Problems
+## Inverted Pendulum
 
-### Nuclear Reactor
+![Inverted Pendulum](_static/inverted_pendulum.svg)
+
+The inverted pendulum is a classic problem in control theory and robotics where the goal is to stabilize a pendulum in an upright position by applying a control force at its base.
+Let's consider a simplified version of the inverted pendulum, where we focus on stabilizing the pendulum's upright orientation without controlling the base's location. The state of the system can be described by the angle $\theta(t)$ and its angular velocity $\dot{\theta}(t)$. The dynamics of the system are governed by the following ordinary differential equation:
+
+\begin{equation}
+\begin{bmatrix} \dot{\theta}(t) \\ \ddot{\theta}(t) \end{bmatrix} = \begin{bmatrix} \dot{\theta}(t) \\ \frac{mgl}{J_t} \sin{\theta(t)} - \frac{\gamma}{J_t} \dot{\theta}(t) + \frac{l}{J_t} u(t) \cos{\theta(t)} \end{bmatrix}, \quad y(t) = \theta(t)
+\end{equation}
+
+where:
+- $m$ is the mass of the pendulum
+- $g$ is the acceleration due to gravity
+- $l$ is the length of the pendulum
+- $\gamma$ is the coefficient of rotational friction
+- $J_t = J + ml^2$ is the total moment of inertia, with $J$ being the pendulum's moment of inertia about its center of mass
+- $u(t)$ is the control force applied at the base
+- $y(t) = \theta(t)$ is the measured output (the pendulum's angle)
+
+## Nuclear Reactor
+
+![Nuclear Reactor Diagram](_static/nuclear_reactor.svg)
+
 In a nuclear reactor, neutrons interact with fissile nuclei, causing nuclear fission. This process produces more neutrons and smaller fissile nuclei called precursors. The precursors subsequently absorb more neutrons, generating "delayed" neutrons. The kinetic energy of these products is converted into thermal energy through collisions with neighboring atoms. The reactor's power output is determined by the concentration of neutrons available for nuclear fission.
 
 The reaction kinetics can be modeled using a system of ordinary differential equations:
@@ -154,7 +176,7 @@ x(t_\mathrm{f}) &= x_\mathrm{f} \\
 
 and the constraint $|u(t)| \leq u_\mathrm{max}$
 
-### Chemotherapy
+## Chemotherapy
 
 Chemotherapy is a common treatment for cancer that involves the use of drugs to kill cancer cells. However, these drugs can also have toxic effects on healthy cells in the body. To optimize the effectiveness of chemotherapy while minimizing its side effects, we can formulate an optimal control problem. Let's explore this problem in more detail.
 
@@ -196,7 +218,7 @@ Additional constraints may include:
   u(t) \leq u_\max
   \end{equation*}
 
-### Pollution Control 
+## Pollution Control 
 
 In this pollution control model, the objective is to maximize the total present value of the utility derived from food consumption while minimizing the disutility caused by DDT pollution. The model assumes that labor is the only primary factor of production, which is allocated between food production and DDT production. DDT is used as a secondary factor of production in food output but also causes pollution that can only be reduced by natural decay.
 

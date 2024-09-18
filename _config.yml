@@ -31,14 +31,18 @@ html:
   use_issues_button: true
   use_edit_page_button: true
   baseurl: ""
-
+  extra_javascript:
+    - https://d3js.org/d3.v7.min.js
 sphinx:
   extra_extensions:
     - sphinx_proof
     - sphinxcontrib.mermaid
     - sphinxcontrib.tikz
-
+    - sphinx.ext.graphviz
+    - 'IPython.sphinxext.ipython_console_highlighting'
+    - 'IPython.sphinxext.ipython_directive'
   config:
+    graphviz_output_format: svg
     tikz_tikzlibraries: "shapes,arrows,positioning"
     mathjax_path: https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
     mathjax3_config:
@@ -49,3 +53,5 @@ parse:
   myst_enable_extensions:
     - dollarmath
     - amsmath
+    - deflist
+    - colon_fence

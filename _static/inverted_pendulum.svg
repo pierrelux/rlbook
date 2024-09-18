@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
+  <!-- Base -->
+  <rect x="50" y="250" width="200" height="10" fill="#666"/>
+  
+  <!-- Pendulum -->
+  <line x1="150" y1="250" x2="180" y2="70" stroke="#000" stroke-width="4"/>
+  <circle cx="180" cy="70" r="20" fill="#f00"/>
+  
+  <!-- Vertical reference line -->
+  <line x1="150" y1="250" x2="150" y2="50" stroke="#999" stroke-width="1" stroke-dasharray="5,5"/>
+   
+  <!-- Control force u(t) -->
+  <line x1="100" y1="270" x2="200" y2="270" stroke="#0a0" stroke-width="2"/>
+  <polygon points="200,270 190,265 190,275" fill="#0a0"/>
+  <text x="130" y="290" font-family="Arial" font-size="16" fill="#0a0">u(t)</text>
+  
+  <!-- Labels -->
+  <text x="190" y="160" font-family="Arial" font-size="16">l</text>
+  <text x="200" y="80" font-family="Arial" font-size="16">m</text>
+</svg>
