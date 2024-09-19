@@ -380,6 +380,67 @@ We expect that when no control is applied to the system, the rod should be falli
 :load: code/pendulum.py
 ```
 
+### Looking Under the Hood: Pendulum in the Gym Environment
+
+Gym is a widely used abstraction layer for defining discrete-time reinforcement learning problems. In reinforcement learning research, there's often a desire to develop general-purpose algorithms that are problem-agnostic. This research mindset leads us to voluntarily avoid considering the implementation details of a given environment. While this approach is understandable from a research perspective, it may not be optimal from a pragmatic, solution-driven standpoint where we care about solving specific problems efficiently. If we genuinely wanted to solve this problem without prior knowledge, why not look under the hood and embrace its nature as a trajectory optimization problem?
+
+Let's examine the code and reverse-engineer the original continuous-time problem hidden behind the abstraction layer. Although the pendulum problem may have limited practical relevance as a real-world application, it serves as an excellent example for our analysis. In the current version of [Pendulum](https://github.com/openai/gym/blob/dcd185843a62953e27c2d54dc8c2d647d604b635/gym/envs/classic_control/pendulum.py), we find that the Gym implementation uses a simplified model. Like our implementation, it assumes a fixed base and doesn't model cart movement. The state is also represented by the pendulum angle and angular velocity.
+However, the equations of motion implemented in the Gym environment are different and correspond to the following ODE:
+
+\begin{align*}
+\dot{\theta} &= \theta_{dot} \\
+\dot{\theta}_{dot} &= \frac{3g}{2l} \sin(\theta) + \frac{3}{ml^2} u
+\end{align*}
+
+Compared to our simplified model, the Gym implementation makes the following additional assumptions:
+
+1. It omits the term $\frac{\gamma}{J_t} \dot{\theta}(t)$, which represents damping or air resistance. This means that it assumes an idealized pendulum that doesn't naturally slow down over time. 
+
+2. It uses $ml^2$ instead of $J_t = J + ml^2$, which assumes that all mass is concentrated at the pendulum's end (like a point mass on a massless rod), rather than accounting for mass distribution along the pendulum. 
+
+3. The control input $u$ is applied directly, without a $\cos \theta(t)$ term, which means that the applied torque has the same effect regardless of the pendulum's position, rather than varying with angle. For example, imagine trying to push a door open. When the door is almost closed (pendulum near vertical), a small push perpendicular to the door (analogous to our control input) can easily start it moving. However, when the door is already wide open (pendulum horizontal), the same push has little effect on the door's angle. In a more detailed model, this would be captured by the $\cos \theta(t)$ term, which is maximum when the pendulum is vertical ($\cos 0° = 1$) and zero when horizontal ($\cos 90° = 0$).
+
+The goal remains to stabilize the rod upright, but the way in which this encoded is through the following instantenous cost function:
+
+\begin{align*}
+c(\theta, \dot{\theta}, u) &= (\text{normalize}(\theta))^2 + 0.1\dot{\theta}^2 + 0.001u^2\\
+\text{normalize}(\theta) &= ((\theta + \pi) \bmod 2\pi) - \pi
+\end{align*}
+
+This cost function penalizes deviations from the upright position (first term), discouraging rapid motion (second term), and limiting control effort (third term). The relative weights has been manually chosen to balance the primary goal of upright stabilization with the secondary aims of smooth motion and energy efficiency. The normalization ensures that the angle is always in the range $[-\pi, \pi]$ so that the pendulum positions (e.g., $0$ and $2\pi$) are treated identically, which could otherwise confuse learning algorithms.
+
+Studying the code further, we find that it imposes bound constraints on both the control input and the angular velocity through clipping operations:
+
+\begin{align*}
+u &= \max(\min(u, u_{max}), -u_{max}) \\
+\dot{\theta} &= \max(\min(\dot{\theta}, \dot{\theta}_{max}), -\dot{\theta}_{max})
+\end{align*}
+
+Where $u_{max} = 2.0$ and $\dot{\theta}_{max} = 8.0$.  Finally, when inspecting the [`step`](https://github.com/openai/gym/blob/dcd185843a62953e27c2d54dc8c2d647d604b635/gym/envs/classic_control/pendulum.py#L133) function, we find that the dynamics are discretized using forward Euler under a fixed step size of $dt=0.0.5$. Overall, the discrete-time trajectory optimization problem implemented in Gym is the following: 
+
+\begin{align*}
+\min_{u_k} \quad & J = \sum_{k=0}^{N-1} c(\theta_k, \dot{\theta}_k, u_k) \\
+\text{subject to:} \quad & \theta_{k+1} = \theta_k + \dot{\theta}_k \cdot dt \\
+& \dot{\theta}_{k+1} = \dot{\theta}_k + \left(\frac{3g}{2l}\sin(\theta_k) + \frac{3}{ml^2}u_k\right) \cdot dt \\
+& -u_{max} \leq u_k \leq u_{max} \\
+& -\dot{\theta}_{max} \leq \dot{\theta}_k \leq \dot{\theta}_{max} \\
+& \theta_0 = \theta_{initial}, \quad \dot{\theta}_0 = \dot{\theta}_{initial} \\
+& k = 0, 1, ..., N-1 \quad (N = 200)
+\end{align*}
+
+ with $g = 10.0$, $l = 1.0$, $m = 1.0$, $u_{max} = 2.0$, and $\dot{\theta}_{max} = 8.0$. This discrete-time problem corresponds to the following continuous-time optimal control problem:
+
+\begin{align*}
+\min_{u(t)} \quad & J = \int_{0}^{T} c(\theta(t), \dot{\theta}(t), u(t)) dt \\
+\text{subject to:} \quad & \dot{\theta}(t) = \dot{\theta}(t) \\
+& \ddot{\theta}(t) = \frac{3g}{2l}\sin(\theta(t)) + \frac{3}{ml^2}u(t) \\
+& -u_{max} \leq u(t) \leq u_{max} \\
+& -\dot{\theta}_{max} \leq \dot{\theta}(t) \leq \dot{\theta}_{max} \\
+& \theta(0) = \theta_0, \quad \dot{\theta}(0) = \dot{\theta}_0 \\
+& T = 10 \text{ seconds}
+\end{align*}
+
+
 ## Heat Exchanger 
 
 ![Heat Exchanger](_static/heat_exchanger.svg)
