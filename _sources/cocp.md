@@ -124,8 +124,221 @@ In optimal control problems, the use of an **exponential discount rate** $ e^{-\
 ````
 In this formulation, the term $e^{-\rho t}$ is a discount factor that exponentially decreases the importance of future costs relative to the present. The parameter $ \rho > 0$ is the discount rate. A larger value of $ \rho $ places more emphasis on the immediate cost and diminishes the impact of future costs. In infinite-horizon problems, the integral of the cost function $ \int_{t_0}^{\infty} c(\mathbf{x}(t), \mathbf{u}(t)) \, dt $ could potentially diverge because the cost accumulates over an infinite time period. Introducing the exponential term $ e^{-\rho t} $ guarantees that the integral converges as long as $ c(\mathbf{x}(t), \mathbf{u}(t)) $ grows at a slower rate than $ e^{\rho t} $. 
 
+## Numerical Methods for Solving ODEs
 
-# Example Problems
+An ODE is an implicit representation of a state-space trajectory: it tells us how the state changes in time but not precisely what the state is at any given time. To find out this information, we need to either solve the ODE analytically (for some special structure) or, as we're going to do, solve them numerically. This numerical procedure is meant to solve what is called an IVP (initial value problem) of the form:
+
+$$
+\text{Find } x(t) \text{ given } \dot{x}(t) = f(x(t), t) \text{ and } x(t_0) = x_0
+$$
+
+### Euler's Method 
+
+The algorithm to solve this problem is, in its simplest form, a for loop which closely resembles the updates encountered in gradient descent (in fact, gradient descent can be derived from the gradient flow ODE, but that's another discussion). The so-called explicit Euler's method can be implemented as follow: 
+
+````{prf:algorithm} Euler's method
+:label: euler-method
+
+**Input:** $f(x, t)$, $x_0$, $t_0$, $t_{end}$, $h$
+
+**Output:** Approximate solution $x(t)$ at discrete time points
+
+1. Initialize $t = t_0$, $x = x_0$
+2. While $t < t_{end}$:
+3.   Compute $x_{new} = x + h f(x, t)$
+4.   Update $t = t + h$
+5.   Update $x = x_{new}$
+6.   Store or output the pair $(t, x)$
+7. End While
+````
+
+Consider the following simple dynamical system of a ballistic motion model, neglecting air resistance. The state of the system is described by two variables: $y(t)$: vertical position at time $t$ and $v(t)$, the vertical velocity at time $t$. The corresponding ODE is: 
+
+$$
+\begin{aligned}
+\frac{dy}{dt} &= v \\
+\frac{dv}{dt} &= -g
+\end{aligned}
+$$
+
+where $g \approx 9.81 \text{ m/s}^2$ is the acceleration due to gravity. In our code, we use the initial conditions 
+$y(0) = 0 \text{ m}$ and $v(0) = v_0 \text{ m/s}$ where $v_0$ is the initial velocity (in this case, $v_0 = 20 \text{ m/s}$). 
+The analytical solution to this system is:
+
+$$
+\begin{aligned}
+y(t) &= v_0t - \frac{1}{2}gt^2 \\
+v(t) &= v_0 - gt
+\end{aligned}
+$$
+
+This system models the vertical motion of an object launched upward, reaching a maximum height before falling back down due to gravity.
+
+Euler's method can be obtained by taking the first-order Taylor expansion of $x(t)$ at $t$:
+
+$$
+x(t + h) \approx x(t) + h \frac{dx}{dt}(t) = x(t) + h f(x(t), t)
+$$
+
+Each step of the algorithm therefore involves approximating the function with a linear function of slope $f$ over the given interval $h$. 
+
+```{code-cell} ipython3
+:tags: [hide-input]
+:load: code/euler_step_size_viz.py
+```
+
+Another way to understand Euler's method is through the fundamental theorem of calculus:
+
+$$
+x(t + h) = x(t) + \int_t^{t+h} f(x(\tau), \tau) d\tau
+$$
+
+We then approximate the integral term with a box of width $h$ and height $f$, and therefore of area $h f$.
+```{code-cell} ipython3
+:tags: [hide-input]
+:load: code/euler_integral_approximation_viz.py
+```
+
+
+### Implicit Euler's Method
+
+An alternative approach is the Implicit Euler method, also known as the Backward Euler method. Instead of using the derivative at the current point to step forward, it uses the derivative at the end of the interval. This leads to the following update rule:
+
+$$
+x_{new} = x + h f(x_{new}, t_{new})
+$$
+
+Note that $x_{new}$ appears on both sides of the equation, making this an implicit method. The algorithm for the Implicit Euler method can be described as follows:
+
+````{prf:algorithm} Implicit Euler's Method
+:label: implicit-euler-method
+
+**Input:** $f(x, t)$, $x_0$, $t_0$, $t_{end}$, $h$
+
+**Output:** Approximate solution $x(t)$ at discrete time points
+
+1. Initialize $t = t_0$, $x = x_0$
+2. While $t < t_{end}$:
+3.   Set $t_{new} = t + h$
+4.   Solve for $x_{new}$ in the equation: $x_{new} = x + h f(x_{new}, t_{new})$
+5.   Update $t = t_{new}$
+6.   Update $x = x_{new}$
+7.   Store or output the pair $(t, x)$
+8. End While
+````
+
+The key difference in the Implicit Euler method is step 4, where we need to solve a (potentially nonlinear) equation to find $x_{new}$. This is typically done using iterative methods such as fixed-point iteration or Newton's method.
+
+#### Stiff ODEs
+
+While the Implicit Euler method requires more computation per step, it often allows for larger step sizes and can provide better stability for certain types of problems, especially stiff ODEs. 
+
+Stiff ODEs are differential equations for which certain numerical methods for solving the equation are numerically unstable, unless the step size is taken to be extremely small. These ODEs typically involve multiple processes occurring at widely different rates. In a stiff problem, the fastest-changing component of the solution can make the numerical method unstable unless the step size is extremely small. However, such a small step size may lead to an impractical amount of computation to traverse the entire interval of interest.
+
+For example, consider a chemical reaction where some reactions occur very quickly while others occur much more slowly. The fast reactions quickly approach their equilibrium, but small perturbations in the slower reactions can cause rapid changes in the fast reactions. 
+
+A classic example of a stiff ODE is the Van der Pol oscillator with a large parameter. The Van der Pol equation is:
+
+$$
+\frac{d^2x}{dt^2} - \mu(1-x^2)\frac{dx}{dt} + x = 0
+$$
+
+where $\mu$ is a scalar parameter. This second-order ODE can be transformed into a system of first-order ODEs by introducing a new variable $y = \frac{dx}{dt}$:
+
+$$
+\begin{aligned}
+\frac{dx}{dt} &= y \\
+\frac{dy}{dt} &= \mu(1-x^2)y - x
+\end{aligned}
+$$
+
+When $\mu$ is large (e.g., $\mu = 1000$), this system becomes stiff. The large $\mu$ causes rapid changes in $y$ when $x$ is near ±1, but slower changes elsewhere. This leads to a solution with sharp transitions followed by periods of gradual change.
+
+### Trapezoid Method 
+
+The trapezoid method, also known as the trapezoidal rule, offers improved accuracy and stability compared to the simple Euler method. The name "trapezoid method" comes from the idea of using a trapezoid to approximate the integral term in the fundamental theorem of calculus. This leads to the following update rule:
+
+$$
+x_{new} = x + \frac{h}{2}[f(x, t) + f(x_{new}, t_{new})]
+$$
+
+where $ t_{new} = t + h $. Note that this formula involves $ x_{new} $ on both sides of the equation, making it an implicit method, similar to the implicit Euler method discussed earlier.
+
+```{code-cell} ipython3
+:tags: [hide-input]
+:load: code/trapezoid_integral_approximation_viz.py
+```
+
+Algorithmically, the trapezoid method can be described as follows:
+
+````{prf:algorithm} Trapezoid Method
+
+**Input:** $ f(x, t) $, $ x_0 $, $ t_0 $, $ t_{end} $, $ h $
+
+**Output:** Approximate solution $ x(t) $ at discrete time points
+
+1. Initialize $ t = t_0 $, $ x = x_0 $
+2. While $ t < t_{end} $:
+3. &emsp; Set $ t_{new} = t + h $
+4. &emsp; Solve for $ x_{new} $in the equation: $ x_{new} = x + \frac{h}{2}[f(x, t) + f(x_{new}, t_{new})] $
+5. &emsp; Update $ t = t_{new} $
+6. &emsp; Update $ x = x_{new} $
+7. &emsp; Store or output the pair $ (t, x) $
+````
+
+The trapezoid method can also be derived by averaging the forward Euler and backward Euler methods. Recall that:
+
+1. **Forward Euler method:**
+
+   $$ x_{n+1} = x_n + h f(x_n, t_n) $$
+
+2. **Backward Euler method:**
+
+   $$ x_{n+1} = x_n + h f(x_{n+1}, t_{n+1}) $$
+
+Taking the average of these two methods yields:
+
+$$
+\begin{aligned}
+x_{n+1} &= \frac{1}{2} \left( x_n + h f(x_n, t_n) \right) + \frac{1}{2} \left( x_n + h f(x_{n+1}, t_{n+1}) \right) \\
+&= x_n + \frac{h}{2} \left( f(x_n, t_n) + f(x_{n+1}, t_{n+1}) \right)
+\end{aligned}
+$$
+
+This is precisely the update rule for the trapezoid method. Recall that the forward Euler method approximates the solution by extrapolating linearly using the slope at the beginning of the interval $[t_n, t_{n+1}] $. In contrast, the backward Euler method extrapolates linearly using the slope at the end of the interval. The trapezoid method, on the other hand, averages these two slopes. This averaging provides better approximation properties than either of the methods alone, offering both stability and accuracy. Note finally that unlike the forward or backward Euler methods, the trapezoid method is also symmetric in time. This means that if you were to reverse time and apply the method backward, you would get the same results (up to numerical precision). 
+
+
+### Trapezoidal Predictor-Corrector
+
+The trapezoid method can also be implemented under the so-called predictor-corrector framework. This interpretation reformulates the implicit trapezoid rule into an explicit two-step process:
+
+1. **Predictor Step**:  
+   We make an initial guess for $ x_{n+1} $ using the forward Euler method:
+
+   $$
+   x_{n+1}^* = x_n + h f(x_n, t_n)
+   $$
+
+   This is our "predictor" step, where $ x_{n+1}^* $ is the predicted value of $ x_{n+1} $.
+
+2. **Corrector Step**:  
+   We then use this predicted value to estimate $ f(x_{n+1}^*, t_{n+1}) $ and apply the trapezoid formula:
+
+   $$
+   x_{n+1} = x_n + \frac{h}{2} \left[ f(x_n, t_n) + f(x_{n+1}^*, t_{n+1}) \right]
+   $$
+
+   This is our "corrector" step, where the initial guess $ x_{n+1}^* $ is corrected by taking into account the slope at $ (x_{n+1}^*, t_{n+1}) $.
+
+This two-step process is similar to performing one iteration of Newton's method to solve the implicit trapezoid equation, starting from the Euler prediction. However, to fully solve the implicit equation, multiple iterations would be necessary until convergence is achieved.
+
+```{code-cell} ipython3
+:tags: [hide-input]
+:load: code/predictor_corrector_trapezoid_viz.py
+```
+
+
+# Examples Control Problems
 
 ## Inverted Pendulum
 
