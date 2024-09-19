@@ -105,8 +105,9 @@ In these formulations, the additional constraints are:
 - Control bounds: $\mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}}$, which specify the lower and upper bounds on the control inputs.
 
 Furthermore, we may also encounter variations of the above problems under the assumption that horizon is infinite. For example: 
+
+````{prf:definition} Infinite-Horizon Trajectory Optimization 
 \begin{align*}
-    &\textbf{Infinite Horizon Problem:} \\
     &\text{minimize} \quad \int_{t_0}^{\infty} e^{-\rho t} c(\mathbf{x}(t), \mathbf{u}(t)) \, dt \\
     &\text{subject to} \quad \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
     &\phantom{\text{subject to}} \quad \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
@@ -114,14 +115,37 @@ Furthermore, we may also encounter variations of the above problems under the as
     &\phantom{\text{subject to}} \quad \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
     &\text{given} \quad \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
 \end{align*}
+````
+````{margin}
+```{note}
+In optimal control problems, the use of an **exponential discount rate** $ e^{-\rho t} $ is favored over a discrete-time **discount factor** $ \gamma $ (commonly used in reinforcement learning). For small time steps $ \Delta t $, we can approximate the exponential discounting as
+     $e^{-\rho \Delta t} \approx 1 - \rho \Delta t.$ Therefore, as $ \Delta t \to 0 $, the continuous discount factor $ e^{-\rho t} $ corresponds to a discrete discount factor $ \gamma = e^{-\rho \Delta t} \approx 1 - \rho \Delta t $. 
+```
+````
+In this formulation, the term $e^{-\rho t}$ is a discount factor that exponentially decreases the importance of future costs relative to the present. The parameter $ \rho > 0$ is the discount rate. A larger value of $ \rho $ places more emphasis on the immediate cost and diminishes the impact of future costs. In infinite-horizon problems, the integral of the cost function $ \int_{t_0}^{\infty} c(\mathbf{x}(t), \mathbf{u}(t)) \, dt $ could potentially diverge because the cost accumulates over an infinite time period. Introducing the exponential term $ e^{-\rho t} $ guarantees that the integral converges as long as $ c(\mathbf{x}(t), \mathbf{u}(t)) $ grows at a slower rate than $ e^{\rho t} $. 
+
 
 # Example Problems
+
 ## Inverted Pendulum
 
-![Inverted Pendulum](_static/inverted_pendulum.svg)
+The inverted pendulum is a classic problem in control theory and robotics that demonstrates the challenge of stabilizing a dynamic system that is inherently unstable. The objective is to keep a pendulum balanced in the upright position by applying a control force, typically at its base. This setup is analogous to balancing a broomstick on your finger: any deviation from the vertical position will cause the system to tip over unless you actively counteract it with appropriate control actions.
 
-The inverted pendulum is a classic problem in control theory and robotics where the goal is to stabilize a pendulum in an upright position by applying a control force at its base.
-Let's consider a simplified version of the inverted pendulum, where we focus on stabilizing the pendulum's upright orientation without controlling the base's location. The state of the system can be described by the angle $\theta(t)$ and its angular velocity $\dot{\theta}(t)$. The dynamics of the system are governed by the following ordinary differential equation:
+We typically assume that the pendulum is mounted on a cart or movable base, which can move horizontally. The system's state is then characterized by four variables:
+
+1. **Cart position**: $ x(t) $ — the horizontal position of the base.
+2. **Cart velocity**: $ \dot{x}(t) $ — the speed of the cart.
+3. **Pendulum angle**: $ \theta(t) $ — the angle between the pendulum and the vertical upright position.
+4. **Angular velocity**: $ \dot{\theta}(t) $ — the rate at which the pendulum's angle is changing.
+
+This setup is more complex because the controller must deal with interactions between two different types of motion: linear (the cart) and rotational (the pendulum). This system is said to be "underactuated" because the number of control inputs (one) is less than the number of state variables (four). This makes the problem more challenging and interesting from a control perspective.
+
+We can simplify the problem by assuming that the base of the pendulum is fixed.  This is akin to having the bottom of the stick attached to a fixed pivot on a table. You can't move the base anymore; you can only apply small nudges at the pivot point to keep the stick balanced upright. In this case, you're only focusing on adjusting the stick's tilt without worrying about moving the base. This reduces the problem to stabilizing the pendulum’s upright orientation using only the rotational dynamics. The system's state can now be described by just two variables:
+
+1. **Pendulum angle**: $ \theta(t) $ — the angle of the pendulum from the upright vertical position.
+2. **Angular velocity**: $ \dot{\theta}(t) $ — the rate at which the pendulum's angle is changing.
+
+The evolution of these two varibles is governed by the following ordinary differential equation:
 
 \begin{equation}
 \begin{bmatrix} \dot{\theta}(t) \\ \ddot{\theta}(t) \end{bmatrix} = \begin{bmatrix} \dot{\theta}(t) \\ \frac{mgl}{J_t} \sin{\theta(t)} - \frac{\gamma}{J_t} \dot{\theta}(t) + \frac{l}{J_t} u(t) \cos{\theta(t)} \end{bmatrix}, \quad y(t) = \theta(t)
@@ -135,6 +159,48 @@ where:
 - $J_t = J + ml^2$ is the total moment of inertia, with $J$ being the pendulum's moment of inertia about its center of mass
 - $u(t)$ is the control force applied at the base
 - $y(t) = \theta(t)$ is the measured output (the pendulum's angle)
+
+We expect that when no control is applied to the system, the rod should be falling down when started from the upright position. 
+
+```{code-cell} ipython3
+:tags: [hide-input]
+:load: code/pendulum.py
+```
+
+## Heat Exchanger 
+
+![Heat Exchanger](_static/heat_exchanger.svg)
+
+
+We are considering a system where fluid flows through a tube, and the goal is to control the temperature of the fluid by adjusting the temperature of the tube's wall over time. The wall temperature, denoted as $ T_w(t) $, can be changed as a function of time, but it remains the same along the length of the tube. On the other hand, the temperature of the fluid inside the tube, $ T(z, t) $, depends both on its position along the tube $ z $ and on time $ t $. It evolves according to the following partial differential equation:
+
+$$
+\frac{\partial T}{\partial t} = -v \frac{\partial T}{\partial z} + \frac{h}{\rho C_p} (T_w(t) - T)
+$$
+
+where we have:
+- $ v $: the average speed of the fluid moving through the tube,
+- $ h $: how easily heat transfers from the wall to the fluid,
+- $ \rho $ and $ C_p $: the fluid’s density and heat capacity.
+
+This equation describes how the fluid's temperature changes as it moves along the tube and interacts with the tube's wall temperature. The fluid enters the tube with an initial temperature $ T_0 $ at the inlet (where $ z = 0 $). Our objective is to adjust the wall temperature $ T_w(t) $ so that by a specific final time $ t_f $, the fluid's temperature reaches a desired distribution $ T_s(z) $ along the length of the tube. The relationship for $ T_s(z) $ under steady-state conditions (ie. when changes over time are no longer considered), is given by:
+
+$$
+\frac{d T_s}{d z} = \frac{h}{v \rho C_p}[\theta - T_s]
+$$
+
+where $ \theta $ is a constant temperature we want to maintain at the wall. The objective is to control the wall temperature $ T_w(t) $ so that by the end of the time interval $ t_f $, the fluid temperature $ T(z, t_f) $ is as close as possible to the desired distribution $ T_s(z) $. This can be formalized by minimizing the following quantity:
+
+$$
+I = \int_0^L \left[T(z, t_f) - T_s(z)\right]^2 dz
+$$
+
+where $ L $ is the length of the tube. Additionally, we require that the wall temperature cannot exceed a maximum allowable value $ T_{\max} $:
+
+$$
+T_w(t) \leq T_{\max}
+$$
+
 
 ## Nuclear Reactor
 
@@ -217,39 +283,6 @@ Additional constraints may include:
   \begin{equation*}
   u(t) \leq u_\max
   \end{equation*}
-
-## Pollution Control 
-
-In this pollution control model, the objective is to maximize the total present value of the utility derived from food consumption while minimizing the disutility caused by DDT pollution. The model assumes that labor is the only primary factor of production, which is allocated between food production and DDT production. DDT is used as a secondary factor of production in food output but also causes pollution that can only be reduced by natural decay.
-
-The model introduces the following notation:
-
-- $L$: total labor force, assumed to be constant
-- $v$: amount of labor used for DDT production
-- $L - v$: amount of labor used for food production
-- $P$: stock of DDT pollution at time $t$
-- $a(v)$: rate of DDT output; $a(0) = 0$, $a'(v) > 0$, $a''(v) < 0$ for $v \geq 0$
-- $\delta$: natural exponential decay rate of DDT pollution
-- $C(v) = f[L - v, a(v)]$: rate of food output to be consumed; $C(v)$ is concave, $C(0) > 0$, $C(L) = 0$; $C(v)$ attains a unique maximum at $v = V > 0$ (see Fig. 11.4)
-- $u(C)$: utility function of consuming the food output $C \geq 0$; $u'(0) = \infty$, $u'(C) > 0$, $u''(C) < 0$
-- $h(P)$: disutility function of pollution stock $P \geq 0$; $h'(0) = 0$, $h'(P) > 0$, $h''(P) > 0$
-
-The optimal control problem is to maximize the objective functional:
-
-\begin{equation*}
-J = \int_0^{\infty} e^{-\rho t} [u(C(v)) - h(P)] \, \mathrm{d}t
-\end{equation*}
-
-subject to the dynamics of DDT pollution:
-
-\begin{align*}
-\dot{P}(t) &= a(v) - \delta P(t), \quad P(0) = P_0 \\
-v &\geq 0
-\end{align*}
-
-The state variable is the stock of DDT pollution $P(t)$, and the control variable is the amount of labor allocated to DDT production $v$. The objective functional represents the total present value of the utility of food consumption minus the disutility of pollution, discounted at a rate $\rho$.
-
-The dynamics of DDT pollution are governed by the rate of DDT output $a(v)$ and the natural exponential decay rate $\delta$. The initial condition for the pollution stock is given by $P(0) = P_0$.
 
 ## Government Corruption 
 
