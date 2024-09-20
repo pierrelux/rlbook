@@ -515,7 +515,7 @@ and the constraint $|u(t)| \leq u_\mathrm{max}$
 
 ## Chemotherapy
 
-Chemotherapy is a common treatment for cancer that involves the use of drugs to kill cancer cells. However, these drugs can also have toxic effects on healthy cells in the body. To optimize the effectiveness of chemotherapy while minimizing its side effects, we can formulate an optimal control problem. Let's explore this problem in more detail.
+Chemotherapy uses drugs to kill cancer cells. However, these drugs can also have toxic effects on healthy cells in the body. To optimize the effectiveness of chemotherapy while minimizing its side effects, we can formulate an optimal control problem. 
 
 The drug concentration $y_1(t)$ and the number of immune cells $y_2(t)$, healthy cells $y_3(t)$, and cancer cells $y_4(t)$ in an organ at any time $t$ during chemotherapy can be modeled using a system of ordinary differential equations:
 
@@ -600,3 +600,30 @@ The optimal control problem can be formulated as follows:
 \end{align*}
 
 The state variables are the accumulated awareness of past corruption $C(t)$ and the politician's popularity $P(t)$. The control variable is the extent of corruption $u(t)$. The objective functional represents the discounted stream of benefits coming from being honest (popularity) and from being dishonest (corruption).
+
+# Direct Transcription Methods
+
+## Example: Life-Cycle Model
+
+The life-cycle model of consumption is a problem in economics regarding how individuals allocate resources over their lifetime, trading-off present and future consumption depending on their income and ability to save or borrow. This model demonstrates the idea that individuals tend to prefer stable consumption, even when their income varies: a behavior called "consumption smoothing". This problem can be represented mathematically as follows:
+
+$$
+\begin{align*}
+\max_{c(t)} \quad & \int_0^T e^{-\rho t} u(c(t)) dt \\
+\text{subject to} \quad & \dot{A}(t) = f(A(t)) + w(t) - c(t) \\
+& A(0) = A(T) = 0
+\end{align*}
+$$
+
+where $[0, T]$ is the lifespan of an individual. In this model, we typically use a Constant Relative Risk Aversion (CRRA) utility function, 
+$u(c) = \frac{c^{1-\gamma}}{1-\gamma}$, where larger values of the parameter $\gamma$ encode a stronger preference for a stable consumption.
+
+The budget constraint, $\dot{A}(t) = f(A(t)) + w(t) - c(t)$, describes the evolution of assets, $A(t)$. Here, $f(A(t))$ represents returns on investments, $w(t)$ is wage income, and $c(t)$ is consumption. The asset return function $f(A) = 0.03A$ models a constant 3\% return on investments.
+In our specific implementation, the choice of the wage function $w(t) = 1 + 0.1t - 0.001t^2$ is meant to represent a career trajectory where income rises initially and then falls. The boundary conditions $A(0) = A(T) = 0$ finally encodes the fact that individuals start and end life with zero assets (ie. no inheritances).
+
+To solve this problem numerically, we use a direct transcription approach and solve the corresponding discretized NLP using single shooting. We use the fourth-order Runge-Kutta method (RK4) to simulate the assets dynamics and `scipy.optimize.fsolve` to optimize $c(0)$.
+
+```{code-cell} ipython3
+:tags: [hide-input]
+:load: code/life_cycle_rk4.py
+```
