@@ -11,7 +11,7 @@ kernelspec:
   name: python3
 ---
 
-# Continuous-Time Trajectory Optimization 
+# Continuous-Time Dynamical Systems
 
 ## State-Space Models 
 
@@ -36,93 +36,6 @@ A state space model is called a linear state space model (or simply a linear sys
 where $\mathbf{A}$, $\mathbf{B}$, $\mathbf{C}$, and $\mathbf{D}$ are constant matrices. The matrix $\mathbf{A}$ is called the dynamics matrix, $\mathbf{B}$ is the control matrix, $\mathbf{C}$ is the sensor matrix, and $\mathbf{D}$ is the direct term matrix. If the model does not have a direct term, it means that the control input $\mathbf{u}(t)$ does not directly influence the output $\mathbf{y}(t)$.
 
 It is worth noting that linear models like the one presented above are becoming increasingly popular thanks to the development of structured state space models (S4 and such) [Gu et al., 2022]. These models leverage the inherent structure and properties of linear systems to design more efficient and interpretable neural networks for processing sequential data.
-
-
-## Canonical Forms
-
-These formulations use a state-space representation, where $\mathbf{x}(t)$ denotes the state variables and $\mathbf{u}(t)$ the control inputs. The time horizon $[t_0, t_f]$ represents the initial and final times, which may be fixed or free depending on the problem. While we've specified an initial condition $\mathbf{x}(t_0) = \mathbf{x}_0$, problems may also include terminal state constraints or free terminal states. Additionally, many practical applications involve path constraints on states and controls.
-
-As studied earlier in the discrete-time setting, we consider three variants of the continuous-time optimal control problem (COCP) with path constraints and bounds:
-
-::::{grid}
-:gutter: 1
-
-:::{grid-item}
-````{prf:definition} Mayer Problem
-$$
-\begin{aligned}
-    \text{minimize} \quad & c(\mathbf{x}(t_f)) \\
-    \text{subject to} \quad & \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
-                            & \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
-                            & \mathbf{x}_{\text{min}} \leq \mathbf{x}(t) \leq \mathbf{x}_{\text{max}} \\
-                            & \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
-    \text{given} \quad & \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
-\end{aligned}
-$$
-
-````
-:::
-
-:::{grid-item}
-````{prf:definition} Lagrange Problem
-$$
-\begin{aligned}
-    \text{minimize} \quad & \int_{t_0}^{t_f} c(\mathbf{x}(t), \mathbf{u}(t)) \, dt \\
-    \text{subject to} \quad & \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
-                            & \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
-                            & \mathbf{x}_{\text{min}} \leq \mathbf{x}(t) \leq \mathbf{x}_{\text{max}} \\
-                            & \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
-    \text{given} \quad & \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
-\end{aligned}
-$$
-
-````
-:::
-
-:::{grid-item}
-````{prf:definition} Bolza Problem
-$$
-\begin{aligned}
-    \text{minimize} \quad & c(\mathbf{x}(t_f)) + \int_{t_0}^{t_f} c(\mathbf{x}(t), \mathbf{u}(t)) \, dt \\
-    \text{subject to} \quad & \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
-                            & \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
-                            & \mathbf{x}_{\text{min}} \leq \mathbf{x}(t) \leq \mathbf{x}_{\text{max}} \\
-                            & \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
-    \text{given} \quad & \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
-\end{aligned}
-$$
-
-````
-:::
-::::
-
-
-
-In these formulations, the additional constraints are:
-
-- Path constraints: $\mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0}$, which represent constraints that must be satisfied at all times along the trajectory.
-- State bounds: $\mathbf{x}_{\text{min}} \leq \mathbf{x}(t) \leq \mathbf{x}_{\text{max}}$, which specify the lower and upper bounds on the state variables.
-- Control bounds: $\mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}}$, which specify the lower and upper bounds on the control inputs.
-
-Furthermore, we may also encounter variations of the above problems under the assumption that horizon is infinite. For example: 
-
-````{prf:definition} Infinite-Horizon Trajectory Optimization 
-\begin{align*}
-    &\text{minimize} \quad \int_{t_0}^{\infty} e^{-\rho t} c(\mathbf{x}(t), \mathbf{u}(t)) \, dt \\
-    &\text{subject to} \quad \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
-    &\phantom{\text{subject to}} \quad \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
-    &\phantom{\text{subject to}} \quad \mathbf{x}_{\text{min}} \leq \mathbf{x}(t) \leq \mathbf{x}_{\text{max}} \\
-    &\phantom{\text{subject to}} \quad \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
-    &\text{given} \quad \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
-\end{align*}
-````
-````{margin}
-```{note}
-In optimal control problems, the use of an **exponential discount rate** $ e^{-\rho t} $ is favored over a discrete-time **discount factor** $ \gamma $ (commonly used in reinforcement learning). For small time steps $ \Delta t $, we can approximate the exponential discounting as
-     $e^{-\rho \Delta t} \approx 1 - \rho \Delta t.$ Therefore, as $ \Delta t \to 0 $, the continuous discount factor $ e^{-\rho t} $ corresponds to a discrete discount factor $ \gamma = e^{-\rho \Delta t} \approx 1 - \rho \Delta t $. 
-```
-````
-In this formulation, the term $e^{-\rho t}$ is a discount factor that exponentially decreases the importance of future costs relative to the present. The parameter $ \rho > 0$ is the discount rate. A larger value of $ \rho $ places more emphasis on the immediate cost and diminishes the impact of future costs. In infinite-horizon problems, the integral of the cost function $ \int_{t_0}^{\infty} c(\mathbf{x}(t), \mathbf{u}(t)) \, dt $ could potentially diverge because the cost accumulates over an infinite time period. Introducing the exponential term $ e^{-\rho t} $ guarantees that the integral converges as long as $ c(\mathbf{x}(t), \mathbf{u}(t)) $ grows at a slower rate than $ e^{\rho t} $. 
 
 ## Numerical Methods for Solving ODEs
 
@@ -338,9 +251,92 @@ This two-step process is similar to performing one iteration of Newton's method 
 ```
 
 
-# Examples Control Problems
+# Trajectory Optimization in Continuous Time
 
-## Inverted Pendulum
+As studied earlier in the discrete-time setting, we consider three variants of the continuous-time optimal control problem (COCP) with path constraints and bounds:
+
+::::{grid}
+:gutter: 1
+
+:::{grid-item}
+````{prf:definition} Mayer Problem
+$$
+\begin{aligned}
+    \text{minimize} \quad & c(\mathbf{x}(t_f)) \\
+    \text{subject to} \quad & \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
+                            & \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
+                            & \mathbf{x}_{\text{min}} \leq \mathbf{x}(t) \leq \mathbf{x}_{\text{max}} \\
+                            & \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
+    \text{given} \quad & \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
+\end{aligned}
+$$
+
+````
+:::
+
+:::{grid-item}
+````{prf:definition} Lagrange Problem
+$$
+\begin{aligned}
+    \text{minimize} \quad & \int_{t_0}^{t_f} c(\mathbf{x}(t), \mathbf{u}(t)) \, dt \\
+    \text{subject to} \quad & \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
+                            & \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
+                            & \mathbf{x}_{\text{min}} \leq \mathbf{x}(t) \leq \mathbf{x}_{\text{max}} \\
+                            & \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
+    \text{given} \quad & \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
+\end{aligned}
+$$
+
+````
+:::
+
+:::{grid-item}
+````{prf:definition} Bolza Problem
+$$
+\begin{aligned}
+    \text{minimize} \quad & c(\mathbf{x}(t_f)) + \int_{t_0}^{t_f} c(\mathbf{x}(t), \mathbf{u}(t)) \, dt \\
+    \text{subject to} \quad & \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
+                            & \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
+                            & \mathbf{x}_{\text{min}} \leq \mathbf{x}(t) \leq \mathbf{x}_{\text{max}} \\
+                            & \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
+    \text{given} \quad & \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
+\end{aligned}
+$$
+
+````
+:::
+::::
+
+
+In these formulations, the additional constraints are:
+
+- Path constraints: $\mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0}$, which represent constraints that must be satisfied at all times along the trajectory.
+- State bounds: $\mathbf{x}_{\text{min}} \leq \mathbf{x}(t) \leq \mathbf{x}_{\text{max}}$, which specify the lower and upper bounds on the state variables.
+- Control bounds: $\mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}}$, which specify the lower and upper bounds on the control inputs.
+
+Furthermore, we may also encounter variations of the above problems under the assumption that horizon is infinite. For example: 
+
+````{prf:definition} Infinite-Horizon Trajectory Optimization 
+\begin{align*}
+    &\text{minimize} \quad \int_{t_0}^{\infty} e^{-\rho t} c(\mathbf{x}(t), \mathbf{u}(t)) \, dt \\
+    &\text{subject to} \quad \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
+    &\phantom{\text{subject to}} \quad \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
+    &\phantom{\text{subject to}} \quad \mathbf{x}_{\text{min}} \leq \mathbf{x}(t) \leq \mathbf{x}_{\text{max}} \\
+    &\phantom{\text{subject to}} \quad \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
+    &\text{given} \quad \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
+\end{align*}
+````
+````{margin}
+```{note}
+In optimal control problems, the use of an **exponential discount rate** $ e^{-\rho t} $ is favored over a discrete-time **discount factor** $ \gamma $ (commonly used in reinforcement learning). For small time steps $ \Delta t $, we can approximate the exponential discounting as
+     $e^{-\rho \Delta t} \approx 1 - \rho \Delta t.$ Therefore, as $ \Delta t \to 0 $, the continuous discount factor $ e^{-\rho t} $ corresponds to a discrete discount factor $ \gamma = e^{-\rho \Delta t} \approx 1 - \rho \Delta t $. 
+```
+````
+In this formulation, the term $e^{-\rho t}$ is a discount factor that exponentially decreases the importance of future costs relative to the present. The parameter $ \rho > 0$ is the discount rate. A larger value of $ \rho $ places more emphasis on the immediate cost and diminishes the impact of future costs. In infinite-horizon problems, the integral of the cost function $ \int_{t_0}^{\infty} c(\mathbf{x}(t), \mathbf{u}(t)) \, dt $ could potentially diverge because the cost accumulates over an infinite time period. Introducing the exponential term $ e^{-\rho t} $ guarantees that the integral converges as long as $ c(\mathbf{x}(t), \mathbf{u}(t)) $ grows at a slower rate than $ e^{\rho t} $. 
+
+
+## Example Problems
+### Inverted Pendulum
 
 The inverted pendulum is a classic problem in control theory and robotics that demonstrates the challenge of stabilizing a dynamic system that is inherently unstable. The objective is to keep a pendulum balanced in the upright position by applying a control force, typically at its base. This setup is analogous to balancing a broomstick on your finger: any deviation from the vertical position will cause the system to tip over unless you actively counteract it with appropriate control actions.
 
@@ -380,7 +376,7 @@ We expect that when no control is applied to the system, the rod should be falli
 :load: code/pendulum.py
 ```
 
-### Looking Under the Hood: Pendulum in the Gym Environment
+#### Looking Under the Hood: Pendulum in the Gym Environment
 
 Gym is a widely used abstraction layer for defining discrete-time reinforcement learning problems. In reinforcement learning research, there's often a desire to develop general-purpose algorithms that are problem-agnostic. This research mindset leads us to voluntarily avoid considering the implementation details of a given environment. While this approach is understandable from a research perspective, it may not be optimal from a pragmatic, solution-driven standpoint where we care about solving specific problems efficiently. If we genuinely wanted to solve this problem without prior knowledge, why not look under the hood and embrace its nature as a trajectory optimization problem?
 
@@ -438,7 +434,7 @@ Where $u_{max} = 2.0$ and $\dot{\theta}_{max} = 8.0$.  Finally, when inspecting 
 \end{align*}
 
 
-## Heat Exchanger 
+### Heat Exchanger 
 
 ![Heat Exchanger](_static/heat_exchanger.svg)
 
@@ -473,7 +469,7 @@ T_w(t) \leq T_{\max}
 $$
 
 
-## Nuclear Reactor
+### Nuclear Reactor
 
 ![Nuclear Reactor Diagram](_static/nuclear_reactor.svg)
 
@@ -513,7 +509,7 @@ x(t_\mathrm{f}) &= x_\mathrm{f} \\
 
 and the constraint $|u(t)| \leq u_\mathrm{max}$
 
-## Chemotherapy
+### Chemotherapy
 
 Chemotherapy uses drugs to kill cancer cells. However, these drugs can also have toxic effects on healthy cells in the body. To optimize the effectiveness of chemotherapy while minimizing its side effects, we can formulate an optimal control problem. 
 
@@ -555,7 +551,7 @@ Additional constraints may include:
   u(t) \leq u_\max
   \end{equation*}
 
-## Government Corruption 
+### Government Corruption 
 
 In this model from Feichtinger and Wirl (1994), we aim to understand the incentives for politicians to engage in corrupt activities or to combat corruption. The model considers a politician's popularity as a dynamic process that is influenced by the public's memory of recent and past corruption. The objective is to find conditions under which self-interested politicians would choose to be honest or dishonest.
 
@@ -602,6 +598,17 @@ The optimal control problem can be formulated as follows:
 The state variables are the accumulated awareness of past corruption $C(t)$ and the politician's popularity $P(t)$. The control variable is the extent of corruption $u(t)$. The objective functional represents the discounted stream of benefits coming from being honest (popularity) and from being dishonest (corruption).
 
 # Direct Transcription Methods
+ 
+When transitioning from discrete-time optimal control to continuous-time, we encounter several new computational challenges:
+
+1. The optimization variables are now functions, not just discrete sequences of values stored in an array: we seek $x(t)$ and $u(t)$, which are continuous functions of time.
+2. Evaluating a candidate pair $x(t)$ and $u(t)$ involves integration: both for assessing the integral term in the objective of Lagrange or Bolza problems, as well as for the dynamics expressed as constraints.
+
+These two problems are ones of representation (which we address through function approximation) and integration (which we address through numerical integration methods).
+
+These two elements combined give us the blueprint for many approaches known under the umbrella of direct transcription methods. The idea is to take an original continuous-time optimal control problem, which is an infinite-dimensional optimization problem, and transform it into a finite approximation as a standard NLP, similar to those we have studied in discrete-time optimal control problems.
+
+In control theory and many fields like aeronautics, aerospace, or chemical engineering, the parameterization of either the control or state functions is typically done via polynomials. However, the approach presented here is general and might be applicable to other function approximators, including neural networks.
 
 ## Example: Life-Cycle Model
 
@@ -621,7 +628,48 @@ $u(c) = \frac{c^{1-\gamma}}{1-\gamma}$, where larger values of the parameter $\g
 The budget constraint, $\dot{A}(t) = f(A(t)) + w(t) - c(t)$, describes the evolution of assets, $A(t)$. Here, $f(A(t))$ represents returns on investments, $w(t)$ is wage income, and $c(t)$ is consumption. The asset return function $f(A) = 0.03A$ models a constant 3\% return on investments.
 In our specific implementation, the choice of the wage function $w(t) = 1 + 0.1t - 0.001t^2$ is meant to represent a career trajectory where income rises initially and then falls. The boundary conditions $A(0) = A(T) = 0$ finally encodes the fact that individuals start and end life with zero assets (ie. no inheritances).
 
-To solve this problem numerically, we use a direct transcription approach and solve the corresponding discretized NLP using single shooting. We use the fourth-order Runge-Kutta method (RK4) to simulate the assets dynamics and `scipy.optimize.fsolve` to optimize $c(0)$.
+### Single Shooting Solution
+To solve this problem numerically, we parameterize the entire consumption path as a cubic polynomial turning our original problem into:
+
+$$
+\begin{align*}
+\min_{\theta_0,\theta_1,\theta_2,\theta_3} \quad & \int_0^T e^{-\rho t} u(c(t)) dt \\
+\text{subject to} \quad & \dot{A}(t) = f(A(t)) + w(t) - c(t) \\
+& c(t) = \theta_0 + \theta_1t + \theta_2t^2 + \theta_3t^3 \\
+& A(0) = A(T) = 0
+\end{align*}
+$$
+
+We then transcribe the problem using a fourth-order Runge-Kutta method (RK4) to simulate the assets dynamics and 
+we discretize integral cost function using: 
+
+   $$\int_0^T e^{-\rho t} u(c(t)) dt \approx \sum_{i=0}^{N-1} e^{-\rho t_i} u(c(t_i)) \Delta t$$
+
+Finally, we explicitly enforce the boundary condition $A(T) = 0$ as an equality constraint in our optimization problem, which we solve using `scipy.optimize.minimize`. 
+When using single shooting to eliminate the dynamics constraints, we the obtain the following NLP:
+
+$$
+\begin{align*}
+\min_{\theta_0,\theta_1,\theta_2,\theta_3} \quad & -\sum_{i=0}^{N-1} e^{-\rho t_i} u(c_i) \Delta t \\
+\text{subject to} \quad & \Phi(\theta_0,\theta_1,\theta_2,\theta_3) = 0 \\
+\text{where}\quad & c_i = \theta_0 + \theta_1t_i + \theta_2t_i^2 + \theta_3t_i^3, \quad i = 0, \ldots, N
+\end{align*}
+$$
+
+and $\Phi$ is defined by:
+
+$$
+\begin{align*}
+\Phi(\theta_0,\theta_1,\theta_2,\theta_3) &= \Psi_N \circ \Psi_{N-1} \circ \cdots \circ \Psi_1(0) \\
+\Psi_i(A) &= A + \frac{\Delta t}{6}(k_1 + 2k_2 + 2k_3 + k_4) \\
+k_1 &= f(A) + w(t_i) - c_i \\
+k_2 &= f(A + \frac{\Delta t}{2}k_1) + w(t_i + \frac{\Delta t}{2}) - c_{i+1/2} \\
+k_3 &= f(A + \frac{\Delta t}{2}k_2) + w(t_i + \frac{\Delta t}{2}) - c_{i+1/2} \\
+k_4 &= f(A + \Delta t k_3) + w(t_i + \Delta t) - c_{i+1} \\
+c_i &= \theta_0 + \theta_1t_i + \theta_2t_i^2 + \theta_3t_i^3 \\
+c_{i+1/2} &= \theta_0 + \theta_1(t_i + \frac{\Delta t}{2}) + \theta_2(t_i + \frac{\Delta t}{2})^2 + \theta_3(t_i + \frac{\Delta t}{2})^3
+\end{align*}
+$$
 
 ```{code-cell} ipython3
 :tags: [hide-input]
