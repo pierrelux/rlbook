@@ -416,16 +416,14 @@ u &= \max(\min(u, u_{max}), -u_{max}) \\
 \dot{\theta} &= \max(\min(\dot{\theta}, \dot{\theta}_{max}), -\dot{\theta}_{max})
 \end{align*}
 
-Where $u_{max} = 2.0$ and $\dot{\theta}_{max} = 8.0$.  Finally, when inspecting the [`step`](https://github.com/openai/gym/blob/dcd185843a62953e27c2d54dc8c2d647d604b635/gym/envs/classic_control/pendulum.py#L133) function, we find that the dynamics are discretized using forward Euler under a fixed step size of $dt=0.0.5$. Overall, the discrete-time trajectory optimization problem implemented in Gym is the following: 
-
+Where $u_{max} = 2.0$ and $\dot{\theta}_{max} = 8.0$.  Finally, when inspecting the [`step`](https://github.com/openai/gym/blob/dcd185843a62953e27c2d54dc8c2d647d604b635/gym/envs/classic_control/pendulum.py#L133) function, we find that the dynamics are discretized using forward Euler under a fixed step size of $h=0.0.5$. Overall, the discrete-time trajectory optimization problem implemented in Gym is the following: 
 \begin{align*}
 \min_{u_k} \quad & J = \sum_{k=0}^{N-1} c(\theta_k, \dot{\theta}_k, u_k) \\
-\text{subject to:} \quad & \theta_{k+1} = \theta_k + \dot{\theta}_k \cdot dt \\
-& \dot{\theta}_{k+1} = \dot{\theta}_k + \left(\frac{3g}{2l}\sin(\theta_k) + \frac{3}{ml^2}u_k\right) \cdot dt \\
-& -u_{max} \leq u_k \leq u_{max} \\
-& -\dot{\theta}_{max} \leq \dot{\theta}_k \leq \dot{\theta}_{max} \\
-& \theta_0 = \theta_{initial}, \quad \dot{\theta}_0 = \dot{\theta}_{initial} \\
-& k = 0, 1, ..., N-1 \quad (N = 200)
+\text{subject to:} \quad & \theta_{k+1} = \theta_k + \dot{\theta}_k \cdot h \\
+& \dot{\theta}_{k+1} = \dot{\theta}_k + \left(\frac{3g}{2l}\sin(\theta_k) + \frac{3}{ml^2}u_k\right) \cdot h \\
+& -u_{\max} \leq u_k \leq u_{\max} \\
+& -\dot{\theta}_{\max} \leq \dot{\theta}_k \leq \dot{\theta}_{\max}, \quad k = 0, 1, ..., N-1 \\
+\text{given:} \quad      & \theta_0 = \theta_{\text{initial}}, \quad \dot{\theta}_0 = \dot{\theta}_{\text{initial}}, \quad N = 200
 \end{align*}
 
  with $g = 10.0$, $l = 1.0$, $m = 1.0$, $u_{max} = 2.0$, and $\dot{\theta}_{max} = 8.0$. This discrete-time problem corresponds to the following continuous-time optimal control problem:
@@ -434,10 +432,9 @@ Where $u_{max} = 2.0$ and $\dot{\theta}_{max} = 8.0$.  Finally, when inspecting 
 \min_{u(t)} \quad & J = \int_{0}^{T} c(\theta(t), \dot{\theta}(t), u(t)) dt \\
 \text{subject to:} \quad & \dot{\theta}(t) = \dot{\theta}(t) \\
 & \ddot{\theta}(t) = \frac{3g}{2l}\sin(\theta(t)) + \frac{3}{ml^2}u(t) \\
-& -u_{max} \leq u(t) \leq u_{max} \\
-& -\dot{\theta}_{max} \leq \dot{\theta}(t) \leq \dot{\theta}_{max} \\
-& \theta(0) = \theta_0, \quad \dot{\theta}(0) = \dot{\theta}_0 \\
-& T = 10 \text{ seconds}
+& -u_{\max} \leq u(t) \leq u_{\max} \\
+& -\dot{\theta}_{\max} \leq \dot{\theta}(t) \leq \dot{\theta}_{\max} \\
+\text{given:} \quad      & \theta(0) = \theta_0, \quad \dot{\theta}(0) = \dot{\theta}_0, \quad T = 10 \text{ seconds}
 \end{align*}
 
 
