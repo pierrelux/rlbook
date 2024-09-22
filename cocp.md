@@ -11,7 +11,7 @@ kernelspec:
   name: python3
 ---
 
-# Continuous-Time Dynamical Systems
+# Continuous-Time Trajectory Optimization
 
 ## State-Space Models 
 
@@ -609,6 +609,159 @@ These two problems are ones of representation (which we address through function
 These two elements combined give us the blueprint for many approaches known under the umbrella of direct transcription methods. The idea is to take an original continuous-time optimal control problem, which is an infinite-dimensional optimization problem, and transform it into a finite approximation as a standard NLP, similar to those we have studied in discrete-time optimal control problems.
 
 In control theory and many fields like aeronautics, aerospace, or chemical engineering, the parameterization of either the control or state functions is typically done via polynomials. However, the approach presented here is general and might be applicable to other function approximators, including neural networks.
+
+## Quick Primer on Polynomials
+
+We are often first taught the concept of polynomials via the standard representation:
+
+$$
+p(t) = a_n t^n + a_{n-1} t^{n-1} + \cdots + a_1 t + a_0
+$$
+
+In this expression, the $a_i$ are coefficients which linearly combine the powers of $t$ to represent a function. The set of functions $\{ 1, t, t^2, t^3, \ldots, t^n \}$ used in the standard polynomial representation is called the **monomial basis**. 
+
+In linear algebra, a basis is a set of vectors in a vector space such that any vector in the space can be uniquely represented as a linear combination of these basis vectors. In the same way, a polynomial basis allows any function $ f(x) $ (within the function space) to be expressed as:
+
+$$
+f(x) = \sum_{k=0}^{\infty} c_k p_k(x),
+$$
+
+where the coefficients $ c_k $ are generally determined by solving a system of equation.
+
+Just as vectors can be represented in different coordinate systems (bases), functions can also be expressed using various polynomial bases. However, the ability to apply a change of basis does not imply that all types of polynomials are equivalent from a practical standpoint. In practice, our choice of polynomial basis is dictated by considerations of efficiency, accuracy, and stability when approximating a function.
+
+For instance, despite the monomial basis being easy to understand and implement, it often performs poorly in practice due to numerical instability. This instability arises as its coefficients take on large values, leading to an ill-conditioning problem. The following kinds of polynomial remedy these issues. 
+
+### Orthogonal Polynomials 
+
+An **orthogonal polynomial basis** is a set of polynomials that are not only orthogonal to each other but also form a complete basis for a certain space of functions. This means that any function within that space can be represented as a linear combination of these polynomials. 
+
+More precisely, let $ \{ p_0(x), p_1(x), p_2(x), \dots \} $ be a sequence of polynomials where each $ p_n(x) $ is a polynomial of degree $ n $. We say that this set forms an orthogonal polynomial basis if any polynomial $ q(x) $ of degree $ n $ or less can be uniquely expressed as a linear combination of $ \{ p_0(x), p_1(x), \dots, p_n(x) \} $. Furthermore, the orthogonality property means that for any $ i \neq j $:
+
+$$
+\langle p_i, p_j \rangle = \int_a^b p_i(x) p_j(x) w(x) \, dx = 0.
+$$
+
+for some weight function $ w(x) $ over a given interval of orthogonality $ [a, b] $. 
+
+The orthogonality property allows to simplify the computation of the coefficients involved in the representation of a function in that basis by: 
+
+$$
+f(x) = \sum_{k=0}^{\infty} c_k p_k(x). 
+$$
+
+At a high level, what happens is that when taking the inner product of $ f(x) $ with each basis polynomial $ p_k(x) $ isolates the corresponding coefficient $ c_k $, which can be found to be: 
+
+$$
+c_k = \frac{\langle f, p_k \rangle}{\langle p_k, p_k \rangle} = \frac{\int_a^b f(x) p_k(x) w(x) \, dx}{\int_a^b p_k(x)^2 w(x) \, dx}.
+$$
+
+Here are some examples of the most common orthogonal polynomials used in practice. 
+
+#### Legendre Polynomials
+
+Legendre polynomials $ \{ P_n(x) \} $ are defined on the interval $[-1, 1]$ and satisfy the orthogonality condition:
+
+$$
+\int_{-1}^{1} P_n(x) P_m(x) \, dx = 
+\begin{cases}
+0 & \text{if } n \neq m, \\
+\frac{2}{2n + 1} & \text{if } n = m.
+\end{cases}
+$$
+
+They can be generated using the recurrence relation:
+
+$$
+(n+1) P_{n+1}(x) = (2n + 1) x P_n(x) - n P_{n-1}(x),
+$$
+
+with initial conditions:
+
+$$
+P_0(x) = 1, \quad P_1(x) = x.
+$$
+
+Unrolling this recurrence for a few steps would for example yield:  
+
+- $ P_0(x) = 1 $
+- $ P_1(x) = x $
+- $ P_2(x) = \frac{1}{2} (3x^2 - 1) $
+- $ P_3(x) = \frac{1}{2} (5x^3 - 3x) $
+- ... 
+
+#### Chebyshev Polynomials
+
+There are two types of Chebyshev polynomials: **Chebyshev polynomials of the first kind**, $ \{ T_n(x) \} $, and **Chebyshev polynomials of the second kind**, $ \{ U_n(x) \} $. We typically focus on the first kind. They are defined on the interval $[-1, 1]$ and satisfy the orthogonality condition:
+
+$$
+\int_{-1}^{1} \frac{T_n(x) T_m(x)}{\sqrt{1 - x^2}} \, dx = 
+\begin{cases}
+0 & \text{if } n \neq m, \\
+\frac{\pi}{2} & \text{if } n = m \neq 0, \\
+\pi & \text{if } n = m = 0.
+\end{cases}
+$$
+
+The Chebyshev polynomials of the first kind can be generated using the recurrence relation:
+
+$$
+T_{n+1}(x) = 2x T_n(x) - T_{n-1}(x),
+$$
+
+with initial conditions:
+
+$$
+T_0(x) = 1, \quad T_1(x) = x.
+$$
+
+
+Remarkably, this recurrence relation also admits an explicit formula: 
+
+$$
+T_n(x) = \cos(n \cos^{-1}(x)).
+$$
+
+An example of the above trigonometric identity is: 
+
+- $ T_0(x) = 1 $
+- $ T_1(x) = x $
+- $ T_2(x) = 2x^2 - 1 $
+- $ T_3(x) = 4x^3 - 3x $
+
+#### Hermite Polynomials
+
+Hermite polynomials $ \{ H_n(x) \} $ are defined on the entire real line and are orthogonal with respect to the weight function $ w(x) = e^{-x^2} $. They satisfy the orthogonality condition:
+
+$$
+\int_{-\infty}^{\infty} H_n(x) H_m(x) e^{-x^2} \, dx = 
+\begin{cases}
+0 & \text{if } n \neq m, \\
+2^n n! \sqrt{\pi} & \text{if } n = m.
+\end{cases}
+$$
+
+Hermite polynomials can be generated using the recurrence relation:
+
+$$
+H_{n+1}(x) = 2x H_n(x) - 2n H_{n-1}(x),
+$$
+
+with initial conditions:
+
+$$
+H_0(x) = 1, \quad H_1(x) = 2x.
+$$
+
+This recurrence unrolls as follows: 
+
+- $ H_0(x) = 1 $
+- $ H_1(x) = 2x $
+- $H_2(x) = 4x^2 - 2 $
+- $ H_3(x) = 8x^3 - 12x $
+
+
+
 
 ## Example: Life-Cycle Model
 
