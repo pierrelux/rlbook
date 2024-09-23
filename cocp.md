@@ -644,13 +644,7 @@ $$
 
 for some weight function $ w(x) $ over a given interval of orthogonality $ [a, b] $. 
 
-The orthogonality property allows to simplify the computation of the coefficients involved in the representation of a function in that basis by: 
-
-$$
-f(x) = \sum_{k=0}^{\infty} c_k p_k(x). 
-$$
-
-At a high level, what happens is that when taking the inner product of $ f(x) $ with each basis polynomial $ p_k(x) $ isolates the corresponding coefficient $ c_k $, which can be found to be: 
+The orthogonality property allows to simplify the computation of the coefficients involved in the polynomial representation of a function. At a high level, what happens is that when taking the inner product of $ f(x) $ with each basis polynomial, $ p_k(x) $ isolates the corresponding coefficient $ c_k $, which can be found to be: 
 
 $$
 c_k = \frac{\langle f, p_k \rangle}{\langle p_k, p_k \rangle} = \frac{\int_a^b f(x) p_k(x) w(x) \, dx}{\int_a^b p_k(x)^2 w(x) \, dx}.
@@ -682,13 +676,56 @@ $$
 P_0(x) = 1, \quad P_1(x) = x.
 $$
 
-Unrolling this recurrence for a few steps would for example yield:  
+The first four Legendre polynomials resulting from this recurrence are the following: 
 
-- $ P_0(x) = 1 $
-- $ P_1(x) = x $
-- $ P_2(x) = \frac{1}{2} (3x^2 - 1) $
-- $ P_3(x) = \frac{1}{2} (5x^3 - 3x) $
-- ... 
+```{code-cell} ipython3
+:tags: [hide-input]
+import numpy as np
+from IPython.display import display, Math
+
+def legendre_polynomial(n, x):
+    if n == 0:
+        return np.poly1d([1])
+    elif n == 1:
+        return x
+    else:
+        p0 = np.poly1d([1])
+        p1 = x
+        for k in range(2, n + 1):
+            p2 = ((2 * k - 1) * x * p1 - (k - 1) * p0) / k
+            p0, p1 = p1, p2
+        return p1
+
+def legendre_coefficients(n):
+    x = np.poly1d([1, 0])  # Define a poly1d object to represent x
+    poly = legendre_polynomial(n, x)
+    return poly
+
+def poly_to_latex(poly):
+    coeffs = poly.coefficients
+    variable = poly.variable
+    
+    terms = []
+    for i, coeff in enumerate(coeffs):
+        power = len(coeffs) - i - 1
+        if coeff == 0:
+            continue
+        coeff_str = f"{coeff:.2g}" if coeff not in {1, -1} or power == 0 else ("-" if coeff == -1 else "")
+        if power == 0:
+            term = f"{coeff_str}"
+        elif power == 1:
+            term = f"{coeff_str}{variable}"
+        else:
+            term = f"{coeff_str}{variable}^{power}"
+        terms.append(term)
+    
+    latex_poly = " + ".join(terms).replace(" + -", " - ")
+    return latex_poly
+
+for n in range(4):
+    poly = legendre_coefficients(n)
+    display(Math(f"P_{n}(x) = {poly_to_latex(poly)}"))
+```
 
 #### Chebyshev Polynomials
 
@@ -715,19 +752,39 @@ $$
 T_0(x) = 1, \quad T_1(x) = x.
 $$
 
-
 Remarkably, this recurrence relation also admits an explicit formula: 
 
 $$
 T_n(x) = \cos(n \cos^{-1}(x)).
 $$
 
-An example of the above trigonometric identity is: 
 
-- $ T_0(x) = 1 $
-- $ T_1(x) = x $
-- $ T_2(x) = 2x^2 - 1 $
-- $ T_3(x) = 4x^3 - 3x $
+Let's now implement it in Python:
+
+```{code-cell} ipython3
+:tags: [hide-input]
+def chebyshev_polynomial(n, x):
+    if n == 0:
+        return np.poly1d([1])
+    elif n == 1:
+        return x
+    else:
+        t0 = np.poly1d([1])
+        t1 = x
+        for _ in range(2, n + 1):
+            t2 = 2 * x * t1 - t0
+            t0, t1 = t1, t2
+        return t1
+
+def chebyshev_coefficients(n):
+    x = np.poly1d([1, 0])  # Define a poly1d object to represent x
+    poly = chebyshev_polynomial(n, x)
+    return poly
+
+for n in range(4):
+    poly = chebyshev_coefficients(n)
+    display(Math(f"T_{n}(x) = {poly_to_latex(poly)}"))
+```
 
 #### Hermite Polynomials
 
@@ -753,14 +810,32 @@ $$
 H_0(x) = 1, \quad H_1(x) = 2x.
 $$
 
-This recurrence unrolls as follows: 
+The following code computes the coefficients of the first four Hermite polynomials: 
 
-- $ H_0(x) = 1 $
-- $ H_1(x) = 2x $
-- $H_2(x) = 4x^2 - 2 $
-- $ H_3(x) = 8x^3 - 12x $
+```{code-cell} ipython3
+:tags: [hide-input]
+def hermite_polynomial(n, x):
+    if n == 0:
+        return np.poly1d([1])
+    elif n == 1:
+        return 2 * x
+    else:
+        h0 = np.poly1d([1])
+        h1 = 2 * x
+        for k in range(2, n + 1):
+            h2 = 2 * x * h1 - 2 * (k - 1) * h0
+            h0, h1 = h1, h2
+        return h1
 
+def hermite_coefficients(n):
+    x = np.poly1d([1, 0])  # Define a poly1d object to represent x
+    poly = hermite_polynomial(n, x)
+    return poly
 
+for n in range(4):
+    poly = hermite_coefficients(n)
+    display(Math(f"H_{n}(x) = {poly_to_latex(poly)}"))
+```
 
 
 ## Example: Life-Cycle Model
