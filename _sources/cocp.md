@@ -787,6 +787,31 @@ In optimal control problems, the use of an **exponential discount rate** $ e^{-\
 ````
 In this formulation, the term $e^{-\rho t}$ is a discount factor that exponentially decreases the importance of future costs relative to the present. The parameter $ \rho > 0$ is the discount rate. A larger value of $ \rho $ places more emphasis on the immediate cost and diminishes the impact of future costs. In infinite-horizon problems, the integral of the cost function $ \int_{t_0}^{\infty} c(\mathbf{x}(t), \mathbf{u}(t)) \, dt $ could potentially diverge because the cost accumulates over an infinite time period. Introducing the exponential term $ e^{-\rho t} $ guarantees that the integral converges as long as $ c(\mathbf{x}(t), \mathbf{u}(t)) $ grows at a slower rate than $ e^{\rho t} $. 
 
+## Transforming Lagrange and Bolza Problems to Mayer 
+
+Recall that, according to the fundamental theorem of calculus, solving an initial value problem (IVP) or using a quadrature method to evaluate an integral are essentially two approaches to the same problem. Similarly, just as we can convert discrete-time Lagrange or Bolza optimal control problems to the Mayer form by keeping a running sum of the cost, we can extend this idea to continuous time. This is done by introducing an augmented state space that includes the accumulated cost up to a given time as part of the integral term. If our original system is represented by $\mathbf{f}$, we construct an augmented system $\tilde{\mathbf{f}}$ as follows:
+
+$$
+\begin{aligned}
+\text{minimize} \quad & c(\mathbf{x}(t_f)) + z(t_f) \\
+\text{subject to} \quad & \begin{bmatrix} \dot{\mathbf{x}}(t) \\ \dot{z}(t) \end{bmatrix} = \tilde{\mathbf{f}}(\mathbf{x}(t), z(t), \mathbf{u}(t)) \\
+& \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
+& \mathbf{x}_{\text{min}} \leq \mathbf{x}(t) \leq \mathbf{x}_{\text{max}} \\
+& \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
+\text{given} \quad & \mathbf{x}(t_0) = \mathbf{x}_0, \quad z(t_0) = 0 \enspace .
+\end{aligned}
+$$
+
+Here, the newly introduced state variable $z(t)$ containts the accumulated integral cost over time. The augmented system dynamics, $\tilde{\mathbf{f}}$, are defined as:
+
+$$
+\tilde{\mathbf{f}}(\mathbf{x}, z, \mathbf{u}) = \begin{bmatrix}
+\mathbf{f}(\mathbf{x}, \mathbf{u}) \\
+c(\mathbf{x}, \mathbf{u})
+\end{bmatrix}
+$$
+
+The integral cost is now obtained via $z(t_f)$, which is added with the terminal cost $c(\mathbf{x}(t_f))$ to recover the value of the original objective in the Bolza problem. 
 
 ## Example Problems
 ### Inverted Pendulum
@@ -1051,21 +1076,139 @@ The optimal control problem can be formulated as follows:
 The state variables are the accumulated awareness of past corruption $C(t)$ and the politician's popularity $P(t)$. The control variable is the extent of corruption $u(t)$. The objective functional represents the discounted stream of benefits coming from being honest (popularity) and from being dishonest (corruption).
 
 ## Direct Transcription Methods
- 
-When transitioning from discrete-time optimal control to continuous-time, we encounter several new computational challenges:
 
-1. The optimization variables are now functions, not just discrete sequences of values stored in an array: we seek $x(t)$ and $u(t)$, which are continuous functions of time.
-2. Evaluating a candidate pair $x(t)$ and $u(t)$ involves integration: both for assessing the integral term in the objective of Lagrange or Bolza problems, as well as for the dynamics expressed as constraints.
+When transitioning from discrete-time to continuous-time optimal control, several new computational challenges arise:
 
-These two problems are ones of representation (which we address through function approximation) and integration (which we address through numerical integration methods).
+1. The optimization variables are now continuous functions, not just discrete sequences of values stored in an array. We seek $x(t)$ and $u(t)$, which are continuous functions of time.
+2. Evaluating a candidate pair $x(t)$ and $u(t)$ requires integration. This is necessary both for computing the integral term in the objective of Lagrange or Bolza problems and for satisfying the dynamics expressed as constraints.
 
-These two elements combined give us the blueprint for many approaches known under the umbrella of direct transcription methods. The idea is to take an original continuous-time optimal control problem, which is an infinite-dimensional optimization problem, and transform it into a finite approximation as a standard NLP, similar to those we have studied in discrete-time optimal control problems.
+These challenges can be viewed as problems of representation and integration. Representation is addressed through function approximation, while integration is handled using numerical integration methods. In fields like aeronautics, aerospace, and chemical engineering, control or state functions are often represented using polynomials. Instead of searching directly over the space of all possible functions, we search over the space of parameters defining these polynomials. This approach is similar to deep learning, where we parameterize complex functions as compositions of simpler nonlinear functions and adjust their weights through gradient descent, rather than searching the function space directly. Therefore, the state and control parameterization technique developed in this chapter, using polynomials, can be extended to other function approximation methods, including neural networks.
 
-In control theory and many fields like aeronautics, aerospace, or chemical engineering, the parameterization of either the control or state functions is typically done via polynomials. However, the approach presented here is general and might be applicable to other function approximators, including neural networks.
+Evaluating the integral is essentially a problem of numerical integration, which naturally pairs with the numerical integration of the dynamics. Together, these elements form the foundation of many methods collectively known as direct transcription methods. The key idea is to transform the original continuous-time optimal control problem—an infinite-dimensional optimization problem—into a finite-dimensional approximation that can be solved as a standard nonlinear programming (NLP) problem, similar to those we have encountered in discrete-time optimal control.
+
+### Direct Single Shooting
+
+Single shooting under a direct transcription approach amounts to expressing the equality constraints of the original problem about the ODE dynamics by a time-discretized counterpart unrolled in time. This method essentially "backpropagates" through the numerical integration code that implements the system.
+
+#### Mayer Problem
+Consider a problem in Mayer form:
+
+$$
+\begin{aligned}
+    \text{minimize} \quad & c(\mathbf{x}(t_f)) \\
+    \text{subject to} \quad & \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)), \quad t \in [t_0, t_f] \\
+                            & \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}}, \quad t \in [t_0, t_f] \\
+    \text{given} \quad & \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
+\end{aligned}
+$$
+
+Our first step is to pick a control parameterization. Traditionally this would be polynomials, but given the ease of coding these methods with automatic differentiation, it might as well be a neural network. Therefore, let's write $\mathbf{u}(t; \boldsymbol{\theta})$ to denote the parameterized controls. Second, let's eliminate the approximate dynamics as constraints through a process of "simulation" via the chosen time discretization scheme. For RK4, we would for example obtain:
+
+$$
+\begin{aligned}
+    \text{minimize}_{\boldsymbol{\theta}} \quad & c(\Phi(\boldsymbol{\theta}; \mathbf{x}_0)) \\
+    \text{subject to} \quad & \mathbf{u}_{\text{min}} \leq \mathbf{u}(t_i; \boldsymbol{\theta}) \leq \mathbf{u}_{\text{max}}, \quad i = 0, \ldots, N-1 \\
+    \text{where} \quad & \Phi = \Psi_N \circ \Psi_{N-1} \circ \cdots \circ \Psi_1 \\
+    \Psi_i(\mathbf{x}) &= \mathbf{x} + \frac{\Delta t}{6}(k_1 + 2k_2 + 2k_3 + k_4) \\
+    k_1 &= \mathbf{f}(\mathbf{x}, \mathbf{u}(t_i; \boldsymbol{\theta})) \\
+    k_2 &= \mathbf{f}(\mathbf{x} + \frac{\Delta t}{2}k_1, \mathbf{u}(t_i + \frac{\Delta t}{2}; \boldsymbol{\theta})) \\
+    k_3 &= \mathbf{f}(\mathbf{x} + \frac{\Delta t}{2}k_2, \mathbf{u}(t_i + \frac{\Delta t}{2}; \boldsymbol{\theta})) \\
+    k_4 &= \mathbf{f}(\mathbf{x} + \Delta t k_3, \mathbf{u}(t_i + \Delta t; \boldsymbol{\theta}))
+\end{aligned}
+$$
+
+Here, $\Phi(\boldsymbol{\theta}; \mathbf{x}_0)$ represents the final state $\mathbf{x}(t_f)$ obtained by integrating the system dynamics from the initial state $\mathbf{x}_0$ using the parameterized control $\mathbf{u}(t; \boldsymbol{\theta})$. The functions $\Psi_i$ represent the numerical integration steps (in this case, using the fourth-order Runge-Kutta method) for each time interval.
+
+This reformulation transforms the infinite-dimensional optimal control problem into a finite-dimensional nonlinear programming (NLP) problem. The decision variables are now the parameters $\boldsymbol{\theta}$ of the control function, subject to bound constraints at each discretization point. The dynamic constraints are implicitly satisfied through the integration process embedded in the objective function.
+However, ensuring that bound constraints on the controls are satisfied by a choice of parameters is more challenging than in the "tabular" case, i.e., when we are not using a control parameterization. This makes it more difficult to directly project or clip the parameters to satisfy the control bounds through a simple projected gradient descent step.
+
+#### Bolza Problem 
+
+Let's now address the numerical challenge that comes with the evaluation of the integral term in a Lagrange or Bolza-type problem:
+
+$$
+\begin{aligned}
+\text{minimize} \quad & c(\mathbf{x}(t_f)) + \int_{t_0}^{t_f} c(\mathbf{x}(t), \mathbf{u}(t)) \, dt \\
+\text{subject to} \quad & \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
+& \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
+& \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
+\text{given} \quad & \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
+\end{aligned}
+$$
+
+We can first start with the usual trick by which we transform the above Bolza problem into Mayer form by creating an augmented system and solving the following COCP: 
+
+$$
+\begin{aligned}
+\text{minimize} \quad & c(\mathbf{x}(t_f)) + z(t_f) \\
+\text{subject to} \quad & \begin{bmatrix} \dot{\mathbf{x}}(t) \\ \dot{z}(t) \end{bmatrix} = \tilde{\mathbf{f}}(\mathbf{x}(t), z(t), \mathbf{u}(t)) \\
+& \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
+& \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
+\text{where} \quad & \tilde{\mathbf{f}}(\mathbf{x}, z, \mathbf{u}) = \begin{bmatrix}
+\mathbf{f}(\mathbf{x}, \mathbf{u}) \\
+c(\mathbf{x}, \mathbf{u})
+\end{bmatrix}\\
+\text{given} \quad & \mathbf{x}(t_0) = \mathbf{x}_0, \quad z(t_0) = 0 \enspace .
+\end{aligned}
+$$
+
+We can then proceed to transcribe this problem via single-shooting just like we did above for Mayer problems: 
+
+$$
+\begin{aligned}
+\text{minimize}_{\boldsymbol{\theta}} \quad & c(\Phi(\boldsymbol{\theta}; \mathbf{x}_0)) + z_N \\
+\text{subject to} \quad & \mathbf{u}_{\text{min}} \leq \mathbf{u}(t_i; \boldsymbol{\theta}) \leq \mathbf{u}_{\text{max}}, \quad i = 0, \ldots, N-1 \\
+\text{where} \quad & \tilde{\Phi} = \tilde{\Psi}_N \circ \tilde{\Psi}_{N-1} \circ \cdots \circ \tilde{\Psi}_1 \\
+\quad & \tilde{\Psi}_i \left( \begin{bmatrix} \mathbf{x}_{i-1} \\ z_{i-1} \end{bmatrix}, \mathbf{u}_{i-1} \right) = \begin{bmatrix} \mathbf{x}_i \\ z_i \end{bmatrix}\quad \text{for} \quad i = 1, \ldots, N \enspace ,
+\end{aligned}
+$$
+
+where the $\tilde \Psi$ denote a step of the underlying numerical integration method (eg. Euler, RK4, etc.) over the augmented system $\tilde{\mathbf{f}}$.
+
+#### Decoupled Integration
+The transformation of the Bolza problem into a Mayer problem has a side effect that it couples the numerical integration scheme used for the dynamics and the one for the objective itself. It certainly simplifies our implementation, but at the cost of less flexibility in the approximation of the problem as we will see below.
+We could for example directly apply a numerical quadrature method (say gaussian or simpson quadrature) and RKH4, resulting in the following transcribed (single shooted) problem:
+
+$$
+\begin{aligned}
+\text{minimize}{\boldsymbol{\theta}} \quad & c(\Phi_N(\boldsymbol{\theta}; \mathbf{x}_0)) + Q(\boldsymbol{\theta}) \\
+\text{subject to} \quad & \mathbf{u}_{\text{min}} \leq \mathbf{u}(t_i; \boldsymbol{\theta}) \leq \mathbf{u}_{\text{max}}, \quad i = 0, \ldots, N-1 \\
+\text{where} \quad & \Phi_i = \Psi_i \circ \Psi_{i-1} \circ \cdots \circ \Psi_1 \\
+\quad & Q(\boldsymbol{\theta}) = \sum_{i=0}^{N} w_i c(\Phi_i(\boldsymbol{\theta}; \mathbf{x}_0), \mathbf{u}(t_i; \boldsymbol{\theta}))
+\end{aligned}
+$$
+
+Here, $\Phi_i$ represents the integration of the system dynamics using RK4 as before, while $Q(\boldsymbol{\theta})$ represents the approximation of the integral cost using a chosen quadrature method. The weights $w_i$ and the number of points $N$ depend on the chosen quadrature method. For example:
+
+1. For the trapezoidal rule, we have N+1 equally spaced points, and the weights are:
+
+$$
+w_0 = w_N = \frac{\Delta t}{2}, \quad w_i = \Delta t \text{ for } i = 1, \ldots, N-1
+$$
+
+where $\Delta t = (t_f - t_0) / N$ is the time step.
+
+2. For Simpson's rule (assuming $N$ is even), we have N+1 equally spaced points, and the weights are:
+
+$$
+w_0 = w_N = \frac{\Delta t}{3}, \quad w_i = \frac{4\Delta t}{3} \text{ for odd } i, \quad w_i = \frac{2\Delta t}{3} \text{ for even } i \neq 0, N
+$$
+
+3. For 2-point Gaussian quadrature, we have $2N$ points (two per subinterval), and the weights are:
+
+$$
+w_{2i-1} = w_{2i} = \frac{t_f - t_0}{2N} \text{ for } i = 1, \ldots, N
+$$ 
+
+The evaluation points $t_i$ are not equally spaced in this case, but are determined by the Gaussian quadrature formula within each subinterval.
+
+In all these cases, the states at the quadrature points are obtained from the integration of the system dynamics using the chosen method (e.g., RK4), represented by $\Phi_i(\boldsymbol{\theta}; \mathbf{x}_0)$. However, it's important to note that this approach can lead to computational inefficiencies if we're not careful. If the quadrature points don't align with the grid points used for integrating the system dynamics, we may need to perform additional interpolations or integrations to obtain the state values at the quadrature points. This mismatch can significantly increase the computational cost, especially for high-order quadrature methods or fine time discretizations.
+
+For instance, when using Gaussian quadrature, the evaluation points are generally not equally spaced and won't coincide with the uniform time grid typically used for RK4 integration. This means we might need to integrate the dynamics to intermediate points between our main time steps, thereby increasing the number of integration steps required. Similarly, for Simpson's rule or other higher-order methods, we might need state values at points where we haven't directly computed them during our primary integration process.
+
+To mitigate this issue, one could align the integration grid with the quadrature points, but this might compromise the accuracy of the dynamics integration if the resulting grid is not sufficiently fine. Alternatively, one could use interpolation methods to estimate the state at quadrature points, but this introduces additional approximation errors. 
 
 
-
-### Single Shooting Methods 
 #### Example: Life-Cycle Model
 
 The life-cycle model of consumption is a problem in economics regarding how individuals allocate resources over their lifetime, trading-off present and future consumption depending on their income and ability to save or borrow. This model demonstrates the idea that individuals tend to prefer stable consumption, even when their income varies: a behavior called "consumption smoothing". This problem can be represented mathematically as follows:
@@ -1131,3 +1274,181 @@ $$
 :tags: [hide-input]
 :load: code/life_cycle_rk4.py
 ```
+### Direct Collocation
+
+While the single shooting method we discussed earlier eliminates the dynamics constraints through forward integration, an alternative approach is to keep these constraints explicit and solve the problem in a simultaneous manner. This approach, known as direct collocation, is part of a broader class of simultaneous methods in optimal control.
+
+In direct collocation, instead of integrating the system forward in time, we discretize both the state and control trajectories and introduce additional constraints to ensure that the discretized trajectories satisfy the system dynamics. This method transforms the original continuous-time optimal control problem into a large-scale nonlinear programming (NLP) problem.
+Let's consider our original Bolza problem:
+
+$$
+\begin{aligned}
+\text{minimize} \quad & c(\mathbf{x}(t_f)) + \int_{t_0}^{t_f} c(\mathbf{x}(t), \mathbf{u}(t)) , dt \\
+\text{subject to} \quad & \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
+& \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
+& \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
+\text{given} \quad & \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
+\end{aligned}
+$$
+
+In the direct collocation approach, we discretize the time domain into $N$ intervals: $t_0 < t_1 < ... < t_N = t_f$. At each node $i$, we introduce decision variables for both the state $\mathbf{x}_i$ and control $\mathbf{u}_i$. The continuous dynamics are then approximated using collocation methods, which enforce the system equations at specific collocation points within each interval.
+The resulting NLP problem takes the form:
+
+$$
+\begin{aligned}
+\underset{\mathbf{x}_0,\ldots,\mathbf{x}_N,\mathbf{u}_0,\ldots,\mathbf{u}_{N-1}}{\text{minimize}}
+ \quad & c(\mathbf{x}_N) + \sum{i=0}^{N-1} w_i c(\mathbf{x}_i, \mathbf{u}_i) \\
+\text{subject to} \quad & \mathbf{x}_{i+1} = \mathbf{x}_i + h_i \sum_{j=1}^{k} b_j \mathbf{f}(\mathbf{x}_i^j, \mathbf{u}_i^j), \quad i = 0,...,N-1 \\
+& \mathbf{g}(\mathbf{x}_i, \mathbf{u}_i) \leq \mathbf{0}, \quad i = 0,...,N-1 \\
+& \mathbf{u}_{\text{min}} \leq \mathbf{u}_i \leq \mathbf{u}_{\text{max}}, \quad i = 0,...,N-1 \\
+& \mathbf{x}_0 = \mathbf{x}_0^{\text{given}}\\
+\end{aligned}
+$$
+
+Here, $h_i = t_{i+1} - t_i$ is the length of the i-th interval, $\mathbf{x}_i^j$ and $\mathbf{u}_i^j$ are the state and control at the j-th collocation point within the i-th interval, and $b_j$ are the weights of the collocation method. The specific form of these equations depends on the chosen collocation scheme (e.g., Hermite-Simpson, Gauss-Lobatto, etc.).
+
+This formulation offers several advantages:
+
+- It provides a discretized counterpart to the original continuous-time problem. 
+- It allows for path constraints on both the states and controls. 
+- It often results in better numerical conditioning compared to shooting methods.
+- It allows facilitates the use of adaptive mesh refinement methods (which we don't cover here).
+
+In the next sections, we'll explore specific collocation schemes and discuss their implementation in more detail.
+
+#### Specific Collocation Methods
+
+In the following formulations:
+
+- $\mathbf{x}_i$ represents the state at time $t_i$.
+- $\mathbf{u}_i$ represents the control at time $t_i$.
+- $h_i = t_{i+1} - t_i$ is the time step.
+- $\bar{\mathbf{u}}_i$ (in RK4) represents the control at the midpoint of the interval.
+- $\mathbf{x}_{i+\frac{1}{2}}$ and $\mathbf{u}_{i+\frac{1}{2}}$ (in Hermite-Simpson) represent the state and control at the midpoint of the interval.
+
+##### Euler Direct Collocation
+
+For the Euler method, we use linear interpolation for both state and control:
+
+$$
+\begin{aligned}
+\underset{\mathbf{x}_0,\ldots,\mathbf{x}_N,\mathbf{u}_0,\ldots,\mathbf{u}_{N-1}}{\text{minimize}} \quad &c(\mathbf{x}_N) + \sum_{i=0}^{N-1} h_i c(\mathbf{x}_i, \mathbf{u}_i) \\
+\text{subject to} \quad & \mathbf{x}_{i+1} = \mathbf{x}_i + h_i \mathbf{f}(\mathbf{x}_i, \mathbf{u}_i, t_i), \quad i = 0,\ldots,N-1 \\
+& \mathbf{g}(\mathbf{x}_i, \mathbf{u}_i) \leq \mathbf{0}, \quad i = 0,\ldots,N-1 \\
+& \mathbf{u}_{\text{min}} \leq \mathbf{u}_i \leq \mathbf{u}_{\text{max}}, \quad i = 0,\ldots,N-1 \\
+& \mathbf{x}_0 = \mathbf{x}_0^{\text{given}}
+\end{aligned}
+$$
+
+Note that the integral of the cost function is approximated using the rectangle rule:
+
+$$\int_{t_0}^{t_f} c(\mathbf{x}(t), \mathbf{u}(t)) dt \approx \sum_{i=0}^{N-1} h_i c(\mathbf{x}_i, \mathbf{u}_i)$$
+
+This approximation matches the Euler integration scheme used for the dynamics:
+$$\int_{t_i}^{t_{i+1}} \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t), t) dt \approx h_i \mathbf{f}(\mathbf{x}_i, \mathbf{u}_i, t_i)$$
+
+
+After solving the optimization problem, we obtain discrete values for the control inputs $\mathbf{u}_i$ at each time point $t_i$. To reconstruct the continuous control function $\mathbf{u}(t)$, we use linear interpolation between these points. For $t \in [t_i, t{i+1}]$, we can express $\mathbf{u}(t)$ as:
+$$\mathbf{u}(t) = \mathbf{u}_i + \frac{\mathbf{u}_{i+1} - \mathbf{u}_i}{h_i}(t - t_i)$$
+This piecewise linear function provides a continuous control signal that matches the discrete optimal values found by the optimization program.
+
+##### Trapezoidal Direct Collocation
+
+We use the same linear interpolation as in the Euler method, but now we enforce the dynamics at both ends of the interval:
+
+$$
+\begin{aligned}
+\underset{\mathbf{x}_0,\ldots,\mathbf{x}_N,\mathbf{u}_0,\ldots,\mathbf{u}_{N}}{\text{minimize}} \quad & c(\mathbf{x}_N) + \sum_{i=0}^{N-1} \frac{h_i}{2} \left[c(\mathbf{x}_i, \mathbf{u}_i) + c(\mathbf{x}_{i+1}, \mathbf{u}_{i+1})\right] \\
+\text{subject to} \quad & \mathbf{x}_{i+1} = \mathbf{x}_i + \frac{h_i}{2} \left[\mathbf{f}(\mathbf{x}_i, \mathbf{u}_i, t_i) + \mathbf{f}(\mathbf{x}_{i+1}, \mathbf{u}_{i+1}, t_{i+1})\right], \quad i = 0,\ldots,N-1 \\
+& \mathbf{g}(\mathbf{x}_i, \mathbf{u}_i) \leq \mathbf{0}, \quad i = 0,\ldots,N \\
+& \mathbf{u}_{\text{min}} \leq \mathbf{u}_i \leq \mathbf{u}_{\text{max}}, \quad i = 0,\ldots,N \\
+& \mathbf{x}_0 = \mathbf{x}_0^{\text{given}}
+\end{aligned}
+$$
+
+The integral of the cost function is approximated using the trapezoidal rule:
+
+$$\int_{t_0}^{t_f} c(\mathbf{x}(t), \mathbf{u}(t)) dt \approx \sum_{i=0}^{N-1} \frac{h_i}{2} [c(\mathbf{x}_i, \mathbf{u}_i) + c(\mathbf{x}{i+1}, \mathbf{u}{i+1})]$$
+
+This approximation matches the trapezoidal integration scheme used for the dynamics:
+
+$$\int_{t_i}^{t_{i+1}} \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t), t) dt \approx \frac{h_i}{2} [\mathbf{f}(\mathbf{x}_i, \mathbf{u}_i, t_i) + \mathbf{f}(\mathbf{x}{i+1}, \mathbf{u}{i+1}, t_{i+1})]$$
+
+Similar to the Euler method, after solving the optimization problem, we obtain discrete values for the control inputs $\mathbf{u}_i$ at each time point $t_i$. The continuous control function $\mathbf{u}(t)$ is again reconstructed using linear interpolation. For $t \in [t_i, t{i+1}]$:
+
+$$\mathbf{u}(t) = \mathbf{u}_i + \frac{\mathbf{u}_{i+1} - \mathbf{u}_i}{h_i}(t - t_i)$$
+
+##### Hermite-Simpson Direct Collocation
+
+For Hermite-Simpson, we use cubic interpolation for the state and quadratic for the control. The cubic interpolation comes from the fact that we use Hermite interpolation, which uses cubic polynomials to interpolate between points while matching both function values and derivatives at the endpoints. 
+
+$$
+\begin{aligned}
+\underset{\mathbf{x}_0,\ldots,\mathbf{x}_N, \mathbf{u}_0,\ldots,\mathbf{u}_N, \mathbf{x}_{\frac{1}{2}},\ldots,\mathbf{x}_{N-\frac{1}{2}}, \mathbf{u}_{\frac{1}{2}},\ldots,\mathbf{u}_{N-\frac{1}{2}}}{\text{minimize}} \quad &c(\mathbf{x}_N) + \sum_{i=0}^{N-1} \frac{h_i}{6} \left[c(\mathbf{x}_i, \mathbf{u}_i) + 4c(\mathbf{x}_{i+\frac{1}{2}}, \mathbf{u}_{i+\frac{1}{2}}) + c(\mathbf{x}_{i+1}, \mathbf{u}_{i+1})\right] \\
+\text{subject to} \quad & \mathbf{x}_{i+1} = \mathbf{x}_i + \frac{h_i}{6} \left[\mathbf{f}(\mathbf{x}_i, \mathbf{u}_i, t_i) + 4\mathbf{f}(\mathbf{x}_{i+\frac{1}{2}}, \mathbf{u}_{i+\frac{1}{2}}, t_{i+\frac{1}{2}}) + \mathbf{f}(\mathbf{x}_{i+1}, \mathbf{u}_{i+1}, t_{i+1})\right], \quad i = 0,\ldots,N-1 \\
+& \mathbf{x}_{i+\frac{1}{2}} = \frac{1}{2}(\mathbf{x}_i + \mathbf{x}_{i+1}) + \frac{h_i}{8} \left[\mathbf{f}(\mathbf{x}_i, \mathbf{u}_i, t_i) - \mathbf{f}(\mathbf{x}_{i+1}, \mathbf{u}_{i+1}, t_{i+1})\right], \quad i = 0,\ldots,N-1 \\
+& \mathbf{g}(\mathbf{x}_i, \mathbf{u}_i) \leq \mathbf{0}, \quad i = 0,\ldots,N \\
+& \mathbf{g}(\mathbf{x}_{i+\frac{1}{2}}, \mathbf{u}_{i+\frac{1}{2}}) \leq \mathbf{0}, \quad i = 0,\ldots,N-1 \\
+& \mathbf{u}_{\text{min}} \leq \mathbf{u}_i \leq \mathbf{u}_{\text{max}}, \quad i = 0,\ldots,N \\
+& \mathbf{u}_{\text{min}} \leq \mathbf{u}_{i+\frac{1}{2}} \leq \mathbf{u}_{\text{max}}, \quad i = 0,\ldots,N-1 \\
+& \mathbf{x}_0 = \mathbf{x}_0^{\text{given}}
+\end{aligned}
+$$
+
+The objective function uses Simpson's rule to approximate the integral of the cost:
+
+$$\sum_{i=0}^{N-1} \frac{h_i}{6} \left[c(\mathbf{x}_i, \mathbf{u}_i) + 4c(\mathbf{x}_{i+\frac{1}{2}}, \mathbf{u}_{i+\frac{1}{2}}) + c(\mathbf{x}_{i+1}, \mathbf{u}_{i+1})\right]$$
+
+This is the classic Simpson's rule formula, where the integrand is evaluated at the endpoints and midpoint of each interval. The same Simpson's rule approximation is used in the dynamics constraint:
+
+$$\mathbf{x}_{i+1} = \mathbf{x}_i + \frac{h_i}{6} \left[\mathbf{f}(\mathbf{x}_i, \mathbf{u}_i, t_i) + 4\mathbf{f}(\mathbf{x}_{i+\frac{1}{2}}, \mathbf{u}_{i+\frac{1}{2}}, t_{i+\frac{1}{2}}) + \mathbf{f}(\mathbf{x}_{i+1}, \mathbf{u}_{i+1}, t_{i+1})\right]$$
+
+In other words, if you were to write the dynamics constraint in its representation through the fundamental theorem of calculus and apply Simpson's rule, you would obtain the above representation, which happens to correspond to Hermite interpolation: hence the name Hermite-Simpson.
+
+Once the optimization problem is solved, we obtain discrete values for the control inputs $\mathbf{u}_i$, $\mathbf{u}_{i+\frac{1}{2}}$, and $\mathbf{u}_{i+1}$ for each interval $[t_i, t{i+1}]$. To reconstruct the continuous control function $\mathbf{u}(t)$, we use quadratic interpolation within each interval. For $t \in [t_i, t_{i+1}]$, we can express $\mathbf{u}(t)$ as:
+
+$$\mathbf{u}(t) = a_i + b_i(t-t_i) + c_i(t-t_i)^2$$
+
+where the coefficients $a_i$, $b_i$, and $c_i$ are determined by solving the system:
+
+$$
+\begin{aligned}
+\mathbf{u}(t_i) &= \mathbf{u}_i = a_i \\
+\mathbf{u}(t_i + \frac{h_i}{2}) &= \mathbf{u}_{i+\frac{1}{2}} = a_i + b_i\frac{h_i}{2} + c_i\frac{h_i^2}{4} \\
+\mathbf{u}(t_{i+1}) &= \mathbf{u}_{i+1} = a_i + b_ih_i + c_ih_i^2
+\end{aligned}
+$$
+
+
+##### Runge-Kutta 4 Direct Collocation
+
+For RK4, we use linear interpolation for the state and piecewise constant for the control:
+
+$$
+\begin{aligned}
+\underset{\mathbf{x}_0,\ldots,\mathbf{x}_N,\mathbf{u}_0,\ldots,\mathbf{u}_{N}, \bar{\mathbf{u}}_0,\ldots,\bar{\mathbf{u}}_{N-1}}{\text{minimize}} \quad & c(\mathbf{x}_N) + \sum_{i=0}^{N-1} h_i c(\mathbf{x}_i, \mathbf{u}_i) \\
+\text{subject to} \quad & \mathbf{x}_{i+1} = \mathbf{x}_i + \frac{1}{6}(\mathbf{k}_1 + 2\mathbf{k}_2 + 2\mathbf{k}_3 + \mathbf{k}_4), \quad i = 0,\ldots,N-1 \\
+& \mathbf{k}_1 = h_i \mathbf{f}(\mathbf{x}_i, \mathbf{u}_i, t_i) \\
+& \mathbf{k}_2 = h_i \mathbf{f}(\mathbf{x}_i + \frac{1}{2}\mathbf{k}_1, \bar{\mathbf{u}}_i, t_i + \frac{h_i}{2}) \\
+& \mathbf{k}_3 = h_i \mathbf{f}(\mathbf{x}_i + \frac{1}{2}\mathbf{k}_2, \bar{\mathbf{u}}_i, t_i + \frac{h_i}{2}) \\
+& \mathbf{k}_4 = h_i \mathbf{f}(\mathbf{x}_i + \mathbf{k}_3, \mathbf{u}_{i+1}, t_{i+1}) \\
+& \mathbf{g}(\mathbf{x}_i, \mathbf{u}_i) \leq \mathbf{0}, \quad i = 0,\ldots,N \\
+& \mathbf{u}_{\text{min}} \leq \mathbf{u}_i \leq \mathbf{u}_{\text{max}}, \quad i = 0,\ldots,N \\
+& \mathbf{u}_{\text{min}} \leq \bar{\mathbf{u}}_i \leq \mathbf{u}_{\text{max}}, \quad i = 0,\ldots,N-1 \\
+& \mathbf{x}_0 = \mathbf{x}_0^{\text{given}}
+\end{aligned}
+$$
+
+The integral of the cost function is approximated using the rectangle rule:
+
+$$\int_{t_0}^{t_f} c(\mathbf{x}(t), \mathbf{u}(t)) dt \approx \sum_{i=0}^{N-1} h_i c(\mathbf{x}_i, \mathbf{u}_i)$$
+
+While this is a lower-order approximation compared to the RK4 scheme used for the dynamics, it uses the same points ($t_i$) as the start of each RK4 step. Alternatively, we could also use a Simpson's rule-like, which would be more consistent with the RK4 scheme and the piecewise constant control reconstruction, but also more expensive.
+
+Given the discrete values for the control inputs $\mathbf{u}_i$ at each time point $t_i$, and additional midpoint controls $\bar{\mathbf{u}}_i$, we finally reconstruct control function $\mathbf{u}(t)$, using a piecewise constant approach with a switch at the midpoint. For $t \in [t_i, t{i+1}]$:
+
+$$\mathbf{u}(t) = \begin{cases}
+\mathbf{u}_i & \text{if } t_i \leq t < t_i + \frac{h_i}{2} \\
+\bar{\mathbf{u}}_i & \text{if } t_i + \frac{h_i}{2} \leq t < t_{i+1}
+\end{cases}$$
+
