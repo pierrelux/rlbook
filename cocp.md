@@ -1452,3 +1452,27 @@ $$\mathbf{u}(t) = \begin{cases}
 \bar{\mathbf{u}}_i & \text{if } t_i + \frac{h_i}{2} \leq t < t_{i+1}
 \end{cases}$$
 
+## System Identification 
+
+### System Identification Using Collocation Methods
+
+Consider a parameterized dynamic system of the form:
+
+$$\dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t), \boldsymbol{\theta}, t)$$
+
+where $\mathbf{x}(t)$ is the state vector, $\mathbf{u}(t)$ is the input vector, and $\boldsymbol{\theta}$ is the vector of unknown parameters we wish to identify.
+
+Given a set of measurements $\{\mathbf{y}_k\}$ at times $\{t_k\}$, where $k = 0, ..., M$, and $\mathbf{y}_k = \mathbf{h}(\mathbf{x}(t_k), \mathbf{u}(t_k), \boldsymbol{\theta})$ is the output function, our goal is to find $\boldsymbol{\theta}$ that minimizes the discrepancy between the model predictions and the observed data.
+
+We set our discretization grid to match the observation times: $t_0 < t_1 < ... < t_M = t_f$. At each node $k$, we introduce decision variables for the state $\mathbf{x}_k$. The inputs $\mathbf{u}_k$ are typically known in system identification problems.
+
+The resulting NLP problem takes the form:
+
+$$
+\begin{aligned}
+\underset{\mathbf{x}_0,\ldots,\mathbf{x}_M,\boldsymbol{\theta}}{\text{minimize}} \quad & \sum_{k=0}^{M} \|\mathbf{y}_k - \mathbf{h}(\mathbf{x}_k, \mathbf{u}_k, \boldsymbol{\theta})\|^2 \\
+\text{subject to} \quad & \mathbf{x}_{k+1} = \mathbf{x}_k + h_k \sum_{j=1}^{n} b_j \mathbf{f}(\mathbf{x}_k^j, \mathbf{u}_k^j, \boldsymbol{\theta}, t_k^j), \quad k = 0,...,M-1 \\
+& \boldsymbol{\theta}_{\text{min}} \leq \boldsymbol{\theta} \leq \boldsymbol{\theta}_{\text{max}} \\
+& \mathbf{x}_{\text{min}} \leq \mathbf{x}_k \leq \mathbf{x}_{\text{max}}, \quad k = 0,...,M
+\end{aligned}
+$$
