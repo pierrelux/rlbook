@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <!-- Background -->
+  <rect width="800" height="400" fill="#f0f0f0"/>
+  
+  <!-- Time axis -->
+  <line x1="50" y1="350" x2="750" y2="350" stroke="black" stroke-width="2"/>
+  <text x="400" y="390" text-anchor="middle" font-size="16">Time</text>
+  
+  <!-- Intervals -->
+  <line x1="50" y1="50" x2="50" y2="350" stroke="#888" stroke-width="1" stroke-dasharray="5,5"/>
+  <line x1="250" y1="50" x2="250" y2="350" stroke="#888" stroke-width="1" stroke-dasharray="5,5"/>
+  <line x1="450" y1="50" x2="450" y2="350" stroke="#888" stroke-width="1" stroke-dasharray="5,5"/>
+  <line x1="650" y1="50" x2="650" y2="350" stroke="#888" stroke-width="1" stroke-dasharray="5,5"/>
+  <line x1="750" y1="50" x2="750" y2="350" stroke="#888" stroke-width="1" stroke-dasharray="5,5"/>
+  
+  <!-- State trajectory with gaps -->
+  <path d="M50,300 Q150,100 250,260" fill="none" stroke="blue" stroke-width="3"/>
+  <path d="M250,220 Q350,300 450,160" fill="none" stroke="blue" stroke-width="3"/>
+  <path d="M450,140 Q550,100 650,210" fill="none" stroke="blue" stroke-width="3"/>
+  <path d="M650,170 Q700,240 750,100" fill="none" stroke="blue" stroke-width="3"/>
+  
+  <!-- Shooting points -->
+  <circle cx="50" cy="300" r="6" fill="red"/>
+  <circle cx="250" cy="260" r="6" fill="none" stroke="red" stroke-width="2"/>
+  <circle cx="250" cy="220" r="6" fill="red"/>
+  <circle cx="450" cy="160" r="6" fill="none" stroke="red" stroke-width="2"/>
+  <circle cx="450" cy="140" r="6" fill="red"/>
+  <circle cx="650" cy="210" r="6" fill="none" stroke="red" stroke-width="2"/>
+  <circle cx="650" cy="170" r="6" fill="red"/>
+  <circle cx="750" cy="100" r="6" fill="none" stroke="red" stroke-width="2"/>
+  
+  <!-- Defect constraint lines -->
+  <line x1="250" y1="260" x2="250" y2="220" stroke="green" stroke-width="2"/>
+  <line x1="450" y1="160" x2="450" y2="140" stroke="green" stroke-width="2"/>
+  <line x1="650" y1="210" x2="650" y2="170" stroke="green" stroke-width="2"/>
+  
+  <!-- Labels -->
+  <text x="50" y="40" text-anchor="middle" font-size="14">t₀</text>
+  <text x="250" y="40" text-anchor="middle" font-size="14">t₁</text>
+  <text x="450" y="40" text-anchor="middle" font-size="14">t₂</text>
+  <text x="650" y="40" text-anchor="middle" font-size="14">t₃</text>
+  <text x="750" y="40" text-anchor="middle" font-size="14">t₄</text>
+  
+  <text x="150" y="70" text-anchor="middle" font-size="14">Interval 1</text>
+  <text x="350" y="70" text-anchor="middle" font-size="14">Interval 2</text>
+  <text x="550" y="70" text-anchor="middle" font-size="14">Interval 3</text>
+  <text x="700" y="70" text-anchor="middle" font-size="14">Interval 4</text>
+  
+  <text x="70" y="320" text-anchor="start" font-size="14" fill="red">s₀</text>
+  <text x="270" y="240" text-anchor="start" font-size="14" fill="red">s₁</text>
+  <text x="470" y="160" text-anchor="start" font-size="14" fill="red">s₂</text>
+  <text x="670" y="190" text-anchor="start" font-size="14" fill="red">s₃</text>
+  <text x="770" y="120" text-anchor="start" font-size="14" fill="red">s₄</text>
+  
+  <text x="270" y="200" text-anchor="middle" font-size="14" fill="green">Defect</text>
+  <text x="270" y="220" text-anchor="middle" font-size="14" fill="green">Constraint</text>
+  
+  <!-- Legend -->
+  <rect x="600" y="300" width="180" height="80" fill="white" stroke="black"/>
+  <circle cx="620" cy="320" r="6" fill="red"/>
+  <text x="640" y="325" font-size="14">Initial Points</text>
+  <circle cx="620" cy="340" r="6" fill="none" stroke="red" stroke-width="2"/>
+  <text x="640" y="345" font-size="14">Final Points</text>
+  <path d="M610,360 L630,360" stroke="blue" stroke-width="3"/>
+  <text x="640" y="365" font-size="14">State Trajectory</text>
+  <line x1="615" y1="385" x2="615" y2="375" stroke="green" stroke-width="2"/>
+  <text x="640" y="385" font-size="14">Defect Constraints</text>
+</svg>
