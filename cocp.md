@@ -1227,7 +1227,7 @@ $u(c) = \frac{c^{1-\gamma}}{1-\gamma}$, where larger values of the parameter $\g
 The budget constraint, $\dot{A}(t) = f(A(t)) + w(t) - c(t)$, describes the evolution of assets, $A(t)$. Here, $f(A(t))$ represents returns on investments, $w(t)$ is wage income, and $c(t)$ is consumption. The asset return function $f(A) = 0.03A$ models a constant 3\% return on investments.
 In our specific implementation, the choice of the wage function $w(t) = 1 + 0.1t - 0.001t^2$ is meant to represent a career trajectory where income rises initially and then falls. The boundary conditions $A(0) = A(T) = 0$ finally encodes the fact that individuals start and end life with zero assets (ie. no inheritances).
 
-##### Transcription
+##### Direct Single Shooting Solution
 To solve this problem numerically, we parameterize the entire consumption path as a cubic polynomial turning our original problem into:
 
 $$
@@ -1274,6 +1274,45 @@ $$
 :tags: [hide-input]
 :load: code/life_cycle_rk4.py
 ```
+
+### Direct Multiple Shooting
+
+While direct single shooting is conceptually simple, it can suffer from numerical instabilities, especially for long time horizons or highly nonlinear systems. This phenomenon is akin to the vanishing and exploding gradient problem in deep learning (for example when unrolling an RNN over a long sequence). 
+
+Multiple shooting addresses these issues by breaking the time interval into multiple segments, treated individually indivual single shooting problems, and stiched back together via equality constraints. Not only this approach improves numerical stability but it also allows for easier incorporation of path constraints (which was otherwise difficult to do with single shooting). Another important benefit is that each subproblem can be solved in parallel, which can be beneficial from a computational point of view.
+
+Without loss of generality, consider a Mayer problem:
+
+$$
+\begin{aligned}
+\text{minimize} \quad & c(\mathbf{x}(t_f)) +\\
+\text{subject to} \quad & \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
+& \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
+& \mathbf{u}{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}{\text{max}} \\
+\text{given} \quad & \mathbf{x}(t_0) = \mathbf{x}_0 \enspace .
+\end{aligned}
+$$
+
+In multiple shooting, we divide the time interval $[t_0, t_f]$ into $M$ subintervals: $[t_0, t_1], [t_1, t_2], ..., [t_{M-1}, t_M]$, where $t_M = t_f$. For each subinterval, we introduce new optimization variables $\mathbf{s}_i$ representing the initial state for that interval. The idea is that we want to make sure that the state at the end of an interval matches the initial state of the next one.
+
+![Heat Exchanger](_static/multiple-shooting.svg)
+
+The multiple shooting transcription of the problem becomes:
+
+$$
+\begin{aligned}
+\underset{\boldsymbol{\theta}, \mathbf{s}_1, ..., \mathbf{s}_M}{\text{minimize}}  \quad & c(\mathbf{s}_M)  \\
+\text{subject to} \quad & \mathbf{s}_{i+1} = \Phi_i(\boldsymbol{\theta}; \mathbf{s}_i), \quad i = 0, ..., M-1 \\
+& \mathbf{g}(\mathbf{s}_i, \mathbf{u}(t_i; \boldsymbol{\theta})) \leq \mathbf{0}, \quad i = 0, ..., M \\
+& \mathbf{u}_{\text{min}} \leq \mathbf{u}(t; \boldsymbol{\theta}) \leq \mathbf{u}_{\text{max}}, \quad t \in [t_0, t_f] \\
+ \text{given} \quad &\mathbf{s}_0 = \mathbf{x}_0
+\end{aligned}
+$$
+
+Here $\Phi_i(\boldsymbol{\theta}; \mathbf{s}_i)$ represents the final state obtained by integrating the system dynamics from $\mathbf{s}_i$ over the interval $[t_i, t_{i+1}]$ using the parameterized control $\mathbf{u}(t; \boldsymbol{\theta})$. The equality constraints $\mathbf{s}_{i+1} = \Phi_i(\boldsymbol{\theta}; \mathbf{s}_i)$ ensure continuity of the state trajectory across the subintervals. These are often called "defect constraints" or "matching conditions".
+
+
+
 ### Direct Collocation
 
 While the single shooting method we discussed earlier eliminates the dynamics constraints through forward integration, an alternative approach is to keep these constraints explicit and solve the problem in a simultaneous manner. This approach, known as direct collocation, is part of a broader class of simultaneous methods in optimal control.
@@ -1297,7 +1336,7 @@ The resulting NLP problem takes the form:
 $$
 \begin{aligned}
 \underset{\mathbf{x}_0,\ldots,\mathbf{x}_N,\mathbf{u}_0,\ldots,\mathbf{u}_{N-1}}{\text{minimize}}
- \quad & c(\mathbf{x}_N) + \sum{i=0}^{N-1} w_i c(\mathbf{x}_i, \mathbf{u}_i) \\
+ \quad & c(\mathbf{x}_N) + \sum_{i=0}^{N-1} w_i c(\mathbf{x}_i, \mathbf{u}_i) \\
 \text{subject to} \quad & \mathbf{x}_{i+1} = \mathbf{x}_i + h_i \sum_{j=1}^{k} b_j \mathbf{f}(\mathbf{x}_i^j, \mathbf{u}_i^j), \quad i = 0,...,N-1 \\
 & \mathbf{g}(\mathbf{x}_i, \mathbf{u}_i) \leq \mathbf{0}, \quad i = 0,...,N-1 \\
 & \mathbf{u}_{\text{min}} \leq \mathbf{u}_i \leq \mathbf{u}_{\text{max}}, \quad i = 0,...,N-1 \\
@@ -1452,27 +1491,146 @@ $$\mathbf{u}(t) = \begin{cases}
 \bar{\mathbf{u}}_i & \text{if } t_i + \frac{h_i}{2} \leq t < t_{i+1}
 \end{cases}$$
 
-## System Identification 
+#### Example: Compressor Surge Problem 
 
-### System Identification Using Collocation Methods
+Compressors are mechanical devices used to increase the pressure of a gas by reducing its volume. They are found in many industrial settings, from natural gas pipelines to jet engines. However, compressors can suffer from a dangerous phenomenon called "surge" when the gas flow through the compressor falls too much below its design capacity. This can happen under different circumstances such as: 
 
-Consider a parameterized dynamic system of the form:
+- In a natural gas pipeline system, when there is less customer demand (e.g., during warm weather when less heating is needed) the flow through the compressor lowers.
+- In a jet engine, when the pilot reduces thrust during landing, less air flows through the engine's compressors.
+- In factory, the compressor might be connected through some equipment downstream via a valve. Closing it partially restricts gas flow, similar to pinching a garden hose, and can lead to compressor surge.
 
-$$\dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t), \boldsymbol{\theta}, t)$$
+As the gas flow decreases, the compressor must work harder to maintain a steady flow. If the flow becomes too low, it can lead to a "breakdown": a phenomenon similar to an airplane stalling at low speeds or high angles of attack. In a compressor, when this breakdown occurs the gas briefly flows backward instead of moving forward, which in turns can cause violent oscillations in pressure which can damage the compressor and the equipments depending on it. One way to address this problem is by installing a close-coupled valve (CCV), which is a device connected at the output of the compressor to quickly modulate the flow. Our aim is not to devise a optimal control approach to ensure that the compressor does not experience a surge by operating this CCV appropriately. 
 
-where $\mathbf{x}(t)$ is the state vector, $\mathbf{u}(t)$ is the input vector, and $\boldsymbol{\theta}$ is the vector of unknown parameters we wish to identify.
-
-Given a set of measurements $\{\mathbf{y}_k\}$ at times $\{t_k\}$, where $k = 0, ..., M$, and $\mathbf{y}_k = \mathbf{h}(\mathbf{x}(t_k), \mathbf{u}(t_k), \boldsymbol{\theta})$ is the output function, our goal is to find $\boldsymbol{\theta}$ that minimizes the discrepancy between the model predictions and the observed data.
-
-We set our discretization grid to match the observation times: $t_0 < t_1 < ... < t_M = t_f$. At each node $k$, we introduce decision variables for the state $\mathbf{x}_k$. The inputs $\mathbf{u}_k$ are typically known in system identification problems.
-
-The resulting NLP problem takes the form:
+Following  {cite}`Gravdahl1997`, we model the compressor using a simplified second-order representation:
 
 $$
 \begin{aligned}
-\underset{\mathbf{x}_0,\ldots,\mathbf{x}_M,\boldsymbol{\theta}}{\text{minimize}} \quad & \sum_{k=0}^{M} \|\mathbf{y}_k - \mathbf{h}(\mathbf{x}_k, \mathbf{u}_k, \boldsymbol{\theta})\|^2 \\
-\text{subject to} \quad & \mathbf{x}_{k+1} = \mathbf{x}_k + h_k \sum_{j=1}^{n} b_j \mathbf{f}(\mathbf{x}_k^j, \mathbf{u}_k^j, \boldsymbol{\theta}, t_k^j), \quad k = 0,...,M-1 \\
-& \boldsymbol{\theta}_{\text{min}} \leq \boldsymbol{\theta} \leq \boldsymbol{\theta}_{\text{max}} \\
-& \mathbf{x}_{\text{min}} \leq \mathbf{x}_k \leq \mathbf{x}_{\text{max}}, \quad k = 0,...,M
+\dot{x}_1 &= B(\Psi_e(x_1) - x_2 - u) \\
+\dot{x}_2 &= \frac{1}{B}(x_1 - \Phi(x_2))
 \end{aligned}
 $$
+
+Here, $\mathbf{x} = [x_1, x_2]^T$ represents the state variables:
+
+- $x_1$ is the normalized mass flow through the compressor.
+- $x_2$ is the normalized pressure ratio across the compressor.
+
+The control input $u$ denotes the normalized mass flow through a CCV.
+The functions $\Psi_e(x_1)$ and $\Phi(x_2)$ represent the characteristics of the compressor and valve, respectively:
+
+$$
+\begin{aligned}
+\Psi_e(x_1) &= \psi_{c0} + H\left(1 + 1.5\left(\frac{x_1}{W} - 1\right) - 0.5\left(\frac{x_1}{W} - 1\right)^3\right) \\
+\Phi(x_2) &= \gamma \operatorname{sign}(x_2) \sqrt{|x_2|}
+\end{aligned}
+$$
+
+The system parameters are given as $\gamma = 0.5$, $B = 1$, $H = 0.18$, $\psi_{c0} = 0.3$, and $W = 0.25$.
+
+One possible way to pose the problem {cite}`Grancharova2012` is by penalizing for the deviations to the setpoints using a quadratic penalty in the instantenous cost function as well as in the terminal one. Furthermore, we also penalize for taking large actions (which are energy hungry, and potentially unsafe) within the integral term. The idea of penalzing for deviations throughout is natural way of posing the problem when solving it via single shooting. Another alternative which we will explore below is to set the desired setpoint as a hard terminal constraint. 
+
+The control objective is to stabilize the system and prevent surge, formulated as a continuous-time optimal control problem (COCP) in the Bolza form:
+
+$$
+\begin{aligned}
+\text{minimize} \quad & \left[ \int_0^T \alpha(\mathbf{x}(t) - \mathbf{x}^*)^T(\mathbf{x}(t) - \mathbf{x}^*) + \kappa u(t)^2 \, dt\right] + \beta(\mathbf{x}(T) - \mathbf{x}^*)^T(\mathbf{x}(T) - \mathbf{x}^*) + R v^2  \\
+\text{subject to} \quad & \dot{x}_1(t) = B(\Psi_e(x_1(t)) - x_2(t) - u(t)) \\
+& \dot{x}_2(t) = \frac{1}{B}(x_1(t) - \Phi(x_2(t))) \\
+& u_{\text{min}} \leq u(t) \leq u_{\text{max}} \\
+& -x_2(t) + 0.4 \leq v \\
+& -v \leq 0 \\
+& \mathbf{x}(0) = \mathbf{x}_0
+\end{aligned}
+$$
+
+The parameters $\alpha$, $\beta$, $\kappa$, and $R$ are non-negative weights that allow the designer to prioritize different aspects of performance (e.g., tight setpoint tracking vs. smooth control actions). We also constraint the control input to be within $0 \leq u(t) \leq 0.3$ due to the physical limitations of the valve.
+
+The authors in {cite}`Grancharova2012` also add a soft path constraint $x_2(t) \geq 0.4$ to ensure that we maintain a minimum pressure at all time. This is implemented as a soft constraint using slack variables. The reason that we have the term $R v^2$ in the objective is to penalizes violations of the soft constraint: we allow for deviations, but don't want to do it too much.  
+
+In the experiment below, we choose the setpoint $\mathbf{x}^* = [0.40, 0.60]^T$ as it corresponds to to an unstable equilibrium point. If we were to run the system without applying any control, we would see that the system starts to oscillate. 
+
+```{code-cell} ipython3
+:tags: [hide-input]
+:load: code/compressor_surge_single_shooting.py
+```
+
+##### Solution by Trapezoidal Collocation
+
+Another way to pose the problem is by imposing a terminal state constraint on the system rather than through a penalty in the integral term. In the following experiment, we use a problem formulation of the form: 
+
+$$
+\begin{aligned}
+\text{minimize} \quad & \left[ \int_0^T \kappa u(t)^2 \, dt\right] \\
+\text{subject to} \quad & \dot{x}_1(t) = B(\Psi_e(x_1(t)) - x_2(t) - u(t)) \\
+& \dot{x}_2(t) = \frac{1}{B}(x_1(t) - \Phi(x_2(t))) \\
+& u_{\text{min}} \leq u(t) \leq u_{\text{max}} \\
+& \mathbf{x}(0) = \mathbf{x}_0
+\end{aligned}
+$$
+
+We then find a control function $u(t)$ and state trajectory $x(t)$ using the trapezoidal collocation method. 
+
+```{code-cell} ipython3
+:tags: [hide-input]
+:load: code/compressor_surge_trapezoidal_collocation.py
+```
+
+You can try to vary the number of collocation points in the code an observe how the state trajectory progressively matches the ground thruth (the line denoted "integrated solution"). Note that this version of the code also lacks bound constraints on the variable $x_2$ to ensure a minimum pressure, as we did earlier. Consider this a good exercise for you to try on your own. 
+
+## System Identification 
+
+System identification is the term used outside of machine learning communities to describe the process of inferring unknown quantities of a parameterized dynamical system from observations—in other words, learning a "world model" from data. In the simplest case, we are given a parameterized model of the system and aim to infer the values of its parameters. For example, in the compressor surge problem, one might choose to use the simplified 2nd-order model and then take measurements of the actual compressor to make the model match as closely as possible. We could measure for example the characteristics of the compressor impeller or the close-coupled valve, and then refine our models with those values. 
+
+For instance, to characterize the compressor impeller, we might vary the mass flow rate and measure the resulting pressure increase. We would then use this data to fit the compressor characteristic function $\Psi_e(x_1)$ in our model by estimating parameters like $\psi_{c0}$, $H$, and $W$. The process of planning these experiments is sometimes optimized through an Optimal Design of Experiment phase. In this problem, we aim to determine the most efficient way to collect data, typically by gathering fewer but higher-quality samples at a lower acquisition cost. While we don't cover this material in this course, it's worth noting its relevance to the exploration and data collection problem in machine learning. The cross-pollination of ideas between optimal design of experiments and reinforcement learning could offer valuable insights to researchers and practitioners in both fields.
+
+### Direct Single Shooting Approach 
+A straightforward approach to system identification is to collect data from the system under varying operating conditions and find model parameters that best reconstruct the observed trajectories. This can be formulated as an L2 minimization problem, similar in structure to our optimal control problems, but with the objective function now including a summation over a discrete set of observations collected at specific (and potentially irregular) time intervals.
+Now, one issue we face is that the interval at which the data was collected might differ from the one used by the numerical integration procedure to simulate our model. This discrepancy would make computing the reconstruction error challenging, as the number of datapoints might differ for the two processes. There are two possible ways to address this:
+
+By aligning the time grid used by our numerical integration procedure to match that of the data. The downside of this approach is that it may compromise the accuracy of the numerical integration, especially if the data collection intervals are irregular or too large for the system's dynamics.
+By using polynomial interpolation over the numerical solution to find the missing values needed to compare with the real measurements. This approach allows us to maintain a fine, regular grid for numerical integration while still comparing against irregularly sampled data.
+
+Mathematically, if we use this second approach with Euler integration, the problem can be expressed as:
+$$
+\begin{aligned}
+\text{minimize}_{\boldsymbol{\theta}} \quad & \sum_{k=0}^{M-1} \|\mathbf{y}(t_k) - \hat{\mathbf{y}}_{t_k}\|_2^2 \\
+\text{subject to} \quad & \mathbf{u}_{\text{min}} \leq \mathbf{u}_i \leq \mathbf{u}_{\text{max}}, \quad i = 0, \ldots, N-1 \\
+\text{where} \quad & \hat{\mathbf{y}}_{t_k} = \mathbf{h}(\mathbf{x}_{t_k}; \boldsymbol{\theta}) \\
+& \mathbf{x}_{i+1} = \mathbf{x}_i + \Delta t \cdot \mathbf{f}(\mathbf{x}_i, \mathbf{u}_i; \boldsymbol{\theta}), \quad i = 0, \ldots, N-1 \\
+& \mathbf{x}_{t_k} = \mathbf{x}_i + \frac{t_k - t_i}{t_{i+1} - t_i} \left(\mathbf{x}_{i+1} - \mathbf{x}_i\right), \quad t_i \leq t_k < t_{i+1} \\
+\text{given} \quad & \mathbf{x}_{t_0} = \mathbf{x}_0 \\
+\end{aligned}
+$$
+
+The equation for $\mathbf{x}_{t_k}$ represents linear interpolation between the numerically integrated points to obtain $\mathbf{x}(t_k; \boldsymbol{\theta})$ which we need to compare with the observation collected at $t_k$. 
+
+#### Parameter Identification in the Compressor Surge Problem 
+
+We consider a simple form of system identification where we will attempt to recover the value of the parameter $B$ by reconstructing trajectories of our model and compararing with a dataset of trajectories collected on the real system. 
+
+This is just a demonstration, therefore we will pretend that the real system is the one where we set the value $B=1$ in the 2nd order simplified model. We will then vary the initial conditions of the sytem by adding a Gaussian noise perturbation to the initial conditions with mean $0$ and standard deviation $0.05$. Furthermore, we will use a"do-nothing" baseline controller which we perturb with Gaussian noise with mean $0$ and standard deviation $0.01$.  
+
+```{code-cell} ipython3
+:tags: [hide-input]
+:load: code/compressor_surge_data_collection.py
+```
+
+We then use this data in a direct single shooting approach where we use RK4 for numerical integration. Note that in this demonstration, the time grids align and we don't need to do use interpolation for the state trajectories. 
+
+```{code-cell} ipython3
+:tags: [hide-input]
+:load: code/compressor_surge_direct_single_shooting_rk4_paramid.py
+```
+
+### Parameterization of $f$ and Neural ODEs
+In our compressor surge problem, we were provided with a physically-motivated form for the function $f$. This set of equations was likely derived by scientists with deep knowledge of the physical phenomena at play (i.e., gas compression). However, in complex systems, the underlying physics might not be well understood or too complicated to model explicitly. In such cases, we might opt for a more flexible, data-driven approach.
+
+Instead of specifying a fixed structure for $f$, we could use a "black box" model such as a neural network to learn the dynamics directly from data. 
+The optimization problem remains conceptually the same as that of parameter identification. However, we are now optimizing over the parameters of the neural network that defines $f$.
+
+Another possibility is to blend the two approaches and use a grey-box model. In this approach, we typically use a physics-informed parameterization which we then supplement with a black-box model to account for the discrepancies in the observations. Mathematically, this can be expressed as:
+
+$$
+\dot{\mathbf{x}}(t) = f_{\text{physics}}(\mathbf{x}, t; \boldsymbol{\theta}_{\text{physics}}) + f_{\text{NN}}(\mathbf{x}, t; \boldsymbol{\theta}_{\text{NN}})
+$$
+where $f_{\text{physics}}$ is the physics-based model with parameters $\boldsymbol{\theta}_{\text{physics}}$, and $f_{\text{NN}}$ is a neural network with parameters $\boldsymbol{\theta}_{\text{NN}}$ that captures unmodeled dynamics.
