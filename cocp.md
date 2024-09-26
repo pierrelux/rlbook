@@ -1285,7 +1285,7 @@ Without loss of generality, consider a Mayer problem:
 
 $$
 \begin{aligned}
-\text{minimize} \quad & c(\mathbf{x}(t_f)) +\\
+\text{minimize} \quad & c(\mathbf{x}(t_f)) \\
 \text{subject to} \quad & \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
 & \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
 & \mathbf{u}{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}{\text{max}} \\
@@ -1384,11 +1384,14 @@ Note that the integral of the cost function is approximated using the rectangle 
 $$\int_{t_0}^{t_f} c(\mathbf{x}(t), \mathbf{u}(t)) dt \approx \sum_{i=0}^{N-1} h_i c(\mathbf{x}_i, \mathbf{u}_i)$$
 
 This approximation matches the Euler integration scheme used for the dynamics:
+
 $$\int_{t_i}^{t_{i+1}} \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t), t) dt \approx h_i \mathbf{f}(\mathbf{x}_i, \mathbf{u}_i, t_i)$$
 
 
 After solving the optimization problem, we obtain discrete values for the control inputs $\mathbf{u}_i$ at each time point $t_i$. To reconstruct the continuous control function $\mathbf{u}(t)$, we use linear interpolation between these points. For $t \in [t_i, t{i+1}]$, we can express $\mathbf{u}(t)$ as:
+
 $$\mathbf{u}(t) = \mathbf{u}_i + \frac{\mathbf{u}_{i+1} - \mathbf{u}_i}{h_i}(t - t_i)$$
+
 This piecewise linear function provides a continuous control signal that matches the discrete optimal values found by the optimization program.
 
 ##### Trapezoidal Direct Collocation
@@ -1591,9 +1594,10 @@ By aligning the time grid used by our numerical integration procedure to match t
 By using polynomial interpolation over the numerical solution to find the missing values needed to compare with the real measurements. This approach allows us to maintain a fine, regular grid for numerical integration while still comparing against irregularly sampled data.
 
 Mathematically, if we use this second approach with Euler integration, the problem can be expressed as:
+
 $$
 \begin{aligned}
-\text{minimize}_{\boldsymbol{\theta}} \quad & \sum_{k=0}^{M-1} \|\mathbf{y}(t_k) - \hat{\mathbf{y}}_{t_k}\|_2^2 \\
+\text{minimize}_{\boldsymbol{\theta}} \quad & \sum_{k=0}^{M-1} \|\mathbf{y}_{t_f} - \hat{\mathbf{y}}_{t_k}\|_2^2 \\
 \text{subject to} \quad & \mathbf{u}_{\text{min}} \leq \mathbf{u}_i \leq \mathbf{u}_{\text{max}}, \quad i = 0, \ldots, N-1 \\
 \text{where} \quad & \hat{\mathbf{y}}_{t_k} = \mathbf{h}(\mathbf{x}_{t_k}; \boldsymbol{\theta}) \\
 & \mathbf{x}_{i+1} = \mathbf{x}_i + \Delta t \cdot \mathbf{f}(\mathbf{x}_i, \mathbf{u}_i; \boldsymbol{\theta}), \quad i = 0, \ldots, N-1 \\
@@ -1633,4 +1637,5 @@ Another possibility is to blend the two approaches and use a grey-box model. In 
 $$
 \dot{\mathbf{x}}(t) = f_{\text{physics}}(\mathbf{x}, t; \boldsymbol{\theta}_{\text{physics}}) + f_{\text{NN}}(\mathbf{x}, t; \boldsymbol{\theta}_{\text{NN}})
 $$
+
 where $f_{\text{physics}}$ is the physics-based model with parameters $\boldsymbol{\theta}_{\text{physics}}$, and $f_{\text{NN}}$ is a neural network with parameters $\boldsymbol{\theta}_{\text{NN}}$ that captures unmodeled dynamics.
