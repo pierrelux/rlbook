@@ -1,71 +1,134 @@
+This is a great challenge! We’ll derive a framework for Conditional Value at Risk (CVaR) in the context of **inverse reinforcement learning (IRL)** and how to cast this into a **maximum likelihood estimation (MLE)** problem. This will involve the same foundational principles as MaxEnt IRL, but instead of focusing on **expectation**, we’ll shift to the **CVaR risk measure**, which is more focused on tail risk.
 
- Consider a general ODE of the form:
+### 1. Background: CVaR
 
-$$
-\dot{y}(t) = f(y(t), t), \quad y(t_0) = y_0,
-$$
+#### Conditional Value at Risk (CVaR)
 
-where $ y(t) \in \mathbb{R}^n $ is the state vector, and $ f: \mathbb{R}^n \times \mathbb{R} \rightarrow \mathbb{R}^n $ is a known function. The goal is to approximate the solution $ y(t) $ over a given interval $[t_0, t_f]$. In collocation methods, we proceed to solve problem by: 
-
-1. **Choosing a basis** to approximate $ y(t) $ using a finite sum of basis functions $ \phi_i(t) $:
-   $$
-   y(t) \approx \sum_{i=0}^{N} c_i \phi_i(t),
-   $$
-   where $ \{c_i\} $ are the coefficients to be determined.
-
-2. **Selecting collocation points** $ t_1, t_2, \ldots, t_N $ within the interval $[t_0, t_f]$. These are typically chosen to be the roots of certain orthogonal polynomials, like Legendre or Chebyshev polynomials, or can be spread equally across the interval.
-
-3. **Enforcing the ODE at the collocation points** for each $ t_j $:
-   $$
-   \dot{y}(t_j) = f(y(t_j), t_j).
-   $$
-   To implement this, we differentiate the approximate solution $ y(t) $ with respect to time:
-   $$
-   \dot{y}(t) \approx \sum_{i=0}^{N} c_i \dot{\phi}_i(t).
-   $$
-   Substituting this into the ODE at the collocation points gives:
-   $$
-   \sum_{i=0}^{N} c_i \dot{\phi}_i(t_j) = f\left(\sum_{i=0}^{N} c_i \phi_i(t_j), t_j\right), \quad j = 1, \ldots, N.
-   $$
-
-The collocation equations are formed by enforcing the ODE at all collocation points, leading to a system of nonlinear equations:
+CVaR is a risk measure that focuses on the **worst-case scenarios**. Given a confidence level $ \alpha \in [0, 1] $, CVaR is the expected reward conditional on the reward falling in the **worst $ 1 - \alpha $% of outcomes**. Formally, for a random variable $ X $ (here, the cumulative reward or cost), the CVaR at confidence level $ \alpha $ is defined as:
 
 $$
-\sum_{i=0}^{N} c_i \dot{\phi}_i(t_j) - f\left(\sum_{i=0}^{N} c_i \phi_i(t_j), t_j\right) = 0, \quad j = 1, \ldots, N.
+\text{CVaR}_\alpha(X) = \mathbb{E}[X \mid X \leq \text{VaR}_\alpha(X)],
 $$
+where $ \text{VaR}_\alpha(X) $ (Value at Risk) is the $ \alpha $-quantile of $ X $. Intuitively, CVaR focuses on the average of the worst $ 1 - \alpha $% of outcomes.
 
-This set of equations can be represented in matrix form as:
+In the context of IRL, we aim to infer a **risk-averse policy** by using CVaR as our objective rather than the expectation. The challenge is how to incorporate CVaR into the framework of MLE.
+To focus on the gradient of the negative log-likelihood (NLL) for the CVaR-based likelihood, let's break down the problem step by step.
 
-$$
-A \mathbf{c} = F(\mathbf{c}),
-$$
+### 1. Recap: CVaR-Based Likelihood
 
-where $ A $ is the matrix of derivatives of the basis functions evaluated at the collocation points, $ \mathbf{c} $ is the vector of coefficients $ [c_0, c_1, \ldots, c_N]^T $, and $ F(\mathbf{c}) $ is the vector of the function evaluations at the collocation points. For an initial value problem (IVP), we incorporate the initial condition $ y(t_0) = y_0 $ as:
-
-$$
-\sum_{i=0}^{N} c_i \phi_i(t_0) = y_0.
-$$
-
-The collocation conditions and IVP condition are combined together to form a root-finding problem, which we can generically solve numerically using Newton's method. 
-
-### **Example: Solving a Simple ODE**
-
-Consider a simple ODE:
+The CVaR-based likelihood of a trajectory $ \tau $ was defined as:
 
 $$
-\dot{y}(t) = -ky(t), \quad y(0) = y_0,
+p_{\text{CVaR}}(\tau \mid \theta, \zeta) = \frac{1}{Z(\theta)} \exp \left( \min \left( \sum_{t=1}^T r_\theta(s_t, a_t), \zeta \right) \right),
+$$
+where:
+- $ \theta $ represents the reward parameters.
+- $ \zeta $ is the auxiliary variable that represents the $ \alpha $-quantile for CVaR.
+- $ R(\tau) = \sum_{t=1}^T r_\theta(s_t, a_t) $ is the cumulative reward for the trajectory $ \tau $.
+
+This likelihood assigns higher probabilities to trajectories with cumulative rewards above $ \zeta $, while penalizing those with lower rewards (since their rewards are truncated at $ \zeta $).
+
+### 2. Negative Log-Likelihood (NLL)
+
+The negative log-likelihood (NLL) for a set of observed trajectories $ \{\tau^i\}_{i=1}^N $ under the CVaR-based distribution is given by:
+
+$$
+\mathcal{L}(\theta, \zeta) = - \sum_{i=1}^N \log p_{\text{CVaR}}(\tau^i \mid \theta, \zeta).
 $$
 
-with the exact solution $ y(t) = y_0 e^{-kt} $. Suppose that we choose to approximate $ y(t) $ with a polynomial in the monomial basis:
+Substituting the expression for $ p_{\text{CVaR}} $:
 
 $$
-y(t) \approx c_0 + c_1 t.
+\mathcal{L}(\theta, \zeta) = - \sum_{i=1}^N \left( \min \left( \sum_{t=1}^T r_\theta(s_t^i, a_t^i), \zeta \right) - \log Z(\theta) \right).
 $$
 
-Furthermore, we choose collocation points $ t_1 = 0.25 $ and $ t_2 = 0.75 $ on $[0, 1]$. Enforcing the ODE at these points yields the following collocation equations:
+Thus, the NLL simplifies to:
 
 $$
-c_1 = -k(c_0 + c_1 \cdot 0.25), \quad c_1 = -k(c_0 + c_1 \cdot 0.75).
+\mathcal{L}(\theta, \zeta) = \sum_{i=1}^N \left( \log Z(\theta) - \min \left( \sum_{t=1}^T r_\theta(s_t^i, a_t^i), \zeta \right) \right).
 $$
 
-With the initial condition $ y(0) = y_0 $, we have $ c_0 = y_0 $. Solving the system for $ c_1 $ gives an approximation for the solution over the interval.
+### 3. Gradient of the NLL
+
+Now, we compute the gradients of the NLL with respect to the parameters $ \theta $ (the reward parameters) and $ \zeta $ (the auxiliary variable).
+
+#### Gradient with respect to $ \theta $
+
+The gradient of $ \mathcal{L}(\theta, \zeta) $ with respect to $ \theta $ involves two terms: the partition function $ Z(\theta) $ and the reward term truncated by $ \zeta $.
+
+$$
+\nabla_\theta \mathcal{L}(\theta, \zeta) = \sum_{i=1}^N \left( \nabla_\theta \log Z(\theta) - \nabla_\theta \min \left( \sum_{t=1}^T r_\theta(s_t^i, a_t^i), \zeta \right) \right).
+$$
+
+##### First term: $ \nabla_\theta \log Z(\theta) $
+
+The partition function $ Z(\theta) $ is given by:
+
+$$
+Z(\theta) = \sum_\tau \exp \left( \min \left( \sum_{t=1}^T r_\theta(s_t, a_t), \zeta \right) \right).
+$$
+
+The gradient of the log partition function is:
+
+$$
+\nabla_\theta \log Z(\theta) = \frac{1}{Z(\theta)} \sum_\tau \exp \left( \min \left( \sum_{t=1}^T r_\theta(s_t, a_t), \zeta \right) \right) \nabla_\theta \left( \sum_{t=1}^T r_\theta(s_t, a_t) \right).
+$$
+
+This term captures the expected gradient of the reward under the current distribution of trajectories.
+
+##### Second term: $ \nabla_\theta \min \left( \sum_{t=1}^T r_\theta(s_t^i, a_t^i), \zeta \right) $
+
+The gradient of the truncated reward term $ \min \left( \sum_{t=1}^T r_\theta(s_t^i, a_t^i), \zeta \right) $ depends on whether the cumulative reward $ \sum_{t=1}^T r_\theta(s_t^i, a_t^i) $ is above or below $ \zeta $.
+
+- If $ \sum_{t=1}^T r_\theta(s_t^i, a_t^i) \leq \zeta $, then the gradient is 0 (since the reward is truncated at $ \zeta $).
+- If $ \sum_{t=1}^T r_\theta(s_t^i, a_t^i) > \zeta $, then the gradient is:
+
+$$
+\nabla_\theta \left( \sum_{t=1}^T r_\theta(s_t^i, a_t^i) \right) = \sum_{t=1}^T \nabla_\theta r_\theta(s_t^i, a_t^i).
+$$
+
+Thus, we can express this as:
+
+$$
+\nabla_\theta \min \left( \sum_{t=1}^T r_\theta(s_t^i, a_t^i), \zeta \right) = \mathbb{I}\left( \sum_{t=1}^T r_\theta(s_t^i, a_t^i) > \zeta \right) \sum_{t=1}^T \nabla_\theta r_\theta(s_t^i, a_t^i),
+$$
+where $ \mathbb{I}(\cdot) $ is the indicator function that is 1 if the cumulative reward exceeds $ \zeta $, and 0 otherwise.
+
+#### Gradient with respect to $ \zeta $
+
+The gradient of $ \mathcal{L}(\theta, \zeta) $ with respect to $ \zeta $ only affects the truncated reward term:
+
+$$
+\nabla_\zeta \mathcal{L}(\theta, \zeta) = \sum_{i=1}^N \nabla_\zeta \min \left( \sum_{t=1}^T r_\theta(s_t^i, a_t^i), \zeta \right).
+$$
+
+This gradient is:
+
+$$
+\nabla_\zeta \min \left( \sum_{t=1}^T r_\theta(s_t^i, a_t^i), \zeta \right) = \mathbb{I}\left( \sum_{t=1}^T r_\theta(s_t^i, a_t^i) \leq \zeta \right),
+$$
+since increasing $ \zeta $ only affects trajectories where the cumulative reward is less than or equal to $ \zeta $.
+
+Thus, the gradient with respect to $ \zeta $ is:
+
+$$
+\nabla_\zeta \mathcal{L}(\theta, \zeta) = \sum_{i=1}^N \mathbb{I}\left( \sum_{t=1}^T r_\theta(s_t^i, a_t^i) \leq \zeta \right).
+$$
+
+### 4. Summary of Gradients
+
+To summarize, the gradients of the NLL for the CVaR-based likelihood are:
+
+- **Gradient with respect to $ \theta $**:
+
+$$
+\nabla_\theta \mathcal{L}(\theta, \zeta) = \sum_{i=1}^N \left( \frac{1}{Z(\theta)} \sum_\tau p_{\text{CVaR}}(\tau \mid \theta, \zeta) \nabla_\theta \sum_{t=1}^T r_\theta(s_t, a_t) - \mathbb{I}\left( \sum_{t=1}^T r_\theta(s_t^i, a_t^i) > \zeta \right) \sum_{t=1}^T \nabla_\theta r_\theta(s_t^i, a_t^i) \right).
+$$
+
+- **Gradient with respect to $ \zeta $**:
+
+$$
+\nabla_\zeta \mathcal{L}(\theta, \zeta) = \sum_{i=1}^N \mathbb{I}\left( \sum_{t=1}^T r_\theta(s_t^i, a_t^i) \leq \zeta \right).
+$$
+
+These gradients can be used in an iterative optimization algorithm to adjust $ \theta $ and $ \zeta $, allowing us to find the reward parameters that are optimal under the CVaR risk measure.

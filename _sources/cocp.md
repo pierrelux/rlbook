@@ -1285,7 +1285,7 @@ Without loss of generality, consider a Mayer problem:
 
 $$
 \begin{aligned}
-\text{minimize} \quad & c(\mathbf{x}(t_f)) +\\
+\text{minimize} \quad & c(\mathbf{x}(t_f)) \\
 \text{subject to} \quad & \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
 & \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
 & \mathbf{u}{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}{\text{max}} \\
@@ -1384,11 +1384,14 @@ Note that the integral of the cost function is approximated using the rectangle 
 $$\int_{t_0}^{t_f} c(\mathbf{x}(t), \mathbf{u}(t)) dt \approx \sum_{i=0}^{N-1} h_i c(\mathbf{x}_i, \mathbf{u}_i)$$
 
 This approximation matches the Euler integration scheme used for the dynamics:
+
 $$\int_{t_i}^{t_{i+1}} \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t), t) dt \approx h_i \mathbf{f}(\mathbf{x}_i, \mathbf{u}_i, t_i)$$
 
 
 After solving the optimization problem, we obtain discrete values for the control inputs $\mathbf{u}_i$ at each time point $t_i$. To reconstruct the continuous control function $\mathbf{u}(t)$, we use linear interpolation between these points. For $t \in [t_i, t{i+1}]$, we can express $\mathbf{u}(t)$ as:
+
 $$\mathbf{u}(t) = \mathbf{u}_i + \frac{\mathbf{u}_{i+1} - \mathbf{u}_i}{h_i}(t - t_i)$$
+
 This piecewise linear function provides a continuous control signal that matches the discrete optimal values found by the optimization program.
 
 ##### Trapezoidal Direct Collocation
@@ -1501,7 +1504,7 @@ Compressors are mechanical devices used to increase the pressure of a gas by red
 
 As the gas flow decreases, the compressor must work harder to maintain a steady flow. If the flow becomes too low, it can lead to a "breakdown": a phenomenon similar to an airplane stalling at low speeds or high angles of attack. In a compressor, when this breakdown occurs the gas briefly flows backward instead of moving forward, which in turns can cause violent oscillations in pressure which can damage the compressor and the equipments depending on it. One way to address this problem is by installing a close-coupled valve (CCV), which is a device connected at the output of the compressor to quickly modulate the flow. Our aim is not to devise a optimal control approach to ensure that the compressor does not experience a surge by operating this CCV appropriately. 
 
-Following  {cite}`Gravdahl1997`, we model the compressor using a simplified second-order representation:
+Following  {cite:p}`Gravdahl1997` and {cite}`Grancharova2012`, we model the compressor using a simplified second-order representation:
 
 $$
 \begin{aligned}
@@ -1564,7 +1567,8 @@ $$
 \text{subject to} \quad & \dot{x}_1(t) = B(\Psi_e(x_1(t)) - x_2(t) - u(t)) \\
 & \dot{x}_2(t) = \frac{1}{B}(x_1(t) - \Phi(x_2(t))) \\
 & u_{\text{min}} \leq u(t) \leq u_{\text{max}} \\
-& \mathbf{x}(0) = \mathbf{x}_0
+& \mathbf{x}(0) = \mathbf{x}_0 \\
+& \mathbf{x}(T) = \mathbf{x}^\star
 \end{aligned}
 $$
 
@@ -1591,9 +1595,10 @@ By aligning the time grid used by our numerical integration procedure to match t
 By using polynomial interpolation over the numerical solution to find the missing values needed to compare with the real measurements. This approach allows us to maintain a fine, regular grid for numerical integration while still comparing against irregularly sampled data.
 
 Mathematically, if we use this second approach with Euler integration, the problem can be expressed as:
+
 $$
 \begin{aligned}
-\text{minimize}_{\boldsymbol{\theta}} \quad & \sum_{k=0}^{M-1} \|\mathbf{y}(t_k) - \hat{\mathbf{y}}_{t_k}\|_2^2 \\
+\text{minimize}_{\boldsymbol{\theta}} \quad & \sum_{k=0}^{M-1} \|\mathbf{y}_{t_f} - \hat{\mathbf{y}}_{t_k}\|_2^2 \\
 \text{subject to} \quad & \mathbf{u}_{\text{min}} \leq \mathbf{u}_i \leq \mathbf{u}_{\text{max}}, \quad i = 0, \ldots, N-1 \\
 \text{where} \quad & \hat{\mathbf{y}}_{t_k} = \mathbf{h}(\mathbf{x}_{t_k}; \boldsymbol{\theta}) \\
 & \mathbf{x}_{i+1} = \mathbf{x}_i + \Delta t \cdot \mathbf{f}(\mathbf{x}_i, \mathbf{u}_i; \boldsymbol{\theta}), \quad i = 0, \ldots, N-1 \\
@@ -1633,4 +1638,9 @@ Another possibility is to blend the two approaches and use a grey-box model. In 
 $$
 \dot{\mathbf{x}}(t) = f_{\text{physics}}(\mathbf{x}, t; \boldsymbol{\theta}_{\text{physics}}) + f_{\text{NN}}(\mathbf{x}, t; \boldsymbol{\theta}_{\text{NN}})
 $$
+
 where $f_{\text{physics}}$ is the physics-based model with parameters $\boldsymbol{\theta}_{\text{physics}}$, and $f_{\text{NN}}$ is a neural network with parameters $\boldsymbol{\theta}_{\text{NN}}$ that captures unmodeled dynamics.
+
+We then learn the parameters of the black-box model in tandem with the output of the given physics-based model. You can think of the combination of these two models as a neural network of its own, with the key difference being that one subnetwork (the physics-based one) has frozen weights (non-adjustable parameters).
+
+This approach is easy to implement using automatic differentiation techniques and allows us to leverage prior knowledge to make the data-driven modelling more sample efficient. From a learning perspective, it amounts to providing inductive biases to make learning more efficient and to generalize better. 

@@ -184,6 +184,10 @@
 
 <li class="toctree-l1"><a class="reference internal" href="cocp.html">5. Continuous-Time Trajectory Optimization</a></li>
 
+<li class="toctree-l1"><a class="reference internal" href="dp.html">7. Dynamic Programming</a></li>
+
+
+
 </ul>
 
     </div>
@@ -1514,19 +1518,19 @@ ineq_constraint[None]: -5.466075458072094e-09
 \[\begin{split}
 \begin{aligned}
 \min_{\mathbf{x}} \quad &amp; f(\mathbf{x}) \\
-\text{subject to} \quad &amp; g_i(\mathbf{x}) = 0, \quad i = 1, \ldots, m
+\text{subject to} \quad &amp; h_i(\mathbf{x}) = 0, \quad i = 1, \ldots, m
 \end{aligned}
 \end{split}\]</div>
-<p>where <span class="math notranslate nohighlight">\(\mathbf{x} \in \mathbb{R}^n\)</span>, <span class="math notranslate nohighlight">\(f: \mathbb{R}^n \to \mathbb{R}\)</span>, and <span class="math notranslate nohighlight">\(g_i: \mathbb{R}^n \to \mathbb{R}\)</span> for <span class="math notranslate nohighlight">\(i = 1, \ldots, m\)</span>.</p>
+<p>where <span class="math notranslate nohighlight">\(\mathbf{x} \in \mathbb{R}^n\)</span>, <span class="math notranslate nohighlight">\(f: \mathbb{R}^n \to \mathbb{R}\)</span>, and <span class="math notranslate nohighlight">\(h_i: \mathbb{R}^n \to \mathbb{R}\)</span> for <span class="math notranslate nohighlight">\(i = 1, \ldots, m\)</span>.</p>
 <p>Assume that:</p>
 <ol class="arabic simple">
-<li><p><span class="math notranslate nohighlight">\(f\)</span> and <span class="math notranslate nohighlight">\(g_i\)</span> are continuously differentiable functions.</p></li>
-<li><p>The gradients <span class="math notranslate nohighlight">\(\nabla g_i(\mathbf{x}^*)\)</span> are linearly independent at the optimal point <span class="math notranslate nohighlight">\(\mathbf{x}^*\)</span>.</p></li>
+<li><p><span class="math notranslate nohighlight">\(f\)</span> and <span class="math notranslate nohighlight">\(h_i\)</span> are continuously differentiable functions.</p></li>
+<li><p>The gradients <span class="math notranslate nohighlight">\(\nabla h_i(\mathbf{x}^*)\)</span> are linearly independent at the optimal point <span class="math notranslate nohighlight">\(\mathbf{x}^*\)</span>.</p></li>
 </ol>
 <p>Then, there exist unique Lagrange multipliers <span class="math notranslate nohighlight">\(\lambda_i^* \in \mathbb{R}\)</span>, <span class="math notranslate nohighlight">\(i = 1, \ldots, m\)</span>, such that the following first-order optimality conditions hold:</p>
 <ol class="arabic simple">
-<li><p>Stationarity: <span class="math notranslate nohighlight">\(\nabla f(\mathbf{x}^*) + \sum_{i=1}^m \lambda_i^* \nabla g_i(\mathbf{x}^*) = \mathbf{0}\)</span></p></li>
-<li><p>Primal feasibility: <span class="math notranslate nohighlight">\(g_i(\mathbf{x}^*) = 0\)</span>, for <span class="math notranslate nohighlight">\(i = 1, \ldots, m\)</span></p></li>
+<li><p>Stationarity: <span class="math notranslate nohighlight">\(\nabla f(\mathbf{x}^*) + \sum_{i=1}^m \lambda_i^* \nabla h_i(\mathbf{x}^*) = \mathbf{0}\)</span></p></li>
+<li><p>Primal feasibility: <span class="math notranslate nohighlight">\(h_i(\mathbf{x}^*) = 0\)</span>, for <span class="math notranslate nohighlight">\(i = 1, \ldots, m\)</span></p></li>
 </ol>
 </section>
 </div><p>Note that both the stationarity and primal feasibility statements are simply saying that the derivative of the Lagrangian in either the primal or dual variables must be zero at an optimal constrained solution. In other words:</p>
@@ -1569,7 +1573,7 @@ Given the Newton’s method iterate:</p>
 <p>To solve equality-constrained optimization problems using Newton’s method, we begin by recognizing that the problem reduces to finding a zero of the function <span class="math notranslate nohighlight">\(\mathbf{F}(\mathbf{z}) = \nabla_{\mathbf{x}, \boldsymbol{\lambda}} L(\mathbf{x}, \boldsymbol{\lambda})\)</span>. Here, <span class="math notranslate nohighlight">\(\mathbf{F}\)</span> represents the derivative of the Lagrangian function, and <span class="math notranslate nohighlight">\(\mathbf{z} = (\mathbf{x}, \boldsymbol{\lambda})\)</span> combines both the primal variables <span class="math notranslate nohighlight">\(\mathbf{x}\)</span> and the dual variables (Lagrange multipliers) <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}\)</span>. Explicitly, we have:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
-\mathbf{F}(\mathbf{z}) = \begin{bmatrix} \nabla_{\mathbf{x}} L(\mathbf{x}, \boldsymbol{\lambda}) \\ \mathbf{g}(\mathbf{x}) \end{bmatrix} = \begin{bmatrix} \nabla f(\mathbf{x}) + \sum_{i=1}^m \lambda_i \nabla g_i(\mathbf{x}) \\ \mathbf{g}(\mathbf{x}) \end{bmatrix}.
+\mathbf{F}(\mathbf{z}) = \begin{bmatrix} \nabla_{\mathbf{x}} L(\mathbf{x}, \boldsymbol{\lambda}) \\ \mathbf{h}(\mathbf{x}) \end{bmatrix} = \begin{bmatrix} \nabla f(\mathbf{x}) + \sum_{i=1}^m \lambda_i \nabla h_i(\mathbf{x}) \\ \mathbf{h}(\mathbf{x}) \end{bmatrix}.
 \end{split}\]</div>
 <p>Newton’s method involves linearizing <span class="math notranslate nohighlight">\(\mathbf{F}(\mathbf{z})\)</span> around the current iterate <span class="math notranslate nohighlight">\(\mathbf{z}^k = (\mathbf{x}^k, \boldsymbol{\lambda}^k)\)</span> and then solving the resulting linear system. At each iteration <span class="math notranslate nohighlight">\(k\)</span>, Newton’s method updates the current estimate by solving the linear system:</p>
 <div class="math notranslate nohighlight">
@@ -1585,8 +1589,8 @@ Given the Newton’s method iterate:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
 \begin{bmatrix}
-\nabla^2_{\mathbf{x}\mathbf{x}} L(\mathbf{x}^k, \boldsymbol{\lambda}^k) &amp; \nabla \mathbf{g}(\mathbf{x}^k)^T \\
-\nabla \mathbf{g}(\mathbf{x}^k) &amp; \mathbf{0}
+\nabla^2_{\mathbf{x}\mathbf{x}} L(\mathbf{x}^k, \boldsymbol{\lambda}^k) &amp; \nabla \mathbf{h}(\mathbf{x}^k)^T \\
+\nabla \mathbf{h}(\mathbf{x}^k) &amp; \mathbf{0}
 \end{bmatrix}
 \begin{bmatrix}
 \Delta \mathbf{x}^k \\
@@ -1595,8 +1599,8 @@ Given the Newton’s method iterate:</p>
 =
 -
 \begin{bmatrix}
-\nabla f(\mathbf{x}^k) + \nabla \mathbf{g}(\mathbf{x}^k)^T \boldsymbol{\lambda}^k \\
-\mathbf{g}(\mathbf{x}^k)
+\nabla f(\mathbf{x}^k) + \nabla \mathbf{h}(\mathbf{x}^k)^T \boldsymbol{\lambda}^k \\
+\mathbf{h}(\mathbf{x}^k)
 \end{bmatrix}.
 \end{split}\]</div>
 <p>The matrix on the left-hand side is known as the KKT matrix, as it stems from the Karush-Kuhn-Tucker conditions for this optimization problem
@@ -1612,13 +1616,13 @@ The solution of this system provides the updates <span class="math notranslate n
 \[\begin{split}
 \begin{aligned}
 \min_{x \in \mathbb{R}^2} \quad &amp; f(x) = (x_1 - 2)^2 + (x_2 - 1)^2 \\
-\text{subject to} \quad &amp; g(x) = x_1^2 + x_2^2 - 1 = 0
+\text{subject to} \quad &amp; h(x) = x_1^2 + x_2^2 - 1 = 0
 \end{aligned}
 \end{split}\]</div>
-<p>Geometrically speaking, the constraint <span class="math notranslate nohighlight">\(g(x)\)</span> describes a unit circle centered at the origin. To solve this problem using the method of Lagrange multipliers, we form the Lagrangian:</p>
+<p>Geometrically speaking, the constraint <span class="math notranslate nohighlight">\(h(x)\)</span> describes a unit circle centered at the origin. To solve this problem using the method of Lagrange multipliers, we form the Lagrangian:</p>
 <div class="math notranslate nohighlight">
 \[
-L(x, \lambda) = f(x) + \lambda g(x) = (x_1 - 2)^2 + (x_2 - 1)^2 + \lambda(x_1^2 + x_2^2 - 1)
+L(x, \lambda) = f(x) + \lambda h(x) = (x_1 - 2)^2 + (x_2 - 1)^2 + \lambda(x_1^2 + x_2^2 - 1)
 \]</div>
 <p>For this particular problem, it happens so that we can also find an analytical without even having to use Newton’s method. From the first-order optimality conditions, we obtain the following linear system of equations:</p>
 <div class="amsmath math notranslate nohighlight">
@@ -1816,7 +1820,7 @@ The numerical solution matches the analytical solution within the specified tole
 \[\begin{split}
 \begin{aligned}
 \min_{\mathbf{x}} \quad &amp; f(\mathbf{x}) \\
-\text{subject to} \quad &amp; \mathbf{g}(\mathbf{x}) = \mathbf{0}.
+\text{subject to} \quad &amp; \mathbf{h}(\mathbf{x}) = \mathbf{0}.
 \end{aligned}
 \end{split}\]</div>
 <p>At each iteration <span class="math notranslate nohighlight">\(k\)</span>, we approximate the objective function <span class="math notranslate nohighlight">\(f(\mathbf{x})\)</span> using a second-order Taylor expansion around the current iterate <span class="math notranslate nohighlight">\(\mathbf{x}^k\)</span>. The standard Taylor expansion for <span class="math notranslate nohighlight">\(f\)</span> would be:</p>
@@ -1829,17 +1833,17 @@ f(\mathbf{x}) \approx f(\mathbf{x}^k) + \nabla f(\mathbf{x}^k)^T (\mathbf{x} - \
 \[
 f(\mathbf{x}) \approx f(\mathbf{x}^k) + \nabla f(\mathbf{x}^k)^T (\mathbf{x} - \mathbf{x}^k) + \frac{1}{2} (\mathbf{x} - \mathbf{x}^k)^T \nabla^2_{\mathbf{x}\mathbf{x}} L(\mathbf{x}^k, \boldsymbol{\lambda}^k) (\mathbf{x} - \mathbf{x}^k).
 \]</div>
-<p>Similarly, the equality constraints <span class="math notranslate nohighlight">\(\mathbf{g}(\mathbf{x})\)</span> are linearized around <span class="math notranslate nohighlight">\(\mathbf{x}^k\)</span>:</p>
+<p>Similarly, the equality constraints <span class="math notranslate nohighlight">\(\mathbf{h}(\mathbf{x})\)</span> are linearized around <span class="math notranslate nohighlight">\(\mathbf{x}^k\)</span>:</p>
 <div class="math notranslate nohighlight">
 \[
-\mathbf{g}(\mathbf{x}) \approx \mathbf{g}(\mathbf{x}^k) + \nabla \mathbf{g}(\mathbf{x}^k) (\mathbf{x} - \mathbf{x}^k).
+\mathbf{h}(\mathbf{x}) \approx \mathbf{h}(\mathbf{x}^k) + \nabla \mathbf{h}(\mathbf{x}^k) (\mathbf{x} - \mathbf{x}^k).
 \]</div>
 <p>Combining these approximations, we obtain a Quadratic Programming (QP) subproblem, which approximates our original problem locally at <span class="math notranslate nohighlight">\(\mathbf{x}^k\)</span> but is easier to solve:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
 \begin{aligned}
 \text{Minimize} \quad &amp; \nabla f(\mathbf{x}^k)^T \Delta \mathbf{x} + \frac{1}{2} \Delta \mathbf{x}^T \nabla^2_{\mathbf{x}\mathbf{x}} L(\mathbf{x}^k, \boldsymbol{\lambda}^k) \Delta \mathbf{x} \\
-\text{subject to} \quad &amp; \nabla \mathbf{g}(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{g}(\mathbf{x}^k) = \mathbf{0},
+\text{subject to} \quad &amp; \nabla \mathbf{h}(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{h}(\mathbf{x}^k) = \mathbf{0},
 \end{aligned}
 \end{split}\]</div>
 <p>where <span class="math notranslate nohighlight">\(\Delta \mathbf{x} = \mathbf{x} - \mathbf{x}^k\)</span>. The QP subproblem solved at each iteration focuses on finding the optimal step direction <span class="math notranslate nohighlight">\(\Delta \mathbf{x}\)</span> for the primal variables.
@@ -1874,18 +1878,18 @@ We summarize the SQP algorithm in the following pseudo-code:</p>
 <div class="amsmath math notranslate nohighlight">
 \[\begin{align*}
 \begin{bmatrix}
-\nabla^2_{\mathbf{x}\mathbf{x}} L(\mathbf{x}_k, \boldsymbol{\mu}_k) &amp; \nabla \mathbf{h}(\mathbf{x}_k)^T \\
-\nabla \mathbf{h}(\mathbf{x}_k) &amp; \mathbf{0}
+\nabla^2_{\mathbf{x}\mathbf{x}} L(\mathbf{x}^k, \boldsymbol{\lambda}^k) &amp; \nabla \mathbf{h}(\mathbf{x}^k)^T \\
+\nabla \mathbf{h}(\mathbf{x}^k) &amp; \mathbf{0}
 \end{bmatrix}
 \begin{bmatrix}
-\Delta \mathbf{x}_k \\
-\Delta \boldsymbol{\mu}_k
+\Delta \mathbf{x}^k \\
+\Delta \boldsymbol{\lambda}^k
 \end{bmatrix}
 =
 -
 \begin{bmatrix}
-\nabla f(\mathbf{x}_k) + \nabla \mathbf{h}(\mathbf{x}_k)^T \boldsymbol{\mu}_k \\
-\mathbf{h}(\mathbf{x}_k)
+\nabla f(\mathbf{x}^k) + \nabla \mathbf{h}(\mathbf{x}^k)^T \boldsymbol{\lambda}^k \\
+\mathbf{h}(\mathbf{x}^k)
 \end{bmatrix}
 \end{align*}\]</div>
 <p>This is exactly the same linear system that have to solve when applying Newton’s method to the KKT conditions of the original program! Thus, solving the QP subproblem at each iteration of SQP is equivalent to taking a Newton step on the KKT conditions of the original nonlinear problem.</p>
@@ -1898,15 +1902,15 @@ Consider a general nonlinear optimization problem that includes both equality an
 <div class="amsmath math notranslate nohighlight">
 \[\begin{align*}
 \min_{\mathbf{x}} \quad &amp; f(\mathbf{x}) \\
-\text{subject to} \quad &amp; \mathbf{g}(\mathbf{x}) = \mathbf{0}, \\
-&amp; \mathbf{h}(\mathbf{x}) \leq \mathbf{0}.
+\text{subject to} \quad &amp; \mathbf{g}(\mathbf{x}) \leq \mathbf{0}, \\
+&amp; \mathbf{h}(\mathbf{x}) = \mathbf{0}.
 \end{align*}\]</div>
 <p>As we did earlier, we approximate this problem by constructing a quadratic approximation to the objective and a linearization of the constraints. QP subproblem at each iteration is then formulated as:</p>
 <div class="amsmath math notranslate nohighlight">
 \[\begin{align*}
 \text{Minimize} \quad &amp; \nabla f(\mathbf{x}^k)^T \Delta \mathbf{x} + \frac{1}{2} \Delta \mathbf{x}^T \nabla^2_{\mathbf{x}\mathbf{x}} L(\mathbf{x}^k, \boldsymbol{\lambda}^k, \boldsymbol{\nu}^k) \Delta \mathbf{x} \\
-\text{subject to} \quad &amp; \nabla \mathbf{g}(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{g}(\mathbf{x}^k) = \mathbf{0}, \\
-&amp; \nabla \mathbf{h}(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{h}(\mathbf{x}^k) \leq \mathbf{0},
+\text{subject to} \quad &amp; \nabla \mathbf{g}(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{g}(\mathbf{x}^k) \leq \mathbf{0}, \\
+&amp; \nabla \mathbf{h}(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{h}(\mathbf{x}^k) = \mathbf{0},
 \end{align*}\]</div>
 <p>where <span class="math notranslate nohighlight">\(\Delta \mathbf{x} = \mathbf{x} - \mathbf{x}^k\)</span> represents the step direction for the primal variables. The following pseudocode outlines the steps involved in applying SQP to a problem with both equality and inequality constraints:</p>
 <div class="proof algorithm admonition" id="alg-sqp-ineq">
@@ -1925,8 +1929,8 @@ Formulate the QP subproblem using the current iterate <span class="math notransl
 \[\begin{split}
    \begin{aligned}
    \text{Minimize} \quad &amp; \nabla f(\mathbf{x}^k)^T \Delta \mathbf{x} + \frac{1}{2} \Delta \mathbf{x}^T \nabla^2_{\mathbf{x}\mathbf{x}} L(\mathbf{x}^k, \boldsymbol{\lambda}^k, \boldsymbol{\nu}^k) \Delta \mathbf{x} \\
-   \text{subject to} \quad &amp; \nabla \mathbf{g}(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{g}(\mathbf{x}^k) = \mathbf{0}, \\
-   &amp; \nabla \mathbf{h}(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{h}(\mathbf{x}^k) \leq \mathbf{0}.
+   \text{subject to} \quad &amp; \nabla \mathbf{g}(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{g}(\mathbf{x}^k) \leq \mathbf{0}, \\
+   &amp; \nabla \mathbf{h}(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{h}(\mathbf{x}^k) = \mathbf{0}.
    \end{aligned}
    \end{split}\]</div>
 <p>b. <strong>Solve the QP Subproblem:</strong>
@@ -1950,8 +1954,8 @@ If <span class="math notranslate nohighlight">\(\|\Delta \mathbf{x}^k\| &lt; \ep
 <div class="amsmath math notranslate nohighlight">
 \[\begin{align*}
 \min_{x \in \mathbb{R}^2} \quad &amp; f(x) = (x_1 - 2)^2 + (x_2 - 1)^2 \\
-\text{subject to} \quad &amp; g(x) = x_1^2 + x_2^2 - 1 = 0 \\
-&amp; h(x) = x_1^2 - x_2 \leq 0
+\text{subject to} \quad &amp; g(x) = x_1^2 - x_2 \leq 0  \\
+&amp; h(x) = x_1^2 + x_2^2 - 1 = 0
 \end{align*}\]</div>
 <p>This example builds on our previous one but adds a parabola-shaped inequality constraint. We require our solution to lie not only on the circle defining our equality constraint but also below the parabola. To solve the QP subproblem, we will be using the <a class="reference external" href="https://www.cvxpy.org/">CVXPY</a> package. While the Lagrangian and derivatives could be computed easily by hand, we use <a class="reference external" href="https://jax.readthedocs.io/">JAX</a> for generality:</p>
 <div class="cell tag_hide-input docutils container">
@@ -2123,11 +2127,11 @@ Objective function value: 1.619326
 \[\begin{split}
 \begin{aligned}
 \min_{\mathbf{x}} \quad &amp; f(\mathbf{x}) \\
-\text{subject to} \quad &amp; \mathbf{g}(\mathbf{x}) = \mathbf{0} \\
-&amp; \mathbf{h}(\mathbf{x}) \leq \mathbf{0}
+\text{subject to} \quad &amp; \mathbf{g}(\mathbf{x}) \leq \mathbf{0} \\
+&amp; \mathbf{h}(\mathbf{x}) = \mathbf{0}
 \end{aligned}
 \end{split}\]</div>
-<p>Using the Lagrangian function <span class="math notranslate nohighlight">\(L(\mathbf{x}, \boldsymbol{\lambda}, \boldsymbol{\mu}) = f(\mathbf{x}) + \boldsymbol{\lambda}^T \mathbf{g}(\mathbf{x}) + \boldsymbol{\mu}^T \mathbf{h}(\mathbf{x})\)</span>, we can reformulate this problem as the following min-max problem:</p>
+<p>Using the Lagrangian function <span class="math notranslate nohighlight">\(L(\mathbf{x}, \boldsymbol{\lambda}, \boldsymbol{\mu}) = f(\mathbf{x}) + \boldsymbol{\mu}^T \mathbf{g}(\mathbf{x}) + \boldsymbol{\lambda}^T \mathbf{h}(\mathbf{x})\)</span>, we can reformulate this problem as the following min-max problem:</p>
 <div class="math notranslate nohighlight">
 \[
 \min_{\mathbf{x}} \max_{\boldsymbol{\lambda}, \boldsymbol{\mu} \geq 0} L(\mathbf{x}, \boldsymbol{\lambda}, \boldsymbol{\mu})
@@ -2135,8 +2139,8 @@ Objective function value: 1.619326
 <p>The role of each component in this min-max structure can be understood as follows:</p>
 <ol class="arabic simple">
 <li><p>The outer minimization over <span class="math notranslate nohighlight">\(\mathbf{x}\)</span> finds the feasible point that minimizes the objective function <span class="math notranslate nohighlight">\(f(\mathbf{x})\)</span>.</p></li>
-<li><p>The maximization over <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}\)</span> ensures that equality constraints <span class="math notranslate nohighlight">\(\mathbf{g}(\mathbf{x}) = \mathbf{0}\)</span> are satisfied.</p></li>
-<li><p>The maximization over <span class="math notranslate nohighlight">\(\boldsymbol{\mu} \geq 0\)</span> ensures that inequality constraints <span class="math notranslate nohighlight">\(\mathbf{h}(\mathbf{x}) \leq \mathbf{0}\)</span> are satisfied. If any inequality constraint is violated, the corresponding term in <span class="math notranslate nohighlight">\(\boldsymbol{\mu}^T \mathbf{h}(\mathbf{x})\)</span> can be made arbitrarily large by choosing a large enough <span class="math notranslate nohighlight">\(\mu_i\)</span>.</p></li>
+<li><p>The maximization over <span class="math notranslate nohighlight">\(\boldsymbol{\mu} \geq 0\)</span> ensures that inequality constraints <span class="math notranslate nohighlight">\(\mathbf{g}(\mathbf{x}) \leq \mathbf{0}\)</span> are satisfied. If any inequality constraint is violated, the corresponding term in <span class="math notranslate nohighlight">\(\boldsymbol{\mu}^T \mathbf{g}(\mathbf{x})\)</span> can be made arbitrarily large by choosing a large enough <span class="math notranslate nohighlight">\(\mu_i\)</span>.</p></li>
+<li><p>The maximization over <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}\)</span> ensures that equality constraints <span class="math notranslate nohighlight">\(\mathbf{h}(\mathbf{x}) = \mathbf{0}\)</span> are satisfied.</p></li>
 </ol>
 <p>Using this observation, we can devise an algorithm which, like SQP, will update both the primal and dual variables at every step. But rather than using second-order optimization, we will simply use a first-order gradient update step: a descent step in the primal variable, and an ascent step in the dual one. The corresponding procedure, when implemented by gradient descent, is called Gradient Ascent Descent in the learning and optimization communities. In the case of equality constraints only, the algorithm looks like the following:</p>
 <div class="proof algorithm admonition" id="ahuz-eq">
@@ -2550,6 +2554,10 @@ H_t(\mathbf{x}_t, \mathbf{u}_t, \boldsymbol{\lambda}_{t+1}) = c_t(\mathbf{x}_t, 
 <div class="citation" id="id26" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id11">RHW86</a><span class="fn-bracket">]</span></span>
 <p>David E Rumelhart, Geoffrey E Hinton, and Ronald J Williams. Learning representations by back-propagating errors. <em>Nature</em>, 323(6088):533–536, 1986.</p>
+</div>
+<div class="citation" id="id32" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>SFS+08<span class="fn-bracket">]</span></span>
+<p>Y. Sawaguchi, E. Furutani, G. Shirakami, M. Araki, and K. Fukuda. A model-predictive hypnosis control system under total intravenous anesthesia. <em>IEEE Transactions on Biomedical Engineering</em>, 55(3):874–887, March 2008. URL: <a class="reference external" href="http://dx.doi.org/10.1109/tbme.2008.915670">http://dx.doi.org/10.1109/tbme.2008.915670</a>, <a class="reference external" href="https://doi.org/10.1109/tbme.2008.915670">doi:10.1109/tbme.2008.915670</a>.</p>
 </div>
 </div>
 </div>
