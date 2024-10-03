@@ -403,17 +403,20 @@ document.write(`
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#open-loop-vs-closed-loop-control">8. Open-Loop vs Closed-Loop Control</a></li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#closing-the-loop-by-replanning">9. Closing the Loop by Replanning</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-propofol-infusion-control">9.1. Example: Propofol Infusion Control</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#computational-efficiency-improvements">9.2. Computational Efficiency Improvements</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#explicit-mpc">9.2.1. Explicit MPC</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#amortized-optimization-and-neural-networks">9.2.1.1. Amortized Optimization and Neural Networks</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#parametric-programming">10. Parametric Programming</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#parametric-programming-and-trajectory-optimization">10.1. Parametric Programming and Trajectory Optimization</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#warmstarting-and-sensitivity-analysis">10.1.1. Warmstarting and Sensitivity Analysis</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#explicit-mpc-and-critical-regions">10.1.2. Explicit MPC and Critical Regions</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#amortized-optimization-and-neural-networks">10.1.2.1. Amortized Optimization and Neural Networks</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#warmstarting-and-predictor-corrector-mpc">9.2.2. Warmstarting and Predictor-Corrector MPC</a></li>
 </ul>
 </li>
 </ul>
 </li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#principle-of-optimality">10. Principle of Optimality</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#backward-recursion">10.1. Backward Recursion</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-sample-size-determination-in-pharmaceutical-development">10.2. Example: Sample Size Determination in Pharmaceutical Development</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#linear-quadratic-regulator-via-dynamic-programming">10.3. Linear Quadratic Regulator via Dynamic Programming</a></li>
 </ul>
 </li>
 </ul>
@@ -693,30 +696,23 @@ First, there is a delay in how fast the drug can reach a different compartments 
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="_images/114efcd0bd7eaa9c3ad0e37f6787f59719cfbc0dfd0bb9410a35e31f8ddd4ae6.png" src="_images/114efcd0bd7eaa9c3ad0e37f6787f59719cfbc0dfd0bb9410a35e31f8ddd4ae6.png" />
+<img alt="_images/e97f5331a30ef2e955973e39a1af9ba3c52081ef3b97a3bfcf4e1c4d4b4bcb96.png" src="_images/e97f5331a30ef2e955973e39a1af9ba3c52081ef3b97a3bfcf4e1c4d4b4bcb96.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Initial BIS: 100.00
-Final BIS: 50.15
+Final BIS: 49.99
 Mean infusion rate: 8.85 mg/kg/h
-Final effect-site concentration: 3.39 µg/mL
+Final effect-site concentration: 3.40 µg/mL
 </pre></div>
 </div>
 </div>
 </div>
 </section>
-</section>
-<section class="tex2jax_ignore mathjax_ignore" id="parametric-programming">
-<h1><span class="section-number">10. </span>Parametric Programming<a class="headerlink" href="#parametric-programming" title="Link to this heading">#</a></h1>
+<section id="computational-efficiency-improvements">
+<h2><span class="section-number">9.2. </span>Computational Efficiency Improvements<a class="headerlink" href="#computational-efficiency-improvements" title="Link to this heading">#</a></h2>
 <p>One challenge of Model Predictive Control (MPC) is its computational cost. In real-time applications, such as adaptive optics, the controller may need to operate at extremely high frequencies—for example, 1000 Hz. In this scenario, the solver has just 1 millisecond to compute an optimal solution, pushing the limits of computational efficiency.</p>
+<section id="explicit-mpc">
+<h3><span class="section-number">9.2.1. </span>Explicit MPC<a class="headerlink" href="#explicit-mpc" title="Link to this heading">#</a></h3>
 <p>A potential solution to this problem is to offload some of the computational effort offline. Instead of solving the optimization problem at every time step during execution, we could attempt to <strong>precompute solutions</strong> for all potential states in advance. At first glance, this seems impractical—without leveraging specific structure or partitioning the state space intelligently, precomputing solutions for every possible state would be infeasible. However, with the right techniques, this approach becomes viable.</p>
-<section id="parametric-programming-and-trajectory-optimization">
-<h2><span class="section-number">10.1. </span>Parametric Programming and Trajectory Optimization<a class="headerlink" href="#parametric-programming-and-trajectory-optimization" title="Link to this heading">#</a></h2>
-<p>In trajectory optimization problems, the initial state <span class="math notranslate nohighlight">\(\boldsymbol{x}_0\)</span> can be treated as a <strong>parameter</strong>. This transforms the problem into a parametric optimization problem, where <span class="math notranslate nohighlight">\(\boldsymbol{x}_0\)</span> defines a family of optimization problems, each yielding a different optimal solution. The relationship between the parameters and solutions can be described using two key mappings:</p>
-<ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(\boldsymbol{u}^\star(\boldsymbol{x}_0)\)</span>: The optimal control sequence as a function of the initial state.</p></li>
-<li><p><span class="math notranslate nohighlight">\(v(\boldsymbol{x}_0)\)</span>: The value function, which gives the optimal objective value for a given <span class="math notranslate nohighlight">\(\boldsymbol{x}_0\)</span>.</p></li>
-</ul>
-<p>This type of problem, where the solution depends on parameters, falls under <strong>parametric programming</strong>. Specifically, the function <span class="math notranslate nohighlight">\(v(\boldsymbol{x}_0)\)</span>, known as the <strong>value function</strong> in parametric programming. As we will see below, the term “value function” is also prevalent in dynamic programming and reinforcement learning literature, and this is no coincidence.
-A multiparametric programming problem can be described by the following formulation:</p>
+<p>This is the essence of <strong>explicit MPC</strong>, which hinges on a subfield of mathematical programming known as multi-parametric (or simply parametric) programming.  A multiparametric programming problem can be described by the following formulation:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
 \begin{array}{cl}
@@ -734,37 +730,49 @@ z(\boldsymbol{\theta}) = \min_{\mathbf{x}} &amp; f(\mathbf{x}, \boldsymbol{\thet
 <li><p><span class="math notranslate nohighlight">\(f(\mathbf{x}, \boldsymbol{\theta})\)</span> is the objective function,</p></li>
 <li><p><span class="math notranslate nohighlight">\(\mathbf{g}(\mathbf{x}, \boldsymbol{\theta}) \leq 0\)</span> and <span class="math notranslate nohighlight">\(\mathbf{h}(\mathbf{x}, \boldsymbol{\theta}) = 0\)</span> are the inequality and equality constraints, respectively.</p></li>
 </ul>
-<p>As usual, the KKT conditions provide necessary conditions for optimality:</p>
-<ol class="arabic">
-<li><p><strong>Stationarity</strong>:</p>
-<div class="math notranslate nohighlight">
-\[
+<p>Parametric programming methods provides ways for efficiently evaluating <span class="math notranslate nohighlight">\(z(\boldsymbol{\theta})\)</span> – the <strong>value function</strong> – by leveraging the structure of the solution space. In particular, it leverages the idea that the solution space can be partitioned into <strong>critical regions</strong>—regions of the parameter space where the optimal solution structure remains unchanged. Within each region, the solution can often be expressed as a <strong>piecewise affine function</strong> of the parameters, which is easy to represent and compute offline.</p>
+<p>In trajectory optimization problems, the initial state <span class="math notranslate nohighlight">\(\boldsymbol{x}_0\)</span> can also be treated as a <strong>parameter</strong>. This transforms the problem into a parametric optimization problem, where <span class="math notranslate nohighlight">\(\boldsymbol{x}_0\)</span> defines a family of optimization problems, each yielding a different optimal solution. The relationship between the parameters and solutions can be described using two key mappings:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\boldsymbol{u}^\star(\boldsymbol{x}_0)\)</span>: The optimal control sequence as a function of the initial state.</p></li>
+<li><p><span class="math notranslate nohighlight">\(v(\boldsymbol{x}_0)\)</span>: The value function, which gives the optimal objective value for a given <span class="math notranslate nohighlight">\(\boldsymbol{x}_0\)</span>.</p></li>
+</ul>
+<p>It is therefore at this level that parametric programming methods can come into play and provide efficient methods for computing the value function offline: that is without resorting to direct calls to a nonlinear programming solver for every new <span class="math notranslate nohighlight">\(\boldsymbol{x}\)</span> encountered along a trajectory.</p>
+<section id="amortized-optimization-and-neural-networks">
+<h4><span class="section-number">9.2.1.1. </span>Amortized Optimization and Neural Networks<a class="headerlink" href="#amortized-optimization-and-neural-networks" title="Link to this heading">#</a></h4>
+<p>The idea of solving an entire family of optimization problems efficiently is not unique to parametric programming. In machine learning, <strong>amortized optimization</strong> (or <strong>amortized inference</strong>) aims to “learn to optimize” by constructing models that generalize over a family of optimization problems. This approach is particularly relevant in applications such as hyperparameter optimization, meta-learning, and probabilistic inference.</p>
+<p>In contrast to explicit MPC, which partitions the state space, amortized optimization typically uses <strong>neural networks</strong> to approximate the mapping from parameters to optimal solutions. This has led to recent explorations of <strong>amortizing NMPC (Nonlinear MPC) controllers</strong> into neural networks, blending the structure of MPC with the generalization power of neural networks. This represents a promising direction for creating efficient controllers that combine physics-based models, safety constraints, and the flexibility of learned models.</p>
+<!-- 
+As usual, the KKT conditions provide necessary conditions for optimality:
+
+1. **Stationarity**:  
+
+   $$
    \nabla_{\mathbf{x}} f(\mathbf{x}^*, \boldsymbol{\theta}) + \sum_{i=1}^{p} \lambda_i^* \nabla_{\mathbf{x}} g_i(\mathbf{x}^*, \boldsymbol{\theta}) + \sum_{j=1}^{q} \nu_j^* \nabla_{\mathbf{x}} h_j(\mathbf{x}^*, \boldsymbol{\theta}) = 0
-   \]</div>
-<p>where <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^* = (\lambda_1^*, \ldots, \lambda_p^*)\)</span> are the Lagrange multipliers for the inequality constraints, and <span class="math notranslate nohighlight">\(\boldsymbol{\nu}^* = (\nu_1^*, \ldots, \nu_q^*)\)</span> are the Lagrange multipliers for the equality constraints.</p>
-</li>
-<li><p><strong>Primal Feasibility</strong>:</p>
-<div class="math notranslate nohighlight">
-\[
+   $$
+   where $\boldsymbol{\lambda}^* = (\lambda_1^*, \ldots, \lambda_p^*)$ are the Lagrange multipliers for the inequality constraints, and $\boldsymbol{\nu}^* = (\nu_1^*, \ldots, \nu_q^*)$ are the Lagrange multipliers for the equality constraints.
+
+2. **Primal Feasibility**:  
+
+   $$
    \mathbf{g}(\mathbf{x}^*, \boldsymbol{\theta}) \leq 0, \quad \mathbf{h}(\mathbf{x}^*, \boldsymbol{\theta}) = 0
-   \]</div>
-</li>
-<li><p><strong>Dual Feasibility</strong>:</p>
-<div class="math notranslate nohighlight">
-\[
+   $$
+
+3. **Dual Feasibility**:  
+
+   $$
    \lambda_i^* \geq 0, \quad \forall i
-   \]</div>
-</li>
-<li><p><strong>Complementary Slackness</strong>:</p>
-<div class="math notranslate nohighlight">
-\[
+   $$
+
+4. **Complementary Slackness**:  
+
+   $$
    \lambda_i^* g_i(\mathbf{x}^*, \boldsymbol{\theta}) = 0, \quad \forall i
-   \]</div>
-</li>
-</ol>
-<p>We can combine the KKT conditions into a single system of equations, denoted as <span class="math notranslate nohighlight">\(\mathbf{F}(\mathbf{x}, \boldsymbol{\lambda}, \boldsymbol{\nu}, \boldsymbol{\theta}) = \mathbf{0}\)</span>, where:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}
+   $$
+
+
+We can combine the KKT conditions into a single system of equations, denoted as $\mathbf{F}(\mathbf{x}, \boldsymbol{\lambda}, \boldsymbol{\nu}, \boldsymbol{\theta}) = \mathbf{0}$, where:
+
+$$
 \mathbf{F}(\mathbf{x}, \boldsymbol{\lambda}, \boldsymbol{\nu}, \boldsymbol{\theta}) = \begin{pmatrix}
 \nabla_{\mathbf{x}} f(\mathbf{x}, \boldsymbol{\theta}) + \sum_{i=1}^{p} \lambda_i \nabla_{\mathbf{x}} g_i(\mathbf{x}, \boldsymbol{\theta}) + \sum_{j=1}^{q} \nu_j \nabla_{\mathbf{x}} h_j(\mathbf{x}, \boldsymbol{\theta}) \\
 \mathbf{g}(\mathbf{x}, \boldsymbol{\theta}) \\
@@ -772,29 +780,321 @@ z(\boldsymbol{\theta}) = \min_{\mathbf{x}} &amp; f(\mathbf{x}, \boldsymbol{\thet
 \boldsymbol{\lambda} \odot \mathbf{g}(\mathbf{x}, \boldsymbol{\theta}) \\
 \min(\boldsymbol{\lambda}, \mathbf{0})
 \end{pmatrix} = \mathbf{0}
-\end{split}\]</div>
-<p>Here, <span class="math notranslate nohighlight">\(\mathbf{F}(\mathbf{x}, \boldsymbol{\lambda}, \boldsymbol{\nu}, \boldsymbol{\theta}) = \mathbf{0}\)</span> encapsulates the stationarity, primal feasibility, dual feasibility, and complementary slackness conditions. The symbol <span class="math notranslate nohighlight">\(\odot\)</span> represents the element-wise product for the complementary slackness condition.</p>
-<section id="warmstarting-and-sensitivity-analysis">
-<h3><span class="section-number">10.1.1. </span>Warmstarting and Sensitivity Analysis<a class="headerlink" href="#warmstarting-and-sensitivity-analysis" title="Link to this heading">#</a></h3>
-<p>Sensitivity analysis provides a method to “warm-start” the optimization solver by using the solution from one parameter value as a good initial guess for a nearby parameter value. This can significantly reduce the computation time in online control settings like MPC.</p>
-<p>To do so, we want to understand how the optimal solution <span class="math notranslate nohighlight">\(\mathbf{x}^*(\boldsymbol{\theta})\)</span> and the value function <span class="math notranslate nohighlight">\(z(\boldsymbol{\theta})\)</span> change as the parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> vary. We achieve this by applying the <strong>implicit function theorem</strong> to the <strong>KKT (Karush-Kuhn-Tucker) conditions</strong> of the parametric problem. The KKT conditions for a parametric optimization problem are necessary for optimality and can be written as:</p>
+$$
+
+Here, $\mathbf{F}(\mathbf{x}, \boldsymbol{\lambda}, \boldsymbol{\nu}, \boldsymbol{\theta}) = \mathbf{0}$ encapsulates the stationarity, primal feasibility, dual feasibility, and complementary slackness conditions. The symbol $\odot$ represents the element-wise product for the complementary slackness condition. -->
+</section>
+</section>
+<section id="warmstarting-and-predictor-corrector-mpc">
+<h3><span class="section-number">9.2.2. </span>Warmstarting and Predictor-Corrector MPC<a class="headerlink" href="#warmstarting-and-predictor-corrector-mpc" title="Link to this heading">#</a></h3>
+<p>Another way in which we can speed up NMPC is by providing good initial guesses for the solver. When solving a series of optimization problems along a trajectory, it is likely that the solution to previous problem might be close to that of the current one. Hence, as a heuristic it often makes sense to “warmstart” from the previous solution.</p>
+<p>Another alternative is to extrapolate what the next solution ought to be based on the previous one. What we mean here is that rather than simply using the last solution as a guess for that of the current problem, we leverage the “sensitivity information” around the last solution to make a guess about where we might be going. This idea is reminiscent of predictor-corrector schemes which we have briefly discussed in the first chapter.</p>
+<p>To implement a predictor corrector MPC scheme, we need to understand how the optimal solution <span class="math notranslate nohighlight">\(\mathbf{x}^*(\boldsymbol{\theta})\)</span> and the value function <span class="math notranslate nohighlight">\(z(\boldsymbol{\theta})\)</span> change as the parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> vary. We achieve this by applying the <strong>implicit function theorem</strong> to the <strong>KKT (Karush-Kuhn-Tucker) conditions</strong> of the parametric problem. The KKT conditions for a parametric optimization problem are necessary for optimality and can be written as:</p>
 <div class="math notranslate nohighlight">
 \[
 \mathbf{F}(\mathbf{x}, \boldsymbol{\lambda}, \boldsymbol{\nu}, \boldsymbol{\theta}) = 0,
 \]</div>
-<p>where <span class="math notranslate nohighlight">\(\mathbf{F}\)</span> represents the stationarity, primal feasibility, dual feasibility, and complementary slackness conditions. By treating <span class="math notranslate nohighlight">\(\mathbf{x}\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}\)</span>, and <span class="math notranslate nohighlight">\(\boldsymbol{\nu}\)</span> as functions of the parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span>, the implicit function theorem guarantees that, under certain regularity conditions, these optimal variables are <strong>continuously differentiable</strong> with respect to <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span>. This allows us to compute <strong>sensitivity derivatives</strong>, which describe how small changes in <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> affect the optimal solution.</p>
+<p>where <span class="math notranslate nohighlight">\(\mathbf{F}\)</span> encapsulates the stationarity, primal feasibility, dual feasibility, and complementary slackness conditions from the KKT theorem. By treating <span class="math notranslate nohighlight">\(\mathbf{x}\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}\)</span>, and <span class="math notranslate nohighlight">\(\boldsymbol{\nu}\)</span> as functions of the parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span>, the implicit function theorem guarantees that, under certain regularity conditions, these optimal variables are <strong>continuously differentiable</strong> with respect to <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span>. This allows us to compute <strong>sensitivity derivatives</strong>, which describe how small changes in <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> affect the optimal solution.</p>
 <p>By leveraging this sensitivity information, we can predict changes in the optimal solution and “warm-start” the optimization process at the next time step in MPC. This concept is related to <strong>numerical continuation</strong>, where a complex optimization problem is solved by gradually transforming a simpler, well-understood problem into the more difficult one.</p>
 </section>
-<section id="explicit-mpc-and-critical-regions">
-<h3><span class="section-number">10.1.2. </span>Explicit MPC and Critical Regions<a class="headerlink" href="#explicit-mpc-and-critical-regions" title="Link to this heading">#</a></h3>
-<p>In practical applications, such as MPC, parametric programming can help us <strong>precompute solutions</strong> for a range of states or parameters, reducing the need to solve the problem online at every time step. This is the essence of <strong>explicit MPC</strong>, where the solution space is partitioned into <strong>critical regions</strong>—regions of the parameter space where the optimal solution structure remains unchanged. Within each region, the solution <span class="math notranslate nohighlight">\(\boldsymbol{u}^\star(\boldsymbol{x}_0)\)</span> can often be expressed as a <strong>piecewise affine function</strong> of the parameters.</p>
-<p>This approach bears resemblance to machine learning, where the goal is to generalize well to new data points. In parametric programming, the wider the critical regions, the better the generalization properties, allowing us to infer solutions for unseen parameters.</p>
-<section id="amortized-optimization-and-neural-networks">
-<h4><span class="section-number">10.1.2.1. </span>Amortized Optimization and Neural Networks<a class="headerlink" href="#amortized-optimization-and-neural-networks" title="Link to this heading">#</a></h4>
-<p>The idea of solving an entire family of optimization problems efficiently is not unique to parametric programming. In machine learning, <strong>amortized optimization</strong> (or <strong>amortized inference</strong>) aims to “learn to optimize” by constructing models that generalize over a family of optimization problems. This approach is particularly relevant in applications such as hyperparameter optimization, meta-learning, and probabilistic inference.</p>
-<p>In contrast to explicit MPC, which partitions the state space, amortized optimization typically uses <strong>neural networks</strong> to approximate the mapping from parameters to optimal solutions. This has led to recent explorations of <strong>amortizing NMPC (Nonlinear MPC) controllers</strong> into neural networks, blending the structure of MPC with the generalization power of neural networks. This represents a promising direction for creating efficient controllers that combine physics-based models, safety constraints, and the flexibility of learned models.</p>
 </section>
 </section>
+<section class="tex2jax_ignore mathjax_ignore" id="principle-of-optimality">
+<h1><span class="section-number">10. </span>Principle of Optimality<a class="headerlink" href="#principle-of-optimality" title="Link to this heading">#</a></h1>
+<p>Unlike the methods we’ve discussed so far, dynamic programming takes a step back and considers not just a single optimization problem, but an entire family of related problems. This approach, while seemingly more complex at first glance, can often lead to efficient solutions.</p>
+<p>Dynamic programming leverage the solution structure underlying many control problems that allows for a decomposition it into smaller, more manageable subproblems. Each subproblem is itself an optimization problem, embedded within the larger whole. This recursive structure is the foundation upon which dynamic programming constructs its solutions.</p>
+<p>To ground our discussion, let us return to the domain of discrete-time optimal control problems (DOCPs). These problems frequently arise from the discretization of continuous-time optimal control problems. While the focus here will be on deterministic problems, it is worth noting that these concepts extend naturally to stochastic problems by taking the expectation over the random quantities.</p>
+<p>Consider a typical DOCP of Bolza type:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{align*}
+\text{minimize} \quad &amp; J \triangleq c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t, \mathbf{u}_t) \\
+\text{subject to} \quad 
+&amp; \mathbf{x}_{t+1} = \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t), \quad t = 1, \ldots, T-1, \\
+&amp; \mathbf{u}_{lb} \leq \mathbf{u}_t \leq \mathbf{u}_{ub}, \quad t = 1, \ldots, T, \\
+&amp; \mathbf{x}_{lb} \leq \mathbf{x}_t \leq \mathbf{x}_{ub}, \quad t = 1, \ldots, T, \\
+\text{given} \quad &amp; \mathbf{x}_1
+\end{align*}
+\end{split}\]</div>
+<p>Rather than considering only the total cost from the initial time to the final time, dynamic programming introduces the concept of cost from an arbitrary point in time to the end. This leads to the definition of the “cost-to-go” or “value function” <span class="math notranslate nohighlight">\(J_k(\mathbf{x}_k)\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+J_k(\mathbf{x}_k) \triangleq c_T(\mathbf{x}_T) + \sum_{t=k}^{T-1} c_t(\mathbf{x}_t, \mathbf{u}_t)
+\]</div>
+<p>This function represents the total cost incurred from stage <span class="math notranslate nohighlight">\(k\)</span> onwards to the end of the time horizon, given that the system is initialized in state <span class="math notranslate nohighlight">\(\mathbf{x}_k\)</span> at stage <span class="math notranslate nohighlight">\(k\)</span>. Suppose the problem has been solved from stage <span class="math notranslate nohighlight">\(k+1\)</span> to the end, yielding the optimal cost-to-go <span class="math notranslate nohighlight">\(J_{k+1}^\star(\mathbf{x}_{k+1})\)</span> for any state <span class="math notranslate nohighlight">\(\mathbf{x}_{k+1}\)</span> at stage <span class="math notranslate nohighlight">\(k+1\)</span>. The question then becomes: how does this information inform the decision at stage <span class="math notranslate nohighlight">\(k\)</span>?</p>
+<p>Given knowledge of the optimal behavior from <span class="math notranslate nohighlight">\(k+1\)</span> onwards, the task reduces to determining the optimal action <span class="math notranslate nohighlight">\(\mathbf{u}_k\)</span> at stage <span class="math notranslate nohighlight">\(k\)</span>. This control should minimize the sum of the immediate cost <span class="math notranslate nohighlight">\(c_k(\mathbf{x}_k, \mathbf{u}_k)\)</span> and the optimal future cost <span class="math notranslate nohighlight">\(J_{k+1}^\star(\mathbf{x}_{k+1})\)</span>, where <span class="math notranslate nohighlight">\(\mathbf{x}_{k+1}\)</span> is the resulting state after applying action <span class="math notranslate nohighlight">\(\mathbf{u}_k\)</span>. Mathematically, this is expressed as:</p>
+<div class="math notranslate nohighlight">
+\[
+J_k^\star(\mathbf{x}_k) = \min_{\mathbf{u}_k} \left[ c_k(\mathbf{x}_k, \mathbf{u}_k) + J_{k+1}^\star(\mathbf{f}_k(\mathbf{x}_k, \mathbf{u}_k)) \right]
+\]</div>
+<p>This equation is known as Bellman’s equation, named after Richard Bellman, who formulated the principle of optimality:</p>
+<blockquote>
+<div><p>An optimal policy has the property that whatever the previous state and decision, the remaining decisions must constitute an optimal policy with regard to the state resulting from the previous decision.</p>
+</div></blockquote>
+<p>In other words, any sub-path of an optimal path, from any intermediate point to the end, must itself be optimal.</p>
+<p>Dynamic programming can handle nonlinear systems and non-quadratic cost functions naturally. It provides a global optimal solution, when one exists, and can incorporate state and control constraints with relative ease. Howver, as the dimension of the state space increases, this approach suffers from what Bellman termed the “curse of dimensionality.” The computational complexity and memory requirements grow exponentially with the state dimension, rendering direct application of dynamic programming intractable for high-dimensional problems.</p>
+<p>Fortunately, learning-based methods offer efficient tools to combat the curse of dimensionality on two fronts: by using function approximation (e.g., neural networks) to avoid explicit discretization, and by leveraging randomization through Monte Carlo methods inherent in the learning paradigm. Most of this course is dedicated to those ideas.</p>
+<section id="backward-recursion">
+<h2><span class="section-number">10.1. </span>Backward Recursion<a class="headerlink" href="#backward-recursion" title="Link to this heading">#</a></h2>
+<p>The principle of optimality provides a methodology for solving optimal control problems. Beginning at the final time horizon and working backwards, at each stage the local optimization problem given by Bellman’s equation is solved. This process, termed backward recursion or backward induction constructs the optimal value function stage by stage.</p>
+<div class="proof algorithm admonition" id="backward-recursion">
+<p class="admonition-title"><span class="caption-number">Algorithm 10.1 </span> (Backward Recursion for Dynamic Programming)</p>
+<section class="algorithm-content" id="proof-content">
+<p><strong>Input:</strong> Terminal cost function <span class="math notranslate nohighlight">\(c_T(\cdot)\)</span>, stage cost functions <span class="math notranslate nohighlight">\(c_t(\cdot, \cdot)\)</span>, system dynamics <span class="math notranslate nohighlight">\(f_t(\cdot, \cdot)\)</span>, time horizon <span class="math notranslate nohighlight">\(T\)</span></p>
+<p><strong>Output:</strong> Optimal value functions <span class="math notranslate nohighlight">\(J_t^\star(\cdot)\)</span> and optimal control policies <span class="math notranslate nohighlight">\(\mu_t^\star(\cdot)\)</span> for <span class="math notranslate nohighlight">\(t = 1, \ldots, T\)</span></p>
+<ol class="arabic simple">
+<li><p>Initialize <span class="math notranslate nohighlight">\(J_T^\star(\mathbf{x}) = c_T(\mathbf{x})\)</span> for all <span class="math notranslate nohighlight">\(\mathbf{x}\)</span> in the state space</p></li>
+<li><p>For <span class="math notranslate nohighlight">\(t = T-1, T-2, \ldots, 1\)</span>:</p>
+<ol class="arabic simple">
+<li><p>For each state <span class="math notranslate nohighlight">\(\mathbf{x}\)</span> in the state space:</p>
+<ol class="arabic simple">
+<li><p>Compute <span class="math notranslate nohighlight">\(J_t^\star(\mathbf{x}) = \min_{\mathbf{u}} \left[ c_t(\mathbf{x}, \mathbf{u}) + J_{t+1}^\star(f_t(\mathbf{x}, \mathbf{u})) \right]\)</span></p></li>
+<li><p>Compute <span class="math notranslate nohighlight">\(\mu_t^\star(\mathbf{x}) = \arg\min_{\mathbf{u}} \left[ c_t(\mathbf{x}, \mathbf{u}) + J_{t+1}^\star(f_t(\mathbf{x}, \mathbf{u})) \right]\)</span></p></li>
+</ol>
+</li>
+<li><p>End For</p></li>
+</ol>
+</li>
+<li><p>End For</p></li>
+<li><p>Return <span class="math notranslate nohighlight">\(J_t^\star(\cdot)\)</span>, <span class="math notranslate nohighlight">\(\mu_t^\star(\cdot)\)</span> for <span class="math notranslate nohighlight">\(t = 1, \ldots, T\)</span></p></li>
+</ol>
+</section>
+</div><p>Upon completion of this backward pass, we now have access to the optimal control to take at any stage and in any state. Furthermore, we can simulate optimal trajectories from any initial state and applying the optimal policy at each stage to generate the optimal trajectory.</p>
+</section>
+<section id="example-sample-size-determination-in-pharmaceutical-development">
+<h2><span class="section-number">10.2. </span>Example: Sample Size Determination in Pharmaceutical Development<a class="headerlink" href="#example-sample-size-determination-in-pharmaceutical-development" title="Link to this heading">#</a></h2>
+<p>Pharmaceutical development is the process of bringing a new drug from initial discovery to market availability. This process is lengthy, expensive, and risky, typically involving several stages:</p>
+<ol class="arabic simple">
+<li><p><strong>Drug Discovery</strong>: Identifying a compound that could potentially treat a disease.</p></li>
+<li><p><strong>Preclinical Testing</strong>: Laboratory and animal testing to assess safety and efficacy.
+. <strong>Clinical Trials</strong>: Testing the drug in humans, divided into phases:</p>
+<ul class="simple">
+<li><p>Phase I: Testing for safety in a small group of healthy volunteers.</p></li>
+<li><p>Phase II: Testing for efficacy and side effects in a larger group with the target condition.</p></li>
+<li><p>Phase III: Large-scale testing to confirm efficacy and monitor side effects.</p></li>
+</ul>
+</li>
+<li><p><strong>Regulatory Review</strong>: Submitting a New Drug Application (NDA) for approval.</p></li>
+<li><p><strong>Post-Market Safety Monitoring</strong>: Continuing to monitor the drug’s effects after market release.</p></li>
+</ol>
+<p>This process can take 10-15 years and cost over $1 billion <span id="id2">Adams and Brantner [<a class="reference internal" href="ocp.html#id33" title="Christopher Paul Adams and Van Vu Brantner. Spending on new drug development1. Health Economics, 19(2):130–141, February 2009. URL: http://dx.doi.org/10.1002/hec.1454, doi:10.1002/hec.1454.">AB09</a>]</span>. The high costs and risks involved call for a principled approach to decision making. We’ll focus on the clinical trial phases and NDA approval, per the MDP model presented by <span id="id3">[<a class="reference internal" href="ocp.html#id34" title="Mark Chang. Monte Carlo Simulation for the Pharmaceutical Industry: Concepts, Algorithms, and Case Studies. CRC Press, September 2010. ISBN 9780429152382. URL: http://dx.doi.org/10.1201/EBK1439835920, doi:10.1201/ebk1439835920.">Cha10</a>]</span>:</p>
+<ol class="arabic simple">
+<li><p><strong>States</strong> (<span class="math notranslate nohighlight">\(S\)</span>): Our state space is <span class="math notranslate nohighlight">\(S = \{s_1, s_2, s_3, s_4\}\)</span>, where:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(s_1\)</span>: Phase I clinical trial</p></li>
+<li><p><span class="math notranslate nohighlight">\(s_2\)</span>: Phase II clinical trial</p></li>
+<li><p><span class="math notranslate nohighlight">\(s_3\)</span>: Phase III clinical trial</p></li>
+<li><p><span class="math notranslate nohighlight">\(s_4\)</span>: NDA approval</p></li>
+</ul>
+</li>
+<li><p><strong>Actions</strong> (<span class="math notranslate nohighlight">\(A\)</span>): At each state, the action is choosing the sample size <span class="math notranslate nohighlight">\(n_i\)</span> for the corresponding clinical trial. The action space is <span class="math notranslate nohighlight">\(A = \{10, 11, ..., 1000\}\)</span>, representing possible sample sizes.</p></li>
+<li><p><strong>Transition Probabilities</strong> (<span class="math notranslate nohighlight">\(P\)</span>): The probability of moving from one state to the next depends on the chosen sample size and the inherent properties of the drug.
+We define:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(P(s_2|s_1, n_1) = p_{12}(n_1) = \sum_{i=0}^{\lfloor\eta_1 n_1\rfloor} \binom{n_1}{i} p_0^i (1-p_0)^{n_1-i}\)</span>
+where <span class="math notranslate nohighlight">\(p_0\)</span> is the true toxicity rate and <span class="math notranslate nohighlight">\(\eta_1\)</span> is the toxicity threshold for Phase I.</p></li>
+</ul>
+</li>
+</ol>
+<ul>
+<li><p>Of particular interest is the transition from Phase II to Phase III which we model as:</p>
+<p><span class="math notranslate nohighlight">\(P(s_3|s_2, n_2) = p_{23}(n_2) = \Phi\left(\frac{\sqrt{n_2}}{2}\delta - z_{1-\eta_2}\right)\)</span></p>
+<p>where <span class="math notranslate nohighlight">\(\Phi\)</span> is the cumulative distribution function (CDF) of the standard normal distribution:</p>
+<p><span class="math notranslate nohighlight">\(\Phi(x) = \frac{1}{\sqrt{2\pi}} \int_{-\infty}^x e^{-t^2/2} dt\)</span></p>
+<p>This is giving us the probability that we would observe a treatment effect this large or larger if the null hypothesis (no treatment effect) were true. A higher probability indicates stronger evidence of a treatment effect, making it more likely that the drug will progress to Phase III.</p>
+<p>In this expression, <span class="math notranslate nohighlight">\(\delta\)</span> is called the “normalized treatment effect”. In clinical trials, we’re often interested in the difference between the treatment and control groups. The “normalized” part means we’ve adjusted this difference for the variability in the data. Specifically <span class="math notranslate nohighlight">\(\delta = \frac{\mu_t - \mu_c}{\sigma}\)</span> where <span class="math notranslate nohighlight">\(\mu_t\)</span> is the mean outcome in the treatment group, <span class="math notranslate nohighlight">\(\mu_c\)</span> is the mean outcome in the control group, and <span class="math notranslate nohighlight">\(\sigma\)</span> is the standard deviation of the outcome. A larger <span class="math notranslate nohighlight">\(\delta\)</span> indicates a stronger treatment effect.</p>
+<p>Furthermore, the term <span class="math notranslate nohighlight">\(z_{1-\eta_2}\)</span> is the <span class="math notranslate nohighlight">\((1-\eta_2)\)</span>-quantile of the standard normal distribution. In other words, it’s the value where the probability of a standard normal random variable being greater than this value is <span class="math notranslate nohighlight">\(\eta_2\)</span>. For example, if <span class="math notranslate nohighlight">\(\eta_2 = 0.05\)</span>, then <span class="math notranslate nohighlight">\(z_{1-\eta_2} \approx 1.645\)</span>. A smaller <span class="math notranslate nohighlight">\(\eta_2\)</span> makes the trial more conservative, requiring stronger evidence to proceed to Phase III.</p>
+<p>Finally, <span class="math notranslate nohighlight">\(n_2\)</span> is the sample size for Phase II. The <span class="math notranslate nohighlight">\(\sqrt{n_2}\)</span> term reflects that the precision of our estimate of the treatment effect improves with the square root of the sample size.</p>
+</li>
+<li><p><span class="math notranslate nohighlight">\(P(s_4|s_3, n_3) = p_{34}(n_3) = \Phi\left(\frac{\sqrt{n_3}}{2}\delta - z_{1-\eta_3}\right)\)</span>
+where <span class="math notranslate nohighlight">\(\eta_3\)</span> is the significance level for Phase III.</p></li>
+</ul>
+<ol class="arabic simple" start="4">
+<li><p><strong>Rewards</strong> (<span class="math notranslate nohighlight">\(R\)</span>): The reward function captures the costs of running trials and the potential profit from a successful drug:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(R(s_i, n_i) = -c_i(n_i)\)</span> for <span class="math notranslate nohighlight">\(i = 1, 2, 3\)</span>, where <span class="math notranslate nohighlight">\(c_i(n_i)\)</span> is the cost of running a trial with sample size <span class="math notranslate nohighlight">\(n_i\)</span>.</p></li>
+<li><p><span class="math notranslate nohighlight">\(R(s_4) = g_4\)</span>, where <span class="math notranslate nohighlight">\(g_4\)</span> is the expected profit from a successful drug.</p></li>
+</ul>
+</li>
+<li><p><strong>Discount Factor</strong> (<span class="math notranslate nohighlight">\(\gamma\)</span>): We use a discount factor <span class="math notranslate nohighlight">\(0 &lt; \gamma \leq 1\)</span> to account for the time value of money and risk preferences.</p></li>
+</ol>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Show code cell source</span>
+<span class="expanded">Hide code cell source</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">binom</span>
+<span class="kn">from</span> <span class="nn">scipy.special</span> <span class="kn">import</span> <span class="n">ndtr</span> <span class="k">as</span> <span class="n">norm_cdf</span>
+
+<span class="k">def</span> <span class="nf">binomial_pmf</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">binom</span><span class="o">.</span><span class="n">pmf</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">transition_prob_phase1</span><span class="p">(</span><span class="n">n1</span><span class="p">,</span> <span class="n">eta1</span><span class="p">,</span> <span class="n">p0</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">binomial_pmf</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">n1</span><span class="p">,</span> <span class="n">p0</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">eta1</span> <span class="o">*</span> <span class="n">n1</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)])</span>
+
+<span class="k">def</span> <span class="nf">transition_prob_phase2</span><span class="p">(</span><span class="n">n2</span><span class="p">,</span> <span class="n">eta2</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">norm_cdf</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">delta</span> <span class="o">-</span> <span class="n">norm_cdf</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">eta2</span><span class="p">))</span>
+
+<span class="k">def</span> <span class="nf">transition_prob_phase3</span><span class="p">(</span><span class="n">n3</span><span class="p">,</span> <span class="n">eta3</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">norm_cdf</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n3</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">delta</span> <span class="o">-</span> <span class="n">norm_cdf</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">eta3</span><span class="p">))</span>
+
+<span class="k">def</span> <span class="nf">immediate_reward</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">return</span> <span class="o">-</span><span class="n">n</span>  <span class="c1"># Changed to negative to represent cost</span>
+
+<span class="k">def</span> <span class="nf">value_iteration</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">g4</span><span class="p">,</span> <span class="n">p0</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">eta1</span><span class="p">,</span> <span class="n">eta2</span><span class="p">,</span> <span class="n">eta3</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
+    <span class="n">V</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">S</span><span class="p">))</span>
+    <span class="n">V</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">g4</span>  <span class="c1"># Value for NDA approval state</span>
+    <span class="n">optimal_n</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span>  <span class="c1"># Store optimal n for each phase</span>
+
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_iter</span><span class="p">):</span>
+        <span class="n">V_old</span> <span class="o">=</span> <span class="n">V</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>  <span class="c1"># Iterate backwards from Phase III to Phase I</span>
+            <span class="n">max_value</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">A</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># Phase I</span>
+                    <span class="n">p</span> <span class="o">=</span> <span class="n">transition_prob_phase1</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">eta1</span><span class="p">,</span> <span class="n">p0</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># Phase II</span>
+                    <span class="n">p</span> <span class="o">=</span> <span class="n">transition_prob_phase2</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">eta2</span><span class="p">,</span> <span class="n">delta</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>  <span class="c1"># Phase III</span>
+                    <span class="n">p</span> <span class="o">=</span> <span class="n">transition_prob_phase3</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">eta3</span><span class="p">,</span> <span class="n">delta</span><span class="p">)</span>
+
+                <span class="n">value</span> <span class="o">=</span> <span class="n">immediate_reward</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">+</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">p</span> <span class="o">*</span> <span class="n">V</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+
+                <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="n">max_value</span><span class="p">:</span>
+                    <span class="n">max_value</span> <span class="o">=</span> <span class="n">value</span>
+                    <span class="n">optimal_n</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">n</span>
+
+            <span class="n">V</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_value</span>
+
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">V</span> <span class="o">-</span> <span class="n">V_old</span><span class="p">))</span> <span class="o">&lt;</span> <span class="n">epsilon</span><span class="p">:</span>
+            <span class="k">break</span>
+
+    <span class="k">return</span> <span class="n">V</span><span class="p">,</span> <span class="n">optimal_n</span>
+
+<span class="c1"># Set up the problem parameters</span>
+<span class="n">S</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Phase I&#39;</span><span class="p">,</span> <span class="s1">&#39;Phase II&#39;</span><span class="p">,</span> <span class="s1">&#39;Phase III&#39;</span><span class="p">,</span> <span class="s1">&#39;NDA approval&#39;</span><span class="p">]</span>
+<span class="n">A</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">1001</span><span class="p">)</span>
+<span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.95</span>
+<span class="n">g4</span> <span class="o">=</span> <span class="mi">10000</span>
+<span class="n">p0</span> <span class="o">=</span> <span class="mf">0.1</span>  <span class="c1"># Example toxicity rate for Phase I</span>
+<span class="n">delta</span> <span class="o">=</span> <span class="mf">0.5</span>  <span class="c1"># Example normalized treatment difference</span>
+<span class="n">eta1</span><span class="p">,</span> <span class="n">eta2</span><span class="p">,</span> <span class="n">eta3</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.025</span>
+
+<span class="c1"># Run the value iteration algorithm</span>
+<span class="n">V</span><span class="p">,</span> <span class="n">optimal_n</span> <span class="o">=</span> <span class="n">value_iteration</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">g4</span><span class="p">,</span> <span class="n">p0</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">eta1</span><span class="p">,</span> <span class="n">eta2</span><span class="p">,</span> <span class="n">eta3</span><span class="p">)</span>
+
+<span class="c1"># Print results</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">state</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">S</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Value for </span><span class="si">{</span><span class="n">state</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">V</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Optimal sample sizes: Phase I: </span><span class="si">{</span><span class="n">optimal_n</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">, Phase II: </span><span class="si">{</span><span class="n">optimal_n</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">, Phase III: </span><span class="si">{</span><span class="n">optimal_n</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Sanity checks</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Sanity checks:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;1. NDA approval value: </span><span class="si">{</span><span class="n">V</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;2. All values non-negative and &lt;= NDA value: </span><span class="si">{</span><span class="nb">all</span><span class="p">(</span><span class="mi">0</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">V</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">V</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;3. Optimal sample sizes in range: </span><span class="si">{</span><span class="nb">all</span><span class="p">(</span><span class="mi">10</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="mi">1000</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">optimal_n</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="ow">is</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="kc">None</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Value for Phase I: 8050.54
+Value for Phase II: 8576.47
+Value for Phase III: 9267.42
+Value for NDA approval: 10000.00
+Optimal sample sizes: Phase I: 75, Phase II: 190, Phase III: 195
+
+Sanity checks:
+1. NDA approval value: 10000.0
+2. All values non-negative and &lt;= NDA value: True
+3. Optimal sample sizes in range: True
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="linear-quadratic-regulator-via-dynamic-programming">
+<h2><span class="section-number">10.3. </span>Linear Quadratic Regulator via Dynamic Programming<a class="headerlink" href="#linear-quadratic-regulator-via-dynamic-programming" title="Link to this heading">#</a></h2>
+<p>Let us now consider a special case of our dynamic programming formulation: the discrete-time Linear Quadratic Regulator (LQR) problem. This example will illustrate how the structure of linear dynamics and quadratic costs leads to a particularly elegant form of the backward recursion.</p>
+<p>Consider a linear time-invariant system with dynamics:</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{x}_{t+1} = A\mathbf{x}_t + B\mathbf{u}_t
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(\mathbf{x}_t \in \mathbb{R}^n\)</span> is the state and <span class="math notranslate nohighlight">\(\mathbf{u}_t \in \mathbb{R}^m\)</span> is the control input.<br />
+The cost function to be minimized is quadratic:</p>
+<div class="math notranslate nohighlight">
+\[
+J = \frac{1}{2}\mathbf{x}_T^\top S_T \mathbf{x}_T + \frac{1}{2}\sum_{t=0}^{T-1} \left(\mathbf{x}_t^\top Q \mathbf{x}_t + \mathbf{u}_t^\top R \mathbf{u}_t\right)
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(S_T \geq 0\)</span>, <span class="math notranslate nohighlight">\(Q \geq 0\)</span>, and <span class="math notranslate nohighlight">\(R &gt; 0\)</span> are symmetric matrices of appropriate dimensions.<br />
+Our goal is to find the optimal control sequence <span class="math notranslate nohighlight">\(\mathbf{u}_t^*\)</span> that minimizes <span class="math notranslate nohighlight">\(J\)</span> over a fixed time horizon <span class="math notranslate nohighlight">\([0, T]\)</span>, given an initial state <span class="math notranslate nohighlight">\(\mathbf{x}_0\)</span>.</p>
+<p>Let’s apply the principle of optimality to derive the backward recursion for this problem. We’ll start at the final time step and work our way backward.</p>
+<p>At <span class="math notranslate nohighlight">\(t = T\)</span>, the terminal cost is given by:</p>
+<div class="math notranslate nohighlight">
+\[
+J_T^*(\mathbf{x}_T) = \frac{1}{2}\mathbf{x}_T^\top S_T \mathbf{x}_T
+\]</div>
+<p>At <span class="math notranslate nohighlight">\(t = T-1\)</span>, the cost-to-go is:</p>
+<div class="math notranslate nohighlight">
+\[
+J_{T-1}(\mathbf{x}_{T-1}, \mathbf{u}_{T-1}) = \frac{1}{2}\mathbf{x}_{T-1}^\top Q \mathbf{x}_{T-1} + \frac{1}{2}\mathbf{u}_{T-1}^\top R \mathbf{u}_{T-1} + J_T^*(\mathbf{x}_T)
+\]</div>
+<p>Substituting the dynamics equation:</p>
+<div class="math notranslate nohighlight">
+\[
+J_{T-1} = \frac{1}{2}\mathbf{x}_{T-1}^\top Q \mathbf{x}_{T-1} + \frac{1}{2}\mathbf{u}_{T-1}^\top R \mathbf{u}_{T-1} + \frac{1}{2}(A\mathbf{x}_{T-1} + B\mathbf{u}_{T-1})^\top S_T (A\mathbf{x}_{T-1} + B\mathbf{u}_{T-1})
+\]</div>
+<p>To find the optimal control, we differentiate with respect to <span class="math notranslate nohighlight">\(\mathbf{u}_{T-1}\)</span> and set it to zero:</p>
+<div class="math notranslate nohighlight">
+\[
+\frac{\partial J_{T-1}}{\partial \mathbf{u}_{T-1}} = R\mathbf{u}_{T-1} + B^\top S_T (A\mathbf{x}_{T-1} + B\mathbf{u}_{T-1}) = 0
+\]</div>
+<p>Solving for <span class="math notranslate nohighlight">\(\mathbf{u}_{T-1}^*\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{u}_{T-1}^* = -(R + B^\top S_T B)^{-1}B^\top S_T A\mathbf{x}_{T-1}
+\]</div>
+<p>We can define the gain matrix:</p>
+<div class="math notranslate nohighlight">
+\[
+K_{T-1} = (R + B^\top S_T B)^{-1}B^\top S_T A
+\]</div>
+<p>So that <span class="math notranslate nohighlight">\(\mathbf{u}_{T-1}^* = -K_{T-1}\mathbf{x}_{T-1}\)</span>. The optimal cost-to-go at <span class="math notranslate nohighlight">\(T-1\)</span> is then:</p>
+<div class="math notranslate nohighlight">
+\[
+J_{T-1}^*(\mathbf{x}_{T-1}) = \frac{1}{2}\mathbf{x}_{T-1}^\top S_{T-1} \mathbf{x}_{T-1}
+\]</div>
+<p>Where <span class="math notranslate nohighlight">\(S_{T-1}\)</span> is given by:</p>
+<div class="math notranslate nohighlight">
+\[
+S_{T-1} = Q + A^\top S_T A - A^\top S_T B(R + B^\top S_T B)^{-1}B^\top S_T A
+\]</div>
+<p>Continuing this process backward in time, we find that for any <span class="math notranslate nohighlight">\(t\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{u}_t^* = -K_t\mathbf{x}_t
+\]</div>
+<p>Where:</p>
+<div class="math notranslate nohighlight">
+\[
+K_t = (R + B^\top S_{t+1} B)^{-1}B^\top S_{t+1} A
+\]</div>
+<p>And the optimal cost-to-go is:</p>
+<div class="math notranslate nohighlight">
+\[
+J_t^*(\mathbf{x}_t) = \frac{1}{2}\mathbf{x}_t^\top S_t \mathbf{x}_t
+\]</div>
+<p>Where <span class="math notranslate nohighlight">\(S_t\)</span> satisfies the so-called discrete-time Riccati equation:</p>
+<div class="math notranslate nohighlight">
+\[
+S_t = Q + A^\top S_{t+1} A - A^\top S_{t+1} B(R + B^\top S_{t+1} B)^{-1}B^\top S_{t+1} A
+\]</div>
 </section>
 </section>
 
@@ -857,17 +1157,20 @@ z(\boldsymbol{\theta}) = \min_{\mathbf{x}} &amp; f(\mathbf{x}, \boldsymbol{\thet
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#open-loop-vs-closed-loop-control">8. Open-Loop vs Closed-Loop Control</a></li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#closing-the-loop-by-replanning">9. Closing the Loop by Replanning</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-propofol-infusion-control">9.1. Example: Propofol Infusion Control</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#computational-efficiency-improvements">9.2. Computational Efficiency Improvements</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#explicit-mpc">9.2.1. Explicit MPC</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#amortized-optimization-and-neural-networks">9.2.1.1. Amortized Optimization and Neural Networks</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#parametric-programming">10. Parametric Programming</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#parametric-programming-and-trajectory-optimization">10.1. Parametric Programming and Trajectory Optimization</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#warmstarting-and-sensitivity-analysis">10.1.1. Warmstarting and Sensitivity Analysis</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#explicit-mpc-and-critical-regions">10.1.2. Explicit MPC and Critical Regions</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#amortized-optimization-and-neural-networks">10.1.2.1. Amortized Optimization and Neural Networks</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#warmstarting-and-predictor-corrector-mpc">9.2.2. Warmstarting and Predictor-Corrector MPC</a></li>
 </ul>
 </li>
 </ul>
 </li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#principle-of-optimality">10. Principle of Optimality</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#backward-recursion">10.1. Backward Recursion</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-sample-size-determination-in-pharmaceutical-development">10.2. Example: Sample Size Determination in Pharmaceutical Development</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#linear-quadratic-regulator-via-dynamic-programming">10.3. Linear Quadratic Regulator via Dynamic Programming</a></li>
 </ul>
 </li>
 </ul>
