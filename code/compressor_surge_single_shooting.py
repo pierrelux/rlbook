@@ -30,7 +30,7 @@ def instantenous_cost(x, u):
 def terminal_cost(x):
     return beta * np.sum((x - np.array([x1_star, x2_star]))**2)
 
-def objective_and_constraints(z):
+def objective_and_constraints(z, x0):
     u, v = z[:-1], z[-1]
     x = np.zeros((N+1, 2))
     x[0] = x0
@@ -48,11 +48,11 @@ def solve_trajectory_optimization(x0, u_init):
     z0[:-1] = u_init
     bounds = [(0, 0.3)] * N + [(0, None)]
     result = minimize(
-        lambda z: objective_and_constraints(z)[0],
+        lambda z: objective_and_constraints(z, x0)[0],
         z0,
         method='SLSQP',
         bounds=bounds,
-        constraints={'type': 'ineq', 'fun': lambda z: -objective_and_constraints(z)[1]},
+        constraints={'type': 'ineq', 'fun': lambda z: -objective_and_constraints(z, x0)[1]},
         options={'disp': True, 'maxiter': 1000, 'ftol': 1e-6}
     )
     return result.x, result
