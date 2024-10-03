@@ -19,6 +19,7 @@ latex:
 # Add a bibtex file so that we can create citations
 bibtex_bibfiles:
   - references.bib
+bibtex_reference_style: author_year
 
 # Information about where the book exists on the web
 repository:
@@ -51,6 +52,7 @@ sphinx:
         macros:
           "bm": ["{\\boldsymbol #1}",1]
         processEscapes: True
+
 parse:
   myst_enable_extensions:
     - dollarmath

@@ -976,7 +976,3 @@ where the adjoint variables (costate vectors) \(\boldsymbol{\lambda}_t^*\) are c
 $$
 \boldsymbol{\lambda}_t^* = \frac{\partial H_t(\mathbf{x}_t^*, \mathbf{u}_t^*, \boldsymbol{\lambda}_{t+1}^*)}{\partial \mathbf{x}_t}, \quad t = 1, \ldots, T-1, \quad \boldsymbol{\lambda}_T^* = \frac{\partial c_T(\mathbf{x}_T^*)}{\partial \mathbf{x}_T}.
 $$
-
-
-```{bibliography}
-```

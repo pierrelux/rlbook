@@ -319,65 +319,127 @@ The principle of optimality provides a methodology for solving optimal control p
 
 Upon completion of this backward pass, we now have access to the optimal control to take at any stage and in any state. Furthermore, we can simulate optimal trajectories from any initial state and applying the optimal policy at each stage to generate the optimal trajectory.
 
+## Example: Optimal Harvest in Resource Management
 
-## Example: Sample Size Determination in Pharmaceutical Development
+Dynamic programming is often used in resource management and conservation biology to devise policies to be implemented by decision makers and stakeholders : for eg. in fishereries, or timber harvesting. Per {cite}`Conroy2013`, we consider a population of a particular species, whose abundance we denote by $x(t)$, where $t$ represents discrete time steps. Our objective is to maximize the cumulative harvest over a finite time horizon, while also considering the long-term sustainability of the population. This optimization problem can be formulated as:
 
-Pharmaceutical development is the process of bringing a new drug from initial discovery to market availability. This process is lengthy, expensive, and risky, typically involving several stages:
+$$
+\text{maximize} \quad \sum_{t=t_0}^{t_f} F(x(t) \cdot h(t)) + F_T(x(t_f))
+$$
 
-1. **Drug Discovery**: Identifying a compound that could potentially treat a disease.
-2. **Preclinical Testing**: Laboratory and animal testing to assess safety and efficacy.
-. **Clinical Trials**: Testing the drug in humans, divided into phases:
-   - Phase I: Testing for safety in a small group of healthy volunteers.
-   - Phase II: Testing for efficacy and side effects in a larger group with the target condition.
-   - Phase III: Large-scale testing to confirm efficacy and monitor side effects.
-4. **Regulatory Review**: Submitting a New Drug Application (NDA) for approval.
-5. **Post-Market Safety Monitoring**: Continuing to monitor the drug's effects after market release.
+Here, $F(\cdot)$ represents the immediate reward function associated with harvesting, $h(t)$ is the harvest rate at time $t$, and $F_T[\cdot]$ denotes a terminal value function that could potentially assign value to the final population state. In this particular problem, we assign no terminal value to the final population state, setting $F_T[x(t_f)] = 0$ and allowing us to focus solely on the cumulative harvest over the time horizon.
 
-This process can take 10-15 years and cost over $1 billion {cite:t}`Adams2009`. The high costs and risks involved call for a principled approach to decision making. We'll focus on the clinical trial phases and NDA approval, per the MDP model presented by {cite}`Chang2010`:
+In our model population model, the abundance of a specicy $x$ ranges from 1 to 100 individuals. The decision variable is the harvest rate $h$, which can take values from the set $D = \{0, 0.1, 0.2, 0.3, 0.4, 0.5\}$. The population dynamics are governed by a modified logistic growth model:
 
-1. **States** ($S$): Our state space is $S = \{s_1, s_2, s_3, s_4\}$, where:
-   - $s_1$: Phase I clinical trial
-   - $s_2$: Phase II clinical trial
-   - $s_3$: Phase III clinical trial
-   - $s_4$: NDA approval
+$$
+x(t+1) = x(t) + 0.3x(t)(1 - x(t)/125) - h(t)x(t)
+$$
 
-2. **Actions** ($A$): At each state, the action is choosing the sample size $n_i$ for the corresponding clinical trial. The action space is $A = \{10, 11, ..., 1000\}$, representing possible sample sizes.
+where the $0.3$ represents the growth rate and $125$ is the carrying capacity (the maximum population size given the available resources). The logistic growth model returns continuous values; however our DP formulation uses a discrete state space. Therefore, we also round the the outcomes to the nearest integer.
 
-3. **Transition Probabilities** ($P$): The probability of moving from one state to the next depends on the chosen sample size and the inherent properties of the drug.
-      We define:
 
-   - $P(s_2|s_1, n_1) = p_{12}(n_1) = \sum_{i=0}^{\lfloor\eta_1 n_1\rfloor} \binom{n_1}{i} p_0^i (1-p_0)^{n_1-i}$
-     where $p_0$ is the true toxicity rate and $\eta_1$ is the toxicity threshold for Phase I.
-     
-  - Of particular interest is the transition from Phase II to Phase III which we model as:
+Applying the principle of optimality, we can express the optimal value function $J^*[x(t), t]$ recursively:
 
-    $P(s_3|s_2, n_2) = p_{23}(n_2) = \Phi\left(\frac{\sqrt{n_2}}{2}\delta - z_{1-\eta_2}\right)$
+$$
+J^*[x(t), t] = \max_{h(t) \in D} (F(x, h, t) + J^*(x(t+1), t+1))
+$$
 
-    where $\Phi$ is the cumulative distribution function (CDF) of the standard normal distribution:
+with the boundary condition $J^*(x(t_f)) = 0$.
 
-      $\Phi(x) = \frac{1}{\sqrt{2\pi}} \int_{-\infty}^x e^{-t^2/2} dt$
-
-    This is giving us the probability that we would observe a treatment effect this large or larger if the null hypothesis (no treatment effect) were true. A higher probability indicates stronger evidence of a treatment effect, making it more likely that the drug will progress to Phase III.
-
-    In this expression, $\delta$ is called the "normalized treatment effect". In clinical trials, we're often interested in the difference between the treatment and control groups. The "normalized" part means we've adjusted this difference for the variability in the data. Specifically $\delta = \frac{\mu_t - \mu_c}{\sigma}$ where $\mu_t$ is the mean outcome in the treatment group, $\mu_c$ is the mean outcome in the control group, and $\sigma$ is the standard deviation of the outcome. A larger $\delta$ indicates a stronger treatment effect.
-
-    Furthermore, the term $z_{1-\eta_2}$ is the $(1-\eta_2)$-quantile of the standard normal distribution. In other words, it's the value where the probability of a standard normal random variable being greater than this value is $\eta_2$. For example, if $\eta_2 = 0.05$, then $z_{1-\eta_2} \approx 1.645$. A smaller $\eta_2$ makes the trial more conservative, requiring stronger evidence to proceed to Phase III.
-
-    Finally, $n_2$ is the sample size for Phase II. The $\sqrt{n_2}$ term reflects that the precision of our estimate of the treatment effect improves with the square root of the sample size.
-
-   - $P(s_4|s_3, n_3) = p_{34}(n_3) = \Phi\left(\frac{\sqrt{n_3}}{2}\delta - z_{1-\eta_3}\right)$
-     where $\eta_3$ is the significance level for Phase III.
-
-4. **Rewards** ($R$): The reward function captures the costs of running trials and the potential profit from a successful drug:
-
-   - $R(s_i, n_i) = -c_i(n_i)$ for $i = 1, 2, 3$, where $c_i(n_i)$ is the cost of running a trial with sample size $n_i$.
-   - $R(s_4) = g_4$, where $g_4$ is the expected profit from a successful drug.
-
-5. **Discount Factor** ($\gamma$): We use a discount factor $0 < \gamma \leq 1$ to account for the time value of money and risk preferences.
+It's worth noting that while this example uses a relatively simple model, the same principles can be applied to more complex scenarios involving stochasticity, multiple species interactions, or spatial heterogeneity. 
 
 ```{code-cell} ipython3
 :tags: [hide-input]
-:load: code/sample_size_drug_dev_dp.py
+:load: code/harvest_dp.py
+
+```
+## Discretization and Interpolation
+
+In many real-world problems, such as our resource management example, the state space is inherently continuous. However, the dynamic programming algorithm we've discussed operates on discrete state spaces. To bridge this gap, we have two main approaches: discretization and interpolation. In the previous example, we used a discretization method by rounding off values to the nearest grid point.
+
+In our idealized models, we imagined population sizes as whole numbers—1 fish, 2 fish, 3 fish—but nature rarely conforms to such simplicity. What do you do when your survey reports 42.7 fish, for example? Without much explanation, our reflex in the previous example was to simply round things off. After all, what's the harm in calling 42.7 fish just 43? This approach, known as discretization, is the simplest way to handle continuous states. It's like overlaying a grid on a smooth landscape and only allowing yourself to stand at the intersections. In our demo code, we implemented this step via the [numpy.searchsorted](https://numpy.org/doc/2.0/reference/generated/numpy.searchsorted.html) function.
+
+Discretization is straightforward and allows you to apply dynamic programming algorithms directly. For many problems, it might even be sufficient. However, as you might imagine from the various time discretization schemes we've encountered in trajectory optimization, we can do better. Specifically, we want to address the following issues:
+
+1. Our model might make abrupt changes in decisions, even when the population barely shifts.
+2. We're losing precision, especially when dealing with smaller population sizes where every individual counts.
+3. We might want to scale up and add more factors to our model—perhaps considering the population's age structure or environmental variables. However, the curse of dimensionality might leave us needing an impossibly large number of grid points to maintain accuracy.
+
+Rather than confining ourselves to grid intersections as we did with basic discretization, we can estimate the value between them via interpolation. When you encounter a state that doesn't exactly match a grid point—like that population of 42.7 fish—you can estimate its value based on nearby points you've already calculated. In its simplest form, we could use linear interpolation. Intuitively, it's like estimating the height of a hill between two surveyed points by drawing a straight line between them. Let's formalize this approach in the context of the backward induction procedure.
+
+### Backward Recursion with Interpolation
+
+In a continuous state space, we don't have $J_{k+1}^\star(\mathbf{x}_{k+1})$ directly available for all possible $\mathbf{x}_{k+1}$. Instead, we have $J_{k+1}^\star(\mathbf{x})$ for a set of discrete grid points $\mathbf{x} \in \mathcal{X}_\text{grid}$. We use interpolation to estimate $J_{k+1}^\star(\mathbf{x}_{k+1})$ for any $\mathbf{x}_{k+1}$ not in $\mathcal{X}_\text{grid}$.
+
+Let's define an interpolation function $I_{k+1}(\mathbf{x})$ that estimates $J_{k+1}^\star(\mathbf{x})$ for any $\mathbf{x}$ based on the known values at grid points. Then, we can express Bellman's equation with interpolation as:
+
+$$
+J_k^\star(\mathbf{x}_k) = \min_{\mathbf{u}_k} \left[ c_k(\mathbf{x}_k, \mathbf{u}_k) + I_{k+1}(\mathbf{f}_k(\mathbf{x}_k, \mathbf{u}_k)) \right]
+$$
+
+For linear interpolation in a one-dimensional state space, $I_{k+1}(\mathbf{x})$ would be defined as:
+
+$$
+I_{k+1}(x) = J_{k+1}^\star(x_l) + \frac{x - x_l}{x_u - x_l} \left(J_{k+1}^\star(x_u) - J_{k+1}^\star(x_l)\right)
+$$
+
+where $x_l$ and $x_u$ are the nearest lower and upper grid points to $x$, respectively.
+
+Here's a pseudo-code algorithm for backward recursion with interpolation:
+
+````{prf:algorithm} Backward Recursion with Interpolation for Dynamic Programming
+:label: backward-recursion-interpolation
+
+**Input:** 
+- Terminal cost function $c_T(\cdot)$
+- Stage cost functions $c_t(\cdot, \cdot)$
+- System dynamics $f_t(\cdot, \cdot)$
+- Time horizon $T$
+- Grid of state points $\mathcal{X}_\text{grid}$
+- Set of possible actions $\mathcal{U}$
+
+**Output:** Optimal value functions $J_t^\star(\cdot)$ and optimal control policies $\mu_t^\star(\cdot)$ for $t = 1, \ldots, T$ at grid points
+
+1. Initialize $J_T^\star(\mathbf{x}) = c_T(\mathbf{x})$ for all $\mathbf{x} \in \mathcal{X}_\text{grid}$
+2. For $t = T-1, T-2, \ldots, 1$:
+   1. For each state $\mathbf{x} \in \mathcal{X}_\text{grid}$:
+      1. Initialize $J_t^\star(\mathbf{x}) = \infty$ and $\mu_t^\star(\mathbf{x}) = \text{None}$
+      2. For each action $\mathbf{u} \in \mathcal{U}$:
+         1. Compute next state $\mathbf{x}_\text{next} = f_t(\mathbf{x}, \mathbf{u})$
+         2. Compute interpolated future cost $J_\text{future} = I_{t+1}(\mathbf{x}_\text{next})$
+         3. Compute total cost $J_\text{total} = c_t(\mathbf{x}, \mathbf{u}) + J_\text{future}$
+         4. If $J_\text{total} < J_t^\star(\mathbf{x})$:
+            1. Update $J_t^\star(\mathbf{x}) = J_\text{total}$
+            2. Update $\mu_t^\star(\mathbf{x}) = \mathbf{u}$
+   2. End For
+3. End For
+4. Return $J_t^\star(\cdot)$, $\mu_t^\star(\cdot)$ for $t = 1, \ldots, T$
+````
+
+### Implementation Considerations
+
+The choice of interpolation method can significantly affect the accuracy of the solution. Linear interpolation is simple and often effective, but higher-order methods like cubic spline interpolation might provide better results in some problems. Furthermore, the layout and density of the grid points in $\mathcal{X}_\text{grid}$ can impact both the accuracy and computational efficiency. A finer grid generally provides better accuracy but increases computational cost. To balance this tradeoff, you might consider techniques like adaptive grid refinement or function approximation methods instead of fixed grid-based interpolation. Special care may also be needed for states near the boundaries, where interpolation might not be possible in all directions.
+
+While simple to implement, interpolation methods scale poorly in multi-dimensional spaces in terms of computational complexity. Techniques like multilinear interpolation with tensorized representations or more advanced methods like radial basis function interpolation might be necessary.
+
+To better address this computational challenge, we will broaden our perspective through the lens of numerical approximation methods for solving functional operator equations. Polynomial interpolation is a form of approximation, with properties akin to generalization in machine learning. By building these connections, we will develop techniques capable of more robustly handling the curse of dimensionality by leveraging the generalization properties of machine learning models, and the "blessing of randomness" inherent in supervised learning and Monte Carlo methods.
+
+### Example: Optimal Harvest with Linear Interpolation
+
+Here is a demonstration of the backward recursion procedure using linear interpolation. 
+
+```{code-cell} ipython3
+:tags: [hide-input]
+:load: code/harvest_dp_linear_interpolation.py
+```
+
+Due to pedagogical considerations, this example is using our own implementation of the linear interpolation procedure. However, a more general and practical approach would be to use a built-in interpolation procedure in Numpy. Because our state space has a single dimension, we can simply use [scipy.interpolate.interp1d](https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.) which offers various interpolation methods through its `kind` argument, which can take values in 'linear', 'nearest', 'nearest-up', 'zero', 'slinear', 'quadratic', 'cubic', 'previous', or 'next'. 'zero', 'slinear', 'quadratic' and 'cubic'.
+
+Here's a more general implementation which here uses cubic interpolation through the `scipy.interpolate.interp1d` function: 
+
+```{code-cell} ipython3
+:tags: [hide-input]
+:load: code/harvest_dp_interp1d.py
 ```
 
 ## Linear Quadratic Regulator via Dynamic Programming
@@ -473,3 +535,259 @@ Where $S_t$ satisfies the so-called discrete-time Riccati equation:
 $$
 S_t = Q + A^\top S_{t+1} A - A^\top S_{t+1} B(R + B^\top S_{t+1} B)^{-1}B^\top S_{t+1} A
 $$
+
+### Example: Linear Quadratic Regulation of a Liquid Tank 
+
+We are dealing with a liquid-level control system for a storage tank. This system consists of a reservoir connected to a tank via valves. These valves are controlled by a gear train, which is driven by a DC motor. The motor, in turn, is controlled by an electronic amplifier. The goal is to maintain a constant liquid level in the tank, adjusting only when necessary.
+
+The system is described by a third-order continuous-time model with the following state variables:
+- $x_1(t)$: the height of the liquid in the tank
+- $x_2(t)$: the angular position of the electric motor driving the valves
+- $x_3(t)$: the angular velocity of the motor
+
+The input to the system, $u(t)$, represents the signal sent to the electronic amplifier connected to the motor.
+The system dynamics are described by the following differential equations:
+
+$$
+\begin{aligned}
+& \dot{x}_1(t) = -2x_1(t) \\
+& \dot{x}_2(t) = x_3(t) \\
+& \dot{x}_3(t) = -10x_3(t) + 9000u(t)
+\end{aligned}
+$$
+
+To pose this as a discrete-time LQR problem, we need to discretize the continuous-time system. Let's assume a sampling time of $T_s$ seconds. We can use the forward Euler method for a simple discretization:
+
+$$
+\begin{aligned}
+& x_1(k+1) = x_1(k) + T_s(-2x_1(k)) \\
+& x_2(k+1) = x_2(k) + T_sx_3(k) \\
+& x_3(k+1) = x_3(k) + T_s(-10x_3(k) + 9000u(k))
+\end{aligned}
+$$
+
+This can be written in the standard discrete-time state-space form:
+
+$x(k+1) = Ax(k) + Bu(k)$
+
+Where:
+
+$x(k) = \begin{bmatrix} x_1(k) \\ x_2(k) \\ x_3(k) \end{bmatrix}$
+
+$A = \begin{bmatrix} 
+1-2T_s & 0 & 0 \\
+0 & 1 & T_s \\
+0 & 0 & 1-10T_s
+\end{bmatrix}$
+
+$B = \begin{bmatrix} 
+0 \\
+0 \\
+9000T_s
+\end{bmatrix}$
+
+The goal of our LQR controller is to maintain the liquid level at a desired reference value while minimizing control effort. We can formulate this as a discrete-time LQR problem with the following cost function:
+
+$J = \sum_{k=0}^{\infty} \left( (x_1(k) - x_{1,ref})^2 + ru^2(k) \right)$
+
+Where $x_{1,ref}$ is the reference liquid level and $r$ is a positive weight on the control input.
+
+To put this in standard discrete-time LQR form, we rewrite the cost function as:
+
+$J = \sum_{k=0}^{\infty} \left( x^T(k)Qx(k) + ru^2(k) \right)$
+
+Where:
+
+$Q = \begin{bmatrix}
+1 & 0 & 0 \\
+0 & 0 & 0 \\
+0 & 0 & 0
+\end{bmatrix}$
+
+The discrete-time LQR problem is now to find the optimal control law $u^*(k) = -Kx(k)$ that minimizes this cost function, subject to the discrete-time system dynamics $x(k+1) = Ax(k) + Bu(k)$.
+
+The solution involves solving the discrete-time algebraic Riccati equation:
+
+$P = A^TPA - A^TPB(B^TPB + R)^{-1}B^TPA + Q$
+
+Where $R = r$ (a scalar in this case), to find the positive definite matrix $P$. Then, the optimal gain matrix $K$ is given by:
+
+$K = (B^TPB + R)^{-1}B^TPA$
+
+This formulation ensures that:
+1. The liquid level ($x_1(k)$) is maintained close to the reference value.
+2. The system acts primarily when there's a change in the liquid level, as only $x_1(k)$ is directly penalized in the cost function.
+3. The control effort is minimized, ensuring smooth operation of the valves.
+
+By tuning the weight $r$ and the sampling time $T_s$, we can balance the trade-off between maintaining the desired liquid level, the amount of control effort used, and the responsiveness of the system.
+
+## Stochastic Dynamic Programming
+
+While our previous discussion focused on deterministic systems, many real-world problems involve uncertainty. Stochastic Dynamic Programming (SDP) extends our framework to handle such scenarios, allowing for stochastic uncertainty in both the objective function and system dynamics.
+
+In the stochastic setting, our system evolution takes the form:
+
+$$
+\mathbf{x}_{t+1} = \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w}_t)
+$$
+
+Here, $\mathbf{w}_t$ represents a random disturbance or noise term at time $t$. This formulation captures the inherent uncertainty in the system's behavior. The stage cost function may also incorporate stochastic influences:
+
+$$
+c_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w}_t)
+$$
+
+In this context, our objective shifts from minimizing a deterministic cost to minimizing the expected total cost:
+
+$$
+\mathbb{E}\left[c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w}_t)\right]
+$$
+
+where the expectation is taken over the distributions of the random variables $\mathbf{w}_t$. The principle of optimality still holds in the stochastic case, but Bellman's equation now involves an expectation:
+
+$$
+J_k^\star(\mathbf{x}_k) = \min_{\mathbf{u}_k} \mathbb{E}_{\mathbf{w}_k}\left[c_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k) + J_{k+1}^\star(\mathbf{f}_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k))\right]
+$$
+
+In practice, this expectation is often computed by discretizing the distribution of $\mathbf{w}_k$. Let's say we approximate the distribution with $K$ discrete values $\mathbf{w}_k^i$, each occurring with probability $p_k^i$. Then our Bellman equation becomes:
+
+$$
+J_k^\star(\mathbf{x}_k) = \min_{\mathbf{u}_k} \sum_{i=1}^K p_k^i \left[c_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k^i) + J_{k+1}^\star(\mathbf{f}_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k^i))\right]
+$$
+
+The backward recursion algorithm for SDP follows a similar structure to its deterministic counterpart, with the key difference being the incorporation of expectations:
+
+````{prf:algorithm} Backward Recursion for Stochastic Dynamic Programming
+:label: stochastic-backward-recursion
+
+**Input:** Terminal cost function $c_T(\cdot)$, stage cost functions $c_t(\cdot, \cdot, \cdot)$, system dynamics $\mathbf{f}_t(\cdot, \cdot, \cdot)$, time horizon $T$, disturbance distributions
+
+**Output:** Optimal value functions $J_t^\star(\cdot)$ and optimal control policies $\mu_t^\star(\cdot)$ for $t = 1, \ldots, T$
+
+1. Initialize $J_T^\star(\mathbf{x}) = c_T(\mathbf{x})$ for all $\mathbf{x}$ in the state space
+2. For $t = T-1, T-2, \ldots, 1$:
+   1. For each state $\mathbf{x}$ in the state space:
+      1. Compute $J_t^\star(\mathbf{x}) = \min_{\mathbf{u}} \mathbb{E}_{\mathbf{w}_t}\left[c_t(\mathbf{x}, \mathbf{u}, \mathbf{w}_t) + J_{t+1}^\star(\mathbf{f}_t(\mathbf{x}, \mathbf{u}, \mathbf{w}_t))\right]$
+      2. Compute $\mu_t^\star(\mathbf{x}) = \arg\min_{\mathbf{u}} \mathbb{E}_{\mathbf{w}_t}\left[c_t(\mathbf{x}, \mathbf{u}, \mathbf{w}_t) + J_{t+1}^\star(\mathbf{f}_t(\mathbf{x}, \mathbf{u}, \mathbf{w}_t))\right]$
+   2. End For
+3. End For
+4. Return $J_t^\star(\cdot)$, $\mu_t^\star(\cdot)$ for $t = 1, \ldots, T$
+````
+
+It's worth noting that while SDP provides a powerful framework for handling uncertainty, it also exacerbates the curse of dimensionality. Not only does the state space need to be discretized, but now the disturbance space must be discretized as well. This can lead to a combinatorial explosion in the number of scenarios to be evaluated at each stage.
+
+Despite these challenges, SDP remains a valuable tool in many applications, particularly in areas such as finance, robotics, and resource management, where uncertainty plays a crucial role. As with deterministic dynamic programming, various approximation techniques and learning-based methods have been developed to mitigate the computational burden of SDP for high-dimensional problems.
+
+### Example: Stochastic Optimal Harvest in Resource Management
+
+Building upon our previous deterministic model, we now introduce stochasticity to more accurately reflect the uncertainties inherent in real-world resource management scenarios {cite:p}`Conroy2013`. As before, we consider a population of a particular species, whose abundance we denote by $x(t)$, where $t$ represents discrete time steps. Our objective remains to maximize the cumulative harvest over a finite time horizon, while also considering the long-term sustainability of the population. However, we now account for two sources of stochasticity: partial controllability of harvest and environmental variability affecting growth rates.
+The optimization problem can be formulated as:
+
+$$
+\text{maximize} \quad \mathbb{E}\left[\sum_{t=t_0}^{t_f} F(x(t) \cdot h(t))\right]
+$$
+
+Here, $F(\cdot)$ represents the immediate reward function associated with harvesting, and $h(t)$ is the realized harvest rate at time $t$. The expectation $\mathbb{E}[\cdot]$ is taken over the stochastic outcomes of both harvest and growth rates.
+In our stochastic model, the abundance $x$ still ranges from 1 to 100 individuals. The decision variable is now the desired harvest rate $d(t)$, which can take values from the set $D = {0, 0.1, 0.2, 0.3, 0.4, 0.5}$. However, the realized harvest rate $h(t)$ is stochastic and follows a discrete distribution:
+
+$$
+h(t) = \begin{cases}
+0.75d(t) & \text{with probability } 0.25 \\
+d(t) & \text{with probability } 0.5 \\
+1.25d(t) & \text{with probability } 0.25
+\end{cases}
+$$
+
+This represents the partial controllability of the harvest process.
+The population dynamics are now governed by a stochastic version of our modified logistic growth model:
+$$
+
+x(t+1) = x(t) + r(t)x(t)(1 - x(t)/K) - h(t)x(t)
+$$
+
+where $K = 125$ is the carrying capacity. The growth rate $r(t)$ is now stochastic and follows a discrete distribution:
+
+$$
+r(t) = \begin{cases}
+0.85r_{\text{max}} & \text{with probability } 0.25 \
+1.05r_{\text{max}} & \text{with probability } 0.5 \
+1.15r_{\text{max}} & \text{with probability } 0.25
+\end{cases}
+$$
+
+where $r_{\text{max}} = 0.3$ is the maximum growth rate. This stochasticity in $r(t)$ represents environmental variability affecting population growth.
+Applying the principle of optimality, we can express the optimal value function $J^*[x(t), t]$ recursively:
+
+$$
+J^[x(t), t] = \max_{d(t) \in D} E\left[F(x(t) \cdot h(t)) + J^(x(t+1), t+1)\right]
+$$
+
+where the expectation is taken over the stochastic outcomes of $h(t)$ and $r(t)$. The boundary condition remains $J^*(x(t_f)) = 0$.
+
+We can now adapt our previous code to account for the stochasticity in our model. One important difference is that now the simulation of our solution involves taking multiple realizations of a trajectory, as reflected in the following plots: 
+
+```{code-cell} ipython3
+:tags: [hide-input]
+:load: code/harvest_sdp.py
+```
+
+### Example: Sample Size Determination in Pharmaceutical Development
+
+Pharmaceutical development is the process of bringing a new drug from initial discovery to market availability. This process is lengthy, expensive, and risky, typically involving several stages:
+
+1. **Drug Discovery**: Identifying a compound that could potentially treat a disease.
+2. **Preclinical Testing**: Laboratory and animal testing to assess safety and efficacy.
+. **Clinical Trials**: Testing the drug in humans, divided into phases:
+   - Phase I: Testing for safety in a small group of healthy volunteers.
+   - Phase II: Testing for efficacy and side effects in a larger group with the target condition.
+   - Phase III: Large-scale testing to confirm efficacy and monitor side effects.
+4. **Regulatory Review**: Submitting a New Drug Application (NDA) for approval.
+5. **Post-Market Safety Monitoring**: Continuing to monitor the drug's effects after market release.
+
+This process can take 10-15 years and cost over $1 billion {cite}`Adams2009`. The high costs and risks involved call for a principled approach to decision making. We'll focus on the clinical trial phases and NDA approval, per the MDP model presented by {cite}`Chang2010`:
+
+1. **States** ($S$): Our state space is $S = \{s_1, s_2, s_3, s_4\}$, where:
+   - $s_1$: Phase I clinical trial
+   - $s_2$: Phase II clinical trial
+   - $s_3$: Phase III clinical trial
+   - $s_4$: NDA approval
+
+2. **Actions** ($A$): At each state, the action is choosing the sample size $n_i$ for the corresponding clinical trial. The action space is $A = \{10, 11, ..., 1000\}$, representing possible sample sizes.
+
+3. **Transition Probabilities** ($P$): The probability of moving from one state to the next depends on the chosen sample size and the inherent properties of the drug.
+      We define:
+
+   - $P(s_2|s_1, n_1) = p_{12}(n_1) = \sum_{i=0}^{\lfloor\eta_1 n_1\rfloor} \binom{n_1}{i} p_0^i (1-p_0)^{n_1-i}$
+     where $p_0$ is the true toxicity rate and $\eta_1$ is the toxicity threshold for Phase I.
+     
+  - Of particular interest is the transition from Phase II to Phase III which we model as:
+
+    $P(s_3|s_2, n_2) = p_{23}(n_2) = \Phi\left(\frac{\sqrt{n_2}}{2}\delta - z_{1-\eta_2}\right)$
+
+    where $\Phi$ is the cumulative distribution function (CDF) of the standard normal distribution:
+
+      $\Phi(x) = \frac{1}{\sqrt{2\pi}} \int_{-\infty}^x e^{-t^2/2} dt$
+
+    This is giving us the probability that we would observe a treatment effect this large or larger if the null hypothesis (no treatment effect) were true. A higher probability indicates stronger evidence of a treatment effect, making it more likely that the drug will progress to Phase III.
+
+    In this expression, $\delta$ is called the "normalized treatment effect". In clinical trials, we're often interested in the difference between the treatment and control groups. The "normalized" part means we've adjusted this difference for the variability in the data. Specifically $\delta = \frac{\mu_t - \mu_c}{\sigma}$ where $\mu_t$ is the mean outcome in the treatment group, $\mu_c$ is the mean outcome in the control group, and $\sigma$ is the standard deviation of the outcome. A larger $\delta$ indicates a stronger treatment effect.
+
+    Furthermore, the term $z_{1-\eta_2}$ is the $(1-\eta_2)$-quantile of the standard normal distribution. In other words, it's the value where the probability of a standard normal random variable being greater than this value is $\eta_2$. For example, if $\eta_2 = 0.05$, then $z_{1-\eta_2} \approx 1.645$. A smaller $\eta_2$ makes the trial more conservative, requiring stronger evidence to proceed to Phase III.
+
+    Finally, $n_2$ is the sample size for Phase II. The $\sqrt{n_2}$ term reflects that the precision of our estimate of the treatment effect improves with the square root of the sample size.
+
+   - $P(s_4|s_3, n_3) = p_{34}(n_3) = \Phi\left(\frac{\sqrt{n_3}}{2}\delta - z_{1-\eta_3}\right)$
+     where $\eta_3$ is the significance level for Phase III.
+
+4. **Rewards** ($R$): The reward function captures the costs of running trials and the potential profit from a successful drug:
+
+   - $R(s_i, n_i) = -c_i(n_i)$ for $i = 1, 2, 3$, where $c_i(n_i)$ is the cost of running a trial with sample size $n_i$.
+   - $R(s_4) = g_4$, where $g_4$ is the expected profit from a successful drug.
+
+5. **Discount Factor** ($\gamma$): We use a discount factor $0 < \gamma \leq 1$ to account for the time value of money and risk preferences.
+
+```{code-cell} ipython3
+:tags: [hide-input]
+:load: code/sample_size_drug_dev_dp.py
+```
+
