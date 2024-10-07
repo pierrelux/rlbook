@@ -547,7 +547,7 @@ The collocation conditions and IVP condition are combined together to form a roo
 Many common numerical integration techniques can be viewed as special cases of collocation methods. 
 While the general collocation method we discussed earlier applies to the entire interval $[t_0, t_f]$, many numerical integration techniques can be viewed as collocation methods applied locally, step by step.
 
-In practical numerical integration, we often divide the full interval $[t_0, t_f]$ into smaller subintervals or steps. In general, this allows us to user simpler basis functions thereby reducing computational complexity, and gives us more flexibility in dynamically ajusting the step size using local error estimates. When we apply collocation locally, we're essentially using the collocation method to "step" from $t_n$ to $t_{n+1}$. As we did, earlier we still apply the following three steps:
+In practical numerical integration, we often divide the full interval $[t_0, t_f]$ into smaller subintervals or steps. In general, this allows us to use simpler basis functions thereby reducing computational complexity, and gives us more flexibility in dynamically ajusting the step size using local error estimates. When we apply collocation locally, we're essentially using the collocation method to "step" from $t_n$ to $t_{n+1}$. As we did, earlier we still apply the following three steps:
 
 1. We choose a basis function to approximate $y(t)$ over $[t_n, t_{n+1}]$.
 2. We select collocation points within this interval.
