@@ -321,30 +321,30 @@ Upon completion of this backward pass, we now have access to the optimal control
 
 ## Example: Optimal Harvest in Resource Management
 
-Dynamic programming is often used in resource management and conservation biology to devise policies to be implemented by decision makers and stakeholders : for eg. in fishereries, or timber harvesting. Per {cite}`Conroy2013`, we consider a population of a particular species, whose abundance we denote by $x(t)$, where $t$ represents discrete time steps. Our objective is to maximize the cumulative harvest over a finite time horizon, while also considering the long-term sustainability of the population. This optimization problem can be formulated as:
+Dynamic programming is often used in resource management and conservation biology to devise policies to be implemented by decision makers and stakeholders : for eg. in fishereries, or timber harvesting. Per {cite}`Conroy2013`, we consider a population of a particular species, whose abundance we denote by $x_t$, where $t$ represents discrete time steps. Our objective is to maximize the cumulative harvest over a finite time horizon, while also considering the long-term sustainability of the population. This optimization problem can be formulated as:
 
 $$
-\text{maximize} \quad \sum_{t=t_0}^{t_f} F(x(t) \cdot h(t)) + F_T(x(t_f))
+\text{maximize} \quad \sum_{t=t_0}^{t_f} F(x_t \cdot h_t) + F_T(x_{t_f})
 $$
 
-Here, $F(\cdot)$ represents the immediate reward function associated with harvesting, $h(t)$ is the harvest rate at time $t$, and $F_T[\cdot]$ denotes a terminal value function that could potentially assign value to the final population state. In this particular problem, we assign no terminal value to the final population state, setting $F_T[x(t_f)] = 0$ and allowing us to focus solely on the cumulative harvest over the time horizon.
+Here, $F(\cdot)$ represents the immediate reward function associated with harvesting, $h_t$ is the harvest rate at time $t$, and $F_T(\cdot)$ denotes a terminal value function that could potentially assign value to the final population state. In this particular problem, we assign no terminal value to the final population state, setting $F_T(x_{t_f}) = 0$ and allowing us to focus solely on the cumulative harvest over the time horizon.
 
 In our model population model, the abundance of a specicy $x$ ranges from 1 to 100 individuals. The decision variable is the harvest rate $h$, which can take values from the set $D = \{0, 0.1, 0.2, 0.3, 0.4, 0.5\}$. The population dynamics are governed by a modified logistic growth model:
 
 $$
-x(t+1) = x(t) + 0.3x(t)(1 - x(t)/125) - h(t)x(t)
+x_{t+1} = x_t + 0.3x_t(1 - x_t/125) - h_tx_t
 $$
 
 where the $0.3$ represents the growth rate and $125$ is the carrying capacity (the maximum population size given the available resources). The logistic growth model returns continuous values; however our DP formulation uses a discrete state space. Therefore, we also round the the outcomes to the nearest integer.
 
 
-Applying the principle of optimality, we can express the optimal value function $J^*[x(t), t]$ recursively:
+Applying the principle of optimality, we can express the optimal value function $J^\star(x_t,t)$ recursively:
 
 $$
-J^*[x(t), t] = \max_{h(t) \in D} (F(x, h, t) + J^*(x(t+1), t+1))
+J^\star(x_t, t) = \max_{h_t \in D} (F(x, h, t) + J^*(x_{t+1}, t+1))
 $$
 
-with the boundary condition $J^*(x(t_f)) = 0$.
+with the boundary condition $J^*(x_{t_f}) = 0$.
 
 It's worth noting that while this example uses a relatively simple model, the same principles can be applied to more complex scenarios involving stochasticity, multiple species interactions, or spatial heterogeneity. 
 
@@ -535,7 +535,7 @@ Where $S_t$ satisfies the so-called discrete-time Riccati equation:
 $$
 S_t = Q + A^\top S_{t+1} A - A^\top S_{t+1} B(R + B^\top S_{t+1} B)^{-1}B^\top S_{t+1} A
 $$
-
+<!-- 
 ### Example: Linear Quadratic Regulation of a Liquid Tank 
 
 We are dealing with a liquid-level control system for a storage tank. This system consists of a reservoir connected to a tank via valves. These valves are controlled by a gear train, which is driven by a DC motor. The motor, in turn, is controlled by an electronic amplifier. The goal is to maintain a constant liquid level in the tank, adjusting only when necessary.
@@ -619,43 +619,33 @@ This formulation ensures that:
 2. The system acts primarily when there's a change in the liquid level, as only $x_1(k)$ is directly penalized in the cost function.
 3. The control effort is minimized, ensuring smooth operation of the valves.
 
-By tuning the weight $r$ and the sampling time $T_s$, we can balance the trade-off between maintaining the desired liquid level, the amount of control effort used, and the responsiveness of the system.
+By tuning the weight $r$ and the sampling time $T_s$, we can balance the trade-off between maintaining the desired liquid level, the amount of control effort used, and the responsiveness of the system. -->
 
 ## Stochastic Dynamic Programming
 
-While our previous discussion focused on deterministic systems, many real-world problems involve uncertainty. Stochastic Dynamic Programming (SDP) extends our framework to handle such scenarios, allowing for stochastic uncertainty in both the objective function and system dynamics.
+While our previous discussion centered on deterministic systems, many real-world problems involve uncertainty. Stochastic Dynamic Programming (SDP) extends our framework to handle stochasticity in both the objective function and system dynamics.
 
 In the stochastic setting, our system evolution takes the form:
 
-$$
-\mathbf{x}_{t+1} = \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w}_t)
-$$
+$$ \mathbf{x}_{t+1} = \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w}_t) $$
 
-Here, $\mathbf{w}_t$ represents a random disturbance or noise term at time $t$. This formulation captures the inherent uncertainty in the system's behavior. The stage cost function may also incorporate stochastic influences:
+Here, $\mathbf{w}_t$ represents a random disturbance or noise term at time $t$ due to the inherent uncertainty in the system's behavior. The stage cost function may also incorporate stochastic influences:
 
-$$
-c_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w}_t)
-$$
+$$ c_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w}_t) $$
 
 In this context, our objective shifts from minimizing a deterministic cost to minimizing the expected total cost:
 
-$$
-\mathbb{E}\left[c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w}_t)\right]
-$$
+$$ \mathbb{E}\left[c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w}_t)\right] $$
 
-where the expectation is taken over the distributions of the random variables $\mathbf{w}_t$. The principle of optimality still holds in the stochastic case, but Bellman's equation now involves an expectation:
+where the expectation is taken over the distributions of the random variables $\mathbf{w}_t$. The principle of optimality still holds in the stochastic case, but Bellman's optimality equation now involves an expectation:
 
-$$
-J_k^\star(\mathbf{x}_k) = \min_{\mathbf{u}_k} \mathbb{E}_{\mathbf{w}_k}\left[c_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k) + J_{k+1}^\star(\mathbf{f}_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k))\right]
-$$
+$$ J_k^\star(\mathbf{x}_k) = \min_{\mathbf{u}_k} \mathbb{E}_{\mathbf{w}_k}\left[c_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k) + J_{k+1}^\star(\mathbf{f}_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k))\right] $$
 
-In practice, this expectation is often computed by discretizing the distribution of $\mathbf{w}_k$. Let's say we approximate the distribution with $K$ discrete values $\mathbf{w}_k^i$, each occurring with probability $p_k^i$. Then our Bellman equation becomes:
+In practice, this expectation is often computed by discretizing the distribution of $\mathbf{w}_k$ when the set of possible disturbances is very large or even continuous. Let's say we approximate the distribution with $K$ discrete values $\mathbf{w}_k^i$, each occurring with probability $p_k^i$. Then our Bellman equation becomes:
 
-$$
-J_k^\star(\mathbf{x}_k) = \min_{\mathbf{u}_k} \sum_{i=1}^K p_k^i \left[c_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k^i) + J_{k+1}^\star(\mathbf{f}_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k^i))\right]
-$$
+$$ J_k^\star(\mathbf{x}_k) = \min_{\mathbf{u}_k} \sum_{i=1}^K p_k^i \left(c_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k^i) + J_{k+1}^\star(\mathbf{f}_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k^i))\right) $$
 
-The backward recursion algorithm for SDP follows a similar structure to its deterministic counterpart, with the key difference being the incorporation of expectations:
+The backward recursion algorithm for SDP follows a similar structure to its deterministic counterpart, with the key difference being that we now have to compute expected values: 
 
 ````{prf:algorithm} Backward Recursion for Stochastic Dynamic Programming
 :label: stochastic-backward-recursion
@@ -674,62 +664,134 @@ The backward recursion algorithm for SDP follows a similar structure to its dete
 4. Return $J_t^\star(\cdot)$, $\mu_t^\star(\cdot)$ for $t = 1, \ldots, T$
 ````
 
-It's worth noting that while SDP provides a powerful framework for handling uncertainty, it also exacerbates the curse of dimensionality. Not only does the state space need to be discretized, but now the disturbance space must be discretized as well. This can lead to a combinatorial explosion in the number of scenarios to be evaluated at each stage.
+While SDP provides us with a framework to for handling uncertainty, it makes the curse of dimensionality even more difficult to handle in practice. Not only does the state space need to be discretized, but now the disturbance space must be discretized as well. This can lead to a combinatorial explosion in the number of scenarios to be evaluated at each stage.
 
-Despite these challenges, SDP remains a valuable tool in many applications, particularly in areas such as finance, robotics, and resource management, where uncertainty plays a crucial role. As with deterministic dynamic programming, various approximation techniques and learning-based methods have been developed to mitigate the computational burden of SDP for high-dimensional problems.
+However, just as we tackled the challenges of continuous state spaces with discretization and interpolation, we can devise efficient methods to handle the additional complexity of evaluating expectations. This problem essentially becomes one of numerical integration. When the set of disturbances is continuous (as is often the case with continuous state spaces), we enter a domain where numerical quadrature methods could be applied. But these methods tend to scale poorly as the number of dimensions grows. This is where more efficient techniques, often rooted in Monte Carlo methods, come into play. The combination of two key ingredients emerges to tackle the curse of dimensionality:
+
+1. Function approximation (through discretization, interpolation, neural networks, etc.)
+2. Monte Carlo integration (simulation)
+
+These two elements essentially distill the key ingredients of machine learning, which is the direction we'll be exploring in this course. 
 
 ### Example: Stochastic Optimal Harvest in Resource Management
 
-Building upon our previous deterministic model, we now introduce stochasticity to more accurately reflect the uncertainties inherent in real-world resource management scenarios {cite:p}`Conroy2013`. As before, we consider a population of a particular species, whose abundance we denote by $x(t)$, where $t$ represents discrete time steps. Our objective remains to maximize the cumulative harvest over a finite time horizon, while also considering the long-term sustainability of the population. However, we now account for two sources of stochasticity: partial controllability of harvest and environmental variability affecting growth rates.
+Building upon our previous deterministic model, we now introduce stochasticity to more accurately reflect the uncertainties inherent in real-world resource management scenarios {cite:p}`Conroy2013`. As before, we consider a population of a particular species, whose abundance we denote by $x_t$, where $t$ represents discrete time steps. Our objective remains to maximize the cumulative harvest over a finite time horizon, while also considering the long-term sustainability of the population. However, we now account for two sources of stochasticity: partial controllability of harvest and environmental variability affecting growth rates.
 The optimization problem can be formulated as:
 
 $$
-\text{maximize} \quad \mathbb{E}\left[\sum_{t=t_0}^{t_f} F(x(t) \cdot h(t))\right]
+\text{maximize} \quad \mathbb{E}\left[\sum_{t=t_0}^{t_f} F(x_t \cdot h_t)\right]
 $$
 
-Here, $F(\cdot)$ represents the immediate reward function associated with harvesting, and $h(t)$ is the realized harvest rate at time $t$. The expectation $\mathbb{E}[\cdot]$ is taken over the stochastic outcomes of both harvest and growth rates.
-In our stochastic model, the abundance $x$ still ranges from 1 to 100 individuals. The decision variable is now the desired harvest rate $d(t)$, which can take values from the set $D = {0, 0.1, 0.2, 0.3, 0.4, 0.5}$. However, the realized harvest rate $h(t)$ is stochastic and follows a discrete distribution:
+Here, $F(\cdot)$ represents the immediate reward function associated with harvesting, and $h_t$ is the realized harvest rate at time $t$. The expectation $\mathbb{E}[\cdot]$ over both harvest and growth rates, which we view as random variables. 
+In our stochastic model, the abundance $x$ still ranges from 1 to 100 individuals. The decision variable is now the desired harvest rate $d_t$, which can take values from the set $D = {0, 0.1, 0.2, 0.3, 0.4, 0.5}$. However, the realized harvest rate $h_t$ is stochastic and follows a discrete distribution:
 
 $$
-h(t) = \begin{cases}
-0.75d(t) & \text{with probability } 0.25 \\
-d(t) & \text{with probability } 0.5 \\
-1.25d(t) & \text{with probability } 0.25
+h_t = \begin{cases}
+0.75d_t & \text{with probability } 0.25 \\
+d_t & \text{with probability } 0.5 \\
+1.25d_t & \text{with probability } 0.25
 \end{cases}
 $$
 
-This represents the partial controllability of the harvest process.
-The population dynamics are now governed by a stochastic version of our modified logistic growth model:
+By expressing the harvest rate as a random variable, we mean to capture the fact that harvesting is a not completely under our control: we might obtain more or less what we had intended to. Furthermore, we generalize the population dynamics to the stochastic cse via: 
 $$
 
-x(t+1) = x(t) + r(t)x(t)(1 - x(t)/K) - h(t)x(t)
+x_{t+1} = x_t + r_tx_t(1 - x_t/K) - h_tx_t
 $$
 
-where $K = 125$ is the carrying capacity. The growth rate $r(t)$ is now stochastic and follows a discrete distribution:
+where $K = 125$ is the carrying capacity. The growth rate $r_t$ is now stochastic and follows a discrete distribution:
 
 $$
-r(t) = \begin{cases}
-0.85r_{\text{max}} & \text{with probability } 0.25 \
-1.05r_{\text{max}} & \text{with probability } 0.5 \
+r_t = \begin{cases}
+0.85r_{\text{max}} & \text{with probability } 0.25 \\
+1.05r_{\text{max}} & \text{with probability } 0.5 \\
 1.15r_{\text{max}} & \text{with probability } 0.25
 \end{cases}
 $$
 
-where $r_{\text{max}} = 0.3$ is the maximum growth rate. This stochasticity in $r(t)$ represents environmental variability affecting population growth.
-Applying the principle of optimality, we can express the optimal value function $J^*[x(t), t]$ recursively:
+where $r_{\text{max}} = 0.3$ is the maximum growth rate. 
+Applying the principle of optimality, we can express the optimal value function $J^\star(x_t, t)$ recursively:
 
 $$
-J^[x(t), t] = \max_{d(t) \in D} E\left[F(x(t) \cdot h(t)) + J^(x(t+1), t+1)\right]
+J^\star(x_t, t) = \max_{d(t) \in D} \mathbb{E}\left[F(x_t \cdot h_t) + J^\star(x_{t+1}, t+1)\right]
 $$
 
-where the expectation is taken over the stochastic outcomes of $h(t)$ and $r(t)$. The boundary condition remains $J^*(x(t_f)) = 0$.
-
-We can now adapt our previous code to account for the stochasticity in our model. One important difference is that now the simulation of our solution involves taking multiple realizations of a trajectory, as reflected in the following plots: 
+where the expectation is taken over the harvest and growth rate random variables. The boundary condition remains $J^*(x_{t_f}) = 0$. We can now adapt our previous code to account for the stochasticity in our model. One important difference is that simulating a solution in this context requires multiple realizations of our process. This is an important consideration when evaluating reinforcement learning methods in practice, as success cannot be claimed based on a single successful trajectory.
 
 ```{code-cell} ipython3
 :tags: [hide-input]
 :load: code/harvest_sdp.py
 ```
+
+### Markov Decision Process Formulation
+
+Rather than expressing the stochasticity in our system through a disturbance term as a parameter to a deterministic difference equation, we often work with an alternative representation (more common in operations research) which uses the Markov Decision Process formulation. The idea is that when we model our system in this way with the disturbance term being drawn indepently of the previous stages, the induced trajectory are those of a Markov chain. Hence, we can re-cast our control problem in that language, leading to the so-called Markov Decision Process framework in which we express the system dynamics in terms of transition probabilities rather than explicit state equations. In this framework, we express the probability that the system is in a given state using the transition probability function:
+
+$$ p_t(\mathbf{x}_{t+1} | \mathbf{x}_t, \mathbf{u}_t) $$
+
+This function gives the probability of transitioning to state $\mathbf{x}_{t+1}$ at time $t+1$, given that the system is in state $\mathbf{x}_t$ and action $\mathbf{u}_t$ is taken at time $t$. Therefore, $p_t$ specifies a conditional probability distribution over the next states: namely, the sum (for discrete state spaces) or integral over the next state should be 1.
+
+Given the control theory formulation of our problem via a deterministic dynamics function and a noise term, we can derive the corresponding transition probability function through the following relationship:
+
+$$
+\begin{aligned}
+p_t(\mathbf{x}_{t+1} | \mathbf{x}_t, \mathbf{u}_t) &= \mathbb{P}(\mathbf{W}_t \in \left\{\mathbf{w} \in \mathbf{W}: \mathbf{x}_{t+1} = f_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w})\right\}) \\
+&= \sum_{\left\{\mathbf{w} \in \mathbf{W}: \mathbf{x}_{t+1} = f_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w})\right\}} q_t(\mathbf{w})
+\end{aligned}
+$$
+
+Here, $q_t(\mathbf{w})$ represents the probability density or mass function of the disturbance $\mathbf{W}_t$ (assuming discrete state spaces). When dealing with continuous spaces, the above expression simply contains an integral rather than a summation. 
+
+
+For a system with deterministic dynamics and no disturbance, the transition probabilities become much simpler and be expressed using the indicator function. Given a deterministic system with dynamics:
+
+$$ \mathbf{x}_{t+1} = f_t(\mathbf{x}_t, \mathbf{u}_t) $$
+
+The transition probability function can be expressed as:
+
+$$ p_t(\mathbf{x}_{t+1} | \mathbf{x}_t, \mathbf{u}_t) = \begin{cases}
+1 & \text{if } \mathbf{x}_{t+1} = f_t(\mathbf{x}_t, \mathbf{u}_t) \\
+0 & \text{otherwise}
+\end{cases} $$
+
+With this transition probability function, we can recast our Bellman optimality equation:
+
+$$ J_t^\star(\mathbf{x}_t) = \max_{\mathbf{u}_t \in \mathbf{U}} \left\{ c_t(\mathbf{x}_t, \mathbf{u}_t) + \sum_{\mathbf{x}_{t+1}} p_t(\mathbf{x}_{t+1} | \mathbf{x}_t, \mathbf{u}_t) J_{t+1}^\star(\mathbf{x}_{t+1}) \right\} $$
+
+Here, ${c}(\mathbf{x}_t, \mathbf{u}_t)$ represents the expected immediate reward (or negative cost) when in state $\mathbf{x}_t$ and taking action $\mathbf{u}_t$ at time $t$. The summation term computes the expected optimal value for the future states, weighted by their transition probabilities.
+
+This formulation offers several advantages:
+
+1. It makes the Markovian nature of the problem explicit: the future state depends only on the current state and action, not on the history of states and actions.
+
+2. For discrete-state problems, the entire system dynamics can be specified by a set of transition matrices, one for each possible action.
+
+3. It allows us to bridge the gap with the wealth of methods in the field of probabilistic graphical models and statistical machine learning techniques for modelling and analysis. 
+
+## From Control Theory to Operations Research Notation
+
+The presentation above was intended to bridge the gap between the control-theoretic perspective and the world of closed-loop control through the idea of determining the value function of a parametric optimal control problem. We then saw how the backward induction procedure was applicable to both the deterministic and stochastic cases by taking the expectation over the disturbance variable. We then said that we can alternatively work with a representation of our system where instead of writing our model as a deterministic dynamics function taking a disturbance as an input, we would rather work directly via its transition probability function, which gives rise to the Markov chain interpretation of our system in simulation.
+
+Now we should highlight that the notation used in control theory tends to differ from that found in operations research communities, in which the field of dynamic programming flourished. We summarize those (purely notational) differences in this section.
+
+In operations research, the system state at each decision epoch is typically denoted by $s \in \mathcal{S}$, where $S$ is the set of possible system states. When the system is in state $s$, the decision maker may choose an action $a$ from the set of allowable actions $\mathcal{A}_s$. The union of all action sets is denoted as $\mathcal{A} = \bigcup_{s \in \mathcal{S}} \mathcal{A}_s$.
+
+The dynamics of the system are described by a transition probability function $p_t(j | s, a)$, which represents the probability of transitioning to state $j \in \mathcal{S}$ at time $t+1$, given that the system is in state $s$ at time $t$ and action $a \in \mathcal{A}_s$ is chosen. This transition probability function satisfies:
+
+$$\sum_{j \in \mathcal{S}} p_t(j | s, a) = 1$$
+
+It's worth noting that in operations research, we typically work with reward maximization rather than cost minimization, which is more common in control theory. However, we can easily switch between these perspectives by simply negating the quantity. That is, maximizing a reward function is equivalent to minimizing its negative, which we would then call a cost function.
+
+The reward function is denoted by $r_t(s, a)$, representing the reward received at time $t$ when the system is in state $s$ and action $a$ is taken. In some cases, the reward may also depend on the next state, in which case it is denoted as $r_t(s, a, j)$. The expected reward can then be computed as:
+
+$$r_t(s, a) = \sum_{j \in \mathcal{S}} r_t(s, a, j) p_t(j | s, a)$$
+
+Combined together, these elemetns specify a Markov decision process, which is fully described by the tuple:
+
+$$\{T, S, \mathcal{A}_s, p_t(\cdot | s, a), r_t(s, a)\}$$
+
+where $T$ represents the set of decision epochs (the horizon).
+
 
 ### Example: Sample Size Determination in Pharmaceutical Development
 
@@ -791,3 +853,94 @@ This process can take 10-15 years and cost over $1 billion {cite}`Adams2009`. Th
 :load: code/sample_size_drug_dev_dp.py
 ```
 
+## Decision Rules and Policies
+
+
+In the presentation provided so far, we directly assumed that the form of our feedback controller was of the form $u(\mathbf{x}, t)$. The idea is that rather than just looking at the stage as in open-loop control, we would now consider the current state to account for the presence of noise. We came to that conclusion by considering the parametric optimization problem corresponding to the trajectory optimization perspective and saw that the "argmax" counterpart to the value function (the max) was exactly this function $u(x, t)$. But this presentation was mostly for intuition and neglected the fact that we could consider other kinds of feedback controllers. In the context of MDPs and under the OR terminology, we should now rather talk of policies instead of controllers.
+
+But to properly introduce the concept of policy, we first have to talk about decision rules. A decision rule is a prescription of a procedure for action selection in each state at a specified decision epoch. These rules can vary in their complexity due to their potential dependence on the history and ways in which actions are then selected. Decision rules can be classified based on two main criteria:
+
+1. Dependence on history: Markovian or History-dependent
+2. Action selection method: Deterministic or Randomized
+
+Markovian decision rules are those that depend only on the current state, while history-dependent rules consider the entire sequence of past states and actions. Formally, we can define a history $h_t$ at time $t$ as:
+
+$$h_t = (s_1, a_1, \ldots, s_{t-1}, a_{t-1}, s_t)$$
+
+where $s_u$ and $a_u$ denote the state and action at decision epoch $u$. The set of all possible histories at time $t$, denoted $H_t$, grows rapidly with $t$:
+
+$$H_1 = \mathcal{S}$$
+$$H_2 = \mathcal{S} \times A \times \mathcal{S}$$
+$$H_t = H_{t-1} \times A \times \mathcal{S} = \mathcal{S} \times (A \times \mathcal{S})^{t-1}$$
+
+This exponential growth in the size of the history set motivates us to seek conditions under which we can avoid searching for history-dependent decision rules and instead focus on Markovian rules, which are much simpler to implement and evaluate.
+
+Decision rules can be further classified as deterministic or randomized. A deterministic rule selects an action with certainty, while a randomized rule specifies a probability distribution over the action space.
+
+These classifications lead to four types of decision rules:
+1. Markovian Deterministic (MD): $d_t: \mathcal{S} \rightarrow \mathcal{A}_s$
+2. Markovian Randomized (MR): $d_t: \mathcal{S} \rightarrow \mathcal{P}(\mathcal{A}_s)$
+3. History-dependent Deterministic (HD): $d_t: H_t \rightarrow \mathcal{A}_s$
+4. History-dependent Randomized (HR): $d_t: H_t \rightarrow \mathcal{P}(\mathcal{A}_s)$
+
+Where $\mathcal{P}(\mathcal{A}_s)$ denotes the set of probability distributions over $\mathcal{A}_s$.
+
+<!-- The choice of decision rule affects how the MDP's rewards and transition probabilities are computed. For example, with a Markovian deterministic rule $d_t \in D_t^{MD}$, we have:
+
+$$r_t(s, d_t(s)) \text{ and } p_t(j|s, d_t(s))$$
+
+With a randomized Markovian rule, these become expected values:
+
+$$r_t(s, d_t(s)) = \sum_{a \in \mathcal{A}_s} r_t(s,a) q_{d_t(s)}(a)$$
+$$p_t(j|s, d_t(s)) = \sum_{a \in \mathcal{A}_s} p_t(j|s,a) q_{d_t(s)}(a)$$
+
+Where $q_{d_t(s)}(a)$ is the probability of choosing action $a$ in state $s$ under decision rule $d_t$. -->
+
+It's important to note that decision rules are stage-wise objects. However, to solve an MDP, we need a strategy for the entire horizon. This is where we make a distinction and introduce the concept of a policy. A policy $\pi$ is a sequence of decision rules, one for each decision epoch:
+
+$$\pi = (d_1, d_2, ..., d_{N-1})$$
+
+Where $N$ is the horizon length (possibly infinite). The set of all policies of class $K$ (where $K$ can be HR, HD, MR, or MD) is denoted as $\Pi^K$.
+
+A special type of policy is a stationary policy, where the same decision rule is used at all epochs: $\pi = (d, d, ...)$, often denoted as $d^\infty$. Stationary policies are particularly important in infinite horizon problems.
+
+The relationships between these policy classes form a hierarchy:
+
+$$\begin{align*}
+\Pi^{SD} \subset \Pi^{SR} \subset \Pi^{MR} \subset \Pi^{HR}\\
+\Pi^{SD} \subset \Pi^{MD} \subset \Pi^{MR} \subset \Pi^{HR} \\
+\Pi^{SD} \subset \Pi^{MD} \subset \Pi^{HD} \subset \Pi^{HR}
+\end{align*}
+$$
+
+Where SD stands for Stationary Deterministic and SR for Stationary Randomized. The largest set is by far the set of history randomized policies. 
+
+A fundamental question in MDP theory is: under what conditions can we avoid working with the set $\Pi^{HR}$ and focus for example on the much simpler set of deterministic Markovian policy? Even more so, we will see that in the infinite horizon case, we can drop the dependance on time and simply consider stationary deterministic Markovian policies. 
+
+<!-- ### Special Kind of MDP: Bandit Models
+
+Markov Decision Processes (MDPs) and optimal control problems in general are all about dealing with sequential problems: problems in which entire sequences of actions or ways of acting through time are considered. This makes these methods general and powerful, but also challenging from a practical and theoretical perspective.
+
+In some problems, there might be further simplifications at play that would allow us to devise more efficient methods. A particular sub-class of such problems is that of bandit models. These models are often encountered in applications like adaptive optics, ad placement, or can even be found in frameworks like that of GFlowNets or LLMs.
+
+More precisely, we define a bandit model as follows:
+
+A bandit model is a sequential decision model in which, at each decision epoch, the decision maker observes the state of each of $K$ Markov reward processes and, based on the states, the transition probabilities, and rewards of each, selects a process to use in the current period. The selected process changes state according to its transition probabilities, and the states of all other processes remain fixed.
+
+Formally, we can define a bandit model as a Markov Decision Process with the following components:
+
+1. Decision epochs: $T = \{1, 2, \ldots, N\}$, where $N \leq \infty$.
+
+2. States: $S = S^1 \times S^2 \times \cdots \times S^K$, where $S^i$ is the state space of the $i$-th process.
+
+3. Actions: At each decision epoch, the action is to choose one of the $K$ processes.
+
+4. Transition probabilities: For process $i$ in state $s^i \in S^i$, the transition probability to state $j^i$ is given by $p_t^i(j^i | s^i)$.
+
+5. Rewards: When process $i$ in state $s^i$ is chosen, the decision maker receives a reward $r_t^i(s^i)$.
+
+The effects of choosing process $i$ when it is in state $s^i \in S^i$, $i = 1, 2, \ldots, K$ are:
+
+1. It changes state according to the transition law $p_t^i(j^i | s^i)$.
+2. The decision maker receives a reward $r_t^i(s^i)$.
+3. All other processes remain in their current state. -->

@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>7. Dynamic Programming &#8212; Reinforcement Learning: beyond the Agent Interaction Loop</title>
+    <title>7. Dynamic Programming &#8212; Automatic Learning and Control</title>
   
   
   
@@ -153,7 +153,7 @@
   
   
   
-    <p class="title logo__title">Reinforcement Learning: beyond the Agent Interaction Loop</p>
+    <p class="title logo__title">Automatic Learning and Control</p>
   
 </a></div>
         <div class="sidebar-primary-item">
@@ -424,15 +424,17 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-optimal-harvest-with-linear-interpolation">10.3.3. Example: Optimal Harvest with Linear Interpolation</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#linear-quadratic-regulator-via-dynamic-programming">10.4. Linear Quadratic Regulator via Dynamic Programming</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-linear-quadratic-regulation-of-a-liquid-tank">10.4.1. Example: Linear Quadratic Regulation of a Liquid Tank</a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#linear-quadratic-regulator-via-dynamic-programming">10.4. Linear Quadratic Regulator via Dynamic Programming</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-dynamic-programming">10.5. Stochastic Dynamic Programming</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-stochastic-optimal-harvest-in-resource-management">10.5.1. Example: Stochastic Optimal Harvest in Resource Management</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-sample-size-determination-in-pharmaceutical-development">10.5.2. Example: Sample Size Determination in Pharmaceutical Development</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#markov-decision-process-formulation">10.5.2. Markov Decision Process Formulation</a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#from-control-theory-to-operations-research-notation">10.6. From Control Theory to Operations Research Notation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-sample-size-determination-in-pharmaceutical-development">10.6.1. Example: Sample Size Determination in Pharmaceutical Development</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#decision-rules-and-policies">10.7. Decision Rules and Policies</a></li>
 </ul>
 </li>
 </ul>
@@ -879,24 +881,24 @@ J_k^\star(\mathbf{x}_k) = \min_{\mathbf{u}_k} \left[ c_k(\mathbf{x}_k, \mathbf{u
 </section>
 <section id="example-optimal-harvest-in-resource-management">
 <h2><span class="section-number">10.2. </span>Example: Optimal Harvest in Resource Management<a class="headerlink" href="#example-optimal-harvest-in-resource-management" title="Link to this heading">#</a></h2>
-<p>Dynamic programming is often used in resource management and conservation biology to devise policies to be implemented by decision makers and stakeholders : for eg. in fishereries, or timber harvesting. Per <span id="id2">[<a class="reference internal" href="bibliography.html#id22" title="Michael J. Conroy and James T. Peterson. Decision Making in Natural Resource Management: A Structured, Adaptive Approach: A Structured, Adaptive Approach. Wiley, January 2013. ISBN 9781118506196. URL: http://dx.doi.org/10.1002/9781118506196, doi:10.1002/9781118506196.">5</a>]</span>, we consider a population of a particular species, whose abundance we denote by <span class="math notranslate nohighlight">\(x(t)\)</span>, where <span class="math notranslate nohighlight">\(t\)</span> represents discrete time steps. Our objective is to maximize the cumulative harvest over a finite time horizon, while also considering the long-term sustainability of the population. This optimization problem can be formulated as:</p>
+<p>Dynamic programming is often used in resource management and conservation biology to devise policies to be implemented by decision makers and stakeholders : for eg. in fishereries, or timber harvesting. Per <span id="id2">[<a class="reference internal" href="bibliography.html#id22" title="Michael J. Conroy and James T. Peterson. Decision Making in Natural Resource Management: A Structured, Adaptive Approach: A Structured, Adaptive Approach. Wiley, January 2013. ISBN 9781118506196. URL: http://dx.doi.org/10.1002/9781118506196, doi:10.1002/9781118506196.">5</a>]</span>, we consider a population of a particular species, whose abundance we denote by <span class="math notranslate nohighlight">\(x_t\)</span>, where <span class="math notranslate nohighlight">\(t\)</span> represents discrete time steps. Our objective is to maximize the cumulative harvest over a finite time horizon, while also considering the long-term sustainability of the population. This optimization problem can be formulated as:</p>
 <div class="math notranslate nohighlight">
 \[
-\text{maximize} \quad \sum_{t=t_0}^{t_f} F(x(t) \cdot h(t)) + F_T(x(t_f))
+\text{maximize} \quad \sum_{t=t_0}^{t_f} F(x_t \cdot h_t) + F_T(x_{t_f})
 \]</div>
-<p>Here, <span class="math notranslate nohighlight">\(F(\cdot)\)</span> represents the immediate reward function associated with harvesting, <span class="math notranslate nohighlight">\(h(t)\)</span> is the harvest rate at time <span class="math notranslate nohighlight">\(t\)</span>, and <span class="math notranslate nohighlight">\(F_T[\cdot]\)</span> denotes a terminal value function that could potentially assign value to the final population state. In this particular problem, we assign no terminal value to the final population state, setting <span class="math notranslate nohighlight">\(F_T[x(t_f)] = 0\)</span> and allowing us to focus solely on the cumulative harvest over the time horizon.</p>
+<p>Here, <span class="math notranslate nohighlight">\(F(\cdot)\)</span> represents the immediate reward function associated with harvesting, <span class="math notranslate nohighlight">\(h_t\)</span> is the harvest rate at time <span class="math notranslate nohighlight">\(t\)</span>, and <span class="math notranslate nohighlight">\(F_T(\cdot)\)</span> denotes a terminal value function that could potentially assign value to the final population state. In this particular problem, we assign no terminal value to the final population state, setting <span class="math notranslate nohighlight">\(F_T(x_{t_f}) = 0\)</span> and allowing us to focus solely on the cumulative harvest over the time horizon.</p>
 <p>In our model population model, the abundance of a specicy <span class="math notranslate nohighlight">\(x\)</span> ranges from 1 to 100 individuals. The decision variable is the harvest rate <span class="math notranslate nohighlight">\(h\)</span>, which can take values from the set <span class="math notranslate nohighlight">\(D = \{0, 0.1, 0.2, 0.3, 0.4, 0.5\}\)</span>. The population dynamics are governed by a modified logistic growth model:</p>
 <div class="math notranslate nohighlight">
 \[
-x(t+1) = x(t) + 0.3x(t)(1 - x(t)/125) - h(t)x(t)
+x_{t+1} = x_t + 0.3x_t(1 - x_t/125) - h_tx_t
 \]</div>
 <p>where the <span class="math notranslate nohighlight">\(0.3\)</span> represents the growth rate and <span class="math notranslate nohighlight">\(125\)</span> is the carrying capacity (the maximum population size given the available resources). The logistic growth model returns continuous values; however our DP formulation uses a discrete state space. Therefore, we also round the the outcomes to the nearest integer.</p>
-<p>Applying the principle of optimality, we can express the optimal value function <span class="math notranslate nohighlight">\(J^*[x(t), t]\)</span> recursively:</p>
+<p>Applying the principle of optimality, we can express the optimal value function <span class="math notranslate nohighlight">\(J^\star(x_t,t)\)</span> recursively:</p>
 <div class="math notranslate nohighlight">
 \[
-J^*[x(t), t] = \max_{h(t) \in D} (F(x, h, t) + J^*(x(t+1), t+1))
+J^\star(x_t, t) = \max_{h_t \in D} (F(x, h, t) + J^*(x_{t+1}, t+1))
 \]</div>
-<p>with the boundary condition <span class="math notranslate nohighlight">\(J^*(x(t_f)) = 0\)</span>.</p>
+<p>with the boundary condition <span class="math notranslate nohighlight">\(J^*(x_{t_f}) = 0\)</span>.</p>
 <p>It’s worth noting that while this example uses a relatively simple model, the same principles can be applied to more complex scenarios involving stochasticity, multiple species interactions, or spatial heterogeneity.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="hide above-input">
@@ -1444,102 +1446,111 @@ J_t^*(\mathbf{x}_t) = \frac{1}{2}\mathbf{x}_t^\top S_t \mathbf{x}_t
 \[
 S_t = Q + A^\top S_{t+1} A - A^\top S_{t+1} B(R + B^\top S_{t+1} B)^{-1}B^\top S_{t+1} A
 \]</div>
-<section id="example-linear-quadratic-regulation-of-a-liquid-tank">
-<h3><span class="section-number">10.4.1. </span>Example: Linear Quadratic Regulation of a Liquid Tank<a class="headerlink" href="#example-linear-quadratic-regulation-of-a-liquid-tank" title="Link to this heading">#</a></h3>
-<p>We are dealing with a liquid-level control system for a storage tank. This system consists of a reservoir connected to a tank via valves. These valves are controlled by a gear train, which is driven by a DC motor. The motor, in turn, is controlled by an electronic amplifier. The goal is to maintain a constant liquid level in the tank, adjusting only when necessary.</p>
-<p>The system is described by a third-order continuous-time model with the following state variables:</p>
-<ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(x_1(t)\)</span>: the height of the liquid in the tank</p></li>
-<li><p><span class="math notranslate nohighlight">\(x_2(t)\)</span>: the angular position of the electric motor driving the valves</p></li>
-<li><p><span class="math notranslate nohighlight">\(x_3(t)\)</span>: the angular velocity of the motor</p></li>
-</ul>
-<p>The input to the system, <span class="math notranslate nohighlight">\(u(t)\)</span>, represents the signal sent to the electronic amplifier connected to the motor.
-The system dynamics are described by the following differential equations:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}
+<!-- 
+### Example: Linear Quadratic Regulation of a Liquid Tank 
+
+We are dealing with a liquid-level control system for a storage tank. This system consists of a reservoir connected to a tank via valves. These valves are controlled by a gear train, which is driven by a DC motor. The motor, in turn, is controlled by an electronic amplifier. The goal is to maintain a constant liquid level in the tank, adjusting only when necessary.
+
+The system is described by a third-order continuous-time model with the following state variables:
+- $x_1(t)$: the height of the liquid in the tank
+- $x_2(t)$: the angular position of the electric motor driving the valves
+- $x_3(t)$: the angular velocity of the motor
+
+The input to the system, $u(t)$, represents the signal sent to the electronic amplifier connected to the motor.
+The system dynamics are described by the following differential equations:
+
+$$
 \begin{aligned}
-&amp; \dot{x}_1(t) = -2x_1(t) \\
-&amp; \dot{x}_2(t) = x_3(t) \\
-&amp; \dot{x}_3(t) = -10x_3(t) + 9000u(t)
+& \dot{x}_1(t) = -2x_1(t) \\
+& \dot{x}_2(t) = x_3(t) \\
+& \dot{x}_3(t) = -10x_3(t) + 9000u(t)
 \end{aligned}
-\end{split}\]</div>
-<p>To pose this as a discrete-time LQR problem, we need to discretize the continuous-time system. Let’s assume a sampling time of <span class="math notranslate nohighlight">\(T_s\)</span> seconds. We can use the forward Euler method for a simple discretization:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}
+$$
+
+To pose this as a discrete-time LQR problem, we need to discretize the continuous-time system. Let's assume a sampling time of $T_s$ seconds. We can use the forward Euler method for a simple discretization:
+
+$$
 \begin{aligned}
-&amp; x_1(k+1) = x_1(k) + T_s(-2x_1(k)) \\
-&amp; x_2(k+1) = x_2(k) + T_sx_3(k) \\
-&amp; x_3(k+1) = x_3(k) + T_s(-10x_3(k) + 9000u(k))
+& x_1(k+1) = x_1(k) + T_s(-2x_1(k)) \\
+& x_2(k+1) = x_2(k) + T_sx_3(k) \\
+& x_3(k+1) = x_3(k) + T_s(-10x_3(k) + 9000u(k))
 \end{aligned}
-\end{split}\]</div>
-<p>This can be written in the standard discrete-time state-space form:</p>
-<p><span class="math notranslate nohighlight">\(x(k+1) = Ax(k) + Bu(k)\)</span></p>
-<p>Where:</p>
-<p><span class="math notranslate nohighlight">\(x(k) = \begin{bmatrix} x_1(k) \\ x_2(k) \\ x_3(k) \end{bmatrix}\)</span></p>
-<p><span class="math notranslate nohighlight">\(A = \begin{bmatrix} 
-1-2T_s &amp; 0 &amp; 0 \\
-0 &amp; 1 &amp; T_s \\
-0 &amp; 0 &amp; 1-10T_s
-\end{bmatrix}\)</span></p>
-<p><span class="math notranslate nohighlight">\(B = \begin{bmatrix} 
+$$
+
+This can be written in the standard discrete-time state-space form:
+
+$x(k+1) = Ax(k) + Bu(k)$
+
+Where:
+
+$x(k) = \begin{bmatrix} x_1(k) \\ x_2(k) \\ x_3(k) \end{bmatrix}$
+
+$A = \begin{bmatrix} 
+1-2T_s & 0 & 0 \\
+0 & 1 & T_s \\
+0 & 0 & 1-10T_s
+\end{bmatrix}$
+
+$B = \begin{bmatrix} 
 0 \\
 0 \\
 9000T_s
-\end{bmatrix}\)</span></p>
-<p>The goal of our LQR controller is to maintain the liquid level at a desired reference value while minimizing control effort. We can formulate this as a discrete-time LQR problem with the following cost function:</p>
-<p><span class="math notranslate nohighlight">\(J = \sum_{k=0}^{\infty} \left( (x_1(k) - x_{1,ref})^2 + ru^2(k) \right)\)</span></p>
-<p>Where <span class="math notranslate nohighlight">\(x_{1,ref}\)</span> is the reference liquid level and <span class="math notranslate nohighlight">\(r\)</span> is a positive weight on the control input.</p>
-<p>To put this in standard discrete-time LQR form, we rewrite the cost function as:</p>
-<p><span class="math notranslate nohighlight">\(J = \sum_{k=0}^{\infty} \left( x^T(k)Qx(k) + ru^2(k) \right)\)</span></p>
-<p>Where:</p>
-<p><span class="math notranslate nohighlight">\(Q = \begin{bmatrix}
-1 &amp; 0 &amp; 0 \\
-0 &amp; 0 &amp; 0 \\
-0 &amp; 0 &amp; 0
-\end{bmatrix}\)</span></p>
-<p>The discrete-time LQR problem is now to find the optimal control law <span class="math notranslate nohighlight">\(u^*(k) = -Kx(k)\)</span> that minimizes this cost function, subject to the discrete-time system dynamics <span class="math notranslate nohighlight">\(x(k+1) = Ax(k) + Bu(k)\)</span>.</p>
-<p>The solution involves solving the discrete-time algebraic Riccati equation:</p>
-<p><span class="math notranslate nohighlight">\(P = A^TPA - A^TPB(B^TPB + R)^{-1}B^TPA + Q\)</span></p>
-<p>Where <span class="math notranslate nohighlight">\(R = r\)</span> (a scalar in this case), to find the positive definite matrix <span class="math notranslate nohighlight">\(P\)</span>. Then, the optimal gain matrix <span class="math notranslate nohighlight">\(K\)</span> is given by:</p>
-<p><span class="math notranslate nohighlight">\(K = (B^TPB + R)^{-1}B^TPA\)</span></p>
-<p>This formulation ensures that:</p>
-<ol class="arabic simple">
-<li><p>The liquid level (<span class="math notranslate nohighlight">\(x_1(k)\)</span>) is maintained close to the reference value.</p></li>
-<li><p>The system acts primarily when there’s a change in the liquid level, as only <span class="math notranslate nohighlight">\(x_1(k)\)</span> is directly penalized in the cost function.</p></li>
-<li><p>The control effort is minimized, ensuring smooth operation of the valves.</p></li>
-</ol>
-<p>By tuning the weight <span class="math notranslate nohighlight">\(r\)</span> and the sampling time <span class="math notranslate nohighlight">\(T_s\)</span>, we can balance the trade-off between maintaining the desired liquid level, the amount of control effort used, and the responsiveness of the system.</p>
-</section>
+\end{bmatrix}$
+
+The goal of our LQR controller is to maintain the liquid level at a desired reference value while minimizing control effort. We can formulate this as a discrete-time LQR problem with the following cost function:
+
+$J = \sum_{k=0}^{\infty} \left( (x_1(k) - x_{1,ref})^2 + ru^2(k) \right)$
+
+Where $x_{1,ref}$ is the reference liquid level and $r$ is a positive weight on the control input.
+
+To put this in standard discrete-time LQR form, we rewrite the cost function as:
+
+$J = \sum_{k=0}^{\infty} \left( x^T(k)Qx(k) + ru^2(k) \right)$
+
+Where:
+
+$Q = \begin{bmatrix}
+1 & 0 & 0 \\
+0 & 0 & 0 \\
+0 & 0 & 0
+\end{bmatrix}$
+
+The discrete-time LQR problem is now to find the optimal control law $u^*(k) = -Kx(k)$ that minimizes this cost function, subject to the discrete-time system dynamics $x(k+1) = Ax(k) + Bu(k)$.
+
+The solution involves solving the discrete-time algebraic Riccati equation:
+
+$P = A^TPA - A^TPB(B^TPB + R)^{-1}B^TPA + Q$
+
+Where $R = r$ (a scalar in this case), to find the positive definite matrix $P$. Then, the optimal gain matrix $K$ is given by:
+
+$K = (B^TPB + R)^{-1}B^TPA$
+
+This formulation ensures that:
+1. The liquid level ($x_1(k)$) is maintained close to the reference value.
+2. The system acts primarily when there's a change in the liquid level, as only $x_1(k)$ is directly penalized in the cost function.
+3. The control effort is minimized, ensuring smooth operation of the valves.
+
+By tuning the weight $r$ and the sampling time $T_s$, we can balance the trade-off between maintaining the desired liquid level, the amount of control effort used, and the responsiveness of the system. -->
 </section>
 <section id="stochastic-dynamic-programming">
 <h2><span class="section-number">10.5. </span>Stochastic Dynamic Programming<a class="headerlink" href="#stochastic-dynamic-programming" title="Link to this heading">#</a></h2>
-<p>While our previous discussion focused on deterministic systems, many real-world problems involve uncertainty. Stochastic Dynamic Programming (SDP) extends our framework to handle such scenarios, allowing for stochastic uncertainty in both the objective function and system dynamics.</p>
+<p>While our previous discussion centered on deterministic systems, many real-world problems involve uncertainty. Stochastic Dynamic Programming (SDP) extends our framework to handle stochasticity in both the objective function and system dynamics.</p>
 <p>In the stochastic setting, our system evolution takes the form:</p>
 <div class="math notranslate nohighlight">
-\[
-\mathbf{x}_{t+1} = \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w}_t)
-\]</div>
-<p>Here, <span class="math notranslate nohighlight">\(\mathbf{w}_t\)</span> represents a random disturbance or noise term at time <span class="math notranslate nohighlight">\(t\)</span>. This formulation captures the inherent uncertainty in the system’s behavior. The stage cost function may also incorporate stochastic influences:</p>
+\[ \mathbf{x}_{t+1} = \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w}_t) \]</div>
+<p>Here, <span class="math notranslate nohighlight">\(\mathbf{w}_t\)</span> represents a random disturbance or noise term at time <span class="math notranslate nohighlight">\(t\)</span> due to the inherent uncertainty in the system’s behavior. The stage cost function may also incorporate stochastic influences:</p>
 <div class="math notranslate nohighlight">
-\[
-c_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w}_t)
-\]</div>
+\[ c_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w}_t) \]</div>
 <p>In this context, our objective shifts from minimizing a deterministic cost to minimizing the expected total cost:</p>
 <div class="math notranslate nohighlight">
-\[
-\mathbb{E}\left[c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w}_t)\right]
-\]</div>
-<p>where the expectation is taken over the distributions of the random variables <span class="math notranslate nohighlight">\(\mathbf{w}_t\)</span>. The principle of optimality still holds in the stochastic case, but Bellman’s equation now involves an expectation:</p>
+\[ \mathbb{E}\left[c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w}_t)\right] \]</div>
+<p>where the expectation is taken over the distributions of the random variables <span class="math notranslate nohighlight">\(\mathbf{w}_t\)</span>. The principle of optimality still holds in the stochastic case, but Bellman’s optimality equation now involves an expectation:</p>
 <div class="math notranslate nohighlight">
-\[
-J_k^\star(\mathbf{x}_k) = \min_{\mathbf{u}_k} \mathbb{E}_{\mathbf{w}_k}\left[c_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k) + J_{k+1}^\star(\mathbf{f}_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k))\right]
-\]</div>
-<p>In practice, this expectation is often computed by discretizing the distribution of <span class="math notranslate nohighlight">\(\mathbf{w}_k\)</span>. Let’s say we approximate the distribution with <span class="math notranslate nohighlight">\(K\)</span> discrete values <span class="math notranslate nohighlight">\(\mathbf{w}_k^i\)</span>, each occurring with probability <span class="math notranslate nohighlight">\(p_k^i\)</span>. Then our Bellman equation becomes:</p>
+\[ J_k^\star(\mathbf{x}_k) = \min_{\mathbf{u}_k} \mathbb{E}_{\mathbf{w}_k}\left[c_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k) + J_{k+1}^\star(\mathbf{f}_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k))\right] \]</div>
+<p>In practice, this expectation is often computed by discretizing the distribution of <span class="math notranslate nohighlight">\(\mathbf{w}_k\)</span> when the set of possible disturbances is very large or even continuous. Let’s say we approximate the distribution with <span class="math notranslate nohighlight">\(K\)</span> discrete values <span class="math notranslate nohighlight">\(\mathbf{w}_k^i\)</span>, each occurring with probability <span class="math notranslate nohighlight">\(p_k^i\)</span>. Then our Bellman equation becomes:</p>
 <div class="math notranslate nohighlight">
-\[
-J_k^\star(\mathbf{x}_k) = \min_{\mathbf{u}_k} \sum_{i=1}^K p_k^i \left[c_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k^i) + J_{k+1}^\star(\mathbf{f}_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k^i))\right]
-\]</div>
-<p>The backward recursion algorithm for SDP follows a similar structure to its deterministic counterpart, with the key difference being the incorporation of expectations:</p>
+\[ J_k^\star(\mathbf{x}_k) = \min_{\mathbf{u}_k} \sum_{i=1}^K p_k^i \left(c_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k^i) + J_{k+1}^\star(\mathbf{f}_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k^i))\right) \]</div>
+<p>The backward recursion algorithm for SDP follows a similar structure to its deterministic counterpart, with the key difference being that we now have to compute expected values:</p>
 <div class="proof algorithm admonition" id="stochastic-backward-recursion">
 <p class="admonition-title"><span class="caption-number">Algorithm 10.3 </span> (Backward Recursion for Stochastic Dynamic Programming)</p>
 <section class="algorithm-content" id="proof-content">
@@ -1562,48 +1573,51 @@ J_k^\star(\mathbf{x}_k) = \min_{\mathbf{u}_k} \sum_{i=1}^K p_k^i \left[c_k(\math
 <li><p>Return <span class="math notranslate nohighlight">\(J_t^\star(\cdot)\)</span>, <span class="math notranslate nohighlight">\(\mu_t^\star(\cdot)\)</span> for <span class="math notranslate nohighlight">\(t = 1, \ldots, T\)</span></p></li>
 </ol>
 </section>
-</div><p>It’s worth noting that while SDP provides a powerful framework for handling uncertainty, it also exacerbates the curse of dimensionality. Not only does the state space need to be discretized, but now the disturbance space must be discretized as well. This can lead to a combinatorial explosion in the number of scenarios to be evaluated at each stage.</p>
-<p>Despite these challenges, SDP remains a valuable tool in many applications, particularly in areas such as finance, robotics, and resource management, where uncertainty plays a crucial role. As with deterministic dynamic programming, various approximation techniques and learning-based methods have been developed to mitigate the computational burden of SDP for high-dimensional problems.</p>
+</div><p>While SDP provides us with a framework to for handling uncertainty, it makes the curse of dimensionality even more difficult to handle in practice. Not only does the state space need to be discretized, but now the disturbance space must be discretized as well. This can lead to a combinatorial explosion in the number of scenarios to be evaluated at each stage.</p>
+<p>However, just as we tackled the challenges of continuous state spaces with discretization and interpolation, we can devise efficient methods to handle the additional complexity of evaluating expectations. This problem essentially becomes one of numerical integration. When the set of disturbances is continuous (as is often the case with continuous state spaces), we enter a domain where numerical quadrature methods could be applied. But these methods tend to scale poorly as the number of dimensions grows. This is where more efficient techniques, often rooted in Monte Carlo methods, come into play. The combination of two key ingredients emerges to tackle the curse of dimensionality:</p>
+<ol class="arabic simple">
+<li><p>Function approximation (through discretization, interpolation, neural networks, etc.)</p></li>
+<li><p>Monte Carlo integration (simulation)</p></li>
+</ol>
+<p>These two elements essentially distill the key ingredients of machine learning, which is the direction we’ll be exploring in this course.</p>
 <section id="example-stochastic-optimal-harvest-in-resource-management">
 <h3><span class="section-number">10.5.1. </span>Example: Stochastic Optimal Harvest in Resource Management<a class="headerlink" href="#example-stochastic-optimal-harvest-in-resource-management" title="Link to this heading">#</a></h3>
-<p>Building upon our previous deterministic model, we now introduce stochasticity to more accurately reflect the uncertainties inherent in real-world resource management scenarios <span id="id3">[<a class="reference internal" href="bibliography.html#id22" title="Michael J. Conroy and James T. Peterson. Decision Making in Natural Resource Management: A Structured, Adaptive Approach: A Structured, Adaptive Approach. Wiley, January 2013. ISBN 9781118506196. URL: http://dx.doi.org/10.1002/9781118506196, doi:10.1002/9781118506196.">5</a>]</span>. As before, we consider a population of a particular species, whose abundance we denote by <span class="math notranslate nohighlight">\(x(t)\)</span>, where <span class="math notranslate nohighlight">\(t\)</span> represents discrete time steps. Our objective remains to maximize the cumulative harvest over a finite time horizon, while also considering the long-term sustainability of the population. However, we now account for two sources of stochasticity: partial controllability of harvest and environmental variability affecting growth rates.
+<p>Building upon our previous deterministic model, we now introduce stochasticity to more accurately reflect the uncertainties inherent in real-world resource management scenarios <span id="id3">[<a class="reference internal" href="bibliography.html#id22" title="Michael J. Conroy and James T. Peterson. Decision Making in Natural Resource Management: A Structured, Adaptive Approach: A Structured, Adaptive Approach. Wiley, January 2013. ISBN 9781118506196. URL: http://dx.doi.org/10.1002/9781118506196, doi:10.1002/9781118506196.">5</a>]</span>. As before, we consider a population of a particular species, whose abundance we denote by <span class="math notranslate nohighlight">\(x_t\)</span>, where <span class="math notranslate nohighlight">\(t\)</span> represents discrete time steps. Our objective remains to maximize the cumulative harvest over a finite time horizon, while also considering the long-term sustainability of the population. However, we now account for two sources of stochasticity: partial controllability of harvest and environmental variability affecting growth rates.
 The optimization problem can be formulated as:</p>
 <div class="math notranslate nohighlight">
 \[
-\text{maximize} \quad \mathbb{E}\left[\sum_{t=t_0}^{t_f} F(x(t) \cdot h(t))\right]
+\text{maximize} \quad \mathbb{E}\left[\sum_{t=t_0}^{t_f} F(x_t \cdot h_t)\right]
 \]</div>
-<p>Here, <span class="math notranslate nohighlight">\(F(\cdot)\)</span> represents the immediate reward function associated with harvesting, and <span class="math notranslate nohighlight">\(h(t)\)</span> is the realized harvest rate at time <span class="math notranslate nohighlight">\(t\)</span>. The expectation <span class="math notranslate nohighlight">\(\mathbb{E}[\cdot]\)</span> is taken over the stochastic outcomes of both harvest and growth rates.
-In our stochastic model, the abundance <span class="math notranslate nohighlight">\(x\)</span> still ranges from 1 to 100 individuals. The decision variable is now the desired harvest rate <span class="math notranslate nohighlight">\(d(t)\)</span>, which can take values from the set <span class="math notranslate nohighlight">\(D = {0, 0.1, 0.2, 0.3, 0.4, 0.5}\)</span>. However, the realized harvest rate <span class="math notranslate nohighlight">\(h(t)\)</span> is stochastic and follows a discrete distribution:</p>
+<p>Here, <span class="math notranslate nohighlight">\(F(\cdot)\)</span> represents the immediate reward function associated with harvesting, and <span class="math notranslate nohighlight">\(h_t\)</span> is the realized harvest rate at time <span class="math notranslate nohighlight">\(t\)</span>. The expectation <span class="math notranslate nohighlight">\(\mathbb{E}[\cdot]\)</span> over both harvest and growth rates, which we view as random variables.
+In our stochastic model, the abundance <span class="math notranslate nohighlight">\(x\)</span> still ranges from 1 to 100 individuals. The decision variable is now the desired harvest rate <span class="math notranslate nohighlight">\(d_t\)</span>, which can take values from the set <span class="math notranslate nohighlight">\(D = {0, 0.1, 0.2, 0.3, 0.4, 0.5}\)</span>. However, the realized harvest rate <span class="math notranslate nohighlight">\(h_t\)</span> is stochastic and follows a discrete distribution:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
-h(t) = \begin{cases}
-0.75d(t) &amp; \text{with probability } 0.25 \\
-d(t) &amp; \text{with probability } 0.5 \\
-1.25d(t) &amp; \text{with probability } 0.25
+h_t = \begin{cases}
+0.75d_t &amp; \text{with probability } 0.25 \\
+d_t &amp; \text{with probability } 0.5 \\
+1.25d_t &amp; \text{with probability } 0.25
 \end{cases}
 \end{split}\]</div>
-<p>This represents the partial controllability of the harvest process.
-The population dynamics are now governed by a stochastic version of our modified logistic growth model:
+<p>By expressing the harvest rate as a random variable, we mean to capture the fact that harvesting is a not completely under our control: we might obtain more or less what we had intended to. Furthermore, we generalize the population dynamics to the stochastic cse via:
 $$</p>
-<p>x(t+1) = x(t) + r(t)x(t)(1 - x(t)/K) - h(t)x(t)
+<p>x_{t+1} = x_t + r_tx_t(1 - x_t/K) - h_tx_t
 $$</p>
-<p>where <span class="math notranslate nohighlight">\(K = 125\)</span> is the carrying capacity. The growth rate <span class="math notranslate nohighlight">\(r(t)\)</span> is now stochastic and follows a discrete distribution:</p>
+<p>where <span class="math notranslate nohighlight">\(K = 125\)</span> is the carrying capacity. The growth rate <span class="math notranslate nohighlight">\(r_t\)</span> is now stochastic and follows a discrete distribution:</p>
 <div class="math notranslate nohighlight">
-\[
-r(t) = \begin{cases}
-0.85r_{\text{max}} &amp; \text{with probability } 0.25 \
-1.05r_{\text{max}} &amp; \text{with probability } 0.5 \
+\[\begin{split}
+r_t = \begin{cases}
+0.85r_{\text{max}} &amp; \text{with probability } 0.25 \\
+1.05r_{\text{max}} &amp; \text{with probability } 0.5 \\
 1.15r_{\text{max}} &amp; \text{with probability } 0.25
 \end{cases}
-\]</div>
-<p>where <span class="math notranslate nohighlight">\(r_{\text{max}} = 0.3\)</span> is the maximum growth rate. This stochasticity in <span class="math notranslate nohighlight">\(r(t)\)</span> represents environmental variability affecting population growth.
-Applying the principle of optimality, we can express the optimal value function <span class="math notranslate nohighlight">\(J^*[x(t), t]\)</span> recursively:</p>
+\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(r_{\text{max}} = 0.3\)</span> is the maximum growth rate.
+Applying the principle of optimality, we can express the optimal value function <span class="math notranslate nohighlight">\(J^\star(x_t, t)\)</span> recursively:</p>
 <div class="math notranslate nohighlight">
 \[
-J^[x(t), t] = \max_{d(t) \in D} E\left[F(x(t) \cdot h(t)) + J^(x(t+1), t+1)\right]
+J^\star(x_t, t) = \max_{d(t) \in D} \mathbb{E}\left[F(x_t \cdot h_t) + J^\star(x_{t+1}, t+1)\right]
 \]</div>
-<p>where the expectation is taken over the stochastic outcomes of <span class="math notranslate nohighlight">\(h(t)\)</span> and <span class="math notranslate nohighlight">\(r(t)\)</span>. The boundary condition remains <span class="math notranslate nohighlight">\(J^*(x(t_f)) = 0\)</span>.</p>
-<p>We can now adapt our previous code to account for the stochasticity in our model. One important difference is that now the simulation of our solution involves taking multiple realizations of a trajectory, as reflected in the following plots:</p>
+<p>where the expectation is taken over the harvest and growth rate random variables. The boundary condition remains <span class="math notranslate nohighlight">\(J^*(x_{t_f}) = 0\)</span>. We can now adapt our previous code to account for the stochasticity in our model. One important difference is that simulating a solution in this context requires multiple realizations of our process. This is an important consideration when evaluating reinforcement learning methods in practice, as success cannot be claimed based on a single successful trajectory.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="hide above-input">
 <summary aria-label="Toggle hidden content">
@@ -1796,8 +1810,60 @@ Average total harvest: 312.46374840448823
 </div>
 </div>
 </section>
+<section id="markov-decision-process-formulation">
+<h3><span class="section-number">10.5.2. </span>Markov Decision Process Formulation<a class="headerlink" href="#markov-decision-process-formulation" title="Link to this heading">#</a></h3>
+<p>Rather than expressing the stochasticity in our system through a disturbance term as a parameter to a deterministic difference equation, we often work with an alternative representation (more common in operations research) which uses the Markov Decision Process formulation. The idea is that when we model our system in this way with the disturbance term being drawn indepently of the previous stages, the induced trajectory are those of a Markov chain. Hence, we can re-cast our control problem in that language, leading to the so-called Markov Decision Process framework in which we express the system dynamics in terms of transition probabilities rather than explicit state equations. In this framework, we express the probability that the system is in a given state using the transition probability function:</p>
+<div class="math notranslate nohighlight">
+\[ p_t(\mathbf{x}_{t+1} | \mathbf{x}_t, \mathbf{u}_t) \]</div>
+<p>This function gives the probability of transitioning to state <span class="math notranslate nohighlight">\(\mathbf{x}_{t+1}\)</span> at time <span class="math notranslate nohighlight">\(t+1\)</span>, given that the system is in state <span class="math notranslate nohighlight">\(\mathbf{x}_t\)</span> and action <span class="math notranslate nohighlight">\(\mathbf{u}_t\)</span> is taken at time <span class="math notranslate nohighlight">\(t\)</span>. Therefore, <span class="math notranslate nohighlight">\(p_t\)</span> specifies a conditional probability distribution over the next states: namely, the sum (for discrete state spaces) or integral over the next state should be 1.</p>
+<p>Given the control theory formulation of our problem via a deterministic dynamics function and a noise term, we can derive the corresponding transition probability function through the following relationship:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+p_t(\mathbf{x}_{t+1} | \mathbf{x}_t, \mathbf{u}_t) &amp;= \mathbb{P}(\mathbf{W}_t \in \left\{\mathbf{w} \in \mathbf{W}: \mathbf{x}_{t+1} = f_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w})\right\}) \\
+&amp;= \sum_{\left\{\mathbf{w} \in \mathbf{W}: \mathbf{x}_{t+1} = f_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w})\right\}} q_t(\mathbf{w})
+\end{aligned}
+\end{split}\]</div>
+<p>Here, <span class="math notranslate nohighlight">\(q_t(\mathbf{w})\)</span> represents the probability density or mass function of the disturbance <span class="math notranslate nohighlight">\(\mathbf{W}_t\)</span> (assuming discrete state spaces). When dealing with continuous spaces, the above expression simply contains an integral rather than a summation.</p>
+<p>For a system with deterministic dynamics and no disturbance, the transition probabilities become much simpler and be expressed using the indicator function. Given a deterministic system with dynamics:</p>
+<div class="math notranslate nohighlight">
+\[ \mathbf{x}_{t+1} = f_t(\mathbf{x}_t, \mathbf{u}_t) \]</div>
+<p>The transition probability function can be expressed as:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split} p_t(\mathbf{x}_{t+1} | \mathbf{x}_t, \mathbf{u}_t) = \begin{cases}
+1 &amp; \text{if } \mathbf{x}_{t+1} = f_t(\mathbf{x}_t, \mathbf{u}_t) \\
+0 &amp; \text{otherwise}
+\end{cases} \end{split}\]</div>
+<p>With this transition probability function, we can recast our Bellman optimality equation:</p>
+<div class="math notranslate nohighlight">
+\[ J_t^\star(\mathbf{x}_t) = \max_{\mathbf{u}_t \in \mathbf{U}} \left\{ c_t(\mathbf{x}_t, \mathbf{u}_t) + \sum_{\mathbf{x}_{t+1}} p_t(\mathbf{x}_{t+1} | \mathbf{x}_t, \mathbf{u}_t) J_{t+1}^\star(\mathbf{x}_{t+1}) \right\} \]</div>
+<p>Here, <span class="math notranslate nohighlight">\({c}(\mathbf{x}_t, \mathbf{u}_t)\)</span> represents the expected immediate reward (or negative cost) when in state <span class="math notranslate nohighlight">\(\mathbf{x}_t\)</span> and taking action <span class="math notranslate nohighlight">\(\mathbf{u}_t\)</span> at time <span class="math notranslate nohighlight">\(t\)</span>. The summation term computes the expected optimal value for the future states, weighted by their transition probabilities.</p>
+<p>This formulation offers several advantages:</p>
+<ol class="arabic simple">
+<li><p>It makes the Markovian nature of the problem explicit: the future state depends only on the current state and action, not on the history of states and actions.</p></li>
+<li><p>For discrete-state problems, the entire system dynamics can be specified by a set of transition matrices, one for each possible action.</p></li>
+<li><p>It allows us to bridge the gap with the wealth of methods in the field of probabilistic graphical models and statistical machine learning techniques for modelling and analysis.</p></li>
+</ol>
+</section>
+</section>
+<section id="from-control-theory-to-operations-research-notation">
+<h2><span class="section-number">10.6. </span>From Control Theory to Operations Research Notation<a class="headerlink" href="#from-control-theory-to-operations-research-notation" title="Link to this heading">#</a></h2>
+<p>The presentation above was intended to bridge the gap between the control-theoretic perspective and the world of closed-loop control through the idea of determining the value function of a parametric optimal control problem. We then saw how the backward induction procedure was applicable to both the deterministic and stochastic cases by taking the expectation over the disturbance variable. We then said that we can alternatively work with a representation of our system where instead of writing our model as a deterministic dynamics function taking a disturbance as an input, we would rather work directly via its transition probability function, which gives rise to the Markov chain interpretation of our system in simulation.</p>
+<p>Now we should highlight that the notation used in control theory tends to differ from that found in operations research communities, in which the field of dynamic programming flourished. We summarize those (purely notational) differences in this section.</p>
+<p>In operations research, the system state at each decision epoch is typically denoted by <span class="math notranslate nohighlight">\(s \in \mathcal{S}\)</span>, where <span class="math notranslate nohighlight">\(S\)</span> is the set of possible system states. When the system is in state <span class="math notranslate nohighlight">\(s\)</span>, the decision maker may choose an action <span class="math notranslate nohighlight">\(a\)</span> from the set of allowable actions <span class="math notranslate nohighlight">\(\mathcal{A}_s\)</span>. The union of all action sets is denoted as <span class="math notranslate nohighlight">\(\mathcal{A} = \bigcup_{s \in \mathcal{S}} \mathcal{A}_s\)</span>.</p>
+<p>The dynamics of the system are described by a transition probability function <span class="math notranslate nohighlight">\(p_t(j | s, a)\)</span>, which represents the probability of transitioning to state <span class="math notranslate nohighlight">\(j \in \mathcal{S}\)</span> at time <span class="math notranslate nohighlight">\(t+1\)</span>, given that the system is in state <span class="math notranslate nohighlight">\(s\)</span> at time <span class="math notranslate nohighlight">\(t\)</span> and action <span class="math notranslate nohighlight">\(a \in \mathcal{A}_s\)</span> is chosen. This transition probability function satisfies:</p>
+<div class="math notranslate nohighlight">
+\[\sum_{j \in \mathcal{S}} p_t(j | s, a) = 1\]</div>
+<p>It’s worth noting that in operations research, we typically work with reward maximization rather than cost minimization, which is more common in control theory. However, we can easily switch between these perspectives by simply negating the quantity. That is, maximizing a reward function is equivalent to minimizing its negative, which we would then call a cost function.</p>
+<p>The reward function is denoted by <span class="math notranslate nohighlight">\(r_t(s, a)\)</span>, representing the reward received at time <span class="math notranslate nohighlight">\(t\)</span> when the system is in state <span class="math notranslate nohighlight">\(s\)</span> and action <span class="math notranslate nohighlight">\(a\)</span> is taken. In some cases, the reward may also depend on the next state, in which case it is denoted as <span class="math notranslate nohighlight">\(r_t(s, a, j)\)</span>. The expected reward can then be computed as:</p>
+<div class="math notranslate nohighlight">
+\[r_t(s, a) = \sum_{j \in \mathcal{S}} r_t(s, a, j) p_t(j | s, a)\]</div>
+<p>Combined together, these elemetns specify a Markov decision process, which is fully described by the tuple:</p>
+<div class="math notranslate nohighlight">
+\[\{T, S, \mathcal{A}_s, p_t(\cdot | s, a), r_t(s, a)\}\]</div>
+<p>where <span class="math notranslate nohighlight">\(T\)</span> represents the set of decision epochs (the horizon).</p>
 <section id="example-sample-size-determination-in-pharmaceutical-development">
-<h3><span class="section-number">10.5.2. </span>Example: Sample Size Determination in Pharmaceutical Development<a class="headerlink" href="#example-sample-size-determination-in-pharmaceutical-development" title="Link to this heading">#</a></h3>
+<h3><span class="section-number">10.6.1. </span>Example: Sample Size Determination in Pharmaceutical Development<a class="headerlink" href="#example-sample-size-determination-in-pharmaceutical-development" title="Link to this heading">#</a></h3>
 <p>Pharmaceutical development is the process of bringing a new drug from initial discovery to market availability. This process is lengthy, expensive, and risky, typically involving several stages:</p>
 <ol class="arabic simple">
 <li><p><strong>Drug Discovery</strong>: Identifying a compound that could potentially treat a disease.</p></li>
@@ -1954,6 +2020,86 @@ Sanity checks:
 </div>
 </section>
 </section>
+<section id="decision-rules-and-policies">
+<h2><span class="section-number">10.7. </span>Decision Rules and Policies<a class="headerlink" href="#decision-rules-and-policies" title="Link to this heading">#</a></h2>
+<p>In the presentation provided so far, we directly assumed that the form of our feedback controller was of the form <span class="math notranslate nohighlight">\(u(\mathbf{x}, t)\)</span>. The idea is that rather than just looking at the stage as in open-loop control, we would now consider the current state to account for the presence of noise. We came to that conclusion by considering the parametric optimization problem corresponding to the trajectory optimization perspective and saw that the “argmax” counterpart to the value function (the max) was exactly this function <span class="math notranslate nohighlight">\(u(x, t)\)</span>. But this presentation was mostly for intuition and neglected the fact that we could consider other kinds of feedback controllers. In the context of MDPs and under the OR terminology, we should now rather talk of policies instead of controllers.</p>
+<p>But to properly introduce the concept of policy, we first have to talk about decision rules. A decision rule is a prescription of a procedure for action selection in each state at a specified decision epoch. These rules can vary in their complexity due to their potential dependence on the history and ways in which actions are then selected. Decision rules can be classified based on two main criteria:</p>
+<ol class="arabic simple">
+<li><p>Dependence on history: Markovian or History-dependent</p></li>
+<li><p>Action selection method: Deterministic or Randomized</p></li>
+</ol>
+<p>Markovian decision rules are those that depend only on the current state, while history-dependent rules consider the entire sequence of past states and actions. Formally, we can define a history <span class="math notranslate nohighlight">\(h_t\)</span> at time <span class="math notranslate nohighlight">\(t\)</span> as:</p>
+<div class="math notranslate nohighlight">
+\[h_t = (s_1, a_1, \ldots, s_{t-1}, a_{t-1}, s_t)\]</div>
+<p>where <span class="math notranslate nohighlight">\(s_u\)</span> and <span class="math notranslate nohighlight">\(a_u\)</span> denote the state and action at decision epoch <span class="math notranslate nohighlight">\(u\)</span>. The set of all possible histories at time <span class="math notranslate nohighlight">\(t\)</span>, denoted <span class="math notranslate nohighlight">\(H_t\)</span>, grows rapidly with <span class="math notranslate nohighlight">\(t\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[H_1 = \mathcal{S}\]</div>
+<div class="math notranslate nohighlight">
+\[H_2 = \mathcal{S} \times A \times \mathcal{S}\]</div>
+<div class="math notranslate nohighlight">
+\[H_t = H_{t-1} \times A \times \mathcal{S} = \mathcal{S} \times (A \times \mathcal{S})^{t-1}\]</div>
+<p>This exponential growth in the size of the history set motivates us to seek conditions under which we can avoid searching for history-dependent decision rules and instead focus on Markovian rules, which are much simpler to implement and evaluate.</p>
+<p>Decision rules can be further classified as deterministic or randomized. A deterministic rule selects an action with certainty, while a randomized rule specifies a probability distribution over the action space.</p>
+<p>These classifications lead to four types of decision rules:</p>
+<ol class="arabic simple">
+<li><p>Markovian Deterministic (MD): <span class="math notranslate nohighlight">\(d_t: \mathcal{S} \rightarrow \mathcal{A}_s\)</span></p></li>
+<li><p>Markovian Randomized (MR): <span class="math notranslate nohighlight">\(d_t: \mathcal{S} \rightarrow \mathcal{P}(\mathcal{A}_s)\)</span></p></li>
+<li><p>History-dependent Deterministic (HD): <span class="math notranslate nohighlight">\(d_t: H_t \rightarrow \mathcal{A}_s\)</span></p></li>
+<li><p>History-dependent Randomized (HR): <span class="math notranslate nohighlight">\(d_t: H_t \rightarrow \mathcal{P}(\mathcal{A}_s)\)</span></p></li>
+</ol>
+<p>Where <span class="math notranslate nohighlight">\(\mathcal{P}(\mathcal{A}_s)\)</span> denotes the set of probability distributions over <span class="math notranslate nohighlight">\(\mathcal{A}_s\)</span>.</p>
+<!-- The choice of decision rule affects how the MDP's rewards and transition probabilities are computed. For example, with a Markovian deterministic rule $d_t \in D_t^{MD}$, we have:
+
+$$r_t(s, d_t(s)) \text{ and } p_t(j|s, d_t(s))$$
+
+With a randomized Markovian rule, these become expected values:
+
+$$r_t(s, d_t(s)) = \sum_{a \in \mathcal{A}_s} r_t(s,a) q_{d_t(s)}(a)$$
+$$p_t(j|s, d_t(s)) = \sum_{a \in \mathcal{A}_s} p_t(j|s,a) q_{d_t(s)}(a)$$
+
+Where $q_{d_t(s)}(a)$ is the probability of choosing action $a$ in state $s$ under decision rule $d_t$. -->
+<p>It’s important to note that decision rules are stage-wise objects. However, to solve an MDP, we need a strategy for the entire horizon. This is where we make a distinction and introduce the concept of a policy. A policy <span class="math notranslate nohighlight">\(\pi\)</span> is a sequence of decision rules, one for each decision epoch:</p>
+<div class="math notranslate nohighlight">
+\[\pi = (d_1, d_2, ..., d_{N-1})\]</div>
+<p>Where <span class="math notranslate nohighlight">\(N\)</span> is the horizon length (possibly infinite). The set of all policies of class <span class="math notranslate nohighlight">\(K\)</span> (where <span class="math notranslate nohighlight">\(K\)</span> can be HR, HD, MR, or MD) is denoted as <span class="math notranslate nohighlight">\(\Pi^K\)</span>.</p>
+<p>A special type of policy is a stationary policy, where the same decision rule is used at all epochs: <span class="math notranslate nohighlight">\(\pi = (d, d, ...)\)</span>, often denoted as <span class="math notranslate nohighlight">\(d^\infty\)</span>. Stationary policies are particularly important in infinite horizon problems.</p>
+<p>The relationships between these policy classes form a hierarchy:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align*}
+\Pi^{SD} \subset \Pi^{SR} \subset \Pi^{MR} \subset \Pi^{HR}\\
+\Pi^{SD} \subset \Pi^{MD} \subset \Pi^{MR} \subset \Pi^{HR} \\
+\Pi^{SD} \subset \Pi^{MD} \subset \Pi^{HD} \subset \Pi^{HR}
+\end{align*}
+\end{split}\]</div>
+<p>Where SD stands for Stationary Deterministic and SR for Stationary Randomized. The largest set is by far the set of history randomized policies.</p>
+<p>A fundamental question in MDP theory is: under what conditions can we avoid working with the set <span class="math notranslate nohighlight">\(\Pi^{HR}\)</span> and focus for example on the much simpler set of deterministic Markovian policy? Even more so, we will see that in the infinite horizon case, we can drop the dependance on time and simply consider stationary deterministic Markovian policies.</p>
+<!-- ### Special Kind of MDP: Bandit Models
+
+Markov Decision Processes (MDPs) and optimal control problems in general are all about dealing with sequential problems: problems in which entire sequences of actions or ways of acting through time are considered. This makes these methods general and powerful, but also challenging from a practical and theoretical perspective.
+
+In some problems, there might be further simplifications at play that would allow us to devise more efficient methods. A particular sub-class of such problems is that of bandit models. These models are often encountered in applications like adaptive optics, ad placement, or can even be found in frameworks like that of GFlowNets or LLMs.
+
+More precisely, we define a bandit model as follows:
+
+A bandit model is a sequential decision model in which, at each decision epoch, the decision maker observes the state of each of $K$ Markov reward processes and, based on the states, the transition probabilities, and rewards of each, selects a process to use in the current period. The selected process changes state according to its transition probabilities, and the states of all other processes remain fixed.
+
+Formally, we can define a bandit model as a Markov Decision Process with the following components:
+
+1. Decision epochs: $T = \{1, 2, \ldots, N\}$, where $N \leq \infty$.
+
+2. States: $S = S^1 \times S^2 \times \cdots \times S^K$, where $S^i$ is the state space of the $i$-th process.
+
+3. Actions: At each decision epoch, the action is to choose one of the $K$ processes.
+
+4. Transition probabilities: For process $i$ in state $s^i \in S^i$, the transition probability to state $j^i$ is given by $p_t^i(j^i | s^i)$.
+
+5. Rewards: When process $i$ in state $s^i$ is chosen, the decision maker receives a reward $r_t^i(s^i)$.
+
+The effects of choosing process $i$ when it is in state $s^i \in S^i$, $i = 1, 2, \ldots, K$ are:
+
+1. It changes state according to the transition law $p_t^i(j^i | s^i)$.
+2. The decision maker receives a reward $r_t^i(s^i)$.
+3. All other processes remain in their current state. --></section>
 </section>
 
     <script type="text/x-thebe-config">
@@ -2043,15 +2189,17 @@ Sanity checks:
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-optimal-harvest-with-linear-interpolation">10.3.3. Example: Optimal Harvest with Linear Interpolation</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#linear-quadratic-regulator-via-dynamic-programming">10.4. Linear Quadratic Regulator via Dynamic Programming</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-linear-quadratic-regulation-of-a-liquid-tank">10.4.1. Example: Linear Quadratic Regulation of a Liquid Tank</a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#linear-quadratic-regulator-via-dynamic-programming">10.4. Linear Quadratic Regulator via Dynamic Programming</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-dynamic-programming">10.5. Stochastic Dynamic Programming</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-stochastic-optimal-harvest-in-resource-management">10.5.1. Example: Stochastic Optimal Harvest in Resource Management</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-sample-size-determination-in-pharmaceutical-development">10.5.2. Example: Sample Size Determination in Pharmaceutical Development</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#markov-decision-process-formulation">10.5.2. Markov Decision Process Formulation</a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#from-control-theory-to-operations-research-notation">10.6. From Control Theory to Operations Research Notation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-sample-size-determination-in-pharmaceutical-development">10.6.1. Example: Sample Size Determination in Pharmaceutical Development</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#decision-rules-and-policies">10.7. Decision Rules and Policies</a></li>
 </ul>
 </li>
 </ul>
