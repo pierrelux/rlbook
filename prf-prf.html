@@ -193,11 +193,10 @@
 <li class="toctree-l1"><a class="reference internal" href="mpc.html">7. Model Predictive Control</a></li>
 
 
-<li class="toctree-l1"><a class="reference internal" href="dp.html">10. Dynamic Programming</a></li>
 
+<li class="toctree-l1"><a class="reference internal" href="dp.html">11. Dynamic Programming</a></li>
 
-
-<li class="toctree-l1"><a class="reference internal" href="bibliography.html">14. Bibliography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">13. Bibliography</a></li>
 </ul>
 
     </div>
@@ -373,11 +372,16 @@ document.write(`
    <a href="#cap-lagrange-docp"><strong>lagrange-docp</strong></a> | 
    <a href="#cap-mayer-docp"><strong>mayer-docp</strong></a> | 
    <a href="#cap-naive-single-shooting"><strong>naive-single-shooting</strong></a> | 
+   <a href="#cap-nk-bellman"><strong>nk-bellman</strong></a> | 
+   <a href="#cap-policy-iteration"><strong>policy-iteration</strong></a> | 
    <a href="#cap-proj-grad-descent-bound-constraints"><strong>proj-grad-descent-bound-constraints</strong></a> | 
    <a href="#cap-prop-5-3-1"><strong>prop-5-3-1</strong></a> | 
+   <a href="#cap-proposition-4"><strong>proposition-4</strong></a> | 
    <a href="#cap-shooting-trajectory-storage"><strong>shooting-trajectory-storage</strong></a> | 
    <a href="#cap-stochastic-backward-recursion"><strong>stochastic-backward-recursion</strong></a> | 
-   <a href="#cap-successive-approximation"><strong>successive-approximation</strong></a>
+   <a href="#cap-successive-approximation"><strong>successive-approximation</strong></a> | 
+   <a href="#cap-value-iteration"><strong>value-iteration</strong></a> | 
+   <a href="#cap-value-iteration-convergence"><strong>value-iteration-convergence</strong></a>
    </div>
 
    <table class="indextable modindextable">
@@ -451,7 +455,7 @@ document.write(`
      <tr>
        <td></td>
        <td>
-       <a href="dp.html#backward-recursion"><code class="xref">backward-recursion</code></a> <em>(dp)</em></td><td>
+       <a href="mpc.html#backward-recursion"><code class="xref">backward-recursion</code></a> <em>(mpc)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-backward-recursion-interpolation"><td></td><td>
@@ -459,7 +463,7 @@ document.write(`
      <tr>
        <td></td>
        <td>
-       <a href="dp.html#backward-recursion-interpolation"><code class="xref">backward-recursion-interpolation</code></a> <em>(dp)</em></td><td>
+       <a href="mpc.html#backward-recursion-interpolation"><code class="xref">backward-recursion-interpolation</code></a> <em>(mpc)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-bolza-docp"><td></td><td>
@@ -558,6 +562,22 @@ document.write(`
        <a href="ocp.html#naive-single-shooting"><code class="xref">naive-single-shooting</code></a> <em>(ocp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
+     <tr class="cap" id="cap-nk-bellman"><td></td><td>
+       <strong>nk-bellman</strong></td><td></td></tr>
+     <tr>
+       <td></td>
+       <td>
+       <a href="dp.html#nk-bellman"><code class="xref">nk-bellman</code></a> <em>(dp)</em></td><td>
+       <em>algorithm</em></td></tr>
+     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
+     <tr class="cap" id="cap-policy-iteration"><td></td><td>
+       <strong>policy-iteration</strong></td><td></td></tr>
+     <tr>
+       <td></td>
+       <td>
+       <a href="dp.html#policy-iteration"><code class="xref">policy-iteration</code></a> <em>(dp)</em></td><td>
+       <em>algorithm</em></td></tr>
+     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-proj-grad-descent-bound-constraints"><td></td><td>
        <strong>proj-grad-descent-bound-constraints</strong></td><td></td></tr>
      <tr>
@@ -574,6 +594,14 @@ document.write(`
        <a href="dp.html#prop-5-3-1"><code class="xref">prop-5-3-1</code></a> <em>(dp)</em></td><td>
        <em>theorem</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
+     <tr class="cap" id="cap-proposition-4"><td></td><td>
+       <strong>proposition-4</strong></td><td></td></tr>
+     <tr>
+       <td></td>
+       <td>
+       <a href="dp.html#proposition-4"><code class="xref">proposition-4</code></a> <em>(dp)</em></td><td>
+       <em>proposition</em></td></tr>
+     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-shooting-trajectory-storage"><td></td><td>
        <strong>shooting-trajectory-storage</strong></td><td></td></tr>
      <tr>
@@ -587,7 +615,7 @@ document.write(`
      <tr>
        <td></td>
        <td>
-       <a href="dp.html#stochastic-backward-recursion"><code class="xref">stochastic-backward-recursion</code></a> <em>(dp)</em></td><td>
+       <a href="mpc.html#stochastic-backward-recursion"><code class="xref">stochastic-backward-recursion</code></a> <em>(mpc)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-successive-approximation"><td></td><td>
@@ -597,6 +625,22 @@ document.write(`
        <td>
        <a href="dp.html#successive-approximation"><code class="xref">successive-approximation</code></a> <em>(dp)</em></td><td>
        <em>algorithm</em></td></tr>
+     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
+     <tr class="cap" id="cap-value-iteration"><td></td><td>
+       <strong>value-iteration</strong></td><td></td></tr>
+     <tr>
+       <td></td>
+       <td>
+       <a href="dp.html#value-iteration"><code class="xref">value-iteration</code></a> <em>(dp)</em></td><td>
+       <em>algorithm</em></td></tr>
+     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
+     <tr class="cap" id="cap-value-iteration-convergence"><td></td><td>
+       <strong>value-iteration-convergence</strong></td><td></td></tr>
+     <tr>
+       <td></td>
+       <td>
+       <a href="dp.html#value-iteration-convergence"><code class="xref">value-iteration-convergence</code></a> <em>(dp)</em></td><td>
+       <em>proposition</em></td></tr>
    </table>
 
 
