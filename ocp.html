@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>1. Discrete-Time Trajectory Optimization &#8212; Automatic Learning and Control</title>
+    <title>1. Discrete-Time Trajectory Optimization &#8212; Pragmatic Reinforcement Learning: Algorithms and Applications</title>
   
   
   
@@ -153,7 +153,7 @@
   
   
   
-    <p class="title logo__title">Automatic Learning and Control</p>
+    <p class="title logo__title">Pragmatic Reinforcement Learning: Algorithms and Applications</p>
   
 </a></div>
         <div class="sidebar-primary-item">
@@ -184,11 +184,14 @@
 
 <li class="toctree-l1"><a class="reference internal" href="cocp.html">5. Continuous-Time Trajectory Optimization</a></li>
 
-<li class="toctree-l1"><a class="reference internal" href="dp.html">7. Dynamic Programming</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mpc.html">7. Model Predictive Control</a></li>
+
+
+<li class="toctree-l1"><a class="reference internal" href="dp.html">10. Dynamic Programming</a></li>
 
 
 
-<li class="toctree-l1"><a class="reference internal" href="bibliography.html">11. Bibliography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">14. Bibliography</a></li>
 </ul>
 
     </div>
@@ -2342,7 +2345,7 @@ Objective function value: 1.619425
 <section class="tex2jax_ignore mathjax_ignore" id="the-discrete-time-pontryagin-maximum-principle">
 <h1><span class="section-number">4. </span>The Discrete-Time Pontryagin Maximum Principle<a class="headerlink" href="#the-discrete-time-pontryagin-maximum-principle" title="Link to this heading">#</a></h1>
 <p>Discrete-time optimal control problems (DOCPs) form a specific class of nonlinear programming problems. Therefore, we can apply the general results from the Karush-Kuhn-Tucker (KKT) conditions to characterize the structure of optimal solutions to DOCPs in any of their three forms. The discrete-time analogue of the KKT conditions for DOCPs is known as the discrete-time Pontryagin Maximum Principle (PMP). The PMP was first described by Pontryagin in 1956 <span id="id10">[<a class="reference internal" href="bibliography.html#id12" title="Lev Semyonovich Pontryagin, Vladimir Grigor'evich Boltyanskii, Revaz Valerianovich Gamkrelidze, and Evgenii Frolovich Mishchenko. The Mathematical Theory of Optimal Processes. Interscience Publishers, 1962.">17</a>]</span> for continuous-time systems, with the discrete-time version following shortly after. Similar to the KKT conditions, the PMP is useful from both theoretical and practical perspectives. It not only allows us to sometimes find closed-form solutions but also inspires the development of algorithms.</p>
-<p>Importantly, the PMP goes beyond the KKT conditions by demonstrating the existence of a particular recursive equation—the adjoint equation. This equation governs the evolution of the derivative of the Hamiltonian, a close cousin to the Lagrangian. The adjoint equation enables us to transform the PMP into an algorithmic procedure, which has much in common with backpropagation <span id="id11">[<a class="reference internal" href="bibliography.html#id13" title="David E Rumelhart, Geoffrey E Hinton, and Ronald J Williams. Learning representations by back-propagating errors. Nature, 323(6088):533–536, 1986.">18</a>]</span> in deep learning. This connection between optimal control theory has been noted by several researchers, including Griewank <span id="id12">[<a class="reference internal" href="bibliography.html#id14" title="Andreas Griewank. On automatic differentiation. Mathematical Programming: Recent Developments and Applications, 1989.">9</a>]</span> in the context of automatic differentiation, and LeCun <span id="id13">[<a class="reference internal" href="bibliography.html#id15" title="Yann LeCun. A theoretical framework for back-propagation. Proceedings of the 1988 Connectionist Models Summer School, pages 21–28, 1988.">15</a>]</span> in his early work on neural networks.</p>
+<p>Importantly, the PMP goes beyond the KKT conditions by demonstrating the existence of a particular recursive equation—the adjoint equation. This equation governs the evolution of the derivative of the Hamiltonian, a close cousin to the Lagrangian. The adjoint equation enables us to transform the PMP into an algorithmic procedure, which has much in common with backpropagation <span id="id11">[<a class="reference internal" href="bibliography.html#id13" title="David E Rumelhart, Geoffrey E Hinton, and Ronald J Williams. Learning representations by back-propagating errors. Nature, 323(6088):533–536, 1986.">19</a>]</span> in deep learning. This connection between optimal control theory has been noted by several researchers, including Griewank <span id="id12">[<a class="reference internal" href="bibliography.html#id14" title="Andreas Griewank. On automatic differentiation. Mathematical Programming: Recent Developments and Applications, 1989.">9</a>]</span> in the context of automatic differentiation, and LeCun <span id="id13">[<a class="reference internal" href="bibliography.html#id15" title="Yann LeCun. A theoretical framework for back-propagation. Proceedings of the 1988 Connectionist Models Summer School, pages 21–28, 1988.">15</a>]</span> in his early work on neural networks.</p>
 <section id="pmp-for-mayer-problems">
 <h2><span class="section-number">4.1. </span>PMP for Mayer Problems<a class="headerlink" href="#pmp-for-mayer-problems" title="Link to this heading">#</a></h2>
 <p>Before delving into more general cases, let’s consider a Mayer problem where the goal is to minimize a terminal cost function <span class="math notranslate nohighlight">\(c_T(\mathbf{x}_T)\)</span>:</p>

@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>1. Background: CVaR &#8212; Reinforcement Learning: beyond the Agent Interaction Loop</title>
+    <title>Newton-Kantorovich Method &#8212; Pragmatic Reinforcement Learning: Algorithms and Applications</title>
   
   
   
@@ -153,7 +153,7 @@
   
   
   
-    <p class="title logo__title">Reinforcement Learning: beyond the Agent Interaction Loop</p>
+    <p class="title logo__title">Pragmatic Reinforcement Learning: Algorithms and Applications</p>
   
 </a></div>
         <div class="sidebar-primary-item">
@@ -184,10 +184,14 @@
 
 <li class="toctree-l1"><a class="reference internal" href="cocp.html">5. Continuous-Time Trajectory Optimization</a></li>
 
-<li class="toctree-l1"><a class="reference internal" href="dp.html">7. Dynamic Programming</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mpc.html">7. Model Predictive Control</a></li>
+
+
+<li class="toctree-l1"><a class="reference internal" href="dp.html">10. Dynamic Programming</a></li>
 
 
 
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">14. Bibliography</a></li>
 </ul>
 
     </div>
@@ -377,9 +381,7 @@ document.write(`
   </button>
 `);
 </script>
-<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <span class="fa-solid fa-list"></span>
-</button>
+
 </div></div>
       
     </div>
@@ -390,35 +392,11 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>1. Background: CVaR</h1>
+    <h1>Newton-Kantorovich Method</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
             
-            <div>
-                <h2> Contents </h2>
-            </div>
-            <nav aria-label="Page">
-                <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">1. Background: CVaR</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#conditional-value-at-risk-cvar">Conditional Value at Risk (CVaR)</a></li>
-</ul>
-</li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#recap-cvar-based-likelihood">1. Recap: CVaR-Based Likelihood</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#negative-log-likelihood-nll">2. Negative Log-Likelihood (NLL)</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#gradient-of-the-nll">3. Gradient of the NLL</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gradient-with-respect-to-theta">Gradient with respect to <span class="math notranslate nohighlight">\( \theta \)</span></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#first-term-nabla-theta-log-z-theta">First term: <span class="math notranslate nohighlight">\( \nabla_\theta \log Z(\theta) \)</span></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#second-term-nabla-theta-min-left-sum-t-1-t-r-theta-s-t-i-a-t-i-zeta-right">Second term: <span class="math notranslate nohighlight">\( \nabla_\theta \min \left( \sum_{t=1}^T r_\theta(s_t^i, a_t^i), \zeta \right) \)</span></a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gradient-with-respect-to-zeta">Gradient with respect to <span class="math notranslate nohighlight">\( \zeta \)</span></a></li>
-</ul>
-</li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#summary-of-gradients">4. Summary of Gradients</a></li>
-</ul>
-
-            </nav>
         </div>
     </div>
 </div>
@@ -428,135 +406,47 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <p>This is a great challenge! We’ll derive a framework for Conditional Value at Risk (CVaR) in the context of <strong>inverse reinforcement learning (IRL)</strong> and how to cast this into a <strong>maximum likelihood estimation (MLE)</strong> problem. This will involve the same foundational principles as MaxEnt IRL, but instead of focusing on <strong>expectation</strong>, we’ll shift to the <strong>CVaR risk measure</strong>, which is more focused on tail risk.</p>
-<section id="background-cvar">
-<h1>1. Background: CVaR<a class="headerlink" href="#background-cvar" title="Link to this heading">#</a></h1>
-<section id="conditional-value-at-risk-cvar">
-<h2>Conditional Value at Risk (CVaR)<a class="headerlink" href="#conditional-value-at-risk-cvar" title="Link to this heading">#</a></h2>
-<p>CVaR is a risk measure that focuses on the <strong>worst-case scenarios</strong>. Given a confidence level <span class="math notranslate nohighlight">\( \alpha \in [0, 1] \)</span>, CVaR is the expected reward conditional on the reward falling in the <strong>worst <span class="math notranslate nohighlight">\( 1 - \alpha \)</span>% of outcomes</strong>. Formally, for a random variable <span class="math notranslate nohighlight">\( X \)</span> (here, the cumulative reward or cost), the CVaR at confidence level <span class="math notranslate nohighlight">\( \alpha \)</span> is defined as:</p>
+  <section id="newton-kantorovich-method">
+<h1>Newton-Kantorovich Method<a class="headerlink" href="#newton-kantorovich-method" title="Link to this heading">#</a></h1>
+<p>The Newton-Kantorovich method is a generalization of Newton’s method from finite dimensional vector spaces to infinite dimensional function spaces: rather than iterating in the space of vectors, we are iterating in the space of functions. Just as in the finite-dimensional counterpart, the idea is to improve the rate of convergence of our method by taking an “educated guess” on where to move next using a linearization of our operator at the current point. Now the concept of linearization, which is synonymous with derivative, will also require a generalization. Here we are in essence trying to quantify how the output of the operator <span class="math notranslate nohighlight">\(T\)</span> – a function – varies as we perturb its input – also a function. The right generalization here is that of the Fréchet derivative.</p>
+<p>The Fréchet derivative is a generalization of the derivative to Banach spaces. For an operator <span class="math notranslate nohighlight">\(T: X \to Y\)</span> between Banach spaces <span class="math notranslate nohighlight">\(X\)</span> and <span class="math notranslate nohighlight">\(Y\)</span>, the Fréchet derivative at a point <span class="math notranslate nohighlight">\(x \in X\)</span>, denoted <span class="math notranslate nohighlight">\(T'(x)\)</span>, is a bounded linear operator from <span class="math notranslate nohighlight">\(X\)</span> to <span class="math notranslate nohighlight">\(Y\)</span> such that:</p>
 <div class="math notranslate nohighlight">
 \[
-\text{CVaR}_\alpha(X) = \mathbb{E}[X \mid X \leq \text{VaR}_\alpha(X)],
+\lim_{h \to 0} \frac{\|T(x + h) - T(x) - T'(x)h\|_Y}{\|h\|_X} = 0
 \]</div>
-<p>where <span class="math notranslate nohighlight">\( \text{VaR}_\alpha(X) \)</span> (Value at Risk) is the <span class="math notranslate nohighlight">\( \alpha \)</span>-quantile of <span class="math notranslate nohighlight">\( X \)</span>. Intuitively, CVaR focuses on the average of the worst <span class="math notranslate nohighlight">\( 1 - \alpha \)</span>% of outcomes.</p>
-<p>In the context of IRL, we aim to infer a <strong>risk-averse policy</strong> by using CVaR as our objective rather than the expectation. The challenge is how to incorporate CVaR into the framework of MLE.
-To focus on the gradient of the negative log-likelihood (NLL) for the CVaR-based likelihood, let’s break down the problem step by step.</p>
-</section>
-</section>
-<section id="recap-cvar-based-likelihood">
-<h1>1. Recap: CVaR-Based Likelihood<a class="headerlink" href="#recap-cvar-based-likelihood" title="Link to this heading">#</a></h1>
-<p>The CVaR-based likelihood of a trajectory <span class="math notranslate nohighlight">\( \tau \)</span> was defined as:</p>
+<p>where <span class="math notranslate nohighlight">\(\|\cdot\|_X\)</span> and <span class="math notranslate nohighlight">\(\|\cdot\|_Y\)</span> are the norms in <span class="math notranslate nohighlight">\(X\)</span> and <span class="math notranslate nohighlight">\(Y\)</span> respectively. In other words, <span class="math notranslate nohighlight">\(T'(x)\)</span> is the best linear approximation of <span class="math notranslate nohighlight">\(T\)</span> near <span class="math notranslate nohighlight">\(x\)</span>.</p>
+<p>But apart from those mathematical technicalities, Newton-Kantorovich has in essence the same structure as that of the original Newton’s method. That is, it applies the following sequence of steps:</p>
+<ol class="arabic simple">
+<li><p><strong>Linearize the Operator</strong>:
+Given an approximation ( x_n ), we consider the Fréchet derivative of ( T ), denoted by ( T’(x_n) ). This derivative is a linear operator that provides a local approximation of ( T ) near ( x_n ).</p></li>
+<li><p><strong>Set Up the Newton Step</strong>:
+The method then solves the linearized equation for a correction ( h_n ):
+$<span class="math notranslate nohighlight">\(
+T'(x_n) h_n = T(x_n) - x_n.
+\)</span>$
+This equation represents a linear system where ( h_n ) is chosen to minimize the difference between ( x_n ) and ( T(x_n) ) with respect to the operator’s local behavior.</p></li>
+<li><p><strong>Update the Solution</strong>:
+The new approximation ( x_{n+1} ) is then given by:
+$<span class="math notranslate nohighlight">\(
+x_{n+1} = x_n - h_n.
+\)</span>$
+This correction step refines ( x_n ), bringing it closer to the true solution.</p></li>
+<li><p><strong>Repeat Until Convergence</strong>:
+We repeat the linearization and update steps until the solution ( x_n ) converges to the desired tolerance, which can be verified by checking that ( |T(x_n) - x_n| ) is sufficiently small, or by monitoring the norm ( |x_{n+1} - x_n| ).</p></li>
+</ol>
+<p>The convergence of Newton-Kantorovich does not hinge on ( T ) being a contraction over the entire domain – as it could be the case for successive approximation. The convergence properties of the Newton-Kantorovich method are as follows:</p>
+<ol class="arabic">
+<li><p><strong>Local Convergence</strong>: Under mild conditions (e.g., <span class="math notranslate nohighlight">\(T\)</span> is Fréchet differentiable and <span class="math notranslate nohighlight">\(T'(x)\)</span> is invertible near the solution), the method converges locally. This means that if the initial guess is sufficiently close to the true solution, the method will converge.</p></li>
+<li><p><strong>Global Convergence</strong>: Global convergence is not guaranteed in general. However, under stronger conditions (e.g., <span class="math notranslate nohighlight">\(T\)</span> is analytic and satisfies certain bounds), the method can converge globally.</p></li>
+<li><p><strong>Rate of Convergence</strong>: When the method converges, it typically exhibits quadratic convergence. This means that the error at each step is proportional to the square of the error at the previous step:</p>
 <div class="math notranslate nohighlight">
 \[
-p_{\text{CVaR}}(\tau \mid \theta, \zeta) = \frac{1}{Z(\theta)} \exp \left( \min \left( \sum_{t=1}^T r_\theta(s_t, a_t), \zeta \right) \right),
-\]</div>
-<p>where:</p>
-<ul class="simple">
-<li><p><span class="math notranslate nohighlight">\( \theta \)</span> represents the reward parameters.</p></li>
-<li><p><span class="math notranslate nohighlight">\( \zeta \)</span> is the auxiliary variable that represents the <span class="math notranslate nohighlight">\( \alpha \)</span>-quantile for CVaR.</p></li>
-<li><p><span class="math notranslate nohighlight">\( R(\tau) = \sum_{t=1}^T r_\theta(s_t, a_t) \)</span> is the cumulative reward for the trajectory <span class="math notranslate nohighlight">\( \tau \)</span>.</p></li>
-</ul>
-<p>This likelihood assigns higher probabilities to trajectories with cumulative rewards above <span class="math notranslate nohighlight">\( \zeta \)</span>, while penalizing those with lower rewards (since their rewards are truncated at <span class="math notranslate nohighlight">\( \zeta \)</span>).</p>
-</section>
-<section id="negative-log-likelihood-nll">
-<h1>2. Negative Log-Likelihood (NLL)<a class="headerlink" href="#negative-log-likelihood-nll" title="Link to this heading">#</a></h1>
-<p>The negative log-likelihood (NLL) for a set of observed trajectories <span class="math notranslate nohighlight">\( \{\tau^i\}_{i=1}^N \)</span> under the CVaR-based distribution is given by:</p>
-<div class="math notranslate nohighlight">
-\[
-\mathcal{L}(\theta, \zeta) = - \sum_{i=1}^N \log p_{\text{CVaR}}(\tau^i \mid \theta, \zeta).
-\]</div>
-<p>Substituting the expression for <span class="math notranslate nohighlight">\( p_{\text{CVaR}} \)</span>:</p>
-<div class="math notranslate nohighlight">
-\[
-\mathcal{L}(\theta, \zeta) = - \sum_{i=1}^N \left( \min \left( \sum_{t=1}^T r_\theta(s_t^i, a_t^i), \zeta \right) - \log Z(\theta) \right).
-\]</div>
-<p>Thus, the NLL simplifies to:</p>
-<div class="math notranslate nohighlight">
-\[
-\mathcal{L}(\theta, \zeta) = \sum_{i=1}^N \left( \log Z(\theta) - \min \left( \sum_{t=1}^T r_\theta(s_t^i, a_t^i), \zeta \right) \right).
-\]</div>
-</section>
-<section id="gradient-of-the-nll">
-<h1>3. Gradient of the NLL<a class="headerlink" href="#gradient-of-the-nll" title="Link to this heading">#</a></h1>
-<p>Now, we compute the gradients of the NLL with respect to the parameters <span class="math notranslate nohighlight">\( \theta \)</span> (the reward parameters) and <span class="math notranslate nohighlight">\( \zeta \)</span> (the auxiliary variable).</p>
-<section id="gradient-with-respect-to-theta">
-<h2>Gradient with respect to <span class="math notranslate nohighlight">\( \theta \)</span><a class="headerlink" href="#gradient-with-respect-to-theta" title="Link to this heading">#</a></h2>
-<p>The gradient of <span class="math notranslate nohighlight">\( \mathcal{L}(\theta, \zeta) \)</span> with respect to <span class="math notranslate nohighlight">\( \theta \)</span> involves two terms: the partition function <span class="math notranslate nohighlight">\( Z(\theta) \)</span> and the reward term truncated by <span class="math notranslate nohighlight">\( \zeta \)</span>.</p>
-<div class="math notranslate nohighlight">
-\[
-\nabla_\theta \mathcal{L}(\theta, \zeta) = \sum_{i=1}^N \left( \nabla_\theta \log Z(\theta) - \nabla_\theta \min \left( \sum_{t=1}^T r_\theta(s_t^i, a_t^i), \zeta \right) \right).
-\]</div>
-<section id="first-term-nabla-theta-log-z-theta">
-<h3>First term: <span class="math notranslate nohighlight">\( \nabla_\theta \log Z(\theta) \)</span><a class="headerlink" href="#first-term-nabla-theta-log-z-theta" title="Link to this heading">#</a></h3>
-<p>The partition function <span class="math notranslate nohighlight">\( Z(\theta) \)</span> is given by:</p>
-<div class="math notranslate nohighlight">
-\[
-Z(\theta) = \sum_\tau \exp \left( \min \left( \sum_{t=1}^T r_\theta(s_t, a_t), \zeta \right) \right).
-\]</div>
-<p>The gradient of the log partition function is:</p>
-<div class="math notranslate nohighlight">
-\[
-\nabla_\theta \log Z(\theta) = \frac{1}{Z(\theta)} \sum_\tau \exp \left( \min \left( \sum_{t=1}^T r_\theta(s_t, a_t), \zeta \right) \right) \nabla_\theta \left( \sum_{t=1}^T r_\theta(s_t, a_t) \right).
-\]</div>
-<p>This term captures the expected gradient of the reward under the current distribution of trajectories.</p>
-</section>
-<section id="second-term-nabla-theta-min-left-sum-t-1-t-r-theta-s-t-i-a-t-i-zeta-right">
-<h3>Second term: <span class="math notranslate nohighlight">\( \nabla_\theta \min \left( \sum_{t=1}^T r_\theta(s_t^i, a_t^i), \zeta \right) \)</span><a class="headerlink" href="#second-term-nabla-theta-min-left-sum-t-1-t-r-theta-s-t-i-a-t-i-zeta-right" title="Link to this heading">#</a></h3>
-<p>The gradient of the truncated reward term <span class="math notranslate nohighlight">\( \min \left( \sum_{t=1}^T r_\theta(s_t^i, a_t^i), \zeta \right) \)</span> depends on whether the cumulative reward <span class="math notranslate nohighlight">\( \sum_{t=1}^T r_\theta(s_t^i, a_t^i) \)</span> is above or below <span class="math notranslate nohighlight">\( \zeta \)</span>.</p>
-<ul class="simple">
-<li><p>If <span class="math notranslate nohighlight">\( \sum_{t=1}^T r_\theta(s_t^i, a_t^i) \leq \zeta \)</span>, then the gradient is 0 (since the reward is truncated at <span class="math notranslate nohighlight">\( \zeta \)</span>).</p></li>
-<li><p>If <span class="math notranslate nohighlight">\( \sum_{t=1}^T r_\theta(s_t^i, a_t^i) &gt; \zeta \)</span>, then the gradient is:</p></li>
-</ul>
-<div class="math notranslate nohighlight">
-\[
-\nabla_\theta \left( \sum_{t=1}^T r_\theta(s_t^i, a_t^i) \right) = \sum_{t=1}^T \nabla_\theta r_\theta(s_t^i, a_t^i).
-\]</div>
-<p>Thus, we can express this as:</p>
-<div class="math notranslate nohighlight">
-\[
-\nabla_\theta \min \left( \sum_{t=1}^T r_\theta(s_t^i, a_t^i), \zeta \right) = \mathbb{I}\left( \sum_{t=1}^T r_\theta(s_t^i, a_t^i) &gt; \zeta \right) \sum_{t=1}^T \nabla_\theta r_\theta(s_t^i, a_t^i),
-\]</div>
-<p>where <span class="math notranslate nohighlight">\( \mathbb{I}(\cdot) \)</span> is the indicator function that is 1 if the cumulative reward exceeds <span class="math notranslate nohighlight">\( \zeta \)</span>, and 0 otherwise.</p>
-</section>
-</section>
-<section id="gradient-with-respect-to-zeta">
-<h2>Gradient with respect to <span class="math notranslate nohighlight">\( \zeta \)</span><a class="headerlink" href="#gradient-with-respect-to-zeta" title="Link to this heading">#</a></h2>
-<p>The gradient of <span class="math notranslate nohighlight">\( \mathcal{L}(\theta, \zeta) \)</span> with respect to <span class="math notranslate nohighlight">\( \zeta \)</span> only affects the truncated reward term:</p>
-<div class="math notranslate nohighlight">
-\[
-\nabla_\zeta \mathcal{L}(\theta, \zeta) = \sum_{i=1}^N \nabla_\zeta \min \left( \sum_{t=1}^T r_\theta(s_t^i, a_t^i), \zeta \right).
-\]</div>
-<p>This gradient is:</p>
-<div class="math notranslate nohighlight">
-\[
-\nabla_\zeta \min \left( \sum_{t=1}^T r_\theta(s_t^i, a_t^i), \zeta \right) = \mathbb{I}\left( \sum_{t=1}^T r_\theta(s_t^i, a_t^i) \leq \zeta \right),
-\]</div>
-<p>since increasing <span class="math notranslate nohighlight">\( \zeta \)</span> only affects trajectories where the cumulative reward is less than or equal to <span class="math notranslate nohighlight">\( \zeta \)</span>.</p>
-<p>Thus, the gradient with respect to <span class="math notranslate nohighlight">\( \zeta \)</span> is:</p>
-<div class="math notranslate nohighlight">
-\[
-\nabla_\zeta \mathcal{L}(\theta, \zeta) = \sum_{i=1}^N \mathbb{I}\left( \sum_{t=1}^T r_\theta(s_t^i, a_t^i) \leq \zeta \right).
-\]</div>
-</section>
-</section>
-<section id="summary-of-gradients">
-<h1>4. Summary of Gradients<a class="headerlink" href="#summary-of-gradients" title="Link to this heading">#</a></h1>
-<p>To summarize, the gradients of the NLL for the CVaR-based likelihood are:</p>
-<ul class="simple">
-<li><p><strong>Gradient with respect to <span class="math notranslate nohighlight">\( \theta \)</span></strong>:</p></li>
-</ul>
-<div class="math notranslate nohighlight">
-\[
-\nabla_\theta \mathcal{L}(\theta, \zeta) = \sum_{i=1}^N \left( \frac{1}{Z(\theta)} \sum_\tau p_{\text{CVaR}}(\tau \mid \theta, \zeta) \nabla_\theta \sum_{t=1}^T r_\theta(s_t, a_t) - \mathbb{I}\left( \sum_{t=1}^T r_\theta(s_t^i, a_t^i) &gt; \zeta \right) \sum_{t=1}^T \nabla_\theta r_\theta(s_t^i, a_t^i) \right).
-\]</div>
-<ul class="simple">
-<li><p><strong>Gradient with respect to <span class="math notranslate nohighlight">\( \zeta \)</span></strong>:</p></li>
-</ul>
-<div class="math notranslate nohighlight">
-\[
-\nabla_\zeta \mathcal{L}(\theta, \zeta) = \sum_{i=1}^N \mathbb{I}\left( \sum_{t=1}^T r_\theta(s_t^i, a_t^i) \leq \zeta \right).
-\]</div>
-<p>These gradients can be used in an iterative optimization algorithm to adjust <span class="math notranslate nohighlight">\( \theta \)</span> and <span class="math notranslate nohighlight">\( \zeta \)</span>, allowing us to find the reward parameters that are optimal under the CVaR risk measure.</p>
+   \|x_{n+1} - x^*\| \leq C\|x_n - x^*\|^2
+   \]</div>
+<p>where <span class="math notranslate nohighlight">\(x^*\)</span> is the true solution and <span class="math notranslate nohighlight">\(C\)</span> is some constant. This quadratic convergence is significantly faster than the linear convergence typically seen in methods like successive approximation.</p>
+</li>
+</ol>
+<p>Under appropriate conditions (e.g., if ( T ) is sufficiently smooth), it exhibits quadratic convergence, which can be significantly faster than the linear convergence of the successive approximation method. This rapid convergence makes the Newton-Kantorovich method particularly powerful for solving nonlinear problems in function spaces, despite the increased complexity of each iteration compared to simpler methods.</p>
 </section>
 
     <script type="text/x-thebe-config">
@@ -595,37 +485,6 @@ Z(\theta) = \sum_\tau \exp \left( \min \left( \sum_{t=1}^T r_\theta(s_t, a_t), \
             </div>
             
             
-              
-                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
-
-
-  <div class="sidebar-secondary-item">
-  <div class="page-toc tocsection onthispage">
-    <i class="fa-solid fa-list"></i> Contents
-  </div>
-  <nav class="bd-toc-nav page-toc">
-    <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">1. Background: CVaR</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#conditional-value-at-risk-cvar">Conditional Value at Risk (CVaR)</a></li>
-</ul>
-</li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#recap-cvar-based-likelihood">1. Recap: CVaR-Based Likelihood</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#negative-log-likelihood-nll">2. Negative Log-Likelihood (NLL)</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#gradient-of-the-nll">3. Gradient of the NLL</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gradient-with-respect-to-theta">Gradient with respect to <span class="math notranslate nohighlight">\( \theta \)</span></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#first-term-nabla-theta-log-z-theta">First term: <span class="math notranslate nohighlight">\( \nabla_\theta \log Z(\theta) \)</span></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#second-term-nabla-theta-min-left-sum-t-1-t-r-theta-s-t-i-a-t-i-zeta-right">Second term: <span class="math notranslate nohighlight">\( \nabla_\theta \min \left( \sum_{t=1}^T r_\theta(s_t^i, a_t^i), \zeta \right) \)</span></a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gradient-with-respect-to-zeta">Gradient with respect to <span class="math notranslate nohighlight">\( \zeta \)</span></a></li>
-</ul>
-</li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#summary-of-gradients">4. Summary of Gradients</a></li>
-</ul>
-
-  </nav></div>
-
-</div></div>
               
             
           </div>

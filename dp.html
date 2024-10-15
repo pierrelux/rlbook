@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>7. Dynamic Programming &#8212; Automatic Learning and Control</title>
+    <title>10. Dynamic Programming &#8212; Pragmatic Reinforcement Learning: Algorithms and Applications</title>
   
   
   
@@ -64,8 +64,8 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'dp';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="11. Bibliography" href="bibliography.html" />
-    <link rel="prev" title="5. Continuous-Time Trajectory Optimization" href="cocp.html" />
+    <link rel="next" title="14. Bibliography" href="bibliography.html" />
+    <link rel="prev" title="7. Model Predictive Control" href="mpc.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -153,7 +153,7 @@
   
   
   
-    <p class="title logo__title">Automatic Learning and Control</p>
+    <p class="title logo__title">Pragmatic Reinforcement Learning: Algorithms and Applications</p>
   
 </a></div>
         <div class="sidebar-primary-item">
@@ -184,11 +184,14 @@
 
 <li class="toctree-l1"><a class="reference internal" href="cocp.html">5. Continuous-Time Trajectory Optimization</a></li>
 
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">7. Dynamic Programming</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mpc.html">7. Model Predictive Control</a></li>
+
+
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">10. Dynamic Programming</a></li>
 
 
 
-<li class="toctree-l1"><a class="reference internal" href="bibliography.html">11. Bibliography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">14. Bibliography</a></li>
 </ul>
 
     </div>
@@ -401,40 +404,42 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">7. Dynamic Programming</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#open-loop-vs-closed-loop-control">8. Open-Loop vs Closed-Loop Control</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#closing-the-loop-by-replanning">9. Closing the Loop by Replanning</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-propofol-infusion-control">9.1. Example: Propofol Infusion Control</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#computational-efficiency-improvements">9.2. Computational Efficiency Improvements</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#explicit-mpc">9.2.1. Explicit MPC</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#amortized-optimization-and-neural-networks">9.2.1.1. Amortized Optimization and Neural Networks</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">10. Dynamic Programming</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#backward-recursion">10.1. Backward Recursion</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-optimal-harvest-in-resource-management">10.1.1. Example: Optimal Harvest in Resource Management</a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#warmstarting-and-predictor-corrector-mpc">9.2.2. Warmstarting and Predictor-Corrector MPC</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#discretization-and-interpolation">10.2. Discretization and Interpolation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#backward-recursion-with-interpolation">10.2.1. Backward Recursion with Interpolation</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#example-optimal-harvest-with-linear-interpolation">10.2.1.1. Example: Optimal Harvest with Linear Interpolation</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#principle-of-optimality">10. Principle of Optimality</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#backward-recursion">10.1. Backward Recursion</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-optimal-harvest-in-resource-management">10.2. Example: Optimal Harvest in Resource Management</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#discretization-and-interpolation">10.3. Discretization and Interpolation</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#backward-recursion-with-interpolation">10.3.1. Backward Recursion with Interpolation</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#implementation-considerations">10.3.2. Implementation Considerations</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-optimal-harvest-with-linear-interpolation">10.3.3. Example: Optimal Harvest with Linear Interpolation</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#linear-quadratic-regulator-via-dynamic-programming">10.4. Linear Quadratic Regulator via Dynamic Programming</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-dynamic-programming">10.5. Stochastic Dynamic Programming</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-stochastic-optimal-harvest-in-resource-management">10.5.1. Example: Stochastic Optimal Harvest in Resource Management</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#markov-decision-process-formulation">10.5.2. Markov Decision Process Formulation</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-dynamic-programming-in-control-theory">11. Stochastic Dynamic Programming in Control Theory</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-stochastic-optimal-harvest-in-resource-management">11.1. Example: Stochastic Optimal Harvest in Resource Management</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#from-control-theory-to-operations-research-notation">10.6. From Control Theory to Operations Research Notation</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-sample-size-determination-in-pharmaceutical-development">10.6.1. Example: Sample Size Determination in Pharmaceutical Development</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#markov-decision-process-formulation">12. Markov Decision Process Formulation</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#notation-in-operations-reseach">12.1. Notation in Operations Reseach</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#decision-rules-and-policies">12.2. Decision Rules and Policies</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-an-optimal-policy">12.3. What is an Optimal Policy?</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-sample-size-determination-in-pharmaceutical-development">12.3.1. Example: Sample Size Determination in Pharmaceutical Development</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#decision-rules-and-policies">10.7. Decision Rules and Policies</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#infinite-horizon-mdps">13. Infinite-Horizon MDPs</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#random-horizon-interpretation-of-discounting">13.1. Random Horizon Interpretation of Discounting</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vector-representation-in-markov-decision-processes">13.2. Vector Representation in Markov Decision Processes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#solving-operator-equations">13.3. Solving Operator Equations</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#successive-approximation-method">13.3.1. Successive Approximation Method</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#newton-kantorovich-method">13.3.2. Newton-Kantorovich Method</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#optimality-equations-for-infinite-horizon-mdps">13.4. Optimality Equations for Infinite-Horizon MDPs</a></li>
 </ul>
 </li>
 </ul>
@@ -450,375 +455,7 @@ document.write(`
                 <article class="bd-article">
                   
   <section class="tex2jax_ignore mathjax_ignore" id="dynamic-programming">
-<h1><span class="section-number">7. </span>Dynamic Programming<a class="headerlink" href="#dynamic-programming" title="Link to this heading">#</a></h1>
-</section>
-<section class="tex2jax_ignore mathjax_ignore" id="open-loop-vs-closed-loop-control">
-<h1><span class="section-number">8. </span>Open-Loop vs Closed-Loop Control<a class="headerlink" href="#open-loop-vs-closed-loop-control" title="Link to this heading">#</a></h1>
-<p>The methods seen so far, whether in discrete or continuous-time, were deterministic trajectory optimization methods. Given an initial state, they provide a prescription of controls to apply as a function of time. In the collocation case, we would also obtain a state trajectory corresponding to those controls as a by-product. The control function, <span class="math notranslate nohighlight">\(\mathbf{u}[i]\)</span> (in discrete time) or <span class="math notranslate nohighlight">\(u(t)\)</span> (in continuous-time), is blind to the system’s state at any point in time. It simply reads off the values stored in memory or performs some form of interpolation in time. This approach is optimal under the assumption that our system is deterministic. We know that no matter how many times we repeat the experiment from the same initial state, we will always get the same result; hence, reapplying the same controls in the same order is sufficient.</p>
-<p>However, no matter how good our model is, real-life deployment of our controller will inevitably involve prediction errors. In such cases, a simple control function that only considers the current time—an open-loop controller—won’t suffice. We must inform our controller that the real world is likely not in the state it thinks it’s in: we need to provide feedback to close the loop. Depending on the structure of the noise affecting our system, we may encounter feedback controllers that depend on the entire history (in the case of partial observability) or just the current state (under perfect observability). Dynamic programming methods will provide us with solution methods to derive such controllers. These methods exist for both the continuous-time setting (via the Hamilton-Jacobi equations) and the discrete setting through the Bellman optimality equations. It also provides us with the necessary framework to address partially observable systems (for which we can’t directly measure the state) using the POMDP framework. We will cover these solution methods in this chapter.</p>
-</section>
-<section class="tex2jax_ignore mathjax_ignore" id="closing-the-loop-by-replanning">
-<h1><span class="section-number">9. </span>Closing the Loop by Replanning<a class="headerlink" href="#closing-the-loop-by-replanning" title="Link to this heading">#</a></h1>
-<p>There exists a simple recipe for closing the loop: since we will likely end up in states that we haven’t planned for, we might as well recompute our solution as frequently as possible using the updated state information as initial state to our trajectory optimization procedure. This replanning or reoptimization strategy is called Model Predictive Control (MPC). Given any trajectory optimization algorithm, we can turn it into a closed-loop variant using MPC.</p>
-<p>Consider a trajectory optimization problem in Bolza form,</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}
-\begin{aligned}
-\text{minimize} \quad &amp; c(\mathbf{x}(t_0 + T)) + \int_{t_0}^{t_0 + T} c(\mathbf{x}(t), \mathbf{u}(t)) \, dt \\
-\text{subject to} \quad &amp; \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
-&amp; \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
-&amp; \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
-\text{given} \quad &amp; \mathbf{x}(t_0) = \mathbf{x}_{\text{current}} \enspace .
-\end{aligned}
-\end{split}\]</div>
-<p>MPC then proceeds as follows. At the current time <span class="math notranslate nohighlight">\( t_0 \)</span>, the MPC controller considers a prediction horizon <span class="math notranslate nohighlight">\( T \)</span> over which it optimizes the future trajectory of the system. The controller then solves the trajectory optimization problem with the initial state set to the current state <span class="math notranslate nohighlight">\( \mathbf{x}_{\text{current}} = \mathbf{x}(t_0) \)</span>. This yields an optimal control trajectory <span class="math notranslate nohighlight">\( \mathbf{u}^*(t) \)</span> for <span class="math notranslate nohighlight">\( t \in [t_0, t_0 + T] \)</span>.</p>
-<p>However,  Instead of applying the entire computed control trajectory, the controller extracts only the first part of the solution, namely <span class="math notranslate nohighlight">\( \mathbf{u}^*(t_0) \)</span>, and applies it to the system. This strategy is called <em>receding horizon control</em>. The idea is that the control <span class="math notranslate nohighlight">\( \mathbf{u}^*(t_0) \)</span> is based on the best prediction available at time <span class="math notranslate nohighlight">\( t_0 \)</span>, considering the current state of the system and expected future disturbances.</p>
-<p>After applying the first control input, the system evolves according to its dynamics, and the controller measures the new state at the next time step, <span class="math notranslate nohighlight">\( t_0 + \Delta t \)</span>. Using this updated state as the new initial condition, the MPC controller re-solves the trajectory optimization problem over a shifted prediction horizon <span class="math notranslate nohighlight">\( [t_0 + \Delta t, t_0 + \Delta t + T] \)</span>.</p>
-<p>This procedure is then repeated ad infinitum or until the end of overall control problem. More concisely, here’s a pseudo-code showing the general blueprint of MPC methods:</p>
-<div class="proof algorithm admonition" id="alg-mpc">
-<p class="admonition-title"><span class="caption-number">Algorithm 9.1 </span> (Non-linear Model Predictive Control)</p>
-<section class="algorithm-content" id="proof-content">
-<p><strong>Input:</strong></p>
-<ul class="simple">
-<li><p>Prediction horizon <span class="math notranslate nohighlight">\( T \)</span></p></li>
-<li><p>Time step <span class="math notranslate nohighlight">\( \Delta t \)</span></p></li>
-<li><p>Initial state <span class="math notranslate nohighlight">\( \mathbf{x}(t_0) \)</span></p></li>
-<li><p>Cost functions <span class="math notranslate nohighlight">\( c(\mathbf{x}(t), \mathbf{u}(t)) \)</span> and <span class="math notranslate nohighlight">\( c(\mathbf{x}(t_0 + T)) \)</span></p></li>
-<li><p>System dynamics <span class="math notranslate nohighlight">\( \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \)</span></p></li>
-<li><p>Constraints <span class="math notranslate nohighlight">\( \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \)</span></p></li>
-<li><p>Control limits <span class="math notranslate nohighlight">\( \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \)</span></p></li>
-</ul>
-<p><strong>Output:</strong></p>
-<ul class="simple">
-<li><p>Control input sequence <span class="math notranslate nohighlight">\( \{\mathbf{u}(t)\} \)</span> applied to the system</p></li>
-</ul>
-<p><strong>Initialization:</strong></p>
-<ol class="arabic simple">
-<li><p>Set <span class="math notranslate nohighlight">\( t \leftarrow t_0 \)</span></p></li>
-<li><p>Measure initial state <span class="math notranslate nohighlight">\( \mathbf{x}_{\text{current}} \leftarrow \mathbf{x}(t) \)</span></p></li>
-</ol>
-<p><strong>Procedure:</strong></p>
-<ol class="arabic" start="3">
-<li><p><strong>Repeat</strong> until the end of the control task:</p>
-<ol class="arabic simple" start="4">
-<li><p><strong>Solve the following optimization problem:</strong></p></li>
-</ol>
-<div class="math notranslate nohighlight">
-\[\begin{split}
-   \begin{aligned}
-   \text{minimize} \quad &amp; c(\mathbf{x}(t + T)) + \int_{t}^{t + T} c(\mathbf{x}(\tau), \mathbf{u}(\tau)) \, d\tau \\
-   \text{subject to} \quad &amp; \dot{\mathbf{x}}(\tau) = \mathbf{f}(\mathbf{x}(\tau), \mathbf{u}(\tau)) \quad \forall \tau \in [t, t + T] \\
-   &amp; \mathbf{g}(\mathbf{x}(\tau), \mathbf{u}(\tau)) \leq \mathbf{0} \quad \forall \tau \in [t, t + T] \\
-   &amp; \mathbf{u}_{\text{min}} \leq \mathbf{u}(\tau) \leq \mathbf{u}_{\text{max}} \quad \forall \tau \in [t, t + T] \\
-   \text{given} \quad &amp; \mathbf{x}(t) = \mathbf{x}_{\text{current}}
-   \end{aligned}
-   \end{split}\]</div>
-<ul class="simple">
-<li><p>Obtain the optimal control trajectory <span class="math notranslate nohighlight">\( \mathbf{u}^*(\tau) \)</span> and the optimal state trajectory <span class="math notranslate nohighlight">\( \mathbf{x}^*(\tau) \)</span> for <span class="math notranslate nohighlight">\( \tau \in [t, t + T] \)</span>.</p></li>
-</ul>
-<ol class="arabic simple" start="5">
-<li><p><strong>Apply the first control input:</strong></p></li>
-</ol>
-<div class="math notranslate nohighlight">
-\[
-   \mathbf{u}(t) \leftarrow \mathbf{u}^*(t)
-   \]</div>
-<ul class="simple">
-<li><p>Apply <span class="math notranslate nohighlight">\( \mathbf{u}(t) \)</span> to the system.</p></li>
-</ul>
-<ol class="arabic simple" start="6">
-<li><p><strong>Advance the system state:</strong></p></li>
-</ol>
-<ul class="simple">
-<li><p>Let the system evolve under the control <span class="math notranslate nohighlight">\( \mathbf{u}(t) \)</span> according to the dynamics <span class="math notranslate nohighlight">\( \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \)</span>.</p></li>
-<li><p>Update <span class="math notranslate nohighlight">\( t \leftarrow t + \Delta t \)</span>.</p></li>
-</ul>
-<ol class="arabic simple" start="7">
-<li><p><strong>Measure the new state:</strong></p></li>
-</ol>
-<div class="math notranslate nohighlight">
-\[
-   \mathbf{x}_{\text{current}} \leftarrow \mathbf{x}(t)
-   \]</div>
-</li>
-<li><p><strong>End Repeat</strong></p></li>
-</ol>
-</section>
-</div><section id="example-propofol-infusion-control">
-<h2><span class="section-number">9.1. </span>Example: Propofol Infusion Control<a class="headerlink" href="#example-propofol-infusion-control" title="Link to this heading">#</a></h2>
-<p>This problem explores the control of propofol infusion in total intravenous anesthesia (TIVA). Our presentation follows the problem formulation developped by <span id="id1">Sawaguchi <em>et al.</em> [<a class="reference internal" href="bibliography.html#id19" title="Y. Sawaguchi, E. Furutani, G. Shirakami, M. Araki, and K. Fukuda. A model-predictive hypnosis control system under total intravenous anesthesia. IEEE Transactions on Biomedical Engineering, 55(3):874–887, March 2008. URL: http://dx.doi.org/10.1109/tbme.2008.915670, doi:10.1109/tbme.2008.915670.">19</a>]</span>. The primary objective is to maintain the desired level of unconsciousness while minimizing adverse reactions and ensuring quick recovery after surgery.</p>
-<p>The level of unconsciousness is measured by the Bispectral Index (BIS), which is obtained using an electroencephalography (EEG) device. The BIS ranges from <span class="math notranslate nohighlight">\(0\)</span> (complete suppression of brain activity) to <span class="math notranslate nohighlight">\(100\)</span> (fully awake), with the target range for general anesthesia typically between <span class="math notranslate nohighlight">\(40\)</span> and <span class="math notranslate nohighlight">\(60\)</span>.</p>
-<p>The goal is to design a control system that regulates the infusion rate of propofol to maintain the BIS within the target range. This can be formulated as an optimal control problem:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}
-\begin{align*}
-\min_{u(t)} &amp; \int_{0}^{T} \left( BIS(t) - BIS_{\text{target}} \right)^2 + \lambda u(t)^2 \, dt \\
-\text{subject to:} \\
-\dot{x}_1 &amp;= -(k_{10} + k_{12} + k_{13})x_1 + k_{21}x_2 + k_{31}x_3 + \frac{u(t)}{V_1} \\
-\dot{x}_2 &amp;= k_{12}x_1 - k_{21}x_2 \\
-\dot{x}_3 &amp;= k_{13}x_1 - k_{31}x_3 \\
-\dot{x}_e &amp;= k_{e0}(x_1 - x_e) \\
-BIS(t) &amp;= E_0 - E_{\text{max}}\frac{x_e^\gamma}{x_e^\gamma + EC_{50}^\gamma}
-\end{align*}
-\end{split}\]</div>
-<p>Where:</p>
-<ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(u(t)\)</span> is the propofol infusion rate (mg/kg/h)</p></li>
-<li><p><span class="math notranslate nohighlight">\(x_1\)</span>, <span class="math notranslate nohighlight">\(x_2\)</span>, and <span class="math notranslate nohighlight">\(x_3\)</span> are the drug concentrations in different body compartments</p></li>
-<li><p><span class="math notranslate nohighlight">\(x_e\)</span> is the effect-site concentration</p></li>
-<li><p><span class="math notranslate nohighlight">\(k_{ij}\)</span> are rate constants for drug transfer between compartments</p></li>
-<li><p><span class="math notranslate nohighlight">\(BIS(t)\)</span> is the Bispectral Index</p></li>
-<li><p><span class="math notranslate nohighlight">\(\lambda\)</span> is a regularization parameter penalizing excessive drug use</p></li>
-<li><p><span class="math notranslate nohighlight">\(E_0\)</span>, <span class="math notranslate nohighlight">\(E_{\text{max}}\)</span>, <span class="math notranslate nohighlight">\(EC_{50}\)</span>, and <span class="math notranslate nohighlight">\(\gamma\)</span> are parameters of the pharmacodynamic model</p></li>
-</ul>
-<p>The specific dynamics model used in this problem is so-called “Pharmacokinetic-Pharmacodynamic Model” and consists of three main components:</p>
-<ol class="arabic simple">
-<li><p><strong>Pharmacokinetic Model</strong>, which describes how the drug distributes through the body over time. It’s based on a three-compartment model:</p>
-<ul class="simple">
-<li><p>Central compartment (blood and well-perfused organs)</p></li>
-<li><p>Shallow peripheral compartment (muscle and other tissues)</p></li>
-<li><p>Deep peripheral compartment (fat)</p></li>
-</ul>
-</li>
-<li><p><strong>Effect Site Model</strong>, which represents the delay between drug concentration in the blood and its effect on the brain.</p></li>
-<li><p><strong>Pharmacodynamic Model</strong> that relates the effect-site concentration to the observed BIS.</p></li>
-</ol>
-<p>The propofol infusion control problem presents several interesting challenges from a research perspective.
-First, there is a delay in how fast the drug can reach a different compartments in addition to the BIS measurements which can lag. This could lead to instability if not properly addressed in the control design.</p>
-<p>Furthermore, every patient is different from another. Hence, we cannot simply learn a single controller offline and hope that it will generalize to an entire patient population. We will account for this variability through Model Predictive Control (MPC) and dynamically adapt to the model mismatch through replanning. How a patient will react to a given dose of drug also varies and must be carefully controlled to avoid overdoses. This adds an additional layer of complexity since we have to incorporate safety constraints. Finally, the patient might suddenly change state, for example due to surgical stimuli, and the controller must be able to adapt quickly to compensate for the disturbance to the system.</p>
-<div class="cell tag_hide-input docutils container">
-<details class="hide above-input">
-<summary aria-label="Toggle hidden content">
-<span class="collapsed">Show code cell source</span>
-<span class="expanded">Hide code cell source</span>
-</summary>
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-
-<span class="k">class</span> <span class="nc">Patient</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">weight</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">age</span> <span class="o">=</span> <span class="n">age</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="n">weight</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_pk_params</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_pd_params</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">set_pk_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">v1</span> <span class="o">=</span> <span class="mf">4.27</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">/</span> <span class="mi">70</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.71</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">age</span> <span class="o">/</span> <span class="mi">30</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.39</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">v2</span> <span class="o">=</span> <span class="mf">18.9</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">/</span> <span class="mi">70</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.64</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">age</span> <span class="o">/</span> <span class="mi">30</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.62</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">v3</span> <span class="o">=</span> <span class="mi">238</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">/</span> <span class="mi">70</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.95</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cl1</span> <span class="o">=</span> <span class="mf">1.89</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">/</span> <span class="mi">70</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.75</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">age</span> <span class="o">/</span> <span class="mi">30</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.25</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cl2</span> <span class="o">=</span> <span class="mf">1.29</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">/</span> <span class="mi">70</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.62</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cl3</span> <span class="o">=</span> <span class="mf">0.836</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">/</span> <span class="mi">70</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.77</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">k10</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cl1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">v1</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">k12</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cl2</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">v1</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">k13</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cl3</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">v1</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">k21</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cl2</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">v2</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">k31</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cl3</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">v3</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ke0</span> <span class="o">=</span> <span class="mf">0.456</span>
-
-    <span class="k">def</span> <span class="nf">set_pd_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">E0</span> <span class="o">=</span> <span class="mi">100</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Emax</span> <span class="o">=</span> <span class="mi">100</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">EC50</span> <span class="o">=</span> <span class="mf">3.4</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">=</span> <span class="mi">3</span>
-
-<span class="k">def</span> <span class="nf">pk_model</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">patient</span><span class="p">):</span>
-    <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">x3</span><span class="p">,</span> <span class="n">xe</span> <span class="o">=</span> <span class="n">x</span>
-    <span class="n">dx1</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">patient</span><span class="o">.</span><span class="n">k10</span> <span class="o">+</span> <span class="n">patient</span><span class="o">.</span><span class="n">k12</span> <span class="o">+</span> <span class="n">patient</span><span class="o">.</span><span class="n">k13</span><span class="p">)</span> <span class="o">*</span> <span class="n">x1</span> <span class="o">+</span> <span class="n">patient</span><span class="o">.</span><span class="n">k21</span> <span class="o">*</span> <span class="n">x2</span> <span class="o">+</span> <span class="n">patient</span><span class="o">.</span><span class="n">k31</span> <span class="o">*</span> <span class="n">x3</span> <span class="o">+</span> <span class="n">u</span> <span class="o">/</span> <span class="n">patient</span><span class="o">.</span><span class="n">v1</span>
-    <span class="n">dx2</span> <span class="o">=</span> <span class="n">patient</span><span class="o">.</span><span class="n">k12</span> <span class="o">*</span> <span class="n">x1</span> <span class="o">-</span> <span class="n">patient</span><span class="o">.</span><span class="n">k21</span> <span class="o">*</span> <span class="n">x2</span>
-    <span class="n">dx3</span> <span class="o">=</span> <span class="n">patient</span><span class="o">.</span><span class="n">k13</span> <span class="o">*</span> <span class="n">x1</span> <span class="o">-</span> <span class="n">patient</span><span class="o">.</span><span class="n">k31</span> <span class="o">*</span> <span class="n">x3</span>
-    <span class="n">dxe</span> <span class="o">=</span> <span class="n">patient</span><span class="o">.</span><span class="n">ke0</span> <span class="o">*</span> <span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">xe</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">dx1</span><span class="p">,</span> <span class="n">dx2</span><span class="p">,</span> <span class="n">dx3</span><span class="p">,</span> <span class="n">dxe</span><span class="p">])</span>
-
-<span class="k">def</span> <span class="nf">pd_model</span><span class="p">(</span><span class="n">ce</span><span class="p">,</span> <span class="n">patient</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">patient</span><span class="o">.</span><span class="n">E0</span> <span class="o">-</span> <span class="n">patient</span><span class="o">.</span><span class="n">Emax</span> <span class="o">*</span> <span class="p">(</span><span class="n">ce</span> <span class="o">**</span> <span class="n">patient</span><span class="o">.</span><span class="n">gamma</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">ce</span> <span class="o">**</span> <span class="n">patient</span><span class="o">.</span><span class="n">gamma</span> <span class="o">+</span> <span class="n">patient</span><span class="o">.</span><span class="n">EC50</span> <span class="o">**</span> <span class="n">patient</span><span class="o">.</span><span class="n">gamma</span><span class="p">)</span>
-
-<span class="k">def</span> <span class="nf">simulate_step</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
-    <span class="n">x_next</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">pk_model</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">patient</span><span class="p">)</span>
-    <span class="n">bis</span> <span class="o">=</span> <span class="n">pd_model</span><span class="p">(</span><span class="n">x_next</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">patient</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">x_next</span><span class="p">,</span> <span class="n">bis</span>
-
-<span class="k">def</span> <span class="nf">objective</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">target_bis</span><span class="p">):</span>
-    <span class="n">x</span> <span class="o">=</span> <span class="n">x0</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-    <span class="n">total_cost</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
-        <span class="n">x</span><span class="p">,</span> <span class="n">bis</span> <span class="o">=</span> <span class="n">simulate_step</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
-        <span class="n">total_cost</span> <span class="o">+=</span> <span class="p">(</span><span class="n">bis</span> <span class="o">-</span> <span class="n">target_bis</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span>
-    <span class="k">return</span> <span class="n">total_cost</span>
-
-<span class="k">def</span> <span class="nf">mpc_step</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">target_bis</span><span class="p">):</span>
-    <span class="n">u0</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>  <span class="c1"># Initial guess</span>
-    <span class="n">bounds</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">20</span><span class="p">)]</span> <span class="o">*</span> <span class="n">N</span>  <span class="c1"># Infusion rate between 0 and 20 mg/kg/h</span>
-    
-    <span class="n">result</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">u0</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">target_bis</span><span class="p">),</span>
-                      <span class="n">method</span><span class="o">=</span><span class="s1">&#39;SLSQP&#39;</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">)</span>
-    
-    <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># Return only the first control input</span>
-
-<span class="k">def</span> <span class="nf">run_mpc_simulation</span><span class="p">(</span><span class="n">patient</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">target_bis</span><span class="p">):</span>
-    <span class="n">steps</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">T</span> <span class="o">/</span> <span class="n">dt</span><span class="p">)</span>
-    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">steps</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
-    <span class="n">bis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">steps</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">steps</span><span class="p">)</span>
-    
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">steps</span><span class="p">):</span>
-        <span class="c1"># Add noise to the current state to simulate real-world uncertainty</span>
-        <span class="n">x_noisy</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-        
-        <span class="c1"># Use noisy state for MPC planning</span>
-        <span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">mpc_step</span><span class="p">(</span><span class="n">x_noisy</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">target_bis</span><span class="p">)</span>
-        
-        <span class="c1"># Evolve the true state using the deterministic model</span>
-        <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span> <span class="n">bis</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">simulate_step</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
-    
-    <span class="n">bis</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd_model</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">patient</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">bis</span><span class="p">,</span> <span class="n">u</span>
-
-<span class="c1"># Set up the problem</span>
-<span class="n">patient</span> <span class="o">=</span> <span class="n">Patient</span><span class="p">(</span><span class="n">age</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">70</span><span class="p">)</span>
-<span class="n">T</span> <span class="o">=</span> <span class="mi">120</span>  <span class="c1"># Total time in minutes</span>
-<span class="n">dt</span> <span class="o">=</span> <span class="mf">0.5</span>  <span class="c1"># Time step in minutes</span>
-<span class="n">N</span> <span class="o">=</span> <span class="mi">20</span>  <span class="c1"># Prediction horizon</span>
-<span class="n">target_bis</span> <span class="o">=</span> <span class="mi">50</span>  <span class="c1"># Target BIS value</span>
-
-<span class="c1"># Run MPC simulation</span>
-<span class="n">x</span><span class="p">,</span> <span class="n">bis</span><span class="p">,</span> <span class="n">u</span> <span class="o">=</span> <span class="n">run_mpc_simulation</span><span class="p">(</span><span class="n">patient</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">target_bis</span><span class="p">)</span>
-
-<span class="c1"># Plot results</span>
-<span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">T</span><span class="o">+</span><span class="n">dt</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
-<span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">,</span> <span class="n">ax3</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-<span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">bis</span><span class="p">)</span>
-<span class="n">ax1</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;BIS&#39;</span><span class="p">)</span>
-<span class="n">ax1</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
-<span class="n">ax1</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="n">target_bis</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">)</span>
-
-<span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">u</span><span class="p">)</span>
-<span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Infusion Rate (mg/kg/h)&#39;</span><span class="p">)</span>
-
-<span class="n">ax3</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">])</span>
-<span class="n">ax3</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Effect-site Concentration (µg/mL)&#39;</span><span class="p">)</span>
-<span class="n">ax3</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Time (min)&#39;</span><span class="p">)</span>
-
-<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initial BIS: </span><span class="si">{</span><span class="n">bis</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Final BIS: </span><span class="si">{</span><span class="n">bis</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mean infusion rate: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">u</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> mg/kg/h&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Final effect-site concentration: </span><span class="si">{</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> µg/mL&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</details>
-<div class="cell_output docutils container">
-<img alt="_images/e797283b952764f37c5cc3cb9ba1b36fb829cf65cfa1d0a08e30de59954dc219.png" src="_images/e797283b952764f37c5cc3cb9ba1b36fb829cf65cfa1d0a08e30de59954dc219.png" />
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Initial BIS: 100.00
-Final BIS: 50.09
-Mean infusion rate: 8.85 mg/kg/h
-Final effect-site concentration: 3.40 µg/mL
-</pre></div>
-</div>
-</div>
-</div>
-</section>
-<section id="computational-efficiency-improvements">
-<h2><span class="section-number">9.2. </span>Computational Efficiency Improvements<a class="headerlink" href="#computational-efficiency-improvements" title="Link to this heading">#</a></h2>
-<p>One challenge of Model Predictive Control (MPC) is its computational cost. In real-time applications, such as adaptive optics, the controller may need to operate at extremely high frequencies—for example, 1000 Hz. In this scenario, the solver has just 1 millisecond to compute an optimal solution, pushing the limits of computational efficiency.</p>
-<section id="explicit-mpc">
-<h3><span class="section-number">9.2.1. </span>Explicit MPC<a class="headerlink" href="#explicit-mpc" title="Link to this heading">#</a></h3>
-<p>A potential solution to this problem is to offload some of the computational effort offline. Instead of solving the optimization problem at every time step during execution, we could attempt to <strong>precompute solutions</strong> for all potential states in advance. At first glance, this seems impractical—without leveraging specific structure or partitioning the state space intelligently, precomputing solutions for every possible state would be infeasible. However, with the right techniques, this approach becomes viable.</p>
-<p>This is the essence of <strong>explicit MPC</strong>, which hinges on a subfield of mathematical programming known as multi-parametric (or simply parametric) programming.  A multiparametric programming problem can be described by the following formulation:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}
-\begin{array}{cl}
-z(\boldsymbol{\theta}) = \min_{\mathbf{x}} &amp; f(\mathbf{x}, \boldsymbol{\theta}) \\
-\text { s.t. } &amp; \mathbf{g}(\mathbf{x}, \boldsymbol{\theta}) \leq 0 \\
-&amp; \mathbf{h}(\mathbf{x}, \boldsymbol{\theta}) = 0 \\
-&amp; \mathbf{x} \in \mathbb{R}^n \\
-&amp; \boldsymbol{\theta} \in \mathbb{R}^m
-\end{array}
-\end{split}\]</div>
-<p>where:</p>
-<ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(\mathbf{x} \in \mathbb{R}^n\)</span> are the decision variables,</p></li>
-<li><p><span class="math notranslate nohighlight">\(\boldsymbol{\theta} \in \mathbb{R}^m\)</span> are the parameters,</p></li>
-<li><p><span class="math notranslate nohighlight">\(f(\mathbf{x}, \boldsymbol{\theta})\)</span> is the objective function,</p></li>
-<li><p><span class="math notranslate nohighlight">\(\mathbf{g}(\mathbf{x}, \boldsymbol{\theta}) \leq 0\)</span> and <span class="math notranslate nohighlight">\(\mathbf{h}(\mathbf{x}, \boldsymbol{\theta}) = 0\)</span> are the inequality and equality constraints, respectively.</p></li>
-</ul>
-<p>Parametric programming methods provides ways for efficiently evaluating <span class="math notranslate nohighlight">\(z(\boldsymbol{\theta})\)</span> – the <strong>value function</strong> – by leveraging the structure of the solution space. In particular, it leverages the idea that the solution space can be partitioned into <strong>critical regions</strong>—regions of the parameter space where the optimal solution structure remains unchanged. Within each region, the solution can often be expressed as a <strong>piecewise affine function</strong> of the parameters, which is easy to represent and compute offline.</p>
-<p>In trajectory optimization problems, the initial state <span class="math notranslate nohighlight">\(\boldsymbol{x}_0\)</span> can also be treated as a <strong>parameter</strong>. This transforms the problem into a parametric optimization problem, where <span class="math notranslate nohighlight">\(\boldsymbol{x}_0\)</span> defines a family of optimization problems, each yielding a different optimal solution. The relationship between the parameters and solutions can be described using two key mappings:</p>
-<ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(\boldsymbol{u}^\star(\boldsymbol{x}_0)\)</span>: The optimal control sequence as a function of the initial state.</p></li>
-<li><p><span class="math notranslate nohighlight">\(v(\boldsymbol{x}_0)\)</span>: The value function, which gives the optimal objective value for a given <span class="math notranslate nohighlight">\(\boldsymbol{x}_0\)</span>.</p></li>
-</ul>
-<p>It is therefore at this level that parametric programming methods can come into play and provide efficient methods for computing the value function offline: that is without resorting to direct calls to a nonlinear programming solver for every new <span class="math notranslate nohighlight">\(\boldsymbol{x}\)</span> encountered along a trajectory.</p>
-<section id="amortized-optimization-and-neural-networks">
-<h4><span class="section-number">9.2.1.1. </span>Amortized Optimization and Neural Networks<a class="headerlink" href="#amortized-optimization-and-neural-networks" title="Link to this heading">#</a></h4>
-<p>The idea of solving an entire family of optimization problems efficiently is not unique to parametric programming. In machine learning, <strong>amortized optimization</strong> (or <strong>amortized inference</strong>) aims to “learn to optimize” by constructing models that generalize over a family of optimization problems. This approach is particularly relevant in applications such as hyperparameter optimization, meta-learning, and probabilistic inference.</p>
-<p>In contrast to explicit MPC, which partitions the state space, amortized optimization typically uses <strong>neural networks</strong> to approximate the mapping from parameters to optimal solutions. This has led to recent explorations of <strong>amortizing NMPC (Nonlinear MPC) controllers</strong> into neural networks, blending the structure of MPC with the generalization power of neural networks. This represents a promising direction for creating efficient controllers that combine physics-based models, safety constraints, and the flexibility of learned models.</p>
-<!-- 
-As usual, the KKT conditions provide necessary conditions for optimality:
-
-1. **Stationarity**:  
-
-   $$
-   \nabla_{\mathbf{x}} f(\mathbf{x}^*, \boldsymbol{\theta}) + \sum_{i=1}^{p} \lambda_i^* \nabla_{\mathbf{x}} g_i(\mathbf{x}^*, \boldsymbol{\theta}) + \sum_{j=1}^{q} \nu_j^* \nabla_{\mathbf{x}} h_j(\mathbf{x}^*, \boldsymbol{\theta}) = 0
-   $$
-   where $\boldsymbol{\lambda}^* = (\lambda_1^*, \ldots, \lambda_p^*)$ are the Lagrange multipliers for the inequality constraints, and $\boldsymbol{\nu}^* = (\nu_1^*, \ldots, \nu_q^*)$ are the Lagrange multipliers for the equality constraints.
-
-2. **Primal Feasibility**:  
-
-   $$
-   \mathbf{g}(\mathbf{x}^*, \boldsymbol{\theta}) \leq 0, \quad \mathbf{h}(\mathbf{x}^*, \boldsymbol{\theta}) = 0
-   $$
-
-3. **Dual Feasibility**:  
-
-   $$
-   \lambda_i^* \geq 0, \quad \forall i
-   $$
-
-4. **Complementary Slackness**:  
-
-   $$
-   \lambda_i^* g_i(\mathbf{x}^*, \boldsymbol{\theta}) = 0, \quad \forall i
-   $$
-
-
-We can combine the KKT conditions into a single system of equations, denoted as $\mathbf{F}(\mathbf{x}, \boldsymbol{\lambda}, \boldsymbol{\nu}, \boldsymbol{\theta}) = \mathbf{0}$, where:
-
-$$
-\mathbf{F}(\mathbf{x}, \boldsymbol{\lambda}, \boldsymbol{\nu}, \boldsymbol{\theta}) = \begin{pmatrix}
-\nabla_{\mathbf{x}} f(\mathbf{x}, \boldsymbol{\theta}) + \sum_{i=1}^{p} \lambda_i \nabla_{\mathbf{x}} g_i(\mathbf{x}, \boldsymbol{\theta}) + \sum_{j=1}^{q} \nu_j \nabla_{\mathbf{x}} h_j(\mathbf{x}, \boldsymbol{\theta}) \\
-\mathbf{g}(\mathbf{x}, \boldsymbol{\theta}) \\
-\mathbf{h}(\mathbf{x}, \boldsymbol{\theta}) \\
-\boldsymbol{\lambda} \odot \mathbf{g}(\mathbf{x}, \boldsymbol{\theta}) \\
-\min(\boldsymbol{\lambda}, \mathbf{0})
-\end{pmatrix} = \mathbf{0}
-$$
-
-Here, $\mathbf{F}(\mathbf{x}, \boldsymbol{\lambda}, \boldsymbol{\nu}, \boldsymbol{\theta}) = \mathbf{0}$ encapsulates the stationarity, primal feasibility, dual feasibility, and complementary slackness conditions. The symbol $\odot$ represents the element-wise product for the complementary slackness condition. -->
-</section>
-</section>
-<section id="warmstarting-and-predictor-corrector-mpc">
-<h3><span class="section-number">9.2.2. </span>Warmstarting and Predictor-Corrector MPC<a class="headerlink" href="#warmstarting-and-predictor-corrector-mpc" title="Link to this heading">#</a></h3>
-<p>Another way in which we can speed up NMPC is by providing good initial guesses for the solver. When solving a series of optimization problems along a trajectory, it is likely that the solution to previous problem might be close to that of the current one. Hence, as a heuristic it often makes sense to “warmstart” from the previous solution.</p>
-<p>Another alternative is to extrapolate what the next solution ought to be based on the previous one. What we mean here is that rather than simply using the last solution as a guess for that of the current problem, we leverage the “sensitivity information” around the last solution to make a guess about where we might be going. This idea is reminiscent of predictor-corrector schemes which we have briefly discussed in the first chapter.</p>
-<p>To implement a predictor corrector MPC scheme, we need to understand how the optimal solution <span class="math notranslate nohighlight">\(\mathbf{x}^*(\boldsymbol{\theta})\)</span> and the value function <span class="math notranslate nohighlight">\(z(\boldsymbol{\theta})\)</span> change as the parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> vary. We achieve this by applying the <strong>implicit function theorem</strong> to the <strong>KKT (Karush-Kuhn-Tucker) conditions</strong> of the parametric problem. The KKT conditions for a parametric optimization problem are necessary for optimality and can be written as:</p>
-<div class="math notranslate nohighlight">
-\[
-\mathbf{F}(\mathbf{x}, \boldsymbol{\lambda}, \boldsymbol{\nu}, \boldsymbol{\theta}) = 0,
-\]</div>
-<p>where <span class="math notranslate nohighlight">\(\mathbf{F}\)</span> encapsulates the stationarity, primal feasibility, dual feasibility, and complementary slackness conditions from the KKT theorem. By treating <span class="math notranslate nohighlight">\(\mathbf{x}\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}\)</span>, and <span class="math notranslate nohighlight">\(\boldsymbol{\nu}\)</span> as functions of the parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span>, the implicit function theorem guarantees that, under certain regularity conditions, these optimal variables are <strong>continuously differentiable</strong> with respect to <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span>. This allows us to compute <strong>sensitivity derivatives</strong>, which describe how small changes in <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> affect the optimal solution.</p>
-<p>By leveraging this sensitivity information, we can predict changes in the optimal solution and “warm-start” the optimization process at the next time step in MPC. This concept is related to <strong>numerical continuation</strong>, where a complex optimization problem is solved by gradually transforming a simpler, well-understood problem into the more difficult one.</p>
-</section>
-</section>
-</section>
-<section class="tex2jax_ignore mathjax_ignore" id="principle-of-optimality">
-<h1><span class="section-number">10. </span>Principle of Optimality<a class="headerlink" href="#principle-of-optimality" title="Link to this heading">#</a></h1>
+<h1><span class="section-number">10. </span>Dynamic Programming<a class="headerlink" href="#dynamic-programming" title="Link to this heading">#</a></h1>
 <p>Unlike the methods we’ve discussed so far, dynamic programming takes a step back and considers not just a single optimization problem, but an entire family of related problems. This approach, while seemingly more complex at first glance, can often lead to efficient solutions.</p>
 <p>Dynamic programming leverage the solution structure underlying many control problems that allows for a decomposition it into smaller, more manageable subproblems. Each subproblem is itself an optimization problem, embedded within the larger whole. This recursive structure is the foundation upon which dynamic programming constructs its solutions.</p>
 <p>To ground our discussion, let us return to the domain of discrete-time optimal control problems (DOCPs). These problems frequently arise from the discretization of continuous-time optimal control problems. While the focus here will be on deterministic problems, it is worth noting that these concepts extend naturally to stochastic problems by taking the expectation over the random quantities.</p>
@@ -826,7 +463,7 @@ Here, $\mathbf{F}(\mathbf{x}, \boldsymbol{\lambda}, \boldsymbol{\nu}, \boldsymbo
 <div class="math notranslate nohighlight">
 \[\begin{split}
 \begin{align*}
-\text{minimize} \quad &amp; J \triangleq c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t, \mathbf{u}_t) \\
+\text{minimize} \quad &amp; J \triangleq c_\mathrm{T}(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t, \mathbf{u}_t) \\
 \text{subject to} \quad 
 &amp; \mathbf{x}_{t+1} = \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t), \quad t = 1, \ldots, T-1, \\
 &amp; \mathbf{u}_{lb} \leq \mathbf{u}_t \leq \mathbf{u}_{ub}, \quad t = 1, \ldots, T, \\
@@ -837,7 +474,7 @@ Here, $\mathbf{F}(\mathbf{x}, \boldsymbol{\lambda}, \boldsymbol{\nu}, \boldsymbo
 <p>Rather than considering only the total cost from the initial time to the final time, dynamic programming introduces the concept of cost from an arbitrary point in time to the end. This leads to the definition of the “cost-to-go” or “value function” <span class="math notranslate nohighlight">\(J_k(\mathbf{x}_k)\)</span>:</p>
 <div class="math notranslate nohighlight">
 \[
-J_k(\mathbf{x}_k) \triangleq c_T(\mathbf{x}_T) + \sum_{t=k}^{T-1} c_t(\mathbf{x}_t, \mathbf{u}_t)
+J_k(\mathbf{x}_k) \triangleq c_\mathrm{T}(\mathbf{x}_T) + \sum_{t=k}^{T-1} c_t(\mathbf{x}_t, \mathbf{u}_t)
 \]</div>
 <p>This function represents the total cost incurred from stage <span class="math notranslate nohighlight">\(k\)</span> onwards to the end of the time horizon, given that the system is initialized in state <span class="math notranslate nohighlight">\(\mathbf{x}_k\)</span> at stage <span class="math notranslate nohighlight">\(k\)</span>. Suppose the problem has been solved from stage <span class="math notranslate nohighlight">\(k+1\)</span> to the end, yielding the optimal cost-to-go <span class="math notranslate nohighlight">\(J_{k+1}^\star(\mathbf{x}_{k+1})\)</span> for any state <span class="math notranslate nohighlight">\(\mathbf{x}_{k+1}\)</span> at stage <span class="math notranslate nohighlight">\(k+1\)</span>. The question then becomes: how does this information inform the decision at stage <span class="math notranslate nohighlight">\(k\)</span>?</p>
 <p>Given knowledge of the optimal behavior from <span class="math notranslate nohighlight">\(k+1\)</span> onwards, the task reduces to determining the optimal action <span class="math notranslate nohighlight">\(\mathbf{u}_k\)</span> at stage <span class="math notranslate nohighlight">\(k\)</span>. This control should minimize the sum of the immediate cost <span class="math notranslate nohighlight">\(c_k(\mathbf{x}_k, \mathbf{u}_k)\)</span> and the optimal future cost <span class="math notranslate nohighlight">\(J_{k+1}^\star(\mathbf{x}_{k+1})\)</span>, where <span class="math notranslate nohighlight">\(\mathbf{x}_{k+1}\)</span> is the resulting state after applying action <span class="math notranslate nohighlight">\(\mathbf{u}_k\)</span>. Mathematically, this is expressed as:</p>
@@ -858,10 +495,10 @@ J_k^\star(\mathbf{x}_k) = \min_{\mathbf{u}_k} \left[ c_k(\mathbf{x}_k, \mathbf{u
 <div class="proof algorithm admonition" id="backward-recursion">
 <p class="admonition-title"><span class="caption-number">Algorithm 10.1 </span> (Backward Recursion for Dynamic Programming)</p>
 <section class="algorithm-content" id="proof-content">
-<p><strong>Input:</strong> Terminal cost function <span class="math notranslate nohighlight">\(c_T(\cdot)\)</span>, stage cost functions <span class="math notranslate nohighlight">\(c_t(\cdot, \cdot)\)</span>, system dynamics <span class="math notranslate nohighlight">\(f_t(\cdot, \cdot)\)</span>, time horizon <span class="math notranslate nohighlight">\(T\)</span></p>
+<p><strong>Input:</strong> Terminal cost function <span class="math notranslate nohighlight">\(c_\mathrm{T}(\cdot)\)</span>, stage cost functions <span class="math notranslate nohighlight">\(c_t(\cdot, \cdot)\)</span>, system dynamics <span class="math notranslate nohighlight">\(f_t(\cdot, \cdot)\)</span>, time horizon <span class="math notranslate nohighlight">\(\mathrm{T}\)</span></p>
 <p><strong>Output:</strong> Optimal value functions <span class="math notranslate nohighlight">\(J_t^\star(\cdot)\)</span> and optimal control policies <span class="math notranslate nohighlight">\(\mu_t^\star(\cdot)\)</span> for <span class="math notranslate nohighlight">\(t = 1, \ldots, T\)</span></p>
 <ol class="arabic simple">
-<li><p>Initialize <span class="math notranslate nohighlight">\(J_T^\star(\mathbf{x}) = c_T(\mathbf{x})\)</span> for all <span class="math notranslate nohighlight">\(\mathbf{x}\)</span> in the state space</p></li>
+<li><p>Initialize <span class="math notranslate nohighlight">\(J_T^\star(\mathbf{x}) = c_\mathrm{T}(\mathbf{x})\)</span> for all <span class="math notranslate nohighlight">\(\mathbf{x}\)</span> in the state space</p></li>
 <li><p>For <span class="math notranslate nohighlight">\(t = T-1, T-2, \ldots, 1\)</span>:</p>
 <ol class="arabic simple">
 <li><p>For each state <span class="math notranslate nohighlight">\(\mathbf{x}\)</span> in the state space:</p>
@@ -878,15 +515,14 @@ J_k^\star(\mathbf{x}_k) = \min_{\mathbf{u}_k} \left[ c_k(\mathbf{x}_k, \mathbf{u
 </ol>
 </section>
 </div><p>Upon completion of this backward pass, we now have access to the optimal control to take at any stage and in any state. Furthermore, we can simulate optimal trajectories from any initial state and applying the optimal policy at each stage to generate the optimal trajectory.</p>
-</section>
 <section id="example-optimal-harvest-in-resource-management">
-<h2><span class="section-number">10.2. </span>Example: Optimal Harvest in Resource Management<a class="headerlink" href="#example-optimal-harvest-in-resource-management" title="Link to this heading">#</a></h2>
-<p>Dynamic programming is often used in resource management and conservation biology to devise policies to be implemented by decision makers and stakeholders : for eg. in fishereries, or timber harvesting. Per <span id="id2">[<a class="reference internal" href="bibliography.html#id22" title="Michael J. Conroy and James T. Peterson. Decision Making in Natural Resource Management: A Structured, Adaptive Approach: A Structured, Adaptive Approach. Wiley, January 2013. ISBN 9781118506196. URL: http://dx.doi.org/10.1002/9781118506196, doi:10.1002/9781118506196.">5</a>]</span>, we consider a population of a particular species, whose abundance we denote by <span class="math notranslate nohighlight">\(x_t\)</span>, where <span class="math notranslate nohighlight">\(t\)</span> represents discrete time steps. Our objective is to maximize the cumulative harvest over a finite time horizon, while also considering the long-term sustainability of the population. This optimization problem can be formulated as:</p>
+<h3><span class="section-number">10.1.1. </span>Example: Optimal Harvest in Resource Management<a class="headerlink" href="#example-optimal-harvest-in-resource-management" title="Link to this heading">#</a></h3>
+<p>Dynamic programming is often used in resource management and conservation biology to devise policies to be implemented by decision makers and stakeholders : for eg. in fishereries, or timber harvesting. Per <span id="id1">[<a class="reference internal" href="bibliography.html#id22" title="Michael J. Conroy and James T. Peterson. Decision Making in Natural Resource Management: A Structured, Adaptive Approach: A Structured, Adaptive Approach. Wiley, January 2013. ISBN 9781118506196. URL: http://dx.doi.org/10.1002/9781118506196, doi:10.1002/9781118506196.">5</a>]</span>, we consider a population of a particular species, whose abundance we denote by <span class="math notranslate nohighlight">\(x_t\)</span>, where <span class="math notranslate nohighlight">\(t\)</span> represents discrete time steps. Our objective is to maximize the cumulative harvest over a finite time horizon, while also considering the long-term sustainability of the population. This optimization problem can be formulated as:</p>
 <div class="math notranslate nohighlight">
 \[
-\text{maximize} \quad \sum_{t=t_0}^{t_f} F(x_t \cdot h_t) + F_T(x_{t_f})
+\text{maximize} \quad \sum_{t=t_0}^{t_f} F(x_t \cdot h_t) + F_\mathrm{T}(x_{t_f})
 \]</div>
-<p>Here, <span class="math notranslate nohighlight">\(F(\cdot)\)</span> represents the immediate reward function associated with harvesting, <span class="math notranslate nohighlight">\(h_t\)</span> is the harvest rate at time <span class="math notranslate nohighlight">\(t\)</span>, and <span class="math notranslate nohighlight">\(F_T(\cdot)\)</span> denotes a terminal value function that could potentially assign value to the final population state. In this particular problem, we assign no terminal value to the final population state, setting <span class="math notranslate nohighlight">\(F_T(x_{t_f}) = 0\)</span> and allowing us to focus solely on the cumulative harvest over the time horizon.</p>
+<p>Here, <span class="math notranslate nohighlight">\(F(\cdot)\)</span> represents the immediate reward function associated with harvesting, <span class="math notranslate nohighlight">\(h_t\)</span> is the harvest rate at time <span class="math notranslate nohighlight">\(t\)</span>, and <span class="math notranslate nohighlight">\(F_\mathrm{T}(\cdot)\)</span> denotes a terminal value function that could potentially assign value to the final population state. In this particular problem, we assign no terminal value to the final population state, setting <span class="math notranslate nohighlight">\(F_\mathrm{T}(x_{t_f}) = 0\)</span> and allowing us to focus solely on the cumulative harvest over the time horizon.</p>
 <p>In our model population model, the abundance of a specicy <span class="math notranslate nohighlight">\(x\)</span> ranges from 1 to 100 individuals. The decision variable is the harvest rate <span class="math notranslate nohighlight">\(h\)</span>, which can take values from the set <span class="math notranslate nohighlight">\(D = \{0, 0.1, 0.2, 0.3, 0.4, 0.5\}\)</span>. The population dynamics are governed by a modified logistic growth model:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1014,8 +650,9 @@ Total harvest: 212.66322943492608
 </div>
 </div>
 </section>
+</section>
 <section id="discretization-and-interpolation">
-<h2><span class="section-number">10.3. </span>Discretization and Interpolation<a class="headerlink" href="#discretization-and-interpolation" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">10.2. </span>Discretization and Interpolation<a class="headerlink" href="#discretization-and-interpolation" title="Link to this heading">#</a></h2>
 <p>In many real-world problems, such as our resource management example, the state space is inherently continuous. However, the dynamic programming algorithm we’ve discussed operates on discrete state spaces. To bridge this gap, we have two main approaches: discretization and interpolation. In the previous example, we used a discretization method by rounding off values to the nearest grid point.</p>
 <p>In our idealized models, we imagined population sizes as whole numbers—1 fish, 2 fish, 3 fish—but nature rarely conforms to such simplicity. What do you do when your survey reports 42.7 fish, for example? Without much explanation, our reflex in the previous example was to simply round things off. After all, what’s the harm in calling 42.7 fish just 43? This approach, known as discretization, is the simplest way to handle continuous states. It’s like overlaying a grid on a smooth landscape and only allowing yourself to stand at the intersections. In our demo code, we implemented this step via the <a class="reference external" href="https://numpy.org/doc/2.0/reference/generated/numpy.searchsorted.html">numpy.searchsorted</a> function.</p>
 <p>Discretization is straightforward and allows you to apply dynamic programming algorithms directly. For many problems, it might even be sufficient. However, as you might imagine from the various time discretization schemes we’ve encountered in trajectory optimization, we can do better. Specifically, we want to address the following issues:</p>
@@ -1026,7 +663,7 @@ Total harvest: 212.66322943492608
 </ol>
 <p>Rather than confining ourselves to grid intersections as we did with basic discretization, we can estimate the value between them via interpolation. When you encounter a state that doesn’t exactly match a grid point—like that population of 42.7 fish—you can estimate its value based on nearby points you’ve already calculated. In its simplest form, we could use linear interpolation. Intuitively, it’s like estimating the height of a hill between two surveyed points by drawing a straight line between them. Let’s formalize this approach in the context of the backward induction procedure.</p>
 <section id="backward-recursion-with-interpolation">
-<h3><span class="section-number">10.3.1. </span>Backward Recursion with Interpolation<a class="headerlink" href="#backward-recursion-with-interpolation" title="Link to this heading">#</a></h3>
+<h3><span class="section-number">10.2.1. </span>Backward Recursion with Interpolation<a class="headerlink" href="#backward-recursion-with-interpolation" title="Link to this heading">#</a></h3>
 <p>In a continuous state space, we don’t have <span class="math notranslate nohighlight">\(J_{k+1}^\star(\mathbf{x}_{k+1})\)</span> directly available for all possible <span class="math notranslate nohighlight">\(\mathbf{x}_{k+1}\)</span>. Instead, we have <span class="math notranslate nohighlight">\(J_{k+1}^\star(\mathbf{x})\)</span> for a set of discrete grid points <span class="math notranslate nohighlight">\(\mathbf{x} \in \mathcal{X}_\text{grid}\)</span>. We use interpolation to estimate <span class="math notranslate nohighlight">\(J_{k+1}^\star(\mathbf{x}_{k+1})\)</span> for any <span class="math notranslate nohighlight">\(\mathbf{x}_{k+1}\)</span> not in <span class="math notranslate nohighlight">\(\mathcal{X}_\text{grid}\)</span>.</p>
 <p>Let’s define an interpolation function <span class="math notranslate nohighlight">\(I_{k+1}(\mathbf{x})\)</span> that estimates <span class="math notranslate nohighlight">\(J_{k+1}^\star(\mathbf{x})\)</span> for any <span class="math notranslate nohighlight">\(\mathbf{x}\)</span> based on the known values at grid points. Then, we can express Bellman’s equation with interpolation as:</p>
 <div class="math notranslate nohighlight">
@@ -1045,16 +682,16 @@ I_{k+1}(x) = J_{k+1}^\star(x_l) + \frac{x - x_l}{x_u - x_l} \left(J_{k+1}^\star(
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong></p>
 <ul class="simple">
-<li><p>Terminal cost function <span class="math notranslate nohighlight">\(c_T(\cdot)\)</span></p></li>
+<li><p>Terminal cost function <span class="math notranslate nohighlight">\(c_\mathrm{T}(\cdot)\)</span></p></li>
 <li><p>Stage cost functions <span class="math notranslate nohighlight">\(c_t(\cdot, \cdot)\)</span></p></li>
 <li><p>System dynamics <span class="math notranslate nohighlight">\(f_t(\cdot, \cdot)\)</span></p></li>
-<li><p>Time horizon <span class="math notranslate nohighlight">\(T\)</span></p></li>
+<li><p>Time horizon <span class="math notranslate nohighlight">\(\mathrm{T}\)</span></p></li>
 <li><p>Grid of state points <span class="math notranslate nohighlight">\(\mathcal{X}_\text{grid}\)</span></p></li>
 <li><p>Set of possible actions <span class="math notranslate nohighlight">\(\mathcal{U}\)</span></p></li>
 </ul>
 <p><strong>Output:</strong> Optimal value functions <span class="math notranslate nohighlight">\(J_t^\star(\cdot)\)</span> and optimal control policies <span class="math notranslate nohighlight">\(\mu_t^\star(\cdot)\)</span> for <span class="math notranslate nohighlight">\(t = 1, \ldots, T\)</span> at grid points</p>
 <ol class="arabic simple">
-<li><p>Initialize <span class="math notranslate nohighlight">\(J_T^\star(\mathbf{x}) = c_T(\mathbf{x})\)</span> for all <span class="math notranslate nohighlight">\(\mathbf{x} \in \mathcal{X}_\text{grid}\)</span></p></li>
+<li><p>Initialize <span class="math notranslate nohighlight">\(J_T^\star(\mathbf{x}) = c_\mathrm{T}(\mathbf{x})\)</span> for all <span class="math notranslate nohighlight">\(\mathbf{x} \in \mathcal{X}_\text{grid}\)</span></p></li>
 <li><p>For <span class="math notranslate nohighlight">\(t = T-1, T-2, \ldots, 1\)</span>:</p>
 <ol class="arabic simple">
 <li><p>For each state <span class="math notranslate nohighlight">\(\mathbf{x} \in \mathcal{X}_\text{grid}\)</span>:</p>
@@ -1082,15 +719,11 @@ I_{k+1}(x) = J_{k+1}^\star(x_l) + \frac{x - x_l}{x_u - x_l} \left(J_{k+1}^\star(
 <li><p>Return <span class="math notranslate nohighlight">\(J_t^\star(\cdot)\)</span>, <span class="math notranslate nohighlight">\(\mu_t^\star(\cdot)\)</span> for <span class="math notranslate nohighlight">\(t = 1, \ldots, T\)</span></p></li>
 </ol>
 </section>
-</div></section>
-<section id="implementation-considerations">
-<h3><span class="section-number">10.3.2. </span>Implementation Considerations<a class="headerlink" href="#implementation-considerations" title="Link to this heading">#</a></h3>
-<p>The choice of interpolation method can significantly affect the accuracy of the solution. Linear interpolation is simple and often effective, but higher-order methods like cubic spline interpolation might provide better results in some problems. Furthermore, the layout and density of the grid points in <span class="math notranslate nohighlight">\(\mathcal{X}_\text{grid}\)</span> can impact both the accuracy and computational efficiency. A finer grid generally provides better accuracy but increases computational cost. To balance this tradeoff, you might consider techniques like adaptive grid refinement or function approximation methods instead of fixed grid-based interpolation. Special care may also be needed for states near the boundaries, where interpolation might not be possible in all directions.</p>
+</div><p>The choice of interpolation method can significantly affect the accuracy of the solution. Linear interpolation is simple and often effective, but higher-order methods like cubic spline interpolation might provide better results in some problems. Furthermore, the layout and density of the grid points in <span class="math notranslate nohighlight">\(\mathcal{X}_\text{grid}\)</span> can impact both the accuracy and computational efficiency. A finer grid generally provides better accuracy but increases computational cost. To balance this tradeoff, you might consider techniques like adaptive grid refinement or function approximation methods instead of fixed grid-based interpolation. Special care may also be needed for states near the boundaries, where interpolation might not be possible in all directions.</p>
 <p>While simple to implement, interpolation methods scale poorly in multi-dimensional spaces in terms of computational complexity. Techniques like multilinear interpolation with tensorized representations or more advanced methods like radial basis function interpolation might be necessary.</p>
 <p>To better address this computational challenge, we will broaden our perspective through the lens of numerical approximation methods for solving functional operator equations. Polynomial interpolation is a form of approximation, with properties akin to generalization in machine learning. By building these connections, we will develop techniques capable of more robustly handling the curse of dimensionality by leveraging the generalization properties of machine learning models, and the “blessing of randomness” inherent in supervised learning and Monte Carlo methods.</p>
-</section>
 <section id="example-optimal-harvest-with-linear-interpolation">
-<h3><span class="section-number">10.3.3. </span>Example: Optimal Harvest with Linear Interpolation<a class="headerlink" href="#example-optimal-harvest-with-linear-interpolation" title="Link to this heading">#</a></h3>
+<h4><span class="section-number">10.2.1.1. </span>Example: Optimal Harvest with Linear Interpolation<a class="headerlink" href="#example-optimal-harvest-with-linear-interpolation" title="Link to this heading">#</a></h4>
 <p>Here is a demonstration of the backward recursion procedure using linear interpolation.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="hide above-input">
@@ -1367,85 +1000,99 @@ Total harvest: 213.18951156269057
 </div>
 </div>
 </div>
-</section>
-</section>
-<section id="linear-quadratic-regulator-via-dynamic-programming">
-<h2><span class="section-number">10.4. </span>Linear Quadratic Regulator via Dynamic Programming<a class="headerlink" href="#linear-quadratic-regulator-via-dynamic-programming" title="Link to this heading">#</a></h2>
-<p>Let us now consider a special case of our dynamic programming formulation: the discrete-time Linear Quadratic Regulator (LQR) problem. This example will illustrate how the structure of linear dynamics and quadratic costs leads to a particularly elegant form of the backward recursion.</p>
-<p>Consider a linear time-invariant system with dynamics:</p>
-<div class="math notranslate nohighlight">
-\[
+<!-- ## Linear Quadratic Regulator via Dynamic Programming
+
+Let us now consider a special case of our dynamic programming formulation: the discrete-time Linear Quadratic Regulator (LQR) problem. This example will illustrate how the structure of linear dynamics and quadratic costs leads to a particularly elegant form of the backward recursion.
+
+Consider a linear time-invariant system with dynamics:
+
+$$
 \mathbf{x}_{t+1} = A\mathbf{x}_t + B\mathbf{u}_t
-\]</div>
-<p>where <span class="math notranslate nohighlight">\(\mathbf{x}_t \in \mathbb{R}^n\)</span> is the state and <span class="math notranslate nohighlight">\(\mathbf{u}_t \in \mathbb{R}^m\)</span> is the control input.<br />
-The cost function to be minimized is quadratic:</p>
-<div class="math notranslate nohighlight">
-\[
+$$
+
+where $\mathbf{x}_t \in \mathbb{R}^n$ is the state and $\mathbf{u}_t \in \mathbb{R}^m$ is the control input.  
+The cost function to be minimized is quadratic:
+
+$$
 J = \frac{1}{2}\mathbf{x}_T^\top S_T \mathbf{x}_T + \frac{1}{2}\sum_{t=0}^{T-1} \left(\mathbf{x}_t^\top Q \mathbf{x}_t + \mathbf{u}_t^\top R \mathbf{u}_t\right)
-\]</div>
-<p>where <span class="math notranslate nohighlight">\(S_T \geq 0\)</span>, <span class="math notranslate nohighlight">\(Q \geq 0\)</span>, and <span class="math notranslate nohighlight">\(R &gt; 0\)</span> are symmetric matrices of appropriate dimensions.<br />
-Our goal is to find the optimal control sequence <span class="math notranslate nohighlight">\(\mathbf{u}_t^*\)</span> that minimizes <span class="math notranslate nohighlight">\(J\)</span> over a fixed time horizon <span class="math notranslate nohighlight">\([0, T]\)</span>, given an initial state <span class="math notranslate nohighlight">\(\mathbf{x}_0\)</span>.</p>
-<p>Let’s apply the principle of optimality to derive the backward recursion for this problem. We’ll start at the final time step and work our way backward.</p>
-<p>At <span class="math notranslate nohighlight">\(t = T\)</span>, the terminal cost is given by:</p>
-<div class="math notranslate nohighlight">
-\[
+$$
+
+where $S_T \geq 0$, $Q \geq 0$, and $R > 0$ are symmetric matrices of appropriate dimensions.  
+Our goal is to find the optimal control sequence $\mathbf{u}_t^*$ that minimizes $J$ over a fixed time horizon $[0, T]$, given an initial state $\mathbf{x}_0$.
+
+Let's apply the principle of optimality to derive the backward recursion for this problem. We'll start at the final time step and work our way backward.
+
+At $t = T$, the terminal cost is given by:
+
+$$
 J_T^*(\mathbf{x}_T) = \frac{1}{2}\mathbf{x}_T^\top S_T \mathbf{x}_T
-\]</div>
-<p>At <span class="math notranslate nohighlight">\(t = T-1\)</span>, the cost-to-go is:</p>
-<div class="math notranslate nohighlight">
-\[
+$$
+
+At $t = T-1$, the cost-to-go is:
+
+$$
 J_{T-1}(\mathbf{x}_{T-1}, \mathbf{u}_{T-1}) = \frac{1}{2}\mathbf{x}_{T-1}^\top Q \mathbf{x}_{T-1} + \frac{1}{2}\mathbf{u}_{T-1}^\top R \mathbf{u}_{T-1} + J_T^*(\mathbf{x}_T)
-\]</div>
-<p>Substituting the dynamics equation:</p>
-<div class="math notranslate nohighlight">
-\[
+$$
+
+Substituting the dynamics equation:
+
+$$
 J_{T-1} = \frac{1}{2}\mathbf{x}_{T-1}^\top Q \mathbf{x}_{T-1} + \frac{1}{2}\mathbf{u}_{T-1}^\top R \mathbf{u}_{T-1} + \frac{1}{2}(A\mathbf{x}_{T-1} + B\mathbf{u}_{T-1})^\top S_T (A\mathbf{x}_{T-1} + B\mathbf{u}_{T-1})
-\]</div>
-<p>To find the optimal control, we differentiate with respect to <span class="math notranslate nohighlight">\(\mathbf{u}_{T-1}\)</span> and set it to zero:</p>
-<div class="math notranslate nohighlight">
-\[
+$$
+
+To find the optimal control, we differentiate with respect to $\mathbf{u}_{T-1}$ and set it to zero:
+
+$$
 \frac{\partial J_{T-1}}{\partial \mathbf{u}_{T-1}} = R\mathbf{u}_{T-1} + B^\top S_T (A\mathbf{x}_{T-1} + B\mathbf{u}_{T-1}) = 0
-\]</div>
-<p>Solving for <span class="math notranslate nohighlight">\(\mathbf{u}_{T-1}^*\)</span>:</p>
-<div class="math notranslate nohighlight">
-\[
+$$
+
+Solving for $\mathbf{u}_{T-1}^*$:
+
+$$
 \mathbf{u}_{T-1}^* = -(R + B^\top S_T B)^{-1}B^\top S_T A\mathbf{x}_{T-1}
-\]</div>
-<p>We can define the gain matrix:</p>
-<div class="math notranslate nohighlight">
-\[
+$$
+
+We can define the gain matrix:
+
+$$
 K_{T-1} = (R + B^\top S_T B)^{-1}B^\top S_T A
-\]</div>
-<p>So that <span class="math notranslate nohighlight">\(\mathbf{u}_{T-1}^* = -K_{T-1}\mathbf{x}_{T-1}\)</span>. The optimal cost-to-go at <span class="math notranslate nohighlight">\(T-1\)</span> is then:</p>
-<div class="math notranslate nohighlight">
-\[
+$$
+
+So that $\mathbf{u}_{T-1}^* = -K_{T-1}\mathbf{x}_{T-1}$. The optimal cost-to-go at $T-1$ is then:
+
+$$
 J_{T-1}^*(\mathbf{x}_{T-1}) = \frac{1}{2}\mathbf{x}_{T-1}^\top S_{T-1} \mathbf{x}_{T-1}
-\]</div>
-<p>Where <span class="math notranslate nohighlight">\(S_{T-1}\)</span> is given by:</p>
-<div class="math notranslate nohighlight">
-\[
+$$
+
+Where $S_{T-1}$ is given by:
+
+$$
 S_{T-1} = Q + A^\top S_T A - A^\top S_T B(R + B^\top S_T B)^{-1}B^\top S_T A
-\]</div>
-<p>Continuing this process backward in time, we find that for any <span class="math notranslate nohighlight">\(t\)</span>:</p>
-<div class="math notranslate nohighlight">
-\[
+$$
+
+Continuing this process backward in time, we find that for any $t$:
+
+$$
 \mathbf{u}_t^* = -K_t\mathbf{x}_t
-\]</div>
-<p>Where:</p>
-<div class="math notranslate nohighlight">
-\[
+$$
+
+Where:
+
+$$
 K_t = (R + B^\top S_{t+1} B)^{-1}B^\top S_{t+1} A
-\]</div>
-<p>And the optimal cost-to-go is:</p>
-<div class="math notranslate nohighlight">
-\[
+$$
+
+And the optimal cost-to-go is:
+
+$$
 J_t^*(\mathbf{x}_t) = \frac{1}{2}\mathbf{x}_t^\top S_t \mathbf{x}_t
-\]</div>
-<p>Where <span class="math notranslate nohighlight">\(S_t\)</span> satisfies the so-called discrete-time Riccati equation:</p>
-<div class="math notranslate nohighlight">
-\[
+$$
+
+Where $S_t$ satisfies the so-called discrete-time Riccati equation:
+
+$$
 S_t = Q + A^\top S_{t+1} A - A^\top S_{t+1} B(R + B^\top S_{t+1} B)^{-1}B^\top S_{t+1} A
-\]</div>
+$$ -->
 <!-- 
 ### Example: Linear Quadratic Regulation of a Liquid Tank 
 
@@ -1505,7 +1152,7 @@ Where $x_{1,ref}$ is the reference liquid level and $r$ is a positive weight on 
 
 To put this in standard discrete-time LQR form, we rewrite the cost function as:
 
-$J = \sum_{k=0}^{\infty} \left( x^T(k)Qx(k) + ru^2(k) \right)$
+$J = \sum_{k=0}^{\infty} \left( x^\mathrm{T}(k)Qx(k) + ru^2(k) \right)$
 
 Where:
 
@@ -1532,8 +1179,11 @@ This formulation ensures that:
 
 By tuning the weight $r$ and the sampling time $T_s$, we can balance the trade-off between maintaining the desired liquid level, the amount of control effort used, and the responsiveness of the system. -->
 </section>
-<section id="stochastic-dynamic-programming">
-<h2><span class="section-number">10.5. </span>Stochastic Dynamic Programming<a class="headerlink" href="#stochastic-dynamic-programming" title="Link to this heading">#</a></h2>
+</section>
+</section>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="stochastic-dynamic-programming-in-control-theory">
+<h1><span class="section-number">11. </span>Stochastic Dynamic Programming in Control Theory<a class="headerlink" href="#stochastic-dynamic-programming-in-control-theory" title="Link to this heading">#</a></h1>
 <p>While our previous discussion centered on deterministic systems, many real-world problems involve uncertainty. Stochastic Dynamic Programming (SDP) extends our framework to handle stochasticity in both the objective function and system dynamics.</p>
 <p>In the stochastic setting, our system evolution takes the form:</p>
 <div class="math notranslate nohighlight">
@@ -1543,7 +1193,7 @@ By tuning the weight $r$ and the sampling time $T_s$, we can balance the trade-o
 \[ c_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w}_t) \]</div>
 <p>In this context, our objective shifts from minimizing a deterministic cost to minimizing the expected total cost:</p>
 <div class="math notranslate nohighlight">
-\[ \mathbb{E}\left[c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w}_t)\right] \]</div>
+\[ \mathbb{E}\left[c_\mathrm{T}(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w}_t)\right] \]</div>
 <p>where the expectation is taken over the distributions of the random variables <span class="math notranslate nohighlight">\(\mathbf{w}_t\)</span>. The principle of optimality still holds in the stochastic case, but Bellman’s optimality equation now involves an expectation:</p>
 <div class="math notranslate nohighlight">
 \[ J_k^\star(\mathbf{x}_k) = \min_{\mathbf{u}_k} \mathbb{E}_{\mathbf{w}_k}\left[c_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k) + J_{k+1}^\star(\mathbf{f}_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k))\right] \]</div>
@@ -1552,12 +1202,12 @@ By tuning the weight $r$ and the sampling time $T_s$, we can balance the trade-o
 \[ J_k^\star(\mathbf{x}_k) = \min_{\mathbf{u}_k} \sum_{i=1}^K p_k^i \left(c_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k^i) + J_{k+1}^\star(\mathbf{f}_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k^i))\right) \]</div>
 <p>The backward recursion algorithm for SDP follows a similar structure to its deterministic counterpart, with the key difference being that we now have to compute expected values:</p>
 <div class="proof algorithm admonition" id="stochastic-backward-recursion">
-<p class="admonition-title"><span class="caption-number">Algorithm 10.3 </span> (Backward Recursion for Stochastic Dynamic Programming)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 11.1 </span> (Backward Recursion for Stochastic Dynamic Programming)</p>
 <section class="algorithm-content" id="proof-content">
-<p><strong>Input:</strong> Terminal cost function <span class="math notranslate nohighlight">\(c_T(\cdot)\)</span>, stage cost functions <span class="math notranslate nohighlight">\(c_t(\cdot, \cdot, \cdot)\)</span>, system dynamics <span class="math notranslate nohighlight">\(\mathbf{f}_t(\cdot, \cdot, \cdot)\)</span>, time horizon <span class="math notranslate nohighlight">\(T\)</span>, disturbance distributions</p>
+<p><strong>Input:</strong> Terminal cost function <span class="math notranslate nohighlight">\(c_\mathrm{T}(\cdot)\)</span>, stage cost functions <span class="math notranslate nohighlight">\(c_t(\cdot, \cdot, \cdot)\)</span>, system dynamics <span class="math notranslate nohighlight">\(\mathbf{f}_t(\cdot, \cdot, \cdot)\)</span>, time horizon <span class="math notranslate nohighlight">\(\mathrm{T}\)</span>, disturbance distributions</p>
 <p><strong>Output:</strong> Optimal value functions <span class="math notranslate nohighlight">\(J_t^\star(\cdot)\)</span> and optimal control policies <span class="math notranslate nohighlight">\(\mu_t^\star(\cdot)\)</span> for <span class="math notranslate nohighlight">\(t = 1, \ldots, T\)</span></p>
 <ol class="arabic simple">
-<li><p>Initialize <span class="math notranslate nohighlight">\(J_T^\star(\mathbf{x}) = c_T(\mathbf{x})\)</span> for all <span class="math notranslate nohighlight">\(\mathbf{x}\)</span> in the state space</p></li>
+<li><p>Initialize <span class="math notranslate nohighlight">\(J_T^\star(\mathbf{x}) = c_\mathrm{T}(\mathbf{x})\)</span> for all <span class="math notranslate nohighlight">\(\mathbf{x}\)</span> in the state space</p></li>
 <li><p>For <span class="math notranslate nohighlight">\(t = T-1, T-2, \ldots, 1\)</span>:</p>
 <ol class="arabic simple">
 <li><p>For each state <span class="math notranslate nohighlight">\(\mathbf{x}\)</span> in the state space:</p>
@@ -1581,8 +1231,8 @@ By tuning the weight $r$ and the sampling time $T_s$, we can balance the trade-o
 </ol>
 <p>These two elements essentially distill the key ingredients of machine learning, which is the direction we’ll be exploring in this course.</p>
 <section id="example-stochastic-optimal-harvest-in-resource-management">
-<h3><span class="section-number">10.5.1. </span>Example: Stochastic Optimal Harvest in Resource Management<a class="headerlink" href="#example-stochastic-optimal-harvest-in-resource-management" title="Link to this heading">#</a></h3>
-<p>Building upon our previous deterministic model, we now introduce stochasticity to more accurately reflect the uncertainties inherent in real-world resource management scenarios <span id="id3">[<a class="reference internal" href="bibliography.html#id22" title="Michael J. Conroy and James T. Peterson. Decision Making in Natural Resource Management: A Structured, Adaptive Approach: A Structured, Adaptive Approach. Wiley, January 2013. ISBN 9781118506196. URL: http://dx.doi.org/10.1002/9781118506196, doi:10.1002/9781118506196.">5</a>]</span>. As before, we consider a population of a particular species, whose abundance we denote by <span class="math notranslate nohighlight">\(x_t\)</span>, where <span class="math notranslate nohighlight">\(t\)</span> represents discrete time steps. Our objective remains to maximize the cumulative harvest over a finite time horizon, while also considering the long-term sustainability of the population. However, we now account for two sources of stochasticity: partial controllability of harvest and environmental variability affecting growth rates.
+<h2><span class="section-number">11.1. </span>Example: Stochastic Optimal Harvest in Resource Management<a class="headerlink" href="#example-stochastic-optimal-harvest-in-resource-management" title="Link to this heading">#</a></h2>
+<p>Building upon our previous deterministic model, we now introduce stochasticity to more accurately reflect the uncertainties inherent in real-world resource management scenarios <span id="id2">[<a class="reference internal" href="bibliography.html#id22" title="Michael J. Conroy and James T. Peterson. Decision Making in Natural Resource Management: A Structured, Adaptive Approach: A Structured, Adaptive Approach. Wiley, January 2013. ISBN 9781118506196. URL: http://dx.doi.org/10.1002/9781118506196, doi:10.1002/9781118506196.">5</a>]</span>. As before, we consider a population of a particular species, whose abundance we denote by <span class="math notranslate nohighlight">\(x_t\)</span>, where <span class="math notranslate nohighlight">\(t\)</span> represents discrete time steps. Our objective remains to maximize the cumulative harvest over a finite time horizon, while also considering the long-term sustainability of the population. However, we now account for two sources of stochasticity: partial controllability of harvest and environmental variability affecting growth rates.
 The optimization problem can be formulated as:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1598,10 +1248,10 @@ d_t &amp; \text{with probability } 0.5 \\
 1.25d_t &amp; \text{with probability } 0.25
 \end{cases}
 \end{split}\]</div>
-<p>By expressing the harvest rate as a random variable, we mean to capture the fact that harvesting is a not completely under our control: we might obtain more or less what we had intended to. Furthermore, we generalize the population dynamics to the stochastic cse via:
-$$</p>
-<p>x_{t+1} = x_t + r_tx_t(1 - x_t/K) - h_tx_t
-$$</p>
+<p>By expressing the harvest rate as a random variable, we mean to capture the fact that harvesting is a not completely under our control: we might obtain more or less what we had intended to. Furthermore, we generalize the population dynamics to the stochastic case via:</p>
+<div class="math notranslate nohighlight">
+\[x_{t+1} = x_t + r_tx_t(1 - x_t/K) - h_tx_t
+\]</div>
 <p>where <span class="math notranslate nohighlight">\(K = 125\)</span> is the carrying capacity. The growth rate <span class="math notranslate nohighlight">\(r_t\)</span> is now stochastic and follows a discrete distribution:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
@@ -1797,21 +1447,22 @@ J^\star(x_t, t) = \max_{d(t) \in D} \mathbb{E}\left[F(x_t \cdot h_t) + J^\star(x
   0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.4 0.4 0.4 0.4 0.4 0.4
   0.4 0.4 0.4 0.4 0.4 0.4 0.4 0.4 0.4 0.4]]
 
-Average population trajectory: [50.         59.405      62.98363587 62.46003152 62.06238131 62.69509383
- 62.12494089 62.63725285 62.96663568 62.49220899 61.88597304 62.85710115
- 62.4073812  62.33265867 62.19850817 62.58449157 62.55476511 62.89791289
- 62.47409527 62.83165982 62.70214137 62.41783757 62.68903339 62.39201789
- 62.32204191 62.46491239 62.09650418 42.11709868 29.62962458 21.5278193
- 16.37380103]
-Average total harvest: 312.46374840448823
+Average population trajectory: [50.         59.18       62.90472921 61.86201394 62.30846339 62.70166797
+ 62.23471763 62.82352657 62.41125878 62.13991584 62.1629869  62.8362942
+ 62.49863943 62.48999842 62.49337116 62.27626288 62.51218677 62.59285878
+ 62.46239977 62.34082663 62.38599938 62.3185384  62.16082975 62.39620757
+ 62.49344149 62.29573325 60.97328459 43.10974974 30.35522525 22.53260865
+ 16.96183698]
+Average total harvest: 313.0681862275992
 </pre></div>
 </div>
-<img alt="_images/0f374d7bfaf99dae13410512d6c22c8e305cb6872817c8bef9b42415436ea04d.png" src="_images/0f374d7bfaf99dae13410512d6c22c8e305cb6872817c8bef9b42415436ea04d.png" />
+<img alt="_images/dbbd20fb56fc4248d754c4a563d762dec59fa38300694f544b949d76a8c5cfcb.png" src="_images/dbbd20fb56fc4248d754c4a563d762dec59fa38300694f544b949d76a8c5cfcb.png" />
 </div>
 </div>
 </section>
-<section id="markov-decision-process-formulation">
-<h3><span class="section-number">10.5.2. </span>Markov Decision Process Formulation<a class="headerlink" href="#markov-decision-process-formulation" title="Link to this heading">#</a></h3>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="markov-decision-process-formulation">
+<h1><span class="section-number">12. </span>Markov Decision Process Formulation<a class="headerlink" href="#markov-decision-process-formulation" title="Link to this heading">#</a></h1>
 <p>Rather than expressing the stochasticity in our system through a disturbance term as a parameter to a deterministic difference equation, we often work with an alternative representation (more common in operations research) which uses the Markov Decision Process formulation. The idea is that when we model our system in this way with the disturbance term being drawn indepently of the previous stages, the induced trajectory are those of a Markov chain. Hence, we can re-cast our control problem in that language, leading to the so-called Markov Decision Process framework in which we express the system dynamics in terms of transition probabilities rather than explicit state equations. In this framework, we express the probability that the system is in a given state using the transition probability function:</p>
 <div class="math notranslate nohighlight">
 \[ p_t(\mathbf{x}_{t+1} | \mathbf{x}_t, \mathbf{u}_t) \]</div>
@@ -1844,10 +1495,8 @@ p_t(\mathbf{x}_{t+1} | \mathbf{x}_t, \mathbf{u}_t) &amp;= \mathbb{P}(\mathbf{W}_
 <li><p>For discrete-state problems, the entire system dynamics can be specified by a set of transition matrices, one for each possible action.</p></li>
 <li><p>It allows us to bridge the gap with the wealth of methods in the field of probabilistic graphical models and statistical machine learning techniques for modelling and analysis.</p></li>
 </ol>
-</section>
-</section>
-<section id="from-control-theory-to-operations-research-notation">
-<h2><span class="section-number">10.6. </span>From Control Theory to Operations Research Notation<a class="headerlink" href="#from-control-theory-to-operations-research-notation" title="Link to this heading">#</a></h2>
+<section id="notation-in-operations-reseach">
+<h2><span class="section-number">12.1. </span>Notation in Operations Reseach<a class="headerlink" href="#notation-in-operations-reseach" title="Link to this heading">#</a></h2>
 <p>The presentation above was intended to bridge the gap between the control-theoretic perspective and the world of closed-loop control through the idea of determining the value function of a parametric optimal control problem. We then saw how the backward induction procedure was applicable to both the deterministic and stochastic cases by taking the expectation over the disturbance variable. We then said that we can alternatively work with a representation of our system where instead of writing our model as a deterministic dynamics function taking a disturbance as an input, we would rather work directly via its transition probability function, which gives rise to the Markov chain interpretation of our system in simulation.</p>
 <p>Now we should highlight that the notation used in control theory tends to differ from that found in operations research communities, in which the field of dynamic programming flourished. We summarize those (purely notational) differences in this section.</p>
 <p>In operations research, the system state at each decision epoch is typically denoted by <span class="math notranslate nohighlight">\(s \in \mathcal{S}\)</span>, where <span class="math notranslate nohighlight">\(S\)</span> is the set of possible system states. When the system is in state <span class="math notranslate nohighlight">\(s\)</span>, the decision maker may choose an action <span class="math notranslate nohighlight">\(a\)</span> from the set of allowable actions <span class="math notranslate nohighlight">\(\mathcal{A}_s\)</span>. The union of all action sets is denoted as <span class="math notranslate nohighlight">\(\mathcal{A} = \bigcup_{s \in \mathcal{S}} \mathcal{A}_s\)</span>.</p>
@@ -1861,9 +1510,157 @@ p_t(\mathbf{x}_{t+1} | \mathbf{x}_t, \mathbf{u}_t) &amp;= \mathbb{P}(\mathbf{W}_
 <p>Combined together, these elemetns specify a Markov decision process, which is fully described by the tuple:</p>
 <div class="math notranslate nohighlight">
 \[\{T, S, \mathcal{A}_s, p_t(\cdot | s, a), r_t(s, a)\}\]</div>
-<p>where <span class="math notranslate nohighlight">\(T\)</span> represents the set of decision epochs (the horizon).</p>
+<p>where <span class="math notranslate nohighlight">\(\mathrm{T}\)</span> represents the set of decision epochs (the horizon).</p>
+</section>
+<section id="decision-rules-and-policies">
+<h2><span class="section-number">12.2. </span>Decision Rules and Policies<a class="headerlink" href="#decision-rules-and-policies" title="Link to this heading">#</a></h2>
+<p>In the presentation provided so far, we directly assumed that the form of our feedback controller was of the form <span class="math notranslate nohighlight">\(u(\mathbf{x}, t)\)</span>. The idea is that rather than just looking at the stage as in open-loop control, we would now consider the current state to account for the presence of noise. We came to that conclusion by considering the parametric optimization problem corresponding to the trajectory optimization perspective and saw that the “argmax” counterpart to the value function (the max) was exactly this function <span class="math notranslate nohighlight">\(u(x, t)\)</span>. But this presentation was mostly for intuition and neglected the fact that we could consider other kinds of feedback controllers. In the context of MDPs and under the OR terminology, we should now rather talk of policies instead of controllers.</p>
+<p>But to properly introduce the concept of policy, we first have to talk about decision rules. A decision rule is a prescription of a procedure for action selection in each state at a specified decision epoch. These rules can vary in their complexity due to their potential dependence on the history and ways in which actions are then selected. Decision rules can be classified based on two main criteria:</p>
+<ol class="arabic simple">
+<li><p>Dependence on history: Markovian or History-dependent</p></li>
+<li><p>Action selection method: Deterministic or Randomized</p></li>
+</ol>
+<p>Markovian decision rules are those that depend only on the current state, while history-dependent rules consider the entire sequence of past states and actions. Formally, we can define a history <span class="math notranslate nohighlight">\(h_t\)</span> at time <span class="math notranslate nohighlight">\(t\)</span> as:</p>
+<div class="math notranslate nohighlight">
+\[h_t = (s_1, a_1, \ldots, s_{t-1}, a_{t-1}, s_t)\]</div>
+<p>where <span class="math notranslate nohighlight">\(s_u\)</span> and <span class="math notranslate nohighlight">\(a_u\)</span> denote the state and action at decision epoch <span class="math notranslate nohighlight">\(u\)</span>. The set of all possible histories at time <span class="math notranslate nohighlight">\(t\)</span>, denoted <span class="math notranslate nohighlight">\(H_t\)</span>, grows rapidly with <span class="math notranslate nohighlight">\(t\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[H_1 = \mathcal{S}\]</div>
+<div class="math notranslate nohighlight">
+\[H_2 = \mathcal{S} \times A \times \mathcal{S}\]</div>
+<div class="math notranslate nohighlight">
+\[H_t = H_{t-1} \times A \times \mathcal{S} = \mathcal{S} \times (A \times \mathcal{S})^{t-1}\]</div>
+<p>This exponential growth in the size of the history set motivates us to seek conditions under which we can avoid searching for history-dependent decision rules and instead focus on Markovian rules, which are much simpler to implement and evaluate.</p>
+<p>Decision rules can be further classified as deterministic or randomized. A deterministic rule selects an action with certainty, while a randomized rule specifies a probability distribution over the action space.</p>
+<p>These classifications lead to four types of decision rules:</p>
+<ol class="arabic simple">
+<li><p>Markovian Deterministic (MD): <span class="math notranslate nohighlight">\(d_t: \mathcal{S} \rightarrow \mathcal{A}_s\)</span></p></li>
+<li><p>Markovian Randomized (MR): <span class="math notranslate nohighlight">\(d_t: \mathcal{S} \rightarrow \mathcal{P}(\mathcal{A}_s)\)</span></p></li>
+<li><p>History-dependent Deterministic (HD): <span class="math notranslate nohighlight">\(d_t: H_t \rightarrow \mathcal{A}_s\)</span></p></li>
+<li><p>History-dependent Randomized (HR): <span class="math notranslate nohighlight">\(d_t: H_t \rightarrow \mathcal{P}(\mathcal{A}_s)\)</span></p></li>
+</ol>
+<p>Where <span class="math notranslate nohighlight">\(\mathcal{P}(\mathcal{A}_s)\)</span> denotes the set of probability distributions over <span class="math notranslate nohighlight">\(\mathcal{A}_s\)</span>.</p>
+<p>It’s important to note that decision rules are stage-wise objects. However, to solve an MDP, we need a strategy for the entire horizon. This is where we make a distinction and introduce the concept of a policy. A policy <span class="math notranslate nohighlight">\(\pi\)</span> is a sequence of decision rules, one for each decision epoch:</p>
+<div class="math notranslate nohighlight">
+\[\pi = (d_1, d_2, ..., d_{N-1})\]</div>
+<p>Where <span class="math notranslate nohighlight">\(N\)</span> is the horizon length (possibly infinite). The set of all policies of class <span class="math notranslate nohighlight">\(K\)</span> (where <span class="math notranslate nohighlight">\(K\)</span> can be HR, HD, MR, or MD) is denoted as <span class="math notranslate nohighlight">\(\Pi^K\)</span>.</p>
+<p>A special type of policy is a stationary policy, where the same decision rule is used at all epochs: <span class="math notranslate nohighlight">\(\pi = (d, d, ...)\)</span>, often denoted as <span class="math notranslate nohighlight">\(d^\infty\)</span>.</p>
+<p>The relationships between these policy classes form a hierarchy:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align*}
+\Pi^{SD} \subset \Pi^{SR} \subset \Pi^{MR} \subset \Pi^{HR}\\
+\Pi^{SD} \subset \Pi^{MD} \subset \Pi^{MR} \subset \Pi^{HR} \\
+\Pi^{SD} \subset \Pi^{MD} \subset \Pi^{HD} \subset \Pi^{HR}
+\end{align*}
+\end{split}\]</div>
+<p>Where SD stands for Stationary Deterministic and SR for Stationary Randomized. The largest set is by far the set of history randomized policies.</p>
+<p>A fundamental question in MDP theory is: under what conditions can we avoid working with the set <span class="math notranslate nohighlight">\(\Pi^{HR}\)</span> and focus for example on the much simpler set of deterministic Markovian policy? Even more so, we will see that in the infinite horizon case, we can drop the dependance on time and simply consider stationary deterministic Markovian policies.
+Certainly, I can help clean up and refine this draft. Here’s an improved version:</p>
+</section>
+<section id="what-is-an-optimal-policy">
+<h2><span class="section-number">12.3. </span>What is an Optimal Policy?<a class="headerlink" href="#what-is-an-optimal-policy" title="Link to this heading">#</a></h2>
+<p>Let’s go back to the starting point and define what it means for a policy to be optimal in a Markov Decision Problem. For this, we will be considering different possible search spaces (policy classes) and compare policies based on the ordering of their value from any possible start state. The value of a policy <span class="math notranslate nohighlight">\(\pi\)</span> (optimal or not) is defined as the expected total reward obtained by following that policy from a given starting state. Formally, for a finite-horizon MDP with <span class="math notranslate nohighlight">\(N\)</span> decision epochs, we define the value function <span class="math notranslate nohighlight">\(v_\pi(s, t)\)</span> as:</p>
+<div class="math notranslate nohighlight">
+\[
+v_\pi(s, t) \triangleq \mathbb{E}\left[\sum_{k=t}^{N-1} r_t(S_k, A_k) + r_N(S_N) \mid S_t = s\right]
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(S_t\)</span> is the state at time <span class="math notranslate nohighlight">\(t\)</span>, <span class="math notranslate nohighlight">\(A_t\)</span> is the action taken at time <span class="math notranslate nohighlight">\(t\)</span>, and <span class="math notranslate nohighlight">\(r_t\)</span> is the reward function. For simplicity, we write <span class="math notranslate nohighlight">\(v_\pi(s)\)</span> to denote <span class="math notranslate nohighlight">\(v_\pi(s, 1)\)</span>, the value of following policy <span class="math notranslate nohighlight">\(\pi\)</span> from state <span class="math notranslate nohighlight">\(s\)</span> at the first stage over the entire horizon <span class="math notranslate nohighlight">\(N\)</span>.</p>
+<p>In finite-horizon MDPs, our goal is to identify an optimal policy, denoted by <span class="math notranslate nohighlight">\(\pi^*\)</span>, that maximizes total expected reward over the horizon <span class="math notranslate nohighlight">\(N\)</span>. Specifically:</p>
+<div class="math notranslate nohighlight">
+\[
+v_{\pi^*}(s) \geq v_\pi(s), \quad \forall s \in \mathcal{S}, \quad \forall \pi \in \Pi^{\text{HR}}
+\]</div>
+<p>We call <span class="math notranslate nohighlight">\(\pi^*\)</span> an <strong>optimal policy</strong> because it yields the highest possible value across all states and all policies within the policy class <span class="math notranslate nohighlight">\(\Pi^{\text{HR}}\)</span>. We denote by <span class="math notranslate nohighlight">\(v^*\)</span> the maximum value achievable by any policy:</p>
+<div class="math notranslate nohighlight">
+\[
+v^*(s) = \max_{\pi \in \Pi^{\text{HR}}} v_\pi(s), \quad \forall s \in \mathcal{S}
+\]</div>
+<p>In reinforcement learning literature, <span class="math notranslate nohighlight">\(v^*\)</span> is typically referred to as the “optimal value function,” while in some operations research references, it might be called the “value of an MDP.” An optimal policy <span class="math notranslate nohighlight">\(\pi^*\)</span> is one for which its value function equals the optimal value function:</p>
+<div class="math notranslate nohighlight">
+\[
+v_{\pi^*}(s) = v^*(s), \quad \forall s \in \mathcal{S}
+\]</div>
+<p>It’s important to note that this notion of optimality applies to every state. Policies optimal in this sense are sometimes called “uniformly optimal policies.” A weaker notion of optimality, often encountered in reinforcement learning practice, is optimality with respect to an initial distribution of states. In this case, we seek a policy <span class="math notranslate nohighlight">\(\pi \in \Pi^{\text{HR}}\)</span> that maximizes:</p>
+<div class="math notranslate nohighlight">
+\[
+\sum_{s \in \mathcal{S}} v_\pi(s) P_1(S_1 = s)
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(P_1(S_1 = s)\)</span> is the probability of starting in state <span class="math notranslate nohighlight">\(s\)</span>.</p>
+<p>A fundamental result in MDP theory states that the maximum value can be achieved by searching over the space of deterministic Markovian Policies. Consequently:</p>
+<div class="math notranslate nohighlight">
+\[ v^*(s) = \max_{\pi \in \Pi^{\mathrm{HR}}} v_\pi(s) = \max _{\pi \in \Pi^{M D}} v_\pi(s), \quad s \in S\]</div>
+<p>This equality significantly simplifies the computational complexity of our algorithms, as the search problem can now be decomposed into <span class="math notranslate nohighlight">\(N\)</span> sub-problems in which we only have to search over the set of possible actions. This is the backward induction algorithm, which we present a second time, but departing this time from the control-theoretic notation and using the MDP formalism:</p>
+<div class="proof algorithm admonition" id="backward-induction">
+<p class="admonition-title"><span class="caption-number">Algorithm 12.1 </span> (Backward Induction)</p>
+<section class="algorithm-content" id="proof-content">
+<p><strong>Input:</strong> State space <span class="math notranslate nohighlight">\(S\)</span>, Action space <span class="math notranslate nohighlight">\(A\)</span>, Transition probabilities <span class="math notranslate nohighlight">\(p_t\)</span>, Reward function <span class="math notranslate nohighlight">\(r_t\)</span>, Time horizon <span class="math notranslate nohighlight">\(N\)</span></p>
+<p><strong>Output:</strong> Optimal value functions <span class="math notranslate nohighlight">\(v^*\)</span></p>
+<ol class="arabic">
+<li><p>Initialize:</p>
+<ul>
+<li><p>Set <span class="math notranslate nohighlight">\(t = N\)</span></p></li>
+<li><p>For all <span class="math notranslate nohighlight">\(s_N \in S\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[v^*(s_N, N) = r_N(s_N)\]</div>
+</li>
+</ul>
+</li>
+<li><p>For <span class="math notranslate nohighlight">\(t = N-1\)</span> to <span class="math notranslate nohighlight">\(1\)</span>:</p>
+<ul>
+<li><p>For each <span class="math notranslate nohighlight">\(s_t \in S\)</span>:
+a. Compute the optimal value function:</p>
+<div class="math notranslate nohighlight">
+\[v^*(s_t, t) = \max_{a \in A_{s_t}} \left\{r_t(s_t, a) + \sum_{j \in S} p_t(j | s_t, a) v^*(j, t+1)\right\}\]</div>
+<p>b. Determine the set of optimal actions:</p>
+<div class="math notranslate nohighlight">
+\[A_{s_t,t}^* = \arg\max_{a \in A_{s_t}} \left\{r_t(s_t, a) + \sum_{j \in S} p_t(j | s_t, a) v^*(j, t+1)\right\}\]</div>
+</li>
+</ul>
+</li>
+<li><p>Return the optimal value functions <span class="math notranslate nohighlight">\(u_t^*\)</span> and optimal action sets <span class="math notranslate nohighlight">\(A_{s_t,t}^*\)</span> for all <span class="math notranslate nohighlight">\(t\)</span> and <span class="math notranslate nohighlight">\(s_t\)</span></p></li>
+</ol>
+</section>
+</div><p>Note that the same procedure can also be used for finding the value of a policy with minor changes;</p>
+<div class="proof algorithm admonition" id="backward-policy-evaluation">
+<p class="admonition-title"><span class="caption-number">Algorithm 12.2 </span> (Policy Evaluation)</p>
+<section class="algorithm-content" id="proof-content">
+<p><strong>Input:</strong></p>
+<ul class="simple">
+<li><p>State space <span class="math notranslate nohighlight">\(S\)</span></p></li>
+<li><p>Action space <span class="math notranslate nohighlight">\(A\)</span></p></li>
+<li><p>Transition probabilities <span class="math notranslate nohighlight">\(p_t\)</span></p></li>
+<li><p>Reward function <span class="math notranslate nohighlight">\(r_t\)</span></p></li>
+<li><p>Time horizon <span class="math notranslate nohighlight">\(N\)</span></p></li>
+<li><p>A markovian deterministic policy <span class="math notranslate nohighlight">\(\pi\)</span></p></li>
+</ul>
+<p><strong>Output:</strong> Value function <span class="math notranslate nohighlight">\(v^\pi\)</span> for policy <span class="math notranslate nohighlight">\(\pi\)</span></p>
+<ol class="arabic">
+<li><p>Initialize:</p>
+<ul>
+<li><p>Set <span class="math notranslate nohighlight">\(t = N\)</span></p></li>
+<li><p>For all <span class="math notranslate nohighlight">\(s_N \in S\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[v_\pi(s_N, N) = r_N(s_N)\]</div>
+</li>
+</ul>
+</li>
+<li><p>For <span class="math notranslate nohighlight">\(t = N-1\)</span> to <span class="math notranslate nohighlight">\(1\)</span>:</p>
+<ul>
+<li><p>For each <span class="math notranslate nohighlight">\(s_t \in S\)</span>:
+a. Compute the value function for the given policy:</p>
+<div class="math notranslate nohighlight">
+\[v_\pi(s_t, t) = r_t(s_t, d_t(s_t)) + \sum_{j \in S} p_t(j | s_t, d_t(s_t)) v_\pi(j, t+1)\]</div>
+</li>
+</ul>
+</li>
+<li><p>Return the value function <span class="math notranslate nohighlight">\(v^\pi(s_t, t)\)</span> for all <span class="math notranslate nohighlight">\(t\)</span> and <span class="math notranslate nohighlight">\(s_t\)</span></p></li>
+</ol>
+</section>
+</div><p>This code could also finally be adapted to support randomized policies using:</p>
+<div class="math notranslate nohighlight">
+\[v_\pi(s_t, t) = \sum_{a_t \in \mathcal{A}_{s_t}} d_t(a_t \mid s_t) \left( r_t(s_t, a_t) + \sum_{j \in S} p_t(j | s_t, a_t) v_\pi(j, t+1) \right)\]</div>
 <section id="example-sample-size-determination-in-pharmaceutical-development">
-<h3><span class="section-number">10.6.1. </span>Example: Sample Size Determination in Pharmaceutical Development<a class="headerlink" href="#example-sample-size-determination-in-pharmaceutical-development" title="Link to this heading">#</a></h3>
+<h3><span class="section-number">12.3.1. </span>Example: Sample Size Determination in Pharmaceutical Development<a class="headerlink" href="#example-sample-size-determination-in-pharmaceutical-development" title="Link to this heading">#</a></h3>
 <p>Pharmaceutical development is the process of bringing a new drug from initial discovery to market availability. This process is lengthy, expensive, and risky, typically involving several stages:</p>
 <ol class="arabic simple">
 <li><p><strong>Drug Discovery</strong>: Identifying a compound that could potentially treat a disease.</p></li>
@@ -1878,7 +1675,7 @@ p_t(\mathbf{x}_{t+1} | \mathbf{x}_t, \mathbf{u}_t) &amp;= \mathbb{P}(\mathbf{W}_
 <li><p><strong>Regulatory Review</strong>: Submitting a New Drug Application (NDA) for approval.</p></li>
 <li><p><strong>Post-Market Safety Monitoring</strong>: Continuing to monitor the drug’s effects after market release.</p></li>
 </ol>
-<p>This process can take 10-15 years and cost over $1 billion <span id="id4">[<a class="reference internal" href="bibliography.html#id20" title="Christopher Paul Adams and Van Vu Brantner. Spending on new drug development1. Health Economics, 19(2):130–141, February 2009. URL: http://dx.doi.org/10.1002/hec.1454, doi:10.1002/hec.1454.">1</a>]</span>. The high costs and risks involved call for a principled approach to decision making. We’ll focus on the clinical trial phases and NDA approval, per the MDP model presented by <span id="id5">[<a class="reference internal" href="bibliography.html#id21" title="Mark Chang. Monte Carlo Simulation for the Pharmaceutical Industry: Concepts, Algorithms, and Case Studies. CRC Press, September 2010. ISBN 9780429152382. URL: http://dx.doi.org/10.1201/EBK1439835920, doi:10.1201/ebk1439835920.">4</a>]</span>:</p>
+<p>This process can take 10-15 years and cost over $1 billion <span id="id3">[<a class="reference internal" href="bibliography.html#id20" title="Christopher Paul Adams and Van Vu Brantner. Spending on new drug development1. Health Economics, 19(2):130–141, February 2009. URL: http://dx.doi.org/10.1002/hec.1454, doi:10.1002/hec.1454.">1</a>]</span>. The high costs and risks involved call for a principled approach to decision making. We’ll focus on the clinical trial phases and NDA approval, per the MDP model presented by <span id="id4">[<a class="reference internal" href="bibliography.html#id21" title="Mark Chang. Monte Carlo Simulation for the Pharmaceutical Industry: Concepts, Algorithms, and Case Studies. CRC Press, September 2010. ISBN 9780429152382. URL: http://dx.doi.org/10.1201/EBK1439835920, doi:10.1201/ebk1439835920.">4</a>]</span>:</p>
 <ol class="arabic simple">
 <li><p><strong>States</strong> (<span class="math notranslate nohighlight">\(S\)</span>): Our state space is <span class="math notranslate nohighlight">\(S = \{s_1, s_2, s_3, s_4\}\)</span>, where:</p>
 <ul class="simple">
@@ -1928,7 +1725,7 @@ where <span class="math notranslate nohighlight">\(\eta_3\)</span> is the signif
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">binom</span>
-<span class="kn">from</span> <span class="nn">scipy.special</span> <span class="kn">import</span> <span class="n">ndtr</span> <span class="k">as</span> <span class="n">norm_cdf</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">norm</span>
 
 <span class="k">def</span> <span class="nf">binomial_pmf</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">binom</span><span class="o">.</span><span class="n">pmf</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
@@ -1937,43 +1734,34 @@ where <span class="math notranslate nohighlight">\(\eta_3\)</span> is the signif
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">binomial_pmf</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">n1</span><span class="p">,</span> <span class="n">p0</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">eta1</span> <span class="o">*</span> <span class="n">n1</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)])</span>
 
 <span class="k">def</span> <span class="nf">transition_prob_phase2</span><span class="p">(</span><span class="n">n2</span><span class="p">,</span> <span class="n">eta2</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">norm_cdf</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">delta</span> <span class="o">-</span> <span class="n">norm_cdf</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">eta2</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">norm</span><span class="o">.</span><span class="n">cdf</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">delta</span> <span class="o">-</span> <span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">eta2</span><span class="p">))</span>
 
 <span class="k">def</span> <span class="nf">transition_prob_phase3</span><span class="p">(</span><span class="n">n3</span><span class="p">,</span> <span class="n">eta3</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">norm_cdf</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n3</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">delta</span> <span class="o">-</span> <span class="n">norm_cdf</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">eta3</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">norm</span><span class="o">.</span><span class="n">cdf</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n3</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">delta</span> <span class="o">-</span> <span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">eta3</span><span class="p">))</span>
 
 <span class="k">def</span> <span class="nf">immediate_reward</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
-    <span class="k">return</span> <span class="o">-</span><span class="n">n</span>  <span class="c1"># Changed to negative to represent cost</span>
+    <span class="k">return</span> <span class="o">-</span><span class="n">n</span>  <span class="c1"># Negative to represent cost</span>
 
-<span class="k">def</span> <span class="nf">value_iteration</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">g4</span><span class="p">,</span> <span class="n">p0</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">eta1</span><span class="p">,</span> <span class="n">eta2</span><span class="p">,</span> <span class="n">eta3</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">backward_induction</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">g4</span><span class="p">,</span> <span class="n">p0</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">eta1</span><span class="p">,</span> <span class="n">eta2</span><span class="p">,</span> <span class="n">eta3</span><span class="p">):</span>
     <span class="n">V</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">S</span><span class="p">))</span>
     <span class="n">V</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">g4</span>  <span class="c1"># Value for NDA approval state</span>
     <span class="n">optimal_n</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span>  <span class="c1"># Store optimal n for each phase</span>
 
-    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_iter</span><span class="p">):</span>
-        <span class="n">V_old</span> <span class="o">=</span> <span class="n">V</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>  <span class="c1"># Iterate backwards from Phase III to Phase I</span>
-            <span class="n">max_value</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
-
-            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">A</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># Phase I</span>
-                    <span class="n">p</span> <span class="o">=</span> <span class="n">transition_prob_phase1</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">eta1</span><span class="p">,</span> <span class="n">p0</span><span class="p">)</span>
-                <span class="k">elif</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># Phase II</span>
-                    <span class="n">p</span> <span class="o">=</span> <span class="n">transition_prob_phase2</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">eta2</span><span class="p">,</span> <span class="n">delta</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>  <span class="c1"># Phase III</span>
-                    <span class="n">p</span> <span class="o">=</span> <span class="n">transition_prob_phase3</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">eta3</span><span class="p">,</span> <span class="n">delta</span><span class="p">)</span>
-
-                <span class="n">value</span> <span class="o">=</span> <span class="n">immediate_reward</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">+</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">p</span> <span class="o">*</span> <span class="n">V</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
-
-                <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="n">max_value</span><span class="p">:</span>
-                    <span class="n">max_value</span> <span class="o">=</span> <span class="n">value</span>
-                    <span class="n">optimal_n</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">n</span>
-
-            <span class="n">V</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_value</span>
-
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">V</span> <span class="o">-</span> <span class="n">V_old</span><span class="p">))</span> <span class="o">&lt;</span> <span class="n">epsilon</span><span class="p">:</span>
-            <span class="k">break</span>
+    <span class="c1"># Backward induction</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>  <span class="c1"># Iterate backwards from Phase III to Phase I</span>
+        <span class="n">max_value</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">A</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># Phase I</span>
+                <span class="n">p</span> <span class="o">=</span> <span class="n">transition_prob_phase1</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">eta1</span><span class="p">,</span> <span class="n">p0</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># Phase II</span>
+                <span class="n">p</span> <span class="o">=</span> <span class="n">transition_prob_phase2</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">eta2</span><span class="p">,</span> <span class="n">delta</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># Phase III</span>
+                <span class="n">p</span> <span class="o">=</span> <span class="n">transition_prob_phase3</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">eta3</span><span class="p">,</span> <span class="n">delta</span><span class="p">)</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">immediate_reward</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">+</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">p</span> <span class="o">*</span> <span class="n">V</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="n">max_value</span><span class="p">:</span>
+                <span class="n">max_value</span> <span class="o">=</span> <span class="n">value</span>
+                <span class="n">optimal_n</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">n</span>
+        <span class="n">V</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_value</span>
 
     <span class="k">return</span> <span class="n">V</span><span class="p">,</span> <span class="n">optimal_n</span>
 
@@ -1986,8 +1774,8 @@ where <span class="math notranslate nohighlight">\(\eta_3\)</span> is the signif
 <span class="n">delta</span> <span class="o">=</span> <span class="mf">0.5</span>  <span class="c1"># Example normalized treatment difference</span>
 <span class="n">eta1</span><span class="p">,</span> <span class="n">eta2</span><span class="p">,</span> <span class="n">eta3</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.025</span>
 
-<span class="c1"># Run the value iteration algorithm</span>
-<span class="n">V</span><span class="p">,</span> <span class="n">optimal_n</span> <span class="o">=</span> <span class="n">value_iteration</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">g4</span><span class="p">,</span> <span class="n">p0</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">eta1</span><span class="p">,</span> <span class="n">eta2</span><span class="p">,</span> <span class="n">eta3</span><span class="p">)</span>
+<span class="c1"># Run the backward induction algorithm</span>
+<span class="n">V</span><span class="p">,</span> <span class="n">optimal_n</span> <span class="o">=</span> <span class="n">backward_induction</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">g4</span><span class="p">,</span> <span class="n">p0</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">eta1</span><span class="p">,</span> <span class="n">eta2</span><span class="p">,</span> <span class="n">eta3</span><span class="p">)</span>
 
 <span class="c1"># Print results</span>
 <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">state</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">S</span><span class="p">):</span>
@@ -1997,22 +1785,22 @@ where <span class="math notranslate nohighlight">\(\eta_3\)</span> is the signif
 <span class="c1"># Sanity checks</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Sanity checks:&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;1. NDA approval value: </span><span class="si">{</span><span class="n">V</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;2. All values non-negative and &lt;= NDA value: </span><span class="si">{</span><span class="nb">all</span><span class="p">(</span><span class="mi">0</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">V</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">V</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;2. All values non-positive and &lt;= NDA value: </span><span class="si">{</span><span class="nb">all</span><span class="p">(</span><span class="n">v</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">V</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">V</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;3. Optimal sample sizes in range: </span><span class="si">{</span><span class="nb">all</span><span class="p">(</span><span class="mi">10</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="mi">1000</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">optimal_n</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="ow">is</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="kc">None</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </details>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Value for Phase I: 8050.54
-Value for Phase II: 8576.47
-Value for Phase III: 9267.42
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Value for Phase I: 7869.92
+Value for Phase II: 8385.83
+Value for Phase III: 9123.40
 Value for NDA approval: 10000.00
-Optimal sample sizes: Phase I: 75, Phase II: 190, Phase III: 195
+Optimal sample sizes: Phase I: 75, Phase II: 239, Phase III: 326
 
 Sanity checks:
 1. NDA approval value: 10000.0
-2. All values non-negative and &lt;= NDA value: True
+2. All values non-positive and &lt;= NDA value: True
 3. Optimal sample sizes in range: True
 </pre></div>
 </div>
@@ -2020,86 +1808,316 @@ Sanity checks:
 </div>
 </section>
 </section>
-<section id="decision-rules-and-policies">
-<h2><span class="section-number">10.7. </span>Decision Rules and Policies<a class="headerlink" href="#decision-rules-and-policies" title="Link to this heading">#</a></h2>
-<p>In the presentation provided so far, we directly assumed that the form of our feedback controller was of the form <span class="math notranslate nohighlight">\(u(\mathbf{x}, t)\)</span>. The idea is that rather than just looking at the stage as in open-loop control, we would now consider the current state to account for the presence of noise. We came to that conclusion by considering the parametric optimization problem corresponding to the trajectory optimization perspective and saw that the “argmax” counterpart to the value function (the max) was exactly this function <span class="math notranslate nohighlight">\(u(x, t)\)</span>. But this presentation was mostly for intuition and neglected the fact that we could consider other kinds of feedback controllers. In the context of MDPs and under the OR terminology, we should now rather talk of policies instead of controllers.</p>
-<p>But to properly introduce the concept of policy, we first have to talk about decision rules. A decision rule is a prescription of a procedure for action selection in each state at a specified decision epoch. These rules can vary in their complexity due to their potential dependence on the history and ways in which actions are then selected. Decision rules can be classified based on two main criteria:</p>
-<ol class="arabic simple">
-<li><p>Dependence on history: Markovian or History-dependent</p></li>
-<li><p>Action selection method: Deterministic or Randomized</p></li>
-</ol>
-<p>Markovian decision rules are those that depend only on the current state, while history-dependent rules consider the entire sequence of past states and actions. Formally, we can define a history <span class="math notranslate nohighlight">\(h_t\)</span> at time <span class="math notranslate nohighlight">\(t\)</span> as:</p>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="infinite-horizon-mdps">
+<h1><span class="section-number">13. </span>Infinite-Horizon MDPs<a class="headerlink" href="#infinite-horizon-mdps" title="Link to this heading">#</a></h1>
+<p>It often makes sense to model control problems over infinite horizons. We extend the previous setting and define the expected total reward of policy <span class="math notranslate nohighlight">\(\pi \in \Pi^{\mathrm{HR}}\)</span>, <span class="math notranslate nohighlight">\(v^\pi\)</span> as:</p>
 <div class="math notranslate nohighlight">
-\[h_t = (s_1, a_1, \ldots, s_{t-1}, a_{t-1}, s_t)\]</div>
-<p>where <span class="math notranslate nohighlight">\(s_u\)</span> and <span class="math notranslate nohighlight">\(a_u\)</span> denote the state and action at decision epoch <span class="math notranslate nohighlight">\(u\)</span>. The set of all possible histories at time <span class="math notranslate nohighlight">\(t\)</span>, denoted <span class="math notranslate nohighlight">\(H_t\)</span>, grows rapidly with <span class="math notranslate nohighlight">\(t\)</span>:</p>
+\[
+v^\pi(s) = \mathbb{E}\left[\sum_{t=1}^{\infty} r(S_t, A_t)\right]
+\]</div>
+<p>One drawback of this model is that we could easily encounter values that are <span class="math notranslate nohighlight">\(+\infty\)</span> or <span class="math notranslate nohighlight">\(-\infty\)</span>, even in a setting as simple as a single-state MDP which loops back into itself and where the accrued reward is nonzero.</p>
+<p>Therefore, it is often more convenient to work with an alternative formulation which guarantees the existence of a limit: the expected total discounted reward of policy <span class="math notranslate nohighlight">\(\pi \in \Pi^{\mathrm{HR}}\)</span> is defined to be:</p>
 <div class="math notranslate nohighlight">
-\[H_1 = \mathcal{S}\]</div>
+\[
+v_\gamma^\pi(s) \equiv \lim_{N \rightarrow \infty} \mathbb{E}\left[\sum_{t=1}^N \gamma^{t-1} r(S_t, A_t)\right]
+\]</div>
+<p>for <span class="math notranslate nohighlight">\(0 \leq \gamma &lt; 1\)</span> and when <span class="math notranslate nohighlight">\(\max_{s \in \mathcal{S}} \max_{a \in \mathcal{A}_s}|r(s, a)| = R_{\max} &lt; \infty\)</span>, in which case, <span class="math notranslate nohighlight">\(|v_\gamma^\pi(s)| \leq (1-\gamma)^{-1} R_{\max}\)</span>.</p>
+<p>Finally, another possibility for the infinite-horizon setting is the so-called average reward or gain of policy <span class="math notranslate nohighlight">\(\pi \in \Pi^{\mathrm{HR}}\)</span> defined as:</p>
 <div class="math notranslate nohighlight">
-\[H_2 = \mathcal{S} \times A \times \mathcal{S}\]</div>
+\[
+g^\pi(s) \equiv \lim_{N \rightarrow \infty} \frac{1}{N} \mathbb{E}\left[\sum_{t=1}^N r(S_t, A_t)\right]
+\]</div>
+<p>We won’t be working with this formulation in this course due to its inherent practical and theoretical complexities.</p>
+<p>Extending the previous notion of optimality from finite-horizon models, a policy <span class="math notranslate nohighlight">\(\pi^*\)</span> is said to be discount optimal for a given <span class="math notranslate nohighlight">\(\gamma\)</span> if:</p>
 <div class="math notranslate nohighlight">
-\[H_t = H_{t-1} \times A \times \mathcal{S} = \mathcal{S} \times (A \times \mathcal{S})^{t-1}\]</div>
-<p>This exponential growth in the size of the history set motivates us to seek conditions under which we can avoid searching for history-dependent decision rules and instead focus on Markovian rules, which are much simpler to implement and evaluate.</p>
-<p>Decision rules can be further classified as deterministic or randomized. A deterministic rule selects an action with certainty, while a randomized rule specifies a probability distribution over the action space.</p>
-<p>These classifications lead to four types of decision rules:</p>
-<ol class="arabic simple">
-<li><p>Markovian Deterministic (MD): <span class="math notranslate nohighlight">\(d_t: \mathcal{S} \rightarrow \mathcal{A}_s\)</span></p></li>
-<li><p>Markovian Randomized (MR): <span class="math notranslate nohighlight">\(d_t: \mathcal{S} \rightarrow \mathcal{P}(\mathcal{A}_s)\)</span></p></li>
-<li><p>History-dependent Deterministic (HD): <span class="math notranslate nohighlight">\(d_t: H_t \rightarrow \mathcal{A}_s\)</span></p></li>
-<li><p>History-dependent Randomized (HR): <span class="math notranslate nohighlight">\(d_t: H_t \rightarrow \mathcal{P}(\mathcal{A}_s)\)</span></p></li>
-</ol>
-<p>Where <span class="math notranslate nohighlight">\(\mathcal{P}(\mathcal{A}_s)\)</span> denotes the set of probability distributions over <span class="math notranslate nohighlight">\(\mathcal{A}_s\)</span>.</p>
-<!-- The choice of decision rule affects how the MDP's rewards and transition probabilities are computed. For example, with a Markovian deterministic rule $d_t \in D_t^{MD}$, we have:
-
-$$r_t(s, d_t(s)) \text{ and } p_t(j|s, d_t(s))$$
-
-With a randomized Markovian rule, these become expected values:
-
-$$r_t(s, d_t(s)) = \sum_{a \in \mathcal{A}_s} r_t(s,a) q_{d_t(s)}(a)$$
-$$p_t(j|s, d_t(s)) = \sum_{a \in \mathcal{A}_s} p_t(j|s,a) q_{d_t(s)}(a)$$
-
-Where $q_{d_t(s)}(a)$ is the probability of choosing action $a$ in state $s$ under decision rule $d_t$. -->
-<p>It’s important to note that decision rules are stage-wise objects. However, to solve an MDP, we need a strategy for the entire horizon. This is where we make a distinction and introduce the concept of a policy. A policy <span class="math notranslate nohighlight">\(\pi\)</span> is a sequence of decision rules, one for each decision epoch:</p>
+\[
+v_\gamma^{\pi^*}(s) \geq v_\gamma^\pi(s) \quad \text { for each } s \in S \text { and all } \pi \in \Pi^{\mathrm{HR}}
+\]</div>
+<p>Furthermore, the value of a discounted MDP <span class="math notranslate nohighlight">\(v_\gamma^*(s)\)</span>, is defined by:</p>
 <div class="math notranslate nohighlight">
-\[\pi = (d_1, d_2, ..., d_{N-1})\]</div>
-<p>Where <span class="math notranslate nohighlight">\(N\)</span> is the horizon length (possibly infinite). The set of all policies of class <span class="math notranslate nohighlight">\(K\)</span> (where <span class="math notranslate nohighlight">\(K\)</span> can be HR, HD, MR, or MD) is denoted as <span class="math notranslate nohighlight">\(\Pi^K\)</span>.</p>
-<p>A special type of policy is a stationary policy, where the same decision rule is used at all epochs: <span class="math notranslate nohighlight">\(\pi = (d, d, ...)\)</span>, often denoted as <span class="math notranslate nohighlight">\(d^\infty\)</span>. Stationary policies are particularly important in infinite horizon problems.</p>
-<p>The relationships between these policy classes form a hierarchy:</p>
+\[
+v_\gamma^*(s) \equiv \max _{\pi \in \Pi^{\mathrm{HR}}} v_\gamma^\pi(s)
+\]</div>
+<p>More often, we refer to <span class="math notranslate nohighlight">\(v_\gamma\)</span> by simply calling it the optimal value function.</p>
+<p>As for the finite-horizon setting, the infinite horizon discounted model does not require history-dependent policies, since for any <span class="math notranslate nohighlight">\(\pi \in \Pi^{HR}\)</span> there exists a <span class="math notranslate nohighlight">\(\pi^{\prime} \in \Pi^{MR}\)</span> with identical total discounted reward:
+$<span class="math notranslate nohighlight">\(
+v_\gamma^*(s) \equiv \max_{\pi \in \Pi^{HR}} v_\gamma^\pi(s)=\max_{\pi \in \Pi^{MR}} v_\gamma^\pi(s) .
+\)</span>$</p>
+<section id="random-horizon-interpretation-of-discounting">
+<h2><span class="section-number">13.1. </span>Random Horizon Interpretation of Discounting<a class="headerlink" href="#random-horizon-interpretation-of-discounting" title="Link to this heading">#</a></h2>
+<p>The use of discounting can be motivated both from a modeling perspective and as a means to ensure that the total reward remains bounded. From the modeling perspective, we can view discounting as a way to weight more or less importance on the immediate rewards vs. the long-term consequences. There is also another interpretation which stems from that of a finite horizon model but with an uncertain end time. More precisely:</p>
+<p>Let <span class="math notranslate nohighlight">\(v_\nu^\pi(s)\)</span> denote the expected total reward obtained by using policy <span class="math notranslate nohighlight">\(\pi\)</span> when the horizon length <span class="math notranslate nohighlight">\(\nu\)</span> is random. We define it by:</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}\begin{align*}
-\Pi^{SD} \subset \Pi^{SR} \subset \Pi^{MR} \subset \Pi^{HR}\\
-\Pi^{SD} \subset \Pi^{MD} \subset \Pi^{MR} \subset \Pi^{HR} \\
-\Pi^{SD} \subset \Pi^{MD} \subset \Pi^{HD} \subset \Pi^{HR}
+\[
+v_\nu^\pi(s) \equiv \mathbb{E}_s^\pi\left[\mathbb{E}_\nu\left\{\sum_{t=1}^\nu r(S_t, A_t)\right\}\right]
+\]</div>
+<div class="proof theorem admonition" id="prop-5-3-1">
+<p class="admonition-title"><span class="caption-number">Theorem 13.1 </span> (Random horizon interpretation of discounting)</p>
+<section class="theorem-content" id="proof-content">
+<p>Suppose that the horizon <span class="math notranslate nohighlight">\(\nu\)</span> follows a geometric distribution with parameter <span class="math notranslate nohighlight">\(\gamma\)</span>, <span class="math notranslate nohighlight">\(0 \leq \gamma &lt; 1\)</span>, independent of the policy such that
+<span class="math notranslate nohighlight">\(P(\nu=n) = (1-\gamma) \gamma^{n-1}, \, n=1,2, \ldots\)</span>, then <span class="math notranslate nohighlight">\(v_\nu^\pi(s) = v_\gamma^\pi(s)\)</span> for all <span class="math notranslate nohighlight">\(s \in \mathcal{S}\)</span> .</p>
+</section>
+</div><div class="proof admonition" id="proof">
+<p>Proof. See proposition 5.3.1 in <span id="id5">[<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">18</a>]</span></p>
+<div class="math notranslate nohighlight">
+\[
+v_\nu^\pi(s) = E_s^\pi \left\{\sum_{n=1}^{\infty} \sum_{t=1}^n r(X_t, Y_t)(1-\gamma) \gamma^{n-1}\right\}.
+\]</div>
+<p>Under the bounded reward assumption and <span class="math notranslate nohighlight">\(\gamma &lt; 1\)</span>, the series converges and we can reverse the order of summation :</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{align*}
+v_\nu^\pi(s) &amp;= E_s^\pi \left\{\sum_{t=1}^{\infty} \sum_{n=t}^{\infty} r(S_t, A_t)(1-\gamma) \gamma^{n-1}\right\} \\
+&amp;= E_s^\pi \left\{\sum_{t=1}^{\infty} \gamma^{t-1} r(S_t, A_t)\right\} = v_\gamma^\pi(s)
+\end{align*}\]</div>
+<p>where the last line follows from the geometric series:</p>
+<div class="math notranslate nohighlight">
+\[
+\sum_{n=1}^{\infty} \gamma^{n-1} = \frac{1}{1-\gamma}
+\]</div>
+</div>
+</section>
+<section id="vector-representation-in-markov-decision-processes">
+<h2><span class="section-number">13.2. </span>Vector Representation in Markov Decision Processes<a class="headerlink" href="#vector-representation-in-markov-decision-processes" title="Link to this heading">#</a></h2>
+<p>Let V be the set of bounded real-valued functions on a discrete state space S. This means any function <span class="math notranslate nohighlight">\( f \in V \)</span> satisfies the condition:</p>
+<div class="math notranslate nohighlight">
+\[
+\|f\| = \max_{s \in S} |f(s)| &lt; \infty.
+\]</div>
+<p>where notation <span class="math notranslate nohighlight">\( \|f\| \)</span> represents the sup-norm (or <span class="math notranslate nohighlight">\( \ell_\infty \)</span>-norm) of the function <span class="math notranslate nohighlight">\( f \)</span>.</p>
+<p>When working with discrete state spaces, we can interpret elements of V as vectors and linear operators on V as matrices, allowing us to leverage tools from linear algebra. The sup-norm (<span class="math notranslate nohighlight">\(\ell_\infty\)</span> norm) of matrix <span class="math notranslate nohighlight">\(\mathbf{H}\)</span> is defined as:</p>
+<div class="math notranslate nohighlight">
+\[
+\|\mathbf{H}\| \equiv \max_{s \in S} \sum_{j \in S} |\mathbf{H}_{s,j}|
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(\mathbf{H}_{s,j}\)</span> represents the <span class="math notranslate nohighlight">\((s, j)\)</span>-th component of the matrix <span class="math notranslate nohighlight">\(\mathbf{H}\)</span>.</p>
+<p>For a Markovian decision rule <span class="math notranslate nohighlight">\(d \in D^{MD}\)</span>, we define:</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{align*}
+\mathbf{r}_d(s) &amp;\equiv r(s, d(s)), \quad \mathbf{r}_d \in \mathbb{R}^{|S|}, \\
+[\mathbf{P}_d]_{s,j} &amp;\equiv p(j \mid s, d(s)), \quad \mathbf{P}_d \in \mathbb{R}^{|S| \times |S|}.
+\end{align*}\]</div>
+<p>For a randomized decision rule <span class="math notranslate nohighlight">\(d \in D^{MR}\)</span>, these definitions extend to:</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{align*}
+\mathbf{r}_d(s) &amp;\equiv \sum_{a \in A_s} d(a \mid s) \, r(s, a), \\
+[\mathbf{P}_d]_{s,j} &amp;\equiv \sum_{a \in A_s} d(a \mid s) \, p(j \mid s, a).
+\end{align*}\]</div>
+<p>In both cases, <span class="math notranslate nohighlight">\(\mathbf{r}_d\)</span> denotes a reward vector in <span class="math notranslate nohighlight">\(\mathbb{R}^{|S|}\)</span>, with each component <span class="math notranslate nohighlight">\(\mathbf{r}_d(s)\)</span> representing the reward associated with state <span class="math notranslate nohighlight">\(s\)</span>. Similarly, <span class="math notranslate nohighlight">\(\mathbf{P}_d\)</span> is a transition probability matrix in <span class="math notranslate nohighlight">\(\mathbb{R}^{|S| \times |S|}\)</span>, capturing the transition probabilities under decision rule <span class="math notranslate nohighlight">\(d\)</span>.</p>
+<p>For a nonstationary Markovian policy <span class="math notranslate nohighlight">\(\pi = (d_1, d_2, \ldots) \in \Pi^{MR}\)</span>, the expected total discounted reward is given by:</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{v}_\gamma^{\pi}(s)=\mathbb{E}\left[\sum_{t=1}^{\infty} \gamma^{t-1} r\left(S_t, A_t\right) \,\middle|\, S_1 = s\right].
+\]</div>
+<p>Using vector notation, this can be expressed as:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+\mathbf{v}_\gamma^{\pi} &amp;= \sum_{t=1}^{\infty} \gamma^{t-1} \mathbf{P}_\pi^{t-1} \mathbf{r}_{d_1} \\
+&amp;= \mathbf{r}_{d_1} + \gamma \mathbf{P}_{d_1} \mathbf{r}_{d_2} + \gamma^2 \mathbf{P}_{d_1} \mathbf{P}_{d_2} \mathbf{r}_{d_3} + \cdots \\
+&amp;= \mathbf{r}_{d_1} + \gamma \mathbf{P}_{d_1} \left( \mathbf{r}_{d_2} + \gamma \mathbf{P}_{d_2} \mathbf{r}_{d_3} + \gamma^2 \mathbf{P}_{d_2} \mathbf{P}_{d_3} \mathbf{r}_{d_4} + \cdots \right).
+\end{aligned}
+\end{split}\]</div>
+<p>This formulation leads to a recursive relationship:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{align*}
+\mathbf{v}_\gamma^\pi &amp;= \mathbf{r}_{d_1} + \gamma \mathbf{P}_{d_1} \mathbf{v}_\gamma^{\pi^{\prime}}\\
+&amp;=\sum_{t=1}^{\infty} \gamma^{t-1} \mathbf{P}_\pi^{t-1} \mathbf{r}_{d_t}
 \end{align*}
 \end{split}\]</div>
-<p>Where SD stands for Stationary Deterministic and SR for Stationary Randomized. The largest set is by far the set of history randomized policies.</p>
-<p>A fundamental question in MDP theory is: under what conditions can we avoid working with the set <span class="math notranslate nohighlight">\(\Pi^{HR}\)</span> and focus for example on the much simpler set of deterministic Markovian policy? Even more so, we will see that in the infinite horizon case, we can drop the dependance on time and simply consider stationary deterministic Markovian policies.</p>
-<!-- ### Special Kind of MDP: Bandit Models
+<p>where <span class="math notranslate nohighlight">\(\pi^{\prime} = (d_2, d_3, \ldots)\)</span>.</p>
+<p>For stationary policies, where <span class="math notranslate nohighlight">\(\pi = d^{\infty} \equiv (d, d, \ldots)\)</span>, the total expected reward simplifies to:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{align*}
+\mathbf{v}_\gamma^{d^\infty} &amp;= \mathbf{r}_d+ \gamma \mathbf{P}_d \mathbf{v}_\gamma^{d^\infty} \\
+&amp;=\sum_{t=1}^{\infty} \gamma^{t-1} \mathbf{P}_d^{t-1} \mathbf{r}_{d}
+\end{align*}
+\end{split}\]</div>
+<p>This last expression is called a Neumann series expansion, and it’s guaranteed to exists under the assumptions of bounded reward and discount factor strictly less than one. Consequently, for a stationary policy, <span class="math notranslate nohighlight">\(\mathbf{v}_\gamma^{d^\infty}\)</span> can be determined as the solution to the linear equation:</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{v} = \mathbf{r}_d+ \gamma \mathbf{P}_d\mathbf{v},
+\]</div>
+<p>which can be rearranged to:</p>
+<div class="math notranslate nohighlight">
+\[
+(\mathbf{I} - \gamma \mathbf{P}_d) \mathbf{v} = \mathbf{r}_d.
+\]</div>
+<p>We can also characterize <span class="math notranslate nohighlight">\(\mathbf{v}_\gamma^{d^\infty}\)</span> as the solution to an operator equation. More specifically, define the linear transformation <span class="math notranslate nohighlight">\(\mathrm{L}_d\)</span> by</p>
+<div class="math notranslate nohighlight">
+\[
+\mathrm{L}_d \mathbf{v} \equiv \mathbf{r}_d+\gamma \mathbf{P}_dv
+\]</div>
+<p>for any <span class="math notranslate nohighlight">\(v \in V\)</span>. Intuitively, <span class="math notranslate nohighlight">\(\mathrm{L}_d\)</span> takes a value function <span class="math notranslate nohighlight">\(\mathbf{v}\)</span> as input and returns a new value function that combines immediate rewards (<span class="math notranslate nohighlight">\(\mathbf{r}_d\)</span>) with discounted future values (<span class="math notranslate nohighlight">\(\gamma \mathbf{P}_d\mathbf{v}\)</span>).</p>
+<!-- 
 
-Markov Decision Processes (MDPs) and optimal control problems in general are all about dealing with sequential problems: problems in which entire sequences of actions or ways of acting through time are considered. This makes these methods general and powerful, but also challenging from a practical and theoretical perspective.
+A key property of $\mathrm{L}_d$ is that it maps bounded functions to bounded functions, provided certain conditions are met. This is formalized in the following lemma:
 
-In some problems, there might be further simplifications at play that would allow us to devise more efficient methods. A particular sub-class of such problems is that of bandit models. These models are often encountered in applications like adaptive optics, ad placement, or can even be found in frameworks like that of GFlowNets or LLMs.
 
-More precisely, we define a bandit model as follows:
+```{prf:lemma} Bounded Reward and Value Function
+:label: bounded-reward-value
 
-A bandit model is a sequential decision model in which, at each decision epoch, the decision maker observes the state of each of $K$ Markov reward processes and, based on the states, the transition probabilities, and rewards of each, selects a process to use in the current period. The selected process changes state according to its transition probabilities, and the states of all other processes remain fixed.
+Let $S$ be a discrete state space, and assume that the reward function is bounded such that $|r(s, a)| \leq M$ for all actions $a \in A_s$ and states $s \in S$. For any discount factor $\gamma$ where $0 \leq \gamma \leq 1$, and for all value functions $v \in V$ and decision rules $d \in D^{MR}$, the following holds:
 
-Formally, we can define a bandit model as a Markov Decision Process with the following components:
+$$
+\mathbf{r}_d+ \gamma \mathbf{P}_d \mathbf{v} \in V
+$$
 
-1. Decision epochs: $T = \{1, 2, \ldots, N\}$, where $N \leq \infty$.
+where $V$ is the space of bounded real-valued functions on $S$, $\mathbf{r}_d$ is the reward vector, and $\mathbf{P}_d$ is the transition probability matrix under decision rule $d$.
+```
 
-2. States: $S = S^1 \times S^2 \times \cdots \times S^K$, where $S^i$ is the state space of the $i$-th process.
+```{prf:proof}
+We will prove this lemma in three steps:
 
-3. Actions: At each decision epoch, the action is to choose one of the $K$ processes.
+1. First, we'll show that $\mathbf{r}_d\in V$.
+2. Then, we'll prove that $\mathbf{P}_dv \in V$ for all $v \in V$.
+3. Finally, we'll combine these results to show that $\mathbf{r}_d+ \gamma \mathbf{P}_dv \in V$.
 
-4. Transition probabilities: For process $i$ in state $s^i \in S^i$, the transition probability to state $j^i$ is given by $p_t^i(j^i | s^i)$.
+**Step 1: Showing $\mathbf{r}_d\in V$**
 
-5. Rewards: When process $i$ in state $s^i$ is chosen, the decision maker receives a reward $r_t^i(s^i)$.
+Given that $|r(s, a)| \leq M$ for all $a \in A_s$ and $s \in S$, we can conclude that $\|\mathbf{r}_d\| \leq M$ for all $d \in D^{MR}$. This is because $\mathbf{r}_d$ is a vector whose components are weighted averages of $r(s, a)$ values, which are all bounded by $M$. Therefore, $\mathbf{r}_d$ is a bounded function on $S$, meaning $\mathbf{r}_d\in V$.
 
-The effects of choosing process $i$ when it is in state $s^i \in S^i$, $i = 1, 2, \ldots, K$ are:
+**Step 2: Showing $\mathbf{P}_d \mathbf{v} \in V$ for all $\mathbf{v} \in V$**
 
-1. It changes state according to the transition law $p_t^i(j^i | s^i)$.
-2. The decision maker receives a reward $r_t^i(s^i)$.
-3. All other processes remain in their current state. --></section>
+$P_d$ is a probability matrix, which means that each row sums to 1. This property implies that $\|P_d\| = 1$. Now, for any $v \in V$, we have:
+
+$$
+\|\mathbf{P}_d\mathbf{v}\| \leq \|P_d\| \|\mathbf{v}\| = \|\mathbf{v}\|
+$$
+
+This inequality shows that if $v$ is bounded (which it is, since $v \in V$), then $\mathbf{P}_dv$ is also bounded by the same value. Therefore, $\mathbf{P}_d\mathbf{v} \in V$ for all $\mathbf{v} \in V$.
+
+**Step 3: Combining the results**
+
+We've shown that $\mathbf{r}_d\in V$ and $\mathbf{P}_d \mathbf{v} \in V$. Since $V$ is a vector space, it is closed under addition and scalar multiplication. Therefore, for any $\gamma$ where $0 \leq \gamma \leq 1$, we can conclude that:
+
+$$
+\mathbf{r}_d+ \gamma \mathbf{P}_d \mathbf{v} \in V
+$$
+
+This completes the proof.
+``` -->
+<p>Therefore, we view <span class="math notranslate nohighlight">\(\mathrm{L}_d\)</span> as an operator mapping elements of <span class="math notranslate nohighlight">\(V\)</span> to <span class="math notranslate nohighlight">\(V\)</span>: ie. <span class="math notranslate nohighlight">\(\mathrm{L}_d: V \rightarrow V\)</span>. The fact that the value function of a policy is the solution to a system of equations can then be expressed with the statement:</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{v}_\gamma^{d^x}=\mathrm{L}_d \mathbf{v}_\gamma^{d^x} \text {. }
+\]</div>
+</section>
+<section id="solving-operator-equations">
+<h2><span class="section-number">13.3. </span>Solving Operator Equations<a class="headerlink" href="#solving-operator-equations" title="Link to this heading">#</a></h2>
+<p>The operator equation we encountered in MDPs, <span class="math notranslate nohighlight">\(\mathbf{v}_\gamma^{d^\infty} = \mathrm{L}_d \mathbf{v}_\gamma^{d^\infty}\)</span>, is a specific instance of a more general class of problems known as operator equations. These equations appear in various fields of mathematics and applied sciences, ranging from differential equations to functional analysis.</p>
+<p>Operator equations can take several forms, each with its own characteristics and solution methods:</p>
+<ol class="arabic simple">
+<li><p><strong>Fixed Point Form</strong>: <span class="math notranslate nohighlight">\(x = \mathrm{T}(x)\)</span>, where <span class="math notranslate nohighlight">\(\mathrm{T}: X \rightarrow X\)</span>.
+Common in fixed-point problems, such as our MDP equation, we seek a fixed point <span class="math notranslate nohighlight">\(x^*\)</span> such that <span class="math notranslate nohighlight">\(x^* = \mathrm{T}(x^*)\)</span>.</p></li>
+<li><p><strong>General Operator Equation</strong>: <span class="math notranslate nohighlight">\(\mathrm{T}(x) = y\)</span>, where <span class="math notranslate nohighlight">\(\mathrm{T}: X \rightarrow Y\)</span>.
+Here, <span class="math notranslate nohighlight">\(X\)</span> and <span class="math notranslate nohighlight">\(Y\)</span> can be different spaces. We seek an <span class="math notranslate nohighlight">\(x \in X\)</span> that satisfies the equation for a given <span class="math notranslate nohighlight">\(y \in Y\)</span>.</p></li>
+<li><p><strong>Nonlinear Equation</strong>: <span class="math notranslate nohighlight">\(\mathrm{T}(x) = 0\)</span>, where <span class="math notranslate nohighlight">\(\mathrm{T}: X \rightarrow Y\)</span>.
+A special case of the general operator equation where we seek roots or zeros of the operator.</p></li>
+<li><p><strong>Variational Inequality</strong>: Find <span class="math notranslate nohighlight">\(x^* \in K\)</span> such that <span class="math notranslate nohighlight">\(\langle \mathrm{T}(x^*), x - x^* \rangle \geq 0\)</span> for all <span class="math notranslate nohighlight">\(x \in K\)</span>.
+Here, <span class="math notranslate nohighlight">\(K\)</span> is a closed convex subset of <span class="math notranslate nohighlight">\(X\)</span>, and <span class="math notranslate nohighlight">\(\mathrm{T}: K \rightarrow X^*\)</span> (the dual space of <span class="math notranslate nohighlight">\(X\)</span>). These problems often arise in optimization, game theory, and partial differential equations.</p></li>
+</ol>
+<section id="successive-approximation-method">
+<h3><span class="section-number">13.3.1. </span>Successive Approximation Method<a class="headerlink" href="#successive-approximation-method" title="Link to this heading">#</a></h3>
+<p>For equations in fixed point form, a common numerical solution method is successive approximation, also known as fixed-point iteration:</p>
+<div class="proof algorithm admonition" id="successive-approximation">
+<p class="admonition-title"><span class="caption-number">Algorithm 13.1 </span> (Successive Approximation)</p>
+<section class="algorithm-content" id="proof-content">
+<p><strong>Input:</strong> An operator <span class="math notranslate nohighlight">\(\mathrm{T}: X \rightarrow X\)</span>, an initial guess <span class="math notranslate nohighlight">\(x_0 \in X\)</span>, and a tolerance <span class="math notranslate nohighlight">\(\epsilon &gt; 0\)</span><br />
+<strong>Output:</strong> An approximate fixed point <span class="math notranslate nohighlight">\(x^*\)</span> such that <span class="math notranslate nohighlight">\(\|x^* - \mathrm{T}(x^*)\| &lt; \epsilon\)</span></p>
+<ol class="arabic simple">
+<li><p>Initialize <span class="math notranslate nohighlight">\(n = 0\)</span></p></li>
+<li><p><strong>repeat</strong><br />
+3. Compute <span class="math notranslate nohighlight">\(x_{n+1} = \mathrm{T}(x_n)\)</span><br />
+4. If <span class="math notranslate nohighlight">\(\|x_{n+1} - x_n\| &lt; \epsilon\)</span>, <strong>return</strong> <span class="math notranslate nohighlight">\(x_{n+1}\)</span><br />
+5. Set <span class="math notranslate nohighlight">\(n = n + 1\)</span></p></li>
+<li><p><strong>until</strong> convergence or maximum iterations reached</p></li>
+</ol>
+</section>
+</div><p>The convergence of successive approximation depends on the properties of the operator <span class="math notranslate nohighlight">\(\mathrm{T}\)</span>. In the simplest and most common setting, we assume <span class="math notranslate nohighlight">\(\mathrm{T}\)</span> is a contraction mapping. The Banach Fixed-Point Theorem then guarantees that <span class="math notranslate nohighlight">\(\mathrm{T}\)</span> has a unique fixed point, and the successive approximation method will converge to this fixed point from any starting point. Specifically, <span class="math notranslate nohighlight">\(\mathrm{T}\)</span> is a contraction if there exists a constant <span class="math notranslate nohighlight">\(q \in [0,1)\)</span> such that for all <span class="math notranslate nohighlight">\(x,y \in X\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+d(\mathrm{T}(x), \mathrm{T}(y)) \leq q \cdot d(x,y)
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(d\)</span> is the metric on <span class="math notranslate nohighlight">\(X\)</span>. In this case, the rate of convergence is linear, with error bound:</p>
+<div class="math notranslate nohighlight">
+\[
+d(x_n, x^*) \leq \frac{q^n}{1-q} d(x_1, x_0)
+\]</div>
+<p>However, the contraction mapping condition is not the only one that can lead to convergence. For instance, if <span class="math notranslate nohighlight">\(\mathrm{T}\)</span> is nonexpansive (i.e., Lipschitz continuous with Lipschitz constant 1) and <span class="math notranslate nohighlight">\(X\)</span> is a Banach space with certain geometrical properties (e.g., uniformly convex), then under additional conditions (e.g., <span class="math notranslate nohighlight">\(\mathrm{T}\)</span> has at least one fixed point), the successive approximation method can still converge, albeit potentially more slowly than in the contraction case.</p>
+<p>In practice, when dealing with specific problems like MDPs or differential equations, the properties of the operator often naturally align with one of these convergence conditions. For example, in discounted MDPs, the Bellman operator is a contraction in the supremum norm, which guarantees the convergence of value iteration.</p>
+</section>
+<section id="newton-kantorovich-method">
+<h3><span class="section-number">13.3.2. </span>Newton-Kantorovich Method<a class="headerlink" href="#newton-kantorovich-method" title="Link to this heading">#</a></h3>
+<p>The Newton-Kantorovich method is a generalization of Newton’s method from finite dimensional vector spaces to infinite dimensional function spaces: rather than iterating in the space of vectors, we are iterating in the space of functions. Just as in the finite-dimensional counterpart, the idea is to improve the rate of convergence of our method by taking an “educated guess” on where to move next using a linearization of our operator at the current point. Now the concept of linearization, which is synonymous with derivative, will also require a generalization. Here we are in essence trying to quantify how the output of the operator <span class="math notranslate nohighlight">\(\mathrm{T}\)</span> – a function – varies as we perturb its input – also a function. The right generalization here is that of the Fréchet derivative.</p>
+<p>Before we delve into the Fréchet derivative, it’s important to understand the context in which it operates: Banach spaces. A Banach space is a complete normed vector space: ie a vector space, that has a norm, and which every Cauchy sequence convergeces.   Banach spaces provide a natural generalization of finite-dimensional vector spaces to infinite-dimensional settings.
+The norm in a Banach space allows us to quantify the “size” of functions and the “distance” between functions. This allows us to define notions of continuity, differentiability, and for analyzing the convergence of our method.
+Furthermore, the completeness property of Banach spaces ensures that we have a well-defined notion of convergence.</p>
+<p>In the context of the Newton-Kantorovich method, we typically work with an operator <span class="math notranslate nohighlight">\(\mathrm{T}: X \to Y\)</span>, where both <span class="math notranslate nohighlight">\(X\)</span> and <span class="math notranslate nohighlight">\(Y\)</span> are Banach spaces and whose Fréchet derivative at a point <span class="math notranslate nohighlight">\(x \in X\)</span>, denoted <span class="math notranslate nohighlight">\(\mathrm{T}'(x)\)</span>, is a bounded linear operator from <span class="math notranslate nohighlight">\(X\)</span> to <span class="math notranslate nohighlight">\(Y\)</span> such that:</p>
+<div class="math notranslate nohighlight">
+\[
+\lim_{h \to 0} \frac{\|\mathrm{T}(x + h) - \mathrm{T}(x) - \mathrm{T}'(x)h\|_Y}{\|h\|_X} = 0
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(\|\cdot\|_X\)</span> and <span class="math notranslate nohighlight">\(\|\cdot\|_Y\)</span> are the norms in <span class="math notranslate nohighlight">\(X\)</span> and <span class="math notranslate nohighlight">\(Y\)</span> respectively. In other words, <span class="math notranslate nohighlight">\(\mathrm{T}'(x)\)</span> is the best linear approximation of <span class="math notranslate nohighlight">\(\mathrm{T}\)</span> near <span class="math notranslate nohighlight">\(x\)</span>.</p>
+<p>Now apart from those mathematical technicalities, Newton-Kantorovich has in essence the same structure as that of the original Newton’s method. That is, it applies the following sequence of steps:</p>
+<ol class="arabic">
+<li><p><strong>Linearize the Operator</strong>:
+Given an approximation <span class="math notranslate nohighlight">\( x_n \)</span>, we consider the Fréchet derivative of <span class="math notranslate nohighlight">\( \mathrm{T} \)</span>, denoted by <span class="math notranslate nohighlight">\( \mathrm{T}'(x_n) \)</span>. This derivative is a linear operator that provides a local approximation of  <span class="math notranslate nohighlight">\( \mathrm{T} \)</span>, near <span class="math notranslate nohighlight">\( x_n \)</span>.</p></li>
+<li><p><strong>Set Up the Newton Step</strong>:
+The method then solves the linearized equation for a correction <span class="math notranslate nohighlight">\( h_n \)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+   \mathrm{T}(x_n) h_n = \mathrm{T}(x_n) - x_n.
+   \]</div>
+<p>This equation represents a linear system where <span class="math notranslate nohighlight">\( h_n \)</span> is chosen to minimize the difference between <span class="math notranslate nohighlight">\( x_n \)</span> and <span class="math notranslate nohighlight">\( \mathrm{T}(x_n) \)</span> with respect to the operator’s local behavior.</p>
+</li>
+<li><p><strong>Update the Solution</strong>:
+The new approximation <span class="math notranslate nohighlight">\( x_{n+1} \)</span> is then given by:</p>
+<div class="math notranslate nohighlight">
+\[
+   x_{n+1} = x_n - h_n.
+   \]</div>
+<p>This correction step refines <span class="math notranslate nohighlight">\( x_n \)</span>, bringing it closer to the true solution.</p>
+</li>
+<li><p><strong>Repeat Until Convergence</strong>:
+We repeat the linearization and update steps until the solution <span class="math notranslate nohighlight">\( x_n \)</span> converges to the desired tolerance, which can be verified by checking that <span class="math notranslate nohighlight">\( \|\mathrm{T}(x_n) - x_n\| \)</span> is sufficiently small, or by monitoring the norm <span class="math notranslate nohighlight">\( \|x_{n+1} - x_n\| \)</span>.</p></li>
+</ol>
+<p>The convergence of Newton-Kantorovich does not hinge on <span class="math notranslate nohighlight">\( \mathrm{T} \)</span> being a contraction over the entire domain – as it could be the case for successive approximation. The convergence properties of the Newton-Kantorovich method are as follows:</p>
+<ol class="arabic">
+<li><p><strong>Local Convergence</strong>: Under mild conditions (e.g., <span class="math notranslate nohighlight">\(\mathrm{T}\)</span> is Fréchet differentiable and <span class="math notranslate nohighlight">\(\mathrm{T}'(x)\)</span> is invertible near the solution), the method converges locally. This means that if the initial guess is sufficiently close to the true solution, the method will converge.</p></li>
+<li><p><strong>Global Convergence</strong>: Global convergence is not guaranteed in general. However, under stronger conditions (e.g.,  <span class="math notranslate nohighlight">\( \mathrm{T} \)</span>, is analytic and satisfies certain bounds), the method can converge globally.</p></li>
+<li><p><strong>Rate of Convergence</strong>: When the method converges, it typically exhibits quadratic convergence. This means that the error at each step is proportional to the square of the error at the previous step:</p>
+<div class="math notranslate nohighlight">
+\[
+   \|x_{n+1} - x^*\| \leq C\|x_n - x^*\|^2
+   \]</div>
+<p>where <span class="math notranslate nohighlight">\(x^*\)</span> is the true solution and <span class="math notranslate nohighlight">\(C\)</span> is some constant. This quadratic convergence is significantly faster than the linear convergence typically seen in methods like successive approximation.</p>
+</li>
+</ol>
+</section>
+</section>
+<section id="optimality-equations-for-infinite-horizon-mdps">
+<h2><span class="section-number">13.4. </span>Optimality Equations for Infinite-Horizon MDPs<a class="headerlink" href="#optimality-equations-for-infinite-horizon-mdps" title="Link to this heading">#</a></h2>
+<p>Recall that in the finite-horizon setting, the optimality equations are:</p>
+<div class="math notranslate nohighlight">
+\[
+v_n(s) = \max_{a \in A_s} \left\{r(s, a) + \sum_{j \in S} \gamma p(j | s, a) v_{n+1}(j)\right\}
+\]</div>
+<p>Intuitively, we would expect that by taking the limit of <span class="math notranslate nohighlight">\(n\)</span> to infity, we might get the nonlinear equations:</p>
+<div class="math notranslate nohighlight">
+\[
+v(s) = \max_{a \in A_s} \left\{r(s, a) + \sum_{j \in S} \gamma p(j | s, a) v(j)\right\}
+\]</div>
+<p>which are called the optimality equations or Bellman equations for infinite-horizon MDPs.
+We can also adopt an operator-theoretic perspective and define a (nonlinear) operator <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> on the space <span class="math notranslate nohighlight">\(V\)</span>
+of bounded real-valued functions on the state space <span class="math notranslate nohighlight">\(S\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+\mathrm{L} \mathbf{v} \equiv \max_{d \in D^{MD}} \left\{\mathbf{r}_d + \gamma \mathbf{P}_d \mathbf{v}\right\}
+\]</div>
+</section>
 </section>
 
     <script type="text/x-thebe-config">
@@ -2133,12 +2151,12 @@ The effects of choosing process $i$ when it is in state $s^i \in S^i$, $i = 1, 2
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="cocp.html"
+       href="mpc.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title"><span class="section-number">5. </span>Continuous-Time Trajectory Optimization</p>
+        <p class="prev-next-title"><span class="section-number">7. </span>Model Predictive Control</p>
       </div>
     </a>
     <a class="right-next"
@@ -2146,7 +2164,7 @@ The effects of choosing process $i$ when it is in state $s^i \in S^i$, $i = 1, 2
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title"><span class="section-number">11. </span>Bibliography</p>
+        <p class="prev-next-title"><span class="section-number">14. </span>Bibliography</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -2166,40 +2184,42 @@ The effects of choosing process $i$ when it is in state $s^i \in S^i$, $i = 1, 2
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">7. Dynamic Programming</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#open-loop-vs-closed-loop-control">8. Open-Loop vs Closed-Loop Control</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#closing-the-loop-by-replanning">9. Closing the Loop by Replanning</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-propofol-infusion-control">9.1. Example: Propofol Infusion Control</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#computational-efficiency-improvements">9.2. Computational Efficiency Improvements</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#explicit-mpc">9.2.1. Explicit MPC</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#amortized-optimization-and-neural-networks">9.2.1.1. Amortized Optimization and Neural Networks</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">10. Dynamic Programming</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#backward-recursion">10.1. Backward Recursion</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-optimal-harvest-in-resource-management">10.1.1. Example: Optimal Harvest in Resource Management</a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#warmstarting-and-predictor-corrector-mpc">9.2.2. Warmstarting and Predictor-Corrector MPC</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#discretization-and-interpolation">10.2. Discretization and Interpolation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#backward-recursion-with-interpolation">10.2.1. Backward Recursion with Interpolation</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#example-optimal-harvest-with-linear-interpolation">10.2.1.1. Example: Optimal Harvest with Linear Interpolation</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#principle-of-optimality">10. Principle of Optimality</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#backward-recursion">10.1. Backward Recursion</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-optimal-harvest-in-resource-management">10.2. Example: Optimal Harvest in Resource Management</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#discretization-and-interpolation">10.3. Discretization and Interpolation</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#backward-recursion-with-interpolation">10.3.1. Backward Recursion with Interpolation</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#implementation-considerations">10.3.2. Implementation Considerations</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-optimal-harvest-with-linear-interpolation">10.3.3. Example: Optimal Harvest with Linear Interpolation</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#linear-quadratic-regulator-via-dynamic-programming">10.4. Linear Quadratic Regulator via Dynamic Programming</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-dynamic-programming">10.5. Stochastic Dynamic Programming</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-stochastic-optimal-harvest-in-resource-management">10.5.1. Example: Stochastic Optimal Harvest in Resource Management</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#markov-decision-process-formulation">10.5.2. Markov Decision Process Formulation</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-dynamic-programming-in-control-theory">11. Stochastic Dynamic Programming in Control Theory</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-stochastic-optimal-harvest-in-resource-management">11.1. Example: Stochastic Optimal Harvest in Resource Management</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#from-control-theory-to-operations-research-notation">10.6. From Control Theory to Operations Research Notation</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-sample-size-determination-in-pharmaceutical-development">10.6.1. Example: Sample Size Determination in Pharmaceutical Development</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#markov-decision-process-formulation">12. Markov Decision Process Formulation</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#notation-in-operations-reseach">12.1. Notation in Operations Reseach</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#decision-rules-and-policies">12.2. Decision Rules and Policies</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-an-optimal-policy">12.3. What is an Optimal Policy?</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-sample-size-determination-in-pharmaceutical-development">12.3.1. Example: Sample Size Determination in Pharmaceutical Development</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#decision-rules-and-policies">10.7. Decision Rules and Policies</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#infinite-horizon-mdps">13. Infinite-Horizon MDPs</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#random-horizon-interpretation-of-discounting">13.1. Random Horizon Interpretation of Discounting</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vector-representation-in-markov-decision-processes">13.2. Vector Representation in Markov Decision Processes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#solving-operator-equations">13.3. Solving Operator Equations</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#successive-approximation-method">13.3.1. Successive Approximation Method</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#newton-kantorovich-method">13.3.2. Newton-Kantorovich Method</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#optimality-equations-for-infinite-horizon-mdps">13.4. Optimality Equations for Infinite-Horizon MDPs</a></li>
 </ul>
 </li>
 </ul>

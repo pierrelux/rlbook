@@ -1,0 +1,935 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>7. Model Predictive Control &#8212; Pragmatic Reinforcement Learning: Algorithms and Applications</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
+    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="_static/proof.css?v=ca93fcec" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=87e54e7c" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"tex": {"macros": {"bm": ["{\\boldsymbol #1}", 1]}, "processEscapes": true}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'mpc';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="10. Dynamic Programming" href="dp.html" />
+    <link rel="prev" title="5. Continuous-Time Trajectory Optimization" href="cocp.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="intro.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Pragmatic Reinforcement Learning: Algorithms and Applications</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="intro.html">
+                    Introduction
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="ocp.html">1. Discrete-Time Trajectory Optimization</a></li>
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="cocp.html">5. Continuous-Time Trajectory Optimization</a></li>
+
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">7. Model Predictive Control</a></li>
+
+
+<li class="toctree-l1"><a class="reference internal" href="dp.html">10. Dynamic Programming</a></li>
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">14. Bibliography</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/pierrelux/rlbook" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/pierrelux/rlbook/edit/main/mpc.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/pierrelux/rlbook/issues/new?title=Issue%20on%20page%20%2Fmpc.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/mpc.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Model Predictive Control</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">7. Model Predictive Control</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#open-loop-vs-closed-loop-control">8. Open-Loop vs Closed-Loop Control</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#closing-the-loop-by-replanning">9. Closing the Loop by Replanning</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-propofol-infusion-control">9.1. Example: Propofol Infusion Control</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#computational-efficiency-improvements">9.2. Computational Efficiency Improvements</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#explicit-mpc">9.2.1. Explicit MPC</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#amortized-optimization-and-neural-networks">9.2.1.1. Amortized Optimization and Neural Networks</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#warmstarting-and-predictor-corrector-mpc">9.2.2. Warmstarting and Predictor-Corrector MPC</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="model-predictive-control">
+<h1><span class="section-number">7. </span>Model Predictive Control<a class="headerlink" href="#model-predictive-control" title="Link to this heading">#</a></h1>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="open-loop-vs-closed-loop-control">
+<h1><span class="section-number">8. </span>Open-Loop vs Closed-Loop Control<a class="headerlink" href="#open-loop-vs-closed-loop-control" title="Link to this heading">#</a></h1>
+<p>The methods seen so far, whether in discrete or continuous-time, were deterministic trajectory optimization methods. Given an initial state, they provide a prescription of controls to apply as a function of time. In the collocation case, we would also obtain a state trajectory corresponding to those controls as a by-product. The control function, <span class="math notranslate nohighlight">\(\mathbf{u}[i]\)</span> (in discrete time) or <span class="math notranslate nohighlight">\(u(t)\)</span> (in continuous-time), is blind to the system’s state at any point in time. It simply reads off the values stored in memory or performs some form of interpolation in time. This approach is optimal under the assumption that our system is deterministic. We know that no matter how many times we repeat the experiment from the same initial state, we will always get the same result; hence, reapplying the same controls in the same order is sufficient.</p>
+<p>However, no matter how good our model is, real-life deployment of our controller will inevitably involve prediction errors. In such cases, a simple control function that only considers the current time—an open-loop controller—won’t suffice. We must inform our controller that the real world is likely not in the state it thinks it’s in: we need to provide feedback to close the loop. Depending on the structure of the noise affecting our system, we may encounter feedback controllers that depend on the entire history (in the case of partial observability) or just the current state (under perfect observability). Dynamic programming methods will provide us with solution methods to derive such controllers. These methods exist for both the continuous-time setting (via the Hamilton-Jacobi equations) and the discrete setting through the Bellman optimality equations. It also provides us with the necessary framework to address partially observable systems (for which we can’t directly measure the state) using the POMDP framework. We will cover these solution methods in this chapter.</p>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="closing-the-loop-by-replanning">
+<h1><span class="section-number">9. </span>Closing the Loop by Replanning<a class="headerlink" href="#closing-the-loop-by-replanning" title="Link to this heading">#</a></h1>
+<p>There exists a simple recipe for closing the loop: since we will likely end up in states that we haven’t planned for, we might as well recompute our solution as frequently as possible using the updated state information as initial state to our trajectory optimization procedure. This replanning or reoptimization strategy is called Model Predictive Control (MPC). Given any trajectory optimization algorithm, we can turn it into a closed-loop variant using MPC.</p>
+<p>Consider a trajectory optimization problem in Bolza form,</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+\text{minimize} \quad &amp; c(\mathbf{x}(t_0 + T)) + \int_{t_0}^{t_0 + T} c(\mathbf{x}(t), \mathbf{u}(t)) \, dt \\
+\text{subject to} \quad &amp; \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
+&amp; \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
+&amp; \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
+\text{given} \quad &amp; \mathbf{x}(t_0) = \mathbf{x}_{\text{current}} \enspace .
+\end{aligned}
+\end{split}\]</div>
+<p>MPC then proceeds as follows. At the current time <span class="math notranslate nohighlight">\( t_0 \)</span>, the MPC controller considers a prediction horizon <span class="math notranslate nohighlight">\( T \)</span> over which it optimizes the future trajectory of the system. The controller then solves the trajectory optimization problem with the initial state set to the current state <span class="math notranslate nohighlight">\( \mathbf{x}_{\text{current}} = \mathbf{x}(t_0) \)</span>. This yields an optimal control trajectory <span class="math notranslate nohighlight">\( \mathbf{u}^*(t) \)</span> for <span class="math notranslate nohighlight">\( t \in [t_0, t_0 + T] \)</span>.</p>
+<p>However,  Instead of applying the entire computed control trajectory, the controller extracts only the first part of the solution, namely <span class="math notranslate nohighlight">\( \mathbf{u}^*(t_0) \)</span>, and applies it to the system. This strategy is called <em>receding horizon control</em>. The idea is that the control <span class="math notranslate nohighlight">\( \mathbf{u}^*(t_0) \)</span> is based on the best prediction available at time <span class="math notranslate nohighlight">\( t_0 \)</span>, considering the current state of the system and expected future disturbances.</p>
+<p>After applying the first control input, the system evolves according to its dynamics, and the controller measures the new state at the next time step, <span class="math notranslate nohighlight">\( t_0 + \Delta t \)</span>. Using this updated state as the new initial condition, the MPC controller re-solves the trajectory optimization problem over a shifted prediction horizon <span class="math notranslate nohighlight">\( [t_0 + \Delta t, t_0 + \Delta t + T] \)</span>.</p>
+<p>This procedure is then repeated ad infinitum or until the end of overall control problem. More concisely, here’s a pseudo-code showing the general blueprint of MPC methods:</p>
+<div class="proof algorithm admonition" id="alg-mpc">
+<p class="admonition-title"><span class="caption-number">Algorithm 9.1 </span> (Non-linear Model Predictive Control)</p>
+<section class="algorithm-content" id="proof-content">
+<p><strong>Input:</strong></p>
+<ul class="simple">
+<li><p>Prediction horizon <span class="math notranslate nohighlight">\( T \)</span></p></li>
+<li><p>Time step <span class="math notranslate nohighlight">\( \Delta t \)</span></p></li>
+<li><p>Initial state <span class="math notranslate nohighlight">\( \mathbf{x}(t_0) \)</span></p></li>
+<li><p>Cost functions <span class="math notranslate nohighlight">\( c(\mathbf{x}(t), \mathbf{u}(t)) \)</span> and <span class="math notranslate nohighlight">\( c(\mathbf{x}(t_0 + T)) \)</span></p></li>
+<li><p>System dynamics <span class="math notranslate nohighlight">\( \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \)</span></p></li>
+<li><p>Constraints <span class="math notranslate nohighlight">\( \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \)</span></p></li>
+<li><p>Control limits <span class="math notranslate nohighlight">\( \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \)</span></p></li>
+</ul>
+<p><strong>Output:</strong></p>
+<ul class="simple">
+<li><p>Control input sequence <span class="math notranslate nohighlight">\( \{\mathbf{u}(t)\} \)</span> applied to the system</p></li>
+</ul>
+<p><strong>Initialization:</strong></p>
+<ol class="arabic simple">
+<li><p>Set <span class="math notranslate nohighlight">\( t \leftarrow t_0 \)</span></p></li>
+<li><p>Measure initial state <span class="math notranslate nohighlight">\( \mathbf{x}_{\text{current}} \leftarrow \mathbf{x}(t) \)</span></p></li>
+</ol>
+<p><strong>Procedure:</strong></p>
+<ol class="arabic" start="3">
+<li><p><strong>Repeat</strong> until the end of the control task:</p>
+<ol class="arabic simple" start="4">
+<li><p><strong>Solve the following optimization problem:</strong></p></li>
+</ol>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+   \begin{aligned}
+   \text{minimize} \quad &amp; c(\mathbf{x}(t + T)) + \int_{t}^{t + T} c(\mathbf{x}(\tau), \mathbf{u}(\tau)) \, d\tau \\
+   \text{subject to} \quad &amp; \dot{\mathbf{x}}(\tau) = \mathbf{f}(\mathbf{x}(\tau), \mathbf{u}(\tau)) \quad \forall \tau \in [t, t + T] \\
+   &amp; \mathbf{g}(\mathbf{x}(\tau), \mathbf{u}(\tau)) \leq \mathbf{0} \quad \forall \tau \in [t, t + T] \\
+   &amp; \mathbf{u}_{\text{min}} \leq \mathbf{u}(\tau) \leq \mathbf{u}_{\text{max}} \quad \forall \tau \in [t, t + T] \\
+   \text{given} \quad &amp; \mathbf{x}(t) = \mathbf{x}_{\text{current}}
+   \end{aligned}
+   \end{split}\]</div>
+<ul class="simple">
+<li><p>Obtain the optimal control trajectory <span class="math notranslate nohighlight">\( \mathbf{u}^*(\tau) \)</span> and the optimal state trajectory <span class="math notranslate nohighlight">\( \mathbf{x}^*(\tau) \)</span> for <span class="math notranslate nohighlight">\( \tau \in [t, t + T] \)</span>.</p></li>
+</ul>
+<ol class="arabic simple" start="5">
+<li><p><strong>Apply the first control input:</strong></p></li>
+</ol>
+<div class="math notranslate nohighlight">
+\[
+   \mathbf{u}(t) \leftarrow \mathbf{u}^*(t)
+   \]</div>
+<ul class="simple">
+<li><p>Apply <span class="math notranslate nohighlight">\( \mathbf{u}(t) \)</span> to the system.</p></li>
+</ul>
+<ol class="arabic simple" start="6">
+<li><p><strong>Advance the system state:</strong></p></li>
+</ol>
+<ul class="simple">
+<li><p>Let the system evolve under the control <span class="math notranslate nohighlight">\( \mathbf{u}(t) \)</span> according to the dynamics <span class="math notranslate nohighlight">\( \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \)</span>.</p></li>
+<li><p>Update <span class="math notranslate nohighlight">\( t \leftarrow t + \Delta t \)</span>.</p></li>
+</ul>
+<ol class="arabic simple" start="7">
+<li><p><strong>Measure the new state:</strong></p></li>
+</ol>
+<div class="math notranslate nohighlight">
+\[
+   \mathbf{x}_{\text{current}} \leftarrow \mathbf{x}(t)
+   \]</div>
+</li>
+<li><p><strong>End Repeat</strong></p></li>
+</ol>
+</section>
+</div><section id="example-propofol-infusion-control">
+<h2><span class="section-number">9.1. </span>Example: Propofol Infusion Control<a class="headerlink" href="#example-propofol-infusion-control" title="Link to this heading">#</a></h2>
+<p>This problem explores the control of propofol infusion in total intravenous anesthesia (TIVA). Our presentation follows the problem formulation developped by <span id="id1">Sawaguchi <em>et al.</em> [<a class="reference internal" href="bibliography.html#id19" title="Y. Sawaguchi, E. Furutani, G. Shirakami, M. Araki, and K. Fukuda. A model-predictive hypnosis control system under total intravenous anesthesia. IEEE Transactions on Biomedical Engineering, 55(3):874–887, March 2008. URL: http://dx.doi.org/10.1109/tbme.2008.915670, doi:10.1109/tbme.2008.915670.">20</a>]</span>. The primary objective is to maintain the desired level of unconsciousness while minimizing adverse reactions and ensuring quick recovery after surgery.</p>
+<p>The level of unconsciousness is measured by the Bispectral Index (BIS), which is obtained using an electroencephalography (EEG) device. The BIS ranges from <span class="math notranslate nohighlight">\(0\)</span> (complete suppression of brain activity) to <span class="math notranslate nohighlight">\(100\)</span> (fully awake), with the target range for general anesthesia typically between <span class="math notranslate nohighlight">\(40\)</span> and <span class="math notranslate nohighlight">\(60\)</span>.</p>
+<p>The goal is to design a control system that regulates the infusion rate of propofol to maintain the BIS within the target range. This can be formulated as an optimal control problem:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{align*}
+\min_{u(t)} &amp; \int_{0}^{T} \left( BIS(t) - BIS_{\text{target}} \right)^2 + \gamma u(t)^2 \, dt \\
+\text{subject to:} \\
+\dot{x}_1 &amp;= -(k_{10} + k_{12} + k_{13})x_1 + k_{21}x_2 + k_{31}x_3 + \frac{u(t)}{V_1} \\
+\dot{x}_2 &amp;= k_{12}x_1 - k_{21}x_2 \\
+\dot{x}_3 &amp;= k_{13}x_1 - k_{31}x_3 \\
+\dot{x}_e &amp;= k_{e0}(x_1 - x_e) \\
+BIS(t) &amp;= E_0 - E_{\text{max}}\frac{x_e^\gamma}{x_e^\gamma + EC_{50}^\gamma}
+\end{align*}
+\end{split}\]</div>
+<p>Where:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(u(t)\)</span> is the propofol infusion rate (mg/kg/h)</p></li>
+<li><p><span class="math notranslate nohighlight">\(x_1\)</span>, <span class="math notranslate nohighlight">\(x_2\)</span>, and <span class="math notranslate nohighlight">\(x_3\)</span> are the drug concentrations in different body compartments</p></li>
+<li><p><span class="math notranslate nohighlight">\(x_e\)</span> is the effect-site concentration</p></li>
+<li><p><span class="math notranslate nohighlight">\(k_{ij}\)</span> are rate constants for drug transfer between compartments</p></li>
+<li><p><span class="math notranslate nohighlight">\(BIS(t)\)</span> is the Bispectral Index</p></li>
+<li><p><span class="math notranslate nohighlight">\(\gamma\)</span> is a regularization parameter penalizing excessive drug use</p></li>
+<li><p><span class="math notranslate nohighlight">\(E_0\)</span>, <span class="math notranslate nohighlight">\(E_{\text{max}}\)</span>, <span class="math notranslate nohighlight">\(EC_{50}\)</span>, and <span class="math notranslate nohighlight">\(\gamma\)</span> are parameters of the pharmacodynamic model</p></li>
+</ul>
+<p>The specific dynamics model used in this problem is so-called “Pharmacokinetic-Pharmacodynamic Model” and consists of three main components:</p>
+<ol class="arabic simple">
+<li><p><strong>Pharmacokinetic Model</strong>, which describes how the drug distributes through the body over time. It’s based on a three-compartment model:</p>
+<ul class="simple">
+<li><p>Central compartment (blood and well-perfused organs)</p></li>
+<li><p>Shallow peripheral compartment (muscle and other tissues)</p></li>
+<li><p>Deep peripheral compartment (fat)</p></li>
+</ul>
+</li>
+<li><p><strong>Effect Site Model</strong>, which represents the delay between drug concentration in the blood and its effect on the brain.</p></li>
+<li><p><strong>Pharmacodynamic Model</strong> that relates the effect-site concentration to the observed BIS.</p></li>
+</ol>
+<p>The propofol infusion control problem presents several interesting challenges from a research perspective.
+First, there is a delay in how fast the drug can reach a different compartments in addition to the BIS measurements which can lag. This could lead to instability if not properly addressed in the control design.</p>
+<p>Furthermore, every patient is different from another. Hence, we cannot simply learn a single controller offline and hope that it will generalize to an entire patient population. We will account for this variability through Model Predictive Control (MPC) and dynamically adapt to the model mismatch through replanning. How a patient will react to a given dose of drug also varies and must be carefully controlled to avoid overdoses. This adds an additional layer of complexity since we have to incorporate safety constraints. Finally, the patient might suddenly change state, for example due to surgical stimuli, and the controller must be able to adapt quickly to compensate for the disturbance to the system.</p>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Show code cell source</span>
+<span class="expanded">Hide code cell source</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="k">class</span> <span class="nc">Patient</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">weight</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">age</span> <span class="o">=</span> <span class="n">age</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="n">weight</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_pk_params</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_pd_params</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">set_pk_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">v1</span> <span class="o">=</span> <span class="mf">4.27</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">/</span> <span class="mi">70</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.71</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">age</span> <span class="o">/</span> <span class="mi">30</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.39</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">v2</span> <span class="o">=</span> <span class="mf">18.9</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">/</span> <span class="mi">70</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.64</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">age</span> <span class="o">/</span> <span class="mi">30</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.62</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">v3</span> <span class="o">=</span> <span class="mi">238</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">/</span> <span class="mi">70</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.95</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cl1</span> <span class="o">=</span> <span class="mf">1.89</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">/</span> <span class="mi">70</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.75</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">age</span> <span class="o">/</span> <span class="mi">30</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.25</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cl2</span> <span class="o">=</span> <span class="mf">1.29</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">/</span> <span class="mi">70</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.62</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cl3</span> <span class="o">=</span> <span class="mf">0.836</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">/</span> <span class="mi">70</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.77</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k10</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cl1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">v1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k12</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cl2</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">v1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k13</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cl3</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">v1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k21</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cl2</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">v2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k31</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cl3</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">v3</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ke0</span> <span class="o">=</span> <span class="mf">0.456</span>
+
+    <span class="k">def</span> <span class="nf">set_pd_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">E0</span> <span class="o">=</span> <span class="mi">100</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Emax</span> <span class="o">=</span> <span class="mi">100</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">EC50</span> <span class="o">=</span> <span class="mf">3.4</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">=</span> <span class="mi">3</span>
+
+<span class="k">def</span> <span class="nf">pk_model</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">patient</span><span class="p">):</span>
+    <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">x3</span><span class="p">,</span> <span class="n">xe</span> <span class="o">=</span> <span class="n">x</span>
+    <span class="n">dx1</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">patient</span><span class="o">.</span><span class="n">k10</span> <span class="o">+</span> <span class="n">patient</span><span class="o">.</span><span class="n">k12</span> <span class="o">+</span> <span class="n">patient</span><span class="o">.</span><span class="n">k13</span><span class="p">)</span> <span class="o">*</span> <span class="n">x1</span> <span class="o">+</span> <span class="n">patient</span><span class="o">.</span><span class="n">k21</span> <span class="o">*</span> <span class="n">x2</span> <span class="o">+</span> <span class="n">patient</span><span class="o">.</span><span class="n">k31</span> <span class="o">*</span> <span class="n">x3</span> <span class="o">+</span> <span class="n">u</span> <span class="o">/</span> <span class="n">patient</span><span class="o">.</span><span class="n">v1</span>
+    <span class="n">dx2</span> <span class="o">=</span> <span class="n">patient</span><span class="o">.</span><span class="n">k12</span> <span class="o">*</span> <span class="n">x1</span> <span class="o">-</span> <span class="n">patient</span><span class="o">.</span><span class="n">k21</span> <span class="o">*</span> <span class="n">x2</span>
+    <span class="n">dx3</span> <span class="o">=</span> <span class="n">patient</span><span class="o">.</span><span class="n">k13</span> <span class="o">*</span> <span class="n">x1</span> <span class="o">-</span> <span class="n">patient</span><span class="o">.</span><span class="n">k31</span> <span class="o">*</span> <span class="n">x3</span>
+    <span class="n">dxe</span> <span class="o">=</span> <span class="n">patient</span><span class="o">.</span><span class="n">ke0</span> <span class="o">*</span> <span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">xe</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">dx1</span><span class="p">,</span> <span class="n">dx2</span><span class="p">,</span> <span class="n">dx3</span><span class="p">,</span> <span class="n">dxe</span><span class="p">])</span>
+
+<span class="k">def</span> <span class="nf">pd_model</span><span class="p">(</span><span class="n">ce</span><span class="p">,</span> <span class="n">patient</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">patient</span><span class="o">.</span><span class="n">E0</span> <span class="o">-</span> <span class="n">patient</span><span class="o">.</span><span class="n">Emax</span> <span class="o">*</span> <span class="p">(</span><span class="n">ce</span> <span class="o">**</span> <span class="n">patient</span><span class="o">.</span><span class="n">gamma</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">ce</span> <span class="o">**</span> <span class="n">patient</span><span class="o">.</span><span class="n">gamma</span> <span class="o">+</span> <span class="n">patient</span><span class="o">.</span><span class="n">EC50</span> <span class="o">**</span> <span class="n">patient</span><span class="o">.</span><span class="n">gamma</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">simulate_step</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
+    <span class="n">x_next</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">pk_model</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">patient</span><span class="p">)</span>
+    <span class="n">bis</span> <span class="o">=</span> <span class="n">pd_model</span><span class="p">(</span><span class="n">x_next</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">patient</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">x_next</span><span class="p">,</span> <span class="n">bis</span>
+
+<span class="k">def</span> <span class="nf">objective</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">target_bis</span><span class="p">):</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">x0</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">total_cost</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">bis</span> <span class="o">=</span> <span class="n">simulate_step</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
+        <span class="n">total_cost</span> <span class="o">+=</span> <span class="p">(</span><span class="n">bis</span> <span class="o">-</span> <span class="n">target_bis</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span>
+    <span class="k">return</span> <span class="n">total_cost</span>
+
+<span class="k">def</span> <span class="nf">mpc_step</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">target_bis</span><span class="p">):</span>
+    <span class="n">u0</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>  <span class="c1"># Initial guess</span>
+    <span class="n">bounds</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">20</span><span class="p">)]</span> <span class="o">*</span> <span class="n">N</span>  <span class="c1"># Infusion rate between 0 and 20 mg/kg/h</span>
+    
+    <span class="n">result</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">u0</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">target_bis</span><span class="p">),</span>
+                      <span class="n">method</span><span class="o">=</span><span class="s1">&#39;SLSQP&#39;</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># Return only the first control input</span>
+
+<span class="k">def</span> <span class="nf">run_mpc_simulation</span><span class="p">(</span><span class="n">patient</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">target_bis</span><span class="p">):</span>
+    <span class="n">steps</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">T</span> <span class="o">/</span> <span class="n">dt</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">steps</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+    <span class="n">bis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">steps</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">steps</span><span class="p">)</span>
+    
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">steps</span><span class="p">):</span>
+        <span class="c1"># Add noise to the current state to simulate real-world uncertainty</span>
+        <span class="n">x_noisy</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+        
+        <span class="c1"># Use noisy state for MPC planning</span>
+        <span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">mpc_step</span><span class="p">(</span><span class="n">x_noisy</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">target_bis</span><span class="p">)</span>
+        
+        <span class="c1"># Evolve the true state using the deterministic model</span>
+        <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span> <span class="n">bis</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">simulate_step</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
+    
+    <span class="n">bis</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd_model</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">patient</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">bis</span><span class="p">,</span> <span class="n">u</span>
+
+<span class="c1"># Set up the problem</span>
+<span class="n">patient</span> <span class="o">=</span> <span class="n">Patient</span><span class="p">(</span><span class="n">age</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">70</span><span class="p">)</span>
+<span class="n">T</span> <span class="o">=</span> <span class="mi">120</span>  <span class="c1"># Total time in minutes</span>
+<span class="n">dt</span> <span class="o">=</span> <span class="mf">0.5</span>  <span class="c1"># Time step in minutes</span>
+<span class="n">N</span> <span class="o">=</span> <span class="mi">20</span>  <span class="c1"># Prediction horizon</span>
+<span class="n">target_bis</span> <span class="o">=</span> <span class="mi">50</span>  <span class="c1"># Target BIS value</span>
+
+<span class="c1"># Run MPC simulation</span>
+<span class="n">x</span><span class="p">,</span> <span class="n">bis</span><span class="p">,</span> <span class="n">u</span> <span class="o">=</span> <span class="n">run_mpc_simulation</span><span class="p">(</span><span class="n">patient</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">target_bis</span><span class="p">)</span>
+
+<span class="c1"># Plot results</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">T</span><span class="o">+</span><span class="n">dt</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
+<span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">,</span> <span class="n">ax3</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">bis</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;BIS&#39;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="n">target_bis</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">)</span>
+
+<span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">u</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Infusion Rate (mg/kg/h)&#39;</span><span class="p">)</span>
+
+<span class="n">ax3</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">])</span>
+<span class="n">ax3</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Effect-site Concentration (µg/mL)&#39;</span><span class="p">)</span>
+<span class="n">ax3</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Time (min)&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initial BIS: </span><span class="si">{</span><span class="n">bis</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Final BIS: </span><span class="si">{</span><span class="n">bis</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mean infusion rate: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">u</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> mg/kg/h&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Final effect-site concentration: </span><span class="si">{</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> µg/mL&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<img alt="_images/114efcd0bd7eaa9c3ad0e37f6787f59719cfbc0dfd0bb9410a35e31f8ddd4ae6.png" src="_images/114efcd0bd7eaa9c3ad0e37f6787f59719cfbc0dfd0bb9410a35e31f8ddd4ae6.png" />
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Initial BIS: 100.00
+Final BIS: 50.15
+Mean infusion rate: 8.85 mg/kg/h
+Final effect-site concentration: 3.39 µg/mL
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="computational-efficiency-improvements">
+<h2><span class="section-number">9.2. </span>Computational Efficiency Improvements<a class="headerlink" href="#computational-efficiency-improvements" title="Link to this heading">#</a></h2>
+<p>One challenge of Model Predictive Control (MPC) is its computational cost. In real-time applications, such as adaptive optics, the controller may need to operate at extremely high frequencies—for example, 1000 Hz. In this scenario, the solver has just 1 millisecond to compute an optimal solution, pushing the limits of computational efficiency.</p>
+<section id="explicit-mpc">
+<h3><span class="section-number">9.2.1. </span>Explicit MPC<a class="headerlink" href="#explicit-mpc" title="Link to this heading">#</a></h3>
+<p>A potential solution to this problem is to offload some of the computational effort offline. Instead of solving the optimization problem at every time step during execution, we could attempt to <strong>precompute solutions</strong> for all potential states in advance. At first glance, this seems impractical—without leveraging specific structure or partitioning the state space intelligently, precomputing solutions for every possible state would be infeasible. However, with the right techniques, this approach becomes viable.</p>
+<p>This is the essence of <strong>explicit MPC</strong>, which hinges on a subfield of mathematical programming known as multi-parametric (or simply parametric) programming.  A multiparametric programming problem can be described by the following formulation:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{array}{cl}
+z(\boldsymbol{\theta}) = \min_{\mathbf{x}} &amp; f(\mathbf{x}, \boldsymbol{\theta}) \\
+\text { s.t. } &amp; \mathbf{g}(\mathbf{x}, \boldsymbol{\theta}) \leq 0 \\
+&amp; \mathbf{h}(\mathbf{x}, \boldsymbol{\theta}) = 0 \\
+&amp; \mathbf{x} \in \mathbb{R}^n \\
+&amp; \boldsymbol{\theta} \in \mathbb{R}^m
+\end{array}
+\end{split}\]</div>
+<p>where:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\mathbf{x} \in \mathbb{R}^n\)</span> are the decision variables,</p></li>
+<li><p><span class="math notranslate nohighlight">\(\boldsymbol{\theta} \in \mathbb{R}^m\)</span> are the parameters,</p></li>
+<li><p><span class="math notranslate nohighlight">\(f(\mathbf{x}, \boldsymbol{\theta})\)</span> is the objective function,</p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathbf{g}(\mathbf{x}, \boldsymbol{\theta}) \leq 0\)</span> and <span class="math notranslate nohighlight">\(\mathbf{h}(\mathbf{x}, \boldsymbol{\theta}) = 0\)</span> are the inequality and equality constraints, respectively.</p></li>
+</ul>
+<p>Parametric programming methods provides ways for efficiently evaluating <span class="math notranslate nohighlight">\(z(\boldsymbol{\theta})\)</span> – the <strong>value function</strong> – by leveraging the structure of the solution space. In particular, it leverages the idea that the solution space can be partitioned into <strong>critical regions</strong>—regions of the parameter space where the optimal solution structure remains unchanged. Within each region, the solution can often be expressed as a <strong>piecewise affine function</strong> of the parameters, which is easy to represent and compute offline.</p>
+<p>In trajectory optimization problems, the initial state <span class="math notranslate nohighlight">\(\boldsymbol{x}_0\)</span> can also be treated as a <strong>parameter</strong>. This transforms the problem into a parametric optimization problem, where <span class="math notranslate nohighlight">\(\boldsymbol{x}_0\)</span> defines a family of optimization problems, each yielding a different optimal solution. The relationship between the parameters and solutions can be described using two key mappings:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\boldsymbol{u}^\star(\boldsymbol{x}_0)\)</span>: The optimal control sequence as a function of the initial state.</p></li>
+<li><p><span class="math notranslate nohighlight">\(v(\boldsymbol{x}_0)\)</span>: The value function, which gives the optimal objective value for a given <span class="math notranslate nohighlight">\(\boldsymbol{x}_0\)</span>.</p></li>
+</ul>
+<p>It is therefore at this level that parametric programming methods can come into play and provide efficient methods for computing the value function offline: that is without resorting to direct calls to a nonlinear programming solver for every new <span class="math notranslate nohighlight">\(\boldsymbol{x}\)</span> encountered along a trajectory.</p>
+<section id="amortized-optimization-and-neural-networks">
+<h4><span class="section-number">9.2.1.1. </span>Amortized Optimization and Neural Networks<a class="headerlink" href="#amortized-optimization-and-neural-networks" title="Link to this heading">#</a></h4>
+<p>The idea of solving an entire family of optimization problems efficiently is not unique to parametric programming. In machine learning, <strong>amortized optimization</strong> (or <strong>amortized inference</strong>) aims to “learn to optimize” by constructing models that generalize over a family of optimization problems. This approach is particularly relevant in applications such as hyperparameter optimization, meta-learning, and probabilistic inference.</p>
+<p>In contrast to explicit MPC, which partitions the state space, amortized optimization typically uses <strong>neural networks</strong> to approximate the mapping from parameters to optimal solutions. This has led to recent explorations of <strong>amortizing NMPC (Nonlinear MPC) controllers</strong> into neural networks, blending the structure of MPC with the generalization power of neural networks. This represents a promising direction for creating efficient controllers that combine physics-based models, safety constraints, and the flexibility of learned models.</p>
+<!-- 
+As usual, the KKT conditions provide necessary conditions for optimality:
+
+1. **Stationarity**:  
+
+   $$
+   \nabla_{\mathbf{x}} f(\mathbf{x}^*, \boldsymbol{\theta}) + \sum_{i=1}^{p} \gamma_i^* \nabla_{\mathbf{x}} g_i(\mathbf{x}^*, \boldsymbol{\theta}) + \sum_{j=1}^{q} \nu_j^* \nabla_{\mathbf{x}} h_j(\mathbf{x}^*, \boldsymbol{\theta}) = 0
+   $$
+   where $\boldsymbol{\gamma}^* = (\gamma_1^*, \ldots, \gamma_p^*)$ are the Lagrange multipliers for the inequality constraints, and $\boldsymbol{\nu}^* = (\nu_1^*, \ldots, \nu_q^*)$ are the Lagrange multipliers for the equality constraints.
+
+2. **Primal Feasibility**:  
+
+   $$
+   \mathbf{g}(\mathbf{x}^*, \boldsymbol{\theta}) \leq 0, \quad \mathbf{h}(\mathbf{x}^*, \boldsymbol{\theta}) = 0
+   $$
+
+3. **Dual Feasibility**:  
+
+   $$
+   \gamma_i^* \geq 0, \quad \forall i
+   $$
+
+4. **Complementary Slackness**:  
+
+   $$
+   \gamma_i^* g_i(\mathbf{x}^*, \boldsymbol{\theta}) = 0, \quad \forall i
+   $$
+
+
+We can combine the KKT conditions into a single system of equations, denoted as $\mathbf{F}(\mathbf{x}, \boldsymbol{\gamma}, \boldsymbol{\nu}, \boldsymbol{\theta}) = \mathbf{0}$, where:
+
+$$
+\mathbf{F}(\mathbf{x}, \boldsymbol{\gamma}, \boldsymbol{\nu}, \boldsymbol{\theta}) = \begin{pmatrix}
+\nabla_{\mathbf{x}} f(\mathbf{x}, \boldsymbol{\theta}) + \sum_{i=1}^{p} \gamma_i \nabla_{\mathbf{x}} g_i(\mathbf{x}, \boldsymbol{\theta}) + \sum_{j=1}^{q} \nu_j \nabla_{\mathbf{x}} h_j(\mathbf{x}, \boldsymbol{\theta}) \\
+\mathbf{g}(\mathbf{x}, \boldsymbol{\theta}) \\
+\mathbf{h}(\mathbf{x}, \boldsymbol{\theta}) \\
+\boldsymbol{\gamma} \odot \mathbf{g}(\mathbf{x}, \boldsymbol{\theta}) \\
+\min(\boldsymbol{\gamma}, \mathbf{0})
+\end{pmatrix} = \mathbf{0}
+$$
+
+Here, $\mathbf{F}(\mathbf{x}, \boldsymbol{\gamma}, \boldsymbol{\nu}, \boldsymbol{\theta}) = \mathbf{0}$ encapsulates the stationarity, primal feasibility, dual feasibility, and complementary slackness conditions. The symbol $\odot$ represents the element-wise product for the complementary slackness condition. -->
+</section>
+</section>
+<section id="warmstarting-and-predictor-corrector-mpc">
+<h3><span class="section-number">9.2.2. </span>Warmstarting and Predictor-Corrector MPC<a class="headerlink" href="#warmstarting-and-predictor-corrector-mpc" title="Link to this heading">#</a></h3>
+<p>Another way in which we can speed up NMPC is by providing good initial guesses for the solver. When solving a series of optimization problems along a trajectory, it is likely that the solution to previous problem might be close to that of the current one. Hence, as a heuristic it often makes sense to “warmstart” from the previous solution.</p>
+<p>Another alternative is to extrapolate what the next solution ought to be based on the previous one. What we mean here is that rather than simply using the last solution as a guess for that of the current problem, we leverage the “sensitivity information” around the last solution to make a guess about where we might be going. This idea is reminiscent of predictor-corrector schemes which we have briefly discussed in the first chapter.</p>
+<p>To implement a predictor corrector MPC scheme, we need to understand how the optimal solution <span class="math notranslate nohighlight">\(\mathbf{x}^*(\boldsymbol{\theta})\)</span> and the value function <span class="math notranslate nohighlight">\(z(\boldsymbol{\theta})\)</span> change as the parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> vary. We achieve this by applying the <strong>implicit function theorem</strong> to the <strong>KKT (Karush-Kuhn-Tucker) conditions</strong> of the parametric problem. The KKT conditions for a parametric optimization problem are necessary for optimality and can be written as:</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{F}(\mathbf{x}, \boldsymbol{\gamma}, \boldsymbol{\nu}, \boldsymbol{\theta}) = 0,
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(\mathbf{F}\)</span> encapsulates the stationarity, primal feasibility, dual feasibility, and complementary slackness conditions from the KKT theorem. By treating <span class="math notranslate nohighlight">\(\mathbf{x}\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{\gamma}\)</span>, and <span class="math notranslate nohighlight">\(\boldsymbol{\nu}\)</span> as functions of the parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span>, the implicit function theorem guarantees that, under certain regularity conditions, these optimal variables are <strong>continuously differentiable</strong> with respect to <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span>. This allows us to compute <strong>sensitivity derivatives</strong>, which describe how small changes in <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> affect the optimal solution.</p>
+<p>By leveraging this sensitivity information, we can predict changes in the optimal solution and “warm-start” the optimization process at the next time step in MPC. This concept is related to <strong>numerical continuation</strong>, where a complex optimization problem is solved by gradually transforming a simpler, well-understood problem into the more difficult one.</p>
+</section>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./."
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="cocp.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title"><span class="section-number">5. </span>Continuous-Time Trajectory Optimization</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="dp.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title"><span class="section-number">10. </span>Dynamic Programming</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">7. Model Predictive Control</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#open-loop-vs-closed-loop-control">8. Open-Loop vs Closed-Loop Control</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#closing-the-loop-by-replanning">9. Closing the Loop by Replanning</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-propofol-infusion-control">9.1. Example: Propofol Infusion Control</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#computational-efficiency-improvements">9.2. Computational Efficiency Improvements</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#explicit-mpc">9.2.1. Explicit MPC</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#amortized-optimization-and-neural-networks">9.2.1.1. Amortized Optimization and Neural Networks</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#warmstarting-and-predictor-corrector-mpc">9.2.2. Warmstarting and Predictor-Corrector MPC</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Pierre-Luc Bacon
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
