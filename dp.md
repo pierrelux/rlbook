@@ -13,245 +13,6 @@ kernelspec:
 
 # Dynamic Programming
 
-# Open-Loop vs Closed-Loop Control 
-
-The methods seen so far, whether in discrete or continuous-time, were deterministic trajectory optimization methods. Given an initial state, they provide a prescription of controls to apply as a function of time. In the collocation case, we would also obtain a state trajectory corresponding to those controls as a by-product. The control function, $\mathbf{u}[i]$ (in discrete time) or $u(t)$ (in continuous-time), is blind to the system's state at any point in time. It simply reads off the values stored in memory or performs some form of interpolation in time. This approach is optimal under the assumption that our system is deterministic. We know that no matter how many times we repeat the experiment from the same initial state, we will always get the same result; hence, reapplying the same controls in the same order is sufficient.
-
-However, no matter how good our model is, real-life deployment of our controller will inevitably involve prediction errors. In such cases, a simple control function that only considers the current time—an open-loop controller—won't suffice. We must inform our controller that the real world is likely not in the state it thinks it's in: we need to provide feedback to close the loop. Depending on the structure of the noise affecting our system, we may encounter feedback controllers that depend on the entire history (in the case of partial observability) or just the current state (under perfect observability). Dynamic programming methods will provide us with solution methods to derive such controllers. These methods exist for both the continuous-time setting (via the Hamilton-Jacobi equations) and the discrete setting through the Bellman optimality equations. It also provides us with the necessary framework to address partially observable systems (for which we can't directly measure the state) using the POMDP framework. We will cover these solution methods in this chapter.
-
-# Closing the Loop by Replanning
-
-There exists a simple recipe for closing the loop: since we will likely end up in states that we haven't planned for, we might as well recompute our solution as frequently as possible using the updated state information as initial state to our trajectory optimization procedure. This replanning or reoptimization strategy is called Model Predictive Control (MPC). Given any trajectory optimization algorithm, we can turn it into a closed-loop variant using MPC.
-
-Consider a trajectory optimization problem in Bolza form, 
-
-$$
-\begin{aligned}
-\text{minimize} \quad & c(\mathbf{x}(t_0 + T)) + \int_{t_0}^{t_0 + T} c(\mathbf{x}(t), \mathbf{u}(t)) \, dt \\
-\text{subject to} \quad & \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
-& \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
-& \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
-\text{given} \quad & \mathbf{x}(t_0) = \mathbf{x}_{\text{current}} \enspace .
-\end{aligned}
-$$
-
-MPC then proceeds as follows. At the current time $ t_0 $, the MPC controller considers a prediction horizon $ T $ over which it optimizes the future trajectory of the system. The controller then solves the trajectory optimization problem with the initial state set to the current state $ \mathbf{x}_{\text{current}} = \mathbf{x}(t_0) $. This yields an optimal control trajectory $ \mathbf{u}^*(t) $ for $ t \in [t_0, t_0 + T] $. 
-
-However,  Instead of applying the entire computed control trajectory, the controller extracts only the first part of the solution, namely $ \mathbf{u}^*(t_0) $, and applies it to the system. This strategy is called *receding horizon control*. The idea is that the control $ \mathbf{u}^*(t_0) $ is based on the best prediction available at time $ t_0 $, considering the current state of the system and expected future disturbances.
-
-After applying the first control input, the system evolves according to its dynamics, and the controller measures the new state at the next time step, $ t_0 + \Delta t $. Using this updated state as the new initial condition, the MPC controller re-solves the trajectory optimization problem over a shifted prediction horizon $ [t_0 + \Delta t, t_0 + \Delta t + T] $.
-
-This procedure is then repeated ad infinitum or until the end of overall control problem. More concisely, here's a pseudo-code showing the general blueprint of MPC methods: 
-
-````{prf:algorithm} Non-linear Model Predictive Control
-:label: alg-mpc
-
-**Input:**
-- Prediction horizon $ T $
-- Time step $ \Delta t $
-- Initial state $ \mathbf{x}(t_0) $
-- Cost functions $ c(\mathbf{x}(t), \mathbf{u}(t)) $ and $ c(\mathbf{x}(t_0 + T)) $
-- System dynamics $ \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) $
-- Constraints $ \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} $
-- Control limits $ \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} $
-
-**Output:**
-- Control input sequence $ \{\mathbf{u}(t)\} $ applied to the system
-
-**Initialization:**
-1. Set $ t \leftarrow t_0 $
-2. Measure initial state $ \mathbf{x}_{\text{current}} \leftarrow \mathbf{x}(t) $
-
-**Procedure:**
-
-3. **Repeat** until the end of the control task:
-
-   4. **Solve the following optimization problem:**
-
-   $$
-   \begin{aligned}
-   \text{minimize} \quad & c(\mathbf{x}(t + T)) + \int_{t}^{t + T} c(\mathbf{x}(\tau), \mathbf{u}(\tau)) \, d\tau \\
-   \text{subject to} \quad & \dot{\mathbf{x}}(\tau) = \mathbf{f}(\mathbf{x}(\tau), \mathbf{u}(\tau)) \quad \forall \tau \in [t, t + T] \\
-   & \mathbf{g}(\mathbf{x}(\tau), \mathbf{u}(\tau)) \leq \mathbf{0} \quad \forall \tau \in [t, t + T] \\
-   & \mathbf{u}_{\text{min}} \leq \mathbf{u}(\tau) \leq \mathbf{u}_{\text{max}} \quad \forall \tau \in [t, t + T] \\
-   \text{given} \quad & \mathbf{x}(t) = \mathbf{x}_{\text{current}}
-   \end{aligned}
-   $$
-   - Obtain the optimal control trajectory $ \mathbf{u}^*(\tau) $ and the optimal state trajectory $ \mathbf{x}^*(\tau) $ for $ \tau \in [t, t + T] $.
-
-   5. **Apply the first control input:**
-
-   $$
-   \mathbf{u}(t) \leftarrow \mathbf{u}^*(t)
-   $$
-   - Apply $ \mathbf{u}(t) $ to the system.
-
-   6. **Advance the system state:**
-   - Let the system evolve under the control $ \mathbf{u}(t) $ according to the dynamics $ \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) $.
-   - Update $ t \leftarrow t + \Delta t $.
-
-   7. **Measure the new state:**
-
-   $$
-   \mathbf{x}_{\text{current}} \leftarrow \mathbf{x}(t)
-   $$
-
-8. **End Repeat**
-
-````
-
-## Example: Propofol Infusion Control 
-
-This problem explores the control of propofol infusion in total intravenous anesthesia (TIVA). Our presentation follows the problem formulation developped by {cite:t}`Sawaguchi2008`. The primary objective is to maintain the desired level of unconsciousness while minimizing adverse reactions and ensuring quick recovery after surgery. 
-
-The level of unconsciousness is measured by the Bispectral Index (BIS), which is obtained using an electroencephalography (EEG) device. The BIS ranges from $0$ (complete suppression of brain activity) to $100$ (fully awake), with the target range for general anesthesia typically between $40$ and $60$.
-
-The goal is to design a control system that regulates the infusion rate of propofol to maintain the BIS within the target range. This can be formulated as an optimal control problem:
-
-$$
-\begin{align*}
-\min_{u(t)} & \int_{0}^{T} \left( BIS(t) - BIS_{\text{target}} \right)^2 + \lambda u(t)^2 \, dt \\
-\text{subject to:} \\
-\dot{x}_1 &= -(k_{10} + k_{12} + k_{13})x_1 + k_{21}x_2 + k_{31}x_3 + \frac{u(t)}{V_1} \\
-\dot{x}_2 &= k_{12}x_1 - k_{21}x_2 \\
-\dot{x}_3 &= k_{13}x_1 - k_{31}x_3 \\
-\dot{x}_e &= k_{e0}(x_1 - x_e) \\
-BIS(t) &= E_0 - E_{\text{max}}\frac{x_e^\gamma}{x_e^\gamma + EC_{50}^\gamma}
-\end{align*}
-$$
-
-Where:
-- $u(t)$ is the propofol infusion rate (mg/kg/h)
-- $x_1$, $x_2$, and $x_3$ are the drug concentrations in different body compartments
-- $x_e$ is the effect-site concentration
-- $k_{ij}$ are rate constants for drug transfer between compartments
-- $BIS(t)$ is the Bispectral Index
-- $\lambda$ is a regularization parameter penalizing excessive drug use
-- $E_0$, $E_{\text{max}}$, $EC_{50}$, and $\gamma$ are parameters of the pharmacodynamic model
-
-The specific dynamics model used in this problem is so-called "Pharmacokinetic-Pharmacodynamic Model" and consists of three main components:
-
-1. **Pharmacokinetic Model**, which describes how the drug distributes through the body over time. It's based on a three-compartment model:
-   - Central compartment (blood and well-perfused organs)
-   - Shallow peripheral compartment (muscle and other tissues)
-   - Deep peripheral compartment (fat)
-
-2. **Effect Site Model**, which represents the delay between drug concentration in the blood and its effect on the brain.
-
-3. **Pharmacodynamic Model** that relates the effect-site concentration to the observed BIS.
-
-The propofol infusion control problem presents several interesting challenges from a research perspective. 
-First, there is a delay in how fast the drug can reach a different compartments in addition to the BIS measurements which can lag. This could lead to instability if not properly addressed in the control design. 
-
-Furthermore, every patient is different from another. Hence, we cannot simply learn a single controller offline and hope that it will generalize to an entire patient population. We will account for this variability through Model Predictive Control (MPC) and dynamically adapt to the model mismatch through replanning. How a patient will react to a given dose of drug also varies and must be carefully controlled to avoid overdoses. This adds an additional layer of complexity since we have to incorporate safety constraints. Finally, the patient might suddenly change state, for example due to surgical stimuli, and the controller must be able to adapt quickly to compensate for the disturbance to the system.
-
-```{code-cell} ipython3
-:tags: [hide-input]
-:load: code/hypnosis_control_nmpc.py
-```
-
-## Computational Efficiency Improvements  
-
-One challenge of Model Predictive Control (MPC) is its computational cost. In real-time applications, such as adaptive optics, the controller may need to operate at extremely high frequencies—for example, 1000 Hz. In this scenario, the solver has just 1 millisecond to compute an optimal solution, pushing the limits of computational efficiency.
-
-### Explicit MPC 
-
-A potential solution to this problem is to offload some of the computational effort offline. Instead of solving the optimization problem at every time step during execution, we could attempt to **precompute solutions** for all potential states in advance. At first glance, this seems impractical—without leveraging specific structure or partitioning the state space intelligently, precomputing solutions for every possible state would be infeasible. However, with the right techniques, this approach becomes viable.
-
-This is the essence of **explicit MPC**, which hinges on a subfield of mathematical programming known as multi-parametric (or simply parametric) programming.  A multiparametric programming problem can be described by the following formulation:
-
-$$
-\begin{array}{cl}
-z(\boldsymbol{\theta}) = \min_{\mathbf{x}} & f(\mathbf{x}, \boldsymbol{\theta}) \\
-\text { s.t. } & \mathbf{g}(\mathbf{x}, \boldsymbol{\theta}) \leq 0 \\
-& \mathbf{h}(\mathbf{x}, \boldsymbol{\theta}) = 0 \\
-& \mathbf{x} \in \mathbb{R}^n \\
-& \boldsymbol{\theta} \in \mathbb{R}^m
-\end{array}
-$$
-
-where:
-- $\mathbf{x} \in \mathbb{R}^n$ are the decision variables,
-- $\boldsymbol{\theta} \in \mathbb{R}^m$ are the parameters,
-- $f(\mathbf{x}, \boldsymbol{\theta})$ is the objective function,
-- $\mathbf{g}(\mathbf{x}, \boldsymbol{\theta}) \leq 0$ and $\mathbf{h}(\mathbf{x}, \boldsymbol{\theta}) = 0$ are the inequality and equality constraints, respectively. 
-
-Parametric programming methods provides ways for efficiently evaluating $z(\boldsymbol{\theta})$ -- the **value function** -- by leveraging the structure of the solution space. In particular, it leverages the idea that the solution space can be partitioned into **critical regions**—regions of the parameter space where the optimal solution structure remains unchanged. Within each region, the solution can often be expressed as a **piecewise affine function** of the parameters, which is easy to represent and compute offline. 
-
-In trajectory optimization problems, the initial state $\boldsymbol{x}_0$ can also be treated as a **parameter**. This transforms the problem into a parametric optimization problem, where $\boldsymbol{x}_0$ defines a family of optimization problems, each yielding a different optimal solution. The relationship between the parameters and solutions can be described using two key mappings:
-- $\boldsymbol{u}^\star(\boldsymbol{x}_0)$: The optimal control sequence as a function of the initial state.
-- $v(\boldsymbol{x}_0)$: The value function, which gives the optimal objective value for a given $\boldsymbol{x}_0$.
-
-It is therefore at this level that parametric programming methods can come into play and provide efficient methods for computing the value function offline: that is without resorting to direct calls to a nonlinear programming solver for every new $\boldsymbol{x}$ encountered along a trajectory. 
-
-#### Amortized Optimization and Neural Networks
-
-The idea of solving an entire family of optimization problems efficiently is not unique to parametric programming. In machine learning, **amortized optimization** (or **amortized inference**) aims to "learn to optimize" by constructing models that generalize over a family of optimization problems. This approach is particularly relevant in applications such as hyperparameter optimization, meta-learning, and probabilistic inference.
-
-In contrast to explicit MPC, which partitions the state space, amortized optimization typically uses **neural networks** to approximate the mapping from parameters to optimal solutions. This has led to recent explorations of **amortizing NMPC (Nonlinear MPC) controllers** into neural networks, blending the structure of MPC with the generalization power of neural networks. This represents a promising direction for creating efficient controllers that combine physics-based models, safety constraints, and the flexibility of learned models.
-
-
-<!-- 
-As usual, the KKT conditions provide necessary conditions for optimality:
-
-1. **Stationarity**:  
-
-   $$
-   \nabla_{\mathbf{x}} f(\mathbf{x}^*, \boldsymbol{\theta}) + \sum_{i=1}^{p} \lambda_i^* \nabla_{\mathbf{x}} g_i(\mathbf{x}^*, \boldsymbol{\theta}) + \sum_{j=1}^{q} \nu_j^* \nabla_{\mathbf{x}} h_j(\mathbf{x}^*, \boldsymbol{\theta}) = 0
-   $$
-   where $\boldsymbol{\lambda}^* = (\lambda_1^*, \ldots, \lambda_p^*)$ are the Lagrange multipliers for the inequality constraints, and $\boldsymbol{\nu}^* = (\nu_1^*, \ldots, \nu_q^*)$ are the Lagrange multipliers for the equality constraints.
-
-2. **Primal Feasibility**:  
-
-   $$
-   \mathbf{g}(\mathbf{x}^*, \boldsymbol{\theta}) \leq 0, \quad \mathbf{h}(\mathbf{x}^*, \boldsymbol{\theta}) = 0
-   $$
-
-3. **Dual Feasibility**:  
-
-   $$
-   \lambda_i^* \geq 0, \quad \forall i
-   $$
-
-4. **Complementary Slackness**:  
-
-   $$
-   \lambda_i^* g_i(\mathbf{x}^*, \boldsymbol{\theta}) = 0, \quad \forall i
-   $$
-
-
-We can combine the KKT conditions into a single system of equations, denoted as $\mathbf{F}(\mathbf{x}, \boldsymbol{\lambda}, \boldsymbol{\nu}, \boldsymbol{\theta}) = \mathbf{0}$, where:
-
-$$
-\mathbf{F}(\mathbf{x}, \boldsymbol{\lambda}, \boldsymbol{\nu}, \boldsymbol{\theta}) = \begin{pmatrix}
-\nabla_{\mathbf{x}} f(\mathbf{x}, \boldsymbol{\theta}) + \sum_{i=1}^{p} \lambda_i \nabla_{\mathbf{x}} g_i(\mathbf{x}, \boldsymbol{\theta}) + \sum_{j=1}^{q} \nu_j \nabla_{\mathbf{x}} h_j(\mathbf{x}, \boldsymbol{\theta}) \\
-\mathbf{g}(\mathbf{x}, \boldsymbol{\theta}) \\
-\mathbf{h}(\mathbf{x}, \boldsymbol{\theta}) \\
-\boldsymbol{\lambda} \odot \mathbf{g}(\mathbf{x}, \boldsymbol{\theta}) \\
-\min(\boldsymbol{\lambda}, \mathbf{0})
-\end{pmatrix} = \mathbf{0}
-$$
-
-Here, $\mathbf{F}(\mathbf{x}, \boldsymbol{\lambda}, \boldsymbol{\nu}, \boldsymbol{\theta}) = \mathbf{0}$ encapsulates the stationarity, primal feasibility, dual feasibility, and complementary slackness conditions. The symbol $\odot$ represents the element-wise product for the complementary slackness condition. -->
-
-### Warmstarting and Predictor-Corrector MPC 
-
-Another way in which we can speed up NMPC is by providing good initial guesses for the solver. When solving a series of optimization problems along a trajectory, it is likely that the solution to previous problem might be close to that of the current one. Hence, as a heuristic it often makes sense to "warmstart" from the previous solution. 
-
-Another alternative is to extrapolate what the next solution ought to be based on the previous one. What we mean here is that rather than simply using the last solution as a guess for that of the current problem, we leverage the "sensitivity information" around the last solution to make a guess about where we might be going. This idea is reminiscent of predictor-corrector schemes which we have briefly discussed in the first chapter. 
-
-To implement a predictor corrector MPC scheme, we need to understand how the optimal solution $\mathbf{x}^*(\boldsymbol{\theta})$ and the value function $z(\boldsymbol{\theta})$ change as the parameters $\boldsymbol{\theta}$ vary. We achieve this by applying the **implicit function theorem** to the **KKT (Karush-Kuhn-Tucker) conditions** of the parametric problem. The KKT conditions for a parametric optimization problem are necessary for optimality and can be written as:
-
-$$
-\mathbf{F}(\mathbf{x}, \boldsymbol{\lambda}, \boldsymbol{\nu}, \boldsymbol{\theta}) = 0,
-$$
-
-where $\mathbf{F}$ encapsulates the stationarity, primal feasibility, dual feasibility, and complementary slackness conditions from the KKT theorem. By treating $\mathbf{x}$, $\boldsymbol{\lambda}$, and $\boldsymbol{\nu}$ as functions of the parameters $\boldsymbol{\theta}$, the implicit function theorem guarantees that, under certain regularity conditions, these optimal variables are **continuously differentiable** with respect to $\boldsymbol{\theta}$. This allows us to compute **sensitivity derivatives**, which describe how small changes in $\boldsymbol{\theta}$ affect the optimal solution.
-
-By leveraging this sensitivity information, we can predict changes in the optimal solution and "warm-start" the optimization process at the next time step in MPC. This concept is related to **numerical continuation**, where a complex optimization problem is solved by gradually transforming a simpler, well-understood problem into the more difficult one.
-
-# Principle of Optimality
-
 Unlike the methods we've discussed so far, dynamic programming takes a step back and considers not just a single optimization problem, but an entire family of related problems. This approach, while seemingly more complex at first glance, can often lead to efficient solutions.
 
 Dynamic programming leverage the solution structure underlying many control problems that allows for a decomposition it into smaller, more manageable subproblems. Each subproblem is itself an optimization problem, embedded within the larger whole. This recursive structure is the foundation upon which dynamic programming constructs its solutions.
@@ -262,7 +23,7 @@ Consider a typical DOCP of Bolza type:
 
 $$
 \begin{align*}
-\text{minimize} \quad & J \triangleq c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t, \mathbf{u}_t) \\
+\text{minimize} \quad & J \triangleq c_\mathrm{T}(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t, \mathbf{u}_t) \\
 \text{subject to} \quad 
 & \mathbf{x}_{t+1} = \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t), \quad t = 1, \ldots, T-1, \\
 & \mathbf{u}_{lb} \leq \mathbf{u}_t \leq \mathbf{u}_{ub}, \quad t = 1, \ldots, T, \\
@@ -274,7 +35,7 @@ $$
 Rather than considering only the total cost from the initial time to the final time, dynamic programming introduces the concept of cost from an arbitrary point in time to the end. This leads to the definition of the "cost-to-go" or "value function" $J_k(\mathbf{x}_k)$:
 
 $$
-J_k(\mathbf{x}_k) \triangleq c_T(\mathbf{x}_T) + \sum_{t=k}^{T-1} c_t(\mathbf{x}_t, \mathbf{u}_t)
+J_k(\mathbf{x}_k) \triangleq c_\mathrm{T}(\mathbf{x}_T) + \sum_{t=k}^{T-1} c_t(\mathbf{x}_t, \mathbf{u}_t)
 $$
 
 This function represents the total cost incurred from stage $k$ onwards to the end of the time horizon, given that the system is initialized in state $\mathbf{x}_k$ at stage $k$. Suppose the problem has been solved from stage $k+1$ to the end, yielding the optimal cost-to-go $J_{k+1}^\star(\mathbf{x}_{k+1})$ for any state $\mathbf{x}_{k+1}$ at stage $k+1$. The question then becomes: how does this information inform the decision at stage $k$?
@@ -302,11 +63,11 @@ The principle of optimality provides a methodology for solving optimal control p
 ````{prf:algorithm} Backward Recursion for Dynamic Programming
 :label: backward-recursion
 
-**Input:** Terminal cost function $c_T(\cdot)$, stage cost functions $c_t(\cdot, \cdot)$, system dynamics $f_t(\cdot, \cdot)$, time horizon $T$
+**Input:** Terminal cost function $c_\mathrm{T}(\cdot)$, stage cost functions $c_t(\cdot, \cdot)$, system dynamics $f_t(\cdot, \cdot)$, time horizon $\mathrm{T}$
 
 **Output:** Optimal value functions $J_t^\star(\cdot)$ and optimal control policies $\mu_t^\star(\cdot)$ for $t = 1, \ldots, T$
 
-1. Initialize $J_T^\star(\mathbf{x}) = c_T(\mathbf{x})$ for all $\mathbf{x}$ in the state space
+1. Initialize $J_T^\star(\mathbf{x}) = c_\mathrm{T}(\mathbf{x})$ for all $\mathbf{x}$ in the state space
 2. For $t = T-1, T-2, \ldots, 1$:
    1. For each state $\mathbf{x}$ in the state space:
       1. Compute $J_t^\star(\mathbf{x}) = \min_{\mathbf{u}} \left[ c_t(\mathbf{x}, \mathbf{u}) + J_{t+1}^\star(f_t(\mathbf{x}, \mathbf{u})) \right]$
@@ -319,15 +80,15 @@ The principle of optimality provides a methodology for solving optimal control p
 
 Upon completion of this backward pass, we now have access to the optimal control to take at any stage and in any state. Furthermore, we can simulate optimal trajectories from any initial state and applying the optimal policy at each stage to generate the optimal trajectory.
 
-## Example: Optimal Harvest in Resource Management
+### Example: Optimal Harvest in Resource Management
 
 Dynamic programming is often used in resource management and conservation biology to devise policies to be implemented by decision makers and stakeholders : for eg. in fishereries, or timber harvesting. Per {cite}`Conroy2013`, we consider a population of a particular species, whose abundance we denote by $x_t$, where $t$ represents discrete time steps. Our objective is to maximize the cumulative harvest over a finite time horizon, while also considering the long-term sustainability of the population. This optimization problem can be formulated as:
 
 $$
-\text{maximize} \quad \sum_{t=t_0}^{t_f} F(x_t \cdot h_t) + F_T(x_{t_f})
+\text{maximize} \quad \sum_{t=t_0}^{t_f} F(x_t \cdot h_t) + F_\mathrm{T}(x_{t_f})
 $$
 
-Here, $F(\cdot)$ represents the immediate reward function associated with harvesting, $h_t$ is the harvest rate at time $t$, and $F_T(\cdot)$ denotes a terminal value function that could potentially assign value to the final population state. In this particular problem, we assign no terminal value to the final population state, setting $F_T(x_{t_f}) = 0$ and allowing us to focus solely on the cumulative harvest over the time horizon.
+Here, $F(\cdot)$ represents the immediate reward function associated with harvesting, $h_t$ is the harvest rate at time $t$, and $F_\mathrm{T}(\cdot)$ denotes a terminal value function that could potentially assign value to the final population state. In this particular problem, we assign no terminal value to the final population state, setting $F_\mathrm{T}(x_{t_f}) = 0$ and allowing us to focus solely on the cumulative harvest over the time horizon.
 
 In our model population model, the abundance of a specicy $x$ ranges from 1 to 100 individuals. The decision variable is the harvest rate $h$, which can take values from the set $D = \{0, 0.1, 0.2, 0.3, 0.4, 0.5\}$. The population dynamics are governed by a modified logistic growth model:
 
@@ -391,16 +152,16 @@ Here's a pseudo-code algorithm for backward recursion with interpolation:
 :label: backward-recursion-interpolation
 
 **Input:** 
-- Terminal cost function $c_T(\cdot)$
+- Terminal cost function $c_\mathrm{T}(\cdot)$
 - Stage cost functions $c_t(\cdot, \cdot)$
 - System dynamics $f_t(\cdot, \cdot)$
-- Time horizon $T$
+- Time horizon $\mathrm{T}$
 - Grid of state points $\mathcal{X}_\text{grid}$
 - Set of possible actions $\mathcal{U}$
 
 **Output:** Optimal value functions $J_t^\star(\cdot)$ and optimal control policies $\mu_t^\star(\cdot)$ for $t = 1, \ldots, T$ at grid points
 
-1. Initialize $J_T^\star(\mathbf{x}) = c_T(\mathbf{x})$ for all $\mathbf{x} \in \mathcal{X}_\text{grid}$
+1. Initialize $J_T^\star(\mathbf{x}) = c_\mathrm{T}(\mathbf{x})$ for all $\mathbf{x} \in \mathcal{X}_\text{grid}$
 2. For $t = T-1, T-2, \ldots, 1$:
    1. For each state $\mathbf{x} \in \mathcal{X}_\text{grid}$:
       1. Initialize $J_t^\star(\mathbf{x}) = \infty$ and $\mu_t^\star(\mathbf{x}) = \text{None}$
@@ -416,15 +177,13 @@ Here's a pseudo-code algorithm for backward recursion with interpolation:
 4. Return $J_t^\star(\cdot)$, $\mu_t^\star(\cdot)$ for $t = 1, \ldots, T$
 ````
 
-### Implementation Considerations
-
 The choice of interpolation method can significantly affect the accuracy of the solution. Linear interpolation is simple and often effective, but higher-order methods like cubic spline interpolation might provide better results in some problems. Furthermore, the layout and density of the grid points in $\mathcal{X}_\text{grid}$ can impact both the accuracy and computational efficiency. A finer grid generally provides better accuracy but increases computational cost. To balance this tradeoff, you might consider techniques like adaptive grid refinement or function approximation methods instead of fixed grid-based interpolation. Special care may also be needed for states near the boundaries, where interpolation might not be possible in all directions.
 
 While simple to implement, interpolation methods scale poorly in multi-dimensional spaces in terms of computational complexity. Techniques like multilinear interpolation with tensorized representations or more advanced methods like radial basis function interpolation might be necessary.
 
 To better address this computational challenge, we will broaden our perspective through the lens of numerical approximation methods for solving functional operator equations. Polynomial interpolation is a form of approximation, with properties akin to generalization in machine learning. By building these connections, we will develop techniques capable of more robustly handling the curse of dimensionality by leveraging the generalization properties of machine learning models, and the "blessing of randomness" inherent in supervised learning and Monte Carlo methods.
 
-### Example: Optimal Harvest with Linear Interpolation
+#### Example: Optimal Harvest with Linear Interpolation
 
 Here is a demonstration of the backward recursion procedure using linear interpolation. 
 
@@ -442,7 +201,7 @@ Here's a more general implementation which here uses cubic interpolation through
 :load: code/harvest_dp_interp1d.py
 ```
 
-## Linear Quadratic Regulator via Dynamic Programming
+<!-- ## Linear Quadratic Regulator via Dynamic Programming
 
 Let us now consider a special case of our dynamic programming formulation: the discrete-time Linear Quadratic Regulator (LQR) problem. This example will illustrate how the structure of linear dynamics and quadratic costs leads to a particularly elegant form of the backward recursion.
 
@@ -534,7 +293,7 @@ Where $S_t$ satisfies the so-called discrete-time Riccati equation:
 
 $$
 S_t = Q + A^\top S_{t+1} A - A^\top S_{t+1} B(R + B^\top S_{t+1} B)^{-1}B^\top S_{t+1} A
-$$
+$$ -->
 <!-- 
 ### Example: Linear Quadratic Regulation of a Liquid Tank 
 
@@ -594,7 +353,7 @@ Where $x_{1,ref}$ is the reference liquid level and $r$ is a positive weight on 
 
 To put this in standard discrete-time LQR form, we rewrite the cost function as:
 
-$J = \sum_{k=0}^{\infty} \left( x^T(k)Qx(k) + ru^2(k) \right)$
+$J = \sum_{k=0}^{\infty} \left( x^\mathrm{T}(k)Qx(k) + ru^2(k) \right)$
 
 Where:
 
@@ -621,7 +380,7 @@ This formulation ensures that:
 
 By tuning the weight $r$ and the sampling time $T_s$, we can balance the trade-off between maintaining the desired liquid level, the amount of control effort used, and the responsiveness of the system. -->
 
-## Stochastic Dynamic Programming
+# Stochastic Dynamic Programming in Control Theory
 
 While our previous discussion centered on deterministic systems, many real-world problems involve uncertainty. Stochastic Dynamic Programming (SDP) extends our framework to handle stochasticity in both the objective function and system dynamics.
 
@@ -635,7 +394,7 @@ $$ c_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w}_t) $$
 
 In this context, our objective shifts from minimizing a deterministic cost to minimizing the expected total cost:
 
-$$ \mathbb{E}\left[c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w}_t)\right] $$
+$$ \mathbb{E}\left[c_\mathrm{T}(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w}_t)\right] $$
 
 where the expectation is taken over the distributions of the random variables $\mathbf{w}_t$. The principle of optimality still holds in the stochastic case, but Bellman's optimality equation now involves an expectation:
 
@@ -650,11 +409,11 @@ The backward recursion algorithm for SDP follows a similar structure to its dete
 ````{prf:algorithm} Backward Recursion for Stochastic Dynamic Programming
 :label: stochastic-backward-recursion
 
-**Input:** Terminal cost function $c_T(\cdot)$, stage cost functions $c_t(\cdot, \cdot, \cdot)$, system dynamics $\mathbf{f}_t(\cdot, \cdot, \cdot)$, time horizon $T$, disturbance distributions
+**Input:** Terminal cost function $c_\mathrm{T}(\cdot)$, stage cost functions $c_t(\cdot, \cdot, \cdot)$, system dynamics $\mathbf{f}_t(\cdot, \cdot, \cdot)$, time horizon $\mathrm{T}$, disturbance distributions
 
 **Output:** Optimal value functions $J_t^\star(\cdot)$ and optimal control policies $\mu_t^\star(\cdot)$ for $t = 1, \ldots, T$
 
-1. Initialize $J_T^\star(\mathbf{x}) = c_T(\mathbf{x})$ for all $\mathbf{x}$ in the state space
+1. Initialize $J_T^\star(\mathbf{x}) = c_\mathrm{T}(\mathbf{x})$ for all $\mathbf{x}$ in the state space
 2. For $t = T-1, T-2, \ldots, 1$:
    1. For each state $\mathbf{x}$ in the state space:
       1. Compute $J_t^\star(\mathbf{x}) = \min_{\mathbf{u}} \mathbb{E}_{\mathbf{w}_t}\left[c_t(\mathbf{x}, \mathbf{u}, \mathbf{w}_t) + J_{t+1}^\star(\mathbf{f}_t(\mathbf{x}, \mathbf{u}, \mathbf{w}_t))\right]$
@@ -673,7 +432,7 @@ However, just as we tackled the challenges of continuous state spaces with discr
 
 These two elements essentially distill the key ingredients of machine learning, which is the direction we'll be exploring in this course. 
 
-### Example: Stochastic Optimal Harvest in Resource Management
+## Example: Stochastic Optimal Harvest in Resource Management
 
 Building upon our previous deterministic model, we now introduce stochasticity to more accurately reflect the uncertainties inherent in real-world resource management scenarios {cite:p}`Conroy2013`. As before, we consider a population of a particular species, whose abundance we denote by $x_t$, where $t$ represents discrete time steps. Our objective remains to maximize the cumulative harvest over a finite time horizon, while also considering the long-term sustainability of the population. However, we now account for two sources of stochasticity: partial controllability of harvest and environmental variability affecting growth rates.
 The optimization problem can be formulated as:
@@ -693,7 +452,8 @@ d_t & \text{with probability } 0.5 \\
 \end{cases}
 $$
 
-By expressing the harvest rate as a random variable, we mean to capture the fact that harvesting is a not completely under our control: we might obtain more or less what we had intended to. Furthermore, we generalize the population dynamics to the stochastic cse via: 
+By expressing the harvest rate as a random variable, we mean to capture the fact that harvesting is a not completely under our control: we might obtain more or less what we had intended to. Furthermore, we generalize the population dynamics to the stochastic case via: 
+
 $$
 
 x_{t+1} = x_t + r_tx_t(1 - x_t/K) - h_tx_t
@@ -723,7 +483,7 @@ where the expectation is taken over the harvest and growth rate random variables
 :load: code/harvest_sdp.py
 ```
 
-### Markov Decision Process Formulation
+# Markov Decision Process Formulation
 
 Rather than expressing the stochasticity in our system through a disturbance term as a parameter to a deterministic difference equation, we often work with an alternative representation (more common in operations research) which uses the Markov Decision Process formulation. The idea is that when we model our system in this way with the disturbance term being drawn indepently of the previous stages, the induced trajectory are those of a Markov chain. Hence, we can re-cast our control problem in that language, leading to the so-called Markov Decision Process framework in which we express the system dynamics in terms of transition probabilities rather than explicit state equations. In this framework, we express the probability that the system is in a given state using the transition probability function:
 
@@ -768,7 +528,7 @@ This formulation offers several advantages:
 
 3. It allows us to bridge the gap with the wealth of methods in the field of probabilistic graphical models and statistical machine learning techniques for modelling and analysis. 
 
-## From Control Theory to Operations Research Notation
+## Notation in Operations Reseach 
 
 The presentation above was intended to bridge the gap between the control-theoretic perspective and the world of closed-loop control through the idea of determining the value function of a parametric optimal control problem. We then saw how the backward induction procedure was applicable to both the deterministic and stochastic cases by taking the expectation over the disturbance variable. We then said that we can alternatively work with a representation of our system where instead of writing our model as a deterministic dynamics function taking a disturbance as an input, we would rather work directly via its transition probability function, which gives rise to the Markov chain interpretation of our system in simulation.
 
@@ -790,7 +550,162 @@ Combined together, these elemetns specify a Markov decision process, which is fu
 
 $$\{T, S, \mathcal{A}_s, p_t(\cdot | s, a), r_t(s, a)\}$$
 
-where $T$ represents the set of decision epochs (the horizon).
+where $\mathrm{T}$ represents the set of decision epochs (the horizon).
+
+## Decision Rules and Policies
+
+In the presentation provided so far, we directly assumed that the form of our feedback controller was of the form $u(\mathbf{x}, t)$. The idea is that rather than just looking at the stage as in open-loop control, we would now consider the current state to account for the presence of noise. We came to that conclusion by considering the parametric optimization problem corresponding to the trajectory optimization perspective and saw that the "argmax" counterpart to the value function (the max) was exactly this function $u(x, t)$. But this presentation was mostly for intuition and neglected the fact that we could consider other kinds of feedback controllers. In the context of MDPs and under the OR terminology, we should now rather talk of policies instead of controllers.
+
+But to properly introduce the concept of policy, we first have to talk about decision rules. A decision rule is a prescription of a procedure for action selection in each state at a specified decision epoch. These rules can vary in their complexity due to their potential dependence on the history and ways in which actions are then selected. Decision rules can be classified based on two main criteria:
+
+1. Dependence on history: Markovian or History-dependent
+2. Action selection method: Deterministic or Randomized
+
+Markovian decision rules are those that depend only on the current state, while history-dependent rules consider the entire sequence of past states and actions. Formally, we can define a history $h_t$ at time $t$ as:
+
+$$h_t = (s_1, a_1, \ldots, s_{t-1}, a_{t-1}, s_t)$$
+
+where $s_u$ and $a_u$ denote the state and action at decision epoch $u$. The set of all possible histories at time $t$, denoted $H_t$, grows rapidly with $t$:
+
+$$H_1 = \mathcal{S}$$
+$$H_2 = \mathcal{S} \times A \times \mathcal{S}$$
+$$H_t = H_{t-1} \times A \times \mathcal{S} = \mathcal{S} \times (A \times \mathcal{S})^{t-1}$$
+
+This exponential growth in the size of the history set motivates us to seek conditions under which we can avoid searching for history-dependent decision rules and instead focus on Markovian rules, which are much simpler to implement and evaluate.
+
+Decision rules can be further classified as deterministic or randomized. A deterministic rule selects an action with certainty, while a randomized rule specifies a probability distribution over the action space.
+
+These classifications lead to four types of decision rules:
+1. Markovian Deterministic (MD): $d_t: \mathcal{S} \rightarrow \mathcal{A}_s$
+2. Markovian Randomized (MR): $d_t: \mathcal{S} \rightarrow \mathcal{P}(\mathcal{A}_s)$
+3. History-dependent Deterministic (HD): $d_t: H_t \rightarrow \mathcal{A}_s$
+4. History-dependent Randomized (HR): $d_t: H_t \rightarrow \mathcal{P}(\mathcal{A}_s)$
+
+Where $\mathcal{P}(\mathcal{A}_s)$ denotes the set of probability distributions over $\mathcal{A}_s$.
+
+It's important to note that decision rules are stage-wise objects. However, to solve an MDP, we need a strategy for the entire horizon. This is where we make a distinction and introduce the concept of a policy. A policy $\pi$ is a sequence of decision rules, one for each decision epoch:
+
+$$\pi = (d_1, d_2, ..., d_{N-1})$$
+
+Where $N$ is the horizon length (possibly infinite). The set of all policies of class $K$ (where $K$ can be HR, HD, MR, or MD) is denoted as $\Pi^K$.
+
+A special type of policy is a stationary policy, where the same decision rule is used at all epochs: $\pi = (d, d, ...)$, often denoted as $d^\infty$. 
+
+The relationships between these policy classes form a hierarchy:
+
+$$\begin{align*}
+\Pi^{SD} \subset \Pi^{SR} \subset \Pi^{MR} \subset \Pi^{HR}\\
+\Pi^{SD} \subset \Pi^{MD} \subset \Pi^{MR} \subset \Pi^{HR} \\
+\Pi^{SD} \subset \Pi^{MD} \subset \Pi^{HD} \subset \Pi^{HR}
+\end{align*}
+$$
+
+Where SD stands for Stationary Deterministic and SR for Stationary Randomized. The largest set is by far the set of history randomized policies. 
+
+A fundamental question in MDP theory is: under what conditions can we avoid working with the set $\Pi^{HR}$ and focus for example on the much simpler set of deterministic Markovian policy? Even more so, we will see that in the infinite horizon case, we can drop the dependance on time and simply consider stationary deterministic Markovian policies. 
+Certainly, I can help clean up and refine this draft. Here's an improved version:
+
+## What is an Optimal Policy?
+
+Let's go back to the starting point and define what it means for a policy to be optimal in a Markov Decision Problem. For this, we will be considering different possible search spaces (policy classes) and compare policies based on the ordering of their value from any possible start state. The value of a policy $\pi$ (optimal or not) is defined as the expected total reward obtained by following that policy from a given starting state. Formally, for a finite-horizon MDP with $N$ decision epochs, we define the value function $v_\pi(s, t)$ as:
+
+$$
+v_\pi(s, t) \triangleq \mathbb{E}\left[\sum_{k=t}^{N-1} r_t(S_k, A_k) + r_N(S_N) \mid S_t = s\right]
+$$
+
+where $S_t$ is the state at time $t$, $A_t$ is the action taken at time $t$, and $r_t$ is the reward function. For simplicity, we write $v_\pi(s)$ to denote $v_\pi(s, 1)$, the value of following policy $\pi$ from state $s$ at the first stage over the entire horizon $N$.
+
+In finite-horizon MDPs, our goal is to identify an optimal policy, denoted by $\pi^*$, that maximizes total expected reward over the horizon $N$. Specifically:
+
+$$
+v_{\pi^*}(s) \geq v_\pi(s), \quad \forall s \in \mathcal{S}, \quad \forall \pi \in \Pi^{\text{HR}}
+$$
+
+We call $\pi^*$ an **optimal policy** because it yields the highest possible value across all states and all policies within the policy class $\Pi^{\text{HR}}$. We denote by $v^*$ the maximum value achievable by any policy:
+
+$$
+v^*(s) = \max_{\pi \in \Pi^{\text{HR}}} v_\pi(s), \quad \forall s \in \mathcal{S}
+$$
+
+In reinforcement learning literature, $v^*$ is typically referred to as the "optimal value function," while in some operations research references, it might be called the "value of an MDP." An optimal policy $\pi^*$ is one for which its value function equals the optimal value function:
+
+$$
+v_{\pi^*}(s) = v^*(s), \quad \forall s \in \mathcal{S}
+$$
+
+It's important to note that this notion of optimality applies to every state. Policies optimal in this sense are sometimes called "uniformly optimal policies." A weaker notion of optimality, often encountered in reinforcement learning practice, is optimality with respect to an initial distribution of states. In this case, we seek a policy $\pi \in \Pi^{\text{HR}}$ that maximizes:
+
+$$
+\sum_{s \in \mathcal{S}} v_\pi(s) P_1(S_1 = s)
+$$
+
+where $P_1(S_1 = s)$ is the probability of starting in state $s$.
+
+A fundamental result in MDP theory states that the maximum value can be achieved by searching over the space of deterministic Markovian Policies. Consequently:
+
+$$ v^*(s) = \max_{\pi \in \Pi^{\mathrm{HR}}} v_\pi(s) = \max _{\pi \in \Pi^{M D}} v_\pi(s), \quad s \in S$$
+
+This equality significantly simplifies the computational complexity of our algorithms, as the search problem can now be decomposed into $N$ sub-problems in which we only have to search over the set of possible actions. This is the backward induction algorithm, which we present a second time, but departing this time from the control-theoretic notation and using the MDP formalism:  
+
+````{prf:algorithm} Backward Induction
+:label: backward-induction
+
+**Input:** State space $S$, Action space $A$, Transition probabilities $p_t$, Reward function $r_t$, Time horizon $N$
+
+**Output:** Optimal value functions $v^*$
+
+1. Initialize:
+   - Set $t = N$
+   - For all $s_N \in S$:
+
+     $$v^*(s_N, N) = r_N(s_N)$$
+
+2. For $t = N-1$ to $1$:
+   - For each $s_t \in S$:
+     a. Compute the optimal value function:
+
+        $$v^*(s_t, t) = \max_{a \in A_{s_t}} \left\{r_t(s_t, a) + \sum_{j \in S} p_t(j | s_t, a) v^*(j, t+1)\right\}$$
+     
+     b. Determine the set of optimal actions:
+
+        $$A_{s_t,t}^* = \arg\max_{a \in A_{s_t}} \left\{r_t(s_t, a) + \sum_{j \in S} p_t(j | s_t, a) v^*(j, t+1)\right\}$$
+
+3. Return the optimal value functions $u_t^*$ and optimal action sets $A_{s_t,t}^*$ for all $t$ and $s_t$
+````
+
+Note that the same procedure can also be used for finding the value of a policy with minor changes; 
+
+````{prf:algorithm} Policy Evaluation
+:label: backward-policy-evaluation
+
+**Input:** 
+- State space $S$
+- Action space $A$
+- Transition probabilities $p_t$
+- Reward function $r_t$
+- Time horizon $N$
+- A markovian deterministic policy $\pi$
+
+**Output:** Value function $v^\pi$ for policy $\pi$
+
+1. Initialize:
+   - Set $t = N$
+   - For all $s_N \in S$:
+
+     $$v_\pi(s_N, N) = r_N(s_N)$$
+
+2. For $t = N-1$ to $1$:
+   - For each $s_t \in S$:
+     a. Compute the value function for the given policy:
+
+        $$v_\pi(s_t, t) = r_t(s_t, d_t(s_t)) + \sum_{j \in S} p_t(j | s_t, d_t(s_t)) v_\pi(j, t+1)$$
+
+3. Return the value function $v^\pi(s_t, t)$ for all $t$ and $s_t$
+````
+
+This code could also finally be adapted to support randomized policies using:
+
+$$v_\pi(s_t, t) = \sum_{a_t \in \mathcal{A}_{s_t}} d_t(a_t \mid s_t) \left( r_t(s_t, a_t) + \sum_{j \in S} p_t(j | s_t, a_t) v_\pi(j, t+1) \right)$$
 
 
 ### Example: Sample Size Determination in Pharmaceutical Development
@@ -851,96 +766,362 @@ This process can take 10-15 years and cost over $1 billion {cite}`Adams2009`. Th
 ```{code-cell} ipython3
 :tags: [hide-input]
 :load: code/sample_size_drug_dev_dp.py
+
 ```
 
-## Decision Rules and Policies
+# Infinite-Horizon MDPs
+
+It often makes sense to model control problems over infinite horizons. We extend the previous setting and define the expected total reward of policy $\pi \in \Pi^{\mathrm{HR}}$, $v^\pi$ as:
+
+$$
+v^\pi(s) = \mathbb{E}\left[\sum_{t=1}^{\infty} r(S_t, A_t)\right]
+$$
+
+One drawback of this model is that we could easily encounter values that are $+\infty$ or $-\infty$, even in a setting as simple as a single-state MDP which loops back into itself and where the accrued reward is nonzero.
+
+Therefore, it is often more convenient to work with an alternative formulation which guarantees the existence of a limit: the expected total discounted reward of policy $\pi \in \Pi^{\mathrm{HR}}$ is defined to be:
+
+$$
+v_\gamma^\pi(s) \equiv \lim_{N \rightarrow \infty} \mathbb{E}\left[\sum_{t=1}^N \gamma^{t-1} r(S_t, A_t)\right]
+$$
+
+for $0 \leq \gamma < 1$ and when $\max_{s \in \mathcal{S}} \max_{a \in \mathcal{A}_s}|r(s, a)| = R_{\max} < \infty$, in which case, $|v_\gamma^\pi(s)| \leq (1-\gamma)^{-1} R_{\max}$.
 
 
-In the presentation provided so far, we directly assumed that the form of our feedback controller was of the form $u(\mathbf{x}, t)$. The idea is that rather than just looking at the stage as in open-loop control, we would now consider the current state to account for the presence of noise. We came to that conclusion by considering the parametric optimization problem corresponding to the trajectory optimization perspective and saw that the "argmax" counterpart to the value function (the max) was exactly this function $u(x, t)$. But this presentation was mostly for intuition and neglected the fact that we could consider other kinds of feedback controllers. In the context of MDPs and under the OR terminology, we should now rather talk of policies instead of controllers.
+Finally, another possibility for the infinite-horizon setting is the so-called average reward or gain of policy $\pi \in \Pi^{\mathrm{HR}}$ defined as:
 
-But to properly introduce the concept of policy, we first have to talk about decision rules. A decision rule is a prescription of a procedure for action selection in each state at a specified decision epoch. These rules can vary in their complexity due to their potential dependence on the history and ways in which actions are then selected. Decision rules can be classified based on two main criteria:
+$$
+g^\pi(s) \equiv \lim_{N \rightarrow \infty} \frac{1}{N} \mathbb{E}\left[\sum_{t=1}^N r(S_t, A_t)\right]
+$$
 
-1. Dependence on history: Markovian or History-dependent
-2. Action selection method: Deterministic or Randomized
+We won't be working with this formulation in this course due to its inherent practical and theoretical complexities. 
 
-Markovian decision rules are those that depend only on the current state, while history-dependent rules consider the entire sequence of past states and actions. Formally, we can define a history $h_t$ at time $t$ as:
+Extending the previous notion of optimality from finite-horizon models, a policy $\pi^*$ is said to be discount optimal for a given $\gamma$ if: 
 
-$$h_t = (s_1, a_1, \ldots, s_{t-1}, a_{t-1}, s_t)$$
+$$
+v_\gamma^{\pi^*}(s) \geq v_\gamma^\pi(s) \quad \text { for each } s \in S \text { and all } \pi \in \Pi^{\mathrm{HR}}
+$$
 
-where $s_u$ and $a_u$ denote the state and action at decision epoch $u$. The set of all possible histories at time $t$, denoted $H_t$, grows rapidly with $t$:
+Furthermore, the value of a discounted MDP $v_\gamma^*(s)$, is defined by:
 
-$$H_1 = \mathcal{S}$$
-$$H_2 = \mathcal{S} \times A \times \mathcal{S}$$
-$$H_t = H_{t-1} \times A \times \mathcal{S} = \mathcal{S} \times (A \times \mathcal{S})^{t-1}$$
+$$
+v_\gamma^*(s) \equiv \max _{\pi \in \Pi^{\mathrm{HR}}} v_\gamma^\pi(s)
+$$
 
-This exponential growth in the size of the history set motivates us to seek conditions under which we can avoid searching for history-dependent decision rules and instead focus on Markovian rules, which are much simpler to implement and evaluate.
+More often, we refer to $v_\gamma$ by simply calling it the optimal value function. 
 
-Decision rules can be further classified as deterministic or randomized. A deterministic rule selects an action with certainty, while a randomized rule specifies a probability distribution over the action space.
+As for the finite-horizon setting, the infinite horizon discounted model does not require history-dependent policies, since for any $\pi \in \Pi^{HR}$ there exists a $\pi^{\prime} \in \Pi^{MR}$ with identical total discounted reward:
+$$
+v_\gamma^*(s) \equiv \max_{\pi \in \Pi^{HR}} v_\gamma^\pi(s)=\max_{\pi \in \Pi^{MR}} v_\gamma^\pi(s) .
+$$
 
-These classifications lead to four types of decision rules:
-1. Markovian Deterministic (MD): $d_t: \mathcal{S} \rightarrow \mathcal{A}_s$
-2. Markovian Randomized (MR): $d_t: \mathcal{S} \rightarrow \mathcal{P}(\mathcal{A}_s)$
-3. History-dependent Deterministic (HD): $d_t: H_t \rightarrow \mathcal{A}_s$
-4. History-dependent Randomized (HR): $d_t: H_t \rightarrow \mathcal{P}(\mathcal{A}_s)$
+## Random Horizon Interpretation of Discounting
+The use of discounting can be motivated both from a modeling perspective and as a means to ensure that the total reward remains bounded. From the modeling perspective, we can view discounting as a way to weight more or less importance on the immediate rewards vs. the long-term consequences. There is also another interpretation which stems from that of a finite horizon model but with an uncertain end time. More precisely:
 
-Where $\mathcal{P}(\mathcal{A}_s)$ denotes the set of probability distributions over $\mathcal{A}_s$.
+Let $v_\nu^\pi(s)$ denote the expected total reward obtained by using policy $\pi$ when the horizon length $\nu$ is random. We define it by:
 
-<!-- The choice of decision rule affects how the MDP's rewards and transition probabilities are computed. For example, with a Markovian deterministic rule $d_t \in D_t^{MD}$, we have:
+$$
+v_\nu^\pi(s) \equiv \mathbb{E}_s^\pi\left[\mathbb{E}_\nu\left\{\sum_{t=1}^\nu r(S_t, A_t)\right\}\right]
+$$
 
-$$r_t(s, d_t(s)) \text{ and } p_t(j|s, d_t(s))$$
 
-With a randomized Markovian rule, these become expected values:
+````{prf:theorem} Random horizon interpretation of discounting
+:label: prop-5-3-1
+Suppose that the horizon $\nu$ follows a geometric distribution with parameter $\gamma$, $0 \leq \gamma < 1$, independent of the policy such that 
+$P(\nu=n) = (1-\gamma) \gamma^{n-1}, \, n=1,2, \ldots$, then $v_\nu^\pi(s) = v_\gamma^\pi(s)$ for all $s \in \mathcal{S}$ .
+````
 
-$$r_t(s, d_t(s)) = \sum_{a \in \mathcal{A}_s} r_t(s,a) q_{d_t(s)}(a)$$
-$$p_t(j|s, d_t(s)) = \sum_{a \in \mathcal{A}_s} p_t(j|s,a) q_{d_t(s)}(a)$$
+````{prf:proof}
+See proposition 5.3.1 in {cite}`Puterman1994`
 
-Where $q_{d_t(s)}(a)$ is the probability of choosing action $a$ in state $s$ under decision rule $d_t$. -->
+$$
+v_\nu^\pi(s) = E_s^\pi \left\{\sum_{n=1}^{\infty} \sum_{t=1}^n r(X_t, Y_t)(1-\gamma) \gamma^{n-1}\right\}.
+$$
 
-It's important to note that decision rules are stage-wise objects. However, to solve an MDP, we need a strategy for the entire horizon. This is where we make a distinction and introduce the concept of a policy. A policy $\pi$ is a sequence of decision rules, one for each decision epoch:
+Under the bounded reward assumption and $\gamma < 1$, the series converges and we can reverse the order of summation :
 
-$$\pi = (d_1, d_2, ..., d_{N-1})$$
+\begin{align*}
+v_\nu^\pi(s) &= E_s^\pi \left\{\sum_{t=1}^{\infty} \sum_{n=t}^{\infty} r(S_t, A_t)(1-\gamma) \gamma^{n-1}\right\} \\
+&= E_s^\pi \left\{\sum_{t=1}^{\infty} \gamma^{t-1} r(S_t, A_t)\right\} = v_\gamma^\pi(s)
+\end{align*}
 
-Where $N$ is the horizon length (possibly infinite). The set of all policies of class $K$ (where $K$ can be HR, HD, MR, or MD) is denoted as $\Pi^K$.
+where the last line follows from the geometric series: 
 
-A special type of policy is a stationary policy, where the same decision rule is used at all epochs: $\pi = (d, d, ...)$, often denoted as $d^\infty$. Stationary policies are particularly important in infinite horizon problems.
+$$
+\sum_{n=1}^{\infty} \gamma^{n-1} = \frac{1}{1-\gamma}
+$$
 
-The relationships between these policy classes form a hierarchy:
+````
 
-$$\begin{align*}
-\Pi^{SD} \subset \Pi^{SR} \subset \Pi^{MR} \subset \Pi^{HR}\\
-\Pi^{SD} \subset \Pi^{MD} \subset \Pi^{MR} \subset \Pi^{HR} \\
-\Pi^{SD} \subset \Pi^{MD} \subset \Pi^{HD} \subset \Pi^{HR}
+
+## Vector Representation in Markov Decision Processes
+
+Let V be the set of bounded real-valued functions on a discrete state space S. This means any function $ f \in V $ satisfies the condition:
+
+$$
+\|f\| = \max_{s \in S} |f(s)| < \infty.
+$$
+where notation $ \|f\| $ represents the sup-norm (or $ \ell_\infty $-norm) of the function $ f $. 
+
+When working with discrete state spaces, we can interpret elements of V as vectors and linear operators on V as matrices, allowing us to leverage tools from linear algebra. The sup-norm ($\ell_\infty$ norm) of matrix $\mathbf{H}$ is defined as:
+
+$$
+\|\mathbf{H}\| \equiv \max_{s \in S} \sum_{j \in S} |\mathbf{H}_{s,j}|
+$$
+
+where $\mathbf{H}_{s,j}$ represents the $(s, j)$-th component of the matrix $\mathbf{H}$.
+
+For a Markovian decision rule $d \in D^{MD}$, we define:
+
+\begin{align*}
+\mathbf{r}_d(s) &\equiv r(s, d(s)), \quad \mathbf{r}_d \in \mathbb{R}^{|S|}, \\
+[\mathbf{P}_d]_{s,j} &\equiv p(j \mid s, d(s)), \quad \mathbf{P}_d \in \mathbb{R}^{|S| \times |S|}.
+\end{align*}
+
+For a randomized decision rule $d \in D^{MR}$, these definitions extend to:
+
+\begin{align*}
+\mathbf{r}_d(s) &\equiv \sum_{a \in A_s} d(a \mid s) \, r(s, a), \\
+[\mathbf{P}_d]_{s,j} &\equiv \sum_{a \in A_s} d(a \mid s) \, p(j \mid s, a).
+\end{align*}
+
+In both cases, $\mathbf{r}_d$ denotes a reward vector in $\mathbb{R}^{|S|}$, with each component $\mathbf{r}_d(s)$ representing the reward associated with state $s$. Similarly, $\mathbf{P}_d$ is a transition probability matrix in $\mathbb{R}^{|S| \times |S|}$, capturing the transition probabilities under decision rule $d$.
+
+For a nonstationary Markovian policy $\pi = (d_1, d_2, \ldots) \in \Pi^{MR}$, the expected total discounted reward is given by:
+
+$$
+\mathbf{v}_\gamma^{\pi}(s)=\mathbb{E}\left[\sum_{t=1}^{\infty} \gamma^{t-1} r\left(S_t, A_t\right) \,\middle|\, S_1 = s\right].
+$$
+
+Using vector notation, this can be expressed as:
+
+$$
+\begin{aligned}
+\mathbf{v}_\gamma^{\pi} &= \sum_{t=1}^{\infty} \gamma^{t-1} \mathbf{P}_\pi^{t-1} \mathbf{r}_{d_1} \\
+&= \mathbf{r}_{d_1} + \gamma \mathbf{P}_{d_1} \mathbf{r}_{d_2} + \gamma^2 \mathbf{P}_{d_1} \mathbf{P}_{d_2} \mathbf{r}_{d_3} + \cdots \\
+&= \mathbf{r}_{d_1} + \gamma \mathbf{P}_{d_1} \left( \mathbf{r}_{d_2} + \gamma \mathbf{P}_{d_2} \mathbf{r}_{d_3} + \gamma^2 \mathbf{P}_{d_2} \mathbf{P}_{d_3} \mathbf{r}_{d_4} + \cdots \right).
+\end{aligned}
+$$
+
+This formulation leads to a recursive relationship:
+
+$$
+\begin{align*}
+\mathbf{v}_\gamma^\pi &= \mathbf{r}_{d_1} + \gamma \mathbf{P}_{d_1} \mathbf{v}_\gamma^{\pi^{\prime}}\\
+&=\sum_{t=1}^{\infty} \gamma^{t-1} \mathbf{P}_\pi^{t-1} \mathbf{r}_{d_t}
 \end{align*}
 $$
 
-Where SD stands for Stationary Deterministic and SR for Stationary Randomized. The largest set is by far the set of history randomized policies. 
+where $\pi^{\prime} = (d_2, d_3, \ldots)$.
 
-A fundamental question in MDP theory is: under what conditions can we avoid working with the set $\Pi^{HR}$ and focus for example on the much simpler set of deterministic Markovian policy? Even more so, we will see that in the infinite horizon case, we can drop the dependance on time and simply consider stationary deterministic Markovian policies. 
 
-<!-- ### Special Kind of MDP: Bandit Models
+For stationary policies, where $\pi = d^{\infty} \equiv (d, d, \ldots)$, the total expected reward simplifies to:
 
-Markov Decision Processes (MDPs) and optimal control problems in general are all about dealing with sequential problems: problems in which entire sequences of actions or ways of acting through time are considered. This makes these methods general and powerful, but also challenging from a practical and theoretical perspective.
+$$
+\begin{align*}
+\mathbf{v}_\gamma^{d^\infty} &= \mathbf{r}_d+ \gamma \mathbf{P}_d \mathbf{v}_\gamma^{d^\infty} \\
+&=\sum_{t=1}^{\infty} \gamma^{t-1} \mathbf{P}_d^{t-1} \mathbf{r}_{d}
+\end{align*}
+$$
 
-In some problems, there might be further simplifications at play that would allow us to devise more efficient methods. A particular sub-class of such problems is that of bandit models. These models are often encountered in applications like adaptive optics, ad placement, or can even be found in frameworks like that of GFlowNets or LLMs.
+This last expression is called a Neumann series expansion, and it's guaranteed to exists under the assumptions of bounded reward and discount factor strictly less than one. Consequently, for a stationary policy, $\mathbf{v}_\gamma^{d^\infty}$ can be determined as the solution to the linear equation:
 
-More precisely, we define a bandit model as follows:
+$$
+\mathbf{v} = \mathbf{r}_d+ \gamma \mathbf{P}_d\mathbf{v},
+$$
 
-A bandit model is a sequential decision model in which, at each decision epoch, the decision maker observes the state of each of $K$ Markov reward processes and, based on the states, the transition probabilities, and rewards of each, selects a process to use in the current period. The selected process changes state according to its transition probabilities, and the states of all other processes remain fixed.
+which can be rearranged to:
 
-Formally, we can define a bandit model as a Markov Decision Process with the following components:
+$$
+(\mathbf{I} - \gamma \mathbf{P}_d) \mathbf{v} = \mathbf{r}_d.
+$$
 
-1. Decision epochs: $T = \{1, 2, \ldots, N\}$, where $N \leq \infty$.
+We can also characterize $\mathbf{v}_\gamma^{d^\infty}$ as the solution to an operator equation. More specifically, define the linear transformation $\mathrm{L}_d$ by
 
-2. States: $S = S^1 \times S^2 \times \cdots \times S^K$, where $S^i$ is the state space of the $i$-th process.
+$$
+\mathrm{L}_d \mathbf{v} \equiv \mathbf{r}_d+\gamma \mathbf{P}_dv
+$$
 
-3. Actions: At each decision epoch, the action is to choose one of the $K$ processes.
+for any $v \in V$. Intuitively, $\mathrm{L}_d$ takes a value function $\mathbf{v}$ as input and returns a new value function that combines immediate rewards ($\mathbf{r}_d$) with discounted future values ($\gamma \mathbf{P}_d\mathbf{v}$). 
+<!-- 
 
-4. Transition probabilities: For process $i$ in state $s^i \in S^i$, the transition probability to state $j^i$ is given by $p_t^i(j^i | s^i)$.
+A key property of $\mathrm{L}_d$ is that it maps bounded functions to bounded functions, provided certain conditions are met. This is formalized in the following lemma:
 
-5. Rewards: When process $i$ in state $s^i$ is chosen, the decision maker receives a reward $r_t^i(s^i)$.
 
-The effects of choosing process $i$ when it is in state $s^i \in S^i$, $i = 1, 2, \ldots, K$ are:
+```{prf:lemma} Bounded Reward and Value Function
+:label: bounded-reward-value
 
-1. It changes state according to the transition law $p_t^i(j^i | s^i)$.
-2. The decision maker receives a reward $r_t^i(s^i)$.
-3. All other processes remain in their current state. -->
+Let $S$ be a discrete state space, and assume that the reward function is bounded such that $|r(s, a)| \leq M$ for all actions $a \in A_s$ and states $s \in S$. For any discount factor $\gamma$ where $0 \leq \gamma \leq 1$, and for all value functions $v \in V$ and decision rules $d \in D^{MR}$, the following holds:
+
+$$
+\mathbf{r}_d+ \gamma \mathbf{P}_d \mathbf{v} \in V
+$$
+
+where $V$ is the space of bounded real-valued functions on $S$, $\mathbf{r}_d$ is the reward vector, and $\mathbf{P}_d$ is the transition probability matrix under decision rule $d$.
+```
+
+```{prf:proof}
+We will prove this lemma in three steps:
+
+1. First, we'll show that $\mathbf{r}_d\in V$.
+2. Then, we'll prove that $\mathbf{P}_dv \in V$ for all $v \in V$.
+3. Finally, we'll combine these results to show that $\mathbf{r}_d+ \gamma \mathbf{P}_dv \in V$.
+
+**Step 1: Showing $\mathbf{r}_d\in V$**
+
+Given that $|r(s, a)| \leq M$ for all $a \in A_s$ and $s \in S$, we can conclude that $\|\mathbf{r}_d\| \leq M$ for all $d \in D^{MR}$. This is because $\mathbf{r}_d$ is a vector whose components are weighted averages of $r(s, a)$ values, which are all bounded by $M$. Therefore, $\mathbf{r}_d$ is a bounded function on $S$, meaning $\mathbf{r}_d\in V$.
+
+**Step 2: Showing $\mathbf{P}_d \mathbf{v} \in V$ for all $\mathbf{v} \in V$**
+
+$P_d$ is a probability matrix, which means that each row sums to 1. This property implies that $\|P_d\| = 1$. Now, for any $v \in V$, we have:
+
+$$
+\|\mathbf{P}_d\mathbf{v}\| \leq \|P_d\| \|\mathbf{v}\| = \|\mathbf{v}\|
+$$
+
+This inequality shows that if $v$ is bounded (which it is, since $v \in V$), then $\mathbf{P}_dv$ is also bounded by the same value. Therefore, $\mathbf{P}_d\mathbf{v} \in V$ for all $\mathbf{v} \in V$.
+
+**Step 3: Combining the results**
+
+We've shown that $\mathbf{r}_d\in V$ and $\mathbf{P}_d \mathbf{v} \in V$. Since $V$ is a vector space, it is closed under addition and scalar multiplication. Therefore, for any $\gamma$ where $0 \leq \gamma \leq 1$, we can conclude that:
+
+$$
+\mathbf{r}_d+ \gamma \mathbf{P}_d \mathbf{v} \in V
+$$
+
+This completes the proof.
+``` -->
+Therefore, we view $\mathrm{L}_d$ as an operator mapping elements of $V$ to $V$: ie. $\mathrm{L}_d: V \rightarrow V$. The fact that the value function of a policy is the solution to a system of equations can then be expressed with the statement: 
+
+$$
+\mathbf{v}_\gamma^{d^x}=\mathrm{L}_d \mathbf{v}_\gamma^{d^x} \text {. }
+$$
+
+## Solving Operator Equations
+
+The operator equation we encountered in MDPs, $\mathbf{v}_\gamma^{d^\infty} = \mathrm{L}_d \mathbf{v}_\gamma^{d^\infty}$, is a specific instance of a more general class of problems known as operator equations. These equations appear in various fields of mathematics and applied sciences, ranging from differential equations to functional analysis.
+
+Operator equations can take several forms, each with its own characteristics and solution methods:
+
+1. **Fixed Point Form**: $x = \mathrm{T}(x)$, where $\mathrm{T}: X \rightarrow X$.
+   Common in fixed-point problems, such as our MDP equation, we seek a fixed point $x^*$ such that $x^* = \mathrm{T}(x^*)$.
+
+2. **General Operator Equation**: $\mathrm{T}(x) = y$, where $\mathrm{T}: X \rightarrow Y$.
+   Here, $X$ and $Y$ can be different spaces. We seek an $x \in X$ that satisfies the equation for a given $y \in Y$.
+
+3. **Nonlinear Equation**: $\mathrm{T}(x) = 0$, where $\mathrm{T}: X \rightarrow Y$.
+   A special case of the general operator equation where we seek roots or zeros of the operator.
+
+4. **Variational Inequality**: Find $x^* \in K$ such that $\langle \mathrm{T}(x^*), x - x^* \rangle \geq 0$ for all $x \in K$.
+   Here, $K$ is a closed convex subset of $X$, and $\mathrm{T}: K \rightarrow X^*$ (the dual space of $X$). These problems often arise in optimization, game theory, and partial differential equations.
+
+### Successive Approximation Method
+
+For equations in fixed point form, a common numerical solution method is successive approximation, also known as fixed-point iteration:
+
+````{prf:algorithm} Successive Approximation
+:label: successive-approximation
+
+**Input:** An operator $\mathrm{T}: X \rightarrow X$, an initial guess $x_0 \in X$, and a tolerance $\epsilon > 0$  
+**Output:** An approximate fixed point $x^*$ such that $\|x^* - \mathrm{T}(x^*)\| < \epsilon$
+
+1. Initialize $n = 0$  
+2. **repeat**  
+    3. Compute $x_{n+1} = \mathrm{T}(x_n)$  
+    4. If $\|x_{n+1} - x_n\| < \epsilon$, **return** $x_{n+1}$  
+    5. Set $n = n + 1$  
+6. **until** convergence or maximum iterations reached  
+
+````
+
+The convergence of successive approximation depends on the properties of the operator $\mathrm{T}$. In the simplest and most common setting, we assume $\mathrm{T}$ is a contraction mapping. The Banach Fixed-Point Theorem then guarantees that $\mathrm{T}$ has a unique fixed point, and the successive approximation method will converge to this fixed point from any starting point. Specifically, $\mathrm{T}$ is a contraction if there exists a constant $q \in [0,1)$ such that for all $x,y \in X$:
+
+$$
+d(\mathrm{T}(x), \mathrm{T}(y)) \leq q \cdot d(x,y)
+$$
+
+where $d$ is the metric on $X$. In this case, the rate of convergence is linear, with error bound:
+
+$$
+d(x_n, x^*) \leq \frac{q^n}{1-q} d(x_1, x_0)
+$$
+
+However, the contraction mapping condition is not the only one that can lead to convergence. For instance, if $\mathrm{T}$ is nonexpansive (i.e., Lipschitz continuous with Lipschitz constant 1) and $X$ is a Banach space with certain geometrical properties (e.g., uniformly convex), then under additional conditions (e.g., $\mathrm{T}$ has at least one fixed point), the successive approximation method can still converge, albeit potentially more slowly than in the contraction case.
+
+In practice, when dealing with specific problems like MDPs or differential equations, the properties of the operator often naturally align with one of these convergence conditions. For example, in discounted MDPs, the Bellman operator is a contraction in the supremum norm, which guarantees the convergence of value iteration.
+
+### Newton-Kantorovich Method
+
+The Newton-Kantorovich method is a generalization of Newton's method from finite dimensional vector spaces to infinite dimensional function spaces: rather than iterating in the space of vectors, we are iterating in the space of functions. Just as in the finite-dimensional counterpart, the idea is to improve the rate of convergence of our method by taking an "educated guess" on where to move next using a linearization of our operator at the current point. Now the concept of linearization, which is synonymous with derivative, will also require a generalization. Here we are in essence trying to quantify how the output of the operator $\mathrm{T}$ -- a function -- varies as we perturb its input -- also a function. The right generalization here is that of the Fréchet derivative.
+
+Before we delve into the Fréchet derivative, it's important to understand the context in which it operates: Banach spaces. A Banach space is a complete normed vector space: ie a vector space, that has a norm, and which every Cauchy sequence convergeces.   Banach spaces provide a natural generalization of finite-dimensional vector spaces to infinite-dimensional settings. 
+The norm in a Banach space allows us to quantify the "size" of functions and the "distance" between functions. This allows us to define notions of continuity, differentiability, and for analyzing the convergence of our method.
+Furthermore, the completeness property of Banach spaces ensures that we have a well-defined notion of convergence. 
+
+In the context of the Newton-Kantorovich method, we typically work with an operator $\mathrm{T}: X \to Y$, where both $X$ and $Y$ are Banach spaces and whose Fréchet derivative at a point $x \in X$, denoted $\mathrm{T}'(x)$, is a bounded linear operator from $X$ to $Y$ such that:
+
+$$
+\lim_{h \to 0} \frac{\|\mathrm{T}(x + h) - \mathrm{T}(x) - \mathrm{T}'(x)h\|_Y}{\|h\|_X} = 0
+$$
+
+where $\|\cdot\|_X$ and $\|\cdot\|_Y$ are the norms in $X$ and $Y$ respectively. In other words, $\mathrm{T}'(x)$ is the best linear approximation of $\mathrm{T}$ near $x$.
+
+Now apart from those mathematical technicalities, Newton-Kantorovich has in essence the same structure as that of the original Newton's method. That is, it applies the following sequence of steps:
+
+1. **Linearize the Operator**:
+   Given an approximation $ x_n $, we consider the Fréchet derivative of $ \mathrm{T} $, denoted by $ \mathrm{T}'(x_n) $. This derivative is a linear operator that provides a local approximation of  $ \mathrm{T} $, near $ x_n $.
+
+2. **Set Up the Newton Step**:
+   The method then solves the linearized equation for a correction $ h_n $:
+
+   $$
+   \mathrm{T}(x_n) h_n = \mathrm{T}(x_n) - x_n.
+   $$
+   This equation represents a linear system where $ h_n $ is chosen to minimize the difference between $ x_n $ and $ \mathrm{T}(x_n) $ with respect to the operator's local behavior.
+
+3. **Update the Solution**:
+   The new approximation $ x_{n+1} $ is then given by:
+
+   $$
+   x_{n+1} = x_n - h_n.
+   $$
+   This correction step refines $ x_n $, bringing it closer to the true solution.
+
+4. **Repeat Until Convergence**:
+   We repeat the linearization and update steps until the solution $ x_n $ converges to the desired tolerance, which can be verified by checking that $ \|\mathrm{T}(x_n) - x_n\| $ is sufficiently small, or by monitoring the norm $ \|x_{n+1} - x_n\| $.
+
+The convergence of Newton-Kantorovich does not hinge on $ \mathrm{T} $ being a contraction over the entire domain -- as it could be the case for successive approximation. The convergence properties of the Newton-Kantorovich method are as follows:
+
+1. **Local Convergence**: Under mild conditions (e.g., $\mathrm{T}$ is Fréchet differentiable and $\mathrm{T}'(x)$ is invertible near the solution), the method converges locally. This means that if the initial guess is sufficiently close to the true solution, the method will converge.
+
+2. **Global Convergence**: Global convergence is not guaranteed in general. However, under stronger conditions (e.g.,  $ \mathrm{T} $, is analytic and satisfies certain bounds), the method can converge globally.
+
+3. **Rate of Convergence**: When the method converges, it typically exhibits quadratic convergence. This means that the error at each step is proportional to the square of the error at the previous step:
+
+   $$
+   \|x_{n+1} - x^*\| \leq C\|x_n - x^*\|^2
+   $$
+
+   where $x^*$ is the true solution and $C$ is some constant. This quadratic convergence is significantly faster than the linear convergence typically seen in methods like successive approximation.
+
+## Optimality Equations for Infinite-Horizon MDPs
+
+Recall that in the finite-horizon setting, the optimality equations are:
+
+$$
+v_n(s) = \max_{a \in A_s} \left\{r(s, a) + \sum_{j \in S} \gamma p(j | s, a) v_{n+1}(j)\right\}
+$$
+
+Intuitively, we would expect that by taking the limit of $n$ to infity, we might get the nonlinear equations: 
+
+$$
+v(s) = \max_{a \in A_s} \left\{r(s, a) + \sum_{j \in S} \gamma p(j | s, a) v(j)\right\}
+$$
+
+which are called the optimality equations or Bellman equations for infinite-horizon MDPs.
+We can also adopt an operator-theoretic perspective and define a (nonlinear) operator $\mathrm{L}$ on the space $V$ 
+of bounded real-valued functions on the state space $S$:
+
+$$
+\mathrm{L} \mathbf{v} \equiv \max_{d \in D^{MD}} \left\{\mathbf{r}_d + \gamma \mathbf{P}_d \mathbf{v}\right\}
+$$
