@@ -1,49 +1,32 @@
-#### Newton-Kantorovich Method
 
-The Newton-Kantorovich method is a generalization of Newton's method from finite dimensional vector spaces to infinite dimensional function spaces: rather than iterating in the space of vectors, we are iterating in the space of functions. Just as in the finite-dimensional counterpart, the idea is to improve the rate of convergence of our method by taking an "educated guess" on where to move next using a linearization of our operator at the current point. Now the concept of linearization, which is synonymous with derivative, will also require a generalization. Here we are in essence trying to quantify how the output of the operator $T$ -- a function -- varies as we perturb its input -- also a function. The right generalization here is that of the Fréchet derivative.
+## Smooth Optimality Equations for Infinite-Horizon MDPs
 
-The Fréchet derivative is a generalization of the derivative to Banach spaces. For an operator $T: X \to Y$ between Banach spaces $X$ and $Y$, the Fréchet derivative at a point $x \in X$, denoted $T'(x)$, is a bounded linear operator from $X$ to $Y$ such that:
+While the standard Bellman optimality equations use the max operator to determine the best action, an alternative formulation known as the smooth or soft Bellman optimality equations replaces this with a softmax operator. This approach, originating from {cite}`rust1987optimal` and later rediscovered in the context of maximum entropy inverse reinforcement learning {cite}`ziebart2008maximum` and soft Q-learning {cite}`haarnoja2017reinforcement`, introduces a degree of stochasticity into the decision-making process.
 
-$$
-\lim_{h \to 0} \frac{\|T(x + h) - T(x) - T'(x)h\|_Y}{\|h\|_X} = 0
-$$
+In the infinite-horizon setting, the smooth Bellman optimality equations take the form:
 
-where $\|\cdot\|_X$ and $\|\cdot\|_Y$ are the norms in $X$ and $Y$ respectively. In other words, $T'(x)$ is the best linear approximation of $T$ near $x$.
+$$ v(s) = \frac{1}{\beta} \log \sum_{a \in A_s} \exp\left(\beta\left(r(s, a) + \gamma \sum_{j \in S} p(j | s, a) v(j)\right)\right) $$
 
-But apart from those mathematical technicalities, Newton-Kantorovich has in essence the same structure as that of the original Newton's method. That is, it applies the following sequence of steps:
+Adopting an operator-theoretic perspective, we can define a nonlinear operator $\mathrm{L}_\beta$ such that the smooth value function of an MDP is then the solution to the following fixed-point equation:
 
-1. **Linearize the Operator**:
-   Given an approximation \( x_n \), we consider the Fréchet derivative of \( T \), denoted by \( T'(x_n) \). This derivative is a linear operator that provides a local approximation of \( T \) near \( x_n \).
+$$ (\mathrm{L}_\beta \mathbf{v})(s) = \frac{1}{\beta} \log \sum_{a \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right)\right) $$
 
-2. **Set Up the Newton Step**:
-   The method then solves the linearized equation for a correction \( h_n \):
-   $$
-   T'(x_n) h_n = T(x_n) - x_n.
-   $$
-   This equation represents a linear system where \( h_n \) is chosen to minimize the difference between \( x_n \) and \( T(x_n) \) with respect to the operator's local behavior.
+The smooth Bellman operator $\mathrm{L}_\beta$ maintains several key properties:
 
-3. **Update the Solution**:
-   The new approximation \( x_{n+1} \) is then given by:
-   $$
-   x_{n+1} = x_n - h_n.
-   $$
-   This correction step refines \( x_n \), bringing it closer to the true solution.
+1. As $\beta \to \infty$, $\mathrm{L}_\beta$ converges to the standard Bellman operator $\mathrm{L}$.
+2. $\mathrm{L}_\beta$ is a contraction mapping in the supremum norm, and therefore has a unique fixed point.
+3. The fixed point of $\mathrm{L}_\beta$ is associated with the value function of a stochastic policy, where the probability of choosing action $a$ in state $s$ is given by the softmax distribution:
 
-4. **Repeat Until Convergence**:
-   We repeat the linearization and update steps until the solution \( x_n \) converges to the desired tolerance, which can be verified by checking that \( \|T(x_n) - x_n\| \) is sufficiently small, or by monitoring the norm \( \|x_{n+1} - x_n\| \).
+   $$ \pi(a|s) = \frac{\exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right)\right)}{\sum_{a' \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a') + \gamma \sum_{j \in \mathcal{S}} p(j|s,a') v(j)\right)\right)} $$
 
-The convergence of Newton-Kantorovich does not hinge on \( T \) being a contraction over the entire domain -- as it could be the case for successive approximation. The convergence properties of the Newton-Kantorovich method are as follows:
+This is simply the generalization of what would otherwise be the argmax operator in the original optimality equation.
 
-1. **Local Convergence**: Under mild conditions (e.g., $T$ is Fréchet differentiable and $T'(x)$ is invertible near the solution), the method converges locally. This means that if the initial guess is sufficiently close to the true solution, the method will converge.
+This formulation is interesting for several reasons:
 
-2. **Global Convergence**: Global convergence is not guaranteed in general. However, under stronger conditions (e.g., $T$ is analytic and satisfies certain bounds), the method can converge globally.
+1. Smoothness is a desirable property from an optimization standpoint. Unlike $\gamma$, we view $\beta$ as a hyperparameter of our algorithm, which we can control to achieve the desired level of accuracy.
 
-3. **Rate of Convergence**: When the method converges, it typically exhibits quadratic convergence. This means that the error at each step is proportional to the square of the error at the previous step:
+2. While presented from an intuitive standpoint where we replace the max by the log-sum-exp (a smooth maximum) and the argmax by the softmax (a smooth argmax), this formulation can also be obtained from various other perspectives, offering theoretical tools and solution methods. For example, {cite}`rust1987optimal` derived this algorithm by considering a setting in which the rewards are stochastic and perturbed by a Gumbel noise variable. When considering the corresponding augmented state space and integrating the noise, we obtain smooth equations. This interpretation is leveraged by Rust for modeling purposes.
 
-   $$
-   \|x_{n+1} - x^*\| \leq C\|x_n - x^*\|^2
-   $$
+    There is also a way to obtain this equation by starting from the energy-based formulation often used in supervised learning, in which we convert an unnormalized probability distribution into a distribution using the softmax transformation. This is essentially what {cite}`ziebart2008maximum` did in their paper. Furthermore, this perspective bridges with the literature on probabilistic graphical models, in which we can now cast the problem of finding an optimal smooth policy into one of maximum likelihood estimation (an inference problem). This is the idea of control as inference, which also admits the converse - that of inference as control - used nowadays for deriving fast samples and amortized inference techniques using reinforcement learning {cite}`levine2018reinforcement`.
 
-   where $x^*$ is the true solution and $C$ is some constant. This quadratic convergence is significantly faster than the linear convergence typically seen in methods like successive approximation.
-
-Under appropriate conditions (e.g., if \( T \) is sufficiently smooth), it exhibits quadratic convergence, which can be significantly faster than the linear convergence of the successive approximation method. This rapid convergence makes the Newton-Kantorovich method particularly powerful for solving nonlinear problems in function spaces, despite the increased complexity of each iteration compared to simpler methods.
+    Finally, it's worth noting that we can also derive this form by considering an entropy-regularized formulation in which we penalize for the entropy of our policy in the reward function term. This formulation admits a solution that coincides with the smooth Bellman equations {cite}`haarnoja2017reinforcement`.
