@@ -220,3 +220,108 @@ p(a_t | s_t, O_{1:T} = 1) &\propto p(a_t | s_t) \exp(\beta r(s_t, a_t)) \sum_{s_
 After normalization, and assuming a uniform prior $p(a_t | s_t)$, we obtain the randomized decision rule:
 
 $$ d(a_t | s_t) = \frac{\exp(\beta (r(s_t, a_t) + \gamma \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) V_{t+1}(s_{t+1})))}{\sum_{a'_t} \exp(\beta (r(s_t, a'_t) + \gamma \sum_{s_{t+1}} p(s_{t+1} | s_t, a'_t) V_{t+1}(s_{t+1})))} $$
+
+## Regularized Markov Decision Processes
+
+Regularized MDPs {cite}`geist2019` provide another perspective on how the smooth Bellman equations come to be. This framework offers a more general approach in which we seek to find optimal policies under the infinite horizon criterion while also accounting for a regularizer that influences the kind of policies we try to obtain.
+
+Let's set up some necessary notation. First, recall that the policy evaluation operator for a stationary policy with decision rule $d$ is defined as:
+
+$$ L_d v = r_d + \gamma P_d v $$
+
+where $r_d$ is the expected reward under policy $d$, $\gamma$ is the discount factor, and $P_d$ is the state transition probability matrix under $d$. A complementary object to the value function is the q-function (or Q-factor) representation:
+
+$$ \begin{align*}
+q_\gamma^{d^\infty}(s, a) &= r(s, a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v_\gamma^{d^\infty}(j) \\
+v_\gamma^{d^\infty}(s) &= \sum_{a \in \mathcal{A}_s} d(a | s) q_\gamma^{d^\infty}(s, a) 
+\end{align*} $$
+
+The policy evaluation operator can then be written in terms of the q-function as:
+
+$$ [L_d v](s) = \langle d(\cdot | s), q(s, \cdot) \rangle $$
+
+### Legendre-Fenchel Transform
+
+A key concept in the theory of regularized MDPs is the Legendre-Fenchel transform, also known as the convex conjugate. For a strongly convex function $\Omega: \Delta_{\mathcal{A}} \rightarrow \mathbb{R}$, its Legendre-Fenchel transform $\Omega^*: \mathbb{R}^{\mathcal{A}} \rightarrow \mathbb{R}$ is defined as:
+
+$$ \Omega^*(q(s, \cdot)) = \max_{d(\cdot|s) \in \Delta_{\mathcal{A}}} \langle d(\cdot | s), q(s, \cdot) \rangle - \Omega(d(\cdot | s)) $$
+
+An important property of this transform is that it has a unique maximizing argument, given by the gradient of $\Omega^*$. This gradient is Lipschitz and satisfies:
+
+$$ \nabla \Omega^*(q(s, \cdot)) = \arg\max_d \langle d(\cdot | s), q(s, \cdot) \rangle - \Omega(d(\cdot | s)) $$
+
+An important example of a regularizer is the negative entropy, which gives rise to the smooth Bellman equations as we are about to see. 
+
+## Regularized Bellman Operators
+
+With these concepts in place, we can now define the regularized Bellman operators:
+
+1. **Regularized Policy Evaluation Operator** $(L_{d,\Omega})$:
+
+   $$ [L_{d,\Omega} v](s) = \langle q(s,\cdot), d(\cdot | s) \rangle - \Omega(d(\cdot | s)) $$
+
+2. **Regularized Bellman Optimality Operator** $(L_\Omega)$:
+           
+   $$ [L_\Omega v](s) = [\max_d L_{d,\Omega} v ](s) = \Omega^*(q(s, \cdot)) $$
+
+It can be shown that the addition of a regularizer in these regularized operators still preserves the contraction properties, and therefore the existence of a solution to the optimality equations and the convergence of successive approximation.
+
+The regularized value function of a stationary policy with decision rule $d$, denoted by $v_{d,\Omega}$, is the unique fixed point of the operator equation:
+
+$$\text{find $v$ such that } \enspace v = L_{d,\Omega} v$$
+
+Under the usual assumptions on the discount factor and the boundedness of the reward, the value of a policy can also be found in closed form by solving for $v$ in the linear system of equations:
+
+$$ (I - \gamma P_d) v =  (r_d - \Omega(d)) $$
+
+The associated state-action value function $q_{d,\Omega}$ is given by:
+
+$$\begin{align*}
+q_{d,\Omega}(s, a) &= r(s, a) + \sum_{j \in \mathcal{S}} \gamma p(j|s,a) v_{d,\Omega}(j) \\
+v_{d,\Omega}(s) &= \sum_{a \in \mathcal{A}_s} d(a | s) q_{d,\Omega}(s, a) - \Omega(d(\cdot | s))
+\end{align*} $$
+
+The regularized optimal value function $v^*_\Omega$ is then the unique fixed point of $L_\Omega$ in the fixed point equation:
+
+$$\text{find $v$ such that } v = L_\Omega v$$
+
+The associated state-action value function $q^*_\Omega$ is given by:
+
+$$ \begin{align*}
+q^*_\Omega(s, a) &= r(s, a) + \sum_{j \in \mathcal{S}} \gamma p(j|s,a) v^*_\Omega(j) \\
+v^*_\Omega(s) &= \Omega^*(q^*_\Omega(s, \cdot))\end{align*} $$
+
+An important result in the theory of regularized MDPs is that there exists a unique optimal regularized policy. Specifically, if $d^*_\Omega$ is a conserving decision rule (i.e., $d^*_\Omega = \arg\max_d L_{d,\Omega} v^*_\Omega$), then the randomized stationary policy $(d^*_\Omega)^\infty$ is the unique optimal regularized policy.
+
+In practice, once we have found $v^*_\Omega$, we can derive the optimal decision rule by taking the gradient of the convex conjugate evaluated at the optimal action-value function:
+
+$$ d^*(\cdot | s) = \nabla \Omega^*(q^*_\Omega(s, \cdot)) $$
+
+### Recovering the Smooth Bellman Equations
+
+Under this framework, we can recover the smooth Bellman equations by choosing $\Omega$ to be the negative entropy, and obtain the softmax policy as the gradient of the convex conjugate. Let's show this explicitly:
+
+1. Using the negative entropy regularizer:
+
+   $$ \Omega(d(\cdot|s)) = \sum_{a \in \mathcal{A}_s} d(a|s) \ln d(a|s) $$
+
+2. The convex conjugate (as shown earlier):
+
+   $$ \Omega^*(q(s, \cdot)) = \ln \sum_{a \in \mathcal{A}_s} \exp q(s,a) $$
+
+3. Now, let's write out the regularized Bellman optimality equation:
+
+   $$ v^*_\Omega(s) = \Omega^*(q^*_\Omega(s, \cdot)) $$
+
+4. Substituting the expressions for $\Omega^*$ and $q^*_\Omega$:
+
+   $$ v^*_\Omega(s) = \ln \sum_{a \in \mathcal{A}_s} \exp \left(r(s, a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v^*_\Omega(j)\right) $$
+
+This is precisely the form of the smooth Bellman equation we derived earlier, with the log-sum-exp operation replacing the max operation of the standard Bellman equation.
+
+Furthermore, the optimal policy is given by the gradient of $\Omega^*$:
+
+$$ d^*(a|s) = \nabla \Omega^*(q^*_\Omega(s, \cdot)) = \frac{\exp(q^*_\Omega(s,a))}{\sum_{a' \in \mathcal{A}_s} \exp(q^*_\Omega(s,a'))} $$
+
+This is the familiar softmax policy we encountered in the smooth MDP setting.
+
