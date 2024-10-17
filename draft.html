@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Smooth Optimality Equations for Infinite-Horizon MDPs &#8212; Pragmatic Reinforcement Learning: Algorithms and Applications</title>
+    <title>&lt;no title&gt; &#8212; Pragmatic Reinforcement Learning: Algorithms and Applications</title>
   
   
   
@@ -59,8 +59,6 @@
     <script async="async" src="_static/sphinx-thebe.js?v=c100c467"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
-    <script>window.MathJax = {"tex": {"macros": {"bm": ["{\\boldsymbol #1}", 1]}, "processEscapes": true}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'draft';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -190,7 +188,9 @@
 
 <li class="toctree-l1"><a class="reference internal" href="dp.html">11. Dynamic Programming</a></li>
 
-<li class="toctree-l1"><a class="reference internal" href="bibliography.html">13. Bibliography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="adp.html">13. Approximate Dynamic Programming</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">15. Bibliography</a></li>
 </ul>
 
     </div>
@@ -380,7 +380,9 @@ document.write(`
   </button>
 `);
 </script>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -391,11 +393,19 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Smooth Optimality Equations for Infinite-Horizon MDPs</h1>
+    <h1><no title></h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="simple visible nav section-nav flex-column">
+</ul>
+
+            </nav>
         </div>
     </div>
 </div>
@@ -405,35 +415,7 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="smooth-optimality-equations-for-infinite-horizon-mdps">
-<h1>Smooth Optimality Equations for Infinite-Horizon MDPs<a class="headerlink" href="#smooth-optimality-equations-for-infinite-horizon-mdps" title="Link to this heading">#</a></h1>
-<p>While the standard Bellman optimality equations use the max operator to determine the best action, an alternative formulation known as the smooth or soft Bellman optimality equations replaces this with a softmax operator. This approach, originating from <span id="id1">[]</span> and later rediscovered in the context of maximum entropy inverse reinforcement learning <span id="id2">[]</span> and soft Q-learning <span id="id3">[]</span>, introduces a degree of stochasticity into the decision-making process.</p>
-<p>In the infinite-horizon setting, the smooth Bellman optimality equations take the form:</p>
-<div class="math notranslate nohighlight">
-\[ v(s) = \frac{1}{\beta} \log \sum_{a \in A_s} \exp\left(\beta\left(r(s, a) + \gamma \sum_{j \in S} p(j | s, a) v(j)\right)\right) \]</div>
-<p>Adopting an operator-theoretic perspective, we can define a nonlinear operator <span class="math notranslate nohighlight">\(\mathrm{L}_\beta\)</span> such that the smooth value function of an MDP is then the solution to the following fixed-point equation:</p>
-<div class="math notranslate nohighlight">
-\[ (\mathrm{L}_\beta \mathbf{v})(s) = \frac{1}{\beta} \log \sum_{a \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right)\right) \]</div>
-<p>The smooth Bellman operator <span class="math notranslate nohighlight">\(\mathrm{L}_\beta\)</span> maintains several key properties:</p>
-<ol class="arabic">
-<li><p>As <span class="math notranslate nohighlight">\(\beta \to \infty\)</span>, <span class="math notranslate nohighlight">\(\mathrm{L}_\beta\)</span> converges to the standard Bellman operator <span class="math notranslate nohighlight">\(\mathrm{L}\)</span>.</p></li>
-<li><p><span class="math notranslate nohighlight">\(\mathrm{L}_\beta\)</span> is a contraction mapping in the supremum norm, and therefore has a unique fixed point.</p></li>
-<li><p>The fixed point of <span class="math notranslate nohighlight">\(\mathrm{L}_\beta\)</span> is associated with the value function of a stochastic policy, where the probability of choosing action <span class="math notranslate nohighlight">\(a\)</span> in state <span class="math notranslate nohighlight">\(s\)</span> is given by the softmax distribution:</p>
-<div class="math notranslate nohighlight">
-\[ \pi(a|s) = \frac{\exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right)\right)}{\sum_{a' \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a') + \gamma \sum_{j \in \mathcal{S}} p(j|s,a') v(j)\right)\right)} \]</div>
-</li>
-</ol>
-<p>This is simply the generalization of what would otherwise be the argmax operator in the original optimality equation.</p>
-<p>This formulation is interesting for several reasons:</p>
-<ol class="arabic">
-<li><p>Smoothness is a desirable property from an optimization standpoint. Unlike <span class="math notranslate nohighlight">\(\gamma\)</span>, we view <span class="math notranslate nohighlight">\(\beta\)</span> as a hyperparameter of our algorithm, which we can control to achieve the desired level of accuracy.</p></li>
-<li><p>While presented from an intuitive standpoint where we replace the max by the log-sum-exp (a smooth maximum) and the argmax by the softmax (a smooth argmax), this formulation can also be obtained from various other perspectives, offering theoretical tools and solution methods. For example, <span id="id4">[]</span> derived this algorithm by considering a setting in which the rewards are stochastic and perturbed by a Gumbel noise variable. When considering the corresponding augmented state space and integrating the noise, we obtain smooth equations. This interpretation is leveraged by Rust for modeling purposes.</p>
-<p>There is also a way to obtain this equation by starting from the energy-based formulation often used in supervised learning, in which we convert an unnormalized probability distribution into a distribution using the softmax transformation. This is essentially what <span id="id5">[]</span> did in their paper. Furthermore, this perspective bridges with the literature on probabilistic graphical models, in which we can now cast the problem of finding an optimal smooth policy into one of maximum likelihood estimation (an inference problem). This is the idea of control as inference, which also admits the converse - that of inference as control - used nowadays for deriving fast samples and amortized inference techniques using reinforcement learning <span id="id6">[]</span>.</p>
-<p>Finally, it’s worth noting that we can also derive this form by considering an entropy-regularized formulation in which we penalize for the entropy of our policy in the reward function term. This formulation admits a solution that coincides with the smooth Bellman equations <span id="id7">[]</span>.</p>
-</li>
-</ol>
-</section>
-
+  
     <script type="text/x-thebe-config">
     {
         requestKernel: true,
@@ -470,6 +452,21 @@ document.write(`
             </div>
             
             
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="simple visible nav section-nav flex-column">
+</ul>
+
+  </nav></div>
+
+</div></div>
               
             
           </div>

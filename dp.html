@@ -64,7 +64,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'dp';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="13. Bibliography" href="bibliography.html" />
+    <link rel="next" title="13. Approximate Dynamic Programming" href="adp.html" />
     <link rel="prev" title="7. Model Predictive Control" href="mpc.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -190,7 +190,9 @@
 
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">11. Dynamic Programming</a></li>
 
-<li class="toctree-l1"><a class="reference internal" href="bibliography.html">13. Bibliography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="adp.html">13. Approximate Dynamic Programming</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">15. Bibliography</a></li>
 </ul>
 
     </div>
@@ -424,7 +426,6 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#policy-iteration">12.5.2. Policy Iteration</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#smooth-optimality-equations-for-infinite-horizon-mdps">12.6. Smooth Optimality Equations for Infinite-Horizon MDPs</a></li>
 </ul>
 </li>
 </ul>
@@ -1331,30 +1332,6 @@ Since we’ve shown <span class="math notranslate nohighlight">\(R_1 \leq R_2\)<
 </div><p>As opposed to value iteration, this algorithm produces a sequence of both deterministic Markovian decision rules <span class="math notranslate nohighlight">\(\{d_n\}\)</span> and value functions <span class="math notranslate nohighlight">\(\{\mathbf{v}^n\}\)</span>. We recognize in this algorithm the linearization step of the Newton-Kantorovich procedure, which takes place here in the policy evaluation step 3 where we solve the linear system <span class="math notranslate nohighlight">\((\mathbf{I}-\gamma \mathbf{P}_{d_n}) \mathbf{v} = \mathbf{r}_{d_n}\)</span>. In practice, this linear sytem could be solved either using direct methods (eg. Gaussian elimination), using  simple iterative methods such as the successive approximation method for policy evaluation, or more sophisticated methods such as GMRES.</p>
 </section>
 </section>
-<section id="smooth-optimality-equations-for-infinite-horizon-mdps">
-<h2><span class="section-number">12.6. </span>Smooth Optimality Equations for Infinite-Horizon MDPs<a class="headerlink" href="#smooth-optimality-equations-for-infinite-horizon-mdps" title="Link to this heading">#</a></h2>
-<p>While the standard Bellman optimality equations use the max operator to determine the best action, an alternative formulation known as the smooth or soft Bellman optimality equations replaces this with a softmax operator. This approach, originating from <span id="id5">[<a class="reference internal" href="bibliography.html#id24" title="John Rust. Optimal replacement of gmc bus engines: an empirical model of harold zurcher. Econometrica, 55(5):999-1033, 1987.">22</a>]</span> and later rediscovered in the context of maximum entropy inverse reinforcement learning <span id="id6">[<a class="reference internal" href="bibliography.html#id25" title="Brian D. Ziebart, Andrew L. Maas, J. Andrew Bagnell, and Anind K. Dey. Maximum entropy inverse reinforcement learning. In Proceedings of the 23rd AAAI Conference on Artificial Intelligence, 1433-1438. 2008.">24</a>]</span> and soft Q-learning <span id="id7">[<a class="reference internal" href="bibliography.html#id26" title="Tuomas Haarnoja, Haoran Tang, Pieter Abbeel, and Sergey Levine. Reinforcement learning with deep energy-based policies. Proceedings of the 34th International Conference on Machine Learning, 70:1352-1361, 2017.">10</a>]</span>, introduces a degree of stochasticity into the decision-making process.</p>
-<p>In the infinite-horizon setting, the smooth Bellman optimality equations take the form:</p>
-<div class="math notranslate nohighlight">
-\[ v(s) = \frac{1}{\beta} \log \sum_{a \in A_s} \exp\left(\beta\left(r(s, a) + \gamma \sum_{j \in S} p(j | s, a) v(j)\right)\right) \]</div>
-<p>Adopting an operator-theoretic perspective, we can define a nonlinear operator <span class="math notranslate nohighlight">\(\mathrm{L}_\beta\)</span> such that the smooth value function of an MDP is then the solution to the following fixed-point equation:</p>
-<div class="math notranslate nohighlight">
-\[ (\mathrm{L}_\beta \mathbf{v})(s) = \frac{1}{\beta} \log \sum_{a \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right)\right) \]</div>
-<p>The smooth Bellman operator <span class="math notranslate nohighlight">\(\mathrm{L}_\beta\)</span> maintains several key properties:</p>
-<ol class="arabic">
-<li><p>As <span class="math notranslate nohighlight">\(\beta \to \infty\)</span>, <span class="math notranslate nohighlight">\(\mathrm{L}_\beta\)</span> converges to the standard Bellman operator <span class="math notranslate nohighlight">\(\mathrm{L}\)</span>.</p></li>
-<li><p><span class="math notranslate nohighlight">\(\mathrm{L}_\beta\)</span> is a contraction mapping in the supremum norm, and therefore has a unique fixed point.</p></li>
-<li><p>The fixed point of <span class="math notranslate nohighlight">\(\mathrm{L}_\beta\)</span> is associated with the value function of a stochastic policy, where the probability of choosing action <span class="math notranslate nohighlight">\(a\)</span> in state <span class="math notranslate nohighlight">\(s\)</span> is given by the softmax distribution:</p>
-<div class="math notranslate nohighlight">
-\[ \pi(a|s) = \frac{\exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right)\right)}{\sum_{a' \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a') + \gamma \sum_{j \in \mathcal{S}} p(j|s,a') v(j)\right)\right)} \]</div>
-</li>
-</ol>
-<p>This is simply the generalization of what would otherwise be the argmax operator in the original optimality equation.</p>
-<p>This formulation is interesting for several reasons. First, smoothness is a desirable property from an optimization standpoint. Unlike <span class="math notranslate nohighlight">\(\gamma\)</span>, we view <span class="math notranslate nohighlight">\(\beta\)</span> as a hyperparameter of our algorithm, which we can control to achieve the desired level of accuracy.</p>
-<p>Second, while presented from an intuitive standpoint where we replace the max by the log-sum-exp (a smooth maximum) and the argmax by the softmax (a smooth argmax), this formulation can also be obtained from various other perspectives, offering theoretical tools and solution methods. For example, <span id="id8">Rust [<a class="reference internal" href="bibliography.html#id24" title="John Rust. Optimal replacement of gmc bus engines: an empirical model of harold zurcher. Econometrica, 55(5):999-1033, 1987.">22</a>]</span> derived this algorithm by considering a setting in which the rewards are stochastic and perturbed by a Gumbel noise variable. When considering the corresponding augmented state space and integrating the noise, we obtain smooth equations. This interpretation is leveraged by Rust for modeling purposes.</p>
-<p>There is also a way to obtain this equation by starting from the energy-based formulation often used in supervised learning, in which we convert an unnormalized probability distribution into a distribution using the softmax transformation. This is essentially what <span id="id9">Ziebart <em>et al.</em> [<a class="reference internal" href="bibliography.html#id25" title="Brian D. Ziebart, Andrew L. Maas, J. Andrew Bagnell, and Anind K. Dey. Maximum entropy inverse reinforcement learning. In Proceedings of the 23rd AAAI Conference on Artificial Intelligence, 1433-1438. 2008.">24</a>]</span> did in their paper. Furthermore, this perspective bridges with the literature on probabilistic graphical models, in which we can now cast the problem of finding an optimal smooth policy into one of maximum likelihood estimation (an inference problem). This is the idea of control as inference, which also admits the converse - that of inference as control - used nowadays for deriving fast samples and amortized inference techniques using reinforcement learning <span id="id10">[<a class="reference internal" href="bibliography.html#id27" title="Sergey Levine, Aviral Kumar, George Tucker, and Justin Fu. Reinforcement learning as a framework for control: a survey. arXiv preprint arXiv:1806.04222, 2018.">17</a>]</span>.</p>
-<p>Finally, it’s worth noting that we can also derive this form by considering an entropy-regularized formulation in which we penalize for the entropy of our policy in the reward function term. This formulation admits a solution that coincides with the smooth Bellman equations <span id="id11">[<a class="reference internal" href="bibliography.html#id26" title="Tuomas Haarnoja, Haoran Tang, Pieter Abbeel, and Sergey Levine. Reinforcement learning with deep energy-based policies. Proceedings of the 34th International Conference on Machine Learning, 70:1352-1361, 2017.">10</a>]</span>.</p>
-</section>
 </section>
 
     <script type="text/x-thebe-config">
@@ -1397,11 +1374,11 @@ Since we’ve shown <span class="math notranslate nohighlight">\(R_1 \leq R_2\)<
       </div>
     </a>
     <a class="right-next"
-       href="bibliography.html"
+       href="adp.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title"><span class="section-number">13. </span>Bibliography</p>
+        <p class="prev-next-title"><span class="section-number">13. </span>Approximate Dynamic Programming</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -1442,7 +1419,6 @@ Since we’ve shown <span class="math notranslate nohighlight">\(R_1 \leq R_2\)<
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#policy-iteration">12.5.2. Policy Iteration</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#smooth-optimality-equations-for-infinite-horizon-mdps">12.6. Smooth Optimality Equations for Infinite-Horizon MDPs</a></li>
 </ul>
 </li>
 </ul>
