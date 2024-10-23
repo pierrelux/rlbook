@@ -18,7 +18,7 @@ Approximation theory is at the heart of learning methods, and fundamentally, thi
 
 # Smooth Optimality Equations for Infinite-Horizon MDPs
 
-While the standard Bellman optimality equations use the max operator to determine the best action, an alternative formulation known as the smooth or soft Bellman optimality equations replaces this with a softmax operator. This approach, originating from {cite}`rust1987optimal` and later rediscovered in the context of maximum entropy inverse reinforcement learning {cite}`ziebart2008maximum` and soft Q-learning {cite}`haarnoja2017reinforcement`, introduces a degree of stochasticity into the decision-making process.
+While the standard Bellman optimality equations use the max operator to determine the best action, an alternative formulation known as the smooth or soft Bellman optimality equations replaces this with a softmax operator. This approach originated from {cite}`rust1987optimal` and was later rediscovered in the context of maximum entropy inverse reinforcement learning {cite}`ziebart2008maximum`, which then led to soft Q-learning {cite}`haarnoja2017reinforcement` and soft actor-critic {cite}`haarnoja2018soft`, a state-of-the-art deep reinforcement learning algorithm.
 
 In the infinite-horizon setting, the smooth Bellman optimality equations take the form:
 
@@ -28,15 +28,11 @@ Adopting an operator-theoretic perspective, we can define a nonlinear operator $
 
 $$ (\mathrm{L}_\beta \mathbf{v})(s) = \frac{1}{\beta} \log \sum_{a \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right)\right) $$
 
-The smooth Bellman operator $\mathrm{L}_\beta$ maintains several key properties:
-
-1. As $\beta \to \infty$, $\mathrm{L}_\beta$ converges to the standard Bellman operator $\mathrm{L}$.
-2. $\mathrm{L}_\beta$ is a contraction mapping in the supremum norm, and therefore has a unique fixed point.
-3. The fixed point of $\mathrm{L}_\beta$ is associated with the value function of a stochastic policy, where the probability of choosing action $a$ in state $s$ is given by the softmax distribution:
+As $\beta \to \infty$, $\mathrm{L}_\beta$ converges to the standard Bellman operator $\mathrm{L}$. Furthermore, it can be shown that the smooth Bellman operator is a contraction mapping in the supremum norm, and therefore has a unique fixed point. However, as opposed to the usual "hard" setting, the fixed point of $\mathrm{L}_\beta$ is associated with the value function of an optimal stochastic policy defined by the softmax distribution:
 
    $$ d(a|s) = \frac{\exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v_\gamma^\star(j)\right)\right)}{\sum_{a' \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a') + \gamma \sum_{j \in \mathcal{S}} p(j|s,a') v_\gamma^\star(j)\right)\right)} $$
 
-This is simply the generalization of what would otherwise be the argmax operator in the original optimality equation.
+Despite the confusing terminology, the above "softmax" policy is simply the smooth counterpart to the argmax operator in the original optimality equation: it acts as a soft-argmax. 
 
 This formulation is interesting for several reasons. First, smoothness is a desirable property from an optimization standpoint. Unlike $\gamma$, we view $\beta$ as a hyperparameter of our algorithm, which we can control to achieve the desired level of accuracy.
 
@@ -456,7 +452,7 @@ The fitting procedure itself may introduce an "inner optimization loop." For ins
 
 Finally, the termination criterion from standard value iteration may no longer hold. The classical criterion relied on the sup-norm contractivity property of the Bellman operator — a property that isn't generally preserved under function approximation. While certain function approximation schemes can maintain this sup-norm contraction property (as we'll see later), this is the exception rather than the rule.
 
-## Computational Aspects of Component-wise Bellman Operator Evaluation
+# Approximate Component-wise Evaluation of the Bellman Operator
 
 So far, we've described a strategy that economizes computation by updating only a selected set of base points, then generalizing these updates to approximate the operator's effect on other states. However, this approach assumes we can compute the operator exactly at these base points. What if even this limited computation proves infeasible?
 
@@ -464,7 +460,7 @@ The challenge arises naturally when we consider what computing the Bellman opera
 
 But what if we lack these exact probabilities and instead only have access to samples of next states for given state-action pairs? In this case, we must turn to Monte Carlo integration methods, which brings us fully into what we would recognize as a learning setting.
 
-### Numerical Quadrature Methods for Approximating the Bellman Operator
+## Numerical Quadrature Methods
 
 In the general case, the Bellman operator in component-wise form is:
 
@@ -546,3 +542,30 @@ Combining both strategies leads to the following algorithm:
 4. **until** ($\delta < \varepsilon$ or $n \geq N$)
 5. **return** $\boldsymbol{\theta}_n$
 ````
+
+## Monte Carlo Integration 
+
+Numerical quadrature methods scale poorly with increasing dimension. Specifically, for a fixed error tolerance $\epsilon$, the number of required quadrature points grows exponentially with dimension $d$ as $O((\frac{1}{\epsilon})^d)$. Furthermore, quadrature methods require explicit evaluation of the transition probability function $p(s'|s,a)$ at specified points—a luxury we don't have in the "model-free" setting where we only have access to samples from the MDP.
+
+Let $\mathcal{B} = \{s_1, ..., s_M\}$ be our set of base points where we will evaluate the operator. At each base point $s_k \in \mathcal{B}$, Monte Carlo integration approximates the expectation using $N$ samples:
+
+$$
+\int v_n(s')p(ds'|s_k,a) \approx \frac{1}{N} \sum_{i=1}^N v_n(s'_{k,i}), \quad s'_{k,i} \sim p(\cdot|s_k,a)
+$$
+
+where $s'_{k,i}$ denotes the $i$-th sample drawn from $p(\cdot|s_k,a)$ for base point $s_k$.
+
+This approach has two remarkable properties:
+1. The convergence rate is $O(\frac{1}{\sqrt{N}})$ regardless of the number of dimensions
+2. It only requires samples from $p(\cdot|s_k,a)$, not explicit probability values
+
+These properties make Monte Carlo integration particularly attractive for high-dimensional problems and model-free settings. Indeed, this is one of the key mathematical foundations that enables learning in general: the ability to estimate expectations using only samples from a distribution. This principle underlies the empirical risk minimization framework in statistical learning theory, where we approximate expected losses using finite samples.
+
+The resulting approximate Bellman operator at each base point becomes:
+
+$$
+(\hat{\mathrm{L}} v_n)(s_k) \equiv \max_{a \in \mathcal{A}_{s_k}} \left\{r(s_k,a) + \frac{\gamma}{N} \sum_{i=1}^N v_n(s'_{k,i})\right\}, \quad s'_{k,i} \sim p(\cdot|s_k,a)
+$$
+
+for each $s_k \in \mathcal{B}$. From these $M$ point-wise evaluations, we will then fit our function approximator, just as we did in the quadrature case.
+

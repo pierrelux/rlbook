@@ -64,7 +64,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'adp';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="16. Bibliography" href="bibliography.html" />
+    <link rel="next" title="17. Bibliography" href="bibliography.html" />
     <link rel="prev" title="11. Dynamic Programming" href="dp.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -193,7 +193,8 @@
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">13. Approximate Dynamic Programming</a></li>
 
 
-<li class="toctree-l1"><a class="reference internal" href="bibliography.html">16. Bibliography</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">17. Bibliography</a></li>
 </ul>
 
     </div>
@@ -427,10 +428,11 @@ document.write(`
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#parametric-dynamic-programming">15. Parametric Dynamic Programming</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#carrying-out-partial-updates">15.1. Carrying out Partial Updates</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fitting-the-updates-parametric-value-iteration">15.2. Fitting the Updates: Parametric Value Iteration</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#computational-aspects-of-component-wise-bellman-operator-evaluation">15.3. Computational Aspects of Component-wise Bellman Operator Evaluation</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#numerical-quadrature-methods-for-approximating-the-bellman-operator">15.3.1. Numerical Quadrature Methods for Approximating the Bellman Operator</a></li>
 </ul>
 </li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#approximate-component-wise-evaluation-of-the-bellman-operator">16. Approximate Component-wise Evaluation of the Bellman Operator</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#numerical-quadrature-methods">16.1. Numerical Quadrature Methods</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#monte-carlo-integration">16.2. Monte Carlo Integration</a></li>
 </ul>
 </li>
 </ul>
@@ -452,27 +454,21 @@ Approximation theory is at the heart of learning methods, and fundamentally, thi
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="smooth-optimality-equations-for-infinite-horizon-mdps">
 <h1><span class="section-number">14. </span>Smooth Optimality Equations for Infinite-Horizon MDPs<a class="headerlink" href="#smooth-optimality-equations-for-infinite-horizon-mdps" title="Link to this heading">#</a></h1>
-<p>While the standard Bellman optimality equations use the max operator to determine the best action, an alternative formulation known as the smooth or soft Bellman optimality equations replaces this with a softmax operator. This approach, originating from <span id="id1">[<a class="reference internal" href="bibliography.html#id24" title="John Rust. Optimal replacement of gmc bus engines: an empirical model of harold zurcher. Econometrica, 55(5):999-1033, 1987.">24</a>]</span> and later rediscovered in the context of maximum entropy inverse reinforcement learning <span id="id2">[<a class="reference internal" href="bibliography.html#id25" title="Brian D. Ziebart, Andrew L. Maas, J. Andrew Bagnell, and Anind K. Dey. Maximum entropy inverse reinforcement learning. In Proceedings of the 23rd AAAI Conference on Artificial Intelligence, 1433-1438. 2008.">26</a>]</span> and soft Q-learning <span id="id3">[<a class="reference internal" href="bibliography.html#id26" title="Tuomas Haarnoja, Haoran Tang, Pieter Abbeel, and Sergey Levine. Reinforcement learning with deep energy-based policies. Proceedings of the 34th International Conference on Machine Learning, 70:1352-1361, 2017.">12</a>]</span>, introduces a degree of stochasticity into the decision-making process.</p>
+<p>While the standard Bellman optimality equations use the max operator to determine the best action, an alternative formulation known as the smooth or soft Bellman optimality equations replaces this with a softmax operator. This approach originated from <span id="id1">[<a class="reference internal" href="bibliography.html#id24" title="John Rust. Optimal replacement of gmc bus engines: an empirical model of harold zurcher. Econometrica, 55(5):999-1033, 1987.">25</a>]</span> and was later rediscovered in the context of maximum entropy inverse reinforcement learning <span id="id2">[<a class="reference internal" href="bibliography.html#id25" title="Brian D. Ziebart, Andrew L. Maas, J. Andrew Bagnell, and Anind K. Dey. Maximum entropy inverse reinforcement learning. In Proceedings of the 23rd AAAI Conference on Artificial Intelligence, 1433-1438. 2008.">27</a>]</span>, which then led to soft Q-learning <span id="id3">[<a class="reference internal" href="bibliography.html#id26" title="Tuomas Haarnoja, Haoran Tang, Pieter Abbeel, and Sergey Levine. Reinforcement learning with deep energy-based policies. Proceedings of the 34th International Conference on Machine Learning, 70:1352-1361, 2017.">12</a>]</span> and soft actor-critic <span id="id4">[<a class="reference internal" href="bibliography.html#id30" title="Tuomas Haarnoja, Aurick Zhou, Pieter Abbeel, and Sergey Levine. Soft actor-critic: off-policy maximum entropy deep reinforcement learning with a stochastic actor. In Proceedings of the 35th International Conference on Machine Learning (ICML), 1861–1870. PMLR, 2018.">13</a>]</span>, a state-of-the-art deep reinforcement learning algorithm.</p>
 <p>In the infinite-horizon setting, the smooth Bellman optimality equations take the form:</p>
 <div class="math notranslate nohighlight">
 \[ v_\gamma^\star(s) = \frac{1}{\beta} \log \sum_{a \in A_s} \exp\left(\beta\left(r(s, a) + \gamma \sum_{j \in S} p(j | s, a) v_\gamma^\star(j)\right)\right) \]</div>
 <p>Adopting an operator-theoretic perspective, we can define a nonlinear operator <span class="math notranslate nohighlight">\(\mathrm{L}_\beta\)</span> such that the smooth value function of an MDP is then the solution to the following fixed-point equation:</p>
 <div class="math notranslate nohighlight">
 \[ (\mathrm{L}_\beta \mathbf{v})(s) = \frac{1}{\beta} \log \sum_{a \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right)\right) \]</div>
-<p>The smooth Bellman operator <span class="math notranslate nohighlight">\(\mathrm{L}_\beta\)</span> maintains several key properties:</p>
-<ol class="arabic">
-<li><p>As <span class="math notranslate nohighlight">\(\beta \to \infty\)</span>, <span class="math notranslate nohighlight">\(\mathrm{L}_\beta\)</span> converges to the standard Bellman operator <span class="math notranslate nohighlight">\(\mathrm{L}\)</span>.</p></li>
-<li><p><span class="math notranslate nohighlight">\(\mathrm{L}_\beta\)</span> is a contraction mapping in the supremum norm, and therefore has a unique fixed point.</p></li>
-<li><p>The fixed point of <span class="math notranslate nohighlight">\(\mathrm{L}_\beta\)</span> is associated with the value function of a stochastic policy, where the probability of choosing action <span class="math notranslate nohighlight">\(a\)</span> in state <span class="math notranslate nohighlight">\(s\)</span> is given by the softmax distribution:</p>
+<p>As <span class="math notranslate nohighlight">\(\beta \to \infty\)</span>, <span class="math notranslate nohighlight">\(\mathrm{L}_\beta\)</span> converges to the standard Bellman operator <span class="math notranslate nohighlight">\(\mathrm{L}\)</span>. Furthermore, it can be shown that the smooth Bellman operator is a contraction mapping in the supremum norm, and therefore has a unique fixed point. However, as opposed to the usual “hard” setting, the fixed point of <span class="math notranslate nohighlight">\(\mathrm{L}_\beta\)</span> is associated with the value function of an optimal stochastic policy defined by the softmax distribution:</p>
 <div class="math notranslate nohighlight">
 \[ d(a|s) = \frac{\exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v_\gamma^\star(j)\right)\right)}{\sum_{a' \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a') + \gamma \sum_{j \in \mathcal{S}} p(j|s,a') v_\gamma^\star(j)\right)\right)} \]</div>
-</li>
-</ol>
-<p>This is simply the generalization of what would otherwise be the argmax operator in the original optimality equation.</p>
+<p>Despite the confusing terminology, the above “softmax” policy is simply the smooth counterpart to the argmax operator in the original optimality equation: it acts as a soft-argmax.</p>
 <p>This formulation is interesting for several reasons. First, smoothness is a desirable property from an optimization standpoint. Unlike <span class="math notranslate nohighlight">\(\gamma\)</span>, we view <span class="math notranslate nohighlight">\(\beta\)</span> as a hyperparameter of our algorithm, which we can control to achieve the desired level of accuracy.</p>
-<p>Second, while presented from an intuitive standpoint where we replace the max by the log-sum-exp (a smooth maximum) and the argmax by the softmax (a smooth argmax), this formulation can also be obtained from various other perspectives, offering theoretical tools and solution methods. For example, <span id="id4">Rust [<a class="reference internal" href="bibliography.html#id24" title="John Rust. Optimal replacement of gmc bus engines: an empirical model of harold zurcher. Econometrica, 55(5):999-1033, 1987.">24</a>]</span> derived this algorithm by considering a setting in which the rewards are stochastic and perturbed by a Gumbel noise variable. When considering the corresponding augmented state space and integrating the noise, we obtain smooth equations. This interpretation is leveraged by Rust for modeling purposes.</p>
-<p>There is also a way to obtain this equation by starting from the energy-based formulation often used in supervised learning, in which we convert an unnormalized probability distribution into a distribution using the softmax transformation. This is essentially what <span id="id5">Ziebart <em>et al.</em> [<a class="reference internal" href="bibliography.html#id25" title="Brian D. Ziebart, Andrew L. Maas, J. Andrew Bagnell, and Anind K. Dey. Maximum entropy inverse reinforcement learning. In Proceedings of the 23rd AAAI Conference on Artificial Intelligence, 1433-1438. 2008.">26</a>]</span> did in their paper. Furthermore, this perspective bridges with the literature on probabilistic graphical models, in which we can now cast the problem of finding an optimal smooth policy into one of maximum likelihood estimation (an inference problem). This is the idea of control as inference, which also admits the converse - that of inference as control - used nowadays for deriving fast samples and amortized inference techniques using reinforcement learning <span id="id6">[<a class="reference internal" href="bibliography.html#id27" title="Sergey Levine, Aviral Kumar, George Tucker, and Justin Fu. Reinforcement learning as a framework for control: a survey. arXiv preprint arXiv:1806.04222, 2018.">19</a>]</span>.</p>
-<p>Finally, it’s worth noting that we can also derive this form by considering an entropy-regularized formulation in which we penalize for the entropy of our policy in the reward function term. This formulation admits a solution that coincides with the smooth Bellman equations <span id="id7">[<a class="reference internal" href="bibliography.html#id26" title="Tuomas Haarnoja, Haoran Tang, Pieter Abbeel, and Sergey Levine. Reinforcement learning with deep energy-based policies. Proceedings of the 34th International Conference on Machine Learning, 70:1352-1361, 2017.">12</a>]</span>.</p>
+<p>Second, while presented from an intuitive standpoint where we replace the max by the log-sum-exp (a smooth maximum) and the argmax by the softmax (a smooth argmax), this formulation can also be obtained from various other perspectives, offering theoretical tools and solution methods. For example, <span id="id5">Rust [<a class="reference internal" href="bibliography.html#id24" title="John Rust. Optimal replacement of gmc bus engines: an empirical model of harold zurcher. Econometrica, 55(5):999-1033, 1987.">25</a>]</span> derived this algorithm by considering a setting in which the rewards are stochastic and perturbed by a Gumbel noise variable. When considering the corresponding augmented state space and integrating the noise, we obtain smooth equations. This interpretation is leveraged by Rust for modeling purposes.</p>
+<p>There is also a way to obtain this equation by starting from the energy-based formulation often used in supervised learning, in which we convert an unnormalized probability distribution into a distribution using the softmax transformation. This is essentially what <span id="id6">Ziebart <em>et al.</em> [<a class="reference internal" href="bibliography.html#id25" title="Brian D. Ziebart, Andrew L. Maas, J. Andrew Bagnell, and Anind K. Dey. Maximum entropy inverse reinforcement learning. In Proceedings of the 23rd AAAI Conference on Artificial Intelligence, 1433-1438. 2008.">27</a>]</span> did in their paper. Furthermore, this perspective bridges with the literature on probabilistic graphical models, in which we can now cast the problem of finding an optimal smooth policy into one of maximum likelihood estimation (an inference problem). This is the idea of control as inference, which also admits the converse - that of inference as control - used nowadays for deriving fast samples and amortized inference techniques using reinforcement learning <span id="id7">[<a class="reference internal" href="bibliography.html#id27" title="Sergey Levine, Aviral Kumar, George Tucker, and Justin Fu. Reinforcement learning as a framework for control: a survey. arXiv preprint arXiv:1806.04222, 2018.">20</a>]</span>.</p>
+<p>Finally, it’s worth noting that we can also derive this form by considering an entropy-regularized formulation in which we penalize for the entropy of our policy in the reward function term. This formulation admits a solution that coincides with the smooth Bellman equations <span id="id8">[<a class="reference internal" href="bibliography.html#id26" title="Tuomas Haarnoja, Haoran Tang, Pieter Abbeel, and Sergey Levine. Reinforcement learning with deep energy-based policies. Proceedings of the 34th International Conference on Machine Learning, 70:1352-1361, 2017.">12</a>]</span>.</p>
 <section id="gumbel-noise-on-the-rewards">
 <h2><span class="section-number">14.1. </span>Gumbel Noise on the Rewards<a class="headerlink" href="#gumbel-noise-on-the-rewards" title="Link to this heading">#</a></h2>
 <p>We can obtain the smooth Bellman equation by considering a setting in which we have Gumbel noise added to the reward function. More precisely, we define an MDP whose state space is now that of <span class="math notranslate nohighlight">\(\tilde{s} = (s, \epsilon)\)</span>, where the reward function is given by</p>
@@ -614,7 +610,7 @@ p(a_t | s_t, O_{1:T} = 1) &amp;\propto p(a_t | s_t) \exp(\beta r(s_t, a_t)) \sum
 </section>
 <section id="regularized-markov-decision-processes">
 <h2><span class="section-number">14.3. </span>Regularized Markov Decision Processes<a class="headerlink" href="#regularized-markov-decision-processes" title="Link to this heading">#</a></h2>
-<p>Regularized MDPs <span id="id8">[<a class="reference internal" href="bibliography.html#id28" title="Matthieu Geist, Bruno Scherrer, and Olivier Pietquin. A theory of regularized Markov decision processes. In Kamalika Chaudhuri and Ruslan Salakhutdinov, editors, Proceedings of the 36th International Conference on Machine Learning, volume 97 of Proceedings of Machine Learning Research, 2160–2169. PMLR, 09–15 Jun 2019. URL: https://proceedings.mlr.press/v97/geist19a.html.">7</a>]</span> provide another perspective on how the smooth Bellman equations come to be. This framework offers a more general approach in which we seek to find optimal policies under the infinite horizon criterion while also accounting for a regularizer that influences the kind of policies we try to obtain.</p>
+<p>Regularized MDPs <span id="id9">[<a class="reference internal" href="bibliography.html#id28" title="Matthieu Geist, Bruno Scherrer, and Olivier Pietquin. A theory of regularized Markov decision processes. In Kamalika Chaudhuri and Ruslan Salakhutdinov, editors, Proceedings of the 36th International Conference on Machine Learning, volume 97 of Proceedings of Machine Learning Research, 2160–2169. PMLR, 09–15 Jun 2019. URL: https://proceedings.mlr.press/v97/geist19a.html.">7</a>]</span> provide another perspective on how the smooth Bellman equations come to be. This framework offers a more general approach in which we seek to find optimal policies under the infinite horizon criterion while also accounting for a regularizer that influences the kind of policies we try to obtain.</p>
 <p>Let’s set up some necessary notation. First, recall that the policy evaluation operator for a stationary policy with decision rule <span class="math notranslate nohighlight">\(d\)</span> is defined as:</p>
 <div class="math notranslate nohighlight">
 \[ L_d v = r_d + \gamma P_d v \]</div>
@@ -763,7 +759,7 @@ For each <span class="math notranslate nohighlight">\(s \in S\)</span>, compute 
 </ol>
 <p><strong>Note:</strong> The algorithm differs from standard value iteration in that it immediately uses updated values within each iteration. This is reflected in the first sum of step 2(a), where <span class="math notranslate nohighlight">\(v^{n+1}\)</span> is used for already-updated states.</p>
 </section>
-</div><p>The Gauss-Seidel value iteration approach offers several advantages over standard value iteration: it can be more memory-efficient and often leads to faster convergence. This idea generalizes further (see for example <span id="id9">Bertsekas [<a class="reference internal" href="bibliography.html#id29" title="Dimitri P. Bertsekas. Distributed asynchronous computation of fixed points. Mathematical Programming, 27(1):107–120, September 1983. URL: http://dx.doi.org/10.1007/BF02591967, doi:10.1007/bf02591967.">4</a>]</span>) to accommodate fully asynchronous updates in any order. However, these methods, while more flexible in their update patterns, still fundamentally rely on a tabular representation—that is, they require storing and eventually updating a separate value for each state in memory. Even if we update states one at a time or in blocks, we must maintain this complete table of values, and our convergence guarantee assumes that every entry in this table will eventually be revised.</p>
+</div><p>The Gauss-Seidel value iteration approach offers several advantages over standard value iteration: it can be more memory-efficient and often leads to faster convergence. This idea generalizes further (see for example <span id="id10">Bertsekas [<a class="reference internal" href="bibliography.html#id29" title="Dimitri P. Bertsekas. Distributed asynchronous computation of fixed points. Mathematical Programming, 27(1):107–120, September 1983. URL: http://dx.doi.org/10.1007/BF02591967, doi:10.1007/bf02591967.">4</a>]</span>) to accommodate fully asynchronous updates in any order. However, these methods, while more flexible in their update patterns, still fundamentally rely on a tabular representation—that is, they require storing and eventually updating a separate value for each state in memory. Even if we update states one at a time or in blocks, we must maintain this complete table of values, and our convergence guarantee assumes that every entry in this table will eventually be revised.</p>
 <p>But what if maintaining such a table is impossible? This challenge arises naturally when dealing with continuous state spaces, where we cannot feasibly store values for every possible state, let alone update them. This is where function approximation comes into play.</p>
 </section>
 <section id="fitting-the-updates-parametric-value-iteration">
@@ -830,13 +826,14 @@ v(s) \approx \sum_{i=0}^{n} \theta_i \phi_i(s)
 <p>The fitting procedure itself may introduce an “inner optimization loop.” For instance, when using neural networks, this involves an iterative gradient descent procedure to optimize the parameters. This creates an interesting parallel with modified policy iteration: just as we might truncate policy evaluation steps there, we can consider variants where this inner loop runs for a fixed number of iterations rather than to convergence.</p>
 <p>Finally, the termination criterion from standard value iteration may no longer hold. The classical criterion relied on the sup-norm contractivity property of the Bellman operator — a property that isn’t generally preserved under function approximation. While certain function approximation schemes can maintain this sup-norm contraction property (as we’ll see later), this is the exception rather than the rule.</p>
 </section>
-<section id="computational-aspects-of-component-wise-bellman-operator-evaluation">
-<h2><span class="section-number">15.3. </span>Computational Aspects of Component-wise Bellman Operator Evaluation<a class="headerlink" href="#computational-aspects-of-component-wise-bellman-operator-evaluation" title="Link to this heading">#</a></h2>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="approximate-component-wise-evaluation-of-the-bellman-operator">
+<h1><span class="section-number">16. </span>Approximate Component-wise Evaluation of the Bellman Operator<a class="headerlink" href="#approximate-component-wise-evaluation-of-the-bellman-operator" title="Link to this heading">#</a></h1>
 <p>So far, we’ve described a strategy that economizes computation by updating only a selected set of base points, then generalizing these updates to approximate the operator’s effect on other states. However, this approach assumes we can compute the operator exactly at these base points. What if even this limited computation proves infeasible?</p>
 <p>The challenge arises naturally when we consider what computing the Bellman operator entails: evaluating an expectation over next states, which generally requires numerical integration. Even in the “best” scenario — the model-based setting we’ve worked with throughout this course — we assume access to an explicit representation of the transition probability function that we can evaluate everywhere.</p>
 <p>But what if we lack these exact probabilities and instead only have access to samples of next states for given state-action pairs? In this case, we must turn to Monte Carlo integration methods, which brings us fully into what we would recognize as a learning setting.</p>
-<section id="numerical-quadrature-methods-for-approximating-the-bellman-operator">
-<h3><span class="section-number">15.3.1. </span>Numerical Quadrature Methods for Approximating the Bellman Operator<a class="headerlink" href="#numerical-quadrature-methods-for-approximating-the-bellman-operator" title="Link to this heading">#</a></h3>
+<section id="numerical-quadrature-methods">
+<h2><span class="section-number">16.1. </span>Numerical Quadrature Methods<a class="headerlink" href="#numerical-quadrature-methods" title="Link to this heading">#</a></h2>
 <p>In the general case, the Bellman operator in component-wise form is:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -890,7 +887,7 @@ This setting does not require numerical integration but instead faces the challe
 </ul>
 <p>Combining both strategies leads to the following algorithm:</p>
 <div class="proof algorithm admonition" id="fitted-value-iteration-quadrature">
-<p class="admonition-title"><span class="caption-number">Algorithm 15.3 </span> (Fitted Value Iteration with Rectangle Rule)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 16.1 </span> (Fitted Value Iteration with Rectangle Rule)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given an MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, base points <span class="math notranslate nohighlight">\(B \subset S\)</span>, integration points <span class="math notranslate nohighlight">\(\{s'_i\}_{i=1}^m\)</span>, function approximator class <span class="math notranslate nohighlight">\(v(s; \boldsymbol{\theta})\)</span>, maximum iterations <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for value function approximation</p>
@@ -916,6 +913,27 @@ This setting does not require numerical integration but instead faces the challe
 </ol>
 </section>
 </div></section>
+<section id="monte-carlo-integration">
+<h2><span class="section-number">16.2. </span>Monte Carlo Integration<a class="headerlink" href="#monte-carlo-integration" title="Link to this heading">#</a></h2>
+<p>Numerical quadrature methods scale poorly with increasing dimension. Specifically, for a fixed error tolerance <span class="math notranslate nohighlight">\(\epsilon\)</span>, the number of required quadrature points grows exponentially with dimension <span class="math notranslate nohighlight">\(d\)</span> as <span class="math notranslate nohighlight">\(O((\frac{1}{\epsilon})^d)\)</span>. Furthermore, quadrature methods require explicit evaluation of the transition probability function <span class="math notranslate nohighlight">\(p(s'|s,a)\)</span> at specified points—a luxury we don’t have in the “model-free” setting where we only have access to samples from the MDP.</p>
+<p>Let <span class="math notranslate nohighlight">\(\mathcal{B} = \{s_1, ..., s_M\}\)</span> be our set of base points where we will evaluate the operator. At each base point <span class="math notranslate nohighlight">\(s_k \in \mathcal{B}\)</span>, Monte Carlo integration approximates the expectation using <span class="math notranslate nohighlight">\(N\)</span> samples:</p>
+<div class="math notranslate nohighlight">
+\[
+\int v_n(s')p(ds'|s_k,a) \approx \frac{1}{N} \sum_{i=1}^N v_n(s'_{k,i}), \quad s'_{k,i} \sim p(\cdot|s_k,a)
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(s'_{k,i}\)</span> denotes the <span class="math notranslate nohighlight">\(i\)</span>-th sample drawn from <span class="math notranslate nohighlight">\(p(\cdot|s_k,a)\)</span> for base point <span class="math notranslate nohighlight">\(s_k\)</span>.</p>
+<p>This approach has two remarkable properties:</p>
+<ol class="arabic simple">
+<li><p>The convergence rate is <span class="math notranslate nohighlight">\(O(\frac{1}{\sqrt{N}})\)</span> regardless of the number of dimensions</p></li>
+<li><p>It only requires samples from <span class="math notranslate nohighlight">\(p(\cdot|s_k,a)\)</span>, not explicit probability values</p></li>
+</ol>
+<p>These properties make Monte Carlo integration particularly attractive for high-dimensional problems and model-free settings. Indeed, this is one of the key mathematical foundations that enables learning in general: the ability to estimate expectations using only samples from a distribution. This principle underlies the empirical risk minimization framework in statistical learning theory, where we approximate expected losses using finite samples.</p>
+<p>The resulting approximate Bellman operator at each base point becomes:</p>
+<div class="math notranslate nohighlight">
+\[
+(\hat{\mathrm{L}} v_n)(s_k) \equiv \max_{a \in \mathcal{A}_{s_k}} \left\{r(s_k,a) + \frac{\gamma}{N} \sum_{i=1}^N v_n(s'_{k,i})\right\}, \quad s'_{k,i} \sim p(\cdot|s_k,a)
+\]</div>
+<p>for each <span class="math notranslate nohighlight">\(s_k \in \mathcal{B}\)</span>. From these <span class="math notranslate nohighlight">\(M\)</span> point-wise evaluations, we will then fit our function approximator, just as we did in the quadrature case.</p>
 </section>
 </section>
 
@@ -963,7 +981,7 @@ This setting does not require numerical integration but instead faces the challe
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title"><span class="section-number">16. </span>Bibliography</p>
+        <p class="prev-next-title"><span class="section-number">17. </span>Bibliography</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -1004,10 +1022,11 @@ This setting does not require numerical integration but instead faces the challe
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#parametric-dynamic-programming">15. Parametric Dynamic Programming</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#carrying-out-partial-updates">15.1. Carrying out Partial Updates</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fitting-the-updates-parametric-value-iteration">15.2. Fitting the Updates: Parametric Value Iteration</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#computational-aspects-of-component-wise-bellman-operator-evaluation">15.3. Computational Aspects of Component-wise Bellman Operator Evaluation</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#numerical-quadrature-methods-for-approximating-the-bellman-operator">15.3.1. Numerical Quadrature Methods for Approximating the Bellman Operator</a></li>
 </ul>
 </li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#approximate-component-wise-evaluation-of-the-bellman-operator">16. Approximate Component-wise Evaluation of the Bellman Operator</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#numerical-quadrature-methods">16.1. Numerical Quadrature Methods</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#monte-carlo-integration">16.2. Monte Carlo Integration</a></li>
 </ul>
 </li>
 </ul>
