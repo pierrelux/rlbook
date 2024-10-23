@@ -64,7 +64,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'adp';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="15. Bibliography" href="bibliography.html" />
+    <link rel="next" title="16. Bibliography" href="bibliography.html" />
     <link rel="prev" title="11. Dynamic Programming" href="dp.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -192,7 +192,8 @@
 
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">13. Approximate Dynamic Programming</a></li>
 
-<li class="toctree-l1"><a class="reference internal" href="bibliography.html">15. Bibliography</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">16. Bibliography</a></li>
 </ul>
 
     </div>
@@ -421,6 +422,11 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#recovering-the-smooth-bellman-equations">14.4.1. Recovering the Smooth Bellman Equations</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#parametric-dynamic-programming">15. Parametric Dynamic Programming</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#carrying-out-partial-updates">15.1. Carrying out Partial Updates</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fitting-the-updates-parametric-value-iteration">15.2. Fitting the Updates: Parametric Value Iteration</a></li>
 </ul>
 </li>
 </ul>
@@ -674,7 +680,7 @@ v^*_\Omega(s) &amp;= \Omega^*(q^*_\Omega(s, \cdot))\end{align*} \end{split}\]</d
 <div class="math notranslate nohighlight">
 \[ \Omega(d(\cdot|s)) = \sum_{a \in \mathcal{A}_s} d(a|s) \ln d(a|s) \]</div>
 </li>
-<li><p>The convex conjugate (as shown earlier):</p>
+<li><p>The convex conjugate:</p>
 <div class="math notranslate nohighlight">
 \[ \Omega^*(q(s, \cdot)) = \ln \sum_{a \in \mathcal{A}_s} \exp q(s,a) \]</div>
 </li>
@@ -693,6 +699,151 @@ v^*_\Omega(s) &amp;= \Omega^*(q^*_\Omega(s, \cdot))\end{align*} \end{split}\]</d
 \[ d^*(a|s) = \nabla \Omega^*(q^*_\Omega(s, \cdot)) = \frac{\exp(q^*_\Omega(s,a))}{\sum_{a' \in \mathcal{A}_s} \exp(q^*_\Omega(s,a'))} \]</div>
 <p>This is the familiar softmax policy we encountered in the smooth MDP setting.</p>
 </section>
+</section>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="parametric-dynamic-programming">
+<h1><span class="section-number">15. </span>Parametric Dynamic Programming<a class="headerlink" href="#parametric-dynamic-programming" title="Link to this heading">#</a></h1>
+<p>We have so far considered a specific kind of approximation: that of the Bellman operator itself. We explored a modified version of the operator with the desirable property of smoothness, which we deemed beneficial for optimization purposes and due to its rich multifaceted interpretations. We now turn our attention to another form of approximation, complementary to the previous kind, which seeks to address the challenge of applying the operator across the entire state space.</p>
+<p>To be precise, suppose we can compute the Bellman operator <span class="math notranslate nohighlight">\(Lv\)</span> at some state <span class="math notranslate nohighlight">\(s\)</span>, producing a new function <span class="math notranslate nohighlight">\(U\)</span> whose value at state <span class="math notranslate nohighlight">\(s\)</span> is <span class="math notranslate nohighlight">\(u(s) = (Lv)(s)\)</span>. Then, putting aside the problem of pointwise evaluation, we want to carry out this update across the entire domain of <span class="math notranslate nohighlight">\(v\)</span>. When working with small state spaces, this is not an issue, and we can afford to carry out the update across the entirety of the state space. However, for larger or infinite state spaces, this becomes a major challenge.</p>
+<p>So what can we do? Our approach will be to compute the operator at chosen “grid points,” then “fill in the blanks” for the states where we haven’t carried out the update by “fitting” the resulting output function on a dataset of input-output pairs. The intuition is that for sufficiently well-behaved functions and sufficiently expressive function approximators, we hope to generalize well enough. Our community calls this “learning,” while others would call it “function approximation” — a field of its own in mathematics. To truly have a “learning algorithm,” we’ll need to add one more piece of machinery: the use of samples — of simulation — to pick the grid points and perform numerical integration. But this is for the next section…</p>
+<section id="carrying-out-partial-updates">
+<h2><span class="section-number">15.1. </span>Carrying out Partial Updates<a class="headerlink" href="#carrying-out-partial-updates" title="Link to this heading">#</a></h2>
+<p>The ideas presented in this section apply more broadly to the successive approximation method applied to a fixed-point problem. Consider again the problem of finding the optimal value function <span class="math notranslate nohighlight">\(v_\gamma^\star\)</span> as the solution to the Bellman optimality operator <span class="math notranslate nohighlight">\(L\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+\mathrm{L} \mathbf{v} \equiv \max_{d \in D^{MD}} \left\{\mathbf{r}_d + \gamma \mathbf{P}_d \mathbf{v}\right\}
+\]</div>
+<p>Value iteration — the name for the method of successive approximation applied to <span class="math notranslate nohighlight">\(L\)</span> — computes a sequence of iterates <span class="math notranslate nohighlight">\(v_{n+1} = \mathrm{L}v_n\)</span> from some arbitrary <span class="math notranslate nohighlight">\(v_0\)</span>. Let’s pause to consider what the equality sign in this expression means: it represents an assignment (perhaps better denoted as <span class="math notranslate nohighlight">\(:=\)</span>) across the entire domain. This becomes clearer when writing the update in component form:</p>
+<div class="math notranslate nohighlight">
+\[
+v_{n+1}(s) := (\mathrm{L} \mathbf{v})(s) \equiv \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v_n(j)\right\}, \, \forall s \in \mathcal{S}
+\]</div>
+<p>Pay particular attention to the <span class="math notranslate nohighlight">\(\forall s \in \mathcal{S}\)</span> notation: what happens when we can’t afford to update all components in each step of value iteration? A potential solution is to use Gauss-Seidel Value Iteration, which updates states sequentially, immediately using fresh values for subsequent updates.</p>
+<div class="proof algorithm admonition" id="alg-gsvi">
+<p class="admonition-title"><span class="caption-number">Algorithm 15.1 </span> (Gauss-Seidel Value Iteration)</p>
+<section class="algorithm-content" id="proof-content">
+<p><strong>Input:</strong> MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, convergence threshold <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span><br />
+<strong>Output:</strong> Value function <span class="math notranslate nohighlight">\(v\)</span> and policy <span class="math notranslate nohighlight">\(d\)</span></p>
+<ol class="arabic">
+<li><p><strong>Initialization:</strong></p>
+<ul class="simple">
+<li><p>Initialize <span class="math notranslate nohighlight">\(v^0(s)\)</span> for all <span class="math notranslate nohighlight">\(s \in S\)</span></p></li>
+<li><p>Set iteration counter <span class="math notranslate nohighlight">\(n = 0\)</span></p></li>
+</ul>
+</li>
+<li><p><strong>Main Loop:</strong></p>
+<ul class="simple">
+<li><p>Set state index <span class="math notranslate nohighlight">\(j = 1\)</span></p></li>
+</ul>
+<p>a) <strong>State Update:</strong> Compute <span class="math notranslate nohighlight">\(v^{n+1}(s_j)\)</span> as:</p>
+<div class="math notranslate nohighlight">
+\[
+      v^{n+1}(s_j) = \max_{a \in A_j} \left\{r(s_j, a) + \gamma \left[\sum_{i&lt;j} p(s_i|s_j,a)v^{n+1}(s_i) + \sum_{i \geq j} p(s_i|s_j,a)v^n(s_i)\right]\right\}
+      \]</div>
+<p>b) If <span class="math notranslate nohighlight">\(j = |S|\)</span>, proceed to step 3
+Otherwise, increment <span class="math notranslate nohighlight">\(j\)</span> and return to step 2(a)</p>
+</li>
+<li><p><strong>Convergence Check:</strong></p>
+<ul class="simple">
+<li><p>If <span class="math notranslate nohighlight">\(\|v^{n+1} - v^n\| &lt; \varepsilon(1-\gamma)/(2\gamma)\)</span>, proceed to step 4</p></li>
+<li><p>Otherwise, increment <span class="math notranslate nohighlight">\(n\)</span> and return to step 2</p></li>
+</ul>
+</li>
+<li><p><strong>Policy Extraction:</strong>
+For each <span class="math notranslate nohighlight">\(s \in S\)</span>, compute optimal policy:</p>
+<div class="math notranslate nohighlight">
+\[
+   d(s) \in \operatorname{argmax}_{a \in A_s} \left\{r(s,a) + \gamma\sum_{j \in S} p(j|s,a)v^{n+1}(j)\right\}
+   \]</div>
+</li>
+</ol>
+<p><strong>Note:</strong> The algorithm differs from standard value iteration in that it immediately uses updated values within each iteration. This is reflected in the first sum of step 2(a), where <span class="math notranslate nohighlight">\(v^{n+1}\)</span> is used for already-updated states.</p>
+</section>
+</div><p>The Gauss-Seidel value iteration approach offers several advantages over standard value iteration: it can be more memory-efficient and often leads to faster convergence. This idea generalizes further (see for example <span id="id9"></span>) to accommodate fully asynchronous updates in any order. However, these methods, while more flexible in their update patterns, still fundamentally rely on a tabular representation—that is, they require storing and eventually updating a separate value for each state in memory. Even if we update states one at a time or in blocks, we must maintain this complete table of values, and our convergence guarantee assumes that every entry in this table will eventually be revised.</p>
+<p>But what if maintaining such a table is impossible? This challenge arises naturally when dealing with continuous state spaces, where we cannot feasibly store values for every possible state, let alone update them. This is where function approximation comes into play.</p>
+</section>
+<section id="fitting-the-updates-parametric-value-iteration">
+<h2><span class="section-number">15.2. </span>Fitting the Updates: Parametric Value Iteration<a class="headerlink" href="#fitting-the-updates-parametric-value-iteration" title="Link to this heading">#</a></h2>
+<p>In the parametric approach to dynamic programming, instead of maintaining an explicit table of values, we represent the value function using a parametric function approximator <span class="math notranslate nohighlight">\(v(s; \boldsymbol{\theta})\)</span>, where <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> are parameters that get adjusted across iterations rather than the entries of a tabular representation. This idea traces back to the inception of dynamic programming and was described as early as 1963 by Bellman himself, who considered polynomial approximations.</p>
+<p>For a value function <span class="math notranslate nohighlight">\(v(s)\)</span>, we can write its polynomial approximation as:</p>
+<div class="math notranslate nohighlight">
+\[
+v(s) \approx \sum_{i=0}^{n} \theta_i \phi_i(s)
+\]</div>
+<p>where:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\{\phi_i(s)\}\)</span> is the set of basis functions</p></li>
+<li><p><span class="math notranslate nohighlight">\(\theta_i\)</span> are the coefficients (our parameters)</p></li>
+<li><p><span class="math notranslate nohighlight">\(n\)</span> is the degree of approximation</p></li>
+</ul>
+<p>Common choices for basis functions include:</p>
+<ol class="arabic simple">
+<li><p>Monomial basis: <span class="math notranslate nohighlight">\(\phi_i(s) = s^i\)</span></p></li>
+</ol>
+<div class="math notranslate nohighlight">
+\[
+v(s) \approx \sum_{i=0}^{n} \theta_i s^i
+\]</div>
+<ol class="arabic simple" start="2">
+<li><p>Legendre polynomials <span class="math notranslate nohighlight">\(P_i(s)\)</span>:</p></li>
+</ol>
+<div class="math notranslate nohighlight">
+\[
+v(s) \approx \sum_{i=0}^{n} \theta_i P_i(s)
+\]</div>
+<ol class="arabic simple" start="3">
+<li><p>Chebyshev polynomials <span class="math notranslate nohighlight">\(T_i(s)\)</span>:</p></li>
+</ol>
+<div class="math notranslate nohighlight">
+\[
+v(s) \approx \sum_{i=0}^{n} \theta_i T_i(s)
+\]</div>
+<p>While polynomials offer attractive mathematical properties, they become challenging to work with in higher dimensions due to the curse of dimensionality. Modern approaches often prefer neural network parameterizations, which tend to scale better with dimensionality.</p>
+<p>Here’s how we can adapt the classical value iteration algorithm to the parametric setting:</p>
+<div class="proof algorithm admonition" id="parametric-value-iteration">
+<p class="admonition-title"><span class="caption-number">Algorithm 15.2 </span> (Parametric Value Iteration)</p>
+<section class="algorithm-content" id="proof-content">
+<p><strong>Input</strong> Given an MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, base points <span class="math notranslate nohighlight">\(B \subset S\)</span>, function approximator class <span class="math notranslate nohighlight">\(v(s; \boldsymbol{\theta})\)</span>, maximum iterations <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span></p>
+<p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for value function approximation and policy <span class="math notranslate nohighlight">\(\pi\)</span></p>
+<ol class="arabic simple">
+<li><p>Initialize <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_0\)</span> (e.g., for zero initialization)</p></li>
+<li><p><span class="math notranslate nohighlight">\(n \leftarrow 0\)</span></p></li>
+<li><p><strong>repeat</strong></p>
+<ol class="arabic simple">
+<li><p><span class="math notranslate nohighlight">\(D \leftarrow \emptyset\)</span> // Initialize dataset for fitting</p></li>
+<li><p>For each <span class="math notranslate nohighlight">\(s \in B\)</span>:  // Only update at base points</p>
+<ol class="arabic simple">
+<li><p><span class="math notranslate nohighlight">\(y_s \leftarrow \max_{a \in A} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v(j; \boldsymbol{\theta}_n)\right\}\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(D \leftarrow D \cup \{(s, y_s)\}\)</span></p></li>
+</ol>
+</li>
+<li><p><span class="math notranslate nohighlight">\(\boldsymbol{\theta}_{n+1} \leftarrow \texttt{fit}(D)\)</span> // Fit new parameters to updates</p></li>
+<li><p><span class="math notranslate nohighlight">\(\delta \leftarrow \frac{1}{|B|}\sum_{s \in B} (v(s; \boldsymbol{\theta}_{n+1}) - v(s; \boldsymbol{\theta}_n))^2\)</span> // Mean squared error at base points</p></li>
+<li><p><span class="math notranslate nohighlight">\(n \leftarrow n + 1\)</span></p></li>
+</ol>
+</li>
+<li><p><strong>until</strong> (<span class="math notranslate nohighlight">\(\delta &lt; \varepsilon\)</span> or <span class="math notranslate nohighlight">\(n \geq N\)</span>) // Stop when converged or max iterations reached</p></li>
+<li><p>For each <span class="math notranslate nohighlight">\(s \in S\)</span>:</p>
+<ol class="arabic simple">
+<li><p><span class="math notranslate nohighlight">\(\pi(s) \leftarrow \arg\max_{a \in A} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v(j; \boldsymbol{\theta}_n)\right\}\)</span></p></li>
+</ol>
+</li>
+<li><p><strong>return</strong> <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_n, \pi\)</span></p></li>
+</ol>
+</section>
+</div><p>Key differences from standard value iteration include:</p>
+<ol class="arabic simple">
+<li><p>Updates occur only at selected base points <span class="math notranslate nohighlight">\(B\)</span> rather than the entire state space</p></li>
+<li><p>Values are stored implicitly through the parameter vector <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span></p></li>
+<li><p>A fitting step converts pointwise updates into parameter updates</p></li>
+<li><p>The convergence check uses the maximum difference at base points</p></li>
+</ol>
+<p>The <span class="math notranslate nohighlight">\(\texttt{fit}\)</span> function represents a regression step that can be implemented using standard machine learning libraries. In practice, you can think of it as any regressor that follows the familiar scikit-learn interface. For example:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">LinearRegression</span></code> for polynomial basis functions (after feature transformation)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MLPRegressor</span></code> for neural network approximation</p></li>
+<li><p>Any other scikit-learn regressor that implements the <code class="docutils literal notranslate"><span class="pre">.fit()</span></code> interface</p></li>
+</ul>
 </section>
 </section>
 
@@ -740,7 +891,7 @@ v^*_\Omega(s) &amp;= \Omega^*(q^*_\Omega(s, \cdot))\end{align*} \end{split}\]</d
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title"><span class="section-number">15. </span>Bibliography</p>
+        <p class="prev-next-title"><span class="section-number">16. </span>Bibliography</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -776,6 +927,11 @@ v^*_\Omega(s) &amp;= \Omega^*(q^*_\Omega(s, \cdot))\end{align*} \end{split}\]</d
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#recovering-the-smooth-bellman-equations">14.4.1. Recovering the Smooth Bellman Equations</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#parametric-dynamic-programming">15. Parametric Dynamic Programming</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#carrying-out-partial-updates">15.1. Carrying out Partial Updates</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fitting-the-updates-parametric-value-iteration">15.2. Fitting the Updates: Parametric Value Iteration</a></li>
 </ul>
 </li>
 </ul>

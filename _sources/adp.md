@@ -305,7 +305,7 @@ Under this framework, we can recover the smooth Bellman equations by choosing $\
 
    $$ \Omega(d(\cdot|s)) = \sum_{a \in \mathcal{A}_s} d(a|s) \ln d(a|s) $$
 
-2. The convex conjugate (as shown earlier):
+2. The convex conjugate:
 
    $$ \Omega^*(q(s, \cdot)) = \ln \sum_{a \in \mathcal{A}_s} \exp q(s,a) $$
 
@@ -324,4 +324,144 @@ Furthermore, the optimal policy is given by the gradient of $\Omega^*$:
 $$ d^*(a|s) = \nabla \Omega^*(q^*_\Omega(s, \cdot)) = \frac{\exp(q^*_\Omega(s,a))}{\sum_{a' \in \mathcal{A}_s} \exp(q^*_\Omega(s,a'))} $$
 
 This is the familiar softmax policy we encountered in the smooth MDP setting.
+# Parametric Dynamic Programming 
 
+We have so far considered a specific kind of approximation: that of the Bellman operator itself. We explored a modified version of the operator with the desirable property of smoothness, which we deemed beneficial for optimization purposes and due to its rich multifaceted interpretations. We now turn our attention to another form of approximation, complementary to the previous kind, which seeks to address the challenge of applying the operator across the entire state space.
+
+To be precise, suppose we can compute the Bellman operator $Lv$ at some state $s$, producing a new function $U$ whose value at state $s$ is $u(s) = (Lv)(s)$. Then, putting aside the problem of pointwise evaluation, we want to carry out this update across the entire domain of $v$. When working with small state spaces, this is not an issue, and we can afford to carry out the update across the entirety of the state space. However, for larger or infinite state spaces, this becomes a major challenge.
+
+So what can we do? Our approach will be to compute the operator at chosen "grid points," then "fill in the blanks" for the states where we haven't carried out the update by "fitting" the resulting output function on a dataset of input-output pairs. The intuition is that for sufficiently well-behaved functions and sufficiently expressive function approximators, we hope to generalize well enough. Our community calls this "learning," while others would call it "function approximation" — a field of its own in mathematics. To truly have a "learning algorithm," we'll need to add one more piece of machinery: the use of samples — of simulation — to pick the grid points and perform numerical integration. But this is for the next section...
+
+## Carrying out Partial Updates
+
+The ideas presented in this section apply more broadly to the successive approximation method applied to a fixed-point problem. Consider again the problem of finding the optimal value function $v_\gamma^\star$ as the solution to the Bellman optimality operator $L$: 
+
+$$
+\mathrm{L} \mathbf{v} \equiv \max_{d \in D^{MD}} \left\{\mathbf{r}_d + \gamma \mathbf{P}_d \mathbf{v}\right\}
+$$
+
+Value iteration — the name for the method of successive approximation applied to $L$ — computes a sequence of iterates $v_{n+1} = \mathrm{L}v_n$ from some arbitrary $v_0$. Let's pause to consider what the equality sign in this expression means: it represents an assignment (perhaps better denoted as $:=$) across the entire domain. This becomes clearer when writing the update in component form:
+
+$$
+v_{n+1}(s) := (\mathrm{L} \mathbf{v})(s) \equiv \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v_n(j)\right\}, \, \forall s \in \mathcal{S}
+$$
+
+Pay particular attention to the $\forall s \in \mathcal{S}$ notation: what happens when we can't afford to update all components in each step of value iteration? A potential solution is to use Gauss-Seidel Value Iteration, which updates states sequentially, immediately using fresh values for subsequent updates. 
+
+````{prf:algorithm} Gauss-Seidel Value Iteration
+:label: alg-gsvi
+
+**Input:** MDP $(S, A, P, R, \gamma)$, convergence threshold $\varepsilon > 0$  
+**Output:** Value function $v$ and policy $d$
+
+1. **Initialization:**
+   - Initialize $v^0(s)$ for all $s \in S$
+   - Set iteration counter $n = 0$
+
+2. **Main Loop:**
+   - Set state index $j = 1$
+   
+   a) **State Update:** Compute $v^{n+1}(s_j)$ as:
+
+      $$
+      v^{n+1}(s_j) = \max_{a \in A_j} \left\{r(s_j, a) + \gamma \left[\sum_{i<j} p(s_i|s_j,a)v^{n+1}(s_i) + \sum_{i \geq j} p(s_i|s_j,a)v^n(s_i)\right]\right\}
+      $$
+   
+   b) If $j = |S|$, proceed to step 3
+      Otherwise, increment $j$ and return to step 2(a)
+
+3. **Convergence Check:**
+   - If $\|v^{n+1} - v^n\| < \varepsilon(1-\gamma)/(2\gamma)$, proceed to step 4
+   - Otherwise, increment $n$ and return to step 2
+
+4. **Policy Extraction:**
+   For each $s \in S$, compute optimal policy:
+
+   $$
+   d(s) \in \operatorname{argmax}_{a \in A_s} \left\{r(s,a) + \gamma\sum_{j \in S} p(j|s,a)v^{n+1}(j)\right\}
+   $$
+
+**Note:** The algorithm differs from standard value iteration in that it immediately uses updated values within each iteration. This is reflected in the first sum of step 2(a), where $v^{n+1}$ is used for already-updated states.
+````
+
+The Gauss-Seidel value iteration approach offers several advantages over standard value iteration: it can be more memory-efficient and often leads to faster convergence. This idea generalizes further (see for example {cite:t}`Bertsekas1983`) to accommodate fully asynchronous updates in any order. However, these methods, while more flexible in their update patterns, still fundamentally rely on a tabular representation—that is, they require storing and eventually updating a separate value for each state in memory. Even if we update states one at a time or in blocks, we must maintain this complete table of values, and our convergence guarantee assumes that every entry in this table will eventually be revised.
+
+But what if maintaining such a table is impossible? This challenge arises naturally when dealing with continuous state spaces, where we cannot feasibly store values for every possible state, let alone update them. This is where function approximation comes into play. 
+
+## Fitting the Updates: Parametric Value Iteration
+
+In the parametric approach to dynamic programming, instead of maintaining an explicit table of values, we represent the value function using a parametric function approximator $v(s; \boldsymbol{\theta})$, where $\boldsymbol{\theta}$ are parameters that get adjusted across iterations rather than the entries of a tabular representation. This idea traces back to the inception of dynamic programming and was described as early as 1963 by Bellman himself, who considered polynomial approximations.
+
+For a value function $v(s)$, we can write its polynomial approximation as:
+
+$$
+v(s) \approx \sum_{i=0}^{n} \theta_i \phi_i(s)
+$$
+
+where:
+- $\{\phi_i(s)\}$ is the set of basis functions
+- $\theta_i$ are the coefficients (our parameters)
+- $n$ is the degree of approximation
+
+Common choices for basis functions include:
+
+1) Monomial basis: $\phi_i(s) = s^i$
+
+$$
+v(s) \approx \sum_{i=0}^{n} \theta_i s^i
+$$
+
+2) Legendre polynomials $P_i(s)$:
+
+$$
+v(s) \approx \sum_{i=0}^{n} \theta_i P_i(s)
+$$
+
+3) Chebyshev polynomials $T_i(s)$:
+
+$$
+v(s) \approx \sum_{i=0}^{n} \theta_i T_i(s)
+$$
+
+While polynomials offer attractive mathematical properties, they become challenging to work with in higher dimensions due to the curse of dimensionality. Modern approaches often prefer neural network parameterizations, which tend to scale better with dimensionality.
+
+Here's how we can adapt the classical value iteration algorithm to the parametric setting:
+
+````{prf:algorithm} Parametric Value Iteration
+:label: parametric-value-iteration
+
+**Input** Given an MDP $(S, A, P, R, \gamma)$, base points $B \subset S$, function approximator class $v(s; \boldsymbol{\theta})$, maximum iterations $N$, tolerance $\varepsilon > 0$
+
+**Output** Parameters $\boldsymbol{\theta}$ for value function approximation and policy $\pi$
+
+1. Initialize $\boldsymbol{\theta}_0$ (e.g., for zero initialization)
+2. $n \leftarrow 0$
+3. **repeat**
+
+    1. $D \leftarrow \emptyset$ // Initialize dataset for fitting
+    2. For each $s \in B$:  // Only update at base points
+        1. $y_s \leftarrow \max_{a \in A} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v(j; \boldsymbol{\theta}_n)\right\}$
+        2. $D \leftarrow D \cup \{(s, y_s)\}$
+
+    3. $\boldsymbol{\theta}_{n+1} \leftarrow \texttt{fit}(D)$ // Fit new parameters to updates
+    4. $\delta \leftarrow \frac{1}{|B|}\sum_{s \in B} (v(s; \boldsymbol{\theta}_{n+1}) - v(s; \boldsymbol{\theta}_n))^2$ // Mean squared error at base points
+    5. $n \leftarrow n + 1$
+
+4. **until** ($\delta < \varepsilon$ or $n \geq N$) // Stop when converged or max iterations reached
+5. For each $s \in S$:
+    1. $\pi(s) \leftarrow \arg\max_{a \in A} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v(j; \boldsymbol{\theta}_n)\right\}$
+
+6. **return** $\boldsymbol{\theta}_n, \pi$
+````
+
+Key differences from standard value iteration include:
+1. Updates occur only at selected base points $B$ rather than the entire state space
+2. Values are stored implicitly through the parameter vector $\boldsymbol{\theta}$
+3. A fitting step converts pointwise updates into parameter updates
+4. The convergence check uses the maximum difference at base points
+
+The $\texttt{fit}$ function represents a regression step that can be implemented using standard machine learning libraries. In practice, you can think of it as any regressor that follows the familiar scikit-learn interface. For example: 
+
+- `LinearRegression` for polynomial basis functions (after feature transformation)
+- `MLPRegressor` for neural network approximation
+- Any other scikit-learn regressor that implements the `.fit()` interface
