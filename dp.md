@@ -652,7 +652,7 @@ which are called the optimality equations or Bellman equations for infinite-hori
 We can adopt an operator-theoretic perspective by defining a nonlinear operator $\mathrm{L}$ on the space $V$ of bounded real-valued functions on the state space $S$. We can then show that the value of an MDP is the solution to the following fixed-point equation:
 
 $$
-\mathrm{L} \mathbf{v} = \max_{d \in D^{MD}} \left\{\mathbf{r}_d + \gamma \mathbf{P}_d \mathbf{v}\right\}
+\mathrm{L} \mathbf{v} \equiv \max_{d \in D^{MD}} \left\{\mathbf{r}_d + \gamma \mathbf{P}_d \mathbf{v}\right\}
 $$
 
 where $D^{MD}$ is the set of Markov deterministic decision rules, $\mathbf{r}_d$ is the reward vector under decision rule $d$, and $\mathbf{P}_d$ is the transition probability matrix under decision rule $d$.
