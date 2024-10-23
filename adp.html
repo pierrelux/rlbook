@@ -427,6 +427,10 @@ document.write(`
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#parametric-dynamic-programming">15. Parametric Dynamic Programming</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#carrying-out-partial-updates">15.1. Carrying out Partial Updates</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fitting-the-updates-parametric-value-iteration">15.2. Fitting the Updates: Parametric Value Iteration</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#computational-aspects-of-component-wise-bellman-operator-evaluation">15.3. Computational Aspects of Component-wise Bellman Operator Evaluation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#numerical-quadrature-methods-for-approximating-the-bellman-operator">15.3.1. Numerical Quadrature Methods for Approximating the Bellman Operator</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -448,7 +452,7 @@ Approximation theory is at the heart of learning methods, and fundamentally, thi
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="smooth-optimality-equations-for-infinite-horizon-mdps">
 <h1><span class="section-number">14. </span>Smooth Optimality Equations for Infinite-Horizon MDPs<a class="headerlink" href="#smooth-optimality-equations-for-infinite-horizon-mdps" title="Link to this heading">#</a></h1>
-<p>While the standard Bellman optimality equations use the max operator to determine the best action, an alternative formulation known as the smooth or soft Bellman optimality equations replaces this with a softmax operator. This approach, originating from <span id="id1">[<a class="reference internal" href="bibliography.html#id24" title="John Rust. Optimal replacement of gmc bus engines: an empirical model of harold zurcher. Econometrica, 55(5):999-1033, 1987.">23</a>]</span> and later rediscovered in the context of maximum entropy inverse reinforcement learning <span id="id2">[<a class="reference internal" href="bibliography.html#id25" title="Brian D. Ziebart, Andrew L. Maas, J. Andrew Bagnell, and Anind K. Dey. Maximum entropy inverse reinforcement learning. In Proceedings of the 23rd AAAI Conference on Artificial Intelligence, 1433-1438. 2008.">25</a>]</span> and soft Q-learning <span id="id3">[<a class="reference internal" href="bibliography.html#id26" title="Tuomas Haarnoja, Haoran Tang, Pieter Abbeel, and Sergey Levine. Reinforcement learning with deep energy-based policies. Proceedings of the 34th International Conference on Machine Learning, 70:1352-1361, 2017.">11</a>]</span>, introduces a degree of stochasticity into the decision-making process.</p>
+<p>While the standard Bellman optimality equations use the max operator to determine the best action, an alternative formulation known as the smooth or soft Bellman optimality equations replaces this with a softmax operator. This approach, originating from <span id="id1">[<a class="reference internal" href="bibliography.html#id24" title="John Rust. Optimal replacement of gmc bus engines: an empirical model of harold zurcher. Econometrica, 55(5):999-1033, 1987.">24</a>]</span> and later rediscovered in the context of maximum entropy inverse reinforcement learning <span id="id2">[<a class="reference internal" href="bibliography.html#id25" title="Brian D. Ziebart, Andrew L. Maas, J. Andrew Bagnell, and Anind K. Dey. Maximum entropy inverse reinforcement learning. In Proceedings of the 23rd AAAI Conference on Artificial Intelligence, 1433-1438. 2008.">26</a>]</span> and soft Q-learning <span id="id3">[<a class="reference internal" href="bibliography.html#id26" title="Tuomas Haarnoja, Haoran Tang, Pieter Abbeel, and Sergey Levine. Reinforcement learning with deep energy-based policies. Proceedings of the 34th International Conference on Machine Learning, 70:1352-1361, 2017.">12</a>]</span>, introduces a degree of stochasticity into the decision-making process.</p>
 <p>In the infinite-horizon setting, the smooth Bellman optimality equations take the form:</p>
 <div class="math notranslate nohighlight">
 \[ v_\gamma^\star(s) = \frac{1}{\beta} \log \sum_{a \in A_s} \exp\left(\beta\left(r(s, a) + \gamma \sum_{j \in S} p(j | s, a) v_\gamma^\star(j)\right)\right) \]</div>
@@ -466,9 +470,9 @@ Approximation theory is at the heart of learning methods, and fundamentally, thi
 </ol>
 <p>This is simply the generalization of what would otherwise be the argmax operator in the original optimality equation.</p>
 <p>This formulation is interesting for several reasons. First, smoothness is a desirable property from an optimization standpoint. Unlike <span class="math notranslate nohighlight">\(\gamma\)</span>, we view <span class="math notranslate nohighlight">\(\beta\)</span> as a hyperparameter of our algorithm, which we can control to achieve the desired level of accuracy.</p>
-<p>Second, while presented from an intuitive standpoint where we replace the max by the log-sum-exp (a smooth maximum) and the argmax by the softmax (a smooth argmax), this formulation can also be obtained from various other perspectives, offering theoretical tools and solution methods. For example, <span id="id4">Rust [<a class="reference internal" href="bibliography.html#id24" title="John Rust. Optimal replacement of gmc bus engines: an empirical model of harold zurcher. Econometrica, 55(5):999-1033, 1987.">23</a>]</span> derived this algorithm by considering a setting in which the rewards are stochastic and perturbed by a Gumbel noise variable. When considering the corresponding augmented state space and integrating the noise, we obtain smooth equations. This interpretation is leveraged by Rust for modeling purposes.</p>
-<p>There is also a way to obtain this equation by starting from the energy-based formulation often used in supervised learning, in which we convert an unnormalized probability distribution into a distribution using the softmax transformation. This is essentially what <span id="id5">Ziebart <em>et al.</em> [<a class="reference internal" href="bibliography.html#id25" title="Brian D. Ziebart, Andrew L. Maas, J. Andrew Bagnell, and Anind K. Dey. Maximum entropy inverse reinforcement learning. In Proceedings of the 23rd AAAI Conference on Artificial Intelligence, 1433-1438. 2008.">25</a>]</span> did in their paper. Furthermore, this perspective bridges with the literature on probabilistic graphical models, in which we can now cast the problem of finding an optimal smooth policy into one of maximum likelihood estimation (an inference problem). This is the idea of control as inference, which also admits the converse - that of inference as control - used nowadays for deriving fast samples and amortized inference techniques using reinforcement learning <span id="id6">[<a class="reference internal" href="bibliography.html#id27" title="Sergey Levine, Aviral Kumar, George Tucker, and Justin Fu. Reinforcement learning as a framework for control: a survey. arXiv preprint arXiv:1806.04222, 2018.">18</a>]</span>.</p>
-<p>Finally, it’s worth noting that we can also derive this form by considering an entropy-regularized formulation in which we penalize for the entropy of our policy in the reward function term. This formulation admits a solution that coincides with the smooth Bellman equations <span id="id7">[<a class="reference internal" href="bibliography.html#id26" title="Tuomas Haarnoja, Haoran Tang, Pieter Abbeel, and Sergey Levine. Reinforcement learning with deep energy-based policies. Proceedings of the 34th International Conference on Machine Learning, 70:1352-1361, 2017.">11</a>]</span>.</p>
+<p>Second, while presented from an intuitive standpoint where we replace the max by the log-sum-exp (a smooth maximum) and the argmax by the softmax (a smooth argmax), this formulation can also be obtained from various other perspectives, offering theoretical tools and solution methods. For example, <span id="id4">Rust [<a class="reference internal" href="bibliography.html#id24" title="John Rust. Optimal replacement of gmc bus engines: an empirical model of harold zurcher. Econometrica, 55(5):999-1033, 1987.">24</a>]</span> derived this algorithm by considering a setting in which the rewards are stochastic and perturbed by a Gumbel noise variable. When considering the corresponding augmented state space and integrating the noise, we obtain smooth equations. This interpretation is leveraged by Rust for modeling purposes.</p>
+<p>There is also a way to obtain this equation by starting from the energy-based formulation often used in supervised learning, in which we convert an unnormalized probability distribution into a distribution using the softmax transformation. This is essentially what <span id="id5">Ziebart <em>et al.</em> [<a class="reference internal" href="bibliography.html#id25" title="Brian D. Ziebart, Andrew L. Maas, J. Andrew Bagnell, and Anind K. Dey. Maximum entropy inverse reinforcement learning. In Proceedings of the 23rd AAAI Conference on Artificial Intelligence, 1433-1438. 2008.">26</a>]</span> did in their paper. Furthermore, this perspective bridges with the literature on probabilistic graphical models, in which we can now cast the problem of finding an optimal smooth policy into one of maximum likelihood estimation (an inference problem). This is the idea of control as inference, which also admits the converse - that of inference as control - used nowadays for deriving fast samples and amortized inference techniques using reinforcement learning <span id="id6">[<a class="reference internal" href="bibliography.html#id27" title="Sergey Levine, Aviral Kumar, George Tucker, and Justin Fu. Reinforcement learning as a framework for control: a survey. arXiv preprint arXiv:1806.04222, 2018.">19</a>]</span>.</p>
+<p>Finally, it’s worth noting that we can also derive this form by considering an entropy-regularized formulation in which we penalize for the entropy of our policy in the reward function term. This formulation admits a solution that coincides with the smooth Bellman equations <span id="id7">[<a class="reference internal" href="bibliography.html#id26" title="Tuomas Haarnoja, Haoran Tang, Pieter Abbeel, and Sergey Levine. Reinforcement learning with deep energy-based policies. Proceedings of the 34th International Conference on Machine Learning, 70:1352-1361, 2017.">12</a>]</span>.</p>
 <section id="gumbel-noise-on-the-rewards">
 <h2><span class="section-number">14.1. </span>Gumbel Noise on the Rewards<a class="headerlink" href="#gumbel-noise-on-the-rewards" title="Link to this heading">#</a></h2>
 <p>We can obtain the smooth Bellman equation by considering a setting in which we have Gumbel noise added to the reward function. More precisely, we define an MDP whose state space is now that of <span class="math notranslate nohighlight">\(\tilde{s} = (s, \epsilon)\)</span>, where the reward function is given by</p>
@@ -610,7 +614,7 @@ p(a_t | s_t, O_{1:T} = 1) &amp;\propto p(a_t | s_t) \exp(\beta r(s_t, a_t)) \sum
 </section>
 <section id="regularized-markov-decision-processes">
 <h2><span class="section-number">14.3. </span>Regularized Markov Decision Processes<a class="headerlink" href="#regularized-markov-decision-processes" title="Link to this heading">#</a></h2>
-<p>Regularized MDPs <span id="id8">[<a class="reference internal" href="bibliography.html#id28" title="Matthieu Geist, Bruno Scherrer, and Olivier Pietquin. A theory of regularized Markov decision processes. In Kamalika Chaudhuri and Ruslan Salakhutdinov, editors, Proceedings of the 36th International Conference on Machine Learning, volume 97 of Proceedings of Machine Learning Research, 2160–2169. PMLR, 09–15 Jun 2019. URL: https://proceedings.mlr.press/v97/geist19a.html.">6</a>]</span> provide another perspective on how the smooth Bellman equations come to be. This framework offers a more general approach in which we seek to find optimal policies under the infinite horizon criterion while also accounting for a regularizer that influences the kind of policies we try to obtain.</p>
+<p>Regularized MDPs <span id="id8">[<a class="reference internal" href="bibliography.html#id28" title="Matthieu Geist, Bruno Scherrer, and Olivier Pietquin. A theory of regularized Markov decision processes. In Kamalika Chaudhuri and Ruslan Salakhutdinov, editors, Proceedings of the 36th International Conference on Machine Learning, volume 97 of Proceedings of Machine Learning Research, 2160–2169. PMLR, 09–15 Jun 2019. URL: https://proceedings.mlr.press/v97/geist19a.html.">7</a>]</span> provide another perspective on how the smooth Bellman equations come to be. This framework offers a more general approach in which we seek to find optimal policies under the infinite horizon criterion while also accounting for a regularizer that influences the kind of policies we try to obtain.</p>
 <p>Let’s set up some necessary notation. First, recall that the policy evaluation operator for a stationary policy with decision rule <span class="math notranslate nohighlight">\(d\)</span> is defined as:</p>
 <div class="math notranslate nohighlight">
 \[ L_d v = r_d + \gamma P_d v \]</div>
@@ -704,7 +708,7 @@ v^*_\Omega(s) &amp;= \Omega^*(q^*_\Omega(s, \cdot))\end{align*} \end{split}\]</d
 <section class="tex2jax_ignore mathjax_ignore" id="parametric-dynamic-programming">
 <h1><span class="section-number">15. </span>Parametric Dynamic Programming<a class="headerlink" href="#parametric-dynamic-programming" title="Link to this heading">#</a></h1>
 <p>We have so far considered a specific kind of approximation: that of the Bellman operator itself. We explored a modified version of the operator with the desirable property of smoothness, which we deemed beneficial for optimization purposes and due to its rich multifaceted interpretations. We now turn our attention to another form of approximation, complementary to the previous kind, which seeks to address the challenge of applying the operator across the entire state space.</p>
-<p>To be precise, suppose we can compute the Bellman operator <span class="math notranslate nohighlight">\(Lv\)</span> at some state <span class="math notranslate nohighlight">\(s\)</span>, producing a new function <span class="math notranslate nohighlight">\(U\)</span> whose value at state <span class="math notranslate nohighlight">\(s\)</span> is <span class="math notranslate nohighlight">\(u(s) = (Lv)(s)\)</span>. Then, putting aside the problem of pointwise evaluation, we want to carry out this update across the entire domain of <span class="math notranslate nohighlight">\(v\)</span>. When working with small state spaces, this is not an issue, and we can afford to carry out the update across the entirety of the state space. However, for larger or infinite state spaces, this becomes a major challenge.</p>
+<p>To be precise, suppose we can compute the Bellman operator <span class="math notranslate nohighlight">\(\mathrm{L}v\)</span> at some state <span class="math notranslate nohighlight">\(s\)</span>, producing a new function <span class="math notranslate nohighlight">\(U\)</span> whose value at state <span class="math notranslate nohighlight">\(s\)</span> is <span class="math notranslate nohighlight">\(u(s) = (\mathrm{L}v)(s)\)</span>. Then, putting aside the problem of pointwise evaluation, we want to carry out this update across the entire domain of <span class="math notranslate nohighlight">\(v\)</span>. When working with small state spaces, this is not an issue, and we can afford to carry out the update across the entirety of the state space. However, for larger or infinite state spaces, this becomes a major challenge.</p>
 <p>So what can we do? Our approach will be to compute the operator at chosen “grid points,” then “fill in the blanks” for the states where we haven’t carried out the update by “fitting” the resulting output function on a dataset of input-output pairs. The intuition is that for sufficiently well-behaved functions and sufficiently expressive function approximators, we hope to generalize well enough. Our community calls this “learning,” while others would call it “function approximation” — a field of its own in mathematics. To truly have a “learning algorithm,” we’ll need to add one more piece of machinery: the use of samples — of simulation — to pick the grid points and perform numerical integration. But this is for the next section…</p>
 <section id="carrying-out-partial-updates">
 <h2><span class="section-number">15.1. </span>Carrying out Partial Updates<a class="headerlink" href="#carrying-out-partial-updates" title="Link to this heading">#</a></h2>
@@ -716,7 +720,7 @@ v^*_\Omega(s) &amp;= \Omega^*(q^*_\Omega(s, \cdot))\end{align*} \end{split}\]</d
 <p>Value iteration — the name for the method of successive approximation applied to <span class="math notranslate nohighlight">\(L\)</span> — computes a sequence of iterates <span class="math notranslate nohighlight">\(v_{n+1} = \mathrm{L}v_n\)</span> from some arbitrary <span class="math notranslate nohighlight">\(v_0\)</span>. Let’s pause to consider what the equality sign in this expression means: it represents an assignment (perhaps better denoted as <span class="math notranslate nohighlight">\(:=\)</span>) across the entire domain. This becomes clearer when writing the update in component form:</p>
 <div class="math notranslate nohighlight">
 \[
-v_{n+1}(s) := (\mathrm{L} \mathbf{v})(s) \equiv \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v_n(j)\right\}, \, \forall s \in \mathcal{S}
+v_{n+1}(s) := (\mathrm{L} v_n)(s) \equiv \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v_n(j)\right\}, \, \forall s \in \mathcal{S}
 \]</div>
 <p>Pay particular attention to the <span class="math notranslate nohighlight">\(\forall s \in \mathcal{S}\)</span> notation: what happens when we can’t afford to update all components in each step of value iteration? A potential solution is to use Gauss-Seidel Value Iteration, which updates states sequentially, immediately using fresh values for subsequent updates.</p>
 <div class="proof algorithm admonition" id="alg-gsvi">
@@ -759,13 +763,12 @@ For each <span class="math notranslate nohighlight">\(s \in S\)</span>, compute 
 </ol>
 <p><strong>Note:</strong> The algorithm differs from standard value iteration in that it immediately uses updated values within each iteration. This is reflected in the first sum of step 2(a), where <span class="math notranslate nohighlight">\(v^{n+1}\)</span> is used for already-updated states.</p>
 </section>
-</div><p>The Gauss-Seidel value iteration approach offers several advantages over standard value iteration: it can be more memory-efficient and often leads to faster convergence. This idea generalizes further (see for example <span id="id9"></span>) to accommodate fully asynchronous updates in any order. However, these methods, while more flexible in their update patterns, still fundamentally rely on a tabular representation—that is, they require storing and eventually updating a separate value for each state in memory. Even if we update states one at a time or in blocks, we must maintain this complete table of values, and our convergence guarantee assumes that every entry in this table will eventually be revised.</p>
+</div><p>The Gauss-Seidel value iteration approach offers several advantages over standard value iteration: it can be more memory-efficient and often leads to faster convergence. This idea generalizes further (see for example <span id="id9">Bertsekas [<a class="reference internal" href="bibliography.html#id29" title="Dimitri P. Bertsekas. Distributed asynchronous computation of fixed points. Mathematical Programming, 27(1):107–120, September 1983. URL: http://dx.doi.org/10.1007/BF02591967, doi:10.1007/bf02591967.">4</a>]</span>) to accommodate fully asynchronous updates in any order. However, these methods, while more flexible in their update patterns, still fundamentally rely on a tabular representation—that is, they require storing and eventually updating a separate value for each state in memory. Even if we update states one at a time or in blocks, we must maintain this complete table of values, and our convergence guarantee assumes that every entry in this table will eventually be revised.</p>
 <p>But what if maintaining such a table is impossible? This challenge arises naturally when dealing with continuous state spaces, where we cannot feasibly store values for every possible state, let alone update them. This is where function approximation comes into play.</p>
 </section>
 <section id="fitting-the-updates-parametric-value-iteration">
 <h2><span class="section-number">15.2. </span>Fitting the Updates: Parametric Value Iteration<a class="headerlink" href="#fitting-the-updates-parametric-value-iteration" title="Link to this heading">#</a></h2>
-<p>In the parametric approach to dynamic programming, instead of maintaining an explicit table of values, we represent the value function using a parametric function approximator <span class="math notranslate nohighlight">\(v(s; \boldsymbol{\theta})\)</span>, where <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> are parameters that get adjusted across iterations rather than the entries of a tabular representation. This idea traces back to the inception of dynamic programming and was described as early as 1963 by Bellman himself, who considered polynomial approximations.</p>
-<p>For a value function <span class="math notranslate nohighlight">\(v(s)\)</span>, we can write its polynomial approximation as:</p>
+<p>In the parametric approach to dynamic programming, instead of maintaining an explicit table of values, we represent the value function using a parametric function approximator <span class="math notranslate nohighlight">\(v(s; \boldsymbol{\theta})\)</span>, where <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> are parameters that get adjusted across iterations rather than the entries of a tabular representation. This idea traces back to the inception of dynamic programming and was described as early as 1963 by Bellman himself, who considered polynomial approximations. For a value function <span class="math notranslate nohighlight">\(v(s)\)</span>, we can write its polynomial approximation as:</p>
 <div class="math notranslate nohighlight">
 \[
 v(s) \approx \sum_{i=0}^{n} \theta_i \phi_i(s)
@@ -776,74 +779,143 @@ v(s) \approx \sum_{i=0}^{n} \theta_i \phi_i(s)
 <li><p><span class="math notranslate nohighlight">\(\theta_i\)</span> are the coefficients (our parameters)</p></li>
 <li><p><span class="math notranslate nohighlight">\(n\)</span> is the degree of approximation</p></li>
 </ul>
-<p>Common choices for basis functions include:</p>
-<ol class="arabic simple">
-<li><p>Monomial basis: <span class="math notranslate nohighlight">\(\phi_i(s) = s^i\)</span></p></li>
-</ol>
+<p>As we discussed earlier in the context of trajectory optimization, we can choose from different polynomial bases beyond the usual monomial basis <span class="math notranslate nohighlight">\(\phi_i(s) = s^i\)</span>, such as Legendre or Chebyshev polynomials. While polynomials offer attractive mathematical properties, they become challenging to work with in higher dimensions due to the curse of dimensionality. This limitation motivates our later turn to neural network parameterizations, which scale better with dimensionality.</p>
+<p>Given a parameterization, our value iteration procedure must now update the parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> rather than tabular values directly. At each iteration, we aim to find parameters that best approximate the Bellman operator’s output at chosen base points. More precisely, we collect a dataset:</p>
 <div class="math notranslate nohighlight">
 \[
-v(s) \approx \sum_{i=0}^{n} \theta_i s^i
+\mathcal{D}_n = \{(s_i, (\mathrm{L}v)(s_i; \boldsymbol{\theta}_n)) \mid s_i \in B\}
 \]</div>
-<ol class="arabic simple" start="2">
-<li><p>Legendre polynomials <span class="math notranslate nohighlight">\(P_i(s)\)</span>:</p></li>
-</ol>
-<div class="math notranslate nohighlight">
-\[
-v(s) \approx \sum_{i=0}^{n} \theta_i P_i(s)
-\]</div>
-<ol class="arabic simple" start="3">
-<li><p>Chebyshev polynomials <span class="math notranslate nohighlight">\(T_i(s)\)</span>:</p></li>
-</ol>
-<div class="math notranslate nohighlight">
-\[
-v(s) \approx \sum_{i=0}^{n} \theta_i T_i(s)
-\]</div>
-<p>While polynomials offer attractive mathematical properties, they become challenging to work with in higher dimensions due to the curse of dimensionality. Modern approaches often prefer neural network parameterizations, which tend to scale better with dimensionality.</p>
-<p>Here’s how we can adapt the classical value iteration algorithm to the parametric setting:</p>
+<p>and fit a regressor <span class="math notranslate nohighlight">\(v(\cdot; \boldsymbol{\theta}_{n+1})\)</span> to this data.</p>
+<p>This process differs from standard supervised learning in a specific way: rather than working with a fixed dataset, we iteratively generate our training targets using the previous value function approximation. During this process, the parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_n\)</span> remain “frozen”, entering only through dataset creation. This naturally leads to maintaining two sets of parameters:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\boldsymbol{\theta}_n\)</span>: parameters of the target model used for generating training targets</p></li>
+<li><p><span class="math notranslate nohighlight">\(\boldsymbol{\theta}_{n+1}\)</span>: parameters being optimized in the current iteration</p></li>
+</ul>
+<p>This target model framework emerges naturally from the structure of parametric value iteration — an insight that provides theoretical grounding for modern deep reinforcement learning algorithms where we commonly hear about the importance of the “target network trick” .</p>
+<p>Parametric value iteration, known in reinforcement learning literature as Fitted Value Iteration, offers a flexible template for deriving new algorithms by varying the choice of function approximator. This approach maintains the core dynamic programming principles while replacing tabular updates with supervised learning steps.</p>
+<p>The <span class="math notranslate nohighlight">\(\texttt{fit}\)</span> function in the algorithm below represents this supervised learning step. It can be implemented using any standard regression tool that follows the scikit-learn interface, such as:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">LinearRegression</span></code> for polynomial basis functions (after feature transformation)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MLPRegressor</span></code> for neural network approximation</p></li>
+<li><p>Any other scikit-learn compatible regressor</p></li>
+</ul>
 <div class="proof algorithm admonition" id="parametric-value-iteration">
 <p class="admonition-title"><span class="caption-number">Algorithm 15.2 </span> (Parametric Value Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given an MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, base points <span class="math notranslate nohighlight">\(B \subset S\)</span>, function approximator class <span class="math notranslate nohighlight">\(v(s; \boldsymbol{\theta})\)</span>, maximum iterations <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span></p>
-<p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for value function approximation and policy <span class="math notranslate nohighlight">\(\pi\)</span></p>
+<p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for value function approximation</p>
 <ol class="arabic simple">
 <li><p>Initialize <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_0\)</span> (e.g., for zero initialization)</p></li>
 <li><p><span class="math notranslate nohighlight">\(n \leftarrow 0\)</span></p></li>
 <li><p><strong>repeat</strong></p>
 <ol class="arabic simple">
-<li><p><span class="math notranslate nohighlight">\(D \leftarrow \emptyset\)</span> // Initialize dataset for fitting</p></li>
-<li><p>For each <span class="math notranslate nohighlight">\(s \in B\)</span>:  // Only update at base points</p>
+<li><p><span class="math notranslate nohighlight">\(\mathcal{D} \leftarrow \emptyset\)</span></p></li>
+<li><p>For each <span class="math notranslate nohighlight">\(s \in B\)</span>:</p>
 <ol class="arabic simple">
 <li><p><span class="math notranslate nohighlight">\(y_s \leftarrow \max_{a \in A} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v(j; \boldsymbol{\theta}_n)\right\}\)</span></p></li>
-<li><p><span class="math notranslate nohighlight">\(D \leftarrow D \cup \{(s, y_s)\}\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathcal{D} \leftarrow \mathcal{D} \cup \{(s, y_s)\}\)</span></p></li>
 </ol>
 </li>
-<li><p><span class="math notranslate nohighlight">\(\boldsymbol{\theta}_{n+1} \leftarrow \texttt{fit}(D)\)</span> // Fit new parameters to updates</p></li>
-<li><p><span class="math notranslate nohighlight">\(\delta \leftarrow \frac{1}{|B|}\sum_{s \in B} (v(s; \boldsymbol{\theta}_{n+1}) - v(s; \boldsymbol{\theta}_n))^2\)</span> // Mean squared error at base points</p></li>
+<li><p><span class="math notranslate nohighlight">\(\boldsymbol{\theta}_{n+1} \leftarrow \texttt{fit}(\mathcal{D})\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\delta \leftarrow \frac{1}{|B|}\sum_{s \in B} (v(s; \boldsymbol{\theta}_{n+1}) - v(s; \boldsymbol{\theta}_n))^2\)</span></p></li>
 <li><p><span class="math notranslate nohighlight">\(n \leftarrow n + 1\)</span></p></li>
 </ol>
 </li>
-<li><p><strong>until</strong> (<span class="math notranslate nohighlight">\(\delta &lt; \varepsilon\)</span> or <span class="math notranslate nohighlight">\(n \geq N\)</span>) // Stop when converged or max iterations reached</p></li>
-<li><p>For each <span class="math notranslate nohighlight">\(s \in S\)</span>:</p>
-<ol class="arabic simple">
-<li><p><span class="math notranslate nohighlight">\(\pi(s) \leftarrow \arg\max_{a \in A} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v(j; \boldsymbol{\theta}_n)\right\}\)</span></p></li>
-</ol>
-</li>
-<li><p><strong>return</strong> <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_n, \pi\)</span></p></li>
+<li><p><strong>until</strong> (<span class="math notranslate nohighlight">\(\delta &lt; \varepsilon\)</span> or <span class="math notranslate nohighlight">\(n \geq N\)</span>)</p></li>
+<li><p><strong>return</strong> <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_n\)</span></p></li>
 </ol>
 </section>
-</div><p>Key differences from standard value iteration include:</p>
+</div><p>The structure of the above algorithm mirrors value iteration in its core idea of iteratively applying the Bellman operator. However, several key modifications distinguish this fitted variant:</p>
+<p>First, rather than applying updates across the entire state space, we compute the operator only at selected base points <span class="math notranslate nohighlight">\(B\)</span>. The resulting values are then stored implicitly through the parameter vector <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> via the fitting step, rather than explicitly as in the tabular case.</p>
+<p>The fitting procedure itself may introduce an “inner optimization loop.” For instance, when using neural networks, this involves an iterative gradient descent procedure to optimize the parameters. This creates an interesting parallel with modified policy iteration: just as we might truncate policy evaluation steps there, we can consider variants where this inner loop runs for a fixed number of iterations rather than to convergence.</p>
+<p>Finally, the termination criterion from standard value iteration may no longer hold. The classical criterion relied on the sup-norm contractivity property of the Bellman operator — a property that isn’t generally preserved under function approximation. While certain function approximation schemes can maintain this sup-norm contraction property (as we’ll see later), this is the exception rather than the rule.</p>
+</section>
+<section id="computational-aspects-of-component-wise-bellman-operator-evaluation">
+<h2><span class="section-number">15.3. </span>Computational Aspects of Component-wise Bellman Operator Evaluation<a class="headerlink" href="#computational-aspects-of-component-wise-bellman-operator-evaluation" title="Link to this heading">#</a></h2>
+<p>So far, we’ve described a strategy that economizes computation by updating only a selected set of base points, then generalizing these updates to approximate the operator’s effect on other states. However, this approach assumes we can compute the operator exactly at these base points. What if even this limited computation proves infeasible?</p>
+<p>The challenge arises naturally when we consider what computing the Bellman operator entails: evaluating an expectation over next states, which generally requires numerical integration. Even in the “best” scenario — the model-based setting we’ve worked with throughout this course — we assume access to an explicit representation of the transition probability function that we can evaluate everywhere.</p>
+<p>But what if we lack these exact probabilities and instead only have access to samples of next states for given state-action pairs? In this case, we must turn to Monte Carlo integration methods, which brings us fully into what we would recognize as a learning setting.</p>
+<section id="numerical-quadrature-methods-for-approximating-the-bellman-operator">
+<h3><span class="section-number">15.3.1. </span>Numerical Quadrature Methods for Approximating the Bellman Operator<a class="headerlink" href="#numerical-quadrature-methods-for-approximating-the-bellman-operator" title="Link to this heading">#</a></h3>
+<p>In the general case, the Bellman operator in component-wise form is:</p>
+<div class="math notranslate nohighlight">
+\[
+(\mathrm{L} v_n)(s) \equiv \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \int v_n(s')p(ds'|s,a)\right\}, \, \forall s \in \mathcal{S}
+\]</div>
+<p>When we have direct access to <span class="math notranslate nohighlight">\(p\)</span> (rather than just samples from it), we can employ numerical integration methods to approximate the expectation. Let’s divide our state space into <span class="math notranslate nohighlight">\(m\)</span> equal intervals of width <span class="math notranslate nohighlight">\(\Delta s = (s_{\max} - s_{\min})/m\)</span>. Then, a quadrature approximation takes the form:</p>
+<div class="math notranslate nohighlight">
+\[
+\int v_n(s')p(ds'|s,a) \approx \sum_{i=1}^m w_i v_n(s'_i)
+\]</div>
+<p>For instance, using the rectangle (midpoint) rule with points <span class="math notranslate nohighlight">\(s'_i = s_{\min} + (i-\frac{1}{2})\Delta s\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+\int v_n(s')p(ds'|s,a) \approx \sum_{i=1}^m v_n(s'_i)p(s'_i|s,a)\Delta s
+\]</div>
+<p>or the trapezoidal rule using endpoints <span class="math notranslate nohighlight">\(s'_i = s_{\min} + i\Delta s\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+\int v_n(s')p(ds'|s,a) \approx \frac{\Delta s}{2}\sum_{i=1}^{m} [v_n(s'_i)p(s'_i|s,a) + v_n(s'_{i+1})p(s'_{i+1}|s,a)]
+\]</div>
+<p>It’s instructive to contrast this approach with the one that we would apply in the deterministic case:</p>
+<div class="math notranslate nohighlight">
+\[
+(\mathrm{L}v)(s) = \max_{a \in \mathcal{A}} \{r(s,a) + \gamma v(f(s,a))\}
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(f(s,a)\)</span> is the deterministic transition function: a special case where <span class="math notranslate nohighlight">\(p(ds'|s,a)\)</span> is a Dirac delta measure concentrated at <span class="math notranslate nohighlight">\(f(s,a)\)</span>.
+This setting does not require numerical integration but instead faces the challenge of evaluating <span class="math notranslate nohighlight">\(v\)</span> at <span class="math notranslate nohighlight">\(f(s,a)\)</span>, which might not coincide with our grid points. This is a problem which we handled through interpolation in the previous chapter by:</p>
 <ol class="arabic simple">
-<li><p>Updates occur only at selected base points <span class="math notranslate nohighlight">\(B\)</span> rather than the entire state space</p></li>
-<li><p>Values are stored implicitly through the parameter vector <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span></p></li>
-<li><p>A fitting step converts pointwise updates into parameter updates</p></li>
-<li><p>The convergence check uses the maximum difference at base points</p></li>
+<li><p>Maintaining values at grid points <span class="math notranslate nohighlight">\(\{s_i\}_{i=1}^N\)</span></p></li>
+<li><p>Using interpolation to evaluate <span class="math notranslate nohighlight">\(v\)</span> at arbitrary points</p></li>
 </ol>
-<p>The <span class="math notranslate nohighlight">\(\texttt{fit}\)</span> function represents a regression step that can be implemented using standard machine learning libraries. In practice, you can think of it as any regressor that follows the familiar scikit-learn interface. For example:</p>
+<p>For example with linear interpolation between grid points, <span class="math notranslate nohighlight">\(L\)</span> took the form:</p>
+<div class="math notranslate nohighlight">
+\[
+(\mathrm{L}v)(s_i) = \max_{a \in \mathcal{A}} \left\{r(s_i,a) + \gamma \left[(1-\alpha)v(s_k) + \alpha v(s_{k+1})\right]\right\}
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(f(s_i,a)\)</span> falls between grid points <span class="math notranslate nohighlight">\(s_k\)</span> and <span class="math notranslate nohighlight">\(s_{k+1}\)</span>, and <span class="math notranslate nohighlight">\(\alpha\)</span> is the interpolation weight:</p>
+<div class="math notranslate nohighlight">
+\[
+\alpha = \frac{f(s_i,a) - s_k}{s_{k+1} - s_k}
+\]</div>
+<p>Returning to the Bellman operator in the stochastic case, we can approximate the expectation using quadrature methods. Plugging such a quadrature approximation back into our operator, we obtain <span class="math notranslate nohighlight">\(\hat{\mathrm{L}}\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+(\hat{\mathrm{L}} v_n)(s) \equiv \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \sum_{i=1}^m v_n(s'_i)p(s'_i|s,a)\Delta s\right\}
+\]</div>
+<p>This strategy of approximating the operator at the level of expectation computation is complementary to our earlier approach of performing partial updates and then generalizing through function approximation. These approximations address different challenges:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">LinearRegression</span></code> for polynomial basis functions (after feature transformation)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">MLPRegressor</span></code> for neural network approximation</p></li>
-<li><p>Any other scikit-learn regressor that implements the <code class="docutils literal notranslate"><span class="pre">.fit()</span></code> interface</p></li>
+<li><p>Quadrature handles the computation of expectations over continuous state spaces (not needed in deterministic case)</p></li>
+<li><p>Function approximation deals with representing and generalizing value functions (analogous to interpolation in deterministic case)</p></li>
 </ul>
+<p>Combining both strategies leads to the following algorithm:</p>
+<div class="proof algorithm admonition" id="fitted-value-iteration-quadrature">
+<p class="admonition-title"><span class="caption-number">Algorithm 15.3 </span> (Fitted Value Iteration with Rectangle Rule)</p>
+<section class="algorithm-content" id="proof-content">
+<p><strong>Input</strong> Given an MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, base points <span class="math notranslate nohighlight">\(B \subset S\)</span>, integration points <span class="math notranslate nohighlight">\(\{s'_i\}_{i=1}^m\)</span>, function approximator class <span class="math notranslate nohighlight">\(v(s; \boldsymbol{\theta})\)</span>, maximum iterations <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span></p>
+<p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for value function approximation</p>
+<ol class="arabic simple">
+<li><p>Initialize <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_0\)</span> (e.g., for zero initialization)</p></li>
+<li><p><span class="math notranslate nohighlight">\(n \leftarrow 0\)</span></p></li>
+<li><p><strong>repeat</strong></p>
+<ol class="arabic simple">
+<li><p><span class="math notranslate nohighlight">\(\mathcal{D} \leftarrow \emptyset\)</span></p></li>
+<li><p>For each <span class="math notranslate nohighlight">\(s \in B\)</span>:</p>
+<ol class="arabic simple">
+<li><p><span class="math notranslate nohighlight">\(y_s \leftarrow \max_{a \in A} \left\{r(s,a) + \gamma \sum_{i=1}^m v_n(s'_i)p(s'_i|s,a)\Delta s\right\}\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathcal{D} \leftarrow \mathcal{D} \cup \{(s, y_s)\}\)</span></p></li>
+</ol>
+</li>
+<li><p><span class="math notranslate nohighlight">\(\boldsymbol{\theta}_{n+1} \leftarrow \texttt{fit}(\mathcal{D})\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\delta \leftarrow \frac{1}{|B|}\sum_{s \in B} (v(s; \boldsymbol{\theta}_{n+1}) - v(s; \boldsymbol{\theta}_n))^2\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(n \leftarrow n + 1\)</span></p></li>
+</ol>
+</li>
+<li><p><strong>until</strong> (<span class="math notranslate nohighlight">\(\delta &lt; \varepsilon\)</span> or <span class="math notranslate nohighlight">\(n \geq N\)</span>)</p></li>
+<li><p><strong>return</strong> <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_n\)</span></p></li>
+</ol>
+</section>
+</div></section>
 </section>
 </section>
 
@@ -932,6 +1004,10 @@ v(s) \approx \sum_{i=0}^{n} \theta_i T_i(s)
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#parametric-dynamic-programming">15. Parametric Dynamic Programming</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#carrying-out-partial-updates">15.1. Carrying out Partial Updates</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fitting-the-updates-parametric-value-iteration">15.2. Fitting the Updates: Parametric Value Iteration</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#computational-aspects-of-component-wise-bellman-operator-evaluation">15.3. Computational Aspects of Component-wise Bellman Operator Evaluation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#numerical-quadrature-methods-for-approximating-the-bellman-operator">15.3.1. Numerical Quadrature Methods for Approximating the Bellman Operator</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

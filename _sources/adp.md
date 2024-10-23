@@ -324,11 +324,12 @@ Furthermore, the optimal policy is given by the gradient of $\Omega^*$:
 $$ d^*(a|s) = \nabla \Omega^*(q^*_\Omega(s, \cdot)) = \frac{\exp(q^*_\Omega(s,a))}{\sum_{a' \in \mathcal{A}_s} \exp(q^*_\Omega(s,a'))} $$
 
 This is the familiar softmax policy we encountered in the smooth MDP setting.
+
 # Parametric Dynamic Programming 
 
 We have so far considered a specific kind of approximation: that of the Bellman operator itself. We explored a modified version of the operator with the desirable property of smoothness, which we deemed beneficial for optimization purposes and due to its rich multifaceted interpretations. We now turn our attention to another form of approximation, complementary to the previous kind, which seeks to address the challenge of applying the operator across the entire state space.
 
-To be precise, suppose we can compute the Bellman operator $Lv$ at some state $s$, producing a new function $U$ whose value at state $s$ is $u(s) = (Lv)(s)$. Then, putting aside the problem of pointwise evaluation, we want to carry out this update across the entire domain of $v$. When working with small state spaces, this is not an issue, and we can afford to carry out the update across the entirety of the state space. However, for larger or infinite state spaces, this becomes a major challenge.
+To be precise, suppose we can compute the Bellman operator $\mathrm{L}v$ at some state $s$, producing a new function $U$ whose value at state $s$ is $u(s) = (\mathrm{L}v)(s)$. Then, putting aside the problem of pointwise evaluation, we want to carry out this update across the entire domain of $v$. When working with small state spaces, this is not an issue, and we can afford to carry out the update across the entirety of the state space. However, for larger or infinite state spaces, this becomes a major challenge.
 
 So what can we do? Our approach will be to compute the operator at chosen "grid points," then "fill in the blanks" for the states where we haven't carried out the update by "fitting" the resulting output function on a dataset of input-output pairs. The intuition is that for sufficiently well-behaved functions and sufficiently expressive function approximators, we hope to generalize well enough. Our community calls this "learning," while others would call it "function approximation" — a field of its own in mathematics. To truly have a "learning algorithm," we'll need to add one more piece of machinery: the use of samples — of simulation — to pick the grid points and perform numerical integration. But this is for the next section...
 
@@ -343,7 +344,7 @@ $$
 Value iteration — the name for the method of successive approximation applied to $L$ — computes a sequence of iterates $v_{n+1} = \mathrm{L}v_n$ from some arbitrary $v_0$. Let's pause to consider what the equality sign in this expression means: it represents an assignment (perhaps better denoted as $:=$) across the entire domain. This becomes clearer when writing the update in component form:
 
 $$
-v_{n+1}(s) := (\mathrm{L} \mathbf{v})(s) \equiv \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v_n(j)\right\}, \, \forall s \in \mathcal{S}
+v_{n+1}(s) := (\mathrm{L} v_n)(s) \equiv \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v_n(j)\right\}, \, \forall s \in \mathcal{S}
 $$
 
 Pay particular attention to the $\forall s \in \mathcal{S}$ notation: what happens when we can't afford to update all components in each step of value iteration? A potential solution is to use Gauss-Seidel Value Iteration, which updates states sequentially, immediately using fresh values for subsequent updates. 
@@ -390,9 +391,7 @@ But what if maintaining such a table is impossible? This challenge arises natura
 
 ## Fitting the Updates: Parametric Value Iteration
 
-In the parametric approach to dynamic programming, instead of maintaining an explicit table of values, we represent the value function using a parametric function approximator $v(s; \boldsymbol{\theta})$, where $\boldsymbol{\theta}$ are parameters that get adjusted across iterations rather than the entries of a tabular representation. This idea traces back to the inception of dynamic programming and was described as early as 1963 by Bellman himself, who considered polynomial approximations.
-
-For a value function $v(s)$, we can write its polynomial approximation as:
+In the parametric approach to dynamic programming, instead of maintaining an explicit table of values, we represent the value function using a parametric function approximator $v(s; \boldsymbol{\theta})$, where $\boldsymbol{\theta}$ are parameters that get adjusted across iterations rather than the entries of a tabular representation. This idea traces back to the inception of dynamic programming and was described as early as 1963 by Bellman himself, who considered polynomial approximations. For a value function $v(s)$, we can write its polynomial approximation as:
 
 $$
 v(s) \approx \sum_{i=0}^{n} \theta_i \phi_i(s)
@@ -403,65 +402,147 @@ where:
 - $\theta_i$ are the coefficients (our parameters)
 - $n$ is the degree of approximation
 
-Common choices for basis functions include:
+As we discussed earlier in the context of trajectory optimization, we can choose from different polynomial bases beyond the usual monomial basis $\phi_i(s) = s^i$, such as Legendre or Chebyshev polynomials. While polynomials offer attractive mathematical properties, they become challenging to work with in higher dimensions due to the curse of dimensionality. This limitation motivates our later turn to neural network parameterizations, which scale better with dimensionality.
 
-1) Monomial basis: $\phi_i(s) = s^i$
-
-$$
-v(s) \approx \sum_{i=0}^{n} \theta_i s^i
-$$
-
-2) Legendre polynomials $P_i(s)$:
+Given a parameterization, our value iteration procedure must now update the parameters $\boldsymbol{\theta}$ rather than tabular values directly. At each iteration, we aim to find parameters that best approximate the Bellman operator's output at chosen base points. More precisely, we collect a dataset:
 
 $$
-v(s) \approx \sum_{i=0}^{n} \theta_i P_i(s)
+\mathcal{D}_n = \{(s_i, (\mathrm{L}v)(s_i; \boldsymbol{\theta}_n)) \mid s_i \in B\}
 $$
 
-3) Chebyshev polynomials $T_i(s)$:
+and fit a regressor $v(\cdot; \boldsymbol{\theta}_{n+1})$ to this data.
 
-$$
-v(s) \approx \sum_{i=0}^{n} \theta_i T_i(s)
-$$
+This process differs from standard supervised learning in a specific way: rather than working with a fixed dataset, we iteratively generate our training targets using the previous value function approximation. During this process, the parameters $\boldsymbol{\theta}_n$ remain "frozen", entering only through dataset creation. This naturally leads to maintaining two sets of parameters:
+- $\boldsymbol{\theta}_n$: parameters of the target model used for generating training targets
+- $\boldsymbol{\theta}_{n+1}$: parameters being optimized in the current iteration
 
-While polynomials offer attractive mathematical properties, they become challenging to work with in higher dimensions due to the curse of dimensionality. Modern approaches often prefer neural network parameterizations, which tend to scale better with dimensionality.
+This target model framework emerges naturally from the structure of parametric value iteration — an insight that provides theoretical grounding for modern deep reinforcement learning algorithms where we commonly hear about the importance of the "target network trick" .
 
-Here's how we can adapt the classical value iteration algorithm to the parametric setting:
+Parametric value iteration, known in reinforcement learning literature as Fitted Value Iteration, offers a flexible template for deriving new algorithms by varying the choice of function approximator. This approach maintains the core dynamic programming principles while replacing tabular updates with supervised learning steps.
+
+The $\texttt{fit}$ function in the algorithm below represents this supervised learning step. It can be implemented using any standard regression tool that follows the scikit-learn interface, such as:
+- `LinearRegression` for polynomial basis functions (after feature transformation)
+- `MLPRegressor` for neural network approximation
+- Any other scikit-learn compatible regressor
 
 ````{prf:algorithm} Parametric Value Iteration
 :label: parametric-value-iteration
 
 **Input** Given an MDP $(S, A, P, R, \gamma)$, base points $B \subset S$, function approximator class $v(s; \boldsymbol{\theta})$, maximum iterations $N$, tolerance $\varepsilon > 0$
 
-**Output** Parameters $\boldsymbol{\theta}$ for value function approximation and policy $\pi$
+**Output** Parameters $\boldsymbol{\theta}$ for value function approximation
 
 1. Initialize $\boldsymbol{\theta}_0$ (e.g., for zero initialization)
 2. $n \leftarrow 0$
 3. **repeat**
 
-    1. $D \leftarrow \emptyset$ // Initialize dataset for fitting
-    2. For each $s \in B$:  // Only update at base points
+    1. $\mathcal{D} \leftarrow \emptyset$
+    2. For each $s \in B$:
         1. $y_s \leftarrow \max_{a \in A} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v(j; \boldsymbol{\theta}_n)\right\}$
-        2. $D \leftarrow D \cup \{(s, y_s)\}$
+        2. $\mathcal{D} \leftarrow \mathcal{D} \cup \{(s, y_s)\}$
 
-    3. $\boldsymbol{\theta}_{n+1} \leftarrow \texttt{fit}(D)$ // Fit new parameters to updates
-    4. $\delta \leftarrow \frac{1}{|B|}\sum_{s \in B} (v(s; \boldsymbol{\theta}_{n+1}) - v(s; \boldsymbol{\theta}_n))^2$ // Mean squared error at base points
+    3. $\boldsymbol{\theta}_{n+1} \leftarrow \texttt{fit}(\mathcal{D})$
+    4. $\delta \leftarrow \frac{1}{|B|}\sum_{s \in B} (v(s; \boldsymbol{\theta}_{n+1}) - v(s; \boldsymbol{\theta}_n))^2$
     5. $n \leftarrow n + 1$
 
-4. **until** ($\delta < \varepsilon$ or $n \geq N$) // Stop when converged or max iterations reached
-5. For each $s \in S$:
-    1. $\pi(s) \leftarrow \arg\max_{a \in A} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v(j; \boldsymbol{\theta}_n)\right\}$
-
-6. **return** $\boldsymbol{\theta}_n, \pi$
+4. **until** ($\delta < \varepsilon$ or $n \geq N$)
+5. **return** $\boldsymbol{\theta}_n$
 ````
+The structure of the above algorithm mirrors value iteration in its core idea of iteratively applying the Bellman operator. However, several key modifications distinguish this fitted variant:
 
-Key differences from standard value iteration include:
-1. Updates occur only at selected base points $B$ rather than the entire state space
-2. Values are stored implicitly through the parameter vector $\boldsymbol{\theta}$
-3. A fitting step converts pointwise updates into parameter updates
-4. The convergence check uses the maximum difference at base points
+First, rather than applying updates across the entire state space, we compute the operator only at selected base points $B$. The resulting values are then stored implicitly through the parameter vector $\boldsymbol{\theta}$ via the fitting step, rather than explicitly as in the tabular case.
 
-The $\texttt{fit}$ function represents a regression step that can be implemented using standard machine learning libraries. In practice, you can think of it as any regressor that follows the familiar scikit-learn interface. For example: 
+The fitting procedure itself may introduce an "inner optimization loop." For instance, when using neural networks, this involves an iterative gradient descent procedure to optimize the parameters. This creates an interesting parallel with modified policy iteration: just as we might truncate policy evaluation steps there, we can consider variants where this inner loop runs for a fixed number of iterations rather than to convergence.
 
-- `LinearRegression` for polynomial basis functions (after feature transformation)
-- `MLPRegressor` for neural network approximation
-- Any other scikit-learn regressor that implements the `.fit()` interface
+Finally, the termination criterion from standard value iteration may no longer hold. The classical criterion relied on the sup-norm contractivity property of the Bellman operator — a property that isn't generally preserved under function approximation. While certain function approximation schemes can maintain this sup-norm contraction property (as we'll see later), this is the exception rather than the rule.
+
+## Computational Aspects of Component-wise Bellman Operator Evaluation
+
+So far, we've described a strategy that economizes computation by updating only a selected set of base points, then generalizing these updates to approximate the operator's effect on other states. However, this approach assumes we can compute the operator exactly at these base points. What if even this limited computation proves infeasible?
+
+The challenge arises naturally when we consider what computing the Bellman operator entails: evaluating an expectation over next states, which generally requires numerical integration. Even in the "best" scenario — the model-based setting we've worked with throughout this course — we assume access to an explicit representation of the transition probability function that we can evaluate everywhere. 
+
+But what if we lack these exact probabilities and instead only have access to samples of next states for given state-action pairs? In this case, we must turn to Monte Carlo integration methods, which brings us fully into what we would recognize as a learning setting.
+
+### Numerical Quadrature Methods for Approximating the Bellman Operator
+
+In the general case, the Bellman operator in component-wise form is:
+
+$$
+(\mathrm{L} v_n)(s) \equiv \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \int v_n(s')p(ds'|s,a)\right\}, \, \forall s \in \mathcal{S}
+$$
+
+When we have direct access to $p$ (rather than just samples from it), we can employ numerical integration methods to approximate the expectation. Let's divide our state space into $m$ equal intervals of width $\Delta s = (s_{\max} - s_{\min})/m$. Then, a quadrature approximation takes the form:
+
+$$
+\int v_n(s')p(ds'|s,a) \approx \sum_{i=1}^m w_i v_n(s'_i)
+$$
+
+For instance, using the rectangle (midpoint) rule with points $s'_i = s_{\min} + (i-\frac{1}{2})\Delta s$:
+
+$$
+\int v_n(s')p(ds'|s,a) \approx \sum_{i=1}^m v_n(s'_i)p(s'_i|s,a)\Delta s
+$$
+
+or the trapezoidal rule using endpoints $s'_i = s_{\min} + i\Delta s$:
+
+$$
+\int v_n(s')p(ds'|s,a) \approx \frac{\Delta s}{2}\sum_{i=1}^{m} [v_n(s'_i)p(s'_i|s,a) + v_n(s'_{i+1})p(s'_{i+1}|s,a)]
+$$
+
+It's instructive to contrast this approach with the one that we would apply in the deterministic case:
+
+$$
+(\mathrm{L}v)(s) = \max_{a \in \mathcal{A}} \{r(s,a) + \gamma v(f(s,a))\}
+$$
+
+where $f(s,a)$ is the deterministic transition function: a special case where $p(ds'|s,a)$ is a Dirac delta measure concentrated at $f(s,a)$. 
+This setting does not require numerical integration but instead faces the challenge of evaluating $v$ at $f(s,a)$, which might not coincide with our grid points. This is a problem which we handled through interpolation in the previous chapter by:
+
+1. Maintaining values at grid points $\{s_i\}_{i=1}^N$
+2. Using interpolation to evaluate $v$ at arbitrary points
+
+For example with linear interpolation between grid points, $L$ took the form:
+
+$$
+(\mathrm{L}v)(s_i) = \max_{a \in \mathcal{A}} \left\{r(s_i,a) + \gamma \left[(1-\alpha)v(s_k) + \alpha v(s_{k+1})\right]\right\}
+$$
+
+where $f(s_i,a)$ falls between grid points $s_k$ and $s_{k+1}$, and $\alpha$ is the interpolation weight:
+
+$$
+\alpha = \frac{f(s_i,a) - s_k}{s_{k+1} - s_k}
+$$
+
+Returning to the Bellman operator in the stochastic case, we can approximate the expectation using quadrature methods. Plugging such a quadrature approximation back into our operator, we obtain $\hat{\mathrm{L}}$:
+
+$$
+(\hat{\mathrm{L}} v_n)(s) \equiv \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \sum_{i=1}^m v_n(s'_i)p(s'_i|s,a)\Delta s\right\}
+$$
+
+This strategy of approximating the operator at the level of expectation computation is complementary to our earlier approach of performing partial updates and then generalizing through function approximation. These approximations address different challenges:
+- Quadrature handles the computation of expectations over continuous state spaces (not needed in deterministic case)
+- Function approximation deals with representing and generalizing value functions (analogous to interpolation in deterministic case)
+
+Combining both strategies leads to the following algorithm:
+
+````{prf:algorithm} Fitted Value Iteration with Rectangle Rule
+:label: fitted-value-iteration-quadrature
+
+**Input** Given an MDP $(S, A, P, R, \gamma)$, base points $B \subset S$, integration points $\{s'_i\}_{i=1}^m$, function approximator class $v(s; \boldsymbol{\theta})$, maximum iterations $N$, tolerance $\varepsilon > 0$
+
+**Output** Parameters $\boldsymbol{\theta}$ for value function approximation
+
+1. Initialize $\boldsymbol{\theta}_0$ (e.g., for zero initialization)
+2. $n \leftarrow 0$
+3. **repeat**
+    1. $\mathcal{D} \leftarrow \emptyset$
+    2. For each $s \in B$:
+        1. $y_s \leftarrow \max_{a \in A} \left\{r(s,a) + \gamma \sum_{i=1}^m v_n(s'_i)p(s'_i|s,a)\Delta s\right\}$
+        2. $\mathcal{D} \leftarrow \mathcal{D} \cup \{(s, y_s)\}$
+    3. $\boldsymbol{\theta}_{n+1} \leftarrow \texttt{fit}(\mathcal{D})$
+    4. $\delta \leftarrow \frac{1}{|B|}\sum_{s \in B} (v(s; \boldsymbol{\theta}_{n+1}) - v(s; \boldsymbol{\theta}_n))^2$
+    5. $n \leftarrow n + 1$
+4. **until** ($\delta < \varepsilon$ or $n \geq N$)
+5. **return** $\boldsymbol{\theta}_n$
+````
