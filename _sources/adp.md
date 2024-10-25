@@ -321,7 +321,7 @@ $$ d^*(a|s) = \nabla \Omega^*(q^*_\Omega(s, \cdot)) = \frac{\exp(q^*_\Omega(s,a)
 
 This is the familiar softmax policy we encountered in the smooth MDP setting.
 
-# Parametric Dynamic Programming 
+# Parametric Dynamic Programming
 
 We have so far considered a specific kind of approximation: that of the Bellman operator itself. We explored a modified version of the operator with the desirable property of smoothness, which we deemed beneficial for optimization purposes and due to its rich multifaceted interpretations. We now turn our attention to another form of approximation, complementary to the previous kind, which seeks to address the challenge of applying the operator across the entire state space.
 
@@ -329,7 +329,7 @@ To be precise, suppose we can compute the Bellman operator $\mathrm{L}v$ at some
 
 So what can we do? Our approach will be to compute the operator at chosen "grid points," then "fill in the blanks" for the states where we haven't carried out the update by "fitting" the resulting output function on a dataset of input-output pairs. The intuition is that for sufficiently well-behaved functions and sufficiently expressive function approximators, we hope to generalize well enough. Our community calls this "learning," while others would call it "function approximation" — a field of its own in mathematics. To truly have a "learning algorithm," we'll need to add one more piece of machinery: the use of samples — of simulation — to pick the grid points and perform numerical integration. But this is for the next section...
 
-## Carrying out Partial Updates
+## Partial Updates in the Tabular Case
 
 The ideas presented in this section apply more broadly to the successive approximation method applied to a fixed-point problem. Consider again the problem of finding the optimal value function $v_\gamma^\star$ as the solution to the Bellman optimality operator $L$: 
 
@@ -385,7 +385,7 @@ The Gauss-Seidel value iteration approach offers several advantages over standar
 
 But what if maintaining such a table is impossible? This challenge arises naturally when dealing with continuous state spaces, where we cannot feasibly store values for every possible state, let alone update them. This is where function approximation comes into play. 
 
-## Fitting the Updates: Parametric Value Iteration
+## Partial Updates by Operator Fitting: Parametric Value Iteration
 
 In the parametric approach to dynamic programming, instead of maintaining an explicit table of values, we represent the value function using a parametric function approximator $v(s; \boldsymbol{\theta})$, where $\boldsymbol{\theta}$ are parameters that get adjusted across iterations rather than the entries of a tabular representation. This idea traces back to the inception of dynamic programming and was described as early as 1963 by Bellman himself, who considered polynomial approximations. For a value function $v(s)$, we can write its polynomial approximation as:
 
@@ -414,12 +414,15 @@ This process differs from standard supervised learning in a specific way: rather
 
 This target model framework emerges naturally from the structure of parametric value iteration — an insight that provides theoretical grounding for modern deep reinforcement learning algorithms where we commonly hear about the importance of the "target network trick" .
 
-Parametric value iteration, known in reinforcement learning literature as Fitted Value Iteration, offers a flexible template for deriving new algorithms by varying the choice of function approximator. This approach maintains the core dynamic programming principles while replacing tabular updates with supervised learning steps.
+Parametric successive approximation, known in reinforcement learning literature as Fitted Value Iteration, offers a flexible template for deriving new algorithms by varying the choice of function approximator. Various instantiations of this approach have emerged across different fields:
 
-The $\texttt{fit}$ function in the algorithm below represents this supervised learning step. It can be implemented using any standard regression tool that follows the scikit-learn interface, such as:
-- `LinearRegression` for polynomial basis functions (after feature transformation)
-- `MLPRegressor` for neural network approximation
-- Any other scikit-learn compatible regressor
+- Using polynomial basis functions with linear regression yields Kortum's method {cite}`kortum1992value`, known to econometricians. In reinforcement learning terms, this corresponds to value iteration with projected Bellman equations {cite}`Rust1996`.
+
+- Employing extremely randomized trees (via `ExtraTreesRegressor`) leads to the tree-based fitted value iteration of Ernst et al. {cite}`ernst2005tree`.
+
+- Neural network approximation (via `MLPRegressor`) gives rise to Neural Fitted Q-Iteration as developed by Riedmiller {cite}`riedmiller2005neural`.
+
+The \texttt{fit} function in our algorithm represents this supervised learning step and can be implemented using any standard regression tool that follows the scikit-learn interface. This flexibility in choice of function approximator allows practitioners to leverage the extensive ecosystem of modern machine learning tools while maintaining the core dynamic programming structure.
 
 ````{prf:algorithm} Parametric Value Iteration
 :label: parametric-value-iteration
@@ -451,6 +454,72 @@ First, rather than applying updates across the entire state space, we compute th
 The fitting procedure itself may introduce an "inner optimization loop." For instance, when using neural networks, this involves an iterative gradient descent procedure to optimize the parameters. This creates an interesting parallel with modified policy iteration: just as we might truncate policy evaluation steps there, we can consider variants where this inner loop runs for a fixed number of iterations rather than to convergence.
 
 Finally, the termination criterion from standard value iteration may no longer hold. The classical criterion relied on the sup-norm contractivity property of the Bellman operator — a property that isn't generally preserved under function approximation. While certain function approximation schemes can maintain this sup-norm contraction property (as we'll see later), this is the exception rather than the rule.
+
+## Parametric Policy Iteration
+
+We can extend this idea of fitting partial operator updates to the policy iteration setting. Remember, policy iteration involves iterating in the space of policies rather than in the space of value functions. Given an initial guess on a deterministic decision rule $d_0$, we iteratively:
+1. Compute the value function for the current policy (policy evaluation)
+2. Derive a new improved policy (policy improvement)
+
+When computationally feasible and under the model-based setting, we can solve the policy evaluation step directly as a linear system equation. Alternatively, we could carry out policy evaluation by applying successive approximation to the operator $L_{d_n}$ until convergence, or as in modified policy iteration, for just a few steps.
+
+To apply the idea of fitting partial updates, we start at the level of the policy evaluation operator $L_{d_n}$. For a given decision rule $d_n$, this operator in component form is:
+
+$$
+(L_{d_n}v)(s) = r(s,d_n(s)) + \gamma \int v(s')p(ds'|s,d_n(s))
+$$
+
+For a set of base points $B = \{s_1, ..., s_M\}$, we form our dataset:
+
+$$
+\mathcal{D}_n = \{(s_k, y_k) : s_k \in B\}
+$$
+
+where:
+
+$$
+y_k = r(s_k,d_n(s_k)) + \gamma \int v_n(s')p(ds'|s_k,d_n(s_k))
+$$
+
+This gives us a way to perform approximate policy evaluation through function fitting. However, we now face the question of how to perform policy improvement in this parametric setting. A key insight comes from the the fact that in the exact form of policy iteration, we don't need to improve the policy everywhere to guarantee progress. In fact, improving the policy at even a single state is sufficient for convergence.
+
+This suggests a natural approach: rather than trying to approximate an improved policy over the entire state space, we can simply:
+
+1. Compute improved actions at our base points:
+
+$$
+d_{n+1}(s_k) = \arg\max_{a \in \mathcal{A}} \left\{r(s_k,a) + \gamma \int v_n(s')p(ds'|s_k,a)\right\}, \quad \forall s_k \in B
+$$
+
+2. Let the function approximation of the value function implicitly generalize these improvements to other states during the next policy evaluation phase.
+
+This leads to the following algorithm:
+
+````{prf:algorithm} Parametric Policy Iteration
+:label: parametric-policy-iteration
+
+**Input** Given an MDP $(S, A, P, R, \gamma)$, base points $B \subset S$, function approximator class $v(s; \boldsymbol{\theta})$, maximum iterations $N$, tolerance $\varepsilon > 0$
+
+**Output** Parameters $\boldsymbol{\theta}$ for value function approximation
+
+1. Initialize $\boldsymbol{\theta}_0$, decision rules $\{d_0(s_k)\}_{s_k \in B}$
+2. $n \leftarrow 0$
+3. **repeat**
+    1. // Policy Evaluation
+    2. $\mathcal{D} \leftarrow \emptyset$
+    3. For each $s_k \in B$:
+        1. $y_k \leftarrow r(s_k,d_n(s_k)) + \gamma \int v_n(s')p(ds'|s_k,d_n(s_k))$
+        2. $\mathcal{D} \leftarrow \mathcal{D} \cup \{(s_k, y_k)\}$
+    4. $\boldsymbol{\theta}_{n+1} \leftarrow \texttt{fit}(\mathcal{D})$
+    
+    5. // Policy Improvement at Base Points
+    6. For each $s_k \in B$:
+        1. $d_{n+1}(s_k) \leftarrow \arg\max_{a \in A} \{r(s_k,a) + \gamma \int v_n(s')p(ds'|s_k,a)\}$
+    
+    7. $n \leftarrow n + 1$
+4. **until** ($n \geq N$ or convergence criterion met)
+5. **return** $\boldsymbol{\theta}_n$
+````
 
 # Approximate Component-wise Evaluation of the Bellman Operator
 
