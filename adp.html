@@ -64,7 +64,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'adp';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="17. Bibliography" href="bibliography.html" />
+    <link rel="next" title="18. Bibliography" href="bibliography.html" />
     <link rel="prev" title="11. Dynamic Programming" href="dp.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -194,7 +194,8 @@
 
 
 
-<li class="toctree-l1"><a class="reference internal" href="bibliography.html">17. Bibliography</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">18. Bibliography</a></li>
 </ul>
 
     </div>
@@ -436,6 +437,7 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#monte-carlo-integration">16.2. Monte Carlo Integration</a></li>
 </ul>
 </li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#q-factor-representation">17. Q-Factor Representation</a></li>
 </ul>
 
             </nav>
@@ -895,7 +897,8 @@ d_{n+1}(s_k) = \arg\max_{a \in \mathcal{A}} \left\{r(s_k,a) + \gamma \int v_n(s'
 <li><p><strong>return</strong> <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_n\)</span></p></li>
 </ol>
 </section>
-</div></section>
+</div><p>As opposed to exact policy iteration, the iterates of parametric policy iteration need not converge monotonically to the optimal value function. Intuitively, this is because we use function approximation to generalize  from base points to the entire state space which can lead to Value estimates improving at base points but degrading at other states or can cause interference between updates at different states due to the shared parametric representation</p>
+</section>
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="approximate-component-wise-evaluation-of-the-bellman-operator">
 <h1><span class="section-number">16. </span>Approximate Component-wise Evaluation of the Bellman Operator<a class="headerlink" href="#approximate-component-wise-evaluation-of-the-bellman-operator" title="Link to this heading">#</a></h1>
@@ -1006,6 +1009,60 @@ This setting does not require numerical integration but instead faces the challe
 <p>for each <span class="math notranslate nohighlight">\(s_k \in \mathcal{B}\)</span>. From these <span class="math notranslate nohighlight">\(M\)</span> point-wise evaluations, we will then fit our function approximator, just as we did in the quadrature case.</p>
 </section>
 </section>
+<section class="tex2jax_ignore mathjax_ignore" id="q-factor-representation">
+<h1><span class="section-number">17. </span>Q-Factor Representation<a class="headerlink" href="#q-factor-representation" title="Link to this heading">#</a></h1>
+<p>As we discussed above, Monte Carlo integration is the method of choice when it comes to approximating the effect of the Bellman operator. This is due to both its computational advantages in higher dimensions and its compatibility with the model-free assumption. However, there is an additional important detail that we have neglected to properly cover: extracting actions from values in a model-free fashion. While we can obtain a value function using the Monte Carlo approach described above, we still face the challenge of extracting an optimal policy from this value function.</p>
+<p>More precisely, recall that an optimal decision rule takes the form:</p>
+<div class="math notranslate nohighlight">
+\[
+d(s) = \arg\max_{a \in \mathcal{A}} \left\{r(s,a) + \gamma \int v(s')p(ds'|s,a)\right\}
+\]</div>
+<p>Therefore, even given an optimal value function <span class="math notranslate nohighlight">\(v\)</span>, deriving an optimal policy would still require Monte Carlo integration every time we query the decision rule/policy at a state.</p>
+<p>An important idea in dynamic programming is that rather than approximating a state-value function, we can instead approximate a state-action value function. These two functions are related: the value function is the expectation of the Q-function (called Q-factors by some authors in the operations research literature) over the conditional distribution of actions given the current state:</p>
+<div class="math notranslate nohighlight">
+\[
+v(s) = \mathbb{E}[q(s,a)|s]
+\]</div>
+<p>If <span class="math notranslate nohighlight">\(q^*\)</span> is an optimal state-action value function, then <span class="math notranslate nohighlight">\(v^*(s) = \max_a q^*(s,a)\)</span>. Just as we had a Bellman operator for value functions, we can also define an optimality operator for Q-functions. In component form:</p>
+<div class="math notranslate nohighlight">
+\[
+(\mathrm{L}q)(s,a) = r(s,a) + \gamma \int p(ds'|s,a)\max_{a' \in \mathcal{A}(s')} q(s', a')
+\]</div>
+<p>Furthermore, this operator for Q-functions is also a contraction in the sup-norm and therefore has a unique fixed point <span class="math notranslate nohighlight">\(q^*\)</span>.</p>
+<p>The advantage of iterating over Q-functions rather than value functions is that we can immediately extract optimal actions without having to represent the reward function or transition dynamics directly, nor perform numerical integration. Indeed, an optimal decision rule at state <span class="math notranslate nohighlight">\(s\)</span> is obtained as:</p>
+<div class="math notranslate nohighlight">
+\[
+d(s) = \arg\max_{a \in \mathcal{A}(s)} q(s,a)
+\]</div>
+<p>With this insight, we can adapt our parametric value iteration algorithm to work with Q-functions:</p>
+<div class="proof algorithm admonition" id="parametric-q-value-iteration">
+<p class="admonition-title"><span class="caption-number">Algorithm 17.1 </span> (Parametric Q-Value Iteration)</p>
+<section class="algorithm-content" id="proof-content">
+<p><strong>Input</strong> Given an MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, base points <span class="math notranslate nohighlight">\(B \subset S\)</span>, actions <span class="math notranslate nohighlight">\(A\)</span>, function approximator class <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, maximum iterations <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span></p>
+<p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
+<ol class="arabic simple">
+<li><p>Initialize <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_0\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(n \leftarrow 0\)</span></p></li>
+<li><p><strong>repeat</strong></p>
+<ol class="arabic simple">
+<li><p><span class="math notranslate nohighlight">\(\mathcal{D} \leftarrow \emptyset\)</span></p></li>
+<li><p>For each <span class="math notranslate nohighlight">\((s,a) \in B \times A\)</span>:</p>
+<ol class="arabic simple">
+<li><p>Draw <span class="math notranslate nohighlight">\(N\)</span> samples: <span class="math notranslate nohighlight">\(s'_i \sim p(\cdot|s,a)\)</span> for <span class="math notranslate nohighlight">\(i=1,\ldots,N\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(y_{s,a} \leftarrow r(s,a) + \frac{\gamma}{N} \sum_{i=1}^N \max_{a' \in A} q(s'_i,a'; \boldsymbol{\theta}_n)\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathcal{D} \leftarrow \mathcal{D} \cup \{((s,a), y_{s,a})\}\)</span></p></li>
+</ol>
+</li>
+<li><p><span class="math notranslate nohighlight">\(\boldsymbol{\theta}_{n+1} \leftarrow \texttt{fit}(\mathcal{D})\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\delta \leftarrow \frac{1}{|B||A|}\sum_{(s,a) \in B \times A} (q(s,a; \boldsymbol{\theta}_{n+1}) - q(s,a; \boldsymbol{\theta}_n))^2\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(n \leftarrow n + 1\)</span></p></li>
+</ol>
+</li>
+<li><p><strong>until</strong> (<span class="math notranslate nohighlight">\(\delta &lt; \varepsilon\)</span> or <span class="math notranslate nohighlight">\(n \geq N\)</span>)</p></li>
+<li><p><strong>return</strong> <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_n\)</span></p></li>
+</ol>
+</section>
+</div></section>
 
     <script type="text/x-thebe-config">
     {
@@ -1051,7 +1108,7 @@ This setting does not require numerical integration but instead faces the challe
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title"><span class="section-number">17. </span>Bibliography</p>
+        <p class="prev-next-title"><span class="section-number">18. </span>Bibliography</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -1100,6 +1157,7 @@ This setting does not require numerical integration but instead faces the challe
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#monte-carlo-integration">16.2. Monte Carlo Integration</a></li>
 </ul>
 </li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#q-factor-representation">17. Q-Factor Representation</a></li>
 </ul>
 
   </nav></div>
