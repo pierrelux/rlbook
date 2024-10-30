@@ -521,6 +521,8 @@ This leads to the following algorithm:
 5. **return** $\boldsymbol{\theta}_n$
 ````
 
+As opposed to exact policy iteration, the iterates of parametric policy iteration need not converge monotonically to the optimal value function. Intuitively, this is because we use function approximation to generalize  from base points to the entire state space which can lead to Value estimates improving at base points but degrading at other states or can cause interference between updates at different states due to the shared parametric representation
+
 # Approximate Component-wise Evaluation of the Bellman Operator
 
 So far, we've described a strategy that economizes computation by updating only a selected set of base points, then generalizing these updates to approximate the operator's effect on other states. However, this approach assumes we can compute the operator exactly at these base points. What if even this limited computation proves infeasible?
@@ -638,3 +640,58 @@ $$
 
 for each $s_k \in \mathcal{B}$. From these $M$ point-wise evaluations, we will then fit our function approximator, just as we did in the quadrature case.
 
+# Q-Factor Representation
+
+As we discussed above, Monte Carlo integration is the method of choice when it comes to approximating the effect of the Bellman operator. This is due to both its computational advantages in higher dimensions and its compatibility with the model-free assumption. However, there is an additional important detail that we have neglected to properly cover: extracting actions from values in a model-free fashion. While we can obtain a value function using the Monte Carlo approach described above, we still face the challenge of extracting an optimal policy from this value function.
+
+More precisely, recall that an optimal decision rule takes the form:
+
+$$
+d(s) = \arg\max_{a \in \mathcal{A}} \left\{r(s,a) + \gamma \int v(s')p(ds'|s,a)\right\}
+$$
+
+Therefore, even given an optimal value function $v$, deriving an optimal policy would still require Monte Carlo integration every time we query the decision rule/policy at a state.
+
+An important idea in dynamic programming is that rather than approximating a state-value function, we can instead approximate a state-action value function. These two functions are related: the value function is the expectation of the Q-function (called Q-factors by some authors in the operations research literature) over the conditional distribution of actions given the current state:
+
+$$
+v(s) = \mathbb{E}[q(s,a)|s]
+$$
+
+If $q^*$ is an optimal state-action value function, then $v^*(s) = \max_a q^*(s,a)$. Just as we had a Bellman operator for value functions, we can also define an optimality operator for Q-functions. In component form:
+
+$$
+(\mathrm{L}q)(s,a) = r(s,a) + \gamma \int p(ds'|s,a)\max_{a' \in \mathcal{A}(s')} q(s', a')
+$$
+
+Furthermore, this operator for Q-functions is also a contraction in the sup-norm and therefore has a unique fixed point $q^*$.
+
+The advantage of iterating over Q-functions rather than value functions is that we can immediately extract optimal actions without having to represent the reward function or transition dynamics directly, nor perform numerical integration. Indeed, an optimal decision rule at state $s$ is obtained as:
+
+$$
+d(s) = \arg\max_{a \in \mathcal{A}(s)} q(s,a)
+$$
+
+With this insight, we can adapt our parametric value iteration algorithm to work with Q-functions:
+
+````{prf:algorithm} Parametric Q-Value Iteration
+:label: parametric-q-value-iteration
+
+**Input** Given an MDP $(S, A, P, R, \gamma)$, base points $B \subset S$, actions $A$, function approximator class $q(s,a; \boldsymbol{\theta})$, maximum iterations $N$, tolerance $\varepsilon > 0$
+
+**Output** Parameters $\boldsymbol{\theta}$ for Q-function approximation
+
+1. Initialize $\boldsymbol{\theta}_0$
+2. $n \leftarrow 0$
+3. **repeat**
+    1. $\mathcal{D} \leftarrow \emptyset$
+    2. For each $(s,a) \in B \times A$:
+        1. Draw $N$ samples: $s'_i \sim p(\cdot|s,a)$ for $i=1,\ldots,N$
+        2. $y_{s,a} \leftarrow r(s,a) + \frac{\gamma}{N} \sum_{i=1}^N \max_{a' \in A} q(s'_i,a'; \boldsymbol{\theta}_n)$
+        3. $\mathcal{D} \leftarrow \mathcal{D} \cup \{((s,a), y_{s,a})\}$
+    3. $\boldsymbol{\theta}_{n+1} \leftarrow \texttt{fit}(\mathcal{D})$
+    4. $\delta \leftarrow \frac{1}{|B||A|}\sum_{(s,a) \in B \times A} (q(s,a; \boldsymbol{\theta}_{n+1}) - q(s,a; \boldsymbol{\theta}_n))^2$
+    5. $n \leftarrow n + 1$
+4. **until** ($\delta < \varepsilon$ or $n \geq N$)
+5. **return** $\boldsymbol{\theta}_n$
+````
