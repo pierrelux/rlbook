@@ -385,6 +385,7 @@ The Gauss-Seidel value iteration approach offers several advantages over standar
 
 But what if maintaining such a table is impossible? This challenge arises naturally when dealing with continuous state spaces, where we cannot feasibly store values for every possible state, let alone update them. This is where function approximation comes into play. 
 
+
 ## Partial Updates by Operator Fitting: Parametric Value Iteration
 
 In the parametric approach to dynamic programming, instead of maintaining an explicit table of values, we represent the value function using a parametric function approximator $v(s; \boldsymbol{\theta})$, where $\boldsymbol{\theta}$ are parameters that get adjusted across iterations rather than the entries of a tabular representation. This idea traces back to the inception of dynamic programming and was described as early as 1963 by Bellman himself, who considered polynomial approximations. For a value function $v(s)$, we can write its polynomial approximation as:
@@ -455,7 +456,7 @@ The fitting procedure itself may introduce an "inner optimization loop." For ins
 
 Finally, the termination criterion from standard value iteration may no longer hold. The classical criterion relied on the sup-norm contractivity property of the Bellman operator — a property that isn't generally preserved under function approximation. While certain function approximation schemes can maintain this sup-norm contraction property (as we'll see later), this is the exception rather than the rule.
 
-## Parametric Policy Iteration
+### Parametric Policy Iteration
 
 We can extend this idea of fitting partial operator updates to the policy iteration setting. Remember, policy iteration involves iterating in the space of policies rather than in the space of value functions. Given an initial guess on a deterministic decision rule $d_0$, we iteratively:
 1. Compute the value function for the current policy (policy evaluation)
@@ -523,7 +524,7 @@ This leads to the following algorithm:
 
 As opposed to exact policy iteration, the iterates of parametric policy iteration need not converge monotonically to the optimal value function. Intuitively, this is because we use function approximation to generalize  from base points to the entire state space which can lead to Value estimates improving at base points but degrading at other states or can cause interference between updates at different states due to the shared parametric representation
 
-# Approximate Component-wise Evaluation of the Bellman Operator
+## Point-wise Evaluation of the Bellman Operator by Numerical Integration
 
 So far, we've described a strategy that economizes computation by updating only a selected set of base points, then generalizing these updates to approximate the operator's effect on other states. However, this approach assumes we can compute the operator exactly at these base points. What if even this limited computation proves infeasible?
 
@@ -531,7 +532,7 @@ The challenge arises naturally when we consider what computing the Bellman opera
 
 But what if we lack these exact probabilities and instead only have access to samples of next states for given state-action pairs? In this case, we must turn to Monte Carlo integration methods, which brings us fully into what we would recognize as a learning setting.
 
-## Numerical Quadrature Methods
+### Numerical Quadrature Methods
 
 In the general case, the Bellman operator in component-wise form is:
 
@@ -614,7 +615,7 @@ Combining both strategies leads to the following algorithm:
 5. **return** $\boldsymbol{\theta}_n$
 ````
 
-## Monte Carlo Integration 
+### Monte Carlo Integration 
 
 Numerical quadrature methods scale poorly with increasing dimension. Specifically, for a fixed error tolerance $\epsilon$, the number of required quadrature points grows exponentially with dimension $d$ as $O((\frac{1}{\epsilon})^d)$. Furthermore, quadrature methods require explicit evaluation of the transition probability function $p(s'|s,a)$ at specified points—a luxury we don't have in the "model-free" setting where we only have access to samples from the MDP.
 
@@ -640,7 +641,7 @@ $$
 
 for each $s_k \in \mathcal{B}$. From these $M$ point-wise evaluations, we will then fit our function approximator, just as we did in the quadrature case.
 
-# Q-Factor Representation
+## Q-Factor Representation
 
 As we discussed above, Monte Carlo integration is the method of choice when it comes to approximating the effect of the Bellman operator. This is due to both its computational advantages in higher dimensions and its compatibility with the model-free assumption. However, there is an additional important detail that we have neglected to properly cover: extracting actions from values in a model-free fashion. While we can obtain a value function using the Monte Carlo approach described above, we still face the challenge of extracting an optimal policy from this value function.
 
@@ -677,21 +678,262 @@ With this insight, we can adapt our parametric value iteration algorithm to work
 ````{prf:algorithm} Parametric Q-Value Iteration
 :label: parametric-q-value-iteration
 
-**Input** Given an MDP $(S, A, P, R, \gamma)$, base points $B \subset S$, actions $A$, function approximator class $q(s,a; \boldsymbol{\theta})$, maximum iterations $N$, tolerance $\varepsilon > 0$
+**Input** Given an MDP $(S, A, P, R, \gamma)$, base points $\mathcal{D} \subset S$, function approximator class $q(s,a; \boldsymbol{\theta})$, maximum iterations $N$, tolerance $\varepsilon > 0$
 
 **Output** Parameters $\boldsymbol{\theta}$ for Q-function approximation
 
-1. Initialize $\boldsymbol{\theta}_0$
+1. Initialize $\boldsymbol{\theta}_0$ (e.g., for zero initialization)
 2. $n \leftarrow 0$
 3. **repeat**
     1. $\mathcal{D} \leftarrow \emptyset$
-    2. For each $(s,a) \in B \times A$:
-        1. Draw $N$ samples: $s'_i \sim p(\cdot|s,a)$ for $i=1,\ldots,N$
-        2. $y_{s,a} \leftarrow r(s,a) + \frac{\gamma}{N} \sum_{i=1}^N \max_{a' \in A} q(s'_i,a'; \boldsymbol{\theta}_n)$
-        3. $\mathcal{D} \leftarrow \mathcal{D} \cup \{((s,a), y_{s,a})\}$
+    2. For each $(s,a) \in \mathcal{D} \times A$:
+        1. $y_{s,a} \leftarrow r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)\max_{a' \in A} q(j,a'; \boldsymbol{\theta}_n)$
+        2. $\mathcal{D} \leftarrow \mathcal{D} \cup \{((s,a), y_{s,a})\}$
     3. $\boldsymbol{\theta}_{n+1} \leftarrow \texttt{fit}(\mathcal{D})$
-    4. $\delta \leftarrow \frac{1}{|B||A|}\sum_{(s,a) \in B \times A} (q(s,a; \boldsymbol{\theta}_{n+1}) - q(s,a; \boldsymbol{\theta}_n))^2$
+    4. $\delta \leftarrow \frac{1}{|\mathcal{D}||A|}\sum_{(s,a) \in \mathcal{D} \times A} (q(s,a; \boldsymbol{\theta}_{n+1}) - q(s,a; \boldsymbol{\theta}_n))^2$
     5. $n \leftarrow n + 1$
 4. **until** ($\delta < \varepsilon$ or $n \geq N$)
 5. **return** $\boldsymbol{\theta}_n$
 ````
+
+## Neural Fitted Q Iteration (2005)
+
+Following our earlier discussion of Monte Carlo integration for value functions, Riedmiller's Neural Fitted Q Iteration (NFQI) {cite}`Riedmiller05` emerges as a natural instantiation of parametric Q-value iteration where:
+
+1. The function approximator $q(s,a; \boldsymbol{\theta})$ is a multi-layer perceptron
+2. The $\texttt{fit}$ function uses Rprop optimization trained to convergence on each iteration's pattern set
+3. The expected next-state values are estimated through Monte Carlo integration with $N=1$, using the observed next states from transitions
+
+Specifically, rather than using numerical quadrature which would require known transition probabilities, NFQ approximates the expected future value using observed transitions:
+
+$$
+\int q_n(s',a')p(ds'|s,a) \approx q_n(s'_{observed},a')
+$$
+
+where $s'_{observed}$ is the actual next state that was observed after taking action $a$ in state $s$. This is equivalent to Monte Carlo integration with a single sample, making the algorithm fully model-free.
+
+The algorithm follows from the parametric Q-value iteration template:
+
+````{prf:algorithm} Neural Fitted Q Iteration
+:label: neural-fitted-q-iteration
+
+**Input** Given an MDP $(S, A, P, R, \gamma)$, dataset $\mathcal{D}$ with observed transitions $(s, a, r, s')$, MLP architecture $q(s,a; \boldsymbol{\theta})$, maximum iterations $N$, tolerance $\varepsilon > 0$
+
+**Output** Parameters $\boldsymbol{\theta}$ for Q-function approximation
+
+1. Initialize $\boldsymbol{\theta}_0$ randomly
+2. $n \leftarrow 0$
+3. **repeat**
+    1. $\mathcal{D} \leftarrow \emptyset$
+    2. For each $(s,a,r,s') \in \mathcal{D}$:
+        1. $y_{s,a} \leftarrow r + \gamma \max_{a'} q(s',a'; \boldsymbol{\theta}_n)$  // Monte Carlo estimate with one sample
+        2. $\mathcal{D} \leftarrow \mathcal{D} \cup \{((s,a), y_{s,a})\}$
+    3. $\boldsymbol{\theta}_{n+1} \leftarrow \text{Rprop}(\mathcal{D})$ // Train MLP to convergence
+    4. $\delta \leftarrow \frac{1}{|\mathcal{D}||A|}\sum_{(s,a) \in \mathcal{D} \times A} (q(s,a; \boldsymbol{\theta}_{n+1}) - q(s,a; \boldsymbol{\theta}_n))^2$
+    5. $n \leftarrow n + 1$
+4. **until** ($\delta < \varepsilon$ or $n \geq N$)
+5. **return** $\boldsymbol{\theta}_n$
+````
+
+While NFQI was originally introduced as an offline method with base points collected a priori, the authors also present a variant where base points are collected incrementally. In this online variant, new transitions are gathered using the current policy (greedy with respect to $Q_k$) and added to the experience set. This approach proves particularly useful when random exploration cannot efficiently collect representative experiences.
+
+## Ernst's Fitted Q Iteration (2005)
+
+Ernst's {cite}`ErnstGW05` specific instantiation of parametric q-value iteration uses extremely randomized trees, an extension to random forests proposed by  {cite:t}`Geurts2006`. This algorithm became particularly well-known, partly because it was one of the first to demonstrate the advantages of offline reinforcement learning. Published around the same time as Neural Fitted Q Iteration (NFQ), it reflects a period when researchers began seriously exploring how to leverage supervised learning advances in RL.
+
+Random Forests and Extra-Trees differ primarily in how they construct individual trees. Random Forests creates diversity in two ways: it resamples the training data (bootstrap) for each tree, and at each node it randomly selects a subset of features but then searches exhaustively for the best cut-point within each selected feature. In contrast, Extra-Trees uses the full training set for each tree and injects randomization differently: at each node, it not only randomly selects features but also randomly selects the cut-points without searching for the optimal one. It then picks the best among these completely random splits according to a variance reduction criterion. This double randomization - in both feature and cut-point selection - combined with using the full dataset makes Extra-Trees about four times faster than Random Forests while maintaining similar predictive accuracy.
+
+An important implementation detail concerns how tree structures can be reused across iterations of fitted Q iteration. With parametric methods like neural networks, warmstarting is straightforward - you simply initialize the weights with values from the previous iteration. For decision trees, the situation is more subtle because the model structure is determined by how splits are chosen at each node.
+
+When the number of candidate splits per node is $K=1$ (totally randomized trees), the algorithm selects both the splitting variable and threshold purely at random, without looking at the target values (the Q-values we're trying to predict) to evaluate the quality of the split. This means the tree structure only depends on the input variables and random choices, not on what we're predicting. As a result, we can build the trees once in the first iteration and reuse their structure throughout all iterations, only updating the prediction values at the leaves.
+
+Standard Extra-Trees ($K>1$), however, uses target values to choose the best among K random splits by calculating which split best reduces the variance of the predictions. Since these target values change in each iteration of fitted Q iteration (as our estimate of Q evolves), we must rebuild the trees completely. While this is computationally more expensive, it allows the trees to better adapt their structure to capture the evolving Q-function.
+
+The complete algorithm can be formalized as follows:
+
+````{prf:algorithm} Extra-Trees Fitted Q Iteration
+:label: extra-trees-fqi
+
+**Input** Given an MDP $(S, A, P, R, \gamma)$, dataset $\mathcal{D}$ with observed transitions $(s, a, r, s')$, Extra-Trees parameters $(K, n_{min}, M)$, maximum iterations $N$, tolerance $\varepsilon > 0$
+
+**Output** Extra-Trees model for Q-function approximation
+
+1. Initialize $\hat{Q}_0$ to zero everywhere
+2. $n \leftarrow 0$
+3. **repeat**
+    1. $\mathcal{P} \leftarrow \emptyset$
+    2. For each $(s, a, r, s') \in \mathcal{D}$:
+        1. $y_{s,a} \leftarrow r + \gamma \max_{a' \in A} \hat{Q}_n(s', a')$
+        2. $\mathcal{P} \leftarrow \mathcal{P} \cup \{((s,a), y_{s,a})\}$
+    3. $\hat{Q}_{n+1} \leftarrow \text{BuildExtraTrees}(\mathcal{P}, K, n_{min}, M)$
+    4. $\delta \leftarrow \frac{1}{|\mathcal{D}|}\sum_{(s,a,r,s') \in \mathcal{D}} (\hat{Q}_{n+1}(s,a) - \hat{Q}_n(s,a))^2$
+    5. $n \leftarrow n + 1$
+4. **until** ($\delta < \varepsilon$ or $n \geq N$)
+5. **return** $\hat{Q}_n$
+````
+ 
+## Kernel-Based Reinforcement Learning (2002)
+
+Ormoneit and Sen's Kernel-Based Reinforcement Learning (KBRL) {cite}`Ormoneit2002` helped establish the general paradigm of batch reinforcement learning later advocated by Ernst. KBRL is a purely offline method that first collects a fixed set of transitions and then uses kernel regression to solve the optimal control problem through value iteration on this dataset. While the dominant approaches at the time were online methods like temporal difference learning with parametric function approximation, KBRL showed how transforming RL into a sequence of supervised learning problems could provide theoretical guarantees about convergence and consistency that were lacking in parametric approaches.
+
+The algorithm follows the general parametric Q-value iteration template:
+
+````{prf:algorithm} Kernel-Based Q-Value Iteration
+:label: kernel-based-q-iteration
+
+**Input** Given an MDP $(S, A, P, R, \gamma)$, dataset $\mathcal{D}$ with observed transitions $(s, a, r, s')$, kernel bandwidth $b$, maximum iterations $N$, tolerance $\varepsilon > 0$
+
+**Output** Kernel-based Q-function approximation
+
+1. Initialize $\hat{Q}_0$ to zero everywhere
+2. $n \leftarrow 0$
+3. **repeat**
+    1. $\mathcal{P} \leftarrow \emptyset$
+    2. For each $(s, a, r, s') \in \mathcal{D}$:
+        1. $y_{s,a} \leftarrow r + \gamma \max_{a' \in A} \hat{Q}_n(s', a')$
+        2. $\mathcal{P} \leftarrow \mathcal{P} \cup \{((s,a), y_{s,a})\}$
+    3. $\hat{Q}_{n+1}(s,a) \leftarrow \sum_{(s_i,a_i,r_i,s_i') \in \mathcal{D}} k_b(s_i, s)\mathbb{1}[a_i=a] y_{s_i,a_i} / \sum_{(s_i,a_i,r_i,s_i') \in \mathcal{D}} k_b(s_i, s)\mathbb{1}[a_i=a]$
+    4. $\delta \leftarrow \frac{1}{|\mathcal{D}|}\sum_{(s,a,r,s') \in \mathcal{D}} (\hat{Q}_{n+1}(s,a) - \hat{Q}_n(s,a))^2$
+    5. $n \leftarrow n + 1$
+4. **until** ($\delta < \varepsilon$ or $n \geq N$)
+5. **return** $\hat{Q}_n$
+````
+The key distinction from other instantiations lies in step 3, where KBRL uses kernel regression with a normalized weighting kernel:
+
+$$k_b(x^l_t, x) = \frac{\phi(\|x^l_t - x\|/b)}{\sum_{l'} \phi(\|x^l_{t'} - x\|/b)}$$
+
+where $\phi$ is a kernel function (often Gaussian) and $b$ is the bandwidth parameter. Each iteration reuses the entire fixed dataset to re-estimate Q-values through this kernel regression.
+
+An important theoretical contribution of KBRL is showing that this kernel-based approach ensures convergence of the Q-function sequence, unlike parametric methods which might diverge. The authors prove that, with appropriate choice of kernel bandwidth decreasing with sample size, the method is consistent - the estimated Q-function converges to the true Q-function as the number of samples grows.
+
+The main practical limitation of KBRL is computational - being a batch method, it requires storing and using all transitions at each iteration, leading to quadratic complexity in the number of samples. The authors acknowledge this limitation for online settings, suggesting that modifications like discarding old samples or summarizing data clusters would be needed for online applications. Ernst's later work with tree-based methods would help address this limitation while maintaining many of the theoretical advantages of the batch approach.
+
+# Does Parametric Dynamic Programming Converge?
+
+So far we have avoided the discussion of convergence and focused on intuitive algorithm development, showing how we can extend successive approximation by computing only a few operator evaluations which then get generalized over the entire domain at each step of the value iteration procedure. Now we turn our attention to understanding the conditions under which this general idea can be shown to converge.
+
+A crucial question to ask is whether our algorithm maintains the contraction property that made value iteration so appealing in the first place - the property that allowed us to show convergence to a unique fixed point. We must be careful here because the contraction mapping theorem is specific to a given norm. In the case of value iteration, we showed the Bellman optimality operator is a contraction in the sup-norm, which aligns naturally with how we compare policies based on their value functions.
+
+The situation becomes more complicated with fitted methods because we are not dealing with just a single operator. At each iteration, we perform exact, unbiased pointwise evaluations of the Bellman operator, but instead of obtaining the next function exactly, we get the closest representable one under our chosen function approximation scheme. A key insight from {cite:t}`Gordon1995` is that the fitting step can be conceptualized as an additional operator that gets applied on top of the exact Bellman operator to produce the next function parameters. This leads to viewing fitted value methods - which for simplicity we describe only for the value case, though the Q-value setting follows similarly - as the composition of two operators:
+
+$$v_{n+1} = M_A(L(v_n))$$
+
+where $L$ is the Bellman operator and $M_A$ represents the function approximation mapping.
+
+Now we arrive at the central question: if $L$ was a sup-norm contraction, is $M_A$ composed with $L$ still a sup-norm contraction? What conditions must hold for this to be true? This question is fundamental because if we can establish that the composition of these two operators maintains the contraction property in the sup-norm, we get directly that our resulting successive approximation method will converge.
+
+## The Search for Nonexpansive Operators
+
+Consider what happens in the fitting step: we have two value functions $v$ and $w$, and after applying the Bellman operator $L$ to each, we get new target values that differ by at most $\gamma$ times their original difference in sup-norm (due to $L$ being a $\gamma$-contraction in the sup norm). But what happens when we fit to these target values? If the function approximator can exaggerate differences between its target values, even a small difference in the targets could lead to a larger difference in the fitted functions. This would be disastrous - even though the Bellman operator shrinks differences between value functions by a factor of $\gamma$, the fitting step could amplify them back up, potentially breaking the contraction property of the composite operator.
+
+In order to ensure that the composite operator is contractive, we need conditions on $M_A$ such that if $L$ is a sup-norm contraction then the composition also is. A natural property to consider is when $M_A$ is a non-expansion. By definition, this means that for any functions $v$ and $w$:
+
+$$\|M_A(v) - M_A(w)\|_\infty \leq \|v - w\|_\infty$$
+
+This turns out to be exactly what we need, since if $M_A$ is a non-expansion, then for any functions $v$ and $w$:
+
+$$\|M_A(L(v)) - M_A(L(w))\|_\infty \leq \|L(v) - L(w)\|_\infty \leq \gamma\|v - w\|_\infty$$
+
+The first inequality uses the non-expansion property of $M_A$, while the second uses the fact that $L$ is a $\gamma$-contraction. Together they show that the composite operator $M_A \circ L$ remains a $\gamma$-contraction.
+
+## Gordon's Averagers
+
+But which function approximators satisfy this non-expansion property? Gordon shows that "averagers" - approximators that compute their outputs as weighted averages of their training values - are always non-expansions in sup-norm. This includes many common approximation schemes like k-nearest neighbors, linear interpolation, and kernel smoothing with normalized weights. The intuition is that if you're taking weighted averages with weights that sum to one, you can never extrapolate beyond the range of your training values -- these methods "interpolate".  This theoretical framework explains why simple interpolation methods like k-nearest neighbors have proven remarkably stable in practice, while more sophisticated approximators can fail catastrophically. It suggests a clear design principle: to guarantee convergence, we should either use averagers directly or modify other approximators to ensure they never extrapolate beyond their training targets.
+
+More precisely, a function approximator $M_A$ is an averager if for any state $s$ and any target function $v$, the fitted value can be written as:
+
+$$M_A(v)(s) = \sum_{i=1}^n w_i(s) v(s_i)$$
+
+where the weights $w_i(s)$ satisfy:
+1. $w_i(s) \geq 0$ for all $i$ and $s$
+2. $\sum_{i=1}^n w_i(s) = 1$ for all $s$
+3. The weights $w_i(s)$ depend only on $s$ and the training points $\{s_i\}$, not on the values $v(s_i)$
+
+Let $m = \min_i v(s_i)$ and $M = \max_i v(s_i)$. Then:
+
+$$m = m\sum_i w_i(s) \leq \sum_i w_i(s)v(s_i) \leq M\sum_i w_i(s) = M$$
+
+So $M_A(v)(s) \in [m,M]$ for all $s$, meaning the fitted function cannot take values outside the range of its training values. This property is what makes averagers "interpolate" rather than "extrapolate" and is directly related to why they preserve the contraction property when composed with the Bellman operator. To see why averagers are non-expansions, consider two functions $v$ and $w$. At any state $s$:
+
+$$\begin{align*}
+|M_A(v)(s) - M_A(w)(s)| &= \left|\sum_{i=1}^n w_i(s)v(s_i) - \sum_{i=1}^n w_i(s)w(s_i)\right| \\
+&= \left|\sum_{i=1}^n w_i(s)(v(s_i) - w(s_i))\right| \\
+&\leq \sum_{i=1}^n w_i(s)|v(s_i) - w(s_i)| \\
+&\leq \|v - w\|_\infty \sum_{i=1}^n w_i(s) \\
+&= \|v - w\|_\infty
+\end{align*}$$
+
+Since this holds for all $s$, we have $\|M_A(v) - M_A(w)\|_\infty \leq \|v - w\|_\infty$, proving that $M_A$ is a non-expansion.
+
+## Which Methods Interpolate? 
+
+Let's look at specific examples, starting with k-nearest neighbors. For any state $s$, let $s_{(1)}, ..., s_{(k)}$ denote the k nearest training points to $s$. Then:
+
+$$M_A(v)(s) = \frac{1}{k}\sum_{i=1}^k v(s_{(i)})$$
+
+This is clearly an averager with weights $w_i(s) = \frac{1}{k}$ for the k nearest neighbors and 0 for all other points.
+
+For kernel smoothing with a kernel function $K$, the fitted value is:
+
+$$M_A(v)(s) = \frac{\sum_{i=1}^n K(s - s_i)v(s_i)}{\sum_{i=1}^n K(s - s_i)}$$
+
+The denominator normalizes the weights to sum to 1, making this an averager with weights $w_i(s) = \frac{K(s - s_i)}{\sum_{j=1}^n K(s - s_j)}$.
+
+### Linear Regression 
+
+In contrast, methods like linear regression and neural networks can and often do extrapolate beyond their training targets. More precisely, given a dataset of state-value pairs $\{(s_i, v(s_i))\}_{i=1}^n$, these methods fit parameters to minimize some error criterion, and the resulting function $M_A(v)(s)$ may take values outside the interval $[\min_i v(s_i), \max_i v(s_i)]$ even when evaluated at a new state $s$. For instance, linear regression finds parameters by minimizing squared error:
+
+$$\min_{\theta} \sum_{i=1}^n (v(s_i) - \theta^T\phi(s_i))^2$$
+
+The resulting fitted function is:
+
+$$M_A(v)(s) = \phi(s)^T(\Phi^T\Phi)^{-1}\Phi^T v$$
+
+where $\Phi$ is the feature matrix with rows $\phi(s_i)^T$. This cannot be written as a weighted average with weights independent of $v$. Indeed, we can construct examples where the fitted value at a point lies outside the range of training values. For example, consider two sets of target values defined on just three points $s_1 = 0$, $s_2 = 1$, and $s_3 = 2$:
+
+$$v = \begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix}, \quad w = \begin{bmatrix} 0 \\ 1 \\ 1 \end{bmatrix}$$
+
+Using a single feature $\phi(s) = s$, our feature matrix is:
+
+$$\Phi = \begin{bmatrix} 0 \\ 1 \\ 2 \end{bmatrix}$$
+
+For function $v$, the fitted parameters are:
+
+$$\theta_v = (\Phi^T\Phi)^{-1}\Phi^T v = \frac{1}{14}(2)$$
+
+And for function $w$:
+
+$$\theta_w = (\Phi^T\Phi)^{-1}\Phi^T w = \frac{1}{14}(8)$$
+
+Now if we evaluate these fitted functions at $s = 3$ (outside our training points):
+
+$$M_A(v)(3) = 3\theta_v = \frac{6}{14} \approx 0.43$$
+$$M_A(w)(3) = 3\theta_w = \frac{24}{14} \approx 1.71$$
+
+Therefore:
+$$|M_A(v)(3) - M_A(w)(3)| = \frac{18}{14} > 1 = \|v - w\|_\infty$$
+
+### Spline Interpolation
+
+Linear interpolation between points -- the technique used earlier in this chapter -- is an averager since for any point $s$ between knots $s_i$ and $s_{i+1}$:
+
+$$M_A(v)(s) = \left(\frac{s_{i+1}-s}{s_{i+1}-s_i}\right)v(s_i) + \left(\frac{s-s_i}{s_{i+1}-s_i}\right)v(s_{i+1})$$
+
+The weights sum to 1 and are non-negative. However, cubic splines, despite their smoothness advantages, can violate the non-expansion property. To see this, consider fitting a natural cubic spline to three points:
+
+$$s_1 = 0,\; s_2 = 1,\; s_3 = 2$$
+
+with two different sets of values:
+
+$$v = \begin{bmatrix} 0 \\ 1 \\ 0 \end{bmatrix}, \quad w = \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix}$$
+
+The natural cubic spline for $v$ will overshoot at $s \approx 0.5$ and undershoot at $s \approx 1.5$ due to its attempt to minimize curvature, giving values outside the range $[0,1]$. Meanwhile, $w$ fits a flat line at 0. Therefore:
+
+$$\|v - w\|_\infty = 1$$
+
+but 
+
+$$\|M_A(v) - M_A(w)\|_\infty > 1$$
+
+This illustrates a general principle: methods that try to create smooth functions by minimizing some global criterion (like curvature in splines) often sacrifice the non-expansion property to achieve their smoothness goals.
+

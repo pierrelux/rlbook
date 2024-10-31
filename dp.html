@@ -193,7 +193,8 @@
 <li class="toctree-l1"><a class="reference internal" href="adp.html">13. Approximate Dynamic Programming</a></li>
 
 
-<li class="toctree-l1"><a class="reference internal" href="bibliography.html">16. Bibliography</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">17. Bibliography</a></li>
 </ul>
 
     </div>
@@ -655,7 +656,7 @@ a. Compute the value function for the given policy:</p>
 <li><p><strong>Regulatory Review</strong>: Submitting a New Drug Application (NDA) for approval.</p></li>
 <li><p><strong>Post-Market Safety Monitoring</strong>: Continuing to monitor the drug’s effects after market release.</p></li>
 </ol>
-<p>This process can take 10-15 years and cost over $1 billion <span id="id1">[<a class="reference internal" href="bibliography.html#id20" title="Christopher Paul Adams and Van Vu Brantner. Spending on new drug development1. Health Economics, 19(2):130–141, February 2009. URL: http://dx.doi.org/10.1002/hec.1454, doi:10.1002/hec.1454.">1</a>]</span>. The high costs and risks involved call for a principled approach to decision making. We’ll focus on the clinical trial phases and NDA approval, per the MDP model presented by <span id="id2">[<a class="reference internal" href="bibliography.html#id21" title="Mark Chang. Monte Carlo Simulation for the Pharmaceutical Industry: Concepts, Algorithms, and Case Studies. CRC Press, September 2010. ISBN 9780429152382. URL: http://dx.doi.org/10.1201/EBK1439835920, doi:10.1201/ebk1439835920.">4</a>]</span>:</p>
+<p>This process can take 10-15 years and cost over $1 billion <span id="id1">[<a class="reference internal" href="bibliography.html#id20" title="Christopher Paul Adams and Van Vu Brantner. Spending on new drug development1. Health Economics, 19(2):130–141, February 2009. URL: http://dx.doi.org/10.1002/hec.1454, doi:10.1002/hec.1454.">1</a>]</span>. The high costs and risks involved call for a principled approach to decision making. We’ll focus on the clinical trial phases and NDA approval, per the MDP model presented by <span id="id2">[<a class="reference internal" href="bibliography.html#id21" title="Mark Chang. Monte Carlo Simulation for the Pharmaceutical Industry: Concepts, Algorithms, and Case Studies. CRC Press, September 2010. ISBN 9780429152382. URL: http://dx.doi.org/10.1201/EBK1439835920, doi:10.1201/ebk1439835920.">5</a>]</span>:</p>
 <ol class="arabic simple">
 <li><p><strong>States</strong> (<span class="math notranslate nohighlight">\(S\)</span>): Our state space is <span class="math notranslate nohighlight">\(S = \{s_1, s_2, s_3, s_4\}\)</span>, where:</p>
 <ul class="simple">
@@ -838,7 +839,7 @@ v_\nu^\pi(s) \equiv \mathbb{E}_s^\pi\left[\mathbb{E}_\nu\left\{\sum_{t=1}^\nu r(
 <span class="math notranslate nohighlight">\(P(\nu=n) = (1-\gamma) \gamma^{n-1}, \, n=1,2, \ldots\)</span>, then <span class="math notranslate nohighlight">\(v_\nu^\pi(s) = v_\gamma^\pi(s)\)</span> for all <span class="math notranslate nohighlight">\(s \in \mathcal{S}\)</span> .</p>
 </section>
 </div><div class="proof admonition" id="proof">
-<p>Proof. See proposition 5.3.1 in <span id="id3">[<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">21</a>]</span></p>
+<p>Proof. See proposition 5.3.1 in <span id="id3">[<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">29</a>]</span></p>
 <div class="math notranslate nohighlight">
 \[
 v_\nu^\pi(s) = E_s^\pi \left\{\sum_{n=1}^{\infty} \sum_{t=1}^n r(X_t, Y_t)(1-\gamma) \gamma^{n-1}\right\}.
@@ -1173,7 +1174,7 @@ Since we’ve shown <span class="math notranslate nohighlight">\(R_1 \leq R_2\)<
 <div class="proof proposition admonition" id="value-iteration-convergence">
 <p class="admonition-title"><span class="caption-number">Proposition 12.2 </span> (Convergence of Value Iteration)</p>
 <section class="proposition-content" id="proof-content">
-<p>(Adapted from <span id="id4">Puterman [<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">21</a>]</span> theorem 6.3.1)</p>
+<p>(Adapted from <span id="id4">Puterman [<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">29</a>]</span> theorem 6.3.1)</p>
 <p>Let <span class="math notranslate nohighlight">\(v_0\)</span> be any initial value function, <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span> a desired accuracy, and let <span class="math notranslate nohighlight">\(\{v_n\}\)</span> be the sequence of value functions generated by value iteration, i.e., <span class="math notranslate nohighlight">\(v_{n+1} = \mathrm{L}v_n\)</span> for <span class="math notranslate nohighlight">\(n \geq 1\)</span>, where <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> is the Bellman optimality operator. Then:</p>
 <ol class="arabic simple">
 <li><p><span class="math notranslate nohighlight">\(v_n\)</span> converges to the optimal value function <span class="math notranslate nohighlight">\(v^*_\gamma\)</span>,</p></li>
