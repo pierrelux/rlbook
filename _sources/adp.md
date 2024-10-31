@@ -865,7 +865,7 @@ $$\begin{align*}
 
 Since this holds for all $s$, we have $\|M_A(v) - M_A(w)\|_\infty \leq \|v - w\|_\infty$, proving that $M_A$ is a non-expansion.
 
-## Which Methods Interpolate? 
+## Which Function Approximators Interpolate vs Extrapolate?
 
 Let's look at specific examples, starting with k-nearest neighbors. For any state $s$, let $s_{(1)}, ..., s_{(k)}$ denote the k nearest training points to $s$. Then:
 
@@ -911,6 +911,7 @@ $$M_A(v)(3) = 3\theta_v = \frac{6}{14} \approx 0.43$$
 $$M_A(w)(3) = 3\theta_w = \frac{24}{14} \approx 1.71$$
 
 Therefore:
+
 $$|M_A(v)(3) - M_A(w)(3)| = \frac{18}{14} > 1 = \|v - w\|_\infty$$
 
 ### Spline Interpolation

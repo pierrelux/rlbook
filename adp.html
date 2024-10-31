@@ -445,7 +445,7 @@ document.write(`
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#does-parametric-dynamic-programming-converge">16. Does Parametric Dynamic Programming Converge?</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-search-for-nonexpansive-operators">16.1. The Search for Nonexpansive Operators</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gordon-s-averagers">16.2. Gordon’s Averagers</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#which-methods-interpolate">16.3. Which Methods Interpolate?</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#which-function-approximators-interpolate-vs-extrapolate">16.3. Which Function Approximators Interpolate vs Extrapolate?</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#linear-regression">16.3.1. Linear Regression</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#spline-interpolation">16.3.2. Spline Interpolation</a></li>
 </ul>
@@ -1237,8 +1237,8 @@ d(s) = \arg\max_{a \in \mathcal{A}(s)} q(s,a)
 \end{align*}\end{split}\]</div>
 <p>Since this holds for all <span class="math notranslate nohighlight">\(s\)</span>, we have <span class="math notranslate nohighlight">\(\|M_A(v) - M_A(w)\|_\infty \leq \|v - w\|_\infty\)</span>, proving that <span class="math notranslate nohighlight">\(M_A\)</span> is a non-expansion.</p>
 </section>
-<section id="which-methods-interpolate">
-<h2><span class="section-number">16.3. </span>Which Methods Interpolate?<a class="headerlink" href="#which-methods-interpolate" title="Link to this heading">#</a></h2>
+<section id="which-function-approximators-interpolate-vs-extrapolate">
+<h2><span class="section-number">16.3. </span>Which Function Approximators Interpolate vs Extrapolate?<a class="headerlink" href="#which-function-approximators-interpolate-vs-extrapolate" title="Link to this heading">#</a></h2>
 <p>Let’s look at specific examples, starting with k-nearest neighbors. For any state <span class="math notranslate nohighlight">\(s\)</span>, let <span class="math notranslate nohighlight">\(s_{(1)}, ..., s_{(k)}\)</span> denote the k nearest training points to <span class="math notranslate nohighlight">\(s\)</span>. Then:</p>
 <div class="math notranslate nohighlight">
 \[M_A(v)(s) = \frac{1}{k}\sum_{i=1}^k v(s_{(i)})\]</div>
@@ -1272,8 +1272,9 @@ d(s) = \arg\max_{a \in \mathcal{A}(s)} q(s,a)
 \[M_A(v)(3) = 3\theta_v = \frac{6}{14} \approx 0.43\]</div>
 <div class="math notranslate nohighlight">
 \[M_A(w)(3) = 3\theta_w = \frac{24}{14} \approx 1.71\]</div>
-<p>Therefore:
-$<span class="math notranslate nohighlight">\(|M_A(v)(3) - M_A(w)(3)| = \frac{18}{14} &gt; 1 = \|v - w\|_\infty\)</span>$</p>
+<p>Therefore:</p>
+<div class="math notranslate nohighlight">
+\[|M_A(v)(3) - M_A(w)(3)| = \frac{18}{14} &gt; 1 = \|v - w\|_\infty\]</div>
 </section>
 <section id="spline-interpolation">
 <h3><span class="section-number">16.3.2. </span>Spline Interpolation<a class="headerlink" href="#spline-interpolation" title="Link to this heading">#</a></h3>
@@ -1399,7 +1400,7 @@ $<span class="math notranslate nohighlight">\(|M_A(v)(3) - M_A(w)(3)| = \frac{18
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#does-parametric-dynamic-programming-converge">16. Does Parametric Dynamic Programming Converge?</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-search-for-nonexpansive-operators">16.1. The Search for Nonexpansive Operators</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gordon-s-averagers">16.2. Gordon’s Averagers</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#which-methods-interpolate">16.3. Which Methods Interpolate?</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#which-function-approximators-interpolate-vs-extrapolate">16.3. Which Function Approximators Interpolate vs Extrapolate?</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#linear-regression">16.3.1. Linear Regression</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#spline-interpolation">16.3.2. Spline Interpolation</a></li>
 </ul>
