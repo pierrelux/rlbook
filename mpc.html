@@ -190,8 +190,12 @@
 
 <li class="toctree-l1"><a class="reference internal" href="dp.html">11. Dynamic Programming</a></li>
 
+<li class="toctree-l1"><a class="reference internal" href="adp.html">13. Approximate Dynamic Programming</a></li>
 
-<li class="toctree-l1"><a class="reference internal" href="bibliography.html">14. Bibliography</a></li>
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">18. Bibliography</a></li>
 </ul>
 
     </div>
@@ -538,7 +542,7 @@ document.write(`
 </section>
 </div><section id="example-propofol-infusion-control">
 <h2><span class="section-number">8.1. </span>Example: Propofol Infusion Control<a class="headerlink" href="#example-propofol-infusion-control" title="Link to this heading">#</a></h2>
-<p>This problem explores the control of propofol infusion in total intravenous anesthesia (TIVA). Our presentation follows the problem formulation developped by <span id="id1">Sawaguchi <em>et al.</em> [<a class="reference internal" href="bibliography.html#id19" title="Y. Sawaguchi, E. Furutani, G. Shirakami, M. Araki, and K. Fukuda. A model-predictive hypnosis control system under total intravenous anesthesia. IEEE Transactions on Biomedical Engineering, 55(3):874–887, March 2008. URL: http://dx.doi.org/10.1109/tbme.2008.915670, doi:10.1109/tbme.2008.915670.">20</a>]</span>. The primary objective is to maintain the desired level of unconsciousness while minimizing adverse reactions and ensuring quick recovery after surgery.</p>
+<p>This problem explores the control of propofol infusion in total intravenous anesthesia (TIVA). Our presentation follows the problem formulation developped by <span id="id1">Sawaguchi <em>et al.</em> [<a class="reference internal" href="bibliography.html#id19" title="Y. Sawaguchi, E. Furutani, G. Shirakami, M. Araki, and K. Fukuda. A model-predictive hypnosis control system under total intravenous anesthesia. IEEE Transactions on Biomedical Engineering, 55(3):874–887, March 2008. URL: http://dx.doi.org/10.1109/tbme.2008.915670, doi:10.1109/tbme.2008.915670.">35</a>]</span>. The primary objective is to maintain the desired level of unconsciousness while minimizing adverse reactions and ensuring quick recovery after surgery.</p>
 <p>The level of unconsciousness is measured by the Bispectral Index (BIS), which is obtained using an electroencephalography (EEG) device. The BIS ranges from <span class="math notranslate nohighlight">\(0\)</span> (complete suppression of brain activity) to <span class="math notranslate nohighlight">\(100\)</span> (fully awake), with the target range for general anesthesia typically between <span class="math notranslate nohighlight">\(40\)</span> and <span class="math notranslate nohighlight">\(60\)</span>.</p>
 <p>The goal is to design a control system that regulates the infusion rate of propofol to maintain the BIS within the target range. This can be formulated as an optimal control problem:</p>
 <div class="math notranslate nohighlight">
@@ -706,11 +710,11 @@ First, there is a delay in how fast the drug can reach a different compartments 
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="_images/806a88844e657066be7f7ba6771aaecdc1e79da551ff3397a1ff739597c27bef.png" src="_images/806a88844e657066be7f7ba6771aaecdc1e79da551ff3397a1ff739597c27bef.png" />
+<img alt="_images/6a5159fba5551ded50f4198695e94877ccae81e8a5b2dd0e088c109ae26bfa85.png" src="_images/6a5159fba5551ded50f4198695e94877ccae81e8a5b2dd0e088c109ae26bfa85.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Initial BIS: 100.00
-Final BIS: 49.99
-Mean infusion rate: 8.86 mg/kg/h
-Final effect-site concentration: 3.40 µg/mL
+Final BIS: 50.15
+Mean infusion rate: 8.85 mg/kg/h
+Final effect-site concentration: 3.39 µg/mL
 </pre></div>
 </div>
 </div>
@@ -869,7 +873,7 @@ J_k^\star(\mathbf{x}_k) = \min_{\mathbf{u}_k} \left[ c_k(\mathbf{x}_k, \mathbf{u
 </div><p>Upon completion of this backward pass, we now have access to the optimal control to take at any stage and in any state. Furthermore, we can simulate optimal trajectories from any initial state and applying the optimal policy at each stage to generate the optimal trajectory.</p>
 <section id="example-optimal-harvest-in-resource-management">
 <h3><span class="section-number">9.3.1. </span>Example: Optimal Harvest in Resource Management<a class="headerlink" href="#example-optimal-harvest-in-resource-management" title="Link to this heading">#</a></h3>
-<p>Dynamic programming is often used in resource management and conservation biology to devise policies to be implemented by decision makers and stakeholders : for eg. in fishereries, or timber harvesting. Per <span id="id2">[<a class="reference internal" href="bibliography.html#id22" title="Michael J. Conroy and James T. Peterson. Decision Making in Natural Resource Management: A Structured, Adaptive Approach: A Structured, Adaptive Approach. Wiley, January 2013. ISBN 9781118506196. URL: http://dx.doi.org/10.1002/9781118506196, doi:10.1002/9781118506196.">5</a>]</span>, we consider a population of a particular species, whose abundance we denote by <span class="math notranslate nohighlight">\(x_t\)</span>, where <span class="math notranslate nohighlight">\(t\)</span> represents discrete time steps. Our objective is to maximize the cumulative harvest over a finite time horizon, while also considering the long-term sustainability of the population. This optimization problem can be formulated as:</p>
+<p>Dynamic programming is often used in resource management and conservation biology to devise policies to be implemented by decision makers and stakeholders : for eg. in fishereries, or timber harvesting. Per <span id="id2">[<a class="reference internal" href="bibliography.html#id22" title="Michael J. Conroy and James T. Peterson. Decision Making in Natural Resource Management: A Structured, Adaptive Approach: A Structured, Adaptive Approach. Wiley, January 2013. ISBN 9781118506196. URL: http://dx.doi.org/10.1002/9781118506196, doi:10.1002/9781118506196.">6</a>]</span>, we consider a population of a particular species, whose abundance we denote by <span class="math notranslate nohighlight">\(x_t\)</span>, where <span class="math notranslate nohighlight">\(t\)</span> represents discrete time steps. Our objective is to maximize the cumulative harvest over a finite time horizon, while also considering the long-term sustainability of the population. This optimization problem can be formulated as:</p>
 <div class="math notranslate nohighlight">
 \[
 \text{maximize} \quad \sum_{t=t_0}^{t_f} F(x_t \cdot h_t) + F_\mathrm{T}(x_{t_f})
@@ -1584,7 +1588,7 @@ By tuning the weight $r$ and the sampling time $T_s$, we can balance the trade-o
 <p>These two elements essentially distill the key ingredients of machine learning, which is the direction we’ll be exploring in this course.</p>
 <section id="example-stochastic-optimal-harvest-in-resource-management">
 <h2><span class="section-number">10.1. </span>Example: Stochastic Optimal Harvest in Resource Management<a class="headerlink" href="#example-stochastic-optimal-harvest-in-resource-management" title="Link to this heading">#</a></h2>
-<p>Building upon our previous deterministic model, we now introduce stochasticity to more accurately reflect the uncertainties inherent in real-world resource management scenarios <span id="id3">[<a class="reference internal" href="bibliography.html#id22" title="Michael J. Conroy and James T. Peterson. Decision Making in Natural Resource Management: A Structured, Adaptive Approach: A Structured, Adaptive Approach. Wiley, January 2013. ISBN 9781118506196. URL: http://dx.doi.org/10.1002/9781118506196, doi:10.1002/9781118506196.">5</a>]</span>. As before, we consider a population of a particular species, whose abundance we denote by <span class="math notranslate nohighlight">\(x_t\)</span>, where <span class="math notranslate nohighlight">\(t\)</span> represents discrete time steps. Our objective remains to maximize the cumulative harvest over a finite time horizon, while also considering the long-term sustainability of the population. However, we now account for two sources of stochasticity: partial controllability of harvest and environmental variability affecting growth rates.
+<p>Building upon our previous deterministic model, we now introduce stochasticity to more accurately reflect the uncertainties inherent in real-world resource management scenarios <span id="id3">[<a class="reference internal" href="bibliography.html#id22" title="Michael J. Conroy and James T. Peterson. Decision Making in Natural Resource Management: A Structured, Adaptive Approach: A Structured, Adaptive Approach. Wiley, January 2013. ISBN 9781118506196. URL: http://dx.doi.org/10.1002/9781118506196, doi:10.1002/9781118506196.">6</a>]</span>. As before, we consider a population of a particular species, whose abundance we denote by <span class="math notranslate nohighlight">\(x_t\)</span>, where <span class="math notranslate nohighlight">\(t\)</span> represents discrete time steps. Our objective remains to maximize the cumulative harvest over a finite time horizon, while also considering the long-term sustainability of the population. However, we now account for two sources of stochasticity: partial controllability of harvest and environmental variability affecting growth rates.
 The optimization problem can be formulated as:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1799,16 +1803,16 @@ J^\star(x_t, t) = \max_{d(t) \in D} \mathbb{E}\left[F(x_t \cdot h_t) + J^\star(x
   0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.4 0.4 0.4 0.4 0.4 0.4
   0.4 0.4 0.4 0.4 0.4 0.4 0.4 0.4 0.4 0.4]]
 
-Average population trajectory: [50.         59.252      63.14104836 62.52825335 62.72931253 62.58509141
- 62.88956183 62.41909871 63.07312247 62.31523088 62.48036224 62.78667647
- 62.63632295 62.66425369 62.68670878 62.50423522 62.50074621 62.24369613
- 62.35688722 62.48138571 62.66578416 62.46514032 62.47615914 62.95745426
- 62.19204287 62.2511294  61.74852817 41.11499932 29.39653054 21.57060717
- 16.12783862]
-Average total harvest: 313.91912640714315
+Average population trajectory: [50.         59.315      62.94048937 61.90914431 62.43216059 62.34157331
+ 62.0279239  62.43915054 62.59137793 62.21033809 62.53832206 62.38285175
+ 63.0172023  61.98491334 62.5813778  62.86021693 62.41101984 62.27394971
+ 62.27832558 62.43808958 62.43462378 62.03353817 62.54288534 62.95920665
+ 62.40391484 62.59564478 61.54627682 42.44765235 29.32405403 21.80532951
+ 16.32574401]
+Average total harvest: 312.58350302825596
 </pre></div>
 </div>
-<img alt="_images/093d1b9cf34c3de1717292a23e9d6240c5802ad5d1eff7b7f90af0643afb49c5.png" src="_images/093d1b9cf34c3de1717292a23e9d6240c5802ad5d1eff7b7f90af0643afb49c5.png" />
+<img alt="_images/7daab0768f0b8ca6a874d1212099624e601939a125a985747d7ff483a8dc258a.png" src="_images/7daab0768f0b8ca6a874d1212099624e601939a125a985747d7ff483a8dc258a.png" />
 </div>
 </div>
 </section>
