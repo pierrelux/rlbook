@@ -59,3 +59,6 @@ parse:
     - amsmath
     - deflist
     - colon_fence
+
+exclude_patterns:
+  - README.md

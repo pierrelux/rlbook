@@ -958,7 +958,7 @@ $$
 \frac{\partial L(\mathbf{x}^*, \mathbf{u}^*, \boldsymbol{\lambda}^*)}{\partial \boldsymbol{\lambda}^*_{t+1}} = \mathbf{f}_t(\mathbf{x}^*_t, \mathbf{u}^*_t) - \mathbf{x}^*_{t+1} = 0.
 $$
 
-## Hamiltonian Formulation
+<!-- ## Hamiltonian Formulation
 
 The first-order optimality condition for the Bolza problem obtained above can be expressed using the so-called Hamiltonian function:
 
@@ -975,4 +975,4 @@ where the adjoint variables (costate vectors) \(\boldsymbol{\lambda}_t^*\) are c
 
 $$
 \boldsymbol{\lambda}_t^* = \frac{\partial H_t(\mathbf{x}_t^*, \mathbf{u}_t^*, \boldsymbol{\lambda}_{t+1}^*)}{\partial \mathbf{x}_t}, \quad t = 1, \ldots, T-1, \quad \boldsymbol{\lambda}_T^* = \frac{\partial c_T(\mathbf{x}_T^*)}{\partial \mathbf{x}_T}.
-$$
+$$ -->
