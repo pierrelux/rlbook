@@ -367,12 +367,15 @@ document.write(`
    <a href="#cap-backward-policy-evaluation"><strong>backward-policy-evaluation</strong></a> | 
    <a href="#cap-backward-recursion"><strong>backward-recursion</strong></a> | 
    <a href="#cap-backward-recursion-interpolation"><strong>backward-recursion-interpolation</strong></a> | 
+   <a href="#cap-basic-q-iteration"><strong>basic-q-iteration</strong></a> | 
    <a href="#cap-bolza-docp"><strong>bolza-docp</strong></a> | 
    <a href="#cap-definition-3"><strong>definition-3</strong></a> | 
    <a href="#cap-definition-4"><strong>definition-4</strong></a> | 
    <a href="#cap-definition-5"><strong>definition-5</strong></a> | 
    <a href="#cap-definition-6"><strong>definition-6</strong></a> | 
    <a href="#cap-definition-7"><strong>definition-7</strong></a> | 
+   <a href="#cap-dqn-hard-resets"><strong>dqn-hard-resets</strong></a> | 
+   <a href="#cap-dqn-soft-resets"><strong>dqn-soft-resets</strong></a> | 
    <a href="#cap-early-stopping-fqi"><strong>early-stopping-fqi</strong></a> | 
    <a href="#cap-euler-method"><strong>euler-method</strong></a> | 
    <a href="#cap-extra-trees-fqi"><strong>extra-trees-fqi</strong></a> | 
@@ -387,7 +390,12 @@ document.write(`
    <a href="#cap-naive-single-shooting"><strong>naive-single-shooting</strong></a> | 
    <a href="#cap-neural-fitted-q-iteration"><strong>neural-fitted-q-iteration</strong></a> | 
    <a href="#cap-nfqca"><strong>nfqca</strong></a> | 
+   <a href="#cap-nfqi-flattened-ema"><strong>nfqi-flattened-ema</strong></a> | 
+   <a href="#cap-nfqi-flattened-swap"><strong>nfqi-flattened-swap</strong></a> | 
+   <a href="#cap-nfqi-warmstart-partial"><strong>nfqi-warmstart-partial</strong></a> | 
    <a href="#cap-nk-bellman"><strong>nk-bellman</strong></a> | 
+   <a href="#cap-online-nfqi-flattened"><strong>online-nfqi-flattened</strong></a> | 
+   <a href="#cap-online-nfqi-replay"><strong>online-nfqi-replay</strong></a> | 
    <a href="#cap-parametric-policy-iteration"><strong>parametric-policy-iteration</strong></a> | 
    <a href="#cap-parametric-q-value-iteration"><strong>parametric-q-value-iteration</strong></a> | 
    <a href="#cap-parametric-value-iteration"><strong>parametric-value-iteration</strong></a> | 
@@ -395,6 +403,7 @@ document.write(`
    <a href="#cap-proj-grad-descent-bound-constraints"><strong>proj-grad-descent-bound-constraints</strong></a> | 
    <a href="#cap-prop-5-3-1"><strong>prop-5-3-1</strong></a> | 
    <a href="#cap-proposition-4"><strong>proposition-4</strong></a> | 
+   <a href="#cap-q-iteration-inner-loop"><strong>q-iteration-inner-loop</strong></a> | 
    <a href="#cap-sac"><strong>sac</strong></a> | 
    <a href="#cap-shooting-trajectory-storage"><strong>shooting-trajectory-storage</strong></a> | 
    <a href="#cap-stochastic-backward-recursion"><strong>stochastic-backward-recursion</strong></a> | 
@@ -494,6 +503,14 @@ document.write(`
        <a href="mpc.html#backward-recursion-interpolation"><code class="xref">backward-recursion-interpolation</code></a> <em>(mpc)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
+     <tr class="cap" id="cap-basic-q-iteration"><td></td><td>
+       <strong>basic-q-iteration</strong></td><td></td></tr>
+     <tr>
+       <td></td>
+       <td>
+       <a href="adp.html#basic-q-iteration"><code class="xref">basic-q-iteration</code></a> <em>(adp)</em></td><td>
+       <em>algorithm</em></td></tr>
+     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-bolza-docp"><td></td><td>
        <strong>bolza-docp</strong></td><td></td></tr>
      <tr>
@@ -541,6 +558,22 @@ document.write(`
        <td>
        <a href="ocp.html#definition-7"><code class="xref">definition-7</code></a> <em>(ocp)</em></td><td>
        <em>definition</em></td></tr>
+     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
+     <tr class="cap" id="cap-dqn-hard-resets"><td></td><td>
+       <strong>dqn-hard-resets</strong></td><td></td></tr>
+     <tr>
+       <td></td>
+       <td>
+       <a href="adp.html#dqn-hard-resets"><code class="xref">dqn-hard-resets</code></a> <em>(adp)</em></td><td>
+       <em>algorithm</em></td></tr>
+     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
+     <tr class="cap" id="cap-dqn-soft-resets"><td></td><td>
+       <strong>dqn-soft-resets</strong></td><td></td></tr>
+     <tr>
+       <td></td>
+       <td>
+       <a href="adp.html#dqn-soft-resets"><code class="xref">dqn-soft-resets</code></a> <em>(adp)</em></td><td>
+       <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-early-stopping-fqi"><td></td><td>
        <strong>early-stopping-fqi</strong></td><td></td></tr>
@@ -654,12 +687,52 @@ document.write(`
        <a href="adp.html#nfqca"><code class="xref">nfqca</code></a> <em>(adp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
+     <tr class="cap" id="cap-nfqi-flattened-ema"><td></td><td>
+       <strong>nfqi-flattened-ema</strong></td><td></td></tr>
+     <tr>
+       <td></td>
+       <td>
+       <a href="adp.html#nfqi-flattened-ema"><code class="xref">nfqi-flattened-ema</code></a> <em>(adp)</em></td><td>
+       <em>algorithm</em></td></tr>
+     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
+     <tr class="cap" id="cap-nfqi-flattened-swap"><td></td><td>
+       <strong>nfqi-flattened-swap</strong></td><td></td></tr>
+     <tr>
+       <td></td>
+       <td>
+       <a href="adp.html#nfqi-flattened-swap"><code class="xref">nfqi-flattened-swap</code></a> <em>(adp)</em></td><td>
+       <em>algorithm</em></td></tr>
+     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
+     <tr class="cap" id="cap-nfqi-warmstart-partial"><td></td><td>
+       <strong>nfqi-warmstart-partial</strong></td><td></td></tr>
+     <tr>
+       <td></td>
+       <td>
+       <a href="adp.html#nfqi-warmstart-partial"><code class="xref">nfqi-warmstart-partial</code></a> <em>(adp)</em></td><td>
+       <em>algorithm</em></td></tr>
+     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-nk-bellman"><td></td><td>
        <strong>nk-bellman</strong></td><td></td></tr>
      <tr>
        <td></td>
        <td>
        <a href="dp.html#nk-bellman"><code class="xref">nk-bellman</code></a> <em>(dp)</em></td><td>
+       <em>algorithm</em></td></tr>
+     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
+     <tr class="cap" id="cap-online-nfqi-flattened"><td></td><td>
+       <strong>online-nfqi-flattened</strong></td><td></td></tr>
+     <tr>
+       <td></td>
+       <td>
+       <a href="adp.html#online-nfqi-flattened"><code class="xref">online-nfqi-flattened</code></a> <em>(adp)</em></td><td>
+       <em>algorithm</em></td></tr>
+     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
+     <tr class="cap" id="cap-online-nfqi-replay"><td></td><td>
+       <strong>online-nfqi-replay</strong></td><td></td></tr>
+     <tr>
+       <td></td>
+       <td>
+       <a href="adp.html#online-nfqi-replay"><code class="xref">online-nfqi-replay</code></a> <em>(adp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-parametric-policy-iteration"><td></td><td>
@@ -717,6 +790,14 @@ document.write(`
        <td>
        <a href="dp.html#proposition-4"><code class="xref">proposition-4</code></a> <em>(dp)</em></td><td>
        <em>proposition</em></td></tr>
+     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
+     <tr class="cap" id="cap-q-iteration-inner-loop"><td></td><td>
+       <strong>q-iteration-inner-loop</strong></td><td></td></tr>
+     <tr>
+       <td></td>
+       <td>
+       <a href="adp.html#q-iteration-inner-loop"><code class="xref">q-iteration-inner-loop</code></a> <em>(adp)</em></td><td>
+       <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-sac"><td></td><td>
        <strong>sac</strong></td><td></td></tr>

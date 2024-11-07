@@ -731,7 +731,7 @@ Here's how warmstarting can be incorporated into parametric Q-learning with one-
 
 The main addition here is the periodic reset of parameters (controlled by frequency $k$) which helps balance the benefits of warmstarting with the need to avoid potential overfitting. When $k=\infty$, we get traditional persistent warmstarting, while $k=1$ corresponds to training from scratch each iteration.
 
-# Inner Optimization: Fit to Convergence or Not?
+## Inner Optimization: Fit to Convergence or Not?
 
 Beyond the choice of initialization and whether to chain optimization problems through warmstarting, we can also control how we terminate the inner optimization procedure. In the templates presented above, we implicitly assumed that $\texttt{fit}$ is run to convergence. However, this need not be the case, and different implementations handle this differently.
 
@@ -771,9 +771,81 @@ This perspective helps us understand modern deep reinforcement learning algorith
 ```
 This formulation makes explicit the two-level optimization structure and allows us to control the trade-off between inner loop optimization accuracy and overall computational efficiency. When $N_{inner}=1$, we recover something closer to DQN's update rule, while larger values of $N_{inner}$ bring us closer to the full fitted Q-iteration approach.
 
+# Example Methods
+
+There are several moving parts we can swap in and out when working with parametric dynamic programming - from the function approximator we choose, to how we warm start things, to the specific methods we use for numerical integration and inner optimization. In this section, we'll look at some concrete examples and see how they fit into this general framework.
+
+## Kernel-Based Reinforcement Learning (2002)
+
+Ormoneit and Sen's Kernel-Based Reinforcement Learning (KBRL) {cite}`Ormoneit2002` helped establish the general paradigm of batch reinforcement learning later advocated by {cite}`ErnstGW05`. KBRL is a purely offline method that first collects a fixed set of transitions and then uses kernel regression to solve the optimal control problem through value iteration on this dataset. While the dominant approaches at the time were online methods like temporal difference, KBRL showed that another path to developping reinforcement learning algorithm was possible: one that capable of leveraging advances in supervised learning to provide both theoretical and practical benefits. 
+
+As the name suggests, KBRL uses kernel based regression within the general framework of outlined above. 
+
+```{prf:algorithm} Kernel-Based Q-Value Iteration
+:label: kernel-based-q-iteration
+
+**Input** Given an MDP $(S, A, P, R, \gamma)$, dataset $\mathcal{D}$ with observed transitions $(s, a, r, s')$, kernel bandwidth $b$, maximum iterations $N$, tolerance $\varepsilon > 0$
+
+**Output** Kernel-based Q-function approximation
+
+1. Initialize $\hat{Q}_0$ to zero everywhere
+2. $n \leftarrow 0$
+3. **repeat**
+    1. $\mathcal{D} \leftarrow \emptyset$
+    2. For each $(s, a, r, s') \in \mathcal{D}$:
+        1. $y_{s,a} \leftarrow r + \gamma \max_{a' \in A} \hat{Q}_n(s', a')$
+        2. $\mathcal{D} \leftarrow \mathcal{D} \cup \{((s,a), y_{s,a})\}$
+    3. $\hat{Q}_{n+1}(s,a) \leftarrow \sum_{(s_i,a_i,r_i,s_i') \in \mathcal{D}} k_b(s_i, s)\mathbb{1}[a_i=a] y_{s_i,a_i} / \sum_{(s_i,a_i,r_i,s_i') \in \mathcal{D}} k_b(s_i, s)\mathbb{1}[a_i=a]$
+    4. $\delta \leftarrow \frac{1}{|\mathcal{D}|}\sum_{(s,a,r,s') \in \mathcal{D}} (\hat{Q}_{n+1}(s,a) - \hat{Q}_n(s,a))^2$
+    5. $n \leftarrow n + 1$
+4. **until** ($\delta < \varepsilon$ or $n \geq N$)
+5. **return** $\hat{Q}_n$
+```
+Step 3 is where KBRL uses kernel regression with a normalized weighting kernel:
+
+$$k_b(x^l_t, x) = \frac{\phi(\|x^l_t - x\|/b)}{\sum_{l'} \phi(\|x^l_{t'} - x\|/b)}$$
+
+where $\phi$ is a kernel function (often Gaussian) and $b$ is the bandwidth parameter. Each iteration reuses the entire fixed dataset to re-estimate Q-values through this kernel regression.
+
+An important theoretical contribution of KBRL is showing that this kernel-based approach ensures convergence of the Q-function sequence. The authors prove that, with appropriate choice of kernel bandwidth decreasing with sample size, the method is consistent - the estimated Q-function converges to the true Q-function as the number of samples grows.
+
+The main practical limitation of KBRL is computational - being a batch method, it requires storing and using all transitions at each iteration, leading to quadratic complexity in the number of samples. The authors acknowledge this limitation for online settings, suggesting that modifications like discarding old samples or summarizing data clusters would be needed for online applications. Ernst's later work with tree-based methods would help address this limitation while maintaining many of the theoretical advantages of the batch approach.
+
+## Ernst's Fitted Q Iteration (2005)
+
+Ernst's {cite}`ErnstGW05` specific instantiation of parametric q-value iteration uses extremely randomized trees, an extension to random forests proposed by  {cite:t}`Geurts2006`. This algorithm became particularly well-known, partly because it was one of the first to demonstrate the advantages of offline reinforcement learning in practice on several challenging benchmarks at the time. 
+
+Random Forests and Extra-Trees differ primarily in how they construct individual trees. Random Forests creates diversity in two ways: it resamples the training data (bootstrap) for each tree, and at each node it randomly selects a subset of features but then searches exhaustively for the best cut-point within each selected feature. In contrast, Extra-Trees uses the full training set for each tree and injects randomization differently: at each node, it not only randomly selects features but also randomly selects the cut-points without searching for the optimal one. It then picks the best among these completely random splits according to a variance reduction criterion. This double randomization - in both feature and cut-point selection - combined with using the full dataset makes Extra-Trees faster than Random Forests while maintaining similar predictive accuracy.
+
+An important implementation detail concerns how tree structures can be reused across iterations of fitted Q iteration. With parametric methods like neural networks, warmstarting is straightforward - you simply initialize the weights with values from the previous iteration. For decision trees, the situation is more subtle because the model structure is determined by how splits are chosen at each node. When the number of candidate splits per node is $K=1$ (totally randomized trees), the algorithm selects both the splitting variable and threshold purely at random, without looking at the target values (the Q-values we're trying to predict) to evaluate the quality of the split. This means the tree structure only depends on the input variables and random choices, not on what we're predicting. As a result, we can build the trees once in the first iteration and reuse their structure throughout all iterations, only updating the prediction values at the leaves.
+
+Standard Extra-Trees ($K>1$), however, uses target values to choose the best among K random splits by calculating which split best reduces the variance of the predictions. Since these target values change in each iteration of fitted Q iteration (as our estimate of Q evolves), we must rebuild the trees completely. While this is computationally more expensive, it allows the trees to better adapt their structure to capture the evolving Q-function.
+
+The complete algorithm can be formalized as follows:
+
+```{prf:algorithm} Extra-Trees Fitted Q Iteration
+:label: extra-trees-fqi
+
+**Input** Given an MDP $(S, A, P, R, \gamma)$, dataset $\mathcal{D}$ with observed transitions $(s, a, r, s')$, Extra-Trees parameters $(K, n_{min}, M)$, maximum iterations $N$, tolerance $\varepsilon > 0$
+
+**Output** Extra-Trees model for Q-function approximation
+
+1. Initialize $\hat{Q}_0$ to zero everywhere
+2. $n \leftarrow 0$
+3. **repeat**
+    1. $\mathcal{D} \leftarrow \emptyset$
+    2. For each $(s, a, r, s') \in \mathcal{D}$:
+        1. $y_{s,a} \leftarrow r + \gamma \max_{a' \in A} \hat{Q}_n(s', a')$
+        2. $\mathcal{D} \leftarrow \mathcal{D} \cup \{((s,a), y_{s,a})\}$
+    3. $\hat{Q}_{n+1} \leftarrow \text{BuildExtraTrees}(\mathcal{D}, K, n_{min}, M)$
+    4. $\delta \leftarrow \frac{1}{|\mathcal{D}|}\sum_{(s,a,r,s') \in \mathcal{D}} (\hat{Q}_{n+1}(s,a) - \hat{Q}_n(s,a))^2$
+    5. $n \leftarrow n + 1$
+4. **until** ($\delta < \varepsilon$ or $n \geq N$)
+5. **return** $\hat{Q}_n$
+```
 ## Neural Fitted Q Iteration (2005)
 
-Following our earlier discussion of Monte Carlo integration for value functions, Riedmiller's Neural Fitted Q Iteration (NFQI) {cite}`Riedmiller05` emerges as a natural instantiation of parametric Q-value iteration where:
+Riedmiller's Neural Fitted Q Iteration (NFQI) {cite}`Riedmiller05` is a natural instantiation of parametric Q-value iteration where:
 
 1. The function approximator $q(s,a; \boldsymbol{\theta})$ is a multi-layer perceptron
 2. The $\texttt{fit}$ function uses Rprop optimization trained to convergence on each iteration's pattern set
@@ -812,208 +884,286 @@ The algorithm follows from the parametric Q-value iteration template:
 
 While NFQI was originally introduced as an offline method with base points collected a priori, the authors also present a variant where base points are collected incrementally. In this online variant, new transitions are gathered using the current policy (greedy with respect to $Q_k$) and added to the experience set. This approach proves particularly useful when random exploration cannot efficiently collect representative experiences.
 
-## Ernst's Fitted Q Iteration (2005)
+## Deep Q Networks (2013)
 
-Ernst's {cite}`ErnstGW05` specific instantiation of parametric q-value iteration uses extremely randomized trees, an extension to random forests proposed by  {cite:t}`Geurts2006`. This algorithm became particularly well-known, partly because it was one of the first to demonstrate the advantages of offline reinforcement learning. Published around the same time as Neural Fitted Q Iteration (NFQ), it reflects a period when researchers began seriously exploring how to leverage supervised learning advances in RL.
+DQN {cite}`mnih2013atari` is a close relative of NFQI - in fact, Riedmiller, the author of NFQI, was also an author on the DQN paper. What at first glance might look like a different algorithm can actually be understood as a special case of parametric dynamic programming with practical adaptations. Let's build this connection step by step.
 
-Random Forests and Extra-Trees differ primarily in how they construct individual trees. Random Forests creates diversity in two ways: it resamples the training data (bootstrap) for each tree, and at each node it randomly selects a subset of features but then searches exhaustively for the best cut-point within each selected feature. In contrast, Extra-Trees uses the full training set for each tree and injects randomization differently: at each node, it not only randomly selects features but also randomly selects the cut-points without searching for the optimal one. It then picks the best among these completely random splits according to a variance reduction criterion. This double randomization - in both feature and cut-point selection - combined with using the full dataset makes Extra-Trees about four times faster than Random Forests while maintaining similar predictive accuracy.
+First, let's start with basic parametric Q-value iteration using a neural network:
 
-An important implementation detail concerns how tree structures can be reused across iterations of fitted Q iteration. With parametric methods like neural networks, warmstarting is straightforward - you simply initialize the weights with values from the previous iteration. For decision trees, the situation is more subtle because the model structure is determined by how splits are chosen at each node.
+```{prf:algorithm} Basic Offline Neural Fitted Q-Value Iteration
+:label: basic-q-iteration
 
-When the number of candidate splits per node is $K=1$ (totally randomized trees), the algorithm selects both the splitting variable and threshold purely at random, without looking at the target values (the Q-values we're trying to predict) to evaluate the quality of the split. This means the tree structure only depends on the input variables and random choices, not on what we're predicting. As a result, we can build the trees once in the first iteration and reuse their structure throughout all iterations, only updating the prediction values at the leaves.
+**Input** Given an MDP $(S, A, P, R, \gamma)$, dataset of transitions $\mathcal{T}$, neural network $q(s,a; \boldsymbol{\theta})$, maximum iterations $N$, tolerance $\varepsilon > 0$, initialization $\boldsymbol{\theta}_0$
 
-Standard Extra-Trees ($K>1$), however, uses target values to choose the best among K random splits by calculating which split best reduces the variance of the predictions. Since these target values change in each iteration of fitted Q iteration (as our estimate of Q evolves), we must rebuild the trees completely. While this is computationally more expensive, it allows the trees to better adapt their structure to capture the evolving Q-function.
+**Output** Parameters $\boldsymbol{\theta}$ for Q-function approximation
 
-The complete algorithm can be formalized as follows:
-
-```{prf:algorithm} Extra-Trees Fitted Q Iteration
-:label: extra-trees-fqi
-
-**Input** Given an MDP $(S, A, P, R, \gamma)$, dataset $\mathcal{D}$ with observed transitions $(s, a, r, s')$, Extra-Trees parameters $(K, n_{min}, M)$, maximum iterations $N$, tolerance $\varepsilon > 0$
-
-**Output** Extra-Trees model for Q-function approximation
-
-1. Initialize $\hat{Q}_0$ to zero everywhere
+1. Initialize $\boldsymbol{\theta}_0$ randomly
 2. $n \leftarrow 0$
 3. **repeat**
-    1. $\mathcal{D} \leftarrow \emptyset$
-    2. For each $(s, a, r, s') \in \mathcal{D}$:
-        1. $y_{s,a} \leftarrow r + \gamma \max_{a' \in A} \hat{Q}_n(s', a')$
-        2. $\mathcal{D} \leftarrow \mathcal{D} \cup \{((s,a), y_{s,a})\}$
-    3. $\hat{Q}_{n+1} \leftarrow \text{BuildExtraTrees}(\mathcal{D}, K, n_{min}, M)$
-    4. $\delta \leftarrow \frac{1}{|\mathcal{D}|}\sum_{(s,a,r,s') \in \mathcal{D}} (\hat{Q}_{n+1}(s,a) - \hat{Q}_n(s,a))^2$
-    5. $n \leftarrow n + 1$
-4. **until** ($\delta < \varepsilon$ or $n \geq N$)
-5. **return** $\hat{Q}_n$
+    1. $\mathcal{D}_n \leftarrow \emptyset$  // Regression dataset
+    2. For each $(s,a,r,s') \in \mathcal{T}$:
+        1. $y_{s,a} \leftarrow r + \gamma \max_{a' \in A} q(s',a'; \boldsymbol{\theta}_n)$
+        2. $\mathcal{D}_n \leftarrow \mathcal{D}_n \cup \{((s,a), y_{s,a})\}$
+    3. $\boldsymbol{\theta}_{n+1} \leftarrow \texttt{fit}(\mathcal{D}_n, \boldsymbol{\theta}_0)$ // Fit neural network using built-in convergence criterion 
+    4. $n \leftarrow n + 1$
+4. **until** training complete
+5. **return** $\boldsymbol{\theta}_n$
 ```
- 
-## Kernel-Based Reinforcement Learning (2002)
+Next, let's open up the `fit` procedure to show the inner optimization loop using gradient descent:
 
-Ormoneit and Sen's Kernel-Based Reinforcement Learning (KBRL) {cite}`Ormoneit2002` helped establish the general paradigm of batch reinforcement learning later advocated by Ernst. KBRL is a purely offline method that first collects a fixed set of transitions and then uses kernel regression to solve the optimal control problem through value iteration on this dataset. While the dominant approaches at the time were online methods like temporal difference learning with parametric function approximation, KBRL showed how transforming RL into a sequence of supervised learning problems could provide theoretical guarantees about convergence and consistency that were lacking in parametric approaches.
+```{prf:algorithm} Fitted Q-Value Iteration with Explicit Inner Loop
+:label: q-iteration-inner-loop
 
-The algorithm follows the general parametric Q-value iteration template:
+**Input** Given MDP $(S, A, P, R, \gamma)$, dataset of transitions $\mathcal{T}$, neural network $q(s,a; \boldsymbol{\theta})$, learning rate $\alpha$, convergence test $\texttt{has_converged}(\cdot)$, initialization $\boldsymbol{\theta}_0$, regression loss function $\mathcal{L}$
 
-```{prf:algorithm} Kernel-Based Q-Value Iteration
-:label: kernel-based-q-iteration
+**Output** Parameters $\boldsymbol{\theta}$ for Q-function approximation
 
-**Input** Given an MDP $(S, A, P, R, \gamma)$, dataset $\mathcal{D}$ with observed transitions $(s, a, r, s')$, kernel bandwidth $b$, maximum iterations $N$, tolerance $\varepsilon > 0$
-
-**Output** Kernel-based Q-function approximation
-
-1. Initialize $\hat{Q}_0$ to zero everywhere
-2. $n \leftarrow 0$
+1. Initialize $\boldsymbol{\theta}_0$ randomly
+2. $n \leftarrow 0$  // Outer iteration index
 3. **repeat**
-    1. $\mathcal{D} \leftarrow \emptyset$
-    2. For each $(s, a, r, s') \in \mathcal{D}$:
-        1. $y_{s,a} \leftarrow r + \gamma \max_{a' \in A} \hat{Q}_n(s', a')$
-        2. $\mathcal{D} \leftarrow \mathcal{D} \cup \{((s,a), y_{s,a})\}$
-    3. $\hat{Q}_{n+1}(s,a) \leftarrow \sum_{(s_i,a_i,r_i,s_i') \in \mathcal{D}} k_b(s_i, s)\mathbb{1}[a_i=a] y_{s_i,a_i} / \sum_{(s_i,a_i,r_i,s_i') \in \mathcal{D}} k_b(s_i, s)\mathbb{1}[a_i=a]$
-    4. $\delta \leftarrow \frac{1}{|\mathcal{D}|}\sum_{(s,a,r,s') \in \mathcal{D}} (\hat{Q}_{n+1}(s,a) - \hat{Q}_n(s,a))^2$
-    5. $n \leftarrow n + 1$
-4. **until** ($\delta < \varepsilon$ or $n \geq N$)
-5. **return** $\hat{Q}_n$
+    1. $\mathcal{D}_n \leftarrow \emptyset$  // Regression dataset
+    2. For each $(s,a,r,s') \in \mathcal{T}$:
+        1. $y_{s,a} \leftarrow r + \gamma \max_{a' \in A} q(s',a'; \boldsymbol{\theta}_n)$
+        2. $\mathcal{D}_n \leftarrow \mathcal{D}_n \cup \{((s,a), y_{s,a})\}$
+    3. // Inner optimization loop
+    4. $\boldsymbol{\theta}^{(0)} \leftarrow \boldsymbol{\theta}_0$  // Start from initial parameters
+    5. $k \leftarrow 0$  // Inner iteration index
+    6. **repeat**
+        1. $\boldsymbol{\theta}^{(k+1)} \leftarrow \boldsymbol{\theta}^{(k)} - \alpha \nabla_{\boldsymbol{\theta}} \mathcal{L}(\boldsymbol{\theta}^{(k)}; \mathcal{D}_n)$
+        2. $k \leftarrow k + 1$
+    7. **until** $\texttt{has_converged}(\boldsymbol{\theta}^{(0)}, ..., \boldsymbol{\theta}^{(k)}, \mathcal{D}_n)$
+    8. $\boldsymbol{\theta}_{n+1} \leftarrow \boldsymbol{\theta}^{(k)}$
+    9. $n \leftarrow n + 1$
+4. **until** training complete
+5. **return** $\boldsymbol{\theta}_n$
 ```
-The key distinction from other instantiations lies in step 3, where KBRL uses kernel regression with a normalized weighting kernel:
 
-$$k_b(x^l_t, x) = \frac{\phi(\|x^l_t - x\|/b)}{\sum_{l'} \phi(\|x^l_{t'} - x\|/b)}$$
-
-where $\phi$ is a kernel function (often Gaussian) and $b$ is the bandwidth parameter. Each iteration reuses the entire fixed dataset to re-estimate Q-values through this kernel regression.
-
-An important theoretical contribution of KBRL is showing that this kernel-based approach ensures convergence of the Q-function sequence, unlike parametric methods which might diverge. The authors prove that, with appropriate choice of kernel bandwidth decreasing with sample size, the method is consistent - the estimated Q-function converges to the true Q-function as the number of samples grows.
-
-The main practical limitation of KBRL is computational - being a batch method, it requires storing and using all transitions at each iteration, leading to quadratic complexity in the number of samples. The authors acknowledge this limitation for online settings, suggesting that modifications like discarding old samples or summarizing data clusters would be needed for online applications. Ernst's later work with tree-based methods would help address this limitation while maintaining many of the theoretical advantages of the batch approach.
-
-# Does Parametric Dynamic Programming Converge?
-
-So far we have avoided the discussion of convergence and focused on intuitive algorithm development, showing how we can extend successive approximation by computing only a few operator evaluations which then get generalized over the entire domain at each step of the value iteration procedure. Now we turn our attention to understanding the conditions under which this general idea can be shown to converge.
-
-A crucial question to ask is whether our algorithm maintains the contraction property that made value iteration so appealing in the first place - the property that allowed us to show convergence to a unique fixed point. We must be careful here because the contraction mapping theorem is specific to a given norm. In the case of value iteration, we showed the Bellman optimality operator is a contraction in the sup-norm, which aligns naturally with how we compare policies based on their value functions.
-
-The situation becomes more complicated with fitted methods because we are not dealing with just a single operator. At each iteration, we perform exact, unbiased pointwise evaluations of the Bellman operator, but instead of obtaining the next function exactly, we get the closest representable one under our chosen function approximation scheme. A key insight from {cite:t}`Gordon1995` is that the fitting step can be conceptualized as an additional operator that gets applied on top of the exact Bellman operator to produce the next function parameters. This leads to viewing fitted value methods - which for simplicity we describe only for the value case, though the Q-value setting follows similarly - as the composition of two operators:
-
-$$v_{n+1} = \Gamma(\mathrm{L}(v_n))$$
-
-where $\mathrm{L}$ is the Bellman operator and $\Gamma$ represents the function approximation mapping.
-
-Now we arrive at the central question: if $\mathrm{L}$ was a sup-norm contraction, is $\Gamma$ composed with $\mathrm{L}$ still a sup-norm contraction? What conditions must hold for this to be true? This question is fundamental because if we can establish that the composition of these two operators maintains the contraction property in the sup-norm, we get directly that our resulting successive approximation method will converge.
-
-## The Search for Nonexpansive Operators
-
-Consider what happens in the fitting step: we have two value functions $v$ and $w$, and after applying the Bellman operator $\mathrm{L}$ to each, we get new target values that differ by at most $\gamma$ times their original difference in sup-norm (due to $\mathrm{L}$ being a $\gamma$-contraction in the sup norm). But what happens when we fit to these target values? If the function approximator can exaggerate differences between its target values, even a small difference in the targets could lead to a larger difference in the fitted functions. This would be disastrous - even though the Bellman operator shrinks differences between value functions by a factor of $\gamma$, the fitting step could amplify them back up, potentially breaking the contraction property of the composite operator.
-
-In order to ensure that the composite operator is contractive, we need conditions on $\Gamma$ such that if $\mathrm{L}$ is a sup-norm contraction then the composition also is. A natural property to consider is when $\Gamma$ is a non-expansion. By definition, this means that for any functions $v$ and $w$:
-
-$$\|\Gamma(v) - \Gamma(w)\|_\infty \leq \|v - w\|_\infty$$
-
-This turns out to be exactly what we need, since if $\Gamma$ is a non-expansion, then for any functions $v$ and $w$:
-
-$$\|\Gamma(\mathrm{L}(v)) - \Gamma(\mathrm{L}(w))\|_\infty \leq \|L(v) - L(w)\|_\infty \leq \gamma\|v - w\|_\infty$$
-
-The first inequality uses the non-expansion property of $\Gamma$, while the second uses the fact that $\mathrm{L}$ is a $\gamma$-contraction. Together they show that the composite operator $\Gamma \circ L$ remains a $\gamma$-contraction.
-
-## Gordon's Averagers
-
-But which function approximators satisfy this non-expansion property? Gordon shows that "averagers" - approximators that compute their outputs as weighted averages of their training values - are always non-expansions in sup-norm. This includes many common approximation schemes like k-nearest neighbors, linear interpolation, and kernel smoothing with normalized weights. The intuition is that if you're taking weighted averages with weights that sum to one, you can never extrapolate beyond the range of your training values -- these methods "interpolate".  This theoretical framework explains why simple interpolation methods like k-nearest neighbors have proven remarkably stable in practice, while more sophisticated approximators can fail catastrophically. It suggests a clear design principle: to guarantee convergence, we should either use averagers directly or modify other approximators to ensure they never extrapolate beyond their training targets.
-
-More precisely, a function approximator $\Gamma$ is an averager if for any state $s$ and any target function $v$, the fitted value can be written as:
-
-$$\Gamma(v)(s) = \sum_{i=1}^n w_i(s) v(s_i)$$
-
-where the weights $w_i(s)$ satisfy:
-1. $w_i(s) \geq 0$ for all $i$ and $s$
-2. $\sum_{i=1}^n w_i(s) = 1$ for all $s$
-3. The weights $w_i(s)$ depend only on $s$ and the training points $\{s_i\}$, not on the values $v(s_i)$
-
-Let $m = \min_i v(s_i)$ and $M = \max_i v(s_i)$. Then:
-
-$$m = m\sum_i w_i(s) \leq \sum_i w_i(s)v(s_i) \leq M\sum_i w_i(s) = M$$
-
-So $\Gamma(v)(s) \in [m,M]$ for all $s$, meaning the fitted function cannot take values outside the range of its training values. This property is what makes averagers "interpolate" rather than "extrapolate" and is directly related to why they preserve the contraction property when composed with the Bellman operator. To see why averagers are non-expansions, consider two functions $v$ and $w$. At any state $s$:
-
-$$\begin{align*}
-|\Gamma(v)(s) - \Gamma(w)(s)| &= \left|\sum_{i=1}^n w_i(s)v(s_i) - \sum_{i=1}^n w_i(s)w(s_i)\right| \\
-&= \left|\sum_{i=1}^n w_i(s)(v(s_i) - w(s_i))\right| \\
-&\leq \sum_{i=1}^n w_i(s)|v(s_i) - w(s_i)| \\
-&\leq \|v - w\|_\infty \sum_{i=1}^n w_i(s) \\
-&= \|v - w\|_\infty
-\end{align*}$$
-
-Since this holds for all $s$, we have $\|\Gamma(v) - \Gamma(w)\|_\infty \leq \|v - w\|_\infty$, proving that $\Gamma$ is a non-expansion.
-
-## Which Function Approximators Interpolate vs Extrapolate?
-
-### K-nearest neighbors (KNN)
-
-Let's look at specific examples, starting with k-nearest neighbors. For any state $s$, let $s_{(1)}, ..., s_{(k)}$ denote the k nearest training points to $s$. Then:
-
-$$\Gamma(v)(s) = \frac{1}{k}\sum_{i=1}^k v(s_{(i)})$$
-
-This is clearly an averager with weights $w_i(s) = \frac{1}{k}$ for the k nearest neighbors and 0 for all other points.
-
-For kernel smoothing with a kernel function $K$, the fitted value is:
-
-$$\Gamma(v)(s) = \frac{\sum_{i=1}^n K(s - s_i)v(s_i)}{\sum_{i=1}^n K(s - s_i)}$$
-
-The denominator normalizes the weights to sum to 1, making this an averager with weights $w_i(s) = \frac{K(s - s_i)}{\sum_{j=1}^n K(s - s_j)}$.
-
-### Linear Regression 
-
-In contrast, methods like linear regression and neural networks can and often do extrapolate beyond their training targets. More precisely, given a dataset of state-value pairs $\{(s_i, v(s_i))\}_{i=1}^n$, these methods fit parameters to minimize some error criterion, and the resulting function $\Gamma(v)(s)$ may take values outside the interval $[\min_i v(s_i), \max_i v(s_i)]$ even when evaluated at a new state $s$. For instance, linear regression finds parameters by minimizing squared error:
-
-$$\min_{\theta} \sum_{i=1}^n (v(s_i) - \theta^T\phi(s_i))^2$$
-
-The resulting fitted function is:
-
-$$\Gamma(v)(s) = \phi(s)^T(\Phi^T\Phi)^{-1}\Phi^T v$$
-
-where $\Phi$ is the feature matrix with rows $\phi(s_i)^T$. This cannot be written as a weighted average with weights independent of $v$. Indeed, we can construct examples where the fitted value at a point lies outside the range of training values. For example, consider two sets of target values defined on just three points $s_1 = 0$, $s_2 = 1$, and $s_3 = 2$:
-
-$$v = \begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix}, \quad w = \begin{bmatrix} 0 \\ 1 \\ 1 \end{bmatrix}$$
-
-Using a single feature $\phi(s) = s$, our feature matrix is:
-
-$$\Phi = \begin{bmatrix} 0 \\ 1 \\ 2 \end{bmatrix}$$
-
-For function $v$, the fitted parameters are:
-
-$$\theta_v = (\Phi^T\Phi)^{-1}\Phi^T v = \frac{1}{14}(2)$$
-
-And for function $w$:
-
-$$\theta_w = (\Phi^T\Phi)^{-1}\Phi^T w = \frac{1}{14}(8)$$
-
-Now if we evaluate these fitted functions at $s = 3$ (outside our training points):
-
-$$\Gamma(v)(3) = 3\theta_v = \frac{6}{14} \approx 0.43$$
-$$\Gamma(w)(3) = 3\theta_w = \frac{24}{14} \approx 1.71$$
-
-Therefore:
-
-$$|\Gamma(v)(3) - \Gamma(w)(3)| = \frac{18}{14} > 1 = \|v - w\|_\infty$$
-
-### Spline Interpolation
-
-Linear interpolation between points -- the technique used earlier in this chapter -- is an averager since for any point $s$ between knots $s_i$ and $s_{i+1}$:
-
-$$\Gamma(v)(s) = \left(\frac{s_{i+1}-s}{s_{i+1}-s_i}\right)v(s_i) + \left(\frac{s-s_i}{s_{i+1}-s_i}\right)v(s_{i+1})$$
-
-The weights sum to 1 and are non-negative. However, cubic splines, despite their smoothness advantages, can violate the non-expansion property. To see this, consider fitting a natural cubic spline to three points:
-
-$$s_1 = 0,\; s_2 = 1,\; s_3 = 2$$
-
-with two different sets of values:
-
-$$v = \begin{bmatrix} 0 \\ 1 \\ 0 \end{bmatrix}, \quad w = \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix}$$
-
-The natural cubic spline for $v$ will overshoot at $s \approx 0.5$ and undershoot at $s \approx 1.5$ due to its attempt to minimize curvature, giving values outside the range $[0,1]$. Meanwhile, $w$ fits a flat line at 0. Therefore:
-
-$$\|v - w\|_\infty = 1$$
-
-but 
-
-$$\|\Gamma(v) - \Gamma(w)\|_\infty > 1$$
-
-This illustrates a general principle: methods that try to create smooth functions by minimizing some global criterion (like curvature in splines) often sacrifice the non-expansion property to achieve their smoothness goals.
+### Warmstarting and Partial Fitting
+
+A natural modification is to initialize the inner optimization loop with the previous iteration's parameters - a strategy known as warmstarting - rather than starting from $\boldsymbol{\theta}_0$ each time. Additionally, similar to how modified policy iteration performs partial policy evaluation rather than solving to convergence, we can limit ourselves to a fixed number of optimization steps. These pragmatic changes, when combined, yield:
+
+```{prf:algorithm} Neural Fitted Q-Iteration with Warmstarting and Partial Optimization
+:label: nfqi-warmstart-partial
+
+**Input** Given MDP $(S, A, P, R, \gamma)$, dataset of transitions $\mathcal{T}$, neural network $q(s,a; \boldsymbol{\theta})$, learning rate $\alpha$, number of steps $K$
+
+**Output** Parameters $\boldsymbol{\theta}$ for Q-function approximation
+
+1. Initialize $\boldsymbol{\theta}_0$ randomly
+2. $n \leftarrow 0$  // Outer iteration index
+3. **repeat**
+    1. $\mathcal{D}_n \leftarrow \emptyset$  // Regression dataset
+    2. For each $(s,a,r,s') \in \mathcal{T}$:
+        1. $y_{s,a} \leftarrow r + \gamma \max_{a' \in A} q(s',a'; \boldsymbol{\theta}_n)$
+        2. $\mathcal{D}_n \leftarrow \mathcal{D}_n \cup \{((s,a), y_{s,a})\}$
+    3. // Inner optimization loop with warmstart and fixed steps
+    4. $\boldsymbol{\theta}^{(0)} \leftarrow \boldsymbol{\theta}_n$  // Warmstart from previous iteration
+    5. For $k = 0$ to $K-1$:
+        1. $\boldsymbol{\theta}^{(k+1)} \leftarrow \boldsymbol{\theta}^{(k)} - \alpha \nabla_{\boldsymbol{\theta}} \mathcal{L}(\boldsymbol{\theta}^{(k)}; \mathcal{D}_n)$
+    6. $\boldsymbol{\theta}_{n+1} \leftarrow \boldsymbol{\theta}^{(K)}$
+    7. $n \leftarrow n + 1$
+4. **until** training complete
+5. **return** $\boldsymbol{\theta}_n$
+```
+
+### Flattening the Updates with Target Swapping
+
+Now rather than maintaining two sets of indices for the outer and inner levels, we could also "flatten" this algorithm  under a single loop structure using modulo arithmetics. Here's how we could rewrite it:
+
+```{prf:algorithm} Flattened Neural Fitted Q-Iteration
+:label: nfqi-flattened-swap
+
+**Input** Given MDP $(S, A, P, R, \gamma)$, dataset of transitions $\mathcal{T}$, neural network $q(s,a; \boldsymbol{\theta})$, learning rate $\alpha$, target update frequency $K$
+
+**Output** Parameters $\boldsymbol{\theta}$ for Q-function approximation
+
+1. Initialize $\boldsymbol{\theta}_0$ randomly
+2. $\boldsymbol{\theta}_{target} \leftarrow \boldsymbol{\theta}_0$  // Initialize target parameters
+3. $n \leftarrow 0$  // Single iteration counter
+4. **while** training:
+    1. $\mathcal{D}_n \leftarrow \emptyset$  // Regression dataset
+    2. For each $(s,a,r,s') \in \mathcal{T}$:
+        1. $y_{s,a} \leftarrow r + \gamma \max_{a' \in A} q(s',a'; \boldsymbol{\theta}_{target})$  // Use target parameters
+        2. $\mathcal{D}_n \leftarrow \mathcal{D}_n \cup \{((s,a), y_{s,a})\}$
+    3. $\boldsymbol{\theta}_{n+1} \leftarrow \boldsymbol{\theta}_n - \alpha \nabla_{\boldsymbol{\theta}} \mathcal{L}(\boldsymbol{\theta}_n; \mathcal{D}_n)$
+    4. If $n \bmod K = 0$:  // Every K steps
+        1. $\boldsymbol{\theta}_{target} \leftarrow \boldsymbol{\theta}_n$  // Update target parameters
+    5. $n \leftarrow n + 1$
+4. **return** $\boldsymbol{\theta}_n$
+```
+The flattened version with target parameters achieves exactly the same effect as our previous nested-loop structure with warmstarting and K gradient steps. In the nested version, we would create a dataset using parameters $\boldsymbol{\theta}_n$, then perform K gradient steps to obtain $\boldsymbol{\theta}_{n+1}$. In our flattened version, we maintain a separate $\boldsymbol{\theta}_{target}$ that gets updated every K steps, ensuring that the dataset $\mathcal{D}_n$ is created using the same parameters for K consecutive iterations - just as it would be in the nested version. The only difference is that we've restructured the algorithm to avoid explicitly nesting the loops, making it more suitable for continuous online training which we are about to introduce. The periodic synchronization of $\boldsymbol{\theta}_{target}$ with the current parameters $\boldsymbol{\theta}_n$ effectively marks the boundary of what would have been the outer loop in our previous version.
+
+### Exponential Moving Average Targets
+
+An alternative to this periodic swap of parameters is to use an exponential moving average (EMA) of the parameters:
+
+```{prf:algorithm} Flattened Neural Fitted Q-Iteration with EMA
+:label: nfqi-flattened-ema
+
+**Input** Given MDP $(S, A, P, R, \gamma)$, dataset of transitions $\mathcal{T}$, neural network $q(s,a; \boldsymbol{\theta})$, learning rate $\alpha$, EMA rate $\tau$
+
+**Output** Parameters $\boldsymbol{\theta}$ for Q-function approximation
+
+1. Initialize $\boldsymbol{\theta}_0$ randomly
+2. $\boldsymbol{\theta}_{target} \leftarrow \boldsymbol{\theta}_0$  // Initialize target parameters
+3. $n \leftarrow 0$  // Single iteration counter
+4. **while** training:
+    1. $\mathcal{D}_n \leftarrow \emptyset$  // Regression dataset
+    2. For each $(s,a,r,s') \in \mathcal{T}$:
+        1. $y_{s,a} \leftarrow r + \gamma \max_{a' \in A} q(s',a'; \boldsymbol{\theta}_{target})$  // Use target parameters
+        2. $\mathcal{D}_n \leftarrow \mathcal{D}_n \cup \{((s,a), y_{s,a})\}$
+    3. $\boldsymbol{\theta}_{n+1} \leftarrow \boldsymbol{\theta}_n - \alpha \nabla_{\boldsymbol{\theta}} \mathcal{L}(\boldsymbol{\theta}_n; \mathcal{D}_n)$
+    4. $\boldsymbol{\theta}_{target} \leftarrow \tau\boldsymbol{\theta}_{n+1} + (1-\tau)\boldsymbol{\theta}_{target}$  // Smooth update of target parameters
+    5. $n \leftarrow n + 1$
+4. **return** $\boldsymbol{\theta}_n$
+```
+
+Note that the original DQN used the periodic swap of parameters rather than EMA targets. 
+EMA targets (also called "Polyak averaging") started becoming popular in deep RL with DDPG {cite}`lillicrap2015continuous` where they used a "soft" target update: $\boldsymbol{\theta}_{target} \leftarrow \tau\boldsymbol{\theta} + (1-\tau)\boldsymbol{\theta}_{target}$ with a small $\tau$ (like 0.001). This has since become a common choice in many algorithms like TD3 {cite}`fujimoto2018addressing` and SAC {cite}`haarnoja2018soft`.
+
+### Online Data Collection and Experience Replay
+
+Rather than using offline data, we now consider a modification where we incrementally gather samples under our current policy. A common exploration strategy is $\varepsilon$-greedy: with probability $\varepsilon$ we select a random action, and with probability $1-\varepsilon$ we select the greedy action $\arg\max_a q(s,a;\boldsymbol{\theta}_n)$. This ensures we maintain some exploration even as our Q-function estimates improve. Typically $\varepsilon$ is annealed over time, starting with a high value (e.g., 1.0) to encourage early exploration and gradually decreasing to a small final value (e.g., 0.01) to maintain a minimal level of exploration while mostly exploiting our learned policy.
+
+```{prf:algorithm} Flattened Online Neural Fitted Q-Iteration
+:label: online-nfqi-flattened
+
+**Input** Given MDP $(S, A, P, R, \gamma)$, neural network $q(s,a; \boldsymbol{\theta})$, learning rate $\alpha$, target update frequency $K$
+
+**Output** Parameters $\boldsymbol{\theta}$ for Q-function approximation
+
+1. Initialize $\boldsymbol{\theta}_0$ randomly
+2. $\boldsymbol{\theta}_{target} \leftarrow \boldsymbol{\theta}_0$  // Initialize target parameters
+3. Initialize $\mathcal{T} \leftarrow \emptyset$  // Initialize transition dataset
+4. $n \leftarrow 0$  // Single iteration counter
+5. **while** training:
+    1. Observe current state $s$
+    2. Select action $a$ using policy derived from $q(s,\cdot;\boldsymbol{\theta}_n)$ (e.g., ε-greedy)
+    3. Execute $a$, observe reward $r$ and next state $s'$
+    4. $\mathcal{T}_n \leftarrow \mathcal{T}_n \cup \{(s,a,r,s')\}$  // Add transition to dataset
+    5. $\mathcal{D}_n \leftarrow \emptyset$  // Regression dataset
+    6. For each $(s,a,r,s') \in \mathcal{T}_n$:
+        1. $y_{s,a} \leftarrow r + \gamma \max_{a' \in A} q(s',a'; \boldsymbol{\theta}_{target})$  // Use target parameters
+        2. $\mathcal{D}_n \leftarrow \mathcal{D}_n \cup \{((s,a), y_{s,a})\}$
+    7. $\boldsymbol{\theta}_{n+1} \leftarrow \boldsymbol{\theta}_n - \alpha \nabla_{\boldsymbol{\theta}} \mathcal{L}(\boldsymbol{\theta}_n; \mathcal{D}_n)$
+    8. If $n \bmod K = 0$:  // Every K steps
+        1. $\boldsymbol{\theta}_{target} \leftarrow \boldsymbol{\theta}_n$  // Update target parameters
+    9. $n \leftarrow n + 1$
+6. **return** $\boldsymbol{\theta}_n$
+```
+
+This version faces two practical challenges. First, the transition dataset $\mathcal{T}_n$ grows unbounded over time, creating memory issues. Second, computing gradients over the entire dataset becomes increasingly expensive. These are common challenges in online learning settings, and the standard solutions from supervised learning apply here:
+1. Use a fixed-size circular buffer (often called replay buffer, in reference to "experience replay" by {cite}`lin1992self`) to limit memory usage
+2. Compute gradients on mini-batches rather than the full dataset
+
+Here's how we can modify our algorithm to incorporate these ideas:
+
+```{prf:algorithm} Deep-Q Network 
+:label: online-nfqi-replay
+
+**Input** Given MDP $(S, A, P, R, \gamma)$, neural network $q(s,a; \boldsymbol{\theta})$, learning rate $\alpha$, target update frequency $K$, replay buffer size $B$, mini-batch size $b$
+
+**Output** Parameters $\boldsymbol{\theta}$ for Q-function approximation
+
+1. Initialize $\boldsymbol{\theta}_0$ randomly
+2. $\boldsymbol{\theta}_{target} \leftarrow \boldsymbol{\theta}_0$  // Initialize target parameters
+3. Initialize replay buffer $\mathcal{R}$ with capacity $B$
+4. $n \leftarrow 0$  // Single iteration counter
+5. **while** training:
+    1. Observe current state $s$
+    2. Select action $a$ using policy derived from $q(s,\cdot;\boldsymbol{\theta}_n)$ (e.g., ε-greedy)
+    3. Execute $a$, observe reward $r$ and next state $s'$
+    4. Store $(s,a,r,s')$ in $\mathcal{R}$, replacing oldest if full  // Circular buffer update
+    5. $\mathcal{D}_n \leftarrow \emptyset$  // Regression dataset
+    6. Sample mini-batch of $b$ transitions $(s_i,a_i,r_i,s_i')$ from $\mathcal{R}$
+    7. For each sampled $(s_i,a_i,r_i,s_i')$:
+        1. $y_i \leftarrow r_i + \gamma \max_{a' \in A} q(s_i',a'; \boldsymbol{\theta}_{target})$  // Use target parameters
+        2. $\mathcal{D}_n \leftarrow \mathcal{D}_n \cup \{((s_i,a_i), y_i)\}$
+    8. $\boldsymbol{\theta}_{n+1} \leftarrow \boldsymbol{\theta}_n - \alpha \nabla_{\boldsymbol{\theta}} \mathcal{L}(\boldsymbol{\theta}_n; \mathcal{D}_n)$ // Replace by RMSProp to obtain DQN
+    9. If $n \bmod K = 0$:  // Every K steps
+        1. $\boldsymbol{\theta}_{target} \leftarrow \boldsymbol{\theta}_n$  // Update target parameters
+    10. $n \leftarrow n + 1$
+6. **return** $\boldsymbol{\theta}_n$
+```
+
+This formulation naturally leads to an important concept in deep reinforcement learning: the replay ratio (or data reuse ratio). In our algorithm, for each new transition we collect, we sample a mini-batch of size b from our replay buffer and perform one update. This means we're reusing past experiences at a ratio of b:1 - for every new piece of data, we're learning from b experiences. This ratio can be tuned as a hyperparameter. Higher ratios mean more computation per environment step but better data efficiency, as we're extracting more learning from each collected transition. This highlights one of the key benefits of experience replay: it allows us to decouple the rate of data collection from the rate of learning updates. Some modern algorithms like SAC or TD3 explicitly tune this ratio, sometimes using multiple gradient steps per environment step to achieve higher data efficiency.
+
+## Deep Q Networks with Resets (2022)
+
+In flattening neural fitted Q-iteration, our field had perhaps lost sight of an important structural element: the choice of inner-loop initializer inherent in the original FQI algorithm. The traditional structure explicitly separated outer iterations (computing targets) from inner optimization (fitting to those targets), with each inner optimization starting fresh from parameters $\boldsymbol{\theta}_0$. 
+
+The flattened version with persistent warmstarting seemed like a natural optimization - why throw away learned parameters? However, recent work {cite}`Doro2023` has shown that persistent warmstarting can actually be detrimental to learning. Neural networks tend to lose their ability to learn and generalize over the course of training, suggesting that occasionally starting fresh from $\boldsymbol{\theta}_0$ might be beneficial. Here's how this looks algorithmically in the context of DQN:
+
+```{prf:algorithm} DQN with Hard Resets
+:label: dqn-hard-resets
+
+**Input** Given MDP $(S, A, P, R, \gamma)$, neural network $q(s,a; \boldsymbol{\theta})$, learning rate $\alpha$, reset interval $K$, replay buffer size $B$, mini-batch size $b$
+
+**Output** Parameters $\boldsymbol{\theta}$ for Q-function approximation
+
+1. Initialize $\boldsymbol{\theta}_0$ randomly
+2. $\boldsymbol{\theta}_{target} \leftarrow \boldsymbol{\theta}_0$  // Initialize target parameters
+3. Initialize replay buffer $\mathcal{R}$ with capacity $B$
+4. $n \leftarrow 0$  // Single iteration counter
+5. **while** training:
+    1. Observe current state $s$
+    2. Select action $a$ using policy derived from $q(s,\cdot;\boldsymbol{\theta}_n)$ (e.g., ε-greedy)
+    3. Execute $a$, observe reward $r$ and next state $s'$
+    4. Store $(s,a,r,s')$ in $\mathcal{R}$, replacing oldest if full
+    5. $\mathcal{D}_n \leftarrow \emptyset$  // Regression dataset
+    6. Sample mini-batch of $b$ transitions $(s_i,a_i,r_i,s_i')$ from $\mathcal{R}$
+    7. For each sampled $(s_i,a_i,r_i,s_i')$:
+        1. $y_i \leftarrow r_i + \gamma \max_{a' \in A} q(s_i',a'; \boldsymbol{\theta}_{target})$
+        2. $\mathcal{D}_n \leftarrow \mathcal{D}_n \cup \{((s_i,a_i), y_i)\}$
+    8. If $n \bmod K = 0$:  // Periodic reset
+        1. $\boldsymbol{\theta}_{n+1} \leftarrow \boldsymbol{\theta}_0$  // Reset to initial parameters
+    9. Else:
+        1. $\boldsymbol{\theta}_{n+1} \leftarrow \boldsymbol{\theta}_n - \alpha \nabla_{\boldsymbol{\theta}} \mathcal{L}(\boldsymbol{\theta}_n; \mathcal{D}_n)$
+    10. If $n \bmod K = 0$:  // Every K steps
+        1. $\boldsymbol{\theta}_{target} \leftarrow \boldsymbol{\theta}_n$  // Update target parameters
+    11. $n \leftarrow n + 1$
+6. **return** $\boldsymbol{\theta}_n$
+```
+
+This algorithm change allows us to push the limits of our update ratio - the number of gradient steps we perform per environment interaction. Without resets, increasing this ratio leads to diminishing returns as the network's ability to learn degrades. However, by periodically resetting the parameters while maintaining our dataset of transitions, we can perform many more updates per interaction, effectively making our algorithm more "offline" and thus more sample efficient. 
+
+The hard reset strategy, while effective, might be too aggressive in some settings as it completely discards learned parameters. An alternative approach is to use a softer form of reset, adapting the "Shrink and Perturb" technique originally introduced by {cite:t}`ash2020warm` in the context of continual learning. In their work, they found that neural networks that had been trained on one task could better adapt to new tasks if their parameters were partially reset - interpolated with a fresh initialization - rather than either kept intact or completely reset.
+
+We can adapt this idea to our setting. Instead of completely resetting to $\boldsymbol{\theta}_0$, we can perform a soft reset by interpolating between our current parameters and a fresh random initialization:
+
+```{prf:algorithm} DQN with Shrink and Perturb
+:label: dqn-soft-resets
+
+**Input** Given MDP $(S, A, P, R, \gamma)$, neural network $q(s,a; \boldsymbol{\theta})$, learning rate $\alpha$, reset interval $K$, replay buffer size $B$, mini-batch size $b$, interpolation coefficient $\beta$
+
+**Output** Parameters $\boldsymbol{\theta}$ for Q-function approximation
+
+1. Initialize $\boldsymbol{\theta}_0$ randomly
+2. $\boldsymbol{\theta}_{target} \leftarrow \boldsymbol{\theta}_0$  // Initialize target parameters
+3. Initialize replay buffer $\mathcal{R}$ with capacity $B$
+4. $n \leftarrow 0$  // Single iteration counter
+5. **while** training:
+    1. Observe current state $s$
+    2. Select action $a$ using policy derived from $q(s,\cdot;\boldsymbol{\theta}_n)$ (e.g., ε-greedy)
+    3. Execute $a$, observe reward $r$ and next state $s'$
+    4. Store $(s,a,r,s')$ in $\mathcal{R}$, replacing oldest if full
+    5. $\mathcal{D}_n \leftarrow \emptyset$  // Regression dataset
+    6. Sample mini-batch of $b$ transitions $(s_i,a_i,r_i,s_i')$ from $\mathcal{R}$
+    7. For each sampled $(s_i,a_i,r_i,s_i')$:
+        1. $y_i \leftarrow r_i + \gamma \max_{a' \in A} q(s_i',a'; \boldsymbol{\theta}_{target})$
+        2. $\mathcal{D}_n \leftarrow \mathcal{D}_n \cup \{((s_i,a_i), y_i)\}$
+    8. If $n \bmod K = 0$:  // Periodic soft reset
+        1. Sample $\boldsymbol{\phi} \sim$ initializer  // Fresh random parameters
+        2. $\boldsymbol{\theta}_{n+1} \leftarrow \beta\boldsymbol{\theta}_n + (1-\beta)\boldsymbol{\phi}$
+    9. Else:
+        1. $\boldsymbol{\theta}_{n+1} \leftarrow \boldsymbol{\theta}_n - \alpha \nabla_{\boldsymbol{\theta}} \mathcal{L}(\boldsymbol{\theta}_n; \mathcal{D}_n)$
+    10. If $n \bmod K = 0$:  // Every K steps
+        1. $\boldsymbol{\theta}_{target} \leftarrow \boldsymbol{\theta}_n$  // Update target parameters
+    11. $n \leftarrow n + 1$
+6. **return** $\boldsymbol{\theta}_n$
+```
+
+The interpolation coefficient $\beta$ controls how much of the learned parameters we retain, with $\beta = 0$ recovering the hard reset case and $\beta = 1$ corresponding to no reset at all. This provides a more flexible approach to restoring learning capability while potentially preserving useful features that have been learned. Like hard resets, this softer variant still enables high update ratios by preventing the degradation of learning capability, but does so in a more gradual way.
 
 
 # Continuous Action Spaces in Fitted Q-Iteration
@@ -1248,12 +1398,144 @@ This reveals SAC's policy update as a "soft" version of NFQCA's condition $\nabl
     3. Sample batch $\mathcal{B}$ from $\mathcal{R}$
     4. // Update Q-networks
     5. For $(s,a,r,s') \in \mathcal{B}$:
-        1. $\tilde{a}' \sim d(\cdot|s'; \boldsymbol{\phi})$
-        2. $y \leftarrow r + \gamma(\min_{j=1,2} q(s',\tilde{a}'; \boldsymbol{\theta}'_j) - \alpha \log d(\tilde{a}'|s'; \boldsymbol{\phi}))$
-        3. Update $\boldsymbol{\theta}_j$ to minimize $(y - q(s,a; \boldsymbol{\theta}_j))^2$
+      1. $\tilde{a}' \sim d(\cdot|s'; \boldsymbol{\phi})$
+      2. $y \leftarrow r + \gamma(\min_{j=1,2} q(s',\tilde{a}'; \boldsymbol{\theta}'_j) - \alpha \log d(\tilde{a}'|s'; \boldsymbol{\phi}))$
+      3. Update $\boldsymbol{\theta}_j$ to minimize $(y - q(s,a; \boldsymbol{\theta}_j))^2$
     6. // Update policy via KL minimization
     7. For $s \in \mathcal{B}$:
         1. $\nabla_{\phi} D_{KL}(d(\cdot|s; \phi) \| \exp(\frac{1}{\alpha}q(s,\cdot)))$
 **end for**
 ```
+
+# Does Parametric Dynamic Programming Converge?
+
+So far we have avoided the discussion of convergence and focused on intuitive algorithm development, showing how we can extend successive approximation by computing only a few operator evaluations which then get generalized over the entire domain at each step of the value iteration procedure. Now we turn our attention to understanding the conditions under which this general idea can be shown to converge.
+
+A crucial question to ask is whether our algorithm maintains the contraction property that made value iteration so appealing in the first place - the property that allowed us to show convergence to a unique fixed point. We must be careful here because the contraction mapping theorem is specific to a given norm. In the case of value iteration, we showed the Bellman optimality operator is a contraction in the sup-norm, which aligns naturally with how we compare policies based on their value functions.
+
+The situation becomes more complicated with fitted methods because we are not dealing with just a single operator. At each iteration, we perform exact, unbiased pointwise evaluations of the Bellman operator, but instead of obtaining the next function exactly, we get the closest representable one under our chosen function approximation scheme. A key insight from {cite:t}`Gordon1995` is that the fitting step can be conceptualized as an additional operator that gets applied on top of the exact Bellman operator to produce the next function parameters. This leads to viewing fitted value methods - which for simplicity we describe only for the value case, though the Q-value setting follows similarly - as the composition of two operators:
+
+$$v_{n+1} = \Gamma(\mathrm{L}(v_n))$$
+
+where $\mathrm{L}$ is the Bellman operator and $\Gamma$ represents the function approximation mapping.
+
+Now we arrive at the central question: if $\mathrm{L}$ was a sup-norm contraction, is $\Gamma$ composed with $\mathrm{L}$ still a sup-norm contraction? What conditions must hold for this to be true? This question is fundamental because if we can establish that the composition of these two operators maintains the contraction property in the sup-norm, we get directly that our resulting successive approximation method will converge.
+
+## The Search for Nonexpansive Operators
+
+Consider what happens in the fitting step: we have two value functions $v$ and $w$, and after applying the Bellman operator $\mathrm{L}$ to each, we get new target values that differ by at most $\gamma$ times their original difference in sup-norm (due to $\mathrm{L}$ being a $\gamma$-contraction in the sup norm). But what happens when we fit to these target values? If the function approximator can exaggerate differences between its target values, even a small difference in the targets could lead to a larger difference in the fitted functions. This would be disastrous - even though the Bellman operator shrinks differences between value functions by a factor of $\gamma$, the fitting step could amplify them back up, potentially breaking the contraction property of the composite operator.
+
+In order to ensure that the composite operator is contractive, we need conditions on $\Gamma$ such that if $\mathrm{L}$ is a sup-norm contraction then the composition also is. A natural property to consider is when $\Gamma$ is a non-expansion. By definition, this means that for any functions $v$ and $w$:
+
+$$\|\Gamma(v) - \Gamma(w)\|_\infty \leq \|v - w\|_\infty$$
+
+This turns out to be exactly what we need, since if $\Gamma$ is a non-expansion, then for any functions $v$ and $w$:
+
+$$\|\Gamma(\mathrm{L}(v)) - \Gamma(\mathrm{L}(w))\|_\infty \leq \|L(v) - L(w)\|_\infty \leq \gamma\|v - w\|_\infty$$
+
+The first inequality uses the non-expansion property of $\Gamma$, while the second uses the fact that $\mathrm{L}$ is a $\gamma$-contraction. Together they show that the composite operator $\Gamma \circ L$ remains a $\gamma$-contraction.
+
+## Gordon's Averagers
+
+But which function approximators satisfy this non-expansion property? Gordon shows that "averagers" - approximators that compute their outputs as weighted averages of their training values - are always non-expansions in sup-norm. This includes many common approximation schemes like k-nearest neighbors, linear interpolation, and kernel smoothing with normalized weights. The intuition is that if you're taking weighted averages with weights that sum to one, you can never extrapolate beyond the range of your training values -- these methods "interpolate".  This theoretical framework explains why simple interpolation methods like k-nearest neighbors have proven remarkably stable in practice, while more sophisticated approximators can fail catastrophically. It suggests a clear design principle: to guarantee convergence, we should either use averagers directly or modify other approximators to ensure they never extrapolate beyond their training targets.
+
+More precisely, a function approximator $\Gamma$ is an averager if for any state $s$ and any target function $v$, the fitted value can be written as:
+
+$$\Gamma(v)(s) = \sum_{i=1}^n w_i(s) v(s_i)$$
+
+where the weights $w_i(s)$ satisfy:
+1. $w_i(s) \geq 0$ for all $i$ and $s$
+2. $\sum_{i=1}^n w_i(s) = 1$ for all $s$
+3. The weights $w_i(s)$ depend only on $s$ and the training points $\{s_i\}$, not on the values $v(s_i)$
+
+Let $m = \min_i v(s_i)$ and $M = \max_i v(s_i)$. Then:
+
+$$m = m\sum_i w_i(s) \leq \sum_i w_i(s)v(s_i) \leq M\sum_i w_i(s) = M$$
+
+So $\Gamma(v)(s) \in [m,M]$ for all $s$, meaning the fitted function cannot take values outside the range of its training values. This property is what makes averagers "interpolate" rather than "extrapolate" and is directly related to why they preserve the contraction property when composed with the Bellman operator. To see why averagers are non-expansions, consider two functions $v$ and $w$. At any state $s$:
+
+$$\begin{align*}
+|\Gamma(v)(s) - \Gamma(w)(s)| &= \left|\sum_{i=1}^n w_i(s)v(s_i) - \sum_{i=1}^n w_i(s)w(s_i)\right| \\
+&= \left|\sum_{i=1}^n w_i(s)(v(s_i) - w(s_i))\right| \\
+&\leq \sum_{i=1}^n w_i(s)|v(s_i) - w(s_i)| \\
+&\leq \|v - w\|_\infty \sum_{i=1}^n w_i(s) \\
+&= \|v - w\|_\infty
+\end{align*}$$
+
+Since this holds for all $s$, we have $\|\Gamma(v) - \Gamma(w)\|_\infty \leq \|v - w\|_\infty$, proving that $\Gamma$ is a non-expansion.
+
+## Which Function Approximators Interpolate vs Extrapolate?
+
+### K-nearest neighbors (KNN)
+
+Let's look at specific examples, starting with k-nearest neighbors. For any state $s$, let $s_{(1)}, ..., s_{(k)}$ denote the k nearest training points to $s$. Then:
+
+$$\Gamma(v)(s) = \frac{1}{k}\sum_{i=1}^k v(s_{(i)})$$
+
+This is clearly an averager with weights $w_i(s) = \frac{1}{k}$ for the k nearest neighbors and 0 for all other points.
+
+For kernel smoothing with a kernel function $K$, the fitted value is:
+
+$$\Gamma(v)(s) = \frac{\sum_{i=1}^n K(s - s_i)v(s_i)}{\sum_{i=1}^n K(s - s_i)}$$
+
+The denominator normalizes the weights to sum to 1, making this an averager with weights $w_i(s) = \frac{K(s - s_i)}{\sum_{j=1}^n K(s - s_j)}$.
+
+### Linear Regression 
+
+In contrast, methods like linear regression and neural networks can and often do extrapolate beyond their training targets. More precisely, given a dataset of state-value pairs $\{(s_i, v(s_i))\}_{i=1}^n$, these methods fit parameters to minimize some error criterion, and the resulting function $\Gamma(v)(s)$ may take values outside the interval $[\min_i v(s_i), \max_i v(s_i)]$ even when evaluated at a new state $s$. For instance, linear regression finds parameters by minimizing squared error:
+
+$$\min_{\theta} \sum_{i=1}^n (v(s_i) - \theta^T\phi(s_i))^2$$
+
+The resulting fitted function is:
+
+$$\Gamma(v)(s) = \phi(s)^T(\Phi^T\Phi)^{-1}\Phi^T v$$
+
+where $\Phi$ is the feature matrix with rows $\phi(s_i)^T$. This cannot be written as a weighted average with weights independent of $v$. Indeed, we can construct examples where the fitted value at a point lies outside the range of training values. For example, consider two sets of target values defined on just three points $s_1 = 0$, $s_2 = 1$, and $s_3 = 2$:
+
+$$v = \begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix}, \quad w = \begin{bmatrix} 0 \\ 1 \\ 1 \end{bmatrix}$$
+
+Using a single feature $\phi(s) = s$, our feature matrix is:
+
+$$\Phi = \begin{bmatrix} 0 \\ 1 \\ 2 \end{bmatrix}$$
+
+For function $v$, the fitted parameters are:
+
+$$\theta_v = (\Phi^T\Phi)^{-1}\Phi^T v = \frac{1}{14}(2)$$
+
+And for function $w$:
+
+$$\theta_w = (\Phi^T\Phi)^{-1}\Phi^T w = \frac{1}{14}(8)$$
+
+Now if we evaluate these fitted functions at $s = 3$ (outside our training points):
+
+$$\Gamma(v)(3) = 3\theta_v = \frac{6}{14} \approx 0.43$$
+$$\Gamma(w)(3) = 3\theta_w = \frac{24}{14} \approx 1.71$$
+
+Therefore:
+
+$$|\Gamma(v)(3) - \Gamma(w)(3)| = \frac{18}{14} > 1 = \|v - w\|_\infty$$
+
+### Spline Interpolation
+
+Linear interpolation between points -- the technique used earlier in this chapter -- is an averager since for any point $s$ between knots $s_i$ and $s_{i+1}$:
+
+$$\Gamma(v)(s) = \left(\frac{s_{i+1}-s}{s_{i+1}-s_i}\right)v(s_i) + \left(\frac{s-s_i}{s_{i+1}-s_i}\right)v(s_{i+1})$$
+
+The weights sum to 1 and are non-negative. However, cubic splines, despite their smoothness advantages, can violate the non-expansion property. To see this, consider fitting a natural cubic spline to three points:
+
+$$s_1 = 0,\; s_2 = 1,\; s_3 = 2$$
+
+with two different sets of values:
+
+$$v = \begin{bmatrix} 0 \\ 1 \\ 0 \end{bmatrix}, \quad w = \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix}$$
+
+The natural cubic spline for $v$ will overshoot at $s \approx 0.5$ and undershoot at $s \approx 1.5$ due to its attempt to minimize curvature, giving values outside the range $[0,1]$. Meanwhile, $w$ fits a flat line at 0. Therefore:
+
+$$\|v - w\|_\infty = 1$$
+
+but 
+
+$$\|\Gamma(v) - \Gamma(w)\|_\infty > 1$$
+
+This illustrates a general principle: methods that try to create smooth functions by minimizing some global criterion (like curvature in splines) often sacrifice the non-expansion property to achieve their smoothness goals.
 
