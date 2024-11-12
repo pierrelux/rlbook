@@ -64,7 +64,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'adp';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="19. Bibliography" href="bibliography.html" />
+    <link rel="next" title="18. Policy Parametrization Methods" href="cadp.html" />
     <link rel="prev" title="11. Dynamic Programming" href="dp.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -184,7 +184,7 @@
 
 <li class="toctree-l1"><a class="reference internal" href="cocp.html">5. Continuous-Time Trajectory Optimization</a></li>
 
-<li class="toctree-l1"><a class="reference internal" href="mpc.html">7. Model Predictive Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mpc.html">7. From Trajectories to Policies</a></li>
 
 
 
@@ -195,8 +195,11 @@
 
 
 
+<li class="toctree-l1"><a class="reference internal" href="cadp.html">18. Policy Parametrization Methods</a></li>
 
-<li class="toctree-l1"><a class="reference internal" href="bibliography.html">19. Bibliography</a></li>
+
+
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">22. Bibliography</a></li>
 </ul>
 
     </div>
@@ -457,18 +460,13 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#deep-q-networks-with-resets-2022">16.5. Deep Q Networks with Resets (2022)</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#continuous-action-spaces-in-fitted-q-iteration">17. Continuous Action Spaces in Fitted Q-Iteration</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#neural-fitted-q-iteration-for-continuous-actions-hafner-et-al-2011">17.1. Neural Fitted Q-iteration for Continuous Actions (Hafner et al. 2011)</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#from-deterministic-to-stochastic-policies-soft-actor-critic">17.2. From Deterministic to Stochastic Policies: Soft Actor-Critic:</a></li>
-</ul>
-</li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#does-parametric-dynamic-programming-converge">18. Does Parametric Dynamic Programming Converge?</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-search-for-nonexpansive-operators">18.1. The Search for Nonexpansive Operators</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gordon-s-averagers">18.2. Gordon’s Averagers</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#which-function-approximators-interpolate-vs-extrapolate">18.3. Which Function Approximators Interpolate vs Extrapolate?</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#k-nearest-neighbors-knn">18.3.1. K-nearest neighbors (KNN)</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#linear-regression">18.3.2. Linear Regression</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#spline-interpolation">18.3.3. Spline Interpolation</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#does-parametric-dynamic-programming-converge">17. Does Parametric Dynamic Programming Converge?</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-search-for-nonexpansive-operators">17.1. The Search for Nonexpansive Operators</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gordon-s-averagers">17.2. Gordon’s Averagers</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#which-function-approximators-interpolate-vs-extrapolate">17.3. Which Function Approximators Interpolate vs Extrapolate?</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#k-nearest-neighbors-knn">17.3.1. K-nearest neighbors (KNN)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#linear-regression">17.3.2. Linear Regression</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#spline-interpolation">17.3.3. Spline Interpolation</a></li>
 </ul>
 </li>
 </ul>
@@ -618,7 +616,7 @@ $<span class="math notranslate nohighlight">\( \begin{align*}
 \[ \beta_t(s_t) = \sum_{a_t} p(a_t | s_t) p(O_t = 1 | s_t, a_t) \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) \beta_{t+1}(s_{t+1}) \]</div>
 <p>Taking the log and assuming a uniform prior over actions, we get:</p>
 <div class="math notranslate nohighlight">
-\[ \log \beta_t(s_t) = \log \sum_{a_t} \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) \exp(\beta (r(s_t, a_t) + \gamma V(s_{t+1}) + \frac{1}{\beta} \log \beta_{t+1}(s_{t+1}))) \]</div>
+\[ \log \beta_t(s_t) = \log \sum_{a_t} \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) \exp(\beta (r(s_t, a_t) + \gamma v(_{t+1}) + \frac{1}{\beta} \log \beta_{t+1}(s_{t+1}))) \]</div>
 <p>If we define the soft value function as <span class="math notranslate nohighlight">\(V_t(s_t) = \frac{1}{\beta} \log \beta_t(s_t)\)</span>, we can rewrite the above equation as:</p>
 <div class="math notranslate nohighlight">
 \[ V_t(s_t) = \frac{1}{\beta} \log \sum_{a_t} \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) \exp(\beta (r(s_t, a_t) + \gamma V_{t+1}(s_{t+1}))) \]</div>
@@ -1414,26 +1412,26 @@ d(s) = \arg\max_{a \in \mathcal{A}(s)} q(s,a)
 <ol class="arabic simple">
 <li><p>Initialize <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_0\)</span> randomly</p></li>
 <li><p><span class="math notranslate nohighlight">\(\boldsymbol{\theta}_{target} \leftarrow \boldsymbol{\theta}_0\)</span>  // Initialize target parameters</p></li>
-<li><p><span class="math notranslate nohighlight">\(n \leftarrow 0\)</span>  // Single iteration counter</p></li>
+<li><p><span class="math notranslate nohighlight">\(t \leftarrow 0\)</span>  // Single iteration counter</p></li>
 <li><p><strong>while</strong> training:</p>
 <ol class="arabic simple">
-<li><p><span class="math notranslate nohighlight">\(\mathcal{D}_n \leftarrow \emptyset\)</span>  // Regression dataset</p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathcal{D}_t \leftarrow \emptyset\)</span>  // Regression dataset</p></li>
 <li><p>For each <span class="math notranslate nohighlight">\((s,a,r,s') \in \mathcal{T}\)</span>:</p>
 <ol class="arabic simple">
 <li><p><span class="math notranslate nohighlight">\(y_{s,a} \leftarrow r + \gamma \max_{a' \in A} q(s',a'; \boldsymbol{\theta}_{target})\)</span>  // Use target parameters</p></li>
-<li><p><span class="math notranslate nohighlight">\(\mathcal{D}_n \leftarrow \mathcal{D}_n \cup \{((s,a), y_{s,a})\}\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathcal{D}_t \leftarrow \mathcal{D}_t \cup \{((s,a), y_{s,a})\}\)</span></p></li>
 </ol>
 </li>
-<li><p><span class="math notranslate nohighlight">\(\boldsymbol{\theta}_{n+1} \leftarrow \boldsymbol{\theta}_n - \alpha \nabla_{\boldsymbol{\theta}} \mathcal{L}(\boldsymbol{\theta}_n; \mathcal{D}_n)\)</span></p></li>
-<li><p>If <span class="math notranslate nohighlight">\(n \bmod K = 0\)</span>:  // Every K steps</p>
+<li><p><span class="math notranslate nohighlight">\(\boldsymbol{\theta}_{t+1} \leftarrow \boldsymbol{\theta}_t - \alpha \nabla_{\boldsymbol{\theta}} \mathcal{L}(\boldsymbol{\theta}_t; \mathcal{D}_t)\)</span></p></li>
+<li><p>If <span class="math notranslate nohighlight">\(t \bmod K = 0\)</span>:  // Every K steps</p>
 <ol class="arabic simple">
-<li><p><span class="math notranslate nohighlight">\(\boldsymbol{\theta}_{target} \leftarrow \boldsymbol{\theta}_n\)</span>  // Update target parameters</p></li>
+<li><p><span class="math notranslate nohighlight">\(\boldsymbol{\theta}_{target} \leftarrow \boldsymbol{\theta}_t\)</span>  // Update target parameters</p></li>
 </ol>
 </li>
-<li><p><span class="math notranslate nohighlight">\(n \leftarrow n + 1\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(t \leftarrow t + 1\)</span></p></li>
 </ol>
 </li>
-<li><p><strong>return</strong> <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_n\)</span></p></li>
+<li><p><strong>return</strong> <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_t\)</span></p></li>
 </ol>
 </section>
 </div><p>The flattened version with target parameters achieves exactly the same effect as our previous nested-loop structure with warmstarting and K gradient steps. In the nested version, we would create a dataset using parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_n\)</span>, then perform K gradient steps to obtain <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_{n+1}\)</span>. In our flattened version, we maintain a separate <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_{target}\)</span> that gets updated every K steps, ensuring that the dataset <span class="math notranslate nohighlight">\(\mathcal{D}_n\)</span> is created using the same parameters for K consecutive iterations - just as it would be in the nested version. The only difference is that we’ve restructured the algorithm to avoid explicitly nesting the loops, making it more suitable for continuous online training which we are about to introduce. The periodic synchronization of <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_{target}\)</span> with the current parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_n\)</span> effectively marks the boundary of what would have been the outer loop in our previous version.</p>
@@ -1654,253 +1652,17 @@ EMA targets (also called “Polyak averaging”) started becoming popular in dee
 </div><p>The interpolation coefficient <span class="math notranslate nohighlight">\(\beta\)</span> controls how much of the learned parameters we retain, with <span class="math notranslate nohighlight">\(\beta = 0\)</span> recovering the hard reset case and <span class="math notranslate nohighlight">\(\beta = 1\)</span> corresponding to no reset at all. This provides a more flexible approach to restoring learning capability while potentially preserving useful features that have been learned. Like hard resets, this softer variant still enables high update ratios by preventing the degradation of learning capability, but does so in a more gradual way.</p>
 </section>
 </section>
-<section class="tex2jax_ignore mathjax_ignore" id="continuous-action-spaces-in-fitted-q-iteration">
-<h1><span class="section-number">17. </span>Continuous Action Spaces in Fitted Q-Iteration<a class="headerlink" href="#continuous-action-spaces-in-fitted-q-iteration" title="Link to this heading">#</a></h1>
-<p>In fitted Q methods, the main idea is to compute the Bellman operator only at a subset of all states, relying on function approximation to generalize to the remaining states. At each step of the successive approximation loop, we build a dataset of input state-action pairs mapped to their corresponding optimality operator evaluations:</p>
-<div class="math notranslate nohighlight">
-\[
-\mathcal{D}_n = \{((s, a), (Lq)(s, a; \boldsymbol{\theta}_n)) \mid (s,a) \in \mathcal{B}\}
-\]</div>
-<p>This dataset is then fed to our function approximator (neural network, random forest, linear model) to obtain the next set of parameters:</p>
-<div class="math notranslate nohighlight">
-\[
-\boldsymbol{\theta}_{n+1} \leftarrow \texttt{fit}(\mathcal{D}_n)
-\]</div>
-<p>While this strategy allows us to handle very large or even infinite (continuous) state spaces, the action set still requires maximizing over actions (<span class="math notranslate nohighlight">\(\max_{a \in A}\)</span>) during the dataset creation when computing the operator <span class="math notranslate nohighlight">\(L\)</span> for each basepoint, which is computationally expensive for large action spaces. A natural improvement is to add another level of optimization: for each sample added to our regression dataset, we can employ an unconstrained optimization method to find an action that maximizes the Bellman operator for the given state.</p>
-<div class="proof algorithm admonition" id="fitted-q-iteration-explicit">
-<p class="admonition-title"><span class="caption-number">Algorithm 17.1 </span> (Fitted Q-Iteration with Explicit Optimization)</p>
-<section class="algorithm-content" id="proof-content">
-<p><strong>Input</strong> Given an MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, base points <span class="math notranslate nohighlight">\(\mathcal{B}\)</span>, function approximator class <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, maximum iterations <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span></p>
-<p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
-<ol class="arabic simple">
-<li><p>Initialize <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_0\)</span> (e.g., for zero initialization)</p></li>
-<li><p><span class="math notranslate nohighlight">\(n \leftarrow 0\)</span></p></li>
-<li><p><strong>repeat</strong></p>
-<ol class="arabic simple">
-<li><p><span class="math notranslate nohighlight">\(\mathcal{D} \leftarrow \emptyset\)</span> // Regression Dataset</p></li>
-<li><p>For each <span class="math notranslate nohighlight">\((s,a,r,s') \in \mathcal{B}\)</span>: // Assumes Monte Carlo Integration with one sample</p>
-<ol class="arabic simple">
-<li><p><span class="math notranslate nohighlight">\(y_{s,a} \leftarrow r + \gamma \texttt{maximize}(q(s', \cdot; \boldsymbol{\theta}_n))\)</span> // <span class="math notranslate nohighlight">\(s'\)</span> and <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_n\)</span> are kept fixed</p></li>
-<li><p><span class="math notranslate nohighlight">\(\mathcal{D} \leftarrow \mathcal{D} \cup \{((s,a), y_{s,a})\}\)</span></p></li>
-</ol>
-</li>
-<li><p><span class="math notranslate nohighlight">\(\boldsymbol{\theta}_{n+1} \leftarrow \texttt{fit}(\mathcal{D})\)</span></p></li>
-<li><p><span class="math notranslate nohighlight">\(\delta \leftarrow \frac{1}{|\mathcal{D}||A|}\sum_{(s,a) \in \mathcal{D} \times A} (q(s,a; \boldsymbol{\theta}_{n+1}) - q(s,a; \boldsymbol{\theta}_n))^2\)</span></p></li>
-<li><p><span class="math notranslate nohighlight">\(n \leftarrow n + 1\)</span></p></li>
-</ol>
-</li>
-<li><p><strong>until</strong> (<span class="math notranslate nohighlight">\(\delta &lt; \varepsilon\)</span> or <span class="math notranslate nohighlight">\(n \geq N\)</span>)</p></li>
-<li><p><strong>return</strong> <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_n\)</span></p></li>
-</ol>
-</section>
-</div><p>This process is computationally intensive. A natural question is whether we can “amortize” some of this computation by replacing the explicit optimization for each sample with a direct mapping that gives us an approximate maximizer directly.</p>
-<p>For Q-functions, recall that the operator is given by:</p>
-<div class="math notranslate nohighlight">
-\[
-(\mathrm{L}q)(s,a) = r(s,a) + \gamma \int p(ds'|s,a)\max_{a' \in \mathcal{A}(s')} q(s', a')
-\]</div>
-<p>If <span class="math notranslate nohighlight">\(q^*\)</span> is the optimal state-action value function, then <span class="math notranslate nohighlight">\(v^*(s) = \max_a q^*(s,a)\)</span>, and we can derive the optimal policy directly by computing the decision rule:</p>
-<div class="math notranslate nohighlight">
-\[
-d^\star(s) = \arg\max_{a \in \mathcal{A}(s)} q^\star(s,a)
-\]</div>
-<p>Since <span class="math notranslate nohighlight">\(q^*\)</span> is a fixed point of <span class="math notranslate nohighlight">\(L\)</span>, we can write:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}
-\begin{align*}
-q^\star(s,a) &amp;= (Lq^*)(s,a) \\
-&amp;= r(s,a) + \gamma \int p(ds'|s,a) \max_{a' \in \mathcal{A}(s')} q^\star(s', a') \\
-&amp;= r(s,a) + \gamma \int p(ds'|s,a) q^\star(s', d^\star(s'))
-\end{align*}
-\end{split}\]</div>
-<p>Note that <span class="math notranslate nohighlight">\(d^\star\)</span> is implemented by our <span class="math notranslate nohighlight">\(\texttt{maximize}\)</span> numerical solver in the procedure above. A practical strategy would be to collect these maximizer values at each step and use them to train a function approximator that directly predicts these solutions. Due to computational constraints, we might want to compute these exact maximizer values only for a subset of states, based on some computational budget, and use the fitted decision rule to generalize to the remaining states. This leads to the following amortized version:</p>
-<div class="proof algorithm admonition" id="fitted-q-iteration-amortized">
-<p class="admonition-title"><span class="caption-number">Algorithm 17.2 </span> (Fitted Q-Iteration with Amortized Optimization)</p>
-<section class="algorithm-content" id="proof-content">
-<p><strong>Input</strong> Given an MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, base points <span class="math notranslate nohighlight">\(\mathcal{B}\)</span>, subset for exact optimization <span class="math notranslate nohighlight">\(\mathcal{B}_{\text{opt}} \subset \mathcal{B}\)</span>, Q-function approximator <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, policy approximator <span class="math notranslate nohighlight">\(d(s; \boldsymbol{w})\)</span>, maximum iterations <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span></p>
-<p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function, <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span> for policy</p>
-<ol class="arabic simple">
-<li><p>Initialize <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_0\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{w}_0\)</span></p></li>
-<li><p><span class="math notranslate nohighlight">\(n \leftarrow 0\)</span></p></li>
-<li><p><strong>repeat</strong></p>
-<ol class="arabic simple">
-<li><p><span class="math notranslate nohighlight">\(\mathcal{D}_q \leftarrow \emptyset\)</span> // Q-function regression dataset</p></li>
-<li><p><span class="math notranslate nohighlight">\(\mathcal{D}_d \leftarrow \emptyset\)</span> // Policy regression dataset</p></li>
-<li><p>For each <span class="math notranslate nohighlight">\((s,a,r,s') \in \mathcal{B}\)</span>:</p>
-<ol class="arabic simple">
-<li><p>// Determine next state’s action using either exact optimization or approximation</p></li>
-<li><p><strong>if</strong> <span class="math notranslate nohighlight">\(s' \in \mathcal{B}_{\text{opt}}\)</span> <strong>then</strong></p>
-<ol class="arabic simple">
-<li><p><span class="math notranslate nohighlight">\(a^*_{s'} \leftarrow \texttt{maximize}(q(s', \cdot; \boldsymbol{\theta}_n))\)</span></p></li>
-<li><p><span class="math notranslate nohighlight">\(\mathcal{D}_d \leftarrow \mathcal{D}_d \cup \{(s', a^*_{s'})\}\)</span></p></li>
-</ol>
-</li>
-<li><p><strong>else</strong></p>
-<ol class="arabic simple">
-<li><p><span class="math notranslate nohighlight">\(a^*_{s'} \leftarrow d(s'; \boldsymbol{w}_n)\)</span></p></li>
-</ol>
-</li>
-<li><p>// Compute Q-function target using chosen action</p></li>
-<li><p><span class="math notranslate nohighlight">\(y_{s,a} \leftarrow r + \gamma q(s', a^*_{s'}; \boldsymbol{\theta}_n)\)</span></p></li>
-<li><p><span class="math notranslate nohighlight">\(\mathcal{D}_q \leftarrow \mathcal{D}_q \cup \{((s,a), y_{s,a})\}\)</span></p></li>
-</ol>
-</li>
-<li><p>// Update both function approximators</p></li>
-<li><p><span class="math notranslate nohighlight">\(\boldsymbol{\theta}_{n+1} \leftarrow \texttt{fit}(\mathcal{D}_q)\)</span></p></li>
-<li><p><span class="math notranslate nohighlight">\(\boldsymbol{w}_{n+1} \leftarrow \texttt{fit}(\mathcal{D}_d)\)</span></p></li>
-<li><p>// Compute convergence criteria</p></li>
-<li><p><span class="math notranslate nohighlight">\(\delta_q \leftarrow \frac{1}{|\mathcal{D}_q|}\sum_{(s,a) \in \mathcal{D}_q} (q(s,a; \boldsymbol{\theta}_{n+1}) - q(s,a; \boldsymbol{\theta}_n))^2\)</span></p></li>
-<li><p><span class="math notranslate nohighlight">\(\delta_d \leftarrow \frac{1}{|\mathcal{D}_d|}\sum_{(s,a^*) \in \mathcal{D}_d} \|a^* - d(s; \boldsymbol{w}_{n+1})\|^2\)</span></p></li>
-<li><p><span class="math notranslate nohighlight">\(n \leftarrow n + 1\)</span></p></li>
-</ol>
-</li>
-<li><p><strong>until</strong> (<span class="math notranslate nohighlight">\(\max(\delta_q, \delta_d) &lt; \varepsilon\)</span> or <span class="math notranslate nohighlight">\(n \geq N\)</span>)</p></li>
-<li><p><strong>return</strong> <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_n\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{w}_n\)</span></p></li>
-</ol>
-</section>
-</div><p>An important observation about this procedure is that the policy network <span class="math notranslate nohighlight">\(d(s; \boldsymbol{w})\)</span> is being trained on a dataset <span class="math notranslate nohighlight">\(\mathcal{D}_d\)</span> containing optimal actions computed with respect to an evolving Q-function. Specifically, at iteration n, we collect pairs <span class="math notranslate nohighlight">\((s', a^*_{s'})\)</span> where <span class="math notranslate nohighlight">\(a^*_{s'} = \arg\max_a q(s', a; \boldsymbol{\theta}_n)\)</span>. However, after updating to <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_{n+1}\)</span>, these actions may no longer be optimal with respect to the new Q-function.</p>
-<p>A natural approach to handle this staleness would be to maintain only the most recent optimization data. We could modify our procedure to keep a sliding window of K iterations, where at iteration n, we only use data from iterations max(0, n-K) to n. This would be implemented by augmenting each entry in <span class="math notranslate nohighlight">\(\mathcal{D}_d\)</span> with a timestamp:</p>
-<div class="math notranslate nohighlight">
-\[
-\mathcal{D}_d^t = \{(s', a^*_{s'}, t) \mid t \in \{n-K,\ldots,n\}\}
-\]</div>
-<p>where t indicates the iteration at which the optimal action was computed. When fitting the policy network, we would then only use data points that are at most K iterations old:</p>
-<div class="math notranslate nohighlight">
-\[
-\boldsymbol{w}_{n+1} \leftarrow \texttt{fit}(\{(s', a^*_{s'}) \mid (s', a^*_{s'}, t) \in \mathcal{D}_d^t, n-K \leq t \leq n\})
-\]</div>
-<p>This introduces a trade-off between using more data (larger K) versus using more recent, accurate data (smaller K). The choice of K would depend on how quickly the Q-function evolves and the computational budget available for computing exact optimal actions.</p>
-<section id="neural-fitted-q-iteration-for-continuous-actions-hafner-et-al-2011">
-<h2><span class="section-number">17.1. </span>Neural Fitted Q-iteration for Continuous Actions (Hafner et al. 2011)<a class="headerlink" href="#neural-fitted-q-iteration-for-continuous-actions-hafner-et-al-2011" title="Link to this heading">#</a></h2>
-<p>In our previous discussion, we explored amortizing the optimization by collecting maximizer values and training a policy network to predict them. While this approach has merit, it still relies on calling an exact optimizer <code class="docutils literal notranslate"><span class="pre">maximize</span></code> for some states. Is there a way that we could avoid calling this maximizing procedure at all? <span id="id27">[<a class="reference internal" href="bibliography.html#id40" title="Roland Hafner and Martin Riedmiller. Reinforcement learning in feedback control: challenges and benchmarks from technical process control. Machine Learning, 84(1–2):137–169, February 2011. URL: http://dx.doi.org/10.1007/s10994-011-5235-x, doi:10.1007/s10994-011-5235-x.">19</a>]</span> proposes such an approach, extending neural fitted Q-iteration for continuous actions (NFQCA).</p>
-<p>To see this, we assume (for the moment) that we have access to <span class="math notranslate nohighlight">\(q^*\)</span>, the optimal Q-function. Then we can state our goal as finding <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span> that maximizes <span class="math notranslate nohighlight">\(q^*\)</span> with respect to the actions chosen by our policy across the state space:</p>
-<div class="math notranslate nohighlight">
-\[
-\max_{\boldsymbol{w}} q^*(s, d(s; \boldsymbol{w})) \quad \text{for all } s
-\]</div>
-<p>However, it’s computationally infeasible to satisfy this condition for every possible state <span class="math notranslate nohighlight">\(s\)</span>, especially in large or continuous state spaces. To address this, we can consider an <strong>expectation</strong> over a distribution of states, denoted <span class="math notranslate nohighlight">\(\mu(s)\)</span>, which reflects the likelihood of encountering each state. This transforms our goal into an expected objective that we can sample from:</p>
-<div class="math notranslate nohighlight">
-\[
-\max_{\boldsymbol{w}} \mathbb{E}_{s \sim \mu(s)}[q^*(s, d(s; \boldsymbol{w}))]
-\]</div>
-<p>To optimize our policy parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span>, we need to maximize:</p>
-<div class="math notranslate nohighlight">
-\[
-\max_{\boldsymbol{w}} \mathbb{E}_{s \sim \mu(s)}[q(s, d(s; \boldsymbol{w}); \boldsymbol{\theta})]
-\]</div>
-<p>Using gradient ascent, we need to compute:</p>
-<div class="math notranslate nohighlight">
-\[
-\nabla_{\boldsymbol{w}} \mathbb{E}_{s \sim \mu(s)}[q(s, d(s; \boldsymbol{w}); \boldsymbol{\theta})]
-\]</div>
-<p>By the linearity of expectation, this is equivalent to:</p>
-<div class="math notranslate nohighlight">
-\[
-\mathbb{E}_{s \sim \mu(s)}[\nabla_{\boldsymbol{w}} q(s, d(s; \boldsymbol{w}); \boldsymbol{\theta})]
-\]</div>
-<p>In practice, we can approximate this expectation using our base points <span class="math notranslate nohighlight">\(\mathcal{B}\)</span> as a Monte Carlo estimate:</p>
-<div class="math notranslate nohighlight">
-\[
-\frac{1}{|\mathcal{B}|} \sum_{(s,a,r,s') \in \mathcal{B}} \nabla_{\boldsymbol{w}} q(s, d(s; \boldsymbol{w}); \boldsymbol{\theta})
-\]</div>
-<p>In reality, we do not have access to <span class="math notranslate nohighlight">\(q^*\)</span>. Instead, we need to approximate <span class="math notranslate nohighlight">\(q^*\)</span> with a Q-function <span class="math notranslate nohighlight">\(q(s, a; \boldsymbol{\theta})\)</span>, parameterized by <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span>, which we will learn simultaneously with the policy function <span class="math notranslate nohighlight">\(d(s; \boldsymbol{w})\)</span>.</p>
-<div class="proof algorithm admonition" id="nfqca">
-<p class="admonition-title"><span class="caption-number">Algorithm 17.3 </span> (Neural Fitted Q-Iteration with Continuous Actions (NFQCA))</p>
-<section class="algorithm-content" id="proof-content">
-<p><strong>Input</strong> Given an MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, base points <span class="math notranslate nohighlight">\(\mathcal{B}\)</span>, Q-function approximator <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, policy approximator <span class="math notranslate nohighlight">\(d(s; \boldsymbol{w})\)</span>, maximum iterations <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span></p>
-<p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function, <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span> for policy</p>
-<ol class="arabic simple">
-<li><p>Initialize <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_0\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{w}_0\)</span></p></li>
-<li><p><span class="math notranslate nohighlight">\(n \leftarrow 0\)</span></p></li>
-<li><p><strong>repeat</strong></p>
-<ol class="arabic simple">
-<li><p><span class="math notranslate nohighlight">\(\mathcal{D}_q \leftarrow \emptyset\)</span> // Q-function regression dataset</p></li>
-<li><p>For each <span class="math notranslate nohighlight">\((s,a,r,s') \in \mathcal{B}\)</span>:</p>
-<ol class="arabic simple">
-<li><p>// Use current policy for next state action</p></li>
-<li><p><span class="math notranslate nohighlight">\(a'_{s'} \leftarrow d(s'; \boldsymbol{w}_n)\)</span></p></li>
-<li><p>// Compute Q-function target</p></li>
-<li><p><span class="math notranslate nohighlight">\(y_{s,a} \leftarrow r + \gamma q(s', a'_{s'}; \boldsymbol{\theta}_n)\)</span></p></li>
-<li><p><span class="math notranslate nohighlight">\(\mathcal{D}_q \leftarrow \mathcal{D}_q \cup \{((s,a), y_{s,a})\}\)</span></p></li>
-</ol>
-</li>
-<li><p>// Update Q-function</p></li>
-<li><p><span class="math notranslate nohighlight">\(\boldsymbol{\theta}_{n+1} \leftarrow \texttt{fit}(\mathcal{D}_q)\)</span></p></li>
-<li><p>// Update policy using sample-based gradient ascent</p></li>
-<li><p><span class="math notranslate nohighlight">\(\mathcal{G}_w \leftarrow \frac{1}{|\mathcal{B}|} \sum_{(s,a,r,s') \in \mathcal{B}} \nabla_{\boldsymbol{w}} q(s, d(s; \boldsymbol{w}); \boldsymbol{\theta}_{n+1})\)</span></p></li>
-<li><p><span class="math notranslate nohighlight">\(\boldsymbol{w}_{n+1} \leftarrow \boldsymbol{w}_n + \alpha \mathcal{G}_w\)</span></p></li>
-<li><p>// Compute convergence criteria</p></li>
-<li><p><span class="math notranslate nohighlight">\(\delta_q \leftarrow \frac{1}{|\mathcal{D}_q|}\sum_{(s,a) \in \mathcal{D}_q} (q(s,a; \boldsymbol{\theta}_{n+1}) - q(s,a; \boldsymbol{\theta}_n))^2\)</span></p></li>
-<li><p><span class="math notranslate nohighlight">\(\delta_d \leftarrow \frac{1}{|\mathcal{B}|}\sum_{s \in \mathcal{B}} \|d(s; \boldsymbol{w}_{n+1}) - d(s; \boldsymbol{w}_n)\|^2\)</span></p></li>
-<li><p><span class="math notranslate nohighlight">\(n \leftarrow n + 1\)</span></p></li>
-</ol>
-</li>
-<li><p><strong>until</strong> (<span class="math notranslate nohighlight">\(\max(\delta_q, \delta_d) &lt; \varepsilon\)</span> or <span class="math notranslate nohighlight">\(n \geq N\)</span>)</p></li>
-<li><p><strong>return</strong> <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_n\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{w}_n\)</span></p></li>
-</ol>
-</section>
-</div></section>
-<section id="from-deterministic-to-stochastic-policies-soft-actor-critic">
-<h2><span class="section-number">17.2. </span>From Deterministic to Stochastic Policies: Soft Actor-Critic:<a class="headerlink" href="#from-deterministic-to-stochastic-policies-soft-actor-critic" title="Link to this heading">#</a></h2>
-<p>Having examined NFQCA’s approach to continuous actions through direct policy optimization, we now turn to Soft Actor-Critic (SAC) <span id="id28">[]</span>, which extends these ideas into the maximum entropy framework. While NFQCA aims to find a deterministic policy that maximizes the Q-function, SAC seeks a stochastic policy that balances reward maximization with entropy maximization.</p>
-<p>Recall that in NFQCA, we optimize:</p>
-<div class="math notranslate nohighlight">
-\[
-\max_{\boldsymbol{w}} \mathbb{E}_{s \sim \mu(s)}[q(s, d(s; \boldsymbol{w}))]
-\]</div>
-<p>SAC generalizes this objective by introducing a temperature parameter <span class="math notranslate nohighlight">\(\alpha\)</span> and optimizing:</p>
-<div class="math notranslate nohighlight">
-\[
-\max_{\phi} \mathbb{E}_{s \sim \mu(s)}[\mathbb{E}_{a \sim d(\cdot|s)}[q(s,a) - \alpha \log d(a|s)]]
-\]</div>
-<p>where <span class="math notranslate nohighlight">\(d(a|s; \phi)\)</span> is now a stochastic policy. This objective can be rewritten as minimizing:</p>
-<div class="math notranslate nohighlight">
-\[
-\mathbb{E}_{s \sim \mu(s)}\left[D_{KL}\left(d(\cdot|s) \| \frac{\exp(\frac{1}{\alpha}q(s,\cdot))}{Z(s)}\right)\right]
-\]</div>
-<p>This formulation provides a connection to NFQCA’s first-order optimality conditions. At optimality, we have:</p>
-<div class="math notranslate nohighlight">
-\[
-\nabla_a q(s,a) = \alpha \nabla_a \log d(a|s)
-\]</div>
-<p>This reveals SAC’s policy update as a “soft” version of NFQCA’s condition <span class="math notranslate nohighlight">\(\nabla_a q(s,a) = 0\)</span>. When <span class="math notranslate nohighlight">\(\alpha \to 0\)</span>, we recover NFQCA’s deterministic policy; as <span class="math notranslate nohighlight">\(\alpha\)</span> increases, the policy becomes more stochastic.</p>
-<div class="proof algorithm admonition" id="sac">
-<p class="admonition-title"><span class="caption-number">Algorithm 17.4 </span> (Soft Actor-Critic)</p>
-<section class="algorithm-content" id="proof-content">
-<p><strong>Input</strong> MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, temperature <span class="math notranslate nohighlight">\(\alpha\)</span>, learning rates <span class="math notranslate nohighlight">\(\alpha_\theta\)</span>, <span class="math notranslate nohighlight">\(\alpha_\phi\)</span></p>
-<p><strong>Initialize</strong></p>
-<ol class="arabic simple">
-<li><p>Q-networks <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta}_1)\)</span>, <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta}_2)\)</span> and their targets</p></li>
-<li><p>Policy network <span class="math notranslate nohighlight">\(d(a|s; \boldsymbol{\phi})\)</span></p></li>
-<li><p>Replay buffer <span class="math notranslate nohighlight">\(\mathcal{R} \leftarrow \emptyset\)</span></p></li>
-</ol>
-<p><strong>for</strong> each iteration <strong>do</strong>
-1. Sample transition <span class="math notranslate nohighlight">\((s,a,r,s')\)</span> using current policy
-2. Store <span class="math notranslate nohighlight">\((s,a,r,s')\)</span> in <span class="math notranslate nohighlight">\(\mathcal{R}\)</span>
-3. Sample batch <span class="math notranslate nohighlight">\(\mathcal{B}\)</span> from <span class="math notranslate nohighlight">\(\mathcal{R}\)</span>
-4. // Update Q-networks
-5. For <span class="math notranslate nohighlight">\((s,a,r,s') \in \mathcal{B}\)</span>:
-1. <span class="math notranslate nohighlight">\(\tilde{a}' \sim d(\cdot|s'; \boldsymbol{\phi})\)</span>
-2. <span class="math notranslate nohighlight">\(y \leftarrow r + \gamma(\min_{j=1,2} q(s',\tilde{a}'; \boldsymbol{\theta}'_j) - \alpha \log d(\tilde{a}'|s'; \boldsymbol{\phi}))\)</span>
-3. Update <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_j\)</span> to minimize <span class="math notranslate nohighlight">\((y - q(s,a; \boldsymbol{\theta}_j))^2\)</span>
-6. // Update policy via KL minimization
-7. For <span class="math notranslate nohighlight">\(s \in \mathcal{B}\)</span>:
-1. <span class="math notranslate nohighlight">\(\nabla_{\phi} D_{KL}(d(\cdot|s; \phi) \| \exp(\frac{1}{\alpha}q(s,\cdot)))\)</span>
-<strong>end for</strong></p>
-</section>
-</div></section>
-</section>
 <section class="tex2jax_ignore mathjax_ignore" id="does-parametric-dynamic-programming-converge">
-<h1><span class="section-number">18. </span>Does Parametric Dynamic Programming Converge?<a class="headerlink" href="#does-parametric-dynamic-programming-converge" title="Link to this heading">#</a></h1>
+<h1><span class="section-number">17. </span>Does Parametric Dynamic Programming Converge?<a class="headerlink" href="#does-parametric-dynamic-programming-converge" title="Link to this heading">#</a></h1>
 <p>So far we have avoided the discussion of convergence and focused on intuitive algorithm development, showing how we can extend successive approximation by computing only a few operator evaluations which then get generalized over the entire domain at each step of the value iteration procedure. Now we turn our attention to understanding the conditions under which this general idea can be shown to converge.</p>
 <p>A crucial question to ask is whether our algorithm maintains the contraction property that made value iteration so appealing in the first place - the property that allowed us to show convergence to a unique fixed point. We must be careful here because the contraction mapping theorem is specific to a given norm. In the case of value iteration, we showed the Bellman optimality operator is a contraction in the sup-norm, which aligns naturally with how we compare policies based on their value functions.</p>
-<p>The situation becomes more complicated with fitted methods because we are not dealing with just a single operator. At each iteration, we perform exact, unbiased pointwise evaluations of the Bellman operator, but instead of obtaining the next function exactly, we get the closest representable one under our chosen function approximation scheme. A key insight from <span id="id29">Gordon [<a class="reference internal" href="bibliography.html#id39" title="Geoffrey J. Gordon. Stable function approximation in dynamic programming. In Proceedings of the Twelfth International Conference on International Conference on Machine Learning, ICML'95, 261–268. San Francisco, CA, USA, 1995. Morgan Kaufmann Publishers Inc.">13</a>]</span> is that the fitting step can be conceptualized as an additional operator that gets applied on top of the exact Bellman operator to produce the next function parameters. This leads to viewing fitted value methods - which for simplicity we describe only for the value case, though the Q-value setting follows similarly - as the composition of two operators:</p>
+<p>The situation becomes more complicated with fitted methods because we are not dealing with just a single operator. At each iteration, we perform exact, unbiased pointwise evaluations of the Bellman operator, but instead of obtaining the next function exactly, we get the closest representable one under our chosen function approximation scheme. A key insight from <span id="id27">Gordon [<a class="reference internal" href="bibliography.html#id39" title="Geoffrey J. Gordon. Stable function approximation in dynamic programming. In Proceedings of the Twelfth International Conference on International Conference on Machine Learning, ICML'95, 261–268. San Francisco, CA, USA, 1995. Morgan Kaufmann Publishers Inc.">13</a>]</span> is that the fitting step can be conceptualized as an additional operator that gets applied on top of the exact Bellman operator to produce the next function parameters. This leads to viewing fitted value methods - which for simplicity we describe only for the value case, though the Q-value setting follows similarly - as the composition of two operators:</p>
 <div class="math notranslate nohighlight">
 \[v_{n+1} = \Gamma(\mathrm{L}(v_n))\]</div>
 <p>where <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> is the Bellman operator and <span class="math notranslate nohighlight">\(\Gamma\)</span> represents the function approximation mapping.</p>
 <p>Now we arrive at the central question: if <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> was a sup-norm contraction, is <span class="math notranslate nohighlight">\(\Gamma\)</span> composed with <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> still a sup-norm contraction? What conditions must hold for this to be true? This question is fundamental because if we can establish that the composition of these two operators maintains the contraction property in the sup-norm, we get directly that our resulting successive approximation method will converge.</p>
 <section id="the-search-for-nonexpansive-operators">
-<h2><span class="section-number">18.1. </span>The Search for Nonexpansive Operators<a class="headerlink" href="#the-search-for-nonexpansive-operators" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">17.1. </span>The Search for Nonexpansive Operators<a class="headerlink" href="#the-search-for-nonexpansive-operators" title="Link to this heading">#</a></h2>
 <p>Consider what happens in the fitting step: we have two value functions <span class="math notranslate nohighlight">\(v\)</span> and <span class="math notranslate nohighlight">\(w\)</span>, and after applying the Bellman operator <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> to each, we get new target values that differ by at most <span class="math notranslate nohighlight">\(\gamma\)</span> times their original difference in sup-norm (due to <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> being a <span class="math notranslate nohighlight">\(\gamma\)</span>-contraction in the sup norm). But what happens when we fit to these target values? If the function approximator can exaggerate differences between its target values, even a small difference in the targets could lead to a larger difference in the fitted functions. This would be disastrous - even though the Bellman operator shrinks differences between value functions by a factor of <span class="math notranslate nohighlight">\(\gamma\)</span>, the fitting step could amplify them back up, potentially breaking the contraction property of the composite operator.</p>
 <p>In order to ensure that the composite operator is contractive, we need conditions on <span class="math notranslate nohighlight">\(\Gamma\)</span> such that if <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> is a sup-norm contraction then the composition also is. A natural property to consider is when <span class="math notranslate nohighlight">\(\Gamma\)</span> is a non-expansion. By definition, this means that for any functions <span class="math notranslate nohighlight">\(v\)</span> and <span class="math notranslate nohighlight">\(w\)</span>:</p>
 <div class="math notranslate nohighlight">
@@ -1911,7 +1673,7 @@ q^\star(s,a) &amp;= (Lq^*)(s,a) \\
 <p>The first inequality uses the non-expansion property of <span class="math notranslate nohighlight">\(\Gamma\)</span>, while the second uses the fact that <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> is a <span class="math notranslate nohighlight">\(\gamma\)</span>-contraction. Together they show that the composite operator <span class="math notranslate nohighlight">\(\Gamma \circ L\)</span> remains a <span class="math notranslate nohighlight">\(\gamma\)</span>-contraction.</p>
 </section>
 <section id="gordon-s-averagers">
-<h2><span class="section-number">18.2. </span>Gordon’s Averagers<a class="headerlink" href="#gordon-s-averagers" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">17.2. </span>Gordon’s Averagers<a class="headerlink" href="#gordon-s-averagers" title="Link to this heading">#</a></h2>
 <p>But which function approximators satisfy this non-expansion property? Gordon shows that “averagers” - approximators that compute their outputs as weighted averages of their training values - are always non-expansions in sup-norm. This includes many common approximation schemes like k-nearest neighbors, linear interpolation, and kernel smoothing with normalized weights. The intuition is that if you’re taking weighted averages with weights that sum to one, you can never extrapolate beyond the range of your training values – these methods “interpolate”.  This theoretical framework explains why simple interpolation methods like k-nearest neighbors have proven remarkably stable in practice, while more sophisticated approximators can fail catastrophically. It suggests a clear design principle: to guarantee convergence, we should either use averagers directly or modify other approximators to ensure they never extrapolate beyond their training targets.</p>
 <p>More precisely, a function approximator <span class="math notranslate nohighlight">\(\Gamma\)</span> is an averager if for any state <span class="math notranslate nohighlight">\(s\)</span> and any target function <span class="math notranslate nohighlight">\(v\)</span>, the fitted value can be written as:</p>
 <div class="math notranslate nohighlight">
@@ -1937,9 +1699,9 @@ q^\star(s,a) &amp;= (Lq^*)(s,a) \\
 <p>Since this holds for all <span class="math notranslate nohighlight">\(s\)</span>, we have <span class="math notranslate nohighlight">\(\|\Gamma(v) - \Gamma(w)\|_\infty \leq \|v - w\|_\infty\)</span>, proving that <span class="math notranslate nohighlight">\(\Gamma\)</span> is a non-expansion.</p>
 </section>
 <section id="which-function-approximators-interpolate-vs-extrapolate">
-<h2><span class="section-number">18.3. </span>Which Function Approximators Interpolate vs Extrapolate?<a class="headerlink" href="#which-function-approximators-interpolate-vs-extrapolate" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">17.3. </span>Which Function Approximators Interpolate vs Extrapolate?<a class="headerlink" href="#which-function-approximators-interpolate-vs-extrapolate" title="Link to this heading">#</a></h2>
 <section id="k-nearest-neighbors-knn">
-<h3><span class="section-number">18.3.1. </span>K-nearest neighbors (KNN)<a class="headerlink" href="#k-nearest-neighbors-knn" title="Link to this heading">#</a></h3>
+<h3><span class="section-number">17.3.1. </span>K-nearest neighbors (KNN)<a class="headerlink" href="#k-nearest-neighbors-knn" title="Link to this heading">#</a></h3>
 <p>Let’s look at specific examples, starting with k-nearest neighbors. For any state <span class="math notranslate nohighlight">\(s\)</span>, let <span class="math notranslate nohighlight">\(s_{(1)}, ..., s_{(k)}\)</span> denote the k nearest training points to <span class="math notranslate nohighlight">\(s\)</span>. Then:</p>
 <div class="math notranslate nohighlight">
 \[\Gamma(v)(s) = \frac{1}{k}\sum_{i=1}^k v(s_{(i)})\]</div>
@@ -1950,7 +1712,7 @@ q^\star(s,a) &amp;= (Lq^*)(s,a) \\
 <p>The denominator normalizes the weights to sum to 1, making this an averager with weights <span class="math notranslate nohighlight">\(w_i(s) = \frac{K(s - s_i)}{\sum_{j=1}^n K(s - s_j)}\)</span>.</p>
 </section>
 <section id="linear-regression">
-<h3><span class="section-number">18.3.2. </span>Linear Regression<a class="headerlink" href="#linear-regression" title="Link to this heading">#</a></h3>
+<h3><span class="section-number">17.3.2. </span>Linear Regression<a class="headerlink" href="#linear-regression" title="Link to this heading">#</a></h3>
 <p>In contrast, methods like linear regression and neural networks can and often do extrapolate beyond their training targets. More precisely, given a dataset of state-value pairs <span class="math notranslate nohighlight">\(\{(s_i, v(s_i))\}_{i=1}^n\)</span>, these methods fit parameters to minimize some error criterion, and the resulting function <span class="math notranslate nohighlight">\(\Gamma(v)(s)\)</span> may take values outside the interval <span class="math notranslate nohighlight">\([\min_i v(s_i), \max_i v(s_i)]\)</span> even when evaluated at a new state <span class="math notranslate nohighlight">\(s\)</span>. For instance, linear regression finds parameters by minimizing squared error:</p>
 <div class="math notranslate nohighlight">
 \[\min_{\theta} \sum_{i=1}^n (v(s_i) - \theta^T\phi(s_i))^2\]</div>
@@ -1979,7 +1741,7 @@ q^\star(s,a) &amp;= (Lq^*)(s,a) \\
 \[|\Gamma(v)(3) - \Gamma(w)(3)| = \frac{18}{14} &gt; 1 = \|v - w\|_\infty\]</div>
 </section>
 <section id="spline-interpolation">
-<h3><span class="section-number">18.3.3. </span>Spline Interpolation<a class="headerlink" href="#spline-interpolation" title="Link to this heading">#</a></h3>
+<h3><span class="section-number">17.3.3. </span>Spline Interpolation<a class="headerlink" href="#spline-interpolation" title="Link to this heading">#</a></h3>
 <p>Linear interpolation between points – the technique used earlier in this chapter – is an averager since for any point <span class="math notranslate nohighlight">\(s\)</span> between knots <span class="math notranslate nohighlight">\(s_i\)</span> and <span class="math notranslate nohighlight">\(s_{i+1}\)</span>:</p>
 <div class="math notranslate nohighlight">
 \[\Gamma(v)(s) = \left(\frac{s_{i+1}-s}{s_{i+1}-s_i}\right)v(s_i) + \left(\frac{s-s_i}{s_{i+1}-s_i}\right)v(s_{i+1})\]</div>
@@ -2040,11 +1802,11 @@ q^\star(s,a) &amp;= (Lq^*)(s,a) \\
       </div>
     </a>
     <a class="right-next"
-       href="bibliography.html"
+       href="cadp.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title"><span class="section-number">19. </span>Bibliography</p>
+        <p class="prev-next-title"><span class="section-number">18. </span>Policy Parametrization Methods</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -2112,18 +1874,13 @@ q^\star(s,a) &amp;= (Lq^*)(s,a) \\
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#deep-q-networks-with-resets-2022">16.5. Deep Q Networks with Resets (2022)</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#continuous-action-spaces-in-fitted-q-iteration">17. Continuous Action Spaces in Fitted Q-Iteration</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#neural-fitted-q-iteration-for-continuous-actions-hafner-et-al-2011">17.1. Neural Fitted Q-iteration for Continuous Actions (Hafner et al. 2011)</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#from-deterministic-to-stochastic-policies-soft-actor-critic">17.2. From Deterministic to Stochastic Policies: Soft Actor-Critic:</a></li>
-</ul>
-</li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#does-parametric-dynamic-programming-converge">18. Does Parametric Dynamic Programming Converge?</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-search-for-nonexpansive-operators">18.1. The Search for Nonexpansive Operators</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gordon-s-averagers">18.2. Gordon’s Averagers</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#which-function-approximators-interpolate-vs-extrapolate">18.3. Which Function Approximators Interpolate vs Extrapolate?</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#k-nearest-neighbors-knn">18.3.1. K-nearest neighbors (KNN)</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#linear-regression">18.3.2. Linear Regression</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#spline-interpolation">18.3.3. Spline Interpolation</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#does-parametric-dynamic-programming-converge">17. Does Parametric Dynamic Programming Converge?</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-search-for-nonexpansive-operators">17.1. The Search for Nonexpansive Operators</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gordon-s-averagers">17.2. Gordon’s Averagers</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#which-function-approximators-interpolate-vs-extrapolate">17.3. Which Function Approximators Interpolate vs Extrapolate?</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#k-nearest-neighbors-knn">17.3.1. K-nearest neighbors (KNN)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#linear-regression">17.3.2. Linear Regression</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#spline-interpolation">17.3.3. Spline Interpolation</a></li>
 </ul>
 </li>
 </ul>

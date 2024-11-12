@@ -184,7 +184,7 @@ $$ \beta_t(s_t) = \sum_{a_t} p(a_t | s_t) p(O_t = 1 | s_t, a_t) \sum_{s_{t+1}} p
 
 Taking the log and assuming a uniform prior over actions, we get:
 
-$$ \log \beta_t(s_t) = \log \sum_{a_t} \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) \exp(\beta (r(s_t, a_t) + \gamma V(s_{t+1}) + \frac{1}{\beta} \log \beta_{t+1}(s_{t+1}))) $$
+$$ \log \beta_t(s_t) = \log \sum_{a_t} \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) \exp(\beta (r(s_t, a_t) + \gamma v(_{t+1}) + \frac{1}{\beta} \log \beta_{t+1}(s_{t+1}))) $$
 
 If we define the soft value function as $V_t(s_t) = \frac{1}{\beta} \log \beta_t(s_t)$, we can rewrite the above equation as:
 
@@ -979,18 +979,19 @@ Now rather than maintaining two sets of indices for the outer and inner levels, 
 
 1. Initialize $\boldsymbol{\theta}_0$ randomly
 2. $\boldsymbol{\theta}_{target} \leftarrow \boldsymbol{\theta}_0$  // Initialize target parameters
-3. $n \leftarrow 0$  // Single iteration counter
+3. $t \leftarrow 0$  // Single iteration counter
 4. **while** training:
-    1. $\mathcal{D}_n \leftarrow \emptyset$  // Regression dataset
+    1. $\mathcal{D}_t \leftarrow \emptyset$  // Regression dataset
     2. For each $(s,a,r,s') \in \mathcal{T}$:
         1. $y_{s,a} \leftarrow r + \gamma \max_{a' \in A} q(s',a'; \boldsymbol{\theta}_{target})$  // Use target parameters
-        2. $\mathcal{D}_n \leftarrow \mathcal{D}_n \cup \{((s,a), y_{s,a})\}$
-    3. $\boldsymbol{\theta}_{n+1} \leftarrow \boldsymbol{\theta}_n - \alpha \nabla_{\boldsymbol{\theta}} \mathcal{L}(\boldsymbol{\theta}_n; \mathcal{D}_n)$
-    4. If $n \bmod K = 0$:  // Every K steps
-        1. $\boldsymbol{\theta}_{target} \leftarrow \boldsymbol{\theta}_n$  // Update target parameters
-    5. $n \leftarrow n + 1$
-4. **return** $\boldsymbol{\theta}_n$
+        2. $\mathcal{D}_t \leftarrow \mathcal{D}_t \cup \{((s,a), y_{s,a})\}$
+    3. $\boldsymbol{\theta}_{t+1} \leftarrow \boldsymbol{\theta}_t - \alpha \nabla_{\boldsymbol{\theta}} \mathcal{L}(\boldsymbol{\theta}_t; \mathcal{D}_t)$
+    4. If $t \bmod K = 0$:  // Every K steps
+        1. $\boldsymbol{\theta}_{target} \leftarrow \boldsymbol{\theta}_t$  // Update target parameters
+    5. $t \leftarrow t + 1$
+4. **return** $\boldsymbol{\theta}_t$
 ```
+
 The flattened version with target parameters achieves exactly the same effect as our previous nested-loop structure with warmstarting and K gradient steps. In the nested version, we would create a dataset using parameters $\boldsymbol{\theta}_n$, then perform K gradient steps to obtain $\boldsymbol{\theta}_{n+1}$. In our flattened version, we maintain a separate $\boldsymbol{\theta}_{target}$ that gets updated every K steps, ensuring that the dataset $\mathcal{D}_n$ is created using the same parameters for K consecutive iterations - just as it would be in the nested version. The only difference is that we've restructured the algorithm to avoid explicitly nesting the loops, making it more suitable for continuous online training which we are about to introduce. The periodic synchronization of $\boldsymbol{\theta}_{target}$ with the current parameters $\boldsymbol{\theta}_n$ effectively marks the boundary of what would have been the outer loop in our previous version.
 
 ### Exponential Moving Average Targets
@@ -1164,248 +1165,6 @@ We can adapt this idea to our setting. Instead of completely resetting to $\bold
 ```
 
 The interpolation coefficient $\beta$ controls how much of the learned parameters we retain, with $\beta = 0$ recovering the hard reset case and $\beta = 1$ corresponding to no reset at all. This provides a more flexible approach to restoring learning capability while potentially preserving useful features that have been learned. Like hard resets, this softer variant still enables high update ratios by preventing the degradation of learning capability, but does so in a more gradual way.
-
-
-# Continuous Action Spaces in Fitted Q-Iteration
-
-
-In fitted Q methods, the main idea is to compute the Bellman operator only at a subset of all states, relying on function approximation to generalize to the remaining states. At each step of the successive approximation loop, we build a dataset of input state-action pairs mapped to their corresponding optimality operator evaluations: 
-
-$$
-\mathcal{D}_n = \{((s, a), (Lq)(s, a; \boldsymbol{\theta}_n)) \mid (s,a) \in \mathcal{B}\}
-$$
-
-This dataset is then fed to our function approximator (neural network, random forest, linear model) to obtain the next set of parameters:
-
-$$
-\boldsymbol{\theta}_{n+1} \leftarrow \texttt{fit}(\mathcal{D}_n)
-$$
-
-While this strategy allows us to handle very large or even infinite (continuous) state spaces, the action set still requires maximizing over actions ($\max_{a \in A}$) during the dataset creation when computing the operator $L$ for each basepoint, which is computationally expensive for large action spaces. A natural improvement is to add another level of optimization: for each sample added to our regression dataset, we can employ an unconstrained optimization method to find an action that maximizes the Bellman operator for the given state.
-
-```{prf:algorithm} Fitted Q-Iteration with Explicit Optimization
-:label: fitted-q-iteration-explicit
-
-**Input** Given an MDP $(S, A, P, R, \gamma)$, base points $\mathcal{B}$, function approximator class $q(s,a; \boldsymbol{\theta})$, maximum iterations $N$, tolerance $\varepsilon > 0$
-
-**Output** Parameters $\boldsymbol{\theta}$ for Q-function approximation
-
-1. Initialize $\boldsymbol{\theta}_0$ (e.g., for zero initialization)
-2. $n \leftarrow 0$
-3. **repeat**
-    1. $\mathcal{D} \leftarrow \emptyset$ // Regression Dataset
-    2. For each $(s,a,r,s') \in \mathcal{B}$: // Assumes Monte Carlo Integration with one sample
-        1. $y_{s,a} \leftarrow r + \gamma \texttt{maximize}(q(s', \cdot; \boldsymbol{\theta}_n))$ // $s'$ and $\boldsymbol{\theta}_n$ are kept fixed
-        2. $\mathcal{D} \leftarrow \mathcal{D} \cup \{((s,a), y_{s,a})\}$
-    3. $\boldsymbol{\theta}_{n+1} \leftarrow \texttt{fit}(\mathcal{D})$
-    4. $\delta \leftarrow \frac{1}{|\mathcal{D}||A|}\sum_{(s,a) \in \mathcal{D} \times A} (q(s,a; \boldsymbol{\theta}_{n+1}) - q(s,a; \boldsymbol{\theta}_n))^2$
-    5. $n \leftarrow n + 1$
-4. **until** ($\delta < \varepsilon$ or $n \geq N$)
-5. **return** $\boldsymbol{\theta}_n$
-```
-
-This process is computationally intensive. A natural question is whether we can "amortize" some of this computation by replacing the explicit optimization for each sample with a direct mapping that gives us an approximate maximizer directly. 
-
-For Q-functions, recall that the operator is given by:
-
-$$
-(\mathrm{L}q)(s,a) = r(s,a) + \gamma \int p(ds'|s,a)\max_{a' \in \mathcal{A}(s')} q(s', a')
-$$
-
-If $q^*$ is the optimal state-action value function, then $v^*(s) = \max_a q^*(s,a)$, and we can derive the optimal policy directly by computing the decision rule:
-
-$$
-d^\star(s) = \arg\max_{a \in \mathcal{A}(s)} q^\star(s,a)
-$$
-
-Since $q^*$ is a fixed point of $L$, we can write:
-
-$$
-\begin{align*}
-q^\star(s,a) &= (Lq^*)(s,a) \\
-&= r(s,a) + \gamma \int p(ds'|s,a) \max_{a' \in \mathcal{A}(s')} q^\star(s', a') \\
-&= r(s,a) + \gamma \int p(ds'|s,a) q^\star(s', d^\star(s'))
-\end{align*}
-$$
-
-Note that $d^\star$ is implemented by our $\texttt{maximize}$ numerical solver in the procedure above. A practical strategy would be to collect these maximizer values at each step and use them to train a function approximator that directly predicts these solutions. Due to computational constraints, we might want to compute these exact maximizer values only for a subset of states, based on some computational budget, and use the fitted decision rule to generalize to the remaining states. This leads to the following amortized version:
-
-```{prf:algorithm} Fitted Q-Iteration with Amortized Optimization
-:label: fitted-q-iteration-amortized
-
-**Input** Given an MDP $(S, A, P, R, \gamma)$, base points $\mathcal{B}$, subset for exact optimization $\mathcal{B}_{\text{opt}} \subset \mathcal{B}$, Q-function approximator $q(s,a; \boldsymbol{\theta})$, policy approximator $d(s; \boldsymbol{w})$, maximum iterations $N$, tolerance $\varepsilon > 0$
-
-**Output** Parameters $\boldsymbol{\theta}$ for Q-function, $\boldsymbol{w}$ for policy
-
-1. Initialize $\boldsymbol{\theta}_0$, $\boldsymbol{w}_0$
-2. $n \leftarrow 0$
-3. **repeat**
-    1. $\mathcal{D}_q \leftarrow \emptyset$ // Q-function regression dataset
-    2. $\mathcal{D}_d \leftarrow \emptyset$ // Policy regression dataset
-    3. For each $(s,a,r,s') \in \mathcal{B}$:
-        1. // Determine next state's action using either exact optimization or approximation
-        2. **if** $s' \in \mathcal{B}_{\text{opt}}$ **then**
-            1. $a^*_{s'} \leftarrow \texttt{maximize}(q(s', \cdot; \boldsymbol{\theta}_n))$
-            2. $\mathcal{D}_d \leftarrow \mathcal{D}_d \cup \{(s', a^*_{s'})\}$
-        3. **else**
-            1. $a^*_{s'} \leftarrow d(s'; \boldsymbol{w}_n)$
-        4. // Compute Q-function target using chosen action
-        5. $y_{s,a} \leftarrow r + \gamma q(s', a^*_{s'}; \boldsymbol{\theta}_n)$
-        6. $\mathcal{D}_q \leftarrow \mathcal{D}_q \cup \{((s,a), y_{s,a})\}$
-    4. // Update both function approximators
-    5. $\boldsymbol{\theta}_{n+1} \leftarrow \texttt{fit}(\mathcal{D}_q)$
-    6. $\boldsymbol{w}_{n+1} \leftarrow \texttt{fit}(\mathcal{D}_d)$
-    7. // Compute convergence criteria
-    8. $\delta_q \leftarrow \frac{1}{|\mathcal{D}_q|}\sum_{(s,a) \in \mathcal{D}_q} (q(s,a; \boldsymbol{\theta}_{n+1}) - q(s,a; \boldsymbol{\theta}_n))^2$
-    9. $\delta_d \leftarrow \frac{1}{|\mathcal{D}_d|}\sum_{(s,a^*) \in \mathcal{D}_d} \|a^* - d(s; \boldsymbol{w}_{n+1})\|^2$
-    10. $n \leftarrow n + 1$
-4. **until** ($\max(\delta_q, \delta_d) < \varepsilon$ or $n \geq N$)
-5. **return** $\boldsymbol{\theta}_n$, $\boldsymbol{w}_n$
-```
-
-An important observation about this procedure is that the policy network $d(s; \boldsymbol{w})$ is being trained on a dataset $\mathcal{D}_d$ containing optimal actions computed with respect to an evolving Q-function. Specifically, at iteration n, we collect pairs $(s', a^*_{s'})$ where $a^*_{s'} = \arg\max_a q(s', a; \boldsymbol{\theta}_n)$. However, after updating to $\boldsymbol{\theta}_{n+1}$, these actions may no longer be optimal with respect to the new Q-function.
-
-A natural approach to handle this staleness would be to maintain only the most recent optimization data. We could modify our procedure to keep a sliding window of K iterations, where at iteration n, we only use data from iterations max(0, n-K) to n. This would be implemented by augmenting each entry in $\mathcal{D}_d$ with a timestamp:
-
-$$
-\mathcal{D}_d^t = \{(s', a^*_{s'}, t) \mid t \in \{n-K,\ldots,n\}\}
-$$
-
-where t indicates the iteration at which the optimal action was computed. When fitting the policy network, we would then only use data points that are at most K iterations old:
-
-$$
-\boldsymbol{w}_{n+1} \leftarrow \texttt{fit}(\{(s', a^*_{s'}) \mid (s', a^*_{s'}, t) \in \mathcal{D}_d^t, n-K \leq t \leq n\})
-$$
-
-This introduces a trade-off between using more data (larger K) versus using more recent, accurate data (smaller K). The choice of K would depend on how quickly the Q-function evolves and the computational budget available for computing exact optimal actions.
-
-## Neural Fitted Q-iteration for Continuous Actions (Hafner et al. 2011)
-
-In our previous discussion, we explored amortizing the optimization by collecting maximizer values and training a policy network to predict them. While this approach has merit, it still relies on calling an exact optimizer `maximize` for some states. Is there a way that we could avoid calling this maximizing procedure at all? {cite}`Hafner2011` proposes such an approach, extending neural fitted Q-iteration for continuous actions (NFQCA).
-
-To see this, we assume (for the moment) that we have access to $q^*$, the optimal Q-function. Then we can state our goal as finding $\boldsymbol{w}$ that maximizes $q^*$ with respect to the actions chosen by our policy across the state space:
-
-$$
-\max_{\boldsymbol{w}} q^*(s, d(s; \boldsymbol{w})) \quad \text{for all } s
-$$
-
-However, it's computationally infeasible to satisfy this condition for every possible state $s$, especially in large or continuous state spaces. To address this, we can consider an **expectation** over a distribution of states, denoted $\mu(s)$, which reflects the likelihood of encountering each state. This transforms our goal into an expected objective that we can sample from:
-
-$$
-\max_{\boldsymbol{w}} \mathbb{E}_{s \sim \mu(s)}[q^*(s, d(s; \boldsymbol{w}))]
-$$
-
-
-To optimize our policy parameters $\boldsymbol{w}$, we need to maximize:
-
-$$
-\max_{\boldsymbol{w}} \mathbb{E}_{s \sim \mu(s)}[q(s, d(s; \boldsymbol{w}); \boldsymbol{\theta})]
-$$
-
-Using gradient ascent, we need to compute:
-
-$$
-\nabla_{\boldsymbol{w}} \mathbb{E}_{s \sim \mu(s)}[q(s, d(s; \boldsymbol{w}); \boldsymbol{\theta})]
-$$
-
-By the linearity of expectation, this is equivalent to:
-
-$$
-\mathbb{E}_{s \sim \mu(s)}[\nabla_{\boldsymbol{w}} q(s, d(s; \boldsymbol{w}); \boldsymbol{\theta})]
-$$
-
-In practice, we can approximate this expectation using our base points $\mathcal{B}$ as a Monte Carlo estimate:
-
-$$
-\frac{1}{|\mathcal{B}|} \sum_{(s,a,r,s') \in \mathcal{B}} \nabla_{\boldsymbol{w}} q(s, d(s; \boldsymbol{w}); \boldsymbol{\theta})
-$$
-
-In reality, we do not have access to $q^*$. Instead, we need to approximate $q^*$ with a Q-function $q(s, a; \boldsymbol{\theta})$, parameterized by $\boldsymbol{\theta}$, which we will learn simultaneously with the policy function $d(s; \boldsymbol{w})$. 
-
-```{prf:algorithm} Neural Fitted Q-Iteration with Continuous Actions (NFQCA)
-:label: nfqca
-
-**Input** Given an MDP $(S, A, P, R, \gamma)$, base points $\mathcal{B}$, Q-function approximator $q(s,a; \boldsymbol{\theta})$, policy approximator $d(s; \boldsymbol{w})$, maximum iterations $N$, tolerance $\varepsilon > 0$
-
-**Output** Parameters $\boldsymbol{\theta}$ for Q-function, $\boldsymbol{w}$ for policy
-
-1. Initialize $\boldsymbol{\theta}_0$, $\boldsymbol{w}_0$
-2. $n \leftarrow 0$
-3. **repeat**
-    1. $\mathcal{D}_q \leftarrow \emptyset$ // Q-function regression dataset
-    2. For each $(s,a,r,s') \in \mathcal{B}$:
-        1. // Use current policy for next state action
-        2. $a'_{s'} \leftarrow d(s'; \boldsymbol{w}_n)$
-        3. // Compute Q-function target
-        4. $y_{s,a} \leftarrow r + \gamma q(s', a'_{s'}; \boldsymbol{\theta}_n)$
-        5. $\mathcal{D}_q \leftarrow \mathcal{D}_q \cup \{((s,a), y_{s,a})\}$
-    3. // Update Q-function
-    4. $\boldsymbol{\theta}_{n+1} \leftarrow \texttt{fit}(\mathcal{D}_q)$
-    5. // Update policy using sample-based gradient ascent
-    6. $\mathcal{G}_w \leftarrow \frac{1}{|\mathcal{B}|} \sum_{(s,a,r,s') \in \mathcal{B}} \nabla_{\boldsymbol{w}} q(s, d(s; \boldsymbol{w}); \boldsymbol{\theta}_{n+1})$
-    7. $\boldsymbol{w}_{n+1} \leftarrow \boldsymbol{w}_n + \alpha \mathcal{G}_w$
-    8. // Compute convergence criteria
-    9. $\delta_q \leftarrow \frac{1}{|\mathcal{D}_q|}\sum_{(s,a) \in \mathcal{D}_q} (q(s,a; \boldsymbol{\theta}_{n+1}) - q(s,a; \boldsymbol{\theta}_n))^2$
-    10. $\delta_d \leftarrow \frac{1}{|\mathcal{B}|}\sum_{s \in \mathcal{B}} \|d(s; \boldsymbol{w}_{n+1}) - d(s; \boldsymbol{w}_n)\|^2$
-    11. $n \leftarrow n + 1$
-4. **until** ($\max(\delta_q, \delta_d) < \varepsilon$ or $n \geq N$)
-5. **return** $\boldsymbol{\theta}_n$, $\boldsymbol{w}_n$
-```
-
-## From Deterministic to Stochastic Policies: Soft Actor-Critic:
-
-Having examined NFQCA's approach to continuous actions through direct policy optimization, we now turn to Soft Actor-Critic (SAC) {cite}`Haarnoja2018`, which extends these ideas into the maximum entropy framework. While NFQCA aims to find a deterministic policy that maximizes the Q-function, SAC seeks a stochastic policy that balances reward maximization with entropy maximization.
-
-Recall that in NFQCA, we optimize:
-
-$$
-\max_{\boldsymbol{w}} \mathbb{E}_{s \sim \mu(s)}[q(s, d(s; \boldsymbol{w}))]
-$$
-
-SAC generalizes this objective by introducing a temperature parameter $\alpha$ and optimizing:
-
-$$
-\max_{\phi} \mathbb{E}_{s \sim \mu(s)}[\mathbb{E}_{a \sim d(\cdot|s)}[q(s,a) - \alpha \log d(a|s)]]
-$$
-
-where $d(a|s; \phi)$ is now a stochastic policy. This objective can be rewritten as minimizing:
-
-$$
-\mathbb{E}_{s \sim \mu(s)}\left[D_{KL}\left(d(\cdot|s) \| \frac{\exp(\frac{1}{\alpha}q(s,\cdot))}{Z(s)}\right)\right]
-$$
-
-This formulation provides a connection to NFQCA's first-order optimality conditions. At optimality, we have:
-
-$$
-\nabla_a q(s,a) = \alpha \nabla_a \log d(a|s)
-$$
-
-This reveals SAC's policy update as a "soft" version of NFQCA's condition $\nabla_a q(s,a) = 0$. When $\alpha \to 0$, we recover NFQCA's deterministic policy; as $\alpha$ increases, the policy becomes more stochastic.
-
-```{prf:algorithm} Soft Actor-Critic
-:label: sac
-
-**Input** MDP $(S, A, P, R, \gamma)$, temperature $\alpha$, learning rates $\alpha_\theta$, $\alpha_\phi$
-
-**Initialize**
-1. Q-networks $q(s,a; \boldsymbol{\theta}_1)$, $q(s,a; \boldsymbol{\theta}_2)$ and their targets
-2. Policy network $d(a|s; \boldsymbol{\phi})$
-3. Replay buffer $\mathcal{R} \leftarrow \emptyset$
-
-**for** each iteration **do**
-    1. Sample transition $(s,a,r,s')$ using current policy
-    2. Store $(s,a,r,s')$ in $\mathcal{R}$
-    3. Sample batch $\mathcal{B}$ from $\mathcal{R}$
-    4. // Update Q-networks
-    5. For $(s,a,r,s') \in \mathcal{B}$:
-      1. $\tilde{a}' \sim d(\cdot|s'; \boldsymbol{\phi})$
-      2. $y \leftarrow r + \gamma(\min_{j=1,2} q(s',\tilde{a}'; \boldsymbol{\theta}'_j) - \alpha \log d(\tilde{a}'|s'; \boldsymbol{\phi}))$
-      3. Update $\boldsymbol{\theta}_j$ to minimize $(y - q(s,a; \boldsymbol{\theta}_j))^2$
-    6. // Update policy via KL minimization
-    7. For $s \in \mathcal{B}$:
-        1. $\nabla_{\phi} D_{KL}(d(\cdot|s; \phi) \| \exp(\frac{1}{\alpha}q(s,\cdot)))$
-**end for**
-```
 
 # Does Parametric Dynamic Programming Converge?
 

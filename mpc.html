@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>7. Model Predictive Control &#8212; Pragmatic Reinforcement Learning: Algorithms and Applications</title>
+    <title>7. From Trajectories to Policies &#8212; Pragmatic Reinforcement Learning: Algorithms and Applications</title>
   
   
   
@@ -184,7 +184,7 @@
 
 <li class="toctree-l1"><a class="reference internal" href="cocp.html">5. Continuous-Time Trajectory Optimization</a></li>
 
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">7. Model Predictive Control</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">7. From Trajectories to Policies</a></li>
 
 
 
@@ -195,7 +195,8 @@
 
 
 
-<li class="toctree-l1"><a class="reference internal" href="bibliography.html">18. Bibliography</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">19. Bibliography</a></li>
 </ul>
 
     </div>
@@ -398,7 +399,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Model Predictive Control</h1>
+    <h1>From Trajectories to Policies</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -408,7 +409,7 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">7. Model Predictive Control</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">7. From Trajectories to Policies</a></li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#closing-the-loop-by-replanning">8. Closing the Loop by Replanning</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-propofol-infusion-control">8.1. Example: Propofol Infusion Control</a></li>
 </ul>
@@ -448,8 +449,8 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="model-predictive-control">
-<h1><span class="section-number">7. </span>Model Predictive Control<a class="headerlink" href="#model-predictive-control" title="Link to this heading">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="from-trajectories-to-policies">
+<h1><span class="section-number">7. </span>From Trajectories to Policies<a class="headerlink" href="#from-trajectories-to-policies" title="Link to this heading">#</a></h1>
 <p>The methods seen so far, whether in discrete or continuous-time, were deterministic trajectory optimization methods. Given an initial state, they provide a prescription of controls to apply as a function of time. In the collocation case, we would also obtain a state trajectory corresponding to those controls as a by-product. The control function, <span class="math notranslate nohighlight">\(\mathbf{u}[i]\)</span> (in discrete time) or <span class="math notranslate nohighlight">\(u(t)\)</span> (in continuous-time), is blind to the system’s state at any point in time. It simply reads off the values stored in memory or performs some form of interpolation in time. This approach is optimal under the assumption that our system is deterministic. We know that no matter how many times we repeat the experiment from the same initial state, we will always get the same result; hence, reapplying the same controls in the same order is sufficient.</p>
 <p>However, no matter how good our model is, real-life deployment of our controller will inevitably involve prediction errors. In such cases, a simple control function that only considers the current time—an open-loop controller—won’t suffice. We must inform our controller that the real world is likely not in the state it thinks it’s in: we need to provide feedback to close the loop. Depending on the structure of the noise affecting our system, we may encounter feedback controllers that depend on the entire history (in the case of partial observability) or just the current state (under perfect observability). Dynamic programming methods will provide us with solution methods to derive such controllers. These methods exist for both the continuous-time setting (via the Hamilton-Jacobi equations) and the discrete setting through the Bellman optimality equations. It also provides us with the necessary framework to address partially observable systems (for which we can’t directly measure the state) using the POMDP framework. We will cover these solution methods in this chapter.</p>
 </section>
@@ -542,7 +543,7 @@ document.write(`
 </section>
 </div><section id="example-propofol-infusion-control">
 <h2><span class="section-number">8.1. </span>Example: Propofol Infusion Control<a class="headerlink" href="#example-propofol-infusion-control" title="Link to this heading">#</a></h2>
-<p>This problem explores the control of propofol infusion in total intravenous anesthesia (TIVA). Our presentation follows the problem formulation developped by <span id="id1">Sawaguchi <em>et al.</em> [<a class="reference internal" href="bibliography.html#id19" title="Y. Sawaguchi, E. Furutani, G. Shirakami, M. Araki, and K. Fukuda. A model-predictive hypnosis control system under total intravenous anesthesia. IEEE Transactions on Biomedical Engineering, 55(3):874–887, March 2008. URL: http://dx.doi.org/10.1109/tbme.2008.915670, doi:10.1109/tbme.2008.915670.">35</a>]</span>. The primary objective is to maintain the desired level of unconsciousness while minimizing adverse reactions and ensuring quick recovery after surgery.</p>
+<p>This problem explores the control of propofol infusion in total intravenous anesthesia (TIVA). Our presentation follows the problem formulation developped by <span id="id1">Sawaguchi <em>et al.</em> [<a class="reference internal" href="bibliography.html#id19" title="Y. Sawaguchi, E. Furutani, G. Shirakami, M. Araki, and K. Fukuda. A model-predictive hypnosis control system under total intravenous anesthesia. IEEE Transactions on Biomedical Engineering, 55(3):874–887, March 2008. URL: http://dx.doi.org/10.1109/tbme.2008.915670, doi:10.1109/tbme.2008.915670.">39</a>]</span>. The primary objective is to maintain the desired level of unconsciousness while minimizing adverse reactions and ensuring quick recovery after surgery.</p>
 <p>The level of unconsciousness is measured by the Bispectral Index (BIS), which is obtained using an electroencephalography (EEG) device. The BIS ranges from <span class="math notranslate nohighlight">\(0\)</span> (complete suppression of brain activity) to <span class="math notranslate nohighlight">\(100\)</span> (fully awake), with the target range for general anesthesia typically between <span class="math notranslate nohighlight">\(40\)</span> and <span class="math notranslate nohighlight">\(60\)</span>.</p>
 <p>The goal is to design a control system that regulates the infusion rate of propofol to maintain the BIS within the target range. This can be formulated as an optimal control problem:</p>
 <div class="math notranslate nohighlight">
@@ -1882,7 +1883,7 @@ Average total harvest: 312.58350302825596
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">7. Model Predictive Control</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">7. From Trajectories to Policies</a></li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#closing-the-loop-by-replanning">8. Closing the Loop by Replanning</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-propofol-infusion-control">8.1. Example: Propofol Infusion Control</a></li>
 </ul>

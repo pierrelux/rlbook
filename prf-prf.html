@@ -190,7 +190,7 @@
 
 <li class="toctree-l1"><a class="reference internal" href="cocp.html">5. Continuous-Time Trajectory Optimization</a></li>
 
-<li class="toctree-l1"><a class="reference internal" href="mpc.html">7. Model Predictive Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mpc.html">7. From Trajectories to Policies</a></li>
 
 
 
@@ -201,8 +201,11 @@
 
 
 
+<li class="toctree-l1"><a class="reference internal" href="cadp.html">18. Policy Parametrization Methods</a></li>
 
-<li class="toctree-l1"><a class="reference internal" href="bibliography.html">19. Bibliography</a></li>
+
+
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">22. Bibliography</a></li>
 </ul>
 
     </div>
@@ -369,6 +372,7 @@ document.write(`
    <a href="#cap-backward-recursion-interpolation"><strong>backward-recursion-interpolation</strong></a> | 
    <a href="#cap-basic-q-iteration"><strong>basic-q-iteration</strong></a> | 
    <a href="#cap-bolza-docp"><strong>bolza-docp</strong></a> | 
+   <a href="#cap-ddpg"><strong>ddpg</strong></a> | 
    <a href="#cap-definition-3"><strong>definition-3</strong></a> | 
    <a href="#cap-definition-4"><strong>definition-4</strong></a> | 
    <a href="#cap-definition-5"><strong>definition-5</strong></a> | 
@@ -404,7 +408,6 @@ document.write(`
    <a href="#cap-prop-5-3-1"><strong>prop-5-3-1</strong></a> | 
    <a href="#cap-proposition-4"><strong>proposition-4</strong></a> | 
    <a href="#cap-q-iteration-inner-loop"><strong>q-iteration-inner-loop</strong></a> | 
-   <a href="#cap-sac"><strong>sac</strong></a> | 
    <a href="#cap-shooting-trajectory-storage"><strong>shooting-trajectory-storage</strong></a> | 
    <a href="#cap-stochastic-backward-recursion"><strong>stochastic-backward-recursion</strong></a> | 
    <a href="#cap-successive-approximation"><strong>successive-approximation</strong></a> | 
@@ -519,6 +522,14 @@ document.write(`
        <a href="ocp.html#bolza-docp"><code class="xref">bolza-docp</code></a> <em>(ocp)</em></td><td>
        <em>definition</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
+     <tr class="cap" id="cap-ddpg"><td></td><td>
+       <strong>ddpg</strong></td><td></td></tr>
+     <tr>
+       <td></td>
+       <td>
+       <a href="cadp.html#ddpg"><code class="xref">ddpg</code></a> <em>(cadp)</em></td><td>
+       <em>algorithm</em></td></tr>
+     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-definition-3"><td></td><td>
        <strong>definition-3</strong></td><td></td></tr>
      <tr>
@@ -604,7 +615,7 @@ document.write(`
      <tr>
        <td></td>
        <td>
-       <a href="adp.html#fitted-q-iteration-amortized"><code class="xref">fitted-q-iteration-amortized</code></a> <em>(adp)</em></td><td>
+       <a href="cadp.html#fitted-q-iteration-amortized"><code class="xref">fitted-q-iteration-amortized</code></a> <em>(cadp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-fitted-q-iteration-explicit"><td></td><td>
@@ -612,7 +623,7 @@ document.write(`
      <tr>
        <td></td>
        <td>
-       <a href="adp.html#fitted-q-iteration-explicit"><code class="xref">fitted-q-iteration-explicit</code></a> <em>(adp)</em></td><td>
+       <a href="cadp.html#fitted-q-iteration-explicit"><code class="xref">fitted-q-iteration-explicit</code></a> <em>(cadp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-fitted-value-iteration-quadrature"><td></td><td>
@@ -684,7 +695,7 @@ document.write(`
      <tr>
        <td></td>
        <td>
-       <a href="adp.html#nfqca"><code class="xref">nfqca</code></a> <em>(adp)</em></td><td>
+       <a href="cadp.html#nfqca"><code class="xref">nfqca</code></a> <em>(cadp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-nfqi-flattened-ema"><td></td><td>
@@ -797,14 +808,6 @@ document.write(`
        <td></td>
        <td>
        <a href="adp.html#q-iteration-inner-loop"><code class="xref">q-iteration-inner-loop</code></a> <em>(adp)</em></td><td>
-       <em>algorithm</em></td></tr>
-     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
-     <tr class="cap" id="cap-sac"><td></td><td>
-       <strong>sac</strong></td><td></td></tr>
-     <tr>
-       <td></td>
-       <td>
-       <a href="adp.html#sac"><code class="xref">sac</code></a> <em>(adp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-shooting-trajectory-storage"><td></td><td>
