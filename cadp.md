@@ -141,7 +141,7 @@ Now the main issue with this approach, apart from the intrinsic out-of-distribut
 In this section, we consider deterministic parametrized policies of the form $d(s; \boldsymbol{w})$ which directly output an action given a state. This approach differs from stochastic policies that output probability distributions over actions, making it particularly suitable for continuous control problems where the optimal policy is often deterministic. We'll see how fitted Q-value methods can be naturally extended to simultaneously learn both the Q-function and such a deterministic policy.
 
 
-## Neural Fitted Q-iteration for Continuous Actions (Hafner et al. 2011)
+## Neural Fitted Q-iteration for Continuous Actions (NFQCA)
 
 To develop this approach, let's first consider an idealized setting where we have access to $q^\star$, the optimal Q-function. Then we can state our goal as finding policy parameters $\boldsymbol{w}$ that maximize $q^\star$ with respect to the actions chosen by our policy across the state space:
 
@@ -209,7 +209,19 @@ $$
 a = d(s; \boldsymbol{w}) + \mathcal{N}
 $$
 
-where $\mathcal{N}$ represents exploration noise, typically drawn from an Ornstein-Uhlenbeck process to generate temporally correlated exploration.
+where $\mathcal{N}$ represents exploration noise drawn from an Ornstein-Uhlenbeck (OU) process. The OU process is particularly well-suited for control tasks as it generates temporally correlated noise, leading to smoother exploration trajectories compared to independent random noise. It is defined by the stochastic differential equation:
+
+$$
+d\mathcal{N}_t = \theta(\mu - \mathcal{N}_t)dt + \sigma dW_t
+$$
+
+where $\mu$ is the long-term mean value (typically set to 0), $\theta$ determines how strongly the noise is pulled toward this mean, $\sigma$ scales the random fluctuations, and $dW_t$ is a Wiener process (continuous-time random walk). For implementation, we discretize this continuous-time process using the Euler-Maruyama method:
+
+$$
+\mathcal{N}_{t+1} = \mathcal{N}_t + \theta(\mu - \mathcal{N}_t)\Delta t + \sigma\sqrt{\Delta t}\epsilon_t
+$$
+
+where $\Delta t$ is the time step and $\epsilon_t \sim \mathcal{N}(0,1)$ is standard Gaussian noise. Think of this process like a spring mechanism: when the noise value $\mathcal{N}_t$ deviates from $\mu$, the term $\theta(\mu - \mathcal{N}_t)\Delta t$ acts like a spring force, continuously pulling it back. Unlike a spring, however, this return to $\mu$ is not oscillatory - it's more like motion through a viscous fluid, where the force simply decreases as the noise gets closer to $\mu$. The random term $\sigma\sqrt{\Delta t}\epsilon_t$ then adds perturbations to this smooth return trajectory. This creates noise that wanders away from $\mu$ (enabling exploration) but is always gently pulled back (preventing the actions from wandering too far), with $\theta$ controlling the strength of this pulling force.
 
 The policy gradient update follows the same principle as NFQCA:
 
@@ -250,8 +262,9 @@ We then embed this exploration mechanism into the data collection procedure and 
 ```
 
 
-# From Deterministic to Stochastic Policies: Soft Actor-Critic
+# Stochastic Policy Parameterization
 
+## Soft Actor Critic
 Adapting the intuition of NFQCA to the smooth Bellman optimality equations leads us to the soft actor-critic algorithm {cite}`haarnoja2018soft`. To understand this connection, let's first examine how the smooth Bellman equations emerge naturally from entropy regularization.
 
 Consider the standard Bellman operator augmented with an entropy term. The smooth Bellman operator $\mathrm{L}_\beta$ takes the form:
