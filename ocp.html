@@ -16,17 +16,19 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!-- 
+    this give us a css class that will be invisible only if js is disabled 
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-
-  
-  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+  <link href="_static/styles/theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
@@ -34,14 +36,15 @@
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
-    <link rel="stylesheet" type="text/css" href="_static/proof.css?v=ca93fcec" />
+    <link rel="stylesheet" type="text/css" href="_static/proof.css?v=b4b7a797" />
     <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
-    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=87e54e7c" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
   
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
 
     <script src="_static/documentation_options.js?v=9eb32ce0"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
@@ -68,6 +71,7 @@
     <link rel="prev" title="Introduction" href="intro.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
   </head>
   
   
@@ -83,19 +87,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="search.html"
       method="get">
@@ -103,7 +96,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search this book..."
          aria-label="Search this book..."
          autocomplete="off"
@@ -111,8 +103,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -128,7 +120,8 @@
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -158,15 +151,11 @@
 </a></div>
         <div class="sidebar-primary-item">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script></div>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         
@@ -184,7 +173,7 @@
 
 <li class="toctree-l1"><a class="reference internal" href="cocp.html">5. Continuous-Time Trajectory Optimization</a></li>
 
-<li class="toctree-l1"><a class="reference internal" href="mpc.html">7. Model Predictive Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mpc.html">7. From Trajectories to Policies</a></li>
 
 
 
@@ -195,7 +184,15 @@
 
 
 
-<li class="toctree-l1"><a class="reference internal" href="bibliography.html">18. Bibliography</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="cadp.html">19. Policy Parametrization Methods</a></li>
+
+
+
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">26. Bibliography</a></li>
 </ul>
 
     </div>
@@ -367,24 +364,16 @@
 
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
-  </button>
-`);
-</script>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button>
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
-  </button>
-`);
-</script>
+</button>
 <button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <span class="fa-solid fa-list"></span>
 </button>
@@ -475,7 +464,7 @@ document.write(`
 <p>This course considers two broad categories of environments, each with its own specialized solution methods: deterministic and stochastic environments. Stochastic problems are mathematically more general than their deterministic counterparts. However, despite this generality, it’s important to note that algorithms for stochastic problems are not necessarily more powerful than those designed for deterministic ones when used in practice. We should keep in mind that stochasticity and determinism are assumed properties of the world, which we model—perhaps imperfectly—into our algorithms. In this course, we adopt a pragmatic perspective on that matter, and will make assumptions only to the extent that those assumptions help us design algorithms which are ultimately useful in practice: a lesson which we have certainly learned from the success of deep learning methods over the last years. With this pragmatic stance, we start our journey with deterministic discrete-time models.</p>
 <section id="irrigation-management-example">
 <h2><span class="section-number">1.1. </span>Irrigation Management Example<a class="headerlink" href="#irrigation-management-example" title="Link to this heading">#</a></h2>
-<p>Resource allocation problems, found across various fields of operations research, are a specific kind of deterministic discrete-time optimal control problems. For example, consider the problem of irrigation management as posed by <span id="id1">Hall and Butcher [<a class="reference internal" href="bibliography.html#id2" title="Warren A. Hall and William S. Butcher. Optimal timing of irrigation. Journal of the Irrigation and Drainage Division, 94(2):267–275, June 1968. URL: http://dx.doi.org/10.1061/JRCEA4.0000569, doi:10.1061/jrcea4.0000569.">18</a>]</span>, in which a decision maker is tasked with finding the optimal amount of water to allocate throughout the various growth stages of a plant in order to maximize the yield. Clearly, allocating all the water – thereby flooding the crop – in the first stage would be a bad idea. Similarly, letting the crop dry out and only watering at the end is also suboptimal. Our solution – that is a prescription for the amount of water to use at any point in time – should balance those two extremes. In order to achieve this goal, our system should ideally be informed by the expected growth dynamics of the given crops as a function of the water provided: a process which depends at the very least on physical properties known to influence the soil moisture. The basic model considered in this paper describes the evolution of the moisture content through the equation:</p>
+<p>Resource allocation problems, found across various fields of operations research, are a specific kind of deterministic discrete-time optimal control problems. For example, consider the problem of irrigation management as posed by <span id="id1">Hall and Butcher [<a class="reference internal" href="bibliography.html#id2" title="Warren A. Hall and William S. Butcher. Optimal timing of irrigation. Journal of the Irrigation and Drainage Division, 94(2):267–275, June 1968. URL: http://dx.doi.org/10.1061/JRCEA4.0000569, doi:10.1061/jrcea4.0000569.">20</a>]</span>, in which a decision maker is tasked with finding the optimal amount of water to allocate throughout the various growth stages of a plant in order to maximize the yield. Clearly, allocating all the water – thereby flooding the crop – in the first stage would be a bad idea. Similarly, letting the crop dry out and only watering at the end is also suboptimal. Our solution – that is a prescription for the amount of water to use at any point in time – should balance those two extremes. In order to achieve this goal, our system should ideally be informed by the expected growth dynamics of the given crops as a function of the water provided: a process which depends at the very least on physical properties known to influence the soil moisture. The basic model considered in this paper describes the evolution of the moisture content through the equation:</p>
 <div class="amsmath math notranslate nohighlight">
 \[\begin{align*}
 w_{t+1} = w_t+\texttip{\eta}{efficiency} u_t-e_t + \phi_t
@@ -503,7 +492,7 @@ The problem specification laid out above can be turned into the following mathem
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="mathematical-programming-formulation">
 <h1><span class="section-number">2. </span>Mathematical Programming Formulation<a class="headerlink" href="#mathematical-programming-formulation" title="Link to this heading">#</a></h1>
-<p>The three quantities <span class="math notranslate nohighlight">\((w_t, q_t, a_t)\)</span> appearing in the model of <span id="id2">Hall and Butcher [<a class="reference internal" href="bibliography.html#id2" title="Warren A. Hall and William S. Butcher. Optimal timing of irrigation. Journal of the Irrigation and Drainage Division, 94(2):267–275, June 1968. URL: http://dx.doi.org/10.1061/JRCEA4.0000569, doi:10.1061/jrcea4.0000569.">18</a>]</span> above have the property that they encompass all of the information necessary to simulate the process. We say that it is a “<strong>state variable</strong>”, and its time evolution is specified via so-called <strong>dynamics function</strong>, which we commonly denote by <span class="math notranslate nohighlight">\(f_t\)</span>. In discrete-time systems, the dynamics are often described by “difference equations,” as opposed to the “differential equations” used for continuous-time systems. When the dynamics function depends on the time index <span class="math notranslate nohighlight">\(t\)</span>, we refer to it as “non-stationary” dynamics. Conversely, if the function <span class="math notranslate nohighlight">\(f\)</span> remains constant across all time steps, we call it “stationary” dynamics. In the context of optimal control theory, we refer more generally to <span class="math notranslate nohighlight">\(u_t\)</span> as a “control” variable while in other communities it is called an “action”. Whether the problem is posed as a minimization problem or maximization problem is also a matter of communities, with control theory typically posing problems in terms of cost minimization while OR and RL communities usually adopt a reward maximization perspective. In this course, we will alternate between the two equivalent formulations while ensuring that context is sufficiently clear to understand which one is used.</p>
+<p>The three quantities <span class="math notranslate nohighlight">\((w_t, q_t, a_t)\)</span> appearing in the model of <span id="id2">Hall and Butcher [<a class="reference internal" href="bibliography.html#id2" title="Warren A. Hall and William S. Butcher. Optimal timing of irrigation. Journal of the Irrigation and Drainage Division, 94(2):267–275, June 1968. URL: http://dx.doi.org/10.1061/JRCEA4.0000569, doi:10.1061/jrcea4.0000569.">20</a>]</span> above have the property that they encompass all of the information necessary to simulate the process. We say that it is a “<strong>state variable</strong>”, and its time evolution is specified via so-called <strong>dynamics function</strong>, which we commonly denote by <span class="math notranslate nohighlight">\(f_t\)</span>. In discrete-time systems, the dynamics are often described by “difference equations,” as opposed to the “differential equations” used for continuous-time systems. When the dynamics function depends on the time index <span class="math notranslate nohighlight">\(t\)</span>, we refer to it as “non-stationary” dynamics. Conversely, if the function <span class="math notranslate nohighlight">\(f\)</span> remains constant across all time steps, we call it “stationary” dynamics. In the context of optimal control theory, we refer more generally to <span class="math notranslate nohighlight">\(u_t\)</span> as a “control” variable while in other communities it is called an “action”. Whether the problem is posed as a minimization problem or maximization problem is also a matter of communities, with control theory typically posing problems in terms of cost minimization while OR and RL communities usually adopt a reward maximization perspective. In this course, we will alternate between the two equivalent formulations while ensuring that context is sufficiently clear to understand which one is used.</p>
 <p>The problem stated above, is known as a Discrete-Time Optimal Control Problem (DOCP), which we write more generically as:</p>
 <div class="proof definition admonition" id="bolza-docp">
 <p class="admonition-title"><span class="caption-number">Definition 2.1 </span> (Discrete-Time Optimal Control Problem of Bolza Type)</p>
@@ -779,13 +768,13 @@ subject to <span class="math notranslate nohighlight">\(\mathbf{u}_{lb} \leq \ma
 </div>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Iteration 0, Cost: 2.9000003337860107
-Iteration 100, Cost: 1.4151428937911987
+Iteration 100, Cost: 1.4151430130004883
 Iteration 200, Cost: 1.4088482856750488
 Iteration 300, Cost: 1.409121036529541
-Iteration 400, Cost: 1.409376859664917
-Iteration 500, Cost: 1.409613013267517
+Iteration 400, Cost: 1.4093767404556274
+Iteration 500, Cost: 1.4096131324768066
 Iteration 600, Cost: 1.4098304510116577
-Iteration 700, Cost: 1.4100291728973389
+Iteration 700, Cost: 1.4100292921066284
 Iteration 800, Cost: 1.410210371017456
 Iteration 900, Cost: 1.410375714302063
 Optimal control sequence: [-0.84949356 -0.76774836 -0.6298094  -0.4975385  -0.38879833 -0.3057558
@@ -794,7 +783,7 @@ Optimal control sequence: [-0.84949356 -0.76774836 -0.6298094  -0.4975385  -0.38
   0.18140294]
 </pre></div>
 </div>
-<img alt="_images/16365883047a2a786133a8b8ff1159eb302501657ca43cb5dd5b0378e9b76fdd.png" src="_images/16365883047a2a786133a8b8ff1159eb302501657ca43cb5dd5b0378e9b76fdd.png" />
+<img alt="_images/453773d863504a4a2774955bcf1f1cfe05a30e7c7657b83e7643297a0c470fab.png" src="_images/453773d863504a4a2774955bcf1f1cfe05a30e7c7657b83e7643297a0c470fab.png" />
 </div>
 </details>
 </div>
@@ -964,21 +953,21 @@ subject to <span class="math notranslate nohighlight">\(\mathbf{u}_{lb} \leq \ma
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Iteration 0, Cost: 2.9000003337860107
 Iteration 100, Cost: 1.4151430130004883
-Iteration 200, Cost: 1.408848762512207
-Iteration 300, Cost: 1.4091217517852783
-Iteration 400, Cost: 1.4093775749206543
-Iteration 500, Cost: 1.409614086151123
+Iteration 200, Cost: 1.4088490009307861
+Iteration 300, Cost: 1.4091218709945679
+Iteration 400, Cost: 1.4093778133392334
+Iteration 500, Cost: 1.4096143245697021
 Iteration 600, Cost: 1.4098315238952637
-Iteration 700, Cost: 1.4100300073623657
-Iteration 800, Cost: 1.4102115631103516
-Iteration 900, Cost: 1.4103766679763794
-Optimal control sequence: [-0.84949344 -0.7677488  -0.6298097  -0.4975385  -0.38879827 -0.30575562
- -0.2055591  -0.14967042 -0.07521399 -0.02217961  0.01586013  0.05557559
-  0.09427615  0.1138996   0.13218467  0.15617764  0.1723922   0.17151831
-  0.18140292]
+Iteration 700, Cost: 1.410030484199524
+Iteration 800, Cost: 1.4102118015289307
+Iteration 900, Cost: 1.4103769063949585
+Optimal control sequence: [-0.84949297 -0.7677483  -0.62980956 -0.4975385  -0.3887983  -0.3057558
+ -0.20555909 -0.14967027 -0.0752141  -0.0221795   0.01586002  0.05557553
+  0.09427629  0.11389964  0.13218471  0.15617755  0.17241438  0.17151856
+  0.18140264]
 </pre></div>
 </div>
-<img alt="_images/7be885c5bf1716da04cc1070af32a86fd451119c4e327e700dacb98c8ad5d7e1.png" src="_images/7be885c5bf1716da04cc1070af32a86fd451119c4e327e700dacb98c8ad5d7e1.png" />
+<img alt="_images/ce58341571c4ece2f01a65473fdb6bf73875753f79502c09bc3bf8e0ec19fbc0.png" src="_images/ce58341571c4ece2f01a65473fdb6bf73875753f79502c09bc3bf8e0ec19fbc0.png" />
 </div>
 </details>
 </div>
@@ -1043,9 +1032,9 @@ maximum iterations <span class="math notranslate nohighlight">\(\max_\text{iter}
 </ul>
 <p>Another common strategy for single shooting methods is to use stochastic optimization techniques. For instance, random search generates a number of candidate solutions randomly and evaluates them. This approach is useful for problems with badly behaved loss landscapes or when gradient information is unreliable. More sophisticated stochastic methods include:</p>
 <ul class="simple">
-<li><p>Genetic Algorithms: These mimic biological evolution, using mechanisms like selection, crossover, and mutation to evolve a population of solutions over generations <span id="id3">[<a class="reference internal" href="bibliography.html#id4" title="John H Holland. Genetic algorithms. Scientific american, 267(1):66–73, 1992.">19</a>]</span>. (Implemented in <a class="reference external" href="https://github.com/DEAP/deap">DEAP</a> library)</p></li>
-<li><p>Simulated Annealing: Inspired by the annealing process in metallurgy, this method allows for occasional “uphill” moves to escape local minima <span id="id4">[<a class="reference internal" href="bibliography.html#id5" title="Scott Kirkpatrick, C Daniel Gelatt Jr, and Mario P Vecchi. Optimization by simulated annealing. science, 220(4598):671–680, 1983.">22</a>]</span>. (Available in <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.dual_annealing.html">SciPy</a>)</p></li>
-<li><p>Particle Swarm Optimization: This technique simulates the social behavior of organisms in a swarm, with particles (candidate solutions) moving through the search space and influencing each other <span id="id5">[<a class="reference internal" href="bibliography.html#id6" title="James Kennedy and Russell Eberhart. Particle swarm optimization. In Proceedings of ICNN'95-International Conference on Neural Networks, volume 4, 1942–1948. IEEE, 1995.">21</a>]</span>. (Implemented in <a class="reference external" href="https://github.com/ljvmiranda921/pyswarms">PySwarms</a> library)</p></li>
+<li><p>Genetic Algorithms: These mimic biological evolution, using mechanisms like selection, crossover, and mutation to evolve a population of solutions over generations <span id="id3">[<a class="reference internal" href="bibliography.html#id4" title="John H Holland. Genetic algorithms. Scientific american, 267(1):66–73, 1992.">21</a>]</span>. (Implemented in <a class="reference external" href="https://github.com/DEAP/deap">DEAP</a> library)</p></li>
+<li><p>Simulated Annealing: Inspired by the annealing process in metallurgy, this method allows for occasional “uphill” moves to escape local minima <span id="id4">[<a class="reference internal" href="bibliography.html#id5" title="Scott Kirkpatrick, C Daniel Gelatt Jr, and Mario P Vecchi. Optimization by simulated annealing. science, 220(4598):671–680, 1983.">24</a>]</span>. (Available in <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.dual_annealing.html">SciPy</a>)</p></li>
+<li><p>Particle Swarm Optimization: This technique simulates the social behavior of organisms in a swarm, with particles (candidate solutions) moving through the search space and influencing each other <span id="id5">[<a class="reference internal" href="bibliography.html#id6" title="James Kennedy and Russell Eberhart. Particle swarm optimization. In Proceedings of ICNN'95-International Conference on Neural Networks, volume 4, 1942–1948. IEEE, 1995.">23</a>]</span>. (Implemented in <a class="reference external" href="https://github.com/ljvmiranda921/pyswarms">PySwarms</a> library)</p></li>
 </ul>
 <p>The selection of an optimization method for single shooting is influenced by multiple factors: problem-specific characteristics, available computational resources, and the balance between exploring the solution space and exploiting known good solutions. While gradient-based methods generally offer faster convergence when applicable, derivative-free and stochastic approaches tend to be more robust to complex non-convex loss landscapes, albeit at the cost of increased computational demands.</p>
 <p>In practice, however, this choice is often guided by the tools at hand and the practitioners’ familiarity with them. For instance, researchers with a background in deep learning tend to gravitate towards first-order gradient-based optimization techniques along with automatic differentiation for efficient derivative computation.</p>
@@ -1214,52 +1203,52 @@ maximum iterations <span class="math notranslate nohighlight">\(\max_\text{iter}
 </details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization successful: True
-Optimal cost: 1.4233413233781695
+Optimal cost: 1.4233413234222974
 Optimal states:
-[[ 1.00000000e+00 -4.38415751e-19]
- [ 9.53308083e-01 -9.33838348e-02]
- [ 9.05334198e-01 -1.70654837e-01]
- [ 8.56730665e-01 -2.33730936e-01]
- [ 8.08051721e-01 -2.84342636e-01]
- [ 7.59765028e-01 -3.24047495e-01]
- [ 7.12262141e-01 -3.54243770e-01]
- [ 6.65868050e-01 -3.76183199e-01]
- [ 6.20849825e-01 -3.90983009e-01]
- [ 5.77424459e-01 -3.99637139e-01]
- [ 5.35765971e-01 -4.03026688e-01]
- [ 4.96011845e-01 -4.01929602e-01]
- [ 4.58268833e-01 -3.97029704e-01]
- [ 4.22618229e-01 -3.88924971e-01]
- [ 3.89120605e-01 -3.78135227e-01]
- [ 3.57820102e-01 -3.65109185e-01]
- [ 3.28748325e-01 -3.50230903e-01]
- [ 3.01927831e-01 -3.33825710e-01]
- [ 2.77375326e-01 -3.16165578e-01]
- [ 2.55104530e-01 -2.97474055e-01]]
+[[ 1.00000000e+00 -9.22148533e-19]
+ [ 9.53308082e-01 -9.33838361e-02]
+ [ 9.05334190e-01 -1.70654854e-01]
+ [ 8.56730650e-01 -2.33730963e-01]
+ [ 8.08051698e-01 -2.84342673e-01]
+ [ 7.59764997e-01 -3.24047541e-01]
+ [ 7.12262103e-01 -3.54243821e-01]
+ [ 6.65868006e-01 -3.76183251e-01]
+ [ 6.20849775e-01 -3.90983061e-01]
+ [ 5.77424403e-01 -3.99637194e-01]
+ [ 5.35765910e-01 -4.03026741e-01]
+ [ 4.96011780e-01 -4.01929653e-01]
+ [ 4.58268768e-01 -3.97029746e-01]
+ [ 4.22618163e-01 -3.88925007e-01]
+ [ 3.89120539e-01 -3.78135253e-01]
+ [ 3.57820043e-01 -3.65109194e-01]
+ [ 3.28748272e-01 -3.50230898e-01]
+ [ 3.01927788e-01 -3.33825687e-01]
+ [ 2.77375293e-01 -3.16165539e-01]
+ [ 2.55104512e-01 -2.97473993e-01]]
 Optimal controls:
-[[-9.33838348e-01]
- [-7.72710023e-01]
- [-6.30760993e-01]
- [-5.06117000e-01]
- [-3.97048581e-01]
- [-3.01962756e-01]
- [-2.19394288e-01]
- [-1.47998099e-01]
- [-8.65413015e-02]
- [-3.38954871e-02]
- [ 1.09708598e-02]
- [ 4.89989725e-02]
- [ 8.10473324e-02]
- [ 1.07897446e-01]
- [ 1.30260412e-01]
- [ 1.48782824e-01]
- [ 1.64051930e-01]
- [ 1.76601316e-01]
- [ 1.86915230e-01]
- [-3.21985557e-08]]
+[[-9.33838361e-01]
+ [-7.72710176e-01]
+ [-6.30761088e-01]
+ [-5.06117101e-01]
+ [-3.97048684e-01]
+ [-3.01962800e-01]
+ [-2.19394301e-01]
+ [-1.47998103e-01]
+ [-8.65413246e-02]
+ [-3.38954763e-02]
+ [ 1.09708836e-02]
+ [ 4.89990726e-02]
+ [ 8.10473863e-02]
+ [ 1.07897540e-01]
+ [ 1.30260589e-01]
+ [ 1.48782960e-01]
+ [ 1.64052114e-01]
+ [ 1.76601475e-01]
+ [ 1.86915465e-01]
+ [-1.51238167e-09]]
 </pre></div>
 </div>
-<img alt="_images/cf7adb0d61523f821f694194e1cd7054b85f1cd5e0c779a8482d1b035b07413b.png" src="_images/cf7adb0d61523f821f694194e1cd7054b85f1cd5e0c779a8482d1b035b07413b.png" />
+<img alt="_images/a191b0ac6939eddbd9e64d5383abe44fdc6530efa4cdf3351c1c1ae35fec8fa9.png" src="_images/a191b0ac6939eddbd9e64d5383abe44fdc6530efa4cdf3351c1c1ae35fec8fa9.png" />
 </div>
 </div>
 <section id="nonlinear-programming">
@@ -1392,7 +1381,7 @@ Optimal controls:
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="_images/af05192d0312dcb3309548c3ceedd4468f282e991b9cef83452557dfe3eef22a.png" src="_images/af05192d0312dcb3309548c3ceedd4468f282e991b9cef83452557dfe3eef22a.png" />
+<img alt="_images/a95d33db6f43793ce53f2013f680c2acd46da464ed344d2fa4bbf0c0e5680982.png" src="_images/a95d33db6f43793ce53f2013f680c2acd46da464ed344d2fa4bbf0c0e5680982.png" />
 </div>
 </div>
 <section id="karush-kuhn-tucker-kkt-conditions">
@@ -1498,21 +1487,20 @@ This result relies on the construction of an auxiliary function called the Lagra
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>x1: 1.2271417639244486
-x2: 1.994852000302119
-Objective value: 0.3067678825174803
+<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">ModuleNotFoundError</span><span class="g g-Whitespace">                       </span>Traceback (most recent call last)
+<span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="n">line</span> <span class="mi">1</span>
+<span class="ne">----&gt; </span><span class="mi">1</span> <span class="kn">from</span> <span class="nn">pyomo.environ</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="g g-Whitespace">      </span><span class="mi">2</span> <span class="kn">from</span> <span class="nn">pyomo.opt</span> <span class="kn">import</span> <span class="n">SolverFactory</span>
+<span class="g g-Whitespace">      </span><span class="mi">3</span> <span class="kn">from</span> <span class="nn">myst_nb</span> <span class="kn">import</span> <span class="n">glue</span>
 
-Lagrange multipliers:
-ineq_constraint[None]: -5.466075458072094e-09
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>eq_constraint[None]: -1.0102959885190541
+<span class="ne">ModuleNotFoundError</span>: No module named &#39;pyomo&#39;
 </pre></div>
 </div>
 </div>
 </details>
 </div>
-<p>After running the code, we find that the Lagrange multiplier associated with the inequality constraint is approximately <span class="pasted-text">-5.47e-09</span>. This very small value, close to zero, suggests that the inequality constraint is not active at the optimal solution, meaning that the solution point lies inside the circle defined by this constraint. This can be verified visually in the figure above. As for the equality constraint, its corresponding Lagrange multiplier is <span class="pasted-text">-1.01e+00</span> and the fact that it’s non-zero indicates that this constraint is active at the optimal solution. In general when we find a Lagrange multiplier close to zero (like the one for the inequality constraint), it means that constraint is not “binding”—the optimal solution does not lie on the boundary defined by this constraint. In contrast, a non-zero Lagrange multiplier, such as the one for the equality constraint, indicates that the constraint is active and that any relaxation would directly affect the objective function’s value, as required by the stationarity condition.</p>
+<p>After running the code, we find that the Lagrange multiplier associated with the inequality constraint is approximately . This very small value, close to zero, suggests that the inequality constraint is not active at the optimal solution, meaning that the solution point lies inside the circle defined by this constraint. This can be verified visually in the figure above. As for the equality constraint, its corresponding Lagrange multiplier is  and the fact that it’s non-zero indicates that this constraint is active at the optimal solution. In general when we find a Lagrange multiplier close to zero (like the one for the inequality constraint), it means that constraint is not “binding”—the optimal solution does not lie on the boundary defined by this constraint. In contrast, a non-zero Lagrange multiplier, such as the one for the equality constraint, indicates that the constraint is active and that any relaxation would directly affect the objective function’s value, as required by the stationarity condition.</p>
 </section>
 <section id="lagrange-multiplier-theorem">
 <h4><span class="section-number">3.2.1.2. </span>Lagrange Multiplier Theorem<a class="headerlink" href="#lagrange-multiplier-theorem" title="Link to this heading">#</a></h4>
@@ -1557,7 +1545,7 @@ ineq_constraint[None]: -5.466075458072094e-09
 \mathbf{z}^{k+1} = \mathbf{z}^k - [\nabla \mathbf{F}(\mathbf{z}^k)]^{-1} \mathbf{F}(\mathbf{z}^k)
 \]</div>
 <p>where <span class="math notranslate nohighlight">\(\mathbf{z}^k\)</span> is the k-th iterate, and <span class="math notranslate nohighlight">\(\nabla \mathbf{F}(\mathbf{z}^k)\)</span> is the Jacobian matrix of <span class="math notranslate nohighlight">\(\mathbf{F}\)</span> evaluated at <span class="math notranslate nohighlight">\(\mathbf{z}^k\)</span>.</p>
-<p>Newton’s method exhibits local quadratic convergence: if the initial guess <span class="math notranslate nohighlight">\(\mathbf{z}^0\)</span> is sufficiently close to the true solution <span class="math notranslate nohighlight">\(\mathbf{z}^*\)</span>, and <span class="math notranslate nohighlight">\(\nabla \mathbf{F}(\mathbf{z}^*)\)</span> is nonsingular, the method converges quadratically to <span class="math notranslate nohighlight">\(\mathbf{z}^*\)</span> <span id="id6">[<a class="reference internal" href="bibliography.html#id8" title="J. M. Ortega and W. C. Rheinboldt. Iterative Solution of Nonlinear Equations in Several Variables. Computer Science and Applied Mathematics. Academic Press, New York, 1970.">27</a>]</span>. However, the method is sensitive to the initial guess; if it’s too far from the desired solution, Newton’s method might fail to converge or converge to a different root. To mitigate this problem, a set of techniques known as numerical continuation methods <span id="id7">[<a class="reference internal" href="bibliography.html#id9" title="E. L. Allgower and K. Georg. Numerical Continuation Methods: An Introduction. Volume 13 of Springer Series in Computational Mathematics. Springer-Verlag, Berlin, Heidelberg, 1990.">2</a>]</span> have been developed. These methods effectively enlarge the basin of attraction of Newton’s method by solving a sequence of related problems, progressing from an easy one to the target problem. This approach is reminiscent of several concepts in machine learning and statistical inference: curriculum learning in machine learning, where models are trained on increasingly complex data; tempering in Markov Chain Monte Carlo (MCMC) samplers, which gradually adjusts the target distribution to improve mixing; and modern diffusion models, which use a similar concept of gradually transforming noise into structured data.</p>
+<p>Newton’s method exhibits local quadratic convergence: if the initial guess <span class="math notranslate nohighlight">\(\mathbf{z}^0\)</span> is sufficiently close to the true solution <span class="math notranslate nohighlight">\(\mathbf{z}^*\)</span>, and <span class="math notranslate nohighlight">\(\nabla \mathbf{F}(\mathbf{z}^*)\)</span> is nonsingular, the method converges quadratically to <span class="math notranslate nohighlight">\(\mathbf{z}^*\)</span> <span id="id6">[<a class="reference internal" href="bibliography.html#id8" title="J. M. Ortega and W. C. Rheinboldt. Iterative Solution of Nonlinear Equations in Several Variables. Computer Science and Applied Mathematics. Academic Press, New York, 1970.">31</a>]</span>. However, the method is sensitive to the initial guess; if it’s too far from the desired solution, Newton’s method might fail to converge or converge to a different root. To mitigate this problem, a set of techniques known as numerical continuation methods <span id="id7">[<a class="reference internal" href="bibliography.html#id9" title="E. L. Allgower and K. Georg. Numerical Continuation Methods: An Introduction. Volume 13 of Springer Series in Computational Mathematics. Springer-Verlag, Berlin, Heidelberg, 1990.">2</a>]</span> have been developed. These methods effectively enlarge the basin of attraction of Newton’s method by solving a sequence of related problems, progressing from an easy one to the target problem. This approach is reminiscent of several concepts in machine learning and statistical inference: curriculum learning in machine learning, where models are trained on increasingly complex data; tempering in Markov Chain Monte Carlo (MCMC) samplers, which gradually adjusts the target distribution to improve mixing; and modern diffusion models, which use a similar concept of gradually transforming noise into structured data.</p>
 <section id="efficient-implementation-of-newton-s-method">
 <h5><span class="section-number">3.2.1.3.1. </span>Efficient Implementation of Newton’s Method<a class="headerlink" href="#efficient-implementation-of-newton-s-method" title="Link to this heading">#</a></h5>
 <p>Note that each step of Newton’s method involves computing the inverse of a Jacobian matrix. However, a cardinal rule in numerical linear algebra is to avoid computing matrix inverses explicitly: rarely, if ever, should there be a <code class="docutils literal notranslate"><span class="pre">np.lindex.inv</span></code> in your code. Instead, the numerically stable and computationally efficient approach is to solve a linear system of equations at each step.
@@ -1795,28 +1783,6 @@ We can verify numerically (and visually on the following graph) that the point <
 </div>
 </div>
 </details>
-<div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Numerical Solution:
-Constraint violation: 0.000000
-Objective function value: 1.527864
-
-Analytical Solution:
-Constraint violation: -0.000000
-Objective function value: 1.527864
-
-Comparison:
-Difference in x: 5.960464477539063e-08
-Difference in lambda: 1.1920928955078125e-07
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Precision Test:
-x values are close: True
-lambda values are close: True
-The numerical solution matches the analytical solution within the specified tolerance.
-</pre></div>
-</div>
-<img alt="_images/adb60c70705392b81d3a938949e3a17c1c82d7bb5f4a59c0622cd17801c0cdf6.png" src="_images/adb60c70705392b81d3a938949e3a17c1c82d7bb5f4a59c0622cd17801c0cdf6.png" />
-</div>
 </div>
 </section>
 </section>
@@ -2111,20 +2077,6 @@ If <span class="math notranslate nohighlight">\(\|\Delta \mathbf{x}^k\| &lt; \ep
 </div>
 </div>
 </details>
-<div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimal x: [0.7861514 0.618034 ]
-Optimal lambda: [1.03215616]
-Optimal nu: [0.5118832]
-Iterations: 5
-</pre></div>
-</div>
-<img alt="_images/8ec3fb9c4c78f9eb027dd3f9e2450e4de60e281a6948444785f2d9e84573efec.png" src="_images/8ec3fb9c4c78f9eb027dd3f9e2450e4de60e281a6948444785f2d9e84573efec.png" />
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Equality constraint violation: 0.000000
-Inequality constraint violation: 0.000000
-Objective function value: 1.619326
-</pre></div>
-</div>
-</div>
 </div>
 </section>
 </section>
@@ -2176,7 +2128,7 @@ Objective function value: 1.619326
 <p>6: <strong>return</strong> <span class="math notranslate nohighlight">\(\mathbf{x}^k\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^k\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{\mu}^k\)</span></p>
 </section>
 </div><p>Here, <span class="math notranslate nohighlight">\([\cdot]_+\)</span> denotes the projection onto the non-negative orthant, ensuring that <span class="math notranslate nohighlight">\(\boldsymbol{\mu}\)</span> remains non-negative.</p>
-<p>However, as it is widely known from the lessons of GAN (Generative Adversarial Network) training <span id="id9">[<a class="reference internal" href="bibliography.html#id11" title="Ian Goodfellow, Jean Pouget-Abadie, Mehdi Mirza, Bing Xu, David Warde-Farley, Sherjil Ozair, Aaron Courville, and Yoshua Bengio. Generative adversarial nets. In Advances in neural information processing systems, volume 27. 2014.">11</a>]</span>, Gradient Descent Ascent (GDA) can fail to converge or suffer from instability. The Arrow-Hurwicz-Uzawa algorithm, also known as the first-order Lagrangian method, is known to converge only locally, in the vicinity of an optimal primal-dual pair.</p>
+<p>However, as it is widely known from the lessons of GAN (Generative Adversarial Network) training <span id="id9">[<a class="reference internal" href="bibliography.html#id11" title="Ian Goodfellow, Jean Pouget-Abadie, Mehdi Mirza, Bing Xu, David Warde-Farley, Sherjil Ozair, Aaron Courville, and Yoshua Bengio. Generative adversarial nets. In Advances in neural information processing systems, volume 27. 2014.">12</a>]</span>, Gradient Descent Ascent (GDA) can fail to converge or suffer from instability. The Arrow-Hurwicz-Uzawa algorithm, also known as the first-order Lagrangian method, is known to converge only locally, in the vicinity of an optimal primal-dual pair.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="hide above-input">
 <summary aria-label="Toggle hidden content">
@@ -2329,27 +2281,14 @@ Objective function value: 1.619326
 </div>
 </div>
 </details>
-<div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Final x: [0.7861006 0.6180657]
-Final lambda: [1.0322342]
-Final mu: [0.5120836]
-</pre></div>
-</div>
-<img alt="_images/2969475050904e8f5c16bbb03dd8909d609cffcd6749c6d5a33bb9a8e04280c4.png" src="_images/2969475050904e8f5c16bbb03dd8909d609cffcd6749c6d5a33bb9a8e04280c4.png" />
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Equality constraint violation: -0.000041
-Inequality constraint violation: -0.000112
-Objective function value: 1.619425
-</pre></div>
-</div>
-</div>
 </div>
 </section>
 </section>
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="the-discrete-time-pontryagin-maximum-principle">
 <h1><span class="section-number">4. </span>The Discrete-Time Pontryagin Maximum Principle<a class="headerlink" href="#the-discrete-time-pontryagin-maximum-principle" title="Link to this heading">#</a></h1>
-<p>Discrete-time optimal control problems (DOCPs) form a specific class of nonlinear programming problems. Therefore, we can apply the general results from the Karush-Kuhn-Tucker (KKT) conditions to characterize the structure of optimal solutions to DOCPs in any of their three forms. The discrete-time analogue of the KKT conditions for DOCPs is known as the discrete-time Pontryagin Maximum Principle (PMP). The PMP was first described by Pontryagin in 1956 <span id="id10">[<a class="reference internal" href="bibliography.html#id12" title="Lev Semyonovich Pontryagin, Vladimir Grigor'evich Boltyanskii, Revaz Valerianovich Gamkrelidze, and Evgenii Frolovich Mishchenko. The Mathematical Theory of Optimal Processes. Interscience Publishers, 1962.">28</a>]</span> for continuous-time systems, with the discrete-time version following shortly after. Similar to the KKT conditions, the PMP is useful from both theoretical and practical perspectives. It not only allows us to sometimes find closed-form solutions but also inspires the development of algorithms.</p>
-<p>Importantly, the PMP goes beyond the KKT conditions by demonstrating the existence of a particular recursive equation—the adjoint equation. This equation governs the evolution of the derivative of the Hamiltonian, a close cousin to the Lagrangian. The adjoint equation enables us to transform the PMP into an algorithmic procedure, which has much in common with backpropagation <span id="id11">[<a class="reference internal" href="bibliography.html#id13" title="David E Rumelhart, Geoffrey E Hinton, and Ronald J Williams. Learning representations by back-propagating errors. Nature, 323(6088):533–536, 1986.">32</a>]</span> in deep learning. This connection between optimal control theory has been noted by several researchers, including Griewank <span id="id12">[<a class="reference internal" href="bibliography.html#id14" title="Andreas Griewank. On automatic differentiation. Mathematical Programming: Recent Developments and Applications, 1989.">15</a>]</span> in the context of automatic differentiation, and LeCun <span id="id13">[<a class="reference internal" href="bibliography.html#id15" title="Yann LeCun. A theoretical framework for back-propagation. Proceedings of the 1988 Connectionist Models Summer School, pages 21–28, 1988.">24</a>]</span> in his early work on neural networks.</p>
+<p>Discrete-time optimal control problems (DOCPs) form a specific class of nonlinear programming problems. Therefore, we can apply the general results from the Karush-Kuhn-Tucker (KKT) conditions to characterize the structure of optimal solutions to DOCPs in any of their three forms. The discrete-time analogue of the KKT conditions for DOCPs is known as the discrete-time Pontryagin Maximum Principle (PMP). The PMP was first described by Pontryagin in 1956 <span id="id10">[<a class="reference internal" href="bibliography.html#id12" title="Lev Semyonovich Pontryagin, Vladimir Grigor'evich Boltyanskii, Revaz Valerianovich Gamkrelidze, and Evgenii Frolovich Mishchenko. The Mathematical Theory of Optimal Processes. Interscience Publishers, 1962.">32</a>]</span> for continuous-time systems, with the discrete-time version following shortly after. Similar to the KKT conditions, the PMP is useful from both theoretical and practical perspectives. It not only allows us to sometimes find closed-form solutions but also inspires the development of algorithms.</p>
+<p>Importantly, the PMP goes beyond the KKT conditions by demonstrating the existence of a particular recursive equation—the adjoint equation. This equation governs the evolution of the derivative of the Hamiltonian, a close cousin to the Lagrangian. The adjoint equation enables us to transform the PMP into an algorithmic procedure, which has much in common with backpropagation <span id="id11">[<a class="reference internal" href="bibliography.html#id13" title="David E Rumelhart, Geoffrey E Hinton, and Ronald J Williams. Learning representations by back-propagating errors. Nature, 323(6088):533–536, 1986.">36</a>]</span> in deep learning. This connection between optimal control theory has been noted by several researchers, including Griewank <span id="id12">[<a class="reference internal" href="bibliography.html#id14" title="Andreas Griewank. On automatic differentiation. Mathematical Programming: Recent Developments and Applications, 1989.">16</a>]</span> in the context of automatic differentiation, and LeCun <span id="id13">[<a class="reference internal" href="bibliography.html#id15" title="Yann LeCun. A theoretical framework for back-propagation. Proceedings of the 1988 Connectionist Models Summer School, pages 21–28, 1988.">26</a>]</span> in his early work on neural networks.</p>
 <section id="pmp-for-mayer-problems">
 <h2><span class="section-number">4.1. </span>PMP for Mayer Problems<a class="headerlink" href="#pmp-for-mayer-problems" title="Link to this heading">#</a></h2>
 <p>Before delving into more general cases, let’s consider a Mayer problem where the goal is to minimize a terminal cost function <span class="math notranslate nohighlight">\(c_T(\mathbf{x}_T)\)</span>:</p>
@@ -2557,7 +2496,8 @@ $$ --></section>
             
             
               
-                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
   <div class="sidebar-secondary-item">
@@ -2661,8 +2601,8 @@ By Pierre-Luc Bacon
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549"></script>
 
   <footer class="bd-footer">
   </footer>

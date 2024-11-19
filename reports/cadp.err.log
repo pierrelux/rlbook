@@ -1,0 +1,115 @@
+Traceback (most recent call last):
+  File "/Users/pierre-luc.bacon/.local/pipx/venvs/jupyter-book/lib/python3.13/site-packages/jupyter_cache/executors/utils.py", line 58, in single_nb_execution
+    executenb(
+    ~~~~~~~~~^
+        nb,
+        ^^^
+    ...<4 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/pierre-luc.bacon/.local/pipx/venvs/jupyter-book/lib/python3.13/site-packages/nbclient/client.py", line 1314, in execute
+    return NotebookClient(nb=nb, resources=resources, km=km, **kwargs).execute()
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/pierre-luc.bacon/.local/pipx/venvs/jupyter-book/lib/python3.13/site-packages/jupyter_core/utils/__init__.py", line 165, in wrapped
+    return loop.run_until_complete(inner)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.0_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/base_events.py", line 721, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/Users/pierre-luc.bacon/.local/pipx/venvs/jupyter-book/lib/python3.13/site-packages/nbclient/client.py", line 709, in async_execute
+    await self.async_execute_cell(
+        cell, index, execution_count=self.code_cells_executed + 1
+    )
+  File "/Users/pierre-luc.bacon/.local/pipx/venvs/jupyter-book/lib/python3.13/site-packages/nbclient/client.py", line 1062, in async_execute_cell
+    await self._check_raise_for_error(cell, cell_index, exec_reply)
+  File "/Users/pierre-luc.bacon/.local/pipx/venvs/jupyter-book/lib/python3.13/site-packages/nbclient/client.py", line 918, in _check_raise_for_error
+    raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
+nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
+------------------
+import jax
+import jax.numpy as jnp
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+key = jax.random.PRNGKey(0)
+
+@jax.jit
+def naive_gradient_batch(key, theta):
+    samples = jax.random.normal(key, (1000,)) + theta
+    return jnp.mean(samples**2)
+
+@jax.jit
+def score_function_batch(key, theta):
+    samples = jax.random.normal(key, (1000,)) + theta
+    return jnp.mean(samples**2 * theta * (samples - theta) + samples**2)
+
+@jax.jit
+def reparam_gradient_batch(key, theta):
+    eps = jax.random.normal(key, (1000,))
+    samples = theta + eps
+    return jnp.mean(samples**2 + 2*theta*samples)
+
+# Run trials
+n_trials = 1000
+theta = 1.0
+true_grad = 3 + theta**2
+
+keys = jax.random.split(key, n_trials)
+naive_estimates = jnp.array([naive_gradient_batch(k, theta) for k in keys])
+score_estimates = jnp.array([score_function_batch(k, theta) for k in keys])
+reparam_estimates = jnp.array([reparam_gradient_batch(k, theta) for k in keys])
+
+# Create violin plots with individual points
+plt.figure(figsize=(12, 6))
+data = [naive_estimates, score_estimates, reparam_estimates]
+colors = ['#ff9999', '#66b3ff', '#99ff99']
+
+parts = plt.violinplot(data, showextrema=False)
+for i, pc in enumerate(parts['bodies']):
+    pc.set_facecolor(colors[i])
+    pc.set_alpha(0.7)
+
+# Add box plots
+plt.boxplot(data, notch=True, showfliers=False)
+
+# Add true gradient line
+plt.axhline(y=true_grad, color='r', linestyle='--', label='True Gradient')
+
+plt.xticks([1, 2, 3], ['Naive', 'Score Function', 'Reparam'])
+plt.ylabel('Gradient Estimate')
+plt.title(f'Gradient Estimators (θ={theta}, true grad={true_grad:.2f})')
+plt.grid(True, alpha=0.3)
+plt.legend()
+
+# Print statistics
+methods = {
+    'Naive': naive_estimates,
+    'Score Function': score_estimates, 
+    'Reparameterization': reparam_estimates
+}
+
+for name, estimates in methods.items():
+    bias = jnp.mean(estimates) - true_grad
+    variance = jnp.var(estimates)
+    print(f"\n{name}:")
+    print(f"Mean: {jnp.mean(estimates):.6f}")
+    print(f"Bias: {bias:.6f}")
+    print(f"Variance: {variance:.6f}")
+    print(f"MSE: {bias**2 + variance:.6f}")
+------------------
+
+
+[0;31m---------------------------------------------------------------------------[0m
+[0;31mModuleNotFoundError[0m                       Traceback (most recent call last)
+Cell [0;32mIn[1], line 4[0m
+[1;32m      2[0m [38;5;28;01mimport[39;00m [38;5;21;01mjax[39;00m[38;5;21;01m.[39;00m[38;5;21;01mnumpy[39;00m [38;5;28;01mas[39;00m [38;5;21;01mjnp[39;00m
+[1;32m      3[0m [38;5;28;01mimport[39;00m [38;5;21;01mmatplotlib[39;00m[38;5;21;01m.[39;00m[38;5;21;01mpyplot[39;00m [38;5;28;01mas[39;00m [38;5;21;01mplt[39;00m
+[0;32m----> 4[0m [38;5;28;01mimport[39;00m [38;5;21;01mseaborn[39;00m [38;5;28;01mas[39;00m [38;5;21;01msns[39;00m
+[1;32m      6[0m key [38;5;241m=[39m jax[38;5;241m.[39mrandom[38;5;241m.[39mPRNGKey([38;5;241m0[39m)
+[1;32m      8[0m [38;5;129m@jax[39m[38;5;241m.[39mjit
+[1;32m      9[0m [38;5;28;01mdef[39;00m [38;5;21mnaive_gradient_batch[39m(key, theta):
+
+[0;31mModuleNotFoundError[0m: No module named 'seaborn'
+

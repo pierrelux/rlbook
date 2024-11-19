@@ -1,0 +1,100 @@
+Traceback (most recent call last):
+  File "/Users/pierre-luc.bacon/.local/pipx/venvs/jupyter-book/lib/python3.13/site-packages/jupyter_cache/executors/utils.py", line 58, in single_nb_execution
+    executenb(
+    ~~~~~~~~~^
+        nb,
+        ^^^
+    ...<4 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/pierre-luc.bacon/.local/pipx/venvs/jupyter-book/lib/python3.13/site-packages/nbclient/client.py", line 1314, in execute
+    return NotebookClient(nb=nb, resources=resources, km=km, **kwargs).execute()
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/pierre-luc.bacon/.local/pipx/venvs/jupyter-book/lib/python3.13/site-packages/jupyter_core/utils/__init__.py", line 165, in wrapped
+    return loop.run_until_complete(inner)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.0_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/base_events.py", line 721, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/Users/pierre-luc.bacon/.local/pipx/venvs/jupyter-book/lib/python3.13/site-packages/nbclient/client.py", line 709, in async_execute
+    await self.async_execute_cell(
+        cell, index, execution_count=self.code_cells_executed + 1
+    )
+  File "/Users/pierre-luc.bacon/.local/pipx/venvs/jupyter-book/lib/python3.13/site-packages/nbclient/client.py", line 1062, in async_execute_cell
+    await self._check_raise_for_error(cell, cell_index, exec_reply)
+  File "/Users/pierre-luc.bacon/.local/pipx/venvs/jupyter-book/lib/python3.13/site-packages/nbclient/client.py", line 918, in _check_raise_for_error
+    raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
+nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
+------------------
+from pyomo.environ import *
+from pyomo.opt import SolverFactory
+from myst_nb import glue
+import math
+
+# Define the Pyomo model
+model = ConcreteModel()
+
+# Define the variables
+model.x1 = Var(initialize=1.25)
+model.x2 = Var(initialize=1.5)
+
+# Define the objective function
+def objective_rule(model):
+    return (model.x1 - 1)**2 + (model.x2 - 2.5)**2
+model.obj = Objective(rule=objective_rule, sense=minimize)
+
+# Define the inequality constraint (circle)
+def inequality_constraint_rule(model):
+    return (model.x1 - 1)**2 + (model.x2 - 1)**2 <= 1.5
+model.ineq_constraint = Constraint(rule=inequality_constraint_rule)
+
+# Define the equality constraint (sine wave) using Pyomo's math functions
+def equality_constraint_rule(model):
+    return model.x2 == 0.5 * sin(2 * math.pi * model.x1) + 1.5
+model.eq_constraint = Constraint(rule=equality_constraint_rule)
+
+# Create a suffix component to capture dual values
+model.dual = Suffix(direction=Suffix.IMPORT)
+
+# Create a solver
+solver=SolverFactory('ipopt')
+
+# Solve the problem
+results = solver.solve(model, tee=False)
+
+# Check if the solver found an optimal solution
+if (results.solver.status == SolverStatus.ok and 
+    results.solver.termination_condition == TerminationCondition.optimal):
+    
+    # Print the results
+    print(f"x1: {value(model.x1)}")
+    print(f"x2: {value(model.x2)}")
+    
+    # Print the objective value
+    print(f"Objective value: {value(model.obj)}")
+
+    # Print the Lagrange multipliers (dual values)
+    print("\nLagrange multipliers:")
+    for c in model.component_objects(Constraint, active=True):
+        for index in c:
+            print(f"{c.name}[{index}]: {model.dual[c[index]]}")
+            glue(f"{c.name}[{index}]", model.dual[c[index]], display=False)
+else:
+    print("Solver did not find an optimal solution.")
+    print(f"Solver Status: {results.solver.status}")
+    print(f"Termination Condition: {results.solver.termination_condition}")
+
+------------------
+
+
+[0;31m---------------------------------------------------------------------------[0m
+[0;31mModuleNotFoundError[0m                       Traceback (most recent call last)
+Cell [0;32mIn[5], line 1[0m
+[0;32m----> 1[0m [38;5;28;01mfrom[39;00m [38;5;21;01mpyomo[39;00m[38;5;21;01m.[39;00m[38;5;21;01menviron[39;00m [38;5;28;01mimport[39;00m [38;5;241m*[39m
+[1;32m      2[0m [38;5;28;01mfrom[39;00m [38;5;21;01mpyomo[39;00m[38;5;21;01m.[39;00m[38;5;21;01mopt[39;00m [38;5;28;01mimport[39;00m SolverFactory
+[1;32m      3[0m [38;5;28;01mfrom[39;00m [38;5;21;01mmyst_nb[39;00m [38;5;28;01mimport[39;00m glue
+
+[0;31mModuleNotFoundError[0m: No module named 'pyomo'
+

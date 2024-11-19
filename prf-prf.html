@@ -15,17 +15,19 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!-- 
+    this give us a css class that will be invisible only if js is disabled 
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-
-  
-  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+  <link href="_static/styles/theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
@@ -33,14 +35,15 @@
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
-    <link rel="stylesheet" type="text/css" href="_static/proof.css?v=ca93fcec" />
+    <link rel="stylesheet" type="text/css" href="_static/proof.css?v=b4b7a797" />
     <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
-    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=87e54e7c" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
   
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
 
     <script src="_static/documentation_options.js?v=9eb32ce0"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
@@ -58,14 +61,21 @@
     <script async="async" src="_static/sphinx-thebe.js?v=c100c467"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
-    <script src="https://unpkg.com/mermaid@10.2.0/dist/mermaid.min.js"></script>
-    <script>mermaid.initialize({startOnLoad:true});</script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.2.0/dist/mermaid.esm.min.mjs"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.1.4/dist/mermaid-layout-elk.esm.min.mjs"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.2.0/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.1.4/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+    <script type="module">
+import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.2.0/dist/mermaid.esm.min.mjs";
+window.addEventListener("load", () => mermaid.run());
+</script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'prf-prf';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
 
     <script>
       DOCUMENTATION_OPTIONS.COLLAPSE_INDEX = true;
@@ -87,19 +97,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="search.html"
       method="get">
@@ -107,7 +106,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search this book..."
          aria-label="Search this book..."
          autocomplete="off"
@@ -115,8 +113,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -134,7 +132,8 @@
       
         
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -164,15 +163,11 @@
 </a></div>
         <div class="sidebar-primary-item">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script></div>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         
@@ -201,11 +196,14 @@
 
 
 
-<li class="toctree-l1"><a class="reference internal" href="cadp.html">18. Policy Parametrization Methods</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="cadp.html">19. Policy Parametrization Methods</a></li>
 
 
 
-<li class="toctree-l1"><a class="reference internal" href="bibliography.html">22. Bibliography</a></li>
+
+
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">25. Bibliography</a></li>
 </ul>
 
     </div>
@@ -312,24 +310,16 @@
 
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
-  </button>
-`);
-</script>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button>
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
-  </button>
-`);
-</script>
+</button>
 
 </div></div>
       
@@ -366,6 +356,7 @@ document.write(`
    <a href="#cap-alg-sqp"><strong>alg-sqp</strong></a> | 
    <a href="#cap-alg-sqp-ineq"><strong>alg-sqp-ineq</strong></a> | 
    <a href="#cap-algorithm-2"><strong>algorithm-2</strong></a> | 
+   <a href="#cap-algorithm-6"><strong>algorithm-6</strong></a> | 
    <a href="#cap-backward-induction"><strong>backward-induction</strong></a> | 
    <a href="#cap-backward-policy-evaluation"><strong>backward-policy-evaluation</strong></a> | 
    <a href="#cap-backward-recursion"><strong>backward-recursion</strong></a> | 
@@ -378,6 +369,8 @@ document.write(`
    <a href="#cap-definition-5"><strong>definition-5</strong></a> | 
    <a href="#cap-definition-6"><strong>definition-6</strong></a> | 
    <a href="#cap-definition-7"><strong>definition-7</strong></a> | 
+   <a href="#cap-double-dqn"><strong>double-dqn</strong></a> | 
+   <a href="#cap-double-mc-value-iteration"><strong>double-mc-value-iteration</strong></a> | 
    <a href="#cap-dqn-hard-resets"><strong>dqn-hard-resets</strong></a> | 
    <a href="#cap-dqn-soft-resets"><strong>dqn-soft-resets</strong></a> | 
    <a href="#cap-early-stopping-fqi"><strong>early-stopping-fqi</strong></a> | 
@@ -385,12 +378,12 @@ document.write(`
    <a href="#cap-extra-trees-fqi"><strong>extra-trees-fqi</strong></a> | 
    <a href="#cap-fitted-q-iteration-amortized"><strong>fitted-q-iteration-amortized</strong></a> | 
    <a href="#cap-fitted-q-iteration-explicit"><strong>fitted-q-iteration-explicit</strong></a> | 
-   <a href="#cap-fitted-value-iteration-quadrature"><strong>fitted-value-iteration-quadrature</strong></a> | 
    <a href="#cap-implicit-euler-method"><strong>implicit-euler-method</strong></a> | 
    <a href="#cap-kernel-based-q-iteration"><strong>kernel-based-q-iteration</strong></a> | 
    <a href="#cap-kkt-conditions"><strong>kkt-conditions</strong></a> | 
    <a href="#cap-lagrange-docp"><strong>lagrange-docp</strong></a> | 
    <a href="#cap-mayer-docp"><strong>mayer-docp</strong></a> | 
+   <a href="#cap-mc-value-iteration"><strong>mc-value-iteration</strong></a> | 
    <a href="#cap-naive-single-shooting"><strong>naive-single-shooting</strong></a> | 
    <a href="#cap-neural-fitted-q-iteration"><strong>neural-fitted-q-iteration</strong></a> | 
    <a href="#cap-nfqca"><strong>nfqca</strong></a> | 
@@ -408,9 +401,12 @@ document.write(`
    <a href="#cap-prop-5-3-1"><strong>prop-5-3-1</strong></a> | 
    <a href="#cap-proposition-4"><strong>proposition-4</strong></a> | 
    <a href="#cap-q-iteration-inner-loop"><strong>q-iteration-inner-loop</strong></a> | 
+   <a href="#cap-sac"><strong>sac</strong></a> | 
    <a href="#cap-shooting-trajectory-storage"><strong>shooting-trajectory-storage</strong></a> | 
    <a href="#cap-stochastic-backward-recursion"><strong>stochastic-backward-recursion</strong></a> | 
    <a href="#cap-successive-approximation"><strong>successive-approximation</strong></a> | 
+   <a href="#cap-svg_autodiff"><strong>svg_autodiff</strong></a> | 
+   <a href="#cap-td3"><strong>td3</strong></a> | 
    <a href="#cap-value-iteration"><strong>value-iteration</strong></a> | 
    <a href="#cap-value-iteration-convergence"><strong>value-iteration-convergence</strong></a> | 
    <a href="#cap-warmstarted-q-learning"><strong>warmstarted-q-learning</strong></a>
@@ -472,6 +468,14 @@ document.write(`
        <td></td>
        <td>
        <a href="cocp.html#algorithm-2"><code class="xref">algorithm-2</code></a> <em>(cocp)</em></td><td>
+       <em>algorithm</em></td></tr>
+     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
+     <tr class="cap" id="cap-algorithm-6"><td></td><td>
+       <strong>algorithm-6</strong></td><td></td></tr>
+     <tr>
+       <td></td>
+       <td>
+       <a href="cadp.html#algorithm-6"><code class="xref">algorithm-6</code></a> <em>(cadp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-backward-induction"><td></td><td>
@@ -570,6 +574,22 @@ document.write(`
        <a href="ocp.html#definition-7"><code class="xref">definition-7</code></a> <em>(ocp)</em></td><td>
        <em>definition</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
+     <tr class="cap" id="cap-double-dqn"><td></td><td>
+       <strong>double-dqn</strong></td><td></td></tr>
+     <tr>
+       <td></td>
+       <td>
+       <a href="adp.html#double-dqn"><code class="xref">double-dqn</code></a> <em>(adp)</em></td><td>
+       <em>algorithm</em></td></tr>
+     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
+     <tr class="cap" id="cap-double-mc-value-iteration"><td></td><td>
+       <strong>double-mc-value-iteration</strong></td><td></td></tr>
+     <tr>
+       <td></td>
+       <td>
+       <a href="adp.html#double-mc-value-iteration"><code class="xref">double-mc-value-iteration</code></a> <em>(adp)</em></td><td>
+       <em>algorithm</em></td></tr>
+     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-dqn-hard-resets"><td></td><td>
        <strong>dqn-hard-resets</strong></td><td></td></tr>
      <tr>
@@ -626,14 +646,6 @@ document.write(`
        <a href="cadp.html#fitted-q-iteration-explicit"><code class="xref">fitted-q-iteration-explicit</code></a> <em>(cadp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
-     <tr class="cap" id="cap-fitted-value-iteration-quadrature"><td></td><td>
-       <strong>fitted-value-iteration-quadrature</strong></td><td></td></tr>
-     <tr>
-       <td></td>
-       <td>
-       <a href="adp.html#fitted-value-iteration-quadrature"><code class="xref">fitted-value-iteration-quadrature</code></a> <em>(adp)</em></td><td>
-       <em>algorithm</em></td></tr>
-     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-implicit-euler-method"><td></td><td>
        <strong>implicit-euler-method</strong></td><td></td></tr>
      <tr>
@@ -673,6 +685,14 @@ document.write(`
        <td>
        <a href="ocp.html#mayer-docp"><code class="xref">mayer-docp</code></a> <em>(ocp)</em></td><td>
        <em>definition</em></td></tr>
+     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
+     <tr class="cap" id="cap-mc-value-iteration"><td></td><td>
+       <strong>mc-value-iteration</strong></td><td></td></tr>
+     <tr>
+       <td></td>
+       <td>
+       <a href="adp.html#mc-value-iteration"><code class="xref">mc-value-iteration</code></a> <em>(adp)</em></td><td>
+       <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-naive-single-shooting"><td></td><td>
        <strong>naive-single-shooting</strong></td><td></td></tr>
@@ -810,6 +830,14 @@ document.write(`
        <a href="adp.html#q-iteration-inner-loop"><code class="xref">q-iteration-inner-loop</code></a> <em>(adp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
+     <tr class="cap" id="cap-sac"><td></td><td>
+       <strong>sac</strong></td><td></td></tr>
+     <tr>
+       <td></td>
+       <td>
+       <a href="cadp.html#sac"><code class="xref">sac</code></a> <em>(cadp)</em></td><td>
+       <em>algorithm</em></td></tr>
+     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-shooting-trajectory-storage"><td></td><td>
        <strong>shooting-trajectory-storage</strong></td><td></td></tr>
      <tr>
@@ -832,6 +860,22 @@ document.write(`
        <td></td>
        <td>
        <a href="dp.html#successive-approximation"><code class="xref">successive-approximation</code></a> <em>(dp)</em></td><td>
+       <em>algorithm</em></td></tr>
+     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
+     <tr class="cap" id="cap-svg_autodiff"><td></td><td>
+       <strong>svg_autodiff</strong></td><td></td></tr>
+     <tr>
+       <td></td>
+       <td>
+       <a href="cadp.html#svg_autodiff"><code class="xref">svg_autodiff</code></a> <em>(cadp)</em></td><td>
+       <em>algorithm</em></td></tr>
+     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
+     <tr class="cap" id="cap-td3"><td></td><td>
+       <strong>td3</strong></td><td></td></tr>
+     <tr>
+       <td></td>
+       <td>
+       <a href="cadp.html#td3"><code class="xref">td3</code></a> <em>(cadp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-value-iteration"><td></td><td>
@@ -920,8 +964,8 @@ By Pierre-Luc Bacon
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549"></script>
 
   <footer class="bd-footer">
   </footer>
