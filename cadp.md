@@ -112,7 +112,7 @@ Note that $d^\star$ is implemented by our $\texttt{maximize}$ numerical solver i
     8. $\delta_q \leftarrow \frac{1}{|\mathcal{D}_q|}\sum_{(s,a) \in \mathcal{D}_q} (q(s,a; \boldsymbol{\theta}_{n+1}) - q(s,a; \boldsymbol{\theta}_n))^2$
     9. $\delta_d \leftarrow \frac{1}{|\mathcal{D}_d|}\sum_{(s,a^*) \in \mathcal{D}_d} \|a^* - d(s; \boldsymbol{w}_{n+1})\|^2$
     10. $n \leftarrow n + 1$
-4. **until** ($\max(\delta_q, \delta_d) < \varepsilon$ or $n \geq N$)
+4. **until** ($\max(\delta_q, \delta_d) \geq \varepsilon$ or $n \geq N$)
 5. **return** $\boldsymbol{\theta}_n$, $\boldsymbol{w}_n$
 ```
 
@@ -260,6 +260,55 @@ We then embed this exploration mechanism into the data collection procedure and 
     
 **return** $\boldsymbol{\theta}_n$, $\boldsymbol{w}_n$
 ```
+
+## Twin Delayed Deep Deterministic Policy Gradient (TD3)
+
+While DDPG provided a foundation for continuous control with deep RL, it suffers from similar overestimation issues as DQN. TD3 {cite}`fujimoto2018addressing` addresses these challenges through three key modifications: double Q-learning to reduce overestimation bias, delayed policy updates to reduce per-update error, and target policy smoothing to prevent exploitation of Q-function errors.
+
+```{prf:algorithm} Twin Delayed Deep Deterministic Policy Gradient (TD3)
+:label: td3
+
+**Input** MDP $(S, A, P, R, \gamma)$, twin Q-networks $q^A(s,a; \boldsymbol{\theta}^A)$, $q^B(s,a; \boldsymbol{\theta}^B)$, policy network $d(s; \boldsymbol{w})$, learning rates $\alpha_q, \alpha_d$, replay buffer size $B$, mini-batch size $b$, policy delay $d$, noise scale $\sigma$, noise clip $c$, exploration noise std $\sigma_{explore}$
+
+**Initialize**
+1. Parameters $\boldsymbol{\theta}^A_0$, $\boldsymbol{\theta}^B_0$, $\boldsymbol{w}_0$ randomly
+2. Target parameters: $\boldsymbol{\theta}^A_{target} \leftarrow \boldsymbol{\theta}^A_0$, $\boldsymbol{\theta}^B_{target} \leftarrow \boldsymbol{\theta}^B_0$, $\boldsymbol{w}_{target} \leftarrow \boldsymbol{w}_0$
+3. Initialize replay buffer $\mathcal{R}$ with capacity $B$
+4. $n \leftarrow 0$
+
+6. **while** training:
+    1. Observe current state $s$
+    2. Select action with Gaussian noise: $a = d(s; \boldsymbol{w}_n) + \epsilon$, where $\epsilon \sim \mathcal{N}(0, \sigma_{explore})$
+    3. Execute $a$, observe reward $r$ and next state $s'$
+    4. Store $(s,a,r,s')$ in $\mathcal{R}$, replacing oldest if full
+    5. Sample mini-batch of $b$ transitions $(s_i,a_i,r_i,s'_i)$ from $\mathcal{R}$
+    6. For each sampled transition:
+        1. $\tilde{a}_i \leftarrow d(s'_i; \boldsymbol{w}_{target}) + \text{clip}(\mathcal{N}(0, \sigma), -c, c)$  // Add clipped noise
+        2. $q_{target} \leftarrow \min(q^A(s'_i, \tilde{a}_i; \boldsymbol{\theta}^A_{target}), q^B(s'_i, \tilde{a}_i; \boldsymbol{\theta}^B_{target}))$
+        3. $y_i \leftarrow r_i + \gamma q_{target}$
+    7. Update Q-networks:
+        1. $\boldsymbol{\theta}^A_{n+1} \leftarrow \boldsymbol{\theta}^A_n - \alpha_q \nabla_{\boldsymbol{\theta}} \frac{1}{b}\sum_i(y_i - q^A(s_i,a_i;\boldsymbol{\theta}^A_n))^2$
+        2. $\boldsymbol{\theta}^B_{n+1} \leftarrow \boldsymbol{\theta}^B_n - \alpha_q \nabla_{\boldsymbol{\theta}} \frac{1}{b}\sum_i(y_i - q^B(s_i,a_i;\boldsymbol{\theta}^B_n))^2$
+    8. If $n \bmod d = 0$:  // Delayed policy update
+        1. Update policy: $\boldsymbol{w}_{n+1} \leftarrow \boldsymbol{w}_n + \alpha_d \frac{1}{b}\sum_i \nabla_a q^A(s_i,a;\boldsymbol{\theta}^A_{n+1})|_{a=d(s_i;\boldsymbol{w}_n)} \nabla_{\boldsymbol{w}} d(s_i;\boldsymbol{w}_n)$
+        2. Soft update of target networks:
+            1. $\boldsymbol{\theta}^A_{target} \leftarrow \tau\boldsymbol{\theta}^A_{n+1} + (1-\tau)\boldsymbol{\theta}^A_{target}$
+            2. $\boldsymbol{\theta}^B_{target} \leftarrow \tau\boldsymbol{\theta}^B_{n+1} + (1-\tau)\boldsymbol{\theta}^B_{target}$
+            3. $\boldsymbol{w}_{target} \leftarrow \tau\boldsymbol{w}_{n+1} + (1-\tau)\boldsymbol{w}_{target}$
+    9. $n \leftarrow n + 1$
+    
+**return** $\boldsymbol{\theta}^A_n$, $\boldsymbol{\theta}^B_n$, $\boldsymbol{w}_n$
+```
+Similar to Double Q-learning, TD3 decouples selection from evaluation when forming the targets. However, instead of intertwining the two existing online and target networks, TD3 suggests learning two Q-functions simultaneously and uses their minimum when computing target values to help combat the overestimation bias further. 
+
+Furthermore, when computing target Q-values, TD3 adds small random noise to the target policy's actions and clips it to keep the perturbations bounded. This regularization technique essentially implements a form of "policy smoothing" that prevents the policy from exploiting areas where the Q-function may have erroneously high values:
+
+    $$\tilde{a} = d(s'; \boldsymbol{w}_{target}) + \text{clip}(\mathcal{N}(0, \sigma), -c, c)$$
+
+While DDPG used the OU process which generates temporally correlated noise, TD3's authors found that simple uncorrelated Gaussian noise works just as well for exploration. It is also easier to implement and tune since you only need to set a single parameter ($\sigma_{explore}$) for exploration rather than the multiple parameters required by the OU process ($\theta$, $\mu$, $\sigma$).
+
+
+Finally, TD3 updates the policy network (and target networks) less frequently than the Q-networks, typically once every $d$ Q-function updates. This helps reduce the per-update error and gives the Q-functions time to become more accurate before they are used to update the policy.
 
 
 # Stochastic Policy Parameterization
@@ -437,3 +486,418 @@ $$
 $$
 
 Thus, rather than learning a single action for each state as in DDPG, we learn a function that transforms random noise into actions, explicitly parameterizing a distribution over actions while maintaining the same underlying principle of differentiating through composed policy and value functions.
+
+
+```{prf:algorithm} Soft Actor-Critic
+:label: sac
+
+**Input** MDP $(S, A, P, R, \gamma)$, Q-networks $q^1(s,a; \boldsymbol{\theta}^1)$, $q^2(s,a; \boldsymbol{\theta}^2)$, value network $v(s; \boldsymbol{\psi})$, policy network $d(a|s; \boldsymbol{\phi})$, learning rates $\alpha_q, \alpha_v, \alpha_\pi$, replay buffer size $B$, mini-batch size $b$, target smoothing coefficient $\tau$
+
+**Initialize**
+1. Parameters $\boldsymbol{\theta}^1_0$, $\boldsymbol{\theta}^2_0$, $\boldsymbol{\psi}_0$, $\boldsymbol{\phi}_0$ randomly
+2. Target parameters: $\boldsymbol{\bar{\psi}}_0 \leftarrow \boldsymbol{\psi}_0$
+3. Initialize replay buffer $\mathcal{R}$ with capacity $B$
+
+**while** training:
+1. Observe current state $s$
+2. Sample action from policy: $a \sim d(a|s; \boldsymbol{\phi})$
+3. Execute $a$, observe reward $r$ and next state $s'$
+4. Store $(s, a, r, s')$ in $\mathcal{R}$, replacing oldest if full
+5. Sample mini-batch of $b$ transitions $(s_i, a_i, r_i, s'_i)$ from $\mathcal{R}$
+
+**Update Value Network:**
+1. Compute target for value network:
+
+   $$
+   y_v = \mathbb{E}_{a' \sim d(\cdot|s'; \boldsymbol{\phi})} \left[ \min \left( q^1(s', a'; \boldsymbol{\theta}^1), q^2(s', a'; \boldsymbol{\theta}^2) \right) - \alpha \log d(a'|s'; \boldsymbol{\phi}) \right]
+   $$
+2. Update $\boldsymbol{\psi}$ via gradient descent:
+
+   $$
+   \boldsymbol{\psi} \leftarrow \boldsymbol{\psi} - \alpha_v \nabla_{\boldsymbol{\psi}} \frac{1}{b} \sum_i (v(s_i; \boldsymbol{\psi}) - y_v)^2
+   $$
+
+**Update Q-Networks:**
+1. Compute targets for Q-networks:
+
+   $$
+   y_q = r_i + \gamma \cdot v(s'_i; \boldsymbol{\bar{\psi}})
+   $$
+2. Update $\boldsymbol{\theta}^1$ and $\boldsymbol{\theta}^2$ via gradient descent:
+
+   $$
+   \boldsymbol{\theta}^j \leftarrow \boldsymbol{\theta}^j - \alpha_q \nabla_{\boldsymbol{\theta}^j} \frac{1}{b} \sum_i (q^j(s_i, a_i; \boldsymbol{\theta}^j) - y_q)^2, \quad j \in \{1, 2\}
+   $$
+
+**Update Policy Network:**
+1. Sample actions $a \sim d(\cdot|s_i; \boldsymbol{\phi})$ for each $s_i$ in the mini-batch
+2. Update $\boldsymbol{\phi}$ via gradient ascent:
+
+   $$
+   \boldsymbol{\phi} \leftarrow \boldsymbol{\phi} + \alpha_\pi \nabla_{\boldsymbol{\phi}} \frac{1}{b} \sum_i \left[ \alpha \log d(a|s_i; \boldsymbol{\phi}) - q^1(s_i, a; \boldsymbol{\theta}^1) \right]
+   $$
+
+**Update Target Value Network:**
+
+$$
+\boldsymbol{\bar{\psi}} \leftarrow \tau \boldsymbol{\psi} + (1 - \tau) \boldsymbol{\bar{\psi}}
+$$
+
+**return** Learned parameters $\boldsymbol{\theta}^1$, $\boldsymbol{\theta}^2$, $\boldsymbol{\psi}$, $\boldsymbol{\phi}$
+```
+
+# Derivative Estimation for Stochastic Optimization
+
+Consider optimizing an objective that involves an expectation:
+
+$$
+J(\theta) = \mathbb{E}_{x \sim p(x;\theta)}[f(x,\theta)]
+$$
+
+For concreteness, let's examine a simple example where $x \sim \mathcal{N}(\theta,1)$ and $f(x,\theta) = x^2\theta$. The derivative we seek is:
+
+$$
+\frac{d}{d\theta}J(\theta) = \frac{d}{d\theta}\int x^2\theta p(x;\theta)dx
+$$
+
+While we can compute this exactly for the Gaussian example, this is often impossible for more general problems. We might then be tempted to approximate our objective using samples:
+
+$$
+J(\theta) \approx \frac{1}{N}\sum_{i=1}^N f(x_i,\theta), \quad x_i \sim p(x;\theta)
+$$
+
+Then differentiate this approximation:
+
+$$
+\frac{d}{d\theta}J(\theta) \approx \frac{1}{N}\sum_{i=1}^N \frac{\partial}{\partial \theta}f(x_i,\theta)
+$$
+
+However, this naive approach ignores that the samples themselves depend on $\theta$. The correct derivative requires the product rule:
+
+$$
+\frac{d}{d\theta}J(\theta) = \int \frac{\partial}{\partial \theta}[f(x,\theta)p(x;\theta)]dx = \int \left[\frac{\partial f}{\partial \theta}p(x;\theta) + f(x,\theta)\frac{\partial p(x;\theta)}{\partial \theta}\right]dx
+$$
+
+The issue here is that while the first term could be numerically integrated using the Monte Carlo, the second one can't as it's not an expectation. 
+
+Would there be a way to transform our objective in such a way that the Monte Carlo estimator for the objective could be differentiated directly while ensuring that the resulting derivative is unbiased? We will see that there are two main solutions to that problem: by doing a change of measure, or a change of variables. 
+
+## Change of Measure: The Likelihood Ratio Method
+
+One solution comes from rewriting our objective using any distribution $q(x)$:
+
+$$
+J(\theta) = \int f(x,\theta)\frac{p(x;\theta)}{q(x)}q(x)dx = \mathbb{E}_{x \sim q(x)}\left[f(x,\theta)\frac{p(x;\theta)}{q(x)}\right]
+$$
+
+Let's write this more functionally by defining:
+
+$$
+J(\theta) = \mathbb{E}_{x \sim q(x)}[h(x,\theta)]
+, \enspace h(x,\theta) \equiv f(x,\theta)\frac{p(x;\theta)}{q(x)}
+$$
+
+Now when we differentiate $J$, it's clear that we must take the partial derivative of $h$ with respect to its second argument:
+
+$$
+\frac{d}{d\theta}J(\theta) = \mathbb{E}_{x \sim q(x)}\left[\frac{\partial h}{\partial \theta}(x,\theta)\right] = \mathbb{E}_{x \sim q(x)}\left[f(x,\theta)\frac{\partial}{\partial \theta}\frac{p(x;\theta)}{q(x)} + \frac{p(x;\theta)}{q(x)}\frac{\partial f}{\partial \theta}(x,\theta)\right]
+$$
+
+The so-called "score function" derivative estimator is obtained for the choice of $q(x) = p(x;\theta)$, where the ratio simplifies to $1$ and its derivative becomes the score function:
+
+$$
+\frac{d}{d\theta}J(\theta) = \mathbb{E}_{x \sim p(x;\theta)}\left[f(x,\theta)\frac{\partial \log p(x,\theta)}{\partial \theta} + \frac{\partial f(x,\theta)}{\partial \theta}\right]
+$$
+
+
+## A Change of Variables Approach: The Reparameterization Trick
+
+An alternative approach eliminates the $\theta$-dependence in the sampling distribution by expressing $x$ through a deterministic transformation of the noise:
+
+$$
+x = g(\epsilon,\theta), \quad \epsilon \sim q(\epsilon)
+$$
+
+Therefore if we want to sample from some target distribution $p(x;\theta)$, we can do so by first sampling from a simple base distribution $q(\epsilon)$ (like a standard normal) and then transforming those samples through a carefully chosen function $g$. If $g(\cdot,\theta)$ is invertible, the change of variables formula tells us how these distributions relate:
+
+$$
+p(x;\theta) = q(g^{-1}(x,\theta))\left|\det\frac{\partial g^{-1}(x,\theta)}{\partial x}\right| = q(\epsilon)\left|\det\frac{\partial g(\epsilon,\theta)}{\partial \epsilon}\right|^{-1}
+$$
+
+
+For example, if we want to sample from any multivariate Gaussian distributions with covariance matrix $\Sigma$ and mean $\mu$, it suffices to be able to sample from a standard normal noise and compute the linear transformation:
+
+$$
+x = \mu + \Sigma^{1/2}\epsilon, \quad \epsilon \sim \mathcal{N}(0,I)
+$$
+
+where $\Sigma^{1/2}$ is the matrix square root obtained via Cholesky decomposition. In the univariate case, this transformation is simply: 
+
+$$
+x = \mu + \sigma \epsilon, \quad \epsilon \sim \mathcal{N}(0,1)
+$$
+
+where $\sigma = \sqrt{\sigma^2}$ is the standard deviation (square root of the variance).
+
+
+
+### Common Examples of Reparameterization
+
+#### Bounded Intervals: The Truncated Normal
+When we need samples constrained to an interval $[a,b]$, we can use the truncated normal distribution. To sample from it, we transform uniform noise through the inverse cumulative distribution function (CDF) of the standard normal:
+
+$$
+x = \Phi^{-1}(u\Phi(b) + (1-u)\Phi(a)), \quad u \sim \text{Uniform}(0,1)
+$$
+
+Here:
+- $\Phi(z) = \frac{1}{2}\left[1 + \text{erf}\left(\frac{z}{\sqrt{2}}\right)\right]$ is the CDF of the standard normal distribution
+- $\Phi^{-1}$ is its inverse (the quantile function)
+- $\text{erf}(z) = \frac{2}{\sqrt{\pi}}\int_0^z e^{-t^2}dt$ is the error function
+
+The resulting samples follow a normal distribution restricted to $[a,b]$, with the density properly normalized over this interval.
+
+#### Sampling from [0,1]: The Kumaraswamy Distribution
+When we need samples in the unit interval [0,1], a natural choice might be the Beta distribution. However, its inverse CDF doesn't have a closed form. Instead, we can use the Kumaraswamy distribution as a convenient approximation, which allows for a simple reparameterization:
+
+$$
+x = (1-(1-u^{\alpha})^{1/\beta}), \quad u \sim \text{Uniform}(0,1)
+$$
+
+where:
+- $\alpha, \beta > 0$ are shape parameters that control the distribution
+- $\alpha$ determines the concentration around 0 
+- $\beta$ determines the concentration around 1
+- The distribution is similar to Beta(α,β) but with analytically tractable CDF and inverse CDF
+
+The Kumaraswamy distribution has density:
+
+$$
+f(x; \alpha, \beta) = \alpha\beta x^{\alpha-1}(1-x^{\alpha})^{\beta-1}, \quad x \in [0,1]
+$$
+
+#### Discrete Actions: The Gumbel-Softmax 
+
+When sampling from a categorical distribution with probabilities $\{\pi_i\}$, one approach uses $\text{Gumbel}(0,1)$ noise combined with the argmax of log-perturbed probabilities:
+
+$$
+\text{argmax}_i(\log \pi_i + g_i), \quad g_i \sim \text{Gumbel}(0,1)
+$$
+
+This approach, known in machine learning as the Gumbel-Max trick, relies on sampling Gumbel noise from uniform random variables through the transformation $g_i = -\log(-\log(u_i))$ where $u_i \sim \text{Uniform}(0,1)$. To see why this gives us samples from the categorical distribution, consider the probability of selecting category $i$:
+
+$$
+\begin{align*}
+P(\text{argmax}_j(\log \pi_j + g_j) = i) &= P(\log \pi_i + g_i > \log \pi_j + g_j \text{ for all } j \neq i) \\
+&= P(g_i - g_j > \log \pi_j - \log \pi_i \text{ for all } j \neq i)
+\end{align*}
+$$
+
+Since the difference of two Gumbel random variables follows a logistic distribution, $g_i - g_j \sim \text{Logistic}(0,1)$, and these differences are independent for different $j$ (due to the independence of the original Gumbel variables), we can write:
+
+$$
+\begin{align*}
+P(\text{argmax}_j(\log \pi_j + g_j) = i) &= \prod_{j \neq i} P(g_i - g_j > \log \pi_j - \log \pi_i) \\
+&= \prod_{j \neq i} \frac{\pi_i}{\pi_i + \pi_j} = \pi_i
+\end{align*}
+$$
+
+The last equality requires some additional algebra to show, but follows from the fact that these probabilities must sum to 1 over all $i$.
+
+While we have shown that the Gumbel-Max trick gives us exact samples from a categorical distribution, the argmax operation isn't differentiable. For stochastic optimization problems of the form:
+
+$$
+\mathbb{E}_{x \sim p(x;\theta)}[f(x)] = \mathbb{E}_{\epsilon \sim \text{Gumbel}(0,1)}[f(g(\epsilon,\theta))]
+$$
+
+we need $g$ to be differentiable with respect to $\theta$. This leads us to consider a continuous relaxation where we replace the hard argmax with a temperature-controlled softmax:
+
+$$
+z_i = \frac{\exp((\log \pi_i + g_i)/\tau)}{\sum_j \exp((\log \pi_j + g_j)/\tau)}
+$$
+
+As $\tau \to 0$, this approximation approaches the argmax:
+
+$$
+\lim_{\tau \to 0} \frac{\exp(x_i/\tau)}{\sum_j \exp(x_j/\tau)} = \begin{cases} 1 & \text{if } x_i = \max_j x_j \\ 0 & \text{otherwise} \end{cases}
+$$
+
+The resulting distribution over the probability simplex is called the Gumbel-Softmax (or Concrete) distribution. The temperature parameter $\tau$ controls the discreteness of our samples: smaller values give samples closer to one-hot vectors but with less stable gradients, while larger values give smoother gradients but more diffuse samples.
+
+
+## Demonstration: Numerical Analysis of Gradient Estimators
+
+Let us examine the behavior of our three gradient estimators for the stochastic optimization objective: 
+
+$$J(\theta) = \mathbb{E}_{x \sim \mathcal{N}(\theta,1)}[x^2\theta]$$ 
+
+To get an analytical expression for the derivative, first note that we can factor out $\theta$ to obtain $J(\theta) = \theta\mathbb{E}[x^2]$ where $x \sim \mathcal{N}(\theta,1)$. By definition of the variance, we know that $\text{Var}(x) = \mathbb{E}[x^2] - (\mathbb{E}[x])^2$, which we can rearrange to $\mathbb{E}[x^2] = \text{Var}(x) + (\mathbb{E}[x])^2$. Since $x \sim \mathcal{N}(\theta,1)$, we have $\text{Var}(x) = 1$ and $\mathbb{E}[x] = \theta$, therefore $\mathbb{E}[x^2] = 1 + \theta^2$. This gives us:
+
+$$J(\theta) = \theta(1 + \theta^2)$$
+
+Now differentiating with respect to $\theta$ using the product rule yields:
+
+$$\frac{d}{d\theta}J(\theta) = 1 + 3\theta^2$$ 
+
+For concreteness, we fix $\theta = 1.0$ and analyze samples drawn using Monte Carlo estimation with batch size 1000 and 1000 independent trials. Evaluating at $\theta = 1$ gives us $\frac{d}{d\theta}J(\theta)\big|_{\theta=1} = 1 + 3(1)^2 = 4$, which serves as our ground truth against which we compare our estimators:
+
+1.  First, we consider the naive estimator that incorrectly differentiates the Monte Carlo approximation:
+
+    $$\hat{g}_{\text{naive}}(\theta) = \frac{1}{N}\sum_{i=1}^N x_i^2$$
+
+    For $x \sim \mathcal{N}(1,1)$, we have $\mathbb{E}[x^2] = \theta^2 + 1 = 2.0$ and $\mathbb{E}[\hat{g}_{\text{naive}}] = 2.0$. We should therefore expect a bias of about $-2$ in our experiment. 
+
+2. Then we compute the score function estimator:
+
+    $$\hat{g}_{\text{SF}}(\theta) = \frac{1}{N}\sum_{i=1}^N \left[x_i^2\theta(x_i - \theta) + x_i^2\right]$$
+
+    This estimator is unbiased with $\mathbb{E}[\hat{g}_{\text{SF}}] = 4$
+
+3. Finally, through the reparameterization $x = \theta + \epsilon$ where $\epsilon \sim \mathcal{N}(0,1)$, we obtain:
+
+    $$\hat{g}_{\text{RT}}(\theta) = \frac{1}{N}\sum_{i=1}^N \left[2\theta(\theta + \epsilon_i) + (\theta + \epsilon_i)^2\right]$$
+
+    This estimator is also unbiased with $\mathbb{E}[\hat{g}_{\text{RT}}] = 4$.
+
+
+```{code-cell} ipython3
+:tags: [hide-input]
+:load: code/lr_ipa.py
+```
+
+The numerical experiments coroborate our theory. The naive estimator consistently underestimates the true gradient by 2.0, though it maintains a relatively small variance. This systematic bias would make it unsuitable for optimization despite its low variance. The score function estimator corrects this bias but introduces substantial variance. While unbiased, this estimator would require many samples to achieve reliable gradient estimates. Finally, the reparameterization trick achieves a much lower variance while remaining unbiased. While this experiment is for didactic purposes only, it reproduces what is commonly found in practice: that when applicable, the reparameterization estimator tends to perform better than the score function counterpart. 
+
+# Stochastic Value Gradients with Model-Based Rollouts
+
+Building on the intuition of amortized optimization in deterministic policy gradient as well as the reparameterization trick, we can develop a more general framework for policy optimization that handles stochastic dynamics and policies. Let's start by considering a stochastic policy that can be reparameterized:
+
+$$
+a_t(\boldsymbol{w}) = d(s_t(\boldsymbol{w}); \boldsymbol{w}) + \sigma(s_t(\boldsymbol{w}); \boldsymbol{w})\epsilon_t, \quad \epsilon_t \sim \mathcal{N}(0,I)
+$$
+
+Similarly, we can express stochastic dynamics through a reparameterized model:
+
+$$
+s_{t+1}(\boldsymbol{w}) = f(s_t(\boldsymbol{w}), a_t(\boldsymbol{w}), \omega_t; \boldsymbol{\phi}), \quad \omega_t \sim \mathcal{N}(0,I)
+$$
+
+where $\boldsymbol{\phi}$ are the parameters of our dynamics model. This allows us to write the expected sum of rewards over a trajectory as:
+
+$$
+J(\boldsymbol{w}) = \mathbb{E}_{\epsilon_{0:T}, \omega_{0:T}}\left[\sum_{t=0}^T \gamma^t r(s_t(\boldsymbol{w}),a_t(\boldsymbol{w}))\right]
+$$
+
+where states and actions are determined by:
+
+$$
+\begin{align*}
+a_t(\boldsymbol{w}) &= d(s_t(\boldsymbol{w}); \boldsymbol{w}) + \sigma(s_t(\boldsymbol{w}); \boldsymbol{w})\epsilon_t \\
+s_{t+1}(\boldsymbol{w}) &= f(s_t(\boldsymbol{w}), a_t(\boldsymbol{w}), \omega_t; \boldsymbol{\phi})
+\end{align*}
+$$
+
+We can now compute gradients through this entire trajectory by sampling the primitive random variables $\epsilon_t$ and $\omega_t$ once and applying the chain rule. For a finite batch of $N$ trajectories, our Monte Carlo approximation becomes:
+
+$$
+J(\boldsymbol{w}) \approx \frac{1}{N}\sum_{i=1}^N \sum_{t=0}^T \gamma^t r(s_t^i(\boldsymbol{w}),a_t^i(\boldsymbol{w}))
+$$
+
+where each trajectory $i$ is generated using:
+
+$$
+\begin{align*}
+\epsilon_t^i &\sim \mathcal{N}(0,I) \\
+\omega_t^i &\sim \mathcal{N}(0,I) \\
+a_t^i(\boldsymbol{w}) &= d(s_t^i(\boldsymbol{w}); \boldsymbol{w}) + \sigma(s_t^i(\boldsymbol{w}); \boldsymbol{w})\epsilon_t^i \\
+s_{t+1}^i(\boldsymbol{w}) &= f(s_t^i(\boldsymbol{w}), a_t^i(\boldsymbol{w}), \omega_t^i; \boldsymbol{\phi})
+\end{align*}
+$$
+
+The gradient of this objective with respect to the policy parameters $\boldsymbol{w}$ can be computed by backpropagation through time:
+
+$$
+\nabla_{\boldsymbol{w}}J \approx \frac{1}{N}\sum_{i=1}^N \sum_{t=0}^T \gamma^t \left(\frac{\partial r(s_t^i(\boldsymbol{w}),a_t^i(\boldsymbol{w}))}{\partial s_t^i}\frac{\partial s_t^i(\boldsymbol{w})}{\partial \boldsymbol{w}} + \frac{\partial r(s_t^i(\boldsymbol{w}),a_t^i(\boldsymbol{w}))}{\partial a_t^i}\frac{\partial a_t^i(\boldsymbol{w})}{\partial \boldsymbol{w}}\right)
+$$
+
+where the partial derivatives can be computed recursively. The recursive state equations are:
+
+$$
+\begin{align*}
+a_t(\boldsymbol{w}) &= d(s_t(\boldsymbol{w}); \boldsymbol{w}) + \sigma(s_t(\boldsymbol{w}); \boldsymbol{w})\epsilon_t \\
+s_{t+1}(\boldsymbol{w}) &= f(s_t(\boldsymbol{w}), a_t(\boldsymbol{w}), \omega_t; \boldsymbol{\phi})
+\end{align*}
+$$
+
+The partial derivatives follow:
+
+$$
+\begin{align*}
+\frac{\partial s_{t+1}(\boldsymbol{w})}{\partial \boldsymbol{w}} &= \frac{\partial f}{\partial s_t}\frac{\partial s_t(\boldsymbol{w})}{\partial \boldsymbol{w}} + \frac{\partial f}{\partial a_t}\frac{\partial a_t(\boldsymbol{w})}{\partial \boldsymbol{w}} \\
+\frac{\partial a_t(\boldsymbol{w})}{\partial \boldsymbol{w}} &= \frac{\partial d}{\partial s_t}\frac{\partial s_t(\boldsymbol{w})}{\partial \boldsymbol{w}} + \frac{\partial d}{\partial \boldsymbol{w}} + \epsilon_t\left(\frac{\partial \sigma}{\partial s_t}\frac{\partial s_t(\boldsymbol{w})}{\partial \boldsymbol{w}} + \frac{\partial \sigma}{\partial \boldsymbol{w}}\right)
+\end{align*}
+$$
+
+With base cases:
+
+$$
+\begin{align*}
+\frac{\partial s_0(\boldsymbol{w})}{\partial \boldsymbol{w}} &= 0 \\
+\frac{\partial a_0(\boldsymbol{w})}{\partial \boldsymbol{w}} &= \frac{\partial d}{\partial \boldsymbol{w}} + \epsilon_0\frac{\partial \sigma}{\partial \boldsymbol{w}}
+\end{align*}
+$$
+
+If we were to implement the gradient accumulation manually forward in time, we would get the following algorithm:  
+
+```{prf:algorithm} Stochastic Value Gradients (SVG) Infinity (manual gradient evaluation)
+
+**Initialize**
+1. Policy parameters $\boldsymbol{w}_0$ randomly
+2. $n \leftarrow 0$
+
+3. **while** not converged:
+    1. Sample batch of $N$ initial states $s_0^i \sim \rho_0(s)$
+    2. For each initial state:
+        1. Sample noise sequences $\epsilon_{0:T}^i, \omega_{0:T}^i \sim \mathcal{N}(0,I)$
+        2. Generate trajectory using:
+            1. $a_t^i(\boldsymbol{w}) = d(s_t^i(\boldsymbol{w});\boldsymbol{w}) + \sigma(s_t^i(\boldsymbol{w});\boldsymbol{w})\epsilon_t^i$
+            2. $s_{t+1}^i(\boldsymbol{w}) = f(s_t^i(\boldsymbol{w}),a_t^i(\boldsymbol{w}),\omega_t^i;\boldsymbol{\phi})$
+        3. Compute gradient contributions recursively:
+            1. Initialize $\frac{\partial s_0^i(\boldsymbol{w})}{\partial \boldsymbol{w}} = 0$
+            2. For $t=0$ to $T$:
+                1. $\frac{\partial a_t^i(\boldsymbol{w})}{\partial \boldsymbol{w}} = \frac{\partial d}{\partial s_t}\frac{\partial s_t^i(\boldsymbol{w})}{\partial \boldsymbol{w}} + \frac{\partial d}{\partial \boldsymbol{w}} + \epsilon_t^i(\frac{\partial \sigma}{\partial s_t}\frac{\partial s_t^i(\boldsymbol{w})}{\partial \boldsymbol{w}} + \frac{\partial \sigma}{\partial \boldsymbol{w}})$
+
+                2. $\frac{\partial s_{t+1}^i(\boldsymbol{w})}{\partial \boldsymbol{w}} = \frac{\partial f}{\partial s_t}\frac{\partial s_t^i(\boldsymbol{w})}{\partial \boldsymbol{w}} + \frac{\partial f}{\partial a_t}\frac{\partial a_t^i(\boldsymbol{w})}{\partial \boldsymbol{w}}$
+
+    3. Update policy: $\boldsymbol{w}_{n+1} \leftarrow \boldsymbol{w}_n + \alpha_w \frac{1}{N}\sum_{i=1}^N \sum_{t=0}^T \gamma^t (\frac{\partial r}{\partial s_t^i}\frac{\partial s_t^i(\boldsymbol{w})}{\partial \boldsymbol{w}} + \frac{\partial r}{\partial a_t^i}\frac{\partial a_t^i(\boldsymbol{w})}{\partial \boldsymbol{w}})$
+    4. $n \leftarrow n + 1$
+    
+**return** $\boldsymbol{w}_n$
+```
+
+Most likely however, this procedure will be implemented within an automatic differentiation framework. In this case, it suffices to implement the following variant: 
+
+```{prf:algorithm} Stochastic Value Gradients (SVG) Infinity (automatic differentiation)
+:label: svg_autodiff
+
+**Input** Initial state distribution $\rho_0(s)$, policy networks $d(s;\boldsymbol{w})$ and $\sigma(s;\boldsymbol{w})$, dynamics model $f(s,a,\omega;\boldsymbol{\phi})$, reward function $r(s,a)$, rollout horizon $T$, learning rate $\alpha_w$, batch size $N$
+
+**Initialize**
+1. Policy parameters $\boldsymbol{w}_0$ randomly
+2. $n \leftarrow 0$
+
+3. **while** not converged:
+   1. Sample batch of $N$ initial states $s_0^i \sim \rho_0(s)$
+   2. Sample noise sequences $\epsilon_{0:T}^i, \omega_{0:T}^i \sim \mathcal{N}(0,I)$ for $i=1,\ldots,N$
+   3. Compute objective using autodiff-enabled computation graph:
+       1. For each $i=1,\ldots,N$:
+           1. Initialize $s_0^i(\boldsymbol{w}) = s_0^i$
+           2. For $t=0$ to $T$:
+               1. $a_t^i(\boldsymbol{w}) = d(s_t^i(\boldsymbol{w});\boldsymbol{w}) + \sigma(s_t^i(\boldsymbol{w});\boldsymbol{w})\epsilon_t^i$
+               2. $s_{t+1}^i(\boldsymbol{w}) = f(s_t^i(\boldsymbol{w}),a_t^i(\boldsymbol{w}),\omega_t^i;\boldsymbol{\phi})$
+       2. $J(\boldsymbol{w}) = \frac{1}{N}\sum_{i=1}^N \sum_{t=0}^T \gamma^t r(s_t^i(\boldsymbol{w}),a_t^i(\boldsymbol{w}))$
+   4. Compute gradient using autodiff: $\nabla_{\boldsymbol{w}}J$
+   5. Update policy: $\boldsymbol{w}_{n+1} \leftarrow \boldsymbol{w}_n + \alpha_w \nabla_{\boldsymbol{w}}J$
+   6. $n \leftarrow n + 1$
+   
+**return** $\boldsymbol{w}_n$
+```

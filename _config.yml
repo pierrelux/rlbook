@@ -62,3 +62,6 @@ parse:
 
 exclude_patterns:
   - README.md
+  - venv/*
+  - venv/
+  - draft.md

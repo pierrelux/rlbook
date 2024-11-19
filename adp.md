@@ -321,6 +321,283 @@ $$ d^*(a|s) = \nabla \Omega^*(q^*_\Omega(s, \cdot)) = \frac{\exp(q^*_\Omega(s,a)
 
 This is the familiar softmax policy we encountered in the smooth MDP setting.
 
+# Approximating the Bellman Operator using Numerical Integration
+
+For both the "hard" and smooth Bellman operators, evaluating the expectation over next states can be challenging when the state space is very large or continuous. In scenarios where we have access to an explicit representation of the transition probability function—the so-called "model-based" setting we've worked with throughout this course—this problem can be addressed using numerical integration methods. But what if we lack these exact probabilities and instead only have access to samples of next states for given state-action pairs? In this case, we must turn to Monte Carlo integration methods, which brings us fully into what we would recognize as a learning setting.
+
+## Discretization and Numerical Quadrature
+
+Recall that the Bellman operator for continuous state spaces takes the form:
+
+$$ (\mathrm{L} v)(s) \equiv \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \int v(s')p(ds'|s,a)\right\}, \, \forall s \in \mathcal{S} $$
+
+To make this computationally tractable for continuous state spaces, we can discretize the state space and approximate the integral over this discretized space. While this allows us to evaluate the Bellman operator componentwise, we must first decide how to represent value functions in this discretized setting.
+
+When working with discretized representations, we partition the state space into $N_s$ cells with centers at grid points $\{s_i\}_{i=1}^{N_s}$. We then work with value functions that are piecewise constant on each cell: ie. for any $s \in S$: $v(s) = v(s_{k(s)})$ where $k(s)$ is the index of the cell containing $s$. We denote the discretized reward function by 
+$ r_h(s, a) \equiv r(s_{k(s)}, a) $.
+
+For transition probabilities, we need to be more careful. While we similarly map any state-action pair to its corresponding cell, we must ensure that integrating over the discretized transition function yields a valid probability distribution. We achieve this by normalizing:
+
+$$ p_h(s'|s, a) \equiv \frac{p(s_{k(s')}|s_{k(s)}, a)}{\int p(s_{k(s')}|s_{k(s)}, a) ds'} $$
+
+
+After defining our discretized reward and transition probability functions, we can write down our discretized Bellman operator.
+We start with the Bellman operator using our discretized functions $r_h$ and $p_h$. While these functions map to grid points, they're still defined over continuous spaces - we haven't yet dealt with the computational challenge of the integral. With this discretization approach, the value function is piecewise constant over cells. This lets us express the integral as a sum over cells, where each cell's contribution is the probability of transitioning to that cell multiplied by the value at that cell's grid point:
+$$ \begin{aligned}
+(\widehat{\mathrm{L}}_h v)(s) &= \max_{k=1,\ldots,N_a} \left\{r_h(s, a_k) + \gamma \int v(s')p_h(s'|s, a_k)ds'\right\} \\
+&= \max_{k=1,\ldots,N_a} \left\{r_h(s, a_k) + \gamma \int v(s_{k(s')})p_h(s'|s, a_k)ds'\right\} \\
+&= \max_{k=1,\ldots,N_a} \left\{r_h(s, a_k) + \gamma \sum_{i=1}^{N_s} v(s_i) \int_{cell_i} p_h(s'|s, a_k)ds'\right\} \\
+&= \max_{k=1,\ldots,N_a} \left\{r_h(s, a_k) + \gamma \sum_{i=1}^{N_s} v(s_i)p_h(s_i|s_{k(s)}, a_k)\right\}
+\end{aligned} $$
+
+This form makes clear how discretization converts our continuous-space problem into a finite computation: we've replaced integration over continuous space with summation over grid points. The price we pay is that the number of terms in our sum grows exponentially with the dimension of our state space - the familiar curse of dimensionality.
+
+## Monte Carlo Integration 
+
+Numerical quadrature methods scale poorly with increasing dimension. Specifically, for a fixed error tolerance $\epsilon$, the number of required quadrature points grows exponentially with dimension $d$ as $O\left(\left(\frac{1}{\epsilon}\right)^d\right)$. Furthermore, quadrature methods require explicit evaluation of the transition probability function $p(s'|s,a)$ at specified points—a luxury we don't have in the "model-free" setting where we only have access to samples from the MDP.
+
+Let $\mathcal{B} = \{s_1, \ldots, s_M\}$ be our set of base points where we will evaluate the operator. At each base point $s_k \in \mathcal{B}$, Monte Carlo integration approximates the expectation using $N$ samples:
+
+$$
+\int v_n(s')p(ds'|s_k,a) \approx \frac{1}{N} \sum_{i=1}^N v_n(s'_{k,i}), \quad s'_{k,i} \sim p(\cdot|s_k,a)
+$$
+
+where $s'_{k,i}$ denotes the $i$-th sample drawn from $p(\cdot|s_k,a)$ for base point $s_k$. This approach has two remarkable properties making it particularly attractive for high-dimensional problems and model-free settings:
+1. The convergence rate is $O\left(\frac{1}{\sqrt{N}}\right)$ regardless of the number of dimensions
+2. It only requires samples from $p(\cdot|s_k,a)$, not explicit probability values
+
+Using this approximation of the expected value over the next state, we can define a new "empirical" Bellman optimality operator:
+
+$$
+(\widehat{\mathrm{L}}_N v)(s_k) \equiv \max_{a \in \mathcal{A}_{s_k}} \left\{r(s_k,a) + \frac{\gamma}{N} \sum_{i=1}^N v(s'_{k,i})\right\}, \quad s'_{k,i} \sim p(\cdot|s_k,a)
+$$
+
+for each $s_k \in \mathcal{B}$. A direct adaptation of the successive approximation method for this empirical operator leads to:
+
+```{prf:algorithm} Monte Carlo Value Iteration
+:label: mc-value-iteration
+**Input:** MDP $(S, A, P, R, \gamma)$, , number of samples $N$, tolerance $\varepsilon > 0$, maximum iterations $K$
+**Output:** Value function $v$
+
+1. Initialize $v_0(s) = 0$ for all $s \in S$
+2. $i \leftarrow 0$
+3. **repeat**
+    1. For each $s \in \mathcal{B}$:
+        1. Draw $s'_{j} \sim p(\cdot|s,a)$ for $j = 1,\ldots,N$
+        2. Set $v_{i+1}(s) \leftarrow \max_{a \in A} \left\{r(s,a) + \frac{\gamma}{N} \sum_{j=1}^N v_i(s'_{j})\right\}$
+    2. $\delta \leftarrow \|v_{i+1} - v_i\|_{\infty}$
+    3. $i \leftarrow i + 1$
+4. **until** $\delta < \varepsilon$ or $i \geq K$
+5. **return** final $v_{i+1}$
+```
+
+Note that the original error bound derived as a termination criterion for value iteration need not hold in this approximate setting. Hence, we use a generic termination criterion based on computational budget and desired tolerance. While this aspect could be improved, we'll focus on a more pressing matter: the algorithm's tendency to produce upwardly biased values. In other words, this algorithm "thinks" the world is more rosy than it actually is - it overestimates values.
+
+
+### Overestimation Bias in Monte Carlo Value Iteration
+
+
+In statistics, bias refers to a systematic error where an estimator consistently deviates from the true parameter value. For an estimator $\hat{\theta}$ of a parameter $\theta$, we define bias as: $\text{Bias}(\hat{\theta}) = \mathbb{E}[\hat{\theta}] - \theta$. While bias isn't always problematic — sometimes we deliberately introduce bias to reduce variance, as in ridge regression — uncontrolled bias can lead to significantly distorted results. In the context of value iteration, this distortion gets amplified even more due to the recursive nature of the algorithm.
+
+
+Consider how the Bellman operator works in value iteration. At iteration n, we have a value function estimate $v_i(s)$ and aim to improve it by applying the Bellman operator $\mathrm{L}$. The ideal update would be:
+
+$$(\mathrm{{L}}v_i)(s) = \max_{a \in \mathcal{A}(s)} \left\{ r(s,a) + \gamma \int v_i(s') p(ds'|s,a) \right\}$$
+
+However, we can't compute this integral exactly and use Monte Carlo integration instead, drawing $N$ next-state samples for each state and action pair. The bias emerges when we take the maximum over actions:
+
+$$(\widehat{\mathrm{L}}v_i)(s) = \max_{a \in \mathcal{A}(s)} \hat{q}_i(s,a), \enspace \text{where} \enspace \hat{q}_i(s,a) \equiv r(s,a) + \frac{\gamma}{N} \sum_{j=1}^N v_i(s'_j), \quad s'_j \sim p(\cdot|s,a)$$
+
+White the Monte Carlo estimate $\hat{q}_n(s,a)$ is unbiased for any individual action, the empirical Bellman operator is biased upward due to Jensen's inequality, which states that for any convex function $f$, we have $\mathbb{E}[f(X)] \geq f(\mathbb{E}[X])$. Since the maximum operator is convex, this implies:
+
+$$\mathbb{E}[(\widehat{\mathrm{L}}v_i)(s)] = \mathbb{E}\left[\max_{a \in \mathcal{A}(s)} \hat{q}_i(s,a)\right] \geq \max_{a \in \mathcal{A}(s)} \mathbb{E}[\hat{q}_i(s,a)] = (\mathrm{L}v_i)(s)$$
+
+This means that our Monte Carlo approximation of the Bellman operator is biased upward:
+
+$$b_i(s) = \mathbb{E}[(\widehat{\mathrm{L}}v_i)(s)] - (\mathrm{L}v_i)(s) \geq 0$$
+
+Even worse, this bias compounds through iterations as each new value function estimate $v_{n+1}$ is based on targets generated by the biased operator $\widehat{\mathrm{L}}$, creating a nested structure of bias accumulation.
+This bias remains nonnegative at every step, and each application of the Bellman operator potentially adds more upward bias. As a result, instead of converging to the true value function $v^*$, the algorithm typically stabilizes at a biased approximation that systematically overestimates true values.
+
+### The Keane-Wolpin Bias Correction Algorithm
+
+Keane and Wolpin proposed to de-bias such estimators by essentially "learning" the bias, then subtracting it when computing the empirical Bellman operator. If we knew this bias function, we could subtract it from our empirical estimate to get an unbiased estimate of the true Bellman operator:
+
+$$
+(\widehat{\mathrm{L}}v_n)(s) - \text{bias}(s) = (\widehat{\mathrm{L}}v_n)(s) - (\mathbb{E}[(\widehat{\mathrm{L}}v_n)(s)] - (\mathrm{L}v_n)(s)) \approx (\mathrm{L}v_n)(s)
+$$
+
+This equality holds in expectation, though any individual estimate would still have variance around the true value.
+
+So how can we estimate the bias function? The Keane-Wolpin manages this using an important fact from extreme value theory: for normal random variables, the difference between the expected maximum and maximum of expectations scales with the standard deviation:
+
+$$
+\mathbb{E}\left[\max_{a \in \mathcal{A}} \hat{q}_i(s,a)\right] - \max_{a \in \mathcal{A}} \mathbb{E}[\hat{q}_i(s,a)] \approx c \cdot \sqrt{\max_{a \in \mathcal{A}} \text{Var}_i(s,a)}
+$$
+
+The variance term $\max_{a \in \mathcal{A}} \text{Var}_i(s,a)$ will typically be dominated by the action with the largest value -- the greedy action $a^*_i(s)$. Rather than deriving the constant $c$ theoretically, Keane-Wolpin proposed learning the relationship between variance and bias empirically through these steps:
+
+1. Select a small set of "benchmark" states (typically 20-50) that span the state space
+2. For these states, compute more accurate value estimates using many more Monte Carlo samples (10-100x more than usual)
+3. Compute the empirical bias at each benchmark state $s$:
+
+   $$\hat{b}_i(s) = (\hat{\mathrm{L}}v_i)(s) - (\hat{\mathrm{L}}_{\text{accurate}}v_i)(s)$$
+
+4. Fit a linear relationship between this bias and the variance at the greedy action:
+
+   $$\hat{b}_i(s) = \alpha_i \cdot \text{Var}_i(s,a^*_i(s)) + \epsilon$$
+
+This creates a dataset of pairs $(\text{Var}_i(s,a^*_i(s)), \hat{b}_i(s))$ that can be used to estimate $\alpha_i$ through ordinary least squares regression. Once we have learned this bias function $\hat{b}$, we can define the bias-corrected Bellman operator:
+
+$$ 
+(\widetilde{\mathrm{L}}v_i)(s) \triangleq (\hat{\mathrm{L}}v_i)(s) - \hat{b}(s)
+$$
+
+Interestingly, while this bias correction approach has been influential in econometrics, it hasn't gained much traction in the machine learning community. A major drawback is the need for accurate operator estimation at benchmark states, which requires allocating substantially more samples to these states. In the next section, we'll explore an alternative strategy that, while requiring the maintenance of two sets of value estimates, achieves bias correction without demanding additional samples.
+
+### Decoupling Selection and Evaluation
+
+A simpler approach to addressing the upward bias is to maintain two separate q-function estimates - one for action selection and another for evaluation. Let's first start by looking at the corresponding Monte Carlo value iteration algorithm and then convince ourselves that this is good idea using math. Assume a monte carlo integration setup over Q factors: 
+
+
+```{prf:algorithm} Double Monte Carlo Q-Value Iteration
+:label: double-mc-value-iteration
+
+**Input**: MDP $(S, A, P, R, \gamma)$, number of samples $N$, tolerance $\varepsilon > 0$, maximum iterations $K$
+**Output**: Q-functions $q^A, q^B$
+
+1. Initialize $q^A_0(s,a) = q^B_0(s,a) = 0$ for all $s \in S, a \in A$
+2. $i \leftarrow 0$
+3. repeat
+    1. For each $s \in S, a \in A$:
+        1. Draw $s'_j \sim p(\cdot|s,a)$ for $j = 1,\ldots,N$
+        2. For network A:
+            1. $a^*_i \leftarrow \arg\max_{a'} q^A_i(s'_j,a')$
+            2. $q^A_{i+1}(s,a) \leftarrow r(s,a) + \frac{\gamma}{N} \sum_{j=1}^N q^B_i(s'_j,a^*_i)$
+        3. For network B:
+            1. $b^*_i \leftarrow \arg\max_{a'} q^B_i(s'_j,a')$
+            2. $q^B_{i+1}(s,a) \leftarrow r(s,a) + \frac{\gamma}{N} \sum_{j=1}^N q^A_i(s'_j,b^*_i)$
+    2. $\delta \leftarrow \max(\|q^A_{i+1} - q^A_i\|_{\infty}, \|q^B_{i+1} - q^B_i\|_{\infty})$
+    3. $i \leftarrow i + 1$
+4. until $\delta < \varepsilon$ or $i \geq K$
+5. return final $q^A_{i+1}, q^B_{i+1}$
+```
+In this algorithm, we maintain two separate Q-functions ($q^A$ and $q^B$) and use them asymmetrically: when updating $q^A$, we use network A to select the best action ($a^*_i = \arg\max_{a'} q^A_i(s'_j,a')$) but then evaluate that action using network B's estimates ($q^B_i(s'_j,a^*_i)$). We do the opposite for updating $q^B$. You can see this separation clearly in steps 3.2.2 and 3.2.3 of the algorithm, where for each network update, we first use one network to pick the action and then plug that chosen action into the other network for evaluation. We will see that this decomposition helps mitigate the positive bias that occurs due to Jensen's inequality. 
+
+#### An HVAC analogy
+
+Consider a building where each HVAC unit $i$ has some true maximum power draw $\mu_i$ under worst-case conditions. Let's pretend that we don't have access to manufacturer datasheets, so we need to estimate these maxima from actual measurements. Now the challenge is that power draw fluctuates with environmental conditions. If we use a single day's measurements and look at the highest power draw, we systematically overestimate the true maximum draw across all units. 
+
+To see this, let $X_A^i$ be unit i's power draw on day A and $X_B^i$ be unit i's power draw on day. Wile both measurements are unbiased $\mathbb{E}[X_A^i] = \mathbb{E}[X_B^i] = \mu_i$, their maximum is not due to Jensen's inequality:
+
+$$
+\mathbb{E}[\max_i X_A^i] \geq \max_i \mathbb{E}[X_A^i] = \max_i \mu_i
+$$
+
+Intuitively, this problem occurs because reading tends to come from units that experienced particularly demanding conditions (e.g., direct sunlight, full occupancy, peak humidity) rather than just those with high true maximum draw. To estimate the true maximum power draw more accurately, we use the following measurement protocol:
+
+1. Use day A measurements to **select** which unit hit the highest peak
+2. Use day B measurements to **evaluate** that unit's power consumption
+
+This yields the estimator:
+
+$$
+Y = X_B^{\arg\max_i X_A^i}
+$$
+
+We can show that by decoupling selection and evaluation in this fashion, our estimator $Y$ will no longer systematically overestimate the true maximum draw. First, observe that $\arg\max_i X_A^i$ is a random variable (call it $J$) - it tells us which unit had highest power draw on day A. It has some probability distribution based on day A's conditions:
+   $P(J = j) = P(\arg\max_i X_A^i = j)$.
+Using the law of total expectation:
+
+$$
+\begin{align*}
+\mathbb{E}[Y] = \mathbb{E}[X_B^J] &= \mathbb{E}[\mathbb{E}[X_B^J \mid J]] \text{ (by tower property)} \\
+&= \sum_{j=1}^n \mathbb{E}[X_B^j \mid J = j] P(J = j) \\
+&= \sum_{j=1}^n \mathbb{E}[X_B^j \mid \arg\max_i X_A^i = j] P(\arg\max_i X_A^i = j)
+\end{align*}
+$$
+
+Now we need to make an imporant observation: Unit j's power draw on day B ($X_B^j$) is independent of whether it had the highest reading on day A ($\{\arg\max_i X_A^i = j\}$). An extreme cold event on day A shouldn't affect day B's readings(especially in Quebec where the wheather tend to vary widely from day to day). Therefore:
+
+$$
+\mathbb{E}[X_B^j \mid \arg\max_i X_A^i = j] = \mathbb{E}[X_B^j] = \mu_j
+$$
+
+This tells us that the two-day estimator is now an average of the true underlying power consumptions:
+
+$$
+\mathbb{E}[Y] = \sum_{j=1}^n \mu_j P(\arg\max_i X_A^i = j)
+$$
+
+
+To analyze $ \mathbb{E}[Y] $ more closely, let’s use a general result: if we have a real-valued function $ f $ defined on a discrete set of units $ \{1, \dots, n\} $ and a probability distribution $ q(\cdot) $ over these units, then the maximum value of $ f $ across all units is at least as large as the weighted sum of $ f $ values with weights $ q $. Formally,
+
+$$
+\max_{j \in \{1, \dots, n\}} f(j) \geq \sum_{j=1}^n q(j) f(j).
+$$
+
+Applying this to our setting, we set $ f(j) = \mu_j $ (the true maximum power draw for unit $ j $) and $ q(j) = P(J = j) $ (the probability that unit $ j $ achieves the maximum reading on day A). This gives us:
+
+$$
+\max_{j \in \{1, \dots, n\}} \mu_j \geq \sum_{j=1}^n P(J = j) \mu_j = \mathbb{E}[Y].
+$$
+
+Therefore, the expected value of $ Y $ (our estimator) will always be less than or equal to the true maximum value $ \max_j \mu_j $. In other words, $ Y $ provides a **conservative estimate** of the true maximum: it tends not to overestimate $ \max_j \mu_j $ but instead approximates it as closely as possible without systematic upward bias.
+
+#### Consistency
+
+Even though $ Y $ is not an unbiased estimator of $ \max_j \mu_j $ (since $ \mathbb{E}[Y] \leq \max_j \mu_j $), it is **consistent**. As more independent days (or measurements) are observed, the selection-evaluation procedure becomes more effective at isolating the intrinsic maximum, reducing the influence of day-specific environmental fluctuations. Over time, this approach yields a stable and increasingly accurate approximation of $ \max_j \mu_j $.
+
+To show that $ Y $ is a consistent estimator of $ \max_i \mu_i $, we want to demonstrate that as the number of independent measurements (days, in this case) increases, $ Y $ converges in probability to $ \max_i \mu_i $. Let's suppose we have $ m $ independent days of measurements for each unit. Denote:
+- $ X_A^{(k),i} $ as the power draw for unit $ i $ on day $ A_k $, where $ k \in \{1, \dots, m\} $.
+- $ J_m = \arg\max_i \left( \frac{1}{m} \sum_{k=1}^m X_A^{(k),i} \right) $, which identifies the unit with the highest average power draw over $ m $ days.
+
+The estimator we construct is:
+$
+Y_m = X_B^{(J_m)},
+$
+where $ X_B^{(J_m)} $ is the power draw of the selected unit $ J_m $ on an independent evaluation day $ B $.
+We will now show that $ Y_m $ converges to $ \max_i \mu_i $ as $ m \to \infty $. This involves two main steps:
+
+1. **Consistency of the Selection Step $ J_m $**: As $ m \to \infty $, the unit selected by $ J_m $ will tend to be the one with the true maximum power draw $ \max_i \mu_i $.
+2. **Convergence of $ Y_m $ to $ \mu_{J_m} $**: Since the evaluation day $ B $ measurement $ X_B^{(J_m)} $ is unbiased with expectation $ \mu_{J_m} $, as $ m \to \infty $, $ Y_m $ will converge to $ \mu_{J_m} $, which in turn converges to $ \max_i \mu_i $.
+
+The average power draw over $ m $ days for each unit $ i $ is:
+
+$$
+\frac{1}{m} \sum_{k=1}^m X_A^{(k),i}.
+$$
+
+By the law of large numbers, as $ m \to \infty $, this sample average converges to the true expected power draw $ \mu_i $ for each unit $ i $:
+
+$$
+\frac{1}{m} \sum_{k=1}^m X_A^{(k),i} \xrightarrow{m \to \infty} \mu_i.
+$$
+
+Since $ J_m $ selects the unit with the highest sample average, in the limit, $ J_m $ will almost surely select the unit with the highest true mean, $ \max_i \mu_i $. Thus, as $ m \to \infty $,
+$$
+\mu_{J_m} \to \max_i \mu_i.
+$$
+
+Given that $ J_m $ identifies the unit with the maximum true mean power draw in the limit, we now look at $ Y_m = X_B^{(J_m)} $, which is the power draw of unit $ J_m $ on the independent evaluation day $ B $.
+
+Since $ X_B^{(J_m)} $ is an unbiased estimator of $ \mu_{J_m} $, we have:
+
+$$
+\mathbb{E}[Y_m \mid J_m] = \mu_{J_m}.
+$$
+
+As $ m \to \infty $, $ \mu_{J_m} $ converges to $ \max_i \mu_i $. Thus, $ Y_m $ will also converge in probability to $ \max_i \mu_i $ because $ Y_m $ is centered around $ \mu_{J_m} $ and $ J_m $ converges to the index of the unit with $ \max_i \mu_i $.
+
+
+Combining these two steps, we conclude that:
+
+$$
+Y_m \xrightarrow{m \to \infty} \max_i \mu_i \text{ in probability}.
+$$
+
+This establishes the **consistency** of $ Y $ as an estimator for $ \max_i \mu_i $: as the number of independent measurements grows, $ Y_m $ converges to the true maximum power draw $ \max_i \mu_i $.
+
 # Parametric Dynamic Programming
 
 We have so far considered a specific kind of approximation: that of the Bellman operator itself. We explored a modified version of the operator with the desirable property of smoothness, which we deemed beneficial for optimization purposes and due to its rich multifaceted interpretations. We now turn our attention to another form of approximation, complementary to the previous kind, which seeks to address the challenge of applying the operator across the entire state space.
@@ -524,122 +801,6 @@ This leads to the following algorithm:
 
 As opposed to exact policy iteration, the iterates of parametric policy iteration need not converge monotonically to the optimal value function. Intuitively, this is because we use function approximation to generalize  from base points to the entire state space which can lead to Value estimates improving at base points but degrading at other states or can cause interference between updates at different states due to the shared parametric representation
 
-## Point-wise Evaluation of the Bellman Operator by Numerical Integration
-
-So far, we've described a strategy that economizes computation by updating only a selected set of base points, then generalizing these updates to approximate the operator's effect on other states. However, this approach assumes we can compute the operator exactly at these base points. What if even this limited computation proves infeasible?
-
-The challenge arises naturally when we consider what computing the Bellman operator entails: evaluating an expectation over next states, which generally requires numerical integration. Even in the "best" scenario — the model-based setting we've worked with throughout this course — we assume access to an explicit representation of the transition probability function that we can evaluate everywhere. 
-
-But what if we lack these exact probabilities and instead only have access to samples of next states for given state-action pairs? In this case, we must turn to Monte Carlo integration methods, which brings us fully into what we would recognize as a learning setting.
-
-### Numerical Quadrature Methods
-
-In the general case, the Bellman operator in component-wise form is:
-
-$$
-(\mathrm{L} v_n)(s) \equiv \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \int v_n(s')p(ds'|s,a)\right\}, \, \forall s \in \mathcal{S}
-$$
-
-When we have direct access to $p$ (rather than just samples from it), we can employ numerical integration methods to approximate the expectation. Let's divide our state space into $m$ equal intervals of width $\Delta s = (s_{\max} - s_{\min})/m$. Then, a quadrature approximation takes the form:
-
-$$
-\int v_n(s')p(ds'|s,a) \approx \sum_{i=1}^m w_i v_n(s'_i)
-$$
-
-For instance, using the rectangle (midpoint) rule with points $s'_i = s_{\min} + (i-\frac{1}{2})\Delta s$:
-
-$$
-\int v_n(s')p(ds'|s,a) \approx \sum_{i=1}^m v_n(s'_i)p(s'_i|s,a)\Delta s
-$$
-
-or the trapezoidal rule using endpoints $s'_i = s_{\min} + i\Delta s$:
-
-$$
-\int v_n(s')p(ds'|s,a) \approx \frac{\Delta s}{2}\sum_{i=1}^{m} [v_n(s'_i)p(s'_i|s,a) + v_n(s'_{i+1})p(s'_{i+1}|s,a)]
-$$
-
-It's instructive to contrast this approach with the one that we would apply in the deterministic case:
-
-$$
-(\mathrm{L}v)(s) = \max_{a \in \mathcal{A}} \{r(s,a) + \gamma v(f(s,a))\}
-$$
-
-where $f(s,a)$ is the deterministic transition function: a special case where $p(ds'|s,a)$ is a Dirac delta measure concentrated at $f(s,a)$. 
-This setting does not require numerical integration but instead faces the challenge of evaluating $v$ at $f(s,a)$, which might not coincide with our grid points. This is a problem which we handled through interpolation in the previous chapter by:
-
-1. Maintaining values at grid points $\{s_i\}_{i=1}^N$
-2. Using interpolation to evaluate $v$ at arbitrary points
-
-For example with linear interpolation between grid points, $\mathrm{L}$ took the form:
-
-$$
-(\mathrm{L}v)(s_i) = \max_{a \in \mathcal{A}} \left\{r(s_i,a) + \gamma \left[(1-\alpha)v(s_k) + \alpha v(s_{k+1})\right]\right\}
-$$
-
-where $f(s_i,a)$ falls between grid points $s_k$ and $s_{k+1}$, and $\alpha$ is the interpolation weight:
-
-$$
-\alpha = \frac{f(s_i,a) - s_k}{s_{k+1} - s_k}
-$$
-
-Returning to the Bellman operator in the stochastic case, we can approximate the expectation using quadrature methods. Plugging such a quadrature approximation back into our operator, we obtain $\hat{\mathrm{L}}$:
-
-$$
-(\hat{\mathrm{L}} v_n)(s) \equiv \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \sum_{i=1}^m v_n(s'_i)p(s'_i|s,a)\Delta s\right\}
-$$
-
-This strategy of approximating the operator at the level of expectation computation is complementary to our earlier approach of performing partial updates and then generalizing through function approximation. These approximations address different challenges:
-- Quadrature handles the computation of expectations over continuous state spaces (not needed in deterministic case)
-- Function approximation deals with representing and generalizing value functions (analogous to interpolation in deterministic case)
-
-Combining both strategies leads to the following algorithm:
-
-```{prf:algorithm} Fitted Value Iteration with Rectangle Rule
-:label: fitted-value-iteration-quadrature
-
-**Input** Given an MDP $(S, A, P, R, \gamma)$, base points $B \subset S$, integration points $\{s'_i\}_{i=1}^m$, function approximator class $v(s; \boldsymbol{\theta})$, maximum iterations $N$, tolerance $\varepsilon > 0$
-
-**Output** Parameters $\boldsymbol{\theta}$ for value function approximation
-
-1. Initialize $\boldsymbol{\theta}_0$ (e.g., for zero initialization)
-2. $n \leftarrow 0$
-3. **repeat**
-    1. $\mathcal{D} \leftarrow \emptyset$
-    2. For each $s \in B$:
-        1. $y_s \leftarrow \max_{a \in A} \left\{r(s,a) + \gamma \sum_{i=1}^m v_n(s'_i)p(s'_i|s,a)\Delta s\right\}$
-        2. $\mathcal{D} \leftarrow \mathcal{D} \cup \{(s, y_s)\}$
-    3. $\boldsymbol{\theta}_{n+1} \leftarrow \texttt{fit}(\mathcal{D})$
-    4. $\delta \leftarrow \frac{1}{|B|}\sum_{s \in B} (v(s; \boldsymbol{\theta}_{n+1}) - v(s; \boldsymbol{\theta}_n))^2$
-    5. $n \leftarrow n + 1$
-4. **until** ($\delta < \varepsilon$ or $n \geq N$)
-5. **return** $\boldsymbol{\theta}_n$
-```
-
-### Monte Carlo Integration 
-
-Numerical quadrature methods scale poorly with increasing dimension. Specifically, for a fixed error tolerance $\epsilon$, the number of required quadrature points grows exponentially with dimension $d$ as $O((\frac{1}{\epsilon})^d)$. Furthermore, quadrature methods require explicit evaluation of the transition probability function $p(s'|s,a)$ at specified points—a luxury we don't have in the "model-free" setting where we only have access to samples from the MDP.
-
-Let $\mathcal{B} = \{s_1, ..., s_M\}$ be our set of base points where we will evaluate the operator. At each base point $s_k \in \mathcal{B}$, Monte Carlo integration approximates the expectation using $N$ samples:
-
-$$
-\int v_n(s')p(ds'|s_k,a) \approx \frac{1}{N} \sum_{i=1}^N v_n(s'_{k,i}), \quad s'_{k,i} \sim p(\cdot|s_k,a)
-$$
-
-where $s'_{k,i}$ denotes the $i$-th sample drawn from $p(\cdot|s_k,a)$ for base point $s_k$.
-
-This approach has two remarkable properties:
-1. The convergence rate is $O(\frac{1}{\sqrt{N}})$ regardless of the number of dimensions
-2. It only requires samples from $p(\cdot|s_k,a)$, not explicit probability values
-
-These properties make Monte Carlo integration particularly attractive for high-dimensional problems and model-free settings. Indeed, this is one of the key mathematical foundations that enables learning in general: the ability to estimate expectations using only samples from a distribution. This principle underlies the empirical risk minimization framework in statistical learning theory, where we approximate expected losses using finite samples.
-
-The resulting approximate Bellman operator at each base point becomes:
-
-$$
-(\hat{\mathrm{L}} v_n)(s_k) \equiv \max_{a \in \mathcal{A}_{s_k}} \left\{r(s_k,a) + \frac{\gamma}{N} \sum_{i=1}^N v_n(s'_{k,i})\right\}, \quad s'_{k,i} \sim p(\cdot|s_k,a)
-$$
-
-for each $s_k \in \mathcal{B}$. From these $M$ point-wise evaluations, we will then fit our function approximator, just as we did in the quadrature case.
 
 ## Q-Factor Representation
 
@@ -1088,6 +1249,45 @@ Here's how we can modify our algorithm to incorporate these ideas:
 ```
 
 This formulation naturally leads to an important concept in deep reinforcement learning: the replay ratio (or data reuse ratio). In our algorithm, for each new transition we collect, we sample a mini-batch of size b from our replay buffer and perform one update. This means we're reusing past experiences at a ratio of b:1 - for every new piece of data, we're learning from b experiences. This ratio can be tuned as a hyperparameter. Higher ratios mean more computation per environment step but better data efficiency, as we're extracting more learning from each collected transition. This highlights one of the key benefits of experience replay: it allows us to decouple the rate of data collection from the rate of learning updates. Some modern algorithms like SAC or TD3 explicitly tune this ratio, sometimes using multiple gradient steps per environment step to achieve higher data efficiency.
+
+I'll write a subsection that naturally follows from the previous material and introduces double Q-learning in the context of DQN.
+
+### Double-Q Network Variant
+
+As we saw earlier, the max operator in the target computation can lead to overestimation of Q-values. This happens because we use the same network to both select and evaluate actions in the target computation: $y_i \leftarrow r_i + \gamma \max_{a' \in A} q(s_i',a'; \boldsymbol{\theta}_{target})$. The max operator means we're both choosing the action that looks best under our current estimates and then using that same set of estimates to evaluate how good that action is, potentially compounding any optimization bias.
+
+Double DQN {cite:t}`van2016deep` addresses this by using the current network parameters to select actions but the target network parameters to evaluate them. This leads to a simple modification of the DQN algorithm:
+
+```{prf:algorithm} Double Deep-Q Network
+:label: double-dqn
+
+**Input** Given MDP $(S, A, P, R, \gamma)$, neural network $q(s,a; \boldsymbol{\theta})$, learning rate $\alpha$, target update frequency $K$, replay buffer size $B$, mini-batch size $b$
+
+**Output** Parameters $\boldsymbol{\theta}$ for Q-function approximation
+
+1. Initialize $\boldsymbol{\theta}_0$ randomly
+2. $\boldsymbol{\theta}_{target} \leftarrow \boldsymbol{\theta}_0$  // Initialize target parameters
+3. Initialize replay buffer $\mathcal{R}$ with capacity $B$
+4. $n \leftarrow 0$  // Single iteration counter
+5. **while** training:
+    1. Observe current state $s$
+    2. Select action $a$ using policy derived from $q(s,\cdot;\boldsymbol{\theta}_n)$ (e.g., ε-greedy)
+    3. Execute $a$, observe reward $r$ and next state $s'$
+    4. Store $(s,a,r,s')$ in $\mathcal{R}$, replacing oldest if full
+    5. $\mathcal{D}_n \leftarrow \emptyset$  // Regression dataset
+    6. Sample mini-batch of $b$ transitions $(s_i,a_i,r_i,s_i')$ from $\mathcal{R}$
+    7. For each sampled $(s_i,a_i,r_i,s_i')$:
+        1. $a^*_i \leftarrow \arg\max_{a' \in A} q(s_i',a'; \boldsymbol{\theta}_n)$  // Select action using current network
+        2. $y_i \leftarrow r_i + \gamma q(s_i',a^*_i; \boldsymbol{\theta}_{target})$  // Evaluate using target network
+        3. $\mathcal{D}_n \leftarrow \mathcal{D}_n \cup \{((s_i,a_i), y_i)\}$
+    8. $\boldsymbol{\theta}_{n+1} \leftarrow \boldsymbol{\theta}_n - \alpha \nabla_{\boldsymbol{\theta}} \mathcal{L}(\boldsymbol{\theta}_n; \mathcal{D}_n)$
+    9. If $n \bmod K = 0$:  // Every K steps
+        1. $\boldsymbol{\theta}_{target} \leftarrow \boldsymbol{\theta}_n$  // Update target parameters
+    10. $n \leftarrow n + 1$
+6. **return** $\boldsymbol{\theta}_n$
+```
+
+The main difference from the original DQN is in step 7, where we now separate action selection from action evaluation. Rather than directly taking the max over the target network's Q-values, we first select the action using our current network ($\boldsymbol{\theta}_n$) and then evaluate that specific action using the target network ($\boldsymbol{\theta}_{target}$). This simple change has been shown to lead to more stable learning and better final performance across a range of tasks.
 
 ## Deep Q Networks with Resets (2022)
 
