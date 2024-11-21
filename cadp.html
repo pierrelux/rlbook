@@ -430,7 +430,17 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#demonstration-numerical-analysis-of-gradient-estimators">23.3. Demonstration: Numerical Analysis of Gradient Estimators</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-value-gradients-with-model-based-rollouts">24. Stochastic Value Gradients with Model-Based Rollouts</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-value-gradients-with-model-based-rollouts">24. Stochastic Value Gradients with Model-Based Rollouts</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#score-function-gradient-estimation-in-reinforcement-learning">24.1. Score Function Gradient Estimation in Reinforcement Learning</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#leveraging-conditional-independence">24.1.1. Leveraging Conditional Independence</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#variance-reduction-via-control-variates">24.2. Variance Reduction via Control Variates</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#generalized-advantage-estimator">24.3. Generalized Advantage Estimator</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-policy-gradient-theorem">24.4. The Policy Gradient Theorem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#normalized-discounted-state-visitation-distribution">24.5. Normalized Discounted State Visitation Distribution</a></li>
+</ul>
+</li>
 </ul>
 
             </nav>
@@ -774,7 +784,7 @@ r(s,a) + \gamma v(s') - \beta(1 + \log d(a|s)) - \lambda(s) = 0
 <p>Solving for <span class="math notranslate nohighlight">\(d\)</span> shows that the optimal policy is a Boltzmann distribution</p>
 <div class="math notranslate nohighlight">
 \[
-d^*(a|s) = \frac{\exp(\frac{1}{\beta}(r(s,a) + \gamma \mathbb{E}_{s'}[v(')]))}{Z(s)}
+d^*(a|s) = \frac{\exp(\frac{1}{\beta}(r(s,a) + \gamma \mathbb{E}_{s'}[v(s')]))}{Z(s)}
 \]</div>
 <p>When we substitute this optimal policy back into the entropy-regularized objective, we obtain:</p>
 <div class="math notranslate nohighlight">
@@ -1404,7 +1414,496 @@ s_{t+1}(\boldsymbol{w}) &amp;= f(s_t(\boldsymbol{w}), a_t(\boldsymbol{w}), \omeg
 </ol>
 <p><strong>return</strong> <span class="math notranslate nohighlight">\(\boldsymbol{w}_n\)</span></p>
 </section>
+</div><section id="score-function-gradient-estimation-in-reinforcement-learning">
+<h2><span class="section-number">24.1. </span>Score Function Gradient Estimation in Reinforcement Learning<a class="headerlink" href="#score-function-gradient-estimation-in-reinforcement-learning" title="Link to this heading">#</a></h2>
+<p>Let <span class="math notranslate nohighlight">\(G(\tau) \equiv \sum_{t=0}^T r(s_t, a_t)\)</span> be the sum of undiscounted rewards in a trajectory <span class="math notranslate nohighlight">\(\tau\)</span>. The stochastic optimization problem we face is to maximize:</p>
+<div class="math notranslate nohighlight">
+\[
+J(\boldsymbol{w}) = \mathbb{E}_{\tau \sim p(\tau;\boldsymbol{w})}[G(\tau)]
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(\tau = (s_0,a_0,s_1,a_1,...)\)</span> is a trajectory and <span class="math notranslate nohighlight">\(G(\tau)\)</span> is the total return.
+Applying the score function estimator, we get:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{align*}
+\nabla_{\boldsymbol{w}}J(\boldsymbol{w}) &amp;= \nabla_{\boldsymbol{w}}\mathbb{E}_{\tau}[G(\tau)] \\
+&amp;= \mathbb{E}_{\tau}\left[G(\tau)\nabla_{\boldsymbol{w}}\log p(\tau;\boldsymbol{w})\right] \\
+&amp;= \mathbb{E}_{\tau}\left[G(\tau)\nabla_{\boldsymbol{w}}\sum_{t=0}^T\log d(a_t|s_t;\boldsymbol{w})\right] \\
+&amp;= \mathbb{E}_{\tau}\left[G(\tau)\sum_{t=0}^T\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\right]
+\end{align*}
+\end{split}\]</div>
+<p>We have eliminated the need to know the transition probabilities in this estimator since the probability of a trajectory factorizes as:</p>
+<div class="math notranslate nohighlight">
+\[
+p(\tau;\boldsymbol{w}) = p(s_0)\prod_{t=0}^T d(a_t|s_t;\boldsymbol{w})p(s_{t+1}|s_t,a_t)
+\]</div>
+<p>Therefore, only the policy depends on <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span>. When taking the logarithm of this product, we get a sum where all the <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span>-independent terms vanish. The final estimator samples trajectories under the distribution <span class="math notranslate nohighlight">\(p(\tau; \boldsymbol{w})\)</span> and computes:</p>
+<div class="math notranslate nohighlight">
+\[
+\nabla_{\boldsymbol{w}}J(\boldsymbol{w}) \approx \frac{1}{N}\sum_{i=1}^N\left[G(\tau^{(i)})\sum_{t=0}^T\nabla_{\boldsymbol{w}}\log d(a_t^{(i)}|s_t^{(i)};\boldsymbol{w})\right]
+\]</div>
+<p>This is a direct application of the score function estimator. However, we rarely use this form in practice and instead make several improvements to further reduce the variance.</p>
+<section id="leveraging-conditional-independence">
+<h3><span class="section-number">24.1.1. </span>Leveraging Conditional Independence<a class="headerlink" href="#leveraging-conditional-independence" title="Link to this heading">#</a></h3>
+<p>Given the Markov property of the MDP, rewards <span class="math notranslate nohighlight">\(r_k\)</span> for <span class="math notranslate nohighlight">\(k &lt; t\)</span> are conditionally independent of action <span class="math notranslate nohighlight">\(a_t\)</span> given the history <span class="math notranslate nohighlight">\(h_t = (s_0,a_0,...,s_{t-1},a_{t-1},s_t)\)</span>. This allows us to only need to consider future rewards when computing policy gradients.</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{align*}
+\nabla_{\boldsymbol{w}}J(\boldsymbol{w}) &amp;= \mathbb{E}_{\tau}\left[\sum_{t=0}^T\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\sum_{k=0}^T r_k\right] \\
+&amp;= \mathbb{E}_{\tau}\left[\sum_{t=0}^T\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\left(\sum_{k=0}^{t-1} r_k + \sum_{k=t}^T r_k\right)\right] \\
+&amp;= \mathbb{E}_{\tau}\left[\sum_{t=0}^T\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\sum_{k=t}^T r_k\right]
+\end{align*}
+\end{split}\]</div>
+<p>The condition independence assumption means that the term <span class="math notranslate nohighlight">\(\mathbb{E}_{\tau}\left[\sum_{t=0}^T\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\sum_{k=0}^{t-1} r_k \right]\)</span> vanishes. To see this, let’s factor the trajectory distribution as:</p>
+<div class="math notranslate nohighlight">
+\[
+p(\tau) = p(s_0,...,s_t,a_0,...,a_{t-1})\cdot d(a_t|s_t;\boldsymbol{w})\cdot p(s_{t+1},...,s_T,a_{t+1},...,a_T|s_t,a_t)
+\]</div>
+<p>We can now re-write a single term of this summation as:</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbb{E}_{\tau}\left[\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\sum_{k=0}^{t-1} r_k\right] = \mathbb{E}_{s_{0:t},a_{0:t-1}}\left[\sum_{k=0}^{t-1} r_k \cdot \mathbb{E}_{a_t}\left[\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\right]\right]
+\]</div>
+<p>The inner expectation is zero because</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{align*}
+\mathbb{E}_{a_t}\left[\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\right] &amp;= \int \nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})d(a_t|s_t;\boldsymbol{w})da_t \\
+&amp;= \int \frac{\nabla_{\boldsymbol{w}}d(a_t|s_t;\boldsymbol{w})}{d(a_t|s_t;\boldsymbol{w})}d(a_t|s_t;\boldsymbol{w})da_t \\
+&amp;= \int \nabla_{\boldsymbol{w}}d(a_t|s_t;\boldsymbol{w})da_t \\
+&amp;= \nabla_{\boldsymbol{w}}\int d(a_t|s_t;\boldsymbol{w})da_t \\
+&amp;= \nabla_{\boldsymbol{w}}1 = 0
+\end{align*}
+\end{split}\]</div>
+<p>The Monte Carlo estimator becomes:</p>
+<div class="math notranslate nohighlight">
+\[
+\nabla_{\boldsymbol{w}}J(\boldsymbol{w}) \approx \frac{1}{N}\sum_{i=1}^N\left[\sum_{t=0}^T\nabla_{\boldsymbol{w}}\log d(a_t^{(i)}|s_t^{(i)};\boldsymbol{w})\sum_{k=t}^T r_k^{(i)}\right]
+\]</div>
+<p>The benefit of this estimator compared to the naive one is that it generally has less variance. More formally, we can show that this estimator arises from the application of a variance reduction technique known as the Extended Conditional Monte Carlo Method.</p>
+</section>
+</section>
+<section id="variance-reduction-via-control-variates">
+<h2><span class="section-number">24.2. </span>Variance Reduction via Control Variates<a class="headerlink" href="#variance-reduction-via-control-variates" title="Link to this heading">#</a></h2>
+<p>A control variate is a zero-mean random variable that we subtract from our estimator to reduce variance. Given an estimator <span class="math notranslate nohighlight">\(Z\)</span> and a control variate <span class="math notranslate nohighlight">\(C\)</span> with <span class="math notranslate nohighlight">\(\mathbb{E}[C]=0\)</span>, we can construct a new unbiased estimator:</p>
+<div class="math notranslate nohighlight">
+\[
+Z_{\text{cv}} = Z - \alpha C
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(\alpha\)</span> is a coefficient we can choose. The variance of this new estimator is:</p>
+<div class="math notranslate nohighlight">
+\[
+\text{Var}(Z_{\text{cv}}) = \text{Var}(Z) + \alpha^2\text{Var}(C) - 2\alpha\text{Cov}(Z,C)
+\]</div>
+<p>The optimal <span class="math notranslate nohighlight">\(\alpha\)</span> that minimizes this variance is:</p>
+<div class="math notranslate nohighlight">
+\[
+\alpha^* = \frac{\text{Cov}(Z,C)}{\text{Var}(C)}
+\]</div>
+<p>In the reinforcement learning setting, we usually choose <span class="math notranslate nohighlight">\(C_t = \nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\)</span> as our control variate at each timestep. For a given state <span class="math notranslate nohighlight">\(s_t\)</span>, our estimator at time <span class="math notranslate nohighlight">\(t\)</span> is:</p>
+<div class="math notranslate nohighlight">
+\[
+Z_t = \nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\sum_{k=t}^T r_k
+\]</div>
+<p>Our control variate estimator becomes:</p>
+<div class="math notranslate nohighlight">
+\[
+Z_{t,\text{cv}} = Z_t - \alpha_t^* C_t = \nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})(\sum_{k=t}^T r_k - \alpha_t^*)
+\]</div>
+<p>Following the general theory, and using the fact that <span class="math notranslate nohighlight">\(\mathbb{E}[C_t|s_t] = 0\)</span>  the optimal coefficient is:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{align*}
+\alpha^*_t = \frac{\text{Cov}(Z_t,C_t|s_t)}{\text{Var}(C_t|s_t)} &amp;= \frac{\mathbb{E}[Z_tC_t^T|s_t] - \mathbb{E}[Z_t|s_t]\mathbb{E}[C_t^T|s_t]}{\mathbb{E}[C_tC_t^T|s_t] - \mathbb{E}[C_t|s_t]\mathbb{E}[C_t^T|s_t]} \\
+&amp;= \frac{\mathbb{E}[\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})^T\sum_{k=t}^T r_k|s_t] - 0}{\mathbb{E}[\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})^T|s_t] - 0} \\
+&amp;= \frac{\mathbb{E}[\|\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\|^2\sum_{k=t}^T r_k|s_t]}{\mathbb{E}[\|\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\|^2|s_t]} \\
+&amp;= \frac{\mathbb{E}_{a_t|s_t}[\|\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\|^2]\mathbb{E}[\sum_{k=t}^T r_k|s_t]}{\mathbb{E}_{a_t|s_t}[\|\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\|^2]} \\
+&amp;= \mathbb{E}[\sum_{k=t}^T r_k|s_t] = v^{d_{\boldsymbol{w}}}(s_t)
+\end{align*}
+\end{split}\]</div>
+<p>Therefore, our variance-reduced estimator becomes:</p>
+<div class="math notranslate nohighlight">
+\[
+Z_{\text{cv},t} = \nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\left(\sum_{k=t}^T r_k - v^{d_{\boldsymbol{w}}}(s_t)\right)
+\]</div>
+<p>In practice when implementing this estimator, we won’t have access to the true value function. So as we did earlier for NFQCA or SAC, we commonly learn that value function simultaneously with the policy. Do do so, we could either using a fitted value approach, or even more simply just regress from states to sum of rewards to learn what Williams 1992 called a “baseline”:</p>
+<div class="proof algorithm admonition" id="policy-grad-baseline">
+<p class="admonition-title"><span class="caption-number">Algorithm 24.3 </span> (Policy Gradient with Simple Baseline)</p>
+<section class="algorithm-content" id="proof-content">
+<p><strong>Input:</strong> Policy parameterization <span class="math notranslate nohighlight">\(d(a|s;\boldsymbol{w})\)</span>, baseline function <span class="math notranslate nohighlight">\(b(s;\boldsymbol{\theta})\)</span><br />
+<strong>Output:</strong> Updated policy parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span><br />
+<strong>Hyperparameters:</strong> Learning rates <span class="math notranslate nohighlight">\(\alpha_w\)</span>, <span class="math notranslate nohighlight">\(\alpha_\theta\)</span>, number of episodes <span class="math notranslate nohighlight">\(N\)</span>, episode length <span class="math notranslate nohighlight">\(T\)</span></p>
+<ol class="arabic simple">
+<li><p>Initialize parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span></p></li>
+<li><p>For episode = 1, …, <span class="math notranslate nohighlight">\(N\)</span> do:</p>
+<ol class="arabic simple">
+<li><p>Collect trajectory <span class="math notranslate nohighlight">\(\tau = (s_0, a_0, r_0, ..., s_T, a_T, r_T)\)</span> using policy <span class="math notranslate nohighlight">\(d(a|s;\boldsymbol{w})\)</span></p></li>
+<li><p>Compute returns for each timestep: <span class="math notranslate nohighlight">\(R_t = \sum_{k=t}^T r_k\)</span></p></li>
+<li><p>Update baseline: <span class="math notranslate nohighlight">\(\boldsymbol{\theta} \leftarrow \boldsymbol{\theta} + \alpha_\theta \nabla_{\boldsymbol{\theta}}\sum_{t=0}^T (R_t - b(s_t;\boldsymbol{\theta}))^2\)</span></p></li>
+<li><p>For <span class="math notranslate nohighlight">\(t = 0, ..., T\)</span> do:</p>
+<ol class="arabic simple">
+<li><p>Update policy: <span class="math notranslate nohighlight">\(\boldsymbol{w} \leftarrow \boldsymbol{w} + \alpha_w \nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})(R_t - b(s_t;\boldsymbol{\theta}))\)</span></p></li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p>Return <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span></p></li>
+</ol>
+</section>
+</div><p>When implementing this algorithm nowadays, we always using mini-batching to make full use of our GPUs. Therefore, a more representative variant for this algorithm would be:</p>
+<div class="proof algorithm admonition" id="policy-grad-cv-batch">
+<p class="admonition-title"><span class="caption-number">Algorithm 24.4 </span> (Policy Gradient with Optimal Control Variate and Mini-batches)</p>
+<section class="algorithm-content" id="proof-content">
+<p><strong>Input:</strong> Policy parameterization <span class="math notranslate nohighlight">\(d(a|s;\boldsymbol{w})\)</span>, value function <span class="math notranslate nohighlight">\(v(s;\boldsymbol{\theta})\)</span><br />
+<strong>Output:</strong> Updated policy parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span><br />
+<strong>Hyperparameters:</strong> Learning rates <span class="math notranslate nohighlight">\(\alpha_w\)</span>, <span class="math notranslate nohighlight">\(\alpha_\theta\)</span>, number of iterations <span class="math notranslate nohighlight">\(N\)</span>, episode length <span class="math notranslate nohighlight">\(T\)</span>, batch size <span class="math notranslate nohighlight">\(B\)</span>, mini-batch size <span class="math notranslate nohighlight">\(M\)</span></p>
+<ol class="arabic simple">
+<li><p>Initialize parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span></p></li>
+<li><p>For iteration = 1, …, N:</p>
+<ol class="arabic simple">
+<li><p>Initialize empty buffer <span class="math notranslate nohighlight">\(\mathcal{D}\)</span></p></li>
+<li><p>For b = 1, …, B:</p>
+<ol class="arabic simple">
+<li><p>Collect trajectory <span class="math notranslate nohighlight">\(\tau_b = (s_0, a_0, r_0, ..., s_T, a_T, r_T)\)</span> using policy <span class="math notranslate nohighlight">\(d(a|s;\boldsymbol{w})\)</span></p></li>
+<li><p>Compute returns: <span class="math notranslate nohighlight">\(R_t = \sum_{k=t}^T r_k\)</span> for all t</p></li>
+<li><p>Store tuple <span class="math notranslate nohighlight">\((s_t, a_t, R_t)_{t=0}^T\)</span> in <span class="math notranslate nohighlight">\(\mathcal{D}\)</span></p></li>
+</ol>
+</li>
+<li><p>Compute value targets: <span class="math notranslate nohighlight">\(v_{\text{target}}(s) = \frac{1}{|\mathcal{D}_s|}\sum_{(s,\cdot,R) \in \mathcal{D}_s} R\)</span></p></li>
+<li><p>For value_epoch = 1, …, K:</p>
+<ol class="arabic simple">
+<li><p>Sample mini-batch <span class="math notranslate nohighlight">\(\mathcal{B}_v\)</span> of size <span class="math notranslate nohighlight">\(M\)</span> from <span class="math notranslate nohighlight">\(\mathcal{D}\)</span></p></li>
+<li><p>Compute value loss: <span class="math notranslate nohighlight">\(L_v = \frac{1}{M}\sum_{(s,\cdot,R) \in \mathcal{B}_v} (v(s;\boldsymbol{\theta}) - v_{\text{target}}(s))^2\)</span></p></li>
+<li><p>Update value function: <span class="math notranslate nohighlight">\(\boldsymbol{\theta} \leftarrow \boldsymbol{\theta} - \alpha_\theta \nabla_{\boldsymbol{\theta}}L_v\)</span></p></li>
+</ol>
+</li>
+<li><p>Compute advantages: <span class="math notranslate nohighlight">\(A(s,a) = R - v(s;\boldsymbol{\theta})\)</span> for all <span class="math notranslate nohighlight">\((s,a,R) \in \mathcal{D}\)</span></p></li>
+<li><p>Normalize advantages: <span class="math notranslate nohighlight">\(A \leftarrow \frac{A - \mu_A}{\sigma_A}\)</span></p></li>
+<li><p>For policy_epoch = 1, …, J:</p>
+<ol class="arabic simple">
+<li><p>Sample mini-batch <span class="math notranslate nohighlight">\(\mathcal{B}_\pi\)</span> of size <span class="math notranslate nohighlight">\(M\)</span> from <span class="math notranslate nohighlight">\(\mathcal{D}\)</span></p></li>
+<li><p>Compute policy loss: <span class="math notranslate nohighlight">\(L_\pi = -\frac{1}{M}\sum_{(s,a,\cdot) \in \mathcal{B}_\pi} \log d(a|s;\boldsymbol{w})A(s,a)\)</span></p></li>
+<li><p>Update policy: <span class="math notranslate nohighlight">\(\boldsymbol{w} \leftarrow \boldsymbol{w} - \alpha_w \nabla_{\boldsymbol{w}}L_\pi\)</span></p></li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p>Return <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span></p></li>
+</ol>
+</section>
 </div></section>
+<section id="generalized-advantage-estimator">
+<h2><span class="section-number">24.3. </span>Generalized Advantage Estimator<a class="headerlink" href="#generalized-advantage-estimator" title="Link to this heading">#</a></h2>
+<p>Given our control variate estimator with baseline <span class="math notranslate nohighlight">\(v(s)\)</span>, we have:</p>
+<div class="math notranslate nohighlight">
+\[
+\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})(G_t - v(s_t))
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(G_t\)</span> is the return <span class="math notranslate nohighlight">\(\sum_{k=t}^T r_k\)</span>. We can improve this estimator by considering how it relates to the advantage function, defined as:</p>
+<div class="math notranslate nohighlight">
+\[
+A(s_t,a_t) = q(s_t,a_t) - v(s_t)
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(q(s_t,a_t)\)</span> is the action-value function. Due to the Bellman equation:</p>
+<div class="math notranslate nohighlight">
+\[
+q(s_t,a_t) = \mathbb{E}_{s_{t+1},r_t}[r_t + \gamma v(s_{t+1})|s_t,a_t]
+\]</div>
+<p>This leads to the one-step TD error:</p>
+<div class="math notranslate nohighlight">
+\[
+\delta_t = r_t + \gamma v(s_{t+1}) - v(s_t)
+\]</div>
+<p>Now, let’s decompose our original term:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{align*}
+G_t - v(s_t) &amp;= r_t + \gamma G_{t+1} - v(s_t) \\
+&amp;= r_t + \gamma v(s_{t+1}) - v(s_t) + \gamma(G_{t+1} - v(s_{t+1})) \\
+&amp;= \delta_t + \gamma(G_{t+1} - v(s_{t+1}))
+\end{align*}
+\end{split}\]</div>
+<p>Expanding recursively:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{align*}
+G_t - v(s_t) &amp;= \delta_t + \gamma(G_{t+1} - v(s_{t+1})) \\
+&amp;= \delta_t + \gamma[\delta_{t+1} + \gamma(G_{t+2} - v(s_{t+2}))] \\
+&amp;= \delta_t + \gamma\delta_{t+1} + \gamma^2\delta_{t+2} + ... + \gamma^{T-t}\delta_T
+\end{align*}
+\end{split}\]</div>
+<p>GAE generalizes this by introducing a weighted version with parameter <span class="math notranslate nohighlight">\(\lambda\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+A^{\text{GAE}(\gamma,\lambda)}(s_t,a_t) = (1-\lambda)\sum_{k=0}^{\infty}\lambda^k\sum_{l=0}^k \gamma^l\delta_{t+l}
+\]</div>
+<p>Which simplifies to:</p>
+<div class="math notranslate nohighlight">
+\[
+A^{\text{GAE}(\gamma,\lambda)}(s_t,a_t) = \sum_{l=0}^{\infty}(\gamma\lambda)^l\delta_{t+l}
+\]</div>
+<p>This formulation allows us to trade off bias and variance through <span class="math notranslate nohighlight">\(\lambda\)</span>:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\lambda=0\)</span>: one-step TD error (low variance, high bias)</p></li>
+<li><p><span class="math notranslate nohighlight">\(\lambda=1\)</span>: Monte Carlo estimate (high variance, low bias)</p></li>
+</ul>
+<p>The general GAE algorithm with mini-batches is the following:</p>
+<div class="proof algorithm admonition" id="policy-grad-gae-batch">
+<p class="admonition-title"><span class="caption-number">Algorithm 24.5 </span> (Policy Gradient with GAE and Mini-batches)</p>
+<section class="algorithm-content" id="proof-content">
+<p><strong>Input:</strong> Policy parameterization <span class="math notranslate nohighlight">\(d(a|s;\boldsymbol{w})\)</span>, value function <span class="math notranslate nohighlight">\(v(s;\boldsymbol{\theta})\)</span><br />
+<strong>Output:</strong> Updated policy parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span><br />
+<strong>Hyperparameters:</strong> Learning rates <span class="math notranslate nohighlight">\(\alpha_w\)</span>, <span class="math notranslate nohighlight">\(\alpha_\theta\)</span>, number of iterations <span class="math notranslate nohighlight">\(N\)</span>, episode length <span class="math notranslate nohighlight">\(T\)</span>, batch size <span class="math notranslate nohighlight">\(B\)</span>, mini-batch size <span class="math notranslate nohighlight">\(M\)</span>, discount <span class="math notranslate nohighlight">\(\gamma\)</span>, GAE parameter <span class="math notranslate nohighlight">\(\lambda\)</span></p>
+<ol class="arabic simple">
+<li><p>Initialize parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span></p></li>
+<li><p>For iteration = 1, …, N:</p>
+<ol class="arabic simple">
+<li><p>Initialize empty buffer <span class="math notranslate nohighlight">\(\mathcal{D}\)</span></p></li>
+<li><p>For b = 1, …, B:</p>
+<ol class="arabic simple">
+<li><p>Collect trajectory <span class="math notranslate nohighlight">\(\tau_b = (s_0, a_0, r_0, ..., s_T, a_T, r_T)\)</span> using policy <span class="math notranslate nohighlight">\(d(a|s;\boldsymbol{w})\)</span></p></li>
+<li><p>Compute TD errors: <span class="math notranslate nohighlight">\(\delta_t = r_t + \gamma v(s_{t+1};\boldsymbol{\theta}) - v(s_t;\boldsymbol{\theta})\)</span> for all t</p></li>
+<li><p>Compute GAE advantages:</p>
+<ol class="arabic simple">
+<li><p>Initialize <span class="math notranslate nohighlight">\(A_T = 0\)</span></p></li>
+<li><p>For t = T-1, …, 0:</p>
+<ol class="arabic simple">
+<li><p><span class="math notranslate nohighlight">\(A_t = \delta_t + (\gamma\lambda)A_{t+1}\)</span></p></li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p>Store tuple <span class="math notranslate nohighlight">\((s_t, a_t, A_t, v(s_t;\boldsymbol{\theta}))_{t=0}^T\)</span> in <span class="math notranslate nohighlight">\(\mathcal{D}\)</span></p></li>
+</ol>
+</li>
+<li><p>For value_epoch = 1, …, K:</p>
+<ol class="arabic simple">
+<li><p>Sample mini-batch <span class="math notranslate nohighlight">\(\mathcal{B}_v\)</span> of size <span class="math notranslate nohighlight">\(M\)</span> from <span class="math notranslate nohighlight">\(\mathcal{D}\)</span></p></li>
+<li><p>Compute value loss: <span class="math notranslate nohighlight">\(L_v = \frac{1}{M}\sum_{(s,\cdot,\cdot,v_{\text{old}}) \in \mathcal{B}_v} (v(s;\boldsymbol{\theta}) - v_{\text{old}})^2\)</span></p></li>
+<li><p>Update value function: <span class="math notranslate nohighlight">\(\boldsymbol{\theta} \leftarrow \boldsymbol{\theta} - \alpha_\theta \nabla_{\boldsymbol{\theta}}L_v\)</span></p></li>
+</ol>
+</li>
+<li><p>Normalize advantages: <span class="math notranslate nohighlight">\(A \leftarrow \frac{A - \mu_A}{\sigma_A}\)</span></p></li>
+<li><p>For policy_epoch = 1, …, J:</p>
+<ol class="arabic simple">
+<li><p>Sample mini-batch <span class="math notranslate nohighlight">\(\mathcal{B}_\pi\)</span> of size <span class="math notranslate nohighlight">\(M\)</span> from <span class="math notranslate nohighlight">\(\mathcal{D}\)</span></p></li>
+<li><p>Compute policy loss: <span class="math notranslate nohighlight">\(L_\pi = -\frac{1}{M}\sum_{(s,a,A,\cdot) \in \mathcal{B}_\pi} \log d(a|s;\boldsymbol{w})A\)</span></p></li>
+<li><p>Update policy: <span class="math notranslate nohighlight">\(\boldsymbol{w} \leftarrow \boldsymbol{w} - \alpha_w \nabla_{\boldsymbol{w}}L_\pi\)</span></p></li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p>Return <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span></p></li>
+</ol>
+</section>
+</div><p>With <span class="math notranslate nohighlight">\(\lambda = 0\)</span>, the GAE advantage estimator becomes just the one-step TD error:</p>
+<div class="math notranslate nohighlight">
+\[
+A^{\text{GAE}(\gamma,0)}(s_t,a_t) = \delta_t = r_t + \gamma v(s_{t+1}) - v(s_t)
+\]</div>
+<p>The non-batched, purely online, GAE(0) algorithm then becomes:</p>
+<div class="proof algorithm admonition" id="actor-critic-td0">
+<p class="admonition-title"><span class="caption-number">Algorithm 24.6 </span> (Actor-Critic with TD(0))</p>
+<section class="algorithm-content" id="proof-content">
+<p><strong>Input:</strong> Policy parameterization <span class="math notranslate nohighlight">\(d(a|s;\boldsymbol{w})\)</span>, value function <span class="math notranslate nohighlight">\(v(s;\boldsymbol{\theta})\)</span><br />
+<strong>Output:</strong> Updated policy parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span><br />
+<strong>Hyperparameters:</strong> Learning rates <span class="math notranslate nohighlight">\(\alpha_w\)</span>, <span class="math notranslate nohighlight">\(\alpha_\theta\)</span>, number of episodes <span class="math notranslate nohighlight">\(N\)</span>, episode length <span class="math notranslate nohighlight">\(T\)</span>, discount <span class="math notranslate nohighlight">\(\gamma\)</span></p>
+<ol class="arabic simple">
+<li><p>Initialize parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span></p></li>
+<li><p>For episode = 1, …, <span class="math notranslate nohighlight">\(N\)</span> do:</p>
+<ol class="arabic simple">
+<li><p>Initialize state <span class="math notranslate nohighlight">\(s_0\)</span></p></li>
+<li><p>For <span class="math notranslate nohighlight">\(t = 0, ..., T\)</span> do:</p>
+<ol class="arabic simple">
+<li><p>Sample action: <span class="math notranslate nohighlight">\(a_t \sim d(\cdot|s_t;\boldsymbol{w})\)</span></p></li>
+<li><p>Execute <span class="math notranslate nohighlight">\(a_t\)</span>, observe <span class="math notranslate nohighlight">\(r_t\)</span>, <span class="math notranslate nohighlight">\(s_{t+1}\)</span></p></li>
+<li><p>Compute TD error: <span class="math notranslate nohighlight">\(\delta_t = r_t + \gamma v(s_{t+1};\boldsymbol{\theta}) - v(s_t;\boldsymbol{\theta})\)</span></p></li>
+<li><p>Update value function: <span class="math notranslate nohighlight">\(\boldsymbol{\theta} \leftarrow \boldsymbol{\theta} + \alpha_\theta \delta_t \nabla_{\boldsymbol{\theta}}v(s_t;\boldsymbol{\theta})\)</span></p></li>
+<li><p>Update policy: <span class="math notranslate nohighlight">\(\boldsymbol{w} \leftarrow \boldsymbol{w} + \alpha_w \nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\delta_t\)</span></p></li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p>Return <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span></p></li>
+</ol>
+</section>
+</div><p>Interestingly, this version was first derived by Richard Sutton in his 1984 PhD thesis. He called it the Adaptive Heuristic Actor-Critic algorithm. As far as I know, it was not derived using the score function method outlined here, but rather through intuitive reasoning (great intuition!).</p>
+</section>
+<section id="the-policy-gradient-theorem">
+<h2><span class="section-number">24.4. </span>The Policy Gradient Theorem<a class="headerlink" href="#the-policy-gradient-theorem" title="Link to this heading">#</a></h2>
+<p>Sutton 1999 provided an expression for the gradient of the infinite discounted return with respect to the parameters of a parameterized policy. I want to share with you here an alternative derivation by considering a bilevel optimization problem:</p>
+<div class="math notranslate nohighlight">
+\[
+\max_{\mathbf{w}} \alpha^\top \mathbf{v}_\gamma^{d^\infty}
+\]</div>
+<p>subject to:</p>
+<div class="math notranslate nohighlight">
+\[
+(\mathbf{I} - \gamma \mathbf{P}_d) \mathbf{v}_\gamma^{d^\infty} = \mathbf{r}_d
+\]</div>
+<p>The Implicit Function Theorem states that for a constraint <span class="math notranslate nohighlight">\(F(\mathbf{x}, \mathbf{w}) = 0\)</span>, if the Jacobian <span class="math notranslate nohighlight">\(\frac{\partial F}{\partial \mathbf{x}}\)</span> is invertible, then:</p>
+<div class="math notranslate nohighlight">
+\[
+\frac{d\mathbf{x}}{d\mathbf{w}} = -\left(\frac{\partial F}{\partial \mathbf{x}}\right)^{-1}\frac{\partial F}{\partial \mathbf{w}}
+\]</div>
+<p>Applying this to our case with <span class="math notranslate nohighlight">\(F(\mathbf{v}, \mathbf{w}) = (\mathbf{I} - \gamma \mathbf{P}_d)\mathbf{v} - \mathbf{r}_d\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+\frac{\partial \mathbf{v}_\gamma^{d^\infty}}{\partial \mathbf{w}} = (\mathbf{I} - \gamma \mathbf{P}_d)^{-1}\left(\frac{\partial \mathbf{r}_d}{\partial \mathbf{w}} + \gamma \frac{\partial \mathbf{P}_d}{\partial \mathbf{w}}\mathbf{v}_\gamma^{d^\infty}\right)
+\]</div>
+<p>Let’s define the discounted state visitation distribution:</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{x}_\alpha^\top = \alpha^\top(\mathbf{I} - \gamma \mathbf{P}_d)^{-1}
+\]</div>
+<p>Then:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{align*}
+\nabla_{\mathbf{w}}J(\mathbf{d}) &amp;= \alpha^\top \frac{\partial \mathbf{v}_\gamma^{d^\infty}}{\partial \mathbf{w}} \\
+&amp;= \mathbf{x}_\alpha^\top\left(\frac{\partial \mathbf{r}_d}{\partial \mathbf{w}} + \gamma \frac{\partial \mathbf{P}_d}{\partial \mathbf{w}}\mathbf{v}_\gamma^{d^\infty}\right)
+\end{align*}
+\end{split}\]</div>
+<p>Continuing from:</p>
+<div class="math notranslate nohighlight">
+\[
+\nabla_{\mathbf{w}}J(\mathbf{d}) = \mathbf{x}_\alpha^\top\left(\frac{\partial \mathbf{r}_d}{\partial \mathbf{w}} + \gamma \frac{\partial \mathbf{P}_d}{\partial \mathbf{w}}\mathbf{v}_\gamma^{d^\infty}\right)
+\]</div>
+<p>Let’s expand the terms. For each state <span class="math notranslate nohighlight">\(s\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{align*}
+[\mathbf{r}_d]_s &amp;= \sum_a d(a|s)r(s,a) \\
+[\mathbf{P}_d]_{ss'} &amp;= \sum_a d(a|s)P(s'|s,a)
+\end{align*}
+\end{split}\]</div>
+<p>Taking derivatives:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{align*}
+\left[\frac{\partial \mathbf{r}_d}{\partial \mathbf{w}}\right]_s &amp;= \sum_a \nabla_{\mathbf{w}}d(a|s)r(s,a) \\
+\left[\frac{\partial \mathbf{P}_d}{\partial \mathbf{w}}\mathbf{v}_\gamma^{d^\infty}\right]_s &amp;= \sum_a \nabla_{\mathbf{w}}d(a|s)\sum_{s'} P(s'|s,a)v_\gamma^{d^\infty}(s')
+\end{align*}
+\end{split}\]</div>
+<p>Substituting back:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{align*}
+\nabla_{\mathbf{w}}J(\mathbf{d}) &amp;= \sum_s x_\alpha(s)\left(\sum_a \nabla_{\mathbf{w}}d(a|s)r(s,a) + \gamma\sum_a \nabla_{\mathbf{w}}d(a|s)\sum_{s'} P(s'|s,a)v_\gamma^{d^\infty}(s')\right) \\
+&amp;= \sum_s x_\alpha(s)\sum_a \nabla_{\mathbf{w}}d(a|s)\left(r(s,a) + \gamma \sum_{s'} P(s'|s,a)v_\gamma^{d^\infty}(s')\right)
+\end{align*}
+\end{split}\]</div>
+<p>This is the policy gradient theorem, where <span class="math notranslate nohighlight">\(x_\alpha(s)\)</span> is the discounted state visitation distribution and the term in parentheses is the state-action value function <span class="math notranslate nohighlight">\(q(s,a)\)</span>.</p>
+<p>The discounted state visitation <span class="math notranslate nohighlight">\(x_\alpha(s)\)</span> is not normalized. Therefore the expression we obtained above is not an expectation. However, we can tranform it into one by normalizing by <span class="math notranslate nohighlight">\(1-  \gamma\)</span>. Note that for any initial distribution <span class="math notranslate nohighlight">\(\alpha\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+\sum_s x_\alpha(s) = \alpha^\top(\mathbf{I} - \gamma \mathbf{P}_d)^{-1}\mathbf{1} = \frac{\alpha^\top\mathbf{1}}{1-\gamma} = \frac{1}{1-\gamma}
+\]</div>
+<p>Therefore, defining the normalized state distribution <span class="math notranslate nohighlight">\(\mu_\alpha(s) = (1-\gamma)x_\alpha(s)\)</span>, we can write:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{align*}
+\nabla_{\mathbf{w}}J(\mathbf{d}) &amp;= \frac{1}{1-\gamma}\sum_s \mu_\alpha(s)\sum_a \nabla_{\mathbf{w}}d(a|s)\left(r(s,a) + \gamma \sum_{s'} P(s'|s,a)v_\gamma^{d^\infty}(s')\right) \\
+&amp;= \frac{1}{1-\gamma}\mathbb{E}_{s\sim\mu_\alpha}\left[\sum_a \nabla_{\mathbf{w}}d(a|s)Q(s,a)\right]
+\end{align*}
+\end{split}\]</div>
+</section>
+<section id="normalized-discounted-state-visitation-distribution">
+<h2><span class="section-number">24.5. </span>Normalized Discounted State Visitation Distribution<a class="headerlink" href="#normalized-discounted-state-visitation-distribution" title="Link to this heading">#</a></h2>
+<p>Now we have expressed the policy gradient theorem in terms of expectations under the normalized discounted state visitation distribution. But what does sampling from <span class="math notranslate nohighlight">\(\mu_\alpha\)</span> means? Recall that <span class="math notranslate nohighlight">\(\mathbf{x}_\alpha^\top = \alpha^\top(\mathbf{I} - \gamma \mathbf{P}_d)^{-1}\)</span>. Using the Neumann series expansion (valid when <span class="math notranslate nohighlight">\(\|\gamma \mathbf{P}_d\| &lt; 1\)</span>, which holds for <span class="math notranslate nohighlight">\(\gamma &lt; 1\)</span> since <span class="math notranslate nohighlight">\(\mathbf{P}_d\)</span> is a stochastic matrix) we have:</p>
+<div class="math notranslate nohighlight">
+\[
+\boldsymbol{\mu}_\alpha^\top = (1-\gamma)\alpha^\top\sum_{k=0}^{\infty} (\gamma \mathbf{P}_d)^k
+\]</div>
+<p>We can then factor out the first term from this summation to obtain:
+s</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{align*}
+\boldsymbol{\mu}_\alpha^\top &amp;= (1-\gamma)\alpha^\top\sum_{k=0}^{\infty} (\gamma \mathbf{P}_d)^k \\
+&amp;= (1-\gamma)\alpha^\top + (1-\gamma)\alpha^\top\sum_{k=1}^{\infty} (\gamma \mathbf{P}_d)^k \\
+&amp;= (1-\gamma)\alpha^\top + (1-\gamma)\alpha^\top\gamma\mathbf{P}_d\sum_{k=0}^{\infty} (\gamma \mathbf{P}_d)^k \\
+&amp;= (1-\gamma)\alpha^\top + \gamma\boldsymbol{\mu}_\alpha^\top \mathbf{P}_d
+\end{align*}\]</div>
+<p>The balance equation :</p>
+<div class="math notranslate nohighlight">
+\[
+\boldsymbol{\mu}_\alpha^\top = (1-\gamma)\alpha^\top + \gamma\boldsymbol{\mu}_\alpha^\top \mathbf{P}_d
+\]</div>
+<p>shows that <span class="math notranslate nohighlight">\(\boldsymbol{\mu}_\alpha\)</span> is a mixture distribution: with probability <span class="math notranslate nohighlight">\(1-\gamma\)</span> you draw a state from the initial distribution <span class="math notranslate nohighlight">\(\alpha\)</span> (reset), and with probability <span class="math notranslate nohighlight">\(\gamma\)</span> you follow the policy dynamics <span class="math notranslate nohighlight">\(\mathbf{P}_d\)</span> from the current state (continue). This interpretation directly connects to the geometric process: at each step you either terminate and resample from <span class="math notranslate nohighlight">\(\alpha\)</span> (with probability <span class="math notranslate nohighlight">\(1-\gamma\)</span>) or continue following the policy (with probability <span class="math notranslate nohighlight">\(\gamma\)</span>).</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="k">def</span> <span class="nf">sample_from_discounted_visitation</span><span class="p">(</span>
+    <span class="n">alpha</span><span class="p">,</span> 
+    <span class="n">policy</span><span class="p">,</span> 
+    <span class="n">transition_model</span><span class="p">,</span> 
+    <span class="n">gamma</span><span class="p">,</span> 
+    <span class="n">n_samples</span><span class="o">=</span><span class="mi">1000</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sample states from the discounted visitation distribution.</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        alpha: Initial state distribution (vector of probabilities)</span>
+<span class="sd">        policy: Function (state -&gt; action probabilities)</span>
+<span class="sd">        transition_model: Function (state, action -&gt; next state probabilities)</span>
+<span class="sd">        gamma: Discount factor</span>
+<span class="sd">        n_samples: Number of states to sample</span>
+<span class="sd">    </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        Array of sampled states</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">samples</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">n_states</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">alpha</span><span class="p">)</span>
+    
+    <span class="c1"># Initialize state from alpha</span>
+    <span class="n">current_state</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">n_states</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">alpha</span><span class="p">)</span>
+    
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_samples</span><span class="p">):</span>
+        <span class="n">samples</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_state</span><span class="p">)</span>
+        
+        <span class="c1"># With probability (1-gamma): reset</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&gt;</span> <span class="n">gamma</span><span class="p">:</span>
+            <span class="n">current_state</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">n_states</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">alpha</span><span class="p">)</span>
+        <span class="c1"># With probability gamma: continue</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Sample action from policy</span>
+            <span class="n">action_probs</span> <span class="o">=</span> <span class="n">policy</span><span class="p">(</span><span class="n">current_state</span><span class="p">)</span>
+            <span class="n">action</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">action_probs</span><span class="p">),</span> <span class="n">p</span><span class="o">=</span><span class="n">action_probs</span><span class="p">)</span>
+            
+            <span class="c1"># Sample next state from transition model</span>
+            <span class="n">next_state_probs</span> <span class="o">=</span> <span class="n">transition_model</span><span class="p">(</span><span class="n">current_state</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span>
+            <span class="n">current_state</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">n_states</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">next_state_probs</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
+
+<span class="c1"># Example usage for a simple 2-state MDP</span>
+<span class="n">alpha</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">])</span>  <span class="c1"># Initial distribution</span>
+<span class="n">policy</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">])</span>  <span class="c1"># Dummy policy</span>
+<span class="n">transition_model</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">])</span>  <span class="c1"># Dummy transitions</span>
+<span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.9</span>
+
+<span class="n">samples</span> <span class="o">=</span> <span class="n">sample_from_discounted_visitation</span><span class="p">(</span><span class="n">alpha</span><span class="p">,</span> <span class="n">policy</span><span class="p">,</span> <span class="n">transition_model</span><span class="p">,</span> <span class="n">gamma</span><span class="p">)</span>
+
+<span class="c1"># Check empirical distribution</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Empirical state distribution:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">samples</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Empirical state distribution:
+[0.882 0.118]
+</pre></div>
+</div>
+</div>
+</div>
+<p>While the math shows that sampling from the discounted visitation distribution <span class="math notranslate nohighlight">\(\boldsymbol{\mu}_\alpha\)</span> would give us unbiased policy gradient estimates, Thomas (2014) demonstrated that this implementation can be detrimental to performance in practice. The issue arises because terminating trajectories early (with probability <span class="math notranslate nohighlight">\(1-\gamma\)</span>) reduces the effective amount of data we collect from each trajectory. This early termination weakens the learning signal, as many trajectories don’t reach meaningful terminal states or rewards.</p>
+<p>Therefore, in practice, we typically sample complete trajectories from the undiscounted process (i.e., run the policy until natural termination or a fixed horizon) while still using <span class="math notranslate nohighlight">\(\gamma\)</span> in the advantage estimation. This approach preserves the full learning signal from each trajectory
+and has been empirically shown to lead to better performance.</p>
+<p>This is one of several cases in RL where the theoretically optimal procedure differs from the best practical implementation.</p>
+</section>
+</section>
 
     <script type="text/x-thebe-config">
     {
@@ -1505,7 +2004,17 @@ s_{t+1}(\boldsymbol{w}) &amp;= f(s_t(\boldsymbol{w}), a_t(\boldsymbol{w}), \omeg
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#demonstration-numerical-analysis-of-gradient-estimators">23.3. Demonstration: Numerical Analysis of Gradient Estimators</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-value-gradients-with-model-based-rollouts">24. Stochastic Value Gradients with Model-Based Rollouts</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-value-gradients-with-model-based-rollouts">24. Stochastic Value Gradients with Model-Based Rollouts</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#score-function-gradient-estimation-in-reinforcement-learning">24.1. Score Function Gradient Estimation in Reinforcement Learning</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#leveraging-conditional-independence">24.1.1. Leveraging Conditional Independence</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#variance-reduction-via-control-variates">24.2. Variance Reduction via Control Variates</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#generalized-advantage-estimator">24.3. Generalized Advantage Estimator</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-policy-gradient-theorem">24.4. The Policy Gradient Theorem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#normalized-discounted-state-visitation-distribution">24.5. Normalized Discounted State Visitation Distribution</a></li>
+</ul>
+</li>
 </ul>
 
   </nav></div>

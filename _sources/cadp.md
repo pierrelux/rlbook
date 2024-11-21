@@ -337,7 +337,7 @@ $$
 Solving for $d$ shows that the optimal policy is a Boltzmann distribution 
 
 $$
-d^*(a|s) = \frac{\exp(\frac{1}{\beta}(r(s,a) + \gamma \mathbb{E}_{s'}[v(')]))}{Z(s)}
+d^*(a|s) = \frac{\exp(\frac{1}{\beta}(r(s,a) + \gamma \mathbb{E}_{s'}[v(s')]))}{Z(s)}
 $$
 
 When we substitute this optimal policy back into the entropy-regularized objective, we obtain:
@@ -901,3 +901,490 @@ Most likely however, this procedure will be implemented within an automatic diff
    
 **return** $\boldsymbol{w}_n$
 ```
+
+## Score Function Gradient Estimation in Reinforcement Learning 
+
+Let $G(\tau) \equiv \sum_{t=0}^T r(s_t, a_t)$ be the sum of undiscounted rewards in a trajectory $\tau$. The stochastic optimization problem we face is to maximize:
+
+$$
+J(\boldsymbol{w}) = \mathbb{E}_{\tau \sim p(\tau;\boldsymbol{w})}[G(\tau)]
+$$
+
+where $\tau = (s_0,a_0,s_1,a_1,...)$ is a trajectory and $G(\tau)$ is the total return. 
+Applying the score function estimator, we get:
+
+$$
+\begin{align*}
+\nabla_{\boldsymbol{w}}J(\boldsymbol{w}) &= \nabla_{\boldsymbol{w}}\mathbb{E}_{\tau}[G(\tau)] \\
+&= \mathbb{E}_{\tau}\left[G(\tau)\nabla_{\boldsymbol{w}}\log p(\tau;\boldsymbol{w})\right] \\
+&= \mathbb{E}_{\tau}\left[G(\tau)\nabla_{\boldsymbol{w}}\sum_{t=0}^T\log d(a_t|s_t;\boldsymbol{w})\right] \\
+&= \mathbb{E}_{\tau}\left[G(\tau)\sum_{t=0}^T\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\right]
+\end{align*}
+$$
+
+We have eliminated the need to know the transition probabilities in this estimator since the probability of a trajectory factorizes as:
+
+$$
+p(\tau;\boldsymbol{w}) = p(s_0)\prod_{t=0}^T d(a_t|s_t;\boldsymbol{w})p(s_{t+1}|s_t,a_t)
+$$
+
+Therefore, only the policy depends on $\boldsymbol{w}$. When taking the logarithm of this product, we get a sum where all the $\boldsymbol{w}$-independent terms vanish. The final estimator samples trajectories under the distribution $p(\tau; \boldsymbol{w})$ and computes:
+
+$$
+\nabla_{\boldsymbol{w}}J(\boldsymbol{w}) \approx \frac{1}{N}\sum_{i=1}^N\left[G(\tau^{(i)})\sum_{t=0}^T\nabla_{\boldsymbol{w}}\log d(a_t^{(i)}|s_t^{(i)};\boldsymbol{w})\right]
+$$
+
+This is a direct application of the score function estimator. However, we rarely use this form in practice and instead make several improvements to further reduce the variance.
+
+### Leveraging Conditional Independence 
+
+Given the Markov property of the MDP, rewards $r_k$ for $k < t$ are conditionally independent of action $a_t$ given the history $h_t = (s_0,a_0,...,s_{t-1},a_{t-1},s_t)$. This allows us to only need to consider future rewards when computing policy gradients.
+
+$$
+\begin{align*}
+\nabla_{\boldsymbol{w}}J(\boldsymbol{w}) &= \mathbb{E}_{\tau}\left[\sum_{t=0}^T\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\sum_{k=0}^T r_k\right] \\
+&= \mathbb{E}_{\tau}\left[\sum_{t=0}^T\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\left(\sum_{k=0}^{t-1} r_k + \sum_{k=t}^T r_k\right)\right] \\
+&= \mathbb{E}_{\tau}\left[\sum_{t=0}^T\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\sum_{k=t}^T r_k\right]
+\end{align*}
+$$
+
+The condition independence assumption means that the term $\mathbb{E}_{\tau}\left[\sum_{t=0}^T\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\sum_{k=0}^{t-1} r_k \right]$ vanishes. To see this, let's factor the trajectory distribution as:
+
+$$
+p(\tau) = p(s_0,...,s_t,a_0,...,a_{t-1})\cdot d(a_t|s_t;\boldsymbol{w})\cdot p(s_{t+1},...,s_T,a_{t+1},...,a_T|s_t,a_t)
+$$
+
+We can now re-write a single term of this summation as: 
+
+$$
+\mathbb{E}_{\tau}\left[\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\sum_{k=0}^{t-1} r_k\right] = \mathbb{E}_{s_{0:t},a_{0:t-1}}\left[\sum_{k=0}^{t-1} r_k \cdot \mathbb{E}_{a_t}\left[\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\right]\right]
+$$
+
+The inner expectation is zero because 
+
+$$
+\begin{align*}
+\mathbb{E}_{a_t}\left[\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\right] &= \int \nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})d(a_t|s_t;\boldsymbol{w})da_t \\
+&= \int \frac{\nabla_{\boldsymbol{w}}d(a_t|s_t;\boldsymbol{w})}{d(a_t|s_t;\boldsymbol{w})}d(a_t|s_t;\boldsymbol{w})da_t \\
+&= \int \nabla_{\boldsymbol{w}}d(a_t|s_t;\boldsymbol{w})da_t \\
+&= \nabla_{\boldsymbol{w}}\int d(a_t|s_t;\boldsymbol{w})da_t \\
+&= \nabla_{\boldsymbol{w}}1 = 0
+\end{align*}
+$$
+
+The Monte Carlo estimator becomes:
+
+$$
+\nabla_{\boldsymbol{w}}J(\boldsymbol{w}) \approx \frac{1}{N}\sum_{i=1}^N\left[\sum_{t=0}^T\nabla_{\boldsymbol{w}}\log d(a_t^{(i)}|s_t^{(i)};\boldsymbol{w})\sum_{k=t}^T r_k^{(i)}\right]
+$$
+
+The benefit of this estimator compared to the naive one is that it generally has less variance. More formally, we can show that this estimator arises from the application of a variance reduction technique known as the Extended Conditional Monte Carlo Method. 
+
+## Variance Reduction via Control Variates
+
+A control variate is a zero-mean random variable that we subtract from our estimator to reduce variance. Given an estimator $Z$ and a control variate $C$ with $\mathbb{E}[C]=0$, we can construct a new unbiased estimator:
+
+$$
+Z_{\text{cv}} = Z - \alpha C
+$$
+
+where $\alpha$ is a coefficient we can choose. The variance of this new estimator is:
+
+$$
+\text{Var}(Z_{\text{cv}}) = \text{Var}(Z) + \alpha^2\text{Var}(C) - 2\alpha\text{Cov}(Z,C)
+$$
+
+The optimal $\alpha$ that minimizes this variance is:
+
+$$
+\alpha^* = \frac{\text{Cov}(Z,C)}{\text{Var}(C)}
+$$
+
+In the reinforcement learning setting, we usually choose $C_t = \nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})$ as our control variate at each timestep. For a given state $s_t$, our estimator at time $t$ is:
+
+$$
+Z_t = \nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\sum_{k=t}^T r_k
+$$
+
+Our control variate estimator becomes:
+
+$$
+Z_{t,\text{cv}} = Z_t - \alpha_t^* C_t = \nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})(\sum_{k=t}^T r_k - \alpha_t^*)
+$$
+
+Following the general theory, and using the fact that $\mathbb{E}[C_t|s_t] = 0$  the optimal coefficient is:
+
+$$
+\begin{align*}
+\alpha^*_t = \frac{\text{Cov}(Z_t,C_t|s_t)}{\text{Var}(C_t|s_t)} &= \frac{\mathbb{E}[Z_tC_t^T|s_t] - \mathbb{E}[Z_t|s_t]\mathbb{E}[C_t^T|s_t]}{\mathbb{E}[C_tC_t^T|s_t] - \mathbb{E}[C_t|s_t]\mathbb{E}[C_t^T|s_t]} \\
+&= \frac{\mathbb{E}[\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})^T\sum_{k=t}^T r_k|s_t] - 0}{\mathbb{E}[\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})^T|s_t] - 0} \\
+&= \frac{\mathbb{E}[\|\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\|^2\sum_{k=t}^T r_k|s_t]}{\mathbb{E}[\|\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\|^2|s_t]} \\
+&= \frac{\mathbb{E}_{a_t|s_t}[\|\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\|^2]\mathbb{E}[\sum_{k=t}^T r_k|s_t]}{\mathbb{E}_{a_t|s_t}[\|\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\|^2]} \\
+&= \mathbb{E}[\sum_{k=t}^T r_k|s_t] = v^{d_{\boldsymbol{w}}}(s_t)
+\end{align*}
+$$
+
+Therefore, our variance-reduced estimator becomes:
+
+$$
+Z_{\text{cv},t} = \nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\left(\sum_{k=t}^T r_k - v^{d_{\boldsymbol{w}}}(s_t)\right)
+$$
+
+
+In practice when implementing this estimator, we won't have access to the true value function. So as we did earlier for NFQCA or SAC, we commonly learn that value function simultaneously with the policy. Do do so, we could either using a fitted value approach, or even more simply just regress from states to sum of rewards to learn what Williams 1992 called a "baseline": 
+
+```{prf:algorithm} Policy Gradient with Simple Baseline
+:label: policy-grad-baseline
+
+**Input:** Policy parameterization $d(a|s;\boldsymbol{w})$, baseline function $b(s;\boldsymbol{\theta})$  
+**Output:** Updated policy parameters $\boldsymbol{w}$  
+**Hyperparameters:** Learning rates $\alpha_w$, $\alpha_\theta$, number of episodes $N$, episode length $T$
+
+1. Initialize parameters $\boldsymbol{w}$, $\boldsymbol{\theta}$
+2. For episode = 1, ..., $N$ do:
+   1. Collect trajectory $\tau = (s_0, a_0, r_0, ..., s_T, a_T, r_T)$ using policy $d(a|s;\boldsymbol{w})$
+   2. Compute returns for each timestep: $R_t = \sum_{k=t}^T r_k$
+   3. Update baseline: $\boldsymbol{\theta} \leftarrow \boldsymbol{\theta} + \alpha_\theta \nabla_{\boldsymbol{\theta}}\sum_{t=0}^T (R_t - b(s_t;\boldsymbol{\theta}))^2$
+   4. For $t = 0, ..., T$ do:
+      1. Update policy: $\boldsymbol{w} \leftarrow \boldsymbol{w} + \alpha_w \nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})(R_t - b(s_t;\boldsymbol{\theta}))$
+3. Return $\boldsymbol{w}$
+```
+
+When implementing this algorithm nowadays, we always using mini-batching to make full use of our GPUs. Therefore, a more representative variant for this algorithm would be: 
+
+
+```{prf:algorithm} Policy Gradient with Optimal Control Variate and Mini-batches
+:label: policy-grad-cv-batch
+
+**Input:** Policy parameterization $d(a|s;\boldsymbol{w})$, value function $v(s;\boldsymbol{\theta})$  
+**Output:** Updated policy parameters $\boldsymbol{w}$  
+**Hyperparameters:** Learning rates $\alpha_w$, $\alpha_\theta$, number of iterations $N$, episode length $T$, batch size $B$, mini-batch size $M$
+
+1. Initialize parameters $\boldsymbol{w}$, $\boldsymbol{\theta}$
+2. For iteration = 1, ..., N:
+    1. Initialize empty buffer $\mathcal{D}$
+    2. For b = 1, ..., B:
+        1. Collect trajectory $\tau_b = (s_0, a_0, r_0, ..., s_T, a_T, r_T)$ using policy $d(a|s;\boldsymbol{w})$
+        2. Compute returns: $R_t = \sum_{k=t}^T r_k$ for all t
+        3. Store tuple $(s_t, a_t, R_t)_{t=0}^T$ in $\mathcal{D}$
+    3. Compute value targets: $v_{\text{target}}(s) = \frac{1}{|\mathcal{D}_s|}\sum_{(s,\cdot,R) \in \mathcal{D}_s} R$
+    4. For value_epoch = 1, ..., K:
+        1. Sample mini-batch $\mathcal{B}_v$ of size $M$ from $\mathcal{D}$
+        2. Compute value loss: $L_v = \frac{1}{M}\sum_{(s,\cdot,R) \in \mathcal{B}_v} (v(s;\boldsymbol{\theta}) - v_{\text{target}}(s))^2$
+        3. Update value function: $\boldsymbol{\theta} \leftarrow \boldsymbol{\theta} - \alpha_\theta \nabla_{\boldsymbol{\theta}}L_v$
+    5. Compute advantages: $A(s,a) = R - v(s;\boldsymbol{\theta})$ for all $(s,a,R) \in \mathcal{D}$
+    6. Normalize advantages: $A \leftarrow \frac{A - \mu_A}{\sigma_A}$
+    7. For policy_epoch = 1, ..., J:
+        1. Sample mini-batch $\mathcal{B}_\pi$ of size $M$ from $\mathcal{D}$
+        2. Compute policy loss: $L_\pi = -\frac{1}{M}\sum_{(s,a,\cdot) \in \mathcal{B}_\pi} \log d(a|s;\boldsymbol{w})A(s,a)$
+        3. Update policy: $\boldsymbol{w} \leftarrow \boldsymbol{w} - \alpha_w \nabla_{\boldsymbol{w}}L_\pi$
+3. Return $\boldsymbol{w}$
+```
+
+## Generalized Advantage Estimator 
+
+
+Given our control variate estimator with baseline $v(s)$, we have:
+
+$$
+\nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})(G_t - v(s_t))
+$$
+
+where $G_t$ is the return $\sum_{k=t}^T r_k$. We can improve this estimator by considering how it relates to the advantage function, defined as:
+
+$$
+A(s_t,a_t) = q(s_t,a_t) - v(s_t)
+$$
+
+where $q(s_t,a_t)$ is the action-value function. Due to the Bellman equation:
+
+$$
+q(s_t,a_t) = \mathbb{E}_{s_{t+1},r_t}[r_t + \gamma v(s_{t+1})|s_t,a_t]
+$$
+
+This leads to the one-step TD error:
+
+$$
+\delta_t = r_t + \gamma v(s_{t+1}) - v(s_t)
+$$
+
+Now, let's decompose our original term:
+
+$$
+\begin{align*}
+G_t - v(s_t) &= r_t + \gamma G_{t+1} - v(s_t) \\
+&= r_t + \gamma v(s_{t+1}) - v(s_t) + \gamma(G_{t+1} - v(s_{t+1})) \\
+&= \delta_t + \gamma(G_{t+1} - v(s_{t+1}))
+\end{align*}
+$$
+
+Expanding recursively:
+
+$$
+\begin{align*}
+G_t - v(s_t) &= \delta_t + \gamma(G_{t+1} - v(s_{t+1})) \\
+&= \delta_t + \gamma[\delta_{t+1} + \gamma(G_{t+2} - v(s_{t+2}))] \\
+&= \delta_t + \gamma\delta_{t+1} + \gamma^2\delta_{t+2} + ... + \gamma^{T-t}\delta_T
+\end{align*}
+$$
+
+GAE generalizes this by introducing a weighted version with parameter $\lambda$:
+
+$$
+A^{\text{GAE}(\gamma,\lambda)}(s_t,a_t) = (1-\lambda)\sum_{k=0}^{\infty}\lambda^k\sum_{l=0}^k \gamma^l\delta_{t+l}
+$$
+
+Which simplifies to:
+
+$$
+A^{\text{GAE}(\gamma,\lambda)}(s_t,a_t) = \sum_{l=0}^{\infty}(\gamma\lambda)^l\delta_{t+l}
+$$
+
+This formulation allows us to trade off bias and variance through $\lambda$:
+- $\lambda=0$: one-step TD error (low variance, high bias)
+- $\lambda=1$: Monte Carlo estimate (high variance, low bias)
+
+
+The general GAE algorithm with mini-batches is the following: 
+
+```{prf:algorithm} Policy Gradient with GAE and Mini-batches
+:label: policy-grad-gae-batch
+
+**Input:** Policy parameterization $d(a|s;\boldsymbol{w})$, value function $v(s;\boldsymbol{\theta})$  
+**Output:** Updated policy parameters $\boldsymbol{w}$  
+**Hyperparameters:** Learning rates $\alpha_w$, $\alpha_\theta$, number of iterations $N$, episode length $T$, batch size $B$, mini-batch size $M$, discount $\gamma$, GAE parameter $\lambda$
+
+1. Initialize parameters $\boldsymbol{w}$, $\boldsymbol{\theta}$
+2. For iteration = 1, ..., N:
+    1. Initialize empty buffer $\mathcal{D}$
+    2. For b = 1, ..., B:
+        1. Collect trajectory $\tau_b = (s_0, a_0, r_0, ..., s_T, a_T, r_T)$ using policy $d(a|s;\boldsymbol{w})$
+        2. Compute TD errors: $\delta_t = r_t + \gamma v(s_{t+1};\boldsymbol{\theta}) - v(s_t;\boldsymbol{\theta})$ for all t
+        3. Compute GAE advantages:
+            1. Initialize $A_T = 0$
+            2. For t = T-1, ..., 0:
+                1. $A_t = \delta_t + (\gamma\lambda)A_{t+1}$
+        4. Store tuple $(s_t, a_t, A_t, v(s_t;\boldsymbol{\theta}))_{t=0}^T$ in $\mathcal{D}$
+    3. For value_epoch = 1, ..., K:
+        1. Sample mini-batch $\mathcal{B}_v$ of size $M$ from $\mathcal{D}$
+        2. Compute value loss: $L_v = \frac{1}{M}\sum_{(s,\cdot,\cdot,v_{\text{old}}) \in \mathcal{B}_v} (v(s;\boldsymbol{\theta}) - v_{\text{old}})^2$
+        3. Update value function: $\boldsymbol{\theta} \leftarrow \boldsymbol{\theta} - \alpha_\theta \nabla_{\boldsymbol{\theta}}L_v$
+    4. Normalize advantages: $A \leftarrow \frac{A - \mu_A}{\sigma_A}$
+    5. For policy_epoch = 1, ..., J:
+        1. Sample mini-batch $\mathcal{B}_\pi$ of size $M$ from $\mathcal{D}$
+        2. Compute policy loss: $L_\pi = -\frac{1}{M}\sum_{(s,a,A,\cdot) \in \mathcal{B}_\pi} \log d(a|s;\boldsymbol{w})A$
+        3. Update policy: $\boldsymbol{w} \leftarrow \boldsymbol{w} - \alpha_w \nabla_{\boldsymbol{w}}L_\pi$
+3. Return $\boldsymbol{w}$
+```
+
+With $\lambda = 0$, the GAE advantage estimator becomes just the one-step TD error:
+
+$$
+A^{\text{GAE}(\gamma,0)}(s_t,a_t) = \delta_t = r_t + \gamma v(s_{t+1}) - v(s_t)
+$$
+
+The non-batched, purely online, GAE(0) algorithm then becomes: 
+
+```{prf:algorithm} Actor-Critic with TD(0)
+:label: actor-critic-td0
+
+**Input:** Policy parameterization $d(a|s;\boldsymbol{w})$, value function $v(s;\boldsymbol{\theta})$  
+**Output:** Updated policy parameters $\boldsymbol{w}$  
+**Hyperparameters:** Learning rates $\alpha_w$, $\alpha_\theta$, number of episodes $N$, episode length $T$, discount $\gamma$
+
+1. Initialize parameters $\boldsymbol{w}$, $\boldsymbol{\theta}$
+2. For episode = 1, ..., $N$ do:
+   1. Initialize state $s_0$
+   2. For $t = 0, ..., T$ do:
+      1. Sample action: $a_t \sim d(\cdot|s_t;\boldsymbol{w})$
+      2. Execute $a_t$, observe $r_t$, $s_{t+1}$
+      3. Compute TD error: $\delta_t = r_t + \gamma v(s_{t+1};\boldsymbol{\theta}) - v(s_t;\boldsymbol{\theta})$
+      4. Update value function: $\boldsymbol{\theta} \leftarrow \boldsymbol{\theta} + \alpha_\theta \delta_t \nabla_{\boldsymbol{\theta}}v(s_t;\boldsymbol{\theta})$
+      5. Update policy: $\boldsymbol{w} \leftarrow \boldsymbol{w} + \alpha_w \nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\delta_t$
+3. Return $\boldsymbol{w}$
+```
+Interestingly, this version was first derived by Richard Sutton in his 1984 PhD thesis. He called it the Adaptive Heuristic Actor-Critic algorithm. As far as I know, it was not derived using the score function method outlined here, but rather through intuitive reasoning (great intuition!).
+
+## The Policy Gradient Theorem
+
+Sutton 1999 provided an expression for the gradient of the infinite discounted return with respect to the parameters of a parameterized policy. I want to share with you here an alternative derivation by considering a bilevel optimization problem:
+
+$$
+\max_{\mathbf{w}} \alpha^\top \mathbf{v}_\gamma^{d^\infty}
+$$
+
+subject to:
+
+$$
+(\mathbf{I} - \gamma \mathbf{P}_d) \mathbf{v}_\gamma^{d^\infty} = \mathbf{r}_d
+$$
+
+The Implicit Function Theorem states that for a constraint $F(\mathbf{x}, \mathbf{w}) = 0$, if the Jacobian $\frac{\partial F}{\partial \mathbf{x}}$ is invertible, then:
+
+$$
+\frac{d\mathbf{x}}{d\mathbf{w}} = -\left(\frac{\partial F}{\partial \mathbf{x}}\right)^{-1}\frac{\partial F}{\partial \mathbf{w}}
+$$
+
+Applying this to our case with $F(\mathbf{v}, \mathbf{w}) = (\mathbf{I} - \gamma \mathbf{P}_d)\mathbf{v} - \mathbf{r}_d$:
+
+$$
+\frac{\partial \mathbf{v}_\gamma^{d^\infty}}{\partial \mathbf{w}} = (\mathbf{I} - \gamma \mathbf{P}_d)^{-1}\left(\frac{\partial \mathbf{r}_d}{\partial \mathbf{w}} + \gamma \frac{\partial \mathbf{P}_d}{\partial \mathbf{w}}\mathbf{v}_\gamma^{d^\infty}\right)
+$$
+
+Let's define the discounted state visitation distribution:
+
+$$
+\mathbf{x}_\alpha^\top = \alpha^\top(\mathbf{I} - \gamma \mathbf{P}_d)^{-1}
+$$
+
+Then:
+
+$$
+\begin{align*}
+\nabla_{\mathbf{w}}J(\mathbf{d}) &= \alpha^\top \frac{\partial \mathbf{v}_\gamma^{d^\infty}}{\partial \mathbf{w}} \\
+&= \mathbf{x}_\alpha^\top\left(\frac{\partial \mathbf{r}_d}{\partial \mathbf{w}} + \gamma \frac{\partial \mathbf{P}_d}{\partial \mathbf{w}}\mathbf{v}_\gamma^{d^\infty}\right)
+\end{align*}
+$$
+
+Continuing from:
+
+$$
+\nabla_{\mathbf{w}}J(\mathbf{d}) = \mathbf{x}_\alpha^\top\left(\frac{\partial \mathbf{r}_d}{\partial \mathbf{w}} + \gamma \frac{\partial \mathbf{P}_d}{\partial \mathbf{w}}\mathbf{v}_\gamma^{d^\infty}\right)
+$$
+
+Let's expand the terms. For each state $s$:
+
+$$
+\begin{align*}
+[\mathbf{r}_d]_s &= \sum_a d(a|s)r(s,a) \\
+[\mathbf{P}_d]_{ss'} &= \sum_a d(a|s)P(s'|s,a)
+\end{align*}
+$$
+
+Taking derivatives:
+
+$$
+\begin{align*}
+\left[\frac{\partial \mathbf{r}_d}{\partial \mathbf{w}}\right]_s &= \sum_a \nabla_{\mathbf{w}}d(a|s)r(s,a) \\
+\left[\frac{\partial \mathbf{P}_d}{\partial \mathbf{w}}\mathbf{v}_\gamma^{d^\infty}\right]_s &= \sum_a \nabla_{\mathbf{w}}d(a|s)\sum_{s'} P(s'|s,a)v_\gamma^{d^\infty}(s')
+\end{align*}
+$$
+
+Substituting back:
+
+$$
+\begin{align*}
+\nabla_{\mathbf{w}}J(\mathbf{d}) &= \sum_s x_\alpha(s)\left(\sum_a \nabla_{\mathbf{w}}d(a|s)r(s,a) + \gamma\sum_a \nabla_{\mathbf{w}}d(a|s)\sum_{s'} P(s'|s,a)v_\gamma^{d^\infty}(s')\right) \\
+&= \sum_s x_\alpha(s)\sum_a \nabla_{\mathbf{w}}d(a|s)\left(r(s,a) + \gamma \sum_{s'} P(s'|s,a)v_\gamma^{d^\infty}(s')\right)
+\end{align*}
+$$
+
+This is the policy gradient theorem, where $x_\alpha(s)$ is the discounted state visitation distribution and the term in parentheses is the state-action value function $q(s,a)$.
+
+The discounted state visitation $x_\alpha(s)$ is not normalized. Therefore the expression we obtained above is not an expectation. However, we can tranform it into one by normalizing by $1-  \gamma$. Note that for any initial distribution $\alpha$:
+
+$$
+\sum_s x_\alpha(s) = \alpha^\top(\mathbf{I} - \gamma \mathbf{P}_d)^{-1}\mathbf{1} = \frac{\alpha^\top\mathbf{1}}{1-\gamma} = \frac{1}{1-\gamma}
+$$
+
+Therefore, defining the normalized state distribution $\mu_\alpha(s) = (1-\gamma)x_\alpha(s)$, we can write:
+
+$$
+\begin{align*}
+\nabla_{\mathbf{w}}J(\mathbf{d}) &= \frac{1}{1-\gamma}\sum_s \mu_\alpha(s)\sum_a \nabla_{\mathbf{w}}d(a|s)\left(r(s,a) + \gamma \sum_{s'} P(s'|s,a)v_\gamma^{d^\infty}(s')\right) \\
+&= \frac{1}{1-\gamma}\mathbb{E}_{s\sim\mu_\alpha}\left[\sum_a \nabla_{\mathbf{w}}d(a|s)Q(s,a)\right]
+\end{align*}
+$$
+
+## Normalized Discounted State Visitation Distribution
+
+Now we have expressed the policy gradient theorem in terms of expectations under the normalized discounted state visitation distribution. But what does sampling from $\mu_\alpha$ means? Recall that $\mathbf{x}_\alpha^\top = \alpha^\top(\mathbf{I} - \gamma \mathbf{P}_d)^{-1}$. Using the Neumann series expansion (valid when $\|\gamma \mathbf{P}_d\| < 1$, which holds for $\gamma < 1$ since $\mathbf{P}_d$ is a stochastic matrix) we have:
+
+$$
+\boldsymbol{\mu}_\alpha^\top = (1-\gamma)\alpha^\top\sum_{k=0}^{\infty} (\gamma \mathbf{P}_d)^k
+$$
+
+We can then factor out the first term from this summation to obtain: 
+s   
+\begin{align*}
+\boldsymbol{\mu}_\alpha^\top &= (1-\gamma)\alpha^\top\sum_{k=0}^{\infty} (\gamma \mathbf{P}_d)^k \\
+&= (1-\gamma)\alpha^\top + (1-\gamma)\alpha^\top\sum_{k=1}^{\infty} (\gamma \mathbf{P}_d)^k \\
+&= (1-\gamma)\alpha^\top + (1-\gamma)\alpha^\top\gamma\mathbf{P}_d\sum_{k=0}^{\infty} (\gamma \mathbf{P}_d)^k \\
+&= (1-\gamma)\alpha^\top + \gamma\boldsymbol{\mu}_\alpha^\top \mathbf{P}_d
+\end{align*}
+
+
+The balance equation : 
+
+$$
+\boldsymbol{\mu}_\alpha^\top = (1-\gamma)\alpha^\top + \gamma\boldsymbol{\mu}_\alpha^\top \mathbf{P}_d
+$$
+
+
+shows that $\boldsymbol{\mu}_\alpha$ is a mixture distribution: with probability $1-\gamma$ you draw a state from the initial distribution $\alpha$ (reset), and with probability $\gamma$ you follow the policy dynamics $\mathbf{P}_d$ from the current state (continue). This interpretation directly connects to the geometric process: at each step you either terminate and resample from $\alpha$ (with probability $1-\gamma$) or continue following the policy (with probability $\gamma$).
+
+```{code-cell} ipython3
+import numpy as np
+
+def sample_from_discounted_visitation(
+    alpha, 
+    policy, 
+    transition_model, 
+    gamma, 
+    n_samples=1000
+):
+    """Sample states from the discounted visitation distribution.
+    
+    Args:
+        alpha: Initial state distribution (vector of probabilities)
+        policy: Function (state -> action probabilities)
+        transition_model: Function (state, action -> next state probabilities)
+        gamma: Discount factor
+        n_samples: Number of states to sample
+    
+    Returns:
+        Array of sampled states
+    """
+    samples = []
+    n_states = len(alpha)
+    
+    # Initialize state from alpha
+    current_state = np.random.choice(n_states, p=alpha)
+    
+    for _ in range(n_samples):
+        samples.append(current_state)
+        
+        # With probability (1-gamma): reset
+        if np.random.random() > gamma:
+            current_state = np.random.choice(n_states, p=alpha)
+        # With probability gamma: continue
+        else:
+            # Sample action from policy
+            action_probs = policy(current_state)
+            action = np.random.choice(len(action_probs), p=action_probs)
+            
+            # Sample next state from transition model
+            next_state_probs = transition_model(current_state, action)
+            current_state = np.random.choice(n_states, p=next_state_probs)
+    
+    return np.array(samples)
+
+# Example usage for a simple 2-state MDP
+alpha = np.array([0.7, 0.3])  # Initial distribution
+policy = lambda s: np.array([0.8, 0.2])  # Dummy policy
+transition_model = lambda s, a: np.array([0.9, 0.1])  # Dummy transitions
+gamma = 0.9
+
+samples = sample_from_discounted_visitation(alpha, policy, transition_model, gamma)
+
+# Check empirical distribution
+print("Empirical state distribution:")
+print(np.bincount(samples) / len(samples))
+```
+
+While the math shows that sampling from the discounted visitation distribution $\boldsymbol{\mu}_\alpha$ would give us unbiased policy gradient estimates, Thomas (2014) demonstrated that this implementation can be detrimental to performance in practice. The issue arises because terminating trajectories early (with probability $1-\gamma$) reduces the effective amount of data we collect from each trajectory. This early termination weakens the learning signal, as many trajectories don't reach meaningful terminal states or rewards.
+
+Therefore, in practice, we typically sample complete trajectories from the undiscounted process (i.e., run the policy until natural termination or a fixed horizon) while still using $\gamma$ in the advantage estimation. This approach preserves the full learning signal from each trajectory
+and has been empirically shown to lead to better performance. 
+
+This is one of several cases in RL where the theoretically optimal procedure differs from the best practical implementation.
