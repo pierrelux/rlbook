@@ -435,6 +435,7 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#backpropagation-policy-optimization">24.1. Backpropagation Policy Optimization</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-value-gradient-svg">24.2. Stochastic Value Gradient (SVG)</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#noise-inference-in-svg">24.3. Noise Inference in SVG</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dpg-as-a-special-case-of-sac">24.4. DPG as a Special Case of SAC</a></li>
 </ul>
 </li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#score-function-gradient-estimation-in-reinforcement-learning">25. Score Function Gradient Estimation in Reinforcement Learning</a><ul class="visible nav section-nav flex-column">
@@ -1473,6 +1474,75 @@ z_0 = (f_1^{-1} \circ \cdots \circ f_K^{-1})(a_t;\boldsymbol{w})
 </ol>
 <p>As far as I know, this approach has not been explored in the literature.</p>
 </section>
+<section id="dpg-as-a-special-case-of-sac">
+<h2><span class="section-number">24.4. </span>DPG as a Special Case of SAC<a class="headerlink" href="#dpg-as-a-special-case-of-sac" title="Link to this heading">#</a></h2>
+<p>At first glance, SAC and DPG might appear to be fundamentally different approaches to policy optimization. SAC begins with the principle of entropy maximization and policy distribution matching through KL divergence minimization, while DPG directly optimizes a deterministic policy to maximize expected Q-values. However, we can show that DPG emerges as a special case of SAC as we take the temperature parameter to zero.</p>
+<div class="proof proposition admonition" id="proposition-7">
+<p class="admonition-title"><span class="caption-number">Proposition 24.1 </span> (Convergence of SAC to DPG)</p>
+<section class="proposition-content" id="proof-content">
+<p>Let <span class="math notranslate nohighlight">\(d(\cdot|s;\boldsymbol{w}_\alpha)\)</span> be the optimal stochastic policy for SAC with temperature <span class="math notranslate nohighlight">\(\alpha\)</span>, and <span class="math notranslate nohighlight">\(d(s;\boldsymbol{w}_{DPG})\)</span> be the optimal deterministic policy gradient solution. Under appropriate assumptions, as <span class="math notranslate nohighlight">\(\alpha \to 0\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+d(a|s;\boldsymbol{w}_\alpha) \to \delta(a - d(s;\boldsymbol{w}_{DPG}))
+\]</div>
+<p><strong>Assumptions:</strong></p>
+<ol class="arabic">
+<li><p>The stochastic policy class is Gaussian with learnable mean and standard deviation:</p>
+<div class="math notranslate nohighlight">
+\[
+   d(a|s;\boldsymbol{w}) = \mathcal{N}(\mu_w(s), \sigma_w(s)^2)
+   \]</div>
+</li>
+<li><p>The SAC objective for policy improvement uses the soft Q-function:</p>
+<div class="math notranslate nohighlight">
+\[
+   \boldsymbol{w}^*_\alpha = \arg\min_w \mathbb{E}_{s\sim\rho}\left[D_{KL}\left(d(\cdot|s;\boldsymbol{w}) \| \frac{\exp(Q_{soft}(s,\cdot)/\alpha)}{\int \exp(Q_{soft}(s,b)/\alpha)db}\right)\right]
+   \]</div>
+<p>where <span class="math notranslate nohighlight">\(Q_{soft}\)</span> follows the soft Bellman equation:</p>
+<div class="math notranslate nohighlight">
+\[
+   Q_{soft}(s,a) = r(s,a) + \gamma \mathbb{E}_{s' \sim P}\left[\mathbb{E}_{a' \sim d(\cdot|s')}\left[Q_{soft}(s',a') - \alpha \log d(a'|s')\right]\right]
+   \]</div>
+</li>
+<li><p>The DPG objective with a deterministic policy uses the standard Q-function:</p>
+<div class="math notranslate nohighlight">
+\[
+   \boldsymbol{w}^*_{DPG} = \arg\max_w \mathbb{E}_{s\sim\rho}\left[Q(s,d(s;\boldsymbol{w}))\right]
+   \]</div>
+<p>where <span class="math notranslate nohighlight">\(Q\)</span> follows the standard Bellman equation:</p>
+<div class="math notranslate nohighlight">
+\[
+   Q(s,a) = r(s,a) + \gamma \mathbb{E}_{s' \sim P}[Q(s',d(s';\boldsymbol{w}))]
+   \]</div>
+</li>
+<li><p><span class="math notranslate nohighlight">\(Q_{soft}(s,a)\)</span> and <span class="math notranslate nohighlight">\(Q(s,a)\)</span> are continuous and achieve their maxima for each state <span class="math notranslate nohighlight">\(s\)</span>.</p></li>
+</ol>
+</section>
+</div><div class="proof admonition" id="proof">
+<p>Proof. At the fixed point of the soft Bellman equation, as <span class="math notranslate nohighlight">\(\alpha \to 0\)</span>, the entropy term <span class="math notranslate nohighlight">\(-\alpha \log d(a|s)\)</span> vanishes, and <span class="math notranslate nohighlight">\(Q_{soft} \to Q\)</span>. This implies that the SAC target distribution, which is proportional to <span class="math notranslate nohighlight">\(\exp(Q_{soft}(s,a)/\alpha)\)</span>, becomes:</p>
+<div class="math notranslate nohighlight">
+\[
+\lim_{\alpha \to 0} \frac{\exp(Q(s,a)/\alpha)}{\int \exp(Q(s,b)/\alpha) db} = \delta(a - \arg\max_a Q(s,a)),
+\]</div>
+<p>by Laplace’s method. The target distribution thus collapses to a delta function centered at the deterministic optimal action <span class="math notranslate nohighlight">\(\arg\max_a Q(s,a)\)</span>.</p>
+<p>The KL divergence term in the SAC objective measures the divergence between the stochastic policy <span class="math notranslate nohighlight">\(d(a|s;\boldsymbol{w})\)</span> (Gaussian) and this target distribution. For a Gaussian <span class="math notranslate nohighlight">\(\mathcal{N}(\mu, \sigma^2)\)</span> and a delta function <span class="math notranslate nohighlight">\(\delta(a - a^*)\)</span>, we derive:</p>
+<div class="math notranslate nohighlight">
+\[
+D_{KL}(\mathcal{N}(\mu, \sigma^2) \| \delta(a - a^*)) = \lim_{\epsilon \to 0} D_{KL}(\mathcal{N}(\mu, \sigma^2) \| \mathcal{N}(a^*, \epsilon^2)),
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(\mathcal{N}(a^*, \epsilon^2)\)</span> is a Gaussian approximation of the delta. Using the KL formula:</p>
+<div class="math notranslate nohighlight">
+\[
+D_{KL} = \frac{1}{2}\left[\log\left(\frac{\epsilon^2}{\sigma^2}\right) + \frac{\sigma^2}{\epsilon^2} + \frac{(\mu - a^*)^2}{\epsilon^2} - 1\right].
+\]</div>
+<p>Taking the limit <span class="math notranslate nohighlight">\(\epsilon \to 0\)</span>, the divergence diverges unless <span class="math notranslate nohighlight">\(\mu = a^*\)</span> and <span class="math notranslate nohighlight">\(\sigma = 0\)</span>, where it becomes zero. Thus, minimizing the SAC objective drives <span class="math notranslate nohighlight">\(\mu_w(s) \to \arg\max_a Q(s,a)\)</span> and <span class="math notranslate nohighlight">\(\sigma_w(s) \to 0\)</span>.</p>
+<p>Consequently, the stochastic policy converges to a delta function:</p>
+<div class="math notranslate nohighlight">
+\[
+\lim_{\alpha \to 0} d(a|s;\boldsymbol{w}^*_\alpha) = \delta(a - \arg\max_a Q(s,a)) = \delta(a - d(s;\boldsymbol{w}^*_{DPG})).
+\]</div>
+</div>
+</section>
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="score-function-gradient-estimation-in-reinforcement-learning">
 <h1><span class="section-number">25. </span>Score Function Gradient Estimation in Reinforcement Learning<a class="headerlink" href="#score-function-gradient-estimation-in-reinforcement-learning" title="Link to this heading">#</a></h1>
@@ -2063,6 +2133,7 @@ and has been empirically shown to lead to better performance.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#backpropagation-policy-optimization">24.1. Backpropagation Policy Optimization</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-value-gradient-svg">24.2. Stochastic Value Gradient (SVG)</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#noise-inference-in-svg">24.3. Noise Inference in SVG</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dpg-as-a-special-case-of-sac">24.4. DPG as a Special Case of SAC</a></li>
 </ul>
 </li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#score-function-gradient-estimation-in-reinforcement-learning">25. Score Function Gradient Estimation in Reinforcement Learning</a><ul class="visible nav section-nav flex-column">
