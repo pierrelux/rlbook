@@ -992,6 +992,78 @@ This approach offers several advantages:
 
 As far as I know, this approach has not been explored in the literature. 
 
+## DPG as a Special Case of SAC 
+
+At first glance, SAC and DPG might appear to be fundamentally different approaches to policy optimization. SAC begins with the principle of entropy maximization and policy distribution matching through KL divergence minimization, while DPG directly optimizes a deterministic policy to maximize expected Q-values. However, we can show that DPG emerges as a special case of SAC as we take the temperature parameter to zero.
+
+```{prf:proposition} Convergence of SAC to DPG 
+Let $d(\cdot|s;\boldsymbol{w}_\alpha)$ be the optimal stochastic policy for SAC with temperature $\alpha$, and $d(s;\boldsymbol{w}_{DPG})$ be the optimal deterministic policy gradient solution. Under appropriate assumptions, as $\alpha \to 0$:
+
+$$
+d(a|s;\boldsymbol{w}_\alpha) \to \delta(a - d(s;\boldsymbol{w}_{DPG}))
+$$
+
+**Assumptions:**
+1. The stochastic policy class is Gaussian with learnable mean and standard deviation:
+
+   $$
+   d(a|s;\boldsymbol{w}) = \mathcal{N}(\mu_w(s), \sigma_w(s)^2)
+   $$
+
+2. The SAC objective for policy improvement uses the soft Q-function:
+
+   $$
+   \boldsymbol{w}^*_\alpha = \arg\min_w \mathbb{E}_{s\sim\rho}\left[D_{KL}\left(d(\cdot|s;\boldsymbol{w}) \| \frac{\exp(Q_{soft}(s,\cdot)/\alpha)}{\int \exp(Q_{soft}(s,b)/\alpha)db}\right)\right]
+   $$
+   where $Q_{soft}$ follows the soft Bellman equation:
+
+   $$
+   Q_{soft}(s,a) = r(s,a) + \gamma \mathbb{E}_{s' \sim P}\left[\mathbb{E}_{a' \sim d(\cdot|s')}\left[Q_{soft}(s',a') - \alpha \log d(a'|s')\right]\right]
+   $$
+
+3. The DPG objective with a deterministic policy uses the standard Q-function:
+
+   $$
+   \boldsymbol{w}^*_{DPG} = \arg\max_w \mathbb{E}_{s\sim\rho}\left[Q(s,d(s;\boldsymbol{w}))\right]
+   $$
+   where $Q$ follows the standard Bellman equation:
+
+   $$
+   Q(s,a) = r(s,a) + \gamma \mathbb{E}_{s' \sim P}[Q(s',d(s';\boldsymbol{w}))]
+   $$
+
+4. $Q_{soft}(s,a)$ and $Q(s,a)$ are continuous and achieve their maxima for each state $s$.
+```
+
+````{prf:proof}
+At the fixed point of the soft Bellman equation, as $\alpha \to 0$, the entropy term $-\alpha \log d(a|s)$ vanishes, and $Q_{soft} \to Q$. This implies that the SAC target distribution, which is proportional to $\exp(Q_{soft}(s,a)/\alpha)$, becomes:
+
+$$
+\lim_{\alpha \to 0} \frac{\exp(Q(s,a)/\alpha)}{\int \exp(Q(s,b)/\alpha) db} = \delta(a - \arg\max_a Q(s,a)),
+$$
+by Laplace's method. The target distribution thus collapses to a delta function centered at the deterministic optimal action $\arg\max_a Q(s,a)$.
+
+The KL divergence term in the SAC objective measures the divergence between the stochastic policy $d(a|s;\boldsymbol{w})$ (Gaussian) and this target distribution. For a Gaussian $\mathcal{N}(\mu, \sigma^2)$ and a delta function $\delta(a - a^*)$, we derive:
+
+$$
+D_{KL}(\mathcal{N}(\mu, \sigma^2) \| \delta(a - a^*)) = \lim_{\epsilon \to 0} D_{KL}(\mathcal{N}(\mu, \sigma^2) \| \mathcal{N}(a^*, \epsilon^2)),
+$$
+where $\mathcal{N}(a^*, \epsilon^2)$ is a Gaussian approximation of the delta. Using the KL formula:
+
+$$
+D_{KL} = \frac{1}{2}\left[\log\left(\frac{\epsilon^2}{\sigma^2}\right) + \frac{\sigma^2}{\epsilon^2} + \frac{(\mu - a^*)^2}{\epsilon^2} - 1\right].
+$$
+
+Taking the limit $\epsilon \to 0$, the divergence diverges unless $\mu = a^*$ and $\sigma = 0$, where it becomes zero. Thus, minimizing the SAC objective drives $\mu_w(s) \to \arg\max_a Q(s,a)$ and $\sigma_w(s) \to 0$.
+
+Consequently, the stochastic policy converges to a delta function:
+
+$$
+\lim_{\alpha \to 0} d(a|s;\boldsymbol{w}^*_\alpha) = \delta(a - \arg\max_a Q(s,a)) = \delta(a - d(s;\boldsymbol{w}^*_{DPG})).
+$$
+
+````
+
 # Score Function Gradient Estimation in Reinforcement Learning 
 
 Let $G(\tau) \equiv \sum_{t=0}^T r(s_t, a_t)$ be the sum of undiscounted rewards in a trajectory $\tau$. The stochastic optimization problem we face is to maximize:
