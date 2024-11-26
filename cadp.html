@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>19. Policy Parametrization Methods &#8212; Pragmatic Reinforcement Learning: Algorithms and Applications</title>
+    <title>19. Policy Parametrization Methods &#8212; Practical Reinforcement Learning: From Algorithms to Applications</title>
   
   
   
@@ -67,7 +67,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'cadp';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="25. Bibliography" href="bibliography.html" />
+    <link rel="next" title="27. Bibliography" href="bibliography.html" />
     <link rel="prev" title="13. Approximate Dynamic Programming" href="adp.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -146,7 +146,7 @@
   
   
   
-    <p class="title logo__title">Pragmatic Reinforcement Learning: Algorithms and Applications</p>
+    <p class="title logo__title">Practical Reinforcement Learning: From Algorithms to Applications</p>
   
 </a></div>
         <div class="sidebar-primary-item">
@@ -191,7 +191,9 @@
 
 
 
-<li class="toctree-l1"><a class="reference internal" href="bibliography.html">25. Bibliography</a></li>
+
+
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">27. Bibliography</a></li>
 </ul>
 
     </div>
@@ -430,15 +432,18 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#demonstration-numerical-analysis-of-gradient-estimators">23.3. Demonstration: Numerical Analysis of Gradient Estimators</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-value-gradients-with-model-based-rollouts">24. Stochastic Value Gradients with Model-Based Rollouts</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#score-function-gradient-estimation-in-reinforcement-learning">24.1. Score Function Gradient Estimation in Reinforcement Learning</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#leveraging-conditional-independence">24.1.1. Leveraging Conditional Independence</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#policy-optimization-with-a-model">24. Policy Optimization with a Model</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#backpropagation-policy-optimization">24.1. Backpropagation Policy Optimization</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-value-gradient-svg">24.2. Stochastic Value Gradient (SVG)</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#variance-reduction-via-control-variates">24.2. Variance Reduction via Control Variates</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#generalized-advantage-estimator">24.3. Generalized Advantage Estimator</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-policy-gradient-theorem">24.4. The Policy Gradient Theorem</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#normalized-discounted-state-visitation-distribution">24.5. Normalized Discounted State Visitation Distribution</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#noise-inference-in-svg">25. Noise Inference in SVG</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#score-function-gradient-estimation-in-reinforcement-learning">26. Score Function Gradient Estimation in Reinforcement Learning</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#leveraging-conditional-independence">26.1. Leveraging Conditional Independence</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#variance-reduction-via-control-variates">26.2. Variance Reduction via Control Variates</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#generalized-advantage-estimator">26.3. Generalized Advantage Estimator</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-policy-gradient-theorem">26.4. The Policy Gradient Theorem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#normalized-discounted-state-visitation-distribution">26.5. Normalized Discounted State Visitation Distribution</a></li>
 </ul>
 </li>
 </ul>
@@ -1268,120 +1273,136 @@ MSE: 0.017230
 <p>The numerical experiments coroborate our theory. The naive estimator consistently underestimates the true gradient by 2.0, though it maintains a relatively small variance. This systematic bias would make it unsuitable for optimization despite its low variance. The score function estimator corrects this bias but introduces substantial variance. While unbiased, this estimator would require many samples to achieve reliable gradient estimates. Finally, the reparameterization trick achieves a much lower variance while remaining unbiased. While this experiment is for didactic purposes only, it reproduces what is commonly found in practice: that when applicable, the reparameterization estimator tends to perform better than the score function counterpart.</p>
 </section>
 </section>
-<section class="tex2jax_ignore mathjax_ignore" id="stochastic-value-gradients-with-model-based-rollouts">
-<h1><span class="section-number">24. </span>Stochastic Value Gradients with Model-Based Rollouts<a class="headerlink" href="#stochastic-value-gradients-with-model-based-rollouts" title="Link to this heading">#</a></h1>
-<p>Building on the intuition of amortized optimization in deterministic policy gradient as well as the reparameterization trick, we can develop a more general framework for policy optimization that handles stochastic dynamics and policies. Let’s start by considering a stochastic policy that can be reparameterized:</p>
+<section class="tex2jax_ignore mathjax_ignore" id="policy-optimization-with-a-model">
+<h1><span class="section-number">24. </span>Policy Optimization with a Model<a class="headerlink" href="#policy-optimization-with-a-model" title="Link to this heading">#</a></h1>
+<p>In this section, we’ll explore how incorporating a model of the dynamics can help us design better policy gradient estimators. Let’s begin with a pure model-free approach that uses a critic to maximize a deterministic policy:</p>
 <div class="math notranslate nohighlight">
 \[
-a_t(\boldsymbol{w}) = d(s_t(\boldsymbol{w}); \boldsymbol{w}) + \sigma(s_t(\boldsymbol{w}); \boldsymbol{w})\epsilon_t, \quad \epsilon_t \sim \mathcal{N}(0,I)
+J(\boldsymbol{w}) = \mathbb{E}_{s\sim\rho}[Q(s,d(s;\boldsymbol{w}))], \enspace \nabla_{\boldsymbol{w}} J(\boldsymbol{w}) = \mathbb{E}_{s\sim\rho}[\nabla_a Q(s,a)|_{a=d(s;\boldsymbol{w})} \nabla_{\boldsymbol{w}} d(s;\boldsymbol{w})]
 \]</div>
-<p>Similarly, we can express stochastic dynamics through a reparameterized model:</p>
+<p>Using the recursive structure of the Bellman equations, we can unroll our objective one step ahead:</p>
 <div class="math notranslate nohighlight">
 \[
-s_{t+1}(\boldsymbol{w}) = f(s_t(\boldsymbol{w}), a_t(\boldsymbol{w}), \omega_t; \boldsymbol{\phi}), \quad \omega_t \sim \mathcal{N}(0,I)
+J(\boldsymbol{w}) = \mathbb{E}_{s\sim\rho}[r(s,d(s;\boldsymbol{w})) + \gamma\mathbb{E}_{s'\sim p(\cdot|s,d(s;\boldsymbol{w}))}[Q(s',d(s';\boldsymbol{w}))]],
 \]</div>
-<p>where <span class="math notranslate nohighlight">\(\boldsymbol{\phi}\)</span> are the parameters of our dynamics model. This allows us to write the expected sum of rewards over a trajectory as:</p>
+<p>To differentiate this objective, we need access to both a model of the dynamics and the reward function, as shown in the following expression:</p>
 <div class="math notranslate nohighlight">
-\[
-J(\boldsymbol{w}) = \mathbb{E}_{\epsilon_{0:T}, \omega_{0:T}}\left[\sum_{t=0}^T \gamma^t r(s_t(\boldsymbol{w}),a_t(\boldsymbol{w}))\right]
-\]</div>
-<p>where states and actions are determined by:</p>
+\[\begin{split}
+\nabla_{\boldsymbol{w}} J(\boldsymbol{w}) = \mathbb{E}_{s\sim\rho}[\nabla_a r(s,a)|_{a=d(s;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s;\boldsymbol{w}) + 
+\gamma(\mathbb{E}_{s'\sim p(\cdot|s,d(s;\boldsymbol{w}))}[\nabla_a Q(s',a)|_{a=d(s';\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s';\boldsymbol{w})] + \\\nabla_{\boldsymbol{w}} d(s;\boldsymbol{w})\int_{s'} \nabla_a p(s'|s,a)|_{a=d(s;\boldsymbol{w})}Q(s',d(s';\boldsymbol{w}))ds')]
+\end{split}\]</div>
+<p>While <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span> doesn’t appear in the outer expectation over initial states, it affects the inner expectation over next states—a distributional dependency. As a result, the product rule of calculus yields two terms: the first being an expectation, and the second being problematic for sample average estimation. However, we have tools to address this challenge: we can either apply the reparameterization trick to the dynamics or use score function estimators.</p>
+<p>For the reparameterization approach, assuming <span class="math notranslate nohighlight">\(s' = f(s,a,\xi;\boldsymbol{w})\)</span> where <span class="math notranslate nohighlight">\(\xi\)</span> is the noise variable:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
 \begin{align*}
-a_t(\boldsymbol{w}) &amp;= d(s_t(\boldsymbol{w}); \boldsymbol{w}) + \sigma(s_t(\boldsymbol{w}); \boldsymbol{w})\epsilon_t \\
-s_{t+1}(\boldsymbol{w}) &amp;= f(s_t(\boldsymbol{w}), a_t(\boldsymbol{w}), \omega_t; \boldsymbol{\phi})
+J^{\text{DPMB-R}}(\boldsymbol{w}) &amp;= \mathbb{E}_{s\sim\rho,\xi}[r(s,d(s;\boldsymbol{w})) + \gamma Q(f(s,d(s;\boldsymbol{w}),\xi),d(f(s,d(s;\boldsymbol{w}),\xi);\boldsymbol{w}))]\\
+\nabla_{\boldsymbol{w}} J^{\text{DPMB-R}}(\boldsymbol{w}) &amp;= \mathbb{E}_{s\sim\rho,\xi}[\nabla_a r(s,a)|_{a=d(s;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s;\boldsymbol{w}) + \\
+&amp;\gamma(\nabla_a Q(s',a)|_{a=d(s';\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s';\boldsymbol{w}) + 
+\nabla_{s'} Q(s',d(s';\boldsymbol{w}))\nabla_{\boldsymbol{w}} f(s,d(s;\boldsymbol{w}),\xi)\nabla_{\boldsymbol{w}} d(s;\boldsymbol{w}))]
 \end{align*}
 \end{split}\]</div>
-<p>We can now compute gradients through this entire trajectory by sampling the primitive random variables <span class="math notranslate nohighlight">\(\epsilon_t\)</span> and <span class="math notranslate nohighlight">\(\omega_t\)</span> once and applying the chain rule. For a finite batch of <span class="math notranslate nohighlight">\(N\)</span> trajectories, our Monte Carlo approximation becomes:</p>
+<p>As for the score function approach:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{align*}
+\nabla_{\boldsymbol{w}} J^{\text{DPMB-SF}}(\boldsymbol{w}) = \mathbb{E}_{s\sim\rho}[&amp;\nabla_a r(s,a)|_{a=d(s;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s;\boldsymbol{w}) + \\
+&amp;\gamma\mathbb{E}_{s'\sim p(\cdot|s,d(s;\boldsymbol{w}))}[\nabla_{\boldsymbol{w}} \log p(s'|s,d(s;\boldsymbol{w}))Q(s',d(s';\boldsymbol{w})) + \nabla_a Q(s',a)|_{a=d(s';\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s';\boldsymbol{w})]]
+\end{align*}
+\end{split}\]</div>
+<p>We’ve now developed a hybrid algorithm that combines model-based and model-free approaches while integrating derivative estimators for stochastic dynamics with a deterministic policy parameterization. While this hybrid estimator remains relatively unexplored in practice, it could prove valuable for systems with specific structural properties.</p>
+<p>Consider a robotics scenario with hybrid continuous-discrete dynamics: a robotic arm operates in continuous space but interacts with discrete object states. While the arm’s policy remains differentiable (<span class="math notranslate nohighlight">\(\nabla_{\boldsymbol{w}} d\)</span>), the object state transitions follow categorical distributions. In this case, reparameterization becomes impractical, but the score function approach is viable if we can compute <span class="math notranslate nohighlight">\(\nabla_{\boldsymbol{w}} \log p(s'|s,d(s;\boldsymbol{w}))\)</span> from the known transition model. Similar structures arise in manufacturing processes, where machine actions might be continuous and differentiable, but material state transitions often follow discrete steps with known probabilities. Note that both approaches require knowledge of transition probabilities and won’t work with pure black-box simulators or systems where we can only sample transitions without probability estimates.</p>
+<p>Another dimension to explore in our algorithm design is the number of steps we wish to unroll our model. This allows us to better understand and control the bias-variance tradeoffs in our methods.</p>
+<section id="backpropagation-policy-optimization">
+<h2><span class="section-number">24.1. </span>Backpropagation Policy Optimization<a class="headerlink" href="#backpropagation-policy-optimization" title="Link to this heading">#</a></h2>
+<p>The questions of derivative estimators only arise with stochastic dynamics. For systems with deterministic dynamics and a deterministic policy, the one-step gradient unroll simplifies to:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{align*}
+\nabla_{\boldsymbol{w}} J(\boldsymbol{w}) = &amp;\mathbb{E}_{s\sim\rho}[\nabla_a r(s,a)|_{a=d(s;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s;\boldsymbol{w}) + \\
+&amp;\gamma(\nabla_a Q(s',a)|_{a=d(s';\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s';\boldsymbol{w}) + 
+\nabla_{\boldsymbol{w}} d(s;\boldsymbol{w})\nabla_a f(s,a)|_{a=d(s;\boldsymbol{w})}\nabla_{s'} Q(s',d(s';\boldsymbol{w})))]
+\end{align*}
+\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(s' = f(s,d(s;\boldsymbol{w}))\)</span> is the deterministic next state. Notice the resemblance between this expression and that obtained for <span class="math notranslate nohighlight">\(\nabla_{\boldsymbol{w}} J^{\text{DPMB-R}}\)</span> above. They are essentially the same except that in the reparameterized case, the dynamics have made the dependence on the noise variable explicit and the outer expectation has been updated accordingly. This similarity arises because differentiation through reparameterized dynamics models is, in essence, backpropagation: it tracks the propagation of perturbations through a computation graph—which we refer to as a stochastic computation graph in this setting.</p>
+<p>Still under this simplified setting with deterministic policies and dynamics, we can extend the expression for the gradient through n-steps of model unroll, leading to:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{align*}
+\nabla_{\boldsymbol{w}} J(\boldsymbol{w}) = &amp;\mathbb{E}_{s\sim\rho}[\sum_{t=0}^{n-1} \gamma^t(\nabla_a r(s_t,a_t)|_{a_t=d(s_t;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s_t;\boldsymbol{w}) + \nabla_{s_t} r(s_t,d(s_t;\boldsymbol{w}))\nabla_{\boldsymbol{w}} s_t) + \\
+&amp;\gamma^n(\nabla_a Q(s_n,a)|_{a=d(s_n;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s_n;\boldsymbol{w}) + \nabla_{s_n} Q(s_n,d(s_n;\boldsymbol{w}))\nabla_{\boldsymbol{w}} s_n)]
+\end{align*}
+\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(s_{t+1} = f(s_t,d(s_t;\boldsymbol{w}))\)</span> for <span class="math notranslate nohighlight">\(t=0,\ldots,n-1\)</span>, <span class="math notranslate nohighlight">\(s_0=s\)</span>, and <span class="math notranslate nohighlight">\(\nabla_{\boldsymbol{w}} s_t\)</span> follows the recursive relationship:</p>
 <div class="math notranslate nohighlight">
 \[
-J(\boldsymbol{w}) \approx \frac{1}{N}\sum_{i=1}^N \sum_{t=0}^T \gamma^t r(s_t^i(\boldsymbol{w}),a_t^i(\boldsymbol{w}))
+\nabla_{\boldsymbol{w}} s_{t+1} = \nabla_a f(s_t,a)|_{a=d(s_t;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s_t;\boldsymbol{w}) + \nabla_s f(s_t,d(s_t;\boldsymbol{w}))\nabla_{\boldsymbol{w}} s_t
 \]</div>
-<p>where each trajectory <span class="math notranslate nohighlight">\(i\)</span> is generated using:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}
-\begin{align*}
-\epsilon_t^i &amp;\sim \mathcal{N}(0,I) \\
-\omega_t^i &amp;\sim \mathcal{N}(0,I) \\
-a_t^i(\boldsymbol{w}) &amp;= d(s_t^i(\boldsymbol{w}); \boldsymbol{w}) + \sigma(s_t^i(\boldsymbol{w}); \boldsymbol{w})\epsilon_t^i \\
-s_{t+1}^i(\boldsymbol{w}) &amp;= f(s_t^i(\boldsymbol{w}), a_t^i(\boldsymbol{w}), \omega_t^i; \boldsymbol{\phi})
-\end{align*}
-\end{split}\]</div>
-<p>The gradient of this objective with respect to the policy parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span> can be computed by backpropagation through time:</p>
-<div class="math notranslate nohighlight">
-\[
-\nabla_{\boldsymbol{w}}J \approx \frac{1}{N}\sum_{i=1}^N \sum_{t=0}^T \gamma^t \left(\frac{\partial r(s_t^i(\boldsymbol{w}),a_t^i(\boldsymbol{w}))}{\partial s_t^i}\frac{\partial s_t^i(\boldsymbol{w})}{\partial \boldsymbol{w}} + \frac{\partial r(s_t^i(\boldsymbol{w}),a_t^i(\boldsymbol{w}))}{\partial a_t^i}\frac{\partial a_t^i(\boldsymbol{w})}{\partial \boldsymbol{w}}\right)
-\]</div>
-<p>where the partial derivatives can be computed recursively. The recursive state equations are:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}
-\begin{align*}
-a_t(\boldsymbol{w}) &amp;= d(s_t(\boldsymbol{w}); \boldsymbol{w}) + \sigma(s_t(\boldsymbol{w}); \boldsymbol{w})\epsilon_t \\
-s_{t+1}(\boldsymbol{w}) &amp;= f(s_t(\boldsymbol{w}), a_t(\boldsymbol{w}), \omega_t; \boldsymbol{\phi})
-\end{align*}
-\end{split}\]</div>
-<p>The partial derivatives follow:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}
-\begin{align*}
-\frac{\partial s_{t+1}(\boldsymbol{w})}{\partial \boldsymbol{w}} &amp;= \frac{\partial f}{\partial s_t}\frac{\partial s_t(\boldsymbol{w})}{\partial \boldsymbol{w}} + \frac{\partial f}{\partial a_t}\frac{\partial a_t(\boldsymbol{w})}{\partial \boldsymbol{w}} \\
-\frac{\partial a_t(\boldsymbol{w})}{\partial \boldsymbol{w}} &amp;= \frac{\partial d}{\partial s_t}\frac{\partial s_t(\boldsymbol{w})}{\partial \boldsymbol{w}} + \frac{\partial d}{\partial \boldsymbol{w}} + \epsilon_t\left(\frac{\partial \sigma}{\partial s_t}\frac{\partial s_t(\boldsymbol{w})}{\partial \boldsymbol{w}} + \frac{\partial \sigma}{\partial \boldsymbol{w}}\right)
-\end{align*}
-\end{split}\]</div>
-<p>With base cases:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}
-\begin{align*}
-\frac{\partial s_0(\boldsymbol{w})}{\partial \boldsymbol{w}} &amp;= 0 \\
-\frac{\partial a_0(\boldsymbol{w})}{\partial \boldsymbol{w}} &amp;= \frac{\partial d}{\partial \boldsymbol{w}} + \epsilon_0\frac{\partial \sigma}{\partial \boldsymbol{w}}
-\end{align*}
-\end{split}\]</div>
-<p>If we were to implement the gradient accumulation manually forward in time, we would get the following algorithm:</p>
-<div class="proof algorithm admonition" id="algorithm-6">
-<p class="admonition-title"><span class="caption-number">Algorithm 24.1 </span> (Stochastic Value Gradients (SVG) Infinity (manual gradient evaluation))</p>
-<section class="algorithm-content" id="proof-content">
-<p><strong>Initialize</strong></p>
-<ol class="arabic simple">
-<li><p>Policy parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}_0\)</span> randomly</p></li>
-<li><p><span class="math notranslate nohighlight">\(n \leftarrow 0\)</span></p></li>
-<li><p><strong>while</strong> not converged:</p>
-<ol class="arabic simple">
-<li><p>Sample batch of <span class="math notranslate nohighlight">\(N\)</span> initial states <span class="math notranslate nohighlight">\(s_0^i \sim \rho_0(s)\)</span></p></li>
-<li><p>For each initial state:</p>
-<ol class="arabic simple">
-<li><p>Sample noise sequences <span class="math notranslate nohighlight">\(\epsilon_{0:T}^i, \omega_{0:T}^i \sim \mathcal{N}(0,I)\)</span></p></li>
-<li><p>Generate trajectory using:</p>
-<ol class="arabic simple">
-<li><p><span class="math notranslate nohighlight">\(a_t^i(\boldsymbol{w}) = d(s_t^i(\boldsymbol{w});\boldsymbol{w}) + \sigma(s_t^i(\boldsymbol{w});\boldsymbol{w})\epsilon_t^i\)</span></p></li>
-<li><p><span class="math notranslate nohighlight">\(s_{t+1}^i(\boldsymbol{w}) = f(s_t^i(\boldsymbol{w}),a_t^i(\boldsymbol{w}),\omega_t^i;\boldsymbol{\phi})\)</span></p></li>
-</ol>
-</li>
-<li><p>Compute gradient contributions recursively:</p>
-<ol class="arabic simple">
-<li><p>Initialize <span class="math notranslate nohighlight">\(\frac{\partial s_0^i(\boldsymbol{w})}{\partial \boldsymbol{w}} = 0\)</span></p></li>
-<li><p>For <span class="math notranslate nohighlight">\(t=0\)</span> to <span class="math notranslate nohighlight">\(T\)</span>:</p>
-<ol class="arabic simple">
-<li><p><span class="math notranslate nohighlight">\(\frac{\partial a_t^i(\boldsymbol{w})}{\partial \boldsymbol{w}} = \frac{\partial d}{\partial s_t}\frac{\partial s_t^i(\boldsymbol{w})}{\partial \boldsymbol{w}} + \frac{\partial d}{\partial \boldsymbol{w}} + \epsilon_t^i(\frac{\partial \sigma}{\partial s_t}\frac{\partial s_t^i(\boldsymbol{w})}{\partial \boldsymbol{w}} + \frac{\partial \sigma}{\partial \boldsymbol{w}})\)</span></p></li>
-<li><p><span class="math notranslate nohighlight">\(\frac{\partial s_{t+1}^i(\boldsymbol{w})}{\partial \boldsymbol{w}} = \frac{\partial f}{\partial s_t}\frac{\partial s_t^i(\boldsymbol{w})}{\partial \boldsymbol{w}} + \frac{\partial f}{\partial a_t}\frac{\partial a_t^i(\boldsymbol{w})}{\partial \boldsymbol{w}}\)</span></p></li>
-</ol>
-</li>
-</ol>
-</li>
-</ol>
-</li>
-<li><p>Update policy: <span class="math notranslate nohighlight">\(\boldsymbol{w}_{n+1} \leftarrow \boldsymbol{w}_n + \alpha_w \frac{1}{N}\sum_{i=1}^N \sum_{t=0}^T \gamma^t (\frac{\partial r}{\partial s_t^i}\frac{\partial s_t^i(\boldsymbol{w})}{\partial \boldsymbol{w}} + \frac{\partial r}{\partial a_t^i}\frac{\partial a_t^i(\boldsymbol{w})}{\partial \boldsymbol{w}})\)</span></p></li>
-<li><p><span class="math notranslate nohighlight">\(n \leftarrow n + 1\)</span></p></li>
-</ol>
-</li>
-</ol>
-<p><strong>return</strong> <span class="math notranslate nohighlight">\(\boldsymbol{w}_n\)</span></p>
+<p>with base case <span class="math notranslate nohighlight">\(\nabla_{\boldsymbol{w}} s_0 = 0\)</span> since the initial state does not depend on the policy parameters.</p>
+<p>At both ends of the spectrum, we have that for n=0, we fall back to the pure critic NFQCA-like approach, and for <span class="math notranslate nohighlight">\(n=\infty\)</span>, we don’t bootstrap at all and are fully model-based without a critic. The pure model-based critic-free approach to optimization is what we may refer to as a backpropagation-based policy optimization (BPO).</p>
+<p>But just as backpropagation through RNNs or very deep networks can be challenging due to exploding and vanishing gradients, “vanilla” Backpropagation Policy Optimization (BPO) without a critic can severely suffer from the curse of horizon. This is because it essentially implements single shooting optimization. Using a critic can be an effective remedy to this problem, allowing us to better control the bias-variance tradeoff while preserving gradient information that would be lost with a more drastic truncated backpropagation approach.</p>
 </section>
-</div><p>Most likely however, this procedure will be implemented within an automatic differentiation framework. In this case, it suffices to implement the following variant:</p>
+<section id="stochastic-value-gradient-svg">
+<h2><span class="section-number">24.2. </span>Stochastic Value Gradient (SVG)<a class="headerlink" href="#stochastic-value-gradient-svg" title="Link to this heading">#</a></h2>
+<p>The stochastic value gradient framework of Heess (2015) applies the recipe for policy optimization with a model using reparameterized dynamics and action selection via randomized policies. In this setting, the stochastic policy model based reparameterized estimator over n steps is</p>
+<div class="math notranslate nohighlight">
+\[
+\begin{align*}
+J^{\text{SPMB-R-N}}(\boldsymbol{w}) &amp;= \mathbb{E}_{s\sim\rho,\{\epsilon_i\}_{i=0}^{n-1},\{\xi_i\}_{i=0}^{n-1}}[\sum_{i=0}^{n-1} \gamma^i r(s_i,d(s_i,\epsilon_i;\boldsymbol{w})) + \gamma^n Q(s_n,d(s_n,\epsilon_n;\boldsymbol{w}))]
+\end{align*}
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(s_0 = s\)</span> and for <span class="math notranslate nohighlight">\(i \geq 0\)</span>, <span class="math notranslate nohighlight">\(s_{i+1} = f(s_i,d(s_i,\epsilon_i;\boldsymbol{w}),\xi_i)\)</span>. The gradient becomes:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{align*}
+\nabla_{\boldsymbol{w}} J^{\text{SPMB-R-N}}(\boldsymbol{w}) &amp;= \mathbb{E}_{s\sim\rho,\{\epsilon_i\}_{i=0}^{n-1},\{\xi_i\}_{i=0}^{n-1}}[\sum_{i=0}^{n-1} \gamma^i \left(\nabla_a r(s_i,a)|_{a=d(s_i,\epsilon_i;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s_i,\epsilon_i;\boldsymbol{w}) + \nabla_{s_i} r(s_i,d(s_i,\epsilon_i;\boldsymbol{w}))\nabla_{\boldsymbol{w}} s_i\right) \enspace + \\
+&amp;\qquad \gamma^n(\nabla_a Q(s_n,a)|_{a=d(s_n,\epsilon_n;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s_n,\epsilon_n;\boldsymbol{w}) + \nabla_{s_n} Q(s_n,d(s_n,\epsilon_n;\boldsymbol{w}))\nabla_{\boldsymbol{w}} s_n)]
+\end{align*}
+\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\nabla_{\boldsymbol{w}} s_0 = 0\)</span> and for <span class="math notranslate nohighlight">\(i \geq 0\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\nabla_{\boldsymbol{w}} s_{i+1} = \nabla_a f(s_i,a,\xi_i)|_{a=d(s_i,\epsilon_i;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s_i,\epsilon_i;\boldsymbol{w}) + \nabla_{s_i} f(s_i,d(s_i,\epsilon_i;\boldsymbol{w}),\xi_i)\nabla_{\boldsymbol{w}} s_i\]</div>
+<p>While we could implement this expression for the gradient ourselves, this approach is much easier, less error-prone, and most likely better optimized for performance when using automatic differentiation. Given  a set of rollouts (for which we know the primitive noise variables), then we can compute the monte carlo objective:</p>
+<div class="math notranslate nohighlight">
+\[\hat{J}^{\text{SPMB-R-N}}(\boldsymbol{w}) = \frac{1}{M}\sum_{m=1}^M [\sum_{i=0}^{n-1} \gamma^i r(s_i^m,d(s_i^m,\epsilon_i^m;\boldsymbol{w})) + \gamma^n Q(s_n^m,d(s_n^m,\epsilon_n^m;\boldsymbol{w}))]\]</div>
+<p>where the states are generated recursively using the known noise variables: starting with initial state <span class="math notranslate nohighlight">\(s_0^m\)</span>, each subsequent state is computed as <span class="math notranslate nohighlight">\(s_{i+1}^m = f(s_i^m,d(s_i^m,\epsilon_i^m;\boldsymbol{w}),\xi_i^m)\)</span>. Thus,  a trajectory is completely determined by just the sequence of noise variables:<span class="math notranslate nohighlight">\((\epsilon_0^m, \xi_0^m, \epsilon_1^m, \xi_1^m, ..., \epsilon_{n-1}^m, \xi_{n-1}^m, \epsilon_n^m)\)</span> where <span class="math notranslate nohighlight">\(\epsilon_i^m\)</span> are the action noise variables and <span class="math notranslate nohighlight">\(\xi_i^m\)</span> are the dynamics noise variables.</p>
+<p>The choice of unroll steps <span class="math notranslate nohighlight">\(n\)</span> gives us precise control over the balance between model-based and critic-based components in our gradient estimator. At one extreme, setting <span class="math notranslate nohighlight">\(n = 0\)</span> yields a purely model-free algorithm known as SVG(0) (Heess et al., 2015), which relies entirely on the critic for value estimation:</p>
+<div class="math notranslate nohighlight">
+\[
+\hat{J}^{\text{SPMB-R-0}}(\boldsymbol{w}) = \frac{1}{M}\sum_{m=1}^M Q(s_0^m,d(s_0^m,\epsilon_0^m;\boldsymbol{w}))
+\]</div>
+<p>At the other extreme, as <span class="math notranslate nohighlight">\(n \to \infty\)</span>, we can drop the critic term (since <span class="math notranslate nohighlight">\(\gamma^n Q \to 0\)</span>) to obtain a purely model-based algorithm, SVG(∞):</p>
+<div class="math notranslate nohighlight">
+\[
+\hat{J}^{\text{SPMB-R-$\infty$}}(\boldsymbol{w}) = \frac{1}{M}\sum_{m=1}^M \sum_{i=0}^{\infty} \gamma^i r(s_i^m,d(s_i^m,\epsilon_i^m;\boldsymbol{w}))
+\]</div>
+<p>In the 2015 paper, the authors make a specific choice to reparameterize both the dynamics and action selections using normal distributions. For the policy, they use:</p>
+<div class="math notranslate nohighlight">
+\[
+a_t = d(s_t;\boldsymbol{w}) + \sigma(s_t;\boldsymbol{w})\epsilon_t, \quad \epsilon_t \sim \mathcal{N}(0,I)
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(d(s_t;\boldsymbol{w})\)</span> predicts the mean action and <span class="math notranslate nohighlight">\(\sigma(s_t;\boldsymbol{w})\)</span> predicts the standard deviation. For the dynamics:</p>
+<div class="math notranslate nohighlight">
+\[
+s_{t+1} = \mu(s_t,a_t;\boldsymbol{\phi}) + \Sigma(s_t,a_t;\boldsymbol{\phi})\xi_t, \quad \xi_t \sim \mathcal{N}(0,I)
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(\mu(s_t,a_t;\boldsymbol{\phi})\)</span> predicts the mean next state and <span class="math notranslate nohighlight">\(\Sigma(s_t,a_t;\boldsymbol{\phi})\)</span> predicts the covariance matrix.</p>
+<p>Under this reparameterization, the n-step surrogate loss becomes:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{align*}
+\hat{J}^{\text{SPMB-R-n}}(\boldsymbol{w}) = \frac{1}{M}&amp;\sum_{m=1}^M [\sum_{t=0}^{n-1} \gamma^t r(s_t^m(\boldsymbol{w}),d(s_t^m(\boldsymbol{w});\boldsymbol{w}) + \sigma(s_t^m(\boldsymbol{w});\boldsymbol{w})\epsilon_t^m) + \\
+&amp;\gamma^n Q(s_n^m(\boldsymbol{w}),d(s_n^m(\boldsymbol{w});\boldsymbol{w}) + \sigma(s_n^m(\boldsymbol{w});\boldsymbol{w})\epsilon_n^m)]
+\end{align*}
+\end{split}\]</div>
+<p>where:
+$<span class="math notranslate nohighlight">\(
+s_{t+1}^m(\boldsymbol{w}) = \mu(s_t^m(\boldsymbol{w}),d(s_t^m(\boldsymbol{w});\boldsymbol{w}) + \sigma(s_t^m(\boldsymbol{w});\boldsymbol{w})\epsilon_t^m;\boldsymbol{\phi}) + \Sigma(s_t^m(\boldsymbol{w}),a_t^m(\boldsymbol{w});\boldsymbol{\phi})\xi_t^m
+\)</span>$</p>
 <div class="proof algorithm admonition" id="svg_autodiff">
-<p class="admonition-title"><span class="caption-number">Algorithm 24.2 </span> (Stochastic Value Gradients (SVG) Infinity (automatic differentiation))</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 24.1 </span> (Stochastic Value Gradients (SVG) Infinity (automatic differentiation))</p>
 <section class="algorithm-content" id="proof-content">
-<p><strong>Input</strong> Initial state distribution <span class="math notranslate nohighlight">\(\rho_0(s)\)</span>, policy networks <span class="math notranslate nohighlight">\(d(s;\boldsymbol{w})\)</span> and <span class="math notranslate nohighlight">\(\sigma(s;\boldsymbol{w})\)</span>, dynamics model <span class="math notranslate nohighlight">\(f(s,a,\omega;\boldsymbol{\phi})\)</span>, reward function <span class="math notranslate nohighlight">\(r(s,a)\)</span>, rollout horizon <span class="math notranslate nohighlight">\(T\)</span>, learning rate <span class="math notranslate nohighlight">\(\alpha_w\)</span>, batch size <span class="math notranslate nohighlight">\(N\)</span></p>
+<p><strong>Input</strong> Initial state distribution <span class="math notranslate nohighlight">\(\rho_0(s)\)</span>, policy networks <span class="math notranslate nohighlight">\(d(s;\boldsymbol{w})\)</span> and <span class="math notranslate nohighlight">\(\sigma(s;\boldsymbol{w})\)</span>, dynamics model networks <span class="math notranslate nohighlight">\(\mu(s,a;\boldsymbol{\phi})\)</span> and <span class="math notranslate nohighlight">\(\Sigma(s,a;\boldsymbol{\phi})\)</span>, reward function <span class="math notranslate nohighlight">\(r(s,a)\)</span>, rollout horizon <span class="math notranslate nohighlight">\(T\)</span>, learning rate <span class="math notranslate nohighlight">\(\alpha_w\)</span>, batch size <span class="math notranslate nohighlight">\(N\)</span></p>
 <p><strong>Initialize</strong></p>
 <ol class="arabic simple">
 <li><p>Policy parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}_0\)</span> randomly</p></li>
@@ -1389,7 +1410,7 @@ s_{t+1}(\boldsymbol{w}) &amp;= f(s_t(\boldsymbol{w}), a_t(\boldsymbol{w}), \omeg
 <li><p><strong>while</strong> not converged:</p>
 <ol class="arabic simple">
 <li><p>Sample batch of <span class="math notranslate nohighlight">\(N\)</span> initial states <span class="math notranslate nohighlight">\(s_0^i \sim \rho_0(s)\)</span></p></li>
-<li><p>Sample noise sequences <span class="math notranslate nohighlight">\(\epsilon_{0:T}^i, \omega_{0:T}^i \sim \mathcal{N}(0,I)\)</span> for <span class="math notranslate nohighlight">\(i=1,\ldots,N\)</span></p></li>
+<li><p>Sample noise sequences <span class="math notranslate nohighlight">\(\epsilon_{0:T}^i, \xi_{0:T}^i \sim \mathcal{N}(0,I)\)</span> for <span class="math notranslate nohighlight">\(i=1,\ldots,N\)</span></p></li>
 <li><p>Compute objective using autodiff-enabled computation graph:</p>
 <ol class="arabic simple">
 <li><p>For each <span class="math notranslate nohighlight">\(i=1,\ldots,N\)</span>:</p>
@@ -1398,7 +1419,7 @@ s_{t+1}(\boldsymbol{w}) &amp;= f(s_t(\boldsymbol{w}), a_t(\boldsymbol{w}), \omeg
 <li><p>For <span class="math notranslate nohighlight">\(t=0\)</span> to <span class="math notranslate nohighlight">\(T\)</span>:</p>
 <ol class="arabic simple">
 <li><p><span class="math notranslate nohighlight">\(a_t^i(\boldsymbol{w}) = d(s_t^i(\boldsymbol{w});\boldsymbol{w}) + \sigma(s_t^i(\boldsymbol{w});\boldsymbol{w})\epsilon_t^i\)</span></p></li>
-<li><p><span class="math notranslate nohighlight">\(s_{t+1}^i(\boldsymbol{w}) = f(s_t^i(\boldsymbol{w}),a_t^i(\boldsymbol{w}),\omega_t^i;\boldsymbol{\phi})\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(s_{t+1}^i(\boldsymbol{w}) = \mu(s_t^i(\boldsymbol{w}),a_t^i(\boldsymbol{w});\boldsymbol{\phi}) + \Sigma(s_t^i(\boldsymbol{w}),a_t^i(\boldsymbol{w});\boldsymbol{\phi})\xi_t^i\)</span></p></li>
 </ol>
 </li>
 </ol>
@@ -1414,8 +1435,48 @@ s_{t+1}(\boldsymbol{w}) &amp;= f(s_t(\boldsymbol{w}), a_t(\boldsymbol{w}), \omeg
 </ol>
 <p><strong>return</strong> <span class="math notranslate nohighlight">\(\boldsymbol{w}_n\)</span></p>
 </section>
-</div><section id="score-function-gradient-estimation-in-reinforcement-learning">
-<h2><span class="section-number">24.1. </span>Score Function Gradient Estimation in Reinforcement Learning<a class="headerlink" href="#score-function-gradient-estimation-in-reinforcement-learning" title="Link to this heading">#</a></h2>
+</div></section>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="noise-inference-in-svg">
+<h1><span class="section-number">25. </span>Noise Inference in SVG<a class="headerlink" href="#noise-inference-in-svg" title="Link to this heading">#</a></h1>
+<p>The method we’ve presented so far assumes we have direct access to the noise variables <span class="math notranslate nohighlight">\(\epsilon\)</span> and <span class="math notranslate nohighlight">\(\xi\)</span> used to generate trajectories. This works well in the on-policy setting where we generate our own data. However, in off-policy scenarios where we receive externally generated trajectories, we need to infer these noise variables—a process the authors call noise inference.</p>
+<p>For the Gaussian case discussed above, this inference is straightforward. Given an observed scalar action <span class="math notranslate nohighlight">\(a_t\)</span> and the current policy parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span>, we can recover the action noise <span class="math notranslate nohighlight">\(\epsilon_t\)</span> through inverse reparameterization:</p>
+<div class="math notranslate nohighlight">
+\[
+\epsilon_t = \frac{a_t - d(s_t;\boldsymbol{w})}{\sigma(s_t;\boldsymbol{w})}
+\]</div>
+<p>Similarly, for the dynamics noise where states are typically vector-valued:</p>
+<div class="math notranslate nohighlight">
+\[
+\xi_t = \Sigma(s_t,a_t;\boldsymbol{\phi})^{-1}(s_{t+1} - \mu(s_t,a_t;\boldsymbol{\phi}))
+\]</div>
+<p>This simple inversion is possible because the Gaussian reparameterization is an affine transformation, which is invertible as long as <span class="math notranslate nohighlight">\(\sigma(s_t;\boldsymbol{w})\)</span> is non-zero for scalar actions and <span class="math notranslate nohighlight">\(\Sigma(s_t,a_t;\boldsymbol{\phi})\)</span> is full rank for vector-valued states. The same principle extends naturally to vector-valued actions, where <span class="math notranslate nohighlight">\(\sigma\)</span> would be replaced by a full covariance matrix.</p>
+<p>More generally, this idea of invertible transformations can be extended far beyond simple Gaussian reparameterization. We could consider a sequence of invertible transformations:</p>
+<div class="math notranslate nohighlight">
+\[
+z_0 \sim \mathcal{N}(0,I) \xrightarrow{f_1} z_1 \xrightarrow{f_2} z_2 \xrightarrow{f_3} \cdots \xrightarrow{f_K} z_K = a_t
+\]</div>
+<p>where each <span class="math notranslate nohighlight">\(f_k\)</span> is an invertible neural network layer. The forward process can be written compactly as:</p>
+<div class="math notranslate nohighlight">
+\[
+a_t = (f_K \circ f_{K-1} \circ \cdots \circ f_1)(z_0;\boldsymbol{w})
+\]</div>
+<p>This is precisely the idea behind normalizing flows: a series of invertible transformations that can transform a simple base distribution (like a standard normal) into a complex target distribution while maintaining exact invertibility.</p>
+<p>The noise inference in this case would involve applying the inverse transformations:</p>
+<div class="math notranslate nohighlight">
+\[
+z_0 = (f_1^{-1} \circ \cdots \circ f_K^{-1})(a_t;\boldsymbol{w})
+\]</div>
+<p>This approach offers several advantages:</p>
+<ol class="arabic simple">
+<li><p>More expressive policies and dynamics models capable of capturing multimodal distributions</p></li>
+<li><p>Exact likelihood computation through the change of variables formula (can be useful for computing the log prob terms in entropy regularization for example)</p></li>
+<li><p>Precise noise inference through the guaranteed invertibility of the flow</p></li>
+</ol>
+<p>As far as I know, this approach has not been explored in the literature.</p>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="score-function-gradient-estimation-in-reinforcement-learning">
+<h1><span class="section-number">26. </span>Score Function Gradient Estimation in Reinforcement Learning<a class="headerlink" href="#score-function-gradient-estimation-in-reinforcement-learning" title="Link to this heading">#</a></h1>
 <p>Let <span class="math notranslate nohighlight">\(G(\tau) \equiv \sum_{t=0}^T r(s_t, a_t)\)</span> be the sum of undiscounted rewards in a trajectory <span class="math notranslate nohighlight">\(\tau\)</span>. The stochastic optimization problem we face is to maximize:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1444,7 +1505,7 @@ p(\tau;\boldsymbol{w}) = p(s_0)\prod_{t=0}^T d(a_t|s_t;\boldsymbol{w})p(s_{t+1}|
 \]</div>
 <p>This is a direct application of the score function estimator. However, we rarely use this form in practice and instead make several improvements to further reduce the variance.</p>
 <section id="leveraging-conditional-independence">
-<h3><span class="section-number">24.1.1. </span>Leveraging Conditional Independence<a class="headerlink" href="#leveraging-conditional-independence" title="Link to this heading">#</a></h3>
+<h2><span class="section-number">26.1. </span>Leveraging Conditional Independence<a class="headerlink" href="#leveraging-conditional-independence" title="Link to this heading">#</a></h2>
 <p>Given the Markov property of the MDP, rewards <span class="math notranslate nohighlight">\(r_k\)</span> for <span class="math notranslate nohighlight">\(k &lt; t\)</span> are conditionally independent of action <span class="math notranslate nohighlight">\(a_t\)</span> given the history <span class="math notranslate nohighlight">\(h_t = (s_0,a_0,...,s_{t-1},a_{t-1},s_t)\)</span>. This allows us to only need to consider future rewards when computing policy gradients.</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
@@ -1482,9 +1543,8 @@ p(\tau) = p(s_0,...,s_t,a_0,...,a_{t-1})\cdot d(a_t|s_t;\boldsymbol{w})\cdot p(s
 \]</div>
 <p>The benefit of this estimator compared to the naive one is that it generally has less variance. More formally, we can show that this estimator arises from the application of a variance reduction technique known as the Extended Conditional Monte Carlo Method.</p>
 </section>
-</section>
 <section id="variance-reduction-via-control-variates">
-<h2><span class="section-number">24.2. </span>Variance Reduction via Control Variates<a class="headerlink" href="#variance-reduction-via-control-variates" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">26.2. </span>Variance Reduction via Control Variates<a class="headerlink" href="#variance-reduction-via-control-variates" title="Link to this heading">#</a></h2>
 <p>A control variate is a zero-mean random variable that we subtract from our estimator to reduce variance. Given an estimator <span class="math notranslate nohighlight">\(Z\)</span> and a control variate <span class="math notranslate nohighlight">\(C\)</span> with <span class="math notranslate nohighlight">\(\mathbb{E}[C]=0\)</span>, we can construct a new unbiased estimator:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1528,7 +1588,7 @@ Z_{\text{cv},t} = \nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\left(\su
 \]</div>
 <p>In practice when implementing this estimator, we won’t have access to the true value function. So as we did earlier for NFQCA or SAC, we commonly learn that value function simultaneously with the policy. Do do so, we could either using a fitted value approach, or even more simply just regress from states to sum of rewards to learn what Williams 1992 called a “baseline”:</p>
 <div class="proof algorithm admonition" id="policy-grad-baseline">
-<p class="admonition-title"><span class="caption-number">Algorithm 24.3 </span> (Policy Gradient with Simple Baseline)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 26.1 </span> (Policy Gradient with Simple Baseline)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Policy parameterization <span class="math notranslate nohighlight">\(d(a|s;\boldsymbol{w})\)</span>, baseline function <span class="math notranslate nohighlight">\(b(s;\boldsymbol{\theta})\)</span><br />
 <strong>Output:</strong> Updated policy parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span><br />
@@ -1552,7 +1612,7 @@ Z_{\text{cv},t} = \nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\left(\su
 </section>
 </div><p>When implementing this algorithm nowadays, we always using mini-batching to make full use of our GPUs. Therefore, a more representative variant for this algorithm would be:</p>
 <div class="proof algorithm admonition" id="policy-grad-cv-batch">
-<p class="admonition-title"><span class="caption-number">Algorithm 24.4 </span> (Policy Gradient with Optimal Control Variate and Mini-batches)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 26.2 </span> (Policy Gradient with Optimal Control Variate and Mini-batches)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Policy parameterization <span class="math notranslate nohighlight">\(d(a|s;\boldsymbol{w})\)</span>, value function <span class="math notranslate nohighlight">\(v(s;\boldsymbol{\theta})\)</span><br />
 <strong>Output:</strong> Updated policy parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span><br />
@@ -1593,7 +1653,7 @@ Z_{\text{cv},t} = \nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\left(\su
 </section>
 </div></section>
 <section id="generalized-advantage-estimator">
-<h2><span class="section-number">24.3. </span>Generalized Advantage Estimator<a class="headerlink" href="#generalized-advantage-estimator" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">26.3. </span>Generalized Advantage Estimator<a class="headerlink" href="#generalized-advantage-estimator" title="Link to this heading">#</a></h2>
 <p>Given our control variate estimator with baseline <span class="math notranslate nohighlight">\(v(s)\)</span>, we have:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1649,7 +1709,7 @@ A^{\text{GAE}(\gamma,\lambda)}(s_t,a_t) = \sum_{l=0}^{\infty}(\gamma\lambda)^l\d
 </ul>
 <p>The general GAE algorithm with mini-batches is the following:</p>
 <div class="proof algorithm admonition" id="policy-grad-gae-batch">
-<p class="admonition-title"><span class="caption-number">Algorithm 24.5 </span> (Policy Gradient with GAE and Mini-batches)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 26.3 </span> (Policy Gradient with GAE and Mini-batches)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Policy parameterization <span class="math notranslate nohighlight">\(d(a|s;\boldsymbol{w})\)</span>, value function <span class="math notranslate nohighlight">\(v(s;\boldsymbol{\theta})\)</span><br />
 <strong>Output:</strong> Updated policy parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span><br />
@@ -1703,7 +1763,7 @@ A^{\text{GAE}(\gamma,0)}(s_t,a_t) = \delta_t = r_t + \gamma v(s_{t+1}) - v(s_t)
 \]</div>
 <p>The non-batched, purely online, GAE(0) algorithm then becomes:</p>
 <div class="proof algorithm admonition" id="actor-critic-td0">
-<p class="admonition-title"><span class="caption-number">Algorithm 24.6 </span> (Actor-Critic with TD(0))</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 26.4 </span> (Actor-Critic with TD(0))</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Policy parameterization <span class="math notranslate nohighlight">\(d(a|s;\boldsymbol{w})\)</span>, value function <span class="math notranslate nohighlight">\(v(s;\boldsymbol{\theta})\)</span><br />
 <strong>Output:</strong> Updated policy parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span><br />
@@ -1730,8 +1790,8 @@ A^{\text{GAE}(\gamma,0)}(s_t,a_t) = \delta_t = r_t + \gamma v(s_{t+1}) - v(s_t)
 </div><p>Interestingly, this version was first derived by Richard Sutton in his 1984 PhD thesis. He called it the Adaptive Heuristic Actor-Critic algorithm. As far as I know, it was not derived using the score function method outlined here, but rather through intuitive reasoning (great intuition!).</p>
 </section>
 <section id="the-policy-gradient-theorem">
-<h2><span class="section-number">24.4. </span>The Policy Gradient Theorem<a class="headerlink" href="#the-policy-gradient-theorem" title="Link to this heading">#</a></h2>
-<p>Sutton 1999 provided an expression for the gradient of the infinite discounted return with respect to the parameters of a parameterized policy. I want to share with you here an alternative derivation by considering a bilevel optimization problem:</p>
+<h2><span class="section-number">26.4. </span>The Policy Gradient Theorem<a class="headerlink" href="#the-policy-gradient-theorem" title="Link to this heading">#</a></h2>
+<p>Sutton 1999 provided an expression for the gradient of the infinite discounted return with respect to the parameters of a parameterized policy. Here is an alternative derivation by considering a bilevel optimization problem:</p>
 <div class="math notranslate nohighlight">
 \[
 \max_{\mathbf{w}} \alpha^\top \mathbf{v}_\gamma^{d^\infty}
@@ -1741,35 +1801,31 @@ A^{\text{GAE}(\gamma,0)}(s_t,a_t) = \delta_t = r_t + \gamma v(s_{t+1}) - v(s_t)
 \[
 (\mathbf{I} - \gamma \mathbf{P}_d) \mathbf{v}_\gamma^{d^\infty} = \mathbf{r}_d
 \]</div>
-<p>The Implicit Function Theorem states that for a constraint <span class="math notranslate nohighlight">\(F(\mathbf{x}, \mathbf{w}) = 0\)</span>, if the Jacobian <span class="math notranslate nohighlight">\(\frac{\partial F}{\partial \mathbf{x}}\)</span> is invertible, then:</p>
+<p>The Implicit Function Theorem states that if there is a solution to the problem <span class="math notranslate nohighlight">\(F(\mathbf{v}, \mathbf{w}) = 0\)</span>, then we can “reparameterize” our problem as <span class="math notranslate nohighlight">\(F(\mathbf{v}(\mathbf{w}), \mathbf{w})\)</span> where <span class="math notranslate nohighlight">\(\mathbf{v}(\mathbf{w})\)</span> is an implicit function of <span class="math notranslate nohighlight">\(\mathbf{w}\)</span>. If the Jacobian <span class="math notranslate nohighlight">\(\frac{\partial F}{\partial \mathbf{v}}\)</span> is invertible, then:</p>
 <div class="math notranslate nohighlight">
 \[
-\frac{d\mathbf{x}}{d\mathbf{w}} = -\left(\frac{\partial F}{\partial \mathbf{x}}\right)^{-1}\frac{\partial F}{\partial \mathbf{w}}
+\frac{d\mathbf{v}(\mathbf{w})}{d\mathbf{w}} = -\left(\frac{\partial F(\mathbf{v}(\mathbf{w}), \mathbf{w})}{\partial \mathbf{x}}\right)^{-1}\frac{\partial F(\mathbf{v}(\mathbf{w}), \mathbf{w})}{\partial \mathbf{w}}
 \]</div>
+<p>Here we made it clear in our notation that the derivative must be evaluated at root <span class="math notranslate nohighlight">\((\mathbf{v}(\mathbf{w}), \mathbf{w})\)</span> of <span class="math notranslate nohighlight">\(F\)</span>. For the remaining of this derivation, we will drop this dependence to make notation more compact.</p>
 <p>Applying this to our case with <span class="math notranslate nohighlight">\(F(\mathbf{v}, \mathbf{w}) = (\mathbf{I} - \gamma \mathbf{P}_d)\mathbf{v} - \mathbf{r}_d\)</span>:</p>
 <div class="math notranslate nohighlight">
 \[
 \frac{\partial \mathbf{v}_\gamma^{d^\infty}}{\partial \mathbf{w}} = (\mathbf{I} - \gamma \mathbf{P}_d)^{-1}\left(\frac{\partial \mathbf{r}_d}{\partial \mathbf{w}} + \gamma \frac{\partial \mathbf{P}_d}{\partial \mathbf{w}}\mathbf{v}_\gamma^{d^\infty}\right)
 \]</div>
-<p>Let’s define the discounted state visitation distribution:</p>
-<div class="math notranslate nohighlight">
-\[
-\mathbf{x}_\alpha^\top = \alpha^\top(\mathbf{I} - \gamma \mathbf{P}_d)^{-1}
-\]</div>
 <p>Then:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
 \begin{align*}
-\nabla_{\mathbf{w}}J(\mathbf{d}) &amp;= \alpha^\top \frac{\partial \mathbf{v}_\gamma^{d^\infty}}{\partial \mathbf{w}} \\
+\nabla_{\mathbf{w}}J(\mathbf{w}) &amp;= \alpha^\top \frac{\partial \mathbf{v}_\gamma^{d^\infty}}{\partial \mathbf{w}} \\
 &amp;= \mathbf{x}_\alpha^\top\left(\frac{\partial \mathbf{r}_d}{\partial \mathbf{w}} + \gamma \frac{\partial \mathbf{P}_d}{\partial \mathbf{w}}\mathbf{v}_\gamma^{d^\infty}\right)
 \end{align*}
 \end{split}\]</div>
-<p>Continuing from:</p>
+<p>where we have defined the discounted state visitation distribution:</p>
 <div class="math notranslate nohighlight">
 \[
-\nabla_{\mathbf{w}}J(\mathbf{d}) = \mathbf{x}_\alpha^\top\left(\frac{\partial \mathbf{r}_d}{\partial \mathbf{w}} + \gamma \frac{\partial \mathbf{P}_d}{\partial \mathbf{w}}\mathbf{v}_\gamma^{d^\infty}\right)
+\mathbf{x}_\alpha^\top \equiv \alpha^\top(\mathbf{I} - \gamma \mathbf{P}_d)^{-1}.
 \]</div>
-<p>Let’s expand the terms. For each state <span class="math notranslate nohighlight">\(s\)</span>:</p>
+<p>Remember the vector notation for MDPs:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
 \begin{align*}
@@ -1777,7 +1833,7 @@ A^{\text{GAE}(\gamma,0)}(s_t,a_t) = \delta_t = r_t + \gamma v(s_{t+1}) - v(s_t)
 [\mathbf{P}_d]_{ss'} &amp;= \sum_a d(a|s)P(s'|s,a)
 \end{align*}
 \end{split}\]</div>
-<p>Taking derivatives:</p>
+<p>Then taking the derivatives gives us:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
 \begin{align*}
@@ -1789,11 +1845,14 @@ A^{\text{GAE}(\gamma,0)}(s_t,a_t) = \delta_t = r_t + \gamma v(s_{t+1}) - v(s_t)
 <div class="math notranslate nohighlight">
 \[\begin{split}
 \begin{align*}
-\nabla_{\mathbf{w}}J(\mathbf{d}) &amp;= \sum_s x_\alpha(s)\left(\sum_a \nabla_{\mathbf{w}}d(a|s)r(s,a) + \gamma\sum_a \nabla_{\mathbf{w}}d(a|s)\sum_{s'} P(s'|s,a)v_\gamma^{d^\infty}(s')\right) \\
+\nabla_{\mathbf{w}}J(\mathbf{w}) &amp;= \sum_s x_\alpha(s)\left(\sum_a \nabla_{\mathbf{w}}d(a|s)r(s,a) + \gamma\sum_a \nabla_{\mathbf{w}}d(a|s)\sum_{s'} P(s'|s,a)v_\gamma^{d^\infty}(s')\right) \\
 &amp;= \sum_s x_\alpha(s)\sum_a \nabla_{\mathbf{w}}d(a|s)\left(r(s,a) + \gamma \sum_{s'} P(s'|s,a)v_\gamma^{d^\infty}(s')\right)
 \end{align*}
 \end{split}\]</div>
 <p>This is the policy gradient theorem, where <span class="math notranslate nohighlight">\(x_\alpha(s)\)</span> is the discounted state visitation distribution and the term in parentheses is the state-action value function <span class="math notranslate nohighlight">\(q(s,a)\)</span>.</p>
+</section>
+<section id="normalized-discounted-state-visitation-distribution">
+<h2><span class="section-number">26.5. </span>Normalized Discounted State Visitation Distribution<a class="headerlink" href="#normalized-discounted-state-visitation-distribution" title="Link to this heading">#</a></h2>
 <p>The discounted state visitation <span class="math notranslate nohighlight">\(x_\alpha(s)\)</span> is not normalized. Therefore the expression we obtained above is not an expectation. However, we can tranform it into one by normalizing by <span class="math notranslate nohighlight">\(1-  \gamma\)</span>. Note that for any initial distribution <span class="math notranslate nohighlight">\(\alpha\)</span>:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1803,13 +1862,10 @@ A^{\text{GAE}(\gamma,0)}(s_t,a_t) = \delta_t = r_t + \gamma v(s_{t+1}) - v(s_t)
 <div class="math notranslate nohighlight">
 \[\begin{split}
 \begin{align*}
-\nabla_{\mathbf{w}}J(\mathbf{d}) &amp;= \frac{1}{1-\gamma}\sum_s \mu_\alpha(s)\sum_a \nabla_{\mathbf{w}}d(a|s)\left(r(s,a) + \gamma \sum_{s'} P(s'|s,a)v_\gamma^{d^\infty}(s')\right) \\
+\nabla_{\mathbf{w}}J(\mathbf{w}) &amp;= \frac{1}{1-\gamma}\sum_s \mu_\alpha(s)\sum_a \nabla_{\mathbf{w}}d(a|s)\left(r(s,a) + \gamma \sum_{s'} P(s'|s,a)v_\gamma^{d^\infty}(s')\right) \\
 &amp;= \frac{1}{1-\gamma}\mathbb{E}_{s\sim\mu_\alpha}\left[\sum_a \nabla_{\mathbf{w}}d(a|s)Q(s,a)\right]
 \end{align*}
 \end{split}\]</div>
-</section>
-<section id="normalized-discounted-state-visitation-distribution">
-<h2><span class="section-number">24.5. </span>Normalized Discounted State Visitation Distribution<a class="headerlink" href="#normalized-discounted-state-visitation-distribution" title="Link to this heading">#</a></h2>
 <p>Now we have expressed the policy gradient theorem in terms of expectations under the normalized discounted state visitation distribution. But what does sampling from <span class="math notranslate nohighlight">\(\mu_\alpha\)</span> means? Recall that <span class="math notranslate nohighlight">\(\mathbf{x}_\alpha^\top = \alpha^\top(\mathbf{I} - \gamma \mathbf{P}_d)^{-1}\)</span>. Using the Neumann series expansion (valid when <span class="math notranslate nohighlight">\(\|\gamma \mathbf{P}_d\| &lt; 1\)</span>, which holds for <span class="math notranslate nohighlight">\(\gamma &lt; 1\)</span> since <span class="math notranslate nohighlight">\(\mathbf{P}_d\)</span> is a stochastic matrix) we have:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1949,7 +2005,7 @@ and has been empirically shown to lead to better performance.</p>
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title"><span class="section-number">25. </span>Bibliography</p>
+        <p class="prev-next-title"><span class="section-number">27. </span>Bibliography</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -2004,15 +2060,18 @@ and has been empirically shown to lead to better performance.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#demonstration-numerical-analysis-of-gradient-estimators">23.3. Demonstration: Numerical Analysis of Gradient Estimators</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-value-gradients-with-model-based-rollouts">24. Stochastic Value Gradients with Model-Based Rollouts</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#score-function-gradient-estimation-in-reinforcement-learning">24.1. Score Function Gradient Estimation in Reinforcement Learning</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#leveraging-conditional-independence">24.1.1. Leveraging Conditional Independence</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#policy-optimization-with-a-model">24. Policy Optimization with a Model</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#backpropagation-policy-optimization">24.1. Backpropagation Policy Optimization</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-value-gradient-svg">24.2. Stochastic Value Gradient (SVG)</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#variance-reduction-via-control-variates">24.2. Variance Reduction via Control Variates</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#generalized-advantage-estimator">24.3. Generalized Advantage Estimator</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-policy-gradient-theorem">24.4. The Policy Gradient Theorem</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#normalized-discounted-state-visitation-distribution">24.5. Normalized Discounted State Visitation Distribution</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#noise-inference-in-svg">25. Noise Inference in SVG</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#score-function-gradient-estimation-in-reinforcement-learning">26. Score Function Gradient Estimation in Reinforcement Learning</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#leveraging-conditional-independence">26.1. Leveraging Conditional Independence</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#variance-reduction-via-control-variates">26.2. Variance Reduction via Control Variates</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#generalized-advantage-estimator">26.3. Generalized Advantage Estimator</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-policy-gradient-theorem">26.4. The Policy Gradient Theorem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#normalized-discounted-state-visitation-distribution">26.5. Normalized Discounted State Visitation Distribution</a></li>
 </ul>
 </li>
 </ul>
