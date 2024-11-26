@@ -947,7 +947,7 @@ $$
    
 **return** $\boldsymbol{w}_n$
 ```
-# Noise Inference in SVG
+## Noise Inference in SVG
 
 The method we've presented so far assumes we have direct access to the noise variables $\epsilon$ and $\xi$ used to generate trajectories. This works well in the on-policy setting where we generate our own data. However, in off-policy scenarios where we receive externally generated trajectories, we need to infer these noise variables—a process the authors call noise inference.
 

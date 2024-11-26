@@ -67,7 +67,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'cadp';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="27. Bibliography" href="bibliography.html" />
+    <link rel="next" title="26. Bibliography" href="bibliography.html" />
     <link rel="prev" title="13. Approximate Dynamic Programming" href="adp.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -192,8 +192,7 @@
 
 
 
-
-<li class="toctree-l1"><a class="reference internal" href="bibliography.html">27. Bibliography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">26. Bibliography</a></li>
 </ul>
 
     </div>
@@ -435,15 +434,15 @@
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#policy-optimization-with-a-model">24. Policy Optimization with a Model</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#backpropagation-policy-optimization">24.1. Backpropagation Policy Optimization</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-value-gradient-svg">24.2. Stochastic Value Gradient (SVG)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#noise-inference-in-svg">24.3. Noise Inference in SVG</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#noise-inference-in-svg">25. Noise Inference in SVG</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#score-function-gradient-estimation-in-reinforcement-learning">26. Score Function Gradient Estimation in Reinforcement Learning</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#leveraging-conditional-independence">26.1. Leveraging Conditional Independence</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#variance-reduction-via-control-variates">26.2. Variance Reduction via Control Variates</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#generalized-advantage-estimator">26.3. Generalized Advantage Estimator</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-policy-gradient-theorem">26.4. The Policy Gradient Theorem</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#normalized-discounted-state-visitation-distribution">26.5. Normalized Discounted State Visitation Distribution</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#score-function-gradient-estimation-in-reinforcement-learning">25. Score Function Gradient Estimation in Reinforcement Learning</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#leveraging-conditional-independence">25.1. Leveraging Conditional Independence</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#variance-reduction-via-control-variates">25.2. Variance Reduction via Control Variates</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#generalized-advantage-estimator">25.3. Generalized Advantage Estimator</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-policy-gradient-theorem">25.4. The Policy Gradient Theorem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#normalized-discounted-state-visitation-distribution">25.5. Normalized Discounted State Visitation Distribution</a></li>
 </ul>
 </li>
 </ul>
@@ -1436,9 +1435,8 @@ s_{t+1}^m(\boldsymbol{w}) = \mu(s_t^m(\boldsymbol{w}),d(s_t^m(\boldsymbol{w});\b
 <p><strong>return</strong> <span class="math notranslate nohighlight">\(\boldsymbol{w}_n\)</span></p>
 </section>
 </div></section>
-</section>
-<section class="tex2jax_ignore mathjax_ignore" id="noise-inference-in-svg">
-<h1><span class="section-number">25. </span>Noise Inference in SVG<a class="headerlink" href="#noise-inference-in-svg" title="Link to this heading">#</a></h1>
+<section id="noise-inference-in-svg">
+<h2><span class="section-number">24.3. </span>Noise Inference in SVG<a class="headerlink" href="#noise-inference-in-svg" title="Link to this heading">#</a></h2>
 <p>The method we’ve presented so far assumes we have direct access to the noise variables <span class="math notranslate nohighlight">\(\epsilon\)</span> and <span class="math notranslate nohighlight">\(\xi\)</span> used to generate trajectories. This works well in the on-policy setting where we generate our own data. However, in off-policy scenarios where we receive externally generated trajectories, we need to infer these noise variables—a process the authors call noise inference.</p>
 <p>For the Gaussian case discussed above, this inference is straightforward. Given an observed scalar action <span class="math notranslate nohighlight">\(a_t\)</span> and the current policy parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span>, we can recover the action noise <span class="math notranslate nohighlight">\(\epsilon_t\)</span> through inverse reparameterization:</p>
 <div class="math notranslate nohighlight">
@@ -1475,8 +1473,9 @@ z_0 = (f_1^{-1} \circ \cdots \circ f_K^{-1})(a_t;\boldsymbol{w})
 </ol>
 <p>As far as I know, this approach has not been explored in the literature.</p>
 </section>
+</section>
 <section class="tex2jax_ignore mathjax_ignore" id="score-function-gradient-estimation-in-reinforcement-learning">
-<h1><span class="section-number">26. </span>Score Function Gradient Estimation in Reinforcement Learning<a class="headerlink" href="#score-function-gradient-estimation-in-reinforcement-learning" title="Link to this heading">#</a></h1>
+<h1><span class="section-number">25. </span>Score Function Gradient Estimation in Reinforcement Learning<a class="headerlink" href="#score-function-gradient-estimation-in-reinforcement-learning" title="Link to this heading">#</a></h1>
 <p>Let <span class="math notranslate nohighlight">\(G(\tau) \equiv \sum_{t=0}^T r(s_t, a_t)\)</span> be the sum of undiscounted rewards in a trajectory <span class="math notranslate nohighlight">\(\tau\)</span>. The stochastic optimization problem we face is to maximize:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1505,7 +1504,7 @@ p(\tau;\boldsymbol{w}) = p(s_0)\prod_{t=0}^T d(a_t|s_t;\boldsymbol{w})p(s_{t+1}|
 \]</div>
 <p>This is a direct application of the score function estimator. However, we rarely use this form in practice and instead make several improvements to further reduce the variance.</p>
 <section id="leveraging-conditional-independence">
-<h2><span class="section-number">26.1. </span>Leveraging Conditional Independence<a class="headerlink" href="#leveraging-conditional-independence" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">25.1. </span>Leveraging Conditional Independence<a class="headerlink" href="#leveraging-conditional-independence" title="Link to this heading">#</a></h2>
 <p>Given the Markov property of the MDP, rewards <span class="math notranslate nohighlight">\(r_k\)</span> for <span class="math notranslate nohighlight">\(k &lt; t\)</span> are conditionally independent of action <span class="math notranslate nohighlight">\(a_t\)</span> given the history <span class="math notranslate nohighlight">\(h_t = (s_0,a_0,...,s_{t-1},a_{t-1},s_t)\)</span>. This allows us to only need to consider future rewards when computing policy gradients.</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
@@ -1544,7 +1543,7 @@ p(\tau) = p(s_0,...,s_t,a_0,...,a_{t-1})\cdot d(a_t|s_t;\boldsymbol{w})\cdot p(s
 <p>The benefit of this estimator compared to the naive one is that it generally has less variance. More formally, we can show that this estimator arises from the application of a variance reduction technique known as the Extended Conditional Monte Carlo Method.</p>
 </section>
 <section id="variance-reduction-via-control-variates">
-<h2><span class="section-number">26.2. </span>Variance Reduction via Control Variates<a class="headerlink" href="#variance-reduction-via-control-variates" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">25.2. </span>Variance Reduction via Control Variates<a class="headerlink" href="#variance-reduction-via-control-variates" title="Link to this heading">#</a></h2>
 <p>A control variate is a zero-mean random variable that we subtract from our estimator to reduce variance. Given an estimator <span class="math notranslate nohighlight">\(Z\)</span> and a control variate <span class="math notranslate nohighlight">\(C\)</span> with <span class="math notranslate nohighlight">\(\mathbb{E}[C]=0\)</span>, we can construct a new unbiased estimator:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1588,7 +1587,7 @@ Z_{\text{cv},t} = \nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\left(\su
 \]</div>
 <p>In practice when implementing this estimator, we won’t have access to the true value function. So as we did earlier for NFQCA or SAC, we commonly learn that value function simultaneously with the policy. Do do so, we could either using a fitted value approach, or even more simply just regress from states to sum of rewards to learn what Williams 1992 called a “baseline”:</p>
 <div class="proof algorithm admonition" id="policy-grad-baseline">
-<p class="admonition-title"><span class="caption-number">Algorithm 26.1 </span> (Policy Gradient with Simple Baseline)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 25.1 </span> (Policy Gradient with Simple Baseline)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Policy parameterization <span class="math notranslate nohighlight">\(d(a|s;\boldsymbol{w})\)</span>, baseline function <span class="math notranslate nohighlight">\(b(s;\boldsymbol{\theta})\)</span><br />
 <strong>Output:</strong> Updated policy parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span><br />
@@ -1612,7 +1611,7 @@ Z_{\text{cv},t} = \nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\left(\su
 </section>
 </div><p>When implementing this algorithm nowadays, we always using mini-batching to make full use of our GPUs. Therefore, a more representative variant for this algorithm would be:</p>
 <div class="proof algorithm admonition" id="policy-grad-cv-batch">
-<p class="admonition-title"><span class="caption-number">Algorithm 26.2 </span> (Policy Gradient with Optimal Control Variate and Mini-batches)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 25.2 </span> (Policy Gradient with Optimal Control Variate and Mini-batches)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Policy parameterization <span class="math notranslate nohighlight">\(d(a|s;\boldsymbol{w})\)</span>, value function <span class="math notranslate nohighlight">\(v(s;\boldsymbol{\theta})\)</span><br />
 <strong>Output:</strong> Updated policy parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span><br />
@@ -1653,7 +1652,7 @@ Z_{\text{cv},t} = \nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\left(\su
 </section>
 </div></section>
 <section id="generalized-advantage-estimator">
-<h2><span class="section-number">26.3. </span>Generalized Advantage Estimator<a class="headerlink" href="#generalized-advantage-estimator" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">25.3. </span>Generalized Advantage Estimator<a class="headerlink" href="#generalized-advantage-estimator" title="Link to this heading">#</a></h2>
 <p>Given our control variate estimator with baseline <span class="math notranslate nohighlight">\(v(s)\)</span>, we have:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1709,7 +1708,7 @@ A^{\text{GAE}(\gamma,\lambda)}(s_t,a_t) = \sum_{l=0}^{\infty}(\gamma\lambda)^l\d
 </ul>
 <p>The general GAE algorithm with mini-batches is the following:</p>
 <div class="proof algorithm admonition" id="policy-grad-gae-batch">
-<p class="admonition-title"><span class="caption-number">Algorithm 26.3 </span> (Policy Gradient with GAE and Mini-batches)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 25.3 </span> (Policy Gradient with GAE and Mini-batches)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Policy parameterization <span class="math notranslate nohighlight">\(d(a|s;\boldsymbol{w})\)</span>, value function <span class="math notranslate nohighlight">\(v(s;\boldsymbol{\theta})\)</span><br />
 <strong>Output:</strong> Updated policy parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span><br />
@@ -1763,7 +1762,7 @@ A^{\text{GAE}(\gamma,0)}(s_t,a_t) = \delta_t = r_t + \gamma v(s_{t+1}) - v(s_t)
 \]</div>
 <p>The non-batched, purely online, GAE(0) algorithm then becomes:</p>
 <div class="proof algorithm admonition" id="actor-critic-td0">
-<p class="admonition-title"><span class="caption-number">Algorithm 26.4 </span> (Actor-Critic with TD(0))</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 25.4 </span> (Actor-Critic with TD(0))</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Policy parameterization <span class="math notranslate nohighlight">\(d(a|s;\boldsymbol{w})\)</span>, value function <span class="math notranslate nohighlight">\(v(s;\boldsymbol{\theta})\)</span><br />
 <strong>Output:</strong> Updated policy parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span><br />
@@ -1790,7 +1789,7 @@ A^{\text{GAE}(\gamma,0)}(s_t,a_t) = \delta_t = r_t + \gamma v(s_{t+1}) - v(s_t)
 </div><p>Interestingly, this version was first derived by Richard Sutton in his 1984 PhD thesis. He called it the Adaptive Heuristic Actor-Critic algorithm. As far as I know, it was not derived using the score function method outlined here, but rather through intuitive reasoning (great intuition!).</p>
 </section>
 <section id="the-policy-gradient-theorem">
-<h2><span class="section-number">26.4. </span>The Policy Gradient Theorem<a class="headerlink" href="#the-policy-gradient-theorem" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">25.4. </span>The Policy Gradient Theorem<a class="headerlink" href="#the-policy-gradient-theorem" title="Link to this heading">#</a></h2>
 <p>Sutton 1999 provided an expression for the gradient of the infinite discounted return with respect to the parameters of a parameterized policy. Here is an alternative derivation by considering a bilevel optimization problem:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1852,7 +1851,7 @@ A^{\text{GAE}(\gamma,0)}(s_t,a_t) = \delta_t = r_t + \gamma v(s_{t+1}) - v(s_t)
 <p>This is the policy gradient theorem, where <span class="math notranslate nohighlight">\(x_\alpha(s)\)</span> is the discounted state visitation distribution and the term in parentheses is the state-action value function <span class="math notranslate nohighlight">\(q(s,a)\)</span>.</p>
 </section>
 <section id="normalized-discounted-state-visitation-distribution">
-<h2><span class="section-number">26.5. </span>Normalized Discounted State Visitation Distribution<a class="headerlink" href="#normalized-discounted-state-visitation-distribution" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">25.5. </span>Normalized Discounted State Visitation Distribution<a class="headerlink" href="#normalized-discounted-state-visitation-distribution" title="Link to this heading">#</a></h2>
 <p>The discounted state visitation <span class="math notranslate nohighlight">\(x_\alpha(s)\)</span> is not normalized. Therefore the expression we obtained above is not an expectation. However, we can tranform it into one by normalizing by <span class="math notranslate nohighlight">\(1-  \gamma\)</span>. Note that for any initial distribution <span class="math notranslate nohighlight">\(\alpha\)</span>:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -2005,7 +2004,7 @@ and has been empirically shown to lead to better performance.</p>
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title"><span class="section-number">27. </span>Bibliography</p>
+        <p class="prev-next-title"><span class="section-number">26. </span>Bibliography</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -2063,15 +2062,15 @@ and has been empirically shown to lead to better performance.</p>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#policy-optimization-with-a-model">24. Policy Optimization with a Model</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#backpropagation-policy-optimization">24.1. Backpropagation Policy Optimization</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-value-gradient-svg">24.2. Stochastic Value Gradient (SVG)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#noise-inference-in-svg">24.3. Noise Inference in SVG</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#noise-inference-in-svg">25. Noise Inference in SVG</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#score-function-gradient-estimation-in-reinforcement-learning">26. Score Function Gradient Estimation in Reinforcement Learning</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#leveraging-conditional-independence">26.1. Leveraging Conditional Independence</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#variance-reduction-via-control-variates">26.2. Variance Reduction via Control Variates</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#generalized-advantage-estimator">26.3. Generalized Advantage Estimator</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-policy-gradient-theorem">26.4. The Policy Gradient Theorem</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#normalized-discounted-state-visitation-distribution">26.5. Normalized Discounted State Visitation Distribution</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#score-function-gradient-estimation-in-reinforcement-learning">25. Score Function Gradient Estimation in Reinforcement Learning</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#leveraging-conditional-independence">25.1. Leveraging Conditional Independence</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#variance-reduction-via-control-variates">25.2. Variance Reduction via Control Variates</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#generalized-advantage-estimator">25.3. Generalized Advantage Estimator</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-policy-gradient-theorem">25.4. The Policy Gradient Theorem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#normalized-discounted-state-visitation-distribution">25.5. Normalized Discounted State Visitation Distribution</a></li>
 </ul>
 </li>
 </ul>
