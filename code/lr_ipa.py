@@ -1,25 +1,37 @@
 import jax
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
-import seaborn as sns
 
 key = jax.random.PRNGKey(0)
 
+# Define the objective function f(x,θ) = x²θ where x ~ N(θ, 1)
+def objective(x, theta):
+    return x**2 * theta
+
+# Naive Monte Carlo gradient estimation
 @jax.jit
 def naive_gradient_batch(key, theta):
     samples = jax.random.normal(key, (1000,)) + theta
-    return jnp.mean(samples**2)
+    # Use jax.grad on the objective with respect to theta
+    grad_fn = jax.grad(lambda t: jnp.mean(objective(samples, t)))
+    return grad_fn(theta)
 
+# Score function estimator (REINFORCE)
 @jax.jit
 def score_function_batch(key, theta):
     samples = jax.random.normal(key, (1000,)) + theta
-    return jnp.mean(samples**2 * theta * (samples - theta) + samples**2)
+    # f(x,θ) * ∂logp(x|θ)/∂θ + ∂f(x,θ)/∂θ
+    # score function for N(θ,1) is (x-θ)
+    score = samples - theta
+    return jnp.mean(objective(samples, theta) * score + samples**2)
 
+# Reparameterization gradient
 @jax.jit
 def reparam_gradient_batch(key, theta):
     eps = jax.random.normal(key, (1000,))
-    samples = theta + eps
-    return jnp.mean(samples**2 + 2*theta*samples)
+    # Use reparameterization x = θ + ε, ε ~ N(0,1)
+    grad_fn = jax.grad(lambda t: jnp.mean(objective(t + eps, t)))
+    return grad_fn(theta)
 
 # Run trials
 n_trials = 1000
