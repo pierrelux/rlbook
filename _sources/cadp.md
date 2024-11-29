@@ -310,10 +310,7 @@ While DDPG used the OU process which generates temporally correlated noise, TD3'
 
 Finally, TD3 updates the policy network (and target networks) less frequently than the Q-networks, typically once every $d$ Q-function updates. This helps reduce the per-update error and gives the Q-functions time to become more accurate before they are used to update the policy.
 
-
-# Stochastic Policy Parameterization
-
-## Soft Actor Critic
+# Soft Actor-Critic
 Adapting the intuition of NFQCA to the smooth Bellman optimality equations leads us to the soft actor-critic algorithm {cite}`haarnoja2018soft`. To understand this connection, let's first examine how the smooth Bellman equations emerge naturally from entropy regularization.
 
 Consider the standard Bellman operator augmented with an entropy term. The smooth Bellman operator $\mathrm{L}_\beta$ takes the form:
@@ -367,7 +364,7 @@ $$
 v^*(s) = \beta \log \int_A \exp(\frac{1}{\beta}q^*(s,a))da
 $$
 
-### Fitted Q-Iteration for the Smooth Bellman Equations
+## Fitted Q-Iteration for the Smooth Bellman Equations
 
 Following the principles of fitted value iteration, we can approximate approximate the effect of the smooth Bellman operator by computing it exactly at a number of basepoints and generalizing elsewhere using function approximation. Concretely, given a collection of states $s_i$ and actions $a_i$, we would compute regression target values:
 
@@ -401,7 +398,7 @@ $$
 
 This is a remarkable idea! One that exists only due to the dual representation of the smooth Bellman equations as an entropy-regularized problem which transforms the intractable log-sum-exp into a form we can estimate efficiently through sampling.
 
-### Approximating Boltzmann Policies by Gaussians
+## Approximating Boltzmann Policies by Gaussians
 
 The entropy-regularized objective and the smooth Bellman equation are mathematically equivalent. However, both formulations face a practical challenge: they require evaluating an intractable integral due to the Boltzmann distribution. Soft Actor-Critic (SAC) addresses this problem by approximating the optimal policy with a simpler, more tractable Gaussian distribution. Given the optimal soft policy:
 
@@ -444,7 +441,7 @@ $$
 \operatorname{minimize}_{\phi} \mathbb{E}_{s \sim \mu(s)}\mathbb{E}_{a \sim d(\cdot|s;\phi)}[\log d(a|s;\phi) - \frac{1}{\beta}q_\theta(s,a)]
 $$
 
-### Reparameterizating the Objective 
+## Reparameterizating the Objective 
 
 One last challenge remains: $\phi$ appears in the distribution underlying the inner expectation, not just in the integrand. This setting departs from standard empirical risk minimization (ERM) in supervised learning where the distribution of the data (e.g., cats and dogs in image classification) remains fixed regardless of model parameters. Here, however, the "data" - our sampled actions - depends directly on the parameters $\phi$ we're trying to optimize.
 
@@ -763,306 +760,10 @@ For concreteness, we fix $\theta = 1.0$ and analyze samples drawn using Monte Ca
 ```{code-cell} ipython3
 :tags: [hide-input]
 :load: code/lr_ipa.py
+
 ```
 
 The numerical experiments coroborate our theory. The naive estimator consistently underestimates the true gradient by 2.0, though it maintains a relatively small variance. This systematic bias would make it unsuitable for optimization despite its low variance. The score function estimator corrects this bias but introduces substantial variance. While unbiased, this estimator would require many samples to achieve reliable gradient estimates. Finally, the reparameterization trick achieves a much lower variance while remaining unbiased. While this experiment is for didactic purposes only, it reproduces what is commonly found in practice: that when applicable, the reparameterization estimator tends to perform better than the score function counterpart. 
-
-# Policy Optimization with a Model
-
-In this section, we'll explore how incorporating a model of the dynamics can help us design better policy gradient estimators. Let's begin with a pure model-free approach that uses a critic to maximize a deterministic policy:
-
-$$
-J(\boldsymbol{w}) = \mathbb{E}_{s\sim\rho}[Q(s,d(s;\boldsymbol{w}))], \enspace \nabla_{\boldsymbol{w}} J(\boldsymbol{w}) = \mathbb{E}_{s\sim\rho}[\nabla_a Q(s,a)|_{a=d(s;\boldsymbol{w})} \nabla_{\boldsymbol{w}} d(s;\boldsymbol{w})]
-$$
-
-Using the recursive structure of the Bellman equations, we can unroll our objective one step ahead:
-
-$$
-J(\boldsymbol{w}) = \mathbb{E}_{s\sim\rho}[r(s,d(s;\boldsymbol{w})) + \gamma\mathbb{E}_{s'\sim p(\cdot|s,d(s;\boldsymbol{w}))}[Q(s',d(s';\boldsymbol{w}))]],
-$$
-
-To differentiate this objective, we need access to both a model of the dynamics and the reward function, as shown in the following expression:
-
-$$
-\nabla_{\boldsymbol{w}} J(\boldsymbol{w}) = \mathbb{E}_{s\sim\rho}[\nabla_a r(s,a)|_{a=d(s;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s;\boldsymbol{w}) + 
-\gamma(\mathbb{E}_{s'\sim p(\cdot|s,d(s;\boldsymbol{w}))}[\nabla_a Q(s',a)|_{a=d(s';\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s';\boldsymbol{w})] + \\\nabla_{\boldsymbol{w}} d(s;\boldsymbol{w})\int_{s'} \nabla_a p(s'|s,a)|_{a=d(s;\boldsymbol{w})}Q(s',d(s';\boldsymbol{w}))ds')]
-$$
-
-While $\boldsymbol{w}$ doesn't appear in the outer expectation over initial states, it affects the inner expectation over next states—a distributional dependency. As a result, the product rule of calculus yields two terms: the first being an expectation, and the second being problematic for sample average estimation. However, we have tools to address this challenge: we can either apply the reparameterization trick to the dynamics or use score function estimators.
-
-For the reparameterization approach, assuming $s' = f(s,a,\xi;\boldsymbol{w})$ where $\xi$ is the noise variable:
-
-$$
-\begin{align*}
-J^{\text{DPMB-R}}(\boldsymbol{w}) &= \mathbb{E}_{s\sim\rho,\xi}[r(s,d(s;\boldsymbol{w})) + \gamma Q(f(s,d(s;\boldsymbol{w}),\xi),d(f(s,d(s;\boldsymbol{w}),\xi);\boldsymbol{w}))]\\
-\nabla_{\boldsymbol{w}} J^{\text{DPMB-R}}(\boldsymbol{w}) &= \mathbb{E}_{s\sim\rho,\xi}[\nabla_a r(s,a)|_{a=d(s;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s;\boldsymbol{w}) + \\
-&\gamma(\nabla_a Q(s',a)|_{a=d(s';\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s';\boldsymbol{w}) + 
-\nabla_{s'} Q(s',d(s';\boldsymbol{w}))\nabla_{\boldsymbol{w}} f(s,d(s;\boldsymbol{w}),\xi)\nabla_{\boldsymbol{w}} d(s;\boldsymbol{w}))]
-\end{align*}
-$$
-
-As for the score function approach:
-
-$$
-\begin{align*}
-\nabla_{\boldsymbol{w}} J^{\text{DPMB-SF}}(\boldsymbol{w}) = \mathbb{E}_{s\sim\rho}[&\nabla_a r(s,a)|_{a=d(s;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s;\boldsymbol{w}) + \\
-&\gamma\mathbb{E}_{s'\sim p(\cdot|s,d(s;\boldsymbol{w}))}[\nabla_{\boldsymbol{w}} \log p(s'|s,d(s;\boldsymbol{w}))Q(s',d(s';\boldsymbol{w})) + \nabla_a Q(s',a)|_{a=d(s';\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s';\boldsymbol{w})]]
-\end{align*}
-$$
-
-We've now developed a hybrid algorithm that combines model-based and model-free approaches while integrating derivative estimators for stochastic dynamics with a deterministic policy parameterization. While this hybrid estimator remains relatively unexplored in practice, it could prove valuable for systems with specific structural properties.
-
-Consider a robotics scenario with hybrid continuous-discrete dynamics: a robotic arm operates in continuous space but interacts with discrete object states. While the arm's policy remains differentiable ($\nabla_{\boldsymbol{w}} d$), the object state transitions follow categorical distributions. In this case, reparameterization becomes impractical, but the score function approach is viable if we can compute $\nabla_{\boldsymbol{w}} \log p(s'|s,d(s;\boldsymbol{w}))$ from the known transition model. Similar structures arise in manufacturing processes, where machine actions might be continuous and differentiable, but material state transitions often follow discrete steps with known probabilities. Note that both approaches require knowledge of transition probabilities and won't work with pure black-box simulators or systems where we can only sample transitions without probability estimates.
-
-Another dimension to explore in our algorithm design is the number of steps we wish to unroll our model. This allows us to better understand and control the bias-variance tradeoffs in our methods.
-
-## Backpropagation Policy Optimization
-
-The questions of derivative estimators only arise with stochastic dynamics. For systems with deterministic dynamics and a deterministic policy, the one-step gradient unroll simplifies to:
-
-$$
-\begin{align*}
-\nabla_{\boldsymbol{w}} J(\boldsymbol{w}) = &\mathbb{E}_{s\sim\rho}[\nabla_a r(s,a)|_{a=d(s;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s;\boldsymbol{w}) + \\
-&\gamma(\nabla_a Q(s',a)|_{a=d(s';\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s';\boldsymbol{w}) + 
-\nabla_{\boldsymbol{w}} d(s;\boldsymbol{w})\nabla_a f(s,a)|_{a=d(s;\boldsymbol{w})}\nabla_{s'} Q(s',d(s';\boldsymbol{w})))]
-\end{align*}
-$$
-
-where $s' = f(s,d(s;\boldsymbol{w}))$ is the deterministic next state. Notice the resemblance between this expression and that obtained for $\nabla_{\boldsymbol{w}} J^{\text{DPMB-R}}$ above. They are essentially the same except that in the reparameterized case, the dynamics have made the dependence on the noise variable explicit and the outer expectation has been updated accordingly. This similarity arises because differentiation through reparameterized dynamics models is, in essence, backpropagation: it tracks the propagation of perturbations through a computation graph—which we refer to as a stochastic computation graph in this setting.
-
-Still under this simplified setting with deterministic policies and dynamics, we can extend the expression for the gradient through n-steps of model unroll, leading to:
-
-
-$$
-\begin{align*}
-\nabla_{\boldsymbol{w}} J(\boldsymbol{w}) = &\mathbb{E}_{s\sim\rho}[\sum_{t=0}^{n-1} \gamma^t(\nabla_a r(s_t,a_t)|_{a_t=d(s_t;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s_t;\boldsymbol{w}) + \nabla_{s_t} r(s_t,d(s_t;\boldsymbol{w}))\nabla_{\boldsymbol{w}} s_t) + \\
-&\gamma^n(\nabla_a Q(s_n,a)|_{a=d(s_n;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s_n;\boldsymbol{w}) + \nabla_{s_n} Q(s_n,d(s_n;\boldsymbol{w}))\nabla_{\boldsymbol{w}} s_n)]
-\end{align*}
-$$
-
-where $s_{t+1} = f(s_t,d(s_t;\boldsymbol{w}))$ for $t=0,\ldots,n-1$, $s_0=s$, and $\nabla_{\boldsymbol{w}} s_t$ follows the recursive relationship:
-
-$$
-\nabla_{\boldsymbol{w}} s_{t+1} = \nabla_a f(s_t,a)|_{a=d(s_t;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s_t;\boldsymbol{w}) + \nabla_s f(s_t,d(s_t;\boldsymbol{w}))\nabla_{\boldsymbol{w}} s_t
-$$
-
-with base case $\nabla_{\boldsymbol{w}} s_0 = 0$ since the initial state does not depend on the policy parameters.
-
-At both ends of the spectrum, we have that for n=0, we fall back to the pure critic NFQCA-like approach, and for $n=\infty$, we don't bootstrap at all and are fully model-based without a critic. The pure model-based critic-free approach to optimization is what we may refer to as a backpropagation-based policy optimization (BPO).
-
-But just as backpropagation through RNNs or very deep networks can be challenging due to exploding and vanishing gradients, "vanilla" Backpropagation Policy Optimization (BPO) without a critic can severely suffer from the curse of horizon. This is because it essentially implements single shooting optimization. Using a critic can be an effective remedy to this problem, allowing us to better control the bias-variance tradeoff while preserving gradient information that would be lost with a more drastic truncated backpropagation approach.
-
-
-## Stochastic Value Gradient (SVG)
-
-The stochastic value gradient framework of Heess (2015) applies the recipe for policy optimization with a model using reparameterized dynamics and action selection via randomized policies. In this setting, the stochastic policy model based reparameterized estimator over n steps is
-
-$$
-\begin{align*}
-J^{\text{SPMB-R-N}}(\boldsymbol{w}) &= \mathbb{E}_{s\sim\rho,\{\epsilon_i\}_{i=0}^{n-1},\{\xi_i\}_{i=0}^{n-1}}[\sum_{i=0}^{n-1} \gamma^i r(s_i,d(s_i,\epsilon_i;\boldsymbol{w})) + \gamma^n Q(s_n,d(s_n,\epsilon_n;\boldsymbol{w}))]
-\end{align*}
-$$
-
-where $s_0 = s$ and for $i \geq 0$, $s_{i+1} = f(s_i,d(s_i,\epsilon_i;\boldsymbol{w}),\xi_i)$. The gradient becomes:
-
-$$
-\begin{align*}
-\nabla_{\boldsymbol{w}} J^{\text{SPMB-R-N}}(\boldsymbol{w}) &= \mathbb{E}_{s\sim\rho,\{\epsilon_i\}_{i=0}^{n-1},\{\xi_i\}_{i=0}^{n-1}}[\sum_{i=0}^{n-1} \gamma^i \left(\nabla_a r(s_i,a)|_{a=d(s_i,\epsilon_i;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s_i,\epsilon_i;\boldsymbol{w}) + \nabla_{s_i} r(s_i,d(s_i,\epsilon_i;\boldsymbol{w}))\nabla_{\boldsymbol{w}} s_i\right) \enspace + \\
-&\qquad \gamma^n(\nabla_a Q(s_n,a)|_{a=d(s_n,\epsilon_n;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s_n,\epsilon_n;\boldsymbol{w}) + \nabla_{s_n} Q(s_n,d(s_n,\epsilon_n;\boldsymbol{w}))\nabla_{\boldsymbol{w}} s_n)]
-\end{align*}
-$$
-
-where $\nabla_{\boldsymbol{w}} s_0 = 0$ and for $i \geq 0$:
-
-$$\nabla_{\boldsymbol{w}} s_{i+1} = \nabla_a f(s_i,a,\xi_i)|_{a=d(s_i,\epsilon_i;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s_i,\epsilon_i;\boldsymbol{w}) + \nabla_{s_i} f(s_i,d(s_i,\epsilon_i;\boldsymbol{w}),\xi_i)\nabla_{\boldsymbol{w}} s_i$$
-
-While we could implement this expression for the gradient ourselves, this approach is much easier, less error-prone, and most likely better optimized for performance when using automatic differentiation. Given  a set of rollouts (for which we know the primitive noise variables), then we can compute the monte carlo objective: 
-
-$$\hat{J}^{\text{SPMB-R-N}}(\boldsymbol{w}) = \frac{1}{M}\sum_{m=1}^M [\sum_{i=0}^{n-1} \gamma^i r(s_i^m,d(s_i^m,\epsilon_i^m;\boldsymbol{w})) + \gamma^n Q(s_n^m,d(s_n^m,\epsilon_n^m;\boldsymbol{w}))]$$
-
-where the states are generated recursively using the known noise variables: starting with initial state $s_0^m$, each subsequent state is computed as $s_{i+1}^m = f(s_i^m,d(s_i^m,\epsilon_i^m;\boldsymbol{w}),\xi_i^m)$. Thus,  a trajectory is completely determined by just the sequence of noise variables:$(\epsilon_0^m, \xi_0^m, \epsilon_1^m, \xi_1^m, ..., \epsilon_{n-1}^m, \xi_{n-1}^m, \epsilon_n^m)$ where $\epsilon_i^m$ are the action noise variables and $\xi_i^m$ are the dynamics noise variables. 
-
-The choice of unroll steps $n$ gives us precise control over the balance between model-based and critic-based components in our gradient estimator. At one extreme, setting $n = 0$ yields a purely model-free algorithm known as SVG(0) (Heess et al., 2015), which relies entirely on the critic for value estimation:
-
-$$
-\hat{J}^{\text{SPMB-R-0}}(\boldsymbol{w}) = \frac{1}{M}\sum_{m=1}^M Q(s_0^m,d(s_0^m,\epsilon_0^m;\boldsymbol{w}))
-$$
-
-At the other extreme, as $n \to \infty$, we can drop the critic term (since $\gamma^n Q \to 0$) to obtain a purely model-based algorithm, SVG(∞):
-
-$$
-\hat{J}^{\text{SPMB-R-$\infty$}}(\boldsymbol{w}) = \frac{1}{M}\sum_{m=1}^M \sum_{i=0}^{\infty} \gamma^i r(s_i^m,d(s_i^m,\epsilon_i^m;\boldsymbol{w}))
-$$
-
-In the 2015 paper, the authors make a specific choice to reparameterize both the dynamics and action selections using normal distributions. For the policy, they use:
-
-$$
-a_t = d(s_t;\boldsymbol{w}) + \sigma(s_t;\boldsymbol{w})\epsilon_t, \quad \epsilon_t \sim \mathcal{N}(0,I)
-$$
-
-where $d(s_t;\boldsymbol{w})$ predicts the mean action and $\sigma(s_t;\boldsymbol{w})$ predicts the standard deviation. For the dynamics:
-
-$$
-s_{t+1} = \mu(s_t,a_t;\boldsymbol{\phi}) + \Sigma(s_t,a_t;\boldsymbol{\phi})\xi_t, \quad \xi_t \sim \mathcal{N}(0,I)
-$$
-
-where $\mu(s_t,a_t;\boldsymbol{\phi})$ predicts the mean next state and $\Sigma(s_t,a_t;\boldsymbol{\phi})$ predicts the covariance matrix.
-
-Under this reparameterization, the n-step surrogate loss becomes:
-
-$$
-\begin{align*}
-\hat{J}^{\text{SPMB-R-n}}(\boldsymbol{w}) = \frac{1}{M}&\sum_{m=1}^M [\sum_{t=0}^{n-1} \gamma^t r(s_t^m(\boldsymbol{w}),d(s_t^m(\boldsymbol{w});\boldsymbol{w}) + \sigma(s_t^m(\boldsymbol{w});\boldsymbol{w})\epsilon_t^m) + \\
-&\gamma^n Q(s_n^m(\boldsymbol{w}),d(s_n^m(\boldsymbol{w});\boldsymbol{w}) + \sigma(s_n^m(\boldsymbol{w});\boldsymbol{w})\epsilon_n^m)]
-\end{align*}
-$$
-
-where:
-$$
-s_{t+1}^m(\boldsymbol{w}) = \mu(s_t^m(\boldsymbol{w}),d(s_t^m(\boldsymbol{w});\boldsymbol{w}) + \sigma(s_t^m(\boldsymbol{w});\boldsymbol{w})\epsilon_t^m;\boldsymbol{\phi}) + \Sigma(s_t^m(\boldsymbol{w}),a_t^m(\boldsymbol{w});\boldsymbol{\phi})\xi_t^m
-$$
-
-```{prf:algorithm} Stochastic Value Gradients (SVG) Infinity (automatic differentiation)
-:label: svg_autodiff
-
-**Input** Initial state distribution $\rho_0(s)$, policy networks $d(s;\boldsymbol{w})$ and $\sigma(s;\boldsymbol{w})$, dynamics model networks $\mu(s,a;\boldsymbol{\phi})$ and $\Sigma(s,a;\boldsymbol{\phi})$, reward function $r(s,a)$, rollout horizon $T$, learning rate $\alpha_w$, batch size $N$
-
-**Initialize**
-1. Policy parameters $\boldsymbol{w}_0$ randomly
-2. $n \leftarrow 0$
-
-3. **while** not converged:
-   1. Sample batch of $N$ initial states $s_0^i \sim \rho_0(s)$
-   2. Sample noise sequences $\epsilon_{0:T}^i, \xi_{0:T}^i \sim \mathcal{N}(0,I)$ for $i=1,\ldots,N$
-   3. Compute objective using autodiff-enabled computation graph:
-       1. For each $i=1,\ldots,N$:
-           1. Initialize $s_0^i(\boldsymbol{w}) = s_0^i$
-           2. For $t=0$ to $T$:
-               1. $a_t^i(\boldsymbol{w}) = d(s_t^i(\boldsymbol{w});\boldsymbol{w}) + \sigma(s_t^i(\boldsymbol{w});\boldsymbol{w})\epsilon_t^i$
-               2. $s_{t+1}^i(\boldsymbol{w}) = \mu(s_t^i(\boldsymbol{w}),a_t^i(\boldsymbol{w});\boldsymbol{\phi}) + \Sigma(s_t^i(\boldsymbol{w}),a_t^i(\boldsymbol{w});\boldsymbol{\phi})\xi_t^i$
-       2. $J(\boldsymbol{w}) = \frac{1}{N}\sum_{i=1}^N \sum_{t=0}^T \gamma^t r(s_t^i(\boldsymbol{w}),a_t^i(\boldsymbol{w}))$
-   4. Compute gradient using autodiff: $\nabla_{\boldsymbol{w}}J$
-   5. Update policy: $\boldsymbol{w}_{n+1} \leftarrow \boldsymbol{w}_n + \alpha_w \nabla_{\boldsymbol{w}}J$
-   6. $n \leftarrow n + 1$
-   
-**return** $\boldsymbol{w}_n$
-```
-## Noise Inference in SVG
-
-The method we've presented so far assumes we have direct access to the noise variables $\epsilon$ and $\xi$ used to generate trajectories. This works well in the on-policy setting where we generate our own data. However, in off-policy scenarios where we receive externally generated trajectories, we need to infer these noise variables—a process the authors call noise inference.
-
-For the Gaussian case discussed above, this inference is straightforward. Given an observed scalar action $a_t$ and the current policy parameters $\boldsymbol{w}$, we can recover the action noise $\epsilon_t$ through inverse reparameterization:
-
-$$
-\epsilon_t = \frac{a_t - d(s_t;\boldsymbol{w})}{\sigma(s_t;\boldsymbol{w})}
-$$
-
-Similarly, for the dynamics noise where states are typically vector-valued:
-
-$$
-\xi_t = \Sigma(s_t,a_t;\boldsymbol{\phi})^{-1}(s_{t+1} - \mu(s_t,a_t;\boldsymbol{\phi}))
-$$
-
-This simple inversion is possible because the Gaussian reparameterization is an affine transformation, which is invertible as long as $\sigma(s_t;\boldsymbol{w})$ is non-zero for scalar actions and $\Sigma(s_t,a_t;\boldsymbol{\phi})$ is full rank for vector-valued states. The same principle extends naturally to vector-valued actions, where $\sigma$ would be replaced by a full covariance matrix.
-
-More generally, this idea of invertible transformations can be extended far beyond simple Gaussian reparameterization. We could consider a sequence of invertible transformations:
-
-$$
-z_0 \sim \mathcal{N}(0,I) \xrightarrow{f_1} z_1 \xrightarrow{f_2} z_2 \xrightarrow{f_3} \cdots \xrightarrow{f_K} z_K = a_t
-$$
-
-where each $f_k$ is an invertible neural network layer. The forward process can be written compactly as:
-
-$$
-a_t = (f_K \circ f_{K-1} \circ \cdots \circ f_1)(z_0;\boldsymbol{w})
-$$
-
-This is precisely the idea behind normalizing flows: a series of invertible transformations that can transform a simple base distribution (like a standard normal) into a complex target distribution while maintaining exact invertibility.
-
-The noise inference in this case would involve applying the inverse transformations:
-
-$$
-z_0 = (f_1^{-1} \circ \cdots \circ f_K^{-1})(a_t;\boldsymbol{w})
-$$
-
-This approach offers several advantages:
-1. More expressive policies and dynamics models capable of capturing multimodal distributions
-2. Exact likelihood computation through the change of variables formula (can be useful for computing the log prob terms in entropy regularization for example)
-3. Precise noise inference through the guaranteed invertibility of the flow
-
-As far as I know, this approach has not been explored in the literature. 
-
-## DPG as a Special Case of SAC 
-
-At first glance, SAC and DPG might appear to be fundamentally different approaches to policy optimization. SAC begins with the principle of entropy maximization and policy distribution matching through KL divergence minimization, while DPG directly optimizes a deterministic policy to maximize expected Q-values. However, we can show that DPG emerges as a special case of SAC as we take the temperature parameter to zero.
-
-```{prf:proposition} Convergence of SAC to DPG 
-Let $d(\cdot|s;\boldsymbol{w}_\alpha)$ be the optimal stochastic policy for SAC with temperature $\alpha$, and $d(s;\boldsymbol{w}_{DPG})$ be the optimal deterministic policy gradient solution. Under appropriate assumptions, as $\alpha \to 0$:
-
-$$
-d(a|s;\boldsymbol{w}_\alpha) \to \delta(a - d(s;\boldsymbol{w}_{DPG}))
-$$
-
-**Assumptions:**
-1. The stochastic policy class is Gaussian with learnable mean and standard deviation:
-
-   $$
-   d(a|s;\boldsymbol{w}) = \mathcal{N}(\mu_w(s), \sigma_w(s)^2)
-   $$
-
-2. The SAC objective for policy improvement uses the soft Q-function:
-
-   $$
-   \boldsymbol{w}^*_\alpha = \arg\min_w \mathbb{E}_{s\sim\rho}\left[D_{KL}\left(d(\cdot|s;\boldsymbol{w}) \| \frac{\exp(Q_{soft}(s,\cdot)/\alpha)}{\int \exp(Q_{soft}(s,b)/\alpha)db}\right)\right]
-   $$
-   where $Q_{soft}$ follows the soft Bellman equation:
-
-   $$
-   Q_{soft}(s,a) = r(s,a) + \gamma \mathbb{E}_{s' \sim P}\left[\mathbb{E}_{a' \sim d(\cdot|s')}\left[Q_{soft}(s',a') - \alpha \log d(a'|s')\right]\right]
-   $$
-
-3. The DPG objective with a deterministic policy uses the standard Q-function:
-
-   $$
-   \boldsymbol{w}^*_{DPG} = \arg\max_w \mathbb{E}_{s\sim\rho}\left[Q(s,d(s;\boldsymbol{w}))\right]
-   $$
-   where $Q$ follows the standard Bellman equation:
-
-   $$
-   Q(s,a) = r(s,a) + \gamma \mathbb{E}_{s' \sim P}[Q(s',d(s';\boldsymbol{w}))]
-   $$
-
-4. $Q_{soft}(s,a)$ and $Q(s,a)$ are continuous and achieve their maxima for each state $s$.
-```
-
-````{prf:proof}
-At the fixed point of the soft Bellman equation, as $\alpha \to 0$, the entropy term $-\alpha \log d(a|s)$ vanishes, and $Q_{soft} \to Q$. This implies that the SAC target distribution, which is proportional to $\exp(Q_{soft}(s,a)/\alpha)$, becomes:
-
-$$
-\lim_{\alpha \to 0} \frac{\exp(Q(s,a)/\alpha)}{\int \exp(Q(s,b)/\alpha) db} = \delta(a - \arg\max_a Q(s,a)),
-$$
-by Laplace's method. The target distribution thus collapses to a delta function centered at the deterministic optimal action $\arg\max_a Q(s,a)$.
-
-The KL divergence term in the SAC objective measures the divergence between the stochastic policy $d(a|s;\boldsymbol{w})$ (Gaussian) and this target distribution. For a Gaussian $\mathcal{N}(\mu, \sigma^2)$ and a delta function $\delta(a - a^*)$, we derive:
-
-$$
-D_{KL}(\mathcal{N}(\mu, \sigma^2) \| \delta(a - a^*)) = \lim_{\epsilon \to 0} D_{KL}(\mathcal{N}(\mu, \sigma^2) \| \mathcal{N}(a^*, \epsilon^2)),
-$$
-where $\mathcal{N}(a^*, \epsilon^2)$ is a Gaussian approximation of the delta. Using the KL formula:
-
-$$
-D_{KL} = \frac{1}{2}\left[\log\left(\frac{\epsilon^2}{\sigma^2}\right) + \frac{\sigma^2}{\epsilon^2} + \frac{(\mu - a^*)^2}{\epsilon^2} - 1\right].
-$$
-
-Taking the limit $\epsilon \to 0$, the divergence diverges unless $\mu = a^*$ and $\sigma = 0$, where it becomes zero. Thus, minimizing the SAC objective drives $\mu_w(s) \to \arg\max_a Q(s,a)$ and $\sigma_w(s) \to 0$.
-
-Consequently, the stochastic policy converges to a delta function:
-
-$$
-\lim_{\alpha \to 0} d(a|s;\boldsymbol{w}^*_\alpha) = \delta(a - \arg\max_a Q(s,a)) = \delta(a - d(s;\boldsymbol{w}^*_{DPG})).
-$$
-
-````
 
 # Score Function Gradient Estimation in Reinforcement Learning 
 
@@ -1098,7 +799,7 @@ $$
 
 This is a direct application of the score function estimator. However, we rarely use this form in practice and instead make several improvements to further reduce the variance.
 
-### Leveraging Conditional Independence 
+## Leveraging Conditional Independence 
 
 Given the Markov property of the MDP, rewards $r_k$ for $k < t$ are conditionally independent of action $a_t$ given the history $h_t = (s_0,a_0,...,s_{t-1},a_{t-1},s_t)$. This allows us to only need to consider future rewards when computing policy gradients.
 
@@ -1547,3 +1248,359 @@ Therefore, in practice, we typically sample complete trajectories from the undis
 and has been empirically shown to lead to better performance. 
 
 This is one of several cases in RL where the theoretically optimal procedure differs from the best practical implementation.
+
+# Policy Optimization with a Model
+
+In this section, we'll explore how incorporating a model of the dynamics can help us design better policy gradient estimators. Let's begin with a pure model-free approach that uses a critic to maximize a deterministic policy:
+
+$$
+J(\boldsymbol{w}) = \mathbb{E}_{s\sim\rho}[Q(s,d(s;\boldsymbol{w}))], \enspace \nabla_{\boldsymbol{w}} J(\boldsymbol{w}) = \mathbb{E}_{s\sim\rho}[\nabla_a Q(s,a)|_{a=d(s;\boldsymbol{w})} \nabla_{\boldsymbol{w}} d(s;\boldsymbol{w})]
+$$
+
+Using the recursive structure of the Bellman equations, we can unroll our objective one step ahead:
+
+$$
+J(\boldsymbol{w}) = \mathbb{E}_{s\sim\rho}[r(s,d(s;\boldsymbol{w})) + \gamma\mathbb{E}_{s'\sim p(\cdot|s,d(s;\boldsymbol{w}))}[Q(s',d(s';\boldsymbol{w}))]],
+$$
+
+To differentiate this objective, we need access to both a model of the dynamics and the reward function, as shown in the following expression:
+
+$$
+\nabla_{\boldsymbol{w}} J(\boldsymbol{w}) = \mathbb{E}_{s\sim\rho}[\nabla_a r(s,a)|_{a=d(s;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s;\boldsymbol{w}) + 
+\gamma(\mathbb{E}_{s'\sim p(\cdot|s,d(s;\boldsymbol{w}))}[\nabla_a Q(s',a)|_{a=d(s';\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s';\boldsymbol{w})] + \\\nabla_{\boldsymbol{w}} d(s;\boldsymbol{w})\int_{s'} \nabla_a p(s'|s,a)|_{a=d(s;\boldsymbol{w})}Q(s',d(s';\boldsymbol{w}))ds')]
+$$
+
+While $\boldsymbol{w}$ doesn't appear in the outer expectation over initial states, it affects the inner expectation over next states—a distributional dependency. As a result, the product rule of calculus yields two terms: the first being an expectation, and the second being problematic for sample average estimation. However, we have tools to address this challenge: we can either apply the reparameterization trick to the dynamics or use score function estimators.
+
+For the reparameterization approach, assuming $s' = f(s,a,\xi;\boldsymbol{w})$ where $\xi$ is the noise variable:
+
+$$
+\begin{align*}
+J^{\text{DPMB-R}}(\boldsymbol{w}) &= \mathbb{E}_{s\sim\rho,\xi}[r(s,d(s;\boldsymbol{w})) + \gamma Q(f(s,d(s;\boldsymbol{w}),\xi),d(f(s,d(s;\boldsymbol{w}),\xi);\boldsymbol{w}))]\\
+\nabla_{\boldsymbol{w}} J^{\text{DPMB-R}}(\boldsymbol{w}) &= \mathbb{E}_{s\sim\rho,\xi}[\nabla_a r(s,a)|_{a=d(s;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s;\boldsymbol{w}) + \\
+&\gamma(\nabla_a Q(s',a)|_{a=d(s';\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s';\boldsymbol{w}) + 
+\nabla_{s'} Q(s',d(s';\boldsymbol{w}))\nabla_{\boldsymbol{w}} f(s,d(s;\boldsymbol{w}),\xi)\nabla_{\boldsymbol{w}} d(s;\boldsymbol{w}))]
+\end{align*}
+$$
+
+As for the score function approach:
+
+$$
+\begin{align*}
+\nabla_{\boldsymbol{w}} J^{\text{DPMB-SF}}(\boldsymbol{w}) = \mathbb{E}_{s\sim\rho}[&\nabla_a r(s,a)|_{a=d(s;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s;\boldsymbol{w}) + \\
+&\gamma\mathbb{E}_{s'\sim p(\cdot|s,d(s;\boldsymbol{w}))}[\nabla_{\boldsymbol{w}} \log p(s'|s,d(s;\boldsymbol{w}))Q(s',d(s';\boldsymbol{w})) + \nabla_a Q(s',a)|_{a=d(s';\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s';\boldsymbol{w})]]
+\end{align*}
+$$
+
+We've now developed a hybrid algorithm that combines model-based and model-free approaches while integrating derivative estimators for stochastic dynamics with a deterministic policy parameterization. While this hybrid estimator remains relatively unexplored in practice, it could prove valuable for systems with specific structural properties.
+
+Consider a robotics scenario with hybrid continuous-discrete dynamics: a robotic arm operates in continuous space but interacts with discrete object states. While the arm's policy remains differentiable ($\nabla_{\boldsymbol{w}} d$), the object state transitions follow categorical distributions. In this case, reparameterization becomes impractical, but the score function approach is viable if we can compute $\nabla_{\boldsymbol{w}} \log p(s'|s,d(s;\boldsymbol{w}))$ from the known transition model. Similar structures arise in manufacturing processes, where machine actions might be continuous and differentiable, but material state transitions often follow discrete steps with known probabilities. Note that both approaches require knowledge of transition probabilities and won't work with pure black-box simulators or systems where we can only sample transitions without probability estimates.
+
+Another dimension to explore in our algorithm design is the number of steps we wish to unroll our model. This allows us to better understand and control the bias-variance tradeoffs in our methods.
+
+## Backpropagation Policy Optimization
+
+The questions of derivative estimators only arise with stochastic dynamics. For systems with deterministic dynamics and a deterministic policy, the one-step gradient unroll simplifies to:
+
+$$
+\begin{align*}
+\nabla_{\boldsymbol{w}} J(\boldsymbol{w}) = &\mathbb{E}_{s\sim\rho}[\nabla_a r(s,a)|_{a=d(s;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s;\boldsymbol{w}) + \\
+&\gamma(\nabla_a Q(s',a)|_{a=d(s';\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s';\boldsymbol{w}) + 
+\nabla_{\boldsymbol{w}} d(s;\boldsymbol{w})\nabla_a f(s,a)|_{a=d(s;\boldsymbol{w})}\nabla_{s'} Q(s',d(s';\boldsymbol{w})))]
+\end{align*}
+$$
+
+where $s' = f(s,d(s;\boldsymbol{w}))$ is the deterministic next state. Notice the resemblance between this expression and that obtained for $\nabla_{\boldsymbol{w}} J^{\text{DPMB-R}}$ above. They are essentially the same except that in the reparameterized case, the dynamics have made the dependence on the noise variable explicit and the outer expectation has been updated accordingly. This similarity arises because differentiation through reparameterized dynamics models is, in essence, backpropagation: it tracks the propagation of perturbations through a computation graph—which we refer to as a stochastic computation graph in this setting.
+
+Still under this simplified setting with deterministic policies and dynamics, we can extend the expression for the gradient through n-steps of model unroll, leading to:
+
+
+$$
+\begin{align*}
+\nabla_{\boldsymbol{w}} J(\boldsymbol{w}) = &\mathbb{E}_{s\sim\rho}[\sum_{t=0}^{n-1} \gamma^t(\nabla_a r(s_t,a_t)|_{a_t=d(s_t;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s_t;\boldsymbol{w}) + \nabla_{s_t} r(s_t,d(s_t;\boldsymbol{w}))\nabla_{\boldsymbol{w}} s_t) + \\
+&\gamma^n(\nabla_a Q(s_n,a)|_{a=d(s_n;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s_n;\boldsymbol{w}) + \nabla_{s_n} Q(s_n,d(s_n;\boldsymbol{w}))\nabla_{\boldsymbol{w}} s_n)]
+\end{align*}
+$$
+
+where $s_{t+1} = f(s_t,d(s_t;\boldsymbol{w}))$ for $t=0,\ldots,n-1$, $s_0=s$, and $\nabla_{\boldsymbol{w}} s_t$ follows the recursive relationship:
+
+$$
+\nabla_{\boldsymbol{w}} s_{t+1} = \nabla_a f(s_t,a)|_{a=d(s_t;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s_t;\boldsymbol{w}) + \nabla_s f(s_t,d(s_t;\boldsymbol{w}))\nabla_{\boldsymbol{w}} s_t
+$$
+
+with base case $\nabla_{\boldsymbol{w}} s_0 = 0$ since the initial state does not depend on the policy parameters.
+
+At both ends of the spectrum, we have that for n=0, we fall back to the pure critic NFQCA-like approach, and for $n=\infty$, we don't bootstrap at all and are fully model-based without a critic. The pure model-based critic-free approach to optimization is what we may refer to as a backpropagation-based policy optimization (BPO).
+
+But just as backpropagation through RNNs or very deep networks can be challenging due to exploding and vanishing gradients, "vanilla" Backpropagation Policy Optimization (BPO) without a critic can severely suffer from the curse of horizon. This is because it essentially implements single shooting optimization. Using a critic can be an effective remedy to this problem, allowing us to better control the bias-variance tradeoff while preserving gradient information that would be lost with a more drastic truncated backpropagation approach.
+
+
+## Stochastic Value Gradient (SVG)
+
+The stochastic value gradient framework of Heess (2015) applies the recipe for policy optimization with a model using reparameterized dynamics and action selection via randomized policies. In this setting, the stochastic policy model based reparameterized estimator over n steps is
+
+$$
+\begin{align*}
+J^{\text{SPMB-R-N}}(\boldsymbol{w}) &= \mathbb{E}_{s\sim\rho,\{\epsilon_i\}_{i=0}^{n-1},\{\xi_i\}_{i=0}^{n-1}}[\sum_{i=0}^{n-1} \gamma^i r(s_i,d(s_i,\epsilon_i;\boldsymbol{w})) + \gamma^n Q(s_n,d(s_n,\epsilon_n;\boldsymbol{w}))]
+\end{align*}
+$$
+
+where $s_0 = s$ and for $i \geq 0$, $s_{i+1} = f(s_i,d(s_i,\epsilon_i;\boldsymbol{w}),\xi_i)$. The gradient becomes:
+
+$$
+\begin{align*}
+\nabla_{\boldsymbol{w}} J^{\text{SPMB-R-N}}(\boldsymbol{w}) &= \mathbb{E}_{s\sim\rho,\{\epsilon_i\}_{i=0}^{n-1},\{\xi_i\}_{i=0}^{n-1}}[\sum_{i=0}^{n-1} \gamma^i \left(\nabla_a r(s_i,a)|_{a=d(s_i,\epsilon_i;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s_i,\epsilon_i;\boldsymbol{w}) + \nabla_{s_i} r(s_i,d(s_i,\epsilon_i;\boldsymbol{w}))\nabla_{\boldsymbol{w}} s_i\right) \enspace + \\
+&\qquad \gamma^n(\nabla_a Q(s_n,a)|_{a=d(s_n,\epsilon_n;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s_n,\epsilon_n;\boldsymbol{w}) + \nabla_{s_n} Q(s_n,d(s_n,\epsilon_n;\boldsymbol{w}))\nabla_{\boldsymbol{w}} s_n)]
+\end{align*}
+$$
+
+where $\nabla_{\boldsymbol{w}} s_0 = 0$ and for $i \geq 0$:
+
+$$\nabla_{\boldsymbol{w}} s_{i+1} = \nabla_a f(s_i,a,\xi_i)|_{a=d(s_i,\epsilon_i;\boldsymbol{w})}\nabla_{\boldsymbol{w}} d(s_i,\epsilon_i;\boldsymbol{w}) + \nabla_{s_i} f(s_i,d(s_i,\epsilon_i;\boldsymbol{w}),\xi_i)\nabla_{\boldsymbol{w}} s_i$$
+
+While we could implement this expression for the gradient ourselves, this approach is much easier, less error-prone, and most likely better optimized for performance when using automatic differentiation. Given  a set of rollouts (for which we know the primitive noise variables), then we can compute the monte carlo objective: 
+
+$$\hat{J}^{\text{SPMB-R-N}}(\boldsymbol{w}) = \frac{1}{M}\sum_{m=1}^M [\sum_{i=0}^{n-1} \gamma^i r(s_i^m,d(s_i^m,\epsilon_i^m;\boldsymbol{w})) + \gamma^n Q(s_n^m,d(s_n^m,\epsilon_n^m;\boldsymbol{w}))]$$
+
+where the states are generated recursively using the known noise variables: starting with initial state $s_0^m$, each subsequent state is computed as $s_{i+1}^m = f(s_i^m,d(s_i^m,\epsilon_i^m;\boldsymbol{w}),\xi_i^m)$. Thus,  a trajectory is completely determined by just the sequence of noise variables:$(\epsilon_0^m, \xi_0^m, \epsilon_1^m, \xi_1^m, ..., \epsilon_{n-1}^m, \xi_{n-1}^m, \epsilon_n^m)$ where $\epsilon_i^m$ are the action noise variables and $\xi_i^m$ are the dynamics noise variables. 
+
+The choice of unroll steps $n$ gives us precise control over the balance between model-based and critic-based components in our gradient estimator. At one extreme, setting $n = 0$ yields a purely model-free algorithm known as SVG(0) (Heess et al., 2015), which relies entirely on the critic for value estimation:
+
+$$
+\hat{J}^{\text{SPMB-R-0}}(\boldsymbol{w}) = \frac{1}{M}\sum_{m=1}^M Q(s_0^m,d(s_0^m,\epsilon_0^m;\boldsymbol{w}))
+$$
+
+At the other extreme, as $n \to \infty$, we can drop the critic term (since $\gamma^n Q \to 0$) to obtain a purely model-based algorithm, SVG(∞):
+
+$$
+\hat{J}^{\text{SPMB-R-$\infty$}}(\boldsymbol{w}) = \frac{1}{M}\sum_{m=1}^M \sum_{i=0}^{\infty} \gamma^i r(s_i^m,d(s_i^m,\epsilon_i^m;\boldsymbol{w}))
+$$
+
+In the 2015 paper, the authors make a specific choice to reparameterize both the dynamics and action selections using normal distributions. For the policy, they use:
+
+$$
+a_t = d(s_t;\boldsymbol{w}) + \sigma(s_t;\boldsymbol{w})\epsilon_t, \quad \epsilon_t \sim \mathcal{N}(0,I)
+$$
+
+where $d(s_t;\boldsymbol{w})$ predicts the mean action and $\sigma(s_t;\boldsymbol{w})$ predicts the standard deviation. For the dynamics:
+
+$$
+s_{t+1} = \mu(s_t,a_t;\boldsymbol{\phi}) + \Sigma(s_t,a_t;\boldsymbol{\phi})\xi_t, \quad \xi_t \sim \mathcal{N}(0,I)
+$$
+
+where $\mu(s_t,a_t;\boldsymbol{\phi})$ predicts the mean next state and $\Sigma(s_t,a_t;\boldsymbol{\phi})$ predicts the covariance matrix.
+
+Under this reparameterization, the n-step surrogate loss becomes:
+
+$$
+\begin{align*}
+\hat{J}^{\text{SPMB-R-n}}(\boldsymbol{w}) = \frac{1}{M}&\sum_{m=1}^M [\sum_{t=0}^{n-1} \gamma^t r(s_t^m(\boldsymbol{w}),d(s_t^m(\boldsymbol{w});\boldsymbol{w}) + \sigma(s_t^m(\boldsymbol{w});\boldsymbol{w})\epsilon_t^m) + \\
+&\gamma^n Q(s_n^m(\boldsymbol{w}),d(s_n^m(\boldsymbol{w});\boldsymbol{w}) + \sigma(s_n^m(\boldsymbol{w});\boldsymbol{w})\epsilon_n^m)]
+\end{align*}
+$$
+
+where:
+$$
+s_{t+1}^m(\boldsymbol{w}) = \mu(s_t^m(\boldsymbol{w}),d(s_t^m(\boldsymbol{w});\boldsymbol{w}) + \sigma(s_t^m(\boldsymbol{w});\boldsymbol{w})\epsilon_t^m;\boldsymbol{\phi}) + \Sigma(s_t^m(\boldsymbol{w}),a_t^m(\boldsymbol{w});\boldsymbol{\phi})\xi_t^m
+$$
+
+```{prf:algorithm} Stochastic Value Gradients (SVG) Infinity (automatic differentiation)
+:label: svg_autodiff
+
+**Input** Initial state distribution $\rho_0(s)$, policy networks $d(s;\boldsymbol{w})$ and $\sigma(s;\boldsymbol{w})$, dynamics model networks $\mu(s,a;\boldsymbol{\phi})$ and $\Sigma(s,a;\boldsymbol{\phi})$, reward function $r(s,a)$, rollout horizon $T$, learning rate $\alpha_w$, batch size $N$
+
+**Initialize**
+1. Policy parameters $\boldsymbol{w}_0$ randomly
+2. $n \leftarrow 0$
+
+3. **while** not converged:
+   1. Sample batch of $N$ initial states $s_0^i \sim \rho_0(s)$
+   2. Sample noise sequences $\epsilon_{0:T}^i, \xi_{0:T}^i \sim \mathcal{N}(0,I)$ for $i=1,\ldots,N$
+   3. Compute objective using autodiff-enabled computation graph:
+       1. For each $i=1,\ldots,N$:
+           1. Initialize $s_0^i(\boldsymbol{w}) = s_0^i$
+           2. For $t=0$ to $T$:
+               1. $a_t^i(\boldsymbol{w}) = d(s_t^i(\boldsymbol{w});\boldsymbol{w}) + \sigma(s_t^i(\boldsymbol{w});\boldsymbol{w})\epsilon_t^i$
+               2. $s_{t+1}^i(\boldsymbol{w}) = \mu(s_t^i(\boldsymbol{w}),a_t^i(\boldsymbol{w});\boldsymbol{\phi}) + \Sigma(s_t^i(\boldsymbol{w}),a_t^i(\boldsymbol{w});\boldsymbol{\phi})\xi_t^i$
+       2. $J(\boldsymbol{w}) = \frac{1}{N}\sum_{i=1}^N \sum_{t=0}^T \gamma^t r(s_t^i(\boldsymbol{w}),a_t^i(\boldsymbol{w}))$
+   4. Compute gradient using autodiff: $\nabla_{\boldsymbol{w}}J$
+   5. Update policy: $\boldsymbol{w}_{n+1} \leftarrow \boldsymbol{w}_n + \alpha_w \nabla_{\boldsymbol{w}}J$
+   6. $n \leftarrow n + 1$
+   
+**return** $\boldsymbol{w}_n$
+```
+## Noise Inference in SVG
+
+The method we've presented so far assumes we have direct access to the noise variables $\epsilon$ and $\xi$ used to generate trajectories. This works well in the on-policy setting where we generate our own data. However, in off-policy scenarios where we receive externally generated trajectories, we need to infer these noise variables—a process the authors call noise inference.
+
+For the Gaussian case discussed above, this inference is straightforward. Given an observed scalar action $a_t$ and the current policy parameters $\boldsymbol{w}$, we can recover the action noise $\epsilon_t$ through inverse reparameterization:
+
+$$
+\epsilon_t = \frac{a_t - d(s_t;\boldsymbol{w})}{\sigma(s_t;\boldsymbol{w})}
+$$
+
+Similarly, for the dynamics noise where states are typically vector-valued:
+
+$$
+\xi_t = \Sigma(s_t,a_t;\boldsymbol{\phi})^{-1}(s_{t+1} - \mu(s_t,a_t;\boldsymbol{\phi}))
+$$
+
+This simple inversion is possible because the Gaussian reparameterization is an affine transformation, which is invertible as long as $\sigma(s_t;\boldsymbol{w})$ is non-zero for scalar actions and $\Sigma(s_t,a_t;\boldsymbol{\phi})$ is full rank for vector-valued states. The same principle extends naturally to vector-valued actions, where $\sigma$ would be replaced by a full covariance matrix.
+
+More generally, this idea of invertible transformations can be extended far beyond simple Gaussian reparameterization. We could consider a sequence of invertible transformations:
+
+$$
+z_0 \sim \mathcal{N}(0,I) \xrightarrow{f_1} z_1 \xrightarrow{f_2} z_2 \xrightarrow{f_3} \cdots \xrightarrow{f_K} z_K = a_t
+$$
+
+where each $f_k$ is an invertible neural network layer. The forward process can be written compactly as:
+
+$$
+a_t = (f_K \circ f_{K-1} \circ \cdots \circ f_1)(z_0;\boldsymbol{w})
+$$
+
+This is precisely the idea behind normalizing flows: a series of invertible transformations that can transform a simple base distribution (like a standard normal) into a complex target distribution while maintaining exact invertibility.
+
+The noise inference in this case would involve applying the inverse transformations:
+
+$$
+z_0 = (f_1^{-1} \circ \cdots \circ f_K^{-1})(a_t;\boldsymbol{w})
+$$
+
+This approach offers several advantages:
+1. More expressive policies and dynamics models capable of capturing multimodal distributions
+2. Exact likelihood computation through the change of variables formula (can be useful for computing the log prob terms in entropy regularization for example)
+3. Precise noise inference through the guaranteed invertibility of the flow
+
+As far as I know, this approach has not been explored in the literature. 
+
+## DPG as a Special Case of SAC 
+
+At first glance, SAC and DPG might appear to be fundamentally different approaches to policy optimization. SAC begins with the principle of entropy maximization and policy distribution matching through KL divergence minimization, while DPG directly optimizes a deterministic policy to maximize expected Q-values. However, we can show that DPG emerges as a special case of SAC as we take the temperature parameter to zero.
+
+```{prf:proposition} Convergence of SAC to DPG 
+Let $d(\cdot|s;\boldsymbol{w}_\alpha)$ be the optimal stochastic policy for SAC with temperature $\alpha$, and $d(s;\boldsymbol{w}_{DPG})$ be the optimal deterministic policy gradient solution. Under appropriate assumptions, as $\alpha \to 0$:
+
+$$
+d(a|s;\boldsymbol{w}_\alpha) \to \delta(a - d(s;\boldsymbol{w}_{DPG}))
+$$
+
+**Assumptions:**
+1. The stochastic policy class is Gaussian with learnable mean and standard deviation:
+
+   $$
+   d(a|s;\boldsymbol{w}) = \mathcal{N}(\mu_w(s), \sigma_w(s)^2)
+   $$
+
+2. The SAC objective for policy improvement uses the soft Q-function:
+
+   $$
+   \boldsymbol{w}^*_\alpha = \arg\min_w \mathbb{E}_{s\sim\rho}\left[D_{KL}\left(d(\cdot|s;\boldsymbol{w}) \| \frac{\exp(Q_{soft}(s,\cdot)/\alpha)}{\int \exp(Q_{soft}(s,b)/\alpha)db}\right)\right]
+   $$
+   where $Q_{soft}$ follows the soft Bellman equation:
+
+   $$
+   Q_{soft}(s,a) = r(s,a) + \gamma \mathbb{E}_{s' \sim P}\left[\mathbb{E}_{a' \sim d(\cdot|s')}\left[Q_{soft}(s',a') - \alpha \log d(a'|s')\right]\right]
+   $$
+
+3. The DPG objective with a deterministic policy uses the standard Q-function:
+
+   $$
+   \boldsymbol{w}^*_{DPG} = \arg\max_w \mathbb{E}_{s\sim\rho}\left[Q(s,d(s;\boldsymbol{w}))\right]
+   $$
+   where $Q$ follows the standard Bellman equation:
+
+   $$
+   Q(s,a) = r(s,a) + \gamma \mathbb{E}_{s' \sim P}[Q(s',d(s';\boldsymbol{w}))]
+   $$
+
+4. $Q_{soft}(s,a)$ and $Q(s,a)$ are continuous and achieve their maxima for each state $s$.
+```
+
+````{prf:proof}
+At the fixed point of the soft Bellman equation, as $\alpha \to 0$, the entropy term $-\alpha \log d(a|s)$ vanishes, and $Q_{soft} \to Q$. This implies that the SAC target distribution, which is proportional to $\exp(Q_{soft}(s,a)/\alpha)$, becomes:
+
+$$
+\lim_{\alpha \to 0} \frac{\exp(Q(s,a)/\alpha)}{\int \exp(Q(s,b)/\alpha) db} = \delta(a - \arg\max_a Q(s,a)),
+$$
+by Laplace's method. The target distribution thus collapses to a delta function centered at the deterministic optimal action $\arg\max_a Q(s,a)$.
+
+The KL divergence term in the SAC objective measures the divergence between the stochastic policy $d(a|s;\boldsymbol{w})$ (Gaussian) and this target distribution. For a Gaussian $\mathcal{N}(\mu, \sigma^2)$ and a delta function $\delta(a - a^*)$, we derive:
+
+$$
+D_{KL}(\mathcal{N}(\mu, \sigma^2) \| \delta(a - a^*)) = \lim_{\epsilon \to 0} D_{KL}(\mathcal{N}(\mu, \sigma^2) \| \mathcal{N}(a^*, \epsilon^2)),
+$$
+where $\mathcal{N}(a^*, \epsilon^2)$ is a Gaussian approximation of the delta. Using the KL formula:
+
+$$
+D_{KL} = \frac{1}{2}\left[\log\left(\frac{\epsilon^2}{\sigma^2}\right) + \frac{\sigma^2}{\epsilon^2} + \frac{(\mu - a^*)^2}{\epsilon^2} - 1\right].
+$$
+
+Taking the limit $\epsilon \to 0$, the divergence diverges unless $\mu = a^*$ and $\sigma = 0$, where it becomes zero. Thus, minimizing the SAC objective drives $\mu_w(s) \to \arg\max_a Q(s,a)$ and $\sigma_w(s) \to 0$.
+
+Consequently, the stochastic policy converges to a delta function:
+
+$$
+\lim_{\alpha \to 0} d(a|s;\boldsymbol{w}^*_\alpha) = \delta(a - \arg\max_a Q(s,a)) = \delta(a - d(s;\boldsymbol{w}^*_{DPG})).
+$$
+
+````
+
+# Policy Optimization with a Trust Region 
+
+Trust region methods in optimization approximate the objective function with a simpler local model within a region where we "trust" this approximation to be good. This brings about the need to define what we mean by a local region, and therefore to pick a geometry which suits our problem. 
+
+In standard optimization in the Euclidean space on $\mathbb{R}^n$, at each iteration $k$, we create a quadratic approximation around the current point $x_k$:
+
+$$
+m_k(p) = f(x_k) + g_k^T p + \frac{1}{2}p^T B_k p
+$$
+
+where $g_k = \nabla f(x_k)$ is the gradient and $B_k$ approximates the Hessian. The trust region constrains updates using Euclidean distance:
+
+$$
+\min_p m_k(p) \text{ subject to } \|p\| \leq \Delta_k
+$$
+
+However, when optimizing over probability distributions $p(x;\theta)$, the Euclidean geometry becomes unnatural. Instead, the Kullback-Leibler divergence provides a more natural mean of measuring proximity:
+
+$$
+D_{KL}(p(x;\theta) || p(x;\theta_k)) = \int p(x;\theta) \log\left(\frac{p(x;\theta)}{p(x;\theta_k)}\right)dx
+$$
+
+This leads to the following trust region subproblem:
+
+$$
+\min_\theta m_k(\theta) \text{ subject to } D_{KL}(p(x;\theta) || p(x;\theta_k)) \leq \Delta_k
+$$
+
+For exponential families, the KL divergence locally reduces to a quadratic form involving the Fisher Information Matrix $I(\theta_k)$:
+
+$$
+D_{KL}(p(x;\theta) || p(x;\theta_k)) \approx \frac{1}{2}(\theta - \theta_k)^T I(\theta_k)(\theta - \theta_k)
+$$
+
+In both cases, after solving for the step, we evaluate the actual versus predicted reduction ratio:
+
+$$
+\rho_k = \frac{f(x_k) - f(x_k + p)}{m_k(0) - m_k(p)}
+$$
+
+This ratio determines both step acceptance and trust region adjustment:
+
+$$
+\Delta_{k+1} = \begin{cases}
+\alpha_1 \Delta_k & \text{if } \rho_k < \eta_1 \text{ (poor prediction)} \\
+\Delta_k & \text{if } \eta_1 \leq \rho_k < \eta_2 \text{ (acceptable)} \\
+\alpha_2 \Delta_k & \text{if } \rho_k \geq \eta_2 \text{ (very good)}
+\end{cases}
+$$
+
+The method accepts steps when the model prediction is sufficiently accurate:
+
+$$
+x_{k+1} = \begin{cases}
+x_k + p & \text{if } \rho_k > \eta_1 \\
+x_k & \text{otherwise}
+\end{cases}
+$$
