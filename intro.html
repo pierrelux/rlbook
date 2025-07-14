@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Introduction &#8212; Practical Reinforcement Learning: From Algorithms to Applications</title>
+    <title>Why This Book? &#8212; Practical Reinforcement Learning: From Algorithms to Applications</title>
   
   
   
@@ -16,22 +16,20 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
-  <!-- 
-    this give us a css class that will be invisible only if js is disabled 
-  -->
-  <noscript>
-    <style>
-      .pst-js-only { display: none !important; }
-
-    </style>
-  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
     <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
@@ -40,11 +38,10 @@
     <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
   
-  <!-- So that users can add custom icons -->
-  <script src="_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
     <script src="_static/documentation_options.js?v=9eb32ce0"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
@@ -70,7 +67,6 @@
     <link rel="next" title="1. Discrete-Time Trajectory Optimization" href="ocp.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="" />
   </head>
   
   
@@ -86,8 +82,19 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <dialog id="pst-search-dialog">
-    
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
 <form class="bd-search d-flex align-items-center"
       action="search.html"
       method="get">
@@ -95,6 +102,7 @@
   <input type="search"
          class="form-control"
          name="q"
+         id="search-input"
          placeholder="Search this book..."
          aria-label="Search this book..."
          autocomplete="off"
@@ -102,8 +110,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form>
-  </dialog>
+</form></div>
+  </div>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -121,8 +129,7 @@
       
         
       
-      <dialog id="pst-primary-sidebar-modal"></dialog>
-      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+      <div class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -152,18 +159,22 @@
 </a></div>
         <div class="sidebar-primary-item">
 
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button></div>
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         
         <ul class="nav bd-sidenav bd-sidenav__home-link">
             <li class="toctree-l1 current active">
                 <a class="reference internal" href="#">
-                    Introduction
+                    Why This Book?
                 </a>
             </li>
         </ul>
@@ -366,16 +377,24 @@
 
 
 
-<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
-  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
-  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
-  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
-</button>
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
 
 
-<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
-</button>
+  </button>
+`);
+</script>
 <button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <span class="fa-solid fa-list"></span>
 </button>
@@ -389,7 +408,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Introduction</h1>
+    <h1>Why This Book?</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -399,11 +418,10 @@
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-reinforcement-learning-problem">The Reinforcement Learning Problem</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#from-imitation-to-optimization">From Imitation to Optimization</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#challenges-in-problem-specification">Challenges in Problem Specification</a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-problem-are-we-solving">What Problem Are We Solving?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-does-it-mean-to-model-a-decision-problem">What Does It Mean to Model a Decision Problem?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-from-humans">Learning From Humans</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-path-forward">The Path Forward</a></li>
 </ul>
             </nav>
         </div>
@@ -415,27 +433,99 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="introduction">
-<h1>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">#</a></h1>
-<p>In contemporary RL research, there is often a focus on “solving” benchmark problems, sometimes at the expense of properly formulating them in the first place. This has led to a gap between the potential of RL as a powerful tool for addressing real-world challenges and its current role as an idealized theoretical model of human intelligence. The difficulty in formulating RL or control problems has been recognized in various fields. For example, <span id="id1">Iskhakov <em>et al.</em> [<a class="reference internal" href="bibliography.html#id7" title="Fedor Iskhakov, John Rust, and Bertel Schjerning. Machine learning and structural econometrics: contrasts and synergies. The Econometrics Journal, 23(3):S81–S124, August 2020. URL: http://dx.doi.org/10.1093/ectj/utaa019, doi:10.1093/ectj/utaa019.">22</a>]</span> describe the “daunting problem” hindering the broader adoption of decision-making algorithms in econometrics as “the difficulty of learning about the objective function and environment facing real-world decision-makers.” This course suggests that these challenges can be addressed by taking a more flexible approach – building a diverse set of tools to better formulate and solve these problems. Just as understanding others’ objectives requires an open mind, tackling real-world RL problems calls for adaptable methods.</p>
-<p>The crux of the problem here is not about the theoretical expressiveness of one framework over another, but rather a deeply human challenge: communication. It’s about knowing how to translate complex problems into mathematical formulations and then into executable, societally beneficial code.</p>
-<p>Outside academia, many challenges arise beyond just choosing an RL algorithm. These include defining time units (discrete, continuous, start points, durations), identifying states, determining actions, and understanding how these evolve over time. Setting the right objectives for a system is especially difficult, as real-world systems that interact with humans must account for preferences, values, and judgments that even domain experts find hard to articulate.</p>
-<p>While most presentations of RL emphasize the trial-and-error approach popularized by Sutton and Barto, this course aims to provide a broader perspective on the diverse tools and approaches that can help tackle RL problems effectively in practice. This perspective enables us to incorporate a variety of techniques, including optimal control, system identification methods, and ideas from simulation, alongside the usual tools of temporal difference learning.</p>
-<section id="the-reinforcement-learning-problem">
-<h2>The Reinforcement Learning Problem<a class="headerlink" href="#the-reinforcement-learning-problem" title="Link to this heading">#</a></h2>
-<p>Reinforcement learning (RL) addresses the problem of making good decisions based on experience (data), inspired by animal psychology and early AI research in the 1980s. The broader topic of sequential decision-making gained prominence during and after World War II, driven by advancements in ballistics, aerospace, and resource planning. These developments laid the groundwork for several research disciplines, such as control theory and operations research (OR). Although not explicitly referred to as “learning,” both fields have incorporated learning concepts through adaptation (influenced by Wiener’s cybernetics) and system identification.</p>
-<p>But what is learning, after all? While it’s challenging to define learning perfectly, it fundamentally involves data—measurements of some phenomenon of interest. However, data alone is insufficient; we must use it to improve the quality of our decisions, or in other words, to adapt. Supervised learning, the main form of machine learning in our everyday lives, involves data and the process of adapting the model’s parameters. The question then arises: How can we frame the problem of learning to make good decisions from data as a supervised learning problem?</p>
-<section id="from-imitation-to-optimization">
-<h3>From Imitation to Optimization<a class="headerlink" href="#from-imitation-to-optimization" title="Link to this heading">#</a></h3>
-<p>One method is to collect demonstrations from experts showing the appropriate actions in various situations. Using supervised learning, we would hope that our model generalizes to unseen situations. This approach, known as imitation learning (IL), faces two main challenges: the availability of high-quality data and sufficient data coverage. Often, we want to develop an RL system because we either don’t know how to solve the problem well enough to provide demonstrations or aim to outperform the available demonstrations (superhuman AI).</p>
-<p>When expert demonstrations are unavailable or inadequate, we take a different approach. Instead of requiring input-output pairs for imitation, we ask the system designer to provide a description of what they want to achieve through a mathematical function, usually a sum of costs or rewards, and a description of the “laws of the world” by which this objective can be achieved (the dynamics). The underlying assumption is that deriving good decisions from this description is easier than directly using IL. In this sense, choosing between demonstrations or reward/dynamics pairs is like specifying a “basis” for generating new and better ways of acting.</p>
+  <section class="tex2jax_ignore mathjax_ignore" id="why-this-book">
+<h1>Why This Book?<a class="headerlink" href="#why-this-book" title="Link to this heading">#</a></h1>
+<p>Reinforcement learning often captures headlines with dramatic feats: AlphaGo defeating world champions, agents mastering Atari, chatbots engaging millions in conversation. Yet despite these accomplishments, RL’s real-world impact on decision-making remains surprisingly limited.</p>
+<p>As <span id="id1">Iskhakov <em>et al.</em> [<a class="reference internal" href="bibliography.html#id7" title="Fedor Iskhakov, John Rust, and Bertel Schjerning. Machine learning and structural econometrics: contrasts and synergies. The Econometrics Journal, 23(3):S81–S124, August 2020. URL: http://dx.doi.org/10.1093/ectj/utaa019, doi:10.1093/ectj/utaa019.">24</a>]</span> observed in econometrics, the “daunting problem” hindering the broader adoption of decision-making algorithms is:</p>
+<blockquote>
+<div><p><em>“The difficulty of learning about the objective function and environment facing real-world decision-makers.”</em></p>
+</div></blockquote>
+<p>In RL, this same difficulty often goes unaddressed. There is a tendency to focus on solving benchmark tasks, sometimes without fully confronting the question of whether the problem itself has been well posed. As a result, we risk treating RL less as a tool for tackling real-world challenges and more as an idealized model of intelligence in controlled settings.</p>
+<p>That gap is where this book begins.</p>
+<p>It’s easy to build agents that succeed in artificial environments with well-defined rules and carefully shaped rewards. It’s much harder to design systems that support better decisions in real-world contexts: messy, constrained, and often high-stakes. And the difficulty usually has little to do with the algorithm itself.</p>
+<p>I didn’t fully understand this as a PhD student. Like many of us trained in machine learning, I focused on the agent side of the RL setup: tuning models, benchmarking algorithms, chasing leaderboard scores. I never touched the environment. I never defined the problem. That part was invisible, assumed, or treated as someone else’s responsibility.</p>
+<p>Modeling was seen as something to abstract away. We were taught to value elegance through abstraction, and looking beyond the Gym API felt like breaking the rules—introducing complications where there should be cleanliness.</p>
+<p>It took experience outside of academia to realize how much of the hard work happens before choosing an algorithm.</p>
+<p>While working as a consultant, I finally experienced the other side of the interface. I was no longer tweaking a policy. I was shaping the problem itself. The sensors were noisy, constraints were real, and objectives were vague or contradictory. The system needed to make decisions quickly, with partial information and conflicting goals.</p>
+<p>That’s when John Rust’s words truly resonated:</p>
+<blockquote>
+<div><p><em>“The range of known real-world applications of Dynamic Programming seems disappointingly small, given the immense computer power and the decades of research that have produced a myriad of alternative solution methods for DP problems.”</em></p>
+</div></blockquote>
+<p>We do have powerful tools. The bottleneck lies earlier in the process.</p>
+<p>Rust continues:</p>
+<blockquote>
+<div><p><em>“I believe the biggest constraint on progress is not limited computer power, but instead the <strong>difficulty of learning the underlying structure</strong> of the decision problem.”</em></p>
+</div></blockquote>
+<p>Before we can solve a problem, we have to understand what the problem is. That means identifying objectives, actions, constraints, and the flow of information. What’s observable? What’s controllable? What matters? These aren’t secondary concerns. They are the problem.</p>
+<p>As Rust puts it:</p>
+<blockquote>
+<div><p><em>“Calculating an optimal solution to the wrong objective, or misspecifying the constraints and opportunities the actor actually confronts, may not result in helpful advice to the actor. <strong>It is like providing the right answer to the wrong question.</strong>”</em></p>
+</div></blockquote>
+<p>This is the heart of the issue. In academic RL, we often leap to reward functions and standard frameworks without spending enough time on the underlying formulation. We end up with elegant algorithms applied to poorly posed problems: solutions in search of a useful application.</p>
+<p>The challenge isn’t about expressiveness. It’s about translating vague intentions into precise formulations. What constitutes a state? What actions are feasible, and when? What time horizon is meaningful? How do we encode preferences when even the stakeholders disagree?</p>
+<p>That act of translation—from informal goals to formal decision problems—is where the real work lies. And it’s the focus of this book.</p>
+<section id="what-problem-are-we-solving">
+<h2>What Problem Are We Solving?<a class="headerlink" href="#what-problem-are-we-solving" title="Link to this heading">#</a></h2>
+<p>The term <em>reinforcement learning</em> gets used in many different ways. In the formal sense defined by <span id="id2">Sutton and Barto [<a class="reference internal" href="bibliography.html#id48" title="Richard S. Sutton and Andrew G. Barto. Reinforcement Learning: An Introduction. MIT Press, 2nd edition, 2018. ISBN 978-0262039246. URL: http://incompleteideas.net/book/the-book-2nd.html.">43</a>]</span>, RL is a problem: learning to act through interaction with an environment. But in common usage, RL can mean a family of algorithms, a research community, or even a long-term scientific agenda. For some, it’s part of an effort to “solve intelligence.” For others, it’s a toolbox for solving control problems with data.</p>
+<p>This book takes the latter view.</p>
+<p>We are not in the business of solving intelligence. Our concern is more immediate: helping systems make good decisions using the data they already produce. That means we treat RL not as an end in itself, but as a vocabulary for reasoning about decisions under uncertainty. When optimization, feedback, and data intersect, we’re in the territory of RL—whether we use temporal-difference learning, model-based planning, or simple policy rules. What unifies these approaches isn’t a specific algorithm, but a shared structure: decision-making through experience.</p>
+<p>Being clear about the problem matters. If the goal is to understand cognition, then abstraction and simulation are appropriate tools. But if the goal is to improve real-world systems—whether in energy, logistics, health, or agriculture—then the hard part isn’t choosing an algorithm. It’s defining the task. What are we optimizing? What constraints apply? What information is available, and when? These are modeling questions, and they sit upstream of any learning method.</p>
+<p>This book begins with the problem, not the solution. We take reinforcement learning seriously not as a brand of algorithms, but as a way of thinking about how decisions get better with data.</p>
+<p>In doing so, we take inspiration from Sutton’s philosophy, but also shift its emphasis. Sutton famously advises: <em>“Approximate the solution, not the problem.”</em> In his view, the RL agent should be shaped by experience, not by handcrafted structure or strong priors. That framing has led to a great deal of insight and elegant generality. But in real-world applications, the situation is often reversed: the problem itself is underspecified, and the main work lies in giving it shape. Before we can even begin to approximate a solution, we must first decide what the problem actually is.</p>
+<p>That’s where this book begins—not with the agent, but with the world it must reason about. Not with the function class, but with the feedback structure. In short: not just how to learn, but what it means to have something worth learning.</p>
 </section>
-<section id="challenges-in-problem-specification">
-<h3>Challenges in Problem Specification<a class="headerlink" href="#challenges-in-problem-specification" title="Link to this heading">#</a></h3>
-<p>Specifying objectives and dynamics can be complex. Consider dynamically adjusting temperature setpoints in a building to minimize energy usage while maintaining thermal comfort and adhering to equipment limitations. Thermal comfort preferences vary greatly among individuals and are influenced by factors like humidity, which sensors might not always capture accurately. Moreover, ensuring responsible deployment requires safeguards, as pushing close to equipment limits could disrupt service, damage trust, and impede user adoption. In practice, knowledge about controlling building HVAC systems is often held tacitly by experienced building managers, passed down through informal interactions and undocumented practices, posing a risk of knowledge loss with staff turnover. This challenge of understanding human decision-making preferences is also prevalent in other industries, such as water treatment plants, where operators must manage water outflow, turbidity, and pH levels under varying demands. These tasks require intricate, often tacit knowledge that encompasses forecasting, risk perception, and overall intuition about the system’s state.</p>
-<p>The difficulty of specifying what people want has given rise to the field of preference elicitation, which aims to infer optimal actions based on human preferences. In preference modeling, we seek to derive preferences from data, usually obtained through preference elicitation. This is also a learning problem closely related to supervised learning, but instead of directly representing the desired actions, we infer a preference ordering from the data. Preference data is typically collected in a pairwise manner, and under the Von Neumann theorem, these preferences can be preserved by their equivalent representation as a scalar utility function. This inferred utility function is the foundation of Reinforcement Learning from Human Feedback (RLHF), used in state-of-the-art Large Language Models (LLMs). Compared to IL, RLHF simplifies data collection as preferences are easier to obtain at scale than expert demonstrations. Additionally, RLHF allows for data reuse, as preference queries can be collected offline and relabeled later; correcting demonstrations post hoc is more challenging.</p>
-<p>Ultimately, whether we choose imitation learning, preference-based modeling, or direct modeling of objectives and dynamics depends on how easily we can express our intentions to a machine. This challenge of conveying human intents to computers can be seen as a human-computer interaction (HCI) problem. Throughout this course, the aim is to equip you with a range of tools to help you find the right approach for your problem by selecting or combining these techniques effectively.</p>
+<section id="what-does-it-mean-to-model-a-decision-problem">
+<h2>What Does It Mean to Model a Decision Problem?<a class="headerlink" href="#what-does-it-mean-to-model-a-decision-problem" title="Link to this heading">#</a></h2>
+<p>Modeling isn’t about feeding data into a black box. It’s about deciding what matters. It involves structuring a problem: defining objectives, specifying constraints, clarifying what’s observable, and determining how decisions unfold over time.</p>
+<p>Take an HVAC system. The goal might be “maximize comfort while minimizing energy.” But what does comfort mean? A fixed temperature? Acceptable humidity? Rate of change? Occupant preferences? Is comfort linearly traded against energy, or are there thresholds? And how do you ensure safety and respect equipment limitations?</p>
+<p>In irrigation, similar questions arise. Should irrigation be based on soil dryness, weather forecasts, plant health, or electricity prices? Should we water now or wait? How often should we revisit this choice? The answers depend on sensor availability, environmental dynamics, and risk tolerance.</p>
+<p>Even time plays a central role. Are we planning for the next few minutes, or the next growing season? Should we model time in discrete steps or continuously? These aren’t afterthoughts. They shape what’s learnable, controllable, and feasible.</p>
+<p>Real-world systems come with hard constraints: physical limits, budgets, safety regulations, human expectations. Ignoring them may simplify the math, but makes any solution irrelevant in practice. Good modeling incorporates these constraints from the beginning.</p>
+<p>This kind of modeling is what Operations Research (OR) has long emphasized. By the 1970s, the foundational theory of dynamic programming was already in place. Today’s OR community often focuses on solving concrete decision problems, drawing on tools like mixed-integer linear programming when appropriate.</p>
+<p>Through consulting, I came to appreciate OR’s pragmatism. My colleagues built decision-support systems connected to real-time data. In practice, they were doing reinforcement learning, just without Temporal Difference methods. They couldn’t rely on massive data streams. Instead, they had to wrestle directly with business logic, real-world variability, and engineering constraints.</p>
+<p>That doesn’t mean OR has all the answers, or that RL has been misguided. On the contrary, general-purpose solutions—even on toy problems—have advanced theory in meaningful ways. Simplified settings enable validation without full domain understanding: Did the pole balance? Did the agent reach the goal? Did it beat the Atari score? These abstractions follow good software engineering principles: separation of concerns, clear interfaces, and rapid iteration.</p>
+<p>But abstraction is only one part of the equation. It’s useful until it isn’t. A strong framework offers clarity at first, but eventually gets in the way—layering on complexity, edge cases, and configuration knobs. This mirrors the lifecycle of many software tools, where the initial elegance gives way to accumulated mess. I’ve come to treat modeling the same way: start small, surface the hard constraints early, and only add structure when it’s required by the data, physics, or policy context.</p>
+<p>We shouldn’t try to cram every control task into the discounted MDP format just because it’s the default interface. Instead, we should keep a lean toolbox and reach for what the problem demands. This mindset—start simple, avoid premature generality, don’t confuse abstraction with robustness—is well known to engineers. If that means choosing a basic model-predictive controller over a trendy RL library, or the reverse, so be it.</p>
+<p>Over time, this habit of zooming in when needed and zooming out when possible reshaped how I approached research. Once I started questioning the abstractions, I began to see what they were hiding.</p>
+<p>Peeling back the layers revealed dynamics not captured by benchmarks, constraints ignored by rewards, and theory that only emerged in contact with the real world. This convinced me that some of the most meaningful discoveries still lie beneath the surface.</p>
+<p>Reinforcement learning is a framework for learning to make decisions through experience. But experience is only useful if we’ve posed the right problem. Modeling determines not just <em>how</em> learning proceeds, but <em>what</em> we can learn at all.</p>
+<p>At first, this might sound easy—just specify a reward and let the agent learn. That’s the promise behind the “reward is enough” hypothesis. But in the real world, rewards aren’t handed to us. They must be constructed, inferred, or negotiated. And even when we manage that, rewards only express part of what matters. They don’t tell us what information is available, what tradeoffs are acceptable, or how to handle ambiguity, delay, or disagreement.</p>
+<p>In short, posing the right problem is itself a hard problem—and one for which we have few systematic tools.</p>
+<p>Often, the only place we can turn is to people. Domain experts act, react, and judge, even when they can’t explain their reasoning explicitly. Their preferences show up in behavior, in corrections, in choices they make under pressure. If we can’t write down what we want, perhaps we can learn it indirectly—from them.</p>
 </section>
+<section id="learning-from-humans">
+<h2>Learning From Humans<a class="headerlink" href="#learning-from-humans" title="Link to this heading">#</a></h2>
+<p>When we can’t write down the right behavior, we often try to learn it from examples. This is the idea behind imitation learning: watch the expert, then generalize. But in practice, good demonstrations are hard to collect and rarely cover the full range of relevant situations—especially the rare or risky ones.</p>
+<p>That’s why many real-world applications require more than direct imitation. If we can’t show what to do in every case, we must express what we want. This is where reward design, cost functions, and preference modeling come in. These tools attempt to capture the underlying objective by observing not just what people do, but what they seem to value.</p>
+<p>Preference elicitation offers one route. Rather than specifying the optimal solution directly, we infer it from comparisons, rankings, or feedback. Under mild assumptions, the von Neumann–Morgenstern theorem tells us that such preferences correspond to a utility function. This principle forms the basis of <em>Reinforcement Learning from Human Feedback</em> (RLHF), now central to training large models.</p>
+<p>But here, too, we face limits. Once we’ve inferred preferences or objectives from humans, what comes next? In many systems, the default answer is to treat this as a standard supervised learning problem: fit a black-box model to human-labeled data, then optimize the resulting predictions.</p>
+<p>This approach can go surprisingly far. Recent work, such as Decision Transformers, has shown that supervised learning can recover policies that perform competitively—sometimes even state-of-the-art. But these successes are often built on vast datasets, carefully curated environments, and tight control over evaluation. In the real world, we rarely have that luxury.</p>
+<p>Supervised learning assumes that if we show enough examples, the system will generalize appropriately. But generalization is fragile when data is limited, feedback is partial, or the stakes are high. Without the right structure in place, we risk building policies that extrapolate poorly, violate constraints, or break in unexpected ways.</p>
+<p>This is where modeling matters again.</p>
+<p>By modeling the decision process—the constraints, objectives, time structure, and information flows—we introduce the <em>right inductive biases</em> into the learning system. These biases aren’t arbitrary. They reflect how the world works and what the agent can and cannot do. They make learning tractable even when data is scarce and help ensure that the resulting decisions behave reasonably under uncertainty.</p>
+<p>So while supervised learning plays a role, it’s not the full story. The point is not just to imitate or infer, but to <strong>embed</strong> what we’ve learned into a framework where decision-making remains accountable, robust, and grounded in structure.</p>
+<p>That’s the aim of this book: to take what we can learn from humans and from data, and combine it with modeling discipline to build systems that don’t just act—but act for the right reasons.</p>
+</section>
+<section id="the-path-forward">
+<h2>The Path Forward<a class="headerlink" href="#the-path-forward" title="Link to this heading">#</a></h2>
+<p>Rust’s critique remains timely. After decades of algorithmic progress, we still struggle to help people make better decisions in the settings that matter most. RL has pushed the boundaries of simulation. But in practice, its reach remains limited—not because the tools are broken, but because we’ve struggled to formulate problems in ways that connect to the real world.</p>
+<p>It’s not that decision problems can’t be solved. It’s that we often fail to pose them in solvable form.</p>
+<p>This isn’t a limitation of algorithms. It’s a limitation in how we frame our goals.</p>
+<p>But that may be changing.</p>
+<p>Rust once wrote:</p>
+<blockquote>
+<div><p><em>“Humans are learning to replicate the type of subconscious model building that goes on inside their brains and bring it to the conscious, formal level—but they are doing this modeling themselves, since it is not clear <strong>how to teach computers how to model</strong>.”</em></p>
+</div></blockquote>
+<p>That might have been true then. But today, we’re beginning to see what it might look like to <em>teach</em> machines to model—or at least assist us in doing so.</p>
+<p>One school of thought, inspired by Sutton’s long-term vision, imagines that we won’t need to model at all. Instead, we build general-purpose agents trained on vast, unstructured experience. We don’t hand them objectives or constraints. We don’t define environments. We let them learn everything from scratch. The hope is that once such an agent is sufficiently broad and capable, it can generalize everywhere—even to tasks we haven’t yet imagined.</p>
+<p>That is a bold and fascinating bet. But it is still a bet. And if your goal is to solve meaningful problems now—in healthcare, infrastructure, climate, logistics—then the challenge of formulation doesn’t disappear. Even the most flexible agent can’t act reliably in a domain where the goals, tradeoffs, and structure remain unclear.</p>
+<p>What’s more, our current models of generality—especially large language models—are not agents in the classical sense. They produce text, but they don’t act in the world. They reason in language, but they don’t optimize over time. Despite growing trends to describe these systems as “agents,” they are better understood as powerful modeling tools: systems trained on enormous corpora of human knowledge, capable of reflecting, translating, and helping us express complex ideas.</p>
+<p>And that might be their greatest strength.</p>
+<p>We may not hand full control to a language model anytime soon, but we <em>will</em> use these systems to help us model. They will assist in articulating objectives, surfacing hidden assumptions, identifying constraints, and mapping informal goals into structured forms. They won’t replace modeling—they’ll augment it.</p>
+<p>And what takes action—what makes real decisions in the world—will still rely on explicit optimization, grounded in formal structure, and designed to behave predictably. The language model may help us design that system, but it won’t be the one executing it.</p>
+<p>That’s where I believe the near future lies: general-purpose models as modeling assistants, paired with optimization and control systems that retain structure, constraints, and accountability.</p>
+<p>This book is about building that bridge: from goals to models, from data to decisions, from abstraction to action.</p>
+<p>This is the modeling mindset. And it’s what turns reinforcement learning into a practical tool for solving real problems.</p>
 </section>
 <div class="toctree-wrapper compound">
 </div>
@@ -487,8 +577,7 @@
             
             
               
-                <dialog id="pst-secondary-sidebar-modal"></dialog>
-                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
   <div class="sidebar-secondary-item">
@@ -497,11 +586,10 @@
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-reinforcement-learning-problem">The Reinforcement Learning Problem</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#from-imitation-to-optimization">From Imitation to Optimization</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#challenges-in-problem-specification">Challenges in Problem Specification</a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-problem-are-we-solving">What Problem Are We Solving?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-does-it-mean-to-model-a-decision-problem">What Does It Mean to Model a Decision Problem?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-from-humans">Learning From Humans</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-path-forward">The Path Forward</a></li>
 </ul>
   </nav></div>
 
@@ -550,8 +638,8 @@ By Pierre-Luc Bacon
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549"></script>
-<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549"></script>
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
 
   <footer class="bd-footer">
   </footer>

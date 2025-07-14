@@ -396,9 +396,7 @@ Note that the original error bound derived as a termination criterion for value 
 
 ### Overestimation Bias in Monte Carlo Value Iteration
 
-
 In statistics, bias refers to a systematic error where an estimator consistently deviates from the true parameter value. For an estimator $\hat{\theta}$ of a parameter $\theta$, we define bias as: $\text{Bias}(\hat{\theta}) = \mathbb{E}[\hat{\theta}] - \theta$. While bias isn't always problematic — sometimes we deliberately introduce bias to reduce variance, as in ridge regression — uncontrolled bias can lead to significantly distorted results. In the context of value iteration, this distortion gets amplified even more due to the recursive nature of the algorithm.
-
 
 Consider how the Bellman operator works in value iteration. At iteration n, we have a value function estimate $v_i(s)$ and aim to improve it by applying the Bellman operator $\mathrm{L}$. The ideal update would be:
 
