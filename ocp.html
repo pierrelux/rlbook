@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>1. Discrete-Time Trajectory Optimization &#8212; Practical Reinforcement Learning: From Algorithms to Applications</title>
+    <title>2. Discrete-Time Trajectory Optimization &#8212; Practical Reinforcement Learning: From Algorithms to Applications</title>
   
   
   
@@ -64,8 +64,8 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'ocp';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="5. Continuous-Time Trajectory Optimization" href="cocp.html" />
-    <link rel="prev" title="Why This Book?" href="intro.html" />
+    <link rel="next" title="6. Continuous-Time Trajectory Optimization" href="cocp.html" />
+    <link rel="prev" title="1. Modeling Systems, Simulation, and Data" href="modeling.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -178,33 +178,34 @@
             </li>
         </ul>
         <ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">1. Discrete-Time Trajectory Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modeling.html">1. Modeling Systems, Simulation, and Data</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">2. Discrete-Time Trajectory Optimization</a></li>
 
 
 
-<li class="toctree-l1"><a class="reference internal" href="cocp.html">5. Continuous-Time Trajectory Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cocp.html">6. Continuous-Time Trajectory Optimization</a></li>
 
-<li class="toctree-l1"><a class="reference internal" href="mpc.html">7. From Trajectories to Policies</a></li>
-
-
-
-<li class="toctree-l1"><a class="reference internal" href="dp.html">11. Dynamic Programming</a></li>
-
-<li class="toctree-l1"><a class="reference internal" href="adp.html">13. Approximate Dynamic Programming</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mpc.html">8. From Trajectories to Policies</a></li>
 
 
 
+<li class="toctree-l1"><a class="reference internal" href="dp.html">12. Dynamic Programming</a></li>
 
-
-<li class="toctree-l1"><a class="reference internal" href="cadp.html">19. Policy Parametrization Methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="adp.html">14. Approximate Dynamic Programming</a></li>
 
 
 
 
 
+<li class="toctree-l1"><a class="reference internal" href="cadp.html">20. Policy Parametrization Methods</a></li>
 
 
-<li class="toctree-l1"><a class="reference internal" href="bibliography.html">27. Bibliography</a></li>
+
+
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">28. Bibliography</a></li>
 </ul>
 
     </div>
@@ -417,50 +418,50 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">1. Discrete-Time Trajectory Optimization</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#irrigation-management-example">1.1. Irrigation Management Example</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">2. Discrete-Time Trajectory Optimization</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#irrigation-management-example">2.1. Irrigation Management Example</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#mathematical-programming-formulation">2. Mathematical Programming Formulation</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reduction-to-mayer-problems">2.1. Reduction to Mayer Problems</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#mathematical-programming-formulation">3. Mathematical Programming Formulation</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reduction-to-mayer-problems">3.1. Reduction to Mayer Problems</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#numerical-methods-for-solving-docps">3. Numerical Methods for Solving DOCPs</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#single-shooting-methods">3.1. Single Shooting Methods</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dealing-with-bound-constraints">3.1.1. Dealing with Bound Constraints</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#on-the-choice-of-optimizer">3.1.2. On the choice of optimizer</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#numerical-methods-for-solving-docps">4. Numerical Methods for Solving DOCPs</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#single-shooting-methods">4.1. Single Shooting Methods</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dealing-with-bound-constraints">4.1.1. Dealing with Bound Constraints</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#on-the-choice-of-optimizer">4.1.2. On the choice of optimizer</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#constrained-optimization-approach">3.2. Constrained Optimization Approach</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nonlinear-programming">3.2.1. Nonlinear Programming</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#karush-kuhn-tucker-kkt-conditions">3.2.1.1. Karush-Kuhn-Tucker (KKT) conditions</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#lagrange-multiplier-theorem">3.2.1.2. Lagrange Multiplier Theorem</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#newton-s-method">3.2.1.3. Newton’s Method</a><ul class="nav section-nav flex-column">
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#efficient-implementation-of-newton-s-method">3.2.1.3.1. Efficient Implementation of Newton’s Method</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#constrained-optimization-approach">4.2. Constrained Optimization Approach</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nonlinear-programming">4.2.1. Nonlinear Programming</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#karush-kuhn-tucker-kkt-conditions">4.2.1.1. Karush-Kuhn-Tucker (KKT) conditions</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#lagrange-multiplier-theorem">4.2.1.2. Lagrange Multiplier Theorem</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#newton-s-method">4.2.1.3. Newton’s Method</a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#efficient-implementation-of-newton-s-method">4.2.1.3.1. Efficient Implementation of Newton’s Method</a></li>
 </ul>
 </li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#solving-equality-constrained-programs-with-newton-s-method">3.2.1.4. Solving Equality Constrained Programs with Newton’s Method</a><ul class="nav section-nav flex-column">
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#demonstration">3.2.1.4.1. Demonstration</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-sqp-approach-taylor-expansion-and-quadratic-approximation">3.2.2. The SQP Approach: Taylor Expansion and Quadratic Approximation</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#connection-to-newton-s-method-in-the-equality-constrained-case">3.2.2.1. Connection to Newton’s Method in the Equality-Constrained Case</a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sqp-for-inequality-constrained-optimization">3.2.3. SQP for Inequality-Constrained Optimization</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#demonstration-with-jax-and-cvxpy">3.2.3.1. Demonstration with JAX and CVXPy</a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-arrow-hurwicz-uzawa-algorithm">3.2.4. The Arrow-Hurwicz-Uzawa algorithm</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#solving-equality-constrained-programs-with-newton-s-method">4.2.1.4. Solving Equality Constrained Programs with Newton’s Method</a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#demonstration">4.2.1.4.1. Demonstration</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#the-discrete-time-pontryagin-maximum-principle">4. The Discrete-Time Pontryagin Maximum Principle</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pmp-for-mayer-problems">4.1. PMP for Mayer Problems</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pmp-for-bolza-problems">4.2. PMP for Bolza Problems</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-sqp-approach-taylor-expansion-and-quadratic-approximation">4.2.2. The SQP Approach: Taylor Expansion and Quadratic Approximation</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#connection-to-newton-s-method-in-the-equality-constrained-case">4.2.2.1. Connection to Newton’s Method in the Equality-Constrained Case</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sqp-for-inequality-constrained-optimization">4.2.3. SQP for Inequality-Constrained Optimization</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#demonstration-with-jax-and-cvxpy">4.2.3.1. Demonstration with JAX and CVXPy</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-arrow-hurwicz-uzawa-algorithm">4.2.4. The Arrow-Hurwicz-Uzawa algorithm</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#the-discrete-time-pontryagin-maximum-principle">5. The Discrete-Time Pontryagin Maximum Principle</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pmp-for-mayer-problems">5.1. PMP for Mayer Problems</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pmp-for-bolza-problems">5.2. PMP for Bolza Problems</a></li>
 </ul>
 </li>
 </ul>
@@ -476,14 +477,14 @@ document.write(`
                 <article class="bd-article">
                   
   <section class="tex2jax_ignore mathjax_ignore" id="discrete-time-trajectory-optimization">
-<h1><span class="section-number">1. </span>Discrete-Time Trajectory Optimization<a class="headerlink" href="#discrete-time-trajectory-optimization" title="Link to this heading">#</a></h1>
+<h1><span class="section-number">2. </span>Discrete-Time Trajectory Optimization<a class="headerlink" href="#discrete-time-trajectory-optimization" title="Link to this heading">#</a></h1>
 <blockquote class="epigraph">
 <div><p>The sciences do not try to explain, they hardly even try to interpret, they mainly make models. By a model is meant a mathematical construct which, with the addition of certain verbal interpretations, describes observed phenomena. The justification of such a mathematical construct is solely and precisely that it is expected to work.</p>
 <p class="attribution">—John von Neumann</p>
 </div></blockquote>
 <p>This course considers two broad categories of environments, each with its own specialized solution methods: deterministic and stochastic environments. Stochastic problems are mathematically more general than their deterministic counterparts. However, despite this generality, it’s important to note that algorithms for stochastic problems are not necessarily more powerful than those designed for deterministic ones when used in practice. We should keep in mind that stochasticity and determinism are assumed properties of the world, which we model—perhaps imperfectly—into our algorithms. In this course, we adopt a pragmatic perspective on that matter, and will make assumptions only to the extent that those assumptions help us design algorithms which are ultimately useful in practice: a lesson which we have certainly learned from the success of deep learning methods over the last years. With this pragmatic stance, we start our journey with deterministic discrete-time models.</p>
 <section id="irrigation-management-example">
-<h2><span class="section-number">1.1. </span>Irrigation Management Example<a class="headerlink" href="#irrigation-management-example" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">2.1. </span>Irrigation Management Example<a class="headerlink" href="#irrigation-management-example" title="Link to this heading">#</a></h2>
 <p>Resource allocation problems, found across various fields of operations research, are a specific kind of deterministic discrete-time optimal control problems. For example, consider the problem of irrigation management as posed by <span id="id1">Hall and Butcher [<a class="reference internal" href="bibliography.html#id2" title="Warren A. Hall and William S. Butcher. Optimal timing of irrigation. Journal of the Irrigation and Drainage Division, 94(2):267–275, June 1968. URL: http://dx.doi.org/10.1061/JRCEA4.0000569, doi:10.1061/jrcea4.0000569.">22</a>]</span>, in which a decision maker is tasked with finding the optimal amount of water to allocate throughout the various growth stages of a plant in order to maximize the yield. Clearly, allocating all the water – thereby flooding the crop – in the first stage would be a bad idea. Similarly, letting the crop dry out and only watering at the end is also suboptimal. Our solution – that is a prescription for the amount of water to use at any point in time – should balance those two extremes. In order to achieve this goal, our system should ideally be informed by the expected growth dynamics of the given crops as a function of the water provided: a process which depends at the very least on physical properties known to influence the soil moisture. The basic model considered in this paper describes the evolution of the moisture content through the equation:</p>
 <div class="amsmath math notranslate nohighlight">
 \[\begin{align*}
@@ -511,11 +512,11 @@ The problem specification laid out above can be turned into the following mathem
 </section>
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="mathematical-programming-formulation">
-<h1><span class="section-number">2. </span>Mathematical Programming Formulation<a class="headerlink" href="#mathematical-programming-formulation" title="Link to this heading">#</a></h1>
+<h1><span class="section-number">3. </span>Mathematical Programming Formulation<a class="headerlink" href="#mathematical-programming-formulation" title="Link to this heading">#</a></h1>
 <p>The three quantities <span class="math notranslate nohighlight">\((w_t, q_t, a_t)\)</span> appearing in the model of <span id="id2">Hall and Butcher [<a class="reference internal" href="bibliography.html#id2" title="Warren A. Hall and William S. Butcher. Optimal timing of irrigation. Journal of the Irrigation and Drainage Division, 94(2):267–275, June 1968. URL: http://dx.doi.org/10.1061/JRCEA4.0000569, doi:10.1061/jrcea4.0000569.">22</a>]</span> above have the property that they encompass all of the information necessary to simulate the process. We say that it is a “<strong>state variable</strong>”, and its time evolution is specified via so-called <strong>dynamics function</strong>, which we commonly denote by <span class="math notranslate nohighlight">\(f_t\)</span>. In discrete-time systems, the dynamics are often described by “difference equations,” as opposed to the “differential equations” used for continuous-time systems. When the dynamics function depends on the time index <span class="math notranslate nohighlight">\(t\)</span>, we refer to it as “non-stationary” dynamics. Conversely, if the function <span class="math notranslate nohighlight">\(f\)</span> remains constant across all time steps, we call it “stationary” dynamics. In the context of optimal control theory, we refer more generally to <span class="math notranslate nohighlight">\(u_t\)</span> as a “control” variable while in other communities it is called an “action”. Whether the problem is posed as a minimization problem or maximization problem is also a matter of communities, with control theory typically posing problems in terms of cost minimization while OR and RL communities usually adopt a reward maximization perspective. In this course, we will alternate between the two equivalent formulations while ensuring that context is sufficiently clear to understand which one is used.</p>
 <p>The problem stated above, is known as a Discrete-Time Optimal Control Problem (DOCP), which we write more generically as:</p>
 <div class="proof definition admonition" id="bolza-docp">
-<p class="admonition-title"><span class="caption-number">Definition 2.1 </span> (Discrete-Time Optimal Control Problem of Bolza Type)</p>
+<p class="admonition-title"><span class="caption-number">Definition 3.1 </span> (Discrete-Time Optimal Control Problem of Bolza Type)</p>
 <section class="definition-content" id="proof-content">
 <div class="amsmath math notranslate nohighlight">
 \[\begin{alignat*}{2}
@@ -529,7 +530,7 @@ The problem specification laid out above can be turned into the following mathem
 </section>
 </div><p>The objective function (sometimes called a “performance index”) in a Bolza problem comprises of two terms: the sum of immediate cost or rewards per stage, and a terminal cost function (sometimes called “scrap value”). If the terminal cost function is omitted from the objective function, then the resulting DOCP is said to be of Lagrange type.</p>
 <div class="proof definition admonition" id="lagrange-docp">
-<p class="admonition-title"><span class="caption-number">Definition 2.2 </span> (Discrete-Time Optimal Control Problem of Lagrange Type)</p>
+<p class="admonition-title"><span class="caption-number">Definition 3.2 </span> (Discrete-Time Optimal Control Problem of Lagrange Type)</p>
 <section class="definition-content" id="proof-content">
 <div class="amsmath math notranslate nohighlight">
 \[\begin{alignat*}{2}
@@ -543,7 +544,7 @@ The problem specification laid out above can be turned into the following mathem
 </section>
 </div><p>Finally, a Mayer problem is one in which the objective function only contains a terminal cost function without explicitly accounting for immediate costs encountered across stages:</p>
 <div class="proof definition admonition" id="mayer-docp">
-<p class="admonition-title"><span class="caption-number">Definition 2.3 </span> (Discrete-Time Optimal Control Problem of Mayer Type)</p>
+<p class="admonition-title"><span class="caption-number">Definition 3.3 </span> (Discrete-Time Optimal Control Problem of Mayer Type)</p>
 <section class="definition-content" id="proof-content">
 <div class="amsmath math notranslate nohighlight">
 \[\begin{alignat*}{2}
@@ -557,7 +558,7 @@ The problem specification laid out above can be turned into the following mathem
 </section>
 </div><p>When writing the optimal control problem in any of those three forms, it is implied that both <span class="math notranslate nohighlight">\(u_1, ..., u_T\)</span> and the state trajectory <span class="math notranslate nohighlight">\(x_1, ..., x_T\)</span> are optimization variables. Since we ultimately care about the decisions themselves, the idea of posing the states themselves as optimization variables seems uncessary given that we have access to the dynamics. We will soon see that there indeed exists a way in which we get rid of the state variables as constraints through a process of explicit simulation with the class of “shooting methods”, thereby turning what would otherwise be an constrained optimization problem into an unconstrained one.</p>
 <section id="reduction-to-mayer-problems">
-<h2><span class="section-number">2.1. </span>Reduction to Mayer Problems<a class="headerlink" href="#reduction-to-mayer-problems" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">3.1. </span>Reduction to Mayer Problems<a class="headerlink" href="#reduction-to-mayer-problems" title="Link to this heading">#</a></h2>
 <p>While it might appear at first glance that Bolza problems are somehow more expressive or powerful, we can show that both Lagrange and Bolza problems can be reduced to a Mayer problem through the idea of “state augmentation”.
 The overall idea is that the explicit sum of costs can be eliminated by maintaining a running sum of costs as an additional state variable <span class="math notranslate nohighlight">\(y_t\)</span>. The augmented system equation then becomes:</p>
 <div class="amsmath math notranslate nohighlight">
@@ -576,7 +577,7 @@ y_t+c_t\left(\boldsymbol{x}_t, \boldsymbol{u}_t\right)
 </section>
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="numerical-methods-for-solving-docps">
-<h1><span class="section-number">3. </span>Numerical Methods for Solving DOCPs<a class="headerlink" href="#numerical-methods-for-solving-docps" title="Link to this heading">#</a></h1>
+<h1><span class="section-number">4. </span>Numerical Methods for Solving DOCPs<a class="headerlink" href="#numerical-methods-for-solving-docps" title="Link to this heading">#</a></h1>
 <p>Let’s assume that an optimal control problem has been formulated in one of the forms presented earlier and has been given to us to solve. The following section explores numerical solutions applicable to these problems, focusing on trajectory optimization. Our goal is to output an optimal control (and state trajectory) based on the given cost function and dynamics structure. It’s important to note that the methods presented here are not learning methods just yet; they don’t involve ingesting data or inferring unknown quantities from it. However, these methods represent a central component of any decision-learning system, and we will later explore how learning concepts can be incorporated.</p>
 <p>Before delving into the solution methods, let’s consider an electric vehicle energy management problem which we will use this as a test bed throughout this section. Consider an electric vehicle traversing a planned route, where we aim to optimize its energy consumption over a 20-minute journey. Our simplified model represents the vehicle’s state using two variables: <span class="math notranslate nohighlight">\(x_1\)</span>, the battery state of charge as a percentage, and <span class="math notranslate nohighlight">\(x_2\)</span>, denoting the vehicle’s speed in meters per second. The control input <span class="math notranslate nohighlight">\(u\)</span>, ranging from -1 to 1, represents the motor power, with negative values indicating regenerative braking and positive values representing acceleration. The problem can be formally expressed as a mathematical program in Bolza form:</p>
 <div class="amsmath math notranslate nohighlight">
@@ -595,7 +596,7 @@ y_t+c_t\left(\boldsymbol{x}_t, \boldsymbol{u}_t\right)
 \end{align*}\]</div>
 <p>The system dynamics, represented by <span class="math notranslate nohighlight">\(f_t(x_t, u_t)\)</span>, describe how the battery charge and vehicle speed evolve based on the current state and control input. The initial condition <span class="math notranslate nohighlight">\(x_1 = [1, 0]^T\)</span> indicates that the vehicle starts with a fully charged battery and zero initial speed. The constraints <span class="math notranslate nohighlight">\(-1 \leq u_t \leq 1\)</span> and <span class="math notranslate nohighlight">\(-5 \leq x_{t,1}, x_{t,2} \leq 5\)</span> ensure that the control inputs and state variables remain within acceptable ranges throughout the journey. This model is of course highly simplistic and neglects the nonlinear nature of battery discharge and vehicle motion due to air resistance, road grade, and vehicle mass, etc. Furthermore, our model ignores the effect of environmental factors like wind and temperature on regenerative breaking. Route-specific information such as elevation changes and speed limits are absent, as is the consideration of auxiliary power consumption such as heating and entertainment. These are all possible improvements to our models which we ignore at the moment for the sake of simplicity.</p>
 <section id="single-shooting-methods">
-<h2><span class="section-number">3.1. </span>Single Shooting Methods<a class="headerlink" href="#single-shooting-methods" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">4.1. </span>Single Shooting Methods<a class="headerlink" href="#single-shooting-methods" title="Link to this heading">#</a></h2>
 <p>Given access to unconstrained optimization solver, the easiest method to implement is by far what is known as “single shooting” in control theory. The idea of simple: rather than having to solve for the state variables as equality constraints, we transform the original constrained problem into an unconstrained one through “simulation”, ie by recursively computing the evolution of our system for any given set of controls and initial state. In the deterministic setting, given an initial state, we can always exactly reconstruct the resulting sequence of states by “rolling out” our model, a process which some communities would refer to as “time marching”. Mathematically, this amounts to forming the following unconstrained program:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
@@ -612,7 +613,7 @@ y_t+c_t\left(\boldsymbol{x}_t, \boldsymbol{u}_t\right)
 \end{align*}
 \end{split}\]</div>
 <div class="proof algorithm admonition" id="naive-single-shooting">
-<p class="admonition-title"><span class="caption-number">Algorithm 3.1 </span> (Naive Single Shooting: re-computation/checkpointing)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 4.1 </span> (Naive Single Shooting: re-computation/checkpointing)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Inputs</strong> Initial state <span class="math notranslate nohighlight">\(\mathbf{x}_1\)</span>, time horizon <span class="math notranslate nohighlight">\(T\)</span>, control bounds <span class="math notranslate nohighlight">\(\mathbf{u}_{lb}\)</span> and <span class="math notranslate nohighlight">\(\mathbf{u}_{ub}\)</span>, state transition functions <span class="math notranslate nohighlight">\(\mathbf{f}_t\)</span>, cost functions <span class="math notranslate nohighlight">\(c_t\)</span></p>
 <p><strong>Output</strong> Optimal control sequence <span class="math notranslate nohighlight">\(\mathbf{u}^*_{1:T-1}\)</span></p>
@@ -800,10 +801,10 @@ subject to <span class="math notranslate nohighlight">\(\mathbf{u}_{lb} \leq \ma
 </div>
 </details>
 </div>
-<p>The approach outlined in <a class="reference internal" href="#naive-single-shooting">Algorithm 3.1</a> stems directly from the mathematical definition and involves recomputing the sequence of states from the begining every time that the instantenous cost function along the trajectory needs to be evaluated. This implementation has the benefit that it requires very little storage, as the only quantity that we have to maintain in addition to the running cost is the last state. However, this simplicitity and storage savings come at a steep computation cost as it requires re-computing the trajectory up to any given stage starting from the initial state.
+<p>The approach outlined in <a class="reference internal" href="#naive-single-shooting">Algorithm 4.1</a> stems directly from the mathematical definition and involves recomputing the sequence of states from the begining every time that the instantenous cost function along the trajectory needs to be evaluated. This implementation has the benefit that it requires very little storage, as the only quantity that we have to maintain in addition to the running cost is the last state. However, this simplicitity and storage savings come at a steep computation cost as it requires re-computing the trajectory up to any given stage starting from the initial state.
 A more practical and efficient implementation combines trajectory unrolling with cost accumulation. This process can be realized through a simple for-loop in frameworks like JAX, which can trace code execution through control flows. Alternatively, a more efficient <code class="docutils literal notranslate"><span class="pre">scan</span></code> operation could be employed. By simultaneously computing the trajectory and summing costs, we eliminate redundant calculations, effectively trading computation for storage—a strategy reminiscent of checkpointing in automatic differentiation.</p>
 <div class="proof algorithm admonition" id="shooting-trajectory-storage">
-<p class="admonition-title"><span class="caption-number">Algorithm 3.2 </span> (Single Shooting: Trajectory Storage)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 4.2 </span> (Single Shooting: Trajectory Storage)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Inputs</strong> Initial state <span class="math notranslate nohighlight">\(\mathbf{x}_1\)</span>, time horizon <span class="math notranslate nohighlight">\(T\)</span>, control bounds <span class="math notranslate nohighlight">\(\mathbf{u}_{lb}\)</span> and <span class="math notranslate nohighlight">\(\mathbf{u}_{ub}\)</span>, state transition functions <span class="math notranslate nohighlight">\(\mathbf{f}_t\)</span>, cost functions <span class="math notranslate nohighlight">\(c_t\)</span></p>
 <p><strong>Output</strong> Optimal control sequence <span class="math notranslate nohighlight">\(\mathbf{u}^*_{1:T-1}\)</span></p>
@@ -966,7 +967,7 @@ subject to <span class="math notranslate nohighlight">\(\mathbf{u}_{lb} \leq \ma
 </details>
 </div>
 <section id="dealing-with-bound-constraints">
-<h3><span class="section-number">3.1.1. </span>Dealing with Bound Constraints<a class="headerlink" href="#dealing-with-bound-constraints" title="Link to this heading">#</a></h3>
+<h3><span class="section-number">4.1.1. </span>Dealing with Bound Constraints<a class="headerlink" href="#dealing-with-bound-constraints" title="Link to this heading">#</a></h3>
 <p>While we have successfully eliminated the dynamics as explicit constraints through what essentially amounts to a “reparametrization” of our problem, we’ve been silent regarding the bound constraints. The view of single shooting as a perfect transformation from a constrained problem to an unconstrained one is not entirely accurate: we must leave something on the table, and that something is the ability to easily impose state constraints.</p>
 <p>By directly simulating the process from the initial state, there is one and only one corresponding induced path, and there’s no way to let our optimizer know that it can adjust within some bounds, even if that means the generated trajectory is no longer feasible (realistic).</p>
 <p>Fortunately, the situation is much better for bound constraints on the controls. If we choose gradient descent as our method for solving this problem, we can consider a simple extension to readily support these kinds of bound constraints. The approach, in this case, would be what we call projected gradient descent. The general form of a projected gradient descent step can be expressed as:</p>
@@ -994,7 +995,7 @@ subject to <span class="math notranslate nohighlight">\(\mathbf{u}_{lb} \leq \ma
 \end{split}\]</div>
 <p>where <span class="math notranslate nohighlight">\(J(\mathbf{u})\)</span> is our objective function, and <span class="math notranslate nohighlight">\(\mathbf{u}_{lb}\)</span> and <span class="math notranslate nohighlight">\(\mathbf{u}_{ub}\)</span> are the lower and upper bounds on the control variables, respectively.</p>
 <div class="proof algorithm admonition" id="proj-grad-descent-bound-constraints">
-<p class="admonition-title"><span class="caption-number">Algorithm 3.3 </span> (Projected Gradient Descent for Bound Constraints)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 4.3 </span> (Projected Gradient Descent for Bound Constraints)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Initial point <span class="math notranslate nohighlight">\(\mathbf{u}_0\)</span>, learning rate <span class="math notranslate nohighlight">\(\alpha\)</span>, bounds <span class="math notranslate nohighlight">\(\mathbf{u}_{lb}\)</span> and <span class="math notranslate nohighlight">\(\mathbf{u}_{ub}\)</span>,
 maximum iterations <span class="math notranslate nohighlight">\(\max_\text{iter}\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon\)</span></p>
@@ -1018,7 +1019,7 @@ maximum iterations <span class="math notranslate nohighlight">\(\max_\text{iter}
 \]</div>
 </section>
 <section id="on-the-choice-of-optimizer">
-<h3><span class="section-number">3.1.2. </span>On the choice of optimizer<a class="headerlink" href="#on-the-choice-of-optimizer" title="Link to this heading">#</a></h3>
+<h3><span class="section-number">4.1.2. </span>On the choice of optimizer<a class="headerlink" href="#on-the-choice-of-optimizer" title="Link to this heading">#</a></h3>
 <p>Despite frequent mentions of automatic differentiation, it’s important to note that the single shooting approaches outlined in this section need not rely on gradient-based optimization methods. In fact, one could use any method provided by <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code>, which offers a range of options such as:</p>
 <ul class="simple">
 <li><p>Derivative-free methods like <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/optimize.minimize-neldermead.html">Nelder-Mead Simplex</a>, suitable for problems where gradients are unavailable or difficult to compute.</p></li>
@@ -1035,7 +1036,7 @@ maximum iterations <span class="math notranslate nohighlight">\(\max_\text{iter}
 </section>
 </section>
 <section id="constrained-optimization-approach">
-<h2><span class="section-number">3.2. </span>Constrained Optimization Approach<a class="headerlink" href="#constrained-optimization-approach" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">4.2. </span>Constrained Optimization Approach<a class="headerlink" href="#constrained-optimization-approach" title="Link to this heading">#</a></h2>
 <p>The mathematical programming formulation presented earlier lends itself readily to off-the-shelf solvers for nonlinear mathematical programs. For example, we can use the <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code> function along with the SLSQP (Sequential Least Squares Programming) solver to obtain a solution to any feasible Bolza problem of the form presented below.</p>
 <p>The following code demonstrate how the car charging problem can be solved directly using <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code> in a black box fashion. In the next sections, we will dive deeper into the mathematical underpinnings of constrained optimization and implement our own solvers. For the moment, I simply want to bring to your attention that the solution to this problem, as expressed in its original form, involves solving for two interdependent quantities: the optimal sequence of controls, and that of the states encountered when applying them to the system. Is that bug, or a feature? We’ll see that it depends…</p>
 <div class="cell tag_hide-input docutils container">
@@ -1197,7 +1198,7 @@ maximum iterations <span class="math notranslate nohighlight">\(\max_\text{iter}
 </details>
 </div>
 <section id="nonlinear-programming">
-<h3><span class="section-number">3.2.1. </span>Nonlinear Programming<a class="headerlink" href="#nonlinear-programming" title="Link to this heading">#</a></h3>
+<h3><span class="section-number">4.2.1. </span>Nonlinear Programming<a class="headerlink" href="#nonlinear-programming" title="Link to this heading">#</a></h3>
 <p>Unless specific assumptions are made on the dynamics and cost structure, a DOCP is, in its most general form, a nonlinear mathematical program (commonly referred to as an NLP, not to be confused with Natural Language Processing). An NLP can be formulated as follows:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
@@ -1327,7 +1328,7 @@ maximum iterations <span class="math notranslate nohighlight">\(\max_\text{iter}
 </details>
 </div>
 <section id="karush-kuhn-tucker-kkt-conditions">
-<h4><span class="section-number">3.2.1.1. </span>Karush-Kuhn-Tucker (KKT) conditions<a class="headerlink" href="#karush-kuhn-tucker-kkt-conditions" title="Link to this heading">#</a></h4>
+<h4><span class="section-number">4.2.1.1. </span>Karush-Kuhn-Tucker (KKT) conditions<a class="headerlink" href="#karush-kuhn-tucker-kkt-conditions" title="Link to this heading">#</a></h4>
 <p>While this example is simple enough to convince ourselves visually of the solution to this particular problem, it falls short of providing us with actionable chracterization of what constitutes and optimal solution in general.
 The Karush-Kuhn-Tucker (KKT) conditions provide us with an answer to this problem by generalizing the first-order optimality conditions in unconstrained optimization to problems involving both equality and inequality constraints.
 This result relies on the construction of an auxiliary function called the Lagrangian, defined as:</p>
@@ -1335,7 +1336,7 @@ This result relies on the construction of an auxiliary function called the Lagra
 \[\mathcal{L}(\mathbf{x}, \boldsymbol{\mu}, \boldsymbol{\lambda})=f(\mathbf{x})+\boldsymbol{\mu}^{\top} \mathbf{g}(\mathbf{x})+\boldsymbol{\lambda}^{\top} \mathbf{h}(\mathbf{x})\]</div>
 <p>where <span class="math notranslate nohighlight">\(\boldsymbol{\mu} \in \mathbb{R}^m\)</span> and <span class="math notranslate nohighlight">\(\boldsymbol{\lambda} \in \mathbb{R}^\ell\)</span> are known as Lagrange multipliers. The first-order optimality conditions then state that if <span class="math notranslate nohighlight">\(\mathbf{x}^*\)</span>, then there must exist corresponding Lagrange multipliers <span class="math notranslate nohighlight">\(\boldsymbol{\mu}^*\)</span> and <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^*\)</span> such that:</p>
 <div class="proof definition admonition" id="kkt-conditions">
-<p class="admonition-title"><span class="caption-number">Definition 3.1 </span></p>
+<p class="admonition-title"><span class="caption-number">Definition 4.1 </span></p>
 <section class="definition-content" id="proof-content">
 <ol class="arabic">
 <li><p>The gradient of the Lagrangian with respect to <span class="math notranslate nohighlight">\(\mathbf{x}\)</span> must be zero at the optimal point (<strong>stationarity</strong>):</p>
@@ -1433,10 +1434,10 @@ This result relies on the construction of an auxiliary function called the Lagra
 <p>After running the code, we find that the Lagrange multiplier associated with the inequality constraint is approximately . This very small value, close to zero, suggests that the inequality constraint is not active at the optimal solution, meaning that the solution point lies inside the circle defined by this constraint. This can be verified visually in the figure above. As for the equality constraint, its corresponding Lagrange multiplier is  and the fact that it’s non-zero indicates that this constraint is active at the optimal solution. In general when we find a Lagrange multiplier close to zero (like the one for the inequality constraint), it means that constraint is not “binding”—the optimal solution does not lie on the boundary defined by this constraint. In contrast, a non-zero Lagrange multiplier, such as the one for the equality constraint, indicates that the constraint is active and that any relaxation would directly affect the objective function’s value, as required by the stationarity condition.</p>
 </section>
 <section id="lagrange-multiplier-theorem">
-<h4><span class="section-number">3.2.1.2. </span>Lagrange Multiplier Theorem<a class="headerlink" href="#lagrange-multiplier-theorem" title="Link to this heading">#</a></h4>
+<h4><span class="section-number">4.2.1.2. </span>Lagrange Multiplier Theorem<a class="headerlink" href="#lagrange-multiplier-theorem" title="Link to this heading">#</a></h4>
 <p>The KKT conditions introduced above characterize the solution structure of constrained optimization problems with equality constraints. In this particular context, these conditions are referred to as the first-order optimality conditions, as part of the Lagrange multiplier theorem. Let’s just re-state them in that simpler setting:</p>
 <div class="proof definition admonition" id="definition-7">
-<p class="admonition-title"><span class="caption-number">Definition 3.2 </span> (Lagrange Multiplier Theorem)</p>
+<p class="admonition-title"><span class="caption-number">Definition 4.2 </span> (Lagrange Multiplier Theorem)</p>
 <section class="definition-content" id="proof-content">
 <p>Consider the constrained optimization problem:</p>
 <div class="math notranslate nohighlight">
@@ -1466,7 +1467,7 @@ This result relies on the construction of an auxiliary function called the Lagra
 <p>Letting <span class="math notranslate nohighlight">\(\mathbf{F}(\mathbf{x}, \boldsymbol{\lambda})\)</span> stand for <span class="math notranslate nohighlight">\(\nabla_{\mathbf{x}, \boldsymbol{\lambda}} L(\mathbf{x}, \boldsymbol{\lambda})\)</span>, the Lagrange multipliers theorem tells us that an optimal primal-dual pair is actually a zero of that function <span class="math notranslate nohighlight">\(\mathbf{F}\)</span>: the derivative of the Lagrangian. Therefore, we can use this observation to craft a solution method for solving equality constrained optimization using Newton’s method, which is a numerical procedure for finding zeros of a nonlinear function.</p>
 </section>
 <section id="newton-s-method">
-<h4><span class="section-number">3.2.1.3. </span>Newton’s Method<a class="headerlink" href="#newton-s-method" title="Link to this heading">#</a></h4>
+<h4><span class="section-number">4.2.1.3. </span>Newton’s Method<a class="headerlink" href="#newton-s-method" title="Link to this heading">#</a></h4>
 <p>Newton’s method is a numerical procedure for solving root-finding problems. These are nonlinear systems of equations of the form:</p>
 <p>Find <span class="math notranslate nohighlight">\(\mathbf{z}^* \in \mathbb{R}^n\)</span> such that <span class="math notranslate nohighlight">\(\mathbf{F}(\mathbf{z}^*) = \mathbf{0}\)</span></p>
 <p>where <span class="math notranslate nohighlight">\(\mathbf{F}: \mathbb{R}^n \to \mathbb{R}^n\)</span> is a continuously differentiable function. Newton’s method then consists in applying the following sequence of iterates:</p>
@@ -1477,7 +1478,7 @@ This result relies on the construction of an auxiliary function called the Lagra
 <p>where <span class="math notranslate nohighlight">\(\mathbf{z}^k\)</span> is the k-th iterate, and <span class="math notranslate nohighlight">\(\nabla \mathbf{F}(\mathbf{z}^k)\)</span> is the Jacobian matrix of <span class="math notranslate nohighlight">\(\mathbf{F}\)</span> evaluated at <span class="math notranslate nohighlight">\(\mathbf{z}^k\)</span>.</p>
 <p>Newton’s method exhibits local quadratic convergence: if the initial guess <span class="math notranslate nohighlight">\(\mathbf{z}^0\)</span> is sufficiently close to the true solution <span class="math notranslate nohighlight">\(\mathbf{z}^*\)</span>, and <span class="math notranslate nohighlight">\(\nabla \mathbf{F}(\mathbf{z}^*)\)</span> is nonsingular, the method converges quadratically to <span class="math notranslate nohighlight">\(\mathbf{z}^*\)</span> <span id="id6">[<a class="reference internal" href="bibliography.html#id8" title="J. M. Ortega and W. C. Rheinboldt. Iterative Solution of Nonlinear Equations in Several Variables. Computer Science and Applied Mathematics. Academic Press, New York, 1970.">34</a>]</span>. However, the method is sensitive to the initial guess; if it’s too far from the desired solution, Newton’s method might fail to converge or converge to a different root. To mitigate this problem, a set of techniques known as numerical continuation methods <span id="id7">[<a class="reference internal" href="bibliography.html#id9" title="E. L. Allgower and K. Georg. Numerical Continuation Methods: An Introduction. Volume 13 of Springer Series in Computational Mathematics. Springer-Verlag, Berlin, Heidelberg, 1990.">2</a>]</span> have been developed. These methods effectively enlarge the basin of attraction of Newton’s method by solving a sequence of related problems, progressing from an easy one to the target problem. This approach is reminiscent of several concepts in machine learning and statistical inference: curriculum learning in machine learning, where models are trained on increasingly complex data; tempering in Markov Chain Monte Carlo (MCMC) samplers, which gradually adjusts the target distribution to improve mixing; and modern diffusion models, which use a similar concept of gradually transforming noise into structured data.</p>
 <section id="efficient-implementation-of-newton-s-method">
-<h5><span class="section-number">3.2.1.3.1. </span>Efficient Implementation of Newton’s Method<a class="headerlink" href="#efficient-implementation-of-newton-s-method" title="Link to this heading">#</a></h5>
+<h5><span class="section-number">4.2.1.3.1. </span>Efficient Implementation of Newton’s Method<a class="headerlink" href="#efficient-implementation-of-newton-s-method" title="Link to this heading">#</a></h5>
 <p>Note that each step of Newton’s method involves computing the inverse of a Jacobian matrix. However, a cardinal rule in numerical linear algebra is to avoid computing matrix inverses explicitly: rarely, if ever, should there be a <code class="docutils literal notranslate"><span class="pre">np.lindex.inv</span></code> in your code. Instead, the numerically stable and computationally efficient approach is to solve a linear system of equations at each step.
 Given the Newton’s method iterate:</p>
 <div class="math notranslate nohighlight">
@@ -1494,7 +1495,7 @@ Given the Newton’s method iterate:</p>
 </section>
 </section>
 <section id="solving-equality-constrained-programs-with-newton-s-method">
-<h4><span class="section-number">3.2.1.4. </span>Solving Equality Constrained Programs with Newton’s Method<a class="headerlink" href="#solving-equality-constrained-programs-with-newton-s-method" title="Link to this heading">#</a></h4>
+<h4><span class="section-number">4.2.1.4. </span>Solving Equality Constrained Programs with Newton’s Method<a class="headerlink" href="#solving-equality-constrained-programs-with-newton-s-method" title="Link to this heading">#</a></h4>
 <p>To solve equality-constrained optimization problems using Newton’s method, we begin by recognizing that the problem reduces to finding a zero of the function <span class="math notranslate nohighlight">\(\mathbf{F}(\mathbf{z}) = \nabla_{\mathbf{x}, \boldsymbol{\lambda}} L(\mathbf{x}, \boldsymbol{\lambda})\)</span>. Here, <span class="math notranslate nohighlight">\(\mathbf{F}\)</span> represents the derivative of the Lagrangian function, and <span class="math notranslate nohighlight">\(\mathbf{z} = (\mathbf{x}, \boldsymbol{\lambda})\)</span> combines both the primal variables <span class="math notranslate nohighlight">\(\mathbf{x}\)</span> and the dual variables (Lagrange multipliers) <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}\)</span>. Explicitly, we have:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
@@ -1535,7 +1536,7 @@ The solution of this system provides the updates <span class="math notranslate n
 \mathbf{x}^{k+1} = \mathbf{x}^k + \Delta \mathbf{x}^k, \quad \boldsymbol{\lambda}^{k+1} = \boldsymbol{\lambda}^k + \Delta \boldsymbol{\lambda}^k.
 \]</div>
 <section id="demonstration">
-<h5><span class="section-number">3.2.1.4.1. </span>Demonstration<a class="headerlink" href="#demonstration" title="Link to this heading">#</a></h5>
+<h5><span class="section-number">4.2.1.4.1. </span>Demonstration<a class="headerlink" href="#demonstration" title="Link to this heading">#</a></h5>
 <p>The following code demonstates how we can implement this idea in Jax. In this demonstration, we are minimizing a quadratic objective function subject to a single equality constraint, a problem formally stated as follows:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
@@ -1718,7 +1719,7 @@ We can verify numerically (and visually on the following graph) that the point <
 </section>
 </section>
 <section id="the-sqp-approach-taylor-expansion-and-quadratic-approximation">
-<h3><span class="section-number">3.2.2. </span>The SQP Approach: Taylor Expansion and Quadratic Approximation<a class="headerlink" href="#the-sqp-approach-taylor-expansion-and-quadratic-approximation" title="Link to this heading">#</a></h3>
+<h3><span class="section-number">4.2.2. </span>The SQP Approach: Taylor Expansion and Quadratic Approximation<a class="headerlink" href="#the-sqp-approach-taylor-expansion-and-quadratic-approximation" title="Link to this heading">#</a></h3>
 <p>Sequential Quadratic Programming (SQP) tackles the problem of solving constrained programs by iteratively solving a sequence of simpler subproblems. Specifically, these subproblems are quadratic programs (QPs) that approximate the original problem around the current iterate by using a quadratic model of the objective function and a linear model of the constraints. Suppose we have the following optimization problem with equality constraints:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
@@ -1759,7 +1760,7 @@ While solving this QP, we obtain not only the step <span class="math notranslate
 <p>Simultaneously, the Lagrange multipliers from the QP provide the updated dual variables <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^{k+1}\)</span>.
 We summarize the SQP algorithm in the following pseudo-code:</p>
 <div class="proof algorithm admonition" id="alg-sqp">
-<p class="admonition-title"><span class="caption-number">Algorithm 3.4 </span> (Sequential Quadratic Programming (SQP))</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 4.4 </span> (Sequential Quadratic Programming (SQP))</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Initial estimate <span class="math notranslate nohighlight">\(\mathbf{x}^0\)</span>, initial Lagrange multipliers <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^0\)</span>, tolerance <span class="math notranslate nohighlight">\(\epsilon &gt; 0\)</span>.</p>
 <p><strong>Output:</strong> Solution <span class="math notranslate nohighlight">\(\mathbf{x}^*\)</span>, Lagrange multipliers <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^*\)</span>.</p>
@@ -1777,7 +1778,7 @@ We summarize the SQP algorithm in the following pseudo-code:</p>
 </ol>
 </section>
 </div><section id="connection-to-newton-s-method-in-the-equality-constrained-case">
-<h4><span class="section-number">3.2.2.1. </span>Connection to Newton’s Method in the Equality-Constrained Case<a class="headerlink" href="#connection-to-newton-s-method-in-the-equality-constrained-case" title="Link to this heading">#</a></h4>
+<h4><span class="section-number">4.2.2.1. </span>Connection to Newton’s Method in the Equality-Constrained Case<a class="headerlink" href="#connection-to-newton-s-method-in-the-equality-constrained-case" title="Link to this heading">#</a></h4>
 <p>The QP subproblem in SQP is directly related to applying Newton’s method for equality-constrained optimization. To see this, note that the KKT matrix of the QP subproblem is:</p>
 <div class="amsmath math notranslate nohighlight">
 \[\begin{align*}
@@ -1800,7 +1801,7 @@ We summarize the SQP algorithm in the following pseudo-code:</p>
 </section>
 </section>
 <section id="sqp-for-inequality-constrained-optimization">
-<h3><span class="section-number">3.2.3. </span>SQP for Inequality-Constrained Optimization<a class="headerlink" href="#sqp-for-inequality-constrained-optimization" title="Link to this heading">#</a></h3>
+<h3><span class="section-number">4.2.3. </span>SQP for Inequality-Constrained Optimization<a class="headerlink" href="#sqp-for-inequality-constrained-optimization" title="Link to this heading">#</a></h3>
 <p>So far, we’ve applied the ideas behind Sequential Quadratic Programming (SQP) to problems with only equality constraints. Now, let’s extend this framework to handle optimization problems that also include inequality constraints.
 Consider a general nonlinear optimization problem that includes both equality and inequality constraints:</p>
 <div class="amsmath math notranslate nohighlight">
@@ -1818,7 +1819,7 @@ Consider a general nonlinear optimization problem that includes both equality an
 \end{align*}\]</div>
 <p>where <span class="math notranslate nohighlight">\(\Delta \mathbf{x} = \mathbf{x} - \mathbf{x}^k\)</span> represents the step direction for the primal variables. The following pseudocode outlines the steps involved in applying SQP to a problem with both equality and inequality constraints:</p>
 <div class="proof algorithm admonition" id="alg-sqp-ineq">
-<p class="admonition-title"><span class="caption-number">Algorithm 3.5 </span> (Sequential Quadratic Programming (SQP) with Inequality Constraints)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 4.5 </span> (Sequential Quadratic Programming (SQP) with Inequality Constraints)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Initial estimate <span class="math notranslate nohighlight">\(\mathbf{x}^0\)</span>, initial multipliers <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^0, \boldsymbol{\nu}^0\)</span>, tolerance <span class="math notranslate nohighlight">\(\epsilon &gt; 0\)</span>.</p>
 <p><strong>Output:</strong> Solution <span class="math notranslate nohighlight">\(\mathbf{x}^*\)</span>, Lagrange multipliers <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^*, \boldsymbol{\nu}^*\)</span>.</p>
@@ -1853,7 +1854,7 @@ If <span class="math notranslate nohighlight">\(\|\Delta \mathbf{x}^k\| &lt; \ep
 </ol>
 </section>
 </div><section id="demonstration-with-jax-and-cvxpy">
-<h4><span class="section-number">3.2.3.1. </span>Demonstration with JAX and CVXPy<a class="headerlink" href="#demonstration-with-jax-and-cvxpy" title="Link to this heading">#</a></h4>
+<h4><span class="section-number">4.2.3.1. </span>Demonstration with JAX and CVXPy<a class="headerlink" href="#demonstration-with-jax-and-cvxpy" title="Link to this heading">#</a></h4>
 <p>Consider the following equality and inequality-constrained problem:</p>
 <div class="amsmath math notranslate nohighlight">
 \[\begin{align*}
@@ -2011,7 +2012,7 @@ If <span class="math notranslate nohighlight">\(\|\Delta \mathbf{x}^k\| &lt; \ep
 </section>
 </section>
 <section id="the-arrow-hurwicz-uzawa-algorithm">
-<h3><span class="section-number">3.2.4. </span>The Arrow-Hurwicz-Uzawa algorithm<a class="headerlink" href="#the-arrow-hurwicz-uzawa-algorithm" title="Link to this heading">#</a></h3>
+<h3><span class="section-number">4.2.4. </span>The Arrow-Hurwicz-Uzawa algorithm<a class="headerlink" href="#the-arrow-hurwicz-uzawa-algorithm" title="Link to this heading">#</a></h3>
 <p>While the SQP method addresses constrained optimization problems by sequentially solving quadratic subproblems, an alternative approach emerges from viewing constrained optimization as a min-max problem. This perspective leads to a simpler algorithm, originally introduced by the Arrow-Hurwicz-Uzawa <span id="id8">[<a class="reference internal" href="bibliography.html#id10" title="Kenneth J Arrow, Leonid Hurwicz, and Hirofumi Uzawa. Studies in linear and non-linear programming. Stanford University Press, 1958.">3</a>]</span>. Consider the following general constrained optimization problem encompassing both equality and inequality constraints:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
@@ -2034,7 +2035,7 @@ If <span class="math notranslate nohighlight">\(\|\Delta \mathbf{x}^k\| &lt; \ep
 </ol>
 <p>Using this observation, we can devise an algorithm which, like SQP, will update both the primal and dual variables at every step. But rather than using second-order optimization, we will simply use a first-order gradient update step: a descent step in the primal variable, and an ascent step in the dual one. The corresponding procedure, when implemented by gradient descent, is called Gradient Ascent Descent in the learning and optimization communities. In the case of equality constraints only, the algorithm looks like the following:</p>
 <div class="proof algorithm admonition" id="ahuz-eq">
-<p class="admonition-title"><span class="caption-number">Algorithm 3.6 </span> (Arrow-Hurwicz-Uzawa for equality constraints only)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 4.6 </span> (Arrow-Hurwicz-Uzawa for equality constraints only)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Initial guess <span class="math notranslate nohighlight">\(\mathbf{x}^0\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^0\)</span>, step sizes <span class="math notranslate nohighlight">\(\alpha\)</span>, <span class="math notranslate nohighlight">\(\beta\)</span>
 <strong>Output:</strong> Optimal <span class="math notranslate nohighlight">\(\mathbf{x}^*\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^*\)</span></p>
@@ -2046,7 +2047,7 @@ If <span class="math notranslate nohighlight">\(\|\Delta \mathbf{x}^k\| &lt; \ep
 </section>
 </div><p>Now to account for the fact that the Lagrange multiplier needs to be non-negative for inequality constraints, we can use our previous idea from projected gradient descent for bound constraints and consider a projection, or clipping step to ensure that this condition is satisfied throughout. In this case, the algorithm looks like the following:</p>
 <div class="proof algorithm admonition" id="ahuz-full">
-<p class="admonition-title"><span class="caption-number">Algorithm 3.7 </span> (Arrow-Hurwicz-Uzawa for equality and inequality constraints)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 4.7 </span> (Arrow-Hurwicz-Uzawa for equality and inequality constraints)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Initial guess <span class="math notranslate nohighlight">\(\mathbf{x}^0\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^0\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{\mu}^0 \geq 0\)</span>, step sizes <span class="math notranslate nohighlight">\(\alpha\)</span>, <span class="math notranslate nohighlight">\(\beta\)</span>, <span class="math notranslate nohighlight">\(\gamma\)</span>
 <strong>Output:</strong> Optimal <span class="math notranslate nohighlight">\(\mathbf{x}^*\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^*\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{\mu}^*\)</span></p>
@@ -2216,11 +2217,11 @@ If <span class="math notranslate nohighlight">\(\|\Delta \mathbf{x}^k\| &lt; \ep
 </section>
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="the-discrete-time-pontryagin-maximum-principle">
-<h1><span class="section-number">4. </span>The Discrete-Time Pontryagin Maximum Principle<a class="headerlink" href="#the-discrete-time-pontryagin-maximum-principle" title="Link to this heading">#</a></h1>
+<h1><span class="section-number">5. </span>The Discrete-Time Pontryagin Maximum Principle<a class="headerlink" href="#the-discrete-time-pontryagin-maximum-principle" title="Link to this heading">#</a></h1>
 <p>Discrete-time optimal control problems (DOCPs) form a specific class of nonlinear programming problems. Therefore, we can apply the general results from the Karush-Kuhn-Tucker (KKT) conditions to characterize the structure of optimal solutions to DOCPs in any of their three forms. The discrete-time analogue of the KKT conditions for DOCPs is known as the discrete-time Pontryagin Maximum Principle (PMP). The PMP was first described by Pontryagin in 1956 <span id="id10">[<a class="reference internal" href="bibliography.html#id12" title="Lev Semyonovich Pontryagin, Vladimir Grigor'evich Boltyanskii, Revaz Valerianovich Gamkrelidze, and Evgenii Frolovich Mishchenko. The Mathematical Theory of Optimal Processes. Interscience Publishers, 1962.">35</a>]</span> for continuous-time systems, with the discrete-time version following shortly after. Similar to the KKT conditions, the PMP is useful from both theoretical and practical perspectives. It not only allows us to sometimes find closed-form solutions but also inspires the development of algorithms.</p>
 <p>Importantly, the PMP goes beyond the KKT conditions by demonstrating the existence of a particular recursive equation—the adjoint equation. This equation governs the evolution of the derivative of the Hamiltonian, a close cousin to the Lagrangian. The adjoint equation enables us to transform the PMP into an algorithmic procedure, which has much in common with backpropagation <span id="id11">[<a class="reference internal" href="bibliography.html#id13" title="David E Rumelhart, Geoffrey E Hinton, and Ronald J Williams. Learning representations by back-propagating errors. Nature, 323(6088):533–536, 1986.">39</a>]</span> in deep learning. This connection between optimal control theory has been noted by several researchers, including Griewank <span id="id12">[<a class="reference internal" href="bibliography.html#id14" title="Andreas Griewank. On automatic differentiation. Mathematical Programming: Recent Developments and Applications, 1989.">18</a>]</span> in the context of automatic differentiation, and LeCun <span id="id13">[<a class="reference internal" href="bibliography.html#id15" title="Yann LeCun. A theoretical framework for back-propagation. Proceedings of the 1988 Connectionist Models Summer School, pages 21–28, 1988.">28</a>]</span> in his early work on neural networks.</p>
 <section id="pmp-for-mayer-problems">
-<h2><span class="section-number">4.1. </span>PMP for Mayer Problems<a class="headerlink" href="#pmp-for-mayer-problems" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">5.1. </span>PMP for Mayer Problems<a class="headerlink" href="#pmp-for-mayer-problems" title="Link to this heading">#</a></h2>
 <p>Before delving into more general cases, let’s consider a Mayer problem where the goal is to minimize a terminal cost function <span class="math notranslate nohighlight">\(c_T(\mathbf{x}_T)\)</span>:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
@@ -2294,7 +2295,7 @@ J(\mathbf{u}_{1:T-1}) = c_T(\boldsymbol{\phi}_T(\mathbf{u}_{1:T-1}, \mathbf{x}_1
 \]</div>
 </section>
 <section id="pmp-for-bolza-problems">
-<h2><span class="section-number">4.2. </span>PMP for Bolza Problems<a class="headerlink" href="#pmp-for-bolza-problems" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">5.2. </span>PMP for Bolza Problems<a class="headerlink" href="#pmp-for-bolza-problems" title="Link to this heading">#</a></h2>
 <p>To derive the adjoint equation for the Bolza problem, we consider the optimal control problem where the objective is to minimize both a terminal cost <span class="math notranslate nohighlight">\(c_T(\mathbf{x}_T)\)</span> and the sum of intermediate costs <span class="math notranslate nohighlight">\(c_t(\mathbf{x}_t, \mathbf{u}_t)\)</span>:</p>
 <div class="amsmath math notranslate nohighlight">
 \[\begin{align*}
@@ -2402,12 +2403,12 @@ $$ --></section>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="intro.html"
+       href="modeling.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Why This Book?</p>
+        <p class="prev-next-title"><span class="section-number">1. </span>Modeling Systems, Simulation, and Data</p>
       </div>
     </a>
     <a class="right-next"
@@ -2415,7 +2416,7 @@ $$ --></section>
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title"><span class="section-number">5. </span>Continuous-Time Trajectory Optimization</p>
+        <p class="prev-next-title"><span class="section-number">6. </span>Continuous-Time Trajectory Optimization</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -2435,50 +2436,50 @@ $$ --></section>
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">1. Discrete-Time Trajectory Optimization</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#irrigation-management-example">1.1. Irrigation Management Example</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">2. Discrete-Time Trajectory Optimization</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#irrigation-management-example">2.1. Irrigation Management Example</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#mathematical-programming-formulation">2. Mathematical Programming Formulation</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reduction-to-mayer-problems">2.1. Reduction to Mayer Problems</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#mathematical-programming-formulation">3. Mathematical Programming Formulation</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reduction-to-mayer-problems">3.1. Reduction to Mayer Problems</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#numerical-methods-for-solving-docps">3. Numerical Methods for Solving DOCPs</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#single-shooting-methods">3.1. Single Shooting Methods</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dealing-with-bound-constraints">3.1.1. Dealing with Bound Constraints</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#on-the-choice-of-optimizer">3.1.2. On the choice of optimizer</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#numerical-methods-for-solving-docps">4. Numerical Methods for Solving DOCPs</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#single-shooting-methods">4.1. Single Shooting Methods</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dealing-with-bound-constraints">4.1.1. Dealing with Bound Constraints</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#on-the-choice-of-optimizer">4.1.2. On the choice of optimizer</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#constrained-optimization-approach">3.2. Constrained Optimization Approach</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nonlinear-programming">3.2.1. Nonlinear Programming</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#karush-kuhn-tucker-kkt-conditions">3.2.1.1. Karush-Kuhn-Tucker (KKT) conditions</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#lagrange-multiplier-theorem">3.2.1.2. Lagrange Multiplier Theorem</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#newton-s-method">3.2.1.3. Newton’s Method</a><ul class="nav section-nav flex-column">
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#efficient-implementation-of-newton-s-method">3.2.1.3.1. Efficient Implementation of Newton’s Method</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#constrained-optimization-approach">4.2. Constrained Optimization Approach</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nonlinear-programming">4.2.1. Nonlinear Programming</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#karush-kuhn-tucker-kkt-conditions">4.2.1.1. Karush-Kuhn-Tucker (KKT) conditions</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#lagrange-multiplier-theorem">4.2.1.2. Lagrange Multiplier Theorem</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#newton-s-method">4.2.1.3. Newton’s Method</a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#efficient-implementation-of-newton-s-method">4.2.1.3.1. Efficient Implementation of Newton’s Method</a></li>
 </ul>
 </li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#solving-equality-constrained-programs-with-newton-s-method">3.2.1.4. Solving Equality Constrained Programs with Newton’s Method</a><ul class="nav section-nav flex-column">
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#demonstration">3.2.1.4.1. Demonstration</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-sqp-approach-taylor-expansion-and-quadratic-approximation">3.2.2. The SQP Approach: Taylor Expansion and Quadratic Approximation</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#connection-to-newton-s-method-in-the-equality-constrained-case">3.2.2.1. Connection to Newton’s Method in the Equality-Constrained Case</a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sqp-for-inequality-constrained-optimization">3.2.3. SQP for Inequality-Constrained Optimization</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#demonstration-with-jax-and-cvxpy">3.2.3.1. Demonstration with JAX and CVXPy</a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-arrow-hurwicz-uzawa-algorithm">3.2.4. The Arrow-Hurwicz-Uzawa algorithm</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#solving-equality-constrained-programs-with-newton-s-method">4.2.1.4. Solving Equality Constrained Programs with Newton’s Method</a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#demonstration">4.2.1.4.1. Demonstration</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#the-discrete-time-pontryagin-maximum-principle">4. The Discrete-Time Pontryagin Maximum Principle</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pmp-for-mayer-problems">4.1. PMP for Mayer Problems</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pmp-for-bolza-problems">4.2. PMP for Bolza Problems</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-sqp-approach-taylor-expansion-and-quadratic-approximation">4.2.2. The SQP Approach: Taylor Expansion and Quadratic Approximation</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#connection-to-newton-s-method-in-the-equality-constrained-case">4.2.2.1. Connection to Newton’s Method in the Equality-Constrained Case</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sqp-for-inequality-constrained-optimization">4.2.3. SQP for Inequality-Constrained Optimization</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#demonstration-with-jax-and-cvxpy">4.2.3.1. Demonstration with JAX and CVXPy</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-arrow-hurwicz-uzawa-algorithm">4.2.4. The Arrow-Hurwicz-Uzawa algorithm</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#the-discrete-time-pontryagin-maximum-principle">5. The Discrete-Time Pontryagin Maximum Principle</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pmp-for-mayer-problems">5.1. PMP for Mayer Problems</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pmp-for-bolza-problems">5.2. PMP for Bolza Problems</a></li>
 </ul>
 </li>
 </ul>

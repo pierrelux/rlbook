@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>19. Policy Parametrization Methods &#8212; Practical Reinforcement Learning: From Algorithms to Applications</title>
+    <title>20. Policy Parametrization Methods &#8212; Practical Reinforcement Learning: From Algorithms to Applications</title>
   
   
   
@@ -64,8 +64,8 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'cadp';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="27. Bibliography" href="bibliography.html" />
-    <link rel="prev" title="13. Approximate Dynamic Programming" href="adp.html" />
+    <link rel="next" title="28. Bibliography" href="bibliography.html" />
+    <link rel="prev" title="14. Approximate Dynamic Programming" href="adp.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -178,33 +178,34 @@
             </li>
         </ul>
         <ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="ocp.html">1. Discrete-Time Trajectory Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modeling.html">1. Modeling Systems, Simulation, and Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ocp.html">2. Discrete-Time Trajectory Optimization</a></li>
 
 
 
-<li class="toctree-l1"><a class="reference internal" href="cocp.html">5. Continuous-Time Trajectory Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cocp.html">6. Continuous-Time Trajectory Optimization</a></li>
 
-<li class="toctree-l1"><a class="reference internal" href="mpc.html">7. From Trajectories to Policies</a></li>
-
-
-
-<li class="toctree-l1"><a class="reference internal" href="dp.html">11. Dynamic Programming</a></li>
-
-<li class="toctree-l1"><a class="reference internal" href="adp.html">13. Approximate Dynamic Programming</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mpc.html">8. From Trajectories to Policies</a></li>
 
 
 
+<li class="toctree-l1"><a class="reference internal" href="dp.html">12. Dynamic Programming</a></li>
 
-
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">19. Policy Parametrization Methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="adp.html">14. Approximate Dynamic Programming</a></li>
 
 
 
 
 
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">20. Policy Parametrization Methods</a></li>
 
 
-<li class="toctree-l1"><a class="reference internal" href="bibliography.html">27. Bibliography</a></li>
+
+
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">28. Bibliography</a></li>
 </ul>
 
     </div>
@@ -417,53 +418,53 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">19. Policy Parametrization Methods</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#embedded-optimization">20. Embedded Optimization</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#amortized-optimization-approach">20.1. Amortized Optimization Approach</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">20. Policy Parametrization Methods</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#embedded-optimization">21. Embedded Optimization</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#amortized-optimization-approach">21.1. Amortized Optimization Approach</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#deterministic-parametrized-policies">21. Deterministic Parametrized Policies</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#neural-fitted-q-iteration-for-continuous-actions-nfqca">21.1. Neural Fitted Q-iteration for Continuous Actions (NFQCA)</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#deep-deterministic-policy-gradient-ddpg">21.2. Deep Deterministic Policy Gradient (DDPG)</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#twin-delayed-deep-deterministic-policy-gradient-td3">21.3. Twin Delayed Deep Deterministic Policy Gradient (TD3)</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#deterministic-parametrized-policies">22. Deterministic Parametrized Policies</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#neural-fitted-q-iteration-for-continuous-actions-nfqca">22.1. Neural Fitted Q-iteration for Continuous Actions (NFQCA)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#deep-deterministic-policy-gradient-ddpg">22.2. Deep Deterministic Policy Gradient (DDPG)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#twin-delayed-deep-deterministic-policy-gradient-td3">22.3. Twin Delayed Deep Deterministic Policy Gradient (TD3)</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#soft-actor-critic">22. Soft Actor-Critic</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fitted-q-iteration-for-the-smooth-bellman-equations">22.1. Fitted Q-Iteration for the Smooth Bellman Equations</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#approximating-boltzmann-policies-by-gaussians">22.2. Approximating Boltzmann Policies by Gaussians</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reparameterizating-the-objective">22.3. Reparameterizating the Objective</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#soft-actor-critic">23. Soft Actor-Critic</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fitted-q-iteration-for-the-smooth-bellman-equations">23.1. Fitted Q-Iteration for the Smooth Bellman Equations</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#approximating-boltzmann-policies-by-gaussians">23.2. Approximating Boltzmann Policies by Gaussians</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reparameterizating-the-objective">23.3. Reparameterizating the Objective</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#derivative-estimation-for-stochastic-optimization">23. Derivative Estimation for Stochastic Optimization</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#change-of-measure-the-likelihood-ratio-method">23.1. Change of Measure: The Likelihood Ratio Method</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-change-of-variables-approach-the-reparameterization-trick">23.2. A Change of Variables Approach: The Reparameterization Trick</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#common-examples-of-reparameterization">23.2.1. Common Examples of Reparameterization</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#bounded-intervals-the-truncated-normal">23.2.1.1. Bounded Intervals: The Truncated Normal</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#sampling-from-0-1-the-kumaraswamy-distribution">23.2.1.2. Sampling from [0,1]: The Kumaraswamy Distribution</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#discrete-actions-the-gumbel-softmax">23.2.1.3. Discrete Actions: The Gumbel-Softmax</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#derivative-estimation-for-stochastic-optimization">24. Derivative Estimation for Stochastic Optimization</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#change-of-measure-the-likelihood-ratio-method">24.1. Change of Measure: The Likelihood Ratio Method</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-change-of-variables-approach-the-reparameterization-trick">24.2. A Change of Variables Approach: The Reparameterization Trick</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#common-examples-of-reparameterization">24.2.1. Common Examples of Reparameterization</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#bounded-intervals-the-truncated-normal">24.2.1.1. Bounded Intervals: The Truncated Normal</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#sampling-from-0-1-the-kumaraswamy-distribution">24.2.1.2. Sampling from [0,1]: The Kumaraswamy Distribution</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#discrete-actions-the-gumbel-softmax">24.2.1.3. Discrete Actions: The Gumbel-Softmax</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#demonstration-numerical-analysis-of-gradient-estimators">23.3. Demonstration: Numerical Analysis of Gradient Estimators</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#demonstration-numerical-analysis-of-gradient-estimators">24.3. Demonstration: Numerical Analysis of Gradient Estimators</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#score-function-gradient-estimation-in-reinforcement-learning">24. Score Function Gradient Estimation in Reinforcement Learning</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#leveraging-conditional-independence">24.1. Leveraging Conditional Independence</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#variance-reduction-via-control-variates">24.2. Variance Reduction via Control Variates</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#generalized-advantage-estimator">24.3. Generalized Advantage Estimator</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-policy-gradient-theorem">24.4. The Policy Gradient Theorem</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#normalized-discounted-state-visitation-distribution">24.5. Normalized Discounted State Visitation Distribution</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#score-function-gradient-estimation-in-reinforcement-learning">25. Score Function Gradient Estimation in Reinforcement Learning</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#leveraging-conditional-independence">25.1. Leveraging Conditional Independence</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#variance-reduction-via-control-variates">25.2. Variance Reduction via Control Variates</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#generalized-advantage-estimator">25.3. Generalized Advantage Estimator</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-policy-gradient-theorem">25.4. The Policy Gradient Theorem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#normalized-discounted-state-visitation-distribution">25.5. Normalized Discounted State Visitation Distribution</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#policy-optimization-with-a-model">25. Policy Optimization with a Model</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#backpropagation-policy-optimization">25.1. Backpropagation Policy Optimization</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-value-gradient-svg">25.2. Stochastic Value Gradient (SVG)</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#noise-inference-in-svg">25.3. Noise Inference in SVG</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dpg-as-a-special-case-of-sac">25.4. DPG as a Special Case of SAC</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#policy-optimization-with-a-model">26. Policy Optimization with a Model</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#backpropagation-policy-optimization">26.1. Backpropagation Policy Optimization</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-value-gradient-svg">26.2. Stochastic Value Gradient (SVG)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#noise-inference-in-svg">26.3. Noise Inference in SVG</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dpg-as-a-special-case-of-sac">26.4. DPG as a Special Case of SAC</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#policy-optimization-with-a-trust-region">26. Policy Optimization with a Trust Region</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#policy-optimization-with-a-trust-region">27. Policy Optimization with a Trust Region</a></li>
 </ul>
 
             </nav>
@@ -477,12 +478,12 @@ document.write(`
                 <article class="bd-article">
                   
   <section class="tex2jax_ignore mathjax_ignore" id="policy-parametrization-methods">
-<h1><span class="section-number">19. </span>Policy Parametrization Methods<a class="headerlink" href="#policy-parametrization-methods" title="Link to this heading">#</a></h1>
+<h1><span class="section-number">20. </span>Policy Parametrization Methods<a class="headerlink" href="#policy-parametrization-methods" title="Link to this heading">#</a></h1>
 <p>In the previous chapter, we explored various approaches to approximate dynamic programming, focusing on ways to handle large state spaces through function approximation. However, these methods still face significant challenges when dealing with large or continuous action spaces. The need to maximize over actions during the Bellman operator evaluation becomes computationally prohibitive as the action space grows.</p>
 <p>This chapter explores a natural evolution of these ideas: rather than exhaustively searching over actions, we can parameterize and directly optimize the policy itself. We begin by examining how fitted Q methods, while powerful for handling large state spaces, still struggle with action space complexity.</p>
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="embedded-optimization">
-<h1><span class="section-number">20. </span>Embedded Optimization<a class="headerlink" href="#embedded-optimization" title="Link to this heading">#</a></h1>
+<h1><span class="section-number">21. </span>Embedded Optimization<a class="headerlink" href="#embedded-optimization" title="Link to this heading">#</a></h1>
 <p>Recall that in fitted Q methods, the main idea is to compute the Bellman operator only at a subset of all states, relying on function approximation to generalize to the remaining states. At each step of the successive approximation loop, we build a dataset of input state-action pairs mapped to their corresponding optimality operator evaluations:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -495,7 +496,7 @@ document.write(`
 \]</div>
 <p>While this strategy allows us to handle very large or even infinite (continuous) state spaces, it still requires maximizing over actions (<span class="math notranslate nohighlight">\(\max_{a \in A}\)</span>) during the dataset creation when computing the operator <span class="math notranslate nohighlight">\(L\)</span> for each basepoint. This maximization becomes computationally expensive for large action spaces. A natural improvement is to add another level of optimization: for each sample added to our regression dataset, we can employ numerical optimization methods to find actions that maximize the Bellman operator for the given state.</p>
 <div class="proof algorithm admonition" id="fitted-q-iteration-explicit">
-<p class="admonition-title"><span class="caption-number">Algorithm 20.1 </span> (Fitted Q-Iteration with Explicit Optimization)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 21.1 </span> (Fitted Q-Iteration with Explicit Optimization)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given an MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, base points <span class="math notranslate nohighlight">\(\mathcal{B}\)</span>, function approximator class <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, maximum iterations <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
@@ -522,7 +523,7 @@ document.write(`
 </section>
 </div><p>The above pseudocode introduces a generic <span class="math notranslate nohighlight">\(\texttt{maximize}\)</span> routine which represents any numerical optimization method that searches for an action maximizing the given function. This approach is versatile and can be adapted to different types of action spaces. For continuous action spaces, we can employ standard nonlinear optimization methods like gradient descent or L-BFGS (e.g., using scipy.optimize.minimize). For large discrete action spaces, we can use integer programming solvers - linear integer programming if the Q-function approximator is linear in actions, or mixed-integer nonlinear programming (MINLP) solvers for nonlinear Q-functions. The choice of solver depends on the structure of our Q-function approximator and the constraints on our action space.</p>
 <section id="amortized-optimization-approach">
-<h2><span class="section-number">20.1. </span>Amortized Optimization Approach<a class="headerlink" href="#amortized-optimization-approach" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">21.1. </span>Amortized Optimization Approach<a class="headerlink" href="#amortized-optimization-approach" title="Link to this heading">#</a></h2>
 <p>This process is computationally intensive. A natural question is whether we can “amortize” some of this computation by replacing the explicit optimization for each sample with a direct mapping that gives us an approximate maximizer directly.
 For Q-functions, recall that the operator is given by:</p>
 <div class="math notranslate nohighlight">
@@ -545,7 +546,7 @@ q^\star(s,a) &amp;= (Lq^*)(s,a) \\
 \end{split}\]</div>
 <p>Note that <span class="math notranslate nohighlight">\(d^\star\)</span> is implemented by our <span class="math notranslate nohighlight">\(\texttt{maximize}\)</span> numerical solver in the procedure above. A practical strategy would be to collect these maximizer values at each step and use them to train a function approximator that directly predicts these solutions. Due to computational constraints, we might want to compute these exact maximizer values only for a subset of states, based on some computational budget, and use the fitted decision rule to generalize to the remaining states. This leads to the following amortized version:</p>
 <div class="proof algorithm admonition" id="fitted-q-iteration-amortized">
-<p class="admonition-title"><span class="caption-number">Algorithm 20.2 </span> (Fitted Q-Iteration with Amortized Optimization)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 21.2 </span> (Fitted Q-Iteration with Amortized Optimization)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given an MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, base points <span class="math notranslate nohighlight">\(\mathcal{B}\)</span>, subset for exact optimization <span class="math notranslate nohighlight">\(\mathcal{B}_{\text{opt}} \subset \mathcal{B}\)</span>, Q-function approximator <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, policy approximator <span class="math notranslate nohighlight">\(d(s; \boldsymbol{w})\)</span>, maximum iterations <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function, <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span> for policy</p>
@@ -604,10 +605,10 @@ q^\star(s,a) &amp;= (Lq^*)(s,a) \\
 </section>
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="deterministic-parametrized-policies">
-<h1><span class="section-number">21. </span>Deterministic Parametrized Policies<a class="headerlink" href="#deterministic-parametrized-policies" title="Link to this heading">#</a></h1>
+<h1><span class="section-number">22. </span>Deterministic Parametrized Policies<a class="headerlink" href="#deterministic-parametrized-policies" title="Link to this heading">#</a></h1>
 <p>In this section, we consider deterministic parametrized policies of the form <span class="math notranslate nohighlight">\(d(s; \boldsymbol{w})\)</span> which directly output an action given a state. This approach differs from stochastic policies that output probability distributions over actions, making it particularly suitable for continuous control problems where the optimal policy is often deterministic. We’ll see how fitted Q-value methods can be naturally extended to simultaneously learn both the Q-function and such a deterministic policy.</p>
 <section id="neural-fitted-q-iteration-for-continuous-actions-nfqca">
-<h2><span class="section-number">21.1. </span>Neural Fitted Q-iteration for Continuous Actions (NFQCA)<a class="headerlink" href="#neural-fitted-q-iteration-for-continuous-actions-nfqca" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">22.1. </span>Neural Fitted Q-iteration for Continuous Actions (NFQCA)<a class="headerlink" href="#neural-fitted-q-iteration-for-continuous-actions-nfqca" title="Link to this heading">#</a></h2>
 <p>To develop this approach, let’s first consider an idealized setting where we have access to <span class="math notranslate nohighlight">\(q^\star\)</span>, the optimal Q-function. Then we can state our goal as finding policy parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span> that maximize <span class="math notranslate nohighlight">\(q^\star\)</span> with respect to the actions chosen by our policy across the state space:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -626,7 +627,7 @@ q^\star(s,a) &amp;= (Lq^*)(s,a) \\
 \]</div>
 <p>When using neural networks to parametrize <span class="math notranslate nohighlight">\(q\)</span> and <span class="math notranslate nohighlight">\(d\)</span>, we obtain the Neural Fitted Q-Iteration with Continuous Actions (NFQCA) algorithm proposed by <span id="id1">[<a class="reference internal" href="bibliography.html#id40" title="Roland Hafner and Martin Riedmiller. Reinforcement learning in feedback control: challenges and benchmarks from technical process control. Machine Learning, 84(1-2):137-169, feb 2011. URL: http://dx.doi.org/10.1007/s10994-011-5235-x, doi:10.1007/s10994-011-5235-x.">21</a>]</span>.</p>
 <div class="proof algorithm admonition" id="nfqca">
-<p class="admonition-title"><span class="caption-number">Algorithm 21.1 </span> (Neural Fitted Q-Iteration with Continuous Actions (NFQCA))</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 22.1 </span> (Neural Fitted Q-Iteration with Continuous Actions (NFQCA))</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, base points <span class="math notranslate nohighlight">\(\mathcal{B}\)</span>, Q-function <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, policy <span class="math notranslate nohighlight">\(d(s; \boldsymbol{w})\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function, <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span> for policy</p>
@@ -662,7 +663,7 @@ q^\star(s,a) &amp;= (Lq^*)(s,a) \\
 <p>where <span class="math notranslate nohighlight">\(\alpha\)</span> is the learning rate. Both operations can be efficiently implemented using modern automatic differentiation libraries and stochastic gradient descent variants like Adam or RMSProp.</p>
 </section>
 <section id="deep-deterministic-policy-gradient-ddpg">
-<h2><span class="section-number">21.2. </span>Deep Deterministic Policy Gradient (DDPG)<a class="headerlink" href="#deep-deterministic-policy-gradient-ddpg" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">22.2. </span>Deep Deterministic Policy Gradient (DDPG)<a class="headerlink" href="#deep-deterministic-policy-gradient-ddpg" title="Link to this heading">#</a></h2>
 <p>Just as DQN adapted Neural Fitted Q-Iteration to the online setting, DDPG <span id="id2">[<a class="reference internal" href="bibliography.html#id42" title="Timothy P Lillicrap, Jonathan J Hunt, Alexander Pritzel, Nicolas Heess, Tom Erez, Yuval Tassa, David Silver, and Daan Wierstra. Continuous control with deep reinforcement learning. arXiv preprint arXiv:1509.02971, 2015.">30</a>]</span> extends NFQCA to learn from data collected online. Like NFQCA, DDPG simultaneously learns a Q-function and a deterministic policy that maximizes it, but differs in how it collects and processes data.</p>
 <p>Instead of maintaining a fixed set of basepoints, DDPG uses a replay buffer that continuously stores new transitions as the agent interacts with the environment. Since the policy is deterministic, exploration becomes challenging. DDPG addresses this by adding noise to the policy’s actions during data collection:</p>
 <div class="math notranslate nohighlight">
@@ -687,7 +688,7 @@ d\mathcal{N}_t = \theta(\mu - \mathcal{N}_t)dt + \sigma dW_t
 \]</div>
 <p>We then embed this exploration mechanism into the data collection procedure and use the same flattened FQI structure that we adopted in DQN. Similar to DQN, flattening the outer-inner optimization structure leads to the need for target networks - both for the Q-function and the policy.</p>
 <div class="proof algorithm admonition" id="ddpg">
-<p class="admonition-title"><span class="caption-number">Algorithm 21.2 </span> (Deep Deterministic Policy Gradient (DDPG))</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 22.2 </span> (Deep Deterministic Policy Gradient (DDPG))</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, Q-network <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, policy network <span class="math notranslate nohighlight">\(d(s; \boldsymbol{w})\)</span>, learning rates <span class="math notranslate nohighlight">\(\alpha_q, \alpha_d\)</span>, replay buffer size <span class="math notranslate nohighlight">\(B\)</span>, mini-batch size <span class="math notranslate nohighlight">\(b\)</span>, target update frequency <span class="math notranslate nohighlight">\(K\)</span></p>
 <p><strong>Initialize</strong></p>
@@ -725,10 +726,10 @@ d\mathcal{N}_t = \theta(\mu - \mathcal{N}_t)dt + \sigma dW_t
 </section>
 </div></section>
 <section id="twin-delayed-deep-deterministic-policy-gradient-td3">
-<h2><span class="section-number">21.3. </span>Twin Delayed Deep Deterministic Policy Gradient (TD3)<a class="headerlink" href="#twin-delayed-deep-deterministic-policy-gradient-td3" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">22.3. </span>Twin Delayed Deep Deterministic Policy Gradient (TD3)<a class="headerlink" href="#twin-delayed-deep-deterministic-policy-gradient-td3" title="Link to this heading">#</a></h2>
 <p>While DDPG provided a foundation for continuous control with deep RL, it suffers from similar overestimation issues as DQN. TD3 <span id="id3">[<a class="reference internal" href="bibliography.html#id43" title="Scott Fujimoto, Herke Hoof, and David Meger. Addressing function approximation error in actor-critic methods. In International Conference on Machine Learning (ICML), 1587–1596. 2018.">11</a>]</span> addresses these challenges through three key modifications: double Q-learning to reduce overestimation bias, delayed policy updates to reduce per-update error, and target policy smoothing to prevent exploitation of Q-function errors.</p>
 <div class="proof algorithm admonition" id="td3">
-<p class="admonition-title"><span class="caption-number">Algorithm 21.3 </span> (Twin Delayed Deep Deterministic Policy Gradient (TD3))</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 22.3 </span> (Twin Delayed Deep Deterministic Policy Gradient (TD3))</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, twin Q-networks <span class="math notranslate nohighlight">\(q^A(s,a; \boldsymbol{\theta}^A)\)</span>, <span class="math notranslate nohighlight">\(q^B(s,a; \boldsymbol{\theta}^B)\)</span>, policy network <span class="math notranslate nohighlight">\(d(s; \boldsymbol{w})\)</span>, learning rates <span class="math notranslate nohighlight">\(\alpha_q, \alpha_d\)</span>, replay buffer size <span class="math notranslate nohighlight">\(B\)</span>, mini-batch size <span class="math notranslate nohighlight">\(b\)</span>, policy delay <span class="math notranslate nohighlight">\(d\)</span>, noise scale <span class="math notranslate nohighlight">\(\sigma\)</span>, noise clip <span class="math notranslate nohighlight">\(c\)</span>, exploration noise std <span class="math notranslate nohighlight">\(\sigma_{explore}\)</span></p>
 <p><strong>Initialize</strong></p>
@@ -785,7 +786,7 @@ d\mathcal{N}_t = \theta(\mu - \mathcal{N}_t)dt + \sigma dW_t
 </section>
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="soft-actor-critic">
-<h1><span class="section-number">22. </span>Soft Actor-Critic<a class="headerlink" href="#soft-actor-critic" title="Link to this heading">#</a></h1>
+<h1><span class="section-number">23. </span>Soft Actor-Critic<a class="headerlink" href="#soft-actor-critic" title="Link to this heading">#</a></h1>
 <p>Adapting the intuition of NFQCA to the smooth Bellman optimality equations leads us to the soft actor-critic algorithm <span id="id4">[<a class="reference internal" href="bibliography.html#id30" title="Tuomas Haarnoja, Aurick Zhou, Pieter Abbeel, and Sergey Levine. Soft actor-critic: off-policy maximum entropy deep reinforcement learning with a stochastic actor. In Proceedings of the 35th International Conference on Machine Learning (ICML), 1861–1870. PMLR, 2018.">20</a>]</span>. To understand this connection, let’s first examine how the smooth Bellman equations emerge naturally from entropy regularization.</p>
 <p>Consider the standard Bellman operator augmented with an entropy term. The smooth Bellman operator <span class="math notranslate nohighlight">\(\mathrm{L}_\beta\)</span> takes the form:</p>
 <div class="math notranslate nohighlight">
@@ -831,7 +832,7 @@ d^*(a|s) = \frac{\exp(\frac{1}{\beta}q^*(s,a))}{Z(s)}
 v^*(s) = \beta \log \int_A \exp(\frac{1}{\beta}q^*(s,a))da
 \]</div>
 <section id="fitted-q-iteration-for-the-smooth-bellman-equations">
-<h2><span class="section-number">22.1. </span>Fitted Q-Iteration for the Smooth Bellman Equations<a class="headerlink" href="#fitted-q-iteration-for-the-smooth-bellman-equations" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">23.1. </span>Fitted Q-Iteration for the Smooth Bellman Equations<a class="headerlink" href="#fitted-q-iteration-for-the-smooth-bellman-equations" title="Link to this heading">#</a></h2>
 <p>Following the principles of fitted value iteration, we can approximate approximate the effect of the smooth Bellman operator by computing it exactly at a number of basepoints and generalizing elsewhere using function approximation. Concretely, given a collection of states <span class="math notranslate nohighlight">\(s_i\)</span> and actions <span class="math notranslate nohighlight">\(a_i\)</span>, we would compute regression target values:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -860,7 +861,7 @@ y_i = r(s_i,a_i) + \gamma\left(q_\theta(s'_i,a'_i) - \beta \log d(a'_i|s'_i;\phi
 <p>This is a remarkable idea! One that exists only due to the dual representation of the smooth Bellman equations as an entropy-regularized problem which transforms the intractable log-sum-exp into a form we can estimate efficiently through sampling.</p>
 </section>
 <section id="approximating-boltzmann-policies-by-gaussians">
-<h2><span class="section-number">22.2. </span>Approximating Boltzmann Policies by Gaussians<a class="headerlink" href="#approximating-boltzmann-policies-by-gaussians" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">23.2. </span>Approximating Boltzmann Policies by Gaussians<a class="headerlink" href="#approximating-boltzmann-policies-by-gaussians" title="Link to this heading">#</a></h2>
 <p>The entropy-regularized objective and the smooth Bellman equation are mathematically equivalent. However, both formulations face a practical challenge: they require evaluating an intractable integral due to the Boltzmann distribution. Soft Actor-Critic (SAC) addresses this problem by approximating the optimal policy with a simpler, more tractable Gaussian distribution. Given the optimal soft policy:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -897,7 +898,7 @@ D_{KL}(d(\cdot|s;\phi)\|d_\theta) &amp;= \mathbb{E}_{a \sim d(\cdot|s;\phi)}[\lo
 \]</div>
 </section>
 <section id="reparameterizating-the-objective">
-<h2><span class="section-number">22.3. </span>Reparameterizating the Objective<a class="headerlink" href="#reparameterizating-the-objective" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">23.3. </span>Reparameterizating the Objective<a class="headerlink" href="#reparameterizating-the-objective" title="Link to this heading">#</a></h2>
 <p>One last challenge remains: <span class="math notranslate nohighlight">\(\phi\)</span> appears in the distribution underlying the inner expectation, not just in the integrand. This setting departs from standard empirical risk minimization (ERM) in supervised learning where the distribution of the data (e.g., cats and dogs in image classification) remains fixed regardless of model parameters. Here, however, the “data” - our sampled actions - depends directly on the parameters <span class="math notranslate nohighlight">\(\phi\)</span> we’re trying to optimize.</p>
 <p>This dependence prevents us from simply using sample average estimators and differentiating through them, as we typically do in supervised learning. The challenge of correctly and efficiently estimating such derivatives has been extensively studied in the simulation literature under the umbrella of “derivative estimation.” SAC adopts a particular solution known as the reparameterization trick in deep learning (or the IPA estimator in simulation literature). This approach transforms the problem by pushing <span class="math notranslate nohighlight">\(\phi\)</span> inside the expectation through a change of variables.</p>
 <p>To address this, we can express our Gaussian policy through a deterministic function <span class="math notranslate nohighlight">\(f_\phi\)</span> that transforms noise samples to actions:</p>
@@ -930,7 +931,7 @@ f_\phi(s,\epsilon) = \mu_\phi(s) + \sigma_\phi(s)\epsilon, \quad \epsilon \sim \
 \]</div>
 <p>Thus, rather than learning a single action for each state as in DDPG, we learn a function that transforms random noise into actions, explicitly parameterizing a distribution over actions while maintaining the same underlying principle of differentiating through composed policy and value functions.</p>
 <div class="proof algorithm admonition" id="sac">
-<p class="admonition-title"><span class="caption-number">Algorithm 22.1 </span> (Soft Actor-Critic)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 23.1 </span> (Soft Actor-Critic)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, Q-networks <span class="math notranslate nohighlight">\(q^1(s,a; \boldsymbol{\theta}^1)\)</span>, <span class="math notranslate nohighlight">\(q^2(s,a; \boldsymbol{\theta}^2)\)</span>, value network <span class="math notranslate nohighlight">\(v(s; \boldsymbol{\psi})\)</span>, policy network <span class="math notranslate nohighlight">\(d(a|s; \boldsymbol{\phi})\)</span>, learning rates <span class="math notranslate nohighlight">\(\alpha_q, \alpha_v, \alpha_\pi\)</span>, replay buffer size <span class="math notranslate nohighlight">\(B\)</span>, mini-batch size <span class="math notranslate nohighlight">\(b\)</span>, target smoothing coefficient <span class="math notranslate nohighlight">\(\tau\)</span></p>
 <p><strong>Initialize</strong></p>
@@ -997,7 +998,7 @@ f_\phi(s,\epsilon) = \mu_\phi(s) + \sigma_\phi(s)\epsilon, \quad \epsilon \sim \
 </div></section>
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="derivative-estimation-for-stochastic-optimization">
-<h1><span class="section-number">23. </span>Derivative Estimation for Stochastic Optimization<a class="headerlink" href="#derivative-estimation-for-stochastic-optimization" title="Link to this heading">#</a></h1>
+<h1><span class="section-number">24. </span>Derivative Estimation for Stochastic Optimization<a class="headerlink" href="#derivative-estimation-for-stochastic-optimization" title="Link to this heading">#</a></h1>
 <p>Consider optimizing an objective that involves an expectation:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1026,7 +1027,7 @@ J(\theta) \approx \frac{1}{N}\sum_{i=1}^N f(x_i,\theta), \quad x_i \sim p(x;\the
 <p>The issue here is that while the first term could be numerically integrated using the Monte Carlo, the second one can’t as it’s not an expectation.</p>
 <p>Would there be a way to transform our objective in such a way that the Monte Carlo estimator for the objective could be differentiated directly while ensuring that the resulting derivative is unbiased? We will see that there are two main solutions to that problem: by doing a change of measure, or a change of variables.</p>
 <section id="change-of-measure-the-likelihood-ratio-method">
-<h2><span class="section-number">23.1. </span>Change of Measure: The Likelihood Ratio Method<a class="headerlink" href="#change-of-measure-the-likelihood-ratio-method" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">24.1. </span>Change of Measure: The Likelihood Ratio Method<a class="headerlink" href="#change-of-measure-the-likelihood-ratio-method" title="Link to this heading">#</a></h2>
 <p>One solution comes from rewriting our objective using any distribution <span class="math notranslate nohighlight">\(q(x)\)</span>:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1050,7 +1051,7 @@ J(\theta) = \mathbb{E}_{x \sim q(x)}[h(x,\theta)]
 \]</div>
 </section>
 <section id="a-change-of-variables-approach-the-reparameterization-trick">
-<h2><span class="section-number">23.2. </span>A Change of Variables Approach: The Reparameterization Trick<a class="headerlink" href="#a-change-of-variables-approach-the-reparameterization-trick" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">24.2. </span>A Change of Variables Approach: The Reparameterization Trick<a class="headerlink" href="#a-change-of-variables-approach-the-reparameterization-trick" title="Link to this heading">#</a></h2>
 <p>An alternative approach eliminates the <span class="math notranslate nohighlight">\(\theta\)</span>-dependence in the sampling distribution by expressing <span class="math notranslate nohighlight">\(x\)</span> through a deterministic transformation of the noise:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1073,9 +1074,9 @@ x = \mu + \sigma \epsilon, \quad \epsilon \sim \mathcal{N}(0,1)
 \]</div>
 <p>where <span class="math notranslate nohighlight">\(\sigma = \sqrt{\sigma^2}\)</span> is the standard deviation (square root of the variance).</p>
 <section id="common-examples-of-reparameterization">
-<h3><span class="section-number">23.2.1. </span>Common Examples of Reparameterization<a class="headerlink" href="#common-examples-of-reparameterization" title="Link to this heading">#</a></h3>
+<h3><span class="section-number">24.2.1. </span>Common Examples of Reparameterization<a class="headerlink" href="#common-examples-of-reparameterization" title="Link to this heading">#</a></h3>
 <section id="bounded-intervals-the-truncated-normal">
-<h4><span class="section-number">23.2.1.1. </span>Bounded Intervals: The Truncated Normal<a class="headerlink" href="#bounded-intervals-the-truncated-normal" title="Link to this heading">#</a></h4>
+<h4><span class="section-number">24.2.1.1. </span>Bounded Intervals: The Truncated Normal<a class="headerlink" href="#bounded-intervals-the-truncated-normal" title="Link to this heading">#</a></h4>
 <p>When we need samples constrained to an interval <span class="math notranslate nohighlight">\([a,b]\)</span>, we can use the truncated normal distribution. To sample from it, we transform uniform noise through the inverse cumulative distribution function (CDF) of the standard normal:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1090,7 +1091,7 @@ x = \Phi^{-1}(u\Phi(b) + (1-u)\Phi(a)), \quad u \sim \text{Uniform}(0,1)
 <p>The resulting samples follow a normal distribution restricted to <span class="math notranslate nohighlight">\([a,b]\)</span>, with the density properly normalized over this interval.</p>
 </section>
 <section id="sampling-from-0-1-the-kumaraswamy-distribution">
-<h4><span class="section-number">23.2.1.2. </span>Sampling from [0,1]: The Kumaraswamy Distribution<a class="headerlink" href="#sampling-from-0-1-the-kumaraswamy-distribution" title="Link to this heading">#</a></h4>
+<h4><span class="section-number">24.2.1.2. </span>Sampling from [0,1]: The Kumaraswamy Distribution<a class="headerlink" href="#sampling-from-0-1-the-kumaraswamy-distribution" title="Link to this heading">#</a></h4>
 <p>When we need samples in the unit interval [0,1], a natural choice might be the Beta distribution. However, its inverse CDF doesn’t have a closed form. Instead, we can use the Kumaraswamy distribution as a convenient approximation, which allows for a simple reparameterization:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1110,7 +1111,7 @@ f(x; \alpha, \beta) = \alpha\beta x^{\alpha-1}(1-x^{\alpha})^{\beta-1}, \quad x 
 \]</div>
 </section>
 <section id="discrete-actions-the-gumbel-softmax">
-<h4><span class="section-number">23.2.1.3. </span>Discrete Actions: The Gumbel-Softmax<a class="headerlink" href="#discrete-actions-the-gumbel-softmax" title="Link to this heading">#</a></h4>
+<h4><span class="section-number">24.2.1.3. </span>Discrete Actions: The Gumbel-Softmax<a class="headerlink" href="#discrete-actions-the-gumbel-softmax" title="Link to this heading">#</a></h4>
 <p>When sampling from a categorical distribution with probabilities <span class="math notranslate nohighlight">\(\{\pi_i\}\)</span>, one approach uses <span class="math notranslate nohighlight">\(\text{Gumbel}(0,1)\)</span> noise combined with the argmax of log-perturbed probabilities:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1153,7 +1154,7 @@ z_i = \frac{\exp((\log \pi_i + g_i)/\tau)}{\sum_j \exp((\log \pi_j + g_j)/\tau)}
 </section>
 </section>
 <section id="demonstration-numerical-analysis-of-gradient-estimators">
-<h2><span class="section-number">23.3. </span>Demonstration: Numerical Analysis of Gradient Estimators<a class="headerlink" href="#demonstration-numerical-analysis-of-gradient-estimators" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">24.3. </span>Demonstration: Numerical Analysis of Gradient Estimators<a class="headerlink" href="#demonstration-numerical-analysis-of-gradient-estimators" title="Link to this heading">#</a></h2>
 <p>Let us examine the behavior of our three gradient estimators for the stochastic optimization objective:</p>
 <div class="math notranslate nohighlight">
 \[J(\theta) = \mathbb{E}_{x \sim \mathcal{N}(\theta,1)}[x^2\theta]\]</div>
@@ -1301,7 +1302,7 @@ MSE: 0.017230
 </section>
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="score-function-gradient-estimation-in-reinforcement-learning">
-<h1><span class="section-number">24. </span>Score Function Gradient Estimation in Reinforcement Learning<a class="headerlink" href="#score-function-gradient-estimation-in-reinforcement-learning" title="Link to this heading">#</a></h1>
+<h1><span class="section-number">25. </span>Score Function Gradient Estimation in Reinforcement Learning<a class="headerlink" href="#score-function-gradient-estimation-in-reinforcement-learning" title="Link to this heading">#</a></h1>
 <p>Let <span class="math notranslate nohighlight">\(G(\tau) \equiv \sum_{t=0}^T r(s_t, a_t)\)</span> be the sum of undiscounted rewards in a trajectory <span class="math notranslate nohighlight">\(\tau\)</span>. The stochastic optimization problem we face is to maximize:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1330,7 +1331,7 @@ p(\tau;\boldsymbol{w}) = p(s_0)\prod_{t=0}^T d(a_t|s_t;\boldsymbol{w})p(s_{t+1}|
 \]</div>
 <p>This is a direct application of the score function estimator. However, we rarely use this form in practice and instead make several improvements to further reduce the variance.</p>
 <section id="leveraging-conditional-independence">
-<h2><span class="section-number">24.1. </span>Leveraging Conditional Independence<a class="headerlink" href="#leveraging-conditional-independence" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">25.1. </span>Leveraging Conditional Independence<a class="headerlink" href="#leveraging-conditional-independence" title="Link to this heading">#</a></h2>
 <p>Given the Markov property of the MDP, rewards <span class="math notranslate nohighlight">\(r_k\)</span> for <span class="math notranslate nohighlight">\(k &lt; t\)</span> are conditionally independent of action <span class="math notranslate nohighlight">\(a_t\)</span> given the history <span class="math notranslate nohighlight">\(h_t = (s_0,a_0,...,s_{t-1},a_{t-1},s_t)\)</span>. This allows us to only need to consider future rewards when computing policy gradients.</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
@@ -1369,7 +1370,7 @@ p(\tau) = p(s_0,...,s_t,a_0,...,a_{t-1})\cdot d(a_t|s_t;\boldsymbol{w})\cdot p(s
 <p>The benefit of this estimator compared to the naive one is that it generally has less variance. More formally, we can show that this estimator arises from the application of a variance reduction technique known as the Extended Conditional Monte Carlo Method.</p>
 </section>
 <section id="variance-reduction-via-control-variates">
-<h2><span class="section-number">24.2. </span>Variance Reduction via Control Variates<a class="headerlink" href="#variance-reduction-via-control-variates" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">25.2. </span>Variance Reduction via Control Variates<a class="headerlink" href="#variance-reduction-via-control-variates" title="Link to this heading">#</a></h2>
 <p>A control variate is a zero-mean random variable that we subtract from our estimator to reduce variance. Given an estimator <span class="math notranslate nohighlight">\(Z\)</span> and a control variate <span class="math notranslate nohighlight">\(C\)</span> with <span class="math notranslate nohighlight">\(\mathbb{E}[C]=0\)</span>, we can construct a new unbiased estimator:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1413,7 +1414,7 @@ Z_{\text{cv},t} = \nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\left(\su
 \]</div>
 <p>In practice when implementing this estimator, we won’t have access to the true value function. So as we did earlier for NFQCA or SAC, we commonly learn that value function simultaneously with the policy. Do do so, we could either using a fitted value approach, or even more simply just regress from states to sum of rewards to learn what Williams 1992 called a “baseline”:</p>
 <div class="proof algorithm admonition" id="policy-grad-baseline">
-<p class="admonition-title"><span class="caption-number">Algorithm 24.1 </span> (Policy Gradient with Simple Baseline)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 25.1 </span> (Policy Gradient with Simple Baseline)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Policy parameterization <span class="math notranslate nohighlight">\(d(a|s;\boldsymbol{w})\)</span>, baseline function <span class="math notranslate nohighlight">\(b(s;\boldsymbol{\theta})\)</span><br />
 <strong>Output:</strong> Updated policy parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span><br />
@@ -1437,7 +1438,7 @@ Z_{\text{cv},t} = \nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\left(\su
 </section>
 </div><p>When implementing this algorithm nowadays, we always using mini-batching to make full use of our GPUs. Therefore, a more representative variant for this algorithm would be:</p>
 <div class="proof algorithm admonition" id="policy-grad-cv-batch">
-<p class="admonition-title"><span class="caption-number">Algorithm 24.2 </span> (Policy Gradient with Optimal Control Variate and Mini-batches)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 25.2 </span> (Policy Gradient with Optimal Control Variate and Mini-batches)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Policy parameterization <span class="math notranslate nohighlight">\(d(a|s;\boldsymbol{w})\)</span>, value function <span class="math notranslate nohighlight">\(v(s;\boldsymbol{\theta})\)</span><br />
 <strong>Output:</strong> Updated policy parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span><br />
@@ -1478,7 +1479,7 @@ Z_{\text{cv},t} = \nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\left(\su
 </section>
 </div></section>
 <section id="generalized-advantage-estimator">
-<h2><span class="section-number">24.3. </span>Generalized Advantage Estimator<a class="headerlink" href="#generalized-advantage-estimator" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">25.3. </span>Generalized Advantage Estimator<a class="headerlink" href="#generalized-advantage-estimator" title="Link to this heading">#</a></h2>
 <p>Given our control variate estimator with baseline <span class="math notranslate nohighlight">\(v(s)\)</span>, we have:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1534,7 +1535,7 @@ A^{\text{GAE}(\gamma,\lambda)}(s_t,a_t) = \sum_{l=0}^{\infty}(\gamma\lambda)^l\d
 </ul>
 <p>The general GAE algorithm with mini-batches is the following:</p>
 <div class="proof algorithm admonition" id="policy-grad-gae-batch">
-<p class="admonition-title"><span class="caption-number">Algorithm 24.3 </span> (Policy Gradient with GAE and Mini-batches)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 25.3 </span> (Policy Gradient with GAE and Mini-batches)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Policy parameterization <span class="math notranslate nohighlight">\(d(a|s;\boldsymbol{w})\)</span>, value function <span class="math notranslate nohighlight">\(v(s;\boldsymbol{\theta})\)</span><br />
 <strong>Output:</strong> Updated policy parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span><br />
@@ -1588,7 +1589,7 @@ A^{\text{GAE}(\gamma,0)}(s_t,a_t) = \delta_t = r_t + \gamma v(s_{t+1}) - v(s_t)
 \]</div>
 <p>The non-batched, purely online, GAE(0) algorithm then becomes:</p>
 <div class="proof algorithm admonition" id="actor-critic-td0">
-<p class="admonition-title"><span class="caption-number">Algorithm 24.4 </span> (Actor-Critic with TD(0))</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 25.4 </span> (Actor-Critic with TD(0))</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Policy parameterization <span class="math notranslate nohighlight">\(d(a|s;\boldsymbol{w})\)</span>, value function <span class="math notranslate nohighlight">\(v(s;\boldsymbol{\theta})\)</span><br />
 <strong>Output:</strong> Updated policy parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span><br />
@@ -1615,7 +1616,7 @@ A^{\text{GAE}(\gamma,0)}(s_t,a_t) = \delta_t = r_t + \gamma v(s_{t+1}) - v(s_t)
 </div><p>Interestingly, this version was first derived by Richard Sutton in his 1984 PhD thesis. He called it the Adaptive Heuristic Actor-Critic algorithm. As far as I know, it was not derived using the score function method outlined here, but rather through intuitive reasoning (great intuition!).</p>
 </section>
 <section id="the-policy-gradient-theorem">
-<h2><span class="section-number">24.4. </span>The Policy Gradient Theorem<a class="headerlink" href="#the-policy-gradient-theorem" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">25.4. </span>The Policy Gradient Theorem<a class="headerlink" href="#the-policy-gradient-theorem" title="Link to this heading">#</a></h2>
 <p>Sutton 1999 provided an expression for the gradient of the infinite discounted return with respect to the parameters of a parameterized policy. Here is an alternative derivation by considering a bilevel optimization problem:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1677,7 +1678,7 @@ A^{\text{GAE}(\gamma,0)}(s_t,a_t) = \delta_t = r_t + \gamma v(s_{t+1}) - v(s_t)
 <p>This is the policy gradient theorem, where <span class="math notranslate nohighlight">\(x_\alpha(s)\)</span> is the discounted state visitation distribution and the term in parentheses is the state-action value function <span class="math notranslate nohighlight">\(q(s,a)\)</span>.</p>
 </section>
 <section id="normalized-discounted-state-visitation-distribution">
-<h2><span class="section-number">24.5. </span>Normalized Discounted State Visitation Distribution<a class="headerlink" href="#normalized-discounted-state-visitation-distribution" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">25.5. </span>Normalized Discounted State Visitation Distribution<a class="headerlink" href="#normalized-discounted-state-visitation-distribution" title="Link to this heading">#</a></h2>
 <p>The discounted state visitation <span class="math notranslate nohighlight">\(x_\alpha(s)\)</span> is not normalized. Therefore the expression we obtained above is not an expectation. However, we can tranform it into one by normalizing by <span class="math notranslate nohighlight">\(1-  \gamma\)</span>. Note that for any initial distribution <span class="math notranslate nohighlight">\(\alpha\)</span>:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1786,7 +1787,7 @@ and has been empirically shown to lead to better performance.</p>
 </section>
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="policy-optimization-with-a-model">
-<h1><span class="section-number">25. </span>Policy Optimization with a Model<a class="headerlink" href="#policy-optimization-with-a-model" title="Link to this heading">#</a></h1>
+<h1><span class="section-number">26. </span>Policy Optimization with a Model<a class="headerlink" href="#policy-optimization-with-a-model" title="Link to this heading">#</a></h1>
 <p>In this section, we’ll explore how incorporating a model of the dynamics can help us design better policy gradient estimators. Let’s begin with a pure model-free approach that uses a critic to maximize a deterministic policy:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1826,7 +1827,7 @@ J^{\text{DPMB-R}}(\boldsymbol{w}) &amp;= \mathbb{E}_{s\sim\rho,\xi}[r(s,d(s;\bol
 <p>Consider a robotics scenario with hybrid continuous-discrete dynamics: a robotic arm operates in continuous space but interacts with discrete object states. While the arm’s policy remains differentiable (<span class="math notranslate nohighlight">\(\nabla_{\boldsymbol{w}} d\)</span>), the object state transitions follow categorical distributions. In this case, reparameterization becomes impractical, but the score function approach is viable if we can compute <span class="math notranslate nohighlight">\(\nabla_{\boldsymbol{w}} \log p(s'|s,d(s;\boldsymbol{w}))\)</span> from the known transition model. Similar structures arise in manufacturing processes, where machine actions might be continuous and differentiable, but material state transitions often follow discrete steps with known probabilities. Note that both approaches require knowledge of transition probabilities and won’t work with pure black-box simulators or systems where we can only sample transitions without probability estimates.</p>
 <p>Another dimension to explore in our algorithm design is the number of steps we wish to unroll our model. This allows us to better understand and control the bias-variance tradeoffs in our methods.</p>
 <section id="backpropagation-policy-optimization">
-<h2><span class="section-number">25.1. </span>Backpropagation Policy Optimization<a class="headerlink" href="#backpropagation-policy-optimization" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">26.1. </span>Backpropagation Policy Optimization<a class="headerlink" href="#backpropagation-policy-optimization" title="Link to this heading">#</a></h2>
 <p>The questions of derivative estimators only arise with stochastic dynamics. For systems with deterministic dynamics and a deterministic policy, the one-step gradient unroll simplifies to:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
@@ -1855,7 +1856,7 @@ J^{\text{DPMB-R}}(\boldsymbol{w}) &amp;= \mathbb{E}_{s\sim\rho,\xi}[r(s,d(s;\bol
 <p>But just as backpropagation through RNNs or very deep networks can be challenging due to exploding and vanishing gradients, “vanilla” Backpropagation Policy Optimization (BPO) without a critic can severely suffer from the curse of horizon. This is because it essentially implements single shooting optimization. Using a critic can be an effective remedy to this problem, allowing us to better control the bias-variance tradeoff while preserving gradient information that would be lost with a more drastic truncated backpropagation approach.</p>
 </section>
 <section id="stochastic-value-gradient-svg">
-<h2><span class="section-number">25.2. </span>Stochastic Value Gradient (SVG)<a class="headerlink" href="#stochastic-value-gradient-svg" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">26.2. </span>Stochastic Value Gradient (SVG)<a class="headerlink" href="#stochastic-value-gradient-svg" title="Link to this heading">#</a></h2>
 <p>The stochastic value gradient framework of Heess (2015) applies the recipe for policy optimization with a model using reparameterized dynamics and action selection via randomized policies. In this setting, the stochastic policy model based reparameterized estimator over n steps is</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1912,7 +1913,7 @@ $<span class="math notranslate nohighlight">\(
 s_{t+1}^m(\boldsymbol{w}) = \mu(s_t^m(\boldsymbol{w}),d(s_t^m(\boldsymbol{w});\boldsymbol{w}) + \sigma(s_t^m(\boldsymbol{w});\boldsymbol{w})\epsilon_t^m;\boldsymbol{\phi}) + \Sigma(s_t^m(\boldsymbol{w}),a_t^m(\boldsymbol{w});\boldsymbol{\phi})\xi_t^m
 \)</span>$</p>
 <div class="proof algorithm admonition" id="svg_autodiff">
-<p class="admonition-title"><span class="caption-number">Algorithm 25.1 </span> (Stochastic Value Gradients (SVG) Infinity (automatic differentiation))</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 26.1 </span> (Stochastic Value Gradients (SVG) Infinity (automatic differentiation))</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Initial state distribution <span class="math notranslate nohighlight">\(\rho_0(s)\)</span>, policy networks <span class="math notranslate nohighlight">\(d(s;\boldsymbol{w})\)</span> and <span class="math notranslate nohighlight">\(\sigma(s;\boldsymbol{w})\)</span>, dynamics model networks <span class="math notranslate nohighlight">\(\mu(s,a;\boldsymbol{\phi})\)</span> and <span class="math notranslate nohighlight">\(\Sigma(s,a;\boldsymbol{\phi})\)</span>, reward function <span class="math notranslate nohighlight">\(r(s,a)\)</span>, rollout horizon <span class="math notranslate nohighlight">\(T\)</span>, learning rate <span class="math notranslate nohighlight">\(\alpha_w\)</span>, batch size <span class="math notranslate nohighlight">\(N\)</span></p>
 <p><strong>Initialize</strong></p>
@@ -1949,7 +1950,7 @@ s_{t+1}^m(\boldsymbol{w}) = \mu(s_t^m(\boldsymbol{w}),d(s_t^m(\boldsymbol{w});\b
 </section>
 </div></section>
 <section id="noise-inference-in-svg">
-<h2><span class="section-number">25.3. </span>Noise Inference in SVG<a class="headerlink" href="#noise-inference-in-svg" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">26.3. </span>Noise Inference in SVG<a class="headerlink" href="#noise-inference-in-svg" title="Link to this heading">#</a></h2>
 <p>The method we’ve presented so far assumes we have direct access to the noise variables <span class="math notranslate nohighlight">\(\epsilon\)</span> and <span class="math notranslate nohighlight">\(\xi\)</span> used to generate trajectories. This works well in the on-policy setting where we generate our own data. However, in off-policy scenarios where we receive externally generated trajectories, we need to infer these noise variables—a process the authors call noise inference.</p>
 <p>For the Gaussian case discussed above, this inference is straightforward. Given an observed scalar action <span class="math notranslate nohighlight">\(a_t\)</span> and the current policy parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span>, we can recover the action noise <span class="math notranslate nohighlight">\(\epsilon_t\)</span> through inverse reparameterization:</p>
 <div class="math notranslate nohighlight">
@@ -1987,10 +1988,10 @@ z_0 = (f_1^{-1} \circ \cdots \circ f_K^{-1})(a_t;\boldsymbol{w})
 <p>As far as I know, this approach has not been explored in the literature.</p>
 </section>
 <section id="dpg-as-a-special-case-of-sac">
-<h2><span class="section-number">25.4. </span>DPG as a Special Case of SAC<a class="headerlink" href="#dpg-as-a-special-case-of-sac" title="Link to this heading">#</a></h2>
+<h2><span class="section-number">26.4. </span>DPG as a Special Case of SAC<a class="headerlink" href="#dpg-as-a-special-case-of-sac" title="Link to this heading">#</a></h2>
 <p>At first glance, SAC and DPG might appear to be fundamentally different approaches to policy optimization. SAC begins with the principle of entropy maximization and policy distribution matching through KL divergence minimization, while DPG directly optimizes a deterministic policy to maximize expected Q-values. However, we can show that DPG emerges as a special case of SAC as we take the temperature parameter to zero.</p>
 <div class="proof proposition admonition" id="proposition-11">
-<p class="admonition-title"><span class="caption-number">Proposition 25.1 </span> (Convergence of SAC to DPG)</p>
+<p class="admonition-title"><span class="caption-number">Proposition 26.1 </span> (Convergence of SAC to DPG)</p>
 <section class="proposition-content" id="proof-content">
 <p>Let <span class="math notranslate nohighlight">\(d(\cdot|s;\boldsymbol{w}_\alpha)\)</span> be the optimal stochastic policy for SAC with temperature <span class="math notranslate nohighlight">\(\alpha\)</span>, and <span class="math notranslate nohighlight">\(d(s;\boldsymbol{w}_{DPG})\)</span> be the optimal deterministic policy gradient solution. Under appropriate assumptions, as <span class="math notranslate nohighlight">\(\alpha \to 0\)</span>:</p>
 <div class="math notranslate nohighlight">
@@ -2057,7 +2058,7 @@ D_{KL} = \frac{1}{2}\left[\log\left(\frac{\epsilon^2}{\sigma^2}\right) + \frac{\
 </section>
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="policy-optimization-with-a-trust-region">
-<h1><span class="section-number">26. </span>Policy Optimization with a Trust Region<a class="headerlink" href="#policy-optimization-with-a-trust-region" title="Link to this heading">#</a></h1>
+<h1><span class="section-number">27. </span>Policy Optimization with a Trust Region<a class="headerlink" href="#policy-optimization-with-a-trust-region" title="Link to this heading">#</a></h1>
 <p>Trust region methods in optimization approximate the objective function with a simpler local model within a region where we “trust” this approximation to be good. This brings about the need to define what we mean by a local region, and therefore to pick a geometry which suits our problem.</p>
 <p>In standard optimization in the Euclidean space on <span class="math notranslate nohighlight">\(\mathbb{R}^n\)</span>, at each iteration <span class="math notranslate nohighlight">\(k\)</span>, we create a quadratic approximation around the current point <span class="math notranslate nohighlight">\(x_k\)</span>:</p>
 <div class="math notranslate nohighlight">
@@ -2144,7 +2145,7 @@ x_k &amp; \text{otherwise}
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title"><span class="section-number">13. </span>Approximate Dynamic Programming</p>
+        <p class="prev-next-title"><span class="section-number">14. </span>Approximate Dynamic Programming</p>
       </div>
     </a>
     <a class="right-next"
@@ -2152,7 +2153,7 @@ x_k &amp; \text{otherwise}
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title"><span class="section-number">27. </span>Bibliography</p>
+        <p class="prev-next-title"><span class="section-number">28. </span>Bibliography</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -2172,53 +2173,53 @@ x_k &amp; \text{otherwise}
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">19. Policy Parametrization Methods</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#embedded-optimization">20. Embedded Optimization</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#amortized-optimization-approach">20.1. Amortized Optimization Approach</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">20. Policy Parametrization Methods</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#embedded-optimization">21. Embedded Optimization</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#amortized-optimization-approach">21.1. Amortized Optimization Approach</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#deterministic-parametrized-policies">21. Deterministic Parametrized Policies</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#neural-fitted-q-iteration-for-continuous-actions-nfqca">21.1. Neural Fitted Q-iteration for Continuous Actions (NFQCA)</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#deep-deterministic-policy-gradient-ddpg">21.2. Deep Deterministic Policy Gradient (DDPG)</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#twin-delayed-deep-deterministic-policy-gradient-td3">21.3. Twin Delayed Deep Deterministic Policy Gradient (TD3)</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#deterministic-parametrized-policies">22. Deterministic Parametrized Policies</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#neural-fitted-q-iteration-for-continuous-actions-nfqca">22.1. Neural Fitted Q-iteration for Continuous Actions (NFQCA)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#deep-deterministic-policy-gradient-ddpg">22.2. Deep Deterministic Policy Gradient (DDPG)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#twin-delayed-deep-deterministic-policy-gradient-td3">22.3. Twin Delayed Deep Deterministic Policy Gradient (TD3)</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#soft-actor-critic">22. Soft Actor-Critic</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fitted-q-iteration-for-the-smooth-bellman-equations">22.1. Fitted Q-Iteration for the Smooth Bellman Equations</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#approximating-boltzmann-policies-by-gaussians">22.2. Approximating Boltzmann Policies by Gaussians</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reparameterizating-the-objective">22.3. Reparameterizating the Objective</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#soft-actor-critic">23. Soft Actor-Critic</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fitted-q-iteration-for-the-smooth-bellman-equations">23.1. Fitted Q-Iteration for the Smooth Bellman Equations</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#approximating-boltzmann-policies-by-gaussians">23.2. Approximating Boltzmann Policies by Gaussians</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reparameterizating-the-objective">23.3. Reparameterizating the Objective</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#derivative-estimation-for-stochastic-optimization">23. Derivative Estimation for Stochastic Optimization</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#change-of-measure-the-likelihood-ratio-method">23.1. Change of Measure: The Likelihood Ratio Method</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-change-of-variables-approach-the-reparameterization-trick">23.2. A Change of Variables Approach: The Reparameterization Trick</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#common-examples-of-reparameterization">23.2.1. Common Examples of Reparameterization</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#bounded-intervals-the-truncated-normal">23.2.1.1. Bounded Intervals: The Truncated Normal</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#sampling-from-0-1-the-kumaraswamy-distribution">23.2.1.2. Sampling from [0,1]: The Kumaraswamy Distribution</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#discrete-actions-the-gumbel-softmax">23.2.1.3. Discrete Actions: The Gumbel-Softmax</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#derivative-estimation-for-stochastic-optimization">24. Derivative Estimation for Stochastic Optimization</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#change-of-measure-the-likelihood-ratio-method">24.1. Change of Measure: The Likelihood Ratio Method</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-change-of-variables-approach-the-reparameterization-trick">24.2. A Change of Variables Approach: The Reparameterization Trick</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#common-examples-of-reparameterization">24.2.1. Common Examples of Reparameterization</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#bounded-intervals-the-truncated-normal">24.2.1.1. Bounded Intervals: The Truncated Normal</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#sampling-from-0-1-the-kumaraswamy-distribution">24.2.1.2. Sampling from [0,1]: The Kumaraswamy Distribution</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#discrete-actions-the-gumbel-softmax">24.2.1.3. Discrete Actions: The Gumbel-Softmax</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#demonstration-numerical-analysis-of-gradient-estimators">23.3. Demonstration: Numerical Analysis of Gradient Estimators</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#demonstration-numerical-analysis-of-gradient-estimators">24.3. Demonstration: Numerical Analysis of Gradient Estimators</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#score-function-gradient-estimation-in-reinforcement-learning">24. Score Function Gradient Estimation in Reinforcement Learning</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#leveraging-conditional-independence">24.1. Leveraging Conditional Independence</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#variance-reduction-via-control-variates">24.2. Variance Reduction via Control Variates</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#generalized-advantage-estimator">24.3. Generalized Advantage Estimator</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-policy-gradient-theorem">24.4. The Policy Gradient Theorem</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#normalized-discounted-state-visitation-distribution">24.5. Normalized Discounted State Visitation Distribution</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#score-function-gradient-estimation-in-reinforcement-learning">25. Score Function Gradient Estimation in Reinforcement Learning</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#leveraging-conditional-independence">25.1. Leveraging Conditional Independence</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#variance-reduction-via-control-variates">25.2. Variance Reduction via Control Variates</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#generalized-advantage-estimator">25.3. Generalized Advantage Estimator</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-policy-gradient-theorem">25.4. The Policy Gradient Theorem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#normalized-discounted-state-visitation-distribution">25.5. Normalized Discounted State Visitation Distribution</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#policy-optimization-with-a-model">25. Policy Optimization with a Model</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#backpropagation-policy-optimization">25.1. Backpropagation Policy Optimization</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-value-gradient-svg">25.2. Stochastic Value Gradient (SVG)</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#noise-inference-in-svg">25.3. Noise Inference in SVG</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dpg-as-a-special-case-of-sac">25.4. DPG as a Special Case of SAC</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#policy-optimization-with-a-model">26. Policy Optimization with a Model</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#backpropagation-policy-optimization">26.1. Backpropagation Policy Optimization</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-value-gradient-svg">26.2. Stochastic Value Gradient (SVG)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#noise-inference-in-svg">26.3. Noise Inference in SVG</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dpg-as-a-special-case-of-sac">26.4. DPG as a Special Case of SAC</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#policy-optimization-with-a-trust-region">26. Policy Optimization with a Trust Region</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#policy-optimization-with-a-trust-region">27. Policy Optimization with a Trust Region</a></li>
 </ul>
 
   </nav></div>
