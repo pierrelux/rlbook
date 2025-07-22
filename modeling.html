@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>1. Modeling Systems, Simulation, and Data &#8212; Practical Reinforcement Learning: From Algorithms to Applications</title>
+    <title>Why Build a Model? For Whom? &#8212; Practical Reinforcement Learning: From Algorithms to Applications</title>
   
   
   
@@ -16,32 +16,35 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!-- 
+    this give us a css class that will be invisible only if js is disabled 
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
 
-  
-  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
-
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
     <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
-    <link rel="stylesheet" type="text/css" href="_static/proof.css?v=b4b7a797" />
+    <link rel="stylesheet" type="text/css" href="_static/proof.css" />
     <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
   
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
 
     <script src="_static/documentation_options.js?v=9eb32ce0"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
@@ -59,15 +62,14 @@
     <script async="async" src="_static/sphinx-thebe.js?v=c100c467"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
-    <script>window.MathJax = {"tex": {"macros": {"bm": ["{\\boldsymbol #1}", 1]}, "processEscapes": true}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'modeling';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="2. Discrete-Time Trajectory Optimization" href="ocp.html" />
+    <link rel="next" title="The State‑Space Perspective" href="ssm.html" />
     <link rel="prev" title="Why This Book?" href="intro.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
   </head>
   
   
@@ -83,19 +85,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="search.html"
       method="get">
@@ -103,7 +94,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search this book..."
          aria-label="Search this book..."
          autocomplete="off"
@@ -111,8 +101,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -128,7 +118,8 @@
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -158,15 +149,11 @@
 </a></div>
         <div class="sidebar-primary-item">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script></div>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         
@@ -177,35 +164,52 @@
                 </a>
             </li>
         </ul>
-        <ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">1. Modeling Systems, Simulation, and Data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ocp.html">2. Discrete-Time Trajectory Optimization</a></li>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Modeling</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Why Build a Model? For Whom?</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="ssm.html">The State‑Space Perspective</a></li>
 
 
 
-<li class="toctree-l1"><a class="reference internal" href="cocp.html">6. Continuous-Time Trajectory Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulation.html">Programs as Models</a></li>
 
-<li class="toctree-l1"><a class="reference internal" href="mpc.html">8. From Trajectories to Policies</a></li>
-
-
-
-<li class="toctree-l1"><a class="reference internal" href="dp.html">12. Dynamic Programming</a></li>
-
-<li class="toctree-l1"><a class="reference internal" href="adp.html">14. Approximate Dynamic Programming</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Optimization-Based Decision Making</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="ocp.html">Discrete-Time Trajectory Optimization</a></li>
 
 
 
+<li class="toctree-l1"><a class="reference internal" href="cocp.html">Continuous-Time Trajectory Optimization</a></li>
 
-
-<li class="toctree-l1"><a class="reference internal" href="cadp.html">20. Policy Parametrization Methods</a></li>
-
-
-
+<li class="toctree-l1"><a class="reference internal" href="mpc.html">From Trajectories to Policies</a></li>
 
 
 
+<li class="toctree-l1"><a class="reference internal" href="dp.html">Dynamic Programming</a></li>
 
-<li class="toctree-l1"><a class="reference internal" href="bibliography.html">28. Bibliography</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Learning from Data</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="adp.html">Approximate Dynamic Programming</a></li>
+
+
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="cadp.html">Policy Parametrization Methods</a></li>
+
+
+
+
+
+
+
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">Bibliography</a></li>
 </ul>
 
     </div>
@@ -377,24 +381,16 @@
 
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
-  </button>
-`);
-</script>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button>
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
-  </button>
-`);
-</script>
+</button>
 <button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <span class="fa-solid fa-list"></span>
 </button>
@@ -408,7 +404,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Modeling Systems, Simulation, and Data</h1>
+    <h1>Why Build a Model? For Whom?</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -418,42 +414,13 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-build-a-model-for-whom">1.1. Why Build a Model? For Whom?</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-statespace-perspective">1.2. The State‑Space Perspective</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#discrete-versus-continuous-time">1.2.1. Discrete versus continuous time</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-of-deterministic-dynamics-hvac-control">1.3. Examples of Deterministic Dynamics: HVAC Control</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-do-we-control">1.3.1. What Do We Control?</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#why-this-model">1.3.2. Why This Model?</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#from-deterministic-to-stochastic">1.4. From Deterministic to Stochastic</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#function-plus-noise">1.4.1. Function plus Noise</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#transition-kernel">1.4.2. Transition Kernel</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#continuous-time-analogue">1.4.3. Continuous-Time Analogue</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#example-managing-a-quebec-hydroelectric-reservoir">1.4.3.1. Example: Managing a Québec Hydroelectric Reservoir</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Why Build a Model? For Whom?</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#modeling-realism-and-control">Modeling, Realism, and Control</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-a-simple-model-that-supports-better-decisions">Example — A simple model that supports better decisions</a></li>
 </ul>
 </li>
 </ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#partial-observability">1.5. Partial Observability</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#observation-kernel-view">1.5.1. Observation Kernel View</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-stabilizing-a-telescopes-vision-with-adaptive-optics">1.5.2. Example – Stabilizing a Telescope’s Vision with Adaptive Optics</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#programs-as-models">1.6. Programs as Models</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#systems-with-discrete-events">1.6.1. Systems with Discrete Events</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hybrid-systems">1.6.2. Hybrid Systems</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#agent-based-models">1.6.3. Agent-Based Models</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#modeling-realism-and-control">1.7. Modeling, Realism, and Control</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-a-simple-model-that-supports-better-decisions">1.7.1. Example — A simple model that supports better decisions</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#looking-ahead">1.8. Looking Ahead</a></li>
-</ul>
+
             </nav>
         </div>
     </div>
@@ -464,10 +431,8 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="modeling-systems-simulation-and-data">
-<h1><span class="section-number">1. </span>Modeling Systems, Simulation, and Data<a class="headerlink" href="#modeling-systems-simulation-and-data" title="Link to this heading">#</a></h1>
-<section id="why-build-a-model-for-whom">
-<h2><span class="section-number">1.1. </span>Why Build a Model? For Whom?<a class="headerlink" href="#why-build-a-model-for-whom" title="Link to this heading">#</a></h2>
+  <section id="why-build-a-model-for-whom">
+<h1>Why Build a Model? For Whom?<a class="headerlink" href="#why-build-a-model-for-whom" title="Link to this heading">#</a></h1>
 <blockquote>
 <div><p>“The sciences do not try to explain, they hardly even try to interpret, they mainly make models. By a model is meant a mathematical construct which, with the addition of certain verbal interpretations, describes observed phenomena. The justification of such a mathematical construct is solely and precisely that it is expected to work.”
 — John von Neumann</p>
@@ -480,546 +445,18 @@ document.write(`
 <p>This mirrors a interesting distinction in econometrics between structural and reduced-form approaches. Structural models aim to capture the underlying process that generates behavior, enabling reasoning about what would happen under alternative policies or conditions. Reduced-form models, by contrast, focus on capturing statistical regularities—often to estimate causal effects—without necessarily modeling the mechanisms that generate them. Both are forms of modeling, just with different goals. The same applies in control and RL: some models are built to support simulation and optimization, while others serve more diagnostic or predictive roles, with fewer assumptions about how the system works internally.</p>
 <p>This chapter steps back from algorithms to focus on the modeling side. What kinds of models do we need to support decision-making from data? What are their assumptions? What do they let us express or ignore? And how do they shape what learning and optimization can even mean?</p>
 </section>
-<section id="the-statespace-perspective">
-<h2><span class="section-number">1.2. </span>The State‑Space Perspective<a class="headerlink" href="#the-statespace-perspective" title="Link to this heading">#</a></h2>
-<p>Most dynamic systems, whether derived from physics or learned from data, can be cast into <strong>state‑space form</strong>. The key idea is to introduce an internal state that summarises past information and evolves in response to inputs. Outputs are functions of that state and the current input.</p>
-<section id="discrete-versus-continuous-time">
-<h3><span class="section-number">1.2.1. </span>Discrete versus continuous time<a class="headerlink" href="#discrete-versus-continuous-time" title="Link to this heading">#</a></h3>
-<p>Time can be represented in two complementary ways, depending on how the system is sensed, actuated, or modelled.</p>
-<p>In <strong>discrete time</strong>, we treat time as an integer counter, <span class="math notranslate nohighlight">\(t = 0, 1, 2, \dots\)</span>, advancing in fixed steps. This matches how digital systems operate: sensors are sampled periodically, decisions are made at regular intervals, and most logged data takes this form.</p>
-<p><strong>Continuous time</strong> treats time as a real variable, <span class="math notranslate nohighlight">\(t \in \mathbb{R}_{\ge 0}\)</span>. Many physical systems (mechanical, thermal, chemical) are most naturally expressed this way, using differential equations to describe how state changes.</p>
-<p>The two views are interchangeable to some extent. A continuous-time model can be discretized through numerical integration, although this involves approximation. The degree of approximation depends on both the step size <span class="math notranslate nohighlight">\(\Delta t\)</span> and the integration algorithm used. Conversely, a discrete-time policy can be extended to continuous time by holding inputs constant over time intervals (a zeroth-order hold), or by interpolating between values.</p>
-<p>In physical systems, this hybrid setup is almost always present. Control software sends discrete commands to hardware (say, the output of a PID controller) which are then processed by a DAC (digital-to-analog converter) and applied to the plant through analog signals. The hardware might hold a voltage constant, ramp it, or apply some analog shaping. On the sensing side, continuous signals are sampled via ADCs before reaching a digital controller. So in practice, even systems governed by continuous dynamics end up interfacing with the digital world through discrete-time approximations.</p>
-<p>This raises a natural question: if everything eventually gets discretized anyway, why not just model everything in discrete time from the start?</p>
-<p>In many cases, we do. But continuous-time models can still be useful, sometimes even necessary. They often make physical assumptions more explicit, connect more naturally to domain knowledge (e.g. differential equations in mechanics or thermodynamics), and expose invariances or conserved quantities that get obscured by time discretization. They also make it easier to model systems at different time scales, or to reason about how behaviors change as resolution increases. So while implementation happens in discrete time, thinking in continuous time can clarify the structure of the model.</p>
-<p>Still, it’s helpful to see how both representations look in mathematical form. The state-space equations are nearly identical with different notations depending on how time is represented.</p>
-<p><strong>Discrete time</strong></p>
-<p><span class="math notranslate nohighlight">\(\mathbf{x}_{t+1} = f_t(\mathbf{x}_t, \mathbf{u}_t), \qquad \mathbf{y}_t = h_t(\mathbf{x}_t, \mathbf{u}_t).\)</span></p>
-<p><strong>Continuous time</strong></p>
-<p><span class="math notranslate nohighlight">\(\dot{\mathbf{x}}(t) = f(\mathbf{x}(t), \mathbf{u}(t)), \qquad \mathbf{y}(t) = h(\mathbf{x}(t), \mathbf{u}(t)).\)</span></p>
-<p>The dot denotes a derivative with respect to real time; everything else (state, control, observation) remains the same.</p>
-<p>When the functions <span class="math notranslate nohighlight">\(f\)</span> and <span class="math notranslate nohighlight">\(h\)</span> are linear we obtain</p>
-<p><span class="math notranslate nohighlight">\(\dot{\mathbf{x}} = A\mathbf{x} + B\mathbf{u}, \qquad \mathbf{y} = C\mathbf{x} + D\mathbf{u}.\)</span></p>
-<p>The matrices <span class="math notranslate nohighlight">\(A, B, C, D\)</span> may vary with <span class="math notranslate nohighlight">\(t\)</span>.  Readers with an ML background will recognise the parallel with recurrent neural networks: the state is the hidden vector, the control the input, and the output the read‑out layer.</p>
-<p>Classical control often moves to the frequency domain, using Laplace and Z‑transforms to turn differential and difference equations into algebraic ones. That is invaluable for stability analysis of linear time‑invariant systems, but the time‑domain state‑space view is more flexible for learning and simulation, so we will keep our primary focus there.</p>
-</section>
-</section>
-<section id="examples-of-deterministic-dynamics-hvac-control">
-<h2><span class="section-number">1.3. </span>Examples of Deterministic Dynamics: HVAC Control<a class="headerlink" href="#examples-of-deterministic-dynamics-hvac-control" title="Link to this heading">#</a></h2>
-<p>Imagine you’re in Montréal, in the middle of February. Outside it’s -20°C, but inside your home, a thermostat tries to keep things comfortable. When the indoor temperature drops below your setpoint, the heating system kicks in. That system (a small building, a heater, the surrounding weather) can be modeled mathematically.</p>
-<p>We start with a very simple approximation: treat the entire room as a single “thermal mass,” like a big air-filled box that heats up or cools down depending on how much heat flows in or out.</p>
-<p>Let <span class="math notranslate nohighlight">\(\mathbf{x}(t)\)</span> be the indoor air temperature at time <span class="math notranslate nohighlight">\(t\)</span>, and <span class="math notranslate nohighlight">\(\mathbf{u}(t)\)</span> be the heating power supplied by the HVAC system. The outside air temperature, denoted <span class="math notranslate nohighlight">\(\mathbf{d}(t)\)</span>, affects the system too, acting as a known disturbance. Then the rate of change of indoor temperature is:</p>
-<div class="math notranslate nohighlight">
-\[
-\dot{\mathbf{x}}(t) = -\frac{1}{RC}\mathbf{x}(t) + \frac{1}{RC}\mathbf{d}(t) + \frac{1}{C}\mathbf{u}(t).
-\]</div>
-<p>Here:</p>
-<ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(R\)</span> is a thermal resistance: how well the walls insulate.</p></li>
-<li><p><span class="math notranslate nohighlight">\(C\)</span> is a thermal capacitance: how much energy it takes to heat the air.</p></li>
-</ul>
-<p>This is a <strong>continuous-time linear system</strong>, and we can write it in standard state-space form:</p>
-<div class="math notranslate nohighlight">
-\[
-\dot{\mathbf{x}}(t) = \mathbf{A}\mathbf{x}(t) + \mathbf{B}\mathbf{u}(t) + \mathbf{E}\mathbf{d}(t), \quad \mathbf{y}(t) = \mathbf{C}\mathbf{x}(t),
-\]</div>
-<p>with:</p>
-<ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(\mathbf{x}(t)\)</span>: indoor air temperature (the state)</p></li>
-<li><p><span class="math notranslate nohighlight">\(\mathbf{u}(t)\)</span>: heater input (the control)</p></li>
-<li><p><span class="math notranslate nohighlight">\(\mathbf{d}(t)\)</span>: outdoor temperature (disturbance)</p></li>
-<li><p><span class="math notranslate nohighlight">\(\mathbf{y}(t)\)</span>: observed indoor temperature (output)</p></li>
-<li><p><span class="math notranslate nohighlight">\(\mathbf{A} = -\frac{1}{RC}\)</span></p></li>
-<li><p><span class="math notranslate nohighlight">\(\mathbf{B} = \frac{1}{C}\)</span></p></li>
-<li><p><span class="math notranslate nohighlight">\(\mathbf{E} = \frac{1}{RC}\)</span></p></li>
-<li><p><span class="math notranslate nohighlight">\(\mathbf{C} = 1\)</span></p></li>
-</ul>
-<p>This model is simple, but too simplistic. It ignores the fact that the walls themselves store heat and release it slowly. This kind of delay is called <strong>thermal inertia</strong>: even if you turn the heater off, the walls might continue to warm the room for a while.</p>
-<p>To capture this effect, we need to expand our state to include the wall temperature. We now model two coupled thermal masses: one for the air, and one for the wall. Heat can flow from the heater into the air, from the air into the wall, and from the wall out to the environment. This gives a more realistic description of how heat moves through a building envelope.</p>
-<p>We write down an energy balance for each mass:</p>
-<ul class="simple">
-<li><p>For the air:</p></li>
-</ul>
-<div class="math notranslate nohighlight">
-\[
-C_{\text{air}} \frac{dT_{\text{in}}}{dt} = \frac{T_{\text{wall}} - T_{\text{in}}}{R_{\text{ia}}} + u(t),
-\]</div>
-<ul class="simple">
-<li><p>For the wall:</p></li>
-</ul>
-<div class="math notranslate nohighlight">
-\[
-C_{\text{wall}} \frac{dT_{\text{wall}}}{dt} = \frac{T_{\text{out}} - T_{\text{wall}}}{R_{\text{wo}}} - \frac{T_{\text{wall}} - T_{\text{in}}}{R_{\text{ia}}}.
-\]</div>
-<p>Each term on the right-hand side corresponds to a flow of heat: the air gains heat from the wall and the heater, and the wall exchanges heat with both the air and the outside.</p>
-<p>Now define the state vector:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}
-\mathbf{x}(t) = \begin{bmatrix} T_{\text{in}}(t) \\ T_{\text{wall}}(t) \end{bmatrix},
-\quad \mathbf{u}(t) = u(t),
-\quad \mathbf{d}(t) = T_{\text{out}}(t).
-\end{split}\]</div>
-<p>Dividing both equations by their respective capacitances and rearranging terms, we arrive at the coupled system:</p>
-<div class="math notranslate nohighlight">
-\[
-\dot{\mathbf{x}}(t) = \mathbf{A}\mathbf{x}(t) + \mathbf{B}\mathbf{u}(t) + \mathbf{E}\mathbf{d}(t), \quad \mathbf{y}(t) = \mathbf{C}\mathbf{x}(t),
-\]</div>
-<p>with:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}
-\mathbf{A} = \begin{bmatrix}
--\frac{1}{R_{\text{ia}}C_{\text{air}}} &amp; \frac{1}{R_{\text{ia}}C_{\text{air}}} \\
-\frac{1}{R_{\text{ia}}C_{\text{wall}}} &amp; -\left(\frac{1}{R_{\text{ia}}} + \frac{1}{R_{\text{wo}}}\right) \frac{1}{C_{\text{wall}}}
-\end{bmatrix},
-\quad
-\mathbf{B} = \begin{bmatrix} \frac{1}{C_{\text{air}}} \\ 0 \end{bmatrix},
-\quad
-\mathbf{E} = \begin{bmatrix} 0 \\ \frac{1}{R_{\text{wo}}C_{\text{wall}}} \end{bmatrix},
-\quad
-\mathbf{C} = \begin{bmatrix} 1 &amp; 0 \end{bmatrix}.
-\end{split}\]</div>
-<p>Each entry in <span class="math notranslate nohighlight">\(\mathbf{A}\)</span> has a physical interpretation:</p>
-<ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(A_{11}\)</span>: heat loss from the air to the wall</p></li>
-<li><p><span class="math notranslate nohighlight">\(A_{12}\)</span>: heat gain by the air from the wall</p></li>
-<li><p><span class="math notranslate nohighlight">\(A_{21}\)</span>: heat gain by the wall from the air</p></li>
-<li><p><span class="math notranslate nohighlight">\(A_{22}\)</span>: net loss from the wall to both the air and the outside</p></li>
-</ul>
-<p>The temperatures are now dynamically coupled: any change in one affects the other. The wall acts as a buffer that absorbs and releases heat over time.</p>
-<p>This is still a linear system, just with a 2D state. But already it behaves differently. The walls absorb and release heat, smoothing out fluctuations and slowing down the system’s response.</p>
-<p>As we add more rooms, walls, or building elements, the system grows. Each new temperature adds a new state. The equations still have the same structure, and their sparsity follows the building layout. Nodes represent temperatures; edges encode how heat flows between them.</p>
-<section id="what-do-we-control">
-<h3><span class="section-number">1.3.1. </span>What Do We Control?<a class="headerlink" href="#what-do-we-control" title="Link to this heading">#</a></h3>
-<p>This network of states is what we control. What we mean by “control input” <span class="math notranslate nohighlight">\(\mathbf{u}(t)\)</span> depends on both what we want to achieve and what we can implement in practice.</p>
-<p>The most direct interpretation is to let <span class="math notranslate nohighlight">\(\mathbf{u}(t)\)</span> represent the actual heating power delivered to the system, measured in watts. This makes sense when modeling from physical principles or simulating a system with fine-grained actuation.</p>
-<p>In many real buildings, however, thermostats don’t issue power commands. They activate a relay, turning the heater on or off based on whether the measured temperature crosses a setpoint. Some systems allow for modulated control—such as varying fan speed or partially opening a valve—but those details are often hidden behind firmware or closed controllers.</p>
-<p>A common implementation involves a <strong>PID control loop</strong> that compares the measured temperature to a setpoint and adjusts the control signal accordingly. While the actual logic might be simple, the resulting behavior appears smoothed or delayed from the perspective of the building.</p>
-<p>Depending on the abstraction level, we might:</p>
-<ul class="simple">
-<li><p>Treat <span class="math notranslate nohighlight">\(\mathbf{u}(t)\)</span> as continuous power input, if designing the full control logic.</p></li>
-<li><p>Use it as a setpoint input, assuming a lower-level controller handles the rest.</p></li>
-<li><p>Or reduce it to a binary signal—heater on or off—when working with logged behavior from a smart thermostat.</p></li>
-</ul>
-<p>Each perspective shapes the kind of model we build and the kind of control problem we pose. If we’re aiming to design a controller from scratch, it may be worth modeling the full closed-loop dynamics. If the goal is to tune setpoints or learn policies from data, a coarser abstraction might be not only sufficient, but more robust.</p>
-</section>
-<section id="why-this-model">
-<h3><span class="section-number">1.3.2. </span>Why This Model?<a class="headerlink" href="#why-this-model" title="Link to this heading">#</a></h3>
-<p>At this point, you might wonder: why go through the trouble of building this kind of physics-based model at all? After all, if we can log indoor temperatures, thermostat actions, and weather data, isn’t it easier to just learn a model from data? A neural ODE, for example, would let us define a parameterized function:</p>
-<div class="math notranslate nohighlight">
-\[
-\dot{\mathbf{z}}(t) = f_{\boldsymbol{\theta}}(\mathbf{z}(t), \mathbf{u}(t), \mathbf{d}(t)), \quad \mathbf{y}(t) = g_{\boldsymbol{\theta}}(\mathbf{z}(t)),
-\]</div>
-<p>with both <span class="math notranslate nohighlight">\(f_{\boldsymbol{\theta}}\)</span> and <span class="math notranslate nohighlight">\(g_{\boldsymbol{\theta}}\)</span> learned from data. The internal state <span class="math notranslate nohighlight">\(\mathbf{z}(t)\)</span> is not tied to any physical quantity. It just needs to be expressive enough to explain the observations.</p>
-<p>That flexibility can be useful, particularly when a large dataset is already available. But in building control and energy modeling, the constraints are usually different.</p>
-<p>Often, the engineer or consultant on site is working under tight time and information budgets. A floor plan might be available, along with some basic specs on insulation or window types, and a few days of logged sensor data. The task might be to simulate load under different weather scenarios, tune a controller, or just help understand why a room is slow to heat up. The model has to be built quickly, adapted easily, and remain understandable to others working on the same system.</p>
-<p>In that context, RC models are often the default choice: not because they are inherently better, but because they fit the workflow.</p>
-<p><strong>Interpretability.</strong>
-The parameters correspond to things you can reason about: thermal resistance, capacitance, heat transfer between zones. You can cross-check values against architectural plans, or adjust them manually when something doesn’t line up. You can tell which wall or zone is contributing to slow recovery times.</p>
-<p><strong>Identifiability with limited data.</strong>
-RC models can often be calibrated from short data traces, even when not all state variables are directly observable. The structure already imposes constraints: heat flows from hot to cold, dynamics are passive, responses are smooth. Those properties help narrow the space of valid parameter settings. A neural ODE, in contrast, typically needs more data to settle into stable and plausible dynamics—especially if no additional constraints are enforced during training.</p>
-<p><strong>Simplicity and reuse.</strong>
-Once the model is built, it’s straightforward to modify. If a window is replaced, or a wall gets insulated, you only need to update a few numbers.  It’s easy to pass along to another engineer or embed in a larger simulation. A model like</p>
-<div class="math notranslate nohighlight">
-\[
-\dot{\mathbf{x}} = \mathbf{A}\mathbf{x} + \mathbf{B}\mathbf{u} + \mathbf{E}\mathbf{d}
-\]</div>
-<p>is linear and low-dimensional. Simulating it is cheap, even if you do it many times. That may not matter now, but it will matter later, when we want to optimize over trajectories or learn from them.</p>
-<p>This doesn’t mean RC models are always sufficient. They simplify or ignore many effects: solar gains, occupancy, nonlinearities, humidity, equipment switching behavior. If those effects are significant, and you have enough data, a black-box model (neural ODE or otherwise) might achieve lower prediction error. In practice, though, it’s common to combine the two: use the RC structure as a backbone, and learn a residual model to correct for unmodeled dynamics.</p>
-</section>
-</section>
-<section id="from-deterministic-to-stochastic">
-<h2><span class="section-number">1.4. </span>From Deterministic to Stochastic<a class="headerlink" href="#from-deterministic-to-stochastic" title="Link to this heading">#</a></h2>
-<p>The models we’ve seen so far were deterministic: given an initial state and input sequence, the system evolves in a fixed, predictable way. But real systems rarely behave so neatly. Sensors are noisy. Parameters drift. The world changes in ways we can’t fully model.</p>
-<p>To account for this uncertainty, we move from deterministic dynamics to <strong>stochastic models</strong>. There are two equivalent but conceptually distinct ways to do this.</p>
-<section id="function-plus-noise">
-<h3><span class="section-number">1.4.1. </span>Function plus Noise<a class="headerlink" href="#function-plus-noise" title="Link to this heading">#</a></h3>
-<p>The most direct extension adds a noise term to the dynamics:</p>
-<div class="math notranslate nohighlight">
-\[
-\mathbf{x}_{t+1} = f_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w}_t), \quad \mathbf{w}_t \sim p_{\mathbf{w}}.
-\]</div>
-<p>If the noise is additive and Gaussian, we recover the standard linear-Gaussian setup used in Kalman filtering:</p>
-<div class="math notranslate nohighlight">
-\[
-\mathbf{x}_{t+1} = A\mathbf{x}_t + B\mathbf{u}_t + \mathbf{w}_t, \quad \mathbf{w}_t \sim \mathcal{N}(0, Q).
-\]</div>
-<p>But we’re not restricted to Gaussian or additive noise. For instance, if the noise distribution is non-Gaussian:</p>
-<div class="math notranslate nohighlight">
-\[
-\mathbf{x}_{t+1} = f(\mathbf{x}_t, \mathbf{u}_t) + \mathbf{w}_t, \quad \mathbf{w}_t \sim \text{Laplace}, \ \text{or}\ \text{Student-t},
-\]</div>
-<p>then <span class="math notranslate nohighlight">\(\mathbf{x}_{t+1}\)</span> inherits those properties. This is known as a <strong>convolution model</strong>: the next-state distribution is a shifted version of the noise distribution, centered around the deterministic prediction. More formally, it’s a special case of a <strong>pushforward measure</strong>: the randomness from <span class="math notranslate nohighlight">\(\mathbf{w}_t\)</span> is “pushed forward” through the function <span class="math notranslate nohighlight">\(f\)</span> to yield a distribution over outcomes.</p>
-<p>Or the noise might enter multiplicatively:</p>
-<div class="math notranslate nohighlight">
-\[
-\mathbf{x}_{t+1} = f(\mathbf{x}_t, \mathbf{u}_t) + \Gamma(\mathbf{x}_t, \mathbf{u}_t) \mathbf{w}_t,
-\]</div>
-<p>where <span class="math notranslate nohighlight">\(\Gamma\)</span> is a matrix that modulates the effect of the noise, potentially depending on state and control. If <span class="math notranslate nohighlight">\(\Gamma\)</span> is invertible, we can even write down an explicit density via a change-of-variables:</p>
-<div class="math notranslate nohighlight">
-\[
-p(\mathbf{x}_{t+1} \mid \mathbf{x}_t, \mathbf{u}_t) = p_{\mathbf{w}}\left(\Gamma^{-1}(\mathbf{x}_t, \mathbf{u}_t)\left[\mathbf{x}_{t+1} - f(\mathbf{x}_t, \mathbf{u}_t)\right] \right)\cdot \left| \det \Gamma^{-1} \right|.
-\]</div>
-<p>This kind of structured noise is common in practice, for example, when disturbances are amplified at certain operating points.</p>
-<p>The <strong>function-plus-noise</strong> view is natural when we have a physical or simulator-based model and want to account for uncertainty around it. It is <strong>constructive</strong>: we know how the system evolves and how the randomness enters. This means we can <strong>track the source of variability along a trajectory</strong>, which is particularly useful for techniques like <strong>reparameterization</strong> or <strong>infinitesimal perturbation analysis (IPA)</strong>. These methods rely on being able to differentiate through the noise injection mechanism, something that is much easier when the noise is explicit and structured.</p>
-</section>
-<section id="transition-kernel">
-<h3><span class="section-number">1.4.2. </span>Transition Kernel<a class="headerlink" href="#transition-kernel" title="Link to this heading">#</a></h3>
-<p>The second perspective skips over the internal noise and defines the system directly in terms of the probability distribution over next states:</p>
-<div class="math notranslate nohighlight">
-\[
-p(\mathbf{x}_{t+1} \mid \mathbf{x}_t, \mathbf{u}_t).
-\]</div>
-<p>This <strong>transition kernel</strong> encodes all the uncertainty in the system’s evolution, without reference to any underlying noise source or functional form.</p>
-<p>This view is strictly more general: it includes the function-plus-noise case as a special instance. If we do know the function <span class="math notranslate nohighlight">\(f\)</span> and the noise distribution <span class="math notranslate nohighlight">\(p_{\mathbf{w}}\)</span> from the generative model, then the transition kernel is obtained by “pushing” the randomness through the function:</p>
-<div class="math notranslate nohighlight">
-\[
-p(\mathbf{x}_{t+1} \mid \mathbf{x}_t, \mathbf{u}_t) = \int \delta(\mathbf{x}_{t+1} - f(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w})) \, p_{\mathbf{w}}(\mathbf{w}) \, d\mathbf{w}.
-\]</div>
-<p>This might look abstract, but it’s just marginalization: for each possible noise value <span class="math notranslate nohighlight">\(\mathbf{w}\)</span>, we compute the resulting next state, and then average over all possible <span class="math notranslate nohighlight">\(\mathbf{w}\)</span>, weighted by how likely each one is.</p>
-<p>If the noise were discrete, this becomes a sum:</p>
-<div class="math notranslate nohighlight">
-\[
-p(\mathbf{x}_{t+1} \mid \mathbf{x}_t, \mathbf{u}_t) = \sum_{i=1}^k \mathbb{1}\{f(\mathbf{x}_t, \mathbf{u}_t, w_i) = \mathbf{x}_{t+1}\} \cdot p_i
-\]</div>
-<p>This abstraction is especially useful when we don’t know (or don’t care about) the underlying function or noise distribution. All we need is the ability to sample transitions or estimate their likelihoods. This is the default formulation in reinforcement learning, econometrics, and other settings focused on behavior rather than mechanism.</p>
-</section>
-<section id="continuous-time-analogue">
-<h3><span class="section-number">1.4.3. </span>Continuous-Time Analogue<a class="headerlink" href="#continuous-time-analogue" title="Link to this heading">#</a></h3>
-<p>In continuous time, the stochastic dynamics of a system are often described using a <strong>stochastic differential equation (SDE)</strong>:</p>
-<div class="math notranslate nohighlight">
-\[
-d\mathbf{X}_t = f(\mathbf{X}_t, \mathbf{U}_t)\,dt + \sigma(\mathbf{X}_t, \mathbf{U}_t)\,d\mathbf{W}_t,
-\]</div>
-<p>where <span class="math notranslate nohighlight">\(\mathbf{W}_t\)</span> is Brownian motion. The first term, called the <strong>drift</strong>, describes the average motion of the system. The second, scaled by <span class="math notranslate nohighlight">\(\sigma\)</span>, models how random fluctuations (diffusion) enter over time. Just like in discrete time, this is a <strong>function + noise</strong> model: the state evolves through a deterministic path perturbed by stochastic input.</p>
-<p>This generative view again induces a probability distribution over future states. At any future time <span class="math notranslate nohighlight">\(t + \Delta t\)</span>, the system doesn’t land at a single state but is described by a distribution that depends on the initial condition and the noise along the way.</p>
-<p>Mathematically, this distribution evolves according to what’s called the <strong>Fokker–Planck equation</strong>—a partial differential equation that governs how probability density “flows” through time. It plays the same role here as the transition kernel did in discrete time: describing how likely the system is to be in any given state, without referring to the noise directly.</p>
-<p>While the mathematical generalization is clean, working with continuous-time stochastic models can be more challenging. Simulating sample paths is often straightforward (eg. nowadays diffusion models in generative AI), but writing down or computing the exact transition distribution usually isn’t. That’s why many practical methods still rely on discrete-time approximations, even when the underlying system is continuous.</p>
-<section id="example-managing-a-quebec-hydroelectric-reservoir">
-<h4><span class="section-number">1.4.3.1. </span>Example: Managing a Québec Hydroelectric Reservoir<a class="headerlink" href="#example-managing-a-quebec-hydroelectric-reservoir" title="Link to this heading">#</a></h4>
-<p>On the James Bay plateau, 1 400 km north of Montréal, the Robert-Bourassa reservoir stores roughly 62 km³ of water, more than the volume of Lake Ontario above its minimum operating level. Sixteen giant turbines sit 140 m below the surface, converting that stored head into 5.6 GW of electricity, about a fifth of Hydro-Québec’s total capacity. A steady share of that output feeds Québec’s aluminium smelters, which depend on stable, uninterrupted power.</p>
-<p>Water managers face competing objectives:</p>
-<ul class="simple">
-<li><p><strong>Flood safety.</strong> Sudden snowmelt or storms can overfill the basin, forcing emergency spillways to open. These events are spectacular, but carry real downstream risk and economic cost.</p></li>
-<li><p><strong>Energy reliability.</strong> If the level falls too low, turbines sit idle and contracts go unmet. Voltage dips at the smelters are measured in lost millions.</p></li>
-</ul>
-<p>A basic deterministic model for the reservoir’s mass balance is just bookkeeping:</p>
-<div class="math notranslate nohighlight">
-\[
-\mathbf{x}_{t+1} = \mathbf{x}_t + \mathbf{r}_t - \mathbf{u}_t,
-\]</div>
-<p>where <span class="math notranslate nohighlight">\(\mathbf{x}_t\)</span> is the current reservoir level, <span class="math notranslate nohighlight">\(\mathbf{u}_t\)</span> is the controlled outflow through turbines, and <span class="math notranslate nohighlight">\(\mathbf{r}_t\)</span> is the natural inflow from rainfall and upstream runoff.</p>
-<p>But inflow is variable, and its statistical structure matters. Two hydrological regimes dominate:</p>
-<ul class="simple">
-<li><p>In spring, melting snow over days can produce a long-tailed inflow distribution, often modeled as log-normal or Gamma.</p></li>
-<li><p>In summer, convective storms yield a skewed mixture: a point mass at zero (no rain), and a thin but heavy tail capturing sudden bursts.</p></li>
-</ul>
-<p>This motivates a simple stochastic extension:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}
-\mathbf{x}_{t+1} = \mathbf{x}_t - \mathbf{u}_t + \mathbf{w}_t, \quad
-\mathbf{w}_t \sim
-\begin{cases}
-0 &amp; \text{with prob. } p_0, \\\\
-\text{LogNormal}(\mu, \sigma^2) &amp; \text{with prob. } 1 - p_0.
-\end{cases}
-\end{split}\]</div>
-<p>Here the physics is fixed, and all uncertainty sits in the inflow term <span class="math notranslate nohighlight">\(\mathbf{w}_t\)</span>. Rather than fitting a full transition model from <span class="math notranslate nohighlight">\((\mathbf{x}_t, \mathbf{u}_t)\)</span> to <span class="math notranslate nohighlight">\(\mathbf{x}_{t+1}\)</span>, we can isolate the inflow by rearranging the mass balance:</p>
-<div class="math notranslate nohighlight">
-\[
-\hat{\mathbf{w}}_t = \mathbf{x}_{t+1} - \mathbf{x}_t + \mathbf{u}_t.
-\]</div>
-<p>This gives a direct estimate of the realized inflow at each timestep. From there, the problem becomes one of density estimation: fit a probabilistic model to the residuals <span class="math notranslate nohighlight">\(\hat{\mathbf{w}}_t\)</span>. In spring, this might be a log-normal distribution. In summer, a two-part mixture: a point mass at zero, and an exponential tail. These distributions can be estimated by maximum likelihood, or adjusted using additional features (covariates) such as upstream snowpack or forecasted temperature.</p>
-<p>This setup has practical benefits. Fixing the physical part of the model (how levels respond to inflow and outflow) helps focus the statistical modeling effort. Rather than fitting a full system model, we only need to estimate the variability in inflows. This reduces the number of degrees of freedom and makes the estimation problem easier to interpret. It also avoids conflating uncertainty in inflow with uncertainty in the system’s response.</p>
-<p>Compare this to a more generic approach, such as linear regression:</p>
-<div class="math notranslate nohighlight">
-\[
-\mathbf{x}_{t+1} = a \mathbf{x}_t + b \mathbf{u}_t + \varepsilon_t.
-\]</div>
-<p>This is straightforward to fit, but offers no guarantee that the result behaves sensibly. The model might violate conservation of mass, or compensate for inflow variation by adjusting coefficients <span class="math notranslate nohighlight">\(a\)</span> and <span class="math notranslate nohighlight">\(b\)</span>. This can lead to misleading conclusions, especially when extrapolating beyond the training data.</p>
-<!-- Hydro‑Québec engineers rely on structured models in practice. Over 150 gauging stations across the La Grande basin report real-time flows, levels, and precipitation to Environment Canada’s HYDAT database, which is accessible through a public API. These data feed into Hydro‑Québec’s SCADA systems, along with snow-course readings and rainfall estimates. From there, engineers build seasonal inflow models and update them daily.
-
-Synthetic years are then generated by sampling from these models. Each sampled inflow sequence is pushed through the deterministic mass balance, producing a possible reservoir trajectory. These Monte Carlo rollouts are used directly for planning. They help evaluate turbine schedules, size safety margins, and identify periods of elevated risk.
-
-Structured models are not just a matter of physical fidelity. They shape how data is used, how uncertainty is handled, and how downstream decisions are informed. The separation between known dynamics and unknown inputs gives a cleaner interface between estimation and control. -->
-</section>
-</section>
-</section>
-<section id="partial-observability">
-<h2><span class="section-number">1.5. </span>Partial Observability<a class="headerlink" href="#partial-observability" title="Link to this heading">#</a></h2>
-<p>So far, we’ve assumed that the full system state <span class="math notranslate nohighlight">\(\mathbf{x}_t\)</span> is available. But in most real-world settings, only a partial or noisy observation is accessible. Sensors have limited coverage, measurements come with noise, and some variables aren’t observable at all.</p>
-<p>To model this, we introduce an <strong>observation equation</strong> alongside the system dynamics:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}
-\begin{aligned}
-\mathbf{x}_{t+1} &amp;= f_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w}_t), \quad \mathbf{w}_t \sim p_{\mathbf{w}}, \\
-\mathbf{y}_t &amp;= h_t(\mathbf{x}_t, \mathbf{v}_t), \quad \mathbf{v}_t \sim p_{\mathbf{v}}.
-\end{aligned}
-\end{split}\]</div>
-<p>The state <span class="math notranslate nohighlight">\(\mathbf{x}_t\)</span> evolves under control inputs <span class="math notranslate nohighlight">\(\mathbf{u}_t\)</span> and process noise <span class="math notranslate nohighlight">\(\mathbf{w}_t\)</span>, but we don’t get to see <span class="math notranslate nohighlight">\(\mathbf{x}_t\)</span> directly. Instead, we observe <span class="math notranslate nohighlight">\(\mathbf{y}_t\)</span>, which depends on <span class="math notranslate nohighlight">\(\mathbf{x}_t\)</span> through some possibly nonlinear, noisy function <span class="math notranslate nohighlight">\(h_t\)</span>. The noise <span class="math notranslate nohighlight">\(\mathbf{v}_t\)</span> captures measurement uncertainty.</p>
-<p>This setup defines a partially observed system. Even if the underlying dynamics are known, we still face uncertainty due to limited visibility into the true state. The controller or estimator must rely on the observations <span class="math notranslate nohighlight">\(\mathbf{y}_{0\:t}\)</span> to make sense of the hidden trajectory.</p>
-<p>In the <strong>deterministic</strong> case, if the output map <span class="math notranslate nohighlight">\(h_t\)</span> is full-rank and invertible, we may be able to reconstruct the state directly from the output: no filtering required. But once noise is introduced, that invertibility becomes more subtle: even if <span class="math notranslate nohighlight">\(h_t\)</span> is bijective, the presence of <span class="math notranslate nohighlight">\(\mathbf{v}_t\)</span> prevents us from recovering <span class="math notranslate nohighlight">\(\mathbf{x}_t\)</span> exactly. In this case, we must shift from inversion to estimation, often via probabilistic inference.</p>
-<p>In the <strong>linear-Gaussian case</strong>, the model simplifies to:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}
-\begin{aligned}
-\mathbf{x}_{t+1} &amp;= A\mathbf{x}_t + B\mathbf{u}_t + \mathbf{w}_t, \quad \mathbf{w}_t \sim \mathcal{N}(0, Q), \\
-\mathbf{y}_t &amp;= C\mathbf{x}_t + D\mathbf{u}_t + \mathbf{v}_t, \quad \mathbf{v}_t \sim \mathcal{N}(0, R).
-\end{aligned}
-\end{split}\]</div>
-<p>This is the classical state-space model used in signal processing and control. It’s fully specified by the system matrices and the covariances <span class="math notranslate nohighlight">\(Q\)</span> and <span class="math notranslate nohighlight">\(R\)</span>. The state is no longer known, but under these assumptions it can be estimated recursively using the <strong>Kalman filter</strong>, which maintains a Gaussian belief over <span class="math notranslate nohighlight">\(\mathbf{x}_t\)</span>.</p>
-<p>Even when the model is nonlinear or non-Gaussian, the structure remains the same: a dynamic state evolves, and a separate observation process links it to the data we see. Many modern estimation techniques, including extended and unscented Kalman filters, particle filters, and learned neural estimators, build on this core structure.</p>
-<section id="observation-kernel-view">
-<h3><span class="section-number">1.5.1. </span>Observation Kernel View<a class="headerlink" href="#observation-kernel-view" title="Link to this heading">#</a></h3>
-<p>Just as we moved from function-based dynamics to transition kernels, we can abstract away the noise source and define the <strong>observation distribution</strong> directly:</p>
-<div class="math notranslate nohighlight">
-\[
-p(\mathbf{y}_t \mid \mathbf{x}_t).
-\]</div>
-<p>This kernel summarizes what the sensors tell us about the hidden state. If we know the generative model—say, that <span class="math notranslate nohighlight">\(\mathbf{y}_t = h_t(\mathbf{x}_t) + \mathbf{v}_t\)</span> with known <span class="math notranslate nohighlight">\(p_{\mathbf{v}}\)</span>—then this kernel is induced by marginalizing out <span class="math notranslate nohighlight">\(\mathbf{v}_t\)</span>:</p>
-<div class="math notranslate nohighlight">
-\[
-p(\mathbf{y}_t \mid \mathbf{x}_t) = \int \delta\bigl(\mathbf{y}_t - h_t(\mathbf{x}_t, \mathbf{v})\bigr)\, p_{\mathbf{v}}(\mathbf{v})\, d\mathbf{v}.
-\]</div>
-<p>But we don’t have to start from the generative form. In practice, we might define or learn <span class="math notranslate nohighlight">\(p(\mathbf{y}_t \mid \mathbf{x}_t)\)</span> directly, especially when dealing with black-box sensors, perception models, or abstract measurement processes.</p>
-</section>
-<section id="example-stabilizing-a-telescopes-vision-with-adaptive-optics">
-<h3><span class="section-number">1.5.2. </span>Example – Stabilizing a Telescope’s Vision with Adaptive Optics<a class="headerlink" href="#example-stabilizing-a-telescopes-vision-with-adaptive-optics" title="Link to this heading">#</a></h3>
-<p>On Earth, even the largest telescopes can’t see perfectly. As starlight travels through the atmosphere, tiny air pockets with different temperatures bend the light in slightly different directions. The result is a distorted image: instead of a sharp point, a star looks like a flickering blob. The distortion happens fast, on the order of milliseconds, and changes continuously as wind moves the turbulent layers overhead.</p>
-<p>This is where <strong>adaptive optics (AO)</strong> comes in. AO systems aim to cancel out these distortions in real time. They do this by measuring how the incoming wavefront of light is distorted and using a flexible mirror to apply a counter-distortion that straightens it back out. But there’s a catch: you can’t observe the wavefront directly. You only get noisy measurements of its <strong>slopes</strong> (the angles of tilt at various points), and you have to act fast, before the atmosphere changes again.</p>
-<p>To design a controller here, we need a model of how the distortions evolve. And that means building a decision-making model: one that includes uncertainty, partial observability, and fast feedback.</p>
-<p><strong>State.</strong> The main object we’re trying to track is the distortion of the incoming wavefront. We can’t observe this phase field <span class="math notranslate nohighlight">\(\phi(\mathbf{r}, t)\)</span> directly, but we can represent it approximately using a finite basis (e.g., Fourier or Zernike). The coefficients of this expansion form our internal state:</p>
-<div class="math notranslate nohighlight">
-\[
-\mathbf{x}_t \in \mathbb{R}^n \quad \text{(wavefront distortion at time } t).
-\]</div>
-<p><strong>Dynamics.</strong> The atmosphere evolves in time. A simple but surprisingly effective model assumes the turbulence is “frozen” and just blown across the telescope by the wind. That gives us a <strong>discrete-time linear model</strong>:</p>
-<div class="math notranslate nohighlight">
-\[
-\mathbf{x}_{t+1} = \mathbf{A} \mathbf{x}_t + \mathbf{w}_t,
-\]</div>
-<p>where <span class="math notranslate nohighlight">\(\mathbf{A}\)</span> shifts the distortion pattern in space, and <span class="math notranslate nohighlight">\(\mathbf{w}_t\)</span> is a small random change from evolving turbulence. This noise is not arbitrary: its statistics follow a power law derived from <strong>Kolmogorov’s turbulence model</strong>. In particular, higher spatial frequencies (small-scale wiggles) have less energy than low ones. That lets us build a prior on how likely different distortions are.</p>
-<p><strong>Observations.</strong> We can’t see the full wavefront. Instead, we use a <strong>wavefront sensor</strong>: a camera that captures how the light bends. What it actually measures are local slopes: the gradients of the wavefront, not the wavefront itself. So our observation model is:</p>
-<div class="math notranslate nohighlight">
-\[
-\mathbf{y}_t = \mathbf{C} \mathbf{x}_t + \boldsymbol{\varepsilon}_t,
-\]</div>
-<p>where <span class="math notranslate nohighlight">\(\mathbf{C}\)</span> is a known matrix that maps wavefront distortion to measurable slope angles, and <span class="math notranslate nohighlight">\(\boldsymbol{\varepsilon}_t\)</span> is measurement noise (e.g., due to photon limits).</p>
-<p><strong>Control.</strong> Our job is to flatten the wavefront using a deformable mirror. The mirror can apply a small counter-distortion <span class="math notranslate nohighlight">\(\mathbf{u}_t\)</span> that subtracts from the atmospheric one:</p>
-<div class="math notranslate nohighlight">
-\[
-\text{Residual state:} \quad \mathbf{x}_t^{\text{res}} = \mathbf{x}_t - \mathbf{B} \mathbf{u}_t.
-\]</div>
-<p>The goal is to choose <span class="math notranslate nohighlight">\(\mathbf{u}_t\)</span> to minimize the residual distortion by making the light flat again.</p>
-<p><strong>Why a model matters.</strong> Without a model, we’d just react to the current noisy measurements. But with a model, we can predict how the wavefront will evolve, filter out noise, and act preemptively. This is essential in AO, where decisions must be made every millisecond. Kalman filters are often used to track the hidden state <span class="math notranslate nohighlight">\(\mathbf{x}_t\)</span>, combining model predictions with noisy measurements, and linear-quadratic regulators (LQR) or other optimal controllers use those estimates to choose the best correction.</p>
-<p><strong>Time structure.</strong> This is a rare case where <strong>continuous-time modeling</strong> also plays a role. The true evolution of the turbulence is continuous, and we can model it using a <strong>stochastic differential equation (SDE)</strong>:</p>
-<div class="math notranslate nohighlight">
-\[
-d\mathbf{x}(t) = \mathbf{F} \mathbf{x}(t)\,dt + \mathbf{G}\,d\mathbf{W}(t),
-\]</div>
-<p>where <span class="math notranslate nohighlight">\(\mathbf{W}(t)\)</span> is Brownian motion and the matrix <span class="math notranslate nohighlight">\(\mathbf{G}\)</span> encodes the Kolmogorov spectrum. Discretizing this equation gives us the <span class="math notranslate nohighlight">\(\mathbf{A}\)</span> and <span class="math notranslate nohighlight">\(\mathbf{Q}\)</span> matrices for the discrete-time model above.</p>
-<!-- ## Data-Driven Identification
-
-Not all models come from physics. Sometimes, we fit them directly from data.
-
-Even a basic linear regression of the form:
-
-$$
-x_{t+1} = a x_t + b u_t + c + \varepsilon_t
-$$
-
-is a dynamical model. But things can get more sophisticated. Subspace identification methods, sparse regressions like SINDy, Koopman embeddings, neural ODEs—all of these let us learn models from observed trajectories. The key question is how much structure we assume. Do we enforce linearity? Time-invariance? Do we try to model the noise? -->
-</section>
-</section>
-<section id="programs-as-models">
-<h2><span class="section-number">1.6. </span>Programs as Models<a class="headerlink" href="#programs-as-models" title="Link to this heading">#</a></h2>
-<p>Up to this point, we have described models using systems of equations—either differential or difference equations—that express how a system evolves over time. These <strong>analytical models</strong> define the transition structure explicitly. For instance, in discrete time, the evolution of the state is governed by a known function:</p>
-<div class="math notranslate nohighlight">
-\[
-\mathbf{x}_{k+1} = f(\mathbf{x}_k, \mathbf{u}_k)
-\]</div>
-<p>Given access to <span class="math notranslate nohighlight">\(f\)</span>, we can construct trajectories, analyze system behavior, and design control policies. The important feature here is not that the model evolves one step at a time, but that we are given the <strong>local dynamics function</strong> <span class="math notranslate nohighlight">\(f\)</span> itself.</p>
-<p>In contrast, <strong>simulation-based models</strong> do not expose <span class="math notranslate nohighlight">\(f\)</span> directly. Instead, they define a procedure—implemented in code—that takes an initial state and input sequence and returns the resulting trajectory:</p>
-<div class="math notranslate nohighlight">
-\[
-\{\mathbf{x}_0, \mathbf{x}_1, \dots, \mathbf{x}_T\} = \mathcal{S}(\mathbf{x}_0, \{\mathbf{u}_t\}_{t=0}^{T-1})
-\]</div>
-<p>Here, <span class="math notranslate nohighlight">\(\mathcal{S}\)</span> represents the full simulator. Internally, it may apply numerical integration, scheduling logic, branching rules, or other computations. But these details are encapsulated. From the outside, we can only query the simulator by running it.</p>
-<p>This distinction is subtle but important. Both types of models can generate trajectories. What matters is the <strong>interface</strong>: analytical models provide direct access to <span class="math notranslate nohighlight">\(f\)</span>; simulation models do not. They offer a trajectory-generation interface, but hide the internal structure that produces it.</p>
-<p><strong>Case Study: Robotics — <em>MuJoCo</em></strong></p>
-<p>MuJoCo illustrates this distinction well. It simulates the dynamics of articulated rigid bodies under contact constraints. The equations it solves include:</p>
-<p><span class="math notranslate nohighlight">\(
-M(\mathbf{q})\ddot{\mathbf{q}} + C(\mathbf{q}, \dot{\mathbf{q}}) = \boldsymbol{\tau} + J^\top \boldsymbol{\lambda}
-\)</span></p>
-<p><span class="math notranslate nohighlight">\(
-\phi(\mathbf{q}) = 0, \quad \boldsymbol{\lambda} \geq 0, \quad \boldsymbol{\lambda}^\top \phi = 0
-\)</span></p>
-<p>Here <span class="math notranslate nohighlight">\(\mathbf{q}\)</span> are joint positions, <span class="math notranslate nohighlight">\(M\)</span> is the mass matrix, and <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}\)</span> are contact forces enforcing non-penetration. But these physical equations are part of a larger simulator that also includes:</p>
-<ul class="simple">
-<li><p>collision detection,</p></li>
-<li><p>contact force models,</p></li>
-<li><p>sensor and actuator emulation,</p></li>
-<li><p>and visual rendering.</p></li>
-</ul>
-<p>The full behavior of a robot interacting with its environment emerges only when the simulator is executed. While the underlying physics are well-understood, the complexity of contact dynamics, collision detection, and sensor modeling makes it impractical to expose the local dynamics function <span class="math notranslate nohighlight">\(f\)</span> directly.</p>
-<section id="systems-with-discrete-events">
-<h3><span class="section-number">1.6.1. </span>Systems with Discrete Events<a class="headerlink" href="#systems-with-discrete-events" title="Link to this heading">#</a></h3>
-<p>Many simulation models arise when a system’s dynamics are driven not by time-continuous evolution, but by the occurrence of events. These <strong>discrete-event systems</strong> (DES) change state only at specific, often asynchronous points in time. Between events, the state remains fixed.</p>
-<p>A discrete-event system can be described by:</p>
-<ul class="simple">
-<li><p>a set of discrete states <span class="math notranslate nohighlight">\(\mathcal{X}\)</span>,</p></li>
-<li><p>a set of events <span class="math notranslate nohighlight">\(\mathcal{E}\)</span>,</p></li>
-<li><p>a transition function <span class="math notranslate nohighlight">\(f: \mathcal{X} \times \mathcal{E} \rightarrow \mathcal{X}\)</span>,</p></li>
-<li><p>and a time-advance function <span class="math notranslate nohighlight">\(t_a: \mathcal{X} \rightarrow \mathbb{R}_{\geq 0}\)</span>.</p></li>
-</ul>
-<p>At each point, the system checks which events are enabled and advances to the next scheduled one.</p>
-<p><strong>Example: Network Traffic Control System</strong></p>
-<p>Consider a software-defined networking (SDN) controller managing traffic routing in a data center. The system must make real-time decisions about packet forwarding paths based on network conditions and service requirements.</p>
-<p>The discrete states <span class="math notranslate nohighlight">\(\mathcal{X}\)</span> represent the current network configuration: active routing tables, link utilization levels, and quality-of-service priority queues at each switch.</p>
-<p>The events <span class="math notranslate nohighlight">\(\mathcal{E}\)</span> include:</p>
-<ul class="simple">
-<li><p>New flow requests arriving (video streaming, database queries, file transfers)</p></li>
-<li><p>Link failures or congestion threshold violations</p></li>
-<li><p>Flow completion notifications</p></li>
-<li><p>Load balancing triggers when servers exceed capacity</p></li>
-<li><p>Network policy updates from administrators</p></li>
-</ul>
-<p>The transition function <span class="math notranslate nohighlight">\(f\)</span> captures how routing decisions change the network state. When a high-priority video conference flow arrives while a link is congested, the controller might transition to a new state where low-priority background traffic is rerouted through alternative paths.</p>
-<p>The time-advance function <span class="math notranslate nohighlight">\(t_a\)</span> determines when the next routing decision occurs. Flow arrivals follow traffic patterns (bursty during business hours), while link failures are rare but unpredictable events.</p>
-<p>Between events, packets follow the established routing rules—the same forwarding tables remain active across all switches. The control problem here is to adapt routing decisions to discrete network events, balancing throughput, latency, and reliability constraints.</p>
-</section>
-<section id="hybrid-systems">
-<h3><span class="section-number">1.6.2. </span>Hybrid Systems<a class="headerlink" href="#hybrid-systems" title="Link to this heading">#</a></h3>
-<p>Some systems evolve continuously most of the time but undergo discrete jumps in response to certain conditions. These <strong>hybrid systems</strong> are common in control applications.</p>
-<p>The system consists of:</p>
-<ul class="simple">
-<li><p>a set of discrete modes <span class="math notranslate nohighlight">\(q \in \mathcal{Q}\)</span>,</p></li>
-<li><p>continuous dynamics in each mode: <span class="math notranslate nohighlight">\(\dot{\mathbf{x}} = f_q(\mathbf{x})\)</span>,</p></li>
-<li><p>guards that specify when transitions between modes occur,</p></li>
-<li><p>and reset maps that update the state during such transitions.</p></li>
-</ul>
-<p><strong>Example: Thermostat Control</strong></p>
-<p>An HVAC system can be in one of several modes: <code class="docutils literal notranslate"><span class="pre">heating</span></code>, <code class="docutils literal notranslate"><span class="pre">cooling</span></code>, or <code class="docutils literal notranslate"><span class="pre">off</span></code>. The temperature evolves continuously according to physical laws, but when it crosses certain thresholds, the system switches modes:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">setpoint</span> <span class="o">-</span> <span class="n">delta</span><span class="p">:</span>
-    <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;heating&quot;</span>
-<span class="k">elif</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="n">setpoint</span> <span class="o">+</span> <span class="n">delta</span><span class="p">:</span>
-    <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;cooling&quot;</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;off&quot;</span>
-</pre></div>
-</div>
-<p>Within each mode, a different differential equation applies. This results in a piecewise-smooth trajectory with mode-dependent dynamics.</p>
-<p><strong>Case Study: Building Energy — <em>EnergyPlus</em></strong></p>
-<p>EnergyPlus provides a sophisticated example of hybrid systems in building energy simulation. At its core are physical equations describing heat flows:</p>
-<div class="math notranslate nohighlight">
-\[
-C_i \frac{dT_i}{dt} = \sum_j h_{ij} A_{ij}(T_j - T_i) + Q_i
-\]</div>
-<p>It also solves implicit equations representing HVAC component behavior:</p>
-<div class="math notranslate nohighlight">
-\[
-0 = f(T, \dot{m}, P)
-\]</div>
-<p>But the actual simulator includes hundreds of thousands of lines of code handling:</p>
-<ul class="simple">
-<li><p>interpolated weather data,</p></li>
-<li><p>occupancy schedules,</p></li>
-<li><p>equipment performance curves,</p></li>
-<li><p>and control logic implemented as finite-state machines.</p></li>
-</ul>
-<p>The result is a program that emulates how a building behaves over time, given environmental inputs and schedules. The hybrid nature emerges from the interaction between continuous thermal dynamics and discrete control decisions made by thermostats, occupancy sensors, and HVAC equipment.</p>
-</section>
-<section id="agent-based-models">
-<h3><span class="section-number">1.6.3. </span>Agent-Based Models<a class="headerlink" href="#agent-based-models" title="Link to this heading">#</a></h3>
-<p>Some simulation models do not describe systems via global state transitions, but instead simulate the behavior of many individual components or <strong>agents</strong>, each following local rules. These <strong>agent-based models</strong> (ABMs) are widely used in epidemiology, ecology, and social modeling.</p>
-<p>Each agent maintains its own internal state and acts according to probabilistic or rule-based logic. The system’s behavior arises from the interactions among agents.</p>
-<p><strong>Example: Residential Energy Consumption under Dynamic Pricing</strong></p>
-<p>Consider a neighborhood where each household is an agent making energy consumption decisions based on real-time electricity pricing and thermal comfort preferences. Each household agent has:</p>
-<ul class="simple">
-<li><p><strong>Internal state</strong>: current temperature, HVAC settings, comfort preferences, price sensitivity</p></li>
-<li><p><strong>Local decision rules</strong>: MPC algorithms that optimize the trade-off between energy cost and thermal comfort</p></li>
-<li><p><strong>Unique characteristics</strong>: different utility functions, thermal mass, occupancy patterns</p></li>
-</ul>
-<p>The simulator might execute something like:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">household</span> <span class="ow">in</span> <span class="n">neighborhood</span><span class="p">:</span>
-    <span class="c1"># Each household solves its own MPC optimization</span>
-    <span class="n">current_price</span> <span class="o">=</span> <span class="n">utility</span><span class="o">.</span><span class="n">get_current_price</span><span class="p">()</span>
-    <span class="n">comfort_weight</span> <span class="o">=</span> <span class="n">household</span><span class="o">.</span><span class="n">comfort_preference</span>
-    
-    <span class="c1"># Optimize over prediction horizon</span>
-    <span class="n">optimal_setpoint</span> <span class="o">=</span> <span class="n">household</span><span class="o">.</span><span class="n">mpc_controller</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span>
-        <span class="n">current_temp</span><span class="o">=</span><span class="n">household</span><span class="o">.</span><span class="n">temperature</span><span class="p">,</span>
-        <span class="n">price_forecast</span><span class="o">=</span><span class="n">utility</span><span class="o">.</span><span class="n">price_forecast</span><span class="p">,</span>
-        <span class="n">comfort_weight</span><span class="o">=</span><span class="n">comfort_weight</span>
-    <span class="p">)</span>
-    
-    <span class="n">household</span><span class="o">.</span><span class="n">set_hvac_setpoint</span><span class="p">(</span><span class="n">optimal_setpoint</span><span class="p">)</span>
-    
-    <span class="c1"># Update shared grid load</span>
-    <span class="n">neighborhood</span><span class="o">.</span><span class="n">total_demand</span> <span class="o">+=</span> <span class="n">household</span><span class="o">.</span><span class="n">power_consumption</span>
-</pre></div>
-</div>
-<p>The macro-level demand patterns—peak shifting, load leveling, rebound effects—emerge from individual household optimization decisions. No single equation describes the neighborhood’s energy consumption; it arises from the collective behavior of autonomous agents each solving their own control problems.</p>
-<p><strong>Case Study: Traffic Simulation — <em>SUMO</em></strong></p>
-<p>SUMO demonstrates agent-based modeling in transportation systems. Each vehicle is an agent with its own route, driving behavior, and decision-making logic. The Krauss car-following rule shows how individual vehicle agents behave:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">update_vehicle</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">v_leader</span><span class="p">,</span> <span class="n">gap</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
-    <span class="n">v_safe</span> <span class="o">=</span> <span class="n">v_leader</span> <span class="o">+</span> <span class="p">(</span><span class="n">gap</span> <span class="o">-</span> <span class="n">min_gap</span><span class="p">)</span> <span class="o">/</span> <span class="n">tau</span>
-    <span class="n">v_desired</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">v_max</span><span class="p">,</span> <span class="n">v_safe</span><span class="p">)</span>
-    <span class="n">ε</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="n">v_new</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">v_desired</span> <span class="o">-</span> <span class="n">ε</span> <span class="o">*</span> <span class="n">a_max</span> <span class="o">*</span> <span class="n">dt</span><span class="p">)</span>
-    <span class="n">x_new</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">v_new</span> <span class="o">*</span> <span class="n">dt</span>
-    <span class="k">return</span> <span class="n">x_new</span><span class="p">,</span> <span class="n">v_new</span>
-</pre></div>
-</div>
-<p>Beyond car-following, each vehicle agent also:</p>
-<ul class="simple">
-<li><p>plans routes through the network based on travel time estimates,</p></li>
-<li><p>responds to traffic signals and road conditions,</p></li>
-<li><p>makes lane-changing decisions based on utility functions,</p></li>
-<li><p>and exhibits individual driving characteristics (aggressiveness, reaction time).</p></li>
-</ul>
-<p>The emergent traffic patterns—congestion formation, traffic waves, bottlenecks—arise from the collective behavior of thousands of individual vehicle agents, each following local rules and making autonomous decisions.</p>
-<p><strong>Case Study: Modeling Curbside Access at Montréal–Trudeau (YUL)</strong></p>
-<p>Afternoon traffic at Montréal–Trudeau airport regularly backs up along the two-lane ramp leading to the departures curb. As passenger volumes rebound, the mix of private drop-offs, taxis, and shuttles converging in a confined space produces frequent delays. When curb dwell times rise—especially around wide-body departures—queues can spill back onto the access road and interfere with other flows on the airport campus.</p>
-<p>To manage the situation, the airport operator relies on a dense sensor network. Cameras and license plate readers track vehicle trajectories across virtual gates, generating a real-time stream of entry points, curb interactions, and exit times. According to public statements, AI-based forecasting solutions have been deployed to anticipate congestion and suggest alternative routing options for passengers and drivers. While no technical details have been disclosed, this is a typical instance of a traffic prediction and control problem that lends itself to <strong>agent-based modeling</strong>.</p>
-<p>In such a model, each vehicle is treated as an individual agent with internal state:</p>
-<div class="math notranslate nohighlight">
-\[
-s_t = \bigl(\text{lane},\;x_t,\;v_t,\;\text{intent}\bigr),
-\]</div>
-<p>where <span class="math notranslate nohighlight">\(x_t\)</span> and <span class="math notranslate nohighlight">\(v_t\)</span> denote longitudinal position and speed, and lane and intent capture higher-level behavioural traits. The simulation proceeds in discrete time. At each step, agents update their acceleration based on local traffic density (e.g., via a car-following model like IDM), evaluate potential lane changes (e.g., using a utility or incentive rule), and advance position accordingly.</p>
-<p>The layout of the ramp—its geometry, merges, and constraints—is fixed. What changes are the traffic patterns and driver behaviours. These can be estimated from historical trajectories and updated as new data arrives. In a real-time setting, a filtering step adjusts the simulation so that its predicted flows remain consistent with current observations.</p>
-<p>While the behaviour of each individual agent is governed by program logic and heuristics—such as car-following rules, desired speeds, or gap acceptance—some parameters are identified offline from historical data, while others are estimated online. This adaptation helps the model track observed conditions. But even with such adjustments, not all effects are easily captured.</p>
-<p>Construction activity, weather disturbances, and irregular flight scheduling can introduce sudden shifts in flow that lie outside the scope of the structural model. To account for these, one can overlay a data-driven correction on top of the simulation. Suppose the simulator produces a queue length forecast <span class="math notranslate nohighlight">\(q^{\text{sim}}_{t+h}\)</span> over horizon <span class="math notranslate nohighlight">\(h\)</span>. A statistical model can be trained to predict the residual between this forecast and the observed outcome:</p>
-<div class="math notranslate nohighlight">
-\[
-r_{t+h} = q^{\text{obs}}_{t+h} - q^{\text{sim}}_{t+h},
-\]</div>
-<p>as a function of exogenous features <span class="math notranslate nohighlight">\(z_t\)</span>, such as weather, incident flags, or scheduled arrivals. The final forecast then becomes:</p>
-<div class="math notranslate nohighlight">
-\[
-\widehat{q}_{t+h} = q^{\text{sim}}_{t+h} + \phi(z_t),
-\]</div>
-<p>where <span class="math notranslate nohighlight">\(\phi\)</span> is a learned mapping from external conditions to the expected correction. The result is a hybrid model: the simulation enforces physical structure and agent-level behaviour, while the residual model compensates for aspects of the system that are harder to express analytically.</p>
-</section>
-</section>
 <section id="modeling-realism-and-control">
-<h2><span class="section-number">1.7. </span>Modeling, Realism, and Control<a class="headerlink" href="#modeling-realism-and-control" title="Link to this heading">#</a></h2>
+<h1>Modeling, Realism, and Control<a class="headerlink" href="#modeling-realism-and-control" title="Link to this heading">#</a></h1>
 <p>Realism is only one way to assess a model. When the purpose of modeling is to support control or decision making, accuracy in reproducing every detail of the system is not always necessary. What matters more is whether the model leads to decisions that perform well when applied in practice. A model may simplify the physics, ignore some variables, or group complex interactions into a disturbance term. As long as it retains the core feedback structure relevant to the control task, it can still be effective.</p>
 <p>In some cases, high-fidelity models can be counterproductive. Their complexity makes them harder to understand, slower to simulate, and more difficult to tune. Worse, they may include uncertain parameters that do not affect the control decisions but still influence the outcome of optimization. The resulting decisions can become fragile or overfitted to details that are not stable across different operating conditions.</p>
 <p>A useful model for control is one that focuses on the variables, dynamics, and constraints that shape the decisions to be made. It should capture the key trade-offs without trying to account for every effect. In traditional control design, this principle appears through model simplification: engineers reduce the system to a manageable form, then use feedback to absorb remaining uncertainty. Reinforcement learning adopts a similar mindset, though often implicitly. It allows for model error and evaluates success based on the quality of the policy when deployed, rather than on the accuracy of the model itself.</p>
 <section id="example-a-simple-model-that-supports-better-decisions">
-<h3><span class="section-number">1.7.1. </span>Example — A simple model that supports better decisions<a class="headerlink" href="#example-a-simple-model-that-supports-better-decisions" title="Link to this heading">#</a></h3>
+<h2>Example — A simple model that supports better decisions<a class="headerlink" href="#example-a-simple-model-that-supports-better-decisions" title="Link to this heading">#</a></h2>
 <p>Researchers at the U.S. National Renewable Energy Laboratory investigated how to reduce cooling costs in a typical home in Austin, Texas <span id="id1">[<a class="reference internal" href="bibliography.html#id49" title="B. Coffey, K. Knudsen, M. Guo, and E. Haves. Reduced-order residential home modeling for model predictive control. Technical Report LBNL-4064E, National Renewable Energy Laboratory, 2010. Prepared under Lawrence Berkeley National Laboratory. URL: https://www.nrel.gov/docs/fy10osti/47505.pdf.">8</a>]</span>. They had access to a detailed EnergyPlus simulation of the building, which included thousands of internal variables: layered wall models, HVAC cycling behavior, occupancy schedules, and detailed weather inputs.</p>
 <p>Although this simulator could closely reproduce indoor temperatures, it was too slow and too complex to use as a planning tool. Instead, the researchers constructed a much simpler model using just two parameters: an effective thermal resistance and an effective thermal capacitance. This reduced model did not capture short-term temperature fluctuations and could be off by as much as two degrees on hot afternoons.</p>
 <p>Despite these inaccuracies, the simplified model proved useful for testing different cooling strategies. One such strategy involved cooling the house early in the morning when electricity prices were low, letting the temperature rise slowly during the expensive late-afternoon period, and reheating only slightly overnight. When this strategy was simulated in the full EnergyPlus model, it reduced peak compressor power by approximately 70 percent and lowered total cooling cost by about 60 percent compared to a standard thermostat schedule.</p>
 <p>The reason this worked is that the simple model captured the most important structural feature of the system: the thermal mass of the building acts as a buffer that allows load shifting over time. That was enough to discover a control strategy that exploited this property. The many other effects present in the full simulation did not change the main conclusions and could be treated as part of the background variability.</p>
 <p>This example shows that a model can be inaccurate in detail but still highly effective in guiding decisions. For control, what matters is not whether the model matches reality in every respect, but whether it helps identify actions that perform well under real-world conditions.</p>
-</section>
-</section>
-<section id="looking-ahead">
-<h2><span class="section-number">1.8. </span>Looking Ahead<a class="headerlink" href="#looking-ahead" title="Link to this heading">#</a></h2>
-<p>There’s no universally correct way to model a system. Your choice depends on what you know, what you can observe, what you care about, and what tools you have.</p>
-<p>This chapter laid out a spectrum—from explicit, mechanistic models to black-box simulators and learned dynamics. In every case, modeling choices define the structure of the problem and the space of possible solutions. In the next chapters, we’ll see how they anchor learning, optimization, and decision-making.</p>
 </section>
 </section>
 
@@ -1063,11 +500,11 @@ r_{t+h} = q^{\text{obs}}_{t+h} - q^{\text{sim}}_{t+h},
       </div>
     </a>
     <a class="right-next"
-       href="ocp.html"
+       href="ssm.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title"><span class="section-number">2. </span>Discrete-Time Trajectory Optimization</p>
+        <p class="prev-next-title">The State‑Space Perspective</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -1078,7 +515,8 @@ r_{t+h} = q^{\text{obs}}_{t+h} - q^{\text{sim}}_{t+h},
             
             
               
-                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
   <div class="sidebar-secondary-item">
@@ -1087,42 +525,13 @@ r_{t+h} = q^{\text{obs}}_{t+h} - q^{\text{sim}}_{t+h},
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-build-a-model-for-whom">1.1. Why Build a Model? For Whom?</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-statespace-perspective">1.2. The State‑Space Perspective</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#discrete-versus-continuous-time">1.2.1. Discrete versus continuous time</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-of-deterministic-dynamics-hvac-control">1.3. Examples of Deterministic Dynamics: HVAC Control</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-do-we-control">1.3.1. What Do We Control?</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#why-this-model">1.3.2. Why This Model?</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#from-deterministic-to-stochastic">1.4. From Deterministic to Stochastic</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#function-plus-noise">1.4.1. Function plus Noise</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#transition-kernel">1.4.2. Transition Kernel</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#continuous-time-analogue">1.4.3. Continuous-Time Analogue</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#example-managing-a-quebec-hydroelectric-reservoir">1.4.3.1. Example: Managing a Québec Hydroelectric Reservoir</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Why Build a Model? For Whom?</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#modeling-realism-and-control">Modeling, Realism, and Control</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-a-simple-model-that-supports-better-decisions">Example — A simple model that supports better decisions</a></li>
 </ul>
 </li>
 </ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#partial-observability">1.5. Partial Observability</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#observation-kernel-view">1.5.1. Observation Kernel View</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-stabilizing-a-telescopes-vision-with-adaptive-optics">1.5.2. Example – Stabilizing a Telescope’s Vision with Adaptive Optics</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#programs-as-models">1.6. Programs as Models</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#systems-with-discrete-events">1.6.1. Systems with Discrete Events</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hybrid-systems">1.6.2. Hybrid Systems</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#agent-based-models">1.6.3. Agent-Based Models</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#modeling-realism-and-control">1.7. Modeling, Realism, and Control</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-a-simple-model-that-supports-better-decisions">1.7.1. Example — A simple model that supports better decisions</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#looking-ahead">1.8. Looking Ahead</a></li>
-</ul>
+
   </nav></div>
 
 </div></div>
@@ -1170,8 +579,8 @@ By Pierre-Luc Bacon
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549"></script>
 
   <footer class="bd-footer">
   </footer>

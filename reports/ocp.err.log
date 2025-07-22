@@ -1,160 +1,126 @@
 Traceback (most recent call last):
-  File "/Users/pierre-luc.bacon/Documents/rlbook/.venv/lib/python3.11/site-packages/jupyter_core/utils/__init__.py", line 154, in wrapped
-    asyncio.get_running_loop()
-RuntimeError: no running event loop
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/Users/pierre-luc.bacon/Documents/rlbook/.venv/lib/python3.11/site-packages/jupyter_cache/executors/utils.py", line 58, in single_nb_execution
+  File "/Users/pierre-luc.bacon/.local/pipx/venvs/jupyter-book/lib/python3.13/site-packages/jupyter_cache/executors/utils.py", line 58, in single_nb_execution
     executenb(
-  File "/Users/pierre-luc.bacon/Documents/rlbook/.venv/lib/python3.11/site-packages/nbclient/client.py", line 1319, in execute
+    ~~~~~~~~~^
+        nb,
+        ^^^
+    ...<4 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/pierre-luc.bacon/.local/pipx/venvs/jupyter-book/lib/python3.13/site-packages/nbclient/client.py", line 1314, in execute
     return NotebookClient(nb=nb, resources=resources, km=km, **kwargs).execute()
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/pierre-luc.bacon/Documents/rlbook/.venv/lib/python3.11/site-packages/jupyter_core/utils/__init__.py", line 158, in wrapped
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/pierre-luc.bacon/.local/pipx/venvs/jupyter-book/lib/python3.13/site-packages/jupyter_core/utils/__init__.py", line 165, in wrapped
     return loop.run_until_complete(inner)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/pierre-luc.bacon/.local/share/uv/python/cpython-3.11.11-macos-aarch64-none/lib/python3.11/asyncio/base_events.py", line 654, in run_until_complete
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.3/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/base_events.py", line 719, in run_until_complete
     return future.result()
-           ^^^^^^^^^^^^^^^
-  File "/Users/pierre-luc.bacon/Documents/rlbook/.venv/lib/python3.11/site-packages/nbclient/client.py", line 709, in async_execute
+           ~~~~~~~~~~~~~^^
+  File "/Users/pierre-luc.bacon/.local/pipx/venvs/jupyter-book/lib/python3.13/site-packages/nbclient/client.py", line 709, in async_execute
     await self.async_execute_cell(
-  File "/Users/pierre-luc.bacon/Documents/rlbook/.venv/lib/python3.11/site-packages/nbclient/client.py", line 1062, in async_execute_cell
+        cell, index, execution_count=self.code_cells_executed + 1
+    )
+  File "/Users/pierre-luc.bacon/.local/pipx/venvs/jupyter-book/lib/python3.13/site-packages/nbclient/client.py", line 1062, in async_execute_cell
     await self._check_raise_for_error(cell, cell_index, exec_reply)
-  File "/Users/pierre-luc.bacon/Documents/rlbook/.venv/lib/python3.11/site-packages/nbclient/client.py", line 918, in _check_raise_for_error
+  File "/Users/pierre-luc.bacon/.local/pipx/venvs/jupyter-book/lib/python3.13/site-packages/nbclient/client.py", line 918, in _check_raise_for_error
     raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
 nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
 ------------------
-import jax
-import jax.numpy as jnp
-from jax import grad, jit
-from jax.example_libraries import optimizers
-import matplotlib.pyplot as plt
+from pyomo.environ import *
+from pyomo.opt import SolverFactory
+from myst_nb import glue
+import math
 
-def single_shooting_ev_optimization(T=20, num_iterations=1000, step_size=0.01):
-    """
-    Implements the single shooting method for the electric vehicle energy optimization problem.
-    
-    Args:
-    T: time horizon
-    num_iterations: number of optimization iterations
-    step_size: step size for the optimizer
-    
-    Returns:
-    optimal_u: optimal control sequence
-    """
-    
-    def f(x, u, t):
-        return jnp.array([
-            x[0] + 0.1 * x[1] + 0.05 * u,
-            x[1] + 0.1 * u
-        ])
-    
-    def c(x, u, t):
-        if t == T:
-            return x[0]**2 + x[1]**2
-        else:
-            return 0.1 * (x[0]**2 + x[1]**2 + u**2)
-    
-    def phi(u, x1, t):
-        x = x1
-        for k in range(1, t+1):
-            if k > 1:
-                x = f(x, u[k-2], k-1)
-        return x
-    
-    def objective(u):
-        total_cost = 0
-        for t in range(1, T):
-            x_t = phi(u, x1, t)
-            total_cost += c(x_t, u[t-1], t)
-        x_T = phi(u, x1, T)
-        total_cost += c(x_T, 0.0, T)  # No control at final step
-        return total_cost
-    
-    def clip_controls(u):
-        return jnp.clip(u, -1.0, 1.0)
-    
-    x1 = jnp.array([1.0, 0.0])  # Initial state: full battery, zero speed
-    
-    # Initialize controls
-    u_init = jnp.zeros(T-1)
-    
-    # Setup optimizer
-    optimizer = optimizers.adam(step_size)
-    opt_init, opt_update, get_params = optimizer
-    opt_state = opt_init(u_init)
-    
-    @jit
-    def step(i, opt_state):
-        u = get_params(opt_state)
-        value, grads = jax.value_and_grad(objective)(u)
-        opt_state = opt_update(i, grads, opt_state)
-        u = get_params(opt_state)
-        u = clip_controls(u)
-        opt_state = opt_init(u)
-        return value, opt_state
-    
-    # Run optimization
-    for i in range(num_iterations):
-        value, opt_state = step(i, opt_state)
-        if i % 100 == 0:
-            print(f"Iteration {i}, Cost: {value}")
-    
-    optimal_u = get_params(opt_state)
-    return optimal_u
+# Define the Pyomo model
+model = ConcreteModel()
 
-def plot_results(optimal_u, T):
-    # Compute state trajectory
-    x1 = jnp.array([1.0, 0.0])
-    x_trajectory = [x1]
-    for t in range(T-1):
-        x_next = jnp.array([
-            x_trajectory[-1][0] + 0.1 * x_trajectory[-1][1] + 0.05 * optimal_u[t],
-            x_trajectory[-1][1] + 0.1 * optimal_u[t]
-        ])
-        x_trajectory.append(x_next)
-    x_trajectory = jnp.array(x_trajectory)
+# Define the variables
+model.x1 = Var(initialize=1.25)
+model.x2 = Var(initialize=1.5)
 
-    time = jnp.arange(T)
-    
-    plt.figure(figsize=(12, 8))
-    
-    plt.subplot(2, 1, 1)
-    plt.plot(time, x_trajectory[:, 0], label='Battery State of Charge')
-    plt.plot(time, x_trajectory[:, 1], label='Vehicle Speed')
-    plt.xlabel('Time Step')
-    plt.ylabel('State Value')
-    plt.title('Optimal State Trajectories')
-    plt.legend()
-    plt.grid(True)
-    
-    plt.subplot(2, 1, 2)
-    plt.plot(time[:-1], optimal_u, label='Motor Power Input')
-    plt.xlabel('Time Step')
-    plt.ylabel('Control Input')
-    plt.title('Optimal Control Inputs')
-    plt.legend()
-    plt.grid(True)
-    
-    plt.tight_layout()
-    plt.show()
+# Define the objective function
+def objective_rule(model):
+    return (model.x1 - 1)**2 + (model.x2 - 2.5)**2
+model.obj = Objective(rule=objective_rule, sense=minimize)
 
-# Run the optimization
-optimal_u = single_shooting_ev_optimization()
-print("Optimal control sequence:", optimal_u)
+# Define the inequality constraint (circle)
+def inequality_constraint_rule(model):
+    return (model.x1 - 1)**2 + (model.x2 - 1)**2 <= 1.5
+model.ineq_constraint = Constraint(rule=inequality_constraint_rule)
 
-# Plot the results
-plot_results(optimal_u, T=20)
+# Define the equality constraint (sine wave) using Pyomo's math functions
+def equality_constraint_rule(model):
+    return model.x2 == 0.5 * sin(2 * math.pi * model.x1) + 1.5
+model.eq_constraint = Constraint(rule=equality_constraint_rule)
+
+# Create a suffix component to capture dual values
+model.dual = Suffix(direction=Suffix.IMPORT)
+
+# Create a solver
+solver=SolverFactory('ipopt')
+
+# Solve the problem
+results = solver.solve(model, tee=False)
+
+# Check if the solver found an optimal solution
+if (results.solver.status == SolverStatus.ok and 
+    results.solver.termination_condition == TerminationCondition.optimal):
+    
+    # Print the results
+    print(f"x1: {value(model.x1)}")
+    print(f"x2: {value(model.x2)}")
+    
+    # Print the objective value
+    print(f"Objective value: {value(model.obj)}")
+
+    # Print the Lagrange multipliers (dual values)
+    print("\nLagrange multipliers:")
+    for c in model.component_objects(Constraint, active=True):
+        for index in c:
+            print(f"{c.name}[{index}]: {model.dual[c[index]]}")
+            glue(f"{c.name}[{index}]", model.dual[c[index]], display=False)
+else:
+    print("Solver did not find an optimal solution.")
+    print(f"Solver Status: {results.solver.status}")
+    print(f"Termination Condition: {results.solver.termination_condition}")
+
 ------------------
 
+----- stdout -----
+WARNING: Could not locate the 'ipopt' executable, which is required for solver
+ipopt
+------------------
 
-[31m---------------------------------------------------------------------------[39m
-[31mModuleNotFoundError[39m                       Traceback (most recent call last)
-[36mCell[39m[36m [39m[32mIn[1][39m[32m, line 1[39m
-[32m----> [39m[32m1[39m [38;5;28;01mimport[39;00m[38;5;250m [39m[34;01mjax[39;00m
-[32m      2[39m [38;5;28;01mimport[39;00m[38;5;250m [39m[34;01mjax[39;00m[34;01m.[39;00m[34;01mnumpy[39;00m[38;5;250m [39m[38;5;28;01mas[39;00m[38;5;250m [39m[34;01mjnp[39;00m
-[32m      3[39m [38;5;28;01mfrom[39;00m[38;5;250m [39m[34;01mjax[39;00m[38;5;250m [39m[38;5;28;01mimport[39;00m grad, jit
+[0;31m---------------------------------------------------------------------------[0m
+[0;31mApplicationError[0m                          Traceback (most recent call last)
+Cell [0;32mIn[5], line 35[0m
+[1;32m     32[0m solver[38;5;241m=[39mSolverFactory([38;5;124m'[39m[38;5;124mipopt[39m[38;5;124m'[39m)
+[1;32m     34[0m [38;5;66;03m# Solve the problem[39;00m
+[0;32m---> 35[0m results [38;5;241m=[39m [43msolver[49m[38;5;241;43m.[39;49m[43msolve[49m[43m([49m[43mmodel[49m[43m,[49m[43m [49m[43mtee[49m[38;5;241;43m=[39;49m[38;5;28;43;01mFalse[39;49;00m[43m)[49m
+[1;32m     37[0m [38;5;66;03m# Check if the solver found an optimal solution[39;00m
+[1;32m     38[0m [38;5;28;01mif[39;00m (results[38;5;241m.[39msolver[38;5;241m.[39mstatus [38;5;241m==[39m SolverStatus[38;5;241m.[39mok [38;5;129;01mand[39;00m 
+[1;32m     39[0m     results[38;5;241m.[39msolver[38;5;241m.[39mtermination_condition [38;5;241m==[39m TerminationCondition[38;5;241m.[39moptimal):
+[1;32m     40[0m     
+[1;32m     41[0m     [38;5;66;03m# Print the results[39;00m
 
-[31mModuleNotFoundError[39m: No module named 'jax'
+File [0;32m~/.local/pipx/venvs/jupyter-book/lib/python3.13/site-packages/pyomo/opt/base/solvers.py:534[0m, in [0;36mOptSolver.solve[0;34m(self, *args, **kwds)[0m
+[1;32m    531[0m [38;5;28;01mdef[39;00m [38;5;21msolve[39m([38;5;28mself[39m, [38;5;241m*[39margs, [38;5;241m*[39m[38;5;241m*[39mkwds):
+[1;32m    532[0m [38;5;250m    [39m[38;5;124;03m"""Solve the problem"""[39;00m
+[0;32m--> 534[0m     [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mavailable[49m[43m([49m[43mexception_flag[49m[38;5;241;43m=[39;49m[38;5;28;43;01mTrue[39;49;00m[43m)[49m
+[1;32m    535[0m     [38;5;66;03m#[39;00m
+[1;32m    536[0m     [38;5;66;03m# If the inputs are models, then validate that they have been[39;00m
+[1;32m    537[0m     [38;5;66;03m# constructed! Collect suffix names to try and import from solution.[39;00m
+[1;32m    538[0m     [38;5;66;03m#[39;00m
+[1;32m    539[0m     [38;5;28;01mfrom[39;00m [38;5;21;01mpyomo[39;00m[38;5;21;01m.[39;00m[38;5;21;01mcore[39;00m[38;5;21;01m.[39;00m[38;5;21;01mbase[39;00m[38;5;21;01m.[39;00m[38;5;21;01mblock[39;00m [38;5;28;01mimport[39;00m BlockData
+
+File [0;32m~/.local/pipx/venvs/jupyter-book/lib/python3.13/site-packages/pyomo/opt/solver/shellcmd.py:140[0m, in [0;36mSystemCallSolver.available[0;34m(self, exception_flag)[0m
+[1;32m    138[0m     [38;5;28;01mif[39;00m exception_flag:
+[1;32m    139[0m         msg [38;5;241m=[39m [38;5;124m"[39m[38;5;124mNo executable found for solver [39m[38;5;124m'[39m[38;5;132;01m%s[39;00m[38;5;124m'[39m[38;5;124m"[39m
+[0;32m--> 140[0m         [38;5;28;01mraise[39;00m ApplicationError(msg [38;5;241m%[39m [38;5;28mself[39m[38;5;241m.[39mname)
+[1;32m    141[0m     [38;5;28;01mreturn[39;00m [38;5;28;01mFalse[39;00m
+[1;32m    142[0m [38;5;28;01mreturn[39;00m [38;5;28;01mTrue[39;00m
+
+[0;31mApplicationError[0m: No executable found for solver 'ipopt'
 

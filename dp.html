@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>12. Dynamic Programming &#8212; Practical Reinforcement Learning: From Algorithms to Applications</title>
+    <title>Dynamic Programming &#8212; Practical Reinforcement Learning: From Algorithms to Applications</title>
   
   
   
@@ -16,32 +16,35 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!-- 
+    this give us a css class that will be invisible only if js is disabled 
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
 
-  
-  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
-
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
     <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
-    <link rel="stylesheet" type="text/css" href="_static/proof.css?v=b4b7a797" />
+    <link rel="stylesheet" type="text/css" href="_static/proof.css" />
     <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
   
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
 
     <script src="_static/documentation_options.js?v=9eb32ce0"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
@@ -64,10 +67,11 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'dp';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="14. Approximate Dynamic Programming" href="adp.html" />
-    <link rel="prev" title="8. From Trajectories to Policies" href="mpc.html" />
+    <link rel="next" title="Approximate Dynamic Programming" href="adp.html" />
+    <link rel="prev" title="From Trajectories to Policies" href="mpc.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
   </head>
   
   
@@ -83,19 +87,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="search.html"
       method="get">
@@ -103,7 +96,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search this book..."
          aria-label="Search this book..."
          autocomplete="off"
@@ -111,8 +103,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -128,7 +120,8 @@
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -158,15 +151,11 @@
 </a></div>
         <div class="sidebar-primary-item">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script></div>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         
@@ -177,35 +166,52 @@
                 </a>
             </li>
         </ul>
-        <ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="modeling.html">1. Modeling Systems, Simulation, and Data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ocp.html">2. Discrete-Time Trajectory Optimization</a></li>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Modeling</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="modeling.html">Why Build a Model? For Whom?</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="ssm.html">The State‑Space Perspective</a></li>
 
 
 
-<li class="toctree-l1"><a class="reference internal" href="cocp.html">6. Continuous-Time Trajectory Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulation.html">Programs as Models</a></li>
 
-<li class="toctree-l1"><a class="reference internal" href="mpc.html">8. From Trajectories to Policies</a></li>
-
-
-
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">12. Dynamic Programming</a></li>
-
-<li class="toctree-l1"><a class="reference internal" href="adp.html">14. Approximate Dynamic Programming</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Optimization-Based Decision Making</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="ocp.html">Discrete-Time Trajectory Optimization</a></li>
 
 
 
+<li class="toctree-l1"><a class="reference internal" href="cocp.html">Continuous-Time Trajectory Optimization</a></li>
 
-
-<li class="toctree-l1"><a class="reference internal" href="cadp.html">20. Policy Parametrization Methods</a></li>
-
-
-
+<li class="toctree-l1"><a class="reference internal" href="mpc.html">From Trajectories to Policies</a></li>
 
 
 
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Dynamic Programming</a></li>
 
-<li class="toctree-l1"><a class="reference internal" href="bibliography.html">28. Bibliography</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Learning from Data</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="adp.html">Approximate Dynamic Programming</a></li>
+
+
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="cadp.html">Policy Parametrization Methods</a></li>
+
+
+
+
+
+
+
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">Bibliography</a></li>
 </ul>
 
     </div>
@@ -377,24 +383,16 @@
 
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
-  </button>
-`);
-</script>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button>
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
-  </button>
-`);
-</script>
+</button>
 <button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <span class="fa-solid fa-list"></span>
 </button>
@@ -418,25 +416,25 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">12. Dynamic Programming</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#notation-in-operations-reseach">12.1. Notation in Operations Reseach</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#decision-rules-and-policies">12.2. Decision Rules and Policies</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-an-optimal-policy">12.3. What is an Optimal Policy?</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-sample-size-determination-in-pharmaceutical-development">12.4. Example: Sample Size Determination in Pharmaceutical Development</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Dynamic Programming</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#notation-in-operations-reseach">Notation in Operations Reseach</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#decision-rules-and-policies">Decision Rules and Policies</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-an-optimal-policy">What is an Optimal Policy?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-sample-size-determination-in-pharmaceutical-development">Example: Sample Size Determination in Pharmaceutical Development</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#infinite-horizon-mdps">13. Infinite-Horizon MDPs</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#random-horizon-interpretation-of-discounting">13.1. Random Horizon Interpretation of Discounting</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vector-representation-in-markov-decision-processes">13.2. Vector Representation in Markov Decision Processes</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#solving-operator-equations">13.3. Solving Operator Equations</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#successive-approximation-method">13.3.1. Successive Approximation Method</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#newton-kantorovich-method">13.3.2. Newton-Kantorovich Method</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#infinite-horizon-mdps">Infinite-Horizon MDPs</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#random-horizon-interpretation-of-discounting">Random Horizon Interpretation of Discounting</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vector-representation-in-markov-decision-processes">Vector Representation in Markov Decision Processes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#solving-operator-equations">Solving Operator Equations</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#successive-approximation-method">Successive Approximation Method</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#newton-kantorovich-method">Newton-Kantorovich Method</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#optimality-equations-for-infinite-horizon-mdps">13.4. Optimality Equations for Infinite-Horizon MDPs</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#algorithms-for-solving-the-optimality-equations">13.5. Algorithms for Solving the Optimality Equations</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#newton-kantorovich-applied-to-the-optimality-equations">13.5.1. Newton-Kantorovich applied to the Optimality Equations</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#policy-iteration">13.5.2. Policy Iteration</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#optimality-equations-for-infinite-horizon-mdps">Optimality Equations for Infinite-Horizon MDPs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#algorithms-for-solving-the-optimality-equations">Algorithms for Solving the Optimality Equations</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#newton-kantorovich-applied-to-the-optimality-equations">Newton-Kantorovich applied to the Optimality Equations</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#policy-iteration">Policy Iteration</a></li>
 </ul>
 </li>
 </ul>
@@ -454,7 +452,7 @@ document.write(`
                 <article class="bd-article">
                   
   <section class="tex2jax_ignore mathjax_ignore" id="dynamic-programming">
-<h1><span class="section-number">12. </span>Dynamic Programming<a class="headerlink" href="#dynamic-programming" title="Link to this heading">#</a></h1>
+<h1>Dynamic Programming<a class="headerlink" href="#dynamic-programming" title="Link to this heading">#</a></h1>
 <p>Rather than expressing the stochasticity in our system through a disturbance term as a parameter to a deterministic difference equation, we often work with an alternative representation (more common in operations research) which uses the Markov Decision Process formulation. The idea is that when we model our system in this way with the disturbance term being drawn indepently of the previous stages, the induced trajectory are those of a Markov chain. Hence, we can re-cast our control problem in that language, leading to the so-called Markov Decision Process framework in which we express the system dynamics in terms of transition probabilities rather than explicit state equations. In this framework, we express the probability that the system is in a given state using the transition probability function:</p>
 <div class="math notranslate nohighlight">
 \[ p_t(\mathbf{x}_{t+1} | \mathbf{x}_t, \mathbf{u}_t) \]</div>
@@ -488,7 +486,7 @@ p_t(\mathbf{x}_{t+1} | \mathbf{x}_t, \mathbf{u}_t) &amp;= \mathbb{P}(\mathbf{W}_
 <li><p>It allows us to bridge the gap with the wealth of methods in the field of probabilistic graphical models and statistical machine learning techniques for modelling and analysis.</p></li>
 </ol>
 <section id="notation-in-operations-reseach">
-<h2><span class="section-number">12.1. </span>Notation in Operations Reseach<a class="headerlink" href="#notation-in-operations-reseach" title="Link to this heading">#</a></h2>
+<h2>Notation in Operations Reseach<a class="headerlink" href="#notation-in-operations-reseach" title="Link to this heading">#</a></h2>
 <p>The presentation above was intended to bridge the gap between the control-theoretic perspective and the world of closed-loop control through the idea of determining the value function of a parametric optimal control problem. We then saw how the backward induction procedure was applicable to both the deterministic and stochastic cases by taking the expectation over the disturbance variable. We then said that we can alternatively work with a representation of our system where instead of writing our model as a deterministic dynamics function taking a disturbance as an input, we would rather work directly via its transition probability function, which gives rise to the Markov chain interpretation of our system in simulation.</p>
 <p>Now we should highlight that the notation used in control theory tends to differ from that found in operations research communities, in which the field of dynamic programming flourished. We summarize those (purely notational) differences in this section.</p>
 <p>In operations research, the system state at each decision epoch is typically denoted by <span class="math notranslate nohighlight">\(s \in \mathcal{S}\)</span>, where <span class="math notranslate nohighlight">\(S\)</span> is the set of possible system states. When the system is in state <span class="math notranslate nohighlight">\(s\)</span>, the decision maker may choose an action <span class="math notranslate nohighlight">\(a\)</span> from the set of allowable actions <span class="math notranslate nohighlight">\(\mathcal{A}_s\)</span>. The union of all action sets is denoted as <span class="math notranslate nohighlight">\(\mathcal{A} = \bigcup_{s \in \mathcal{S}} \mathcal{A}_s\)</span>.</p>
@@ -505,7 +503,7 @@ p_t(\mathbf{x}_{t+1} | \mathbf{x}_t, \mathbf{u}_t) &amp;= \mathbb{P}(\mathbf{W}_
 <p>where <span class="math notranslate nohighlight">\(\mathrm{T}\)</span> represents the set of decision epochs (the horizon).</p>
 </section>
 <section id="decision-rules-and-policies">
-<h2><span class="section-number">12.2. </span>Decision Rules and Policies<a class="headerlink" href="#decision-rules-and-policies" title="Link to this heading">#</a></h2>
+<h2>Decision Rules and Policies<a class="headerlink" href="#decision-rules-and-policies" title="Link to this heading">#</a></h2>
 <p>In the presentation provided so far, we directly assumed that the form of our feedback controller was of the form <span class="math notranslate nohighlight">\(u(\mathbf{x}, t)\)</span>. The idea is that rather than just looking at the stage as in open-loop control, we would now consider the current state to account for the presence of noise. We came to that conclusion by considering the parametric optimization problem corresponding to the trajectory optimization perspective and saw that the “argmax” counterpart to the value function (the max) was exactly this function <span class="math notranslate nohighlight">\(u(x, t)\)</span>. But this presentation was mostly for intuition and neglected the fact that we could consider other kinds of feedback controllers. In the context of MDPs and under the OR terminology, we should now rather talk of policies instead of controllers.</p>
 <p>But to properly introduce the concept of policy, we first have to talk about decision rules. A decision rule is a prescription of a procedure for action selection in each state at a specified decision epoch. These rules can vary in their complexity due to their potential dependence on the history and ways in which actions are then selected. Decision rules can be classified based on two main criteria:</p>
 <ol class="arabic simple">
@@ -549,7 +547,7 @@ p_t(\mathbf{x}_{t+1} | \mathbf{x}_t, \mathbf{u}_t) &amp;= \mathbb{P}(\mathbf{W}_
 <p>A fundamental question in MDP theory is: under what conditions can we avoid working with the set <span class="math notranslate nohighlight">\(\Pi^{HR}\)</span> and focus for example on the much simpler set of deterministic Markovian policy? Even more so, we will see that in the infinite horizon case, we can drop the dependance on time and simply consider stationary deterministic Markovian policies.</p>
 </section>
 <section id="what-is-an-optimal-policy">
-<h2><span class="section-number">12.3. </span>What is an Optimal Policy?<a class="headerlink" href="#what-is-an-optimal-policy" title="Link to this heading">#</a></h2>
+<h2>What is an Optimal Policy?<a class="headerlink" href="#what-is-an-optimal-policy" title="Link to this heading">#</a></h2>
 <p>Let’s go back to the starting point and define what it means for a policy to be optimal in a Markov Decision Problem. For this, we will be considering different possible search spaces (policy classes) and compare policies based on the ordering of their value from any possible start state. The value of a policy <span class="math notranslate nohighlight">\(\pi\)</span> (optimal or not) is defined as the expected total reward obtained by following that policy from a given starting state. Formally, for a finite-horizon MDP with <span class="math notranslate nohighlight">\(N\)</span> decision epochs, we define the value function <span class="math notranslate nohighlight">\(v_\pi(s, t)\)</span> as:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -582,7 +580,7 @@ v_{\pi^*}(s) = v^*(s), \quad \forall s \in \mathcal{S}
 \[ v^*(s) = \max_{\pi \in \Pi^{\mathrm{HR}}} v_\pi(s) = \max _{\pi \in \Pi^{M D}} v_\pi(s), \quad s \in S\]</div>
 <p>This equality significantly simplifies the computational complexity of our algorithms, as the search problem can now be decomposed into <span class="math notranslate nohighlight">\(N\)</span> sub-problems in which we only have to search over the set of possible actions. This is the backward induction algorithm, which we present a second time, but departing this time from the control-theoretic notation and using the MDP formalism:</p>
 <div class="proof algorithm admonition" id="backward-induction">
-<p class="admonition-title"><span class="caption-number">Algorithm 12.1 </span> (Backward Induction)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 15 </span> (Backward Induction)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> State space <span class="math notranslate nohighlight">\(S\)</span>, Action space <span class="math notranslate nohighlight">\(A\)</span>, Transition probabilities <span class="math notranslate nohighlight">\(p_t\)</span>, Reward function <span class="math notranslate nohighlight">\(r_t\)</span>, Time horizon <span class="math notranslate nohighlight">\(N\)</span></p>
 <p><strong>Output:</strong> Optimal value functions <span class="math notranslate nohighlight">\(v^*\)</span></p>
@@ -613,7 +611,7 @@ a. Compute the optimal value function:</p>
 </section>
 </div><p>Note that the same procedure can also be used for finding the value of a policy with minor changes;</p>
 <div class="proof algorithm admonition" id="backward-policy-evaluation">
-<p class="admonition-title"><span class="caption-number">Algorithm 12.2 </span> (Policy Evaluation)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 16 </span> (Policy Evaluation)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong></p>
 <ul class="simple">
@@ -652,7 +650,7 @@ a. Compute the value function for the given policy:</p>
 \[v_\pi(s_t, t) = \sum_{a_t \in \mathcal{A}_{s_t}} d_t(a_t \mid s_t) \left( r_t(s_t, a_t) + \sum_{j \in S} p_t(j | s_t, a_t) v_\pi(j, t+1) \right)\]</div>
 </section>
 <section id="example-sample-size-determination-in-pharmaceutical-development">
-<h2><span class="section-number">12.4. </span>Example: Sample Size Determination in Pharmaceutical Development<a class="headerlink" href="#example-sample-size-determination-in-pharmaceutical-development" title="Link to this heading">#</a></h2>
+<h2>Example: Sample Size Determination in Pharmaceutical Development<a class="headerlink" href="#example-sample-size-determination-in-pharmaceutical-development" title="Link to this heading">#</a></h2>
 <p>Pharmaceutical development is the process of bringing a new drug from initial discovery to market availability. This process is lengthy, expensive, and risky, typically involving several stages:</p>
 <ol class="arabic simple">
 <li><p><strong>Drug Discovery</strong>: Identifying a compound that could potentially treat a disease.</p></li>
@@ -715,26 +713,26 @@ where <span class="math notranslate nohighlight">\(\eta_3\)</span> is the signif
 <span class="expanded">Hide code cell source</span>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.stats</span><span class="w"> </span><span class="kn">import</span> <span class="n">binom</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.stats</span><span class="w"> </span><span class="kn">import</span> <span class="n">norm</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">binom</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">norm</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">binomial_pmf</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">binomial_pmf</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">binom</span><span class="o">.</span><span class="n">pmf</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">transition_prob_phase1</span><span class="p">(</span><span class="n">n1</span><span class="p">,</span> <span class="n">eta1</span><span class="p">,</span> <span class="n">p0</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">transition_prob_phase1</span><span class="p">(</span><span class="n">n1</span><span class="p">,</span> <span class="n">eta1</span><span class="p">,</span> <span class="n">p0</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">binomial_pmf</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">n1</span><span class="p">,</span> <span class="n">p0</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">eta1</span> <span class="o">*</span> <span class="n">n1</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)])</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">transition_prob_phase2</span><span class="p">(</span><span class="n">n2</span><span class="p">,</span> <span class="n">eta2</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">transition_prob_phase2</span><span class="p">(</span><span class="n">n2</span><span class="p">,</span> <span class="n">eta2</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">norm</span><span class="o">.</span><span class="n">cdf</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">delta</span> <span class="o">-</span> <span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">eta2</span><span class="p">))</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">transition_prob_phase3</span><span class="p">(</span><span class="n">n3</span><span class="p">,</span> <span class="n">eta3</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">transition_prob_phase3</span><span class="p">(</span><span class="n">n3</span><span class="p">,</span> <span class="n">eta3</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">norm</span><span class="o">.</span><span class="n">cdf</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n3</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">delta</span> <span class="o">-</span> <span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">eta3</span><span class="p">))</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">immediate_reward</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">immediate_reward</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
     <span class="k">return</span> <span class="o">-</span><span class="n">n</span>  <span class="c1"># Negative to represent cost</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">backward_induction</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">g4</span><span class="p">,</span> <span class="n">p0</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">eta1</span><span class="p">,</span> <span class="n">eta2</span><span class="p">,</span> <span class="n">eta3</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">backward_induction</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">g4</span><span class="p">,</span> <span class="n">p0</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">eta1</span><span class="p">,</span> <span class="n">eta2</span><span class="p">,</span> <span class="n">eta3</span><span class="p">):</span>
     <span class="n">V</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">S</span><span class="p">))</span>
     <span class="n">V</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">g4</span>  <span class="c1"># Value for NDA approval state</span>
     <span class="n">optimal_n</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span>  <span class="c1"># Store optimal n for each phase</span>
@@ -801,7 +799,7 @@ Sanity checks:
 </section>
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="infinite-horizon-mdps">
-<h1><span class="section-number">13. </span>Infinite-Horizon MDPs<a class="headerlink" href="#infinite-horizon-mdps" title="Link to this heading">#</a></h1>
+<h1>Infinite-Horizon MDPs<a class="headerlink" href="#infinite-horizon-mdps" title="Link to this heading">#</a></h1>
 <p>It often makes sense to model control problems over infinite horizons. We extend the previous setting and define the expected total reward of policy <span class="math notranslate nohighlight">\(\pi \in \Pi^{\mathrm{HR}}\)</span>, <span class="math notranslate nohighlight">\(v^\pi\)</span> as:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -836,7 +834,7 @@ $<span class="math notranslate nohighlight">\(
 v_\gamma^*(s) \equiv \max_{\pi \in \Pi^{HR}} v_\gamma^\pi(s)=\max_{\pi \in \Pi^{MR}} v_\gamma^\pi(s) .
 \)</span>$</p>
 <section id="random-horizon-interpretation-of-discounting">
-<h2><span class="section-number">13.1. </span>Random Horizon Interpretation of Discounting<a class="headerlink" href="#random-horizon-interpretation-of-discounting" title="Link to this heading">#</a></h2>
+<h2>Random Horizon Interpretation of Discounting<a class="headerlink" href="#random-horizon-interpretation-of-discounting" title="Link to this heading">#</a></h2>
 <p>The use of discounting can be motivated both from a modeling perspective and as a means to ensure that the total reward remains bounded. From the modeling perspective, we can view discounting as a way to weight more or less importance on the immediate rewards vs. the long-term consequences. There is also another interpretation which stems from that of a finite horizon model but with an uncertain end time. More precisely:</p>
 <p>Let <span class="math notranslate nohighlight">\(v_\nu^\pi(s)\)</span> denote the expected total reward obtained by using policy <span class="math notranslate nohighlight">\(\pi\)</span> when the horizon length <span class="math notranslate nohighlight">\(\nu\)</span> is random. We define it by:</p>
 <div class="math notranslate nohighlight">
@@ -844,13 +842,13 @@ v_\gamma^*(s) \equiv \max_{\pi \in \Pi^{HR}} v_\gamma^\pi(s)=\max_{\pi \in \Pi^{
 v_\nu^\pi(s) \equiv \mathbb{E}_s^\pi\left[\mathbb{E}_\nu\left\{\sum_{t=1}^\nu r(S_t, A_t)\right\}\right]
 \]</div>
 <div class="proof theorem admonition" id="prop-5-3-1">
-<p class="admonition-title"><span class="caption-number">Theorem 13.1 </span> (Random horizon interpretation of discounting)</p>
+<p class="admonition-title"><span class="caption-number">Theorem 1 </span> (Random horizon interpretation of discounting)</p>
 <section class="theorem-content" id="proof-content">
 <p>Suppose that the horizon <span class="math notranslate nohighlight">\(\nu\)</span> follows a geometric distribution with parameter <span class="math notranslate nohighlight">\(\gamma\)</span>, <span class="math notranslate nohighlight">\(0 \leq \gamma &lt; 1\)</span>, independent of the policy such that
 <span class="math notranslate nohighlight">\(P(\nu=n) = (1-\gamma) \gamma^{n-1}, \, n=1,2, \ldots\)</span>, then <span class="math notranslate nohighlight">\(v_\nu^\pi(s) = v_\gamma^\pi(s)\)</span> for all <span class="math notranslate nohighlight">\(s \in \mathcal{S}\)</span> .</p>
 </section>
 </div><div class="proof admonition" id="proof">
-<p>Proof. See proposition 5.3.1 in <span id="id3">[<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">36</a>]</span></p>
+<p>Proof. See proposition 5.3.1 in <span id="id3">[<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">40</a>]</span></p>
 <div class="math notranslate nohighlight">
 \[
 v_\nu^\pi(s) = E_s^\pi \left\{\sum_{n=1}^{\infty} \sum_{t=1}^n r(X_t, Y_t)(1-\gamma) \gamma^{n-1}\right\}.
@@ -869,7 +867,7 @@ v_\nu^\pi(s) &amp;= E_s^\pi \left\{\sum_{t=1}^{\infty} \sum_{n=t}^{\infty} r(S_t
 </div>
 </section>
 <section id="vector-representation-in-markov-decision-processes">
-<h2><span class="section-number">13.2. </span>Vector Representation in Markov Decision Processes<a class="headerlink" href="#vector-representation-in-markov-decision-processes" title="Link to this heading">#</a></h2>
+<h2>Vector Representation in Markov Decision Processes<a class="headerlink" href="#vector-representation-in-markov-decision-processes" title="Link to this heading">#</a></h2>
 <p>Let V be the set of bounded real-valued functions on a discrete state space S. This means any function <span class="math notranslate nohighlight">\( f \in V \)</span> satisfies the condition:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -997,7 +995,7 @@ This completes the proof.
 \]</div>
 </section>
 <section id="solving-operator-equations">
-<h2><span class="section-number">13.3. </span>Solving Operator Equations<a class="headerlink" href="#solving-operator-equations" title="Link to this heading">#</a></h2>
+<h2>Solving Operator Equations<a class="headerlink" href="#solving-operator-equations" title="Link to this heading">#</a></h2>
 <p>The operator equation we encountered in MDPs, <span class="math notranslate nohighlight">\(\mathbf{v}_\gamma^{d^\infty} = \mathrm{L}_d \mathbf{v}_\gamma^{d^\infty}\)</span>, is a specific instance of a more general class of problems known as operator equations. These equations appear in various fields of mathematics and applied sciences, ranging from differential equations to functional analysis.</p>
 <p>Operator equations can take several forms, each with its own characteristics and solution methods:</p>
 <ol class="arabic simple">
@@ -1011,10 +1009,10 @@ A special case of the general operator equation where we seek roots or zeros of 
 Here, <span class="math notranslate nohighlight">\(K\)</span> is a closed convex subset of <span class="math notranslate nohighlight">\(X\)</span>, and <span class="math notranslate nohighlight">\(\mathrm{T}: K \rightarrow X^*\)</span> (the dual space of <span class="math notranslate nohighlight">\(X\)</span>). These problems often arise in optimization, game theory, and partial differential equations.</p></li>
 </ol>
 <section id="successive-approximation-method">
-<h3><span class="section-number">13.3.1. </span>Successive Approximation Method<a class="headerlink" href="#successive-approximation-method" title="Link to this heading">#</a></h3>
+<h3>Successive Approximation Method<a class="headerlink" href="#successive-approximation-method" title="Link to this heading">#</a></h3>
 <p>For equations in fixed point form, a common numerical solution method is successive approximation, also known as fixed-point iteration:</p>
 <div class="proof algorithm admonition" id="successive-approximation">
-<p class="admonition-title"><span class="caption-number">Algorithm 13.1 </span> (Successive Approximation)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 17 </span> (Successive Approximation)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> An operator <span class="math notranslate nohighlight">\(\mathrm{T}: X \rightarrow X\)</span>, an initial guess <span class="math notranslate nohighlight">\(x_0 \in X\)</span>, and a tolerance <span class="math notranslate nohighlight">\(\epsilon &gt; 0\)</span><br />
 <strong>Output:</strong> An approximate fixed point <span class="math notranslate nohighlight">\(x^*\)</span> such that <span class="math notranslate nohighlight">\(\|x^* - \mathrm{T}(x^*)\| &lt; \epsilon\)</span></p>
@@ -1041,7 +1039,7 @@ d(x_n, x^*) \leq \frac{q^n}{1-q} d(x_1, x_0)
 <p>In practice, when dealing with specific problems like MDPs or differential equations, the properties of the operator often naturally align with one of these convergence conditions. For example, in discounted MDPs, the Bellman operator is a contraction in the supremum norm, which guarantees the convergence of value iteration.</p>
 </section>
 <section id="newton-kantorovich-method">
-<h3><span class="section-number">13.3.2. </span>Newton-Kantorovich Method<a class="headerlink" href="#newton-kantorovich-method" title="Link to this heading">#</a></h3>
+<h3>Newton-Kantorovich Method<a class="headerlink" href="#newton-kantorovich-method" title="Link to this heading">#</a></h3>
 <p>The Newton-Kantorovich method is a generalization of Newton’s method from finite dimensional vector spaces to infinite dimensional function spaces: rather than iterating in the space of vectors, we are iterating in the space of functions. Just as in the finite-dimensional counterpart, the idea is to improve the rate of convergence of our method by taking an “educated guess” on where to move next using a linearization of our operator at the current point. Now the concept of linearization, which is synonymous with derivative, will also require a generalization. Here we are in essence trying to quantify how the output of the operator <span class="math notranslate nohighlight">\(\mathrm{T}\)</span> – a function – varies as we perturb its input – also a function. The right generalization here is that of the Fréchet derivative.</p>
 <p>Before we delve into the Fréchet derivative, it’s important to understand the context in which it operates: Banach spaces. A Banach space is a complete normed vector space: ie a vector space, that has a norm, and which every Cauchy sequence convergeces.   Banach spaces provide a natural generalization of finite-dimensional vector spaces to infinite-dimensional settings.
 The norm in a Banach space allows us to quantify the “size” of functions and the “distance” between functions. This allows us to define notions of continuity, differentiability, and for analyzing the convergence of our method.
@@ -1090,7 +1088,7 @@ We repeat the linearization and update steps until the solution <span class="mat
 </section>
 </section>
 <section id="optimality-equations-for-infinite-horizon-mdps">
-<h2><span class="section-number">13.4. </span>Optimality Equations for Infinite-Horizon MDPs<a class="headerlink" href="#optimality-equations-for-infinite-horizon-mdps" title="Link to this heading">#</a></h2>
+<h2>Optimality Equations for Infinite-Horizon MDPs<a class="headerlink" href="#optimality-equations-for-infinite-horizon-mdps" title="Link to this heading">#</a></h2>
 <p>Recall that in the finite-horizon setting, the optimality equations are:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1116,7 +1114,7 @@ v(s) = \max_{a \in A_s} \left\{r(s, a) + \gamma \sum_{j \in S} p(j | s, a) v(j)\
 \]</div>
 <p>The equivalence between these two forms can be shown mathematically, as demonstrated in the following proposition and proof.</p>
 <div class="proof proposition admonition" id="proposition-4">
-<p class="admonition-title"><span class="caption-number">Proposition 13.1 </span></p>
+<p class="admonition-title"><span class="caption-number">Proposition 1 </span></p>
 <section class="proposition-content" id="proof-content">
 <p>The operator <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> defined as a maximization over Markov deterministic decision rules:</p>
 <div class="math notranslate nohighlight">
@@ -1150,10 +1148,10 @@ Since we’ve shown <span class="math notranslate nohighlight">\(R_1 \leq R_2\)<
 </div>
 </section>
 <section id="algorithms-for-solving-the-optimality-equations">
-<h2><span class="section-number">13.5. </span>Algorithms for Solving the Optimality Equations<a class="headerlink" href="#algorithms-for-solving-the-optimality-equations" title="Link to this heading">#</a></h2>
+<h2>Algorithms for Solving the Optimality Equations<a class="headerlink" href="#algorithms-for-solving-the-optimality-equations" title="Link to this heading">#</a></h2>
 <p>The optimality equations are operator equations. Therefore, we can apply general numerical methods to solve them. Applying the successive approximation method to the Bellman optimality equation yields a method known as “value iteration” in dynamic programming. A direct application of the blueprint for successive approximation yields the following algorithm:</p>
 <div class="proof algorithm admonition" id="value-iteration">
-<p class="admonition-title"><span class="caption-number">Algorithm 13.2 </span> (Value Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 18 </span> (Value Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given an MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span> and tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span></p>
 <p><strong>Output</strong> Compute an <span class="math notranslate nohighlight">\(\varepsilon\)</span>-optimal value function <span class="math notranslate nohighlight">\(V\)</span> and policy <span class="math notranslate nohighlight">\(\pi\)</span></p>
@@ -1183,9 +1181,9 @@ Since we’ve shown <span class="math notranslate nohighlight">\(R_1 \leq R_2\)<
 </div><p>The termination criterion in this algorithm is based on a specific bound that provides guarantees on the quality of the solution. This is in contrast to supervised learning, where we often use arbitrary termination criteria based on computational budget or early stopping when the learning curve flattens. This is because establishing implementable generalization bounds in supervised learning is challenging.</p>
 <p>However, in the dynamic programming context, we can derive various bounds that can be implemented in practice. These bounds help us terminate our procedure with a guarantee on the precision of our value function and, correspondingly, on the optimality of the resulting policy.</p>
 <div class="proof proposition admonition" id="value-iteration-convergence">
-<p class="admonition-title"><span class="caption-number">Proposition 13.2 </span> (Convergence of Value Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Proposition 2 </span> (Convergence of Value Iteration)</p>
 <section class="proposition-content" id="proof-content">
-<p>(Adapted from <span id="id4">Puterman [<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">36</a>]</span> theorem 6.3.1)</p>
+<p>(Adapted from <span id="id4">Puterman [<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">40</a>]</span> theorem 6.3.1)</p>
 <p>Let <span class="math notranslate nohighlight">\(v_0\)</span> be any initial value function, <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span> a desired accuracy, and let <span class="math notranslate nohighlight">\(\{v_n\}\)</span> be the sequence of value functions generated by value iteration, i.e., <span class="math notranslate nohighlight">\(v_{n+1} = \mathrm{L}v_n\)</span> for <span class="math notranslate nohighlight">\(n \geq 1\)</span>, where <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> is the Bellman optimality operator. Then:</p>
 <ol class="arabic simple">
 <li><p><span class="math notranslate nohighlight">\(v_n\)</span> converges to the optimal value function <span class="math notranslate nohighlight">\(v^*_\gamma\)</span>,</p></li>
@@ -1258,11 +1256,11 @@ Since we’ve shown <span class="math notranslate nohighlight">\(R_1 \leq R_2\)<
 <p>This completes the proof. We’ve shown that when the algorithm terminates, our value function <span class="math notranslate nohighlight">\(v_{n+1}\)</span> is within <span class="math notranslate nohighlight">\(\varepsilon/2\)</span> of optimal (part 4.), and our policy <span class="math notranslate nohighlight">\(\pi_\varepsilon\)</span> is <span class="math notranslate nohighlight">\(\varepsilon\)</span>-optimal (part 3.).</p>
 </div>
 <section id="newton-kantorovich-applied-to-the-optimality-equations">
-<h3><span class="section-number">13.5.1. </span>Newton-Kantorovich applied to the Optimality Equations<a class="headerlink" href="#newton-kantorovich-applied-to-the-optimality-equations" title="Link to this heading">#</a></h3>
+<h3>Newton-Kantorovich applied to the Optimality Equations<a class="headerlink" href="#newton-kantorovich-applied-to-the-optimality-equations" title="Link to this heading">#</a></h3>
 <p>Another perspective on the optimality equations is that instead of looking for <span class="math notranslate nohighlight">\(v_\gamma^\star\)</span> as the fixed-point of <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> in the fixed-point problem find <span class="math notranslate nohighlight">\(v\)</span> such that <span class="math notranslate nohighlight">\(\mathrm{L} v = v\)</span>, we consider instead the related form in the nonlinear operator equation <span class="math notranslate nohighlight">\(\mathrm{L}v - v = 0\)</span>. Writing things in this way highlights the fact that we could also consider using Newton-Kantorovich iteration to solve this equation instead of the successive approximation method.</p>
 <p>If we were to apply the blueprint of Newton-Kantorovich, we would get:</p>
 <div class="proof algorithm admonition" id="nk-bellman">
-<p class="admonition-title"><span class="caption-number">Algorithm 13.3 </span> (Newton-Kantorovich for Bellman Optimality Equation)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 19 </span> (Newton-Kantorovich for Bellman Optimality Equation)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, initial guess <span class="math notranslate nohighlight">\(v_0\)</span>, tolerance <span class="math notranslate nohighlight">\(\epsilon &gt; 0\)</span></p>
 <p><strong>Output:</strong> Approximate optimal value function <span class="math notranslate nohighlight">\(v^\star\)</span></p>
@@ -1315,11 +1313,11 @@ Since we’ve shown <span class="math notranslate nohighlight">\(R_1 \leq R_2\)<
 <p>Interestingly, this sequence of steps - deriving a policy from the current value function, evaluating that policy, and then improving the value function - is a well-known algorithm in dynamic programming called policy iteration. In fact, policy iteration can be viewed as simply the application of the Newton-Kantorovich method to the operator <span class="math notranslate nohighlight">\(\mathrm{B}(v) = \mathrm{L}v - v\)</span>.</p>
 </section>
 <section id="policy-iteration">
-<h3><span class="section-number">13.5.2. </span>Policy Iteration<a class="headerlink" href="#policy-iteration" title="Link to this heading">#</a></h3>
+<h3>Policy Iteration<a class="headerlink" href="#policy-iteration" title="Link to this heading">#</a></h3>
 <p>While we derived policy iteration-like steps from the Newton-Kantorovich method, it’s worth examining policy iteration as a standalone algorithm, as it has been traditionally presented in the field of dynamic programming.</p>
 <p>The policy iteration algorithm for discounted Markov decision problems is as follows:</p>
 <div class="proof algorithm admonition" id="policy-iteration">
-<p class="admonition-title"><span class="caption-number">Algorithm 13.4 </span> (Policy Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 20 </span> (Policy Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>
 <strong>Output:</strong> Optimal policy <span class="math notranslate nohighlight">\(\pi^*\)</span></p>
@@ -1383,7 +1381,7 @@ Since we’ve shown <span class="math notranslate nohighlight">\(R_1 \leq R_2\)<
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title"><span class="section-number">8. </span>From Trajectories to Policies</p>
+        <p class="prev-next-title">From Trajectories to Policies</p>
       </div>
     </a>
     <a class="right-next"
@@ -1391,7 +1389,7 @@ Since we’ve shown <span class="math notranslate nohighlight">\(R_1 \leq R_2\)<
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title"><span class="section-number">14. </span>Approximate Dynamic Programming</p>
+        <p class="prev-next-title">Approximate Dynamic Programming</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -1402,7 +1400,8 @@ Since we’ve shown <span class="math notranslate nohighlight">\(R_1 \leq R_2\)<
             
             
               
-                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
   <div class="sidebar-secondary-item">
@@ -1411,25 +1410,25 @@ Since we’ve shown <span class="math notranslate nohighlight">\(R_1 \leq R_2\)<
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">12. Dynamic Programming</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#notation-in-operations-reseach">12.1. Notation in Operations Reseach</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#decision-rules-and-policies">12.2. Decision Rules and Policies</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-an-optimal-policy">12.3. What is an Optimal Policy?</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-sample-size-determination-in-pharmaceutical-development">12.4. Example: Sample Size Determination in Pharmaceutical Development</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Dynamic Programming</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#notation-in-operations-reseach">Notation in Operations Reseach</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#decision-rules-and-policies">Decision Rules and Policies</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-an-optimal-policy">What is an Optimal Policy?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-sample-size-determination-in-pharmaceutical-development">Example: Sample Size Determination in Pharmaceutical Development</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#infinite-horizon-mdps">13. Infinite-Horizon MDPs</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#random-horizon-interpretation-of-discounting">13.1. Random Horizon Interpretation of Discounting</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vector-representation-in-markov-decision-processes">13.2. Vector Representation in Markov Decision Processes</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#solving-operator-equations">13.3. Solving Operator Equations</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#successive-approximation-method">13.3.1. Successive Approximation Method</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#newton-kantorovich-method">13.3.2. Newton-Kantorovich Method</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#infinite-horizon-mdps">Infinite-Horizon MDPs</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#random-horizon-interpretation-of-discounting">Random Horizon Interpretation of Discounting</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vector-representation-in-markov-decision-processes">Vector Representation in Markov Decision Processes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#solving-operator-equations">Solving Operator Equations</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#successive-approximation-method">Successive Approximation Method</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#newton-kantorovich-method">Newton-Kantorovich Method</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#optimality-equations-for-infinite-horizon-mdps">13.4. Optimality Equations for Infinite-Horizon MDPs</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#algorithms-for-solving-the-optimality-equations">13.5. Algorithms for Solving the Optimality Equations</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#newton-kantorovich-applied-to-the-optimality-equations">13.5.1. Newton-Kantorovich applied to the Optimality Equations</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#policy-iteration">13.5.2. Policy Iteration</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#optimality-equations-for-infinite-horizon-mdps">Optimality Equations for Infinite-Horizon MDPs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#algorithms-for-solving-the-optimality-equations">Algorithms for Solving the Optimality Equations</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#newton-kantorovich-applied-to-the-optimality-equations">Newton-Kantorovich applied to the Optimality Equations</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#policy-iteration">Policy Iteration</a></li>
 </ul>
 </li>
 </ul>
@@ -1483,8 +1482,8 @@ By Pierre-Luc Bacon
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549"></script>
 
   <footer class="bd-footer">
   </footer>

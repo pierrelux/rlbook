@@ -1,0 +1,743 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Programs as Models &#8212; Practical Reinforcement Learning: From Algorithms to Applications</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!-- 
+    this give us a css class that will be invisible only if js is disabled 
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
+    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="_static/proof.css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
+
+    <script src="_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"tex": {"macros": {"bm": ["{\\boldsymbol #1}", 1]}, "processEscapes": true}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'simulation';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Discrete-Time Trajectory Optimization" href="ocp.html" />
+    <link rel="prev" title="The State‑Space Perspective" href="ssm.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="intro.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Practical Reinforcement Learning: From Algorithms to Applications</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="intro.html">
+                    Why This Book?
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Modeling</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="modeling.html">Why Build a Model? For Whom?</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="ssm.html">The State‑Space Perspective</a></li>
+
+
+
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Programs as Models</a></li>
+
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Optimization-Based Decision Making</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="ocp.html">Discrete-Time Trajectory Optimization</a></li>
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="cocp.html">Continuous-Time Trajectory Optimization</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="mpc.html">From Trajectories to Policies</a></li>
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="dp.html">Dynamic Programming</a></li>
+
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Learning from Data</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="adp.html">Approximate Dynamic Programming</a></li>
+
+
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="cadp.html">Policy Parametrization Methods</a></li>
+
+
+
+
+
+
+
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">Bibliography</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/pierrelux/rlbook" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/pierrelux/rlbook/edit/main/simulation.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/pierrelux/rlbook/issues/new?title=Issue%20on%20page%20%2Fsimulation.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/simulation.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Programs as Models</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Programs as Models</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#systems-with-discrete-events">Systems with Discrete Events</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hybrid-systems">Hybrid Systems</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#agent-based-models">Agent-Based Models</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#looking-ahead">Looking Ahead</a></li>
+</ul>
+
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="programs-as-models">
+<h1>Programs as Models<a class="headerlink" href="#programs-as-models" title="Link to this heading">#</a></h1>
+<p>Up to this point, we have described models using systems of equations—either differential or difference equations—that express how a system evolves over time. These <strong>analytical models</strong> define the transition structure explicitly. For instance, in discrete time, the evolution of the state is governed by a known function:</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{x}_{k+1} = f(\mathbf{x}_k, \mathbf{u}_k)
+\]</div>
+<p>Given access to <span class="math notranslate nohighlight">\(f\)</span>, we can construct trajectories, analyze system behavior, and design control policies. The important feature here is not that the model evolves one step at a time, but that we are given the <strong>local dynamics function</strong> <span class="math notranslate nohighlight">\(f\)</span> itself.</p>
+<p>In contrast, <strong>simulation-based models</strong> do not expose <span class="math notranslate nohighlight">\(f\)</span> directly. Instead, they define a procedure—implemented in code—that takes an initial state and input sequence and returns the resulting trajectory:</p>
+<div class="math notranslate nohighlight">
+\[
+\{\mathbf{x}_0, \mathbf{x}_1, \dots, \mathbf{x}_T\} = \mathcal{S}(\mathbf{x}_0, \{\mathbf{u}_t\}_{t=0}^{T-1})
+\]</div>
+<p>Here, <span class="math notranslate nohighlight">\(\mathcal{S}\)</span> represents the full simulator. Internally, it may apply numerical integration, scheduling logic, branching rules, or other computations. But these details are encapsulated. From the outside, we can only query the simulator by running it.</p>
+<p>This distinction is subtle but important. Both types of models can generate trajectories. What matters is the <strong>interface</strong>: analytical models provide direct access to <span class="math notranslate nohighlight">\(f\)</span>; simulation models do not. They offer a trajectory-generation interface, but hide the internal structure that produces it.</p>
+<p><strong>Case Study: Robotics — <em>MuJoCo</em></strong></p>
+<p>MuJoCo illustrates this distinction well. It simulates the dynamics of articulated rigid bodies under contact constraints. The equations it solves include:</p>
+<p><span class="math notranslate nohighlight">\(
+M(\mathbf{q})\ddot{\mathbf{q}} + C(\mathbf{q}, \dot{\mathbf{q}}) = \boldsymbol{\tau} + J^\top \boldsymbol{\lambda}
+\)</span></p>
+<p><span class="math notranslate nohighlight">\(
+\phi(\mathbf{q}) = 0, \quad \boldsymbol{\lambda} \geq 0, \quad \boldsymbol{\lambda}^\top \phi = 0
+\)</span></p>
+<p>Here <span class="math notranslate nohighlight">\(\mathbf{q}\)</span> are joint positions, <span class="math notranslate nohighlight">\(M\)</span> is the mass matrix, and <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}\)</span> are contact forces enforcing non-penetration. But these physical equations are part of a larger simulator that also includes:</p>
+<ul class="simple">
+<li><p>collision detection,</p></li>
+<li><p>contact force models,</p></li>
+<li><p>sensor and actuator emulation,</p></li>
+<li><p>and visual rendering.</p></li>
+</ul>
+<p>The full behavior of a robot interacting with its environment emerges only when the simulator is executed. While the underlying physics are well-understood, the complexity of contact dynamics, collision detection, and sensor modeling makes it impractical to expose the local dynamics function <span class="math notranslate nohighlight">\(f\)</span> directly.</p>
+<section id="systems-with-discrete-events">
+<h2>Systems with Discrete Events<a class="headerlink" href="#systems-with-discrete-events" title="Link to this heading">#</a></h2>
+<p>Many simulation models arise when a system’s dynamics are driven not by time-continuous evolution, but by the occurrence of events. These <strong>discrete-event systems</strong> (DES) change state only at specific, often asynchronous points in time. Between events, the state remains fixed.</p>
+<p>A discrete-event system can be described by:</p>
+<ul class="simple">
+<li><p>a set of discrete states <span class="math notranslate nohighlight">\(\mathcal{X}\)</span>,</p></li>
+<li><p>a set of events <span class="math notranslate nohighlight">\(\mathcal{E}\)</span>,</p></li>
+<li><p>a transition function <span class="math notranslate nohighlight">\(f: \mathcal{X} \times \mathcal{E} \rightarrow \mathcal{X}\)</span>,</p></li>
+<li><p>and a time-advance function <span class="math notranslate nohighlight">\(t_a: \mathcal{X} \rightarrow \mathbb{R}_{\geq 0}\)</span>.</p></li>
+</ul>
+<p>At each point, the system checks which events are enabled and advances to the next scheduled one.</p>
+<p><strong>Example: Network Traffic Control System</strong></p>
+<p>Consider a software-defined networking (SDN) controller managing traffic routing in a data center. The system must make real-time decisions about packet forwarding paths based on network conditions and service requirements.</p>
+<p>The discrete states <span class="math notranslate nohighlight">\(\mathcal{X}\)</span> represent the current network configuration: active routing tables, link utilization levels, and quality-of-service priority queues at each switch.</p>
+<p>The events <span class="math notranslate nohighlight">\(\mathcal{E}\)</span> include:</p>
+<ul class="simple">
+<li><p>New flow requests arriving (video streaming, database queries, file transfers)</p></li>
+<li><p>Link failures or congestion threshold violations</p></li>
+<li><p>Flow completion notifications</p></li>
+<li><p>Load balancing triggers when servers exceed capacity</p></li>
+<li><p>Network policy updates from administrators</p></li>
+</ul>
+<p>The transition function <span class="math notranslate nohighlight">\(f\)</span> captures how routing decisions change the network state. When a high-priority video conference flow arrives while a link is congested, the controller might transition to a new state where low-priority background traffic is rerouted through alternative paths.</p>
+<p>The time-advance function <span class="math notranslate nohighlight">\(t_a\)</span> determines when the next routing decision occurs. Flow arrivals follow traffic patterns (bursty during business hours), while link failures are rare but unpredictable events.</p>
+<p>Between events, packets follow the established routing rules—the same forwarding tables remain active across all switches. The control problem here is to adapt routing decisions to discrete network events, balancing throughput, latency, and reliability constraints.</p>
+</section>
+<section id="hybrid-systems">
+<h2>Hybrid Systems<a class="headerlink" href="#hybrid-systems" title="Link to this heading">#</a></h2>
+<p>Some systems evolve continuously most of the time but undergo discrete jumps in response to certain conditions. These <strong>hybrid systems</strong> are common in control applications.</p>
+<p>The system consists of:</p>
+<ul class="simple">
+<li><p>a set of discrete modes <span class="math notranslate nohighlight">\(q \in \mathcal{Q}\)</span>,</p></li>
+<li><p>continuous dynamics in each mode: <span class="math notranslate nohighlight">\(\dot{\mathbf{x}} = f_q(\mathbf{x})\)</span>,</p></li>
+<li><p>guards that specify when transitions between modes occur,</p></li>
+<li><p>and reset maps that update the state during such transitions.</p></li>
+</ul>
+<p><strong>Example: Thermostat Control</strong></p>
+<p>An HVAC system can be in one of several modes: <code class="docutils literal notranslate"><span class="pre">heating</span></code>, <code class="docutils literal notranslate"><span class="pre">cooling</span></code>, or <code class="docutils literal notranslate"><span class="pre">off</span></code>. The temperature evolves continuously according to physical laws, but when it crosses certain thresholds, the system switches modes:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">setpoint</span> <span class="o">-</span> <span class="n">delta</span><span class="p">:</span>
+    <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;heating&quot;</span>
+<span class="k">elif</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="n">setpoint</span> <span class="o">+</span> <span class="n">delta</span><span class="p">:</span>
+    <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;cooling&quot;</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;off&quot;</span>
+</pre></div>
+</div>
+<p>Within each mode, a different differential equation applies. This results in a piecewise-smooth trajectory with mode-dependent dynamics.</p>
+<p><strong>Case Study: Building Energy — <em>EnergyPlus</em></strong></p>
+<p>EnergyPlus provides a sophisticated example of hybrid systems in building energy simulation. At its core are physical equations describing heat flows:</p>
+<div class="math notranslate nohighlight">
+\[
+C_i \frac{dT_i}{dt} = \sum_j h_{ij} A_{ij}(T_j - T_i) + Q_i
+\]</div>
+<p>It also solves implicit equations representing HVAC component behavior:</p>
+<div class="math notranslate nohighlight">
+\[
+0 = f(T, \dot{m}, P)
+\]</div>
+<p>But the actual simulator includes hundreds of thousands of lines of code handling:</p>
+<ul class="simple">
+<li><p>interpolated weather data,</p></li>
+<li><p>occupancy schedules,</p></li>
+<li><p>equipment performance curves,</p></li>
+<li><p>and control logic implemented as finite-state machines.</p></li>
+</ul>
+<p>The result is a program that emulates how a building behaves over time, given environmental inputs and schedules. The hybrid nature emerges from the interaction between continuous thermal dynamics and discrete control decisions made by thermostats, occupancy sensors, and HVAC equipment.</p>
+</section>
+<section id="agent-based-models">
+<h2>Agent-Based Models<a class="headerlink" href="#agent-based-models" title="Link to this heading">#</a></h2>
+<p>Some simulation models do not describe systems via global state transitions, but instead simulate the behavior of many individual components or <strong>agents</strong>, each following local rules. These <strong>agent-based models</strong> (ABMs) are widely used in epidemiology, ecology, and social modeling.</p>
+<p>Each agent maintains its own internal state and acts according to probabilistic or rule-based logic. The system’s behavior arises from the interactions among agents.</p>
+<p><strong>Example: Residential Energy Consumption under Dynamic Pricing</strong></p>
+<p>Consider a neighborhood where each household is an agent making energy consumption decisions based on real-time electricity pricing and thermal comfort preferences. Each household agent has:</p>
+<ul class="simple">
+<li><p><strong>Internal state</strong>: current temperature, HVAC settings, comfort preferences, price sensitivity</p></li>
+<li><p><strong>Local decision rules</strong>: MPC algorithms that optimize the trade-off between energy cost and thermal comfort</p></li>
+<li><p><strong>Unique characteristics</strong>: different utility functions, thermal mass, occupancy patterns</p></li>
+</ul>
+<p>The simulator might execute something like:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">household</span> <span class="ow">in</span> <span class="n">neighborhood</span><span class="p">:</span>
+    <span class="c1"># Each household solves its own MPC optimization</span>
+    <span class="n">current_price</span> <span class="o">=</span> <span class="n">utility</span><span class="o">.</span><span class="n">get_current_price</span><span class="p">()</span>
+    <span class="n">comfort_weight</span> <span class="o">=</span> <span class="n">household</span><span class="o">.</span><span class="n">comfort_preference</span>
+    
+    <span class="c1"># Optimize over prediction horizon</span>
+    <span class="n">optimal_setpoint</span> <span class="o">=</span> <span class="n">household</span><span class="o">.</span><span class="n">mpc_controller</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span>
+        <span class="n">current_temp</span><span class="o">=</span><span class="n">household</span><span class="o">.</span><span class="n">temperature</span><span class="p">,</span>
+        <span class="n">price_forecast</span><span class="o">=</span><span class="n">utility</span><span class="o">.</span><span class="n">price_forecast</span><span class="p">,</span>
+        <span class="n">comfort_weight</span><span class="o">=</span><span class="n">comfort_weight</span>
+    <span class="p">)</span>
+    
+    <span class="n">household</span><span class="o">.</span><span class="n">set_hvac_setpoint</span><span class="p">(</span><span class="n">optimal_setpoint</span><span class="p">)</span>
+    
+    <span class="c1"># Update shared grid load</span>
+    <span class="n">neighborhood</span><span class="o">.</span><span class="n">total_demand</span> <span class="o">+=</span> <span class="n">household</span><span class="o">.</span><span class="n">power_consumption</span>
+</pre></div>
+</div>
+<p>The macro-level demand patterns—peak shifting, load leveling, rebound effects—emerge from individual household optimization decisions. No single equation describes the neighborhood’s energy consumption; it arises from the collective behavior of autonomous agents each solving their own control problems.</p>
+<p><strong>Case Study: Traffic Simulation — <em>SUMO</em></strong></p>
+<p>SUMO demonstrates agent-based modeling in transportation systems. Each vehicle is an agent with its own route, driving behavior, and decision-making logic. The Krauss car-following rule shows how individual vehicle agents behave:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">update_vehicle</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">v_leader</span><span class="p">,</span> <span class="n">gap</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
+    <span class="n">v_safe</span> <span class="o">=</span> <span class="n">v_leader</span> <span class="o">+</span> <span class="p">(</span><span class="n">gap</span> <span class="o">-</span> <span class="n">min_gap</span><span class="p">)</span> <span class="o">/</span> <span class="n">tau</span>
+    <span class="n">v_desired</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">v_max</span><span class="p">,</span> <span class="n">v_safe</span><span class="p">)</span>
+    <span class="n">ε</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">v_new</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">v_desired</span> <span class="o">-</span> <span class="n">ε</span> <span class="o">*</span> <span class="n">a_max</span> <span class="o">*</span> <span class="n">dt</span><span class="p">)</span>
+    <span class="n">x_new</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">v_new</span> <span class="o">*</span> <span class="n">dt</span>
+    <span class="k">return</span> <span class="n">x_new</span><span class="p">,</span> <span class="n">v_new</span>
+</pre></div>
+</div>
+<p>Beyond car-following, each vehicle agent also:</p>
+<ul class="simple">
+<li><p>plans routes through the network based on travel time estimates,</p></li>
+<li><p>responds to traffic signals and road conditions,</p></li>
+<li><p>makes lane-changing decisions based on utility functions,</p></li>
+<li><p>and exhibits individual driving characteristics (aggressiveness, reaction time).</p></li>
+</ul>
+<p>The emergent traffic patterns—congestion formation, traffic waves, bottlenecks—arise from the collective behavior of thousands of individual vehicle agents, each following local rules and making autonomous decisions.</p>
+<p><strong>Case Study: Modeling Curbside Access at Montréal–Trudeau (YUL)</strong></p>
+<p>Afternoon traffic at Montréal–Trudeau airport regularly backs up along the two-lane ramp leading to the departures curb. As passenger volumes rebound, the mix of private drop-offs, taxis, and shuttles converging in a confined space produces frequent delays. When curb dwell times rise—especially around wide-body departures—queues can spill back onto the access road and interfere with other flows on the airport campus.</p>
+<p>To manage the situation, the airport operator relies on a dense sensor network. Cameras and license plate readers track vehicle trajectories across virtual gates, generating a real-time stream of entry points, curb interactions, and exit times. According to public statements, AI-based forecasting solutions have been deployed to anticipate congestion and suggest alternative routing options for passengers and drivers. While no technical details have been disclosed, this is a typical instance of a traffic prediction and control problem that lends itself to <strong>agent-based modeling</strong>.</p>
+<p>In such a model, each vehicle is treated as an individual agent with internal state:</p>
+<div class="math notranslate nohighlight">
+\[
+s_t = \bigl(\text{lane},\;x_t,\;v_t,\;\text{intent}\bigr),
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(x_t\)</span> and <span class="math notranslate nohighlight">\(v_t\)</span> denote longitudinal position and speed, and lane and intent capture higher-level behavioural traits. The simulation proceeds in discrete time. At each step, agents update their acceleration based on local traffic density (e.g., via a car-following model like IDM), evaluate potential lane changes (e.g., using a utility or incentive rule), and advance position accordingly.</p>
+<p>The layout of the ramp—its geometry, merges, and constraints—is fixed. What changes are the traffic patterns and driver behaviours. These can be estimated from historical trajectories and updated as new data arrives. In a real-time setting, a filtering step adjusts the simulation so that its predicted flows remain consistent with current observations.</p>
+<p>While the behaviour of each individual agent is governed by program logic and heuristics—such as car-following rules, desired speeds, or gap acceptance—some parameters are identified offline from historical data, while others are estimated online. This adaptation helps the model track observed conditions. But even with such adjustments, not all effects are easily captured.</p>
+<p>Construction activity, weather disturbances, and irregular flight scheduling can introduce sudden shifts in flow that lie outside the scope of the structural model. To account for these, one can overlay a data-driven correction on top of the simulation. Suppose the simulator produces a queue length forecast <span class="math notranslate nohighlight">\(q^{\text{sim}}_{t+h}\)</span> over horizon <span class="math notranslate nohighlight">\(h\)</span>. A statistical model can be trained to predict the residual between this forecast and the observed outcome:</p>
+<div class="math notranslate nohighlight">
+\[
+r_{t+h} = q^{\text{obs}}_{t+h} - q^{\text{sim}}_{t+h},
+\]</div>
+<p>as a function of exogenous features <span class="math notranslate nohighlight">\(z_t\)</span>, such as weather, incident flags, or scheduled arrivals. The final forecast then becomes:</p>
+<div class="math notranslate nohighlight">
+\[
+\widehat{q}_{t+h} = q^{\text{sim}}_{t+h} + \phi(z_t),
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(\phi\)</span> is a learned mapping from external conditions to the expected correction. The result is a hybrid model: the simulation enforces physical structure and agent-level behaviour, while the residual model compensates for aspects of the system that are harder to express analytically.</p>
+</section>
+</section>
+<section id="looking-ahead">
+<h1>Looking Ahead<a class="headerlink" href="#looking-ahead" title="Link to this heading">#</a></h1>
+<p>There’s no universally correct way to model a system. Your choice depends on what you know, what you can observe, what you care about, and what tools you have.</p>
+<p>This chapter laid out a spectrum—from explicit, mechanistic models to black-box simulators and learned dynamics. In every case, modeling choices define the structure of the problem and the space of possible solutions. In the next chapters, we’ll see how they anchor learning, optimization, and decision-making.</p>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./."
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="ssm.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">The State‑Space Perspective</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="ocp.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Discrete-Time Trajectory Optimization</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Programs as Models</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#systems-with-discrete-events">Systems with Discrete Events</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hybrid-systems">Hybrid Systems</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#agent-based-models">Agent-Based Models</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#looking-ahead">Looking Ahead</a></li>
+</ul>
+
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Pierre-Luc Bacon
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

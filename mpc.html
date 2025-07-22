@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>8. From Trajectories to Policies &#8212; Practical Reinforcement Learning: From Algorithms to Applications</title>
+    <title>From Trajectories to Policies &#8212; Practical Reinforcement Learning: From Algorithms to Applications</title>
   
   
   
@@ -16,32 +16,35 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!-- 
+    this give us a css class that will be invisible only if js is disabled 
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
 
-  
-  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
-
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
     <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
-    <link rel="stylesheet" type="text/css" href="_static/proof.css?v=b4b7a797" />
+    <link rel="stylesheet" type="text/css" href="_static/proof.css" />
     <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
   
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
 
     <script src="_static/documentation_options.js?v=9eb32ce0"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
@@ -64,10 +67,11 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'mpc';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="12. Dynamic Programming" href="dp.html" />
-    <link rel="prev" title="6. Continuous-Time Trajectory Optimization" href="cocp.html" />
+    <link rel="next" title="Dynamic Programming" href="dp.html" />
+    <link rel="prev" title="Continuous-Time Trajectory Optimization" href="cocp.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
   </head>
   
   
@@ -83,19 +87,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="search.html"
       method="get">
@@ -103,7 +96,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search this book..."
          aria-label="Search this book..."
          autocomplete="off"
@@ -111,8 +103,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -128,7 +120,8 @@
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -158,15 +151,11 @@
 </a></div>
         <div class="sidebar-primary-item">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script></div>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         
@@ -177,35 +166,52 @@
                 </a>
             </li>
         </ul>
-        <ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="modeling.html">1. Modeling Systems, Simulation, and Data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ocp.html">2. Discrete-Time Trajectory Optimization</a></li>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Modeling</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="modeling.html">Why Build a Model? For Whom?</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="ssm.html">The State‑Space Perspective</a></li>
 
 
 
-<li class="toctree-l1"><a class="reference internal" href="cocp.html">6. Continuous-Time Trajectory Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulation.html">Programs as Models</a></li>
 
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">8. From Trajectories to Policies</a></li>
-
-
-
-<li class="toctree-l1"><a class="reference internal" href="dp.html">12. Dynamic Programming</a></li>
-
-<li class="toctree-l1"><a class="reference internal" href="adp.html">14. Approximate Dynamic Programming</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Optimization-Based Decision Making</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="ocp.html">Discrete-Time Trajectory Optimization</a></li>
 
 
 
+<li class="toctree-l1"><a class="reference internal" href="cocp.html">Continuous-Time Trajectory Optimization</a></li>
 
-
-<li class="toctree-l1"><a class="reference internal" href="cadp.html">20. Policy Parametrization Methods</a></li>
-
-
-
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">From Trajectories to Policies</a></li>
 
 
 
+<li class="toctree-l1"><a class="reference internal" href="dp.html">Dynamic Programming</a></li>
 
-<li class="toctree-l1"><a class="reference internal" href="bibliography.html">28. Bibliography</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Learning from Data</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="adp.html">Approximate Dynamic Programming</a></li>
+
+
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="cadp.html">Policy Parametrization Methods</a></li>
+
+
+
+
+
+
+
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">Bibliography</a></li>
 </ul>
 
     </div>
@@ -377,24 +383,16 @@
 
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
-  </button>
-`);
-</script>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button>
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
-  </button>
-`);
-</script>
+</button>
 <button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <span class="fa-solid fa-list"></span>
 </button>
@@ -418,32 +416,32 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">8. From Trajectories to Policies</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#closing-the-loop-by-replanning">9. Closing the Loop by Replanning</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-propofol-infusion-control">9.1. Example: Propofol Infusion Control</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">From Trajectories to Policies</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#closing-the-loop-by-replanning">Closing the Loop by Replanning</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-propofol-infusion-control">Example: Propofol Infusion Control</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#computational-efficiency-improvements">10. Computational Efficiency Improvements</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#explicit-mpc">10.1. Explicit MPC</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#amortized-optimization-and-neural-networks">10.1.1. Amortized Optimization and Neural Networks</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#computational-efficiency-improvements">Computational Efficiency Improvements</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#explicit-mpc">Explicit MPC</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#amortized-optimization-and-neural-networks">Amortized Optimization and Neural Networks</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#warmstarting-and-predictor-corrector-mpc">10.2. Warmstarting and Predictor-Corrector MPC</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#backward-recursion">10.3. Backward Recursion</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-optimal-harvest-in-resource-management">10.3.1. Example: Optimal Harvest in Resource Management</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#warmstarting-and-predictor-corrector-mpc">Warmstarting and Predictor-Corrector MPC</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#backward-recursion">Backward Recursion</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-optimal-harvest-in-resource-management">Example: Optimal Harvest in Resource Management</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#discretization-and-interpolation">10.4. Discretization and Interpolation</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#backward-recursion-with-interpolation">10.4.1. Backward Recursion with Interpolation</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#example-optimal-harvest-with-linear-interpolation">10.4.1.1. Example: Optimal Harvest with Linear Interpolation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#discretization-and-interpolation">Discretization and Interpolation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#backward-recursion-with-interpolation">Backward Recursion with Interpolation</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#example-optimal-harvest-with-linear-interpolation">Example: Optimal Harvest with Linear Interpolation</a></li>
 </ul>
 </li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-dynamic-programming-in-control-theory">11. Stochastic Dynamic Programming in Control Theory</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-stochastic-optimal-harvest-in-resource-management">11.1. Example: Stochastic Optimal Harvest in Resource Management</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-dynamic-programming-in-control-theory">Stochastic Dynamic Programming in Control Theory</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-stochastic-optimal-harvest-in-resource-management">Example: Stochastic Optimal Harvest in Resource Management</a></li>
 </ul>
 </li>
 </ul>
@@ -459,12 +457,12 @@ document.write(`
                 <article class="bd-article">
                   
   <section class="tex2jax_ignore mathjax_ignore" id="from-trajectories-to-policies">
-<h1><span class="section-number">8. </span>From Trajectories to Policies<a class="headerlink" href="#from-trajectories-to-policies" title="Link to this heading">#</a></h1>
+<h1>From Trajectories to Policies<a class="headerlink" href="#from-trajectories-to-policies" title="Link to this heading">#</a></h1>
 <p>The methods seen so far, whether in discrete or continuous-time, were deterministic trajectory optimization methods. Given an initial state, they provide a prescription of controls to apply as a function of time. In the collocation case, we would also obtain a state trajectory corresponding to those controls as a by-product. The control function, <span class="math notranslate nohighlight">\(\mathbf{u}[i]\)</span> (in discrete time) or <span class="math notranslate nohighlight">\(u(t)\)</span> (in continuous-time), is blind to the system’s state at any point in time. It simply reads off the values stored in memory or performs some form of interpolation in time. This approach is optimal under the assumption that our system is deterministic. We know that no matter how many times we repeat the experiment from the same initial state, we will always get the same result; hence, reapplying the same controls in the same order is sufficient.</p>
 <p>However, no matter how good our model is, real-life deployment of our controller will inevitably involve prediction errors. In such cases, a simple control function that only considers the current time—an open-loop controller—won’t suffice. We must inform our controller that the real world is likely not in the state it thinks it’s in: we need to provide feedback to close the loop. Depending on the structure of the noise affecting our system, we may encounter feedback controllers that depend on the entire history (in the case of partial observability) or just the current state (under perfect observability). Dynamic programming methods will provide us with solution methods to derive such controllers. These methods exist for both the continuous-time setting (via the Hamilton-Jacobi equations) and the discrete setting through the Bellman optimality equations. It also provides us with the necessary framework to address partially observable systems (for which we can’t directly measure the state) using the POMDP framework. We will cover these solution methods in this chapter.</p>
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="closing-the-loop-by-replanning">
-<h1><span class="section-number">9. </span>Closing the Loop by Replanning<a class="headerlink" href="#closing-the-loop-by-replanning" title="Link to this heading">#</a></h1>
+<h1>Closing the Loop by Replanning<a class="headerlink" href="#closing-the-loop-by-replanning" title="Link to this heading">#</a></h1>
 <p>There exists a simple recipe for closing the loop: since we will likely end up in states that we haven’t planned for, we might as well recompute our solution as frequently as possible using the updated state information as initial state to our trajectory optimization procedure. This replanning or reoptimization strategy is called Model Predictive Control (MPC). Given any trajectory optimization algorithm, we can turn it into a closed-loop variant using MPC.</p>
 <p>Consider a trajectory optimization problem in Bolza form,</p>
 <div class="math notranslate nohighlight">
@@ -482,7 +480,7 @@ document.write(`
 <p>After applying the first control input, the system evolves according to its dynamics, and the controller measures the new state at the next time step, <span class="math notranslate nohighlight">\( t_0 + \Delta t \)</span>. Using this updated state as the new initial condition, the MPC controller re-solves the trajectory optimization problem over a shifted prediction horizon <span class="math notranslate nohighlight">\( [t_0 + \Delta t, t_0 + \Delta t + T] \)</span>.</p>
 <p>This procedure is then repeated ad infinitum or until the end of overall control problem. More concisely, here’s a pseudo-code showing the general blueprint of MPC methods:</p>
 <div class="proof algorithm admonition" id="alg-mpc">
-<p class="admonition-title"><span class="caption-number">Algorithm 9.1 </span> (Non-linear Model Predictive Control)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 11 </span> (Non-linear Model Predictive Control)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong></p>
 <ul class="simple">
@@ -551,8 +549,8 @@ document.write(`
 </ol>
 </section>
 </div><section id="example-propofol-infusion-control">
-<h2><span class="section-number">9.1. </span>Example: Propofol Infusion Control<a class="headerlink" href="#example-propofol-infusion-control" title="Link to this heading">#</a></h2>
-<p>This problem explores the control of propofol infusion in total intravenous anesthesia (TIVA). Our presentation follows the problem formulation developped by <span id="id1">Sawaguchi <em>et al.</em> [<a class="reference internal" href="bibliography.html#id19" title="Y. Sawaguchi, E. Furutani, G. Shirakami, M. Araki, and K. Fukuda. A model-predictive hypnosis control system under total intravenous anesthesia. IEEE Transactions on Biomedical Engineering, 55(3):874–887, March 2008. URL: http://dx.doi.org/10.1109/tbme.2008.915670, doi:10.1109/tbme.2008.915670.">42</a>]</span>. The primary objective is to maintain the desired level of unconsciousness while minimizing adverse reactions and ensuring quick recovery after surgery.</p>
+<h2>Example: Propofol Infusion Control<a class="headerlink" href="#example-propofol-infusion-control" title="Link to this heading">#</a></h2>
+<p>This problem explores the control of propofol infusion in total intravenous anesthesia (TIVA). Our presentation follows the problem formulation developped by <span id="id1">Sawaguchi <em>et al.</em> [<a class="reference internal" href="bibliography.html#id19" title="Y. Sawaguchi, E. Furutani, G. Shirakami, M. Araki, and K. Fukuda. A model-predictive hypnosis control system under total intravenous anesthesia. IEEE Transactions on Biomedical Engineering, 55(3):874–887, March 2008. URL: http://dx.doi.org/10.1109/tbme.2008.915670, doi:10.1109/tbme.2008.915670.">46</a>]</span>. The primary objective is to maintain the desired level of unconsciousness while minimizing adverse reactions and ensuring quick recovery after surgery.</p>
 <p>The level of unconsciousness is measured by the Bispectral Index (BIS), which is obtained using an electroencephalography (EEG) device. The BIS ranges from <span class="math notranslate nohighlight">\(0\)</span> (complete suppression of brain activity) to <span class="math notranslate nohighlight">\(100\)</span> (fully awake), with the target range for general anesthesia typically between <span class="math notranslate nohighlight">\(40\)</span> and <span class="math notranslate nohighlight">\(60\)</span>.</p>
 <p>The goal is to design a control system that regulates the infusion rate of propofol to maintain the BIS within the target range. This can be formulated as an optimal control problem:</p>
 <div class="math notranslate nohighlight">
@@ -599,18 +597,18 @@ First, there is a delay in how fast the drug can reach a different compartments 
 <span class="expanded">Hide code cell source</span>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">minimize</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
-<span class="k">class</span><span class="w"> </span><span class="nc">Patient</span><span class="p">:</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">weight</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">Patient</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">weight</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">age</span> <span class="o">=</span> <span class="n">age</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="n">weight</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_pk_params</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_pd_params</span><span class="p">()</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_pk_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">set_pk_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">v1</span> <span class="o">=</span> <span class="mf">4.27</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">/</span> <span class="mi">70</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.71</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">age</span> <span class="o">/</span> <span class="mi">30</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.39</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">v2</span> <span class="o">=</span> <span class="mf">18.9</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">/</span> <span class="mi">70</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.64</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">age</span> <span class="o">/</span> <span class="mi">30</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.62</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">v3</span> <span class="o">=</span> <span class="mi">238</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">/</span> <span class="mi">70</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.95</span>
@@ -624,13 +622,13 @@ First, there is a delay in how fast the drug can reach a different compartments 
         <span class="bp">self</span><span class="o">.</span><span class="n">k31</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cl3</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">v3</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ke0</span> <span class="o">=</span> <span class="mf">0.456</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_pd_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">set_pd_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">E0</span> <span class="o">=</span> <span class="mi">100</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Emax</span> <span class="o">=</span> <span class="mi">100</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">EC50</span> <span class="o">=</span> <span class="mf">3.4</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">=</span> <span class="mi">3</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">pk_model</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">patient</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">pk_model</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">patient</span><span class="p">):</span>
     <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">x3</span><span class="p">,</span> <span class="n">xe</span> <span class="o">=</span> <span class="n">x</span>
     <span class="n">dx1</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">patient</span><span class="o">.</span><span class="n">k10</span> <span class="o">+</span> <span class="n">patient</span><span class="o">.</span><span class="n">k12</span> <span class="o">+</span> <span class="n">patient</span><span class="o">.</span><span class="n">k13</span><span class="p">)</span> <span class="o">*</span> <span class="n">x1</span> <span class="o">+</span> <span class="n">patient</span><span class="o">.</span><span class="n">k21</span> <span class="o">*</span> <span class="n">x2</span> <span class="o">+</span> <span class="n">patient</span><span class="o">.</span><span class="n">k31</span> <span class="o">*</span> <span class="n">x3</span> <span class="o">+</span> <span class="n">u</span> <span class="o">/</span> <span class="n">patient</span><span class="o">.</span><span class="n">v1</span>
     <span class="n">dx2</span> <span class="o">=</span> <span class="n">patient</span><span class="o">.</span><span class="n">k12</span> <span class="o">*</span> <span class="n">x1</span> <span class="o">-</span> <span class="n">patient</span><span class="o">.</span><span class="n">k21</span> <span class="o">*</span> <span class="n">x2</span>
@@ -638,15 +636,15 @@ First, there is a delay in how fast the drug can reach a different compartments 
     <span class="n">dxe</span> <span class="o">=</span> <span class="n">patient</span><span class="o">.</span><span class="n">ke0</span> <span class="o">*</span> <span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">xe</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">dx1</span><span class="p">,</span> <span class="n">dx2</span><span class="p">,</span> <span class="n">dx3</span><span class="p">,</span> <span class="n">dxe</span><span class="p">])</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">pd_model</span><span class="p">(</span><span class="n">ce</span><span class="p">,</span> <span class="n">patient</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">pd_model</span><span class="p">(</span><span class="n">ce</span><span class="p">,</span> <span class="n">patient</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">patient</span><span class="o">.</span><span class="n">E0</span> <span class="o">-</span> <span class="n">patient</span><span class="o">.</span><span class="n">Emax</span> <span class="o">*</span> <span class="p">(</span><span class="n">ce</span> <span class="o">**</span> <span class="n">patient</span><span class="o">.</span><span class="n">gamma</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">ce</span> <span class="o">**</span> <span class="n">patient</span><span class="o">.</span><span class="n">gamma</span> <span class="o">+</span> <span class="n">patient</span><span class="o">.</span><span class="n">EC50</span> <span class="o">**</span> <span class="n">patient</span><span class="o">.</span><span class="n">gamma</span><span class="p">)</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">simulate_step</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">simulate_step</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
     <span class="n">x_next</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">pk_model</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">patient</span><span class="p">)</span>
     <span class="n">bis</span> <span class="o">=</span> <span class="n">pd_model</span><span class="p">(</span><span class="n">x_next</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">patient</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">x_next</span><span class="p">,</span> <span class="n">bis</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">objective</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">target_bis</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">objective</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">target_bis</span><span class="p">):</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">x0</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
     <span class="n">total_cost</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
@@ -654,7 +652,7 @@ First, there is a delay in how fast the drug can reach a different compartments 
         <span class="n">total_cost</span> <span class="o">+=</span> <span class="p">(</span><span class="n">bis</span> <span class="o">-</span> <span class="n">target_bis</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span>
     <span class="k">return</span> <span class="n">total_cost</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">mpc_step</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">target_bis</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">mpc_step</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">target_bis</span><span class="p">):</span>
     <span class="n">u0</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>  <span class="c1"># Initial guess</span>
     <span class="n">bounds</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">20</span><span class="p">)]</span> <span class="o">*</span> <span class="n">N</span>  <span class="c1"># Infusion rate between 0 and 20 mg/kg/h</span>
     
@@ -663,7 +661,7 @@ First, there is a delay in how fast the drug can reach a different compartments 
     
     <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># Return only the first control input</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">run_mpc_simulation</span><span class="p">(</span><span class="n">patient</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">target_bis</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">run_mpc_simulation</span><span class="p">(</span><span class="n">patient</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">target_bis</span><span class="p">):</span>
     <span class="n">steps</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">T</span> <span class="o">/</span> <span class="n">dt</span><span class="p">)</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">steps</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
     <span class="n">bis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">steps</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
@@ -732,10 +730,10 @@ Final effect-site concentration: 3.39 µg/mL
 </section>
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="computational-efficiency-improvements">
-<h1><span class="section-number">10. </span>Computational Efficiency Improvements<a class="headerlink" href="#computational-efficiency-improvements" title="Link to this heading">#</a></h1>
+<h1>Computational Efficiency Improvements<a class="headerlink" href="#computational-efficiency-improvements" title="Link to this heading">#</a></h1>
 <p>One challenge of Model Predictive Control (MPC) is its computational cost. In real-time applications, such as adaptive optics, the controller may need to operate at extremely high frequencies—for example, 1000 Hz. In this scenario, the solver has just 1 millisecond to compute an optimal solution, pushing the limits of computational efficiency.</p>
 <section id="explicit-mpc">
-<h2><span class="section-number">10.1. </span>Explicit MPC<a class="headerlink" href="#explicit-mpc" title="Link to this heading">#</a></h2>
+<h2>Explicit MPC<a class="headerlink" href="#explicit-mpc" title="Link to this heading">#</a></h2>
 <p>A potential solution to this problem is to offload some of the computational effort offline. Instead of solving the optimization problem at every time step during execution, we could attempt to <strong>precompute solutions</strong> for all potential states in advance. At first glance, this seems impractical—without leveraging specific structure or partitioning the state space intelligently, precomputing solutions for every possible state would be infeasible. However, with the right techniques, this approach becomes viable.</p>
 <p>This is the essence of <strong>explicit MPC</strong>, which hinges on a subfield of mathematical programming known as multi-parametric (or simply parametric) programming.  A multiparametric programming problem can be described by the following formulation:</p>
 <div class="math notranslate nohighlight">
@@ -763,7 +761,7 @@ z(\boldsymbol{\theta}) = \min_{\mathbf{x}} &amp; f(\mathbf{x}, \boldsymbol{\thet
 </ul>
 <p>It is therefore at this level that parametric programming methods can come into play and provide efficient methods for computing the value function offline: that is without resorting to direct calls to a nonlinear programming solver for every new <span class="math notranslate nohighlight">\(\boldsymbol{x}\)</span> encountered along a trajectory.</p>
 <section id="amortized-optimization-and-neural-networks">
-<h3><span class="section-number">10.1.1. </span>Amortized Optimization and Neural Networks<a class="headerlink" href="#amortized-optimization-and-neural-networks" title="Link to this heading">#</a></h3>
+<h3>Amortized Optimization and Neural Networks<a class="headerlink" href="#amortized-optimization-and-neural-networks" title="Link to this heading">#</a></h3>
 <p>The idea of solving an entire family of optimization problems efficiently is not unique to parametric programming. In machine learning, <strong>amortized optimization</strong> (or <strong>amortized inference</strong>) aims to “learn to optimize” by constructing models that generalize over a family of optimization problems. This approach is particularly relevant in applications such as hyperparameter optimization, meta-learning, and probabilistic inference.</p>
 <p>In contrast to explicit MPC, which partitions the state space, amortized optimization typically uses <strong>neural networks</strong> to approximate the mapping from parameters to optimal solutions. This has led to recent explorations of <strong>amortizing NMPC (Nonlinear MPC) controllers</strong> into neural networks, blending the structure of MPC with the generalization power of neural networks. This represents a promising direction for creating efficient controllers that combine physics-based models, safety constraints, and the flexibility of learned models.</p>
 <!-- 
@@ -811,7 +809,7 @@ Here, $\mathbf{F}(\mathbf{x}, \boldsymbol{\gamma}, \boldsymbol{\nu}, \boldsymbol
 </section>
 </section>
 <section id="warmstarting-and-predictor-corrector-mpc">
-<h2><span class="section-number">10.2. </span>Warmstarting and Predictor-Corrector MPC<a class="headerlink" href="#warmstarting-and-predictor-corrector-mpc" title="Link to this heading">#</a></h2>
+<h2>Warmstarting and Predictor-Corrector MPC<a class="headerlink" href="#warmstarting-and-predictor-corrector-mpc" title="Link to this heading">#</a></h2>
 <p>Another way in which we can speed up NMPC is by providing good initial guesses for the solver. When solving a series of optimization problems along a trajectory, it is likely that the solution to previous problem might be close to that of the current one. Hence, as a heuristic it often makes sense to “warmstart” from the previous solution.</p>
 <p>Another alternative is to extrapolate what the next solution ought to be based on the previous one. What we mean here is that rather than simply using the last solution as a guess for that of the current problem, we leverage the “sensitivity information” around the last solution to make a guess about where we might be going. This idea is reminiscent of predictor-corrector schemes which we have briefly discussed in the first chapter.</p>
 <p>To implement a predictor corrector MPC scheme, we need to understand how the optimal solution <span class="math notranslate nohighlight">\(\mathbf{x}^*(\boldsymbol{\theta})\)</span> and the value function <span class="math notranslate nohighlight">\(z(\boldsymbol{\theta})\)</span> change as the parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> vary. We achieve this by applying the <strong>implicit function theorem</strong> to the <strong>KKT (Karush-Kuhn-Tucker) conditions</strong> of the parametric problem. The KKT conditions for a parametric optimization problem are necessary for optimality and can be written as:</p>
@@ -856,10 +854,10 @@ J_k^\star(\mathbf{x}_k) = \min_{\mathbf{u}_k} \left[ c_k(\mathbf{x}_k, \mathbf{u
 <p>Fortunately, learning-based methods offer efficient tools to combat the curse of dimensionality on two fronts: by using function approximation (e.g., neural networks) to avoid explicit discretization, and by leveraging randomization through Monte Carlo methods inherent in the learning paradigm. Most of this course is dedicated to those ideas.</p>
 </section>
 <section id="backward-recursion">
-<h2><span class="section-number">10.3. </span>Backward Recursion<a class="headerlink" href="#backward-recursion" title="Link to this heading">#</a></h2>
+<h2>Backward Recursion<a class="headerlink" href="#backward-recursion" title="Link to this heading">#</a></h2>
 <p>The principle of optimality provides a methodology for solving optimal control problems. Beginning at the final time horizon and working backwards, at each stage the local optimization problem given by Bellman’s equation is solved. This process, termed backward recursion or backward induction constructs the optimal value function stage by stage.</p>
 <div class="proof algorithm admonition" id="backward-recursion">
-<p class="admonition-title"><span class="caption-number">Algorithm 10.1 </span> (Backward Recursion for Dynamic Programming)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 12 </span> (Backward Recursion for Dynamic Programming)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Terminal cost function <span class="math notranslate nohighlight">\(c_\mathrm{T}(\cdot)\)</span>, stage cost functions <span class="math notranslate nohighlight">\(c_t(\cdot, \cdot)\)</span>, system dynamics <span class="math notranslate nohighlight">\(f_t(\cdot, \cdot)\)</span>, time horizon <span class="math notranslate nohighlight">\(\mathrm{T}\)</span></p>
 <p><strong>Output:</strong> Optimal value functions <span class="math notranslate nohighlight">\(J_t^\star(\cdot)\)</span> and optimal control policies <span class="math notranslate nohighlight">\(\mu_t^\star(\cdot)\)</span> for <span class="math notranslate nohighlight">\(t = 1, \ldots, T\)</span></p>
@@ -882,8 +880,8 @@ J_k^\star(\mathbf{x}_k) = \min_{\mathbf{u}_k} \left[ c_k(\mathbf{x}_k, \mathbf{u
 </section>
 </div><p>Upon completion of this backward pass, we now have access to the optimal control to take at any stage and in any state. Furthermore, we can simulate optimal trajectories from any initial state and applying the optimal policy at each stage to generate the optimal trajectory.</p>
 <section id="example-optimal-harvest-in-resource-management">
-<h3><span class="section-number">10.3.1. </span>Example: Optimal Harvest in Resource Management<a class="headerlink" href="#example-optimal-harvest-in-resource-management" title="Link to this heading">#</a></h3>
-<p>Dynamic programming is often used in resource management and conservation biology to devise policies to be implemented by decision makers and stakeholders : for eg. in fishereries, or timber harvesting. Per <span id="id2">[<a class="reference internal" href="bibliography.html#id22" title="Michael J. Conroy and James T. Peterson. Decision Making in Natural Resource Management: A Structured, Adaptive Approach: A Structured, Adaptive Approach. Wiley, January 2013. ISBN 9781118506196. URL: http://dx.doi.org/10.1002/9781118506196, doi:10.1002/9781118506196.">7</a>]</span>, we consider a population of a particular species, whose abundance we denote by <span class="math notranslate nohighlight">\(x_t\)</span>, where <span class="math notranslate nohighlight">\(t\)</span> represents discrete time steps. Our objective is to maximize the cumulative harvest over a finite time horizon, while also considering the long-term sustainability of the population. This optimization problem can be formulated as:</p>
+<h3>Example: Optimal Harvest in Resource Management<a class="headerlink" href="#example-optimal-harvest-in-resource-management" title="Link to this heading">#</a></h3>
+<p>Dynamic programming is often used in resource management and conservation biology to devise policies to be implemented by decision makers and stakeholders : for eg. in fishereries, or timber harvesting. Per <span id="id2">[<a class="reference internal" href="bibliography.html#id22" title="Michael J. Conroy and James T. Peterson. Decision Making in Natural Resource Management: A Structured, Adaptive Approach: A Structured, Adaptive Approach. Wiley, January 2013. ISBN 9781118506196. URL: http://dx.doi.org/10.1002/9781118506196, doi:10.1002/9781118506196.">9</a>]</span>, we consider a population of a particular species, whose abundance we denote by <span class="math notranslate nohighlight">\(x_t\)</span>, where <span class="math notranslate nohighlight">\(t\)</span> represents discrete time steps. Our objective is to maximize the cumulative harvest over a finite time horizon, while also considering the long-term sustainability of the population. This optimization problem can be formulated as:</p>
 <div class="math notranslate nohighlight">
 \[
 \text{maximize} \quad \sum_{t=t_0}^{t_f} F(x_t \cdot h_t) + F_\mathrm{T}(x_{t_f})
@@ -909,7 +907,7 @@ J^\star(x_t, t) = \max_{h_t \in D} (F(x, h, t) + J^*(x_{t+1}, t+1))
 <span class="expanded">Hide code cell source</span>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="c1"># Parameters</span>
 <span class="n">r_max</span> <span class="o">=</span> <span class="mf">0.3</span>
@@ -928,15 +926,15 @@ J^\star(x_t, t) = \max_{h_t \in D} (F(x, h, t) + J^*(x_{t+1}, t+1))
 <span class="n">policy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">T</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">N_space</span><span class="p">)))</span>
 
 <span class="c1"># Terminal value function (F_T)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">terminal_value</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">terminal_value</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
     <span class="k">return</span> <span class="mi">0</span>
 
 <span class="c1"># State return function (F)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">state_return</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">state_return</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">N</span> <span class="o">*</span> <span class="n">h</span>
 
 <span class="c1"># State dynamics function</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">state_dynamics</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">state_dynamics</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">N</span> <span class="o">+</span> <span class="n">r_max</span> <span class="o">*</span> <span class="n">N</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">N</span> <span class="o">/</span> <span class="n">K</span><span class="p">)</span> <span class="o">-</span> <span class="n">N</span> <span class="o">*</span> <span class="n">h</span>
 
 <span class="c1"># Backward iteration</span>
@@ -967,7 +965,7 @@ J^\star(x_t, t) = \max_{h_t \in D} (F(x, h, t) + J^*(x_{t+1}, t+1))
         <span class="n">policy</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">best_h</span>
 
 <span class="c1"># Function to simulate the optimal policy with conversion to Python floats</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">simulate_optimal_policy</span><span class="p">(</span><span class="n">initial_N</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">simulate_optimal_policy</span><span class="p">(</span><span class="n">initial_N</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
     <span class="n">trajectory</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">initial_N</span><span class="p">)]</span>  <span class="c1"># Ensure first value is a Python float</span>
     <span class="n">harvests</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -1018,7 +1016,7 @@ Total harvest: 212.66322943492605
 </section>
 </section>
 <section id="discretization-and-interpolation">
-<h2><span class="section-number">10.4. </span>Discretization and Interpolation<a class="headerlink" href="#discretization-and-interpolation" title="Link to this heading">#</a></h2>
+<h2>Discretization and Interpolation<a class="headerlink" href="#discretization-and-interpolation" title="Link to this heading">#</a></h2>
 <p>In many real-world problems, such as our resource management example, the state space is inherently continuous. However, the dynamic programming algorithm we’ve discussed operates on discrete state spaces. To bridge this gap, we have two main approaches: discretization and interpolation. In the previous example, we used a discretization method by rounding off values to the nearest grid point.</p>
 <p>In our idealized models, we imagined population sizes as whole numbers—1 fish, 2 fish, 3 fish—but nature rarely conforms to such simplicity. What do you do when your survey reports 42.7 fish, for example? Without much explanation, our reflex in the previous example was to simply round things off. After all, what’s the harm in calling 42.7 fish just 43? This approach, known as discretization, is the simplest way to handle continuous states. It’s like overlaying a grid on a smooth landscape and only allowing yourself to stand at the intersections. In our demo code, we implemented this step via the <a class="reference external" href="https://numpy.org/doc/2.0/reference/generated/numpy.searchsorted.html">numpy.searchsorted</a> function.</p>
 <p>Discretization is straightforward and allows you to apply dynamic programming algorithms directly. For many problems, it might even be sufficient. However, as you might imagine from the various time discretization schemes we’ve encountered in trajectory optimization, we can do better. Specifically, we want to address the following issues:</p>
@@ -1029,7 +1027,7 @@ Total harvest: 212.66322943492605
 </ol>
 <p>Rather than confining ourselves to grid intersections as we did with basic discretization, we can estimate the value between them via interpolation. When you encounter a state that doesn’t exactly match a grid point—like that population of 42.7 fish—you can estimate its value based on nearby points you’ve already calculated. In its simplest form, we could use linear interpolation. Intuitively, it’s like estimating the height of a hill between two surveyed points by drawing a straight line between them. Let’s formalize this approach in the context of the backward induction procedure.</p>
 <section id="backward-recursion-with-interpolation">
-<h3><span class="section-number">10.4.1. </span>Backward Recursion with Interpolation<a class="headerlink" href="#backward-recursion-with-interpolation" title="Link to this heading">#</a></h3>
+<h3>Backward Recursion with Interpolation<a class="headerlink" href="#backward-recursion-with-interpolation" title="Link to this heading">#</a></h3>
 <p>In a continuous state space, we don’t have <span class="math notranslate nohighlight">\(J_{k+1}^\star(\mathbf{x}_{k+1})\)</span> directly available for all possible <span class="math notranslate nohighlight">\(\mathbf{x}_{k+1}\)</span>. Instead, we have <span class="math notranslate nohighlight">\(J_{k+1}^\star(\mathbf{x})\)</span> for a set of discrete grid points <span class="math notranslate nohighlight">\(\mathbf{x} \in \mathcal{X}_\text{grid}\)</span>. We use interpolation to estimate <span class="math notranslate nohighlight">\(J_{k+1}^\star(\mathbf{x}_{k+1})\)</span> for any <span class="math notranslate nohighlight">\(\mathbf{x}_{k+1}\)</span> not in <span class="math notranslate nohighlight">\(\mathcal{X}_\text{grid}\)</span>.</p>
 <p>Let’s define an interpolation function <span class="math notranslate nohighlight">\(I_{k+1}(\mathbf{x})\)</span> that estimates <span class="math notranslate nohighlight">\(J_{k+1}^\star(\mathbf{x})\)</span> for any <span class="math notranslate nohighlight">\(\mathbf{x}\)</span> based on the known values at grid points. Then, we can express Bellman’s equation with interpolation as:</p>
 <div class="math notranslate nohighlight">
@@ -1044,7 +1042,7 @@ I_{k+1}(x) = J_{k+1}^\star(x_l) + \frac{x - x_l}{x_u - x_l} \left(J_{k+1}^\star(
 <p>where <span class="math notranslate nohighlight">\(x_l\)</span> and <span class="math notranslate nohighlight">\(x_u\)</span> are the nearest lower and upper grid points to <span class="math notranslate nohighlight">\(x\)</span>, respectively.</p>
 <p>Here’s a pseudo-code algorithm for backward recursion with interpolation:</p>
 <div class="proof algorithm admonition" id="backward-recursion-interpolation">
-<p class="admonition-title"><span class="caption-number">Algorithm 10.2 </span> (Backward Recursion with Interpolation for Dynamic Programming)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 13 </span> (Backward Recursion with Interpolation for Dynamic Programming)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong></p>
 <ul class="simple">
@@ -1089,7 +1087,7 @@ I_{k+1}(x) = J_{k+1}^\star(x_l) + \frac{x - x_l}{x_u - x_l} \left(J_{k+1}^\star(
 <p>While simple to implement, interpolation methods scale poorly in multi-dimensional spaces in terms of computational complexity. Techniques like multilinear interpolation with tensorized representations or more advanced methods like radial basis function interpolation might be necessary.</p>
 <p>To better address this computational challenge, we will broaden our perspective through the lens of numerical approximation methods for solving functional operator equations. Polynomial interpolation is a form of approximation, with properties akin to generalization in machine learning. By building these connections, we will develop techniques capable of more robustly handling the curse of dimensionality by leveraging the generalization properties of machine learning models, and the “blessing of randomness” inherent in supervised learning and Monte Carlo methods.</p>
 <section id="example-optimal-harvest-with-linear-interpolation">
-<h4><span class="section-number">10.4.1.1. </span>Example: Optimal Harvest with Linear Interpolation<a class="headerlink" href="#example-optimal-harvest-with-linear-interpolation" title="Link to this heading">#</a></h4>
+<h4>Example: Optimal Harvest with Linear Interpolation<a class="headerlink" href="#example-optimal-harvest-with-linear-interpolation" title="Link to this heading">#</a></h4>
 <p>Here is a demonstration of the backward recursion procedure using linear interpolation.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="hide above-input">
@@ -1098,7 +1096,7 @@ I_{k+1}(x) = J_{k+1}^\star(x_l) + \frac{x - x_l}{x_u - x_l} \left(J_{k+1}^\star(
 <span class="expanded">Hide code cell source</span>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="c1"># Parameters</span>
 <span class="n">r_max</span> <span class="o">=</span> <span class="mf">0.3</span>
@@ -1117,19 +1115,19 @@ I_{k+1}(x) = J_{k+1}^\star(x_l) + \frac{x - x_l}{x_u - x_l} \left(J_{k+1}^\star(
 <span class="n">policy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">T</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">N_space</span><span class="p">)))</span>
 
 <span class="c1"># Terminal value function (F_T)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">terminal_value</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">terminal_value</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
     <span class="k">return</span> <span class="mi">0</span>
 
 <span class="c1"># State return function (F)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">state_return</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">state_return</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">N</span> <span class="o">*</span> <span class="n">h</span>
 
 <span class="c1"># State dynamics function</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">state_dynamics</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">state_dynamics</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">N</span> <span class="o">+</span> <span class="n">r_max</span> <span class="o">*</span> <span class="n">N</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">N</span> <span class="o">/</span> <span class="n">K</span><span class="p">)</span> <span class="o">-</span> <span class="n">N</span> <span class="o">*</span> <span class="n">h</span>
 
 <span class="c1"># Function to linearly interpolate between grid points in N_space</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">interpolate_value_function</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">N_space</span><span class="p">,</span> <span class="n">next_N</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">interpolate_value_function</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">N_space</span><span class="p">,</span> <span class="n">next_N</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">next_N</span> <span class="o">&lt;=</span> <span class="n">N_space</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
         <span class="k">return</span> <span class="n">V</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>  <span class="c1"># Below or at minimum population, return minimum value</span>
     <span class="k">if</span> <span class="n">next_N</span> <span class="o">&gt;=</span> <span class="n">N_space</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
@@ -1170,7 +1168,7 @@ I_{k+1}(x) = J_{k+1}^\star(x_l) + \frac{x - x_l}{x_u - x_l} \left(J_{k+1}^\star(
         <span class="n">policy</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">best_h</span>
 
 <span class="c1"># Function to simulate the optimal policy using interpolation</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">simulate_optimal_policy</span><span class="p">(</span><span class="n">initial_N</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">simulate_optimal_policy</span><span class="p">(</span><span class="n">initial_N</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
     <span class="n">trajectory</span> <span class="o">=</span> <span class="p">[</span><span class="n">initial_N</span><span class="p">]</span>
     <span class="n">harvests</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -1233,8 +1231,8 @@ Total harvest: 213.2660649869655
 <span class="expanded">Hide code cell source</span>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.interpolate</span><span class="w"> </span><span class="kn">import</span> <span class="n">interp1d</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">interp1d</span>
 
 <span class="c1"># Parameters</span>
 <span class="n">r_max</span> <span class="o">=</span> <span class="mf">0.3</span>
@@ -1253,19 +1251,19 @@ Total harvest: 213.2660649869655
 <span class="n">policy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">T</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">N_space</span><span class="p">)))</span>
 
 <span class="c1"># Terminal value function (F_T)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">terminal_value</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">terminal_value</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
     <span class="k">return</span> <span class="mi">0</span>
 
 <span class="c1"># State return function (F)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">state_return</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">state_return</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">N</span> <span class="o">*</span> <span class="n">h</span>
 
 <span class="c1"># State dynamics function</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">state_dynamics</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">state_dynamics</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">N</span> <span class="o">+</span> <span class="n">r_max</span> <span class="o">*</span> <span class="n">N</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">N</span> <span class="o">/</span> <span class="n">K</span><span class="p">)</span> <span class="o">-</span> <span class="n">N</span> <span class="o">*</span> <span class="n">h</span>
 
 <span class="c1"># Function to create interpolation function for a given time step</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">create_interpolator</span><span class="p">(</span><span class="n">V_t</span><span class="p">,</span> <span class="n">N_space</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">create_interpolator</span><span class="p">(</span><span class="n">V_t</span><span class="p">,</span> <span class="n">N_space</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">N_space</span><span class="p">,</span> <span class="n">V_t</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;cubic&#39;</span><span class="p">,</span> <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="p">(</span><span class="n">V_t</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">V_t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
 
 <span class="c1"># Backward iteration with interpolation</span>
@@ -1295,7 +1293,7 @@ Total harvest: 213.2660649869655
         <span class="n">policy</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">best_h</span>
 
 <span class="c1"># Function to simulate the optimal policy using interpolation</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">simulate_optimal_policy</span><span class="p">(</span><span class="n">initial_N</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">simulate_optimal_policy</span><span class="p">(</span><span class="n">initial_N</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
     <span class="n">trajectory</span> <span class="o">=</span> <span class="p">[</span><span class="n">initial_N</span><span class="p">]</span>
     <span class="n">harvests</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -1551,7 +1549,7 @@ By tuning the weight $r$ and the sampling time $T_s$, we can balance the trade-o
 </section>
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="stochastic-dynamic-programming-in-control-theory">
-<h1><span class="section-number">11. </span>Stochastic Dynamic Programming in Control Theory<a class="headerlink" href="#stochastic-dynamic-programming-in-control-theory" title="Link to this heading">#</a></h1>
+<h1>Stochastic Dynamic Programming in Control Theory<a class="headerlink" href="#stochastic-dynamic-programming-in-control-theory" title="Link to this heading">#</a></h1>
 <p>While our previous discussion centered on deterministic systems, many real-world problems involve uncertainty. Stochastic Dynamic Programming (SDP) extends our framework to handle stochasticity in both the objective function and system dynamics.</p>
 <p>In the stochastic setting, our system evolution takes the form:</p>
 <div class="math notranslate nohighlight">
@@ -1570,7 +1568,7 @@ By tuning the weight $r$ and the sampling time $T_s$, we can balance the trade-o
 \[ J_k^\star(\mathbf{x}_k) = \min_{\mathbf{u}_k} \sum_{i=1}^K p_k^i \left(c_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k^i) + J_{k+1}^\star(\mathbf{f}_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k^i))\right) \]</div>
 <p>The backward recursion algorithm for SDP follows a similar structure to its deterministic counterpart, with the key difference being that we now have to compute expected values:</p>
 <div class="proof algorithm admonition" id="stochastic-backward-recursion">
-<p class="admonition-title"><span class="caption-number">Algorithm 11.1 </span> (Backward Recursion for Stochastic Dynamic Programming)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 14 </span> (Backward Recursion for Stochastic Dynamic Programming)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Terminal cost function <span class="math notranslate nohighlight">\(c_\mathrm{T}(\cdot)\)</span>, stage cost functions <span class="math notranslate nohighlight">\(c_t(\cdot, \cdot, \cdot)\)</span>, system dynamics <span class="math notranslate nohighlight">\(\mathbf{f}_t(\cdot, \cdot, \cdot)\)</span>, time horizon <span class="math notranslate nohighlight">\(\mathrm{T}\)</span>, disturbance distributions</p>
 <p><strong>Output:</strong> Optimal value functions <span class="math notranslate nohighlight">\(J_t^\star(\cdot)\)</span> and optimal control policies <span class="math notranslate nohighlight">\(\mu_t^\star(\cdot)\)</span> for <span class="math notranslate nohighlight">\(t = 1, \ldots, T\)</span></p>
@@ -1599,8 +1597,8 @@ By tuning the weight $r$ and the sampling time $T_s$, we can balance the trade-o
 </ol>
 <p>These two elements essentially distill the key ingredients of machine learning, which is the direction we’ll be exploring in this course.</p>
 <section id="example-stochastic-optimal-harvest-in-resource-management">
-<h2><span class="section-number">11.1. </span>Example: Stochastic Optimal Harvest in Resource Management<a class="headerlink" href="#example-stochastic-optimal-harvest-in-resource-management" title="Link to this heading">#</a></h2>
-<p>Building upon our previous deterministic model, we now introduce stochasticity to more accurately reflect the uncertainties inherent in real-world resource management scenarios <span id="id3">[<a class="reference internal" href="bibliography.html#id22" title="Michael J. Conroy and James T. Peterson. Decision Making in Natural Resource Management: A Structured, Adaptive Approach: A Structured, Adaptive Approach. Wiley, January 2013. ISBN 9781118506196. URL: http://dx.doi.org/10.1002/9781118506196, doi:10.1002/9781118506196.">7</a>]</span>. As before, we consider a population of a particular species, whose abundance we denote by <span class="math notranslate nohighlight">\(x_t\)</span>, where <span class="math notranslate nohighlight">\(t\)</span> represents discrete time steps. Our objective remains to maximize the cumulative harvest over a finite time horizon, while also considering the long-term sustainability of the population. However, we now account for two sources of stochasticity: partial controllability of harvest and environmental variability affecting growth rates.
+<h2>Example: Stochastic Optimal Harvest in Resource Management<a class="headerlink" href="#example-stochastic-optimal-harvest-in-resource-management" title="Link to this heading">#</a></h2>
+<p>Building upon our previous deterministic model, we now introduce stochasticity to more accurately reflect the uncertainties inherent in real-world resource management scenarios <span id="id3">[<a class="reference internal" href="bibliography.html#id22" title="Michael J. Conroy and James T. Peterson. Decision Making in Natural Resource Management: A Structured, Adaptive Approach: A Structured, Adaptive Approach. Wiley, January 2013. ISBN 9781118506196. URL: http://dx.doi.org/10.1002/9781118506196, doi:10.1002/9781118506196.">9</a>]</span>. As before, we consider a population of a particular species, whose abundance we denote by <span class="math notranslate nohighlight">\(x_t\)</span>, where <span class="math notranslate nohighlight">\(t\)</span> represents discrete time steps. Our objective remains to maximize the cumulative harvest over a finite time horizon, while also considering the long-term sustainability of the population. However, we now account for two sources of stochasticity: partial controllability of harvest and environmental variability affecting growth rates.
 The optimization problem can be formulated as:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1643,8 +1641,8 @@ J^\star(x_t, t) = \max_{d(t) \in D} \mathbb{E}\left[F(x_t \cdot h_t) + J^\star(x
 <span class="expanded">Hide code cell source</span>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.interpolate</span><span class="w"> </span><span class="kn">import</span> <span class="n">interp1d</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">interp1d</span>
 
 <span class="c1"># Parameters</span>
 <span class="n">r_max</span> <span class="o">=</span> <span class="mf">0.3</span>
@@ -1669,15 +1667,15 @@ J^\star(x_t, t) = \max_{d(t) \in D} \mathbb{E}\left[F(x_t \cdot h_t) + J^\star(x
 <span class="n">policy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">T</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">N_space</span><span class="p">)))</span>
 
 <span class="c1"># State return function (F)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">state_return</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">state_return</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">N</span> <span class="o">*</span> <span class="n">h</span>
 
 <span class="c1"># State dynamics function (stochastic)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">state_dynamics</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">r</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">state_dynamics</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">r</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">N</span> <span class="o">+</span> <span class="n">r</span> <span class="o">*</span> <span class="n">N</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">N</span> <span class="o">/</span> <span class="n">K</span><span class="p">)</span> <span class="o">-</span> <span class="n">h</span> <span class="o">*</span> <span class="n">N</span>
 
 <span class="c1"># Function to create interpolation function for a given time step</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">create_interpolator</span><span class="p">(</span><span class="n">V_t</span><span class="p">,</span> <span class="n">N_space</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">create_interpolator</span><span class="p">(</span><span class="n">V_t</span><span class="p">,</span> <span class="n">N_space</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">N_space</span><span class="p">,</span> <span class="n">V_t</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="p">(</span><span class="n">V_t</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">V_t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
 
 <span class="c1"># Backward iteration with stochastic dynamics</span>
@@ -1714,7 +1712,7 @@ J^\star(x_t, t) = \max_{d(t) \in D} \mathbb{E}\left[F(x_t \cdot h_t) + J^\star(x
         <span class="n">policy</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">best_h</span>
 
 <span class="c1"># Function to simulate the optimal policy using interpolation (stochastic version)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">simulate_optimal_policy</span><span class="p">(</span><span class="n">initial_N</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">num_simulations</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">simulate_optimal_policy</span><span class="p">(</span><span class="n">initial_N</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">num_simulations</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
     <span class="n">all_trajectories</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">all_harvests</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -1759,7 +1757,7 @@ J^\star(x_t, t) = \max_{d(t) \in D} \mathbb{E}\left[F(x_t \cdot h_t) + J^\star(x
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Average total harvest:&quot;</span><span class="p">,</span> <span class="n">avg_total_harvest</span><span class="p">)</span>
 
 <span class="c1"># Plot results</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">121</span><span class="p">)</span>
@@ -1866,7 +1864,7 @@ Average total harvest: 313.15823654307206
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title"><span class="section-number">6. </span>Continuous-Time Trajectory Optimization</p>
+        <p class="prev-next-title">Continuous-Time Trajectory Optimization</p>
       </div>
     </a>
     <a class="right-next"
@@ -1874,7 +1872,7 @@ Average total harvest: 313.15823654307206
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title"><span class="section-number">12. </span>Dynamic Programming</p>
+        <p class="prev-next-title">Dynamic Programming</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -1885,7 +1883,8 @@ Average total harvest: 313.15823654307206
             
             
               
-                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
   <div class="sidebar-secondary-item">
@@ -1894,32 +1893,32 @@ Average total harvest: 313.15823654307206
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">8. From Trajectories to Policies</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#closing-the-loop-by-replanning">9. Closing the Loop by Replanning</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-propofol-infusion-control">9.1. Example: Propofol Infusion Control</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">From Trajectories to Policies</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#closing-the-loop-by-replanning">Closing the Loop by Replanning</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-propofol-infusion-control">Example: Propofol Infusion Control</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#computational-efficiency-improvements">10. Computational Efficiency Improvements</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#explicit-mpc">10.1. Explicit MPC</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#amortized-optimization-and-neural-networks">10.1.1. Amortized Optimization and Neural Networks</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#computational-efficiency-improvements">Computational Efficiency Improvements</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#explicit-mpc">Explicit MPC</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#amortized-optimization-and-neural-networks">Amortized Optimization and Neural Networks</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#warmstarting-and-predictor-corrector-mpc">10.2. Warmstarting and Predictor-Corrector MPC</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#backward-recursion">10.3. Backward Recursion</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-optimal-harvest-in-resource-management">10.3.1. Example: Optimal Harvest in Resource Management</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#warmstarting-and-predictor-corrector-mpc">Warmstarting and Predictor-Corrector MPC</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#backward-recursion">Backward Recursion</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-optimal-harvest-in-resource-management">Example: Optimal Harvest in Resource Management</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#discretization-and-interpolation">10.4. Discretization and Interpolation</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#backward-recursion-with-interpolation">10.4.1. Backward Recursion with Interpolation</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#example-optimal-harvest-with-linear-interpolation">10.4.1.1. Example: Optimal Harvest with Linear Interpolation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#discretization-and-interpolation">Discretization and Interpolation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#backward-recursion-with-interpolation">Backward Recursion with Interpolation</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#example-optimal-harvest-with-linear-interpolation">Example: Optimal Harvest with Linear Interpolation</a></li>
 </ul>
 </li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-dynamic-programming-in-control-theory">11. Stochastic Dynamic Programming in Control Theory</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-stochastic-optimal-harvest-in-resource-management">11.1. Example: Stochastic Optimal Harvest in Resource Management</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-dynamic-programming-in-control-theory">Stochastic Dynamic Programming in Control Theory</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-stochastic-optimal-harvest-in-resource-management">Example: Stochastic Optimal Harvest in Resource Management</a></li>
 </ul>
 </li>
 </ul>
@@ -1971,8 +1970,8 @@ By Pierre-Luc Bacon
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549"></script>
 
   <footer class="bd-footer">
   </footer>
