@@ -3,14 +3,29 @@
 
 format: jb-book
 root: intro
-chapters:
-- file: modeling
-- file: ocp
-- file: cocp
-- file: mpc
-- file: dp
-- file: adp
-- file: cadp
-- file: bibliography
+
+parts:
+  - caption: Modeling
+    chapters:
+      - file: modeling
+      - file: ssm
+      - file: simulation
+
+  - caption: Optimization-Based Decision Making
+    chapters:
+      - file: ocp
+      - file: cocp
+      - file: mpc
+      - file: dp
+
+  - caption: Learning from Data
+    chapters:
+      - file: adp
+      - file: cadp
+
+  - caption: References
+    chapters:
+      - file: bibliography
+
 options:
   numbered: true
