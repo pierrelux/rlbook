@@ -36,6 +36,7 @@ html:
   baseurl: ""
   extra_javascript:
     - https://d3js.org/d3.v7.min.js
+  
 sphinx:
   extra_extensions:
     - sphinx_proof
@@ -54,7 +55,9 @@ sphinx:
         macros:
           "bm": ["{\\boldsymbol #1}",1]
         processEscapes: True
-
+  html_static_path: ["_static"]
+  html_css_files:
+      - custom.css  
 parse:
   myst_enable_extensions:
     - dollarmath

@@ -23,6 +23,10 @@ parts:
       - file: adp
       - file: cadp
 
+  - caption: Appendix
+    chapters:
+      - file: appendix
+
   - caption: References
     chapters:
       - file: bibliography
