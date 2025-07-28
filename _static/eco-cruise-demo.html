@@ -1,630 +1,528 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eco-Cruise Optimization Visualization</title>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Additional custom styles if needed */
-        .car-svg {
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Eco-Cruise Optimization Visualization</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --accent: #0ea5e9;  /* sky-500 */
+      --muted:  #e5e7eb;  /* neutral-200 */
+    }
+    body { font-family: 'Inter', sans-serif; background:#fafafa; }
+    .car-svg { filter: drop-shadow(0 2px 4px rgba(0,0,0,.15)); }
+  </style>
 </head>
 <body>
-    <div id="root"></div>
+  <div id="root"></div>
 
-    <script type="text/babel">
-        // Import the component (in a real app, you'd use proper module imports)
-        // For this demo, we'll include the component code directly
-        
-        /** --- 1) SVG car (reuse for both lanes) --- **/
-        const CarSVG = () => (
-          <svg viewBox="0 0 2000 1000" className="w-full h-full drop-shadow-lg">
-            <g>
-              <path fill="#4CAF50" d="M1429.1,368.9L1429.1,368.9c22.9,86.1,22.9,176.6,0,262.7l0,0c-7,26.3-84.9,44.6-112,44.6H696.3 c-36.8,0-106-22.4-119.6-56.6l0,0c-30.6-76.6-30.6-162,0-238.6l0,0c13.7-34.2,82.8-56.6,119.6-56.6h620.8 C1344.3,324.3,1422.2,342.6,1429.1,368.9z"/>
-              <path fill="#45a049" d="M1409.4,374.9L1409.4,374.9c21.8,82.1,21.8,168.5,0,250.7l0,0c-6.7,25.1-81,42.5-106.9,42.5H710.3 c-35.1,0-101.1-21.4-114.1-54l0,0c-29.2-73.1-29.2-154.6,0-227.7l0,0c13-32.6,79-54,114.1-54h592.2 C1328.4,332.4,1402.7,349.9,1409.4,374.9z"/>
-              <path fill="#2E7D32" d="M818.2,672.2l20.3,35.9c3.4,6.1,9.9,9.8,16.9,9.8l0,0c2.8,0,4.8-2.7,4.1-5.3l-11-40.4H818.2z"/>
-              <path fill="#2E7D32" d="M818.2,328.3l20.3-35.9c3.4-6.1,9.9-9.8,16.9-9.8l0,0c2.8,0,4.8,2.7,4.1,5.3l-11,40.4H818.2z"/>
-              <path fill="#46484B" d="M1060.6,656.5c1.1,0,2.2,0,3.3,0c86.7,0,173.3-5.4,173.3-5.4s-63.1-21.6-86.6-21.6h-84.9 C1063.6,638.4,1061.9,647.5,1060.6,656.5z"/>
-              <path fill="#46484B" d="M1055.7,629.5h-79.1c-13.5,0-86,21.6-86,21.6s76.1,4.8,157.1,5.3C1049.9,647.4,1052.7,638.4,1055.7,629.5z"/>
-              <path fill="#46484B" d="M1060.6,343.9c1.1,0,2.2,0,3.3,0c86.7,0,173.3,5.4,173.3,5.4s-63.1,21.6-86.6,21.6h-84.9 C1063.6,362.1,1061.9,353,1060.6,343.9z"/>
-              <path fill="#46484B" d="M1055.7,371h-79.1c-13.5,0-86-21.6-86-21.6s76.1-4.8,157.1-5.3C1049.9,353.1,1052.7,362.1,1055.7,371z"/>
-              <path fill="#46484B" d="M953.1,619.6L827.7,652c0,0-47.8-34.3-47.8-151.8s47.8-151.8-47.8-151.8l125.4,32.5 c0,0-15.3,65.5-15.3,119.3S953.1,619.6,953.1,619.6z M1230.7,391.1c4.5,19.7,13.8,69.9,13.8,109.1s-9.2,89.5-13.8,109.1 c-1.2,5.3,2.7,10.3,8.1,10.5l114.4,4c3.1,0.1,6.1-1.5,7.7-4.2c27.2-45.9,23.4-119.4,23.4-119.4s3.8-73.6-23.4-119.4 c-1.6-2.7-4.6-4.3-7.7-4.2l-114.4,4C1233.4,380.7,1229.5,385.8,1230.7,391.1z"/>
-              <path fill="#87CEEB" d="M639.8,652c-6.7-26.9-37.3-44.3-45.3-43.2c4.3,7.8,9.5,14.9,15.9,21.3C618.7,638.5,628.7,645.8,639.8,652z"/>
-              <path fill="#87CEEB" d="M639.8,348.5c-6.7,26.9-37.3,44.3-45.3,43.2c4.3-7.8,9.5-14.9,15.9-21.3 C618.7,361.9,628.7,354.6,639.8,348.5z"/>
-              <path fill="#FFD700" d="M1416.7,608.9c-3.5,10-9.6,19.2-17.9,26.8c-2.1,2-4.5,3.9-5.8,6.3c-0.9,1.7-1.2,3.7-0.7,5.5 c16.6-10.6,28.1-26.8,30.9-45.4c-0.1,0-0.1,0-0.2,0C1419.5,602.2,1417.8,605.9,1416.7,608.9z"/>
-              <path fill="#FFD700" d="M1416.7,391.6c-3.5-10-9.6-19.2-17.9-26.8c-2.1-2-4.5-3.9-5.8-6.3c-0.9-1.7-1.2-3.7-0.7-5.5 c16.6,10.6,28.1,26.8,30.9,45.4c-0.1,0-0.1,0-0.2,0C1419.5,398.3,1417.8,394.6,1416.7,391.6z"/>
-              <path fill="#46484B" d="M582.4,546.5v-92.6c0-11.2-1.4-22.1-3.9-32.5c-8,11.8-12.3,25.7-12.3,40V539c0,14.3,4.3,28.2,12.3,40 C581,568.6,582.4,557.7,582.4,546.5z"/>
-            </g>
-          </svg>
-        );
+  <script type="text/babel">
+    /** --- 1) SVG car (reuse for both lanes) --- **/
+    const CarSVG = () => (
+      <svg viewBox="0 0 2000 1000" className="w-full h-full car-svg">
+        <g>
+          <path fill="#4CAF50" d="M1429.1,368.9L1429.1,368.9c22.9,86.1,22.9,176.6,0,262.7l0,0c-7,26.3-84.9,44.6-112,44.6H696.3 c-36.8,0-106-22.4-119.6-56.6l0,0c-30.6-76.6-30.6-162,0-238.6l0,0c13.7-34.2,82.8-56.6,119.6-56.6h620.8 C1344.3,324.3,1422.2,342.6,1429.1,368.9z"/>
+          <path fill="#45a049" d="M1409.4,374.9L1409.4,374.9c21.8,82.1,21.8,168.5,0,250.7l0,0c-6.7,25.1-81,42.5-106.9,42.5H710.3 c-35.1,0-101.1-21.4-114.1-54l0,0c-29.2-73.1-29.2-154.6,0-227.7l0,0c13-32.6,79-54,114.1-54h592.2 C1328.4,332.4,1402.7,349.9,1409.4,374.9z"/>
+          <path fill="#2E7D32" d="M818.2,672.2l20.3,35.9c3.4,6.1,9.9,9.8,16.9,9.8l0,0c2.8,0,4.8-2.7,4.1-5.3l-11-40.4H818.2z"/>
+          <path fill="#2E7D32" d="M818.2,328.3l20.3-35.9c3.4-6.1,9.9-9.8,16.9-9.8l0,0c2.8,0,4.8,2.7,4.1,5.3l-11,40.4H818.2z"/>
+          <path fill="#46484B" d="M1060.6,656.5c1.1,0,2.2,0,3.3,0c86.7,0,173.3-5.4,173.3-5.4s-63.1-21.6-86.6-21.6h-84.9 C1063.6,638.4,1061.9,647.5,1060.6,656.5z"/>
+          <path fill="#46484B" d="M1055.7,629.5h-79.1c-13.5,0-86,21.6-86,21.6s76.1,4.8,157.1,5.3C1049.9,647.4,1052.7,638.4,1055.7,629.5z"/>
+          <path fill="#46484B" d="M1060.6,343.9c1.1,0,2.2,0,3.3,0c86.7,0,173.3,5.4,173.3-5.4s-63.1-21.6-86.6-21.6h-84.9 C1063.6,362.1,1061.9,353,1060.6,343.9z"/>
+          <path fill="#46484B" d="M1055.7,371h-79.1c-13.5,0-86-21.6-86-21.6s76.1-4.8,157.1-5.3C1049.9,353.1,1052.7,362.1,1055.7,371z"/>
+          <path fill="#46484B" d="M953.1,619.6L827.7,652c0,0-47.8-34.3-47.8-151.8s47.8-151.8-47.8-151.8l125.4,32.5 c0,0-15.3,65.5-15.3,119.3S953.1,619.6,953.1,619.6z M1230.7,391.1c4.5,19.7,13.8,69.9,13.8,109.1s-9.2,89.5-13.8,109.1 c-1.2,5.3,2.7,10.3,8.1,10.5l114.4,4c3.1,0.1,6.1-1.5,7.7-4.2c27.2-45.9,23.4-119.4,23.4-119.4s3.8-73.6-23.4-119.4 c-1.6-2.7-4.6-4.3-7.7-4.2l-114.4,4C1233.4,380.7,1229.5,385.8,1230.7,391.1z"/>
+          <path fill="#87CEEB" d="M639.8,652c-6.7-26.9-37.3-44.3-45.3-43.2c4.3,7.8,9.5,14.9,15.9,21.3C618.7,638.5,628.7,645.8,639.8,652z"/>
+          <path fill="#87CEEB" d="M639.8,348.5c-6.7,26.9-37.3,44.3-45.3,43.2c4.3-7.8,9.5-14.9,15.9-21.3 C618.7,361.9,628.7,354.6,639.8,348.5z"/>
+          <path fill="#FFD700" d="M1416.7,608.9c-3.5,10-9.6,19.2-17.9,26.8c-2.1,2-4.5,3.9-5.8,6.3c-0.9,1.7-1.2,3.7-0.7,5.5 c16.6-10.6,28.1-26.8,30.9-45.4c-0.1,0-0.1,0-0.2,0C1419.5,602.2,1417.8,605.9,1416.7,608.9z"/>
+          <path fill="#FFD700" d="M1416.7,391.6c-3.5-10-9.6-19.2-17.9-26.8c-2.1-2-4.5-3.9-5.8-6.3c-0.9-1.7-1.2-3.7-0.7-5.5 c16.6,10.6,28.1,26.8,30.9,45.4c-0.1,0-0.1,0-0.2,0C1419.5,398.3,1417.8,394.6,1416.7,391.6z"/>
+          <path fill="#46484B" d="M582.4,546.5v-92.6c0-11.2-1.4-22.1-3.9-32.5c-8,11.8-12.3,25.7-12.3,40V539c0,14.3,4.3,28.2,12.3,40 C581,568.6,582.4,557.7,582.4,546.5z"/>
+        </g>
+      </svg>
+    );
 
-        /** --- 2) Generic Car wrapper --- **/
-        const CAR_W = 80;
-        const CAR_H = 40;
+    /** --- 2) Generic Car wrapper --- **/
+    const CAR_W = 80;
+    const CAR_H = 40;
 
-        const Car = ({ style }) => (
-          <div className="absolute transition-transform duration-100"
-               style={{ top: '42px', width: CAR_W, height: CAR_H, ...style }}>
-            <CarSVG />
-          </div>
-        );
+    const Car = ({ style }) => (
+      <div className="absolute transition-transform duration-100"
+           style={{ top: '42px', width: CAR_W, height: CAR_H, ...style }}>
+        <CarSVG />
+      </div>
+    );
 
-        /** --- 3) Main component --- **/
-        const EcoCruiseOptimization = () => {
-          const [trajectoryData, setTrajectoryData] = React.useState(null);
-          const [animationSpeed, setAnimationSpeed] = React.useState(1);
-          const [isAnimating, setIsAnimating] = React.useState(false);
-          const [currentFrame, setCurrentFrame] = React.useState(0);
-          const [showSummary, setShowSummary] = React.useState(false);
-          const [errorMessage, setErrorMessage] = React.useState('');
-          const [isLoading, setIsLoading] = React.useState(true);
+    /** --- 2.5) Front bumper cost bar component --- **/
+    const FrontBar = ({ left, d, beta = 1.0, gamma = 0.1 }) => {
+      const k = 40;                              // pixels per unit cost (visual scale)
+      const u = d?.acceleration ?? 0;
+      const v = d?.velocity ?? 0;
 
-          const animationRef = React.useRef(null);
-          const fileInputRef = React.useRef(null);
+      const accel = 0.5 * beta * u * u;
+      const speed = 0.5 * gamma * v * v;
 
-          const ecoRoadRef = React.useRef(null);
-          const ecoStartRef = React.useRef(null);
-          const ecoFinishRef = React.useRef(null);
-          const naiveRoadRef = React.useRef(null);
-          const naiveStartRef = React.useRef(null);
-          const naiveFinishRef = React.useRef(null);
+      const accelW = accel * k;
+      const speedW = speed * k;
+      const totalW = Math.max(accelW + speedW, 18);   // minimum visibility
 
-          const [ecoGeom, setEcoGeom] = React.useState(null);
-          const [naiveGeom, setNaiveGeom] = React.useState(null);
+      const stripe =
+        Math.abs(u) < 1e-6 ? 'rgba(107,114,128,0.6)' : // gray
+        (u > 0 ? 'rgba(14,165,233,0.7)' : 'rgba(239,68,68,0.7)'); // teal / red
 
-          // Default trajectory data embedded directly
-          const defaultTrajectoryData = {
-            "eco_trajectory": [
-              {"time": 0.0, "position": 0.0, "velocity": 0.0, "acceleration": 3.0, "stageCost": 4.5, "cumulativeEnergy": 4.5},
-              {"time": 1.0, "position": 5.6920453200354325e-21, "velocity": 3.0, "acceleration": 3.0, "stageCost": 4.725, "cumulativeEnergy": 9.225},
-              {"time": 2.0, "position": 4.5, "velocity": 6.0, "acceleration": 3.0, "stageCost": 5.4, "cumulativeEnergy": 14.625},
-              {"time": 3.0, "position": 13.5, "velocity": 9.0, "acceleration": 3.0, "stageCost": 6.525, "cumulativeEnergy": 21.15},
-              {"time": 4.0, "position": 27.0, "velocity": 12.0, "acceleration": 3.0, "stageCost": 8.1, "cumulativeEnergy": 29.25},
-              {"time": 5.0, "position": 45.0, "velocity": 15.0, "acceleration": 3.0, "stageCost": 10.125, "cumulativeEnergy": 39.375},
-              {"time": 6.0, "position": 67.5, "velocity": 16.0, "acceleration": 1.0, "stageCost": 10.8, "cumulativeEnergy": 50.175},
-              {"time": 7.0, "position": 84.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 60.975},
-              {"time": 8.0, "position": 100.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 71.775},
-              {"time": 9.0, "position": 116.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 82.575},
-              {"time": 10.0, "position": 132.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 93.375},
-              {"time": 11.0, "position": 148.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 104.175},
-              {"time": 12.0, "position": 164.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 114.975},
-              {"time": 13.0, "position": 180.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 125.775},
-              {"time": 14.0, "position": 196.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 136.575},
-              {"time": 15.0, "position": 212.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 147.375},
-              {"time": 16.0, "position": 228.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 158.175},
-              {"time": 17.0, "position": 244.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 168.975},
-              {"time": 18.0, "position": 248.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 179.775},
-              {"time": 19.0, "position": 264.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 190.575},
-              {"time": 20.0, "position": 280.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 201.375},
-              {"time": 21.0, "position": 296.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 212.175},
-              {"time": 22.0, "position": 312.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 222.975},
-              {"time": 23.0, "position": 328.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 233.775},
-              {"time": 24.0, "position": 344.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 244.575},
-              {"time": 25.0, "position": 360.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 255.375},
-              {"time": 26.0, "position": 376.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 266.175},
-              {"time": 27.0, "position": 392.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 276.975},
-              {"time": 28.0, "position": 408.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 287.775},
-              {"time": 29.0, "position": 424.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 298.575},
-              {"time": 30.0, "position": 440.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 309.375},
-              {"time": 31.0, "position": 456.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 320.175},
-              {"time": 32.0, "position": 472.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 330.975},
-              {"time": 33.0, "position": 488.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 341.775},
-              {"time": 34.0, "position": 504.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 352.575},
-              {"time": 35.0, "position": 520.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 363.375},
-              {"time": 36.0, "position": 536.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 374.175},
-              {"time": 37.0, "position": 552.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 384.975},
-              {"time": 38.0, "position": 568.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 395.775},
-              {"time": 39.0, "position": 584.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 406.575},
-              {"time": 40.0, "position": 600.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 417.375},
-              {"time": 41.0, "position": 616.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 428.175},
-              {"time": 42.0, "position": 632.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 438.975},
-              {"time": 43.0, "position": 648.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 449.775},
-              {"time": 44.0, "position": 648.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 460.575},
-              {"time": 45.0, "position": 664.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 471.375},
-              {"time": 46.0, "position": 680.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 482.175},
-              {"time": 47.0, "position": 696.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 492.975},
-              {"time": 48.0, "position": 712.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 503.775},
-              {"time": 49.0, "position": 712.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 514.575},
-              {"time": 50.0, "position": 728.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 525.375},
-              {"time": 51.0, "position": 744.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 536.175},
-              {"time": 52.0, "position": 760.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 546.975},
-              {"time": 53.0, "position": 776.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 557.775},
-              {"time": 54.0, "position": 792.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 568.575},
-              {"time": 55.0, "position": 808.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 579.375},
-              {"time": 56.0, "position": 824.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 590.175},
-              {"time": 57.0, "position": 840.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 600.975},
-              {"time": 58.0, "position": 856.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 611.775},
-              {"time": 59.0, "position": 872.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 10.8, "cumulativeEnergy": 622.575},
-              {"time": 60.0, "position": 888.5, "velocity": 16.0, "acceleration": 0.0, "stageCost": 0.0, "cumulativeEnergy": 622.575}
-            ],
-            "naive_trajectory": [
-              {"time": 0.0, "position": 0.0, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 13.88888888888889},
-              {"time": 1.0, "position": 16.666666666666668, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 27.77777777777778},
-              {"time": 2.0, "position": 33.333333333333336, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 41.66666666666667},
-              {"time": 3.0, "position": 50.0, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 55.55555555555556},
-              {"time": 4.0, "position": 66.66666666666667, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 69.44444444444444},
-              {"time": 5.0, "position": 83.33333333333333, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 83.33333333333333},
-              {"time": 6.0, "position": 100.0, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 97.22222222222221},
-              {"time": 7.0, "position": 116.66666666666667, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 111.1111111111111},
-              {"time": 8.0, "position": 133.33333333333334, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 124.99999999999999},
-              {"time": 9.0, "position": 150.0, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 138.88888888888889},
-              {"time": 10.0, "position": 166.66666666666666, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 152.77777777777777},
-              {"time": 11.0, "position": 183.33333333333334, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 166.66666666666666},
-              {"time": 12.0, "position": 200.0, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 180.55555555555554},
-              {"time": 13.0, "position": 216.66666666666666, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 194.44444444444443},
-              {"time": 14.0, "position": 233.33333333333334, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 208.33333333333331},
-              {"time": 15.0, "position": 250.0, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 222.2222222222222},
-              {"time": 16.0, "position": 266.6666666666667, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 236.1111111111111},
-              {"time": 17.0, "position": 283.3333333333333, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 249.99999999999997},
-              {"time": 18.0, "position": 300.0, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 263.88888888888886},
-              {"time": 19.0, "position": 316.6666666666667, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 277.77777777777777},
-              {"time": 20.0, "position": 333.3333333333333, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 291.66666666666663},
-              {"time": 21.0, "position": 350.0, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 305.55555555555554},
-              {"time": 22.0, "position": 366.6666666666667, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 319.44444444444446},
-              {"time": 23.0, "position": 383.3333333333333, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 333.3333333333333},
-              {"time": 24.0, "position": 400.0, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 347.22222222222223},
-              {"time": 25.0, "position": 416.6666666666667, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 361.1111111111111},
-              {"time": 26.0, "position": 433.3333333333333, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 374.99999999999994},
-              {"time": 27.0, "position": 450.0, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 388.88888888888886},
-              {"time": 28.0, "position": 466.6666666666667, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 402.77777777777777},
-              {"time": 29.0, "position": 483.3333333333333, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 416.66666666666663},
-              {"time": 30.0, "position": 500.0, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 430.55555555555554},
-              {"time": 31.0, "position": 516.6666666666667, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 444.44444444444446},
-              {"time": 32.0, "position": 533.3333333333334, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 458.3333333333333},
-              {"time": 33.0, "position": 550.0, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 472.22222222222223},
-              {"time": 34.0, "position": 566.6666666666667, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 486.1111111111111},
-              {"time": 35.0, "position": 583.3333333333334, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 499.99999999999994},
-              {"time": 36.0, "position": 600.0, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 513.88888888888886},
-              {"time": 37.0, "position": 616.6666666666667, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 527.77777777777777},
-              {"time": 38.0, "position": 633.3333333333334, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 541.6666666666666},
-              {"time": 39.0, "position": 650.0, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 555.5555555555555},
-              {"time": 40.0, "position": 666.6666666666667, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 569.4444444444445},
-              {"time": 41.0, "position": 683.3333333333334, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 583.3333333333334},
-              {"time": 42.0, "position": 700.0, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 597.2222222222223},
-              {"time": 43.0, "position": 716.6666666666667, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 611.1111111111111},
-              {"time": 44.0, "position": 733.3333333333334, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 624.9999999999999},
-              {"time": 45.0, "position": 750.0, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 638.8888888888889},
-              {"time": 46.0, "position": 766.6666666666667, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 652.7777777777778},
-              {"time": 47.0, "position": 783.3333333333334, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 666.6666666666666},
-              {"time": 48.0, "position": 800.0, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 680.5555555555555},
-              {"time": 49.0, "position": 816.6666666666667, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 694.4444444444445},
-              {"time": 50.0, "position": 833.3333333333334, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 708.3333333333334},
-              {"time": 51.0, "position": 850.0, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 722.2222222222223},
-              {"time": 52.0, "position": 866.6666666666667, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 736.1111111111111},
-              {"time": 53.0, "position": 883.3333333333334, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 749.9999999999999},
-              {"time": 54.0, "position": 900.0, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 763.8888888888889},
-              {"time": 55.0, "position": 916.6666666666667, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 777.7777777777778},
-              {"time": 56.0, "position": 933.3333333333334, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 786.6666666666666},
-              {"time": 57.0, "position": 950.0, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 800.5555555555555},
-              {"time": 58.0, "position": 966.6666666666667, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 814.4444444444445},
-              {"time": 59.0, "position": 983.3333333333334, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 13.88888888888889, "cumulativeEnergy": 828.3333333333334},
-              {"time": 60.0, "position": 1000.0, "velocity": 16.666666666666668, "acceleration": 0.0, "stageCost": 0.0, "cumulativeEnergy": 828.3333333333334}
-            ],
-            "energy_savings_percent": 41.0,
-            "parameters": {
-              "beta": 1.0,
-              "gamma": 0.05,
-              "T": 60,
-              "v_max": 20.0,
-              "a_max": 3.0,
-              "distance": 1000.0
+      return (
+        <div
+          className="absolute h-3 rounded overflow-hidden ring-1 ring-neutral-300/60"
+          style={{ top: '54px', left, width: `${totalW}px`, zIndex: 60, background: 'transparent' }}
+        >
+          {/* Acceleration term */}
+          <div className="h-full bg-sky-500/35" style={{ width: `${accelW}px`, display: 'inline-block' }} />
+          {/* Speed term */}
+          <div className="h-full bg-neutral-700/25" style={{ width: `${speedW}px`, display: 'inline-block' }} />
+          {/* Control sign stripe (thin) */}
+          <div className="absolute top-0 left-0 right-0" style={{ height: '2px', background: stripe }} />
+        </div>
+      );
+    };
+
+    /** --- 3) Main component --- **/
+    const EcoCruiseOptimization = () => {
+      const [trajectoryData, setTrajectoryData] = React.useState(null);
+      const [isAnimating, setIsAnimating] = React.useState(false);
+      const [currentFrame, setCurrentFrame] = React.useState(0);
+      const [showSummary, setShowSummary] = React.useState(false);
+      const [errorMessage, setErrorMessage] = React.useState('');
+      const [isLoading, setIsLoading] = React.useState(true);
+
+      const animationRef = React.useRef(null);
+      const fileInputRef = React.useRef(null);
+
+      const ecoRoadRef = React.useRef(null);
+      const ecoStartRef = React.useRef(null);
+      const ecoFinishRef = React.useRef(null);
+      const naiveRoadRef = React.useRef(null);
+      const naiveStartRef = React.useRef(null);
+      const naiveFinishRef = React.useRef(null);
+
+      const [ecoGeom, setEcoGeom] = React.useState(null);
+      const [naiveGeom, setNaiveGeom] = React.useState(null);
+
+      // Load default trajectory data on component mount
+      React.useEffect(() => {
+        const loadDefaultData = async () => {
+          try {
+            setIsLoading(true);
+            // Determine the correct path based on current location
+            const currentPath = window.location.pathname;
+            let dataPath;
+            
+            if (currentPath.includes('/_static/')) {
+              // If we're in _static directory (embedded in book), use same directory
+              dataPath = 'trajectory_data.json';
+            } else {
+              // If we're at root level (opened directly), use _static
+              dataPath = '_static/trajectory_data.json';
             }
-          };
-
-          // Load default trajectory data on component mount
-          React.useEffect(() => {
-            const loadDefaultData = () => {
-              try {
-                setIsLoading(true);
-                loadTrajectoryData(defaultTrajectoryData);
-                console.log('Default trajectory data loaded successfully');
-              } catch (error) {
-                console.log('Could not load default trajectory data:', error.message);
-                setErrorMessage('Could not load default data. Please upload a trajectory file.');
-              } finally {
-                setIsLoading(false);
-              }
-            };
-
-            loadDefaultData();
-          }, []);
-
-          React.useLayoutEffect(() => {
-            if (!trajectoryData) return;
-
-            const measure = () => {
-              const mk = (roadRef, startRef, finishRef) => {
-                if (!roadRef.current || !startRef.current || !finishRef.current) {
-                  console.log('Missing refs for geometry calculation');
-                  return null;
-                }
-                const road = roadRef.current.getBoundingClientRect();
-                const start = startRef.current.getBoundingClientRect();
-                const finish = finishRef.current.getBoundingClientRect();
-                const geom = {
-                  startX: start.left - road.left,
-                  finishX: finish.left - road.left,
-                  width: road.width
-                };
-                console.log('Calculated geometry:', geom);
-                return geom;
-              };
-
-              const ecoGeom = mk(ecoRoadRef, ecoStartRef, ecoFinishRef);
-              const naiveGeom = mk(naiveRoadRef, naiveStartRef, naiveFinishRef);
-              
-              setEcoGeom(ecoGeom);
-              setNaiveGeom(naiveGeom);
-            };
-
-            // Add a small delay to ensure DOM is ready
-            setTimeout(measure, 100);
-            window.addEventListener('resize', measure);
-            return () => window.removeEventListener('resize', measure);
-          }, [trajectoryData]);
-
-          const handleFileLoad = (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            if (!file.name.toLowerCase().endsWith('.json')) {
-              setErrorMessage('Please upload a valid .json file');
-              fileInputRef.current.value = '';
-              return;
+            
+            const response = await fetch(dataPath);
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
             }
-            const reader = new FileReader();
-            reader.onload = (evt) => {
-              try {
-                const data = JSON.parse(evt.target.result);
-                loadTrajectoryData(data);
-                fileInputRef.current.value = '';
-              } catch (error) {
-                setErrorMessage('Invalid JSON file: ' + error.message);
-              }
-            };
-            reader.readAsText(file);
-          };
-
-          const loadTrajectoryData = (data) => {
-            try {
-              if (!data.eco_trajectory || !data.naive_trajectory) {
-                throw new Error('Missing trajectory arrays');
-              }
-              setTrajectoryData(data);
-              setErrorMessage('');
-              resetAnimation();
-            } catch (error) {
-              setErrorMessage('Error loading data: ' + error.message);
-            }
-          };
-
-          const startAnimation = () => {
-            if (!trajectoryData) return;
-            setIsAnimating(true);
-            setCurrentFrame(0);
-            setShowSummary(false);
-
-            const totalFrames = trajectoryData.eco_trajectory.length;
-            const animate = (frame) => {
-              if (frame >= totalFrames) {
-                finishAnimation();
-                return;
-              }
-              setCurrentFrame(frame);
-              animationRef.current = setTimeout(() => animate(frame + 1), 150 / animationSpeed);
-            };
-            animate(0);
-          };
-
-          const finishAnimation = () => {
-            setIsAnimating(false);
-            setShowSummary(true);
-            if (animationRef.current) clearTimeout(animationRef.current);
-          };
-
-          const resetAnimation = () => {
-            setIsAnimating(false);
-            setCurrentFrame(0);
-            setShowSummary(false);
-            if (animationRef.current) clearTimeout(animationRef.current);
-          };
-
-          const toggleSpeed = () => {
-            const speeds = [1, 2, 4];
-            const idx = speeds.indexOf(animationSpeed);
-            setAnimationSpeed(speeds[(idx + 1) % speeds.length]);
-          };
-
-          const updateCarPosition = (position, velocity, maxVelocity, totalDistance, geom) => {
-            if (!geom) return { visibility: 'hidden', left: '0px' };
-
-            const progress = Math.min(position / totalDistance, 1);
-            const travel = geom.finishX - geom.startX;
-            const xCenter = geom.startX + progress * travel;
-            const scale = 0.8 + (velocity / maxVelocity) * 0.4;
-
-            const xLeft = xCenter - CAR_W / 2;
-            return {
-              left: `${xLeft}px`,
-              transform: `scale(${scale})`,
-              transformOrigin: 'center center',
-              zIndex: 100,
-              pointerEvents: 'none',
-              visibility: 'visible'
-            };
-          };
-
-          const updateGauge = (value, maxValue) => {
-            const pct = Math.min(Math.max(value / maxValue, 0), 1) * 100;
-            const rotation = (pct / 100) * 360;
-            return `conic-gradient(from 0deg, #4CAF50 0%, #4CAF50 ${rotation}deg, #e0e0e0 ${rotation}deg)`;
-          };
-
-          const getCurrentData = () => {
-            if (!trajectoryData || currentFrame >= trajectoryData.eco_trajectory.length) {
-              return {
-                eco: { position: 0, velocity: 0, acceleration: 0, stageCost: 0, cumulativeEnergy: 0 },
-                naive: { position: 0, velocity: 0, acceleration: 0, stageCost: 0, cumulativeEnergy: 0 }
-              };
-            }
-            return {
-              eco: trajectoryData.eco_trajectory[currentFrame],
-              naive: trajectoryData.naive_trajectory[currentFrame]
-            };
-          };
-
-          const currentData = getCurrentData();
-          const params = trajectoryData?.parameters || {};
-          const totalDistance = params.distance || 1000;
-          const maxVelocity = params.v_max || 20;
-          const maxEnergy = trajectoryData
-            ? Math.max(
-                trajectoryData.eco_trajectory.slice(-1)[0].cumulativeEnergy,
-                trajectoryData.naive_trajectory.slice(-1)[0].cumulativeEnergy
-              )
-            : 100;
-
-          const ecoStyle = updateCarPosition(
-            currentData.eco.position,
-            currentData.eco.velocity,
-            maxVelocity,
-            totalDistance,
-            ecoGeom
-          );
-
-          const naiveStyle = updateCarPosition(
-            currentData.naive.position,
-            currentData.naive.velocity,
-            maxVelocity,
-            totalDistance,
-            naiveGeom
-          );
-
-          const centerFromStyle = (style) => {
-            const left = parseFloat(style.left || '0');
-            return `${left + CAR_W / 2}px`;
-          };
-
-          const getSummaryText = () => {
-            if (!trajectoryData) return '';
-            const ecoFinal = trajectoryData.eco_trajectory.slice(-1)[0];
-            const naiveFinal = trajectoryData.naive_trajectory.slice(-1)[0];
-            return `🎯 Smart Eco Driver used ${ecoFinal.cumulativeEnergy.toFixed(1)} energy vs ` +
-                   `${naiveFinal.cumulativeEnergy.toFixed(1)} for Naive. ` +
-                   `Savings: ${trajectoryData.energy_savings_percent.toFixed(1)}%!`;
-          };
-
-          return (
-            <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600 p-5">
-              <div className="max-w-6xl mx-auto bg-white rounded-2xl p-8 shadow-2xl">
-                <h1 className="text-4xl font-bold text-center text-gray-800 mb-3">🚗 Eco-Cruise Optimization</h1>
-                <p className="text-xl text-center text-gray-600 mb-8">
-                  Load your JSON trajectory file below to visualize the optimized vs naive drive.
-                </p>
-
-                {/* Data Input */}
-                <div className={`bg-gray-50 rounded-xl p-6 mb-6 border-2 border-dashed ${trajectoryData ? 'border-green-500 bg-green-50' : 'border-gray-300'}`}>
-                  <h3 className="text-xl font-semibold mb-4">
-                    📁 {trajectoryData ? 'Trajectory Data Loaded' : 'Load Trajectory Data'}
-                  </h3>
-                  
-                  {isLoading ? (
-                    <div className="flex items-center justify-center p-4">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
-                      <span className="ml-2 text-gray-600">Loading default trajectory data...</span>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="mb-4">
-                        <p className="text-sm text-gray-600 mb-2">
-                          {trajectoryData 
-                            ? '✅ Default trajectory data loaded successfully! You can upload a different file below to compare.'
-                            : 'Upload a JSON trajectory file to visualize the eco-cruise optimization.'
-                          }
-                        </p>
-                      </div>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept=".json,application/json"
-                        onChange={handleFileLoad}
-                        className="p-2 border border-gray-300 rounded-lg bg-white"
-                      />
-                    </>
-                  )}
-                  
-                  {errorMessage && (<p className="text-red-600 mt-2">{errorMessage}</p>)}
-                </div>
-
-                {/* Controls */}
-                <div className="flex justify-center gap-4 mb-8 flex-wrap">
-                  <button 
-                    onClick={startAnimation} 
-                    disabled={!trajectoryData || isAnimating || isLoading} 
-                    className="px-6 py-3 bg-green-500 text-white rounded-full hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                  >
-                    {isLoading ? '⏳ Loading...' : '▶️ Start Race'}
-                  </button>
-                  <button onClick={resetAnimation} className="px-6 py-3 bg-red-500 text-white rounded-full hover:bg-red-600">
-                    🔄 Reset
-                  </button>
-                  <button onClick={toggleSpeed} className="px-6 py-3 bg-blue-500 text-white rounded-full hover:bg-blue-600">
-                    ⚡ Speed: {animationSpeed}x
-                  </button>
-                </div>
-
-                {/* Simulation Visualization */}
-                {trajectoryData && !isLoading && (
-                  <div className="space-y-10 mb-6">
-                    {/* Eco Driver */}
-                    <div className="p-6 rounded-xl bg-gradient-to-r from-green-100 to-pink-100 border-4 border-green-500 relative overflow-hidden">
-                      <div className="text-2xl font-bold text-center mb-4">🧠 Smart Eco Driver</div>
-                      <div ref={ecoRoadRef} className="relative h-32 bg-gradient-to-b from-sky-300 via-green-400 to-gray-500 rounded-xl mb-6 overflow-hidden">
-                        <div className="absolute top-12 left-0 right-0 h-8 bg-gray-700 rounded" />
-                        <div className="absolute top-14 left-0 right-0 h-1 bg-white opacity-80"
-                             style={{ background: 'repeating-linear-gradient(to right, white 0px, white 20px, transparent 20px, transparent 40px)' }} />
-                        <div ref={ecoStartRef} className="absolute left-1 top-8 bottom-8 w-1 bg-white"
-                             style={{ background: 'repeating-linear-gradient(to bottom, white 0px, white 8px, black 8px, black 16px)' }} />
-                        <div ref={ecoFinishRef} className="absolute right-1 top-8 bottom-8 w-1 bg-white"
-                             style={{ background: 'repeating-linear-gradient(to bottom, white 0px, white 8px, black 8px, black 16px)' }} />
-
-                        <Car style={ecoStyle} />
-
-                        {/* Energy trail */}
-                        {ecoStyle.visibility !== 'hidden' && (
-                          <div
-                            className="absolute h-4 bg-gradient-to-r from-transparent via-green-400 to-transparent rounded opacity-70 transition-all duration-200"
-                            style={{
-                              top: '52px',
-                              left: centerFromStyle(ecoStyle),
-                              width: `${Math.max(currentData.eco.stageCost * 40, 20)}px`,
-                              zIndex: 50
-                            }}
-                          />
-                        )}
-                      </div>
-
-                      {/* Eco metrics */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="bg-white p-4 rounded-xl text-center shadow">
-                          <div className="w-20 h-20 mx-auto mb-2 relative">
-                            <div className="w-full h-full rounded-full bg-gray-200" />
-                            <div className="absolute top-0 left-0 w-full h-full rounded-full" style={{ background: updateGauge(currentData.eco.velocity, maxVelocity) }} />
-                            <div className="absolute inset-0 flex items-center justify-center font-bold">{currentData.eco.velocity.toFixed(1)}</div>
-                          </div>
-                          <div className="text-sm text-gray-600 font-semibold">Speed (m/s)</div>
-                        </div>
-                        <div className="bg-white p-4 rounded-xl text-center shadow">
-                          <div className="w-20 h-20 mx-auto mb-2 relative">
-                            <div className="w-full h-full rounded-full bg-gray-200" />
-                            <div className="absolute top-0 left-0 w-full h-full rounded-full"
-                                 style={{ background: updateGauge(Math.max(0, 100 - (currentData.eco.cumulativeEnergy / maxEnergy * 100)), 100) }} />
-                            <div className="absolute inset-0 flex items-center justify-center font-bold text-xs">
-                              {Math.max(0, 100 - (currentData.eco.cumulativeEnergy / maxEnergy * 100)).toFixed(0)}%
-                            </div>
-                          </div>
-                          <div className="text-sm text-gray-600 font-semibold">Energy Remaining</div>
-                        </div>
-                        <div className="bg-white p-4 rounded-xl text-center shadow">
-                          <div className="w-full h-2 bg-gray-200 rounded mb-2">
-                            <div className="h-full bg-gradient-to-r from-green-500 to-green-600 rounded transition-all"
-                                 style={{ width: `${(currentData.eco.position / totalDistance) * 100}%` }} />
-                          </div>
-                          <div className="text-sm text-gray-600 font-semibold">Progress</div>
-                          <div className="text-lg font-bold">{Math.round(currentData.eco.position)}m</div>
-                        </div>
-                        <div className="bg-white p-4 rounded-xl text-center shadow">
-                          <div className="text-sm text-gray-600 font-semibold">Energy Used</div>
-                          <div className="text-lg font-bold">{currentData.eco.cumulativeEnergy.toFixed(1)}</div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Naive Driver */}
-                    <div className="p-6 rounded-xl bg-gradient-to-r from-yellow-100 to-orange-100 border-4 border-red-500 relative overflow-hidden">
-                      <div className="text-2xl font-bold text-center mb-4">😴 Naive Driver</div>
-                      <div ref={naiveRoadRef} className="relative h-32 bg-gradient-to-b from-sky-300 via-green-400 to-gray-500 rounded-xl mb-6 overflow-hidden">
-                        <div className="absolute top-12 left-0 right-0 h-8 bg-gray-700 rounded" />
-                        <div className="absolute top-14 left-0 right-0 h-1 bg-white opacity-80"
-                             style={{ background: 'repeating-linear-gradient(to right, white 0px, white 20px, transparent 20px, transparent 40px)' }} />
-                        <div ref={naiveStartRef} className="absolute left-1 top-8 bottom-8 w-1 bg-white"
-                             style={{ background: 'repeating-linear-gradient(to bottom, white 0px, white 8px, black 8px, black 16px)' }} />
-                        <div ref={naiveFinishRef} className="absolute right-1 top-8 bottom-8 w-1 bg-white"
-                             style={{ background: 'repeating-linear-gradient(to bottom, white 0px, white 8px, black 8px, black 16px)' }} />
-
-                        <Car style={naiveStyle} />
-
-                        {/* Energy trail */}
-                        {naiveStyle.visibility !== 'hidden' && (
-                          <div
-                            className="absolute h-4 bg-gradient-to-r from-transparent via-red-400 to-transparent rounded opacity-70 transition-all duration-200"
-                            style={{
-                              top: '52px',
-                              left: centerFromStyle(naiveStyle),
-                              width: `${Math.max(currentData.naive.stageCost * 40, 20)}px`,
-                              zIndex: 50
-                            }}
-                          />
-                        )}
-                      </div>
-
-                      {/* Naive metrics */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="bg-white p-4 rounded-xl text-center shadow">
-                          <div className="w-20 h-20 mx-auto mb-2 relative">
-                            <div className="w-full h-full rounded-full bg-gray-200" />
-                            <div className="absolute top-0 left-0 w-full h-full rounded-full" style={{ background: updateGauge(currentData.naive.velocity, maxVelocity) }} />
-                            <div className="absolute inset-0 flex items-center justify-center font-bold">{currentData.naive.velocity.toFixed(1)}</div>
-                          </div>
-                          <div className="text-sm text-gray-600 font-semibold">Speed (m/s)</div>
-                        </div>
-                        <div className="bg-white p-4 rounded-xl text-center shadow">
-                          <div className="w-20 h-20 mx-auto mb-2 relative">
-                            <div className="w-full h-full rounded-full bg-gray-200" />
-                            <div className="absolute top-0 left-0 w-full h-full rounded-full"
-                                 style={{ background: updateGauge(Math.max(0, 100 - (currentData.naive.cumulativeEnergy / maxEnergy * 100)), 100) }} />
-                            <div className="absolute inset-0 flex items-center justify-center font-bold text-xs">
-                              {Math.max(0, 100 - (currentData.naive.cumulativeEnergy / maxEnergy * 100)).toFixed(0)}%
-                            </div>
-                          </div>
-                          <div className="text-sm text-gray-600 font-semibold">Energy Remaining</div>
-                        </div>
-                        <div className="bg-white p-4 rounded-xl text-center shadow">
-                          <div className="w-full h-2 bg-gray-200 rounded mb-2">
-                            <div className="h-full bg-gradient-to-r from-red-500 to-red-600 rounded transition-all"
-                                 style={{ width: `${(currentData.naive.position / totalDistance) * 100}%` }} />
-                          </div>
-                          <div className="text-sm text-gray-600 font-semibold">Progress</div>
-                          <div className="text-lg font-bold">{Math.round(currentData.naive.position)}m</div>
-                        </div>
-                        <div className="bg-white p-4 rounded-xl text-center shadow">
-                          <div className="text-sm text-gray-600 font-semibold">Energy Used</div>
-                          <div className="text-lg font-bold">{currentData.naive.cumulativeEnergy.toFixed(1)}</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Summary */}
-                {showSummary && (
-                  <div className="bg-indigo-500 text-white p-6 rounded-xl text-center">
-                    <h3 className="text-2xl font-bold mb-4">🏆 Results</h3>
-                    <p className="text-lg">{getSummaryText()}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          );
+            const data = await response.json();
+            loadTrajectoryData(data);
+          } catch (error) {
+            setErrorMessage('Could not load default data from trajectory_data.json. You can upload a file manually.');
+          } finally {
+            setIsLoading(false);
+          }
         };
+        loadDefaultData();
+      }, []);
 
-        // Render the component
-        ReactDOM.render(<EcoCruiseOptimization />, document.getElementById('root'));
-    </script>
+      React.useLayoutEffect(() => {
+        if (!trajectoryData) return;
+        const measure = () => {
+          const mk = (roadRef, startRef, finishRef) => {
+            if (!roadRef.current || !startRef.current || !finishRef.current) return null;
+            const road = roadRef.current.getBoundingClientRect();
+            const start = startRef.current.getBoundingClientRect();
+            const finish = finishRef.current.getBoundingClientRect();
+            return {
+              startX: start.left - road.left,
+              finishX: finish.left - road.left,
+              width: road.width
+            };
+          };
+          setEcoGeom(mk(ecoRoadRef, ecoStartRef, ecoFinishRef));
+          setNaiveGeom(mk(naiveRoadRef, naiveStartRef, naiveFinishRef));
+        };
+        setTimeout(measure, 100);
+        window.addEventListener('resize', measure);
+        return () => window.removeEventListener('resize', measure);
+      }, [trajectoryData]);
+
+      const handleFileLoad = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (!file.name.toLowerCase().endsWith('.json')) {
+          setErrorMessage('Please upload a valid .json file');
+          fileInputRef.current.value = '';
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          try {
+            const data = JSON.parse(evt.target.result);
+            loadTrajectoryData(data);
+            fileInputRef.current.value = '';
+          } catch (error) {
+            setErrorMessage('Invalid JSON file: ' + error.message);
+          }
+        };
+        reader.readAsText(file);
+      };
+
+      const loadTrajectoryData = (data) => {
+        try {
+          if (!data.eco_trajectory || !data.naive_trajectory) {
+            throw new Error('Missing trajectory arrays');
+          }
+          setTrajectoryData(data);
+          setErrorMessage('');
+          resetAnimation();
+        } catch (error) {
+          setErrorMessage('Error loading data: ' + error.message);
+        }
+      };
+
+      const startAnimation = () => {
+        if (!trajectoryData) return;
+        setIsAnimating(true);
+        setCurrentFrame(0);
+        setShowSummary(false);
+
+        const totalFrames = trajectoryData.eco_trajectory.length;
+        const animate = (frame) => {
+          if (frame >= totalFrames) {
+            finishAnimation();
+            return;
+          }
+          setCurrentFrame(frame);
+          animationRef.current = setTimeout(() => animate(frame + 1), 150);
+        };
+        animate(0);
+      };
+
+      const finishAnimation = () => {
+        setIsAnimating(false);
+        setShowSummary(true);
+        if (animationRef.current) clearTimeout(animationRef.current);
+      };
+
+      const resetAnimation = () => {
+        setIsAnimating(false);
+        setCurrentFrame(0);
+        setShowSummary(false);
+        if (animationRef.current) clearTimeout(animationRef.current);
+      };
+
+
+
+      const updateCarPosition = (position, velocity, maxVelocity, totalDistance, geom) => {
+        if (!geom) return { visibility: 'hidden', left: '0px' };
+        const progress = Math.min(position / totalDistance, 1);
+        const travel = geom.finishX - geom.startX;
+        const xCenter = geom.startX + progress * travel;
+        const scale = 0.9;
+        const xLeft = xCenter - CAR_W / 2;
+        return {
+          left: `${xLeft}px`,
+          transform: `scale(${scale})`,
+          transformOrigin: 'center center',
+          zIndex: 100,
+          pointerEvents: 'none',
+          visibility: 'visible'
+        };
+      };
+
+      const updateGauge = (value, maxValue) => {
+        const pct = Math.min(Math.max(value / maxValue, 0), 1) * 100;
+        const rotation = (pct / 100) * 360;
+        return `conic-gradient(from 0deg, var(--accent) 0deg, var(--accent) ${rotation}deg, var(--muted) ${rotation}deg)`;
+      };
+
+      const getCurrentData = () => {
+        if (!trajectoryData || currentFrame >= trajectoryData.eco_trajectory.length) {
+          return {
+            eco: { position: 0, velocity: 0, acceleration: 0, stageCost: 0, cumulativeEnergy: 0 },
+            naive: { position: 0, velocity: 0, acceleration: 0, stageCost: 0, cumulativeEnergy: 0 }
+          };
+        }
+        return {
+          eco: trajectoryData.eco_trajectory[currentFrame],
+          naive: trajectoryData.naive_trajectory[currentFrame]
+        };
+      };
+
+      const currentData = getCurrentData();
+      const params = trajectoryData?.parameters || {};
+      const totalDistance = params.distance || 1000;
+      const maxVelocity = params.v_max || 20;
+      const maxEnergy = trajectoryData
+        ? Math.max(
+            trajectoryData.eco_trajectory.slice(-1)[0].cumulativeEnergy,
+            trajectoryData.naive_trajectory.slice(-1)[0].cumulativeEnergy
+          ) - Math.min(
+            trajectoryData.eco_trajectory[0].cumulativeEnergy,
+            trajectoryData.naive_trajectory[0].cumulativeEnergy
+          )
+        : 100;
+
+      const ecoStyle = updateCarPosition(
+        currentData.eco.position,
+        currentData.eco.velocity,
+        maxVelocity,
+        totalDistance,
+        ecoGeom
+      );
+
+      const naiveStyle = updateCarPosition(
+        currentData.naive.position,
+        currentData.naive.velocity,
+        maxVelocity,
+        totalDistance,
+        naiveGeom
+      );
+
+      // Lead (front-bumper) x positions for trails
+      const ecoLeadLeft = `${parseFloat(ecoStyle.left || '0') + CAR_W + 2}px`;
+      const naiveLeadLeft = `${parseFloat(naiveStyle.left || '0') + CAR_W + 2}px`;
+
+      const getSummaryText = () => {
+        if (!trajectoryData) return '';
+        const ecoFinal = trajectoryData.eco_trajectory.slice(-1)[0];
+        const naiveFinal = trajectoryData.naive_trajectory.slice(-1)[0];
+        return `Smart Eco Driver used ${ecoFinal.cumulativeEnergy.toFixed(1)} energy vs ` +
+               `${naiveFinal.cumulativeEnergy.toFixed(1)} for Naive. ` +
+               `Savings: ${trajectoryData.energy_savings_percent.toFixed(1)}%.`;
+      };
+
+      return (
+        <div className="min-h-screen bg-neutral-50 p-6">
+          <div className="max-w-6xl mx-auto bg-white rounded-2xl p-8 shadow">
+            <h1 className="text-4xl font-bold text-gray-900 mb-3">Eco-Cruise Optimization</h1>
+            <p className="text-lg text-gray-600 mb-4">
+              Load your JSON trajectory file below to visualize the optimized vs naive drive.
+            </p>
+
+            {/* Cost bar explanation */}
+            <div className="mb-6 p-3 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-xs text-gray-600">
+                <strong>Front bar legend:</strong> Length ∝ cₜ = ½βuₜ² + ½γvₜ² (teal = accel term, gray = speed term). Top stripe shows control sign (teal = throttle, red = brake).
+              </p>
+            </div>
+
+            {/* Data Input */}
+            <div className={`rounded-xl p-6 mb-6 border ${trajectoryData ? 'border-sky-200 bg-sky-50' : 'border-neutral-200 bg-white'}`}>
+              <h3 className="text-xl font-semibold mb-4">
+                {trajectoryData ? 'Trajectory Data Loaded' : 'Load Trajectory Data'}
+              </h3>
+
+              {isLoading ? (
+                <div className="flex items-center justify-start p-2">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-sky-500"></div>
+                  <span className="ml-3 text-gray-600">Loading default trajectory data…</span>
+                </div>
+              ) : (
+                <>
+                  <p className="text-sm text-gray-600 mb-3">
+                    {trajectoryData
+                      ? 'Default trajectory data loaded. Upload another file to compare.'
+                      : 'Upload a JSON trajectory file to visualize the eco-cruise optimization.'}
+                  </p>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".json,application/json"
+                    onChange={handleFileLoad}
+                    className="p-2 border border-neutral-300 rounded-lg bg-white"
+                  />
+                </>
+              )}
+
+              {errorMessage && (<p className="text-red-600 mt-2">{errorMessage}</p>)}
+            </div>
+
+            {/* Controls */}
+            <div className="flex justify-start gap-3 mb-8 flex-wrap">
+              <button
+                onClick={startAnimation}
+                disabled={!trajectoryData || isAnimating || isLoading}
+                className="px-5 py-2 rounded-lg text-white bg-sky-600 hover:bg-sky-700 disabled:bg-neutral-300 disabled:text-white"
+              >
+                Start
+              </button>
+              <button
+                onClick={resetAnimation}
+                className="px-5 py-2 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-gray-800"
+              >
+                Reset
+              </button>
+            </div>
+
+            {/* Simulation Visualization */}
+            {trajectoryData && !isLoading && (
+              <div className="space-y-10 mb-6">
+                {/* Eco Driver */}
+                <div className="p-6 rounded-xl bg-white border border-neutral-200 relative overflow-hidden shadow-sm">
+                  <div className="text-2xl font-semibold text-gray-800 mb-4">Smart Eco Driver</div>
+
+                  <div ref={ecoRoadRef} className="relative h-32 bg-neutral-100 rounded-xl mb-6 overflow-hidden">
+                    {/* Road surface */}
+                    <div className="absolute top-12 left-0 right-0 h-8 bg-neutral-300 rounded" />
+                    {/* Center dashed line (subtle) */}
+                    <div className="absolute top-[3.75rem] left-0 right-0 h-[2px] opacity-70"
+                         style={{ background: 'repeating-linear-gradient(to right, #fff 0 16px, transparent 16px 32px)' }} />
+                    {/* Start/finish markers (KEEP for geometry) */}
+                    <div ref={ecoStartRef} className="absolute left-1 top-8 bottom-8 w-px bg-neutral-300" />
+                    <div ref={ecoFinishRef} className="absolute right-1 top-8 bottom-8 w-px bg-neutral-300" />
+
+                    <Car style={ecoStyle} />
+
+                    {/* Front bumper cost bar */}
+                    {ecoStyle.visibility !== 'hidden' && (
+                      <FrontBar
+                        left={ecoLeadLeft}
+                        d={currentData.eco}
+                        beta={params?.beta ?? 1.0}
+                        gamma={params?.gamma ?? 0.1}
+                      />
+                    )}
+                  </div>
+
+                  {/* Eco metrics */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-white p-4 rounded-xl text-center border border-neutral-200">
+                      <div className="w-20 h-20 mx-auto mb-2 relative">
+                        <div className="w-full h-full rounded-full bg-neutral-200" />
+                        <div className="absolute top-0 left-0 w-full h-full rounded-full"
+                             style={{ background: updateGauge(currentData.eco.velocity, maxVelocity) }} />
+                        <div className="absolute inset-0 flex items-center justify-center font-semibold text-gray-800">
+                          {currentData.eco.velocity.toFixed(1)}
+                        </div>
+                      </div>
+                      <div className="text-sm text-gray-600 font-medium">Speed (m/s)</div>
+                    </div>
+                    <div className="bg-white p-4 rounded-xl text-center border border-neutral-200">
+                      <div className="w-20 h-20 mx-auto mb-2 relative">
+                        <div className="w-full h-full rounded-full bg-neutral-200" />
+                        <div className="absolute top-0 left-0 w-full h-full rounded-full"
+                             style={{ background: updateGauge(Math.max(0, 100 - ((currentData.eco.cumulativeEnergy - (trajectoryData?.eco_trajectory[0]?.cumulativeEnergy || 0)) / maxEnergy * 100)), 100) }} />
+                        <div className="absolute inset-0 flex items-center justify-center font-semibold text-gray-800 text-xs">
+                          {Math.max(0, 100 - ((currentData.eco.cumulativeEnergy - (trajectoryData?.eco_trajectory[0]?.cumulativeEnergy || 0)) / maxEnergy * 100)).toFixed(0)}%
+                        </div>
+                      </div>
+                      <div className="text-sm text-gray-600 font-medium">Energy Remaining</div>
+                    </div>
+                    <div className="bg-white p-4 rounded-xl text-center border border-neutral-200">
+                      <div className="w-full h-2 bg-neutral-200 rounded mb-2">
+                        <div className="h-full rounded bg-sky-500 transition-all"
+                             style={{ width: `${(currentData.eco.position / totalDistance) * 100}%` }} />
+                      </div>
+                      <div className="text-sm text-gray-600 font-medium">Progress</div>
+                      <div className="text-lg font-semibold text-gray-800">{Math.round(currentData.eco.position)} m</div>
+                    </div>
+                    <div className="bg-white p-4 rounded-xl text-center border border-neutral-200">
+                      <div className="text-sm text-gray-600 font-medium">Energy Used</div>
+                      <div className="text-lg font-semibold text-gray-800">{currentData.eco.cumulativeEnergy.toFixed(1)}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Naive Driver */}
+                <div className="p-6 rounded-xl bg-white border border-neutral-200 relative overflow-hidden shadow-sm">
+                  <div className="text-2xl font-semibold text-gray-800 mb-4">Naive Driver</div>
+
+                  <div ref={naiveRoadRef} className="relative h-32 bg-neutral-100 rounded-xl mb-6 overflow-hidden">
+                    {/* Road surface */}
+                    <div className="absolute top-12 left-0 right-0 h-8 bg-neutral-300 rounded" />
+                    {/* Center dashed line */}
+                    <div className="absolute top-[3.75rem] left-0 right-0 h-[2px] opacity-70"
+                         style={{ background: 'repeating-linear-gradient(to right, #fff 0 16px, transparent 16px 32px)' }} />
+                    {/* Start/finish markers (KEEP for geometry) */}
+                    <div ref={naiveStartRef} className="absolute left-1 top-8 bottom-8 w-px bg-neutral-300" />
+                    <div ref={naiveFinishRef} className="absolute right-1 top-8 bottom-8 w-px bg-neutral-300" />
+
+                    <Car style={naiveStyle} />
+
+                    {/* Front bumper cost bar */}
+                    {naiveStyle.visibility !== 'hidden' && (
+                      <FrontBar
+                        left={naiveLeadLeft}
+                        d={currentData.naive}
+                        beta={params?.beta ?? 1.0}
+                        gamma={params?.gamma ?? 0.1}
+                      />
+                    )}
+                  </div>
+
+                  {/* Naive metrics */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-white p-4 rounded-xl text-center border border-neutral-200">
+                      <div className="w-20 h-20 mx-auto mb-2 relative">
+                        <div className="w-full h-full rounded-full bg-neutral-200" />
+                        <div className="absolute top-0 left-0 w-full h-full rounded-full"
+                             style={{ background: updateGauge(currentData.naive.velocity, maxVelocity) }} />
+                        <div className="absolute inset-0 flex items-center justify-center font-semibold text-gray-800">
+                          {currentData.naive.velocity.toFixed(1)}
+                        </div>
+                      </div>
+                      <div className="text-sm text-gray-600 font-medium">Speed (m/s)</div>
+                    </div>
+                    <div className="bg-white p-4 rounded-xl text-center border border-neutral-200">
+                      <div className="w-20 h-20 mx-auto mb-2 relative">
+                        <div className="w-full h-full rounded-full bg-neutral-200" />
+                        <div className="absolute top-0 left-0 w-full h-full rounded-full"
+                             style={{ background: updateGauge(Math.max(0, 100 - ((currentData.naive.cumulativeEnergy - (trajectoryData?.naive_trajectory[0]?.cumulativeEnergy || 0)) / maxEnergy * 100)), 100) }} />
+                        <div className="absolute inset-0 flex items-center justify-center font-semibold text-gray-800 text-xs">
+                          {Math.max(0, 100 - ((currentData.naive.cumulativeEnergy - (trajectoryData?.naive_trajectory[0]?.cumulativeEnergy || 0)) / maxEnergy * 100)).toFixed(0)}%
+                        </div>
+                      </div>
+                      <div className="text-sm text-gray-600 font-medium">Energy Remaining</div>
+                    </div>
+                    <div className="bg-white p-4 rounded-xl text-center border border-neutral-200">
+                      <div className="w-full h-2 bg-neutral-200 rounded mb-2">
+                        <div className="h-full rounded bg-neutral-500 transition-all"
+                             style={{ width: `${(currentData.naive.position / totalDistance) * 100}%` }} />
+                      </div>
+                      <div className="text-sm text-gray-600 font-medium">Progress</div>
+                      <div className="text-lg font-semibold text-gray-800">{Math.round(currentData.naive.position)} m</div>
+                    </div>
+                    <div className="bg-white p-4 rounded-xl text-center border border-neutral-200">
+                      <div className="text-sm text-gray-600 font-medium">Energy Used</div>
+                      <div className="text-lg font-semibold text-gray-800">{currentData.naive.cumulativeEnergy.toFixed(1)}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Summary */}
+            {showSummary && (
+              <div className="bg-sky-600 text-white p-6 rounded-xl text-center">
+                <h3 className="text-2xl font-semibold mb-2">Results</h3>
+                <p className="text-lg">{getSummaryText()}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    // Render the component
+    ReactDOM.render(<EcoCruiseOptimization />, document.getElementById('root'));
+  </script>
 </body>
-</html> 
+</html>

@@ -1,29 +1,15 @@
 import numpy as np
 import json
+import matplotlib.pyplot as plt
 from scipy.optimize import minimize, Bounds
 
-def solve_eco_cruise(beta=1.0, gamma=0.05, T=60, v_max=20.0, a_max=3.0, distance=1000.0, initial_guess="triangular"):
-    """
-    Solve the eco-cruise optimization problem and return trajectory data.
+def solve_eco_cruise(beta=1.0, gamma=0.05, T=60, v_max=20.0, a_max=3.0, distance=1000.0):
+    """Solve the eco-cruise optimization problem."""
     
-    Parameters:
-    - beta: acceleration penalty weight (default 1.0)
-    - gamma: speed penalty weight (default 0.05, increase for more speed penalty)
-    - T: time horizon (seconds)
-    - v_max: maximum speed (m/s)
-    - a_max: maximum acceleration magnitude (m/s^2)
-    - distance: total distance to travel (m)
-    - initial_guess: "triangular" (recommended) or "constant"
+    n_state, n_control = T + 1, T
     
-    Note: For meaningful energy savings, gamma should typically be much smaller than beta.
-    Try gamma=0.01-0.1 for different energy/speed trade-offs.
-    """
-    
-    n_state = T + 1
-    n_control = T
-
     def unpack(z):
-        s = z[:n_state]; v = z[n_state:2*n_state]; u = z[2*n_state:]
+        s, v, u = z[:n_state], z[n_state:2*n_state], z[2*n_state:]
         return s, v, u
 
     def objective(z):
@@ -33,98 +19,43 @@ def solve_eco_cruise(beta=1.0, gamma=0.05, T=60, v_max=20.0, a_max=3.0, distance
     def dynamics(z):
         s, v, u = unpack(z)
         ceq = np.empty(2*T)
-        ceq[0::2] = s[1:] - s[:-1] - v[:-1]
-        ceq[1::2] = v[1:] - v[:-1] - u
+        ceq[0::2] = s[1:] - s[:-1] - v[:-1]  # position dynamics
+        ceq[1::2] = v[1:] - v[:-1] - u        # velocity dynamics
         return ceq
 
     def boundary(z):
         s, v, _ = unpack(z)
-        return np.array([s[0], v[0], s[-1]-distance, v[-1]])
+        return np.array([s[0], v[0], s[-1]-distance, v[-1]])  # start/end conditions
 
-    # Set up optimization
+    # Optimization setup
     cons = [{'type':'eq', 'fun': dynamics}, {'type':'eq', 'fun': boundary}]
-    big = 1e4
-    lb = np.concatenate([np.full(n_state,-big), np.zeros(n_state), np.full(n_control,-a_max)])
-    ub = np.concatenate([np.full(n_state, big), v_max*np.ones(n_state), np.full(n_control,a_max)])
-    bounds = Bounds(lb, ub)
-
-    # --- Initial guess ----------------------------------------------------
-    constant_velocity = distance / T
-
-    if initial_guess == "triangular":
-        # Simple triangular profile: accelerate, cruise, decelerate
-        accel_time = int(0.3 * T)
-        decel_time = int(0.3 * T) 
-        cruise_time = T - accel_time - decel_time
-        
-        # Ensure we have enough time for all phases
-        if cruise_time < 0:
-            cruise_time = 0
-            accel_time = T // 2
-            decel_time = T - accel_time
-        
-        # Target peak velocity (not too high to stay feasible)
-        peak_v = min(1.2 * constant_velocity, 0.8 * v_max)
-        
-        # Build velocity profile with correct length (T+1)
-        v0 = np.zeros(n_state)
-        
-        # Acceleration phase
-        if accel_time > 0:
-            v0[:accel_time+1] = np.linspace(0, peak_v, accel_time+1)
-        
-        # Cruise phase  
-        if cruise_time > 0:
-            v0[accel_time:accel_time+cruise_time+1] = peak_v
-            
-        # Deceleration phase
-        if decel_time > 0:
-            v0[accel_time+cruise_time:] = np.linspace(peak_v, 0, decel_time+1)
-        
-        # Ensure final velocity is 0
-        v0[-1] = 0
-        
-        # Compute positions by integration
-        s0 = np.zeros(n_state)
-        for i in range(1, n_state):
-            s0[i] = s0[i-1] + v0[i-1]
-        
-        # Scale to hit target distance
-        if s0[-1] > 0:
-            scale = distance / s0[-1]
-            v0 *= scale
-            s0 *= scale
-        
-        # Compute accelerations
-        u0 = np.zeros(n_control)
-        for i in range(n_control):
-            u0[i] = v0[i+1] - v0[i]
-            
-        print(f"Triangular guess: peak_v={peak_v:.1f}, final_distance={s0[-1]:.1f}")
-    else:
-        # Constant-speed profile (original behaviour)
-        s0 = np.linspace(0, distance, n_state)
-        v0 = np.full(n_state, constant_velocity)
-        u0 = np.zeros(n_control)
-
-    z0 = np.concatenate([s0, v0, u0])
-
-    # Solve optimization
-    print("Solving eco-cruise optimization...")
-    print(f"Parameters: beta={beta}, gamma={gamma}")
-    print(f"Initial objective: {objective(z0):.2f}")
-    
-    res = minimize(
-        objective,
-        z0,
-        method="SLSQP",
-        bounds=bounds,
-        constraints=cons,
-        options={"maxiter": 1000, "ftol": 1e-9},
+    bounds = Bounds(
+        lb=np.concatenate([np.full(n_state,-1e4), np.zeros(n_state), np.full(n_control,-a_max)]),
+        ub=np.concatenate([np.full(n_state,1e4), v_max*np.ones(n_state), np.full(n_control,a_max)])
     )
+
+    # Initial guess: triangular velocity profile
+    accel_time = int(0.3 * T)
+    decel_time = int(0.3 * T)
+    cruise_time = T - accel_time - decel_time
+    peak_v = min(1.2 * distance/T, 0.8 * v_max)
     
-    print(f"Optimization {'succeeded' if res.success else 'failed'}: {res.message}")
-    print(f"Final objective: {objective(res.x):.2f}")
+    v0 = np.zeros(n_state)
+    v0[:accel_time+1] = np.linspace(0, peak_v, accel_time+1)
+    v0[accel_time:accel_time+cruise_time+1] = peak_v
+    v0[accel_time+cruise_time:] = np.linspace(peak_v, 0, decel_time+1)
+    
+    s0 = np.cumsum(np.concatenate([[0], v0[:-1]]))
+    scale = distance / s0[-1]
+    s0, v0 = s0 * scale, v0 * scale
+    u0 = np.diff(v0)
+    
+    z0 = np.concatenate([s0, v0, u0])
+    
+    # Solve optimization
+    print(f"Solving eco-cruise optimization (β={beta}, γ={gamma})...")
+    res = minimize(objective, z0, method="SLSQP", bounds=bounds, constraints=cons,
+                   options={"maxiter": 1000, "ftol": 1e-9})
     
     if not res.success:
         print(f"Optimization failed: {res.message}")
@@ -132,133 +63,168 @@ def solve_eco_cruise(beta=1.0, gamma=0.05, T=60, v_max=20.0, a_max=3.0, distance
         
     s_opt, v_opt, u_opt = unpack(res.x)
     
-    # Calculate energy costs
-    accel_costs = 0.5 * beta * u_opt**2
-    speed_costs = 0.5 * gamma * v_opt[:-1]**2
-    total_costs = accel_costs + speed_costs
-    
-    # Create trajectory data structure
+    # Create trajectory data
     eco_trajectory = []
     cumulative_energy = 0
     
     for t in range(T + 1):
         if t < T:
-            stage_cost = total_costs[t]
+            stage_cost = 0.5 * beta * u_opt[t]**2 + 0.5 * gamma * v_opt[t]**2
             cumulative_energy += stage_cost
         else:
             stage_cost = 0
             
         eco_trajectory.append({
-            "time": float(t),
-            "position": float(s_opt[t]),
-            "velocity": float(v_opt[t]),
+            "time": float(t), "position": float(s_opt[t]), "velocity": float(v_opt[t]),
             "acceleration": float(u_opt[t]) if t < T else 0.0,
-            "stageCost": float(stage_cost),
-            "cumulativeEnergy": float(cumulative_energy)
+            "stageCost": float(stage_cost), "cumulativeEnergy": float(cumulative_energy)
         })
     
     return {
         "eco_trajectory": eco_trajectory,
         "total_energy": float(cumulative_energy),
         "optimization_success": True,
-        "parameters": {
-            "beta": beta,
-            "gamma": gamma,
-            "T": T,
-            "v_max": v_max,
-            "a_max": a_max,
-            "distance": distance
-        }
+        "parameters": {"beta": beta, "gamma": gamma, "T": T, "v_max": v_max, "a_max": a_max, "distance": distance}
     }
 
-def generate_naive_trajectory(T=60, distance=1000.0, gamma=0.1):
-    """Generate the naive constant-speed trajectory for comparison."""
+def generate_naive_trajectory(T=60, distance=1000.0, gamma=0.05):
+    """Generate naive constant-speed trajectory for comparison."""
     
-    constant_velocity = distance / T
+    # Simple triangular profile: accelerate, cruise, decelerate
+    accel_time = decel_time = 4
+    cruise_time = T - accel_time - decel_time
+    cruise_speed = distance / (0.5 * accel_time + cruise_time + 0.5 * decel_time)
+    
     naive_trajectory = []
     cumulative_energy = 0
     
     for t in range(T + 1):
-        position = min(constant_velocity * t, distance)
-        velocity = constant_velocity if position < distance else 0
+        if t <= accel_time:
+            velocity = (cruise_speed / accel_time) * t
+            acceleration = cruise_speed / accel_time
+        elif t <= accel_time + cruise_time:
+            velocity = cruise_speed
+            acceleration = 0.0
+        else:
+            remaining_time = T - t
+            velocity = (cruise_speed / decel_time) * remaining_time
+            acceleration = -cruise_speed / decel_time
         
-        # Only speed cost for naive (no acceleration changes)
-        stage_cost = 0.5 * gamma * velocity**2 if t < T else 0
-        cumulative_energy += stage_cost
+        # Calculate position by integration
+        position = 0 if t == 0 else naive_trajectory[t-1]['position'] + naive_trajectory[t-1]['velocity']
         
+        # Calculate costs
+        if t < T:
+            stage_cost = 0.5 * 1.0 * acceleration**2 + 0.5 * gamma * velocity**2
+            cumulative_energy += stage_cost
+        else:
+            stage_cost = 0.0
+            
         naive_trajectory.append({
-            "time": float(t),
-            "position": float(position), 
-            "velocity": float(velocity),
-            "acceleration": 0.0,
-            "stageCost": float(stage_cost),
+            "time": float(t), "position": float(position), "velocity": float(velocity),
+            "acceleration": float(acceleration), "stageCost": float(stage_cost),
             "cumulativeEnergy": float(cumulative_energy)
         })
     
-    return {
-        "naive_trajectory": naive_trajectory,
-        "total_energy": float(cumulative_energy)
-    }
+    return {"naive_trajectory": naive_trajectory, "total_energy": float(cumulative_energy)}
 
-def generate_trajectory_data(filename="trajectory_data.json", **kwargs):
-    """
-    Generate both eco and naive trajectories and save to JSON file.
+def plot_comparison(eco_data, naive_data=None, save_plot=True):
+    """Create visualization plots comparing eco-cruise and naive trajectories."""
     
-    Parameters:
-    - filename: output JSON filename
-    - **kwargs: parameters to pass to solve_eco_cruise()
-    """
+    eco_traj = eco_data['eco_trajectory']
+    times = [p['time'] for p in eco_traj]
+    positions = [p['position'] for p in eco_traj]
+    velocities = [p['velocity'] for p in eco_traj]
+    accelerations = [p['acceleration'] for p in eco_traj]
+    energy_costs = [p['stageCost'] for p in eco_traj]
+    cumulative_energy = [p['cumulativeEnergy'] for p in eco_traj]
     
-    # Solve eco-cruise optimization
-    eco_data = solve_eco_cruise(**kwargs)
+    fig, axes = plt.subplots(2, 3, figsize=(15, 10))
+    fig.suptitle('Eco-Cruise vs Naive Trajectory Comparison', fontsize=16, fontweight='bold')
     
+    # Plot 1: Position vs Time
+    axes[0, 0].plot(times, positions, 'b-', linewidth=2, label='Eco-Cruise')
+    if naive_data:
+        naive_traj = naive_data['naive_trajectory']
+        naive_times = [p['time'] for p in naive_traj]
+        naive_positions = [p['position'] for p in naive_traj]
+        axes[0, 0].plot(naive_times, naive_positions, 'r--', linewidth=2, label='Naive')
+    axes[0, 0].set_xlabel('Time (s)'); axes[0, 0].set_ylabel('Position (m)')
+    axes[0, 0].set_title('Position vs Time'); axes[0, 0].grid(True, alpha=0.3); axes[0, 0].legend()
+    
+    # Plot 2: Velocity vs Time
+    axes[0, 1].plot(times, velocities, 'b-', linewidth=2, label='Eco-Cruise')
+    if naive_data:
+        naive_velocities = [p['velocity'] for p in naive_traj]
+        axes[0, 1].plot(naive_times, naive_velocities, 'r--', linewidth=2, label='Naive')
+    axes[0, 1].set_xlabel('Time (s)'); axes[0, 1].set_ylabel('Velocity (m/s)')
+    axes[0, 1].set_title('Velocity vs Time'); axes[0, 1].grid(True, alpha=0.3); axes[0, 1].legend()
+    
+    # Plot 3: Acceleration vs Time
+    axes[0, 2].plot(times[:-1], accelerations[:-1], 'b-', linewidth=2, label='Eco-Cruise')
+    axes[0, 2].axhline(y=0, color='k', linestyle='-', alpha=0.3)
+    axes[0, 2].set_xlabel('Time (s)'); axes[0, 2].set_ylabel('Acceleration (m/s²)')
+    axes[0, 2].set_title('Acceleration vs Time'); axes[0, 2].grid(True, alpha=0.3); axes[0, 2].legend()
+    
+    # Plot 4: Stage Cost vs Time
+    axes[1, 0].plot(times[:-1], energy_costs[:-1], 'b-', linewidth=2, label='Eco-Cruise')
+    if naive_data:
+        naive_costs = [p['stageCost'] for p in naive_traj[:-1]]
+        axes[1, 0].plot(naive_times[:-1], naive_costs, 'r--', linewidth=2, label='Naive')
+    axes[1, 0].set_xlabel('Time (s)'); axes[1, 0].set_ylabel('Stage Cost')
+    axes[1, 0].set_title('Stage Cost vs Time'); axes[1, 0].grid(True, alpha=0.3); axes[1, 0].legend()
+    
+    # Plot 5: Cumulative Energy vs Time
+    axes[1, 1].plot(times, cumulative_energy, 'b-', linewidth=2, label='Eco-Cruise')
+    if naive_data:
+        naive_cumulative = [p['cumulativeEnergy'] for p in naive_traj]
+        axes[1, 1].plot(naive_times, naive_cumulative, 'r--', linewidth=2, label='Naive')
+    axes[1, 1].set_xlabel('Time (s)'); axes[1, 1].set_ylabel('Cumulative Energy')
+    axes[1, 1].set_title('Cumulative Energy vs Time'); axes[1, 1].grid(True, alpha=0.3); axes[1, 1].legend()
+    
+    # Plot 6: Phase Space (Velocity vs Position)
+    axes[1, 2].plot(positions, velocities, 'b-', linewidth=2, label='Eco-Cruise')
+    if naive_data:
+        naive_positions = [p['position'] for p in naive_traj]
+        axes[1, 2].plot(naive_positions, naive_velocities, 'r--', linewidth=2, label='Naive')
+    axes[1, 2].set_xlabel('Position (m)'); axes[1, 2].set_ylabel('Velocity (m/s)')
+    axes[1, 2].set_title('Phase Space: Velocity vs Position'); axes[1, 2].grid(True, alpha=0.3); axes[1, 2].legend()
+    
+    plt.tight_layout()
+    
+    if save_plot:
+        plt.savefig('_static/eco_cruise_visualization.png', dpi=300, bbox_inches='tight')
+        print("Plot saved to _static/eco_cruise_visualization.png")
+    
+    plt.show()
+    return fig
+
+def demo():
+    """Run complete eco-cruise demonstration with visualization."""
+    
+    print("=== Eco-Cruise Optimization Demo ===\n")
+    
+    # Solve optimization
+    eco_data = solve_eco_cruise(beta=1.0, gamma=0.05, T=60, distance=1000.0)
     if eco_data is None:
-        print("Failed to generate eco trajectory")
-        return False
+        print("Optimization failed!")
+        return None
     
-    # Generate naive trajectory with same parameters
-    T = kwargs.get('T', 60)
-    distance = kwargs.get('distance', 1000.0) 
-    gamma = kwargs.get('gamma', 0.1)
+    # Generate naive trajectory
+    naive_data = generate_naive_trajectory(T=60, distance=1000.0, gamma=0.05)
     
-    naive_data = generate_naive_trajectory(T=T, distance=distance, gamma=gamma)
+    # Create visualization
+    print("\n=== Creating Visualization ===")
+    fig = plot_comparison(eco_data, naive_data, save_plot=True)
     
-    # Combine data
-    combined_data = {
-        **eco_data,
-        **naive_data,
-        "energy_savings_percent": float((naive_data["total_energy"] - eco_data["total_energy"]) / naive_data["total_energy"] * 100)
-    }
-    
-    # Save to JSON
-    with open(filename, 'w') as f:
-        json.dump(combined_data, f, indent=2)
-    
-    print(f"Trajectory data saved to {filename}")
-    print(f"Eco energy: {eco_data['total_energy']:.2f}")
+    # Print results
+    print(f"\n=== Results ===")
+    print(f"Eco-Cruise energy: {eco_data['total_energy']:.2f}")
     print(f"Naive energy: {naive_data['total_energy']:.2f}")
-    print(f"Energy savings: {combined_data['energy_savings_percent']:.1f}%")
+    energy_savings = (naive_data['total_energy'] - eco_data['total_energy']) / naive_data['total_energy'] * 100
+    print(f"Energy savings: {energy_savings:.1f}%")
     
-    return True
-
-def generate_multiple_scenarios():
-    """Generate trajectory data for different parameter combinations."""
-    
-    scenarios = [
-        {"beta": 1.0, "gamma": 0.1, "filename": "trajectory_default.json"},
-        {"beta": 2.0, "gamma": 0.1, "filename": "trajectory_high_accel_penalty.json"},
-        {"beta": 0.5, "gamma": 0.2, "filename": "trajectory_high_speed_penalty.json"},
-        {"beta": 1.0, "gamma": 0.05, "filename": "trajectory_low_speed_penalty.json"},
-    ]
-    
-    for scenario in scenarios:
-        filename = scenario.pop("filename")
-        print(f"\n--- Generating {filename} ---")
-        generate_trajectory_data(filename=filename, **scenario)
+    return eco_data, naive_data, fig
 
 if __name__ == "__main__":
-    # Generate default trajectory
-    generate_trajectory_data()
-    
-    # Uncomment to generate multiple scenarios
-    # generate_multiple_scenarios()
+    demo()

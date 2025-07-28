@@ -185,6 +185,115 @@ Which method to choose depends on the context: problem size, availability of der
 
 ### Example: Direct Solution to the Eco-cruise Problem
 
+
+
+``````{tab-set}
+:tags: [full-width]
+
+`````{tab-item} Visualization
+```{raw} html
+<div style="position: relative; width: 100%; height: 0; padding-bottom: 200%; overflow: hidden; border-radius: 10px;">
+  <div style="position: absolute; top: 10px; right: 10px; z-index: 1000;">
+    <button id="expand-btn" onclick="toggleExpandedView()" 
+            style="background: rgba(0,0,0,0.7); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 6px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+      </svg>
+      Expand View
+    </button>
+  </div>
+  <iframe id="eco-cruise-iframe" src="_static/eco-cruise-demo.html" 
+          style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; border-radius: 10px;"
+          title="Eco-Cruise Optimization Visualization">
+  </iframe>
+</div>
+
+<!-- Modal Overlay -->
+<div id="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; backdrop-filter: blur(2px);">
+  <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 20px;">
+    <div style="position: relative; width: 90%; height: 90%; max-width: 1400px; max-height: 900px; background: white; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden;">
+      <!-- Close button -->
+      <button id="close-modal-btn" onclick="toggleExpandedView()" 
+              style="position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.7); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; z-index: 10001; display: flex; align-items: center; gap: 6px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
+        Close
+      </button>
+      <!-- Expanded iframe -->
+      <iframe id="expanded-iframe" src="_static/eco-cruise-demo.html" 
+              style="width: 100%; height: 100%; border: none; border-radius: 12px;"
+              title="Eco-Cruise Optimization Visualization - Expanded View">
+      </iframe>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleExpandedView() {
+  const modal = document.getElementById('modal-overlay');
+  const btn = document.getElementById('expand-btn');
+  
+  if (modal.style.display === 'none') {
+    // Show expanded view
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    
+    // Update button text (though it's hidden behind modal)
+    btn.innerHTML = `
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
+      </svg>
+      Expanded
+    `;
+  } else {
+    // Hide expanded view
+    modal.style.display = 'none';
+    document.body.style.overflow = ''; // Restore scrolling
+    
+    // Update button text
+    btn.innerHTML = `
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+      </svg>
+      Expand View
+    `;
+  }
+}
+
+// Close modal when clicking outside the content area
+document.getElementById('modal-overlay').addEventListener('click', function(e) {
+  if (e.target === this) {
+    toggleExpandedView();
+  }
+});
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    const modal = document.getElementById('modal-overlay');
+    if (modal.style.display !== 'none') {
+      toggleExpandedView();
+    }
+  }
+});
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+  // Ensure modal is hidden initially
+  document.getElementById('modal-overlay').style.display = 'none';
+});
+</script>
+`````
+
+`````{tab-item} Code
+```{literalinclude} code/eco-cruise.py
+:language: python
+```
+`````
+``````
+
+
 Once the objective and constraints are expressed as Python functions, the problem can be passed to a generic optimizer with very little extra work. Here is a direct implementation using `scipy.optimize.minimize` with the SLSQP method:
 
 The code does not introduce any new mathematics; its only purpose is to express the formulation in a way that a generic optimizer can process. Packages such as `scipy.optimize.minimize` expect three things: an objective function that returns a scalar cost, a set of constraints grouped as equality or inequality functions, and bounds on individual variables. Everything else is about bookkeeping.
@@ -206,9 +315,7 @@ Finally, an initial guess is constructed by interpolating a straight line for th
 
 Once these components are in place, the call to `minimize` does the rest. Internally, SLSQP linearizes the constraints, builds a quadratic subproblem, and iterates until both the Karush–Kuhn–Tucker conditions and the stopping tolerances are met. From the user’s perspective, the heavy lifting reduces to providing functions that compute costs and residuals—everything else is handled by the solver.
 
-```{raw} html
-<iframe src="_static/eco-cruise-demo.html" width="100%" height="800px" style="border: none; border-radius: 10px;"></iframe>
-```
+
 
 ## Single Shooting Formulation
 
