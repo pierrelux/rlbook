@@ -202,27 +202,30 @@ def plot_comparison(eco_data, naive_data=None, save_plot=True):
 def demo():
     """Run complete eco-cruise demonstration with visualization."""
     
-    print("=== Eco-Cruise Optimization Demo ===\n")
-    
     # Solve optimization
     eco_data = solve_eco_cruise(beta=1.0, gamma=0.05, T=60, distance=1000.0)
     if eco_data is None:
-        print("Optimization failed!")
+        # Use Jupyter Book's gluing feature for error message
+        try:
+            from myst_nb import glue
+            glue("eco_cruise_output", "❌ Optimization failed!", display=False)
+        except ImportError:
+            print("Optimization failed!")
         return None
     
     # Generate naive trajectory
     naive_data = generate_naive_trajectory(T=60, distance=1000.0, gamma=0.05)
     
     # Create visualization
-    print("\n=== Creating Visualization ===")
     fig = plot_comparison(eco_data, naive_data, save_plot=True)
     
-    # Print results
-    print(f"\n=== Results ===")
-    print(f"Eco-Cruise energy: {eco_data['total_energy']:.2f}")
-    print(f"Naive energy: {naive_data['total_energy']:.2f}")
-    energy_savings = (naive_data['total_energy'] - eco_data['total_energy']) / naive_data['total_energy'] * 100
-    print(f"Energy savings: {energy_savings:.1f}%")
+    # Use Jupyter Book's gluing feature to display the figure
+    try:
+        from myst_nb import glue
+        glue("eco_cruise_figure", fig, display=False)
+    except ImportError:
+        # Fallback for when not running in Jupyter Book context
+        pass
     
     return eco_data, naive_data, fig
 

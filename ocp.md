@@ -150,7 +150,7 @@ This looks similar to the canonical problems we have introduced earlier, except 
 
 # Numerical Methods for Solving DOCPs
 
-## Direct NLP Formulation
+## Simultaneous Methods
 
 Once a discrete-time optimal control problem (DOCP) has been formulated, the question becomes how to compute a solution. 
 If we collect all states and controls into a single vector $\mathbf{z}$, the problem can be written in the canonical form of a nonlinear program (NLP):
@@ -185,103 +185,33 @@ Which method to choose depends on the context: problem size, availability of der
 
 ### Example: Direct Solution to the Eco-cruise Problem
 
+```{code-cell} ipython3
+:load: code/eco-cruise.py
+:tags: [remove-input, remove-output]
+```
 
+```{glue:figure} eco_cruise_figure
+:figwidth: 100%
+:name: "fig-eco-cruise"
+
+Eco-Cruise optimization results showing the comparison between energy-efficient and naive trajectory approaches.
+```
 
 ``````{tab-set}
 :tags: [full-width]
 
 `````{tab-item} Visualization
 ```{raw} html
-<div style="position: relative; width: 100%; height: 0; padding-bottom: 200%; overflow: hidden; border-radius: 10px;">
-  <div style="position: absolute; top: 10px; right: 10px; z-index: 1000;">
-    <button id="expand-btn" onclick="toggleExpandedView()" 
-            style="background: rgba(0,0,0,0.7); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 6px;">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
-      </svg>
-      Expand View
-    </button>
-  </div>
-  <iframe id="eco-cruise-iframe" src="_static/eco-cruise-demo.html" 
-          style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; border-radius: 10px;"
-          title="Eco-Cruise Optimization Visualization">
-  </iframe>
-</div>
-
-<!-- Modal Overlay -->
-<div id="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; backdrop-filter: blur(2px);">
-  <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 20px;">
-    <div style="position: relative; width: 90%; height: 90%; max-width: 1400px; max-height: 900px; background: white; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden;">
-      <!-- Close button -->
-      <button id="close-modal-btn" onclick="toggleExpandedView()" 
-              style="position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.7); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; z-index: 10001; display: flex; align-items: center; gap: 6px;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-        </svg>
-        Close
-      </button>
-      <!-- Expanded iframe -->
-      <iframe id="expanded-iframe" src="_static/eco-cruise-demo.html" 
-              style="width: 100%; height: 100%; border: none; border-radius: 12px;"
-              title="Eco-Cruise Optimization Visualization - Expanded View">
-      </iframe>
-    </div>
-  </div>
-</div>
-
+<script src="_static/iframe-modal.js"></script>
+<div id="eco-cruise-container"></div>
 <script>
-function toggleExpandedView() {
-  const modal = document.getElementById('modal-overlay');
-  const btn = document.getElementById('expand-btn');
-  
-  if (modal.style.display === 'none') {
-    // Show expanded view
-    modal.style.display = 'block';
-    document.body.style.overflow = 'hidden'; // Prevent background scrolling
-    
-    // Update button text (though it's hidden behind modal)
-    btn.innerHTML = `
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
-      </svg>
-      Expanded
-    `;
-  } else {
-    // Hide expanded view
-    modal.style.display = 'none';
-    document.body.style.overflow = ''; // Restore scrolling
-    
-    // Update button text
-    btn.innerHTML = `
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
-      </svg>
-      Expand View
-    `;
-  }
-}
-
-// Close modal when clicking outside the content area
-document.getElementById('modal-overlay').addEventListener('click', function(e) {
-  if (e.target === this) {
-    toggleExpandedView();
-  }
-});
-
-// Close modal with Escape key
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') {
-    const modal = document.getElementById('modal-overlay');
-    if (modal.style.display !== 'none') {
-      toggleExpandedView();
-    }
-  }
-});
-
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', () => {
-  // Ensure modal is hidden initially
-  document.getElementById('modal-overlay').style.display = 'none';
+createIframeModal({
+  containerId: 'eco-cruise-container',
+  iframeSrc: '_static/eco-cruise-demo.html',
+  title: 'Eco-Cruise Optimization Visualization',
+  aspectRatio: '200%',
+  maxWidth: '1400px',
+  maxHeight: '900px'
 });
 </script>
 `````
@@ -317,7 +247,7 @@ Once these components are in place, the call to `minimize` does the rest. Intern
 
 
 
-## Single Shooting Formulation
+## Sequential Methods: The Single Shooting Formulation
 
 The previous section showed how a discrete-time optimal control problem can be solved by treating all states and controls as decision variables and enforcing the dynamics as equality constraints. This produces a nonlinear program that can be passed to solvers such as `scipy.optimize.minimize` with the SLSQP method. For short horizons, this approach is straightforward and works well; the code stays close to the mathematical formulation.
 
@@ -449,7 +379,7 @@ $$
 \text{clip}(u, u_{lb}, u_{ub}) = \max(\min(u, u_{ub}), u_{lb})
 $$
 
-## Multiple Shooting: A Middle Ground
+## Multiple Shooting: From Sequential to Simultaneous Methods
 
 The two formulations we have seen so far lie at opposite ends. The **direct NLP approach** keeps every state explicit and enforces the dynamics through equality constraints, which makes the structure clear but leads to a large optimization problem. At the other end, **single shooting** removes these constraints by simulating forward from the initial state, leaving only the controls as decision variables. That makes the problem smaller, but it also introduces a long and highly nonlinear dependency from the first control to the last state.
 
@@ -488,4 +418,39 @@ $$
 Compared to the full NLP, we no longer introduce every intermediate state as a variable—only the anchors at segment boundaries. Inside each segment, states are reconstructed by simulation. Compared to single shooting, these anchors break the long dependency chain that makes optimization unstable: gradients only have to travel across $L$ steps before they hit a decision variable, rather than the entire horizon. This is the same reason why exploding or vanishing gradients appear in deep recurrent networks: when the chain is too long, information either dies out or blows up. Multiple shooting shortens the chain and improves conditioning.
 
 By adjusting the number of segments $K$, we can interpolate between the two extremes: $K = 1$ gives single shooting, while $K = T$ recovers the full direct NLP. In practice, a moderate number of segments often strikes a good balance between robustness and complexity.
+
+```{code-cell} ipython3
+:load: code/generate_multiple_shooting_trajectory.py
+:tags: [remove-input]
+```
+
+```{glue:} multiple_shooting_output
+```
+
+``````{tab-set}
+:tags: [full-width]
+
+`````{tab-item} Visualization
+```{raw} html
+<script src="_static/iframe-modal.js"></script>
+<div id="multiple-shooting-container"></div>
+<script>
+createIframeModal({
+  containerId: 'multiple-shooting-container',
+  iframeSrc: '_static/multiple-shooting-demo.html',
+  title: 'Multiple Shooting Visualization',
+  aspectRatio: '150%',
+  maxWidth: '1400px',
+  maxHeight: '900px'
+});
+</script>
+```
+`````
+
+`````{tab-item} Code
+```{literalinclude} code/generate_multiple_shooting_trajectory.py
+:language: python
+```
+`````
+``````
 

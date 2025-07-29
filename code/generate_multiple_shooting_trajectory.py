@@ -175,7 +175,15 @@ def main():
     with output_path.open("w") as f:
         json.dump(data, f, indent=2)
 
-    print(f"⟹ Wrote aggregated trajectory data to {output_path.resolve()}")
+    # Use Jupyter Book's gluing feature to display output instead of print
+    try:
+        from myst_nb import glue
+        glue("multiple_shooting_output", f"✓ Generated trajectory data for K = {args.k_values} segments\n"
+                                        f"✓ Output written to: {output_path.name}\n"
+                                        f"✓ File size: {output_path.stat().st_size / 1024:.1f} KB", display=False)
+    except ImportError:
+        # Fallback for when not running in Jupyter Book context
+        print(f"⟹ Wrote aggregated trajectory data to {output_path.resolve()}")
 
 
 if __name__ == "__main__":
