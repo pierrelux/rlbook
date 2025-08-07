@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multiple Shooting: A Middle Ground</title>
+    <title>Multiple Shooting: Population Dynamics</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
         
@@ -42,9 +42,7 @@
             margin-bottom: 32px;
         }
 
-        .explanation {
-            /* removed for streamlined look */
-        }
+
 
         .highlight {
             background: linear-gradient(120deg, #a8e6cf 0%, #dcedc1 100%);
@@ -226,8 +224,8 @@
 </head>
 <body>
     <div class="header">
-        <h1>Multiple Shooting: A Middle Ground</h1>
-        <div class="subtitle">Interactive Visualization of Trajectory Optimization Methods</div>
+        <h1>Multiple Shooting: Population Dynamics</h1>
+        <div class="subtitle">Optimizing Harvesting Strategies with Discrete-Time Population Models</div>
     </div>
 
     <div class="main-content">
@@ -243,7 +241,7 @@
                     <span id="segmentValue">4</span>
                 </div>
                 
-                <button id="animateBtn">Animate Defects</button>
+                <button id="animateBtn">Optimize Population Continuity</button>
             </div>
 
             <div class="progress-indicator">
@@ -260,11 +258,11 @@
                     
                     <!-- Time axis -->
                     <line x1="50" y1="350" x2="750" y2="350" stroke="#2c3e50" stroke-width="2"/>
-                    <text x="400" y="385" text-anchor="middle" font-size="16" fill="#2c3e50">Time</text>
+                    <text x="400" y="385" text-anchor="middle" font-size="16" fill="#2c3e50">Time (years)</text>
                     
-                    <!-- State axis -->
+                    <!-- Population axis -->
                     <line x1="50" y1="50" x2="50" y2="350" stroke="#2c3e50" stroke-width="2"/>
-                    <text x="30" y="200" text-anchor="middle" font-size="16" fill="#2c3e50" transform="rotate(-90 30 200)">State</text>
+                    <text x="30" y="200" text-anchor="middle" font-size="16" fill="#2c3e50" transform="rotate(-90 30 200)">Population</text>
                     
                     <!-- Grid lines -->
                     <defs>
@@ -484,6 +482,19 @@
                 
                 const segmentLength = (this.width - 2 * this.margin) / this.numSegments;
                 
+                // Draw optimal continuous trajectory if available
+                if (this.trajectoryPoints && this.trajectoryPoints.length > 0) {
+                    const pathData = this.trajectoryPoints.map((p,i) => `${i===0?'M':'L'} ${p.x} ${p.y}`).join(' ');
+                    const optPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    optPath.setAttribute('d', pathData);
+                    optPath.setAttribute('stroke', '#10b981'); // teal-green
+                    optPath.setAttribute('stroke-width', '2');
+                    optPath.setAttribute('fill', 'none');
+                    optPath.setAttribute('stroke-dasharray', '4,4');
+                    optPath.setAttribute('opacity', '0.6');
+                    this.svg.appendChild(optPath);
+                }
+
                 // Draw vertical separators
                 for (let k = 0; k <= this.numSegments; k++) {
                     const x = this.margin + k * segmentLength;
@@ -554,15 +565,15 @@
                     startCircle.setAttribute('stroke-width', '2');
                     this.svg.appendChild(startCircle);
                     
-                    // State label
-                    const stateLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                    stateLabel.setAttribute('x', startPoint.x + 15);
-                    stateLabel.setAttribute('y', startPoint.y - 10);
-                    stateLabel.setAttribute('font-size', '12');
-                    stateLabel.setAttribute('fill', '#e74c3c');
-                    stateLabel.setAttribute('font-weight', '600');
-                    stateLabel.textContent = `x${i}`;
-                    this.svg.appendChild(stateLabel);
+                    // Population label
+                    const popLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    popLabel.setAttribute('x', startPoint.x + 15);
+                    popLabel.setAttribute('y', startPoint.y - 10);
+                    popLabel.setAttribute('font-size', '12');
+                    popLabel.setAttribute('fill', '#e74c3c');
+                    popLabel.setAttribute('font-weight', '600');
+                    popLabel.textContent = `P${i}`;
+                    this.svg.appendChild(popLabel);
                     
                     // Predicted end point (hollow circle)
                     const endCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
@@ -600,7 +611,7 @@
                             const midX = (endPoint.x + nextStartPoint.x) / 2;
                             const midY = (endPoint.y + nextStartPoint.y) / 2;
                             
-                            // Gap indicator with size text
+                            // Population discontinuity indicator
                             const gapText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
                             gapText.setAttribute('x', midX + 20);
                             gapText.setAttribute('y', midY);
@@ -609,7 +620,7 @@
                             gapText.setAttribute('fill', '#e74c3c');
                             gapText.setAttribute('font-weight', '600');
                             gapText.setAttribute('id', `gap-text-${i}`);
-                            gapText.textContent = `Gap: ${gapSize.toFixed(0)}px`;
+                            gapText.textContent = `Population jump: ${gapSize.toFixed(0)}`;
                             this.svg.appendChild(gapText);
                         }
                         
@@ -625,7 +636,7 @@
                             defectLabel1.setAttribute('font-size', '12');
                             defectLabel1.setAttribute('fill', '#e74c3c');
                             defectLabel1.setAttribute('font-weight', '600');
-                            defectLabel1.textContent = 'Defect';
+                            defectLabel1.textContent = 'Continuity';
                             this.svg.appendChild(defectLabel1);
                             
                             const defectLabel2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
@@ -652,7 +663,7 @@
                     finalLabel.setAttribute('font-size', '12');
                     finalLabel.setAttribute('fill', '#e74c3c');
                     finalLabel.setAttribute('font-weight', '600');
-                    finalLabel.textContent = `x${this.numSegments}`;
+                    finalLabel.textContent = `P${this.numSegments}`;
                     this.svg.appendChild(finalLabel);
                 }
             }
@@ -681,7 +692,7 @@
                 }
 
                 // Finalize UI
-                this.animateBtn.textContent = 'Animate Again';
+                this.animateBtn.textContent = 'Optimize Again';
                 this.animateBtn.disabled = false;
                 this.isAnimating = false;
 
@@ -689,7 +700,7 @@
                 setTimeout(() => {
                     this.discontinuousPoints = JSON.parse(JSON.stringify(this.initialGuessSegments));
                     this.render();
-                    this.animateBtn.textContent = 'Animate Defects';
+                    this.animateBtn.textContent = 'Optimize Population Continuity';
                     this.progressBar.style.width = '0%';
                     this.iterLabel.textContent = 'Iteration 0';
                 }, 2000);
@@ -744,6 +755,8 @@
                 this.discontinuousPoints = wrap(caseData.initial_guess);
                 this.initialGuessSegments = JSON.parse(JSON.stringify(this.discontinuousPoints));
                 this.optimizationSteps = caseData.optimization_steps ? caseData.optimization_steps.map(wrap) : null;
+                // Store optimal continuous trajectory to draw background
+                this.trajectoryPoints = caseData.continuous_trajectory || [];
 
                 this.updateMethodCards();
                 this.render();

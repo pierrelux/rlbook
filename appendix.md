@@ -489,6 +489,62 @@ However, as it is widely known from the lessons of GAN (Generative Adversarial N
 :tags: [hide-input]
 :load: code/arrow_hurwicz_uzawa_jax.py
 ```
+
+
+### Projected Gradient Descent
+
+The Arrow-Hurwicz-Uzawa algorithm provided a way to handle constraints through dual variables and a primal-dual update scheme. Another commonly used approach for constrained optimization is **Projected Gradient Descent (PGD)**. The idea is simple: take a gradient descent step as if the problem were unconstrained, then project the result back onto the feasible set. Formally:
+
+$$
+\mathbf{x}_{k+1} = \mathcal{P}_C\big(\mathbf{x}_k - \alpha \nabla f(\mathbf{x}_k)\big),
+$$
+
+where \$\mathcal{P}\_C\$ is the projection onto the feasible set \$C\$, \$\alpha\$ is the step size, and \$f(\mathbf{x})\$ is the objective function.
+
+PGD is particularly effective when the projection is computationally cheap. A common example is **box constraints** (or bound constraints), where the feasible set is a hyperrectangle:
+
+$$
+C = \{ \mathbf{x} \mid \mathbf{x}_{\mathrm{lb}} \leq \mathbf{x} \leq \mathbf{x}_{\mathrm{ub}} \}.
+$$
+
+In this case, the projection reduces to an element-wise clipping operation:
+
+$$
+[\mathcal{P}_C(\mathbf{x})]_i = \max\big(\min([\mathbf{x}]_i, [\mathbf{x}_{\mathrm{ub}}]_i), [\mathbf{x}_{\mathrm{lb}}]_i\big).
+$$
+
+For bound-constrained problems, PGD is almost as easy to implement as standard gradient descent because the projection step is just a clipping operation. For more general constraints, however, the projection may require solving a separate optimization problem, which can be as hard as the original task. Here is the algorithm for a problem of the form:
+
+$$
+\begin{aligned}
+\min_{\mathbf{x}} \quad & f(\mathbf{x}) \\
+\text{subject to} \quad & \mathbf{x}_{\mathrm{lb}} \leq \mathbf{x} \leq \mathbf{x}_{\mathrm{ub}}.
+\end{aligned}
+$$
+
+```{prf:algorithm} Projected Gradient Descent for Bound Constraints
+:label: proj-grad-descent-bound-constraints
+
+**Input:** Initial point $\mathbf{x}_0$, step size $\alpha$, bounds $\mathbf{x}_{\mathrm{lb}}, \mathbf{x}_{\mathrm{ub}}$, 
+           maximum iterations $\max_\text{iter}$, tolerance $\varepsilon$
+
+1. Initialize $k = 0$
+2. While $k < \max_\text{iter}$ and not converged:
+    1. Compute gradient: $\mathbf{g}_k = \nabla f(\mathbf{x}_k)$
+    2. Update: $\mathbf{x}_{k+1} = \text{clip}(\mathbf{x}_k - \alpha \mathbf{g}_k,\; \mathbf{x}_{\mathrm{lb}}, \mathbf{x}_{\mathrm{ub}})$
+    3. Check convergence: if $\|\mathbf{x}_{k+1} - \mathbf{x}_k\| < \varepsilon$, stop
+    4. $k = k + 1$
+3. Return $\mathbf{x}_k$
+```
+
+The clipping function is defined as:
+
+$$
+\text{clip}(x, x_{\mathrm{lb}}, x_{\mathrm{ub}}) = \max\big(\min(x, x_{\mathrm{ub}}), x_{\mathrm{lb}}\big).
+$$
+
+Under mild conditions such as Lipschitz continuity of the gradient, PGD converges to a stationary point of the constrained problem. Its simplicity and low cost make it a common choice whenever the projection can be computed efficiently.
+
 <!-- 
 # The Discrete-Time Pontryagin Maximum Principle
 

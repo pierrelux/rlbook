@@ -17,7 +17,7 @@ In the previous chapter, we examined different ways to represent dynamical syste
 
 In this chapter, we turn to what makes these models useful for **decision-making**. The goal is no longer just to describe how a system behaves, but to leverage that description to **compute actions over time**. This doesn’t mean the model prescribes actions on its own. Rather, it provides the scaffolding for optimization: given a model and an objective, we can derive the control inputs that make the modeled system behave well according to a chosen criterion. This is the essence of an **optimal control problem**.
 
-## From Dynamics to Decision Problems
+## Discrete-Time Optimal Control Problems (DOCPs)
 
 Consider a system described by a **state** $\mathbf{x}_t \in \mathbb{R}^n$, summarizing everything needed to predict its evolution. At each stage $t$, we can influence the system through a **control input** $\mathbf{u}_t \in \mathbb{R}^m$. The dynamics specify how the state evolves:
 
@@ -104,8 +104,42 @@ Why do this? Two reasons. First, it often simplifies **mathematical derivations*
 
 The unifying theme is that a DOCP may look like a generic NLP on paper, but its structure matters. Ignoring that structure often leads to impractical solutions, whereas formulations that expose sparsity and respect temporal coupling allow modern solvers to scale effectively. In the following sections, we will examine how these choices play out in practice through single shooting, multiple shooting, and collocation methods, and why different formulations strike different trade-offs between robustness and computational effort.
 
+# Numerical Methods for Solving DOCPs
 
-## Example: Eco-Cruise as a Trajectory Optimization Problem
+## Simultaneous Methods
+
+Once a discrete-time optimal control problem (DOCP) has been formulated, the question becomes how to compute a solution. 
+If we collect all states and controls into a single vector $\mathbf{z}$, the problem can be written in the canonical form of a nonlinear program (NLP):
+
+$$
+\begin{aligned}
+\text{minimize} \quad & f(\mathbf{z}) \\
+\text{subject to} \quad & \mathbf{g}(\mathbf{z}) \le 0, \\
+& \mathbf{h}(\mathbf{z}) = 0,
+\end{aligned}
+$$
+
+where $\mathbf{h}$ enforces the dynamics and $\mathbf{g}$ encodes path or box constraints. Standard solvers such as IPOPT or SNOPT accept this formulation directly, which might suggest that trajectory optimization is simply a matter of handing the problem to a black box.
+
+In practice, however, this simplicity is misleading. Optimal control problems have structural characteristics that make them considerably harder than generic nonlinear programs of comparable size. The number of variables grows with the planning horizon, since both states and controls appear explicitly. A horizon of length $T$ with state dimension $n$ and control dimension $m$ already implies on the order of $(T-1)(n+m)$ decision variables. More importantly, these variables are tightly linked by the dynamics: each decision affects all subsequent states and costs. This temporal coupling means the feasible set is highly structured, and naive formulations that ignore this often lead to poor numerical conditioning and slow convergence.
+
+These properties influence not only the difficulty of the problem but also the choice of algorithm. For instance, one approach is to collapse the problem to control inputs only and compute states by simulation; this single-shooting formulation eliminates equality constraints but introduces strong nonlinear dependencies on the controls, making the optimization sensitive to initial guesses. At the other extreme, methods such as multiple shooting or direct collocation retain states as explicit variables and enforce dynamics through constraints, leading to larger problems but with a sparsity structure that specialized solvers can exploit efficiently. The decision between these strategies is therefore not cosmetic: it determines whether the solver can take advantage of the problem’s structure.
+
+The same logic applies when selecting an optimizer. For small-scale problems, it is common to rely on general-purpose routines such as those in `scipy.optimize.minimize`. Derivative-free methods like Nelder–Mead require no gradients but scale poorly as dimensionality increases. Quasi-Newton schemes such as BFGS work well for moderate dimensions and can approximate gradients by finite differences, while large-scale trajectory optimization often calls for gradient-based constrained solvers such as interior-point or sequential quadratic programming methods that can exploit sparse Jacobians and benefit from automatic differentiation. Stochastic techniques, including genetic algorithms, simulated annealing, or particle swarm optimization, occasionally appear when gradients are unavailable, but their cost grows rapidly with dimension and they are rarely competitive for structured optimal control problems.
+
+<!-- ### On the Choice of Optimizer
+
+Although the code example uses SLSQP, many alternatives exist. `scipy.optimize.minimize` provides a menu of options, and each has implications for speed, robustness, and scalability:
+
+* **Derivative-free methods** such as Nelder–Mead avoid gradients altogether. They are attractive when gradients are unavailable or noisy, but they scale poorly with dimension.
+* **Quasi-Newton methods** like BFGS approximate gradients by finite differences. They work well for moderate-scale problems and often outperform derivative-free schemes when the objective is smooth.
+* **Gradient-based constrained solvers** such as interior-point or SQP methods exploit derivatives—exact or automatic—and are typically the most efficient for large structured problems like trajectory optimization.
+
+Beyond these, **stochastic optimizers** occasionally appear in practice, especially when gradients are unreliable or the loss landscape is rugged. Random search is the simplest example, while genetic algorithms, simulated annealing, and particle swarm optimization introduce mechanisms for global exploration at the cost of significant computational effort.
+
+Which method to choose depends on the context: problem size, availability of derivatives, and computational resources. When automatic differentiation is accessible, first-order methods like L-BFGS or Adam often dominate, particularly for single-shooting formulations where the objective is smooth and unconstrained except for simple bounds. This is why researchers with a machine learning background tend to gravitate toward these techniques: they integrate seamlessly with existing frameworks and run efficiently on GPUs. -->
+
+### Example: Direct Solution to the Eco-cruise Problem
 
 Many modern vehicles include features that aim to improve energy efficiency without requiring extra effort from the driver. One such feature is Eco-Cruise. Unlike traditional cruise control, which keeps the car at a fixed speed regardless of conditions, Eco-Cruise adjusts speed within small margins to reduce energy consumption. The reasoning is straightforward: holding speed up a hill by applying full throttle uses more energy than allowing the car to slow slightly and regain speed later. Some systems go further by using map data, anticipating slopes and curves to plan ahead. These ideas are no longer experimental; several manufacturers already deploy predictive cruise systems based on navigation input.
 
@@ -146,44 +180,9 @@ $$
 \end{aligned}
 $$
 
-This looks similar to the canonical problems we have introduced earlier, except that now the interpretation is concrete. The decision variables describe how the car will accelerate and decelerate over time, balancing energy use against a fixed arrival time.
+#### Solution
 
-# Numerical Methods for Solving DOCPs
-
-## Simultaneous Methods
-
-Once a discrete-time optimal control problem (DOCP) has been formulated, the question becomes how to compute a solution. 
-If we collect all states and controls into a single vector $\mathbf{z}$, the problem can be written in the canonical form of a nonlinear program (NLP):
-
-$$
-\begin{aligned}
-\text{minimize} \quad & f(\mathbf{z}) \\
-\text{subject to} \quad & \mathbf{g}(\mathbf{z}) \le 0, \\
-& \mathbf{h}(\mathbf{z}) = 0,
-\end{aligned}
-$$
-
-where $\mathbf{h}$ enforces the dynamics and $\mathbf{g}$ encodes path or box constraints. Standard solvers such as IPOPT or SNOPT accept this formulation directly, which might suggest that trajectory optimization is simply a matter of handing the problem to a black box.
-
-In practice, however, this simplicity is misleading. Optimal control problems have structural characteristics that make them considerably harder than generic nonlinear programs of comparable size. The number of variables grows with the planning horizon, since both states and controls appear explicitly. A horizon of length $T$ with state dimension $n$ and control dimension $m$ already implies on the order of $(T-1)(n+m)$ decision variables. More importantly, these variables are tightly linked by the dynamics: each decision affects all subsequent states and costs. This temporal coupling means the feasible set is highly structured, and naive formulations that ignore this often lead to poor numerical conditioning and slow convergence.
-
-These properties influence not only the difficulty of the problem but also the choice of algorithm. For instance, one approach is to collapse the problem to control inputs only and compute states by simulation; this single-shooting formulation eliminates equality constraints but introduces strong nonlinear dependencies on the controls, making the optimization sensitive to initial guesses. At the other extreme, methods such as multiple shooting or direct collocation retain states as explicit variables and enforce dynamics through constraints, leading to larger problems but with a sparsity structure that specialized solvers can exploit efficiently. The decision between these strategies is therefore not cosmetic: it determines whether the solver can take advantage of the problem’s structure.
-
-The same logic applies when selecting an optimizer. For small-scale problems, it is common to rely on general-purpose routines such as those in `scipy.optimize.minimize`. Derivative-free methods like Nelder–Mead require no gradients but scale poorly as dimensionality increases. Quasi-Newton schemes such as BFGS work well for moderate dimensions and can approximate gradients by finite differences, while large-scale trajectory optimization often calls for gradient-based constrained solvers such as interior-point or sequential quadratic programming methods that can exploit sparse Jacobians and benefit from automatic differentiation. Stochastic techniques, including genetic algorithms, simulated annealing, or particle swarm optimization, occasionally appear when gradients are unavailable, but their cost grows rapidly with dimension and they are rarely competitive for structured optimal control problems.
-
-### On the Choice of Optimizer
-
-Although the code example uses SLSQP, many alternatives exist. `scipy.optimize.minimize` provides a menu of options, and each has implications for speed, robustness, and scalability:
-
-* **Derivative-free methods** such as Nelder–Mead avoid gradients altogether. They are attractive when gradients are unavailable or noisy, but they scale poorly with dimension.
-* **Quasi-Newton methods** like BFGS approximate gradients by finite differences. They work well for moderate-scale problems and often outperform derivative-free schemes when the objective is smooth.
-* **Gradient-based constrained solvers** such as interior-point or SQP methods exploit derivatives—exact or automatic—and are typically the most efficient for large structured problems like trajectory optimization.
-
-Beyond these, **stochastic optimizers** occasionally appear in practice, especially when gradients are unreliable or the loss landscape is rugged. Random search is the simplest example, while genetic algorithms, simulated annealing, and particle swarm optimization introduce mechanisms for global exploration at the cost of significant computational effort.
-
-Which method to choose depends on the context: problem size, availability of derivatives, and computational resources. When automatic differentiation is accessible, first-order methods like L-BFGS or Adam often dominate, particularly for single-shooting formulations where the objective is smooth and unconstrained except for simple bounds. This is why researchers with a machine learning background tend to gravitate toward these techniques: they integrate seamlessly with existing frameworks and run efficiently on GPUs.
-
-### Example: Direct Solution to the Eco-cruise Problem
+Once the objective and constraints are expressed as Python functions, the problem can be passed to a generic optimizer with very little extra work. Here is a direct implementation using `scipy.optimize.minimize` with the SLSQP method:
 
 ```{code-cell} ipython3
 :load: code/eco-cruise.py
@@ -223,10 +222,7 @@ createIframeModal({
 `````
 ``````
 
-
-Once the objective and constraints are expressed as Python functions, the problem can be passed to a generic optimizer with very little extra work. Here is a direct implementation using `scipy.optimize.minimize` with the SLSQP method:
-
-The code does not introduce any new mathematics; its only purpose is to express the formulation in a way that a generic optimizer can process. Packages such as `scipy.optimize.minimize` expect three things: an objective function that returns a scalar cost, a set of constraints grouped as equality or inequality functions, and bounds on individual variables. Everything else is about bookkeeping.
+The function `scipy.optimize.minimize` expect three things: an objective function that returns a scalar cost, a set of constraints grouped as equality or inequality functions, and bounds on individual variables. Everything else is about bookkeeping.
 
 The first step is to gather all decision variables—positions, speeds, and accelerations—into a single vector $\mathbf{z}$. Helper routines like `unpack` then slice this vector back into its components so that the rest of the code reads naturally. The objective function mirrors the analytical form of the cost: it sums quadratic penalties on speeds and accelerations across the horizon.
 
@@ -247,7 +243,7 @@ Once these components are in place, the call to `minimize` does the rest. Intern
 
 
 
-## Sequential Methods: The Single Shooting Formulation
+## Sequential Methods
 
 The previous section showed how a discrete-time optimal control problem can be solved by treating all states and controls as decision variables and enforcing the dynamics as equality constraints. This produces a nonlinear program that can be passed to solvers such as `scipy.optimize.minimize` with the SLSQP method. For short horizons, this approach is straightforward and works well; the code stays close to the mathematical formulation.
 
@@ -285,101 +281,44 @@ $$
 \boldsymbol{\phi}_{1}=\mathbf{x}_1.
 $$
 
-Concretely, implementing this is nothing more than running a **for loop**, or equivalently, a `scan` operator in JAX or TensorFlow. The pattern is the same as an RNN unroll: given an initial hidden state ($\mathbf{x}_1$) and a sequence of inputs ($\mathbf{u}_{1:T-1}$), we propagate forward, updating the state at each step and accumulating a scalar cost. This structural similarity is what makes single shooting so natural to implement in differentiable programming frameworks: the rollout is a forward pass, and gradients flow back through time in exactly the same way as backpropagation through an RNN.
 
-### Single Shooting in Practice
+Concretely, implementing this amounts to running a **for loop**—or, in frameworks like JAX or TensorFlow, using a `scan` operator. The pattern mirrors an RNN unroll: starting from an initial state (\$\mathbf{x}*1\$) and a sequence of controls (\$\mathbf{u}*{1\:T-1}\$), we propagate forward through the dynamics, updating the state at each step and accumulating cost along the way. This structural similarity is why single shooting often feels natural to practitioners with a deep learning background: the rollout is a forward pass, and gradients propagate backward through time exactly as in backpropagation through an RNN.
 
-A practical implementation computes the trajectory once per evaluation and accumulates the cost along the way. This avoids redundant recomputation and matches the pattern of a forward pass in a neural network, making it compatible with automatic differentiation and GPU acceleration:
+Algorithmically:
 
 ```{prf:algorithm} Single Shooting: Forward Unroll
 :label: single-shooting-forward-unroll
 
-**Inputs** Initial state $\mathbf{x}_1$, horizon $T$, control bounds $\mathbf{u}_{\mathrm{lb}}, \mathbf{u}_{\mathrm{ub}}$, dynamics $\mathbf{f}_t$, costs $c_t$
+**Inputs**: Initial state $\mathbf{x}_1$, horizon $T$, control bounds $\mathbf{u}_{\mathrm{lb}}, \mathbf{u}_{\mathrm{ub}}$, dynamics $\mathbf{f}_t$, costs $c_t$
 
-**Output** Optimal control sequence $\mathbf{u}^*_{1:T-1}$
+**Output**: Optimal control sequence $\mathbf{u}^*_{1:T-1}$
 
-1. Initialize $\mathbf{u}_{1:T-1}$ within bounds
-2. Define ComputeTrajectoryAndCost($\mathbf{u}, \mathbf{x}_1$):
-    - $\mathbf{x}\leftarrow \mathbf{x}_1$, $J\leftarrow 0$
-    - For $t=1$ to $T-1$:
-        - $J\leftarrow J + c_t(\mathbf{x},\mathbf{u}_t)$
-        - $\mathbf{x}\leftarrow \mathbf{f}_t(\mathbf{x},\mathbf{u}_t)$
-    - $J\leftarrow J + c_T(\mathbf{x})$
+1. Initialize $\mathbf{u}_{1:T-1}$ within bounds  
+2. Define `ComputeTrajectoryAndCost($\mathbf{u}, \mathbf{x}_1$)`:
+    - $\mathbf{x} \leftarrow \mathbf{x}_1$, $J \leftarrow 0$
+    - For $t = 1$ to $T-1$:
+        - $J \leftarrow J + c_t(\mathbf{x}, \mathbf{u}_t)$
+        - $\mathbf{x} \leftarrow \mathbf{f}_t(\mathbf{x}, \mathbf{u}_t)$
+    - $J \leftarrow J + c_T(\mathbf{x})$
     - Return $J$
-3. Solve $\min_{\mathbf{u}} J(\mathbf{u})$ subject to $\mathbf{u}_{\mathrm{lb}}\le\mathbf{u}_t\le\mathbf{u}_{\mathrm{ub}}$
+3. Solve $\min_{\mathbf{u}} J(\mathbf{u})$ subject to $\mathbf{u}_{\mathrm{lb}} \le \mathbf{u}_t \le \mathbf{u}_{\mathrm{ub}}$
 4. Return $\mathbf{u}^*_{1:T-1}$
 ```
 
-With JAX or PyTorch, this loop can be JIT-compiled and differentiated automatically. Optimization can then use any first-order or quasi-Newton method—L-BFGS, Adam, even SGD—making the pipeline look much like training a neural network.
+In JAX or PyTorch, this loop can be JIT-compiled and differentiated automatically. Any gradient-based optimizer—L-BFGS, Adam, even SGD—can be applied, making the pipeline look very much like training a neural network. In effect, we are “backpropagating through the world model” when computing \$\nabla J(\mathbf{u})\$.
 
 Single shooting is attractive for its simplicity and compatibility with differentiable programming, but it has limitations. The absence of intermediate constraints makes it sensitive to initialization and prone to numerical instability over long horizons. When state constraints or robustness matter, formulations that keep states explicit—such as multiple shooting or collocation—become preferable. These trade-offs are the focus of the next section.
 
+<!-- 
 ```{code-cell} ipython3
 :tags: [hide-cell]
 :mystnb:
 :  code_prompt_show: "Show code demonstration"
 :  code_prompt_hide: "Hide code demonstration"
 :load: code/single_shooting_unrolled.py
-```
+``` -->
 
-### Dealing with Bound Constraints
-
-While we have successfully eliminated the dynamics as explicit constraints through what essentially amounts to a "reparametrization" of our problem, we've been silent regarding the bound constraints. The view of single shooting as a perfect transformation from a constrained problem to an unconstrained one is not entirely accurate: we must leave something on the table, and that something is the ability to easily impose state constraints.
-
-By directly simulating the process from the initial state, there is one and only one corresponding induced path, and there's no way to let our optimizer know that it can adjust within some bounds, even if that means the generated trajectory is no longer feasible (realistic).
-
-Fortunately, the situation is much better for bound constraints on the controls. If we choose gradient descent as our method for solving this problem, we can consider a simple extension to readily support these kinds of bound constraints. The approach, in this case, would be what we call projected gradient descent. The general form of a projected gradient descent step can be expressed as:
-
-$$
-\mathbf{u}_{k+1} = \mathcal{P}_C(\mathbf{u}_k - \alpha \nabla J(\mathbf{u}_k))
-$$
-
-where $\mathcal{P}_C$ denotes the projection onto the feasible set $C$, $\alpha$ is the step size, and $\nabla J(\mathbf{u}_k)$ is the gradient of the objective function at the current point $\mathbf{u}_k$. In general, the projection operation can be computationally expensive or even intractable. However, in the case of box constraints (i.e., bound constraints), the projection simplifies to an element-wise clipping operation:
-
-$$
-[\mathcal{P}_C(\mathbf{u})]_i = \begin{cases}
-    [\mathbf{u}_{lb}]_i & \text{if } [\mathbf{u}]_i < [\mathbf{u}_{lb}]_i \\
-    [\mathbf{u}]_i & \text{if } [\mathbf{u}_{lb}]_i \leq [\mathbf{u}]_i \leq [\mathbf{u}_{ub}]_i \\
-    [\mathbf{u}_{ub}]_i & \text{if } [\mathbf{u}]_i > [\mathbf{u}_{ub}]_i
-\end{cases}
-$$
-
-With this simple change, we can maintain the computational simplicity of unconstrained optimization while enforcing the bound constraints at each iteration: ie ensuring that we are feasible throughout optimization. Moreover, it can be shown that this projection preserves the convergence properties of the gradient descent method, and that under suitable conditions (such as Lipschitz continuity of the gradient), projected gradient descent converges to a stationary point of the constrained problem. 
-
-Here's the algorithm for projected gradient descent with bound constraint for a general problem of the form:
-
-$$
-\begin{align*}
-\min_{\mathbf{u}} \quad & J(\mathbf{u}) \\
-\text{subject to} \quad & \mathbf{u}_{lb} \leq \mathbf{u} \leq \mathbf{u}_{ub}
-\end{align*}
-$$
-
-where $J(\mathbf{u})$ is our objective function, and $\mathbf{u}_{lb}$ and $\mathbf{u}_{ub}$ are the lower and upper bounds on the control variables, respectively.
-
-
-```{prf:algorithm} Projected Gradient Descent for Bound Constraints
-:label: proj-grad-descent-bound-constraints
-
-**Input:** Initial point $\mathbf{u}_0$, learning rate $\alpha$, bounds $\mathbf{u}_{lb}$ and $\mathbf{u}_{ub}$, 
-           maximum iterations $\max_\text{iter}$, tolerance $\varepsilon$
-
-1. Initialize $k = 0$
-2. While $k < \max_\text{iter}$ and not converged:
-    1. Compute gradient: $\mathbf{g}_k = \nabla J(\mathbf{u}_k)$
-    2. Update: $\mathbf{u}_{k+1} = \text{clip}(\mathbf{u}_k - \alpha \mathbf{g}_k, \mathbf{u}_{lb}, \mathbf{u}_{ub})$
-    3. Check convergence: if $\|\mathbf{u}_{k+1} - \mathbf{u}_k\| < \varepsilon$, mark as converged
-    4. $k = k + 1$
-3. Return $\mathbf{u}_k$
-```
-
-In this algorithm, the `clip` function projects the updated point back onto the feasible region defined by the bounds:
-
-$$
-\text{clip}(u, u_{lb}, u_{ub}) = \max(\min(u, u_{ub}), u_{lb})
-$$
-
-## Multiple Shooting: From Sequential to Simultaneous Methods
+## In Between Sequential and Simultaneous
 
 The two formulations we have seen so far lie at opposite ends. The **direct NLP approach** keeps every state explicit and enforces the dynamics through equality constraints, which makes the structure clear but leads to a large optimization problem. At the other end, **single shooting** removes these constraints by simulating forward from the initial state, leaving only the controls as decision variables. That makes the problem smaller, but it also introduces a long and highly nonlinear dependency from the first control to the last state.
 
@@ -421,7 +360,7 @@ By adjusting the number of segments $K$, we can interpolate between the two extr
 
 ```{code-cell} ipython3
 :load: code/generate_multiple_shooting_trajectory.py
-:tags: [remove-input]
+:tags: [remove-input, remove-output]
 ```
 
 ```{glue:} multiple_shooting_output
