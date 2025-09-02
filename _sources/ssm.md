@@ -1,8 +1,33 @@
+## Dynamics Models for Decision Making
+
+The kind of model we need here is a **dynamics model**. It does not just describe correlations. It tells us how a system **evolves in time** and, most importantly for control, how that evolution **responds to inputs** we choose.
+
+A dynamics model earns its keep by answering counterfactuals of the form: *given an initial condition and an input schedule, what trajectory should I expect?* That ability to roll a trajectory forward under different candidate inputs is the backbone of planning, policy evaluation, and learning from interaction.
+
+At this level, we can think of the model as a trajectory generator:
+
+$$
+(\mathbf{x}_0,\ \{\mathbf{u}_t\},\ \{\mathbf{d}_t\}) \ \longmapsto\ \{\mathbf{x}_t,\ \mathbf{y}_t\}_{t=0:T},
+$$
+
+where $\mathbf{u}_t$ are **controls** we set, $\mathbf{d}_t$ are **exogenous drivers** we do not control (weather, inflow, demand), $\mathbf{x}_t$ are internal **system variables**, and $\mathbf{y}_t$ are **observations**. The split between $\mathbf{u}$ and $\mathbf{d}$ is practical: it separates what we can act on from what we must accommodate.
+
+Two design pressures shape such models:
+
+1. **Responsiveness to inputs.** The model must expose the levers that matter for the decision problem, even if everything underneath is approximate.
+2. **Memory management.** To simulate step by step, we need a compact summary of the past that is sufficient to predict the next step once an input arrives. That summary is what we will call the **state**.
+
+This brings us to a standard but powerful representation. Rather than carry the full history, we look for a variable $\mathbf{x}_t$ that captures "what matters so far" for predicting what comes next under a given input. With that variable in hand, the model advances in small increments and can be composed with estimators and controllers.
+
+With this motivation in place, we can now introduce the formalism.
+
 ## The State‑Space Perspective
 
-Most dynamic systems, whether derived from physics or learned from data, can be cast into **state‑space form**. The key idea is to introduce an internal state that summarises past information and evolves in response to inputs. Outputs are functions of that state and the current input.
+Most dynamics models, whether derived from physics or learned from data, can be cast into **state‑space form**. The state $\mathbf{x}$ is the compact memory that summarizes the past for prediction and control. Inputs $\mathbf{u}$ perturb that state, exogenous drivers $\mathbf{d}$ push it around, and outputs $\mathbf{y}$ are what we can measure. The equations look the same whether time is treated in discrete steps or as a continuous variable.
 
 ### Discrete versus continuous time
+
+How we represent time is dictated by how we sense and actuate: digital controllers sample and apply inputs in steps; the underlying physics evolve continuously.
 
 Time can be represented in two complementary ways, depending on how the system is sensed, actuated, or modelled.
 
@@ -18,9 +43,11 @@ This raises a natural question: if everything eventually gets discretized anyway
 
 In many cases, we do. But continuous-time models can still be useful, sometimes even necessary. They often make physical assumptions more explicit, connect more naturally to domain knowledge (e.g. differential equations in mechanics or thermodynamics), and expose invariances or conserved quantities that get obscured by time discretization. They also make it easier to model systems at different time scales, or to reason about how behaviors change as resolution increases. So while implementation happens in discrete time, thinking in continuous time can clarify the structure of the model.
 
-Still, it’s helpful to see how both representations look in mathematical form. The state-space equations are nearly identical with different notations depending on how time is represented.
+Still, it's helpful to see how both representations look in mathematical form. The state-space equations are nearly identical with different notations depending on how time is represented.
 
 **Discrete time**
+
+Having defined state as the summary we carry forward, a step of prediction applies the chosen input and advances the state.
 
 $\mathbf{x}_{t+1} = f_t(\mathbf{x}_t, \mathbf{u}_t), \qquad \mathbf{y}_t = h_t(\mathbf{x}_t, \mathbf{u}_t).$
 
@@ -30,11 +57,13 @@ $\dot{\mathbf{x}}(t) = f(\mathbf{x}(t), \mathbf{u}(t)), \qquad \mathbf{y}(t) = h
 
 The dot denotes a derivative with respect to real time; everything else (state, control, observation) remains the same.
 
-When the functions $f$ and $h$ are linear we obtain
+When the functions $f$ and $h$ are linear we obtain
+
+Linearity is not a belief about the world, it is a modeling choice that trades fidelity for transparency and speed.
 
 $\dot{\mathbf{x}} = A\mathbf{x} + B\mathbf{u}, \qquad \mathbf{y} = C\mathbf{x} + D\mathbf{u}.$
 
-The matrices $A, B, C, D$ may vary with $t$.  Readers with an ML background will recognise the parallel with recurrent neural networks: the state is the hidden vector, the control the input, and the output the read‑out layer.
+The matrices $A, B, C, D$ may vary with $t$.  Readers with an ML background will recognise the parallel with recurrent neural networks: the state is the hidden vector, the control the input, and the output the read‑out layer.
 
 Classical control often moves to the frequency domain, using Laplace and Z‑transforms to turn differential and difference equations into algebraic ones. That is invaluable for stability analysis of linear time‑invariant systems, but the time‑domain state‑space view is more flexible for learning and simulation, so we will keep our primary focus there.
 

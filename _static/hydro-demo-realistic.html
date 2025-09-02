@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realistic 3D Watershed Terrain</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/three@0.150.0/build/three.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+        }
+        .icon-play::before { content: "▶"; }
+        .icon-pause::before { content: "⏸"; }
+        .icon-refresh::before { content: "↻"; }
+        .icon-leaf::before { content: "🌿"; }
+        .icon-fish::before { content: "🐟"; }
+        .three-container {
+            width: 100%;
+            height: 600px;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo } = React;
+        
+        // Icon components
+        const Play = () => React.createElement('span', { className: 'icon-play' });
+        const Pause = () => React.createElement('span', { className: 'icon-pause' });
+        const RotateCcw = () => React.createElement('span', { className: 'icon-refresh' });
+        const Leaf = ({ size = 24 }) => React.createElement('span', { className: 'icon-leaf', style: { fontSize: size } });
+        const FishIcon = ({ size = 24 }) => React.createElement('span', { className: 'icon-fish', style: { fontSize: size } });
+
+        // Advanced noise functions for realistic terrain
+        const TerrainGenerator = {
+            // Improved noise function with better distribution
+            noise: (x, y) => {
+                let n = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453;
+                return (n - Math.floor(n)) * 2 - 1;
+            },
+            
+            // Smooth interpolation function
+            smoothstep: (edge0, edge1, x) => {
+                const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
+                return t * t * (3 - 2 * t);
+            },
+            
+            // Linear interpolation
+            lerp: (a, b, t) => a + t * (b - a),
+            
+            // Smooth noise with better interpolation
+            smoothNoise: (x, y) => {
+                const intX = Math.floor(x);
+                const intY = Math.floor(y);
+                const fracX = x - intX;
+                const fracY = y - intY;
+                
+                const a = TerrainGenerator.noise(intX, intY);
+                const b = TerrainGenerator.noise(intX + 1, intY);
+                const c = TerrainGenerator.noise(intX, intY + 1);
+                const d = TerrainGenerator.noise(intX + 1, intY + 1);
+                
+                const smoothX = TerrainGenerator.smoothstep(0, 1, fracX);
+                const smoothY = TerrainGenerator.smoothstep(0, 1, fracY);
+                
+                const i1 = TerrainGenerator.lerp(a, b, smoothX);
+                const i2 = TerrainGenerator.lerp(c, d, smoothX);
+                
+                return TerrainGenerator.lerp(i1, i2, smoothY);
+            },
+            
+            // Multi-octave fractal noise for realistic terrain
+            fractalNoise: (x, y, octaves = 8, persistence = 0.5, scale = 0.005) => {
+                let value = 0;
+                let amplitude = 1;
+                let frequency = scale;
+                let maxValue = 0;
+                
+                for (let i = 0; i < octaves; i++) {
+                    value += TerrainGenerator.smoothNoise(x * frequency, y * frequency) * amplitude;
+                    maxValue += amplitude;
+                    amplitude *= persistence;
+                    frequency *= 2;
+                }
+                
+                return value / maxValue;
+            },
+            
+            // Ridge noise for mountain ridges
+            ridgeNoise: (x, y, scale = 0.01) => {
+                const n = TerrainGenerator.fractalNoise(x, y, 4, 0.5, scale);
+                return 1 - Math.abs(n);
+            },
+            
+            // Generate realistic terrain height
+            generateHeight: (x, y) => {
+                // Base terrain with multiple frequency components
+                const baseHeight = TerrainGenerator.fractalNoise(x, y, 6, 0.6, 0.003) * 30;
+                
+                // Mountain ridges
+                const ridges = TerrainGenerator.ridgeNoise(x, y, 0.002) * 40;
+                
+                // Large scale elevation
+                const largeScale = TerrainGenerator.fractalNoise(x, y, 3, 0.7, 0.001) * 20;
+                
+                // Medium detail
+                const mediumDetail = TerrainGenerator.fractalNoise(x, y, 4, 0.5, 0.01) * 8;
+                
+                // Fine detail
+                const fineDetail = TerrainGenerator.fractalNoise(x, y, 3, 0.4, 0.05) * 2;
+                
+                // Combine all layers
+                let height = baseHeight + ridges + largeScale + mediumDetail + fineDetail;
+                
+                // Create valley system for river
+                const riverX = Math.abs((x * 0.8 + y * 0.2) % 400 - 200);
+                const riverY = Math.abs((x * 0.2 - y * 0.6) % 300 - 150);
+                
+                if (riverX < 30) {
+                    const riverDepth = (30 - riverX) / 30;
+                    height -= riverDepth * riverDepth * 15;
+                }
+                
+                if (riverY < 20) {
+                    const riverDepth = (20 - riverY) / 20;
+                    height -= riverDepth * riverDepth * 10;
+                }
+                
+                // Central valley
+                const distanceFromCenter = Math.sqrt(x * x + y * y);
+                if (distanceFromCenter < 200) {
+                    const valleyEffect = (200 - distanceFromCenter) / 200;
+                    height -= valleyEffect * valleyEffect * 8;
+                }
+                
+                return Math.max(-5, height);
+            }
+        };
+
+        // Realistic Three.js scene component
+        const RealisticTerrainScene = ({ dams, ecosystemElements, selectedPolicy, showEcological }) => {
+          const mountRef = useRef(null);
+          const sceneRef = useRef(null);
+          const rendererRef = useRef(null);
+          const cameraRef = useRef(null);
+          const terrainMeshRef = useRef(null);
+          const waterMeshRef = useRef(null);
+          const damMeshesRef = useRef([]);
+          const animationIdRef = useRef(null);
+          
+          useEffect(() => {
+            if (!mountRef.current) return;
+
+            // Scene setup
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xa8d8ff);
+            // Remove fog to prevent haze when zooming out
+            // scene.fog = new THREE.Fog(0xa8d8ff, 100, 400);
+            sceneRef.current = scene;
+
+            // Camera setup - better angle for terrain viewing
+            const camera = new THREE.PerspectiveCamera(60, mountRef.current.clientWidth / mountRef.current.clientHeight, 0.1, 1000);
+            camera.position.set(150, 80, 150);
+            camera.lookAt(0, 0, 0);
+            cameraRef.current = camera;
+
+            // Renderer setup
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.setClearColor(0xa8d8ff, 1);
+            rendererRef.current = renderer;
+            mountRef.current.appendChild(renderer.domElement);
+
+            // Enhanced lighting for terrain
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
+            directionalLight.position.set(100, 100, 50);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 4096;
+            directionalLight.shadow.mapSize.height = 4096;
+            directionalLight.shadow.camera.near = 0.5;
+            directionalLight.shadow.camera.far = 1000;
+            directionalLight.shadow.camera.left = -200;
+            directionalLight.shadow.camera.right = 200;
+            directionalLight.shadow.camera.top = 200;
+            directionalLight.shadow.camera.bottom = -200;
+            scene.add(directionalLight);
+
+            // Hemisphere light for realistic sky lighting
+            const hemisphereLight = new THREE.HemisphereLight(0x87CEEB, 0x362C1A, 0.8);
+            scene.add(hemisphereLight);
+
+            // Create realistic terrain
+            const createRealisticTerrain = () => {
+              const size = 400;
+              const segments = 256;
+              const geometry = new THREE.PlaneGeometry(size, size, segments, segments);
+              
+              // Generate realistic height data
+              const positions = geometry.attributes.position.array;
+              const colors = [];
+              const heightData = [];
+              
+              // First pass: calculate all heights
+              for (let i = 0; i < positions.length; i += 3) {
+                const x = positions[i];
+                const z = positions[i + 1];
+                const height = TerrainGenerator.generateHeight(x, z);
+                heightData.push(height);
+                positions[i + 2] = height;
+              }
+              
+              // Second pass: assign colors based on height and slope
+              for (let i = 0; i < positions.length; i += 3) {
+                const height = positions[i + 2];
+                let color = new THREE.Color();
+                
+                // Calculate slope for more realistic coloring
+                const idx = i / 3;
+                const segmentsPlus1 = segments + 1;
+                const row = Math.floor(idx / segmentsPlus1);
+                const col = idx % segmentsPlus1;
+                
+                let slope = 0;
+                if (row > 0 && row < segments && col > 0 && col < segments) {
+                  const h1 = heightData[idx - 1] || height;
+                  const h2 = heightData[idx + 1] || height;
+                  const h3 = heightData[idx - segmentsPlus1] || height;
+                  const h4 = heightData[idx + segmentsPlus1] || height;
+                  slope = Math.abs(h1 - h2) + Math.abs(h3 - h4);
+                }
+                
+                if (height < -2) {
+                  // Deep water
+                  color.setHex(0x1e3a8a);
+                } else if (height < 0) {
+                  // Shallow water/rivers
+                  color.setHex(0x3b82f6);
+                } else if (height < 2) {
+                  // Beach/riverbank
+                  color.setHex(0xfde047);
+                } else if (height < 8) {
+                  // Grass (darker if steep slope)
+                  if (slope > 4) {
+                    color.setHex(0x15803d); // Dark green for steep slopes
+                  } else {
+                    color.setHex(0x22c55e); // Regular grass
+                  }
+                } else if (height < 20) {
+                  // Forest/hills
+                  if (slope > 6) {
+                    color.setHex(0x374151); // Rock face
+                  } else {
+                    color.setHex(0x166534); // Dark forest green
+                  }
+                } else if (height < 35) {
+                  // Mountain rock
+                  color.setHex(0x6b7280);
+                } else {
+                  // Snow peaks
+                  color.setHex(0xfafafa);
+                }
+                
+                colors.push(color.r, color.g, color.b);
+              }
+              
+              geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+              geometry.computeVertexNormals();
+              
+              const material = new THREE.MeshLambertMaterial({ 
+                vertexColors: true,
+                side: THREE.DoubleSide 
+              });
+              
+              const mesh = new THREE.Mesh(geometry, material);
+              mesh.rotation.x = -Math.PI / 2;
+              mesh.receiveShadow = true;
+              mesh.castShadow = true;
+              
+              return mesh;
+            };
+
+            // Create water system
+            const createWaterSystem = () => {
+              const waterParts = [];
+              
+              // Main river water
+              const riverGeometry = new THREE.PlaneGeometry(300, 40, 32, 8);
+              const riverPositions = riverGeometry.attributes.position.array;
+              
+              for (let i = 0; i < riverPositions.length; i += 3) {
+                const x = riverPositions[i];
+                const z = riverPositions[i + 1];
+                // Slightly below terrain
+                riverPositions[i + 2] = -1;
+              }
+              
+              const riverMaterial = new THREE.MeshPhongMaterial({
+                color: 0x4A90E2,
+                transparent: true,
+                opacity: 0.7,
+                shininess: 200,
+                specular: 0x87CEEB
+              });
+              
+              const riverMesh = new THREE.Mesh(riverGeometry, riverMaterial);
+              riverMesh.rotation.x = -Math.PI / 2;
+              riverMesh.rotation.z = Math.PI / 6;
+              riverMesh.position.y = 0.5;
+              
+              waterParts.push(riverMesh);
+              
+              // Lake water
+              const lakeGeometry = new THREE.CircleGeometry(25, 32);
+              const lakeMaterial = new THREE.MeshPhongMaterial({
+                color: 0x2563EB,
+                transparent: true,
+                opacity: 0.8,
+                shininess: 100
+              });
+              
+              const lakeMesh = new THREE.Mesh(lakeGeometry, lakeMaterial);
+              lakeMesh.rotation.x = -Math.PI / 2;
+              lakeMesh.position.set(-50, 0.2, 50);
+              
+              waterParts.push(lakeMesh);
+              
+              return waterParts;
+            };
+
+            // Create terrain and water
+            const terrain = createRealisticTerrain();
+            terrainMeshRef.current = terrain;
+            scene.add(terrain);
+            
+            const waterParts = createWaterSystem();
+            waterMeshRef.current = waterParts;
+            waterParts.forEach(water => scene.add(water));
+
+            // Simple and stable mouse controls
+            let mouseX = 0, mouseY = 0;
+            let isMouseDown = false;
+            let phi = Math.PI / 4; // vertical rotation
+            let theta = 0; // horizontal rotation
+            let radius = 200; // distance from center
+            
+            const updateCameraPosition = () => {
+              // Keep phi within reasonable bounds
+              phi = Math.max(0.1, Math.min(Math.PI / 2 - 0.1, phi));
+              
+              // Convert spherical coordinates to cartesian
+              camera.position.x = radius * Math.sin(phi) * Math.cos(theta);
+              camera.position.y = radius * Math.cos(phi);
+              camera.position.z = radius * Math.sin(phi) * Math.sin(theta);
+              
+              // Always look at the center of the terrain
+              camera.lookAt(0, 0, 0);
+            };
+            
+            const onMouseMove = (event) => {
+              if (!isMouseDown) return;
+              
+              const deltaX = event.clientX - mouseX;
+              const deltaY = event.clientY - mouseY;
+              
+              // Update rotation angles
+              theta -= deltaX * 0.01;
+              phi += deltaY * 0.01;
+              
+              updateCameraPosition();
+              
+              mouseX = event.clientX;
+              mouseY = event.clientY;
+            };
+            
+            const onMouseDown = (event) => {
+              isMouseDown = true;
+              mouseX = event.clientX;
+              mouseY = event.clientY;
+            };
+            
+            const onMouseUp = () => {
+              isMouseDown = false;
+            };
+            
+            const onWheel = (event) => {
+              event.preventDefault();
+              const delta = event.deltaY * 0.001;
+              radius = Math.max(50, Math.min(500, radius * (1 + delta)));
+              updateCameraPosition();
+            };
+            
+            // Initialize camera position
+            updateCameraPosition();
+            
+            renderer.domElement.addEventListener('mousemove', onMouseMove);
+            renderer.domElement.addEventListener('mousedown', onMouseDown);
+            renderer.domElement.addEventListener('mouseup', onMouseUp);
+            renderer.domElement.addEventListener('wheel', onWheel, { passive: false });
+            
+            // Prevent context menu on right click
+            renderer.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
+
+            // Simple animation loop
+            const animate = () => {
+              animationIdRef.current = requestAnimationFrame(animate);
+              
+              const time = Date.now() * 0.001;
+              
+              // Only animate water opacity
+              if (waterMeshRef.current) {
+                waterMeshRef.current.forEach((water, index) => {
+                  if (water.material) {
+                    water.material.opacity = 0.7 + Math.sin(time * 0.5 + index) * 0.1;
+                  }
+                });
+              }
+              
+              renderer.render(scene, camera);
+            };
+            
+            animate();
+
+            // Handle resize
+            const handleResize = () => {
+              if (!mountRef.current) return;
+              const width = mountRef.current.clientWidth;
+              const height = mountRef.current.clientHeight;
+              camera.aspect = width / height;
+              camera.updateProjectionMatrix();
+              renderer.setSize(width, height);
+            };
+            
+            window.addEventListener('resize', handleResize);
+
+            // Cleanup
+            return () => {
+              if (animationIdRef.current) {
+                cancelAnimationFrame(animationIdRef.current);
+              }
+              if (mountRef.current && renderer.domElement) {
+                mountRef.current.removeChild(renderer.domElement);
+              }
+              window.removeEventListener('resize', handleResize);
+              renderer.dispose();
+            };
+          }, []);
+
+          // Update dams and ecosystem elements
+          useEffect(() => {
+            if (!sceneRef.current) return;
+
+            // Clear existing objects
+            damMeshesRef.current.forEach(mesh => {
+              sceneRef.current.remove(mesh);
+            });
+            damMeshesRef.current = [];
+
+            // Add realistic dams
+            dams.forEach((dam, index) => {
+              const group = new THREE.Group();
+              
+              // Dam wall
+              const damGeometry = new THREE.BoxGeometry(4, 8, 1);
+              const damMaterial = new THREE.MeshLambertMaterial({ color: 0x666666 });
+              const damMesh = new THREE.Mesh(damGeometry, damMaterial);
+              damMesh.castShadow = true;
+              damMesh.receiveShadow = true;
+              group.add(damMesh);
+              
+              // Spillway
+              const spillwayGeometry = new THREE.BoxGeometry(2, 1, 0.5);
+              const spillwayMaterial = new THREE.MeshLambertMaterial({ color: 0x888888 });
+              const spillwayMesh = new THREE.Mesh(spillwayGeometry, spillwayMaterial);
+              spillwayMesh.position.set(0, 3, 0);
+              group.add(spillwayMesh);
+              
+              // Reservoir indicator
+              const reservoirGeometry = new THREE.CylinderGeometry(6, 6, 1, 16);
+              const reservoirMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x4A90E2, 
+                transparent: true, 
+                opacity: 0.4 
+              });
+              const reservoirMesh = new THREE.Mesh(reservoirGeometry, reservoirMaterial);
+              reservoirMesh.position.set(-8, 2, 0);
+              group.add(reservoirMesh);
+              
+              // Power station
+              const powerGeometry = new THREE.BoxGeometry(3, 4, 3);
+              const powerMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+              const powerMesh = new THREE.Mesh(powerGeometry, powerMaterial);
+              powerMesh.position.set(6, 0, 0);
+              powerMesh.castShadow = true;
+              group.add(powerMesh);
+              
+              // Status indicator
+              const impactColor = dam.ecologicalImpact === 'high' ? 0xff0000 : 
+                                 dam.ecologicalImpact === 'moderate' ? 0xffa500 : 0x00ff00;
+              const statusGeometry = new THREE.SphereGeometry(0.5);
+              const statusMaterial = new THREE.MeshBasicMaterial({ color: impactColor });
+              const statusMesh = new THREE.Mesh(statusGeometry, statusMaterial);
+              statusMesh.position.y = 5;
+              group.add(statusMesh);
+              
+              // Position the dam (scale to terrain)
+              group.position.set(
+                (dam.x - 350) / 2,
+                8,
+                (dam.y - 200) / 2
+              );
+              
+              sceneRef.current.add(group);
+              damMeshesRef.current.push(group);
+            });
+
+            // Add ecosystem elements
+            if (showEcological) {
+              ecosystemElements.forEach(element => {
+                const pos = [(element.x - 350) / 2, 5, (element.y - 200) / 2];
+                
+                if (element.type === 'fish') {
+                  const fishGeometry = new THREE.ConeGeometry(0.3, 1, 6);
+                  const healthColor = element.health > 0.7 ? 0x00ff00 : 
+                                     element.health > 0.4 ? 0xffa500 : 0xff0000;
+                  const fishMaterial = new THREE.MeshLambertMaterial({ 
+                    color: healthColor, 
+                    transparent: true, 
+                    opacity: element.health 
+                  });
+                  const fishMesh = new THREE.Mesh(fishGeometry, fishMaterial);
+                  fishMesh.position.set(...pos);
+                  fishMesh.rotation.x = -Math.PI / 2;
+                  sceneRef.current.add(fishMesh);
+                  damMeshesRef.current.push(fishMesh);
+                }
+                
+                if (element.type === 'vegetation') {
+                  // Create realistic trees
+                  const treeGroup = new THREE.Group();
+                  
+                  // Trunk
+                  const trunkGeometry = new THREE.CylinderGeometry(0.2, 0.3, 2);
+                  const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x8b4513 });
+                  const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+                  trunk.position.y = 1;
+                  treeGroup.add(trunk);
+                  
+                  // Foliage
+                  const foliageGeometry = new THREE.SphereGeometry(1.2, 8, 6);
+                  const healthColor = element.health > 0.7 ? 0x228b22 : 
+                                     element.health > 0.4 ? 0x9acd32 : 0x8b4513;
+                  const foliageMaterial = new THREE.MeshLambertMaterial({ 
+                    color: healthColor,
+                    transparent: true, 
+                    opacity: element.health 
+                  });
+                  const foliage = new THREE.Mesh(foliageGeometry, foliageMaterial);
+                  foliage.position.y = 2.5;
+                  treeGroup.add(foliage);
+                  
+                  treeGroup.position.set(...pos);
+                  treeGroup.scale.setScalar(element.health * 1.5 + 0.5);
+                  sceneRef.current.add(treeGroup);
+                  damMeshesRef.current.push(treeGroup);
+                }
+              });
+            }
+          }, [dams, ecosystemElements, showEcological]);
+
+          return React.createElement('div', {
+            ref: mountRef,
+            className: 'three-container'
+          });
+        };
+
+        // Main component (same as before but using RealisticTerrainScene)
+        const HydroPowerDemo = () => {
+          const [isPlaying, setIsPlaying] = useState(false);
+          const [currentTime, setCurrentTime] = useState(0);
+          const [selectedPolicy, setSelectedPolicy] = useState('balanced');
+          const [showEcological, setShowEcological] = useState(true);
+          
+          const [dams, setDams] = useState([
+            {
+              id: 'upstream',
+              name: 'Lac Saint-Jean',
+              x: 200, y: 150,
+              volume: 75, maxVolume: 100, minVolume: 20,
+              naturalInflow: 45,
+              outflow: 30,
+              power: 0,
+              ecologicalImpact: 'moderate',
+              fishPassage: true,
+              sedimentTrap: 60
+            },
+            {
+              id: 'middle',
+              name: 'Péribonka Dam', 
+              x: 380, y: 220,
+              volume: 60, maxVolume: 85, minVolume: 15,
+              naturalInflow: 25,
+              outflow: 25,
+              power: 0,
+              ecologicalImpact: 'high',
+              fishPassage: false,
+              sedimentTrap: 80
+            },
+            {
+              id: 'downstream',
+              name: 'Saguenay Outlet',
+              x: 520, y: 180,
+              volume: 45, maxVolume: 70, minVolume: 10,
+              naturalInflow: 20,
+              outflow: 20,
+              power: 0,
+              ecologicalImpact: 'low',
+              fishPassage: true,
+              sedimentTrap: 30
+            }
+          ]);
+
+          const [ecosystemElements, setEcosystemElements] = useState([
+            { id: 'fish1', type: 'fish', x: 150, y: 200, health: 0.9, moving: true, blocked: false },
+            { id: 'fish2', type: 'fish', x: 250, y: 180, health: 0.7, moving: true, blocked: false },
+            { id: 'fish3', type: 'fish', x: 350, y: 240, health: 0.6, moving: false, blocked: true },
+            { id: 'fish4', type: 'fish', x: 450, y: 190, health: 0.8, moving: true, blocked: false },
+            { id: 'tree1', type: 'vegetation', x: 120, y: 160, health: 0.9, waterAccess: true },
+            { id: 'tree2', type: 'vegetation', x: 180, y: 140, health: 0.8, waterAccess: true },
+            { id: 'tree3', type: 'vegetation', x: 320, y: 200, health: 0.4, waterAccess: false },
+            { id: 'tree4', type: 'vegetation', x: 480, y: 170, health: 0.7, waterAccess: true },
+            { id: 'tree5', type: 'vegetation', x: 200, y: 300, health: 0.85, waterAccess: true },
+            { id: 'tree6', type: 'vegetation', x: 400, y: 120, health: 0.6, waterAccess: true }
+          ]);
+
+          const [ecosystemHealth, setEcosystemHealth] = useState({
+            fishPopulation: 85,
+            riparianVegetation: 90,
+            waterQuality: 80,
+            sedimentFlow: 70,
+            floodplainConnectivity: 75
+          });
+
+          const policies = {
+            economic: {
+              name: "Pure Economic Optimization",
+              color: "bg-red-600",
+              description: "Maximize revenue, ignore ecological impact",
+              ecologicalScore: 30,
+              strategy: (dam, price) => dam.volume * 0.8
+            },
+            balanced: {
+              name: "Balanced Policy", 
+              color: "bg-green-600",
+              description: "Balance profit with environmental constraints",
+              ecologicalScore: 75,
+              strategy: (dam, price, season) => dam.volume * (0.3 + 0.3 * (price / 100))
+            },
+            ecological: {
+              name: "Eco-First Policy",
+              color: "bg-blue-600", 
+              description: "Prioritize natural flow patterns",
+              ecologicalScore: 90,
+              strategy: (dam, price, season) => Math.max(10, dam.naturalInflow * 0.8)
+            }
+          };
+
+          // Animation loop (same as before)
+          useEffect(() => {
+            if (!isPlaying) return;
+
+            const interval = setInterval(() => {
+              setCurrentTime(prev => prev + 1);
+              
+              setDams(prevDams => {
+                return prevDams.map(dam => {
+                  const policy = policies[selectedPolicy];
+                  const electricityPrice = 60 + Math.sin(currentTime * 0.1) * 30;
+                  const season = Math.sin(currentTime * 0.05);
+                  
+                  const newOutflow = policy.strategy(dam, electricityPrice, season);
+                  const powerOutput = newOutflow * (dam.volume / dam.maxVolume) * 3;
+                  
+                  let impact = 'low';
+                  if (newOutflow > dam.naturalInflow * 1.5) impact = 'high';
+                  else if (newOutflow > dam.naturalInflow * 1.2) impact = 'moderate';
+                  
+                  return {
+                    ...dam,
+                    outflow: newOutflow,
+                    power: powerOutput,
+                    ecologicalImpact: impact,
+                    volume: Math.max(dam.minVolume, 
+                      Math.min(dam.maxVolume, 
+                        dam.volume + (dam.naturalInflow - newOutflow) * 0.02 + (Math.random() - 0.5)
+                      )
+                    )
+                  };
+                });
+              });
+
+              setEcosystemHealth(prev => {
+                const policy = policies[selectedPolicy];
+                const targetHealth = policy.ecologicalScore;
+                
+                return {
+                  fishPopulation: prev.fishPopulation + (targetHealth - prev.fishPopulation) * 0.02,
+                  riparianVegetation: prev.riparianVegetation + (targetHealth - prev.riparianVegetation) * 0.01,
+                  waterQuality: prev.waterQuality + (targetHealth - prev.waterQuality) * 0.015,
+                  sedimentFlow: prev.sedimentFlow + (targetHealth - prev.sedimentFlow) * 0.01,
+                  floodplainConnectivity: prev.floodplainConnectivity + (targetHealth - prev.floodplainConnectivity) * 0.01
+                };
+              });
+
+              setEcosystemElements(prev => prev.map(element => {
+                if (element.type === 'fish') {
+                  const nearbyDam = dams.find(dam => 
+                    Math.abs(dam.x - element.x) < 100 && Math.abs(dam.y - element.y) < 50
+                  );
+                  
+                  let blocked = false;
+                  let healthDelta = 0;
+                  
+                  if (nearbyDam) {
+                    blocked = !nearbyDam.fishPassage && nearbyDam.ecologicalImpact === 'high';
+                    healthDelta = nearbyDam.ecologicalImpact === 'high' ? -0.002 : 
+                                 nearbyDam.ecologicalImpact === 'moderate' ? -0.001 : 0.001;
+                  }
+                  
+                  return {
+                    ...element,
+                    blocked,
+                    health: Math.max(0.1, Math.min(1, element.health + healthDelta)),
+                    moving: !blocked && element.health > 0.3
+                  };
+                }
+                
+                if (element.type === 'vegetation') {
+                  const nearbyDam = dams.find(dam => 
+                    Math.abs(dam.x - element.x) < 80 && Math.abs(dam.y - element.y) < 60
+                  );
+                  
+                  let waterAccess = true;
+                  let healthDelta = 0;
+                  
+                  if (nearbyDam && nearbyDam.volume < nearbyDam.minVolume + 10) {
+                    waterAccess = false;
+                    healthDelta = -0.003;
+                  } else {
+                    healthDelta = 0.001;
+                  }
+                  
+                  return {
+                    ...element,
+                    waterAccess,
+                    health: Math.max(0.1, Math.min(1, element.health + healthDelta))
+                  };
+                }
+                
+                return element;
+              }));
+              
+            }, 100);
+
+            return () => clearInterval(interval);
+          }, [isPlaying, selectedPolicy, currentTime]);
+
+          const reset = () => {
+            setCurrentTime(0);
+            setIsPlaying(false);
+          };
+
+          return React.createElement('div', {
+            className: "w-full max-w-7xl mx-auto p-6 bg-gradient-to-br from-green-50 via-blue-50 to-green-100 min-h-screen"
+          },
+            // Header
+            React.createElement('div', { className: "text-center mb-6" },
+              React.createElement('h1', {
+                className: "text-4xl font-bold text-gray-800 mb-2"
+              }, "Realistic 3D Watershed Terrain"),
+              React.createElement('p', {
+                className: "text-gray-600 text-lg max-w-3xl mx-auto"
+              }, "Advanced procedural terrain with dramatic mountains, valleys, and river systems")
+            ),
+
+            // Controls (same as before)
+            React.createElement('div', {
+              className: "bg-white/80 backdrop-blur rounded-2xl p-6 mb-6 shadow-lg border border-green-200"
+            },
+              React.createElement('div', {
+                className: "flex justify-between items-center mb-6"
+              },
+                React.createElement('div', {
+                  className: "flex items-center space-x-4"
+                },
+                  React.createElement('button', {
+                    onClick: () => setIsPlaying(!isPlaying),
+                    className: "flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl transition-all duration-200 shadow-lg"
+                  },
+                    isPlaying ? React.createElement(Pause) : React.createElement(Play),
+                    React.createElement('span', {
+                      className: "font-semibold"
+                    }, `${isPlaying ? 'Pause' : 'Start'} Simulation`)
+                  ),
+                  
+                  React.createElement('button', {
+                    onClick: reset,
+                    className: "flex items-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-3 rounded-xl transition-all duration-200"
+                  },
+                    React.createElement(RotateCcw),
+                    React.createElement('span', null, "Reset")
+                  ),
+
+                  React.createElement('label', {
+                    className: "flex items-center space-x-2 text-gray-700"
+                  },
+                    React.createElement('input', {
+                      type: "checkbox",
+                      checked: showEcological,
+                      onChange: (e) => setShowEcological(e.target.checked),
+                      className: "w-4 h-4 rounded"
+                    }),
+                    React.createElement('span', null, "Show Ecosystem")
+                  )
+                ),
+
+                React.createElement('div', { className: "text-right" },
+                  React.createElement('div', {
+                    className: "text-sm text-gray-600"
+                  }, "Simulation Time"),
+                  React.createElement('div', {
+                    className: "text-2xl font-bold text-gray-800"
+                  }, `${Math.floor(currentTime / 10)} days`)
+                )
+              ),
+
+              React.createElement('div', { className: "grid grid-cols-3 gap-4" },
+                Object.entries(policies).map(([key, policy]) =>
+                  React.createElement('button', {
+                    key: key,
+                    onClick: () => setSelectedPolicy(key),
+                    className: `p-4 rounded-xl border-2 transition-all duration-300 ${
+                      selectedPolicy === key 
+                        ? `${policy.color} text-white border-white shadow-lg scale-105` 
+                        : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400 hover:shadow-md'
+                    }`
+                  },
+                    React.createElement('div', {
+                      className: "font-bold text-lg"
+                    }, policy.name),
+                    React.createElement('div', {
+                      className: "text-sm opacity-90 mt-1"
+                    }, policy.description),
+                    React.createElement('div', {
+                      className: "text-xs mt-2 font-medium"
+                    }, `Ecological Score: ${policy.ecologicalScore}/100`)
+                  )
+                )
+              )
+            ),
+
+            // 3D Scene
+            React.createElement('div', {
+              className: "bg-white/60 backdrop-blur rounded-2xl shadow-xl border border-blue-200 mb-6"
+            },
+              React.createElement(RealisticTerrainScene, {
+                dams: dams,
+                ecosystemElements: ecosystemElements,
+                selectedPolicy: selectedPolicy,
+                showEcological: showEcological
+              })
+            ),
+
+            // Info panels (same as before)
+            React.createElement('div', {
+              className: "bg-white/80 backdrop-blur rounded-2xl p-6 mb-6 shadow-lg border border-green-200"
+            },
+              React.createElement('h3', {
+                className: "text-xl font-bold mb-4 text-gray-800"
+              }, "Current Status"),
+              React.createElement('div', { className: "grid grid-cols-3 gap-4" },
+                dams.map(dam => 
+                  React.createElement('div', {
+                    key: dam.id,
+                    className: "p-4 bg-gray-50 rounded-lg"
+                  },
+                    React.createElement('h4', {
+                      className: "font-semibold text-gray-800"
+                    }, dam.name),
+                    React.createElement('div', {
+                      className: "text-sm text-gray-600 mt-2"
+                    },
+                      React.createElement('div', null, `Volume: ${dam.volume.toFixed(1)}/${dam.maxVolume} hm³`),
+                      React.createElement('div', null, `Power: ${dam.power.toFixed(0)} MW`),
+                      React.createElement('div', null, `Impact: ${dam.ecologicalImpact}`)
+                    )
+                  )
+                )
+              )
+            ),
+
+            // Ecosystem Health Dashboard
+            showEcological && React.createElement('div', {
+              className: "bg-white/80 backdrop-blur rounded-2xl p-6 shadow-lg border border-green-200"
+            },
+              React.createElement('h2', {
+                className: "text-2xl font-bold mb-6 text-gray-800 flex items-center"
+              },
+                React.createElement(Leaf, { size: 28, className: "mr-3 text-green-600" }),
+                "Ecosystem Health Indicators"
+              ),
+              
+              React.createElement('div', { className: "grid grid-cols-5 gap-6" },
+                Object.entries(ecosystemHealth).map(([key, value]) => {
+                  const getColor = (val) => val > 70 ? 'text-green-600' : val > 40 ? 'text-yellow-600' : 'text-red-600';
+                  const getBgColor = (val) => val > 70 ? 'bg-green-100' : val > 40 ? 'bg-yellow-100' : 'bg-red-100';
+                  
+                  const icons = {
+                    fishPopulation: React.createElement(FishIcon, { size: 24 }),
+                    riparianVegetation: React.createElement('div', { className: "w-6 h-6 bg-green-600 rounded-full" }),
+                    waterQuality: React.createElement('div', { className: "w-6 h-6 bg-blue-600 rounded" }),
+                    sedimentFlow: React.createElement('div', { className: "w-6 h-6 rounded-full bg-amber-600" }),
+                    floodplainConnectivity: React.createElement('div', { className: "w-6 h-6 border-2 border-blue-600 rounded" })
+                  };
+                  
+                  return React.createElement('div', {
+                    key: key,
+                    className: `p-4 rounded-xl ${getBgColor(value)} border border-gray-200`
+                  },
+                    React.createElement('div', {
+                      className: `flex items-center justify-center mb-2 ${getColor(value)}`
+                    }, icons[key]),
+                    React.createElement('div', { className: "text-center" },
+                      React.createElement('div', {
+                        className: "text-sm text-gray-600 capitalize mb-1"
+                      }, key.replace(/([A-Z])/g, ' $1').trim()),
+                      React.createElement('div', {
+                        className: `text-2xl font-bold ${getColor(value)}`
+                      }, Math.round(value) + '%')
+                    ),
+                    
+                    React.createElement('div', {
+                      className: "w-full bg-gray-200 rounded-full h-2 mt-2"
+                    },
+                      React.createElement('div', {
+                        className: `h-2 rounded-full transition-all duration-1000 ${
+                          value > 70 ? 'bg-green-500' : value > 40 ? 'bg-yellow-500' : 'bg-red-500'
+                        }`,
+                        style: { width: `${value}%` }
+                      })
+                    )
+                  );
+                })
+              )
+            )
+          );
+        };
+
+        ReactDOM.render(React.createElement(HydroPowerDemo), document.getElementById('root'));
+    </script>
+</body>
+</html> 

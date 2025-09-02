@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hydro Power Economic Optimization</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/three@0.159.0/build/three.min.js"></script>
+    <style>
+        .economic-indicator {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            border: 2px solid #059669;
+        }
+        .profit-high { border-color: #059669; color: #059669; }
+        .profit-medium { border-color: #d97706; color: #d97706; }
+        .profit-low { border-color: #dc2626; color: #dc2626; }
+        .price-indicator {
+            background: linear-gradient(45deg, #1e40af, #3b82f6);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo } = React;
+
+        // Economic optimization demo component
+        const HydroEconomicDemo = () => {
+            const [currentTime, setCurrentTime] = useState(0);
+            const [marketPrice, setMarketPrice] = useState(85); // $/MWh
+            const [demandLevel, setDemandLevel] = useState('peak');
+            const [isRunning, setIsRunning] = useState(false);
+            const [totalRevenue, setTotalRevenue] = useState(0);
+            const [systemEfficiency, setSystemEfficiency] = useState(87.5);
+
+            // Economic-focused dam data (10 facilities like reference image)
+            const [dams, setDams] = useState([
+                { id: 1, name: 'Alpine Reservoir', x: -80, y: 0, z: 60, capacity: 850, power: 95, efficiency: 0.89, revenue: 0, waterLevel: 0.85, turbines: 3 },
+                { id: 2, name: 'Mountain Peak', x: -40, y: 0, z: 40, capacity: 1200, power: 145, efficiency: 0.92, revenue: 0, waterLevel: 0.78, turbines: 4 },
+                { id: 3, name: 'Valley Junction', x: -60, y: 0, z: 20, capacity: 680, power: 78, efficiency: 0.85, revenue: 0, waterLevel: 0.72, turbines: 2 },
+                { id: 4, name: 'Cascade Falls', x: -20, y: 0, z: 30, capacity: 920, power: 112, efficiency: 0.88, revenue: 0, waterLevel: 0.82, turbines: 3 },
+                { id: 5, name: 'River Bend', x: 0, y: 0, z: 10, capacity: 750, power: 88, efficiency: 0.86, revenue: 0, waterLevel: 0.75, turbines: 2 },
+                { id: 6, name: 'Power Canyon', x: 20, y: 0, z: 25, capacity: 1100, power: 135, efficiency: 0.91, revenue: 0, waterLevel: 0.88, turbines: 4 },
+                { id: 7, name: 'Industrial Falls', x: 40, y: 0, z: 15, capacity: 980, power: 118, efficiency: 0.87, revenue: 0, waterLevel: 0.79, turbines: 3 },
+                { id: 8, name: 'Metro Supply', x: 60, y: 0, z: 5, capacity: 1350, power: 165, efficiency: 0.93, revenue: 0, waterLevel: 0.84, turbines: 5 },
+                { id: 9, name: 'Grid Balancer', x: 80, y: 0, z: 8, capacity: 800, power: 95, efficiency: 0.84, revenue: 0, waterLevel: 0.71, turbines: 2 },
+                { id: 10, name: 'Peak Shaver', x: 100, y: 0, z: 12, capacity: 650, power: 82, efficiency: 0.86, revenue: 0, waterLevel: 0.76, turbines: 2 }
+            ]);
+
+            // Market conditions and pricing
+            const [marketConditions, setMarketConditions] = useState({
+                basePrice: 85,
+                peakMultiplier: 1.4,
+                offPeakMultiplier: 0.7,
+                ancillaryRevenue: 15, // $/MWh for grid services
+                carbonCredits: 8, // $/MWh
+                timeOfDay: 'peak'
+            });
+
+            // Economic indicators (replacing ecological ones)
+            const economicMetrics = [
+                { id: 1, name: 'Real-time Price', value: `$${marketPrice}/MWh`, type: 'price' },
+                { id: 2, name: 'Peak Load Factor', value: '94%', type: 'efficiency' },
+                { id: 3, name: 'Water Efficiency', value: '2.8 MWh/m³', type: 'efficiency' },
+                { id: 4, name: 'Grid Stability Revenue', value: '$24k/day', type: 'revenue' },
+                { id: 5, name: 'Cascade Coordination', value: '91%', type: 'efficiency' },
+                { id: 6, name: 'Market Responsiveness', value: '3.2 min', type: 'performance' },
+                { id: 7, name: 'Capacity Utilization', value: '87%', type: 'efficiency' },
+                { id: 8, name: 'Revenue Optimization', value: '96%', type: 'revenue' },
+                { id: 9, name: 'Demand Forecast Accuracy', value: '93%', type: 'performance' },
+                { id: 10, name: 'System Profitability', value: `$${Math.round(totalRevenue/1000)}k/hr`, type: 'revenue' }
+            ];
+
+            // 3D Scene Component
+            const EconomicScene = () => {
+                const mountRef = useRef(null);
+                const sceneRef = useRef(null);
+                const rendererRef = useRef(null);
+                const cameraRef = useRef(null);
+                const animationIdRef = useRef(null);
+
+                useEffect(() => {
+                    if (!mountRef.current) return;
+
+                    // Scene setup
+                    const scene = new THREE.Scene();
+                    scene.background = new THREE.Color(0x87ceeb); // Sky blue
+                    sceneRef.current = scene;
+
+                    // Camera setup
+                    const camera = new THREE.PerspectiveCamera(60, mountRef.current.clientWidth / mountRef.current.clientHeight, 0.1, 1000);
+                    camera.position.set(150, 120, 150);
+                    camera.lookAt(0, 0, 0);
+                    cameraRef.current = camera;
+
+                    // Renderer setup
+                    const renderer = new THREE.WebGLRenderer({ antialias: true });
+                    renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+                    renderer.shadowMap.enabled = true;
+                    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                    renderer.setClearColor(0x87ceeb, 1);
+                    rendererRef.current = renderer;
+                    mountRef.current.appendChild(renderer.domElement);
+
+                    // Lighting for economic visualization
+                    const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+                    scene.add(ambientLight);
+
+                    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
+                    directionalLight.position.set(100, 100, 50);
+                    directionalLight.castShadow = true;
+                    scene.add(directionalLight);
+
+                    // Create realistic terrain with river valleys
+                    const createTerrain = () => {
+                        const geometry = new THREE.PlaneGeometry(400, 300, 128, 96);
+                        const positions = geometry.attributes.position.array;
+                        const colors = [];
+
+                        for (let i = 0; i < positions.length; i += 3) {
+                            const x = positions[i];
+                            const y = positions[i + 1];
+
+                            // Multi-octave noise for realistic terrain
+                            let height = 0;
+                            let amplitude = 1;
+                            let frequency = 0.01;
+
+                            // 6 octaves of noise
+                            for (let oct = 0; oct < 6; oct++) {
+                                height += Math.sin(x * frequency) * Math.cos(y * frequency) * amplitude;
+                                height += Math.sin(x * frequency * 1.7 + 100) * Math.cos(y * frequency * 1.3 + 50) * amplitude * 0.5;
+                                amplitude *= 0.6;
+                                frequency *= 2;
+                            }
+
+                            // River valley carving
+                            const riverCenterX = x * 0.3 + y * 0.1;
+                            const riverDistance = Math.abs(Math.sin(riverCenterX * 0.02)) * 30;
+                            const riverEffect = Math.max(0, 1 - riverDistance / 20);
+                            height -= riverEffect * 15;
+
+                            // Mountain ridges
+                            const ridgeEffect = Math.abs(Math.sin(x * 0.008)) * Math.abs(Math.cos(y * 0.006));
+                            height += ridgeEffect * 25;
+
+                            positions[i + 2] = height;
+
+                            // Economic-focused terrain coloring
+                            const normalizedHeight = (height + 20) / 60;
+                            if (height < -5) {
+                                colors.push(0.1, 0.3, 0.8); // Water - blue
+                            } else if (height < 5) {
+                                colors.push(0.2, 0.6, 0.2); // Productive valley - green
+                            } else if (height < 20) {
+                                colors.push(0.3, 0.7, 0.3); // Agricultural areas - light green
+                            } else if (height < 35) {
+                                colors.push(0.5, 0.4, 0.3); // Industrial zones - brown
+                            } else {
+                                colors.push(0.7, 0.7, 0.6); // High elevation - gray
+                            }
+                        }
+
+                        geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+                        geometry.computeVertexNormals();
+
+                        const material = new THREE.MeshLambertMaterial({ 
+                            vertexColors: true,
+                            transparent: true,
+                            opacity: 0.9
+                        });
+
+                        const terrain = new THREE.Mesh(geometry, material);
+                        terrain.rotation.x = -Math.PI / 2;
+                        terrain.receiveShadow = true;
+                        scene.add(terrain);
+                    };
+
+                    // Create water bodies for reservoirs
+                    const createWaterBodies = () => {
+                        dams.forEach(dam => {
+                            const waterSize = Math.sqrt(dam.capacity) / 8;
+                            const waterGeometry = new THREE.PlaneGeometry(waterSize, waterSize * 0.7);
+                            const waterMaterial = new THREE.MeshPhongMaterial({
+                                color: 0x1e40af,
+                                transparent: true,
+                                opacity: 0.7,
+                                shininess: 100
+                            });
+                            
+                            const water = new THREE.Mesh(waterGeometry, waterMaterial);
+                            water.position.set(dam.x - 10, 2, dam.z + 5);
+                            water.rotation.x = -Math.PI / 2;
+                            scene.add(water);
+                        });
+                    };
+
+                    // Create economic-focused dam structures
+                    const createEconomicDams = () => {
+                        dams.forEach(dam => {
+                            const group = new THREE.Group();
+                            
+                            // Main dam structure
+                            const damGeometry = new THREE.BoxGeometry(3, 6, 1);
+                            const profitability = dam.revenue / (dam.capacity * marketPrice * 24 / 1000);
+                            let damColor = 0x6b7280; // Default gray
+                            
+                            if (profitability > 0.8) damColor = 0x059669; // High profit - green
+                            else if (profitability > 0.6) damColor = 0xd97706; // Medium profit - orange
+                            else if (profitability > 0.3) damColor = 0xdc2626; // Low profit - red
+
+                            const damMaterial = new THREE.MeshLambertMaterial({ color: damColor });
+                            const damMesh = new THREE.Mesh(damGeometry, damMaterial);
+                            damMesh.position.y = 3;
+                            damMesh.castShadow = true;
+                            group.add(damMesh);
+
+                            // Power output indicator (height based on current output)
+                            const powerHeight = (dam.power / 200) * 4;
+                            const powerGeometry = new THREE.CylinderGeometry(0.3, 0.3, powerHeight);
+                            const powerMaterial = new THREE.MeshLambertMaterial({ 
+                                color: dam.power > 100 ? 0xfbbf24 : 0x64748b,
+                                emissive: dam.power > 100 ? 0xfbbf24 : 0x64748b,
+                                emissiveIntensity: 0.3
+                            });
+                            const powerIndicator = new THREE.Mesh(powerGeometry, powerMaterial);
+                            powerIndicator.position.set(2, 6 + powerHeight/2, 0);
+                            group.add(powerIndicator);
+
+                            // Revenue indicator
+                            const revenueValue = dam.power * marketPrice;
+                            const revenueHeight = Math.min(revenueValue / 5000, 3);
+                            const revenueGeometry = new THREE.CylinderGeometry(0.2, 0.2, revenueHeight);
+                            const revenueMaterial = new THREE.MeshLambertMaterial({ 
+                                color: 0x10b981,
+                                emissive: 0x10b981,
+                                emissiveIntensity: 0.4
+                            });
+                            const revenueIndicator = new THREE.Mesh(revenueGeometry, revenueMaterial);
+                            revenueIndicator.position.set(-2, 6 + revenueHeight/2, 0);
+                            group.add(revenueIndicator);
+
+                            // Efficiency indicator (turbines)
+                            for (let i = 0; i < dam.turbines; i++) {
+                                const turbineGeometry = new THREE.SphereGeometry(0.4);
+                                const turbineColor = dam.efficiency > 0.9 ? 0x22c55e : 
+                                                   dam.efficiency > 0.85 ? 0xeab308 : 0xef4444;
+                                const turbineMaterial = new THREE.MeshLambertMaterial({ color: turbineColor });
+                                const turbine = new THREE.Mesh(turbineGeometry, turbineMaterial);
+                                turbine.position.set(i * 1.2 - dam.turbines * 0.6, -1, 2);
+                                group.add(turbine);
+                            }
+
+                            group.position.set(dam.x, 0, dam.z);
+                            scene.add(group);
+                        });
+                    };
+
+                    // Create flow arrows for economic optimization
+                    const createFlowArrows = () => {
+                        for (let i = 0; i < dams.length - 1; i++) {
+                            const dam1 = dams[i];
+                            const dam2 = dams[i + 1];
+                            
+                            // Economic flow value (higher for more profitable transfers)
+                            const flowValue = (dam1.power + dam2.power) * marketPrice / 1000;
+                            const arrowColor = flowValue > 15 ? 0x10b981 : 
+                                              flowValue > 10 ? 0xf59e0b : 0xef4444;
+
+                            const direction = new THREE.Vector3(
+                                dam2.x - dam1.x,
+                                dam2.y - dam1.y,
+                                dam2.z - dam1.z
+                            ).normalize();
+
+                            const arrowGeometry = new THREE.ConeGeometry(1, 3);
+                            const arrowMaterial = new THREE.MeshLambertMaterial({ 
+                                color: arrowColor,
+                                emissive: arrowColor,
+                                emissiveIntensity: 0.5
+                            });
+                            const arrow = new THREE.Mesh(arrowGeometry, arrowMaterial);
+                            
+                            arrow.position.set(
+                                (dam1.x + dam2.x) / 2,
+                                5,
+                                (dam1.z + dam2.z) / 2
+                            );
+                            
+                            arrow.lookAt(dam2.x, dam2.y, dam2.z);
+                            scene.add(arrow);
+                        }
+                    };
+
+                    // Build the economic scene
+                    createTerrain();
+                    createWaterBodies();
+                    createEconomicDams();
+                    createFlowArrows();
+
+                    // Camera controls
+                    let phi = Math.PI / 4;
+                    let theta = 0;
+                    let radius = 300;
+                    let mouseX = 0, mouseY = 0;
+                    let isMouseDown = false;
+
+                    const updateCameraPosition = () => {
+                        phi = Math.max(0.1, Math.min(Math.PI / 2 - 0.1, phi));
+                        camera.position.x = radius * Math.sin(phi) * Math.cos(theta);
+                        camera.position.y = radius * Math.cos(phi);
+                        camera.position.z = radius * Math.sin(phi) * Math.sin(theta);
+                        camera.lookAt(0, 0, 0);
+                    };
+
+                    const onMouseMove = (event) => {
+                        if (!isMouseDown) return;
+                        
+                        const deltaX = event.clientX - mouseX;
+                        const deltaY = event.clientY - mouseY;
+                        
+                        theta -= deltaX * 0.01;
+                        phi += deltaY * 0.01;
+                        
+                        updateCameraPosition();
+                        
+                        mouseX = event.clientX;
+                        mouseY = event.clientY;
+                    };
+
+                    const onMouseDown = (event) => {
+                        isMouseDown = true;
+                        mouseX = event.clientX;
+                        mouseY = event.clientY;
+                    };
+
+                    const onMouseUp = () => {
+                        isMouseDown = false;
+                    };
+
+                    const onWheel = (event) => {
+                        event.preventDefault();
+                        const delta = event.deltaY * 0.001;
+                        radius = Math.max(100, Math.min(800, radius * (1 + delta)));
+                        updateCameraPosition();
+                    };
+
+                    updateCameraPosition();
+
+                    renderer.domElement.addEventListener('mousemove', onMouseMove);
+                    renderer.domElement.addEventListener('mousedown', onMouseDown);
+                    renderer.domElement.addEventListener('mouseup', onMouseUp);
+                    renderer.domElement.addEventListener('wheel', onWheel, { passive: false });
+                    renderer.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
+
+                    // Animation loop
+                    const animate = () => {
+                        animationIdRef.current = requestAnimationFrame(animate);
+                        renderer.render(scene, camera);
+                    };
+                    animate();
+
+                    // Cleanup
+                    return () => {
+                        if (animationIdRef.current) {
+                            cancelAnimationFrame(animationIdRef.current);
+                        }
+                        if (mountRef.current && renderer.domElement) {
+                            mountRef.current.removeChild(renderer.domElement);
+                        }
+                        renderer.dispose();
+                    };
+                }, [dams, marketPrice]);
+
+                return <div ref={mountRef} style={{ width: '100%', height: '100%' }} />;
+            };
+
+            // Economic simulation
+            useEffect(() => {
+                if (!isRunning) return;
+
+                const interval = setInterval(() => {
+                    setCurrentTime(prev => prev + 1);
+                    
+                    // Dynamic pricing simulation
+                    const timeOfDay = Math.sin(currentTime * 0.1);
+                    const demandFactor = timeOfDay > 0 ? 1.3 : 0.8;
+                    const newPrice = Math.round(85 + Math.sin(currentTime * 0.05) * 25 + Math.random() * 10);
+                    setMarketPrice(newPrice);
+
+                    // Update dam economics
+                    setDams(prevDams => {
+                        return prevDams.map(dam => {
+                            const currentOutput = dam.power * dam.efficiency * dam.waterLevel;
+                            const hourlyRevenue = currentOutput * newPrice;
+                            const ancillaryRevenue = currentOutput * 12; // Grid services
+                            const totalRevenue = hourlyRevenue + ancillaryRevenue;
+
+                            return {
+                                ...dam,
+                                power: Math.max(dam.capacity * 0.1, 
+                                       Math.min(dam.capacity, 
+                                         dam.power + (Math.random() - 0.5) * 10)),
+                                revenue: totalRevenue,
+                                waterLevel: Math.max(0.3, 
+                                           Math.min(1.0, 
+                                             dam.waterLevel + (Math.random() - 0.5) * 0.02))
+                            };
+                        });
+                    });
+
+                    // Update total system revenue
+                    const systemRevenue = dams.reduce((total, dam) => total + (dam.revenue || 0), 0);
+                    setTotalRevenue(systemRevenue);
+
+                    // Update system efficiency
+                    const avgEfficiency = dams.reduce((sum, dam) => sum + dam.efficiency, 0) / dams.length;
+                    setSystemEfficiency(Math.round(avgEfficiency * 100 * 100) / 100);
+
+                }, 200);
+
+                return () => clearInterval(interval);
+            }, [isRunning, currentTime, dams]);
+
+            return (
+                <div className="w-full max-w-7xl mx-auto p-6 bg-gradient-to-br from-blue-50 via-green-50 to-blue-100 min-h-screen">
+                    {/* Header */}
+                    <div className="text-center mb-6">
+                        <h1 className="text-4xl font-bold text-gray-800 mb-2">
+                            💰 Hydro Power Economic Optimization
+                        </h1>
+                        <p className="text-gray-600 text-lg max-w-3xl mx-auto">
+                            Real-time revenue maximization and market-driven operational strategy
+                        </p>
+                    </div>
+
+                    {/* Economic Controls */}
+                    <div className="bg-white/80 backdrop-blur rounded-2xl p-6 mb-6 shadow-lg border border-blue-200">
+                        <div className="flex justify-between items-center mb-6">
+                            <div className="flex items-center space-x-4">
+                                <button 
+                                    onClick={() => setIsRunning(!isRunning)}
+                                    className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl transition-all duration-200 shadow-lg"
+                                >
+                                    <span className="font-semibold">
+                                        {isRunning ? '⏸️ Pause' : '▶️ Start'} Market Simulation
+                                    </span>
+                                </button>
+
+                                <div className="price-indicator">
+                                    💵 ${marketPrice}/MWh
+                                </div>
+
+                                <div className="economic-indicator profit-high">
+                                    ⚡ {Math.round(totalRevenue/1000)}k/hr Revenue
+                                </div>
+
+                                <div className="economic-indicator profit-medium">
+                                    📊 {systemEfficiency}% Efficiency
+                                </div>
+                            </div>
+
+                            <div className="text-right">
+                                <div className="text-sm text-gray-600">Market Time</div>
+                                <div className="text-2xl font-bold text-gray-800">{Math.floor(currentTime / 5)} hours</div>
+                            </div>
+                        </div>
+
+                        {/* Real-time Market Indicators */}
+                        <div className="grid grid-cols-5 gap-4">
+                            {economicMetrics.slice(0, 5).map(metric => (
+                                <div key={metric.id} className={`economic-indicator ${
+                                    metric.type === 'revenue' ? 'profit-high' :
+                                    metric.type === 'efficiency' ? 'profit-medium' : 'profit-low'
+                                }`}>
+                                    <div className="text-xs opacity-80">{metric.id}. {metric.name}</div>
+                                    <div className="font-bold">{metric.value}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* 3D Economic Scene */}
+                    <div className="bg-white/60 backdrop-blur rounded-2xl shadow-xl border border-blue-200 h-96 mb-6">
+                        <EconomicScene />
+                    </div>
+
+                    {/* Economic Performance Dashboard */}
+                    <div className="bg-white/80 backdrop-blur rounded-2xl p-6 shadow-lg border border-green-200">
+                        <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center">
+                            📈 Economic Performance Indicators
+                        </h2>
+                        
+                        <div className="grid grid-cols-5 gap-6">
+                            {economicMetrics.slice(5).map(metric => (
+                                <div key={metric.id} className={`economic-indicator ${
+                                    metric.type === 'revenue' ? 'profit-high' :
+                                    metric.type === 'efficiency' ? 'profit-medium' : 'profit-low'
+                                }`}>
+                                    <div className="text-xs opacity-80 mb-1">{metric.id}. {metric.name}</div>
+                                    <div className="font-bold text-lg">{metric.value}</div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Dam Performance Summary */}
+                        <div className="mt-6 grid grid-cols-2 gap-6">
+                            <div className="space-y-3">
+                                <h3 className="font-bold text-lg text-gray-800">🏆 Top Performers</h3>
+                                {dams.sort((a, b) => (b.revenue || 0) - (a.revenue || 0)).slice(0, 3).map(dam => (
+                                    <div key={dam.id} className="flex justify-between items-center bg-green-100 p-3 rounded-lg">
+                                        <span className="font-medium">{dam.id}. {dam.name}</span>
+                                        <span className="font-bold text-green-600">${Math.round((dam.revenue || 0)/1000)}k/hr</span>
+                                    </div>
+                                ))}
+                            </div>
+                            
+                            <div className="space-y-3">
+                                <h3 className="font-bold text-lg text-gray-800">🔧 Optimization Opportunities</h3>
+                                {dams.filter(dam => (dam.efficiency || 0) < 0.87).slice(0, 3).map(dam => (
+                                    <div key={dam.id} className="flex justify-between items-center bg-orange-100 p-3 rounded-lg">
+                                        <span className="font-medium">{dam.id}. {dam.name}</span>
+                                        <span className="font-bold text-orange-600">{Math.round((dam.efficiency || 0) * 100)}% Efficiency</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<HydroEconomicDemo />);
+    </script>
+</body>
+</html> 

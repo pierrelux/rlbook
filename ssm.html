@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>The State‑Space Perspective &#8212; Practical Reinforcement Learning: From Algorithms to Applications</title>
+    <title>Dynamics Models for Decision Making &#8212; Practical Reinforcement Learning: From Algorithms to Applications</title>
   
   
   
@@ -16,35 +16,33 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
-  <!-- 
-    this give us a css class that will be invisible only if js is disabled 
-  -->
-  <noscript>
-    <style>
-      .pst-js-only { display: none !important; }
-
-    </style>
-  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
     <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
-    <link rel="stylesheet" type="text/css" href="_static/proof.css" />
+    <link rel="stylesheet" type="text/css" href="_static/proof.css?v=b4b7a797" />
     <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css" />
   
-  <!-- So that users can add custom icons -->
-  <script src="_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
     <script src="_static/documentation_options.js?v=9eb32ce0"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
@@ -65,13 +63,14 @@
     <script>window.MathJax = {"tex": {"macros": {"bm": ["{\\boldsymbol #1}", 1]}, "processEscapes": true}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'ssm';</script>
+    <script src="_static/hydro.js?v=67e01585"></script>
+    <script src="_static/iframe-modal.js?v=f72a1242"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Programs as Models" href="simulation.html" />
     <link rel="prev" title="Why Build a Model? For Whom?" href="modeling.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="" />
   </head>
   
   
@@ -87,8 +86,19 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <dialog id="pst-search-dialog">
-    
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
 <form class="bd-search d-flex align-items-center"
       action="search.html"
       method="get">
@@ -96,6 +106,7 @@
   <input type="search"
          class="form-control"
          name="q"
+         id="search-input"
          placeholder="Search this book..."
          aria-label="Search this book..."
          autocomplete="off"
@@ -103,8 +114,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form>
-  </dialog>
+</form></div>
+  </div>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -120,8 +131,7 @@
       
       
       
-      <dialog id="pst-primary-sidebar-modal"></dialog>
-      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+      <div class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -151,11 +161,15 @@
 </a></div>
         <div class="sidebar-primary-item">
 
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button></div>
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         
@@ -170,7 +184,8 @@
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="modeling.html">Why Build a Model? For Whom?</a></li>
 
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">The State‑Space Perspective</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Dynamics Models for Decision Making</a></li>
+
 
 
 
@@ -180,8 +195,6 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Optimization-Based Decision Making</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="ocp.html">Discrete-Time Trajectory Optimization</a></li>
-
-
 
 <li class="toctree-l1"><a class="reference internal" href="cocp.html">Continuous-Time Trajectory Optimization</a></li>
 
@@ -204,6 +217,14 @@
 
 
 
+
+
+
+
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Appendix</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="appendix.html">Nonlinear Programming</a></li>
 
 
 
@@ -383,16 +404,24 @@
 
 
 
-<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
-  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
-  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
-  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
-</button>
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
 
 
-<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
-</button>
+  </button>
+`);
+</script>
 <button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <span class="fa-solid fa-list"></span>
 </button>
@@ -406,7 +435,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>The State‑Space Perspective</h1>
+    <h1>Dynamics Models for Decision Making</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -416,7 +445,8 @@
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">The State‑Space Perspective</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Dynamics Models for Decision Making</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#the-statespace-perspective">The State‑Space Perspective</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#discrete-versus-continuous-time">Discrete versus continuous time</a></li>
 </ul>
 </li>
@@ -451,11 +481,30 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="the-statespace-perspective">
+  <section id="dynamics-models-for-decision-making">
+<h1>Dynamics Models for Decision Making<a class="headerlink" href="#dynamics-models-for-decision-making" title="Link to this heading">#</a></h1>
+<p>The kind of model we need here is a <strong>dynamics model</strong>. It does not just describe correlations. It tells us how a system <strong>evolves in time</strong> and, most importantly for control, how that evolution <strong>responds to inputs</strong> we choose.</p>
+<p>A dynamics model earns its keep by answering counterfactuals of the form: <em>given an initial condition and an input schedule, what trajectory should I expect?</em> That ability to roll a trajectory forward under different candidate inputs is the backbone of planning, policy evaluation, and learning from interaction.</p>
+<p>At this level, we can think of the model as a trajectory generator:</p>
+<div class="math notranslate nohighlight">
+\[
+(\mathbf{x}_0,\ \{\mathbf{u}_t\},\ \{\mathbf{d}_t\}) \ \longmapsto\ \{\mathbf{x}_t,\ \mathbf{y}_t\}_{t=0:T},
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(\mathbf{u}_t\)</span> are <strong>controls</strong> we set, <span class="math notranslate nohighlight">\(\mathbf{d}_t\)</span> are <strong>exogenous drivers</strong> we do not control (weather, inflow, demand), <span class="math notranslate nohighlight">\(\mathbf{x}_t\)</span> are internal <strong>system variables</strong>, and <span class="math notranslate nohighlight">\(\mathbf{y}_t\)</span> are <strong>observations</strong>. The split between <span class="math notranslate nohighlight">\(\mathbf{u}\)</span> and <span class="math notranslate nohighlight">\(\mathbf{d}\)</span> is practical: it separates what we can act on from what we must accommodate.</p>
+<p>Two design pressures shape such models:</p>
+<ol class="arabic simple">
+<li><p><strong>Responsiveness to inputs.</strong> The model must expose the levers that matter for the decision problem, even if everything underneath is approximate.</p></li>
+<li><p><strong>Memory management.</strong> To simulate step by step, we need a compact summary of the past that is sufficient to predict the next step once an input arrives. That summary is what we will call the <strong>state</strong>.</p></li>
+</ol>
+<p>This brings us to a standard but powerful representation. Rather than carry the full history, we look for a variable <span class="math notranslate nohighlight">\(\mathbf{x}_t\)</span> that captures “what matters so far” for predicting what comes next under a given input. With that variable in hand, the model advances in small increments and can be composed with estimators and controllers.</p>
+<p>With this motivation in place, we can now introduce the formalism.</p>
+</section>
+<section id="the-statespace-perspective">
 <h1>The State‑Space Perspective<a class="headerlink" href="#the-statespace-perspective" title="Link to this heading">#</a></h1>
-<p>Most dynamic systems, whether derived from physics or learned from data, can be cast into <strong>state‑space form</strong>. The key idea is to introduce an internal state that summarises past information and evolves in response to inputs. Outputs are functions of that state and the current input.</p>
+<p>Most dynamics models, whether derived from physics or learned from data, can be cast into <strong>state‑space form</strong>. The state <span class="math notranslate nohighlight">\(\mathbf{x}\)</span> is the compact memory that summarizes the past for prediction and control. Inputs <span class="math notranslate nohighlight">\(\mathbf{u}\)</span> perturb that state, exogenous drivers <span class="math notranslate nohighlight">\(\mathbf{d}\)</span> push it around, and outputs <span class="math notranslate nohighlight">\(\mathbf{y}\)</span> are what we can measure. The equations look the same whether time is treated in discrete steps or as a continuous variable.</p>
 <section id="discrete-versus-continuous-time">
 <h2>Discrete versus continuous time<a class="headerlink" href="#discrete-versus-continuous-time" title="Link to this heading">#</a></h2>
+<p>How we represent time is dictated by how we sense and actuate: digital controllers sample and apply inputs in steps; the underlying physics evolve continuously.</p>
 <p>Time can be represented in two complementary ways, depending on how the system is sensed, actuated, or modelled.</p>
 <p>In <strong>discrete time</strong>, we treat time as an integer counter, <span class="math notranslate nohighlight">\(t = 0, 1, 2, \dots\)</span>, advancing in fixed steps. This matches how digital systems operate: sensors are sampled periodically, decisions are made at regular intervals, and most logged data takes this form.</p>
 <p><strong>Continuous time</strong> treats time as a real variable, <span class="math notranslate nohighlight">\(t \in \mathbb{R}_{\ge 0}\)</span>. Many physical systems (mechanical, thermal, chemical) are most naturally expressed this way, using differential equations to describe how state changes.</p>
@@ -465,13 +514,15 @@
 <p>In many cases, we do. But continuous-time models can still be useful, sometimes even necessary. They often make physical assumptions more explicit, connect more naturally to domain knowledge (e.g. differential equations in mechanics or thermodynamics), and expose invariances or conserved quantities that get obscured by time discretization. They also make it easier to model systems at different time scales, or to reason about how behaviors change as resolution increases. So while implementation happens in discrete time, thinking in continuous time can clarify the structure of the model.</p>
 <p>Still, it’s helpful to see how both representations look in mathematical form. The state-space equations are nearly identical with different notations depending on how time is represented.</p>
 <p><strong>Discrete time</strong></p>
+<p>Having defined state as the summary we carry forward, a step of prediction applies the chosen input and advances the state.</p>
 <p><span class="math notranslate nohighlight">\(\mathbf{x}_{t+1} = f_t(\mathbf{x}_t, \mathbf{u}_t), \qquad \mathbf{y}_t = h_t(\mathbf{x}_t, \mathbf{u}_t).\)</span></p>
 <p><strong>Continuous time</strong></p>
 <p><span class="math notranslate nohighlight">\(\dot{\mathbf{x}}(t) = f(\mathbf{x}(t), \mathbf{u}(t)), \qquad \mathbf{y}(t) = h(\mathbf{x}(t), \mathbf{u}(t)).\)</span></p>
 <p>The dot denotes a derivative with respect to real time; everything else (state, control, observation) remains the same.</p>
-<p>When the functions <span class="math notranslate nohighlight">\(f\)</span> and <span class="math notranslate nohighlight">\(h\)</span> are linear we obtain</p>
+<p>When the functions <span class="math notranslate nohighlight">\(f\)</span> and <span class="math notranslate nohighlight">\(h\)</span> are linear we obtain</p>
+<p>Linearity is not a belief about the world, it is a modeling choice that trades fidelity for transparency and speed.</p>
 <p><span class="math notranslate nohighlight">\(\dot{\mathbf{x}} = A\mathbf{x} + B\mathbf{u}, \qquad \mathbf{y} = C\mathbf{x} + D\mathbf{u}.\)</span></p>
-<p>The matrices <span class="math notranslate nohighlight">\(A, B, C, D\)</span> may vary with <span class="math notranslate nohighlight">\(t\)</span>.  Readers with an ML background will recognise the parallel with recurrent neural networks: the state is the hidden vector, the control the input, and the output the read‑out layer.</p>
+<p>The matrices <span class="math notranslate nohighlight">\(A, B, C, D\)</span> may vary with <span class="math notranslate nohighlight">\(t\)</span>.  Readers with an ML background will recognise the parallel with recurrent neural networks: the state is the hidden vector, the control the input, and the output the read‑out layer.</p>
 <p>Classical control often moves to the frequency domain, using Laplace and Z‑transforms to turn differential and difference equations into algebraic ones. That is invaluable for stability analysis of linear time‑invariant systems, but the time‑domain state‑space view is more flexible for learning and simulation, so we will keep our primary focus there.</p>
 </section>
 </section>
@@ -798,8 +849,7 @@ $$
 x_{t+1} = a x_t + b u_t + c + \varepsilon_t
 $$
 
-is a dynamical model. But things can get more sophisticated. Subspace identification methods, sparse regressions like SINDy, Koopman embeddings, neural ODEs—all of these let us learn models from observed trajectories. The key question is how much structure we assume. Do we enforce linearity? Time-invariance? Do we try to model the noise? -->
-</section>
+is a dynamical model. But things can get more sophisticated. Subspace identification methods, sparse regressions like SINDy, Koopman embeddings, neural ODEs—all of these let us learn models from observed trajectories. The key question is how much structure we assume. Do we enforce linearity? Time-invariance? Do we try to model the noise? --></section>
 </section>
 
     <script type="text/x-thebe-config">
@@ -857,8 +907,7 @@ is a dynamical model. But things can get more sophisticated. Subspace identifica
             
             
               
-                <dialog id="pst-secondary-sidebar-modal"></dialog>
-                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
   <div class="sidebar-secondary-item">
@@ -867,7 +916,8 @@ is a dynamical model. But things can get more sophisticated. Subspace identifica
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">The State‑Space Perspective</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Dynamics Models for Decision Making</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#the-statespace-perspective">The State‑Space Perspective</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#discrete-versus-continuous-time">Discrete versus continuous time</a></li>
 </ul>
 </li>
@@ -939,8 +989,8 @@ By Pierre-Luc Bacon
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549"></script>
-<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549"></script>
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
 
   <footer class="bd-footer">
   </footer>

@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Watershed Optimization Demo</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/three@0.150.0/build/three.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+        }
+        .icon-play::before { content: "▶"; }
+        .icon-pause::before { content: "⏸"; }
+        .icon-refresh::before { content: "↻"; }
+        .icon-leaf::before { content: "🌿"; }
+        .icon-fish::before { content: "🐟"; }
+        .icon-zap::before { content: "⚡"; }
+        .three-container {
+            width: 100%;
+            height: 400px;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo } = React;
+        
+        // Icon components (simplified)
+        const Play = () => React.createElement('span', { className: 'icon-play' });
+        const Pause = () => React.createElement('span', { className: 'icon-pause' });
+        const RotateCcw = () => React.createElement('span', { className: 'icon-refresh' });
+        const Leaf = ({ size = 24 }) => React.createElement('span', { className: 'icon-leaf', style: { fontSize: size } });
+        const FishIcon = ({ size = 24 }) => React.createElement('span', { className: 'icon-fish', style: { fontSize: size } });
+
+        // Three.js scene component
+        const ThreeScene = ({ dams, ecosystemElements, selectedPolicy, showEcological }) => {
+          const mountRef = useRef(null);
+          const sceneRef = useRef(null);
+          const rendererRef = useRef(null);
+          const cameraRef = useRef(null);
+          const damMeshesRef = useRef([]);
+          
+          useEffect(() => {
+            if (!mountRef.current) return;
+
+            // Scene setup
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87CEEB);
+            sceneRef.current = scene;
+
+            // Camera setup
+            const camera = new THREE.PerspectiveCamera(
+              75, 
+              mountRef.current.clientWidth / mountRef.current.clientHeight, 
+              0.1, 
+              1000
+            );
+            camera.position.set(15, 10, 15);
+            camera.lookAt(0, 0, 0);
+            cameraRef.current = camera;
+
+            // Renderer setup
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            rendererRef.current = renderer;
+            mountRef.current.appendChild(renderer.domElement);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(10, 10, 5);
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
+
+            // Terrain
+            const terrainGeometry = new THREE.PlaneGeometry(20, 20, 32, 32);
+            const positions = terrainGeometry.attributes.position.array;
+            for (let i = 0; i < positions.length; i += 3) {
+              const x = positions[i];
+              const y = positions[i + 1];
+              const height = Math.sin(x * 0.3) * Math.cos(y * 0.2) * 1 + Math.sin(x * 0.1) * 0.5;
+              positions[i + 2] = height;
+            }
+            terrainGeometry.computeVertexNormals();
+            
+            const terrainMaterial = new THREE.MeshLambertMaterial({ color: 0x10b981 });
+            const terrainMesh = new THREE.Mesh(terrainGeometry, terrainMaterial);
+            terrainMesh.rotation.x = -Math.PI / 2;
+            terrainMesh.position.y = -1;
+            scene.add(terrainMesh);
+
+            // Water
+            const waterGeometry = new THREE.PlaneGeometry(18, 18);
+            const waterMaterial = new THREE.MeshPhongMaterial({ 
+              color: 0x3b82f6, 
+              transparent: true, 
+              opacity: 0.7 
+            });
+            const waterMesh = new THREE.Mesh(waterGeometry, waterMaterial);
+            waterMesh.rotation.x = -Math.PI / 2;
+            waterMesh.position.y = -0.5;
+            scene.add(waterMesh);
+
+            // Mouse controls
+            let mouseX = 0, mouseY = 0;
+            let isMouseDown = false;
+            
+            const onMouseMove = (event) => {
+              if (!isMouseDown) return;
+              const deltaX = event.clientX - mouseX;
+              const deltaY = event.clientY - mouseY;
+              
+              camera.position.x += deltaX * 0.01;
+              camera.position.z += deltaY * 0.01;
+              camera.lookAt(0, 0, 0);
+              
+              mouseX = event.clientX;
+              mouseY = event.clientY;
+            };
+            
+            const onMouseDown = (event) => {
+              isMouseDown = true;
+              mouseX = event.clientX;
+              mouseY = event.clientY;
+            };
+            
+            const onMouseUp = () => {
+              isMouseDown = false;
+            };
+            
+            const onWheel = (event) => {
+              const delta = event.deltaY * 0.01;
+              camera.position.multiplyScalar(1 + delta);
+              camera.lookAt(0, 0, 0);
+            };
+            
+            renderer.domElement.addEventListener('mousemove', onMouseMove);
+            renderer.domElement.addEventListener('mousedown', onMouseDown);
+            renderer.domElement.addEventListener('mouseup', onMouseUp);
+            renderer.domElement.addEventListener('wheel', onWheel);
+
+            // Animation loop
+            const animate = () => {
+              requestAnimationFrame(animate);
+              
+              // Animate water
+              if (waterMesh.material) {
+                waterMesh.material.opacity = 0.7 + Math.sin(Date.now() * 0.001) * 0.1;
+              }
+              
+              renderer.render(scene, camera);
+            };
+            animate();
+
+            // Cleanup
+            return () => {
+              if (mountRef.current && renderer.domElement) {
+                mountRef.current.removeChild(renderer.domElement);
+              }
+              renderer.dispose();
+            };
+          }, []);
+
+          // Update dams when props change
+          useEffect(() => {
+            if (!sceneRef.current) return;
+
+            // Clear existing dam meshes
+            damMeshesRef.current.forEach(mesh => {
+              sceneRef.current.remove(mesh);
+            });
+            damMeshesRef.current = [];
+
+            // Add new dam meshes
+            dams.forEach((dam, index) => {
+              const group = new THREE.Group();
+              
+              // Dam structure
+              const damGeometry = new THREE.BoxGeometry(1, 2, 0.3);
+              const damMaterial = new THREE.MeshLambertMaterial({ color: 0x6b7280 });
+              const damMesh = new THREE.Mesh(damGeometry, damMaterial);
+              group.add(damMesh);
+              
+              // Ecological status indicator
+              const impactColor = dam.ecologicalImpact === 'high' ? 0xef4444 : 
+                                 dam.ecologicalImpact === 'moderate' ? 0xf59e0b : 0x10b981;
+              const statusGeometry = new THREE.SphereGeometry(0.2);
+              const statusMaterial = new THREE.MeshBasicMaterial({ color: impactColor });
+              const statusMesh = new THREE.Mesh(statusGeometry, statusMaterial);
+              statusMesh.position.y = 1.2;
+              group.add(statusMesh);
+              
+              // Power indicator
+              if (dam.power > 10) {
+                const powerGeometry = new THREE.SphereGeometry(0.15);
+                const powerMaterial = new THREE.MeshBasicMaterial({ color: 0xfbbf24 });
+                const powerMesh = new THREE.Mesh(powerGeometry, powerMaterial);
+                powerMesh.position.set(0.8, 1, 0);
+                group.add(powerMesh);
+              }
+              
+              // Position the dam
+              group.position.set(
+                (dam.x - 350) / 50,
+                0,
+                (dam.y - 200) / 50
+              );
+              
+              sceneRef.current.add(group);
+              damMeshesRef.current.push(group);
+            });
+
+            // Add ecosystem elements if enabled
+            if (showEcological) {
+              ecosystemElements.forEach(element => {
+                const pos = [(element.x - 350) / 50, 0.2, (element.y - 200) / 50];
+                
+                if (element.type === 'fish') {
+                  const fishGeometry = new THREE.SphereGeometry(0.15, 8, 6);
+                  const healthColor = element.health > 0.7 ? 0x10b981 : 
+                                     element.health > 0.4 ? 0xf59e0b : 0xef4444;
+                  const fishMaterial = new THREE.MeshLambertMaterial({ 
+                    color: healthColor, 
+                    transparent: true, 
+                    opacity: element.health 
+                  });
+                  const fishMesh = new THREE.Mesh(fishGeometry, fishMaterial);
+                  fishMesh.position.set(...pos);
+                  sceneRef.current.add(fishMesh);
+                  damMeshesRef.current.push(fishMesh);
+                }
+                
+                if (element.type === 'vegetation') {
+                  const vegGeometry = new THREE.ConeGeometry(0.2, 0.8, 6);
+                  const healthColor = element.health > 0.7 ? 0x22c55e : 
+                                     element.health > 0.4 ? 0xeab308 : 0xdc2626;
+                  const vegMaterial = new THREE.MeshLambertMaterial({ 
+                    color: healthColor, 
+                    transparent: true, 
+                    opacity: element.health 
+                  });
+                  const vegMesh = new THREE.Mesh(vegGeometry, vegMaterial);
+                  vegMesh.position.set(...pos);
+                  sceneRef.current.add(vegMesh);
+                  damMeshesRef.current.push(vegMesh);
+                }
+              });
+            }
+          }, [dams, ecosystemElements, showEcological]);
+
+          return React.createElement('div', {
+            ref: mountRef,
+            className: 'three-container'
+          });
+        };
+
+        // Main component
+        const HydroPowerDemo = () => {
+          const [isPlaying, setIsPlaying] = useState(false);
+          const [currentTime, setCurrentTime] = useState(0);
+          const [selectedPolicy, setSelectedPolicy] = useState('balanced');
+          const [showEcological, setShowEcological] = useState(true);
+          
+          // Dam system state
+          const [dams, setDams] = useState([
+            {
+              id: 'upstream',
+              name: 'Lac Saint-Jean',
+              x: 200, y: 150,
+              volume: 75, maxVolume: 100, minVolume: 20,
+              naturalInflow: 45,
+              outflow: 30,
+              power: 0,
+              ecologicalImpact: 'moderate',
+              fishPassage: true,
+              sedimentTrap: 60
+            },
+            {
+              id: 'middle',
+              name: 'Péribonka Dam', 
+              x: 380, y: 220,
+              volume: 60, maxVolume: 85, minVolume: 15,
+              naturalInflow: 25,
+              outflow: 25,
+              power: 0,
+              ecologicalImpact: 'high',
+              fishPassage: false,
+              sedimentTrap: 80
+            },
+            {
+              id: 'downstream',
+              name: 'Saguenay Outlet',
+              x: 520, y: 180,
+              volume: 45, maxVolume: 70, minVolume: 10,
+              naturalInflow: 20,
+              outflow: 20,
+              power: 0,
+              ecologicalImpact: 'low',
+              fishPassage: true,
+              sedimentTrap: 30
+            }
+          ]);
+
+          // Ecosystem elements
+          const [ecosystemElements, setEcosystemElements] = useState([
+            // Fish populations
+            { id: 'fish1', type: 'fish', x: 150, y: 200, health: 0.9, moving: true, blocked: false },
+            { id: 'fish2', type: 'fish', x: 250, y: 180, health: 0.7, moving: true, blocked: false },
+            { id: 'fish3', type: 'fish', x: 350, y: 240, health: 0.6, moving: false, blocked: true },
+            { id: 'fish4', type: 'fish', x: 450, y: 190, health: 0.8, moving: true, blocked: false },
+            
+            // Vegetation
+            { id: 'veg1', type: 'vegetation', x: 120, y: 160, health: 0.9, waterAccess: true },
+            { id: 'veg2', type: 'vegetation', x: 180, y: 140, health: 0.8, waterAccess: true },
+            { id: 'veg3', type: 'vegetation', x: 320, y: 200, health: 0.4, waterAccess: false },
+            { id: 'veg4', type: 'vegetation', x: 480, y: 170, health: 0.7, waterAccess: true }
+          ]);
+
+          const [ecosystemHealth, setEcosystemHealth] = useState({
+            fishPopulation: 85,
+            riparianVegetation: 90,
+            waterQuality: 80,
+            sedimentFlow: 70,
+            floodplainConnectivity: 75
+          });
+
+          const policies = {
+            economic: {
+              name: "Pure Economic Optimization",
+              color: "bg-red-600",
+              description: "Maximize revenue, ignore ecological impact",
+              ecologicalScore: 30,
+              strategy: (dam, price) => dam.volume * 0.8
+            },
+            balanced: {
+              name: "Balanced Policy", 
+              color: "bg-green-600",
+              description: "Balance profit with environmental constraints",
+              ecologicalScore: 75,
+              strategy: (dam, price, season) => dam.volume * (0.3 + 0.3 * (price / 100))
+            },
+            ecological: {
+              name: "Eco-First Policy",
+              color: "bg-blue-600", 
+              description: "Prioritize natural flow patterns",
+              ecologicalScore: 90,
+              strategy: (dam, price, season) => Math.max(10, dam.naturalInflow * 0.8)
+            }
+          };
+
+          // Animation loop
+          useEffect(() => {
+            if (!isPlaying) return;
+
+            const interval = setInterval(() => {
+              setCurrentTime(prev => prev + 1);
+              
+              // Update dam operations based on selected policy
+              setDams(prevDams => {
+                return prevDams.map(dam => {
+                  const policy = policies[selectedPolicy];
+                  const electricityPrice = 60 + Math.sin(currentTime * 0.1) * 30;
+                  const season = Math.sin(currentTime * 0.05);
+                  
+                  const newOutflow = policy.strategy(dam, electricityPrice, season);
+                  const powerOutput = newOutflow * (dam.volume / dam.maxVolume) * 3;
+                  
+                  // Calculate ecological impact
+                  let impact = 'low';
+                  if (newOutflow > dam.naturalInflow * 1.5) impact = 'high';
+                  else if (newOutflow > dam.naturalInflow * 1.2) impact = 'moderate';
+                  
+                  return {
+                    ...dam,
+                    outflow: newOutflow,
+                    power: powerOutput,
+                    ecologicalImpact: impact,
+                    volume: Math.max(dam.minVolume, 
+                      Math.min(dam.maxVolume, 
+                        dam.volume + (dam.naturalInflow - newOutflow) * 0.02 + (Math.random() - 0.5)
+                      )
+                    )
+                  };
+                });
+              });
+
+              // Update ecosystem health
+              setEcosystemHealth(prev => {
+                const policy = policies[selectedPolicy];
+                const targetHealth = policy.ecologicalScore;
+                
+                return {
+                  fishPopulation: prev.fishPopulation + (targetHealth - prev.fishPopulation) * 0.02,
+                  riparianVegetation: prev.riparianVegetation + (targetHealth - prev.riparianVegetation) * 0.01,
+                  waterQuality: prev.waterQuality + (targetHealth - prev.waterQuality) * 0.015,
+                  sedimentFlow: prev.sedimentFlow + (targetHealth - prev.sedimentFlow) * 0.01,
+                  floodplainConnectivity: prev.floodplainConnectivity + (targetHealth - prev.floodplainConnectivity) * 0.01
+                };
+              });
+
+              // Update ecosystem elements
+              setEcosystemElements(prev => prev.map(element => {
+                if (element.type === 'fish') {
+                  const nearbyDam = dams.find(dam => 
+                    Math.abs(dam.x - element.x) < 100 && Math.abs(dam.y - element.y) < 50
+                  );
+                  
+                  let blocked = false;
+                  let healthDelta = 0;
+                  
+                  if (nearbyDam) {
+                    blocked = !nearbyDam.fishPassage && nearbyDam.ecologicalImpact === 'high';
+                    healthDelta = nearbyDam.ecologicalImpact === 'high' ? -0.002 : 
+                                 nearbyDam.ecologicalImpact === 'moderate' ? -0.001 : 0.001;
+                  }
+                  
+                  return {
+                    ...element,
+                    blocked,
+                    health: Math.max(0.1, Math.min(1, element.health + healthDelta)),
+                    moving: !blocked && element.health > 0.3
+                  };
+                }
+                
+                if (element.type === 'vegetation') {
+                  const nearbyDam = dams.find(dam => 
+                    Math.abs(dam.x - element.x) < 80 && Math.abs(dam.y - element.y) < 60
+                  );
+                  
+                  let waterAccess = true;
+                  let healthDelta = 0;
+                  
+                  if (nearbyDam && nearbyDam.volume < nearbyDam.minVolume + 10) {
+                    waterAccess = false;
+                    healthDelta = -0.003;
+                  } else {
+                    healthDelta = 0.001;
+                  }
+                  
+                  return {
+                    ...element,
+                    waterAccess,
+                    health: Math.max(0.1, Math.min(1, element.health + healthDelta))
+                  };
+                }
+                
+                return element;
+              }));
+              
+            }, 100);
+
+            return () => clearInterval(interval);
+          }, [isPlaying, selectedPolicy, currentTime]);
+
+          const reset = () => {
+            setCurrentTime(0);
+            setIsPlaying(false);
+          };
+
+          return React.createElement('div', {
+            className: "w-full max-w-7xl mx-auto p-6 bg-gradient-to-br from-green-50 via-blue-50 to-green-100 min-h-screen"
+          },
+            // Header
+            React.createElement('div', { className: "text-center mb-6" },
+              React.createElement('h1', {
+                className: "text-4xl font-bold text-gray-800 mb-2"
+              }, "3D Watershed Optimization"),
+              React.createElement('p', {
+                className: "text-gray-600 text-lg max-w-3xl mx-auto"
+              }, "Interactive 3D visualization of hydro-power operations and their ecological impact")
+            ),
+
+            // Controls
+            React.createElement('div', {
+              className: "bg-white/80 backdrop-blur rounded-2xl p-6 mb-6 shadow-lg border border-green-200"
+            },
+              React.createElement('div', {
+                className: "flex justify-between items-center mb-6"
+              },
+                React.createElement('div', {
+                  className: "flex items-center space-x-4"
+                },
+                  React.createElement('button', {
+                    onClick: () => setIsPlaying(!isPlaying),
+                    className: "flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl transition-all duration-200 shadow-lg"
+                  },
+                    isPlaying ? React.createElement(Pause) : React.createElement(Play),
+                    React.createElement('span', {
+                      className: "font-semibold"
+                    }, `${isPlaying ? 'Pause' : 'Start'} Simulation`)
+                  ),
+                  
+                  React.createElement('button', {
+                    onClick: reset,
+                    className: "flex items-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-3 rounded-xl transition-all duration-200"
+                  },
+                    React.createElement(RotateCcw),
+                    React.createElement('span', null, "Reset")
+                  ),
+
+                  React.createElement('label', {
+                    className: "flex items-center space-x-2 text-gray-700"
+                  },
+                    React.createElement('input', {
+                      type: "checkbox",
+                      checked: showEcological,
+                      onChange: (e) => setShowEcological(e.target.checked),
+                      className: "w-4 h-4 rounded"
+                    }),
+                    React.createElement('span', null, "Show Ecosystem")
+                  )
+                ),
+
+                React.createElement('div', { className: "text-right" },
+                  React.createElement('div', {
+                    className: "text-sm text-gray-600"
+                  }, "Simulation Time"),
+                  React.createElement('div', {
+                    className: "text-2xl font-bold text-gray-800"
+                  }, `${Math.floor(currentTime / 10)} days`)
+                )
+              ),
+
+              // Policy Selection
+              React.createElement('div', { className: "grid grid-cols-3 gap-4" },
+                Object.entries(policies).map(([key, policy]) =>
+                  React.createElement('button', {
+                    key: key,
+                    onClick: () => setSelectedPolicy(key),
+                    className: `p-4 rounded-xl border-2 transition-all duration-300 ${
+                      selectedPolicy === key 
+                        ? `${policy.color} text-white border-white shadow-lg scale-105` 
+                        : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400 hover:shadow-md'
+                    }`
+                  },
+                    React.createElement('div', {
+                      className: "font-bold text-lg"
+                    }, policy.name),
+                    React.createElement('div', {
+                      className: "text-sm opacity-90 mt-1"
+                    }, policy.description),
+                    React.createElement('div', {
+                      className: "text-xs mt-2 font-medium"
+                    }, `Ecological Score: ${policy.ecologicalScore}/100`)
+                  )
+                )
+              )
+            ),
+
+            // 3D Scene
+            React.createElement('div', {
+              className: "bg-white/60 backdrop-blur rounded-2xl shadow-xl border border-blue-200 mb-6"
+            },
+              React.createElement(ThreeScene, {
+                dams: dams,
+                ecosystemElements: ecosystemElements,
+                selectedPolicy: selectedPolicy,
+                showEcological: showEcological
+              })
+            ),
+
+            // Info panel
+            React.createElement('div', {
+              className: "bg-white/80 backdrop-blur rounded-2xl p-6 mb-6 shadow-lg border border-green-200"
+            },
+              React.createElement('h3', {
+                className: "text-xl font-bold mb-4 text-gray-800"
+              }, "Current Status"),
+              React.createElement('div', { className: "grid grid-cols-3 gap-4" },
+                dams.map(dam => 
+                  React.createElement('div', {
+                    key: dam.id,
+                    className: "p-4 bg-gray-50 rounded-lg"
+                  },
+                    React.createElement('h4', {
+                      className: "font-semibold text-gray-800"
+                    }, dam.name),
+                    React.createElement('div', {
+                      className: "text-sm text-gray-600 mt-2"
+                    },
+                      React.createElement('div', null, `Volume: ${dam.volume.toFixed(1)}/${dam.maxVolume} hm³`),
+                      React.createElement('div', null, `Power: ${dam.power.toFixed(0)} MW`),
+                      React.createElement('div', null, `Impact: ${dam.ecologicalImpact}`)
+                    )
+                  )
+                )
+              )
+            ),
+
+            // Ecosystem Health Dashboard
+            showEcological && React.createElement('div', {
+              className: "bg-white/80 backdrop-blur rounded-2xl p-6 shadow-lg border border-green-200"
+            },
+              React.createElement('h2', {
+                className: "text-2xl font-bold mb-6 text-gray-800 flex items-center"
+              },
+                React.createElement(Leaf, { size: 28, className: "mr-3 text-green-600" }),
+                "Ecosystem Health Indicators"
+              ),
+              
+              React.createElement('div', { className: "grid grid-cols-5 gap-6" },
+                Object.entries(ecosystemHealth).map(([key, value]) => {
+                  const getColor = (val) => val > 70 ? 'text-green-600' : val > 40 ? 'text-yellow-600' : 'text-red-600';
+                  const getBgColor = (val) => val > 70 ? 'bg-green-100' : val > 40 ? 'bg-yellow-100' : 'bg-red-100';
+                  
+                  const icons = {
+                    fishPopulation: React.createElement(FishIcon, { size: 24 }),
+                    riparianVegetation: React.createElement('div', { className: "w-6 h-6 bg-green-600 rounded-full" }),
+                    waterQuality: React.createElement('div', { className: "w-6 h-6 bg-blue-600 rounded" }),
+                    sedimentFlow: React.createElement('div', { className: "w-6 h-6 rounded-full bg-amber-600" }),
+                    floodplainConnectivity: React.createElement('div', { className: "w-6 h-6 border-2 border-blue-600 rounded" })
+                  };
+                  
+                  return React.createElement('div', {
+                    key: key,
+                    className: `p-4 rounded-xl ${getBgColor(value)} border border-gray-200`
+                  },
+                    React.createElement('div', {
+                      className: `flex items-center justify-center mb-2 ${getColor(value)}`
+                    }, icons[key]),
+                    React.createElement('div', { className: "text-center" },
+                      React.createElement('div', {
+                        className: "text-sm text-gray-600 capitalize mb-1"
+                      }, key.replace(/([A-Z])/g, ' $1').trim()),
+                      React.createElement('div', {
+                        className: `text-2xl font-bold ${getColor(value)}`
+                      }, Math.round(value) + '%')
+                    ),
+                    
+                    // Health bar
+                    React.createElement('div', {
+                      className: "w-full bg-gray-200 rounded-full h-2 mt-2"
+                    },
+                      React.createElement('div', {
+                        className: `h-2 rounded-full transition-all duration-1000 ${
+                          value > 70 ? 'bg-green-500' : value > 40 ? 'bg-yellow-500' : 'bg-red-500'
+                        }`,
+                        style: { width: `${value}%` }
+                      })
+                    )
+                  );
+                })
+              )
+            )
+          );
+        };
+
+        // Render the app
+        ReactDOM.render(React.createElement(HydroPowerDemo), document.getElementById('root'));
+    </script>
+</body>
+</html> 
