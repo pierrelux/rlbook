@@ -16,20 +16,22 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!-- 
+    this give us a css class that will be invisible only if js is disabled 
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
 
-  
-  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
-
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
     <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
@@ -39,10 +41,11 @@
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css" />
   
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
 
     <script src="_static/documentation_options.js?v=9eb32ce0"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
@@ -71,6 +74,7 @@
     <link rel="prev" title="Programs as Models" href="simulation.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
   </head>
   
   
@@ -86,19 +90,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="search.html"
       method="get">
@@ -106,7 +99,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search this book..."
          aria-label="Search this book..."
          autocomplete="off"
@@ -114,8 +106,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -131,7 +123,8 @@
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -161,15 +154,11 @@
 </a></div>
         <div class="sidebar-primary-item">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script></div>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         
@@ -192,12 +181,15 @@
 <li class="toctree-l1"><a class="reference internal" href="simulation.html">Programs as Models</a></li>
 
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Optimization-Based Decision Making</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Numerical Trajectory Optimization</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Discrete-Time Trajectory Optimization</a></li>
 
 <li class="toctree-l1"><a class="reference internal" href="cocp.html">Continuous-Time Trajectory Optimization</a></li>
 
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">From Trajectories to Policies</span></p>
+<ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="mpc.html">From Trajectories to Policies</a></li>
 
 
@@ -404,24 +396,16 @@
 
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
-  </button>
-`);
-</script>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button>
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
-  </button>
-`);
-</script>
+</button>
 <button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <span class="fa-solid fa-list"></span>
 </button>
@@ -447,6 +431,18 @@ document.write(`
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Discrete-Time Trajectory Optimization</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#discrete-time-optimal-control-problems-docps">Discrete-Time Optimal Control Problems (DOCPs)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-of-docps">Examples of DOCPs</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#periodic-inventory-control">Periodic Inventory Control</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#end-of-day-portfolio-rebalancing">End-of-Day Portfolio Rebalancing</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#daily-ad-budget-allocation-with-carryover">Daily Ad-Budget Allocation with Carryover</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#docps-arising-from-the-discretization-of-continuous-time-ocps">DOCPs Arising from the Discretization of Continuous-Time OCPs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#programs-as-docps-and-differentiable-programming">Programs as DOCPs and Differentiable Programming</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#example-http-retrier-optimization">Example: HTTP Retrier Optimization</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#example-gradient-descent-with-momentum-as-docp">Example: Gradient Descent with Momentum as DOCP</a></li>
+</ul>
+</li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#variants-lagrange-and-mayer-problems">Variants: Lagrange and Mayer Problems</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#reducing-to-mayer-form-by-state-augmentation">Reducing to Mayer Form by State Augmentation</a></li>
 </ul>
@@ -480,7 +476,10 @@ document.write(`
   <section class="tex2jax_ignore mathjax_ignore" id="discrete-time-trajectory-optimization">
 <h1>Discrete-Time Trajectory Optimization<a class="headerlink" href="#discrete-time-trajectory-optimization" title="Link to this heading">#</a></h1>
 <p>In the previous chapter, we examined different ways to represent dynamical systems: continuous versus discrete time, deterministic versus stochastic, fully versus partially observable, and even simulation-based views such as agent-based or programmatic models. Our focus was on the <strong>structure of models</strong>: how they capture evolution, uncertainty, and information.</p>
-<p>In this chapter, we turn to what makes these models useful for <strong>decision-making</strong>. The goal is no longer just to describe how a system behaves, but to leverage that description to <strong>compute actions over time</strong>. This doesn’t mean the model prescribes actions on its own. Rather, it provides the scaffolding for optimization: given a model and an objective, we can derive the control inputs that make the modeled system behave well according to a chosen criterion. This is the essence of an <strong>optimal control problem</strong>.</p>
+<p>In this chapter, we turn to what makes these models useful for <strong>decision-making</strong>. The goal is no longer just to describe how a system behaves, but to leverage that description to <strong>compute actions over time</strong>. This doesn’t mean the model prescribes actions on its own. Rather, it provides the scaffolding for optimization: given a model and an objective, we can derive the control inputs that make the modeled system behave well according to a chosen criterion.</p>
+<p>Our entry point will be trajectory optimization. By a <strong>trajectory</strong>, we mean the time-indexed sequence of states and controls that the system follows under a plan: the states <span class="math notranslate nohighlight">\((\mathbf{x}_1, \dots, \mathbf{x}_T)\)</span> together with the controls <span class="math notranslate nohighlight">\((\mathbf{u}_1, \dots, \mathbf{u}_{T-1})\)</span>. In this chapter, we focus on an <strong>open-loop</strong> viewpoint: starting from a known initial state, we compute the entire sequence of controls in advance and then apply it as-is. This is appealing because, for discrete-time problems, it yields a finite-dimensional optimization over a vector of decisions and cleanly exposes the structure of the constraints. In continuous time, the base formulation is infinite-dimensional; in this course we will rely on direct methods—time discretization and parameterization—to transform it into a finite-dimensional nonlinear program.</p>
+<p>Open loop also has a clear limitation: if reality deviates from the model—due to disturbances, model mismatch, or unanticipated events—the state you actually reach may differ from the predicted one. The precomputed controls that were optimal for the nominal trajectory can then lead you further off course, and errors can compound over time.</p>
+<p>Later, we will study <strong>closed-loop (feedback)</strong> strategies, where the choice of action at time <span class="math notranslate nohighlight">\(t\)</span> can depend on the state observed at time <span class="math notranslate nohighlight">\(t\)</span>. Instead of a single sequence, we optimize a policy <span class="math notranslate nohighlight">\(\pi_t\)</span> mapping states to controls, <span class="math notranslate nohighlight">\(\mathbf{u}_t = \pi_t(\mathbf{x}_t)\)</span>. Feedback makes plans resilient to unforeseen situations by adapting on the fly, but it leads to a more challenging problem class. We start with open-loop trajectory optimization to build core concepts and tools before tackling feedback design.</p>
 <section id="discrete-time-optimal-control-problems-docps">
 <h2>Discrete-Time Optimal Control Problems (DOCPs)<a class="headerlink" href="#discrete-time-optimal-control-problems-docps" title="Link to this heading">#</a></h2>
 <p>Consider a system described by a <strong>state</strong> <span class="math notranslate nohighlight">\(\mathbf{x}_t \in \mathbb{R}^n\)</span>, summarizing everything needed to predict its evolution. At each stage <span class="math notranslate nohighlight">\(t\)</span>, we can influence the system through a <strong>control input</strong> <span class="math notranslate nohighlight">\(\mathbf{u}_t \in \mathbb{R}^m\)</span>. The dynamics specify how the state evolves:</p>
@@ -510,6 +509,339 @@ document.write(`
 <li><p><strong>Temporal coupling.</strong> Each control affects all future states and costs. The feasible set is not a simple box but a narrow manifold defined by the dynamics.</p></li>
 </ul>
 <p>Together, these features explain why specialized methods exist and why the way we write the problem influences the algorithms we can use. Whether we keep states explicit or eliminate them through forward simulation determines not just the problem size, but also its conditioning and the trade-offs between robustness and computational effort.</p>
+<section id="examples-of-docps">
+<h3>Examples of DOCPs<a class="headerlink" href="#examples-of-docps" title="Link to this heading">#</a></h3>
+<p>To make things concrete, here are three problems that are naturally posed as discrete-time OCPs. In each case, we seek an optimal trajectory of states and controls over a finite horizon.</p>
+<section id="periodic-inventory-control">
+<h4>Periodic Inventory Control<a class="headerlink" href="#periodic-inventory-control" title="Link to this heading">#</a></h4>
+<p>Decisions are made once per period: choose order quantity <span class="math notranslate nohighlight">\(u_k \ge 0\)</span> to meet forecast demand <span class="math notranslate nohighlight">\(d_k\)</span>. The state <span class="math notranslate nohighlight">\(x_k\)</span> is on-hand inventory with dynamics <span class="math notranslate nohighlight">\(x_{k+1} = x_k + u_k - d_k\)</span>. A typical stage cost is <span class="math notranslate nohighlight">\(c_k(x_k,u_k) = h\,[x_k]_+ + p\,[-x_k]_+ + c\,u_k\)</span>, trading off holding, backorder, and ordering costs. The horizon objective is <span class="math notranslate nohighlight">\(\min \sum_{k=0}^{T-1} c_k(x_k,u_k)\)</span> subject to bounds.</p>
+</section>
+<section id="end-of-day-portfolio-rebalancing">
+<h4>End-of-Day Portfolio Rebalancing<a class="headerlink" href="#end-of-day-portfolio-rebalancing" title="Link to this heading">#</a></h4>
+<p>At each trading day <span class="math notranslate nohighlight">\(k\)</span>, choose trades <span class="math notranslate nohighlight">\(u_k\)</span> to adjust holdings <span class="math notranslate nohighlight">\(h_k\)</span> before next-day returns <span class="math notranslate nohighlight">\(r_{k}\)</span> realize. Deterministic planning uses predicted returns <span class="math notranslate nohighlight">\(\mu_k\)</span>, with dynamics <span class="math notranslate nohighlight">\(h_{k+1} = (h_k + u_k) \odot (\mathbf{1} + \mu_k)\)</span> and budget/box constraints. The stage cost can capture transaction costs and risk, e.g., <span class="math notranslate nohighlight">\(c_k(h_k,u_k) = \tau\lVert u_k \rVert_1 + \tfrac{\lambda}{2}\,h_k^\top \Sigma_k h_k\)</span>, with a terminal utility or wealth objective.</p>
+</section>
+<section id="daily-ad-budget-allocation-with-carryover">
+<h4>Daily Ad-Budget Allocation with Carryover<a class="headerlink" href="#daily-ad-budget-allocation-with-carryover" title="Link to this heading">#</a></h4>
+<p>Allocate spend <span class="math notranslate nohighlight">\(u_k \in [0, U_{\max}]\)</span> to build awareness <span class="math notranslate nohighlight">\(s_k\)</span> with carryover dynamics <span class="math notranslate nohighlight">\(s_{k+1} = \alpha s_k + \beta u_k\)</span>. Conversions/revenue at day <span class="math notranslate nohighlight">\(k\)</span> follow a response curve <span class="math notranslate nohighlight">\(g(s_k,u_k)\)</span>; the goal is <span class="math notranslate nohighlight">\(\max \sum_{k=0}^{T-1} g(s_k,u_k) - c\,u_k\)</span> subject to spend limits. This is naturally discrete because decisions and measurements occur daily.</p>
+</section>
+</section>
+<section id="docps-arising-from-the-discretization-of-continuous-time-ocps">
+<h3>DOCPs Arising from the Discretization of Continuous-Time OCPs<a class="headerlink" href="#docps-arising-from-the-discretization-of-continuous-time-ocps" title="Link to this heading">#</a></h3>
+<p>Although many applications are natively discrete-time, it is also common to obtain a DOCP by discretizing a continuous-time formulation. Consider a system on <span class="math notranslate nohighlight">\([0, T_c]\)</span> given by</p>
+<div class="math notranslate nohighlight">
+\[
+\dot{\mathbf{x}}(t) = \mathbf{f}(t, \mathbf{x}(t), \mathbf{u}(t)), \qquad \mathbf{x}(0) = \mathbf{x}_0.
+\]</div>
+<p>Choose a step size <span class="math notranslate nohighlight">\(\Delta &gt; 0\)</span> and grid <span class="math notranslate nohighlight">\(t_k = k\,\Delta\)</span>. A one-step integration scheme induces a discrete map <span class="math notranslate nohighlight">\(\mathbf{F}_\Delta\)</span> so that</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{x}_{k+1} = \mathbf{F}_\Delta(\mathbf{x}_k, \mathbf{u}_k, t_k),\qquad k=0,\dots, T-1,
+\]</div>
+<p>where, for example, explicit Euler gives <span class="math notranslate nohighlight">\(\mathbf{F}_\Delta(\mathbf{x},\mathbf{u},t) = \mathbf{x} + \Delta\,\mathbf{f}(t,\mathbf{x},\mathbf{u})\)</span>. The resulting discrete-time optimal control problem takes the Bolza form with these induced dynamics:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+\min_{\{\mathbf{x}_k,\mathbf{u}_k\}}\; &amp; c_T(\mathbf{x}_T) + \sum_{k=0}^{T-1} c_k(\mathbf{x}_k,\mathbf{u}_k) \\
+\text{s.t.}\; &amp; \mathbf{x}_{k+1} - \mathbf{F}_\Delta(\mathbf{x}_k,\mathbf{u}_k, t_k) = 0,\quad k=0,\dots,T-1, \\
+&amp; \mathbf{x}_0 = \mathbf{x}_\mathrm{init}.
+\end{aligned}
+\end{split}\]</div>
+</section>
+<section id="programs-as-docps-and-differentiable-programming">
+<h3>Programs as DOCPs and Differentiable Programming<a class="headerlink" href="#programs-as-docps-and-differentiable-programming" title="Link to this heading">#</a></h3>
+<p>It is often useful to view a computer program itself as a discrete-time dynamical system. Let the <strong>program state</strong> collect memory, buffers, and intermediate variables, and let the <strong>control</strong> represent inputs or tunable decisions at each step. A single execution step defines a transition map</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{x}_{k+1}=\Phi_k(\mathbf{x}_k,\mathbf{u}_k),
+\]</div>
+<p>and a scalar objective (e.g., loss, error, runtime, energy) yields a DOCP:</p>
+<div class="math notranslate nohighlight">
+\[
+\min_{\{\mathbf{u}_k\}} \; c_T(\mathbf{x}_T)+\sum_{k=0}^{T-1} c_k(\mathbf{x}_k,\mathbf{u}_k)
+\quad\text{s.t.}\quad \mathbf{x}_{k+1}=\Phi_k(\mathbf{x}_k,\mathbf{u}_k).
+\]</div>
+<p>In differentiable programming (e.g., JAX, PyTorch), the composed map <span class="math notranslate nohighlight">\(\Phi_{T-1}\circ\cdots\circ\Phi_0\)</span> is differentiable, enabling reverse-mode automatic differentiation and efficient gradient-based trajectory optimization. When parts of the program are non-differentiable (discrete branches, simulators with events), DOCPs can still be solved using derivative-free or weak-gradient methods (eg. finite differences, SPSA, Nelder–Mead, CMA-ES, or evolutionary strategies) optionally combined with smoothing, relaxations, or stochastic estimators to navigate non-smooth regions.</p>
+<section id="example-http-retrier-optimization">
+<h4>Example: HTTP Retrier Optimization<a class="headerlink" href="#example-http-retrier-optimization" title="Link to this heading">#</a></h4>
+<p>As an example we cast the problem of optimizing a “HTTP retrier with backoff” as a DOCP where the state tracks wall-clock time, attempt index, success, last code, and jitter; the control is the chosen wait time before the next request (the backoff schedule); the transition encapsulates waiting and a probabilistic request outcome; and the objective penalizes latency and failure. We then optimize the schedule either directly (per-step SPSA) or via a two-parameter exponential policy using common random numbers for variance reduction.</p>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Show code cell source</span>
+<span class="expanded">Hide code cell source</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">import</span> <span class="nn">math</span><span class="o">,</span> <span class="nn">random</span>
+
+<span class="c1"># ---------------------------</span>
+<span class="c1"># PROGRAM = &quot;HTTP retrier with backoff&quot;</span>
+<span class="c1"># ---------------------------</span>
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">State</span><span class="p">:</span>
+    <span class="n">t</span><span class="p">:</span> <span class="nb">float</span>            <span class="c1"># wall-clock time (s)</span>
+    <span class="n">k</span><span class="p">:</span> <span class="nb">int</span>              <span class="c1"># attempt index</span>
+    <span class="n">done</span><span class="p">:</span> <span class="nb">bool</span>          <span class="c1"># success flag</span>
+    <span class="n">code</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span>    <span class="c1"># last HTTP code or None</span>
+    <span class="n">jitter</span><span class="p">:</span> <span class="nb">float</span>       <span class="c1"># per-run jitter (simulates clock/socket noise)</span>
+
+<span class="c1"># Controls (decision variables): per-step wait times (backoff schedule)</span>
+<span class="c1"># u[k] can be optimized; in a fixed policy you&#39;d set u[k] = base * gamma**k</span>
+<span class="c1"># We&#39;ll keep them bounded for realism.</span>
+<span class="k">def</span> <span class="nf">clamp</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span><span class="p">):</span> <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">hi</span><span class="p">,</span> <span class="n">x</span><span class="p">))</span>
+
+<span class="c1"># Simulated environment: availability is time-varying (spiky outage)</span>
+<span class="k">def</span> <span class="nf">server_success_prob</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="c1"># Low availability for the first 2 seconds, then rebounds</span>
+    <span class="n">base</span> <span class="o">=</span> <span class="mf">0.15</span> <span class="k">if</span> <span class="n">t</span> <span class="o">&lt;</span> <span class="mf">2.0</span> <span class="k">else</span> <span class="mf">0.85</span>
+    <span class="c1"># Some diurnal-like wobble (toy)</span>
+    <span class="n">wobble</span> <span class="o">=</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="p">(</span><span class="n">t</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">clamp</span><span class="p">(</span><span class="n">base</span> <span class="o">+</span> <span class="n">wobble</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.99</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">http_request</span><span class="p">():</span>
+    <span class="c1"># Just returns a code; success = 200, failure = 503</span>
+    <span class="k">return</span> <span class="mi">200</span> <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">0.5</span> <span class="k">else</span> <span class="mi">503</span>
+
+<span class="c1"># -------- DOCP ingredients --------</span>
+<span class="c1"># State x_k = (t, k, done, code, jitter)</span>
+<span class="c1"># Control u_k = wait time before next attempt (our backoff schedule entry)</span>
+<span class="c1"># Transition Phi_k: one &quot;program step&quot; = (optional wait) + (one request) + (branch)</span>
+<span class="k">def</span> <span class="nf">Phi</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">State</span><span class="p">,</span> <span class="n">u_k</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">State</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">done</span><span class="p">:</span>
+        <span class="c1"># No-ops after success (absorbing state)</span>
+        <span class="k">return</span> <span class="n">State</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">t</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">code</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">jitter</span><span class="p">)</span>
+
+    <span class="c1"># 1) Wait according to control (backoff schedule) + jitter</span>
+    <span class="n">wait</span> <span class="o">=</span> <span class="n">clamp</span><span class="p">(</span><span class="n">u_k</span> <span class="o">+</span> <span class="mf">0.02</span> <span class="o">*</span> <span class="n">state</span><span class="o">.</span><span class="n">jitter</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">)</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">t</span> <span class="o">+</span> <span class="n">wait</span>
+
+    <span class="c1"># 2) Environment: success probability depends on time t</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">server_success_prob</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+    <span class="c1"># 3) &quot;Perform request&quot;: success with prob p; otherwise 503</span>
+    <span class="n">code</span> <span class="o">=</span> <span class="mi">200</span> <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">p</span> <span class="k">else</span> <span class="mi">503</span>
+    <span class="n">done</span> <span class="o">=</span> <span class="p">(</span><span class="n">code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">)</span>
+
+    <span class="c1"># 4) Advance attempt counter and wall clock</span>
+    <span class="k">return</span> <span class="n">State</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">done</span><span class="o">=</span><span class="n">done</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="n">code</span><span class="p">,</span> <span class="n">jitter</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">jitter</span><span class="p">)</span>
+
+<span class="c1"># Stage cost: latency penalty each step; heavy penalty if still failing late</span>
+<span class="k">def</span> <span class="nf">stage_cost</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">State</span><span class="p">,</span> <span class="n">u_k</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="c1"># Latency/energy per unit wait + small per-step overhead when not done</span>
+    <span class="k">return</span> <span class="mf">0.20</span> <span class="o">*</span> <span class="n">u_k</span> <span class="o">+</span> <span class="p">(</span><span class="mf">0.00</span> <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">done</span> <span class="k">else</span> <span class="mf">0.002</span><span class="p">)</span>
+
+<span class="c1"># Terminal cost: if failed after horizon, big penalty; if succeeded, pay total time</span>
+<span class="k">def</span> <span class="nf">terminal_cost</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">State</span><span class="p">,</span> <span class="n">max_attempts</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="c1"># Pay for elapsed time; fail late incurs extra penalty</span>
+    <span class="k">return</span> <span class="mf">0.3</span> <span class="o">*</span> <span class="n">state</span><span class="o">.</span><span class="n">t</span> <span class="o">+</span> <span class="p">(</span><span class="mf">5.0</span> <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">state</span><span class="o">.</span><span class="n">done</span> <span class="ow">and</span> <span class="n">state</span><span class="o">.</span><span class="n">k</span> <span class="o">&gt;=</span> <span class="n">max_attempts</span><span class="p">)</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">rollout</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">max_attempts</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">State</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">done</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">jitter</span><span class="o">=</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">J</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_attempts</span><span class="p">):</span>
+        <span class="n">J</span> <span class="o">+=</span> <span class="n">stage_cost</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">u</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">Phi</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">u</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">done</span><span class="p">:</span>  <span class="c1"># early stop like a real program</span>
+            <span class="k">break</span>
+    <span class="n">J</span> <span class="o">+=</span> <span class="n">terminal_cost</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">max_attempts</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">J</span><span class="p">,</span> <span class="n">s</span>  <span class="c1"># return final state for debugging if needed</span>
+
+<span class="c1"># ---------- helpers for SPSA with common random numbers ----------</span>
+<span class="k">def</span> <span class="nf">eval_policy</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">seeds</span><span class="p">,</span> <span class="n">max_attempts</span><span class="o">=</span><span class="mi">8</span><span class="p">):</span>
+    <span class="c1"># Average over a fixed set of seeds (CRN helps SPSA a lot)</span>
+    <span class="n">Js</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">sd</span> <span class="ow">in</span> <span class="n">seeds</span><span class="p">:</span>
+        <span class="n">J</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">rollout</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">max_attempts</span><span class="o">=</span><span class="n">max_attempts</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">sd</span><span class="p">)</span>
+        <span class="n">Js</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">J</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">Js</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">Js</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">project_waits</span><span class="p">(</span><span class="n">u</span><span class="p">):</span>
+    <span class="c1"># Keep waits in [0, 3] for realism</span>
+    <span class="k">return</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">x</span><span class="p">))</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">u</span><span class="p">]</span>
+
+<span class="c1"># ---------- schedule parameterizations ----------</span>
+<span class="k">def</span> <span class="nf">schedule_exp</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">K</span><span class="p">):</span>
+    <span class="c1"># u[k] = base * gamma**k</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">base</span> <span class="o">*</span> <span class="p">(</span><span class="n">gamma</span> <span class="o">**</span> <span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">)]</span>
+
+<span class="c1"># If you prefer per-step but monotone nonnegative waits, use softplus increments:</span>
+<span class="k">def</span> <span class="nf">schedule_softplus</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">K</span><span class="p">):</span>
+    <span class="c1"># z in R^K -&gt; u monotone via cumulative softplus increments</span>
+    <span class="k">def</span> <span class="nf">softplus</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">log1p</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span> <span class="o">+</span> <span class="nb">max</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+    <span class="n">inc</span> <span class="o">=</span> <span class="p">[</span><span class="n">softplus</span><span class="p">(</span><span class="n">zi</span><span class="p">)</span> <span class="k">for</span> <span class="n">zi</span> <span class="ow">in</span> <span class="n">z</span><span class="p">]</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">s_accum</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">):</span>
+        <span class="n">s_accum</span> <span class="o">+=</span> <span class="n">inc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">u</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s_accum</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">u</span>
+
+<span class="c1"># ---------------------------</span>
+<span class="c1"># Black-box optimization (SPSA) of the schedule u[0:K]</span>
+<span class="c1"># ---------------------------</span>
+<span class="k">def</span> <span class="nf">spsa_optimize</span><span class="p">(</span><span class="n">K</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">iters</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+    <span class="c1"># Initialize a conservative schedule (small linear backoff)</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.05</span> <span class="o">+</span> <span class="mf">0.1</span><span class="o">*</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">)]</span>
+    <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.2</span>      <span class="c1"># learning rate</span>
+    <span class="n">c0</span> <span class="o">=</span> <span class="mf">0.1</span>         <span class="c1"># perturbation scale</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">iters</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">c0</span> <span class="o">/</span> <span class="p">(</span><span class="n">t</span> <span class="o">**</span> <span class="mf">0.101</span><span class="p">)</span>
+        <span class="c1"># Rademacher perturbation</span>
+        <span class="n">delta</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span> <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">0.5</span> <span class="k">else</span> <span class="o">-</span><span class="mf">1.0</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">)]</span>
+        <span class="n">u_plus</span>  <span class="o">=</span> <span class="p">[</span><span class="n">clamp</span><span class="p">(</span><span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">c</span> <span class="o">*</span> <span class="n">delta</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">)]</span>
+        <span class="n">u_minus</span> <span class="o">=</span> <span class="p">[</span><span class="n">clamp</span><span class="p">(</span><span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">c</span> <span class="o">*</span> <span class="n">delta</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">)]</span>
+
+        <span class="n">Jp</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">rollout</span><span class="p">(</span><span class="n">u_plus</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span> <span class="o">+</span> <span class="mi">10</span><span class="o">*</span><span class="n">t</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">Jm</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">rollout</span><span class="p">(</span><span class="n">u_minus</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span> <span class="o">+</span> <span class="mi">10</span><span class="o">*</span><span class="n">t</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1"># SPSA gradient estimate</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="p">[(</span><span class="n">Jp</span> <span class="o">-</span> <span class="n">Jm</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">c</span> <span class="o">*</span> <span class="n">delta</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">)]</span>
+        <span class="c1"># Update (project back to bounds)</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="p">[</span><span class="n">clamp</span><span class="p">(</span><span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">g</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">u</span>
+
+<span class="c1"># ---------- SPSA over 2 parameters (base, gamma) with CRN ----------</span>
+<span class="k">def</span> <span class="nf">spsa_optimize_exp</span><span class="p">(</span><span class="n">K</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">iters</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">Nmc</span><span class="o">=</span><span class="mi">16</span><span class="p">):</span>
+    <span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+    <span class="c1"># fixed seeds reused every iteration (CRN)</span>
+    <span class="n">seeds</span> <span class="o">=</span> <span class="p">[</span><span class="n">seed</span> <span class="o">+</span> <span class="mi">1000</span> <span class="o">+</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Nmc</span><span class="p">)]</span>
+
+    <span class="c1"># init: small base, mild growth</span>
+    <span class="n">base</span><span class="p">,</span> <span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">1.4</span>
+    <span class="n">alpha0</span><span class="p">,</span> <span class="n">c0</span> <span class="o">=</span> <span class="mf">0.15</span><span class="p">,</span> <span class="mf">0.2</span>  <span class="c1"># learning rate and perturbation scales</span>
+
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">iters</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">a_t</span> <span class="o">=</span> <span class="n">alpha0</span> <span class="o">/</span> <span class="p">(</span><span class="n">t</span> <span class="o">**</span> <span class="mf">0.602</span><span class="p">)</span>   <span class="c1"># standard SPSA decay</span>
+        <span class="n">c_t</span> <span class="o">=</span> <span class="n">c0</span> <span class="o">/</span> <span class="p">(</span><span class="n">t</span> <span class="o">**</span> <span class="mf">0.101</span><span class="p">)</span>
+
+        <span class="c1"># Rademacher perturbations for 2 params</span>
+        <span class="n">d_base</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">0.5</span> <span class="k">else</span> <span class="o">-</span><span class="mf">1.0</span>
+        <span class="n">d_gamma</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">0.5</span> <span class="k">else</span> <span class="o">-</span><span class="mf">1.0</span>
+
+        <span class="n">base_plus</span>  <span class="o">=</span> <span class="n">base</span>  <span class="o">+</span> <span class="n">c_t</span> <span class="o">*</span> <span class="n">d_base</span>
+        <span class="n">base_minus</span> <span class="o">=</span> <span class="n">base</span>  <span class="o">-</span> <span class="n">c_t</span> <span class="o">*</span> <span class="n">d_base</span>
+        <span class="n">gamma_plus</span>  <span class="o">=</span> <span class="n">gamma</span> <span class="o">+</span> <span class="n">c_t</span> <span class="o">*</span> <span class="n">d_gamma</span>
+        <span class="n">gamma_minus</span> <span class="o">=</span> <span class="n">gamma</span> <span class="o">-</span> <span class="n">c_t</span> <span class="o">*</span> <span class="n">d_gamma</span>
+
+        <span class="n">u_plus</span>  <span class="o">=</span> <span class="n">project_waits</span><span class="p">(</span><span class="n">schedule_exp</span><span class="p">(</span><span class="n">base_plus</span><span class="p">,</span>  <span class="n">gamma_plus</span><span class="p">,</span>  <span class="n">K</span><span class="p">))</span>
+        <span class="n">u_minus</span> <span class="o">=</span> <span class="n">project_waits</span><span class="p">(</span><span class="n">schedule_exp</span><span class="p">(</span><span class="n">base_minus</span><span class="p">,</span> <span class="n">gamma_minus</span><span class="p">,</span> <span class="n">K</span><span class="p">))</span>
+
+        <span class="n">Jp</span> <span class="o">=</span> <span class="n">eval_policy</span><span class="p">(</span><span class="n">u_plus</span><span class="p">,</span> <span class="n">seeds</span><span class="p">,</span> <span class="n">max_attempts</span><span class="o">=</span><span class="n">K</span><span class="p">)</span>
+        <span class="n">Jm</span> <span class="o">=</span> <span class="n">eval_policy</span><span class="p">(</span><span class="n">u_minus</span><span class="p">,</span> <span class="n">seeds</span><span class="p">,</span> <span class="n">max_attempts</span><span class="o">=</span><span class="n">K</span><span class="p">)</span>
+
+        <span class="c1"># SPSA gradient estimate</span>
+        <span class="n">g_base</span>  <span class="o">=</span> <span class="p">(</span><span class="n">Jp</span> <span class="o">-</span> <span class="n">Jm</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">c_t</span> <span class="o">*</span> <span class="n">d_base</span><span class="p">)</span>
+        <span class="n">g_gamma</span> <span class="o">=</span> <span class="p">(</span><span class="n">Jp</span> <span class="o">-</span> <span class="n">Jm</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">c_t</span> <span class="o">*</span> <span class="n">d_gamma</span><span class="p">)</span>
+
+        <span class="c1"># Update</span>
+        <span class="n">base</span>  <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">base</span>  <span class="o">-</span> <span class="n">a_t</span> <span class="o">*</span> <span class="n">g_base</span><span class="p">)</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">gamma</span> <span class="o">-</span> <span class="n">a_t</span> <span class="o">*</span> <span class="n">g_gamma</span><span class="p">)</span>  <span class="c1"># keep reasonable</span>
+
+    <span class="k">return</span> <span class="n">base</span><span class="p">,</span> <span class="n">gamma</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="mi">8</span>
+    <span class="c1"># Baseline linear schedule</span>
+    <span class="n">u0</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.05</span> <span class="o">+</span> <span class="mf">0.1</span><span class="o">*</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">)]</span>
+    <span class="n">J0</span><span class="p">,</span> <span class="n">s0</span> <span class="o">=</span> <span class="n">rollout</span><span class="p">(</span><span class="n">u0</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+
+    <span class="c1"># Optimize per-step waits (K-dim SPSA)</span>
+    <span class="n">u_opt</span> <span class="o">=</span> <span class="n">spsa_optimize</span><span class="p">(</span><span class="n">K</span><span class="o">=</span><span class="n">K</span><span class="p">,</span> <span class="n">iters</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">123</span><span class="p">)</span>
+    <span class="n">J1</span><span class="p">,</span> <span class="n">s1</span> <span class="o">=</span> <span class="n">rollout</span><span class="p">(</span><span class="n">u_opt</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">999</span><span class="p">)</span>
+
+    <span class="c1"># Optimize exponential schedule parameters (2-dim SPSA with CRN)</span>
+    <span class="n">base_opt</span><span class="p">,</span> <span class="n">gamma_opt</span> <span class="o">=</span> <span class="n">spsa_optimize_exp</span><span class="p">(</span><span class="n">K</span><span class="o">=</span><span class="n">K</span><span class="p">,</span> <span class="n">iters</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">321</span><span class="p">,</span> <span class="n">Nmc</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+    <span class="n">u_exp</span> <span class="o">=</span> <span class="n">project_waits</span><span class="p">(</span><span class="n">schedule_exp</span><span class="p">(</span><span class="n">base_opt</span><span class="p">,</span> <span class="n">gamma_opt</span><span class="p">,</span> <span class="n">K</span><span class="p">))</span>
+    <span class="n">J2</span><span class="p">,</span> <span class="n">s2</span> <span class="o">=</span> <span class="n">rollout</span><span class="p">(</span><span class="n">u_exp</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">777</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Initial schedule:&quot;</span><span class="p">,</span> <span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">u0</span><span class="p">],</span> <span class="s2">&quot;  Cost ≈&quot;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">J0</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Optimized (per-step SPSA):&quot;</span><span class="p">,</span> <span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">u_opt</span><span class="p">],</span> <span class="s2">&quot;  Cost ≈&quot;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">J1</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Optimized (exp base, gamma): base=&quot;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">base_opt</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="s2">&quot; gamma=&quot;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">gamma_opt</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span>
+          <span class="s2">&quot;  schedule=&quot;</span><span class="p">,</span> <span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">u_exp</span><span class="p">],</span> <span class="s2">&quot;  Cost ≈&quot;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">J2</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Attempts (init → per-step → exp):&quot;</span><span class="p">,</span> <span class="n">s0</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="s2">&quot;→&quot;</span><span class="p">,</span> <span class="n">s1</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="s2">&quot;→&quot;</span><span class="p">,</span> <span class="n">s2</span><span class="o">.</span><span class="n">k</span><span class="p">,</span>
+          <span class="s2">&quot;  Success codes:&quot;</span><span class="p">,</span> <span class="n">s0</span><span class="o">.</span><span class="n">code</span><span class="p">,</span> <span class="n">s1</span><span class="o">.</span><span class="n">code</span><span class="p">,</span> <span class="n">s2</span><span class="o">.</span><span class="n">code</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Initial schedule: [0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75]   Cost ≈ 0.029
+Optimized (per-step SPSA): [2.855, 0.145, 0.094, 2.704, 0.092, 2.908, 2.704, 2.855]   Cost ≈ 1.433
+Optimized (exp base, gamma): base= 0.192  gamma= 1.542   schedule= [0.192, 0.297, 0.458, 0.706, 1.09, 1.681, 2.592, 3.0]   Cost ≈ 1.365
+Attempts (init → per-step → exp): 1 → 1 → 5   Success codes: 200 200 200
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="example-gradient-descent-with-momentum-as-docp">
+<h4>Example: Gradient Descent with Momentum as DOCP<a class="headerlink" href="#example-gradient-descent-with-momentum-as-docp" title="Link to this heading">#</a></h4>
+<p>To connect this lens to familiar practice—and to hyperparameter optimization—treat the learning rate and momentum (or their schedules) as controls. Rather than fixing them a priori, we can optimize them as part of a trajectory optimization. The optimizer itself becomes the dynamical system whose execution we shape to minimize final loss.</p>
+<p>Program: gradient descent with momentum on a quadratic loss. We fit <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\in\mathbb{R}^p\)</span> to data <span class="math notranslate nohighlight">\((\mathbf{A},\mathbf{b})\)</span> by minimizing</p>
+<div class="math notranslate nohighlight">
+\[
+\ell(\boldsymbol{\theta})=\tfrac{1}{2}\,\lVert\mathbf{A}\boldsymbol{\theta}-\mathbf{b}\rVert_2^2.
+\]</div>
+<p>The program maintains parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_k\)</span> and momentum <span class="math notranslate nohighlight">\(\mathbf{m}_k\)</span>. Each iteration does:</p>
+<ol class="arabic simple">
+<li><p>compute gradient <span class="math notranslate nohighlight">\( \mathbf{g}_k=\nabla_{\boldsymbol{\theta}}\ell(\boldsymbol{\theta}_k)=\mathbf{A}^\top(\mathbf{A}\boldsymbol{\theta}_k-\mathbf{b})\)</span></p></li>
+<li><p>update momentum <span class="math notranslate nohighlight">\( \mathbf{m}_{k+1}=\beta_k \, \mathbf{m}_k + \mathbf{g}_k\)</span></p></li>
+<li><p>update parameters <span class="math notranslate nohighlight">\( \boldsymbol{\theta}_{k+1}=\boldsymbol{\theta}_k - \alpha_k \, \mathbf{m}_{k+1}\)</span></p></li>
+</ol>
+<p>State, control, and transition. Define the state <span class="math notranslate nohighlight">\(\mathbf{x}_k=\begin{bmatrix}\boldsymbol{\theta}_k\\ \mathbf{m}_k\end{bmatrix}\in\mathbb{R}^{2p}\)</span> and the control <span class="math notranslate nohighlight">\(\mathbf{u}_k=\begin{bmatrix}\alpha_k\\ \beta_k\end{bmatrix}\)</span>. One program step is</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\Phi_k(\mathbf{x}_k,\mathbf{u}_k)=
+\begin{bmatrix}
+\boldsymbol{\theta}_k - \alpha_k\!\left(\beta_k \, \mathbf{m}_k + \mathbf{A}^\top(\mathbf{A}\boldsymbol{\theta}_k-\mathbf{b})\right)\\[2mm]
+\beta_k \, \mathbf{m}_k + \mathbf{A}^\top(\mathbf{A}\boldsymbol{\theta}_k-\mathbf{b})
+\end{bmatrix}.
+\end{split}\]</div>
+<p>Executing the program for <span class="math notranslate nohighlight">\(T\)</span> iterations gives the trajectory</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\mathbf{x}_{k+1}=\Phi_k(\mathbf{x}_k,\mathbf{u}_k),\quad k=0,\dots,T-1,\qquad
+\mathbf{x}_0=\begin{bmatrix}\boldsymbol{\theta}_0\\ \mathbf{m}_0\end{bmatrix}.
+\end{split}\]</div>
+<p>Objective as a DOCP. Choose terminal cost <span class="math notranslate nohighlight">\(c_T(\mathbf{x}_T)=\ell(\boldsymbol{\theta}_T)\)</span> and (optionally) stage costs <span class="math notranslate nohighlight">\(c_k(\mathbf{x}_k,\mathbf{u}_k)=\rho_\alpha \, \alpha_k^2+\rho_\beta\,(\beta_k- \bar\beta)^2\)</span>. The program-as-control problem is</p>
+<div class="math notranslate nohighlight">
+\[
+\min_{\{\alpha_k,\beta_k\}} \; \ell(\boldsymbol{\theta}_T)+\sum_{k=0}^{T-1}\big(\rho_\alpha \, \alpha_k^2+\rho_\beta\,(\beta_k-\bar\beta)^2\big)
+\quad\text{s.t.}\quad \mathbf{x}_{k+1}=\Phi_k(\mathbf{x}_k,\mathbf{u}_k).
+\]</div>
+<p>Backpropagation = reverse-time costate recursion. Because <span class="math notranslate nohighlight">\(\Phi_k\)</span> is differentiable, reverse-mode AD computes <span class="math notranslate nohighlight">\(\nabla_{\mathbf{u}_{0:T-1}} \big(c_T+\sum c_k\big)\)</span> by propagating a costate <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}_k=\partial \mathcal{J}/\partial \mathbf{x}_k\)</span> backward:</p>
+<div class="math notranslate nohighlight">
+\[
+\boldsymbol{\lambda}_T=\nabla_{\mathbf{x}_T} c_T,\qquad
+\boldsymbol{\lambda}_k=\nabla_{\mathbf{x}_k} c_k + \left(\nabla_{\mathbf{x}_k}\Phi_k\right)^\top \boldsymbol{\lambda}_{k+1},
+\]</div>
+<p>and the gradients with respect to controls are</p>
+<div class="math notranslate nohighlight">
+\[
+\nabla_{\mathbf{u}_k}\mathcal{J}=\nabla_{\mathbf{u}_k} c_k + \left(\nabla_{\mathbf{u}_k}\Phi_k\right)^\top \boldsymbol{\lambda}_{k+1}.
+\]</div>
+<p>Unrolling a tiny horizon (<span class="math notranslate nohighlight">\(T=3\)</span>) to see the composition:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+\mathbf{x}_1&amp;=\Phi_0(\mathbf{x}_0,\mathbf{u}_0),\\
+\mathbf{x}_2&amp;=\Phi_1(\mathbf{x}_1,\mathbf{u}_1),\\
+\mathbf{x}_3&amp;=\Phi_2(\mathbf{x}_2,\mathbf{u}_2),\qquad
+\mathcal{J}=c_T(\mathbf{x}_3)+\sum_{k=0}^{2} c_k(\mathbf{x}_k,\mathbf{u}_k).
+\end{aligned}
+\end{split}\]</div>
+<p>What if the program branches? Suppose we insert a “skip-small-gradients” branch</p>
+<div class="math notranslate nohighlight">
+\[
+\boldsymbol{\theta}_{k+1}=\boldsymbol{\theta}_k - \alpha_k\,\mathbf{m}_{k+1}\,\mathbf{1}\{ \lVert\mathbf{g}_k\rVert&gt;\tau\},
+\]</div>
+<p>which is non-differentiable because of the indicator. The DOCP view still applies, but gradients are unreliable. Two practical paths: smooth the branch (e.g., replace <span class="math notranslate nohighlight">\(\mathbf{1}\{\cdot\}\)</span> with <span class="math notranslate nohighlight">\(\sigma((\lVert\mathbf{g}_k\rVert-\tau)/\epsilon)\)</span> for small <span class="math notranslate nohighlight">\(\epsilon\)</span>) and use autodiff; or go derivative-free on <span class="math notranslate nohighlight">\(\{\alpha_k,\beta_k,\tau\}\)</span> (e.g., SPSA or CMA-ES) while keeping the inner dynamics exact.</p>
+</section>
+</section>
 <section id="variants-lagrange-and-mayer-problems">
 <h3>Variants: Lagrange and Mayer Problems<a class="headerlink" href="#variants-lagrange-and-mayer-problems" title="Link to this heading">#</a></h3>
 <p>The Bolza form is general enough to cover most situations, but two common special cases are worth noting:</p>
@@ -620,12 +952,6 @@ c_t(v_t, u_t) = \tfrac{1}{2}\beta u_t^2 + \tfrac{1}{2}\gamma v_t^2,
 <section id="solution">
 <h4>Solution<a class="headerlink" href="#solution" title="Link to this heading">#</a></h4>
 <p>Once the objective and constraints are expressed as Python functions, the problem can be passed to a generic optimizer with very little extra work. Here is a direct implementation using <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code> with the SLSQP method:</p>
-<figure class="align-default" id="fig-eco-cruise" style="width: 100%">
-<img alt="_images/f8875bad49d023ba3e0c75a33cf8da0c838ded1c9dd7a8976b2e156de68d08e4.png" src="_images/f8875bad49d023ba3e0c75a33cf8da0c838ded1c9dd7a8976b2e156de68d08e4.png" />
-<figcaption>
-<p><span class="caption-number">Fig. 1 </span><span class="caption-text">Eco-Cruise optimization results showing the comparison between energy-efficient and naive trajectory approaches.</span><a class="headerlink" href="#fig-eco-cruise" title="Link to this image">#</a></p>
-</figcaption>
-</figure>
 <div class="sd-tab-set docutils">
 <input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
 <label class="sd-tab-label" for="sd-tab-item-0">
@@ -645,32 +971,32 @@ createIframeModal({
 <input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
 <label class="sd-tab-label" for="sd-tab-item-1">
 Code</label><div class="sd-tab-content docutils">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">minimize</span><span class="p">,</span> <span class="n">Bounds</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize</span><span class="p">,</span> <span class="n">Bounds</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">solve_eco_cruise</span><span class="p">(</span><span class="n">beta</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="n">v_max</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span> <span class="n">a_max</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">solve_eco_cruise</span><span class="p">(</span><span class="n">beta</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="n">v_max</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span> <span class="n">a_max</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Solve the eco-cruise optimization problem.&quot;&quot;&quot;</span>
     
     <span class="n">n_state</span><span class="p">,</span> <span class="n">n_control</span> <span class="o">=</span> <span class="n">T</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">T</span>
     
-    <span class="k">def</span><span class="w"> </span><span class="nf">unpack</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">unpack</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
         <span class="n">s</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">u</span> <span class="o">=</span> <span class="n">z</span><span class="p">[:</span><span class="n">n_state</span><span class="p">],</span> <span class="n">z</span><span class="p">[</span><span class="n">n_state</span><span class="p">:</span><span class="mi">2</span><span class="o">*</span><span class="n">n_state</span><span class="p">],</span> <span class="n">z</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">n_state</span><span class="p">:]</span>
         <span class="k">return</span> <span class="n">s</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">u</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">objective</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">objective</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
         <span class="n">_</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">u</span> <span class="o">=</span> <span class="n">unpack</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
         <span class="k">return</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">beta</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">u</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">v</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">dynamics</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">dynamics</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
         <span class="n">s</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">u</span> <span class="o">=</span> <span class="n">unpack</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
         <span class="n">ceq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">T</span><span class="p">)</span>
         <span class="n">ceq</span><span class="p">[</span><span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">s</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">v</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># position dynamics</span>
         <span class="n">ceq</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">v</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">u</span>        <span class="c1"># velocity dynamics</span>
         <span class="k">return</span> <span class="n">ceq</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">boundary</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">boundary</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
         <span class="n">s</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">unpack</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">s</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">distance</span><span class="p">,</span> <span class="n">v</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>  <span class="c1"># start/end conditions</span>
 
@@ -734,7 +1060,7 @@ Code</label><div class="sd-tab-content docutils">
         <span class="s2">&quot;parameters&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;beta&quot;</span><span class="p">:</span> <span class="n">beta</span><span class="p">,</span> <span class="s2">&quot;gamma&quot;</span><span class="p">:</span> <span class="n">gamma</span><span class="p">,</span> <span class="s2">&quot;T&quot;</span><span class="p">:</span> <span class="n">T</span><span class="p">,</span> <span class="s2">&quot;v_max&quot;</span><span class="p">:</span> <span class="n">v_max</span><span class="p">,</span> <span class="s2">&quot;a_max&quot;</span><span class="p">:</span> <span class="n">a_max</span><span class="p">,</span> <span class="s2">&quot;distance&quot;</span><span class="p">:</span> <span class="n">distance</span><span class="p">}</span>
     <span class="p">}</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">generate_naive_trajectory</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">0.05</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">generate_naive_trajectory</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">0.05</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate naive constant-speed trajectory for comparison.&quot;&quot;&quot;</span>
     
     <span class="c1"># Simple triangular profile: accelerate, cruise, decelerate</span>
@@ -775,7 +1101,7 @@ Code</label><div class="sd-tab-content docutils">
     
     <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;naive_trajectory&quot;</span><span class="p">:</span> <span class="n">naive_trajectory</span><span class="p">,</span> <span class="s2">&quot;total_energy&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">cumulative_energy</span><span class="p">)}</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">plot_comparison</span><span class="p">(</span><span class="n">eco_data</span><span class="p">,</span> <span class="n">naive_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">save_plot</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">plot_comparison</span><span class="p">(</span><span class="n">eco_data</span><span class="p">,</span> <span class="n">naive_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">save_plot</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create visualization plots comparing eco-cruise and naive trajectories.&quot;&quot;&quot;</span>
     
     <span class="n">eco_traj</span> <span class="o">=</span> <span class="n">eco_data</span><span class="p">[</span><span class="s1">&#39;eco_trajectory&#39;</span><span class="p">]</span>
@@ -846,7 +1172,7 @@ Code</label><div class="sd-tab-content docutils">
     <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">fig</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">demo</span><span class="p">():</span>
+<span class="k">def</span> <span class="nf">demo</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Run complete eco-cruise demonstration with visualization.&quot;&quot;&quot;</span>
     
     <span class="c1"># Solve optimization</span>
@@ -854,7 +1180,7 @@ Code</label><div class="sd-tab-content docutils">
     <span class="k">if</span> <span class="n">eco_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># Use Jupyter Book&#39;s gluing feature for error message</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="kn">from</span><span class="w"> </span><span class="nn">myst_nb</span><span class="w"> </span><span class="kn">import</span> <span class="n">glue</span>
+            <span class="kn">from</span> <span class="nn">myst_nb</span> <span class="kn">import</span> <span class="n">glue</span>
             <span class="n">glue</span><span class="p">(</span><span class="s2">&quot;eco_cruise_output&quot;</span><span class="p">,</span> <span class="s2">&quot;❌ Optimization failed!&quot;</span><span class="p">,</span> <span class="n">display</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Optimization failed!&quot;</span><span class="p">)</span>
@@ -868,7 +1194,7 @@ Code</label><div class="sd-tab-content docutils">
     
     <span class="c1"># Use Jupyter Book&#39;s gluing feature to display the figure</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">myst_nb</span><span class="w"> </span><span class="kn">import</span> <span class="n">glue</span>
+        <span class="kn">from</span> <span class="nn">myst_nb</span> <span class="kn">import</span> <span class="n">glue</span>
         <span class="n">glue</span><span class="p">(</span><span class="s2">&quot;eco_cruise_figure&quot;</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">display</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
         <span class="c1"># Fallback for when not running in Jupyter Book context</span>
@@ -1019,18 +1345,18 @@ createIframeModal({
 <input id="sd-tab-item-3" name="sd-tab-set-1" type="radio">
 <label class="sd-tab-label" for="sd-tab-item-3">
 Code</label><div class="sd-tab-content docutils">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">opt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy.optimize</span> <span class="k">as</span> <span class="nn">opt</span>
 
 <span class="c1"># -----------------------------------------------------------------------------</span>
 <span class="c1"># Helpers</span>
 <span class="c1"># -----------------------------------------------------------------------------</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">population_dynamics_trajectory</span><span class="p">(</span><span class="n">num_points</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+<span class="k">def</span> <span class="nf">population_dynamics_trajectory</span><span class="p">(</span><span class="n">num_points</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
                                    <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">800</span><span class="p">,</span>
                                    <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">400</span><span class="p">,</span>
                                    <span class="n">margin</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">):</span>
@@ -1076,13 +1402,13 @@ Code</label><div class="sd-tab-content docutils">
     <span class="k">return</span> <span class="n">xs</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">ys</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">solve_optimal_harvest_problem</span><span class="p">(</span><span class="n">total_time_steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">solve_optimal_harvest_problem</span><span class="p">(</span><span class="n">total_time_steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Solve the optimal harvesting problem once to get the TRUE optimal solution.</span>
 <span class="sd">    </span>
 <span class="sd">    Problem: Maximize total harvest while ensuring population doesn&#39;t go extinct.</span>
 <span class="sd">    This gives us the reference solution that multiple shooting should converge to.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">minimize</span>
+    <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize</span>
     
     <span class="c1"># Population dynamics parameters</span>
     <span class="n">carrying_capacity</span> <span class="o">=</span> <span class="mf">1000.0</span>
@@ -1090,7 +1416,7 @@ Code</label><div class="sd-tab-content docutils">
     <span class="n">initial_population</span> <span class="o">=</span> <span class="mf">100.0</span>
     <span class="n">extinction_threshold</span> <span class="o">=</span> <span class="mf">10.0</span>
     
-    <span class="k">def</span><span class="w"> </span><span class="nf">objective</span><span class="p">(</span><span class="n">harvest_rates</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">objective</span><span class="p">(</span><span class="n">harvest_rates</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Minimize negative total harvest (i.e., maximize harvest)&quot;&quot;&quot;</span>
         <span class="n">populations</span> <span class="o">=</span> <span class="p">[</span><span class="n">initial_population</span><span class="p">]</span>
         <span class="n">total_harvest</span> <span class="o">=</span> <span class="mi">0</span>
@@ -1126,7 +1452,7 @@ Code</label><div class="sd-tab-content docutils">
     <span class="k">return</span> <span class="n">populations</span><span class="p">,</span> <span class="n">optimal_harvests</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">generate_population_segments</span><span class="p">(</span><span class="n">num_segments</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> 
+<span class="k">def</span> <span class="nf">generate_population_segments</span><span class="p">(</span><span class="n">num_segments</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> 
                                 <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">800</span><span class="p">,</span> 
                                 <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">400</span><span class="p">,</span> 
                                 <span class="n">margin</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span>
@@ -1186,12 +1512,12 @@ Code</label><div class="sd-tab-content docutils">
     <span class="k">return</span> <span class="n">segments</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">segment_points</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">num_segments</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">segment_points</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">num_segments</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Legacy function - now calls the new population dynamics generator.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">generate_population_segments</span><span class="p">(</span><span class="n">num_segments</span><span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">add_population_perturbations</span><span class="p">(</span><span class="n">segments</span><span class="p">,</span> <span class="n">max_offset</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">60.0</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">add_population_perturbations</span><span class="p">(</span><span class="n">segments</span><span class="p">,</span> <span class="n">max_offset</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">60.0</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns a deep copy of *segments* where each segment k&gt;0 has its initial </span>
 <span class="sd">    population (multiple shooting variable) perturbed, but the dynamics within </span>
 <span class="sd">    each segment are re-simulated from that new starting point.</span>
@@ -1250,7 +1576,7 @@ Code</label><div class="sd-tab-content docutils">
     <span class="k">return</span> <span class="n">perturbed</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">optimize_offsets</span><span class="p">(</span><span class="n">true_segments</span><span class="p">,</span> <span class="n">initial_offsets</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">optimize_offsets</span><span class="p">(</span><span class="n">true_segments</span><span class="p">,</span> <span class="n">initial_offsets</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Run BFGS on the vertical offsets so that segment endpoints connect.</span>
 
 <span class="sd">    Returns (opt_offsets, history) where *history* is a list of offset arrays</span>
@@ -1270,7 +1596,7 @@ Code</label><div class="sd-tab-content docutils">
     <span class="n">start_ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">seg</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">seg</span> <span class="ow">in</span> <span class="n">true_segments</span><span class="p">])</span>
     <span class="n">end_ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">seg</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">seg</span> <span class="ow">in</span> <span class="n">true_segments</span><span class="p">])</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">objective</span><span class="p">(</span><span class="n">vars_</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">objective</span><span class="p">(</span><span class="n">vars_</span><span class="p">):</span>
         <span class="n">offsets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(([</span><span class="mf">0.0</span><span class="p">],</span> <span class="n">vars_</span><span class="p">))</span>  <span class="c1"># offset[0] fixed to 0</span>
         <span class="n">defects</span> <span class="o">=</span> <span class="p">(</span><span class="n">end_ys</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">offsets</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="p">(</span><span class="n">start_ys</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="n">offsets</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
         <span class="k">return</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">defects</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
@@ -1278,7 +1604,7 @@ Code</label><div class="sd-tab-content docutils">
     <span class="c1"># Store history for visualisation</span>
     <span class="n">history</span> <span class="o">=</span> <span class="p">[]</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">callback</span><span class="p">(</span><span class="n">vars_</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="n">vars_</span><span class="p">):</span>
         <span class="n">offsets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(([</span><span class="mf">0.0</span><span class="p">],</span> <span class="n">vars_</span><span class="p">))</span>
         <span class="n">history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">offsets</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
 
@@ -1301,9 +1627,9 @@ Code</label><div class="sd-tab-content docutils">
 <span class="c1"># Main entry-point</span>
 <span class="c1"># -----------------------------------------------------------------------------</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
     <span class="c1"># Handle Jupyter notebook context where sys.argv may contain kernel arguments</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+    <span class="kn">import</span> <span class="nn">sys</span>
     
     <span class="c1"># Check if we&#39;re in Jupyter by looking for various indicators</span>
     <span class="n">in_jupyter</span> <span class="o">=</span> <span class="p">(</span>
@@ -1315,7 +1641,7 @@ Code</label><div class="sd-tab-content docutils">
     
     <span class="k">if</span> <span class="n">in_jupyter</span><span class="p">:</span>
         <span class="c1"># Use default values when running in Jupyter</span>
-        <span class="k">class</span><span class="w"> </span><span class="nc">DefaultArgs</span><span class="p">:</span>
+        <span class="k">class</span> <span class="nc">DefaultArgs</span><span class="p">:</span>
             <span class="n">k_values</span> <span class="o">=</span> <span class="s2">&quot;1,2,3,4,5,6,7,8&quot;</span>
             <span class="n">num_points</span> <span class="o">=</span> <span class="mi">101</span>
             <span class="n">output</span> <span class="o">=</span> <span class="s2">&quot;_static/multiple_shooting_data.json&quot;</span>
@@ -1380,7 +1706,7 @@ Code</label><div class="sd-tab-content docutils">
 
     <span class="c1"># Use Jupyter Book&#39;s gluing feature to display output instead of print</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">myst_nb</span><span class="w"> </span><span class="kn">import</span> <span class="n">glue</span>
+        <span class="kn">from</span> <span class="nn">myst_nb</span> <span class="kn">import</span> <span class="n">glue</span>
         <span class="n">glue</span><span class="p">(</span><span class="s2">&quot;multiple_shooting_output&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;✓ Generated trajectory data for K = </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">k_values</span><span class="si">}</span><span class="s2"> segments</span><span class="se">\n</span><span class="s2">&quot;</span>
                                         <span class="sa">f</span><span class="s2">&quot;✓ Output written to: </span><span class="si">{</span><span class="n">output_path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
                                         <span class="sa">f</span><span class="s2">&quot;✓ File size: </span><span class="si">{</span><span class="n">output_path</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">st_size</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1024</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> KB&quot;</span><span class="p">,</span> <span class="n">display</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -1453,7 +1779,8 @@ Code</label><div class="sd-tab-content docutils">
             
             
               
-                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
   <div class="sidebar-secondary-item">
@@ -1464,6 +1791,18 @@ Code</label><div class="sd-tab-content docutils">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Discrete-Time Trajectory Optimization</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#discrete-time-optimal-control-problems-docps">Discrete-Time Optimal Control Problems (DOCPs)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-of-docps">Examples of DOCPs</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#periodic-inventory-control">Periodic Inventory Control</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#end-of-day-portfolio-rebalancing">End-of-Day Portfolio Rebalancing</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#daily-ad-budget-allocation-with-carryover">Daily Ad-Budget Allocation with Carryover</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#docps-arising-from-the-discretization-of-continuous-time-ocps">DOCPs Arising from the Discretization of Continuous-Time OCPs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#programs-as-docps-and-differentiable-programming">Programs as DOCPs and Differentiable Programming</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#example-http-retrier-optimization">Example: HTTP Retrier Optimization</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#example-gradient-descent-with-momentum-as-docp">Example: Gradient Descent with Momentum as DOCP</a></li>
+</ul>
+</li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#variants-lagrange-and-mayer-problems">Variants: Lagrange and Mayer Problems</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#reducing-to-mayer-form-by-state-augmentation">Reducing to Mayer Form by State Augmentation</a></li>
 </ul>
@@ -1531,8 +1870,8 @@ By Pierre-Luc Bacon
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549"></script>
 
   <footer class="bd-footer">
   </footer>

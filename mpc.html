@@ -16,20 +16,22 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!-- 
+    this give us a css class that will be invisible only if js is disabled 
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
 
-  
-  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
-
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
     <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
@@ -39,10 +41,11 @@
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css" />
   
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
 
     <script src="_static/documentation_options.js?v=9eb32ce0"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
@@ -71,6 +74,7 @@
     <link rel="prev" title="Continuous-Time Trajectory Optimization" href="cocp.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
   </head>
   
   
@@ -86,19 +90,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="search.html"
       method="get">
@@ -106,7 +99,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search this book..."
          aria-label="Search this book..."
          autocomplete="off"
@@ -114,8 +106,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -131,7 +123,8 @@
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -161,15 +154,11 @@
 </a></div>
         <div class="sidebar-primary-item">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script></div>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         
@@ -192,12 +181,15 @@
 <li class="toctree-l1"><a class="reference internal" href="simulation.html">Programs as Models</a></li>
 
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Optimization-Based Decision Making</span></p>
-<ul class="current nav bd-sidenav">
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Numerical Trajectory Optimization</span></p>
+<ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="ocp.html">Discrete-Time Trajectory Optimization</a></li>
 
 <li class="toctree-l1"><a class="reference internal" href="cocp.html">Continuous-Time Trajectory Optimization</a></li>
 
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">From Trajectories to Policies</span></p>
+<ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">From Trajectories to Policies</a></li>
 
 
@@ -404,24 +396,16 @@
 
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
-  </button>
-`);
-</script>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button>
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
-  </button>
-`);
-</script>
+</button>
 <button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <span class="fa-solid fa-list"></span>
 </button>
@@ -626,18 +610,18 @@ First, there is a delay in how fast the drug can reach a different compartments 
 <span class="expanded">Hide code cell source</span>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">minimize</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
-<span class="k">class</span><span class="w"> </span><span class="nc">Patient</span><span class="p">:</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">weight</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">Patient</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">weight</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">age</span> <span class="o">=</span> <span class="n">age</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="n">weight</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_pk_params</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_pd_params</span><span class="p">()</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_pk_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">set_pk_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">v1</span> <span class="o">=</span> <span class="mf">4.27</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">/</span> <span class="mi">70</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.71</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">age</span> <span class="o">/</span> <span class="mi">30</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.39</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">v2</span> <span class="o">=</span> <span class="mf">18.9</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">/</span> <span class="mi">70</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.64</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">age</span> <span class="o">/</span> <span class="mi">30</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.62</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">v3</span> <span class="o">=</span> <span class="mi">238</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">/</span> <span class="mi">70</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.95</span>
@@ -651,13 +635,13 @@ First, there is a delay in how fast the drug can reach a different compartments 
         <span class="bp">self</span><span class="o">.</span><span class="n">k31</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cl3</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">v3</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ke0</span> <span class="o">=</span> <span class="mf">0.456</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_pd_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">set_pd_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">E0</span> <span class="o">=</span> <span class="mi">100</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Emax</span> <span class="o">=</span> <span class="mi">100</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">EC50</span> <span class="o">=</span> <span class="mf">3.4</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">=</span> <span class="mi">3</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">pk_model</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">patient</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">pk_model</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">patient</span><span class="p">):</span>
     <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">x3</span><span class="p">,</span> <span class="n">xe</span> <span class="o">=</span> <span class="n">x</span>
     <span class="n">dx1</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">patient</span><span class="o">.</span><span class="n">k10</span> <span class="o">+</span> <span class="n">patient</span><span class="o">.</span><span class="n">k12</span> <span class="o">+</span> <span class="n">patient</span><span class="o">.</span><span class="n">k13</span><span class="p">)</span> <span class="o">*</span> <span class="n">x1</span> <span class="o">+</span> <span class="n">patient</span><span class="o">.</span><span class="n">k21</span> <span class="o">*</span> <span class="n">x2</span> <span class="o">+</span> <span class="n">patient</span><span class="o">.</span><span class="n">k31</span> <span class="o">*</span> <span class="n">x3</span> <span class="o">+</span> <span class="n">u</span> <span class="o">/</span> <span class="n">patient</span><span class="o">.</span><span class="n">v1</span>
     <span class="n">dx2</span> <span class="o">=</span> <span class="n">patient</span><span class="o">.</span><span class="n">k12</span> <span class="o">*</span> <span class="n">x1</span> <span class="o">-</span> <span class="n">patient</span><span class="o">.</span><span class="n">k21</span> <span class="o">*</span> <span class="n">x2</span>
@@ -665,15 +649,15 @@ First, there is a delay in how fast the drug can reach a different compartments 
     <span class="n">dxe</span> <span class="o">=</span> <span class="n">patient</span><span class="o">.</span><span class="n">ke0</span> <span class="o">*</span> <span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">xe</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">dx1</span><span class="p">,</span> <span class="n">dx2</span><span class="p">,</span> <span class="n">dx3</span><span class="p">,</span> <span class="n">dxe</span><span class="p">])</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">pd_model</span><span class="p">(</span><span class="n">ce</span><span class="p">,</span> <span class="n">patient</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">pd_model</span><span class="p">(</span><span class="n">ce</span><span class="p">,</span> <span class="n">patient</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">patient</span><span class="o">.</span><span class="n">E0</span> <span class="o">-</span> <span class="n">patient</span><span class="o">.</span><span class="n">Emax</span> <span class="o">*</span> <span class="p">(</span><span class="n">ce</span> <span class="o">**</span> <span class="n">patient</span><span class="o">.</span><span class="n">gamma</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">ce</span> <span class="o">**</span> <span class="n">patient</span><span class="o">.</span><span class="n">gamma</span> <span class="o">+</span> <span class="n">patient</span><span class="o">.</span><span class="n">EC50</span> <span class="o">**</span> <span class="n">patient</span><span class="o">.</span><span class="n">gamma</span><span class="p">)</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">simulate_step</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">simulate_step</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
     <span class="n">x_next</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">pk_model</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">patient</span><span class="p">)</span>
     <span class="n">bis</span> <span class="o">=</span> <span class="n">pd_model</span><span class="p">(</span><span class="n">x_next</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">patient</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">x_next</span><span class="p">,</span> <span class="n">bis</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">objective</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">target_bis</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">objective</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">target_bis</span><span class="p">):</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">x0</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
     <span class="n">total_cost</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
@@ -681,7 +665,7 @@ First, there is a delay in how fast the drug can reach a different compartments 
         <span class="n">total_cost</span> <span class="o">+=</span> <span class="p">(</span><span class="n">bis</span> <span class="o">-</span> <span class="n">target_bis</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span>
     <span class="k">return</span> <span class="n">total_cost</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">mpc_step</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">target_bis</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">mpc_step</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">target_bis</span><span class="p">):</span>
     <span class="n">u0</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>  <span class="c1"># Initial guess</span>
     <span class="n">bounds</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">20</span><span class="p">)]</span> <span class="o">*</span> <span class="n">N</span>  <span class="c1"># Infusion rate between 0 and 20 mg/kg/h</span>
     
@@ -690,7 +674,7 @@ First, there is a delay in how fast the drug can reach a different compartments 
     
     <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># Return only the first control input</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">run_mpc_simulation</span><span class="p">(</span><span class="n">patient</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">target_bis</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">run_mpc_simulation</span><span class="p">(</span><span class="n">patient</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">target_bis</span><span class="p">):</span>
     <span class="n">steps</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">T</span> <span class="o">/</span> <span class="n">dt</span><span class="p">)</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">steps</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
     <span class="n">bis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">steps</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
@@ -936,7 +920,7 @@ J^\star(x_t, t) = \max_{h_t \in D} (F(x, h, t) + J^*(x_{t+1}, t+1))
 <span class="expanded">Hide code cell source</span>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="c1"># Parameters</span>
 <span class="n">r_max</span> <span class="o">=</span> <span class="mf">0.3</span>
@@ -955,15 +939,15 @@ J^\star(x_t, t) = \max_{h_t \in D} (F(x, h, t) + J^*(x_{t+1}, t+1))
 <span class="n">policy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">T</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">N_space</span><span class="p">)))</span>
 
 <span class="c1"># Terminal value function (F_T)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">terminal_value</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">terminal_value</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
     <span class="k">return</span> <span class="mi">0</span>
 
 <span class="c1"># State return function (F)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">state_return</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">state_return</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">N</span> <span class="o">*</span> <span class="n">h</span>
 
 <span class="c1"># State dynamics function</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">state_dynamics</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">state_dynamics</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">N</span> <span class="o">+</span> <span class="n">r_max</span> <span class="o">*</span> <span class="n">N</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">N</span> <span class="o">/</span> <span class="n">K</span><span class="p">)</span> <span class="o">-</span> <span class="n">N</span> <span class="o">*</span> <span class="n">h</span>
 
 <span class="c1"># Backward iteration</span>
@@ -994,7 +978,7 @@ J^\star(x_t, t) = \max_{h_t \in D} (F(x, h, t) + J^*(x_{t+1}, t+1))
         <span class="n">policy</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">best_h</span>
 
 <span class="c1"># Function to simulate the optimal policy with conversion to Python floats</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">simulate_optimal_policy</span><span class="p">(</span><span class="n">initial_N</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">simulate_optimal_policy</span><span class="p">(</span><span class="n">initial_N</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
     <span class="n">trajectory</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">initial_N</span><span class="p">)]</span>  <span class="c1"># Ensure first value is a Python float</span>
     <span class="n">harvests</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -1125,7 +1109,7 @@ I_{k+1}(x) = J_{k+1}^\star(x_l) + \frac{x - x_l}{x_u - x_l} \left(J_{k+1}^\star(
 <span class="expanded">Hide code cell source</span>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="c1"># Parameters</span>
 <span class="n">r_max</span> <span class="o">=</span> <span class="mf">0.3</span>
@@ -1144,19 +1128,19 @@ I_{k+1}(x) = J_{k+1}^\star(x_l) + \frac{x - x_l}{x_u - x_l} \left(J_{k+1}^\star(
 <span class="n">policy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">T</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">N_space</span><span class="p">)))</span>
 
 <span class="c1"># Terminal value function (F_T)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">terminal_value</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">terminal_value</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
     <span class="k">return</span> <span class="mi">0</span>
 
 <span class="c1"># State return function (F)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">state_return</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">state_return</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">N</span> <span class="o">*</span> <span class="n">h</span>
 
 <span class="c1"># State dynamics function</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">state_dynamics</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">state_dynamics</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">N</span> <span class="o">+</span> <span class="n">r_max</span> <span class="o">*</span> <span class="n">N</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">N</span> <span class="o">/</span> <span class="n">K</span><span class="p">)</span> <span class="o">-</span> <span class="n">N</span> <span class="o">*</span> <span class="n">h</span>
 
 <span class="c1"># Function to linearly interpolate between grid points in N_space</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">interpolate_value_function</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">N_space</span><span class="p">,</span> <span class="n">next_N</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">interpolate_value_function</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">N_space</span><span class="p">,</span> <span class="n">next_N</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">next_N</span> <span class="o">&lt;=</span> <span class="n">N_space</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
         <span class="k">return</span> <span class="n">V</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>  <span class="c1"># Below or at minimum population, return minimum value</span>
     <span class="k">if</span> <span class="n">next_N</span> <span class="o">&gt;=</span> <span class="n">N_space</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
@@ -1197,7 +1181,7 @@ I_{k+1}(x) = J_{k+1}^\star(x_l) + \frac{x - x_l}{x_u - x_l} \left(J_{k+1}^\star(
         <span class="n">policy</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">best_h</span>
 
 <span class="c1"># Function to simulate the optimal policy using interpolation</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">simulate_optimal_policy</span><span class="p">(</span><span class="n">initial_N</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">simulate_optimal_policy</span><span class="p">(</span><span class="n">initial_N</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
     <span class="n">trajectory</span> <span class="o">=</span> <span class="p">[</span><span class="n">initial_N</span><span class="p">]</span>
     <span class="n">harvests</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -1260,8 +1244,8 @@ Total harvest: 213.2660649869655
 <span class="expanded">Hide code cell source</span>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.interpolate</span><span class="w"> </span><span class="kn">import</span> <span class="n">interp1d</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">interp1d</span>
 
 <span class="c1"># Parameters</span>
 <span class="n">r_max</span> <span class="o">=</span> <span class="mf">0.3</span>
@@ -1280,19 +1264,19 @@ Total harvest: 213.2660649869655
 <span class="n">policy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">T</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">N_space</span><span class="p">)))</span>
 
 <span class="c1"># Terminal value function (F_T)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">terminal_value</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">terminal_value</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
     <span class="k">return</span> <span class="mi">0</span>
 
 <span class="c1"># State return function (F)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">state_return</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">state_return</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">N</span> <span class="o">*</span> <span class="n">h</span>
 
 <span class="c1"># State dynamics function</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">state_dynamics</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">state_dynamics</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">N</span> <span class="o">+</span> <span class="n">r_max</span> <span class="o">*</span> <span class="n">N</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">N</span> <span class="o">/</span> <span class="n">K</span><span class="p">)</span> <span class="o">-</span> <span class="n">N</span> <span class="o">*</span> <span class="n">h</span>
 
 <span class="c1"># Function to create interpolation function for a given time step</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">create_interpolator</span><span class="p">(</span><span class="n">V_t</span><span class="p">,</span> <span class="n">N_space</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">create_interpolator</span><span class="p">(</span><span class="n">V_t</span><span class="p">,</span> <span class="n">N_space</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">N_space</span><span class="p">,</span> <span class="n">V_t</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;cubic&#39;</span><span class="p">,</span> <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="p">(</span><span class="n">V_t</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">V_t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
 
 <span class="c1"># Backward iteration with interpolation</span>
@@ -1322,7 +1306,7 @@ Total harvest: 213.2660649869655
         <span class="n">policy</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">best_h</span>
 
 <span class="c1"># Function to simulate the optimal policy using interpolation</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">simulate_optimal_policy</span><span class="p">(</span><span class="n">initial_N</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">simulate_optimal_policy</span><span class="p">(</span><span class="n">initial_N</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
     <span class="n">trajectory</span> <span class="o">=</span> <span class="p">[</span><span class="n">initial_N</span><span class="p">]</span>
     <span class="n">harvests</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -1670,8 +1654,8 @@ J^\star(x_t, t) = \max_{d(t) \in D} \mathbb{E}\left[F(x_t \cdot h_t) + J^\star(x
 <span class="expanded">Hide code cell source</span>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.interpolate</span><span class="w"> </span><span class="kn">import</span> <span class="n">interp1d</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">interp1d</span>
 
 <span class="c1"># Parameters</span>
 <span class="n">r_max</span> <span class="o">=</span> <span class="mf">0.3</span>
@@ -1696,15 +1680,15 @@ J^\star(x_t, t) = \max_{d(t) \in D} \mathbb{E}\left[F(x_t \cdot h_t) + J^\star(x
 <span class="n">policy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">T</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">N_space</span><span class="p">)))</span>
 
 <span class="c1"># State return function (F)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">state_return</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">state_return</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">N</span> <span class="o">*</span> <span class="n">h</span>
 
 <span class="c1"># State dynamics function (stochastic)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">state_dynamics</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">r</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">state_dynamics</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">r</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">N</span> <span class="o">+</span> <span class="n">r</span> <span class="o">*</span> <span class="n">N</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">N</span> <span class="o">/</span> <span class="n">K</span><span class="p">)</span> <span class="o">-</span> <span class="n">h</span> <span class="o">*</span> <span class="n">N</span>
 
 <span class="c1"># Function to create interpolation function for a given time step</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">create_interpolator</span><span class="p">(</span><span class="n">V_t</span><span class="p">,</span> <span class="n">N_space</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">create_interpolator</span><span class="p">(</span><span class="n">V_t</span><span class="p">,</span> <span class="n">N_space</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">N_space</span><span class="p">,</span> <span class="n">V_t</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="p">(</span><span class="n">V_t</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">V_t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
 
 <span class="c1"># Backward iteration with stochastic dynamics</span>
@@ -1741,7 +1725,7 @@ J^\star(x_t, t) = \max_{d(t) \in D} \mathbb{E}\left[F(x_t \cdot h_t) + J^\star(x
         <span class="n">policy</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">best_h</span>
 
 <span class="c1"># Function to simulate the optimal policy using interpolation (stochastic version)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">simulate_optimal_policy</span><span class="p">(</span><span class="n">initial_N</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">num_simulations</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">simulate_optimal_policy</span><span class="p">(</span><span class="n">initial_N</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">num_simulations</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
     <span class="n">all_trajectories</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">all_harvests</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -1786,7 +1770,7 @@ J^\star(x_t, t) = \max_{d(t) \in D} \mathbb{E}\left[F(x_t \cdot h_t) + J^\star(x
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Average total harvest:&quot;</span><span class="p">,</span> <span class="n">avg_total_harvest</span><span class="p">)</span>
 
 <span class="c1"># Plot results</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">121</span><span class="p">)</span>
@@ -1912,7 +1896,8 @@ Average total harvest: 313.15823654307206
             
             
               
-                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
   <div class="sidebar-secondary-item">
@@ -1998,8 +1983,8 @@ By Pierre-Luc Bacon
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549"></script>
 
   <footer class="bd-footer">
   </footer>
