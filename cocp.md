@@ -563,7 +563,7 @@ Compressors are mechanical devices used to increase the pressure of a gas by red
 - In a jet engine, when the pilot reduces thrust during landing, less air flows through the engine's compressors.
 - In factory, the compressor might be connected through some equipment downstream via a valve. Closing it partially restricts gas flow, similar to pinching a garden hose, and can lead to compressor surge.
 
-As the gas flow decreases, the compressor must work harder to maintain a steady flow. If the flow becomes too low, it can lead to a "breakdown": a phenomenon similar to an airplane stalling at low speeds or high angles of attack. In a compressor, when this breakdown occurs the gas briefly flows backward instead of moving forward, which in turns can cause violent oscillations in pressure which can damage the compressor and the equipments depending on it. One way to address this problem is by installing a close-coupled valve (CCV), which is a device connected at the output of the compressor to quickly modulate the flow. Our aim is not to devise a optimal control approach to ensure that the compressor does not experience a surge by operating this CCV appropriately. 
+As the gas flow decreases, the compressor must work harder to maintain a steady flow. If the flow becomes too low, it can lead to a "breakdown": a phenomenon similar to an airplane stalling at low speeds or high angles of attack. In a compressor, when this breakdown occurs the gas briefly flows backward instead of moving forward, which in turn can cause violent oscillations in pressure that can damage the compressor and the equipment depending on it. One way to address this problem is by installing a close-coupled valve (CCV), which is a device connected at the output of the compressor to quickly modulate the flow. Our aim is not to devise an optimal control approach to ensure that the compressor does not experience a surge by operating this CCV appropriately. 
 
 Following  {cite:p}`Gravdahl1997` and {cite}`Grancharova2012`, we model the compressor using a simplified second-order representation:
 
@@ -591,7 +591,7 @@ $$
 
 The system parameters are given as $\gamma = 0.5$, $B = 1$, $H = 0.18$, $\psi_{c0} = 0.3$, and $W = 0.25$.
 
-One possible way to pose the problem {cite}`Grancharova2012` is by penalizing for the deviations to the setpoints using a quadratic penalty in the instantenous cost function as well as in the terminal one. Furthermore, we also penalize for taking large actions (which are energy hungry, and potentially unsafe) within the integral term. The idea of penalzing for deviations throughout is natural way of posing the problem when solving it via single shooting. Another alternative which we will explore below is to set the desired setpoint as a hard terminal constraint. 
+One possible way to pose the problem {cite}`Grancharova2012` is by penalizing deviations from the setpoints using a quadratic penalty in the instantaneous cost function as well as in the terminal one. Furthermore, we also penalize taking large actions (which are energy hungry and potentially unsafe) within the integral term. The idea of penalizing deviations throughout is a natural way of posing the problem when solving it via single shooting. Another alternative, which we will explore below, is to set the desired setpoint as a hard terminal constraint. 
 
 The control objective is to stabilize the system and prevent surge, formulated as a continuous-time optimal control problem (COCP) in the Bolza form:
 
@@ -611,7 +611,7 @@ The parameters $\alpha$, $\beta$, $\kappa$, and $R$ are non-negative weights tha
 
 The authors in {cite}`Grancharova2012` also add a soft path constraint $x_2(t) \geq 0.4$ to ensure that we maintain a minimum pressure at all time. This is implemented as a soft constraint using slack variables. The reason that we have the term $R v^2$ in the objective is to penalizes violations of the soft constraint: we allow for deviations, but don't want to do it too much.  
 
-In the experiment below, we choose the setpoint $\mathbf{x}^* = [0.40, 0.60]^T$ as it corresponds to to an unstable equilibrium point. If we were to run the system without applying any control, we would see that the system starts to oscillate. 
+In the experiment below, we choose the setpoint $\mathbf{x}^* = [0.40, 0.60]^T$ as it corresponds to an unstable equilibrium point. If we were to run the system without applying any control, we would see that the system starts to oscillate. 
 
 ```{code-cell} ipython3
 :tags: [hide-input]
@@ -640,7 +640,7 @@ We then find a control function $u(t)$ and state trajectory $x(t)$ using the tra
 :load: code/compressor_surge_trapezoidal_collocation.py
 ```
 
-You can try to vary the number of collocation points in the code an observe how the state trajectory progressively matches the ground thruth (the line denoted "integrated solution"). Note that this version of the code also lacks bound constraints on the variable $x_2$ to ensure a minimum pressure, as we did earlier. Consider this a good exercise for you to try on your own. 
+You can try to vary the number of collocation points in the code and observe how the state trajectory progressively matches the ground truth (the line denoted "integrated solution"). Note that this version of the code also lacks bound constraints on the variable $x_2$ to ensure a minimum pressure, as we did earlier. Consider this a good exercise to try on your own. 
 
 ## System Identification as Trajectory Optimization (Compressor Surge)
 
