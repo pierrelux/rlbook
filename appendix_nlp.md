@@ -11,7 +11,7 @@ kernelspec:
   name: python3
 ---
 
-### Nonlinear Programming
+# Nonlinear Programming
 
 Unless specific assumptions are made on the dynamics and cost structure, a DOCP is, in its most general form, a nonlinear mathematical program (commonly referred to as an NLP, not to be confused with Natural Language Processing). An NLP can be formulated as follows:
 
@@ -237,7 +237,6 @@ which we can substitute these into the 3rd constraint equation to obtain:
 This value of the Lagrange multiplier can then be backsubstituted into the above equations to obtain $x_1 = \frac{2}{\sqrt{5}}$ and $x_2 =  \frac{1}{\sqrt{5}}$.
 We can verify numerically (and visually on the following graph) that the point $(2/\sqrt{5}, 1/\sqrt{5})$ is indeed the point on the unit circle closest to $(2, 1)$.
 
-
 ```{code-cell} ipython3
 :tags: [hide-input]
 :load: code/ecp_newton.py
@@ -301,7 +300,6 @@ We summarize the SQP algorithm in the following pseudo-code:
 **Procedure:**
 
 1. **Compute the QP Solution:** Solve the QP subproblem to obtain $\Delta \mathbf{x}^k$. The QP solver also provides the updated Lagrange multipliers $\boldsymbol{\lambda}^{k+1}$ associated with the constraints.
-
 2. **Update the Estimates:** Update the primal variables:
 
    $$
@@ -309,7 +307,6 @@ We summarize the SQP algorithm in the following pseudo-code:
    $$
 
    Set the dual variables to the updated values $\boldsymbol{\lambda}^{k+1}$ from the QP solution.
-
 3. **Repeat Until Convergence:** Continue iterating until $\|\Delta \mathbf{x}^k\| < \epsilon$ and the KKT conditions are satisfied.
 ````
 
@@ -472,7 +469,7 @@ Now to account for the fact that the Lagrange multiplier needs to be non-negativ
 
 2:     $\mathbf{x}^{k+1} = \mathbf{x}^k - \alpha \nabla_{\mathbf{x}} L(\mathbf{x}^k, \boldsymbol{\lambda}^k, \boldsymbol{\mu}^k)$  **(Primal update)**
 
-3:     $\boldsymbol{\lambda}^{k+1} = \boldsymbol{\lambda}^k + \beta \nabla_{\boldsymbol{\lambda}} L(\mathbf{x}^{k+1}, \boldsymbol{\lambda}^k, \boldsymbol{\mu}^k)$  **(Dual update for equality constraints)**
+3:     $\boldsymbol{\lambda}^{k+1} = \boldsymbol{\lambda}^k + \beta \, \nabla_{\boldsymbol{\lambda}} L(\mathbf{x}^{k+1}, \boldsymbol{\lambda}^k, \boldsymbol{\mu}^k)$  **(Dual update for equality constraints)**
 
 4:     $\boldsymbol{\mu}^{k+1} = [\boldsymbol{\mu}^k + \gamma \nabla_{\boldsymbol{\mu}} L(\mathbf{x}^{k+1}, \boldsymbol{\lambda}^k, \boldsymbol{\mu}^k)]_+$  **(Dual update with clipping for inequality constraints)**
 
@@ -490,7 +487,6 @@ However, as it is widely known from the lessons of GAN (Generative Adversarial N
 :load: code/arrow_hurwicz_uzawa_jax.py
 ```
 
-
 ### Projected Gradient Descent
 
 The Arrow-Hurwicz-Uzawa algorithm provided a way to handle constraints through dual variables and a primal-dual update scheme. Another commonly used approach for constrained optimization is **Projected Gradient Descent (PGD)**. The idea is simple: take a gradient descent step as if the problem were unconstrained, then project the result back onto the feasible set. Formally:
@@ -499,7 +495,7 @@ $$
 \mathbf{x}_{k+1} = \mathcal{P}_C\big(\mathbf{x}_k - \alpha \nabla f(\mathbf{x}_k)\big),
 $$
 
-where \$\mathcal{P}\_C\$ is the projection onto the feasible set \$C\$, \$\alpha\$ is the step size, and \$f(\mathbf{x})\$ is the objective function.
+where $\mathcal{P}_C$ is the projection onto the feasible set $C$, $\alpha$ is the step size, and $f(\mathbf{x})$ is the objective function.
 
 PGD is particularly effective when the projection is computationally cheap. A common example is **box constraints** (or bound constraints), where the feasible set is a hyperrectangle:
 
@@ -545,178 +541,4 @@ $$
 
 Under mild conditions such as Lipschitz continuity of the gradient, PGD converges to a stationary point of the constrained problem. Its simplicity and low cost make it a common choice whenever the projection can be computed efficiently.
 
-<!-- 
-# The Discrete-Time Pontryagin Maximum Principle
 
-Discrete-time optimal control problems (DOCPs) form a specific class of nonlinear programming problems. Therefore, we can apply the general results from the Karush-Kuhn-Tucker (KKT) conditions to characterize the structure of optimal solutions to DOCPs in any of their three forms. The discrete-time analogue of the KKT conditions for DOCPs is known as the discrete-time Pontryagin Maximum Principle (PMP). The PMP was first described by Pontryagin in 1956 {cite}`pontryagin1962mathematical` for continuous-time systems, with the discrete-time version following shortly after. Similar to the KKT conditions, the PMP is useful from both theoretical and practical perspectives. It not only allows us to sometimes find closed-form solutions but also inspires the development of algorithms.
-
-Importantly, the PMP goes beyond the KKT conditions by demonstrating the existence of a particular recursive equation—the adjoint equation. This equation governs the evolution of the derivative of the Hamiltonian, a close cousin to the Lagrangian. The adjoint equation enables us to transform the PMP into an algorithmic procedure, which has much in common with backpropagation {cite}`rumelhart1986learning` in deep learning. This connection between optimal control theory has been noted by several researchers, including Griewank {cite}`griewank1989automatic` in the context of automatic differentiation, and LeCun {cite}`lecun1988theoretical` in his early work on neural networks.
-
-## PMP for Mayer Problems 
-
-Before delving into more general cases, let's consider a Mayer problem where the goal is to minimize a terminal cost function $c_T(\mathbf{x}_T)$:
-
-$$
-\begin{alignat*}{2}
-\text{minimize} \quad & c_T(\mathbf{x}_T) & \\
-\text{such that} \quad 
-& \mathbf{x}_{t+1} = \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t), & \quad & t = 1, \dots, T-1, \\
-& \mathbf{u}_{lb} \leq \mathbf{u}_t \leq \mathbf{u}_{ub}, & \quad & t = 1, \dots, T, \\
-& \mathbf{x}_{lb} \leq \mathbf{x}_t \leq \mathbf{x}_{ub}, & \quad & t = 1, \dots, T, \\
-\text{given} \quad & \mathbf{x}_1. &
-\end{alignat*}
-$$
-
-As done previously using the single shooting method, we reformulate this problem as an unconstrained optimization problem (excluding the state bound constraints since we lack a straightforward way to incorporate them directly). This reformulation is:
-
-\begin{align*}
-J(\mathbf{u}_{1:T-1}) = c_T(\boldsymbol{\phi}_T(\mathbf{u}_{1:T-1}, \mathbf{x}_1)),
-\end{align*}
-where the state evolution functions $\boldsymbol{\phi}_t$ are defined recursively as:
-
-\begin{align*}
-\boldsymbol{\phi}_t(\mathbf{u}_{1:T-1}, \mathbf{x}_1) = 
-\begin{cases}
-\mathbf{x}_1, & \text{if } t = 1, \\
-\mathbf{f}_{t-1}(\boldsymbol{\phi}_{t-1}(\mathbf{u}_{1:T-1}, \mathbf{x}_1), \mathbf{u}_{t-1}), & \text{if } t = 2, \ldots, T.
-\end{cases}
-\end{align*}
-
-To find the first-order optimality condition, we differentiate the objective function $J(\mathbf{u}_{1:T-1})$ with respect to each control variable $\mathbf{u}_t$ and set it to zero:
-
-$$
-\frac{\partial J(\mathbf{u}_{1:T-1})}{\partial \mathbf{u}_t} = \frac{\partial c_T(\boldsymbol{\phi}_T)}{\partial \mathbf{u}_t} = 0, \quad t = 1, \ldots, T-1.
-$$
-
-Applying the chain rule, we get:
-
-$$
-\frac{\partial c_T(\boldsymbol{\phi}_T)}{\partial \mathbf{u}_t} = \frac{\partial c_T(\boldsymbol{\phi}_T)}{\partial \boldsymbol{\phi}_T} \frac{\partial \boldsymbol{\phi}_T}{\partial \mathbf{u}_t}.
-$$
-
-Now, let's expand the derivative $\frac{\partial \boldsymbol{\phi}_T}{\partial \mathbf{u}_t}$ using its non-recursive form. From the definition of the state evolution functions, we have:
-
-\begin{align*}
-\boldsymbol{\phi}_T = \mathbf{f}_{T-1}(\boldsymbol{\phi}_{T-1}, \mathbf{u}_{T-1}), \quad \boldsymbol{\phi}_{T-1} = \mathbf{f}_{T-2}(\boldsymbol{\phi}_{T-2}, \mathbf{u}_{T-2}), \quad \ldots, \quad \boldsymbol{\phi}_{t+1} = \mathbf{f}_t(\boldsymbol{\phi}_t, \mathbf{u}_t).
-\end{align*}
-
-The above can also be written more recursively. For $s \geq t$, the derivative of $\boldsymbol{\phi}_s$ with respect to $\mathbf{u}_t$ is:
-
-$$
-\frac{\partial \boldsymbol{\phi}_s}{\partial \mathbf{u}_t} = \frac{\partial \mathbf{f}_{s-1}}{\partial \boldsymbol{\phi}_{s-1}} \frac{\partial \boldsymbol{\phi}_{s-1}}{\partial \mathbf{u}_t}, \quad s = t+1, \ldots, T,
-$$
-
-and
-
-$$
-\frac{\partial \boldsymbol{\phi}_t}{\partial \mathbf{u}_t} = \frac{\partial \mathbf{f}_{t-1}}{\partial \mathbf{u}_t}.
-$$
-
-The overall derivative is then of the form:
-\begin{align*}
-\frac{\partial J(\mathbf{u}_{1:T-1})}{\partial \mathbf{u}_t} = \underbrace{\underbrace{\underbrace{\frac{\partial c_T(\boldsymbol{\phi}_T)}{\partial \boldsymbol{\phi}_T}}_{\boldsymbol{\lambda}_T} \frac{\partial \mathbf{f}_{T-1}}{\partial \boldsymbol{\phi}_{T-1}}}_{\boldsymbol{\lambda}_{T-1}} \cdots \frac{\partial \mathbf{f}_{t+1}}{\partial \boldsymbol{\phi}_{t+1}}}_{\boldsymbol{\lambda}_{t+1}} \frac{\partial \mathbf{f}_t}{\partial \mathbf{u}_t}.
-\end{align*}
-where $\boldsymbol{\lambda}_t$ is called the adjoint (co-state) variable, and contains the reverse accumulation of the derivative. The evolution of this variable also obeys a difference equation, but one which runs backward in time: the adjoint equation. The recursive relationship for the adjoint equation is then: 
-
-$$
-\boldsymbol{\lambda}_t = \frac{\partial \mathbf{f}_t}{\partial \boldsymbol{\phi}_t}^\top \boldsymbol{\lambda}_{t+1}, \quad t = 1, \ldots, T-1,
-$$
-
-with the terminal condition:
-
-$$
-\boldsymbol{\lambda}_T = \frac{\partial c_T}{\partial \boldsymbol{\phi}_T}.
-$$
-
-The first-order optimality condition in terms of the adjoint variable can finally be written as:
-
-$$
-\frac{\partial J(\mathbf{u}_{1:T-1})}{\partial \mathbf{u}_t} = \frac{\partial \mathbf{f}_t}{\partial \mathbf{u}_t}^\top \boldsymbol{\lambda}_{t+1} = 0, \quad t = 1, \ldots, T-1.
-$$
-
-## PMP for Bolza Problems
-
-To derive the adjoint equation for the Bolza problem, we consider the optimal control problem where the objective is to minimize both a terminal cost $c_T(\mathbf{x}_T)$ and the sum of intermediate costs $c_t(\mathbf{x}_t, \mathbf{u}_t)$:
-
-\begin{align*}
-\text{minimize} \quad & c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t, \mathbf{u}_t) \\
-\text{such that} \quad 
-& \mathbf{x}_{t+1} = \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t), \quad t = 1, \dots, T-1, \\
-\text{given} \quad & \mathbf{x}_1.
-\end{align*}
-
-To handle the constraints, we introduce the Lagrangian function with multipliers $\boldsymbol{\lambda}_t$ for each constraint $\mathbf{x}_{t+1} = \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t)$:
-
-\begin{align*}
-L(\mathbf{x}, \mathbf{u}, \boldsymbol{\lambda}) &\triangleq c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t, \mathbf{u}_t) + \sum_{t=1}^{T-1} \boldsymbol{\lambda}_{t+1}^\top \left( \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t) - \mathbf{x}_{t+1} \right).
-\end{align*}
-
-The existence of an optimal constrained solution $(\mathbf{x}^\star, \mathbf{u})^\star$ implies that there exists a unique set of Lagrange multipliers $\boldsymbol{\lambda}_t^\star$ such that the derivative of the Lagrangian with respect to all variables equals zero: $\nabla L(\mathbf{x}^\star, \mathbf{u}^\star, \boldsymbol{\lambda}^\star) = 0.$
-
-To simplify, we rearrange the Lagrangian so that each state variable $\mathbf{x}_t$ appears only once in the summation:
-
-\begin{align*}
-L(\mathbf{x}, \mathbf{u}, \boldsymbol{\lambda}) &= c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} \left( c_t(\mathbf{x}_t, \mathbf{u}_t) + \boldsymbol{\lambda}_{t+1}^\top (\mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t) - \mathbf{x}_{t+1}) \right). \\
-&= c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t, \mathbf{u}_t) + \sum_{t=1}^{T-1} \boldsymbol{\lambda}_{t+1}^\top \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t) - \sum_{t=1}^{T-1} \boldsymbol{\lambda}_{t+1}^\top \mathbf{x}_{t+1}.
-\end{align*}
-
-Note that by adding and subtracting, we can write:
-
-$$
-\sum_{t=1}^{T-1} \boldsymbol{\lambda}_{t+1}^\top \mathbf{x}_{t+1} = \boldsymbol{\lambda}_T^\top \mathbf{x}_T - \boldsymbol{\lambda}_1^\top \mathbf{x}_1 + \sum_{t=1}^{T-1} \boldsymbol{\lambda}_t^\top \mathbf{x}_t.
-$$
-
-Substituting this back into the Lagrangian gives:
-
-\begin{align*}
-L(\mathbf{x}, \mathbf{u}, \boldsymbol{\lambda}) &= c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t, \mathbf{u}_t) + \sum_{t=1}^{T-1} \boldsymbol{\lambda}_{t+1}^\top \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t) - \left( \boldsymbol{\lambda}_T^\top \mathbf{x}_T - \boldsymbol{\lambda}_1^\top \mathbf{x}_1 + \sum_{t=1}^{T-1} \boldsymbol{\lambda}_t^\top \mathbf{x}_t \right). \\
-&= c_T(\mathbf{x}_T) + \boldsymbol{\lambda}_T^\top \mathbf{x}_T - \boldsymbol{\lambda}_1^\top \mathbf{x}_1 + \sum_{t=1}^{T-1} \left( c_t(\mathbf{x}_t, \mathbf{u}_t) + \boldsymbol{\lambda}_{t+1}^\top \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t) - \boldsymbol{\lambda}_t^\top \mathbf{x}_t \right).
-\end{align*}
-
-By differentiating the Lagrangian with respect to each state $\mathbf{x}_i$, we obtain:
-
-$$
-\frac{\partial L(\mathbf{x}, \mathbf{u}, \boldsymbol{\lambda})}{\partial \mathbf{x}_i} = 
-\begin{cases}
-\frac{\partial c_T (\mathbf{x}_T)}{\partial \mathbf{x}_T} + \boldsymbol{\lambda}_T, & \text{if } i = T, \\
-\frac{\partial c_t(\mathbf{x}_t, \mathbf{u}_t)}{\partial \mathbf{x}_t} + \boldsymbol{\lambda}_{t+1}^\top \frac{\partial \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t)}{\partial \mathbf{x}_t} - \boldsymbol{\lambda}_t, & \text{if } i = 1, \dots, T-1.
-\end{cases}
-$$
-
-We finally obtain the adjoint equation by setting the above expression to zero at an optimal primal-dual pair, and re-arranging the terms:
-
-\begin{align*}
-\boldsymbol{\lambda}^*_T &= \frac{\partial c_T(\mathbf{x}^*_T)}{\partial \mathbf{x}^*_T}\\
-\boldsymbol{\lambda}^*_t &= \frac{\partial c_t(\mathbf{x}^*_t, \mathbf{u}^*_t)}{\partial \mathbf{x}^*_t} + (\boldsymbol{\lambda}^*_{t+1})^\top \frac{\partial \mathbf{f}_t(\mathbf{x}^*_t, \mathbf{u}^*_t)}{\partial \mathbf{x}^*_t}, \enspace t = T-1, \dots, 1
-\end{align*}
-
-The optimality condition for the controls is obtained by differentiating the Lagrangian with respect to $\mathbf{u}^*_t$:
-
-$$
-\frac{\partial L(\mathbf{x}^*, \mathbf{u}^*, \boldsymbol{\lambda}^*)}{\partial \mathbf{u}^*_t} = \frac{\partial c_t(\mathbf{x}^*_t, \mathbf{u}^*_t)}{\partial \mathbf{u}^*_t} + (\boldsymbol{\lambda}^*_{t+1})^\top \frac{\partial \mathbf{f}_t(\mathbf{x}^*_t, \mathbf{u}^*_t)}{\partial \mathbf{u}^*_t} = 0.
-$$
-
-As expected from the general theory of constrained optimization, we finally recover the fact that the constraints must be satisfied at an optimal solution: 
-
-$$
-\frac{\partial L(\mathbf{x}^*, \mathbf{u}^*, \boldsymbol{\lambda}^*)}{\partial \boldsymbol{\lambda}^*_{t+1}} = \mathbf{f}_t(\mathbf{x}^*_t, \mathbf{u}^*_t) - \mathbf{x}^*_{t+1} = 0.
-$$
-
-<!-- ## Hamiltonian Formulation
-
-The first-order optimality condition for the Bolza problem obtained above can be expressed using the so-called Hamiltonian function:
-
-$$
-H_t(\mathbf{x}_t, \mathbf{u}_t, \boldsymbol{\lambda}_{t+1}) = c_t(\mathbf{x}_t, \mathbf{u}_t) + \boldsymbol{\lambda}_{t+1}^\top \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t).
-$$
-
-If $(\mathbf{x}^*, \mathbf{u}^*)$ is a local minimum control trajectory, then:
-
-$$
-\frac{\partial H_t(\mathbf{x}_t^*, \mathbf{u}_t^*, \boldsymbol{\lambda}_{t+1}^*)}{\partial \mathbf{u}_t} = 0, \quad t = 1, \ldots, T-1,
-$$
-where the adjoint variables (costate vectors) \(\boldsymbol{\lambda}_t^*\) are computed from:
-
-$$
-\boldsymbol{\lambda}_t^* = \frac{\partial H_t(\mathbf{x}_t^*, \mathbf{u}_t^*, \boldsymbol{\lambda}_{t+1}^*)}{\partial \mathbf{x}_t}, \quad t = 1, \ldots, T-1, \quad \boldsymbol{\lambda}_T^* = \frac{\partial c_T(\mathbf{x}_T^*)}{\partial \mathbf{x}_T}.
-$$ --> -->

@@ -11,10 +11,13 @@ parts:
       - file: ssm
       - file: simulation
 
-  - caption: Optimization-Based Decision Making
+  - caption: Numerical Trajectory Optimization
     chapters:
       - file: ocp
       - file: cocp
+
+  - caption: From Trajectories to Policies
+    chapters:
       - file: mpc
       - file: dp
 
@@ -25,7 +28,9 @@ parts:
 
   - caption: Appendix
     chapters:
-      - file: appendix
+      - file: appendix_examples
+      - file: appendix_ivps
+      - file: appendix_nlp
 
   - caption: References
     chapters:

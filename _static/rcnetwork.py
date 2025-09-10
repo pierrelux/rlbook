@@ -7,7 +7,9 @@ from scipy.interpolate import interp1d
 from scipy.integrate import solve_ivp
 from scipy.optimize import least_squares
 from sklearn.neural_network import MLPRegressor
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import RidgeCV
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
 
 # -----------------------------
 # 1) Load data
@@ -133,56 +135,64 @@ print("\nFitted [Ri, Ro, Ci, Ce, Ai, Ae, kH, Ti0, Te0]:\n", p_hat)
 Ti_rc_full, Te_rc_full = simulate_full(p_hat, t)
 
 # -----------------------------
-# 6) Black-box baselines
-#    (A) Linear on inputs (train -> full predict)
-#    (B) MLP with lags of Ti (train one-step; test rollout)
+# 6) Stronger black-box baselines
+#    (A) Ridge ARX (with lags on output and inputs)
+#    (B) MLP ARX (scaled, early stopping)
 # -----------------------------
-# (A) Linear
-X_tr_lin = np.column_stack([To_tr, PhiH_tr, PhiS_tr])
-lin = LinearRegression().fit(X_tr_lin, Ti_tr)
-Ti_lin_full = lin.predict(np.column_stack([To, PhiH, PhiS]))
-
-# (B) MLP with autoregressive lags of Ti
-# choose ~1 hour of memory based on sampling
 dt_h = np.median(np.diff(t))
 lag_steps = max(1, int(round(1.0/dt_h)))  # ~1h worth of steps
 
-def make_supervised(Ti, To, PhiH, PhiS, lags):
+def make_supervised_arx(Ti, To, PhiH, PhiS, lags):
     X, y = [], []
     for k in range(lags, len(Ti)):
-        xk = [Ti[k-j-1] for j in range(lags)] + [To[k-1], PhiH[k-1], PhiS[k-1]]
-        X.append(xk); y.append(Ti[k])
+        feats = [Ti[k-j-1] for j in range(lags)]
+        for j in range(lags):
+            idx = k - j - 1
+            feats.extend([To[idx], PhiH[idx], PhiS[idx]])
+        X.append(feats)
+        y.append(Ti[k])
     return np.asarray(X), np.asarray(y)
 
-# Training set for MLP: within the train window
-Ti_tr_arr  = Ti_meas[train_mask]
-To_tr_arr  = To[train_mask]
-PhiH_tr_arr= PhiH[train_mask]
-PhiS_tr_arr= PhiS[train_mask]
-X_tr_mlp, y_tr_mlp = make_supervised(Ti_tr_arr, To_tr_arr, PhiH_tr_arr, PhiS_tr_arr, lag_steps)
+def arx_predict_full(model, Ti, To, PhiH, PhiS, lags, train_mask):
+    n = len(Ti)
+    y_hist = Ti.astype(float).copy()
+    preds = np.full(n, np.nan, dtype=float)
+    for k in range(lags, n):
+        feats = [y_hist[k-j-1] for j in range(lags)]
+        for j in range(lags):
+            idx = k - j - 1
+            feats.extend([To[idx], PhiH[idx], PhiS[idx]])
+        y_hat = float(model.predict(np.asarray(feats)[None, :])[0])
+        preds[k] = y_hat
+        if not train_mask[k]:  # rollout only outside train
+            y_hist[k] = y_hat
+    return preds
 
-mlp = MLPRegressor(hidden_layer_sizes=(128, 128), activation="relu",
-                   max_iter=3000, random_state=0)
-mlp.fit(X_tr_mlp, y_tr_mlp)
+# Prepare supervised training data in the train window
+Ti_tr_arr   = Ti_meas[train_mask]
+To_tr_arr   = To[train_mask]
+PhiH_tr_arr = PhiH[train_mask]
+PhiS_tr_arr = PhiS[train_mask]
+X_tr_arx, y_tr_arx = make_supervised_arx(Ti_tr_arr, To_tr_arr, PhiH_tr_arr, PhiS_tr_arr, lag_steps)
 
-# Teacher-forced one-step predictions on TRAIN (to show tight fit)
-Ti_mlp_full = np.full_like(Ti_meas, np.nan, dtype=float)
-for k in range(np.where(train_mask)[0][0] + lag_steps, np.where(train_mask)[0][-1] + 1):
-    hist = Ti_meas[k-lag_steps:k]  # teacher forcing inside train
-    xk = np.r_[hist, To[k-1], PhiH[k-1], PhiS[k-1]]
-    Ti_mlp_full[k] = mlp.predict(xk[None, :])[0]
+# (A) Ridge ARX with scaling and CV over logspace alphas
+ridge_arx = Pipeline([
+    ("scaler", StandardScaler()),
+    ("ridge", RidgeCV(alphas=np.logspace(-4, 4, 41)))
+])
+ridge_arx.fit(X_tr_arx, y_tr_arx)
+Ti_ridge_full = arx_predict_full(ridge_arx, Ti_meas, To, PhiH, PhiS, lag_steps, train_mask)
 
-# Rollout on TEST (no teacher forcing → shows poor generalization)
-start_idx = np.where(test_mask)[0][0]
-# seed with first lag_steps measured points of test
-seed = Ti_meas[start_idx : start_idx + lag_steps].tolist()
-Ti_roll = seed.copy()
-for k in range(start_idx + lag_steps, np.where(test_mask)[0][-1] + 1):
-    hist = Ti_roll[-lag_steps:]
-    xk = np.r_[hist, To[k-1], PhiH[k-1], PhiS[k-1]]
-    pred = mlp.predict(xk[None, :])[0]
-    Ti_roll.append(pred)
-Ti_mlp_full[start_idx + lag_steps : start_idx + lag_steps + len(Ti_roll) - lag_steps] = Ti_roll[lag_steps:]
+# (B) MLP ARX with scaling and early stopping
+mlp_arx = Pipeline([
+    ("scaler", StandardScaler()),
+    ("mlp", MLPRegressor(hidden_layer_sizes=(128, 128), activation="relu",
+                          learning_rate_init=1e-3, early_stopping=True,
+                          n_iter_no_change=20, validation_fraction=0.15,
+                          max_iter=5000, random_state=0))
+])
+mlp_arx.fit(X_tr_arx, y_tr_arx)
+Ti_mlp_full = arx_predict_full(mlp_arx, Ti_meas, To, PhiH, PhiS, lag_steps, train_mask)
 
 # -----------------------------
 # 7) Metrics (train / test)
@@ -190,34 +200,91 @@ Ti_mlp_full[start_idx + lag_steps : start_idx + lag_steps + len(Ti_roll) - lag_s
 def rmse(a, b): return float(np.sqrt(np.mean((a - b)**2)))
 
 Ti_rc_tr   = Ti_rc_full[train_mask]
-Ti_lin_tr  = Ti_lin_full[train_mask]
+Ti_ridge_tr = Ti_ridge_full[train_mask]
 Ti_mlp_tr  = Ti_mlp_full[train_mask]
 Ti_rc_te   = Ti_rc_full[test_mask]
-Ti_lin_te  = Ti_lin_full[test_mask]
+Ti_ridge_te  = Ti_ridge_full[test_mask]
 Ti_mlp_te  = Ti_mlp_full[test_mask]
 Ti_meas_tr = Ti_tr
 Ti_meas_te = Ti_meas[test_mask]
 
-rmse_rc_train  = rmse(Ti_rc_tr,  Ti_meas_tr)
-rmse_lin_train = rmse(Ti_lin_tr, Ti_meas_tr)
-rmse_mlp_train = rmse(Ti_mlp_tr[~np.isnan(Ti_mlp_tr)], Ti_meas_tr[~np.isnan(Ti_mlp_tr)])
+rmse_rc_train   = rmse(Ti_rc_tr,  Ti_meas_tr)
+rmse_ridge_train = rmse(Ti_ridge_tr[~np.isnan(Ti_ridge_tr)], Ti_meas_tr[~np.isnan(Ti_ridge_tr)])
+rmse_mlp_train  = rmse(Ti_mlp_tr[~np.isnan(Ti_mlp_tr)], Ti_meas_tr[~np.isnan(Ti_mlp_tr)])
 
-rmse_rc_test   = rmse(Ti_rc_te,  Ti_meas_te)
-rmse_lin_test  = rmse(Ti_lin_te, Ti_meas_te)
-rmse_mlp_test  = rmse(Ti_mlp_te[~np.isnan(Ti_mlp_te)], Ti_meas_te[~np.isnan(Ti_mlp_te)])
+rmse_rc_test    = rmse(Ti_rc_te,  Ti_meas_te)
+rmse_ridge_test = rmse(Ti_ridge_te[~np.isnan(Ti_ridge_te)], Ti_meas_te[~np.isnan(Ti_ridge_te)])
+rmse_mlp_test   = rmse(Ti_mlp_te[~np.isnan(Ti_mlp_te)], Ti_meas_te[~np.isnan(Ti_mlp_te)])
 
-print(f"\nRMSE (°C) — TRAIN [10–40 h]:  RC={rmse_rc_train:.3f},  Linear={rmse_lin_train:.3f},  MLP={rmse_mlp_train:.3f}")
-print(f"RMSE (°C) — TEST  [50–90 h]:  RC={rmse_rc_test:.3f},  Linear={rmse_lin_test:.3f},  MLP={rmse_mlp_test:.3f}")
-
-# Residuals for bottom subplot
-res_rc  = Ti_rc_full - Ti_meas
-res_lin = Ti_lin_full - Ti_meas
-res_mlp = Ti_mlp_full - Ti_meas
+print(f"\nRMSE (°C) — TRAIN [10–40 h]:  RC={rmse_rc_train:.3f},  Ridge ARX={rmse_ridge_train:.3f},  MLP ARX={rmse_mlp_train:.3f}")
+print(f"RMSE (°C) — TEST  [50–90 h]:  RC={rmse_rc_test:.3f},  Ridge ARX={rmse_ridge_test:.3f},  MLP ARX={rmse_mlp_test:.3f}")
 
 # -----------------------------
-# 8) ONE combined figure (3 stacked subplots) + shading
+# 8) Closed-loop thermostat counterfactual
+#    New policy: proportional heater to track setpoint (model-in-the-loop)
 # -----------------------------
-fig, axes = plt.subplots(3, 1, figsize=(11, 9), sharex=True)
+start_idx = np.where(test_mask)[0][0]
+To0_cf = float(np.median(To[test_mask]))
+Pmax = 2000.0
+T_set = 22.0
+kp = 600.0  # W/°C
+t_horizon_h = 24.0
+N_cf = int(round(t_horizon_h / dt_h)) + 1
+t_cf = np.linspace(0.0, t_horizon_h, N_cf)
+
+def const(val):
+    return lambda tau, v=val: v
+
+def heater_power(Ti):
+    return float(np.clip(kp * (T_set - Ti), 0.0, Pmax))
+
+# RC simulation with custom inputs
+Ti0_cf = float(Ti_meas[start_idx])
+Te0_cf = float(Te_rc_full[start_idx])
+f_To_cf   = const(To0_cf)
+f_PhiS_cf = const(0.0)
+def simulate_rc_counterfactual(params, t_eval):
+    Ri, Ro, Ci, Ce, Ai, Ae, kH, _, _ = params
+    def rhs_cl(tau, y):
+        Ti, Te = y
+        return rhs(tau, [Ti, Te], Ri, Ro, Ci, Ce, Ai, Ae, kH,
+                   f_To_cf,
+                   lambda _tau: heater_power(Ti),
+                   f_PhiS_cf)
+    sol = solve_ivp(fun=rhs_cl,
+                    t_span=(t_eval[0], t_eval[-1]), y0=[Ti0_cf, Te0_cf], t_eval=t_eval,
+                    method="RK45", atol=1e-6, rtol=1e-6)
+    if not sol.success:
+        raise RuntimeError(f"solve_ivp (counterfactual) failed: {sol.message}")
+    return sol.y[0]
+
+Ti_rc_cf = simulate_rc_counterfactual(p_hat, t_cf)
+
+To_arr_cf   = np.full_like(t_cf, To0_cf, dtype=float)
+PhiS_arr_cf = np.zeros_like(t_cf)
+
+def simulate_arx_counterfactual(model):
+    preds = []
+    y_hist = [Ti0_cf] * lag_steps
+    for k in range(len(t_cf)):
+        feats = []
+        feats.extend([y_hist[-j-1] for j in range(lag_steps)])
+        for j in range(lag_steps):
+            idx = max(0, k - 1 - j)
+            phiH_j = heater_power(preds[-1] if len(preds)>0 else Ti0_cf)
+            feats.extend([To_arr_cf[idx], phiH_j, PhiS_arr_cf[idx]])
+        y_hat = float(model.predict(np.asarray(feats)[None, :])[0])
+        preds.append(y_hat)
+        y_hist.append(y_hat)
+    return np.asarray(preds)
+
+Ti_ridge_cf = simulate_arx_counterfactual(ridge_arx)
+Ti_mlp_cf   = simulate_arx_counterfactual(mlp_arx)
+
+# -----------------------------
+# 9) ONE combined figure (3 stacked subplots) + shading + step test
+# -----------------------------
+fig, axes = plt.subplots(3, 1, figsize=(11, 8.6), sharex=False)
 
 # A) Inputs (heating & solar)
 ax = axes[0]
@@ -225,7 +292,8 @@ ax.plot(t, PhiH, label="Heating power (W)")
 ax.plot(t, PhiS, label="Solar irradiance (W/m²)")
 ax.set_ylabel("Inputs")
 ax.axvspan(10, 40, color="grey",   alpha=0.12, label="Train")
-ax.axvspan(50, 90, color="orange", alpha=0.08, label="Test")
+ax.axvspan(40, 90, color="orange", alpha=0.08, label="Test")
+ax.axvline(50, color="k", linestyle=":", linewidth=1, alpha=0.6)
 handles, labels = ax.get_legend_handles_labels()
 ax.legend(dict(zip(labels, handles)).values(), dict(zip(labels, handles)).keys(), loc="upper right")
 
@@ -233,44 +301,26 @@ ax.legend(dict(zip(labels, handles)).values(), dict(zip(labels, handles)).keys()
 ax = axes[1]
 ax.plot(t, Ti_meas, label="Measured $T_i$")
 ax.plot(t, Ti_rc_full, "--", label="RC (solve_ivp)")
-ax.plot(t, Ti_lin_full, ":", label="Linear (inputs only)")
-ax.plot(t, Ti_mlp_full, "-", linewidth=1, alpha=0.9, label=f"MLP AR (lags={lag_steps})")
+ax.plot(t, Ti_ridge_full, ":", label=f"Ridge ARX (lags={lag_steps})")
+ax.plot(t, Ti_mlp_full, "-", linewidth=1, alpha=0.9, label=f"MLP ARX (lags={lag_steps})")
 ax.axvspan(10, 40, color="grey",   alpha=0.12)
-ax.axvspan(50, 90, color="orange", alpha=0.08)
-title = (f"Train RMSE — RC: {rmse_rc_train:.2f}°C, Linear: {rmse_lin_train:.2f}°C, MLP: {rmse_mlp_train:.2f}°C   |   "
-         f"Test RMSE — RC: {rmse_rc_test:.2f}°C, Linear: {rmse_lin_test:.2f}°C, MLP: {rmse_mlp_test:.2f}°C")
+ax.axvspan(40, 90, color="orange", alpha=0.08)
+ax.axvline(50, color="k", linestyle=":", linewidth=1, alpha=0.6)
+title = (f"Train RMSE — RC: {rmse_rc_train:.2f}°C, Ridge ARX: {rmse_ridge_train:.2f}°C, MLP ARX: {rmse_mlp_train:.2f}°C   |   "
+         f"Test RMSE — RC: {rmse_rc_test:.2f}°C, Ridge ARX: {rmse_ridge_test:.2f}°C, MLP ARX: {rmse_mlp_test:.2f}°C")
 ax.set_title(title)
 ax.set_ylabel("Indoor temperature [°C]")
 ax.legend(loc="best")
 
-# C) Residuals over full series
 ax = axes[2]
-ax.plot(t, res_rc,  "--", label="RC residual")
-ax.plot(t, res_lin, ":",  label="Linear residual")
-ax.plot(t, res_mlp, "-",  label="MLP residual")
-ax.axhline(0, linewidth=1)
-ax.axvspan(10, 40, color="grey",   alpha=0.12)
-ax.axvspan(50, 90, color="orange", alpha=0.08)
+ax.plot(t_cf, Ti_rc_cf, "--", label="RC (thermostat)")
+ax.plot(t_cf, Ti_ridge_cf, ":", label="Ridge ARX (thermostat)")
+ax.plot(t_cf, Ti_mlp_cf, "-", alpha=0.9, label="MLP ARX (thermostat)")
+ax.axhline(T_set, color="k", linestyle="--", linewidth=1, alpha=0.5, label="Setpoint")
 ax.set_xlabel("Time [h]")
-ax.set_ylabel("Residual (model - meas) [°C]")
+ax.set_ylabel("Indoor temperature [°C]")
+ax.set_title(f"Closed-loop thermostat: T_set={T_set}°C, To={To0_cf:.1f}°C, Φ_S=0, P_max={int(Pmax)}W")
 ax.legend(loc="best")
 
-plt.tight_layout()
-plt.show()
-
-# -----------------------------
-# 9) SECOND figure: full raw data overview (blog-style)
-# -----------------------------
-plt.figure(figsize=(10, 6))
-plt.subplot(2, 1, 1)
-plt.plot(t, PhiH, label="Heating power (W)")
-plt.plot(t, PhiS, label="Solar irradiance (W/m²)")
-plt.legend(); plt.ylabel("Inputs")
-
-plt.subplot(2, 1, 2)
-plt.plot(t, Ti_meas, label="Indoor temperature (°C)")
-plt.plot(t, To,      label="Outdoor temperature (°C)")
-plt.xlabel("Time [h]"); plt.ylabel("Temperature [°C]")
-plt.legend()
 plt.tight_layout()
 plt.show()

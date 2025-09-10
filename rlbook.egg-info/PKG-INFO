@@ -1,0 +1,10 @@
+Metadata-Version: 2.4
+Name: rlbook
+Version: 0.1.0
+Summary: Practical Reinforcement Learning: From Algorithms to Applications
+Author: Pierre-Luc Bacon
+Requires-Dist: ecos>=2.0.14
+Requires-Dist: jupyter-book
+Requires-Dist: matplotlib
+Requires-Dist: numpy
+Requires-Dist: scipy

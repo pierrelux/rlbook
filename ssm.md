@@ -464,7 +464,7 @@ x_{t+1} = a x_t + b u_t + c + \varepsilon_t
 $$
 
 is a dynamical model. But things can get more sophisticated. Subspace identification methods, sparse regressions like SINDy, Koopman embeddings, neural ODEs—all of these let us learn models from observed trajectories. The key question is how much structure we assume. Do we enforce linearity? Time-invariance? Do we try to model the noise? -->
-
+<!-- 
 # Comparing Physics-Based RC Models with Black-Box Fits
 
 The data used in this experiment comes from the *Building Energy Geeks* repository, an open-source collection created to demonstrate statistical learning techniques in building energy performance. The file `statespace.csv` provides a time series of indoor and outdoor temperatures together with heating power and solar irradiance. While not tied to a specific building description in the repository, it is designed to mimic realistic conditions either from actual sensor measurements or detailed simulation outputs. This dataset serves as a concrete foundation to explore the contrast between physics-based modeling and purely data-driven approaches.
@@ -472,13 +472,17 @@ The data used in this experiment comes from the *Building Energy Geeks* reposito
 At the core of our study lies the so-called **2R2C model**, a reduced-order representation of building thermal dynamics. The name refers to two resistances and two capacitances arranged in a thermal network that captures how heat flows between the indoor environment, the building envelope, and the outdoors. The indoor air temperature $T_i$ is influenced by the envelope temperature $T_e$, which itself exchanges heat with the external environment at temperature $T_o$. The resistances $R_i$ and $R_o$ describe the ease of heat conduction across these boundaries, while the capacitances $C_i$ and $C_e$ represent the heat storage capacity of the indoor air and of the building mass. By including the effect of heating input $\Phi_H$ and solar gains $\Phi_S$, the model balances both controllable and environmental influences.  
 
 Mathematically, the dynamics are written as a pair of coupled ordinary differential equations. The first governs the indoor air temperature and is given by
+
 $$
 \frac{dT_i}{dt} = \frac{T_e - T_i}{R_i C_i} + \frac{\eta_H \Phi_H}{C_i} + \frac{A_i \Phi_S}{C_i},
 $$
+
 while the second governs the envelope temperature,
+
 $$
 \frac{dT_e}{dt} = \frac{T_i - T_e}{R_i C_e} + \frac{T_o - T_e}{R_o C_e} + \frac{A_e \Phi_S}{C_e}.
 $$
+
 Here $\eta_H$ represents the efficiency of the heating system and $A_i, A_e$ are effective areas for solar gains. Since the original dataset is indexed in hours rather than seconds, the right-hand side of both equations must be scaled by a factor of 3600 to ensure correct integration over the chosen time unit.
 
 The task is to identify the parameters of this model from data. To do so, we fit the parameters by minimizing the discrepancy between the simulated indoor temperature $T_i$ and the measured trajectory within a training window of 10 to 40 hours. A robust least-squares method with Huber loss is used so that large deviations, possibly due to noise or outliers, do not dominate the fit. Early time points in the training window are given slightly higher weight to ensure that the transient behavior is captured accurately, which is important when the system is initialized away from equilibrium. Once fitted, the model is simulated forward over the entire 0–100 hour horizon, allowing us to test its predictive power on an unseen window spanning 50 to 90 hours.
@@ -492,6 +496,6 @@ This example therefore highlights the dual advantages of physics-based modeling:
 ```{code-cell} ipython3
 :tags: [hide-input]
 :load: _static/rcnetwork.py
-```
+``` -->
 
 
