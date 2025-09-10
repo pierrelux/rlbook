@@ -41,12 +41,16 @@ $$
 \text{(i) stage cost: } c_t(\mathbf{x}_t,\mathbf{u}_t), \qquad \text{(ii) terminal cost: } c_T(\mathbf{x}_T).
 $$
 
-The stage cost reflects ongoing penalties—energy, delay, risk. The terminal cost measures the value (or cost) of ending in a particular state. **Together, these give the canonical Bolza form**:
+The stage cost reflects ongoing penalties—energy, delay, risk. The terminal cost measures the value (or cost) of ending in a particular state. **Together, these give a discrete-time Bolza problem with path constraints and bounds**:
 
 $$
 \begin{aligned}
-\text{minimize} \quad & c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t,\mathbf{u}_t) \\
-\text{subject to} \quad & \mathbf{x}_{t+1} = \mathbf{f}_t(\mathbf{x}_t,\mathbf{u}_t), \ t=1,\dots,T-1.
+    \text{minimize} \quad & c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t,\mathbf{u}_t) \\
+    \text{subject to} \quad & \mathbf{x}_{t+1} = \mathbf{f}_t(\mathbf{x}_t,\mathbf{u}_t) \\
+                            & \mathbf{g}_t(\mathbf{x}_t,\mathbf{u}_t) \leq \mathbf{0} \\
+                            & \mathbf{x}_{\text{min}} \leq \mathbf{x}_t \leq \mathbf{x}_{\text{max}} \\
+                            & \mathbf{u}_{\text{min}} \leq \mathbf{u}_t \leq \mathbf{u}_{\text{max}} \\
+    \text{given} \quad & \mathbf{x}_1 = \mathbf{x}_0 \enspace .
 \end{aligned}
 $$
 
@@ -74,52 +78,133 @@ $$
 \mathbf{x}_{t+1} = \mathbf{f}_t(\mathbf{x}_t,\mathbf{u}_t)
 $$
 
-to be stable. In fact, many problems of interest involve unstable systems; think of balancing a pole or steering a spacecraft. What matters is that the dynamics are **well defined**: given a state–control pair, the rule \$\mathbf{f}\_t\$ produces a valid next state.
+to be stable. In fact, many problems of interest involve unstable systems; think of balancing a pole or steering a spacecraft. What matters is that the dynamics are **well defined**: given a state–control pair, the rule $\mathbf{f}_t$ produces a valid next state.
 
-In continuous time, one usually requires \$\mathbf{f}\$ to be continuous (often Lipschitz continuous) in \$\mathbf{x}\$ so that the ODE has a unique solution on the horizon of interest. In discrete time, the requirement is lighter—we only need the update map to be well posed.
+In continuous time, one usually requires $\mathbf{f}$ to be continuous (often Lipschitz continuous) in $\mathbf{x}$ so that the ODE has a unique solution on the horizon of interest. In discrete time, the requirement is lighter—we only need the update map to be well posed.
 
 Existence also hinges on **feasibility**. A candidate control sequence must generate a trajectory that respects all constraints: the dynamics, any bounds on state and control, and any terminal requirements. If no such sequence exists, the feasible set is empty and the problem has no solution. This can happen if the constraints are overly strict, or if the system is uncontrollable from the given initial condition.
 
+
 ### What does optimality look like?
 
-Suppose the feasible set is non-empty. How do we describe a solution that is not just feasible, but **optimal**? This is where the general machinery of nonlinear programming comes in.
-
-For a program of the form
+Assume the feasible set is nonempty. To characterize a point that is not only feasible but **locally optimal**, we use the Lagrange multiplier machinery from nonlinear programming. For a smooth problem
 
 $$
 \begin{aligned}
-\min_{\mathbf{z}} \quad & F(\mathbf{z}) \\
-\text{s.t.} \quad & G(\mathbf{z}) = 0, \\
-& H(\mathbf{z}) \ge 0 ,
+\min_{\mathbf{z}}\quad & F(\mathbf{z})\\
+\text{s.t.}\quad & G(\mathbf{z})=\mathbf{0},\\
+& H(\mathbf{z})\ge \mathbf{0},
 \end{aligned}
 $$
 
-the **Karush–Kuhn–Tucker (KKT) conditions** provide first-order necessary conditions for local optimality. They say that, at a solution \$\mathbf{z}^\star\$, there exist multipliers \$\boldsymbol{\lambda}\$ and \$\boldsymbol{\mu} \ge 0\$ such that
+define the **Lagrangian**
 
-* Stationarity:
+$$
+\mathcal{L}(\mathbf{z},\boldsymbol{\lambda},\boldsymbol{\mu})
+= F(\mathbf{z})+\boldsymbol{\lambda}^{\top}G(\mathbf{z})+\boldsymbol{\mu}^{\top}H(\mathbf{z}),\qquad \boldsymbol{\mu}\ge \mathbf{0}.
+$$
 
-  $$
-  \nabla F(\mathbf{z}^\star) + \nabla G(\mathbf{z}^\star)^\top \boldsymbol{\lambda} 
-  + \nabla H(\mathbf{z}^\star)^\top \boldsymbol{\mu} = 0 ,
-  $$
-* Primal feasibility:
+For an inequality system $H(\mathbf{z})\ge \mathbf{0}$ and a candidate point $\mathbf{z}$, the **active set** is
 
-  $$
-  G(\mathbf{z}^\star) = 0, \qquad H(\mathbf{z}^\star) \ge 0 ,
-  $$
-* Dual feasibility:
+$$
+\mathcal{A}(\mathbf{z}) \;=\; \{\, i \;:\; H_i(\mathbf{z})=0 \,\},
+$$
 
-  $$
-  \boldsymbol{\mu} \ge 0 ,
-  $$
-* Complementary slackness:
+while indices with $H_i(\mathbf{z})>0$ are **inactive**. Only active inequalities can carry positive multipliers.
 
-  $$
-  \mu_i H_i(\mathbf{z}^\star) = 0 \quad \text{for all } i .
-  $$
+We now make a **constraint qualification** assumption. In plain language, it says the constraints near the solution intersect in a regular way so that the feasible set has a well-defined tangent space and the multipliers exist. Algebraically, this amounts to a **full row rank** condition on the Jacobian of the equalities together with the active inequalities:
 
-In our context, the vector \$\mathbf{z}\$ encodes the state and control trajectories, while the equalities \$G\$ enforce the dynamics. The multipliers associated with these equalities can be interpreted as the **shadow prices** of enforcing the dynamics—an idea that will resurface later when we introduce costates and the Pontryagin principle.
+$$
+\text{rows of }\big[\nabla G(\mathbf{z}^\star);\ \nabla H_{\mathcal{A}}(\mathbf{z}^\star)\big]\ \text{are linearly independent.}
+$$
 
+This is the **LICQ** (Linear Independence Constraint Qualification). In convex problems, **Slater’s condition** (existence of a strictly feasible point) plays a similar role. You can think of these as the assumptions that let the linearized KKT equations be solvable; we do not literally invert that Jacobian, but the full-rank property is the key ingredient that would make such an inversion possible in principle.
+
+Under such a constraint qualification, any local minimizer $\mathbf{z}^\star$ admits multipliers $(\boldsymbol{\lambda}^\star,\boldsymbol{\mu}^\star)$ that satisfy the **Karush–Kuhn–Tucker (KKT) conditions**:
+
+$$
+\begin{aligned}
+&\text{stationarity:} && \nabla_{\mathbf{z}}\mathcal{L}(\mathbf{z}^\star,\boldsymbol{\lambda}^\star,\boldsymbol{\mu}^\star)=\mathbf{0},\\
+&\text{primal feasibility:} && G(\mathbf{z}^\star)=\mathbf{0},\quad H(\mathbf{z}^\star)\ge \mathbf{0},\\
+&\text{dual feasibility:} && \boldsymbol{\mu}^\star\ge \mathbf{0},\\
+&\text{complementarity:} && \mu_i^\star\,H_i(\mathbf{z}^\star)=0\quad \text{for all } i.
+\end{aligned}
+$$
+
+Only constraints that are **active** at $\mathbf{z}^\star$ can have $\mu_i^\star>0$; inactive ones have $\mu_i^\star=0$. The multipliers quantify marginal costs: $\lambda_j^\star$ measures how the optimal value changes if the $j$-th equality is relaxed, and $\mu_i^\star$ does the same for the $i$-th inequality. (If you prefer $h(\mathbf{z})\le 0$, signs flip accordingly.)
+
+In our trajectory problems, $\mathbf{z}$ stacks state and control trajectories, $G$ enforces the dynamics, and $H$ collects bounds and path constraints. The equalities’ multipliers act as **costates** or **shadow prices** for the dynamics. Writing the KKT system stage by stage yields the discrete-time Pontryagin principle, derived next. For convex programs these conditions are also sufficient.
+
+*What fails without a CQ?* If the active gradients are dependent (for example duplicated or nearly parallel), the Jacobian loses rank; multipliers may then be nonunique or fail to exist, and the linearized equations become ill-posed. In transcribed trajectory problems this shows up as dependent dynamic constraints or redundant path constraints, which leads to fragile solver behavior.
+
+### From KKT to algorithms
+
+The KKT system can be read as the first-order optimality conditions of a **saddle-point** problem. With equalities $G(\mathbf{z})=\mathbf{0}$ and inequalities $H(\mathbf{z})\ge \mathbf{0}$, define the Lagrangian
+
+$$
+\mathcal{L}(\mathbf{z},\boldsymbol{\lambda},\boldsymbol{\mu})
+= F(\mathbf{z})+\boldsymbol{\lambda}^{\top}G(\mathbf{z})+\boldsymbol{\mu}^{\top}H(\mathbf{z}),\quad \boldsymbol{\mu}\ge \mathbf{0}.
+$$
+
+Optimality corresponds to a saddle: minimize in $\mathbf{z}$, maximize in $(\boldsymbol{\lambda},\boldsymbol{\mu})$ (with $\boldsymbol{\mu}$ constrained to the nonnegative orthant).
+
+#### Primal–dual gradient dynamics (Arrow–Hurwicz)
+
+The simplest algorithm mirrors this saddle structure by descending in the primal variables and ascending in the dual variables, with a projection for the inequalities:
+
+$$
+\begin{aligned}
+\mathbf{z}^{k+1} &= \mathbf{z}^{k}-\alpha_k\big(\nabla F(\mathbf{z}^{k})+\nabla G(\mathbf{z}^{k})^{\top}\boldsymbol{\lambda}^{k}+\nabla H(\mathbf{z}^{k})^{\top}\boldsymbol{\mu}^{k}\big),\\[2mm]
+\boldsymbol{\lambda}^{k+1} &= \boldsymbol{\lambda}^{k}+\beta_k\,G(\mathbf{z}^{k}),\\[1mm]
+\boldsymbol{\mu}^{k+1} &= \Pi_{\ge 0}\!\big(\boldsymbol{\mu}^{k}+\beta_k\,H(\mathbf{z}^{k})\big).
+\end{aligned}
+$$
+
+Here $\Pi_{\ge 0}$ is the projection onto $\{\boldsymbol{\mu}\ge 0\}$. In convex settings and with suitable step sizes, these iterates converge to a saddle point. In nonconvex problems (our trajectory optimizations after transcription), these updates are often used inside **augmented Lagrangian** or **penalty** frameworks to improve robustness, for example by replacing $\mathcal{L}$ with
+
+$$
+\mathcal{L}_\rho(\mathbf{z},\boldsymbol{\lambda},\boldsymbol{\mu})
+= \mathcal{L}(\mathbf{z},\boldsymbol{\lambda},\boldsymbol{\mu})
++\tfrac{\rho}{2}\|G(\mathbf{z})\|^2
++\tfrac{\rho}{2}\|\min\{0,H(\mathbf{z})\}\|^2,
+$$
+
+which stabilizes the dual ascent when constraints are not yet well satisfied.
+
+#### SQP as Newton on the KKT system (equality case)
+
+With **only equality constraints** $G(\mathbf{z})=\mathbf{0}$, write first-order conditions
+
+$$
+\nabla_{\mathbf{z}}\mathcal{L}(\mathbf{z},\boldsymbol{\lambda})=\mathbf{0},
+\qquad
+G(\mathbf{z})=\mathbf{0},
+\quad \text{where }\mathcal{L}=F+\boldsymbol{\lambda}^{\top}G.
+$$
+
+Applying Newton’s method to this system gives the linear KKT solve
+
+$$
+\begin{bmatrix}
+\nabla_{\mathbf{z}\mathbf{z}}^2\mathcal{L}(\mathbf{z}^k,\boldsymbol{\lambda}^k) & \nabla G(\mathbf{z}^k)^{\top}\\
+\nabla G(\mathbf{z}^k) & 0
+\end{bmatrix}
+\begin{bmatrix}
+\Delta \mathbf{z}\\ \Delta \boldsymbol{\lambda}
+\end{bmatrix}
+=
+-
+\begin{bmatrix}
+\nabla_{\mathbf{z}}\mathcal{L}(\mathbf{z}^k,\boldsymbol{\lambda}^k)\\
+G(\mathbf{z}^k)
+\end{bmatrix}.
+$$
+
+This is exactly the step computed by **Sequential Quadratic Programming (SQP)** in the equality-constrained case: it is Newton’s method on the KKT equations. For general problems with inequalities, SQP forms a **quadratic subproblem** by quadratically modeling $F$ with $\nabla_{\mathbf{z}\mathbf{z}}^2\mathcal{L}$ and linearizing the constraints, then solves that QP with line search or trust region. In least-squares-like problems one often uses **Gauss–Newton** (or a Levenberg–Marquardt trust region) as a positive-definite approximation to the Lagrangian Hessian.
+
+**In trajectory optimization.** After transcription, the KKT matrix inherits banded/sparse structure from the dynamics. Newton/SQP steps can be computed efficiently by exploiting this structure; in the special case of quadratic models and linearized dynamics, the QP reduces to an LQR solve along the horizon (this is the backbone of iLQR/DDP-style methods). Primal–dual updates provide simpler iterations and are easy to implement; augmented terms are typically needed to obtain stable progress when constraints couple stages.
+
+**When to use which.** Primal–dual gradients give lightweight iterations and are good for warm starts or as inner loops with penalties. SQP/Newton gives rapid local convergence when you are close to a solution and LICQ holds; use trust regions or line search to globalize.
 
 
 ## Examples of DOCPs
@@ -466,7 +551,7 @@ createIframeModal({
 `````
 ``````
 
-The function `scipy.optimize.minimize` expect three things: an objective function that returns a scalar cost, a set of constraints grouped as equality or inequality functions, and bounds on individual variables. Everything else is about bookkeeping.
+The function `scipy.optimize.minimize` expects three things: an objective function that returns a scalar cost, a set of constraints grouped as equality or inequality functions, and bounds on individual variables. Everything else is about bookkeeping.
 
 The first step is to gather all decision variables—positions, speeds, and accelerations—into a single vector $\mathbf{z}$. Helper routines like `unpack` then slice this vector back into its components so that the rest of the code reads naturally. The objective function mirrors the analytical form of the cost: it sums quadratic penalties on speeds and accelerations across the horizon.
 
@@ -676,6 +761,15 @@ $$
 $$
 
 ## Necessary conditions
+
+```{note} Gradient convention
+Throughout this section, we use the **denominator layout** (gradient layout) convention:
+- $\nabla_{\mathbf{x}} f(\mathbf{x})$ produces a **column vector** (gradient)
+- $\frac{\partial f}{\partial \mathbf{x}}$ produces the Jacobian matrix
+- For scalar functions: $\nabla_{\mathbf{x}} f = \left(\frac{\partial f}{\partial \mathbf{x}}\right)^\top$
+
+This is the standard convention in optimization and control theory.
+```
 
 Taking first-order variations and collecting terms gives the discrete-time adjoint system, control stationarity, and complementarity. At a local minimum $\{\mathbf{x}_t^\star,\mathbf{u}_t^\star\}$ with multipliers $\{\boldsymbol{\lambda}_t^\star,\boldsymbol{\mu}_t^\star,\boldsymbol{\nu}^\star\}$:
 

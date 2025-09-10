@@ -188,7 +188,6 @@
 
 
 
-
 <li class="toctree-l1"><a class="reference internal" href="simulation.html">Programs as Models</a></li>
 
 </ul>
@@ -455,6 +454,11 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#existence-of-solutions-and-optimality-conditions">Existence of Solutions and Optimality Conditions</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#when-does-a-solution-exist">When does a solution exist?</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-does-optimality-look-like">What does optimality look like?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#from-kkt-to-algorithms">From KKT to algorithms</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#primaldual-gradient-dynamics-arrowhurwicz">Primal–dual gradient dynamics (Arrow–Hurwicz)</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#sqp-as-newton-on-the-kkt-system-equality-case">SQP as Newton on the KKT system (equality case)</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-of-docps">Examples of DOCPs</a><ul class="nav section-nav flex-column">
@@ -518,12 +522,16 @@ document.write(`
 \[
 \text{(i) stage cost: } c_t(\mathbf{x}_t,\mathbf{u}_t), \qquad \text{(ii) terminal cost: } c_T(\mathbf{x}_T).
 \]</div>
-<p>The stage cost reflects ongoing penalties—energy, delay, risk. The terminal cost measures the value (or cost) of ending in a particular state. <strong>Together, these give the canonical Bolza form</strong>:</p>
+<p>The stage cost reflects ongoing penalties—energy, delay, risk. The terminal cost measures the value (or cost) of ending in a particular state. <strong>Together, these give a discrete-time Bolza problem with path constraints and bounds</strong>:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
 \begin{aligned}
-\text{minimize} \quad &amp; c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t,\mathbf{u}_t) \\
-\text{subject to} \quad &amp; \mathbf{x}_{t+1} = \mathbf{f}_t(\mathbf{x}_t,\mathbf{u}_t), \ t=1,\dots,T-1.
+    \text{minimize} \quad &amp; c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t,\mathbf{u}_t) \\
+    \text{subject to} \quad &amp; \mathbf{x}_{t+1} = \mathbf{f}_t(\mathbf{x}_t,\mathbf{u}_t) \\
+                            &amp; \mathbf{g}_t(\mathbf{x}_t,\mathbf{u}_t) \leq \mathbf{0} \\
+                            &amp; \mathbf{x}_{\text{min}} \leq \mathbf{x}_t \leq \mathbf{x}_{\text{max}} \\
+                            &amp; \mathbf{u}_{\text{min}} \leq \mathbf{u}_t \leq \mathbf{u}_{\text{max}} \\
+    \text{given} \quad &amp; \mathbf{x}_1 = \mathbf{x}_0 \enspace .
 \end{aligned}
 \end{split}\]</div>
 <p>Written this way, it may seem obvious that the decision variables are the controls <span class="math notranslate nohighlight">\(\mathbf{u}_t\)</span>. After all, in most intuitive descriptions of control, we think of choosing inputs to influence the system. But notice that in the program above, the entire state trajectory also appears as a set of variables, linked to the controls by the dynamics constraints. This is intentional: it reflects one way of writing the problem that makes the constraints explicit.</p>
@@ -545,51 +553,114 @@ document.write(`
 \[
 \mathbf{x}_{t+1} = \mathbf{f}_t(\mathbf{x}_t,\mathbf{u}_t)
 \]</div>
-<p>to be stable. In fact, many problems of interest involve unstable systems; think of balancing a pole or steering a spacecraft. What matters is that the dynamics are <strong>well defined</strong>: given a state–control pair, the rule $\mathbf{f}_t$ produces a valid next state.</p>
-<p>In continuous time, one usually requires $\mathbf{f}$ to be continuous (often Lipschitz continuous) in $\mathbf{x}$ so that the ODE has a unique solution on the horizon of interest. In discrete time, the requirement is lighter—we only need the update map to be well posed.</p>
+<p>to be stable. In fact, many problems of interest involve unstable systems; think of balancing a pole or steering a spacecraft. What matters is that the dynamics are <strong>well defined</strong>: given a state–control pair, the rule <span class="math notranslate nohighlight">\(\mathbf{f}_t\)</span> produces a valid next state.</p>
+<p>In continuous time, one usually requires <span class="math notranslate nohighlight">\(\mathbf{f}\)</span> to be continuous (often Lipschitz continuous) in <span class="math notranslate nohighlight">\(\mathbf{x}\)</span> so that the ODE has a unique solution on the horizon of interest. In discrete time, the requirement is lighter—we only need the update map to be well posed.</p>
 <p>Existence also hinges on <strong>feasibility</strong>. A candidate control sequence must generate a trajectory that respects all constraints: the dynamics, any bounds on state and control, and any terminal requirements. If no such sequence exists, the feasible set is empty and the problem has no solution. This can happen if the constraints are overly strict, or if the system is uncontrollable from the given initial condition.</p>
 </section>
 <section id="what-does-optimality-look-like">
 <h3>What does optimality look like?<a class="headerlink" href="#what-does-optimality-look-like" title="Link to this heading">#</a></h3>
-<p>Suppose the feasible set is non-empty. How do we describe a solution that is not just feasible, but <strong>optimal</strong>? This is where the general machinery of nonlinear programming comes in.</p>
-<p>For a program of the form</p>
+<p>Assume the feasible set is nonempty. To characterize a point that is not only feasible but <strong>locally optimal</strong>, we use the Lagrange multiplier machinery from nonlinear programming. For a smooth problem</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
 \begin{aligned}
-\min_{\mathbf{z}} \quad &amp; F(\mathbf{z}) \\
-\text{s.t.} \quad &amp; G(\mathbf{z}) = 0, \\
-&amp; H(\mathbf{z}) \ge 0 ,
+\min_{\mathbf{z}}\quad &amp; F(\mathbf{z})\\
+\text{s.t.}\quad &amp; G(\mathbf{z})=\mathbf{0},\\
+&amp; H(\mathbf{z})\ge \mathbf{0},
 \end{aligned}
 \end{split}\]</div>
-<p>the <strong>Karush–Kuhn–Tucker (KKT) conditions</strong> provide first-order necessary conditions for local optimality. They say that, at a solution $\mathbf{z}^\star$, there exist multipliers $\boldsymbol{\lambda}$ and $\boldsymbol{\mu} \ge 0$ such that</p>
-<ul>
-<li><p>Stationarity:</p>
+<p>define the <strong>Lagrangian</strong></p>
 <div class="math notranslate nohighlight">
 \[
-  \nabla F(\mathbf{z}^\star) + \nabla G(\mathbf{z}^\star)^\top \boldsymbol{\lambda} 
-  + \nabla H(\mathbf{z}^\star)^\top \boldsymbol{\mu} = 0 ,
-  \]</div>
-</li>
-<li><p>Primal feasibility:</p>
+\mathcal{L}(\mathbf{z},\boldsymbol{\lambda},\boldsymbol{\mu})
+= F(\mathbf{z})+\boldsymbol{\lambda}^{\top}G(\mathbf{z})+\boldsymbol{\mu}^{\top}H(\mathbf{z}),\qquad \boldsymbol{\mu}\ge \mathbf{0}.
+\]</div>
+<p>For an inequality system <span class="math notranslate nohighlight">\(H(\mathbf{z})\ge \mathbf{0}\)</span> and a candidate point <span class="math notranslate nohighlight">\(\mathbf{z}\)</span>, the <strong>active set</strong> is</p>
 <div class="math notranslate nohighlight">
 \[
-  G(\mathbf{z}^\star) = 0, \qquad H(\mathbf{z}^\star) \ge 0 ,
-  \]</div>
-</li>
-<li><p>Dual feasibility:</p>
+\mathcal{A}(\mathbf{z}) \;=\; \{\, i \;:\; H_i(\mathbf{z})=0 \,\},
+\]</div>
+<p>while indices with <span class="math notranslate nohighlight">\(H_i(\mathbf{z})&gt;0\)</span> are <strong>inactive</strong>. Only active inequalities can carry positive multipliers.</p>
+<p>We now make a <strong>constraint qualification</strong> assumption. In plain language, it says the constraints near the solution intersect in a regular way so that the feasible set has a well-defined tangent space and the multipliers exist. Algebraically, this amounts to a <strong>full row rank</strong> condition on the Jacobian of the equalities together with the active inequalities:</p>
 <div class="math notranslate nohighlight">
 \[
-  \boldsymbol{\mu} \ge 0 ,
-  \]</div>
-</li>
-<li><p>Complementary slackness:</p>
+\text{rows of }\big[\nabla G(\mathbf{z}^\star);\ \nabla H_{\mathcal{A}}(\mathbf{z}^\star)\big]\ \text{are linearly independent.}
+\]</div>
+<p>This is the <strong>LICQ</strong> (Linear Independence Constraint Qualification). In convex problems, <strong>Slater’s condition</strong> (existence of a strictly feasible point) plays a similar role. You can think of these as the assumptions that let the linearized KKT equations be solvable; we do not literally invert that Jacobian, but the full-rank property is the key ingredient that would make such an inversion possible in principle.</p>
+<p>Under such a constraint qualification, any local minimizer <span class="math notranslate nohighlight">\(\mathbf{z}^\star\)</span> admits multipliers <span class="math notranslate nohighlight">\((\boldsymbol{\lambda}^\star,\boldsymbol{\mu}^\star)\)</span> that satisfy the <strong>Karush–Kuhn–Tucker (KKT) conditions</strong>:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+&amp;\text{stationarity:} &amp;&amp; \nabla_{\mathbf{z}}\mathcal{L}(\mathbf{z}^\star,\boldsymbol{\lambda}^\star,\boldsymbol{\mu}^\star)=\mathbf{0},\\
+&amp;\text{primal feasibility:} &amp;&amp; G(\mathbf{z}^\star)=\mathbf{0},\quad H(\mathbf{z}^\star)\ge \mathbf{0},\\
+&amp;\text{dual feasibility:} &amp;&amp; \boldsymbol{\mu}^\star\ge \mathbf{0},\\
+&amp;\text{complementarity:} &amp;&amp; \mu_i^\star\,H_i(\mathbf{z}^\star)=0\quad \text{for all } i.
+\end{aligned}
+\end{split}\]</div>
+<p>Only constraints that are <strong>active</strong> at <span class="math notranslate nohighlight">\(\mathbf{z}^\star\)</span> can have <span class="math notranslate nohighlight">\(\mu_i^\star&gt;0\)</span>; inactive ones have <span class="math notranslate nohighlight">\(\mu_i^\star=0\)</span>. The multipliers quantify marginal costs: <span class="math notranslate nohighlight">\(\lambda_j^\star\)</span> measures how the optimal value changes if the <span class="math notranslate nohighlight">\(j\)</span>-th equality is relaxed, and <span class="math notranslate nohighlight">\(\mu_i^\star\)</span> does the same for the <span class="math notranslate nohighlight">\(i\)</span>-th inequality. (If you prefer <span class="math notranslate nohighlight">\(h(\mathbf{z})\le 0\)</span>, signs flip accordingly.)</p>
+<p>In our trajectory problems, <span class="math notranslate nohighlight">\(\mathbf{z}\)</span> stacks state and control trajectories, <span class="math notranslate nohighlight">\(G\)</span> enforces the dynamics, and <span class="math notranslate nohighlight">\(H\)</span> collects bounds and path constraints. The equalities’ multipliers act as <strong>costates</strong> or <strong>shadow prices</strong> for the dynamics. Writing the KKT system stage by stage yields the discrete-time Pontryagin principle, derived next. For convex programs these conditions are also sufficient.</p>
+<p><em>What fails without a CQ?</em> If the active gradients are dependent (for example duplicated or nearly parallel), the Jacobian loses rank; multipliers may then be nonunique or fail to exist, and the linearized equations become ill-posed. In transcribed trajectory problems this shows up as dependent dynamic constraints or redundant path constraints, which leads to fragile solver behavior.</p>
+</section>
+<section id="from-kkt-to-algorithms">
+<h3>From KKT to algorithms<a class="headerlink" href="#from-kkt-to-algorithms" title="Link to this heading">#</a></h3>
+<p>The KKT system can be read as the first-order optimality conditions of a <strong>saddle-point</strong> problem. With equalities <span class="math notranslate nohighlight">\(G(\mathbf{z})=\mathbf{0}\)</span> and inequalities <span class="math notranslate nohighlight">\(H(\mathbf{z})\ge \mathbf{0}\)</span>, define the Lagrangian</p>
 <div class="math notranslate nohighlight">
 \[
-  \mu_i H_i(\mathbf{z}^\star) = 0 \quad \text{for all } i .
-  \]</div>
-</li>
-</ul>
-<p>In our context, the vector $\mathbf{z}$ encodes the state and control trajectories, while the equalities $G$ enforce the dynamics. The multipliers associated with these equalities can be interpreted as the <strong>shadow prices</strong> of enforcing the dynamics—an idea that will resurface later when we introduce costates and the Pontryagin principle.</p>
+\mathcal{L}(\mathbf{z},\boldsymbol{\lambda},\boldsymbol{\mu})
+= F(\mathbf{z})+\boldsymbol{\lambda}^{\top}G(\mathbf{z})+\boldsymbol{\mu}^{\top}H(\mathbf{z}),\quad \boldsymbol{\mu}\ge \mathbf{0}.
+\]</div>
+<p>Optimality corresponds to a saddle: minimize in <span class="math notranslate nohighlight">\(\mathbf{z}\)</span>, maximize in <span class="math notranslate nohighlight">\((\boldsymbol{\lambda},\boldsymbol{\mu})\)</span> (with <span class="math notranslate nohighlight">\(\boldsymbol{\mu}\)</span> constrained to the nonnegative orthant).</p>
+<section id="primaldual-gradient-dynamics-arrowhurwicz">
+<h4>Primal–dual gradient dynamics (Arrow–Hurwicz)<a class="headerlink" href="#primaldual-gradient-dynamics-arrowhurwicz" title="Link to this heading">#</a></h4>
+<p>The simplest algorithm mirrors this saddle structure by descending in the primal variables and ascending in the dual variables, with a projection for the inequalities:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+\mathbf{z}^{k+1} &amp;= \mathbf{z}^{k}-\alpha_k\big(\nabla F(\mathbf{z}^{k})+\nabla G(\mathbf{z}^{k})^{\top}\boldsymbol{\lambda}^{k}+\nabla H(\mathbf{z}^{k})^{\top}\boldsymbol{\mu}^{k}\big),\\[2mm]
+\boldsymbol{\lambda}^{k+1} &amp;= \boldsymbol{\lambda}^{k}+\beta_k\,G(\mathbf{z}^{k}),\\[1mm]
+\boldsymbol{\mu}^{k+1} &amp;= \Pi_{\ge 0}\!\big(\boldsymbol{\mu}^{k}+\beta_k\,H(\mathbf{z}^{k})\big).
+\end{aligned}
+\end{split}\]</div>
+<p>Here <span class="math notranslate nohighlight">\(\Pi_{\ge 0}\)</span> is the projection onto <span class="math notranslate nohighlight">\(\{\boldsymbol{\mu}\ge 0\}\)</span>. In convex settings and with suitable step sizes, these iterates converge to a saddle point. In nonconvex problems (our trajectory optimizations after transcription), these updates are often used inside <strong>augmented Lagrangian</strong> or <strong>penalty</strong> frameworks to improve robustness, for example by replacing <span class="math notranslate nohighlight">\(\mathcal{L}\)</span> with</p>
+<div class="math notranslate nohighlight">
+\[
+\mathcal{L}_\rho(\mathbf{z},\boldsymbol{\lambda},\boldsymbol{\mu})
+= \mathcal{L}(\mathbf{z},\boldsymbol{\lambda},\boldsymbol{\mu})
++\tfrac{\rho}{2}\|G(\mathbf{z})\|^2
++\tfrac{\rho}{2}\|\min\{0,H(\mathbf{z})\}\|^2,
+\]</div>
+<p>which stabilizes the dual ascent when constraints are not yet well satisfied.</p>
+</section>
+<section id="sqp-as-newton-on-the-kkt-system-equality-case">
+<h4>SQP as Newton on the KKT system (equality case)<a class="headerlink" href="#sqp-as-newton-on-the-kkt-system-equality-case" title="Link to this heading">#</a></h4>
+<p>With <strong>only equality constraints</strong> <span class="math notranslate nohighlight">\(G(\mathbf{z})=\mathbf{0}\)</span>, write first-order conditions</p>
+<div class="math notranslate nohighlight">
+\[
+\nabla_{\mathbf{z}}\mathcal{L}(\mathbf{z},\boldsymbol{\lambda})=\mathbf{0},
+\qquad
+G(\mathbf{z})=\mathbf{0},
+\quad \text{where }\mathcal{L}=F+\boldsymbol{\lambda}^{\top}G.
+\]</div>
+<p>Applying Newton’s method to this system gives the linear KKT solve</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{bmatrix}
+\nabla_{\mathbf{z}\mathbf{z}}^2\mathcal{L}(\mathbf{z}^k,\boldsymbol{\lambda}^k) &amp; \nabla G(\mathbf{z}^k)^{\top}\\
+\nabla G(\mathbf{z}^k) &amp; 0
+\end{bmatrix}
+\begin{bmatrix}
+\Delta \mathbf{z}\\ \Delta \boldsymbol{\lambda}
+\end{bmatrix}
+=
+-
+\begin{bmatrix}
+\nabla_{\mathbf{z}}\mathcal{L}(\mathbf{z}^k,\boldsymbol{\lambda}^k)\\
+G(\mathbf{z}^k)
+\end{bmatrix}.
+\end{split}\]</div>
+<p>This is exactly the step computed by <strong>Sequential Quadratic Programming (SQP)</strong> in the equality-constrained case: it is Newton’s method on the KKT equations. For general problems with inequalities, SQP forms a <strong>quadratic subproblem</strong> by quadratically modeling <span class="math notranslate nohighlight">\(F\)</span> with <span class="math notranslate nohighlight">\(\nabla_{\mathbf{z}\mathbf{z}}^2\mathcal{L}\)</span> and linearizing the constraints, then solves that QP with line search or trust region. In least-squares-like problems one often uses <strong>Gauss–Newton</strong> (or a Levenberg–Marquardt trust region) as a positive-definite approximation to the Lagrangian Hessian.</p>
+<p><strong>In trajectory optimization.</strong> After transcription, the KKT matrix inherits banded/sparse structure from the dynamics. Newton/SQP steps can be computed efficiently by exploiting this structure; in the special case of quadratic models and linearized dynamics, the QP reduces to an LQR solve along the horizon (this is the backbone of iLQR/DDP-style methods). Primal–dual updates provide simpler iterations and are easy to implement; augmented terms are typically needed to obtain stable progress when constraints couple stages.</p>
+<p><strong>When to use which.</strong> Primal–dual gradients give lightweight iterations and are good for warm starts or as inner loops with penalties. SQP/Newton gives rapid local convergence when you are close to a solution and LICQ holds; use trust regions or line search to globalize.</p>
+</section>
 </section>
 </section>
 <section id="examples-of-docps">
@@ -1118,7 +1189,7 @@ createIframeModal({
 `````
 ``````
 
-The function `scipy.optimize.minimize` expect three things: an objective function that returns a scalar cost, a set of constraints grouped as equality or inequality functions, and bounds on individual variables. Everything else is about bookkeeping.
+The function `scipy.optimize.minimize` expects three things: an objective function that returns a scalar cost, a set of constraints grouped as equality or inequality functions, and bounds on individual variables. Everything else is about bookkeeping.
 
 The first step is to gather all decision variables—positions, speeds, and accelerations—into a single vector $\mathbf{z}$. Helper routines like `unpack` then slice this vector back into its components so that the rest of the code reads naturally. The objective function mirrors the analytical form of the cost: it sums quadratic penalties on speeds and accelerations across the horizon.
 
@@ -39262,6 +39333,17 @@ H_t(\mathbf{x}_t,\mathbf{u}_t,\boldsymbol{\lambda}_{t+1},\boldsymbol{\mu}_t)
 \]</div>
 <section id="necessary-conditions">
 <h2>Necessary conditions<a class="headerlink" href="#necessary-conditions" title="Link to this heading">#</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Gradient convention
+Throughout this section, we use the <strong>denominator layout</strong> (gradient layout) convention:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\nabla_{\mathbf{x}} f(\mathbf{x})\)</span> produces a <strong>column vector</strong> (gradient)</p></li>
+<li><p><span class="math notranslate nohighlight">\(\frac{\partial f}{\partial \mathbf{x}}\)</span> produces the Jacobian matrix</p></li>
+<li><p>For scalar functions: <span class="math notranslate nohighlight">\(\nabla_{\mathbf{x}} f = \left(\frac{\partial f}{\partial \mathbf{x}}\right)^\top\)</span></p></li>
+</ul>
+<p>This is the standard convention in optimization and control theory.</p>
+</div>
 <p>Taking first-order variations and collecting terms gives the discrete-time adjoint system, control stationarity, and complementarity. At a local minimum <span class="math notranslate nohighlight">\(\{\mathbf{x}_t^\star,\mathbf{u}_t^\star\}\)</span> with multipliers <span class="math notranslate nohighlight">\(\{\boldsymbol{\lambda}_t^\star,\boldsymbol{\mu}_t^\star,\boldsymbol{\nu}^\star\}\)</span>:</p>
 <p><strong>State dynamics (primal feasibility)</strong></p>
 <div class="math notranslate nohighlight">
@@ -39431,6 +39513,11 @@ J = c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t,\mathbf{u}_t),
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#existence-of-solutions-and-optimality-conditions">Existence of Solutions and Optimality Conditions</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#when-does-a-solution-exist">When does a solution exist?</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-does-optimality-look-like">What does optimality look like?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#from-kkt-to-algorithms">From KKT to algorithms</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#primaldual-gradient-dynamics-arrowhurwicz">Primal–dual gradient dynamics (Arrow–Hurwicz)</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#sqp-as-newton-on-the-kkt-system-equality-case">SQP as Newton on the KKT system (equality case)</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-of-docps">Examples of DOCPs</a><ul class="nav section-nav flex-column">
