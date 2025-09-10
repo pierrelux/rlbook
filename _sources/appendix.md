@@ -11,7 +11,899 @@ kernelspec:
   name: python3
 ---
 
-### Nonlinear Programming
+
+
+## Example COCPs
+
+### Pendulum in the Gym Environment
+
+<!-- Gym is a widely used abstraction layer for defining discrete-time reinforcement learning problems. In reinforcement learning research, there's often a desire to develop general-purpose algorithms that are problem-agnostic. This research mindset leads us to voluntarily avoid considering the implementation details of a given environment. While this approach is understandable from a research perspective, it may not be optimal from a pragmatic, solution-driven standpoint where we care about solving specific problems efficiently. If we genuinely wanted to solve this problem without prior knowledge, why not look under the hood and embrace its nature as a trajectory optimization problem? -->
+
+Let's examine the code and reverse-engineer the original continuous-time problem hidden behind the abstraction layer. Although the pendulum problem may have limited practical relevance as a real-world application, it serves as an excellent example for our analysis. In the current version of [Pendulum](https://github.com/openai/gym/blob/dcd185843a62953e27c2d54dc8c2d647d604b635/gym/envs/classic_control/pendulum.py), we find that the Gym implementation uses a simplified model. Like our implementation, it assumes a fixed base and doesn't model cart movement. The state is also represented by the pendulum angle and angular velocity.
+However, the equations of motion implemented in the Gym environment are different and correspond to the following ODE:
+
+\begin{align*}
+\dot{\theta} &= \theta_{dot} \\
+\dot{\theta}_{dot} &= \frac{3g}{2l} \sin(\theta) + \frac{3}{ml^2} u
+\end{align*}
+
+Compared to our simplified model, the Gym implementation makes the following additional assumptions:
+
+1. It omits the term $\frac{\gamma}{J_t} \dot{\theta}(t)$, which represents damping or air resistance. This means that it assumes an idealized pendulum that doesn't naturally slow down over time. 
+
+2. It uses $ml^2$ instead of $J_t = J + ml^2$, which assumes that all mass is concentrated at the pendulum's end (like a point mass on a massless rod), rather than accounting for mass distribution along the pendulum. 
+
+3. The control input $u$ is applied directly, without a $\cos \theta(t)$ term, which means that the applied torque has the same effect regardless of the pendulum's position, rather than varying with angle. For example, imagine trying to push a door open. When the door is almost closed (pendulum near vertical), a small push perpendicular to the door (analogous to our control input) can easily start it moving. However, when the door is already wide open (pendulum horizontal), the same push has little effect on the door's angle. In a more detailed model, this would be captured by the $\cos \theta(t)$ term, which is maximum when the pendulum is vertical ($\cos 0° = 1$) and zero when horizontal ($\cos 90° = 0$).
+
+The goal remains to stabilize the rod upright, but the way in which this encoded is through the following instantenous cost function:
+
+\begin{align*}
+c(\theta, \dot{\theta}, u) &= (\text{normalize}(\theta))^2 + 0.1\dot{\theta}^2 + 0.001u^2\\
+\text{normalize}(\theta) &= ((\theta + \pi) \bmod 2\pi) - \pi
+\end{align*}
+
+This cost function penalizes deviations from the upright position (first term), discouraging rapid motion (second term), and limiting control effort (third term). The relative weights has been manually chosen to balance the primary goal of upright stabilization with the secondary aims of smooth motion and energy efficiency. The normalization ensures that the angle is always in the range $[-\pi, \pi]$ so that the pendulum positions (e.g., $0$ and $2\pi$) are treated identically, which could otherwise confuse learning algorithms.
+
+Studying the code further, we find that it imposes bound constraints on both the control input and the angular velocity through clipping operations:
+
+\begin{align*}
+u &= \max(\min(u, u_{max}), -u_{max}) \\
+\dot{\theta} &= \max(\min(\dot{\theta}, \dot{\theta}_{max}), -\dot{\theta}_{max})
+\end{align*}
+
+Where $u_{max} = 2.0$ and $\dot{\theta}_{max} = 8.0$.  Finally, when inspecting the [`step`](https://github.com/openai/gym/blob/dcd185843a62953e27c2d54dc8c2d647d604b635/gym/envs/classic_control/pendulum.py#L133) function, we find that the dynamics are discretized using forward Euler under a fixed step size of $h=0.0.5$. Overall, the discrete-time trajectory optimization problem implemented in Gym is the following: 
+\begin{align*}
+\min_{u_k} \quad & J = \sum_{k=0}^{N-1} c(\theta_k, \dot{\theta}_k, u_k) \\
+\text{subject to:} \quad & \theta_{k+1} = \theta_k + \dot{\theta}_k \cdot h \\
+& \dot{\theta}_{k+1} = \dot{\theta}_k + \left(\frac{3g}{2l}\sin(\theta_k) + \frac{3}{ml^2}u_k\right) \cdot h \\
+& -u_{\max} \leq u_k \leq u_{\max} \\
+& -\dot{\theta}_{\max} \leq \dot{\theta}_k \leq \dot{\theta}_{\max}, \quad k = 0, 1, ..., N-1 \\
+\text{given:} \quad      & \theta_0 = \theta_{\text{initial}}, \quad \dot{\theta}_0 = \dot{\theta}_{\text{initial}}, \quad N = 200
+\end{align*}
+
+ with $g = 10.0$, $l = 1.0$, $m = 1.0$, $u_{max} = 2.0$, and $\dot{\theta}_{max} = 8.0$. This discrete-time problem corresponds to the following continuous-time optimal control problem:
+
+\begin{align*}
+\min_{u(t)} \quad & J = \int_{0}^{T} c(\theta(t), \dot{\theta}(t), u(t)) dt \\
+\text{subject to:} \quad & \dot{\theta}(t) = \dot{\theta}(t) \\
+& \ddot{\theta}(t) = \frac{3g}{2l}\sin(\theta(t)) + \frac{3}{ml^2}u(t) \\
+& -u_{\max} \leq u(t) \leq u_{\max} \\
+& -\dot{\theta}_{\max} \leq \dot{\theta}(t) \leq \dot{\theta}_{\max} \\
+\text{given:} \quad      & \theta(0) = \theta_0, \quad \dot{\theta}(0) = \dot{\theta}_0, \quad T = 10 \text{ seconds}
+\end{align*}
+
+
+### Heat Exchanger 
+
+![Heat Exchanger](_static/heat_exchanger.svg)
+
+
+We are considering a system where fluid flows through a tube, and the goal is to control the temperature of the fluid by adjusting the temperature of the tube's wall over time. The wall temperature, denoted as $ T_w(t) $, can be changed as a function of time, but it remains the same along the length of the tube. On the other hand, the temperature of the fluid inside the tube, $ T(z, t) $, depends both on its position along the tube $ z $ and on time $ t $. It evolves according to the following partial differential equation:
+
+$$
+\frac{\partial T}{\partial t} = -v \frac{\partial T}{\partial z} + \frac{h}{\rho C_p} (T_w(t) - T)
+$$
+
+where we have:
+- $ v $: the average speed of the fluid moving through the tube,
+- $ h $: how easily heat transfers from the wall to the fluid,
+- $ \rho $ and $ C_p $: the fluid’s density and heat capacity.
+
+This equation describes how the fluid's temperature changes as it moves along the tube and interacts with the tube's wall temperature. The fluid enters the tube with an initial temperature $ T_0 $ at the inlet (where $ z = 0 $). Our objective is to adjust the wall temperature $ T_w(t) $ so that by a specific final time $ t_f $, the fluid's temperature reaches a desired distribution $ T_s(z) $ along the length of the tube. The relationship for $ T_s(z) $ under steady-state conditions (ie. when changes over time are no longer considered), is given by:
+
+$$
+\frac{d T_s}{d z} = \frac{h}{v \rho C_p}[\theta - T_s]
+$$
+
+where $ \theta $ is a constant temperature we want to maintain at the wall. The objective is to control the wall temperature $ T_w(t) $ so that by the end of the time interval $ t_f $, the fluid temperature $ T(z, t_f) $ is as close as possible to the desired distribution $ T_s(z) $. This can be formalized by minimizing the following quantity:
+
+$$
+I = \int_0^L \left[T(z, t_f) - T_s(z)\right]^2 dz
+$$
+
+where $ L $ is the length of the tube. Additionally, we require that the wall temperature cannot exceed a maximum allowable value $ T_{\max} $:
+
+$$
+T_w(t) \leq T_{\max}
+
+$$
+
+
+### Nuclear Reactor
+
+![Nuclear Reactor Diagram](_static/nuclear_reactor.svg)
+
+In a nuclear reactor, neutrons interact with fissile nuclei, causing nuclear fission. This process produces more neutrons and smaller fissile nuclei called precursors. The precursors subsequently absorb more neutrons, generating "delayed" neutrons. The kinetic energy of these products is converted into thermal energy through collisions with neighboring atoms. The reactor's power output is determined by the concentration of neutrons available for nuclear fission.
+
+The reaction kinetics can be modeled using a system of ordinary differential equations:
+
+\begin{align*}
+\dot{x}(t) &= \frac{r(t)x(t) - \alpha x^2(t) - \beta x(t)}{\tau} + \mu y(t), & x(0) &= x_0 \\
+\dot{y}(t) &= \frac{\beta x(t)}{\tau} - \mu y(t), & y(0) &= y_0
+\end{align*}
+
+where:
+- $x(t)$: concentration of neutrons at time $t$
+- $y(t)$: concentration of precursors at time $t$
+- $t$: time
+- $r(t) = r[u(t)]$: degree of change in neutron multiplication at time $t$ as a function of control rod displacement $u(t)$
+- $\alpha$: reactivity coefficient
+- $\beta$: fraction of delayed neutrons
+- $\mu$: decay constant for precursors
+- $\tau$: average time taken by a neutron to produce a neutron or precursor
+
+The power output can be adjusted based on demand by inserting or retracting a neutron-absorbing control rod. Inserting the control rod absorbs neutrons, reducing the heat flux and power output, while retracting the rod has the opposite effect.
+
+The objective is to change the neutron concentration $x(t)$ from an initial value $x_0$ to a stable value $x_\mathrm{f}$ at time $t_\mathrm{f}$ while minimizing the displacement of the control rod. This can be formulated as an optimal control problem, where the goal is to find the control function $u(t)$ that minimizes the objective functional:
+
+\begin{equation*}
+I = \int_0^{t_\mathrm{f}} u^2(t) \, \mathrm{d}t
+\end{equation*}
+
+subject to the final conditions:
+
+\begin{align*}
+x(t_\mathrm{f}) &= x_\mathrm{f} \\
+\dot{x}(t_\mathrm{f}) &= 0
+\end{align*}
+
+and the constraint $|u(t)| \leq u_\mathrm{max}$
+
+### Chemotherapy
+
+Chemotherapy uses drugs to kill cancer cells. However, these drugs can also have toxic effects on healthy cells in the body. To optimize the effectiveness of chemotherapy while minimizing its side effects, we can formulate an optimal control problem. 
+
+The drug concentration $y_1(t)$ and the number of immune cells $y_2(t)$, healthy cells $y_3(t)$, and cancer cells $y_4(t)$ in an organ at any time $t$ during chemotherapy can be modeled using a system of ordinary differential equations:
+
+\begin{align*}
+\dot{y}_1(t) &= u(t) - \gamma_6 y_1(t) \\
+\dot{y}_2(t) &= \dot{y}_{2,\text{in}} + r_2 \frac{y_2(t) y_4(t)}{\beta_2 + y_4(t)} - \gamma_3 y_2(t) y_4(t) - \gamma_4 y_2(t) - \alpha_2 y_2(t) \left(1 - e^{-y_1(t) \lambda_2}\right) \\
+\dot{y}_3(t) &= r_3 y_3(t) \left(1 - \beta_3 y_3(t)\right) - \gamma_5 y_3(t) y_4(t) - \alpha_3 y_3(t) \left(1 - e^{-y_1(t) \lambda_3}\right) \\
+\dot{y}_4(t) &= r_1 y_4(t) \left(1 - \beta_1 y_4(t)\right) - \gamma_1 y_3(t) y_4(t) - \gamma_2 y_2(t) y_4(t) - \alpha_1 y_4(t) \left(1 - e^{-y_1(t) \lambda_1}\right)
+\end{align*}
+
+where:
+- $y_1(t)$: drug concentration in the organ at time $t$
+- $y_2(t)$: number of immune cells in the organ at time $t$
+- $y_3(t)$: number of healthy cells in the organ at time $t$
+- $y_4(t)$: number of cancer cells in the organ at time $t$
+- $\dot{y}_{2,\text{in}}$: constant rate of immune cells entering the organ to fight cancer cells
+- $u(t)$: rate of drug injection into the organ at time $t$
+- $r_i, \beta_i$: constants in the growth terms
+- $\alpha_i, \lambda_i$: constants in the decay terms due to the action of the drug
+- $\gamma_i$: constants in the remaining decay terms
+
+The objective is to minimize the number of cancer cells $y_4(t)$ in a specified time $t_\mathrm{f}$ while using the minimum amount of drug to reduce its toxic effects. This can be formulated as an optimal control problem, where the goal is to find the control function $u(t)$ that minimizes the objective functional:
+
+\begin{equation*}
+I = y_4(t_\mathrm{f}) + \int_0^{t_\mathrm{f}} u(t) \, \mathrm{d}t
+\end{equation*}
+
+subject to the system dynamics, initial conditions, and the constraint $u(t) \geq 0$.
+
+Additional constraints may include:
+- Maintaining a minimum number of healthy cells during treatment:
+  \begin{equation*}
+  y_3(t) \geq y_{3,\min}
+  \end{equation*}
+- Imposing an upper limit on the drug dosage:
+  \begin{equation*}
+  u(t) \leq u_\max
+  \end{equation*}
+
+### Government Corruption 
+
+In this model from Feichtinger and Wirl (1994), we aim to understand the incentives for politicians to engage in corrupt activities or to combat corruption. The model considers a politician's popularity as a dynamic process that is influenced by the public's memory of recent and past corruption. The objective is to find conditions under which self-interested politicians would choose to be honest or dishonest.
+
+The model introduces the following notation:
+
+- $C(t)$: accumulated awareness (knowledge) of past corruption at time $t$
+- $u(t)$: extent of corruption (politician's control variable) at time $t$
+- $\delta$: rate of forgetting past corruption
+- $P(t)$: politician's popularity at time $t$
+- $g(P)$: growth function of popularity; $g''(P) < 0$
+- $f(C)$: function measuring the loss of popularity caused by $C$; $f'(C) > 0$, $f''(C) \geq 0$
+- $U_1(P)$: benefits associated with being popular; $U_1'(P) > 0$, $U_1''(P) \leq 0$
+- $U_2(u)$: benefits resulting from bribery and fraud; $U_2'(u) > 0$, $U_2''(u) < 0$
+- $r$: discount rate
+
+The dynamics of the public's memory of recent and past corruption $C(t)$ are modeled as:
+
+\begin{align*}
+\dot{C}(t) &= u(t) - \delta C(t), \quad C(0) = C_0
+\end{align*}
+
+The evolution of the politician's popularity $P(t)$ is governed by:
+
+\begin{align*}
+\dot{P}(t) &= g(P(t)) - f(C(t)), \quad P(0) = P_0
+\end{align*}
+
+The politician's objective is to maximize the following objective:
+
+\begin{equation*}
+\int_0^{\infty} e^{-rt} [U_1(P(t)) + U_2(u(t))] \, \mathrm{d}t
+\end{equation*}
+
+subject to the dynamics of corruption awareness and popularity.
+
+The optimal control problem can be formulated as follows:
+
+\begin{align*}
+\max_{u(\cdot)} \quad & \int_0^{\infty} e^{-rt} [U_1(P(t)) + U_2(u(t))] \, \mathrm{d}t \\
+\text{s.t.} \quad & \dot{C}(t) = u(t) - \delta C(t), \quad C(0) = C_0 \\
+& \dot{P}(t) = g(P(t)) - f(C(t)), \quad P(0) = P_0
+\end{align*}
+
+The state variables are the accumulated awareness of past corruption $C(t)$ and the politician's popularity $P(t)$. The control variable is the extent of corruption $u(t)$. The objective functional represents the discounted stream of benefits coming from being honest (popularity) and from being dishonest (corruption).
+
+## Solving Initial Value Problems
+
+An ODE is an implicit representation of a state-space trajectory: it tells us how the state changes in time but not precisely what the state is at any given time. To find out this information, we need to either solve the ODE analytically (for some special structure) or, as we're going to do, solve them numerically. This numerical procedure is meant to solve what is called an IVP (initial value problem) of the form:
+
+$$
+\text{Find } x(t) \text{ given } \dot{x}(t) = f(x(t), t) \text{ and } x(t_0) = x_0
+$$
+
+### Euler's Method 
+
+The algorithm to solve this problem is, in its simplest form, a for loop which closely resembles the updates encountered in gradient descent (in fact, gradient descent can be derived from the gradient flow ODE, but that's another discussion). The so-called explicit Euler's method can be implemented as follow: 
+
+````{prf:algorithm} Euler's method
+:label: euler-method
+
+**Input:** $f(x, t)$, $x_0$, $t_0$, $t_{end}$, $h$
+
+**Output:** Approximate solution $x(t)$ at discrete time points
+
+1. Initialize $t = t_0$, $x = x_0$
+2. While $t < t_{end}$:
+3.   Compute $x_{new} = x + h f(x, t)$
+4.   Update $t = t + h$
+5.   Update $x = x_{new}$
+6.   Store or output the pair $(t, x)$
+7. End While
+````
+
+Consider the following simple dynamical system of a ballistic motion model, neglecting air resistance. The state of the system is described by two variables: $y(t)$: vertical position at time $t$ and $v(t)$, the vertical velocity at time $t$. The corresponding ODE is: 
+
+$$
+\begin{aligned}
+\frac{dy}{dt} &= v \\
+\frac{dv}{dt} &= -g
+\end{aligned}
+$$
+
+where $g \approx 9.81 \text{ m/s}^2$ is the acceleration due to gravity. In our code, we use the initial conditions 
+$y(0) = 0 \text{ m}$ and $v(0) = v_0 \text{ m/s}$ where $v_0$ is the initial velocity (in this case, $v_0 = 20 \text{ m/s}$). 
+The analytical solution to this system is:
+
+$$
+\begin{aligned}
+y(t) &= v_0t - \frac{1}{2}gt^2 \\
+v(t) &= v_0 - gt
+\end{aligned}
+$$
+
+This system models the vertical motion of an object launched upward, reaching a maximum height before falling back down due to gravity.
+
+Euler's method can be obtained by taking the first-order Taylor expansion of $x(t)$ at $t$:
+
+$$
+x(t + h) \approx x(t) + h \frac{dx}{dt}(t) = x(t) + h f(x(t), t)
+$$
+
+Each step of the algorithm therefore involves approximating the function with a linear function of slope $f$ over the given interval $h$. 
+
+```{code-cell} ipython3
+:tags: [hide-input]
+:load: code/euler_step_size_viz.py
+```
+
+Another way to understand Euler's method is through the fundamental theorem of calculus:
+
+$$
+x(t + h) = x(t) + \int_t^{t+h} f(x(\tau), \tau) d\tau
+$$
+
+We then approximate the integral term with a box of width $h$ and height $f$, and therefore of area $h f$.
+```{code-cell} ipython3
+:tags: [hide-input]
+:load: code/euler_integral_approximation_viz.py
+```
+
+
+### Implicit Euler's Method
+
+An alternative approach is the Implicit Euler method, also known as the Backward Euler method. Instead of using the derivative at the current point to step forward, it uses the derivative at the end of the interval. This leads to the following update rule:
+
+$$
+x_{new} = x + h f(x_{new}, t_{new})
+$$
+
+Note that $x_{new}$ appears on both sides of the equation, making this an implicit method. The algorithm for the Implicit Euler method can be described as follows:
+
+````{prf:algorithm} Implicit Euler's Method
+:label: implicit-euler-method
+
+**Input:** $f(x, t)$, $x_0$, $t_0$, $t_{end}$, $h$
+
+**Output:** Approximate solution $x(t)$ at discrete time points
+
+1. Initialize $t = t_0$, $x = x_0$
+2. While $t < t_{end}$:
+3.   Set $t_{new} = t + h$
+4.   Solve for $x_{new}$ in the equation: $x_{new} = x + h f(x_{new}, t_{new})$
+5.   Update $t = t_{new}$
+6.   Update $x = x_{new}$
+7.   Store or output the pair $(t, x)$
+8. End While
+````
+
+The key difference in the Implicit Euler method is step 4, where we need to solve a (potentially nonlinear) equation to find $x_{new}$. This is typically done using iterative methods such as fixed-point iteration or Newton's method.
+
+#### Stiff ODEs
+
+While the Implicit Euler method requires more computation per step, it often allows for larger step sizes and can provide better stability for certain types of problems, especially stiff ODEs. 
+
+Stiff ODEs are differential equations for which certain numerical methods for solving the equation are numerically unstable, unless the step size is taken to be extremely small. These ODEs typically involve multiple processes occurring at widely different rates. In a stiff problem, the fastest-changing component of the solution can make the numerical method unstable unless the step size is extremely small. However, such a small step size may lead to an impractical amount of computation to traverse the entire interval of interest.
+
+For example, consider a chemical reaction where some reactions occur very quickly while others occur much more slowly. The fast reactions quickly approach their equilibrium, but small perturbations in the slower reactions can cause rapid changes in the fast reactions. 
+
+A classic example of a stiff ODE is the Van der Pol oscillator with a large parameter. The Van der Pol equation is:
+
+$$
+\frac{d^2x}{dt^2} - \mu(1-x^2)\frac{dx}{dt} + x = 0
+$$
+
+where $\mu$ is a scalar parameter. This second-order ODE can be transformed into a system of first-order ODEs by introducing a new variable $y = \frac{dx}{dt}$:
+
+$$
+\begin{aligned}
+\frac{dx}{dt} &= y \\
+\frac{dy}{dt} &= \mu(1-x^2)y - x
+\end{aligned}
+$$
+
+When $\mu$ is large (e.g., $\mu = 1000$), this system becomes stiff. The large $\mu$ causes rapid changes in $y$ when $x$ is near ±1, but slower changes elsewhere. This leads to a solution with sharp transitions followed by periods of gradual change.
+
+### Trapezoid Method 
+
+The trapezoid method, also known as the trapezoidal rule, offers improved accuracy and stability compared to the simple Euler method. The name "trapezoid method" comes from the idea of using a trapezoid to approximate the integral term in the fundamental theorem of calculus. This leads to the following update rule:
+
+$$
+x_{new} = x + \frac{h}{2}[f(x, t) + f(x_{new}, t_{new})]
+$$
+
+where $ t_{new} = t + h $. Note that this formula involves $ x_{new} $ on both sides of the equation, making it an implicit method, similar to the implicit Euler method discussed earlier.
+
+```{code-cell} ipython3
+:tags: [hide-input]
+:load: code/trapezoid_integral_approximation_viz.py
+```
+
+Algorithmically, the trapezoid method can be described as follows:
+
+````{prf:algorithm} Trapezoid Method
+
+**Input:** $ f(x, t) $, $ x_0 $, $ t_0 $, $ t_{end} $, $ h $
+
+**Output:** Approximate solution $ x(t) $ at discrete time points
+
+1. Initialize $ t = t_0 $, $ x = x_0 $
+2. While $ t < t_{end} $:
+3. &emsp; Set $ t_{new} = t + h $
+4. &emsp; Solve for $ x_{new} $in the equation: $ x_{new} = x + \frac{h}{2}[f(x, t) + f(x_{new}, t_{new})] $
+5. &emsp; Update $ t = t_{new} $
+6. &emsp; Update $ x = x_{new} $
+7. &emsp; Store or output the pair $ (t, x) $
+````
+
+The trapezoid method can also be derived by averaging the forward Euler and backward Euler methods. Recall that:
+
+1. **Forward Euler method:**
+
+   $$ x_{n+1} = x_n + h f(x_n, t_n) $$
+
+2. **Backward Euler method:**
+
+   $$ x_{n+1} = x_n + h f(x_{n+1}, t_{n+1}) $$
+
+Taking the average of these two methods yields:
+
+$$
+\begin{aligned}
+x_{n+1} &= \frac{1}{2} \left( x_n + h f(x_n, t_n) \right) + \frac{1}{2} \left( x_n + h f(x_{n+1}, t_{n+1}) \right) \\
+&= x_n + \frac{h}{2} \left( f(x_n, t_n) + f(x_{n+1}, t_{n+1}) \right)
+\end{aligned}
+$$
+
+This is precisely the update rule for the trapezoid method. Recall that the forward Euler method approximates the solution by extrapolating linearly using the slope at the beginning of the interval $[t_n, t_{n+1}] $. In contrast, the backward Euler method extrapolates linearly using the slope at the end of the interval. The trapezoid method, on the other hand, averages these two slopes. This averaging provides better approximation properties than either of the methods alone, offering both stability and accuracy. Note finally that unlike the forward or backward Euler methods, the trapezoid method is also symmetric in time. This means that if you were to reverse time and apply the method backward, you would get the same results (up to numerical precision). 
+
+
+### Trapezoidal Predictor-Corrector
+
+The trapezoid method can also be implemented under the so-called predictor-corrector framework. This interpretation reformulates the implicit trapezoid rule into an explicit two-step process:
+
+1. **Predictor Step**:  
+   We make an initial guess for $ x_{n+1} $ using the forward Euler method:
+
+   $$
+   x_{n+1}^* = x_n + h f(x_n, t_n)
+   $$
+
+   This is our "predictor" step, where $ x_{n+1}^* $ is the predicted value of $ x_{n+1} $.
+
+2. **Corrector Step**:  
+   We then use this predicted value to estimate $ f(x_{n+1}^*, t_{n+1}) $ and apply the trapezoid formula:
+
+   $$
+   x_{n+1} = x_n + \frac{h}{2} \left[ f(x_n, t_n) + f(x_{n+1}^*, t_{n+1}) \right]
+   $$
+
+   This is our "corrector" step, where the initial guess $ x_{n+1}^* $ is corrected by taking into account the slope at $ (x_{n+1}^*, t_{n+1}) $.
+
+This two-step process is similar to performing one iteration of Newton's method to solve the implicit trapezoid equation, starting from the Euler prediction. However, to fully solve the implicit equation, multiple iterations would be necessary until convergence is achieved.
+
+```{code-cell} ipython3
+:tags: [hide-input]
+:load: code/predictor_corrector_trapezoid_viz.py
+```
+### Collocation Methods
+
+The numerical integration methods we discussed earlier are inherently **sequential**: given an initial state, we step forward in time and approximate what happens over a short interval. The accuracy of this procedure depends on the chosen rule (Euler, trapezoid, Runge–Kutta) and on the information available locally. Each new state is obtained by evaluating a formula that approximates the derivative or integral over that small step.
+
+**Collocation methods provide an alternative viewpoint.** Instead of advancing one step at a time, they approximate the entire trajectory with a finite set of basis functions and require the dynamics to hold at selected points. This replaces the original differential equation with a system of **algebraic equations**: relations among the coefficients of the basis functions that must all be satisfied simultaneously. Solving these equations fixes the whole trajectory in one computation.
+
+Seen from this angle, integration rules, spline interpolation, quadrature, and collocation are all instances of the same principle: an infinite-dimensional problem is reduced to finitely many parameters linked by numerical rules. The difference is mainly in scope. Sequential integration advances the state forward one interval at a time, which makes it simple but prone to error accumulation. Collocation belongs to the class of **simultaneous methods** already introduced for DOCPs: the entire trajectory is represented at once, the dynamics are imposed everywhere in the discretization, and approximation error is spread across the horizon rather than accumulating step by step.
+
+This global enforcement comes at a computational cost since the resulting algebraic system is larger and denser. However, the benefit is precisely the structural one we saw in simultaneous methods earlier: by exposing the coupling between states, controls, and dynamics explicitly, collocation allows solvers to exploit sparsity and to enforce path constraints directly at the collocation points. This is why collocation is especially effective for challenging continuous-time optimal control problems where robustness and constraint satisfaction are central.
+
+
+### Quick Primer on Polynomials
+
+Collocation methods are based on polynomial approximation theory. Therefore, the first step in developing collocation-based optimal control techniques is to review the fundamentals of polynomial functions. 
+
+Polynomials are typically introduced through their standard form:
+
+$$
+p(t) = a_n t^n + a_{n-1} t^{n-1} + \cdots + a_1 t + a_0
+$$
+
+In this expression, the $a_i$ are coefficients which linearly combine the powers of $t$ to represent a function. The set of functions $\{ 1, t, t^2, t^3, \ldots, t^n \}$ used in the standard polynomial representation is called the **monomial basis**. 
+
+In linear algebra, a basis is a set of vectors in a vector space such that any vector in the space can be uniquely represented as a linear combination of these basis vectors. In the same way, a **polynomial basis** is such that any function $ f(x) $ (within the function space) to be expressed as:
+
+$$
+f(x) = \sum_{k=0}^{\infty} c_k p_k(x),
+$$
+
+where the coefficients $ c_k $ are generally determined by solving a system of equation.
+
+Just as vectors can be represented in different coordinate systems (bases), functions can also be expressed using various polynomial bases. However, the ability to apply a change of basis does not imply that all types of polynomials are equivalent from a practical standpoint. In practice, our choice of polynomial basis is dictated by considerations of efficiency, accuracy, and stability when approximating a function.
+
+For instance, despite the monomial basis being easy to understand and implement, it often performs poorly in practice due to numerical instability. This instability arises as its coefficients take on large values: an ill-conditioning problem. The following kinds of polynomial often remedy this issues. 
+
+#### Orthogonal Polynomials 
+
+An **orthogonal polynomial basis** is a set of polynomials that are not only orthogonal to each other but also form a complete basis for a certain space of functions. This means that any function within that space can be represented as a linear combination of these polynomials. 
+
+More precisely, let $ \{ p_0(x), p_1(x), p_2(x), \dots \} $ be a sequence of polynomials where each $ p_n(x) $ is a polynomial of degree $ n $. We say that this set forms an orthogonal polynomial basis if any polynomial $ q(x) $ of degree $ n $ or less can be uniquely expressed as a linear combination of $ \{ p_0(x), p_1(x), \dots, p_n(x) \} $. Furthermore, the orthogonality property means that for any $ i \neq j $:
+
+$$
+\langle p_i, p_j \rangle = \int_a^b p_i(x) p_j(x) w(x) \, dx = 0.
+$$
+
+for some weight function $ w(x) $ over a given interval of orthogonality $ [a, b] $. 
+
+The orthogonality property allows to simplify the computation of the coefficients involved in the polynomial representation of a function. At a high level, what happens is that when taking the inner product of $ f(x) $ with each basis polynomial, $ p_k(x) $ isolates the corresponding coefficient $ c_k $, which can be found to be: 
+
+$$
+c_k = \frac{\langle f, p_k \rangle}{\langle p_k, p_k \rangle} = \frac{\int_a^b f(x) p_k(x) w(x) \, dx}{\int_a^b p_k(x)^2 w(x) \, dx}.
+$$
+
+Here are some examples of the most common orthogonal polynomials used in practice. 
+
+##### Legendre Polynomials
+
+Legendre polynomials $ \{ P_n(x) \} $ are defined on the interval $[-1, 1]$ and satisfy the orthogonality condition:
+
+$$
+\int_{-1}^{1} P_n(x) P_m(x) \, dx = 
+\begin{cases}
+0 & \text{if } n \neq m, \\
+\frac{2}{2n + 1} & \text{if } n = m.
+\end{cases}
+$$
+
+They can be generated using the recurrence relation:
+
+$$
+(n+1) P_{n+1}(x) = (2n + 1) x P_n(x) - n P_{n-1}(x),
+$$
+
+with initial conditions:
+
+$$
+P_0(x) = 1, \quad P_1(x) = x.
+$$
+
+The first four Legendre polynomials resulting from this recurrence are the following: 
+
+```{code-cell} ipython3
+:tags: [hide-input]
+import numpy as np
+from IPython.display import display, Math
+
+def legendre_polynomial(n, x):
+    if n == 0:
+        return np.poly1d([1])
+    elif n == 1:
+        return x
+    else:
+        p0 = np.poly1d([1])
+        p1 = x
+        for k in range(2, n + 1):
+            p2 = ((2 * k - 1) * x * p1 - (k - 1) * p0) / k
+            p0, p1 = p1, p2
+        return p1
+
+def legendre_coefficients(n):
+    x = np.poly1d([1, 0])  # Define a poly1d object to represent x
+    poly = legendre_polynomial(n, x)
+    return poly
+
+def poly_to_latex(poly):
+    coeffs = poly.coefficients
+    variable = poly.variable
+    
+    terms = []
+    for i, coeff in enumerate(coeffs):
+        power = len(coeffs) - i - 1
+        if coeff == 0:
+            continue
+        coeff_str = f"{coeff:.2g}" if coeff not in {1, -1} or power == 0 else ("-" if coeff == -1 else "")
+        if power == 0:
+            term = f"{coeff_str}"
+        elif power == 1:
+            term = f"{coeff_str}{variable}"
+        else:
+            term = f"{coeff_str}{variable}^{power}"
+        terms.append(term)
+    
+    latex_poly = " + ".join(terms).replace(" + -", " - ")
+    return latex_poly
+
+for n in range(4):
+    poly = legendre_coefficients(n)
+    display(Math(f"P_{n}(x) = {poly_to_latex(poly)}"))
+```
+
+##### Chebyshev Polynomials
+
+There are two types of Chebyshev polynomials: **Chebyshev polynomials of the first kind**, $ \{ T_n(x) \} $, and **Chebyshev polynomials of the second kind**, $ \{ U_n(x) \} $. We typically focus on the first kind. They are defined on the interval $[-1, 1]$ and satisfy the orthogonality condition:
+
+$$
+\int_{-1}^{1} \frac{T_n(x) T_m(x)}{\sqrt{1 - x^2}} \, dx = 
+\begin{cases}
+0 & \text{if } n \neq m, \\
+\frac{\pi}{2} & \text{if } n = m \neq 0, \\
+\pi & \text{if } n = m = 0.
+\end{cases}
+$$
+
+The Chebyshev polynomials of the first kind can be generated using the recurrence relation:
+
+$$
+T_{n+1}(x) = 2x T_n(x) - T_{n-1}(x),
+$$
+
+with initial conditions:
+
+$$
+T_0(x) = 1, \quad T_1(x) = x.
+$$
+
+Remarkably, this recurrence relation also admits an explicit formula: 
+
+$$
+T_n(x) = \cos(n \cos^{-1}(x)).
+$$
+
+
+Let's now implement it in Python:
+
+```{code-cell} ipython3
+:tags: [hide-input]
+def chebyshev_polynomial(n, x):
+    if n == 0:
+        return np.poly1d([1])
+    elif n == 1:
+        return x
+    else:
+        t0 = np.poly1d([1])
+        t1 = x
+        for _ in range(2, n + 1):
+            t2 = 2 * x * t1 - t0
+            t0, t1 = t1, t2
+        return t1
+
+def chebyshev_coefficients(n):
+    x = np.poly1d([1, 0])  # Define a poly1d object to represent x
+    poly = chebyshev_polynomial(n, x)
+    return poly
+
+for n in range(4):
+    poly = chebyshev_coefficients(n)
+    display(Math(f"T_{n}(x) = {poly_to_latex(poly)}"))
+```
+
+##### Hermite Polynomials
+
+Hermite polynomials $ \{ H_n(x) \} $ are defined on the entire real line and are orthogonal with respect to the weight function $ w(x) = e^{-x^2} $. They satisfy the orthogonality condition:
+
+$$
+\int_{-\infty}^{\infty} H_n(x) H_m(x) e^{-x^2} \, dx = 
+\begin{cases}
+0 & \text{if } n \neq m, \\
+2^n n! \sqrt{\pi} & \text{if } n = m.
+\end{cases}
+$$
+
+Hermite polynomials can be generated using the recurrence relation:
+
+$$
+H_{n+1}(x) = 2x H_n(x) - 2n H_{n-1}(x),
+$$
+
+with initial conditions:
+
+$$
+H_0(x) = 1, \quad H_1(x) = 2x.
+$$
+
+The following code computes the coefficients of the first four Hermite polynomials: 
+
+```{code-cell} ipython3
+:tags: [hide-input]
+def hermite_polynomial(n, x):
+    if n == 0:
+        return np.poly1d([1])
+    elif n == 1:
+        return 2 * x
+    else:
+        h0 = np.poly1d([1])
+        h1 = 2 * x
+        for k in range(2, n + 1):
+            h2 = 2 * x * h1 - 2 * (k - 1) * h0
+            h0, h1 = h1, h2
+        return h1
+
+def hermite_coefficients(n):
+    x = np.poly1d([1, 0])  # Define a poly1d object to represent x
+    poly = hermite_polynomial(n, x)
+    return poly
+
+for n in range(4):
+    poly = hermite_coefficients(n)
+    display(Math(f"H_{n}(x) = {poly_to_latex(poly)}"))
+```
+
+### Collocation Conditions
+
+Consider a general ODE of the form:
+
+$$
+\dot{y}(t) = f(y(t), t), \quad y(t_0) = y_0,
+$$
+
+where $ y(t) \in \mathbb{R}^n $ is the state vector, and $ f: \mathbb{R}^n \times \mathbb{R} \rightarrow \mathbb{R}^n $ is a known function. The goal is to approximate the solution $ y(t) $ over a given interval $[t_0, t_f]$. Collocation methods achieve this by:
+
+1. **Choosing a basis** to approximate $ y(t) $ using a finite sum of basis functions $ \phi_i(t) $:
+
+   $$
+   y(t) \approx \sum_{i=0}^{N} c_i \phi_i(t),
+   $$
+
+   where $ \{c_i\} $ are the coefficients to be determined.
+
+2. **Selecting collocation points** $ t_1, t_2, \ldots, t_N $ within the interval $[t_0, t_f]$. These are typically chosen to be the roots of certain orthogonal polynomials, like Legendre or Chebyshev polynomials, or can be spread equally across the interval.
+
+3. **Enforcing the ODE at the collocation points** for each $ t_j $:
+
+   $$
+   \dot{y}(t_j) = f(y(t_j), t_j).
+   $$
+
+   To implement this, we differentiate the approximate solution $ y(t) $ with respect to time:
+
+   $$
+   \dot{y}(t) \approx \sum_{i=0}^{N} c_i \dot{\phi}_i(t).
+   $$
+
+   Substituting this into the ODE at the collocation points gives:
+
+   $$
+   \sum_{i=0}^{N} c_i \dot{\phi}_i(t_j) = f\left(\sum_{i=0}^{N} c_i \phi_i(t_j), t_j\right), \quad j = 1, \ldots, N.
+   $$
+
+The collocation equations are formed by enforcing the ODE at all collocation points, leading to a system of nonlinear equations:
+
+$$
+\sum_{i=0}^{N} c_i \dot{\phi}_i(t_j) - f\left(\sum_{i=0}^{N} c_i \phi_i(t_j), t_j\right) = 0, \quad j = 1, \ldots, N.
+$$
+
+Furthermore when solving an initial value problem (IVP),  we also need to incorporate the initial condition $ y(t_0) = y_0 $ as an additional constraint:
+
+$$
+\sum_{i=0}^{N} c_i \phi_i(t_0) = y_0.
+$$
+
+The collocation conditions and IVP condition are combined together to form a root-finding problem, which we can generically solve numerically using Newton's method. 
+
+### Common Numerical Integration Techniques as Collocation Methods
+
+Many common numerical integration techniques can be viewed as special cases of collocation methods. 
+While the general collocation method we discussed earlier applies to the entire interval $[t_0, t_f]$, many numerical integration techniques can be viewed as collocation methods applied locally, step by step.
+
+In practical numerical integration, we often divide the full interval $[t_0, t_f]$ into smaller subintervals or steps. In general, this allows us to user simpler basis functions thereby reducing computational complexity, and gives us more flexibility in dynamically ajusting the step size using local error estimates. When we apply collocation locally, we're essentially using the collocation method to "step" from $t_n$ to $t_{n+1}$. As we did, earlier we still apply the following three steps:
+
+1. We choose a basis function to approximate $y(t)$ over $[t_n, t_{n+1}]$.
+2. We select collocation points within this interval.
+3. We enforce the ODE at these points to determine the coefficients of our basis function.
+
+We can make this idea clearer by re-deriving some of the numerical integration methods seen before using this perspective. 
+
+#### Explicit Euler Method
+
+For the Explicit Euler method, we use a linear basis function for each step:
+
+$$
+\phi(t) = 1 + c(t - t_n)
+$$
+
+Note that we use $(t - t_n)$ rather than just $t$ because we're approximating the solution locally, relative to the start of each step. We then choose one collocation point at $t_{n+1}$ where we have:
+
+$$
+y'(t_{n+1}) = c = f(y_n, t_n)
+$$
+
+Our local approximation is:
+
+$$
+y(t) \approx y_n + c(t - t_n)
+$$
+
+At $t = t_{n+1}$, this gives:
+
+$$
+y_{n+1} = y_n + c(t_{n+1} - t_n) = y_n + hf(y_n, t_n)
+$$
+
+where $h = t_{n+1} - t_n$. This is the classic Euler update formula.
+
+#### Implicit Euler Method
+
+The Implicit Euler method uses the same linear basis function:
+
+$$
+\phi(t) = 1 + c(t - t_n)
+$$
+
+Again, we choose one collocation point at $t_{n+1}$. The main difference is that we enforce the ODE using $y_{n+1}$:
+
+$$
+y'(t_{n+1}) = c = f(y_{n+1}, t_{n+1})
+$$
+
+Our approximation remains:
+
+$$
+y(t) \approx y_n + c(t - t_n)
+$$
+
+At $t = t_{n+1}$, this leads to the implicit equation:
+
+$$
+y_{n+1} = y_n + hf(y_{n+1}, t_{n+1})
+$$
+
+#### Trapezoidal Method
+
+The Trapezoidal method uses a quadratic basis function:
+
+$$
+\phi(t) = 1 + c(t - t_n) + a(t - t_n)^2
+$$
+
+We use two collocation points: $t_n$ and $t_{n+1}$. Enforcing the ODE at these points gives:
+
+- At $t_n$:
+
+$$
+y'(t_n) = c = f(y_n, t_n)
+$$
+
+- At $t_{n+1}$:
+
+$$
+y'(t_{n+1}) = c + 2ah = f(y_n + ch + ah^2, t_{n+1})
+$$
+
+Our approximation is:
+
+$$
+y(t) \approx y_n + c(t - t_n) + a(t - t_n)^2
+$$
+
+At $t = t_{n+1}$, this gives:
+
+$$
+y_{n+1} = y_n + ch + ah^2
+$$
+
+Solving the system of equations leads to the trapezoidal update:
+
+$$
+y_{n+1} = y_n + \frac{h}{2}[f(y_n, t_n) + f(y_{n+1}, t_{n+1})]
+$$
+
+#### Runge-Kutta Methods
+
+Higher-order Runge-Kutta methods can also be interpreted as collocation methods. The RK4 method corresponds to a collocation method using a cubic polynomial basis:
+
+$$
+\phi(t) = 1 + c_1(t - t_n) + c_2(t - t_n)^2 + c_3(t - t_n)^3
+$$
+
+Here, we're using a cubic polynomial to approximate the solution over each step, rather than the linear or quadratic approximations of the other methods above. For RK4, we use four collocation points:
+
+1. $t_n$ (the start of the step)
+2. $t_n + h/2$
+3. $t_n + h/2$
+4. $t_n + h$ (the end of the step)
+
+These points are called the "Gauss-Lobatto" points, scaled to our interval $[t_n, t_n + h]$.
+The RK4 method enforces the ODE at these collocation points, leading to four stages:
+
+$$
+\begin{aligned}
+k_1 &= hf(y_n, t_n) \\
+k_2 &= hf(y_n + \frac{1}{2}k_1, t_n + \frac{h}{2}) \\
+k_3 &= hf(y_n + \frac{1}{2}k_2, t_n + \frac{h}{2}) \\
+k_4 &= hf(y_n + k_3, t_n + h)
+\end{aligned}
+$$
+
+The final update formula for RK4 can be derived by solving the system of equations resulting from enforcing the ODE at our collocation points:
+
+$$
+y_{n+1} = y_n + \frac{1}{6}(k_1 + 2k_2 + 2k_3 + k_4)
+$$
+
+### Example: Solving a Simple ODE by Collocation
+
+Consider a simple ODE:
+
+$$
+\frac{dy}{dt} = -y, \quad y(0) = 1, \quad t \in [0, 2]
+$$
+
+The analytical solution is $y(t) = e^{-t}$. We apply the collocation method with a monomial basis of order $N$:
+
+$$
+\phi_i(t) = t^i, \quad i = 0, 1, \ldots, N
+$$
+
+We select $N$ equally spaced points $\{t_1, \ldots, t_N\}$ in $[0, 2]$ as collocation points. 
+
+
+```{code-cell} ipython3
+:tags: [hide-input]
+:load: code/collocation_ivp_demo.py
+```
+
+## Nonlinear Programming
 
 Unless specific assumptions are made on the dynamics and cost structure, a DOCP is, in its most general form, a nonlinear mathematical program (commonly referred to as an NLP, not to be confused with Natural Language Processing). An NLP can be formulated as follows:
 
@@ -545,7 +1437,7 @@ $$
 
 Under mild conditions such as Lipschitz continuity of the gradient, PGD converges to a stationary point of the constrained problem. Its simplicity and low cost make it a common choice whenever the projection can be computed efficiently.
 
-<!-- 
+# The Discrete-Time Pontryagin Maximum Principle
 # The Discrete-Time Pontryagin Maximum Principle
 
 Discrete-time optimal control problems (DOCPs) form a specific class of nonlinear programming problems. Therefore, we can apply the general results from the Karush-Kuhn-Tucker (KKT) conditions to characterize the structure of optimal solutions to DOCPs in any of their three forms. The discrete-time analogue of the KKT conditions for DOCPs is known as the discrete-time Pontryagin Maximum Principle (PMP). The PMP was first described by Pontryagin in 1956 {cite}`pontryagin1962mathematical` for continuous-time systems, with the discrete-time version following shortly after. Similar to the KKT conditions, the PMP is useful from both theoretical and practical perspectives. It not only allows us to sometimes find closed-form solutions but also inspires the development of algorithms.

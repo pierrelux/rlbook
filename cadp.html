@@ -16,22 +16,20 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
-  <!-- 
-    this give us a css class that will be invisible only if js is disabled 
-  -->
-  <noscript>
-    <style>
-      .pst-js-only { display: none !important; }
-
-    </style>
-  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
     <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
@@ -41,11 +39,10 @@
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css" />
   
-  <!-- So that users can add custom icons -->
-  <script src="_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
     <script src="_static/documentation_options.js?v=9eb32ce0"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
@@ -66,15 +63,13 @@
     <script>window.MathJax = {"tex": {"macros": {"bm": ["{\\boldsymbol #1}", 1]}, "processEscapes": true}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'cadp';</script>
-    <script src="_static/hydro.js?v=67e01585"></script>
     <script src="_static/iframe-modal.js?v=f72a1242"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Nonlinear Programming" href="appendix.html" />
+    <link rel="next" title="Example COCPs" href="appendix_examples.html" />
     <link rel="prev" title="Approximate Dynamic Programming" href="adp.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="" />
   </head>
   
   
@@ -90,8 +85,19 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <dialog id="pst-search-dialog">
-    
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
 <form class="bd-search d-flex align-items-center"
       action="search.html"
       method="get">
@@ -99,6 +105,7 @@
   <input type="search"
          class="form-control"
          name="q"
+         id="search-input"
          placeholder="Search this book..."
          aria-label="Search this book..."
          autocomplete="off"
@@ -106,8 +113,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form>
-  </dialog>
+</form></div>
+  </div>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -123,8 +130,7 @@
       
       
       
-      <dialog id="pst-primary-sidebar-modal"></dialog>
-      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+      <div class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -154,11 +160,15 @@
 </a></div>
         <div class="sidebar-primary-item">
 
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button></div>
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         
@@ -178,6 +188,7 @@
 
 
 
+
 <li class="toctree-l1"><a class="reference internal" href="simulation.html">Programs as Models</a></li>
 
 </ul>
@@ -185,7 +196,11 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="ocp.html">Discrete-Time Trajectory Optimization</a></li>
 
-<li class="toctree-l1"><a class="reference internal" href="cocp.html">Continuous-Time Trajectory Optimization</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="cocp.html">Trajectory Optimization in Continuous Time</a></li>
+
+
+
 
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">From Trajectories to Policies</span></p>
@@ -216,11 +231,9 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Appendix</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="appendix.html">Nonlinear Programming</a></li>
-
-
-
-
+<li class="toctree-l1"><a class="reference internal" href="appendix_examples.html">Example COCPs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_ivps.html">Solving Initial Value Problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_nlp.html">Nonlinear Programming</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
 <ul class="nav bd-sidenav">
@@ -396,16 +409,24 @@
 
 
 
-<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
-  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
-  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
-  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
-</button>
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
 
 
-<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
-</button>
+  </button>
+`);
+</script>
 <button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <span class="fa-solid fa-list"></span>
 </button>
@@ -507,7 +528,7 @@
 \]</div>
 <p>While this strategy allows us to handle very large or even infinite (continuous) state spaces, it still requires maximizing over actions (<span class="math notranslate nohighlight">\(\max_{a \in A}\)</span>) during the dataset creation when computing the operator <span class="math notranslate nohighlight">\(L\)</span> for each basepoint. This maximization becomes computationally expensive for large action spaces. A natural improvement is to add another level of optimization: for each sample added to our regression dataset, we can employ numerical optimization methods to find actions that maximize the Bellman operator for the given state.</p>
 <div class="proof algorithm admonition" id="fitted-q-iteration-explicit">
-<p class="admonition-title"><span class="caption-number">Algorithm 36 </span> (Fitted Q-Iteration with Explicit Optimization)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 33 </span> (Fitted Q-Iteration with Explicit Optimization)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given an MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, base points <span class="math notranslate nohighlight">\(\mathcal{B}\)</span>, function approximator class <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, maximum iterations <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
@@ -557,7 +578,7 @@ q^\star(s,a) &amp;= (Lq^*)(s,a) \\
 \end{split}\]</div>
 <p>Note that <span class="math notranslate nohighlight">\(d^\star\)</span> is implemented by our <span class="math notranslate nohighlight">\(\texttt{maximize}\)</span> numerical solver in the procedure above. A practical strategy would be to collect these maximizer values at each step and use them to train a function approximator that directly predicts these solutions. Due to computational constraints, we might want to compute these exact maximizer values only for a subset of states, based on some computational budget, and use the fitted decision rule to generalize to the remaining states. This leads to the following amortized version:</p>
 <div class="proof algorithm admonition" id="fitted-q-iteration-amortized">
-<p class="admonition-title"><span class="caption-number">Algorithm 37 </span> (Fitted Q-Iteration with Amortized Optimization)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 34 </span> (Fitted Q-Iteration with Amortized Optimization)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given an MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, base points <span class="math notranslate nohighlight">\(\mathcal{B}\)</span>, subset for exact optimization <span class="math notranslate nohighlight">\(\mathcal{B}_{\text{opt}} \subset \mathcal{B}\)</span>, Q-function approximator <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, policy approximator <span class="math notranslate nohighlight">\(d(s; \boldsymbol{w})\)</span>, maximum iterations <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function, <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span> for policy</p>
@@ -638,7 +659,7 @@ q^\star(s,a) &amp;= (Lq^*)(s,a) \\
 \]</div>
 <p>When using neural networks to parametrize <span class="math notranslate nohighlight">\(q\)</span> and <span class="math notranslate nohighlight">\(d\)</span>, we obtain the Neural Fitted Q-Iteration with Continuous Actions (NFQCA) algorithm proposed by <span id="id1">[<a class="reference internal" href="bibliography.html#id40" title="Roland Hafner and Martin Riedmiller. Reinforcement learning in feedback control: challenges and benchmarks from technical process control. Machine Learning, 84(1-2):137-169, feb 2011. URL: http://dx.doi.org/10.1007/s10994-011-5235-x, doi:10.1007/s10994-011-5235-x.">23</a>]</span>.</p>
 <div class="proof algorithm admonition" id="nfqca">
-<p class="admonition-title"><span class="caption-number">Algorithm 38 </span> (Neural Fitted Q-Iteration with Continuous Actions (NFQCA))</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 35 </span> (Neural Fitted Q-Iteration with Continuous Actions (NFQCA))</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, base points <span class="math notranslate nohighlight">\(\mathcal{B}\)</span>, Q-function <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, policy <span class="math notranslate nohighlight">\(d(s; \boldsymbol{w})\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function, <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span> for policy</p>
@@ -699,7 +720,7 @@ d\mathcal{N}_t = \theta(\mu - \mathcal{N}_t)dt + \sigma dW_t
 \]</div>
 <p>We then embed this exploration mechanism into the data collection procedure and use the same flattened FQI structure that we adopted in DQN. Similar to DQN, flattening the outer-inner optimization structure leads to the need for target networks - both for the Q-function and the policy.</p>
 <div class="proof algorithm admonition" id="ddpg">
-<p class="admonition-title"><span class="caption-number">Algorithm 39 </span> (Deep Deterministic Policy Gradient (DDPG))</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 36 </span> (Deep Deterministic Policy Gradient (DDPG))</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, Q-network <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, policy network <span class="math notranslate nohighlight">\(d(s; \boldsymbol{w})\)</span>, learning rates <span class="math notranslate nohighlight">\(\alpha_q, \alpha_d\)</span>, replay buffer size <span class="math notranslate nohighlight">\(B\)</span>, mini-batch size <span class="math notranslate nohighlight">\(b\)</span>, target update frequency <span class="math notranslate nohighlight">\(K\)</span></p>
 <p><strong>Initialize</strong></p>
@@ -740,7 +761,7 @@ d\mathcal{N}_t = \theta(\mu - \mathcal{N}_t)dt + \sigma dW_t
 <h2>Twin Delayed Deep Deterministic Policy Gradient (TD3)<a class="headerlink" href="#twin-delayed-deep-deterministic-policy-gradient-td3" title="Link to this heading">#</a></h2>
 <p>While DDPG provided a foundation for continuous control with deep RL, it suffers from similar overestimation issues as DQN. TD3 <span id="id3">[<a class="reference internal" href="bibliography.html#id43" title="Scott Fujimoto, Herke Hoof, and David Meger. Addressing function approximation error in actor-critic methods. In International Conference on Machine Learning (ICML), 1587–1596. 2018.">14</a>]</span> addresses these challenges through three key modifications: double Q-learning to reduce overestimation bias, delayed policy updates to reduce per-update error, and target policy smoothing to prevent exploitation of Q-function errors.</p>
 <div class="proof algorithm admonition" id="td3">
-<p class="admonition-title"><span class="caption-number">Algorithm 40 </span> (Twin Delayed Deep Deterministic Policy Gradient (TD3))</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 37 </span> (Twin Delayed Deep Deterministic Policy Gradient (TD3))</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, twin Q-networks <span class="math notranslate nohighlight">\(q^A(s,a; \boldsymbol{\theta}^A)\)</span>, <span class="math notranslate nohighlight">\(q^B(s,a; \boldsymbol{\theta}^B)\)</span>, policy network <span class="math notranslate nohighlight">\(d(s; \boldsymbol{w})\)</span>, learning rates <span class="math notranslate nohighlight">\(\alpha_q, \alpha_d\)</span>, replay buffer size <span class="math notranslate nohighlight">\(B\)</span>, mini-batch size <span class="math notranslate nohighlight">\(b\)</span>, policy delay <span class="math notranslate nohighlight">\(d\)</span>, noise scale <span class="math notranslate nohighlight">\(\sigma\)</span>, noise clip <span class="math notranslate nohighlight">\(c\)</span>, exploration noise std <span class="math notranslate nohighlight">\(\sigma_{explore}\)</span></p>
 <p><strong>Initialize</strong></p>
@@ -942,7 +963,7 @@ f_\phi(s,\epsilon) = \mu_\phi(s) + \sigma_\phi(s)\epsilon, \quad \epsilon \sim \
 \]</div>
 <p>Thus, rather than learning a single action for each state as in DDPG, we learn a function that transforms random noise into actions, explicitly parameterizing a distribution over actions while maintaining the same underlying principle of differentiating through composed policy and value functions.</p>
 <div class="proof algorithm admonition" id="sac">
-<p class="admonition-title"><span class="caption-number">Algorithm 41 </span> (Soft Actor-Critic)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 38 </span> (Soft Actor-Critic)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, Q-networks <span class="math notranslate nohighlight">\(q^1(s,a; \boldsymbol{\theta}^1)\)</span>, <span class="math notranslate nohighlight">\(q^2(s,a; \boldsymbol{\theta}^2)\)</span>, value network <span class="math notranslate nohighlight">\(v(s; \boldsymbol{\psi})\)</span>, policy network <span class="math notranslate nohighlight">\(d(a|s; \boldsymbol{\phi})\)</span>, learning rates <span class="math notranslate nohighlight">\(\alpha_q, \alpha_v, \alpha_\pi\)</span>, replay buffer size <span class="math notranslate nohighlight">\(B\)</span>, mini-batch size <span class="math notranslate nohighlight">\(b\)</span>, target smoothing coefficient <span class="math notranslate nohighlight">\(\tau\)</span></p>
 <p><strong>Initialize</strong></p>
@@ -1200,19 +1221,19 @@ z_i = \frac{\exp((\log \pi_i + g_i)/\tau)}{\sum_j \exp((\log \pi_j + g_j)/\tau)}
 <span class="expanded">Hide code cell source</span>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">jax</span>
-<span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 
 <span class="n">key</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
 <span class="c1"># Define the objective function f(x,θ) = x²θ where x ~ N(θ, 1)</span>
-<span class="k">def</span> <span class="nf">objective</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">theta</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">objective</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">theta</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">x</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">theta</span>
 
 <span class="c1"># Naive Monte Carlo gradient estimation</span>
 <span class="nd">@jax</span><span class="o">.</span><span class="n">jit</span>
-<span class="k">def</span> <span class="nf">naive_gradient_batch</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">theta</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">naive_gradient_batch</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">theta</span><span class="p">):</span>
     <span class="n">samples</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">(</span><span class="mi">1000</span><span class="p">,))</span> <span class="o">+</span> <span class="n">theta</span>
     <span class="c1"># Use jax.grad on the objective with respect to theta</span>
     <span class="n">grad_fn</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">grad</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">objective</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">t</span><span class="p">)))</span>
@@ -1220,7 +1241,7 @@ z_i = \frac{\exp((\log \pi_i + g_i)/\tau)}{\sum_j \exp((\log \pi_j + g_j)/\tau)}
 
 <span class="c1"># Score function estimator (REINFORCE)</span>
 <span class="nd">@jax</span><span class="o">.</span><span class="n">jit</span>
-<span class="k">def</span> <span class="nf">score_function_batch</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">theta</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">score_function_batch</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">theta</span><span class="p">):</span>
     <span class="n">samples</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">(</span><span class="mi">1000</span><span class="p">,))</span> <span class="o">+</span> <span class="n">theta</span>
     <span class="c1"># f(x,θ) * ∂logp(x|θ)/∂θ + ∂f(x,θ)/∂θ</span>
     <span class="c1"># score function for N(θ,1) is (x-θ)</span>
@@ -1229,7 +1250,7 @@ z_i = \frac{\exp((\log \pi_i + g_i)/\tau)}{\sum_j \exp((\log \pi_j + g_j)/\tau)}
 
 <span class="c1"># Reparameterization gradient</span>
 <span class="nd">@jax</span><span class="o">.</span><span class="n">jit</span>
-<span class="k">def</span> <span class="nf">reparam_gradient_batch</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">theta</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">reparam_gradient_batch</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">theta</span><span class="p">):</span>
     <span class="n">eps</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">(</span><span class="mi">1000</span><span class="p">,))</span>
     <span class="c1"># Use reparameterization x = θ + ε, ε ~ N(0,1)</span>
     <span class="n">grad_fn</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">grad</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">objective</span><span class="p">(</span><span class="n">t</span> <span class="o">+</span> <span class="n">eps</span><span class="p">,</span> <span class="n">t</span><span class="p">)))</span>
@@ -1425,7 +1446,7 @@ Z_{\text{cv},t} = \nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\left(\su
 \]</div>
 <p>In practice when implementing this estimator, we won’t have access to the true value function. So as we did earlier for NFQCA or SAC, we commonly learn that value function simultaneously with the policy. Do do so, we could either using a fitted value approach, or even more simply just regress from states to sum of rewards to learn what Williams 1992 called a “baseline”:</p>
 <div class="proof algorithm admonition" id="policy-grad-baseline">
-<p class="admonition-title"><span class="caption-number">Algorithm 42 </span> (Policy Gradient with Simple Baseline)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 39 </span> (Policy Gradient with Simple Baseline)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Policy parameterization <span class="math notranslate nohighlight">\(d(a|s;\boldsymbol{w})\)</span>, baseline function <span class="math notranslate nohighlight">\(b(s;\boldsymbol{\theta})\)</span><br />
 <strong>Output:</strong> Updated policy parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span><br />
@@ -1449,7 +1470,7 @@ Z_{\text{cv},t} = \nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\left(\su
 </section>
 </div><p>When implementing this algorithm nowadays, we always using mini-batching to make full use of our GPUs. Therefore, a more representative variant for this algorithm would be:</p>
 <div class="proof algorithm admonition" id="policy-grad-cv-batch">
-<p class="admonition-title"><span class="caption-number">Algorithm 43 </span> (Policy Gradient with Optimal Control Variate and Mini-batches)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 40 </span> (Policy Gradient with Optimal Control Variate and Mini-batches)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Policy parameterization <span class="math notranslate nohighlight">\(d(a|s;\boldsymbol{w})\)</span>, value function <span class="math notranslate nohighlight">\(v(s;\boldsymbol{\theta})\)</span><br />
 <strong>Output:</strong> Updated policy parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span><br />
@@ -1546,7 +1567,7 @@ A^{\text{GAE}(\gamma,\lambda)}(s_t,a_t) = \sum_{l=0}^{\infty}(\gamma\lambda)^l\d
 </ul>
 <p>The general GAE algorithm with mini-batches is the following:</p>
 <div class="proof algorithm admonition" id="policy-grad-gae-batch">
-<p class="admonition-title"><span class="caption-number">Algorithm 44 </span> (Policy Gradient with GAE and Mini-batches)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 41 </span> (Policy Gradient with GAE and Mini-batches)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Policy parameterization <span class="math notranslate nohighlight">\(d(a|s;\boldsymbol{w})\)</span>, value function <span class="math notranslate nohighlight">\(v(s;\boldsymbol{\theta})\)</span><br />
 <strong>Output:</strong> Updated policy parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span><br />
@@ -1600,7 +1621,7 @@ A^{\text{GAE}(\gamma,0)}(s_t,a_t) = \delta_t = r_t + \gamma v(s_{t+1}) - v(s_t)
 \]</div>
 <p>The non-batched, purely online, GAE(0) algorithm then becomes:</p>
 <div class="proof algorithm admonition" id="actor-critic-td0">
-<p class="admonition-title"><span class="caption-number">Algorithm 45 </span> (Actor-Critic with TD(0))</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 42 </span> (Actor-Critic with TD(0))</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Policy parameterization <span class="math notranslate nohighlight">\(d(a|s;\boldsymbol{w})\)</span>, value function <span class="math notranslate nohighlight">\(v(s;\boldsymbol{\theta})\)</span><br />
 <strong>Output:</strong> Updated policy parameters <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span><br />
@@ -1725,9 +1746,9 @@ s</p>
 <p>shows that <span class="math notranslate nohighlight">\(\boldsymbol{\mu}_\alpha\)</span> is a mixture distribution: with probability <span class="math notranslate nohighlight">\(1-\gamma\)</span> you draw a state from the initial distribution <span class="math notranslate nohighlight">\(\alpha\)</span> (reset), and with probability <span class="math notranslate nohighlight">\(\gamma\)</span> you follow the policy dynamics <span class="math notranslate nohighlight">\(\mathbf{P}_d\)</span> from the current state (continue). This interpretation directly connects to the geometric process: at each step you either terminate and resample from <span class="math notranslate nohighlight">\(\alpha\)</span> (with probability <span class="math notranslate nohighlight">\(1-\gamma\)</span>) or continue following the policy (with probability <span class="math notranslate nohighlight">\(\gamma\)</span>).</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="k">def</span> <span class="nf">sample_from_discounted_visitation</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">sample_from_discounted_visitation</span><span class="p">(</span>
     <span class="n">alpha</span><span class="p">,</span> 
     <span class="n">policy</span><span class="p">,</span> 
     <span class="n">transition_model</span><span class="p">,</span> 
@@ -1924,7 +1945,7 @@ $<span class="math notranslate nohighlight">\(
 s_{t+1}^m(\boldsymbol{w}) = \mu(s_t^m(\boldsymbol{w}),d(s_t^m(\boldsymbol{w});\boldsymbol{w}) + \sigma(s_t^m(\boldsymbol{w});\boldsymbol{w})\epsilon_t^m;\boldsymbol{\phi}) + \Sigma(s_t^m(\boldsymbol{w}),a_t^m(\boldsymbol{w});\boldsymbol{\phi})\xi_t^m
 \)</span>$</p>
 <div class="proof algorithm admonition" id="svg_autodiff">
-<p class="admonition-title"><span class="caption-number">Algorithm 46 </span> (Stochastic Value Gradients (SVG) Infinity (automatic differentiation))</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 43 </span> (Stochastic Value Gradients (SVG) Infinity (automatic differentiation))</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Initial state distribution <span class="math notranslate nohighlight">\(\rho_0(s)\)</span>, policy networks <span class="math notranslate nohighlight">\(d(s;\boldsymbol{w})\)</span> and <span class="math notranslate nohighlight">\(\sigma(s;\boldsymbol{w})\)</span>, dynamics model networks <span class="math notranslate nohighlight">\(\mu(s,a;\boldsymbol{\phi})\)</span> and <span class="math notranslate nohighlight">\(\Sigma(s,a;\boldsymbol{\phi})\)</span>, reward function <span class="math notranslate nohighlight">\(r(s,a)\)</span>, rollout horizon <span class="math notranslate nohighlight">\(T\)</span>, learning rate <span class="math notranslate nohighlight">\(\alpha_w\)</span>, batch size <span class="math notranslate nohighlight">\(N\)</span></p>
 <p><strong>Initialize</strong></p>
@@ -2002,7 +2023,7 @@ z_0 = (f_1^{-1} \circ \cdots \circ f_K^{-1})(a_t;\boldsymbol{w})
 <h2>DPG as a Special Case of SAC<a class="headerlink" href="#dpg-as-a-special-case-of-sac" title="Link to this heading">#</a></h2>
 <p>At first glance, SAC and DPG might appear to be fundamentally different approaches to policy optimization. SAC begins with the principle of entropy maximization and policy distribution matching through KL divergence minimization, while DPG directly optimizes a deterministic policy to maximize expected Q-values. However, we can show that DPG emerges as a special case of SAC as we take the temperature parameter to zero.</p>
 <div class="proof proposition admonition" id="proposition-11">
-<p class="admonition-title"><span class="caption-number">Proposition 3 </span> (Convergence of SAC to DPG)</p>
+<p class="admonition-title"><span class="caption-number">Proposition 4 </span> (Convergence of SAC to DPG)</p>
 <section class="proposition-content" id="proof-content">
 <p>Let <span class="math notranslate nohighlight">\(d(\cdot|s;\boldsymbol{w}_\alpha)\)</span> be the optimal stochastic policy for SAC with temperature <span class="math notranslate nohighlight">\(\alpha\)</span>, and <span class="math notranslate nohighlight">\(d(s;\boldsymbol{w}_{DPG})\)</span> be the optimal deterministic policy gradient solution. Under appropriate assumptions, as <span class="math notranslate nohighlight">\(\alpha \to 0\)</span>:</p>
 <div class="math notranslate nohighlight">
@@ -2160,11 +2181,11 @@ x_k &amp; \text{otherwise}
       </div>
     </a>
     <a class="right-next"
-       href="appendix.html"
+       href="appendix_examples.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Nonlinear Programming</p>
+        <p class="prev-next-title">Example COCPs</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -2175,8 +2196,7 @@ x_k &amp; \text{otherwise}
             
             
               
-                <dialog id="pst-secondary-sidebar-modal"></dialog>
-                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
   <div class="sidebar-secondary-item">
@@ -2281,8 +2301,8 @@ By Pierre-Luc Bacon
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549"></script>
-<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549"></script>
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
 
   <footer class="bd-footer">
   </footer>

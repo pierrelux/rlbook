@@ -1,0 +1,1808 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Solving Initial Value Problems &#8212; Practical Reinforcement Learning: From Algorithms to Applications</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="_static/proof.css?v=b4b7a797" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"tex": {"macros": {"bm": ["{\\boldsymbol #1}", 1]}, "processEscapes": true}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'appendix_ivps';</script>
+    <script src="_static/iframe-modal.js?v=f72a1242"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Nonlinear Programming" href="appendix_nlp.html" />
+    <link rel="prev" title="Example COCPs" href="appendix_examples.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="intro.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Practical Reinforcement Learning: From Algorithms to Applications</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="intro.html">
+                    Why This Book?
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Modeling</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="modeling.html">Why Build a Model? For Whom?</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="ssm.html">Dynamics Models for Decision Making</a></li>
+
+
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="simulation.html">Programs as Models</a></li>
+
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Numerical Trajectory Optimization</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="ocp.html">Discrete-Time Trajectory Optimization</a></li>
+
+
+<li class="toctree-l1"><a class="reference internal" href="cocp.html">Trajectory Optimization in Continuous Time</a></li>
+
+
+
+
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">From Trajectories to Policies</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="mpc.html">From Trajectories to Policies</a></li>
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="dp.html">Dynamic Programming</a></li>
+
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Learning from Data</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="adp.html">Approximate Dynamic Programming</a></li>
+
+
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="cadp.html">Policy Parametrization Methods</a></li>
+
+
+
+
+
+
+
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Appendix</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="appendix_examples.html">Example COCPs</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Solving Initial Value Problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_nlp.html">Nonlinear Programming</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">Bibliography</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/pierrelux/rlbook" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/pierrelux/rlbook/edit/main/appendix_ivps.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/pierrelux/rlbook/issues/new?title=Issue%20on%20page%20%2Fappendix_ivps.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/appendix_ivps.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Solving Initial Value Problems</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#euler-s-method">Euler’s Method</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implicit-euler-s-method">Implicit Euler’s Method</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#stiff-odes">Stiff ODEs</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#trapezoid-method">Trapezoid Method</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#trapezoidal-predictor-corrector">Trapezoidal Predictor-Corrector</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#collocation-methods">Collocation Methods</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-primer-on-polynomials">Quick Primer on Polynomials</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#orthogonal-polynomials">Orthogonal Polynomials</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#legendre-polynomials">Legendre Polynomials</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#chebyshev-polynomials">Chebyshev Polynomials</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#hermite-polynomials">Hermite Polynomials</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#collocation-conditions">Collocation Conditions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#common-numerical-integration-techniques-as-collocation-methods">Common Numerical Integration Techniques as Collocation Methods</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#explicit-euler-method">Explicit Euler Method</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#implicit-euler-method">Implicit Euler Method</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#trapezoidal-method">Trapezoidal Method</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#runge-kutta-methods">Runge-Kutta Methods</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-solving-a-simple-ode-by-collocation">Example: Solving a Simple ODE by Collocation</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="solving-initial-value-problems">
+<h1>Solving Initial Value Problems<a class="headerlink" href="#solving-initial-value-problems" title="Link to this heading">#</a></h1>
+<p>An ODE is an implicit representation of a state-space trajectory: it tells us how the state changes in time but not precisely what the state is at any given time. To find out this information, we need to either solve the ODE analytically (for some special structure) or, as we’re going to do, solve them numerically. This numerical procedure is meant to solve what is called an IVP (initial value problem) of the form:</p>
+<div class="math notranslate nohighlight">
+\[
+\text{Find } x(t) \text{ given } \dot{x}(t) = f(x(t), t) \text{ and } x(t_0) = x_0
+\]</div>
+<section id="euler-s-method">
+<h2>Euler’s Method<a class="headerlink" href="#euler-s-method" title="Link to this heading">#</a></h2>
+<p>The algorithm to solve this problem is, in its simplest form, a for loop which closely resembles the updates encountered in gradient descent (in fact, gradient descent can be derived from the gradient flow ODE, but that’s another discussion). The so-called explicit Euler’s method can be implemented as follow:</p>
+<div class="proof algorithm admonition" id="euler-method">
+<p class="admonition-title"><span class="caption-number">Algorithm 44 </span> (Euler’s method)</p>
+<section class="algorithm-content" id="proof-content">
+<p><strong>Input:</strong> <span class="math notranslate nohighlight">\(f(x, t)\)</span>, <span class="math notranslate nohighlight">\(x_0\)</span>, <span class="math notranslate nohighlight">\(t_0\)</span>, <span class="math notranslate nohighlight">\(t_{end}\)</span>, <span class="math notranslate nohighlight">\(h\)</span></p>
+<p><strong>Output:</strong> Approximate solution <span class="math notranslate nohighlight">\(x(t)\)</span> at discrete time points</p>
+<ol class="arabic simple">
+<li><p>Initialize <span class="math notranslate nohighlight">\(t = t_0\)</span>, <span class="math notranslate nohighlight">\(x = x_0\)</span></p></li>
+<li><p>While <span class="math notranslate nohighlight">\(t &lt; t_{end}\)</span>:</p></li>
+<li><p>Compute <span class="math notranslate nohighlight">\(x_{new} = x + h f(x, t)\)</span></p></li>
+<li><p>Update <span class="math notranslate nohighlight">\(t = t + h\)</span></p></li>
+<li><p>Update <span class="math notranslate nohighlight">\(x = x_{new}\)</span></p></li>
+<li><p>Store or output the pair <span class="math notranslate nohighlight">\((t, x)\)</span></p></li>
+<li><p>End While</p></li>
+</ol>
+</section>
+</div><p>Consider the following simple dynamical system of a ballistic motion model, neglecting air resistance. The state of the system is described by two variables: <span class="math notranslate nohighlight">\(y(t)\)</span>: vertical position at time <span class="math notranslate nohighlight">\(t\)</span> and <span class="math notranslate nohighlight">\(v(t)\)</span>, the vertical velocity at time <span class="math notranslate nohighlight">\(t\)</span>. The corresponding ODE is:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+\frac{dy}{dt} &amp;= v \\
+\frac{dv}{dt} &amp;= -g
+\end{aligned}
+\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(g \approx 9.81 \text{ m/s}^2\)</span> is the acceleration due to gravity. In our code, we use the initial conditions
+<span class="math notranslate nohighlight">\(y(0) = 0 \text{ m}\)</span> and <span class="math notranslate nohighlight">\(v(0) = v_0 \text{ m/s}\)</span> where <span class="math notranslate nohighlight">\(v_0\)</span> is the initial velocity (in this case, <span class="math notranslate nohighlight">\(v_0 = 20 \text{ m/s}\)</span>).
+The analytical solution to this system is:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+y(t) &amp;= v_0t - \frac{1}{2}gt^2 \\
+v(t) &amp;= v_0 - gt
+\end{aligned}
+\end{split}\]</div>
+<p>This system models the vertical motion of an object launched upward, reaching a maximum height before falling back down due to gravity.</p>
+<p>Euler’s method can be obtained by taking the first-order Taylor expansion of <span class="math notranslate nohighlight">\(x(t)\)</span> at <span class="math notranslate nohighlight">\(t\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+x(t + h) \approx x(t) + h \frac{dx}{dt}(t) = x(t) + h f(x(t), t)
+\]</div>
+<p>Each step of the algorithm therefore involves approximating the function with a linear function of slope <span class="math notranslate nohighlight">\(f\)</span> over the given interval <span class="math notranslate nohighlight">\(h\)</span>.</p>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Show code cell source</span>
+<span class="expanded">Hide code cell source</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">f</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Derivative function for vertical motion under gravity.</span>
+<span class="sd">    y[0] is position, y[1] is velocity.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="mf">9.81</span>  <span class="c1"># acceleration due to gravity (m/s^2)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="o">-</span><span class="n">g</span><span class="p">])</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">euler_method</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">t_end</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Implement Euler&#39;s method for the entire time range.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">t0</span><span class="p">,</span> <span class="n">t_end</span> <span class="o">+</span> <span class="n">h</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">y0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">)):</span>
+        <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">h</span> <span class="o">*</span> <span class="n">f</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="n">y</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">true_solution</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Analytical solution for the ballistic trajectory.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">y0</span><span class="p">,</span> <span class="n">v0</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">20</span>  <span class="c1"># initial height and velocity</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="mf">9.81</span>
+    <span class="k">return</span> <span class="n">y0</span> <span class="o">+</span> <span class="n">v0</span><span class="o">*</span><span class="n">t</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">g</span><span class="o">*</span><span class="n">t</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">v0</span> <span class="o">-</span> <span class="n">g</span><span class="o">*</span><span class="n">t</span>
+
+<span class="c1"># Set up the problem</span>
+<span class="n">t0</span><span class="p">,</span> <span class="n">t_end</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span>
+<span class="n">y0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">20</span><span class="p">])</span>  <span class="c1"># initial height = 0, initial velocity = 20 m/s</span>
+
+<span class="c1"># Different step sizes</span>
+<span class="n">step_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">]</span>
+<span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">]</span>
+<span class="n">markers</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="s1">&#39;^&#39;</span><span class="p">]</span>
+
+<span class="c1"># True solution</span>
+<span class="n">t_fine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">t0</span><span class="p">,</span> <span class="n">t_end</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+<span class="n">y_true</span><span class="p">,</span> <span class="n">v_true</span> <span class="o">=</span> <span class="n">true_solution</span><span class="p">(</span><span class="n">t_fine</span><span class="p">)</span>
+
+<span class="c1"># Plotting</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+
+<span class="c1"># Plot Euler approximations</span>
+<span class="k">for</span> <span class="n">h</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">marker</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">step_sizes</span><span class="p">,</span> <span class="n">colors</span><span class="p">,</span> <span class="n">markers</span><span class="p">):</span>
+    <span class="n">t</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">euler_method</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">t_end</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">y</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="n">marker</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> 
+             <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Euler h = </span><span class="si">{</span><span class="n">h</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">markerfacecolor</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+
+<span class="c1"># Plot true solution last so it&#39;s on top</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_fine</span><span class="p">,</span> <span class="n">y_true</span><span class="p">,</span> <span class="s1">&#39;k-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;True trajectory&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Time (s)&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Height (m)&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Euler&#39;s Method: Effect of Step Size on Ballistic Trajectory Approximation&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+
+<span class="c1"># Add text to explain the effect of step size</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">2.5</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="s2">&quot;Smaller step sizes</span><span class="se">\n</span><span class="s2">yield better approximations&quot;</span><span class="p">,</span> 
+         <span class="n">bbox</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">),</span>
+         <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<img alt="_images/c6e546669f5e35e425c4d1ee54ab90c0350ef285dc8d6f34be0269cc67788793.png" src="_images/c6e546669f5e35e425c4d1ee54ab90c0350ef285dc8d6f34be0269cc67788793.png" />
+</div>
+</div>
+<p>Another way to understand Euler’s method is through the fundamental theorem of calculus:</p>
+<div class="math notranslate nohighlight">
+\[
+x(t + h) = x(t) + \int_t^{t+h} f(x(\tau), \tau) d\tau
+\]</div>
+<p>We then approximate the integral term with a box of width <span class="math notranslate nohighlight">\(h\)</span> and height <span class="math notranslate nohighlight">\(f\)</span>, and therefore of area <span class="math notranslate nohighlight">\(h f\)</span>.</p>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Show code cell source</span>
+<span class="expanded">Hide code cell source</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.patches</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rectangle</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">v</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Velocity function for the ballistic trajectory.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">v0</span> <span class="o">=</span> <span class="mi">20</span>   <span class="c1"># initial velocity (m/s)</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="mf">9.81</span>  <span class="c1"># acceleration due to gravity (m/s^2)</span>
+    <span class="k">return</span> <span class="n">v0</span> <span class="o">-</span> <span class="n">g</span> <span class="o">*</span> <span class="n">t</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">position</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Position function (integral of velocity).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">v0</span> <span class="o">=</span> <span class="mi">20</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="mf">9.81</span>
+    <span class="k">return</span> <span class="n">v0</span><span class="o">*</span><span class="n">t</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">g</span><span class="o">*</span><span class="n">t</span><span class="o">**</span><span class="mi">2</span>
+
+<span class="c1"># Set up the problem</span>
+<span class="n">t0</span><span class="p">,</span> <span class="n">t_end</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span>
+<span class="n">num_points</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">t0</span><span class="p">,</span> <span class="n">t_end</span><span class="p">,</span> <span class="n">num_points</span><span class="p">)</span>
+
+<span class="c1"># Calculate true velocity and position</span>
+<span class="n">v_true</span> <span class="o">=</span> <span class="n">v</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="n">x_true</span> <span class="o">=</span> <span class="n">position</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+<span class="c1"># Euler&#39;s method with a large step size for visualization</span>
+<span class="n">h</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="n">t_euler</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">t0</span><span class="p">,</span> <span class="n">t_end</span> <span class="o">+</span> <span class="n">h</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+<span class="n">x_euler</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">t_euler</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">t_euler</span><span class="p">)):</span>
+    <span class="n">x_euler</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_euler</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">h</span> <span class="o">*</span> <span class="n">v</span><span class="p">(</span><span class="n">t_euler</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+<span class="c1"># Plotting</span>
+<span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Plot velocity function and its approximation</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">v_true</span><span class="p">,</span> <span class="s1">&#39;b-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;True velocity&#39;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">v_true</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;True area (displacement)&#39;</span><span class="p">)</span>
+
+<span class="c1"># Add rectangles with hashed pattern, ruler-like annotations, and area values</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">t_euler</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="n">t_i</span> <span class="o">=</span> <span class="n">t_euler</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">v_i</span> <span class="o">=</span> <span class="n">v</span><span class="p">(</span><span class="n">t_i</span><span class="p">)</span>
+    <span class="n">rect</span> <span class="o">=</span> <span class="n">Rectangle</span><span class="p">((</span><span class="n">t_i</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">h</span><span class="p">,</span> <span class="n">v_i</span><span class="p">,</span> 
+                     <span class="n">fill</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> 
+                     <span class="n">alpha</span><span class="o">=</span><span class="mf">0.15</span><span class="p">,</span> <span class="n">hatch</span><span class="o">=</span><span class="s1">&#39;///&#39;</span><span class="p">)</span>
+    <span class="n">ax1</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">rect</span><span class="p">)</span>
+    
+    <span class="c1"># Add ruler-like annotations</span>
+    <span class="c1"># Vertical ruler (height)</span>
+    <span class="n">ax1</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="n">t_i</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">xytext</span><span class="o">=</span><span class="p">(</span><span class="n">t_i</span><span class="p">,</span> <span class="n">v_i</span><span class="p">),</span>
+                 <span class="n">arrowprops</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">arrowstyle</span><span class="o">=</span><span class="s1">&#39;&lt;-&gt;&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">))</span>
+    <span class="n">ax1</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">t_i</span> <span class="o">-</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">v_i</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;v(t</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">) = </span><span class="si">{</span><span class="n">v_i</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span> 
+             <span class="n">va</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Horizontal ruler (width)</span>
+    <span class="n">ax1</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="n">t_i</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">xytext</span><span class="o">=</span><span class="p">(</span><span class="n">t_i</span> <span class="o">+</span> <span class="n">h</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span>
+                 <span class="n">arrowprops</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">arrowstyle</span><span class="o">=</span><span class="s1">&#39;&lt;-&gt;&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">))</span>
+    <span class="n">ax1</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">t_i</span> <span class="o">+</span> <span class="n">h</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;h = </span><span class="si">{</span><span class="n">h</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;top&#39;</span><span class="p">,</span> 
+             <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Add area value in the middle of each rectangle</span>
+    <span class="n">area</span> <span class="o">=</span> <span class="n">h</span> <span class="o">*</span> <span class="n">v_i</span>
+    <span class="n">ax1</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">t_i</span> <span class="o">+</span> <span class="n">h</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">v_i</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Area = </span><span class="si">{</span><span class="n">area</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> 
+             <span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">,</span> <span class="n">bbox</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">))</span>
+
+<span class="c1"># Plot only the points for Euler&#39;s method</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_euler</span><span class="p">,</span> <span class="n">v</span><span class="p">(</span><span class="n">t_euler</span><span class="p">),</span> <span class="s1">&#39;ro&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Euler&#39;s points&quot;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Velocity (m/s)&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Velocity Function and Euler&#39;s Approximation&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">bottom</span><span class="o">=-</span><span class="mi">3</span><span class="p">)</span>  <span class="c1"># Extend y-axis to show horizontal rulers</span>
+
+<span class="c1"># Plot position function and its approximation</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x_true</span><span class="p">,</span> <span class="s1">&#39;b-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;True position&#39;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_euler</span><span class="p">,</span> <span class="n">x_euler</span><span class="p">,</span> <span class="s1">&#39;ro--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Euler&#39;s approximation&quot;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># Add vertical arrows and horizontal lines to show displacement and time step</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">t_euler</span><span class="p">)):</span>
+    <span class="n">t_i</span> <span class="o">=</span> <span class="n">t_euler</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">x_prev</span> <span class="o">=</span> <span class="n">x_euler</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">x_curr</span> <span class="o">=</span> <span class="n">x_euler</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    
+    <span class="c1"># Vertical line for displacement</span>
+    <span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">t_i</span><span class="p">,</span> <span class="n">t_i</span><span class="p">],</span> <span class="p">[</span><span class="n">x_prev</span><span class="p">,</span> <span class="n">x_curr</span><span class="p">],</span> <span class="s1">&#39;g:&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    
+    <span class="c1"># Horizontal line for time step</span>
+    <span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">t_i</span> <span class="o">-</span> <span class="n">h</span><span class="p">,</span> <span class="n">t_i</span><span class="p">],</span> <span class="p">[</span><span class="n">x_prev</span><span class="p">,</span> <span class="n">x_prev</span><span class="p">],</span> <span class="s1">&#39;g:&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    
+    <span class="c1"># Add text to show the displacement value</span>
+    <span class="n">displacement</span> <span class="o">=</span> <span class="n">x_curr</span> <span class="o">-</span> <span class="n">x_prev</span>
+    <span class="n">ax2</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">t_i</span> <span class="o">+</span> <span class="mf">0.05</span><span class="p">,</span> <span class="p">(</span><span class="n">x_prev</span> <span class="o">+</span> <span class="n">x_curr</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;+</span><span class="si">{</span><span class="n">displacement</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> 
+             <span class="n">color</span><span class="o">=</span><span class="s1">&#39;green&#39;</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Add text to show the time step</span>
+    <span class="n">ax2</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">t_i</span> <span class="o">-</span> <span class="n">h</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">x_prev</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;h = </span><span class="si">{</span><span class="n">h</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> 
+             <span class="n">color</span><span class="o">=</span><span class="s1">&#39;green&#39;</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;top&#39;</span><span class="p">)</span>
+
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Time (s)&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Position (m)&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Position: True vs Euler&#39;s Approximation&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+
+<span class="c1"># Add explanatory text</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">1.845</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="s2">&quot;Red hashed areas show</span><span class="se">\n</span><span class="s2">Euler&#39;s approximation</span><span class="se">\n</span><span class="s2">of the area under the curve&quot;</span><span class="p">,</span> 
+         <span class="n">bbox</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">),</span>
+         <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<img alt="_images/ce8eb043e762784070d3f9d1dd4e2ceca120fe54103d362232d8baa5777f332c.png" src="_images/ce8eb043e762784070d3f9d1dd4e2ceca120fe54103d362232d8baa5777f332c.png" />
+</div>
+</div>
+</section>
+<section id="implicit-euler-s-method">
+<h2>Implicit Euler’s Method<a class="headerlink" href="#implicit-euler-s-method" title="Link to this heading">#</a></h2>
+<p>An alternative approach is the Implicit Euler method, also known as the Backward Euler method. Instead of using the derivative at the current point to step forward, it uses the derivative at the end of the interval. This leads to the following update rule:</p>
+<div class="math notranslate nohighlight">
+\[
+x_{new} = x + h f(x_{new}, t_{new})
+\]</div>
+<p>Note that <span class="math notranslate nohighlight">\(x_{new}\)</span> appears on both sides of the equation, making this an implicit method. The algorithm for the Implicit Euler method can be described as follows:</p>
+<div class="proof algorithm admonition" id="implicit-euler-method">
+<p class="admonition-title"><span class="caption-number">Algorithm 45 </span> (Implicit Euler’s Method)</p>
+<section class="algorithm-content" id="proof-content">
+<p><strong>Input:</strong> <span class="math notranslate nohighlight">\(f(x, t)\)</span>, <span class="math notranslate nohighlight">\(x_0\)</span>, <span class="math notranslate nohighlight">\(t_0\)</span>, <span class="math notranslate nohighlight">\(t_{end}\)</span>, <span class="math notranslate nohighlight">\(h\)</span></p>
+<p><strong>Output:</strong> Approximate solution <span class="math notranslate nohighlight">\(x(t)\)</span> at discrete time points</p>
+<ol class="arabic simple">
+<li><p>Initialize <span class="math notranslate nohighlight">\(t = t_0\)</span>, <span class="math notranslate nohighlight">\(x = x_0\)</span></p></li>
+<li><p>While <span class="math notranslate nohighlight">\(t &lt; t_{end}\)</span>:</p></li>
+<li><p>Set <span class="math notranslate nohighlight">\(t_{new} = t + h\)</span></p></li>
+<li><p>Solve for <span class="math notranslate nohighlight">\(x_{new}\)</span> in the equation: <span class="math notranslate nohighlight">\(x_{new} = x + h f(x_{new}, t_{new})\)</span></p></li>
+<li><p>Update <span class="math notranslate nohighlight">\(t = t_{new}\)</span></p></li>
+<li><p>Update <span class="math notranslate nohighlight">\(x = x_{new}\)</span></p></li>
+<li><p>Store or output the pair <span class="math notranslate nohighlight">\((t, x)\)</span></p></li>
+<li><p>End While</p></li>
+</ol>
+</section>
+</div><p>The key difference in the Implicit Euler method is step 4, where we need to solve a (potentially nonlinear) equation to find <span class="math notranslate nohighlight">\(x_{new}\)</span>. This is typically done using iterative methods such as fixed-point iteration or Newton’s method.</p>
+<section id="stiff-odes">
+<h3>Stiff ODEs<a class="headerlink" href="#stiff-odes" title="Link to this heading">#</a></h3>
+<p>While the Implicit Euler method requires more computation per step, it often allows for larger step sizes and can provide better stability for certain types of problems, especially stiff ODEs.</p>
+<p>Stiff ODEs are differential equations for which certain numerical methods for solving the equation are numerically unstable, unless the step size is taken to be extremely small. These ODEs typically involve multiple processes occurring at widely different rates. In a stiff problem, the fastest-changing component of the solution can make the numerical method unstable unless the step size is extremely small. However, such a small step size may lead to an impractical amount of computation to traverse the entire interval of interest.</p>
+<p>For example, consider a chemical reaction where some reactions occur very quickly while others occur much more slowly. The fast reactions quickly approach their equilibrium, but small perturbations in the slower reactions can cause rapid changes in the fast reactions.</p>
+<p>A classic example of a stiff ODE is the Van der Pol oscillator with a large parameter. The Van der Pol equation is:</p>
+<div class="math notranslate nohighlight">
+\[
+\frac{d^2x}{dt^2} - \mu(1-x^2)\frac{dx}{dt} + x = 0
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(\mu\)</span> is a scalar parameter. This second-order ODE can be transformed into a system of first-order ODEs by introducing a new variable <span class="math notranslate nohighlight">\(y = \frac{dx}{dt}\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+\frac{dx}{dt} &amp;= y \\
+\frac{dy}{dt} &amp;= \mu(1-x^2)y - x
+\end{aligned}
+\end{split}\]</div>
+<p>When <span class="math notranslate nohighlight">\(\mu\)</span> is large (e.g., <span class="math notranslate nohighlight">\(\mu = 1000\)</span>), this system becomes stiff. The large <span class="math notranslate nohighlight">\(\mu\)</span> causes rapid changes in <span class="math notranslate nohighlight">\(y\)</span> when <span class="math notranslate nohighlight">\(x\)</span> is near ±1, but slower changes elsewhere. This leads to a solution with sharp transitions followed by periods of gradual change.</p>
+</section>
+</section>
+<section id="trapezoid-method">
+<h2>Trapezoid Method<a class="headerlink" href="#trapezoid-method" title="Link to this heading">#</a></h2>
+<p>The trapezoid method, also known as the trapezoidal rule, offers improved accuracy and stability compared to the simple Euler method. The name “trapezoid method” comes from the idea of using a trapezoid to approximate the integral term in the fundamental theorem of calculus. This leads to the following update rule:</p>
+<div class="math notranslate nohighlight">
+\[
+x_{new} = x + \frac{h}{2}[f(x, t) + f(x_{new}, t_{new})]
+\]</div>
+<p>where <span class="math notranslate nohighlight">\( t_{new} = t + h \)</span>. Note that this formula involves <span class="math notranslate nohighlight">\( x_{new} \)</span> on both sides of the equation, making it an implicit method, similar to the implicit Euler method discussed earlier.</p>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Show code cell source</span>
+<span class="expanded">Hide code cell source</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.patches</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rectangle</span><span class="p">,</span> <span class="n">Polygon</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">v</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Velocity function for the ballistic trajectory.&quot;&quot;&quot;</span>
+    <span class="n">v0</span> <span class="o">=</span> <span class="mi">20</span>   <span class="c1"># initial velocity (m/s)</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="mf">9.81</span>  <span class="c1"># acceleration due to gravity (m/s^2)</span>
+    <span class="k">return</span> <span class="n">v0</span> <span class="o">-</span> <span class="n">g</span> <span class="o">*</span> <span class="n">t</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">position</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Position function (integral of velocity).&quot;&quot;&quot;</span>
+    <span class="n">v0</span> <span class="o">=</span> <span class="mi">20</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="mf">9.81</span>
+    <span class="k">return</span> <span class="n">v0</span><span class="o">*</span><span class="n">t</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">g</span><span class="o">*</span><span class="n">t</span><span class="o">**</span><span class="mi">2</span>
+
+<span class="c1"># Set up the problem</span>
+<span class="n">t0</span><span class="p">,</span> <span class="n">t_end</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span>
+<span class="n">num_points</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">t0</span><span class="p">,</span> <span class="n">t_end</span><span class="p">,</span> <span class="n">num_points</span><span class="p">)</span>
+
+<span class="c1"># Calculate true velocity and position</span>
+<span class="n">v_true</span> <span class="o">=</span> <span class="n">v</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="n">x_true</span> <span class="o">=</span> <span class="n">position</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+<span class="c1"># Euler&#39;s method and Trapezoid method with a large step size for visualization</span>
+<span class="n">h</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="n">t_numeric</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">t0</span><span class="p">,</span> <span class="n">t_end</span> <span class="o">+</span> <span class="n">h</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+<span class="n">x_euler</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">t_numeric</span><span class="p">)</span>
+<span class="n">x_trapezoid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">t_numeric</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">t_numeric</span><span class="p">)):</span>
+    <span class="c1"># Euler&#39;s method</span>
+    <span class="n">x_euler</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_euler</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">h</span> <span class="o">*</span> <span class="n">v</span><span class="p">(</span><span class="n">t_numeric</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    
+    <span class="c1"># Trapezoid method (implicit, so we use a simple fixed-point iteration)</span>
+    <span class="n">x_trapezoid</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_trapezoid</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>  <span class="c1"># 5 iterations should be enough for this simple problem</span>
+        <span class="n">x_trapezoid</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_trapezoid</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">h</span><span class="o">/</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">v</span><span class="p">(</span><span class="n">t_numeric</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="n">v</span><span class="p">(</span><span class="n">t_numeric</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+
+<span class="c1"># Plotting</span>
+<span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Plot velocity function and its approximations</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">v_true</span><span class="p">,</span> <span class="s1">&#39;b-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;True velocity&#39;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">v_true</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;True area (displacement)&#39;</span><span class="p">)</span>
+
+<span class="c1"># Add trapezoids and rectangles</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">t_numeric</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="n">t_i</span><span class="p">,</span> <span class="n">t_next</span> <span class="o">=</span> <span class="n">t_numeric</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">t_numeric</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">v_i</span><span class="p">,</span> <span class="n">v_next</span> <span class="o">=</span> <span class="n">v</span><span class="p">(</span><span class="n">t_i</span><span class="p">),</span> <span class="n">v</span><span class="p">(</span><span class="n">t_next</span><span class="p">)</span>
+    
+    <span class="c1"># Euler&#39;s rectangle (hashed pattern)</span>
+    <span class="n">rect</span> <span class="o">=</span> <span class="n">Rectangle</span><span class="p">((</span><span class="n">t_i</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">h</span><span class="p">,</span> <span class="n">v_i</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.15</span><span class="p">,</span> <span class="n">hatch</span><span class="o">=</span><span class="s1">&#39;///&#39;</span><span class="p">)</span>
+    <span class="n">ax1</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">rect</span><span class="p">)</span>
+    
+    <span class="c1"># Trapezoid (dot pattern)</span>
+    <span class="n">trapezoid</span> <span class="o">=</span> <span class="n">Polygon</span><span class="p">([(</span><span class="n">t_i</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="n">t_i</span><span class="p">,</span> <span class="n">v_i</span><span class="p">),</span> <span class="p">(</span><span class="n">t_next</span><span class="p">,</span> <span class="n">v_next</span><span class="p">),</span> <span class="p">(</span><span class="n">t_next</span><span class="p">,</span> <span class="mi">0</span><span class="p">)],</span> 
+                        <span class="n">fill</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;green&#39;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.15</span><span class="p">,</span> <span class="n">hatch</span><span class="o">=</span><span class="s1">&#39;....&#39;</span><span class="p">)</span>
+    <span class="n">ax1</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">trapezoid</span><span class="p">)</span>
+    
+    <span class="c1"># Add area values</span>
+    <span class="n">euler_area</span> <span class="o">=</span> <span class="n">h</span> <span class="o">*</span> <span class="n">v_i</span>
+    <span class="n">trapezoid_area</span> <span class="o">=</span> <span class="n">h</span> <span class="o">*</span> <span class="p">(</span><span class="n">v_i</span> <span class="o">+</span> <span class="n">v_next</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="n">ax1</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">t_i</span> <span class="o">+</span> <span class="n">h</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">v_i</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Euler: </span><span class="si">{</span><span class="n">euler_area</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
+    <span class="n">ax1</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">t_i</span> <span class="o">+</span> <span class="n">h</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="p">(</span><span class="n">v_i</span> <span class="o">+</span> <span class="n">v_next</span><span class="p">)</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Trapezoid: </span><span class="si">{</span><span class="n">trapezoid_area</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;top&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;green&#39;</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
+
+<span class="c1"># Plot points for Euler&#39;s and Trapezoid methods</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_numeric</span><span class="p">,</span> <span class="n">v</span><span class="p">(</span><span class="n">t_numeric</span><span class="p">),</span> <span class="s1">&#39;ro&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Euler&#39;s points&quot;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_numeric</span><span class="p">,</span> <span class="n">v</span><span class="p">(</span><span class="n">t_numeric</span><span class="p">),</span> <span class="s1">&#39;go&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Trapezoid points&quot;</span><span class="p">)</span>
+
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Velocity (m/s)&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Velocity Function: True vs Numerical Approximations&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+
+<span class="c1"># Plot position function and its approximations</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x_true</span><span class="p">,</span> <span class="s1">&#39;b-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;True position&#39;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_numeric</span><span class="p">,</span> <span class="n">x_euler</span><span class="p">,</span> <span class="s1">&#39;ro--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Euler&#39;s approximation&quot;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_numeric</span><span class="p">,</span> <span class="n">x_trapezoid</span><span class="p">,</span> <span class="s1">&#39;go--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Trapezoid approximation&quot;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Time (s)&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Position (m)&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Position: True vs Numerical Approximations&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+
+<span class="c1"># Add explanatory text</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">1.76</span><span class="p">,</span> <span class="mi">17</span><span class="p">,</span> <span class="s2">&quot;Red hashed areas: Euler&#39;s approximation</span><span class="se">\n</span><span class="s2">Green dotted areas: Trapezoid approximation&quot;</span><span class="p">,</span> 
+         <span class="n">bbox</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">),</span>
+         <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<img alt="_images/ffd8117274ade7605b2e6f1a7ea5b1e123f07f921403ad34a611484422b9d94c.png" src="_images/ffd8117274ade7605b2e6f1a7ea5b1e123f07f921403ad34a611484422b9d94c.png" />
+</div>
+</div>
+<p>Algorithmically, the trapezoid method can be described as follows:</p>
+<div class="proof algorithm admonition" id="algorithm-2">
+<p class="admonition-title"><span class="caption-number">Algorithm 46 </span> (Trapezoid Method)</p>
+<section class="algorithm-content" id="proof-content">
+<p><strong>Input:</strong> <span class="math notranslate nohighlight">\( f(x, t) \)</span>, <span class="math notranslate nohighlight">\( x_0 \)</span>, <span class="math notranslate nohighlight">\( t_0 \)</span>, <span class="math notranslate nohighlight">\( t_{end} \)</span>, <span class="math notranslate nohighlight">\( h \)</span></p>
+<p><strong>Output:</strong> Approximate solution <span class="math notranslate nohighlight">\( x(t) \)</span> at discrete time points</p>
+<ol class="arabic simple">
+<li><p>Initialize <span class="math notranslate nohighlight">\( t = t_0 \)</span>, <span class="math notranslate nohighlight">\( x = x_0 \)</span></p></li>
+<li><p>While <span class="math notranslate nohighlight">\( t &lt; t_{end} \)</span>:</p></li>
+<li><p>Set <span class="math notranslate nohighlight">\( t_{new} = t + h \)</span></p></li>
+<li><p>Solve for <span class="math notranslate nohighlight">\( x_{new} \)</span>in the equation: <span class="math notranslate nohighlight">\( x_{new} = x + \frac{h}{2}[f(x, t) + f(x_{new}, t_{new})] \)</span></p></li>
+<li><p>Update <span class="math notranslate nohighlight">\( t = t_{new} \)</span></p></li>
+<li><p>Update <span class="math notranslate nohighlight">\( x = x_{new} \)</span></p></li>
+<li><p>Store or output the pair <span class="math notranslate nohighlight">\( (t, x) \)</span></p></li>
+</ol>
+</section>
+</div><p>The trapezoid method can also be derived by averaging the forward Euler and backward Euler methods. Recall that:</p>
+<ol class="arabic">
+<li><p><strong>Forward Euler method:</strong></p>
+<div class="math notranslate nohighlight">
+\[ x_{n+1} = x_n + h f(x_n, t_n) \]</div>
+</li>
+<li><p><strong>Backward Euler method:</strong></p>
+<div class="math notranslate nohighlight">
+\[ x_{n+1} = x_n + h f(x_{n+1}, t_{n+1}) \]</div>
+</li>
+</ol>
+<p>Taking the average of these two methods yields:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+x_{n+1} &amp;= \frac{1}{2} \left( x_n + h f(x_n, t_n) \right) + \frac{1}{2} \left( x_n + h f(x_{n+1}, t_{n+1}) \right) \\
+&amp;= x_n + \frac{h}{2} \left( f(x_n, t_n) + f(x_{n+1}, t_{n+1}) \right)
+\end{aligned}
+\end{split}\]</div>
+<p>This is precisely the update rule for the trapezoid method. Recall that the forward Euler method approximates the solution by extrapolating linearly using the slope at the beginning of the interval <span class="math notranslate nohighlight">\([t_n, t_{n+1}] \)</span>. In contrast, the backward Euler method extrapolates linearly using the slope at the end of the interval. The trapezoid method, on the other hand, averages these two slopes. This averaging provides better approximation properties than either of the methods alone, offering both stability and accuracy. Note finally that unlike the forward or backward Euler methods, the trapezoid method is also symmetric in time. This means that if you were to reverse time and apply the method backward, you would get the same results (up to numerical precision).</p>
+</section>
+<section id="trapezoidal-predictor-corrector">
+<h2>Trapezoidal Predictor-Corrector<a class="headerlink" href="#trapezoidal-predictor-corrector" title="Link to this heading">#</a></h2>
+<p>The trapezoid method can also be implemented under the so-called predictor-corrector framework. This interpretation reformulates the implicit trapezoid rule into an explicit two-step process:</p>
+<ol class="arabic">
+<li><p><strong>Predictor Step</strong>:<br />
+We make an initial guess for <span class="math notranslate nohighlight">\( x_{n+1} \)</span> using the forward Euler method:</p>
+<div class="math notranslate nohighlight">
+\[
+   x_{n+1}^* = x_n + h f(x_n, t_n)
+   \]</div>
+<p>This is our “predictor” step, where <span class="math notranslate nohighlight">\( x_{n+1}^* \)</span> is the predicted value of <span class="math notranslate nohighlight">\( x_{n+1} \)</span>.</p>
+</li>
+<li><p><strong>Corrector Step</strong>:<br />
+We then use this predicted value to estimate <span class="math notranslate nohighlight">\( f(x_{n+1}^*, t_{n+1}) \)</span> and apply the trapezoid formula:</p>
+<div class="math notranslate nohighlight">
+\[
+   x_{n+1} = x_n + \frac{h}{2} \left[ f(x_n, t_n) + f(x_{n+1}^*, t_{n+1}) \right]
+   \]</div>
+<p>This is our “corrector” step, where the initial guess <span class="math notranslate nohighlight">\( x_{n+1}^* \)</span> is corrected by taking into account the slope at <span class="math notranslate nohighlight">\( (x_{n+1}^*, t_{n+1}) \)</span>.</p>
+</li>
+</ol>
+<p>This two-step process is similar to performing one iteration of Newton’s method to solve the implicit trapezoid equation, starting from the Euler prediction. However, to fully solve the implicit equation, multiple iterations would be necessary until convergence is achieved.</p>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Show code cell source</span>
+<span class="expanded">Hide code cell source</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">f</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Derivative function for vertical motion under gravity.</span>
+<span class="sd">    y[0] is position, y[1] is velocity.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="mf">9.81</span>  <span class="c1"># acceleration due to gravity (m/s^2)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="o">-</span><span class="n">g</span><span class="p">])</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">true_solution</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Analytical solution for the ballistic trajectory.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">y0</span><span class="p">,</span> <span class="n">v0</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">20</span>  <span class="c1"># initial height and velocity</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="mf">9.81</span>
+    <span class="k">return</span> <span class="n">y0</span> <span class="o">+</span> <span class="n">v0</span><span class="o">*</span><span class="n">t</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">g</span><span class="o">*</span><span class="n">t</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">v0</span> <span class="o">-</span> <span class="n">g</span><span class="o">*</span><span class="n">t</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">trapezoid_method_visual</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">t_end</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Implement the trapezoid method for the entire time range.</span>
+<span class="sd">    Returns predictor and corrector steps for visualization.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">t0</span><span class="p">,</span> <span class="n">t_end</span> <span class="o">+</span> <span class="n">h</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="n">y_predictor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">y_predictor</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">y0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">)):</span>
+        <span class="c1"># Predictor step (Euler forward)</span>
+        <span class="n">slope_start</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">y_predictor</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">h</span> <span class="o">*</span> <span class="n">slope_start</span>
+        
+        <span class="c1"># Corrector step</span>
+        <span class="n">slope_end</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">y_predictor</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">h</span> <span class="o">*</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">slope_start</span> <span class="o">+</span> <span class="n">slope_end</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">y_predictor</span>
+
+<span class="c1"># Set up the problem</span>
+<span class="n">t0</span><span class="p">,</span> <span class="n">t_end</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span>
+<span class="n">y0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">20</span><span class="p">])</span>  <span class="c1"># initial height = 0, initial velocity = 20 m/s</span>
+<span class="n">h</span> <span class="o">=</span> <span class="mf">0.5</span>  <span class="c1"># Step size</span>
+
+<span class="c1"># Compute trapezoid method steps</span>
+<span class="n">t</span><span class="p">,</span> <span class="n">y_corrector</span><span class="p">,</span> <span class="n">y_predictor</span> <span class="o">=</span> <span class="n">trapezoid_method_visual</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">t_end</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+
+<span class="c1"># Plotting</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+
+<span class="c1"># Plot the true solution for comparison</span>
+<span class="n">t_fine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">t0</span><span class="p">,</span> <span class="n">t_end</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+<span class="n">y_true</span><span class="p">,</span> <span class="n">v_true</span> <span class="o">=</span> <span class="n">true_solution</span><span class="p">(</span><span class="n">t_fine</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_fine</span><span class="p">,</span> <span class="n">y_true</span><span class="p">,</span> <span class="s1">&#39;k-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;True trajectory&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+
+<span class="c1"># Plot the predictor and corrector steps</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+    <span class="c1"># Points for the predictor step</span>
+    <span class="n">p0</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">y_corrector</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]]</span>
+    <span class="n">p1_predictor</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span> <span class="n">y_predictor</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]]</span>
+    
+    <span class="c1"># Points for the corrector step</span>
+    <span class="n">p1_corrector</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span> <span class="n">y_corrector</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]]</span>
+    
+    <span class="c1"># Plot predictor step</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">p0</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p1_predictor</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="n">p0</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">p1_predictor</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="s1">&#39;r--&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">p1_predictor</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p1_predictor</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;ro&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+    
+    <span class="c1"># Plot corrector step</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">p0</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p1_corrector</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="n">p0</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">p1_corrector</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="s1">&#39;g--&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">p1_corrector</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p1_corrector</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;go&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+    
+    <span class="c1"># Add arrows to show the predictor and corrector adjustments</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">arrow</span><span class="p">(</span><span class="n">p0</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p0</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">h</span><span class="p">,</span> <span class="n">y_predictor</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">p0</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.005</span><span class="p">,</span> 
+              <span class="n">head_width</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span> <span class="n">head_length</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span> <span class="n">length_includes_head</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">arrow</span><span class="p">(</span><span class="n">p1_predictor</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p1_predictor</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">y_corrector</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">y_predictor</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> 
+              <span class="n">color</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.005</span><span class="p">,</span> <span class="n">head_width</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span> <span class="n">head_length</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span> <span class="n">length_includes_head</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+<span class="c1"># Add legend entries for predictor and corrector steps</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([],</span> <span class="p">[],</span> <span class="s1">&#39;r--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Predictor step (Forward Euler)&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([],</span> <span class="p">[],</span> <span class="s1">&#39;g-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Corrector step (Trapezoid)&#39;</span><span class="p">)</span>
+
+<span class="c1"># Labels and title</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Time (s)&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Height (m)&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Trapezoid Method: Predictor-Corrector Structure&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<img alt="_images/1e9a9ef46c07dced8c1f402d659d400aaf636a7237521188af92cafbc8fe4f96.png" src="_images/1e9a9ef46c07dced8c1f402d659d400aaf636a7237521188af92cafbc8fe4f96.png" />
+</div>
+</div>
+</section>
+<section id="collocation-methods">
+<h2>Collocation Methods<a class="headerlink" href="#collocation-methods" title="Link to this heading">#</a></h2>
+<p>The numerical integration methods we discussed earlier are inherently <strong>sequential</strong>: given an initial state, we step forward in time and approximate what happens over a short interval. The accuracy of this procedure depends on the chosen rule (Euler, trapezoid, Runge–Kutta) and on the information available locally. Each new state is obtained by evaluating a formula that approximates the derivative or integral over that small step.</p>
+<p><strong>Collocation methods provide an alternative viewpoint.</strong> Instead of advancing one step at a time, they approximate the entire trajectory with a finite set of basis functions and require the dynamics to hold at selected points. This replaces the original differential equation with a system of <strong>algebraic equations</strong>: relations among the coefficients of the basis functions that must all be satisfied simultaneously. Solving these equations fixes the whole trajectory in one computation.</p>
+<p>Seen from this angle, integration rules, spline interpolation, quadrature, and collocation are all instances of the same principle: an infinite-dimensional problem is reduced to finitely many parameters linked by numerical rules. The difference is mainly in scope. Sequential integration advances the state forward one interval at a time, which makes it simple but prone to error accumulation. Collocation belongs to the class of <strong>simultaneous methods</strong> already introduced for DOCPs: the entire trajectory is represented at once, the dynamics are imposed everywhere in the discretization, and approximation error is spread across the horizon rather than accumulating step by step.</p>
+<p>This global enforcement comes at a computational cost since the resulting algebraic system is larger and denser. However, the benefit is precisely the structural one we saw in simultaneous methods earlier: by exposing the coupling between states, controls, and dynamics explicitly, collocation allows solvers to exploit sparsity and to enforce path constraints directly at the collocation points. This is why collocation is especially effective for challenging continuous-time optimal control problems where robustness and constraint satisfaction are central.</p>
+</section>
+<section id="quick-primer-on-polynomials">
+<h2>Quick Primer on Polynomials<a class="headerlink" href="#quick-primer-on-polynomials" title="Link to this heading">#</a></h2>
+<p>Collocation methods are based on polynomial approximation theory. Therefore, the first step in developing collocation-based optimal control techniques is to review the fundamentals of polynomial functions.</p>
+<p>Polynomials are typically introduced through their standard form:</p>
+<div class="math notranslate nohighlight">
+\[
+p(t) = a_n t^n + a_{n-1} t^{n-1} + \cdots + a_1 t + a_0
+\]</div>
+<p>In this expression, the <span class="math notranslate nohighlight">\(a_i\)</span> are coefficients which linearly combine the powers of <span class="math notranslate nohighlight">\(t\)</span> to represent a function. The set of functions <span class="math notranslate nohighlight">\(\{ 1, t, t^2, t^3, \ldots, t^n \}\)</span> used in the standard polynomial representation is called the <strong>monomial basis</strong>.</p>
+<p>In linear algebra, a basis is a set of vectors in a vector space such that any vector in the space can be uniquely represented as a linear combination of these basis vectors. In the same way, a <strong>polynomial basis</strong> is such that any function <span class="math notranslate nohighlight">\( f(x) \)</span> (within the function space) to be expressed as:</p>
+<div class="math notranslate nohighlight">
+\[
+f(x) = \sum_{k=0}^{\infty} c_k p_k(x),
+\]</div>
+<p>where the coefficients <span class="math notranslate nohighlight">\( c_k \)</span> are generally determined by solving a system of equation.</p>
+<p>Just as vectors can be represented in different coordinate systems (bases), functions can also be expressed using various polynomial bases. However, the ability to apply a change of basis does not imply that all types of polynomials are equivalent from a practical standpoint. In practice, our choice of polynomial basis is dictated by considerations of efficiency, accuracy, and stability when approximating a function.</p>
+<p>For instance, despite the monomial basis being easy to understand and implement, it often performs poorly in practice due to numerical instability. This instability arises as its coefficients take on large values: an ill-conditioning problem. The following kinds of polynomial often remedy this issues.</p>
+<section id="orthogonal-polynomials">
+<h3>Orthogonal Polynomials<a class="headerlink" href="#orthogonal-polynomials" title="Link to this heading">#</a></h3>
+<p>An <strong>orthogonal polynomial basis</strong> is a set of polynomials that are not only orthogonal to each other but also form a complete basis for a certain space of functions. This means that any function within that space can be represented as a linear combination of these polynomials.</p>
+<p>More precisely, let <span class="math notranslate nohighlight">\( \{ p_0(x), p_1(x), p_2(x), \dots \} \)</span> be a sequence of polynomials where each <span class="math notranslate nohighlight">\( p_n(x) \)</span> is a polynomial of degree <span class="math notranslate nohighlight">\( n \)</span>. We say that this set forms an orthogonal polynomial basis if any polynomial <span class="math notranslate nohighlight">\( q(x) \)</span> of degree <span class="math notranslate nohighlight">\( n \)</span> or less can be uniquely expressed as a linear combination of <span class="math notranslate nohighlight">\( \{ p_0(x), p_1(x), \dots, p_n(x) \} \)</span>. Furthermore, the orthogonality property means that for any <span class="math notranslate nohighlight">\( i \neq j \)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+\langle p_i, p_j \rangle = \int_a^b p_i(x) p_j(x) w(x) \, dx = 0.
+\]</div>
+<p>for some weight function <span class="math notranslate nohighlight">\( w(x) \)</span> over a given interval of orthogonality <span class="math notranslate nohighlight">\( [a, b] \)</span>.</p>
+<p>The orthogonality property allows to simplify the computation of the coefficients involved in the polynomial representation of a function. At a high level, what happens is that when taking the inner product of <span class="math notranslate nohighlight">\( f(x) \)</span> with each basis polynomial, <span class="math notranslate nohighlight">\( p_k(x) \)</span> isolates the corresponding coefficient <span class="math notranslate nohighlight">\( c_k \)</span>, which can be found to be:</p>
+<div class="math notranslate nohighlight">
+\[
+c_k = \frac{\langle f, p_k \rangle}{\langle p_k, p_k \rangle} = \frac{\int_a^b f(x) p_k(x) w(x) \, dx}{\int_a^b p_k(x)^2 w(x) \, dx}.
+\]</div>
+<p>Here are some examples of the most common orthogonal polynomials used in practice.</p>
+<section id="legendre-polynomials">
+<h4>Legendre Polynomials<a class="headerlink" href="#legendre-polynomials" title="Link to this heading">#</a></h4>
+<p>Legendre polynomials <span class="math notranslate nohighlight">\( \{ P_n(x) \} \)</span> are defined on the interval <span class="math notranslate nohighlight">\([-1, 1]\)</span> and satisfy the orthogonality condition:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\int_{-1}^{1} P_n(x) P_m(x) \, dx = 
+\begin{cases}
+0 &amp; \text{if } n \neq m, \\
+\frac{2}{2n + 1} &amp; \text{if } n = m.
+\end{cases}
+\end{split}\]</div>
+<p>They can be generated using the recurrence relation:</p>
+<div class="math notranslate nohighlight">
+\[
+(n+1) P_{n+1}(x) = (2n + 1) x P_n(x) - n P_{n-1}(x),
+\]</div>
+<p>with initial conditions:</p>
+<div class="math notranslate nohighlight">
+\[
+P_0(x) = 1, \quad P_1(x) = x.
+\]</div>
+<p>The first four Legendre polynomials resulting from this recurrence are the following:</p>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Show code cell source</span>
+<span class="expanded">Hide code cell source</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">IPython.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">display</span><span class="p">,</span> <span class="n">Math</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">legendre_polynomial</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">poly1d</span><span class="p">([</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">x</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">p0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">poly1d</span><span class="p">([</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">p1</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">p2</span> <span class="o">=</span> <span class="p">((</span><span class="mi">2</span> <span class="o">*</span> <span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">p1</span> <span class="o">-</span> <span class="p">(</span><span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">p0</span><span class="p">)</span> <span class="o">/</span> <span class="n">k</span>
+            <span class="n">p0</span><span class="p">,</span> <span class="n">p1</span> <span class="o">=</span> <span class="n">p1</span><span class="p">,</span> <span class="n">p2</span>
+        <span class="k">return</span> <span class="n">p1</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">legendre_coefficients</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">poly1d</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>  <span class="c1"># Define a poly1d object to represent x</span>
+    <span class="n">poly</span> <span class="o">=</span> <span class="n">legendre_polynomial</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">poly</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">poly_to_latex</span><span class="p">(</span><span class="n">poly</span><span class="p">):</span>
+    <span class="n">coeffs</span> <span class="o">=</span> <span class="n">poly</span><span class="o">.</span><span class="n">coefficients</span>
+    <span class="n">variable</span> <span class="o">=</span> <span class="n">poly</span><span class="o">.</span><span class="n">variable</span>
+    
+    <span class="n">terms</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">coeff</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">coeffs</span><span class="p">):</span>
+        <span class="n">power</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">coeffs</span><span class="p">)</span> <span class="o">-</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">coeff</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">coeff_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">coeff</span><span class="si">:</span><span class="s2">.2g</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">coeff</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">}</span> <span class="ow">or</span> <span class="n">power</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="k">if</span> <span class="n">coeff</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">power</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">term</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">coeff_str</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">elif</span> <span class="n">power</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">term</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">coeff_str</span><span class="si">}{</span><span class="n">variable</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">term</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">coeff_str</span><span class="si">}{</span><span class="n">variable</span><span class="si">}</span><span class="s2">^</span><span class="si">{</span><span class="n">power</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">terms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">term</span><span class="p">)</span>
+    
+    <span class="n">latex_poly</span> <span class="o">=</span> <span class="s2">&quot; + &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">terms</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; + -&quot;</span><span class="p">,</span> <span class="s2">&quot; - &quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">latex_poly</span>
+
+<span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+    <span class="n">poly</span> <span class="o">=</span> <span class="n">legendre_coefficients</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+    <span class="n">display</span><span class="p">(</span><span class="n">Math</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;P_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">(x) = </span><span class="si">{</span><span class="n">poly_to_latex</span><span class="p">(</span><span class="n">poly</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<div class="output text_latex math notranslate nohighlight">
+\[\displaystyle P_0(x) = 1\]</div>
+<div class="output text_latex math notranslate nohighlight">
+\[\displaystyle P_1(x) = x\]</div>
+<div class="output text_latex math notranslate nohighlight">
+\[\displaystyle P_2(x) = 1.5x^2 - 0.5\]</div>
+<div class="output text_latex math notranslate nohighlight">
+\[\displaystyle P_3(x) = 2.5x^3 - 1.5x\]</div>
+</div>
+</div>
+</section>
+<section id="chebyshev-polynomials">
+<h4>Chebyshev Polynomials<a class="headerlink" href="#chebyshev-polynomials" title="Link to this heading">#</a></h4>
+<p>There are two types of Chebyshev polynomials: <strong>Chebyshev polynomials of the first kind</strong>, <span class="math notranslate nohighlight">\( \{ T_n(x) \} \)</span>, and <strong>Chebyshev polynomials of the second kind</strong>, <span class="math notranslate nohighlight">\( \{ U_n(x) \} \)</span>. We typically focus on the first kind. They are defined on the interval <span class="math notranslate nohighlight">\([-1, 1]\)</span> and satisfy the orthogonality condition:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\int_{-1}^{1} \frac{T_n(x) T_m(x)}{\sqrt{1 - x^2}} \, dx = 
+\begin{cases}
+0 &amp; \text{if } n \neq m, \\
+\frac{\pi}{2} &amp; \text{if } n = m \neq 0, \\
+\pi &amp; \text{if } n = m = 0.
+\end{cases}
+\end{split}\]</div>
+<p>The Chebyshev polynomials of the first kind can be generated using the recurrence relation:</p>
+<div class="math notranslate nohighlight">
+\[
+T_{n+1}(x) = 2x T_n(x) - T_{n-1}(x),
+\]</div>
+<p>with initial conditions:</p>
+<div class="math notranslate nohighlight">
+\[
+T_0(x) = 1, \quad T_1(x) = x.
+\]</div>
+<p>Remarkably, this recurrence relation also admits an explicit formula:</p>
+<div class="math notranslate nohighlight">
+\[
+T_n(x) = \cos(n \cos^{-1}(x)).
+\]</div>
+<p>Let’s now implement it in Python:</p>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Show code cell source</span>
+<span class="expanded">Hide code cell source</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">chebyshev_polynomial</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">poly1d</span><span class="p">([</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">x</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">t0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">poly1d</span><span class="p">([</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">t1</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">t2</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">t1</span> <span class="o">-</span> <span class="n">t0</span>
+            <span class="n">t0</span><span class="p">,</span> <span class="n">t1</span> <span class="o">=</span> <span class="n">t1</span><span class="p">,</span> <span class="n">t2</span>
+        <span class="k">return</span> <span class="n">t1</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">chebyshev_coefficients</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">poly1d</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>  <span class="c1"># Define a poly1d object to represent x</span>
+    <span class="n">poly</span> <span class="o">=</span> <span class="n">chebyshev_polynomial</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">poly</span>
+
+<span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+    <span class="n">poly</span> <span class="o">=</span> <span class="n">chebyshev_coefficients</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+    <span class="n">display</span><span class="p">(</span><span class="n">Math</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;T_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">(x) = </span><span class="si">{</span><span class="n">poly_to_latex</span><span class="p">(</span><span class="n">poly</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<div class="output text_latex math notranslate nohighlight">
+\[\displaystyle T_0(x) = 1\]</div>
+<div class="output text_latex math notranslate nohighlight">
+\[\displaystyle T_1(x) = x\]</div>
+<div class="output text_latex math notranslate nohighlight">
+\[\displaystyle T_2(x) = 2x^2 - 1\]</div>
+<div class="output text_latex math notranslate nohighlight">
+\[\displaystyle T_3(x) = 4x^3 - 3x\]</div>
+</div>
+</div>
+</section>
+<section id="hermite-polynomials">
+<h4>Hermite Polynomials<a class="headerlink" href="#hermite-polynomials" title="Link to this heading">#</a></h4>
+<p>Hermite polynomials <span class="math notranslate nohighlight">\( \{ H_n(x) \} \)</span> are defined on the entire real line and are orthogonal with respect to the weight function <span class="math notranslate nohighlight">\( w(x) = e^{-x^2} \)</span>. They satisfy the orthogonality condition:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\int_{-\infty}^{\infty} H_n(x) H_m(x) e^{-x^2} \, dx = 
+\begin{cases}
+0 &amp; \text{if } n \neq m, \\
+2^n n! \sqrt{\pi} &amp; \text{if } n = m.
+\end{cases}
+\end{split}\]</div>
+<p>Hermite polynomials can be generated using the recurrence relation:</p>
+<div class="math notranslate nohighlight">
+\[
+H_{n+1}(x) = 2x H_n(x) - 2n H_{n-1}(x),
+\]</div>
+<p>with initial conditions:</p>
+<div class="math notranslate nohighlight">
+\[
+H_0(x) = 1, \quad H_1(x) = 2x.
+\]</div>
+<p>The following code computes the coefficients of the first four Hermite polynomials:</p>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Show code cell source</span>
+<span class="expanded">Hide code cell source</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">hermite_polynomial</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">poly1d</span><span class="p">([</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">x</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">h0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">poly1d</span><span class="p">([</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">h1</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">x</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">h2</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">h1</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">h0</span>
+            <span class="n">h0</span><span class="p">,</span> <span class="n">h1</span> <span class="o">=</span> <span class="n">h1</span><span class="p">,</span> <span class="n">h2</span>
+        <span class="k">return</span> <span class="n">h1</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">hermite_coefficients</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">poly1d</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>  <span class="c1"># Define a poly1d object to represent x</span>
+    <span class="n">poly</span> <span class="o">=</span> <span class="n">hermite_polynomial</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">poly</span>
+
+<span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+    <span class="n">poly</span> <span class="o">=</span> <span class="n">hermite_coefficients</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+    <span class="n">display</span><span class="p">(</span><span class="n">Math</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;H_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">(x) = </span><span class="si">{</span><span class="n">poly_to_latex</span><span class="p">(</span><span class="n">poly</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<div class="output text_latex math notranslate nohighlight">
+\[\displaystyle H_0(x) = 1\]</div>
+<div class="output text_latex math notranslate nohighlight">
+\[\displaystyle H_1(x) = 2x\]</div>
+<div class="output text_latex math notranslate nohighlight">
+\[\displaystyle H_2(x) = 4x^2 - 2\]</div>
+<div class="output text_latex math notranslate nohighlight">
+\[\displaystyle H_3(x) = 8x^3 - 12x\]</div>
+</div>
+</div>
+</section>
+</section>
+</section>
+<section id="collocation-conditions">
+<h2>Collocation Conditions<a class="headerlink" href="#collocation-conditions" title="Link to this heading">#</a></h2>
+<p>Consider a general ODE of the form:</p>
+<div class="math notranslate nohighlight">
+\[
+\dot{y}(t) = f(y(t), t), \quad y(t_0) = y_0,
+\]</div>
+<p>where <span class="math notranslate nohighlight">\( y(t) \in \mathbb{R}^n \)</span> is the state vector, and <span class="math notranslate nohighlight">\( f: \mathbb{R}^n \times \mathbb{R} \rightarrow \mathbb{R}^n \)</span> is a known function. The goal is to approximate the solution <span class="math notranslate nohighlight">\( y(t) \)</span> over a given interval <span class="math notranslate nohighlight">\([t_0, t_f]\)</span>. Collocation methods achieve this by:</p>
+<ol class="arabic">
+<li><p><strong>Choosing a basis</strong> to approximate <span class="math notranslate nohighlight">\( y(t) \)</span> using a finite sum of basis functions <span class="math notranslate nohighlight">\( \phi_i(t) \)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+   y(t) \approx \sum_{i=0}^{N} c_i \phi_i(t),
+   \]</div>
+<p>where <span class="math notranslate nohighlight">\( \{c_i\} \)</span> are the coefficients to be determined.</p>
+</li>
+<li><p><strong>Selecting collocation points</strong> <span class="math notranslate nohighlight">\( t_1, t_2, \ldots, t_N \)</span> within the interval <span class="math notranslate nohighlight">\([t_0, t_f]\)</span>. These are typically chosen to be the roots of certain orthogonal polynomials, like Legendre or Chebyshev polynomials, or can be spread equally across the interval.</p></li>
+<li><p><strong>Enforcing the ODE at the collocation points</strong> for each <span class="math notranslate nohighlight">\( t_j \)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+   \dot{y}(t_j) = f(y(t_j), t_j).
+   \]</div>
+<p>To implement this, we differentiate the approximate solution <span class="math notranslate nohighlight">\( y(t) \)</span> with respect to time:</p>
+<div class="math notranslate nohighlight">
+\[
+   \dot{y}(t) \approx \sum_{i=0}^{N} c_i \dot{\phi}_i(t).
+   \]</div>
+<p>Substituting this into the ODE at the collocation points gives:</p>
+<div class="math notranslate nohighlight">
+\[
+   \sum_{i=0}^{N} c_i \dot{\phi}_i(t_j) = f\left(\sum_{i=0}^{N} c_i \phi_i(t_j), t_j\right), \quad j = 1, \ldots, N.
+   \]</div>
+</li>
+</ol>
+<p>The collocation equations are formed by enforcing the ODE at all collocation points, leading to a system of nonlinear equations:</p>
+<div class="math notranslate nohighlight">
+\[
+\sum_{i=0}^{N} c_i \dot{\phi}_i(t_j) - f\left(\sum_{i=0}^{N} c_i \phi_i(t_j), t_j\right) = 0, \quad j = 1, \ldots, N.
+\]</div>
+<p>Furthermore when solving an initial value problem (IVP),  we also need to incorporate the initial condition <span class="math notranslate nohighlight">\( y(t_0) = y_0 \)</span> as an additional constraint:</p>
+<div class="math notranslate nohighlight">
+\[
+\sum_{i=0}^{N} c_i \phi_i(t_0) = y_0.
+\]</div>
+<p>The collocation conditions and IVP condition are combined together to form a root-finding problem, which we can generically solve numerically using Newton’s method.</p>
+</section>
+<section id="common-numerical-integration-techniques-as-collocation-methods">
+<h2>Common Numerical Integration Techniques as Collocation Methods<a class="headerlink" href="#common-numerical-integration-techniques-as-collocation-methods" title="Link to this heading">#</a></h2>
+<p>Many common numerical integration techniques can be viewed as special cases of collocation methods.
+While the general collocation method we discussed earlier applies to the entire interval <span class="math notranslate nohighlight">\([t_0, t_f]\)</span>, many numerical integration techniques can be viewed as collocation methods applied locally, step by step.</p>
+<p>In practical numerical integration, we often divide the full interval <span class="math notranslate nohighlight">\([t_0, t_f]\)</span> into smaller subintervals or steps. In general, this allows us to user simpler basis functions thereby reducing computational complexity, and gives us more flexibility in dynamically ajusting the step size using local error estimates. When we apply collocation locally, we’re essentially using the collocation method to “step” from <span class="math notranslate nohighlight">\(t_n\)</span> to <span class="math notranslate nohighlight">\(t_{n+1}\)</span>. As we did, earlier we still apply the following three steps:</p>
+<ol class="arabic simple">
+<li><p>We choose a basis function to approximate <span class="math notranslate nohighlight">\(y(t)\)</span> over <span class="math notranslate nohighlight">\([t_n, t_{n+1}]\)</span>.</p></li>
+<li><p>We select collocation points within this interval.</p></li>
+<li><p>We enforce the ODE at these points to determine the coefficients of our basis function.</p></li>
+</ol>
+<p>We can make this idea clearer by re-deriving some of the numerical integration methods seen before using this perspective.</p>
+<section id="explicit-euler-method">
+<h3>Explicit Euler Method<a class="headerlink" href="#explicit-euler-method" title="Link to this heading">#</a></h3>
+<p>For the Explicit Euler method, we use a linear basis function for each step:</p>
+<div class="math notranslate nohighlight">
+\[
+\phi(t) = 1 + c(t - t_n)
+\]</div>
+<p>Note that we use <span class="math notranslate nohighlight">\((t - t_n)\)</span> rather than just <span class="math notranslate nohighlight">\(t\)</span> because we’re approximating the solution locally, relative to the start of each step. We then choose one collocation point at <span class="math notranslate nohighlight">\(t_{n+1}\)</span> where we have:</p>
+<div class="math notranslate nohighlight">
+\[
+y'(t_{n+1}) = c = f(y_n, t_n)
+\]</div>
+<p>Our local approximation is:</p>
+<div class="math notranslate nohighlight">
+\[
+y(t) \approx y_n + c(t - t_n)
+\]</div>
+<p>At <span class="math notranslate nohighlight">\(t = t_{n+1}\)</span>, this gives:</p>
+<div class="math notranslate nohighlight">
+\[
+y_{n+1} = y_n + c(t_{n+1} - t_n) = y_n + hf(y_n, t_n)
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(h = t_{n+1} - t_n\)</span>. This is the classic Euler update formula.</p>
+</section>
+<section id="implicit-euler-method">
+<h3>Implicit Euler Method<a class="headerlink" href="#implicit-euler-method" title="Link to this heading">#</a></h3>
+<p>The Implicit Euler method uses the same linear basis function:</p>
+<div class="math notranslate nohighlight">
+\[
+\phi(t) = 1 + c(t - t_n)
+\]</div>
+<p>Again, we choose one collocation point at <span class="math notranslate nohighlight">\(t_{n+1}\)</span>. The main difference is that we enforce the ODE using <span class="math notranslate nohighlight">\(y_{n+1}\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+y'(t_{n+1}) = c = f(y_{n+1}, t_{n+1})
+\]</div>
+<p>Our approximation remains:</p>
+<div class="math notranslate nohighlight">
+\[
+y(t) \approx y_n + c(t - t_n)
+\]</div>
+<p>At <span class="math notranslate nohighlight">\(t = t_{n+1}\)</span>, this leads to the implicit equation:</p>
+<div class="math notranslate nohighlight">
+\[
+y_{n+1} = y_n + hf(y_{n+1}, t_{n+1})
+\]</div>
+</section>
+<section id="trapezoidal-method">
+<h3>Trapezoidal Method<a class="headerlink" href="#trapezoidal-method" title="Link to this heading">#</a></h3>
+<p>The Trapezoidal method uses a quadratic basis function:</p>
+<div class="math notranslate nohighlight">
+\[
+\phi(t) = 1 + c(t - t_n) + a(t - t_n)^2
+\]</div>
+<p>We use two collocation points: <span class="math notranslate nohighlight">\(t_n\)</span> and <span class="math notranslate nohighlight">\(t_{n+1}\)</span>. Enforcing the ODE at these points gives:</p>
+<ul class="simple">
+<li><p>At <span class="math notranslate nohighlight">\(t_n\)</span>:</p></li>
+</ul>
+<div class="math notranslate nohighlight">
+\[
+y'(t_n) = c = f(y_n, t_n)
+\]</div>
+<ul class="simple">
+<li><p>At <span class="math notranslate nohighlight">\(t_{n+1}\)</span>:</p></li>
+</ul>
+<div class="math notranslate nohighlight">
+\[
+y'(t_{n+1}) = c + 2ah = f(y_n + ch + ah^2, t_{n+1})
+\]</div>
+<p>Our approximation is:</p>
+<div class="math notranslate nohighlight">
+\[
+y(t) \approx y_n + c(t - t_n) + a(t - t_n)^2
+\]</div>
+<p>At <span class="math notranslate nohighlight">\(t = t_{n+1}\)</span>, this gives:</p>
+<div class="math notranslate nohighlight">
+\[
+y_{n+1} = y_n + ch + ah^2
+\]</div>
+<p>Solving the system of equations leads to the trapezoidal update:</p>
+<div class="math notranslate nohighlight">
+\[
+y_{n+1} = y_n + \frac{h}{2}[f(y_n, t_n) + f(y_{n+1}, t_{n+1})]
+\]</div>
+</section>
+<section id="runge-kutta-methods">
+<h3>Runge-Kutta Methods<a class="headerlink" href="#runge-kutta-methods" title="Link to this heading">#</a></h3>
+<p>Higher-order Runge-Kutta methods can also be interpreted as collocation methods. The RK4 method corresponds to a collocation method using a cubic polynomial basis:</p>
+<div class="math notranslate nohighlight">
+\[
+\phi(t) = 1 + c_1(t - t_n) + c_2(t - t_n)^2 + c_3(t - t_n)^3
+\]</div>
+<p>Here, we’re using a cubic polynomial to approximate the solution over each step, rather than the linear or quadratic approximations of the other methods above. For RK4, we use four collocation points:</p>
+<ol class="arabic simple">
+<li><p><span class="math notranslate nohighlight">\(t_n\)</span> (the start of the step)</p></li>
+<li><p><span class="math notranslate nohighlight">\(t_n + h/2\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(t_n + h/2\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(t_n + h\)</span> (the end of the step)</p></li>
+</ol>
+<p>These points are called the “Gauss-Lobatto” points, scaled to our interval <span class="math notranslate nohighlight">\([t_n, t_n + h]\)</span>.
+The RK4 method enforces the ODE at these collocation points, leading to four stages:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+k_1 &amp;= hf(y_n, t_n) \\
+k_2 &amp;= hf(y_n + \frac{1}{2}k_1, t_n + \frac{h}{2}) \\
+k_3 &amp;= hf(y_n + \frac{1}{2}k_2, t_n + \frac{h}{2}) \\
+k_4 &amp;= hf(y_n + k_3, t_n + h)
+\end{aligned}
+\end{split}\]</div>
+<p>The final update formula for RK4 can be derived by solving the system of equations resulting from enforcing the ODE at our collocation points:</p>
+<div class="math notranslate nohighlight">
+\[
+y_{n+1} = y_n + \frac{1}{6}(k_1 + 2k_2 + 2k_3 + k_4)
+\]</div>
+</section>
+</section>
+<section id="example-solving-a-simple-ode-by-collocation">
+<h2>Example: Solving a Simple ODE by Collocation<a class="headerlink" href="#example-solving-a-simple-ode-by-collocation" title="Link to this heading">#</a></h2>
+<p>Consider a simple ODE:</p>
+<div class="math notranslate nohighlight">
+\[
+\frac{dy}{dt} = -y, \quad y(0) = 1, \quad t \in [0, 2]
+\]</div>
+<p>The analytical solution is <span class="math notranslate nohighlight">\(y(t) = e^{-t}\)</span>. We apply the collocation method with a monomial basis of order <span class="math notranslate nohighlight">\(N\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+\phi_i(t) = t^i, \quad i = 0, 1, \ldots, N
+\]</div>
+<p>We select <span class="math notranslate nohighlight">\(N\)</span> equally spaced points <span class="math notranslate nohighlight">\(\{t_1, \ldots, t_N\}\)</span> in <span class="math notranslate nohighlight">\([0, 2]\)</span> as collocation points.</p>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Show code cell source</span>
+<span class="expanded">Hide code cell source</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">root</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">ode_function</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Define the ODE: dy/dt = -y&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="o">-</span><span class="n">y</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">solve_ode_collocation</span><span class="p">(</span><span class="n">ode_func</span><span class="p">,</span> <span class="n">t_span</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">order</span><span class="p">):</span>
+    <span class="n">t0</span><span class="p">,</span> <span class="n">tf</span> <span class="o">=</span> <span class="n">t_span</span>
+    <span class="n">n_points</span> <span class="o">=</span> <span class="n">order</span> <span class="o">+</span> <span class="mi">1</span>  <span class="c1"># number of collocation points</span>
+    <span class="n">t_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">t0</span><span class="p">,</span> <span class="n">tf</span><span class="p">,</span> <span class="n">n_points</span><span class="p">)</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">collocation_residuals</span><span class="p">(</span><span class="n">coeffs</span><span class="p">):</span>
+        <span class="n">residuals</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># Initial condition residual</span>
+        <span class="n">y_init</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">c</span> <span class="o">*</span> <span class="n">t_points</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">coeffs</span><span class="p">))</span>
+        <span class="n">residuals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y_init</span> <span class="o">-</span> <span class="n">y0</span><span class="p">)</span>
+        <span class="c1"># Collocation point residuals</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">t_points</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>  <span class="c1"># Skip the first point as it&#39;s used for initial condition</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">c</span> <span class="o">*</span> <span class="n">t</span><span class="o">**</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">coeffs</span><span class="p">))</span>
+            <span class="n">dy_dt</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">c</span> <span class="o">*</span> <span class="n">i</span> <span class="o">*</span> <span class="n">t</span><span class="o">**</span><span class="p">(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">coeffs</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">residuals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dy_dt</span> <span class="o">-</span> <span class="n">ode_func</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">t</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">residuals</span>
+
+    <span class="c1"># Initial guess for coefficients</span>
+    <span class="n">initial_coeffs</span> <span class="o">=</span> <span class="p">[</span><span class="n">y0</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">order</span>
+
+    <span class="c1"># Solve the system of equations</span>
+    <span class="n">solution</span> <span class="o">=</span> <span class="n">root</span><span class="p">(</span><span class="n">collocation_residuals</span><span class="p">,</span> <span class="n">initial_coeffs</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">solution</span><span class="o">.</span><span class="n">success</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Failed to converge to a solution.&quot;</span><span class="p">)</span>
+
+    <span class="n">coeffs</span> <span class="o">=</span> <span class="n">solution</span><span class="o">.</span><span class="n">x</span>
+
+    <span class="c1"># Generate solution</span>
+    <span class="n">t_fine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">t0</span><span class="p">,</span> <span class="n">tf</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+    <span class="n">y_solution</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">c</span> <span class="o">*</span> <span class="n">t_fine</span><span class="o">**</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">coeffs</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">t_fine</span><span class="p">,</span> <span class="n">y_solution</span><span class="p">,</span> <span class="n">t_points</span><span class="p">,</span> <span class="n">coeffs</span>
+
+<span class="c1"># Example usage</span>
+<span class="n">t_span</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">y0</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">orders</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>  <span class="c1"># Different polynomial orders to try</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+
+<span class="k">for</span> <span class="n">order</span> <span class="ow">in</span> <span class="n">orders</span><span class="p">:</span>
+    <span class="n">t</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">t_collocation</span><span class="p">,</span> <span class="n">coeffs</span> <span class="o">=</span> <span class="n">solve_ode_collocation</span><span class="p">(</span><span class="n">ode_function</span><span class="p">,</span> <span class="n">t_span</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
+    
+    <span class="c1"># Calculate y values at collocation points</span>
+    <span class="n">y_collocation</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">c</span> <span class="o">*</span> <span class="n">t_collocation</span><span class="o">**</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">coeffs</span><span class="p">))</span>
+    
+    <span class="c1"># Plot the results</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Order </span><span class="si">{</span><span class="n">order</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">t_collocation</span><span class="p">,</span> <span class="n">y_collocation</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+<span class="c1"># Plot the analytical solution</span>
+<span class="n">t_analytical</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">t_span</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">t_span</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">100</span><span class="p">)</span>
+<span class="n">y_analytical</span> <span class="o">=</span> <span class="n">y0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">t_analytical</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_analytical</span><span class="p">,</span> <span class="n">y_analytical</span><span class="p">,</span> <span class="s1">&#39;k--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Analytical&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;t&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;ODE Solutions: dy/dt = -y, y(0) = 1&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1"># Print error for each order</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Maximum absolute errors:&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">order</span> <span class="ow">in</span> <span class="n">orders</span><span class="p">:</span>
+    <span class="n">t</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">solve_ode_collocation</span><span class="p">(</span><span class="n">ode_function</span><span class="p">,</span> <span class="n">t_span</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
+    <span class="n">y_true</span> <span class="o">=</span> <span class="n">y0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">t</span><span class="p">)</span>
+    <span class="n">max_error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">y_true</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Order </span><span class="si">{</span><span class="n">order</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">max_error</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">ValueError</span><span class="g g-Whitespace">                                </span>Traceback (most recent call last)
+<span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">8</span><span class="p">],</span> <span class="n">line</span> <span class="mi">51</span>
+<span class="g g-Whitespace">     </span><span class="mi">48</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+<span class="g g-Whitespace">     </span><span class="mi">50</span> <span class="k">for</span> <span class="n">order</span> <span class="ow">in</span> <span class="n">orders</span><span class="p">:</span>
+<span class="ne">---&gt; </span><span class="mi">51</span>     <span class="n">t</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">t_collocation</span><span class="p">,</span> <span class="n">coeffs</span> <span class="o">=</span> <span class="n">solve_ode_collocation</span><span class="p">(</span><span class="n">ode_function</span><span class="p">,</span> <span class="n">t_span</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">53</span>     <span class="c1"># Calculate y values at collocation points</span>
+<span class="nn">     54     y_collocation = sum(c * t_collocation**i for i, c</span> in <span class="ni">enumerate</span><span class="nt">(coeffs))</span>
+
+<span class="nn">Cell In[8], line 33,</span> in <span class="ni">solve_ode_collocation</span><span class="nt">(ode_func, t_span, y0, order)</span>
+<span class="g g-Whitespace">     </span><span class="mi">30</span> <span class="n">solution</span> <span class="o">=</span> <span class="n">root</span><span class="p">(</span><span class="n">collocation_residuals</span><span class="p">,</span> <span class="n">initial_coeffs</span><span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">32</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">solution</span><span class="o">.</span><span class="n">success</span><span class="p">:</span>
+<span class="ne">---&gt; </span><span class="mi">33</span>     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Failed to converge to a solution.&quot;</span><span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">35</span> <span class="n">coeffs</span> <span class="o">=</span> <span class="n">solution</span><span class="o">.</span><span class="n">x</span>
+<span class="g g-Whitespace">     </span><span class="mi">37</span> <span class="c1"># Generate solution</span>
+
+<span class="ne">ValueError</span>: Failed to converge to a solution.
+</pre></div>
+</div>
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Figure size 1200x800 with 0 Axes&gt;
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./."
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="appendix_examples.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Example COCPs</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="appendix_nlp.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Nonlinear Programming</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#euler-s-method">Euler’s Method</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implicit-euler-s-method">Implicit Euler’s Method</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#stiff-odes">Stiff ODEs</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#trapezoid-method">Trapezoid Method</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#trapezoidal-predictor-corrector">Trapezoidal Predictor-Corrector</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#collocation-methods">Collocation Methods</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-primer-on-polynomials">Quick Primer on Polynomials</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#orthogonal-polynomials">Orthogonal Polynomials</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#legendre-polynomials">Legendre Polynomials</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#chebyshev-polynomials">Chebyshev Polynomials</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#hermite-polynomials">Hermite Polynomials</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#collocation-conditions">Collocation Conditions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#common-numerical-integration-techniques-as-collocation-methods">Common Numerical Integration Techniques as Collocation Methods</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#explicit-euler-method">Explicit Euler Method</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#implicit-euler-method">Implicit Euler Method</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#trapezoidal-method">Trapezoidal Method</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#runge-kutta-methods">Runge-Kutta Methods</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-solving-a-simple-ode-by-collocation">Example: Solving a Simple ODE by Collocation</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Pierre-Luc Bacon
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

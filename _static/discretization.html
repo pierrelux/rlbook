@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Direct Transcription: nodes, defects, and cost</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { margin: 0; }
+    </style>
+    <!-- No bundler needed; icons are re-implemented inline below -->
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        // Simple icon components (replace lucide-react)
+        const Play = ({ size = 16 }) => <span style={{ fontSize: size }}>▶</span>;
+        const Pause = ({ size = 16 }) => <span style={{ fontSize: size }}>⏸</span>;
+        const RotateCcw = ({ size = 16 }) => <span style={{ fontSize: size }}>↻</span>;
+        const Info = ({ size = 20, className = '' }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" stroke="#2563eb" strokeWidth="2" fill="#bfdbfe"/>
+                <rect x="11" y="10" width="2" height="7" fill="#1e3a8a"/>
+                <circle cx="12" cy="7" r="1.2" fill="#1e3a8a"/>
+            </svg>
+        );
+        const AlertTriangle = ({ x = 0, y = 0, size = 16, color = '#dc2626' }) => (
+            <g transform={`translate(${x}, ${y})`}>
+                <polygon points={`0,${size} ${size/2},0 ${size},${size}`} fill={color} />
+                <line x1={size/2} y1={size*0.35} x2={size/2} y2={size*0.72} stroke="#ffffff" strokeWidth="2"/>
+                <circle cx={size/2} cy={size*0.85} r="1.5" fill="#ffffff"/>
+            </g>
+        );
+
+        const DirectTranscriptionViz = () => {
+          // ---------------- UI state ----------------
+          const [selectedMethod, setSelectedMethod] = useState('hermite-simpson'); // 'trapezoid' | 'hermite-simpson' | 'rk4'
+          const [paramU, setParamU] = useState('zoh'); // 'zoh' | 'foh'
+          const [meshN, setMeshN] = useState(6);
+          const [animating, setAnimating] = useState(false);
+          const [progress, setProgress] = useState(0);
+          const [showContinuous, setShowContinuous] = useState(true);
+          const [showMesh, setShowMesh] = useState(true);
+          const [showInterior, setShowInterior] = useState(true);
+          const [showCostBars, setShowCostBars] = useState(true);
+          const [xMax, setXMax] = useState(1.2); // path constraint |x| <= xMax
+          const [a, setA] = useState(1.5);
+          const [b, setB] = useState(1.0);
+
+          // -------------- problem setup --------------
+          const t0 = 0, tf = 1;
+          const x0 = 1.0;
+          const uf = 0.0; // just to shape u(t)
+          const cost = (x, u) => x * x + 0.1 * u * u; // running cost
+
+          // Node layout
+          const times = useMemo(() => {
+            // Uniform mesh for simplicity
+            return Array.from({ length: meshN }, (_, i) => t0 + (tf - t0) * (i / (meshN - 1)));
+          }, [meshN]);
+
+          // Control parameterization (ZOH or FOH) -> u at any t in [tk, tk+1]
+          const uAt = (t) => {
+            if (t <= t0) return 0.5;
+            if (t >= tf) return uf;
+            // base control shape for pedagogy (smooth-ish)
+            const uSamples = times.map(tt => 0.6 * Math.cos(4 * Math.PI * tt) * Math.exp(-1.5 * tt));
+            // find cell
+            let k = times.findIndex((tt, i) => tt <= t && t <= times[i + 1]);
+            if (k < 0) k = times.length - 2;
+            const tk = times[k], tk1 = times[k + 1];
+            const uk = uSamples[k], uk1 = uSamples[k + 1];
+            if (paramU === 'zoh') return uk;
+            const alpha = (t - tk) / (tk1 - tk);
+            return (1 - alpha) * uk + alpha * uk1;
+          };
+
+          // Dynamics and reference "true" trajectory (used for continuous curve)
+          const f = (x, u) => -a * x + b * u;
+
+          const trueTraj = useMemo(() => {
+            // simple explicit Euler with small dt to draw a smooth reference
+            const points = [];
+            const steps = 400;
+            let x = x0;
+            for (let i = 0; i <= steps; i++) {
+              const t = t0 + (tf - t0) * (i / steps);
+              points.push({ t, x, u: uAt(t) });
+              // step
+              const dt = (tf - t0) / steps;
+              x = x + dt * f(x, uAt(t));
+            }
+            return points;
+          }, [a, b, paramU, meshN]); // uAt depends on mesh nodes
+
+          // Values at mesh nodes (used by transcription equations)
+          const xNodes = useMemo(() => {
+            // initialize from evaluating true trajectory at nodes (just for display)
+            // In a real NLP, these are decision variables; we use a proxy so defects are visible.
+            const interp = (t) => {
+              // nearest-neighbor into trueTraj
+              let j = Math.round((t - t0) / (tf - t0) * (trueTraj.length - 1));
+              j = Math.max(0, Math.min(trueTraj.length - 1, j));
+              return trueTraj[j].x;
+            };
+            return times.map(interp);
+          }, [times, trueTraj]);
+
+          const uNodes = useMemo(() => times.map(uAt), [times, paramU, meshN]);
+
+          // -------------- methods --------------
+          const methods = {
+            trapezoid: {
+              name: 'Trapezoidal collocation',
+              interiorNodes: [], // endpoints only
+              quadrature: (hk, fk, fkp1) => 0.5 * hk * (fk + fkp1), // for cost, we will pass c not f
+              defect: (hk, xk, xkp1, fk, fkp1) => xkp1 - xk - 0.5 * hk * (fk + fkp1),
+              hasMidpoint: false,
+              descEq: 'x_{k+1}-x_k - (h_k/2)(f_k+f_{k+1}) = 0'
+            },
+            'hermite-simpson': {
+              name: 'Hermite–Simpson collocation',
+              interiorNodes: [0.5],
+              quadrature: (hk, ck, cMid, ckp1) => (hk / 6) * (ck + 4 * cMid + ckp1),
+              defectHS: (hk, xk, xkp1, fk, fkp1, fMid) => xkp1 - xk - (hk / 6) * (fk + 4 * fMid + fkp1),
+              hasMidpoint: true,
+              descEq: 'x_{k+1}-x_k - (h_k/6)(f_k + 4 f_{k+1/2} + f_{k+1}) = 0'
+            },
+            rk4: {
+              name: 'Sequential integrator (RK4) [contrast]',
+              interiorNodes: [0.5],
+              descEq: 'RK4 advances x, but is not a direct transcription constraint'
+            }
+          };
+
+          // -------------- per-window calculations --------------
+          const windows = useMemo(() => {
+            const out = [];
+            for (let k = 0; k < times.length - 1; k++) {
+              const tk = times[k], tk1 = times[k + 1];
+              const hk = tk1 - tk;
+
+              const xk = xNodes[k], xkp1 = xNodes[k + 1];
+              const uk = uNodes[k], ukp1 = uNodes[k + 1];
+
+              const fk = f(xk, uk);
+              const fkp1 = f(xkp1, ukp1);
+
+              // midpoint values depend on method and control parameterization
+              const tMid = tk + 0.5 * hk;
+              const uMid = paramU === 'zoh' ? uk : 0.5 * (uk + ukp1);
+              const xMidHermite = xk + 0.5 * hk * ((2 * fk - fkp1) / 2); // just a visual guess; exact Hermite cubic not solved here
+              const fMid = f(xMidHermite, uMid);
+
+              // costs for bars
+              const ck = cost(xk, uk);
+              const ckp1 = cost(xkp1, ukp1);
+              const cMid = cost(xMidHermite, uMid);
+
+              let defect = 0;
+              let windowCost = 0;
+
+              if (selectedMethod === 'trapezoid') {
+                defect = methods.trapezoid.defect(hk, xk, xkp1, fk, fkp1);
+                windowCost = methods.trapezoid.quadrature(hk, ck, ckp1);
+              } else if (selectedMethod === 'hermite-simpson') {
+                defect = methods['hermite-simpson'].defectHS(hk, xk, xkp1, fk, fkp1, fMid);
+                windowCost = methods['hermite-simpson'].quadrature(hk, ck, cMid, ckp1);
+              } else {
+                // RK4: compute a step and report local integration error vs node value
+                const k1 = fk;
+                const k2 = f(xk + 0.5 * hk * k1, uMid);
+                const k3 = f(xk + 0.5 * hk * k2, uMid);
+                const k4 = f(xk + hk * k3, ukp1);
+                const xRK = xk + (hk / 6) * (k1 + 2 * k2 + 2 * k3 + k4);
+                defect = xkp1 - xRK; // not a constraint in transcription, just showing mismatch
+                // cost with Simpson to be fair
+                windowCost = (hk / 6) * (ck + 4 * cMid + ckp1);
+              }
+
+              // path constraint margin
+              const marginK = Math.abs(xk) - xMax;
+              const marginK1 = Math.abs(xkp1) - xMax;
+              const violates = marginK > 0 || marginK1 > 0;
+
+              out.push({
+                k, tk, tk1, hk, xk, xkp1, uk, ukp1, fk, fkp1, tMid, uMid, fMid,
+                defect, windowCost, violates, marginK, marginK1
+              });
+            }
+            return out;
+          }, [times, xNodes, uNodes, selectedMethod, paramU, a, b, xMax]);
+
+          const totalCost = windows.reduce((s, w) => s + w.windowCost, 0);
+          const defectNorm = Math.sqrt(windows.reduce((s, w) => s + w.defect * w.defect, 0));
+
+          // -------------- animation --------------
+          useEffect(() => {
+            if (!animating) return;
+            let raf;
+            const tick = () => {
+              setProgress(p => (p >= 1 ? 0 : p + 0.01));
+              raf = requestAnimationFrame(tick);
+            };
+            raf = requestAnimationFrame(tick);
+            return () => cancelAnimationFrame(raf);
+          }, [animating]);
+
+          // active window index for highlight
+          const activeK = Math.min(windows.length - 1, Math.floor(progress * windows.length));
+
+          // -------------- layout helpers --------------
+          const W = 740, H = 480, padL = 60, padR = 20;
+          const plotW = W - padL - padR;
+          const xToX = (t) => padL + plotW * ((t - t0) / (tf - t0));
+          const xToY = (x) => 220 - 120 * x;     // state panel
+          const uToY = (u) => 420 - 80 * u;      // control panel
+
+          return (
+            <div className="w-full max-w-6xl mx-auto p-6 bg-gradient-to-br from-slate-50 to-blue-50 rounded-lg shadow-xl">
+              <div className="mb-4">
+                <h2 className="text-2xl font-bold text-gray-800">Direct Transcription: nodes, defects, and cost</h2>
+                <p className="text-gray-600">See how collocation turns a differential equation into algebraic constraints on mesh nodes and interior points.</p>
+              </div>
+
+              {/* Controls */}
+              <div className="bg-white rounded-lg p-4 mb-4 shadow-md flex flex-wrap gap-4 items-center">
+                <div className="flex gap-2">
+                  <button onClick={() => setAnimating(v => !v)} className="px-3 py-2 bg-blue-500 text-white rounded-lg flex items-center gap-2">
+                    {animating ? <Pause size={16}/> : <Play size={16}/>}{animating ? 'Pause' : 'Animate'}
+                  </button>
+                  <button onClick={() => { setAnimating(false); setProgress(0); }} className="px-3 py-2 bg-gray-500 text-white rounded-lg flex items-center gap-2">
+                    <RotateCcw size={16}/>Reset
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <label className="text-sm">Method:</label>
+                  <select value={selectedMethod} onChange={e => setSelectedMethod(e.target.value)}
+                          className="px-2 py-1 bg-gray-100 rounded">
+                    <option value="trapezoid">Trapezoidal collocation</option>
+                    <option value="hermite-simpson">Hermite–Simpson collocation</option>
+                    <option value="rk4">Sequential integrator (RK4) [contrast]</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <label className="text-sm">u(t) param:</label>
+                  <select value={paramU} onChange={e => setParamU(e.target.value)}
+                          className="px-2 py-1 bg-gray-100 rounded">
+                    <option value="zoh">ZOH (piecewise constant)</option>
+                    <option value="foh">FOH (piecewise linear)</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <label className="text-sm">Intervals N:</label>
+                  <input type="range" min={3} max={16} value={meshN} onChange={e => setMeshN(parseInt(e.target.value))}
+                         className="w-32"/><span className="text-sm">{meshN}</span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <label className="text-sm">a:</label>
+                  <input type="number" step="0.1" value={a} onChange={e => setA(parseFloat(e.target.value))}
+                         className="w-20 px-2 py-1 bg-gray-100 rounded"/>
+                  <label className="text-sm">b:</label>
+                  <input type="number" step="0.1" value={b} onChange={e => setB(parseFloat(e.target.value))}
+                         className="w-20 px-2 py-1 bg-gray-100 rounded"/>
+                  <label className="text-sm">|x| ≤</label>
+                  <input type="number" step="0.1" value={xMax} onChange={e => setXMax(parseFloat(e.target.value))}
+                         className="w-20 px-2 py-1 bg-gray-100 rounded"/>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={showContinuous} onChange={e => setShowContinuous(e.target.checked)}/>Continuous</label>
+                  <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={showMesh} onChange={e => setShowMesh(e.target.checked)}/>Mesh</label>
+                  <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={showInterior} onChange={e => setShowInterior(e.target.checked)}/>Interior</label>
+                  <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={showCostBars} onChange={e => setShowCostBars(e.target.checked)}/>Cost bars</label>
+                </div>
+              </div>
+
+              {/* Main SVG */}
+              <div className="bg-white rounded-lg p-4 shadow-md">
+                <svg width={W} height={H}>
+                  {/* axes */}
+                  <line x1={padL} y1={220} x2={W-padR} y2={220} stroke="#e5e7eb"/>
+                  <text x={10} y={20} className="fill-gray-700 text-sm">State x(t)</text>
+
+                  {/* continuous reference */}
+                  {showContinuous && (
+                    <path
+                      d={trueTraj.map((p,i)=>`${i===0?'M':'L'} ${xToX(p.t)} ${xToY(p.x)}`).join(' ')}
+                      fill="none" stroke="#3b82f6" strokeWidth="2" opacity="0.6"
+                    />
+                  )}
+
+                  {/* mesh windows, nodes, defects */}
+                  {windows.map((w, i) => {
+                    const active = i === activeK;
+                    const xStart = xToX(w.tk), xEnd = xToX(w.tk1);
+                    const yTop = 80, yBottom = 360;
+
+                    // defect arrow from predicted update to node value
+                    const yk = xToY(w.xk), yk1 = xToY(w.xkp1);
+                    const yPred = xToY(w.xk + 0.5 * (w.hk) * (w.fk + w.fkp1)); // trapezoid prediction just to visualize
+                    const defectMag = Math.abs(w.defect);
+
+                    return (
+                      <g key={i}>
+                        {/* window box */}
+                        <rect x={xStart} y={yTop} width={xEnd - xStart} height={140}
+                              fill={active ? '#3b82f6' : '#e0e7ff'} opacity={active ? 0.18 : 0.08}
+                              stroke={active ? '#3b82f6' : '#c7d2fe'} strokeWidth={active ? 2 : 1}/>
+                        <text x={(xStart+xEnd)/2} y={yTop-6} textAnchor="middle" className="text-xs fill-gray-600">
+                          [{i}, {i+1}]  h={w.hk.toFixed(2)}
+                        </text>
+
+                        {/* nodes */}
+                        {showMesh && (
+                          <>
+                            <line x1={xStart} y1={yTop} x2={xStart} y2={yTop+140} stroke="#9ca3af" opacity="0.4"/>
+                            <line x1={xEnd} y1={yTop} x2={xEnd} y2={yTop+140} stroke="#9ca3af" opacity="0.4"/>
+                            <circle cx={xStart} cy={yk} r={5} fill="#ef4444"/>
+                            <circle cx={xEnd} cy={yk1} r={5} fill="#ef4444"/>
+                          </>
+                        )}
+
+                        {/* path constraint indicator */}
+                        {w.violates && (
+                          <g>
+                            <AlertTriangle x={(xStart+xEnd)/2 - 8} y={yTop + 58} size={16} color="#dc2626"/>
+                            <text x={(xStart+xEnd)/2} y={yTop + 78} textAnchor="middle" className="text-[10px] fill-red-600">
+                              |x|{'>'} {xMax.toFixed(2)}
+                            </text>
+                          </g>
+                        )}
+
+                        {/* defect vector */}
+                        <line x1={xEnd} y1={xToY(w.xkp1 - w.defect)} x2={xEnd} y2={yk1}
+                              stroke={defectMag < 1e-3 ? '#10b981' : '#f59e0b'}
+                              strokeWidth={2} markerEnd="url(#arrow)"/>
+                      </g>
+                    );
+                  })}
+
+                  {/* arrow marker for defects */}
+                  <defs>
+                    <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                      <path d="M 0 0 L 10 5 L 0 10 z" fill="#6b7280" />
+                    </marker>
+                  </defs>
+
+                  {/* control panel */}
+                  <line x1={padL} y1={420} x2={W-padR} y2={420} stroke="#e5e7eb"/>
+                  <text x={10} y={260} className="fill-gray-700 text-sm">Control u(t)</text>
+
+                  {/* control curve and samples */}
+                  {showContinuous && (
+                    <path
+                      d={Array.from({length:300},(_,i)=>{
+                        const t = t0 + (tf-t0)*(i/299);
+                        const u = uAt(t);
+                        return `${i===0?'M':'L'} ${xToX(t)} ${uToY(u)}`;
+                      }).join(' ')}
+                      fill="none" stroke="#10b981" strokeWidth="2" opacity="0.6"
+                    />
+                  )}
+                  {showMesh && times.map((t,i)=>(
+                    <g key={`u-${i}`}>
+                      <circle cx={xToX(t)} cy={uToY(uNodes[i])} r={4} fill="#10b981"/>
+                    </g>
+                  ))}
+
+                  {/* cost bars */}
+                  {showCostBars && windows.map((w,i)=>{
+                    const xStart = xToX(w.tk), xEnd = xToX(w.tk1);
+                    const barH = Math.min(80, w.windowCost * 60); // scaled
+                    return (
+                      <g key={`c-${i}`}>
+                        <rect x={xStart+2} y={420 - barH} width={(xEnd-xStart)-4} height={barH} fill="#6366f1" opacity="0.25"/>
+                      </g>
+                    );
+                  })}
+                </svg>
+
+                {/* Summary strip */}
+                <div className="mt-3 text-sm text-gray-700 flex flex-wrap gap-6">
+                  <div><span className="font-semibold">Total quadrature cost:</span> {totalCost.toFixed(3)}</div>
+                  <div><span className="font-semibold">Defect 2-norm:</span> {defectNorm.toExponential(2)}</div>
+                  <div><span className="font-semibold">Method:</span> {methods[selectedMethod]?.name}</div>
+                  <div className="italic text-gray-500">
+                    {selectedMethod === 'trapezoid' && 'Enforces x_{k+1}-x_k -(h/2)(f_k+f_{k+1})=0'}
+                    {selectedMethod === 'hermite-simpson' && 'Enforces x_{k+1}-x_k -(h/6)(f_k+4f_{k+1/2}+f_{k+1})=0'}
+                    {selectedMethod === 'rk4' && 'RK4 advances x; shown as contrast, not a constraint'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Info panel */}
+              <div className="mt-4 bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <div className="flex gap-2 items-start">
+                  <Info className="text-blue-600 mt-1" size={20}/>
+                  <div className="text-sm text-gray-700 leading-relaxed">
+                    <p className="font-semibold mb-1">What this is showing</p>
+                    <p>
+                      Direct transcription replaces the differential equation with algebraic <em>defect constraints</em>
+                      on node values of x(t). The running cost is integrated by quadrature using the same evaluation points.
+                      Control is parameterized as ZOH or FOH which modifies the evaluation of f and the midpoint term in
+                      Hermite–Simpson. Path constraints are checked at nodes and highlighted when violated.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        };
+
+        // Render into the page
+        ReactDOM.render(React.createElement(DirectTranscriptionViz), document.getElementById('root'));
+    </script>
+</body>
+</html>

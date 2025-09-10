@@ -16,22 +16,20 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
-  <!-- 
-    this give us a css class that will be invisible only if js is disabled 
-  -->
-  <noscript>
-    <style>
-      .pst-js-only { display: none !important; }
-
-    </style>
-  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
     <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
@@ -41,11 +39,10 @@
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css" />
   
-  <!-- So that users can add custom icons -->
-  <script src="_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
     <script src="_static/documentation_options.js?v=9eb32ce0"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
@@ -66,7 +63,6 @@
     <script>window.MathJax = {"tex": {"macros": {"bm": ["{\\boldsymbol #1}", 1]}, "processEscapes": true}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'dp';</script>
-    <script src="_static/hydro.js?v=67e01585"></script>
     <script src="_static/iframe-modal.js?v=f72a1242"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -74,7 +70,6 @@
     <link rel="prev" title="From Trajectories to Policies" href="mpc.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="" />
   </head>
   
   
@@ -90,8 +85,19 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <dialog id="pst-search-dialog">
-    
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
 <form class="bd-search d-flex align-items-center"
       action="search.html"
       method="get">
@@ -99,6 +105,7 @@
   <input type="search"
          class="form-control"
          name="q"
+         id="search-input"
          placeholder="Search this book..."
          aria-label="Search this book..."
          autocomplete="off"
@@ -106,8 +113,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form>
-  </dialog>
+</form></div>
+  </div>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -123,8 +130,7 @@
       
       
       
-      <dialog id="pst-primary-sidebar-modal"></dialog>
-      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+      <div class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -154,11 +160,15 @@
 </a></div>
         <div class="sidebar-primary-item">
 
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button></div>
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         
@@ -178,6 +188,7 @@
 
 
 
+
 <li class="toctree-l1"><a class="reference internal" href="simulation.html">Programs as Models</a></li>
 
 </ul>
@@ -185,7 +196,11 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="ocp.html">Discrete-Time Trajectory Optimization</a></li>
 
-<li class="toctree-l1"><a class="reference internal" href="cocp.html">Continuous-Time Trajectory Optimization</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="cocp.html">Trajectory Optimization in Continuous Time</a></li>
+
+
+
 
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">From Trajectories to Policies</span></p>
@@ -216,11 +231,9 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Appendix</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="appendix.html">Nonlinear Programming</a></li>
-
-
-
-
+<li class="toctree-l1"><a class="reference internal" href="appendix_examples.html">Example COCPs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_ivps.html">Solving Initial Value Problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_nlp.html">Nonlinear Programming</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
 <ul class="nav bd-sidenav">
@@ -396,16 +409,24 @@
 
 
 
-<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
-  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
-  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
-  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
-</button>
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
 
 
-<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
-</button>
+  </button>
+`);
+</script>
 <button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <span class="fa-solid fa-list"></span>
 </button>
@@ -593,7 +614,7 @@ v_{\pi^*}(s) = v^*(s), \quad \forall s \in \mathcal{S}
 \[ v^*(s) = \max_{\pi \in \Pi^{\mathrm{HR}}} v_\pi(s) = \max _{\pi \in \Pi^{M D}} v_\pi(s), \quad s \in S\]</div>
 <p>This equality significantly simplifies the computational complexity of our algorithms, as the search problem can now be decomposed into <span class="math notranslate nohighlight">\(N\)</span> sub-problems in which we only have to search over the set of possible actions. This is the backward induction algorithm, which we present a second time, but departing this time from the control-theoretic notation and using the MDP formalism:</p>
 <div class="proof algorithm admonition" id="backward-induction">
-<p class="admonition-title"><span class="caption-number">Algorithm 9 </span> (Backward Induction)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 6 </span> (Backward Induction)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> State space <span class="math notranslate nohighlight">\(S\)</span>, Action space <span class="math notranslate nohighlight">\(A\)</span>, Transition probabilities <span class="math notranslate nohighlight">\(p_t\)</span>, Reward function <span class="math notranslate nohighlight">\(r_t\)</span>, Time horizon <span class="math notranslate nohighlight">\(N\)</span></p>
 <p><strong>Output:</strong> Optimal value functions <span class="math notranslate nohighlight">\(v^*\)</span></p>
@@ -624,7 +645,7 @@ a. Compute the optimal value function:</p>
 </section>
 </div><p>Note that the same procedure can also be used for finding the value of a policy with minor changes;</p>
 <div class="proof algorithm admonition" id="backward-policy-evaluation">
-<p class="admonition-title"><span class="caption-number">Algorithm 10 </span> (Policy Evaluation)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 7 </span> (Policy Evaluation)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong></p>
 <ul class="simple">
@@ -726,26 +747,26 @@ where <span class="math notranslate nohighlight">\(\eta_3\)</span> is the signif
 <span class="expanded">Hide code cell source</span>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">binom</span>
-<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">norm</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.stats</span><span class="w"> </span><span class="kn">import</span> <span class="n">binom</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.stats</span><span class="w"> </span><span class="kn">import</span> <span class="n">norm</span>
 
-<span class="k">def</span> <span class="nf">binomial_pmf</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">binomial_pmf</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">binom</span><span class="o">.</span><span class="n">pmf</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">transition_prob_phase1</span><span class="p">(</span><span class="n">n1</span><span class="p">,</span> <span class="n">eta1</span><span class="p">,</span> <span class="n">p0</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">transition_prob_phase1</span><span class="p">(</span><span class="n">n1</span><span class="p">,</span> <span class="n">eta1</span><span class="p">,</span> <span class="n">p0</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">binomial_pmf</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">n1</span><span class="p">,</span> <span class="n">p0</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">eta1</span> <span class="o">*</span> <span class="n">n1</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)])</span>
 
-<span class="k">def</span> <span class="nf">transition_prob_phase2</span><span class="p">(</span><span class="n">n2</span><span class="p">,</span> <span class="n">eta2</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">transition_prob_phase2</span><span class="p">(</span><span class="n">n2</span><span class="p">,</span> <span class="n">eta2</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">norm</span><span class="o">.</span><span class="n">cdf</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">delta</span> <span class="o">-</span> <span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">eta2</span><span class="p">))</span>
 
-<span class="k">def</span> <span class="nf">transition_prob_phase3</span><span class="p">(</span><span class="n">n3</span><span class="p">,</span> <span class="n">eta3</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">transition_prob_phase3</span><span class="p">(</span><span class="n">n3</span><span class="p">,</span> <span class="n">eta3</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">norm</span><span class="o">.</span><span class="n">cdf</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n3</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">delta</span> <span class="o">-</span> <span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">eta3</span><span class="p">))</span>
 
-<span class="k">def</span> <span class="nf">immediate_reward</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">immediate_reward</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
     <span class="k">return</span> <span class="o">-</span><span class="n">n</span>  <span class="c1"># Negative to represent cost</span>
 
-<span class="k">def</span> <span class="nf">backward_induction</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">g4</span><span class="p">,</span> <span class="n">p0</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">eta1</span><span class="p">,</span> <span class="n">eta2</span><span class="p">,</span> <span class="n">eta3</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">backward_induction</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">g4</span><span class="p">,</span> <span class="n">p0</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">eta1</span><span class="p">,</span> <span class="n">eta2</span><span class="p">,</span> <span class="n">eta3</span><span class="p">):</span>
     <span class="n">V</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">S</span><span class="p">))</span>
     <span class="n">V</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">g4</span>  <span class="c1"># Value for NDA approval state</span>
     <span class="n">optimal_n</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span>  <span class="c1"># Store optimal n for each phase</span>
@@ -1025,7 +1046,7 @@ Here, <span class="math notranslate nohighlight">\(K\)</span> is a closed convex
 <h3>Successive Approximation Method<a class="headerlink" href="#successive-approximation-method" title="Link to this heading">#</a></h3>
 <p>For equations in fixed point form, a common numerical solution method is successive approximation, also known as fixed-point iteration:</p>
 <div class="proof algorithm admonition" id="successive-approximation">
-<p class="admonition-title"><span class="caption-number">Algorithm 11 </span> (Successive Approximation)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 8 </span> (Successive Approximation)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> An operator <span class="math notranslate nohighlight">\(\mathrm{T}: X \rightarrow X\)</span>, an initial guess <span class="math notranslate nohighlight">\(x_0 \in X\)</span>, and a tolerance <span class="math notranslate nohighlight">\(\epsilon &gt; 0\)</span><br />
 <strong>Output:</strong> An approximate fixed point <span class="math notranslate nohighlight">\(x^*\)</span> such that <span class="math notranslate nohighlight">\(\|x^* - \mathrm{T}(x^*)\| &lt; \epsilon\)</span></p>
@@ -1127,7 +1148,7 @@ v(s) = \max_{a \in A_s} \left\{r(s, a) + \gamma \sum_{j \in S} p(j | s, a) v(j)\
 \]</div>
 <p>The equivalence between these two forms can be shown mathematically, as demonstrated in the following proposition and proof.</p>
 <div class="proof proposition admonition" id="proposition-4">
-<p class="admonition-title"><span class="caption-number">Proposition 1 </span></p>
+<p class="admonition-title"><span class="caption-number">Proposition 2 </span></p>
 <section class="proposition-content" id="proof-content">
 <p>The operator <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> defined as a maximization over Markov deterministic decision rules:</p>
 <div class="math notranslate nohighlight">
@@ -1164,7 +1185,7 @@ Since we’ve shown <span class="math notranslate nohighlight">\(R_1 \leq R_2\)<
 <h2>Algorithms for Solving the Optimality Equations<a class="headerlink" href="#algorithms-for-solving-the-optimality-equations" title="Link to this heading">#</a></h2>
 <p>The optimality equations are operator equations. Therefore, we can apply general numerical methods to solve them. Applying the successive approximation method to the Bellman optimality equation yields a method known as “value iteration” in dynamic programming. A direct application of the blueprint for successive approximation yields the following algorithm:</p>
 <div class="proof algorithm admonition" id="value-iteration">
-<p class="admonition-title"><span class="caption-number">Algorithm 12 </span> (Value Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 9 </span> (Value Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given an MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span> and tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span></p>
 <p><strong>Output</strong> Compute an <span class="math notranslate nohighlight">\(\varepsilon\)</span>-optimal value function <span class="math notranslate nohighlight">\(V\)</span> and policy <span class="math notranslate nohighlight">\(\pi\)</span></p>
@@ -1194,7 +1215,7 @@ Since we’ve shown <span class="math notranslate nohighlight">\(R_1 \leq R_2\)<
 </div><p>The termination criterion in this algorithm is based on a specific bound that provides guarantees on the quality of the solution. This is in contrast to supervised learning, where we often use arbitrary termination criteria based on computational budget or early stopping when the learning curve flattens. This is because establishing implementable generalization bounds in supervised learning is challenging.</p>
 <p>However, in the dynamic programming context, we can derive various bounds that can be implemented in practice. These bounds help us terminate our procedure with a guarantee on the precision of our value function and, correspondingly, on the optimality of the resulting policy.</p>
 <div class="proof proposition admonition" id="value-iteration-convergence">
-<p class="admonition-title"><span class="caption-number">Proposition 2 </span> (Convergence of Value Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Proposition 3 </span> (Convergence of Value Iteration)</p>
 <section class="proposition-content" id="proof-content">
 <p>(Adapted from <span id="id4">Puterman [<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">33</a>]</span> theorem 6.3.1)</p>
 <p>Let <span class="math notranslate nohighlight">\(v_0\)</span> be any initial value function, <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span> a desired accuracy, and let <span class="math notranslate nohighlight">\(\{v_n\}\)</span> be the sequence of value functions generated by value iteration, i.e., <span class="math notranslate nohighlight">\(v_{n+1} = \mathrm{L}v_n\)</span> for <span class="math notranslate nohighlight">\(n \geq 1\)</span>, where <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> is the Bellman optimality operator. Then:</p>
@@ -1273,7 +1294,7 @@ Since we’ve shown <span class="math notranslate nohighlight">\(R_1 \leq R_2\)<
 <p>Another perspective on the optimality equations is that instead of looking for <span class="math notranslate nohighlight">\(v_\gamma^\star\)</span> as the fixed-point of <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> in the fixed-point problem find <span class="math notranslate nohighlight">\(v\)</span> such that <span class="math notranslate nohighlight">\(\mathrm{L} v = v\)</span>, we consider instead the related form in the nonlinear operator equation <span class="math notranslate nohighlight">\(\mathrm{L}v - v = 0\)</span>. Writing things in this way highlights the fact that we could also consider using Newton-Kantorovich iteration to solve this equation instead of the successive approximation method.</p>
 <p>If we were to apply the blueprint of Newton-Kantorovich, we would get:</p>
 <div class="proof algorithm admonition" id="nk-bellman">
-<p class="admonition-title"><span class="caption-number">Algorithm 13 </span> (Newton-Kantorovich for Bellman Optimality Equation)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 10 </span> (Newton-Kantorovich for Bellman Optimality Equation)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, initial guess <span class="math notranslate nohighlight">\(v_0\)</span>, tolerance <span class="math notranslate nohighlight">\(\epsilon &gt; 0\)</span></p>
 <p><strong>Output:</strong> Approximate optimal value function <span class="math notranslate nohighlight">\(v^\star\)</span></p>
@@ -1330,7 +1351,7 @@ Since we’ve shown <span class="math notranslate nohighlight">\(R_1 \leq R_2\)<
 <p>While we derived policy iteration-like steps from the Newton-Kantorovich method, it’s worth examining policy iteration as a standalone algorithm, as it has been traditionally presented in the field of dynamic programming.</p>
 <p>The policy iteration algorithm for discounted Markov decision problems is as follows:</p>
 <div class="proof algorithm admonition" id="policy-iteration">
-<p class="admonition-title"><span class="caption-number">Algorithm 14 </span> (Policy Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 11 </span> (Policy Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>
 <strong>Output:</strong> Optimal policy <span class="math notranslate nohighlight">\(\pi^*\)</span></p>
@@ -1413,8 +1434,7 @@ Since we’ve shown <span class="math notranslate nohighlight">\(R_1 \leq R_2\)<
             
             
               
-                <dialog id="pst-secondary-sidebar-modal"></dialog>
-                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
   <div class="sidebar-secondary-item">
@@ -1495,8 +1515,8 @@ By Pierre-Luc Bacon
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549"></script>
-<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549"></script>
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
 
   <footer class="bd-footer">
   </footer>

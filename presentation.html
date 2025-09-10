@@ -1,0 +1,1374 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Practical Reinforcement Learning: From Algorithms to Applications &#8212; Practical Reinforcement Learning: From Algorithms to Applications</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="_static/proof.css?v=b4b7a797" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"tex": {"macros": {"bm": ["{\\boldsymbol #1}", 1]}, "processEscapes": true}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'presentation';</script>
+    <script src="_static/iframe-modal.js?v=f72a1242"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="intro.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Practical Reinforcement Learning: From Algorithms to Applications</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="intro.html">
+                    Why This Book?
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Modeling</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="modeling.html">Why Build a Model? For Whom?</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="ssm.html">Dynamics Models for Decision Making</a></li>
+
+
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="simulation.html">Programs as Models</a></li>
+
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Numerical Trajectory Optimization</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="ocp.html">Discrete-Time Trajectory Optimization</a></li>
+
+
+<li class="toctree-l1"><a class="reference internal" href="cocp.html">Trajectory Optimization in Continuous Time</a></li>
+
+
+
+
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">From Trajectories to Policies</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="mpc.html">From Trajectories to Policies</a></li>
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="dp.html">Dynamic Programming</a></li>
+
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Learning from Data</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="adp.html">Approximate Dynamic Programming</a></li>
+
+
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="cadp.html">Policy Parametrization Methods</a></li>
+
+
+
+
+
+
+
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Appendix</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="appendix_examples.html">Example COCPs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_ivps.html">Solving Initial Value Problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_nlp.html">Nonlinear Programming</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">Bibliography</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/pierrelux/rlbook" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/pierrelux/rlbook/edit/main/presentation.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/pierrelux/rlbook/issues/new?title=Issue%20on%20page%20%2Fpresentation.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/presentation.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Practical Reinforcement Learning: From Algorithms to Applications</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Practical Reinforcement Learning: From Algorithms to Applications</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#lecture-1-september-3rd-2025">Lecture 1: September 3rd, 2025</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#logistics">Logistics</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisites">Prerequisites</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#math-and-proofs-in-this-course">Math and proofs in this course</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#policy-regarding-llms">Policy Regarding LLMs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#grading-breakdown">Grading breakdown</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#why-rl-hasn-t-eaten-the-world-yet">Why RL Hasn’t Eaten the World (Yet)</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#the-real-bottleneck">The Real Bottleneck</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#the-modeling-gap">The Modeling Gap</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#models-for-decision-making">Models for Decision-Making</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#world-models">World models</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#state-space-models">State-Space Models</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#continuous-time-dot-notation">Continuous-time dot notation</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#linear-systems">Linear Systems</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#case-study-montreal-in-february-20c">Case Study: Montréal in February (-20°C)</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#walls-have-memory-two-state-model">Walls Have Memory: Two-State Model</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#why-not-just-neural-odes">Why Not Just Neural ODEs?</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#from-deterministic-to-stochastic">From Deterministic to Stochastic</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#from-function-noise-to-kernel-derivation">From function+noise to kernel (derivation)</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#real-example-quebec-s-giant-battery">Real Example: Québec’s Giant Battery</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#partial-observability-hidden-states">Partial Observability: Hidden States</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#example-adaptive-optics-for-telescopes">Example: Adaptive Optics for Telescopes</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#programs-as-models-beyond-equations">Programs as Models: Beyond Equations</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simulation-based-modeling-vs-closed-form-densities">Simulation-based modeling vs closed-form densities</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#discrete-events-hybrid-systems">Discrete Events &amp; Hybrid Systems</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#agent-based-models-emergence-from-individuals">Agent-Based Models: Emergence from Individuals</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#thousands-of-local-decisions-traffic-waves-bottlenecks">Thousands of local decisions → traffic waves, bottlenecks</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#discrete-time-trajectory-optimization-open-loop">Discrete-Time Trajectory Optimization (Open-Loop)</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-of-docps-native-discrete-time">Examples of DOCPs (native discrete-time)</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#from-odes-to-docps-via-a-one-step-map">From ODEs to DOCPs via a one-step map</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#programs-as-docps">Programs as DOCPs</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-http-retrier-with-backoff">Example: HTTP retrier with backoff</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-gradient-descent-with-momentum">Example: Gradient descent with momentum</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#backprop-reverse-time-costate">Backprop = reverse-time costate</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#the-discrete-time-optimal-control-problem">The Discrete-Time Optimal Control Problem</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#state-augmentation-everything-is-mayer">State Augmentation: Everything is Mayer</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#eco-cruise-complete-example">Eco-Cruise: Complete Example</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#solution-methods-three-approaches">Solution Methods: Three Approaches</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#single-shooting-deep-learning">Single Shooting = Deep Learning</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#the-path-forward">The Path Forward</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#questions">Questions?</a></li>
+</ul>
+
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="practical-reinforcement-learning-from-algorithms-to-applications">
+<h1>Practical Reinforcement Learning: From Algorithms to Applications<a class="headerlink" href="#practical-reinforcement-learning-from-algorithms-to-applications" title="Link to this heading">#</a></h1>
+<section id="lecture-1-september-3rd-2025">
+<h2>Lecture 1: September 3rd, 2025<a class="headerlink" href="#lecture-1-september-3rd-2025" title="Link to this heading">#</a></h2>
+<p><em>Pierre-Luc Bacon</em><br />
+Associate Professor – Université de Montréal</p>
+</section>
+<hr class="docutils" />
+<section id="logistics">
+<h2>Logistics<a class="headerlink" href="#logistics" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Time/location</strong>: Mon 12:30 to 14:29, Wed 10:30 to 12:29. 10 mins break after 50 mins</p></li>
+<li><p><strong>Office hours</strong>: Offered by TA. Appointment with me possible via email</p></li>
+<li><p><strong>Website/notes</strong>: pierrelucbacon.com/rlbook</p></li>
+<li><p><strong>Slides</strong>: This deck; updates pushed regularly</p></li>
+<li><p><strong>Discussion</strong>: Moodle/Slack</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Math</strong>: Linear algebra, probability, multivariate calculus</p></li>
+<li><p><strong>Optimization</strong>: Basic convex/nonlinear optimization</p></li>
+<li><p><strong>Programming</strong>: Python/NumPy; JAX/PyTorch helpful</p></li>
+<li><p><strong>Control/RL</strong>: Intro-level familiarity is a plus</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="math-and-proofs-in-this-course">
+<h2>Math and proofs in this course<a class="headerlink" href="#math-and-proofs-in-this-course" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Yes, there will be math and proofs</strong>, but for insight, not to math-intimidate</p></li>
+<li><p>Proofs help us understand how methods relate to one another and probe their limitations</p></li>
+<li><p><strong>You won’t be asked to regurgitate proofs</strong> on exams</p></li>
+<li><p>Focus: Can you <em>use</em> the result? Do you understand the <em>assumptions</em>?</p></li>
+<li><p>Example: Bellman’s principle → why dynamic programming works</p></li>
+<li><p>Example: Contraction mapping → when value iteration converges</p></li>
+</ul>
+<p><strong>Goal</strong>: Mathematical maturity to read papers and debug algorithms</p>
+</section>
+<hr class="docutils" />
+<section id="policy-regarding-llms">
+<h2>Policy Regarding LLMs<a class="headerlink" href="#policy-regarding-llms" title="Link to this heading">#</a></h2>
+<p><strong>LLMs are here to stay</strong>: they’re powerful tools that will be part of your career for</p>
+<ul class="simple">
+<li><p>Code generation and debugging</p></li>
+<li><p>Understanding concepts</p></li>
+<li><p>Exploring different approaches</p></li>
+</ul>
+<p><strong>We won’t pretend they don’t exist</strong> or use detectors.</p>
+<p><strong>But this course is your chance to go deep</strong>, to really immerse yourself in the material</p>
+<p><strong>There’s no shortcut to genuine understanding</strong>. You need to wrestle with the concepts yourself</p>
+<p><strong>Assessment</strong>: Individual oral interviews where you explain your thought process, walk through solutions, and discuss challenges you encountered</p>
+<p><strong>Why interviews?</strong> Because true learning means you can articulate your understanding, not just produce answers</p>
+</section>
+<hr class="docutils" />
+<section id="grading-breakdown">
+<h2>Grading breakdown<a class="headerlink" href="#grading-breakdown" title="Link to this heading">#</a></h2>
+<p><strong>40% Final exam</strong> - Wednesday, December 10</p>
+<ul class="simple">
+<li><p>No remote exams or alternative dates for travel</p></li>
+<li><p>Must be taken in person</p></li>
+</ul>
+<p><strong>20% Final project</strong> - Monday, December 15 (poster presentation)</p>
+<ul class="simple">
+<li><p><strong>No remote presentations allowed</strong></p></li>
+<li><p>Reproducible code + case study</p></li>
+<li><p>Applied problem: RL and optimal control</p></li>
+<li><p><strong>Not allowed</strong>: MuJoCo, Atari environments, Minigrid. Must be a “real” application</p></li>
+<li><p><strong>No paper to write</strong>: poster presentation only</p></li>
+</ul>
+<p><strong>20% Midterm</strong> - Monday, October 27 (after fall break)</p>
+<ul class="simple">
+<li><p>In-person exam</p></li>
+</ul>
+<p><strong>10% Homework</strong> - 2 assignments with oral interviews</p>
+<ul class="simple">
+<li><p>Individual explanations of thought process and solutions</p></li>
+<li><p>A1: October 6th to October 20th</p></li>
+<li><p>A2: November 17th to December 1st</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section class="tex2jax_ignore mathjax_ignore" id="why-rl-hasn-t-eaten-the-world-yet">
+<h1>Why RL Hasn’t Eaten the World (Yet)<a class="headerlink" href="#why-rl-hasn-t-eaten-the-world-yet" title="Link to this heading">#</a></h1>
+<p><strong>Supervised Learning Success:</strong></p>
+<ul class="simple">
+<li><p>Standardized tools: scikit-learn, TensorFlow, PyTorch</p></li>
+<li><p>Medicine: 100s of FDA-approved ML devices</p></li>
+<li><p>Routine integration in production workflows</p></li>
+</ul>
+<p><strong>Reinforcement Learning Reality:</strong></p>
+<ul class="simple">
+<li><p><strong>0</strong> FDA-cleared devices explicitly reference RL (as of 2025)</p></li>
+<li><p>Only <strong>2/86</strong> clinical AI trials tested RL-based decisions (<em>Lancet</em> 2024)</p></li>
+<li><p>Google DeepMind data center cooling (2018): Limited public confirmation since</p></li>
+</ul>
+<div class="math notranslate nohighlight">
+\[\text{The Gap: } \underbrace{\text{Impressive Demos}}_{\text{AlphaGo, Atari}} \neq \underbrace{\text{Deployed Systems}}_{\text{Where is RL?}}\]</div>
+</section>
+<hr class="docutils" />
+<section class="tex2jax_ignore mathjax_ignore" id="the-real-bottleneck">
+<h1>The Real Bottleneck<a class="headerlink" href="#the-real-bottleneck" title="Link to this heading">#</a></h1>
+<blockquote>
+<div><p><em>“The biggest constraint on progress is not limited computer power, but instead the difficulty of learning the underlying structure of the decision problem.”</em>
+— John Rust, 2008</p>
+</div></blockquote>
+<p><strong>It’s not about algorithms.</strong> We have:</p>
+<ul class="simple">
+<li><p>Temporal difference methods</p></li>
+<li><p>Policy gradients</p></li>
+<li><p>Model-based planning</p></li>
+<li><p>Hierarchical RL</p></li>
+</ul>
+<p><strong>It’s about problem formulation:</strong></p>
+<ul class="simple">
+<li><p>What are we optimizing?</p></li>
+<li><p>What constraints are non-negotiable?</p></li>
+<li><p>What information is available, and when?</p></li>
+<li><p>How do tradeoffs work in practice?</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section class="tex2jax_ignore mathjax_ignore" id="the-modeling-gap">
+<h1>The Modeling Gap<a class="headerlink" href="#the-modeling-gap" title="Link to this heading">#</a></h1>
+<p><strong>RL’s Comfortable Abstraction:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s2">&quot;CartPole-v1&quot;</span><span class="p">)</span>
+<span class="n">state</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+<span class="n">action</span> <span class="o">=</span> <span class="n">policy</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+<span class="n">next_state</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Reality Check:</strong></p>
+<ul class="simple">
+<li><p>Sensors produce noisy, partial data</p></li>
+<li><p>Constraints: safety limits, budgets, regulations</p></li>
+<li><p>Objectives conflict and shift</p></li>
+<li><p>Time structure isn’t given</p></li>
+</ul>
+<p><strong>The Bridge:</strong> From messy reality → structured decision problems</p>
+<p>This is modeling. And it’s what this course is about.</p>
+</section>
+<hr class="docutils" />
+<section class="tex2jax_ignore mathjax_ignore" id="models-for-decision-making">
+<h1>Models for Decision-Making<a class="headerlink" href="#models-for-decision-making" title="Link to this heading">#</a></h1>
+<p><strong>Not just prediction machines, but trajectory generators:</strong></p>
+<div class="math notranslate nohighlight">
+\[(\mathbf{x}_0, \{\mathbf{u}_t\}_{t=0}^{T-1}, \{\mathbf{d}_t\}_{t=0}^{T-1}) \longmapsto \{\mathbf{x}_t, \mathbf{y}_t\}_{t=0:T}\]</div>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\mathbf{u}_t\)</span>: <strong>controls</strong> we choose (heating power, irrigation, routing)</p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathbf{d}_t\)</span>: <strong>exogenous drivers</strong> we don’t control (weather, demand)</p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathbf{x}_t\)</span>: <strong>system state</strong> (temperatures, water levels, queue lengths)</p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathbf{y}_t\)</span>: <strong>observations</strong> (sensor readings)</p></li>
+</ul>
+<p><strong>Two key requirements:</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Responsiveness to inputs</strong> - expose the levers that matter</p></li>
+<li><p><strong>Compact memory</strong> - state <span class="math notranslate nohighlight">\(\mathbf{x}_t\)</span> summarizes “what matters so far”</p></li>
+</ol>
+<hr class="docutils" />
+<section id="world-models">
+<h2>World models<a class="headerlink" href="#world-models" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Today, we often call these dynamics models “world models”</p></li>
+<li><p>Not limited to vision or VLMs; modality-agnostic (text, sensors, audio, video)</p></li>
+<li><p>What makes them unique here: they answer counterfactuals under actions</p>
+<ul>
+<li><p>If we apply input sequence <span class="math notranslate nohighlight">\(\{\mathbf{u}_t\}\)</span>, what plausible trajectory follows?</p></li>
+</ul>
+</li>
+<li><p>Goal: generate trajectories that are not just likely, but physically/plausibly consistent</p></li>
+</ul>
+<p>Examples:</p>
+<ul class="simple">
+<li><p>HVAC: How does temperature evolve if we change heating policy?</p></li>
+<li><p>Hydro: How do levels respond under different turbine schedules and inflow regimes?</p></li>
+<li><p>Robotics/VLMs: Plan sequences conditioned on visual state but still require dynamics that respect constraints</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section class="tex2jax_ignore mathjax_ignore" id="state-space-models">
+<h1>State-Space Models<a class="headerlink" href="#state-space-models" title="Link to this heading">#</a></h1>
+<p>The most common way we’ll model dynamics is in state-space (what EE folks call it); this is natural for CS, though other representations (e.g., frequency-domain) also exist and are useful.</p>
+<p><strong>Discrete Time:</strong>
+$<span class="math notranslate nohighlight">\(\mathbf{x}_{t+1} = f_t(\mathbf{x}_t, \mathbf{u}_t), \quad \mathbf{y}_t = h_t(\mathbf{x}_t, \mathbf{u}_t)\)</span>$</p>
+<p><strong>Continuous Time:</strong>
+$<span class="math notranslate nohighlight">\(\dot{\mathbf{x}}(t) = f(\mathbf{x}(t), \mathbf{u}(t)), \quad \mathbf{y}(t) = h(\mathbf{x}(t), \mathbf{u}(t))\)</span>$</p>
+<p><strong>The parallel to RNNs:</strong></p>
+<ul class="simple">
+<li><p>State = hidden vector</p></li>
+<li><p>Control = input sequence</p></li>
+<li><p>Output = read-out layer</p></li>
+<li><p>Dynamics = recurrence relation</p></li>
+</ul>
+<p>Digital controllers sample in discrete steps; physics evolves continuously.
+Both views are needed, connected via DACs and ADCs.</p>
+<hr class="docutils" />
+<section id="continuous-time-dot-notation">
+<h2>Continuous-time dot notation<a class="headerlink" href="#continuous-time-dot-notation" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>The dot over a variable denotes a time derivative: <span class="math notranslate nohighlight">\(\dot{\mathbf{x}}(t) = d\mathbf{x}/dt\)</span></p></li>
+<li><p>It encodes the instantaneous rate of change as time advances in infinitesimal steps <span class="math notranslate nohighlight">\(dt\)</span></p></li>
+<li><p>Ordinary differential equations (ODEs) specify dynamics: <span class="math notranslate nohighlight">\(\dot{\mathbf{x}}(t) = f(\mathbf{x}(t), \mathbf{u}(t))\)</span></p></li>
+<li><p>Discrete-time models arise by integrating over a small step <span class="math notranslate nohighlight">\(\Delta t\)</span> (e.g., Euler):
+$<span class="math notranslate nohighlight">\(\mathbf{x}_{t+1} \approx \mathbf{x}_t + \Delta t\, f(\mathbf{x}_t, \mathbf{u}_t)\)</span>$</p></li>
+<li><p>We’ll mostly use ODE-based state-space models in this course</p></li>
+</ul>
+<p>Note: Other formalisms exist (PDE control for spatial fields, SDEs for stochastic dynamics), but we will not cover them here.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section class="tex2jax_ignore mathjax_ignore" id="linear-systems">
+<h1>Linear Systems<a class="headerlink" href="#linear-systems" title="Link to this heading">#</a></h1>
+<div class="math notranslate nohighlight">
+\[\dot{\mathbf{x}} = A\mathbf{x} + B\mathbf{u} + E\mathbf{d}, \quad \mathbf{y} = C\mathbf{x} + D\mathbf{u}\]</div>
+<p><strong>This is NOT a claim that the world is linear!</strong></p>
+<p>It’s a modeling choice:</p>
+<ul class="simple">
+<li><p><strong>Pro:</strong> Fast simulation, closed-form analysis, guaranteed stability</p></li>
+<li><p><strong>Pro:</strong> Interpretable parameters (thermal resistance, capacitance)</p></li>
+<li><p><strong>Pro:</strong> Works with limited data</p></li>
+<li><p><strong>Con:</strong> Limited expressiveness</p></li>
+<li><p><strong>Con:</strong> May need piecewise models</p></li>
+</ul>
+<p><strong>Deep learning note:</strong> Recent “state space” sequence models (e.g., S4/DSS) revive this view.</p>
+<ul class="simple">
+<li><p>They start from linear state-update cores but interleave nonlinearities between layers/blocks</p></li>
+<li><p>The linear core ≠ a linear network; expressivity comes from stacking and nonlinear readouts</p></li>
+</ul>
+<p><em>“Linearity is not a belief about the world, it is a modeling choice that trades fidelity for transparency and speed.”</em></p>
+</section>
+<hr class="docutils" />
+<section class="tex2jax_ignore mathjax_ignore" id="case-study-montreal-in-february-20c">
+<h1>Case Study: Montréal in February (-20°C)<a class="headerlink" href="#case-study-montreal-in-february-20c" title="Link to this heading">#</a></h1>
+<p><strong>Single thermal mass model:</strong>
+$<span class="math notranslate nohighlight">\(\dot{T}(t) = -\frac{1}{RC}T(t) + \frac{1}{RC}T_{\text{out}}(t) + \frac{1}{C}u(t)\)</span>$</p>
+<p><strong>Physical interpretation:</strong></p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(T\)</span>: indoor temperature (state)</p></li>
+<li><p><span class="math notranslate nohighlight">\(u\)</span>: heating power in watts (control)</p></li>
+<li><p><span class="math notranslate nohighlight">\(T_{\text{out}}\)</span>: outdoor temperature (disturbance)</p></li>
+<li><p><span class="math notranslate nohighlight">\(R\)</span>: thermal resistance (insulation quality)</p></li>
+<li><p><span class="math notranslate nohighlight">\(C\)</span>: thermal capacitance (energy to heat the air)</p></li>
+</ul>
+<p><strong>Standard form:</strong> <span class="math notranslate nohighlight">\(\dot{\mathbf{x}} = A\mathbf{x} + B\mathbf{u} + E\mathbf{d}\)</span></p>
+<div class="math notranslate nohighlight">
+\[A = -\frac{1}{RC}, \quad B = \frac{1}{C}, \quad E = \frac{1}{RC}\]</div>
+</section>
+<hr class="docutils" />
+<section class="tex2jax_ignore mathjax_ignore" id="walls-have-memory-two-state-model">
+<h1>Walls Have Memory: Two-State Model<a class="headerlink" href="#walls-have-memory-two-state-model" title="Link to this heading">#</a></h1>
+<p><strong>Energy balance equations:</strong>
+$<span class="math notranslate nohighlight">\(C_{\text{air}}\frac{dT_{\text{in}}}{dt} = \frac{T_{\text{wall}} - T_{\text{in}}}{R_{ia}} + u(t)\)</span><span class="math notranslate nohighlight">\(
+\)</span><span class="math notranslate nohighlight">\(C_{\text{wall}}\frac{dT_{\text{wall}}}{dt} = \frac{T_{\text{out}} - T_{\text{wall}}}{R_{wo}} - \frac{T_{\text{wall}} - T_{\text{in}}}{R_{ia}}\)</span>$</p>
+<p><strong>Matrix form with <span class="math notranslate nohighlight">\(\mathbf{x} = [T_{\text{in}}, T_{\text{wall}}]^T\)</span>:</strong></p>
+<div class="math notranslate nohighlight">
+\[\begin{split}A = \begin{bmatrix}
+-\frac{1}{R_{ia}C_{air}} &amp; \frac{1}{R_{ia}C_{air}} \\
+\frac{1}{R_{ia}C_{wall}} &amp; -(\frac{1}{R_{ia}}+\frac{1}{R_{wo}})\frac{1}{C_{wall}}
+\end{bmatrix}\end{split}\]</div>
+<p>Each element has meaning: <span class="math notranslate nohighlight">\(A_{12}\)</span> = heat from wall to air, <span class="math notranslate nohighlight">\(A_{21}\)</span> = heat from air to wall</p>
+</section>
+<hr class="docutils" />
+<section class="tex2jax_ignore mathjax_ignore" id="why-not-just-neural-odes">
+<h1>Why Not Just Neural ODEs?<a class="headerlink" href="#why-not-just-neural-odes" title="Link to this heading">#</a></h1>
+<p><strong>Neural ODE approach:</strong>
+$<span class="math notranslate nohighlight">\(\dot{\mathbf{z}}(t) = f_{\boldsymbol{\theta}}(\mathbf{z}(t), \mathbf{u}(t), \mathbf{d}(t))\)</span>$</p>
+<p><strong>RC Models Win When:</strong></p>
+<ul class="simple">
+<li><p>Limited data (days not months)</p></li>
+<li><p>Parameters map to physics (can validate against building specs)</p></li>
+<li><p>Need to modify (what if we insulate this wall?)</p></li>
+<li><p>Fast simulation required (linear is cheap)</p></li>
+<li><p>Interpretability matters (which zone causes slow heating?)</p></li>
+</ul>
+<p><strong>Neural ODEs Win When:</strong></p>
+<ul class="simple">
+<li><p>Abundant data available</p></li>
+<li><p>Complex nonlinearities dominate</p></li>
+<li><p>No domain knowledge</p></li>
+<li><p>Pure prediction accuracy matters</p></li>
+</ul>
+<p><strong>Best Practice:</strong> RC backbone + learned residual corrections</p>
+</section>
+<hr class="docutils" />
+<section class="tex2jax_ignore mathjax_ignore" id="from-deterministic-to-stochastic">
+<h1>From Deterministic to Stochastic<a class="headerlink" href="#from-deterministic-to-stochastic" title="Link to this heading">#</a></h1>
+<p><strong>Two equivalent views:</strong></p>
+<p><strong>1. Function + Noise (Constructive)</strong>
+$<span class="math notranslate nohighlight">\(\mathbf{x}_{t+1} = f(\mathbf{x}_t, \mathbf{u}_t) + \mathbf{w}_t, \quad \mathbf{w}_t \sim p_{\mathbf{w}}\)</span>$</p>
+<ul class="simple">
+<li><p>Explicit noise source</p></li>
+<li><p>Can track variability along trajectories</p></li>
+<li><p>Enables reparameterization tricks</p></li>
+</ul>
+<p><strong>2. Transition Kernel (Abstract)</strong>
+$<span class="math notranslate nohighlight">\(p(\mathbf{x}_{t+1}|\mathbf{x}_t, \mathbf{u}_t)\)</span>$</p>
+<ul class="simple">
+<li><p>More general (includes non-additive noise)</p></li>
+<li><p>Natural for RL formulations</p></li>
+<li><p>Don’t need to specify noise structure</p></li>
+</ul>
+<p><strong>Continuous time:</strong> SDEs with drift and diffusion
+$<span class="math notranslate nohighlight">\(d\mathbf{X}_t = f(\mathbf{X}_t, \mathbf{U}_t)dt + \sigma(\mathbf{X}_t, \mathbf{U}_t)d\mathbf{W}_t\)</span>$</p>
+<hr class="docutils" />
+<section id="from-function-noise-to-kernel-derivation">
+<h2>From function+noise to kernel (derivation)<a class="headerlink" href="#from-function-noise-to-kernel-derivation" title="Link to this heading">#</a></h2>
+<p>Start with generative dynamics:
+$<span class="math notranslate nohighlight">\(\mathbf{x}_{t+1} = f(\mathbf{x}_t,\mathbf{u}_t,\mathbf{w}_t),\quad \mathbf{w}_t\sim p_{\mathbf{w}}(\cdot)\)</span>$</p>
+<p>The induced transition kernel is the pushforward of <span class="math notranslate nohighlight">\(p_{\mathbf{w}}\)</span>:
+$<span class="math notranslate nohighlight">\(p(\mathbf{x}_{t+1}\mid \mathbf{x}_t,\mathbf{u}_t) = \int \delta\!\big(\mathbf{x}_{t+1} - f(\mathbf{x}_t,\mathbf{u}_t,\mathbf{w})\big)\, p_{\mathbf{w}}(\mathbf{w})\, d\mathbf{w}\)</span>$</p>
+<p>Special cases:</p>
+<ul class="simple">
+<li><p>Additive noise: <span class="math notranslate nohighlight">\(\;\mathbf{x}_{t+1} = f(\mathbf{x}_t,\mathbf{u}_t)+\mathbf{w}_t\)</span>
+$<span class="math notranslate nohighlight">\(p(\mathbf{x}_{t+1}\mid \mathbf{x}_t,\mathbf{u}_t) = p_{\mathbf{w}}\!\big(\mathbf{x}_{t+1} - f(\mathbf{x}_t,\mathbf{u}_t)\big)\)</span>$</p></li>
+<li><p>Affine noise: <span class="math notranslate nohighlight">\(\;\mathbf{x}_{t+1} = f(\mathbf{x}_t,\mathbf{u}_t)+ \Gamma(\mathbf{x}_t,\mathbf{u}_t)\,\mathbf{w}_t\)</span> with invertible <span class="math notranslate nohighlight">\(\Gamma\)</span>
+$<span class="math notranslate nohighlight">\(p(\mathbf{x}_{t+1}\mid \mathbf{x}_t,\mathbf{u}_t) = p_{\mathbf{w}}\!\big(\Gamma^{-1}(\mathbf{x}_t,\mathbf{u}_t)[\mathbf{x}_{t+1}-f]\big)\, \big|\det\Gamma^{-1}\big|\)</span>$</p></li>
+<li><p>Discrete noise: <span class="math notranslate nohighlight">\(\;\mathbf{w}_t\in\{w_i\}\)</span> with probs <span class="math notranslate nohighlight">\(p_i\)</span>
+$<span class="math notranslate nohighlight">\(p(\mathbf{x}_{t+1}\mid \mathbf{x}_t,\mathbf{u}_t) = \sum_i \mathbb{1}\{f(\mathbf{x}_t,\mathbf{u}_t,w_i)=\mathbf{x}_{t+1}\}\, p_i\)</span>$</p></li>
+</ul>
+<p>Interpretation: the kernel marginalizes the latent noise; the function+noise view is constructive, the kernel view is abstract but more general.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section class="tex2jax_ignore mathjax_ignore" id="real-example-quebec-s-giant-battery">
+<h1>Real Example: Québec’s Giant Battery<a class="headerlink" href="#real-example-quebec-s-giant-battery" title="Link to this heading">#</a></h1>
+<p><strong>Robert-Bourassa Reservoir:</strong></p>
+<ul class="simple">
+<li><p>62 km³ of water (&gt; Lake Ontario’s active volume)</p></li>
+<li><p>5.6 GW capacity (1/5 of Hydro-Québec’s total)</p></li>
+<li><p>Powers aluminum smelters (voltage dips = millions lost)</p></li>
+</ul>
+<p><strong>Mass balance dynamics:</strong>
+$<span class="math notranslate nohighlight">\(\mathbf{x}_{t+1} = \mathbf{x}_t + \mathbf{r}_t - \mathbf{u}_t\)</span>$</p>
+<p><strong>Stochastic inflow model:</strong>
+$<span class="math notranslate nohighlight">\(\mathbf{w}_t \sim \begin{cases}
+0 &amp; \text{prob } p_0 \text{ (no rain)} \\
+\text{LogNormal}(\mu, \sigma^2) &amp; \text{prob } 1-p_0 \text{ (storm/melt)}
+\end{cases}\)</span>$</p>
+<p>Spring: snowmelt → log-normal tails
+Summer: convective storms → point mass at 0 + heavy tail</p>
+</section>
+<hr class="docutils" />
+<section class="tex2jax_ignore mathjax_ignore" id="partial-observability-hidden-states">
+<h1>Partial Observability: Hidden States<a class="headerlink" href="#partial-observability-hidden-states" title="Link to this heading">#</a></h1>
+<p><strong>Full system:</strong>
+$<span class="math notranslate nohighlight">\(\begin{aligned}
+\mathbf{x}_{t+1} &amp;= f_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w}_t), \quad \mathbf{w}_t \sim p_{\mathbf{w}} \\
+\mathbf{y}_t &amp;= h_t(\mathbf{x}_t, \mathbf{v}_t), \quad \mathbf{v}_t \sim p_{\mathbf{v}}
+\end{aligned}\)</span>$</p>
+<p><strong>You never see the true state!</strong></p>
+<ul class="simple">
+<li><p>State evolves with process noise <span class="math notranslate nohighlight">\(\mathbf{w}_t\)</span></p></li>
+<li><p>Observations corrupted by measurement noise <span class="math notranslate nohighlight">\(\mathbf{v}_t\)</span></p></li>
+</ul>
+<p><strong>Linear-Gaussian case (Kalman filter territory):</strong>
+$<span class="math notranslate nohighlight">\(\begin{aligned}
+\mathbf{x}_{t+1} &amp;= A\mathbf{x}_t + B\mathbf{u}_t + \mathbf{w}_t, \quad \mathbf{w}_t \sim \mathcal{N}(0, Q) \\
+\mathbf{y}_t &amp;= C\mathbf{x}_t + D\mathbf{u}_t + \mathbf{v}_t, \quad \mathbf{v}_t \sim \mathcal{N}(0, R)
+\end{aligned}\)</span>$</p>
+</section>
+<hr class="docutils" />
+<section class="tex2jax_ignore mathjax_ignore" id="example-adaptive-optics-for-telescopes">
+<h1>Example: Adaptive Optics for Telescopes<a class="headerlink" href="#example-adaptive-optics-for-telescopes" title="Link to this heading">#</a></h1>
+<p><strong>Problem:</strong> Atmosphere distorts starlight in milliseconds</p>
+<p><strong>State:</strong> Wavefront distortion coefficients <span class="math notranslate nohighlight">\(\mathbf{x}_t \in \mathbb{R}^n\)</span></p>
+<p><strong>Dynamics:</strong> Wind-blown turbulence
+$<span class="math notranslate nohighlight">\(\mathbf{x}_{t+1} = \mathbf{A}\mathbf{x}_t + \mathbf{w}_t\)</span>$</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\mathbf{A}\)</span> shifts pattern spatially</p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathbf{w}_t\)</span> follows Kolmogorov spectrum (low frequencies dominate)</p></li>
+</ul>
+<p><strong>Observations:</strong> Can’t see wavefront, only slopes!
+$<span class="math notranslate nohighlight">\(\mathbf{y}_t = \mathbf{C}\mathbf{x}_t + \boldsymbol{\varepsilon}_t\)</span>$</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\mathbf{C}\)</span> maps distortion → measurable gradients</p></li>
+<li><p><span class="math notranslate nohighlight">\(\boldsymbol{\varepsilon}_t\)</span> is photon noise</p></li>
+</ul>
+<p><strong>Control:</strong> Deformable mirror correction
+$<span class="math notranslate nohighlight">\(\mathbf{x}_t^{\text{residual}} = \mathbf{x}_t - \mathbf{B}\mathbf{u}_t\)</span>$</p>
+<p>Must decide <span class="math notranslate nohighlight">\(\mathbf{u}_t\)</span> every millisecond using noisy gradient measurements!</p>
+</section>
+<hr class="docutils" />
+<section class="tex2jax_ignore mathjax_ignore" id="programs-as-models-beyond-equations">
+<h1>Programs as Models: Beyond Equations<a class="headerlink" href="#programs-as-models-beyond-equations" title="Link to this heading">#</a></h1>
+<p><strong>Analytical Models:</strong> Give us <span class="math notranslate nohighlight">\(f\)</span> directly
+$<span class="math notranslate nohighlight">\(\mathbf{x}_{k+1} = f(\mathbf{x}_k, \mathbf{u}_k)\)</span>$</p>
+<p><strong>Simulation-Based Models:</strong> Black-box trajectory generator
+$<span class="math notranslate nohighlight">\(\{\mathbf{x}_0, \mathbf{x}_1, \dots, \mathbf{x}_T\} = \mathcal{S}(\mathbf{x}_0, \{\mathbf{u}_t\}_{t=0}^{T-1})\)</span>$</p>
+<p><strong>Examples:</strong></p>
+<ul class="simple">
+<li><p><strong>MuJoCo:</strong> Solves <span class="math notranslate nohighlight">\(M\ddot{q} + C = \tau + J^T\lambda\)</span> with contact constraints</p></li>
+<li><p><strong>EnergyPlus:</strong> 100k+ lines mixing heat equations + schedules + state machines</p></li>
+<li><p><strong>SUMO:</strong> Each vehicle is an agent following car-following rules</p></li>
+</ul>
+<p>The simulator encapsulates details we can’t easily write as <span class="math notranslate nohighlight">\(f\)</span>.</p>
+<hr class="docutils" />
+<section id="simulation-based-modeling-vs-closed-form-densities">
+<h2>Simulation-based modeling vs closed-form densities<a class="headerlink" href="#simulation-based-modeling-vs-closed-form-densities" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Sometimes it’s easier to write a program that samples next states than to write a closed-form <span class="math notranslate nohighlight">\(p(\mathbf{x}_{t+1}\mid \mathbf{x}_t,\mathbf{u}_t)\)</span></p></li>
+<li><p>The simulator is a black box: we provide <span class="math notranslate nohighlight">\((\mathbf{x}_t,\mathbf{u}_t)\)</span>, it returns a sample <span class="math notranslate nohighlight">\(\mathbf{x}_{t+1}\)</span> (and an observation)</p></li>
+<li><p>The transition “model” is implicitly defined by the code, not an equation</p></li>
+</ul>
+<p>Implications:</p>
+<ul class="simple">
+<li><p>We can generate counterfactual trajectories under candidate inputs</p></li>
+<li><p>We learn/validate using samples, without needing analytic densities</p></li>
+<li><p>Often only outputs are observable; inner workings are hidden by design</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section class="tex2jax_ignore mathjax_ignore" id="discrete-events-hybrid-systems">
+<h1>Discrete Events &amp; Hybrid Systems<a class="headerlink" href="#discrete-events-hybrid-systems" title="Link to this heading">#</a></h1>
+<p><strong>Discrete-Event Systems:</strong> State changes only at events</p>
+<ul class="simple">
+<li><p>States: <span class="math notranslate nohighlight">\(\mathcal{X}\)</span> (network routing tables)</p></li>
+<li><p>Events: <span class="math notranslate nohighlight">\(\mathcal{E}\)</span> (packet arrival, link failure)</p></li>
+<li><p>Transition: <span class="math notranslate nohighlight">\(f: \mathcal{X} \times \mathcal{E} \rightarrow \mathcal{X}\)</span></p></li>
+</ul>
+<p><strong>Hybrid Systems:</strong> Continuous dynamics + discrete modes</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">temp</span> <span class="o">&lt;</span> <span class="n">setpoint</span> <span class="o">-</span> <span class="n">delta</span><span class="p">:</span>
+    <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;heating&quot;</span>
+    <span class="n">dx</span><span class="o">/</span><span class="n">dt</span> <span class="o">=</span> <span class="n">f_heat</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="k">elif</span> <span class="n">temp</span> <span class="o">&gt;</span> <span class="n">setpoint</span> <span class="o">+</span> <span class="n">delta</span><span class="p">:</span>  
+    <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;cooling&quot;</span>
+    <span class="n">dx</span><span class="o">/</span><span class="n">dt</span> <span class="o">=</span> <span class="n">f_cool</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;off&quot;</span>
+    <span class="n">dx</span><span class="o">/</span><span class="n">dt</span> <span class="o">=</span> <span class="n">f_off</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Guards trigger transitions; reset maps update state.</p>
+</section>
+<hr class="docutils" />
+<section class="tex2jax_ignore mathjax_ignore" id="agent-based-models-emergence-from-individuals">
+<h1>Agent-Based Models: Emergence from Individuals<a class="headerlink" href="#agent-based-models-emergence-from-individuals" title="Link to this heading">#</a></h1>
+<p><strong>Neighborhood Energy under Dynamic Pricing:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">household</span> <span class="ow">in</span> <span class="n">neighborhood</span><span class="p">:</span>
+    <span class="n">price</span> <span class="o">=</span> <span class="n">utility</span><span class="o">.</span><span class="n">get_current_price</span><span class="p">()</span>
+    <span class="n">optimal_setpoint</span> <span class="o">=</span> <span class="n">household</span><span class="o">.</span><span class="n">mpc_controller</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span>
+        <span class="n">current_temp</span><span class="o">=</span><span class="n">household</span><span class="o">.</span><span class="n">temperature</span><span class="p">,</span>
+        <span class="n">price_forecast</span><span class="o">=</span><span class="n">utility</span><span class="o">.</span><span class="n">price_forecast</span><span class="p">,</span>
+        <span class="n">comfort_weight</span><span class="o">=</span><span class="n">household</span><span class="o">.</span><span class="n">preference</span>
+    <span class="p">)</span>
+    <span class="n">household</span><span class="o">.</span><span class="n">set_hvac_setpoint</span><span class="p">(</span><span class="n">optimal_setpoint</span><span class="p">)</span>
+    <span class="n">neighborhood</span><span class="o">.</span><span class="n">total_demand</span> <span class="o">+=</span> <span class="n">household</span><span class="o">.</span><span class="n">power_consumption</span>
+</pre></div>
+</div>
+<p><strong>No global equation!</strong> Macro patterns (peak shifting, rebounds) emerge from individual optimization.</p>
+<p><strong>SUMO Traffic:</strong> Each vehicle follows Krauss rule
+$<span class="math notranslate nohighlight">\(v_{\text{safe}} = v_{\text{leader}} + \frac{\text{gap} - \text{mingap}}{\tau}\)</span>$</p>
+<section id="thousands-of-local-decisions-traffic-waves-bottlenecks">
+<h2>Thousands of local decisions → traffic waves, bottlenecks<a class="headerlink" href="#thousands-of-local-decisions-traffic-waves-bottlenecks" title="Link to this heading">#</a></h2>
+</section>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="discrete-time-trajectory-optimization-open-loop">
+<h1>Discrete-Time Trajectory Optimization (Open-Loop)<a class="headerlink" href="#discrete-time-trajectory-optimization-open-loop" title="Link to this heading">#</a></h1>
+<p><strong>Trajectory = states + controls over time</strong></p>
+<div class="math notranslate nohighlight">
+\[
+\text{trajectory } = \big(\{\mathbf{x}_t\}_{t=0}^{T},\;\{\mathbf{u}_t\}_{t=0}^{T-1}\big)
+\]</div>
+<ul class="simple">
+<li><p>Plan the entire control sequence in advance (open loop) and apply it as-is.</p></li>
+<li><p>Pro: clean, finite-dimensional program in discrete time; exposes structure.</p></li>
+<li><p>Limitation: no feedback → disturbances/model error can compound.</p></li>
+<li><p>Continuous time is infinite-dimensional; direct methods discretize/parameterize.</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section class="tex2jax_ignore mathjax_ignore" id="examples-of-docps-native-discrete-time">
+<h1>Examples of DOCPs (native discrete-time)<a class="headerlink" href="#examples-of-docps-native-discrete-time" title="Link to this heading">#</a></h1>
+<ul class="simple">
+<li><p>Inventory control (periodic orders):
+$<span class="math notranslate nohighlight">\(x_{k+1}=x_k+u_k-d_k,\quad c_k=h[x_k]_+ + p[-x_k]_+ + c\,u_k\)</span>$</p></li>
+<li><p>End-of-day portfolio rebalancing:
+$<span class="math notranslate nohighlight">\(h_{k+1}=(h_k+u_k)\odot(\mathbf{1}+\mu_k)\)</span>$</p></li>
+<li><p>Daily ad-budget with carryover:
+$<span class="math notranslate nohighlight">\(s_{k+1}=\alpha s_k+\beta u_k,\quad \max\sum_k g(s_k,u_k)-c\,u_k\)</span>$</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section class="tex2jax_ignore mathjax_ignore" id="from-odes-to-docps-via-a-one-step-map">
+<h1>From ODEs to DOCPs via a one-step map<a class="headerlink" href="#from-odes-to-docps-via-a-one-step-map" title="Link to this heading">#</a></h1>
+<p>Continuous-time dynamics:</p>
+<div class="math notranslate nohighlight">
+\[
+\dot{\mathbf{x}}(t)=\mathbf{f}(t,\mathbf{x}(t),\mathbf{u}(t)),\qquad \mathbf{x}(0)=\mathbf{x}_0.
+\]</div>
+<p>With step <span class="math notranslate nohighlight">\(\Delta\)</span> and grid <span class="math notranslate nohighlight">\(t_k=k\Delta\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{x}_{k+1}=\mathbf{F}_\Delta(\mathbf{x}_k,\mathbf{u}_k,t_k)
+\]</div>
+<p>Bolza-form DOCP:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+\min_{\{\mathbf{x}_k,\mathbf{u}_k\}}\; &amp; c_T(\mathbf{x}_T)+\sum_{k=0}^{T-1} c_k(\mathbf{x}_k,\mathbf{u}_k)\\
+\text{s.t.}\; &amp; \mathbf{x}_{k+1}-\mathbf{F}_\Delta(\mathbf{x}_k,\mathbf{u}_k,t_k)=0,\quad \mathbf{x}_0=\mathbf{x}_\mathrm{init}.
+\end{aligned}
+\end{split}\]</div>
+</section>
+<hr class="docutils" />
+<section class="tex2jax_ignore mathjax_ignore" id="programs-as-docps">
+<h1>Programs as DOCPs<a class="headerlink" href="#programs-as-docps" title="Link to this heading">#</a></h1>
+<p>Program as a dynamical system with state and controls:</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{x}_{k+1}=\Phi_k(\mathbf{x}_k,\mathbf{u}_k),\qquad
+\min_{\{\mathbf{u}_k\}}\; c_T(\mathbf{x}_T)+\sum_{k=0}^{T-1} c_k(\mathbf{x}_k,\mathbf{u}_k).
+\]</div>
+<ul class="simple">
+<li><p>Differentiable programming (JAX/PyTorch): reverse-mode AD for gradients.</p></li>
+<li><p>Non-differentiable pieces: derivative-free/weak-gradient (FD, SPSA, CMA-ES), with smoothing if needed.</p></li>
+</ul>
+<hr class="docutils" />
+<section id="example-http-retrier-with-backoff">
+<h2>Example: HTTP retrier with backoff<a class="headerlink" href="#example-http-retrier-with-backoff" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>State: <span class="math notranslate nohighlight">\((t, k, \text{done}, \text{code}, \text{jitter})\)</span>; Control: wait <span class="math notranslate nohighlight">\(u_k\)</span>.</p></li>
+<li><p>Transition: wait + probabilistic request outcome.</p></li>
+<li><p>Objective: penalize latency and failure; optimize backoff schedule.</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="example-gradient-descent-with-momentum">
+<h2>Example: Gradient descent with momentum<a class="headerlink" href="#example-gradient-descent-with-momentum" title="Link to this heading">#</a></h2>
+<p>Loss:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\ell(\boldsymbol{\theta})=\tfrac{1}{2}\,\lVert \mathbf{A}\boldsymbol{\theta}-\mathbf{b}\rVert_2^2,\quad
+\mathbf{x}_k=\begin{bmatrix}\boldsymbol{\theta}_k\\ \mathbf{m}_k\end{bmatrix},\;\mathbf{u}_k=\begin{bmatrix}\alpha_k\\ \beta_k\end{bmatrix}.
+\end{split}\]</div>
+<p>Step:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\Phi_k(\mathbf{x}_k,\mathbf{u}_k)=\begin{bmatrix}
+\boldsymbol{\theta}_k-\alpha_k(\beta_k\mathbf{m}_k+\mathbf{A}^\top(\mathbf{A}\boldsymbol{\theta}_k-\mathbf{b}))\\[2mm]
+\beta_k\mathbf{m}_k+\mathbf{A}^\top(\mathbf{A}\boldsymbol{\theta}_k-\mathbf{b})
+\end{bmatrix}.
+\end{split}\]</div>
+<p>Hyperparameter optimization as DOCP:</p>
+<div class="math notranslate nohighlight">
+\[
+\min_{\{\alpha_k,\beta_k\}}\; \ell(\boldsymbol{\theta}_T)+\sum_k\big(\rho_\alpha\alpha_k^2+\rho_\beta(\beta_k-\bar\beta)^2\big).
+\]</div>
+</section>
+<hr class="docutils" />
+<section id="backprop-reverse-time-costate">
+<h2>Backprop = reverse-time costate<a class="headerlink" href="#backprop-reverse-time-costate" title="Link to this heading">#</a></h2>
+<div class="math notranslate nohighlight">
+\[
+\boldsymbol{\lambda}_T=\nabla_{\mathbf{x}_T} c_T,\qquad
+\boldsymbol{\lambda}_k=\nabla_{\mathbf{x}_k} c_k+\big(\nabla_{\mathbf{x}_k}\Phi_k\big)^\top\boldsymbol{\lambda}_{k+1},\quad
+\nabla_{\mathbf{u}_k}\mathcal{J}=\nabla_{\mathbf{u}_k} c_k+\big(\nabla_{\mathbf{u}_k}\Phi_k\big)^\top\boldsymbol{\lambda}_{k+1}.
+\]</div>
+<p>Exactly what reverse-mode autodiff computes.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section class="tex2jax_ignore mathjax_ignore" id="the-discrete-time-optimal-control-problem">
+<h1>The Discrete-Time Optimal Control Problem<a class="headerlink" href="#the-discrete-time-optimal-control-problem" title="Link to this heading">#</a></h1>
+<p><strong>Canonical Bolza Form:</strong>
+$<span class="math notranslate nohighlight">\(\begin{aligned}
+\min_{\mathbf{u}_{1:T-1}} \quad &amp; c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t, \mathbf{u}_t) \\
+\text{s.t.} \quad &amp; \mathbf{x}_{t+1} = \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t), \quad t = 1,\dots,T-1 \\
+&amp; \mathbf{x}_1 \text{ given}
+\end{aligned}\)</span>$</p>
+<p><strong>Special Cases:</strong></p>
+<ul class="simple">
+<li><p><strong>Lagrange:</strong> Only running costs <span class="math notranslate nohighlight">\(\sum_t c_t(\mathbf{x}_t, \mathbf{u}_t)\)</span></p></li>
+<li><p><strong>Mayer:</strong> Only terminal cost <span class="math notranslate nohighlight">\(c_T(\mathbf{x}_T)\)</span></p></li>
+</ul>
+<p><strong>Key Challenge:</strong> Dimensionality grows with horizon</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\((T-1)(n+m)\)</span> variables</p></li>
+<li><p>Temporal coupling through dynamics</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section class="tex2jax_ignore mathjax_ignore" id="state-augmentation-everything-is-mayer">
+<h1>State Augmentation: Everything is Mayer<a class="headerlink" href="#state-augmentation-everything-is-mayer" title="Link to this heading">#</a></h1>
+<p><strong>Transform Bolza → Mayer by tracking cumulative cost:</strong></p>
+<p>Define augmented state:
+$<span class="math notranslate nohighlight">\(\tilde{\mathbf{x}}_t = \begin{bmatrix} \mathbf{x}_t \\ y_t \end{bmatrix}\)</span>$</p>
+<p>Augmented dynamics:
+$<span class="math notranslate nohighlight">\(\tilde{\mathbf{x}}_{t+1} = \begin{pmatrix}
+\mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t) \\
+y_t + c_t(\mathbf{x}_t, \mathbf{u}_t)
+\end{pmatrix}\)</span>$</p>
+<p>New terminal cost:
+$<span class="math notranslate nohighlight">\(\tilde{c}_T(\tilde{\mathbf{x}}_T) = c_T(\mathbf{x}_T) + y_T\)</span>$</p>
+<p><strong>Why?</strong> Simplifies derivations, unifies implementation.</p>
+</section>
+<hr class="docutils" />
+<section class="tex2jax_ignore mathjax_ignore" id="eco-cruise-complete-example">
+<h1>Eco-Cruise: Complete Example<a class="headerlink" href="#eco-cruise-complete-example" title="Link to this heading">#</a></h1>
+<p><strong>Problem:</strong> Drive 1 km in 60 seconds, minimize energy</p>
+<p><strong>State &amp; Dynamics:</strong>
+$<span class="math notranslate nohighlight">\(s_{t+1} = s_t + v_t, \quad v_{t+1} = v_t + u_t\)</span>$</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(s_t\)</span>: position, <span class="math notranslate nohighlight">\(v_t\)</span>: velocity, <span class="math notranslate nohighlight">\(u_t\)</span>: acceleration</p></li>
+</ul>
+<p><strong>Cost:</strong> Balance acceleration and speed penalties
+$<span class="math notranslate nohighlight">\(c_t(v_t, u_t) = \frac{\beta}{2}u_t^2 + \frac{\gamma}{2}v_t^2\)</span>$</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\beta = 1.0\)</span> (acceleration penalty)</p></li>
+<li><p><span class="math notranslate nohighlight">\(\gamma = 0.1\)</span> (speed penalty)</p></li>
+</ul>
+<p><strong>Constraints:</strong></p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(0 \leq v_t \leq 20\)</span> m/s (speed limits)</p></li>
+<li><p><span class="math notranslate nohighlight">\(|u_t| \leq 3\)</span> m/s² (comfort)</p></li>
+<li><p><span class="math notranslate nohighlight">\(s_1 = 0, v_1 = 0, s_{61} = 1000, v_{61} = 0\)</span></p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section class="tex2jax_ignore mathjax_ignore" id="solution-methods-three-approaches">
+<h1>Solution Methods: Three Approaches<a class="headerlink" href="#solution-methods-three-approaches" title="Link to this heading">#</a></h1>
+<p><strong>1. Direct (Simultaneous):</strong> All states and controls as variables</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">z</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="err">₁</span><span class="p">,</span> <span class="n">v</span><span class="err">₁</span><span class="p">,</span> <span class="n">u</span><span class="err">₁</span><span class="p">,</span> <span class="n">s</span><span class="err">₂</span><span class="p">,</span> <span class="n">v</span><span class="err">₂</span><span class="p">,</span> <span class="n">u</span><span class="err">₂</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="n">s_T</span><span class="p">,</span> <span class="n">v_T</span><span class="p">,</span> <span class="n">u_</span><span class="p">{</span><span class="n">T</span><span class="o">-</span><span class="mi">1</span><span class="p">}]</span>
+<span class="n">minimize</span> <span class="n">f</span><span class="p">(</span><span class="n">z</span><span class="p">)</span> <span class="n">subject</span> <span class="n">to</span> <span class="n">dynamics_constraints</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>2. Single Shooting:</strong> Eliminate states via simulation</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">loss</span><span class="p">(</span><span class="n">u</span><span class="p">):</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="err">₀</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">T</span><span class="p">):</span>
+        <span class="n">cost</span> <span class="o">+=</span> <span class="n">c</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">[</span><span class="n">t</span><span class="p">])</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">[</span><span class="n">t</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">cost</span>
+</pre></div>
+</div>
+<p><strong>3. Multiple Shooting:</strong> Hybrid for stability</p>
+<ul class="simple">
+<li><p>Break into K segments</p></li>
+<li><p>State variables at segment boundaries</p></li>
+<li><p>Simulate within segments</p></li>
+</ul>
+<p>Trade-off: Problem size vs. conditioning</p>
+</section>
+<hr class="docutils" />
+<section class="tex2jax_ignore mathjax_ignore" id="single-shooting-deep-learning">
+<h1>Single Shooting = Deep Learning<a class="headerlink" href="#single-shooting-deep-learning" title="Link to this heading">#</a></h1>
+<p><strong>The parallel is exact:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Single Shooting OCP          # Neural Network Training</span>
+<span class="n">controls</span> <span class="o">=</span> <span class="n">initialize</span><span class="p">()</span>         <span class="n">params</span> <span class="o">=</span> <span class="n">initialize</span><span class="p">()</span>
+                               
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_cost</span><span class="p">(</span><span class="n">controls</span><span class="p">):</span>    <span class="k">def</span><span class="w"> </span><span class="nf">compute_loss</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="n">initial_state</span>          <span class="n">hidden</span> <span class="o">=</span> <span class="n">initial_hidden</span>
+    <span class="n">cost</span> <span class="o">=</span> <span class="mi">0</span>                       <span class="n">loss</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">T</span><span class="p">):</span>            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">T</span><span class="p">):</span>
+        <span class="n">cost</span> <span class="o">+=</span> <span class="n">c</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">u</span><span class="p">[</span><span class="n">t</span><span class="p">])</span>        <span class="n">loss</span> <span class="o">+=</span> <span class="n">L</span><span class="p">(</span><span class="n">hidden</span><span class="p">,</span> <span class="n">x</span><span class="p">[</span><span class="n">t</span><span class="p">])</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">u</span><span class="p">[</span><span class="n">t</span><span class="p">])</span>         <span class="n">hidden</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">hidden</span><span class="p">,</span> <span class="n">x</span><span class="p">[</span><span class="n">t</span><span class="p">],</span> <span class="n">params</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cost</span>                    <span class="k">return</span> <span class="n">loss</span>
+    
+<span class="n">gradient</span> <span class="o">=</span> <span class="n">autograd</span><span class="p">(</span><span class="n">cost</span><span class="p">)</span>      <span class="n">gradient</span> <span class="o">=</span> <span class="n">autograd</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span>
+<span class="n">controls</span> <span class="o">=</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>    <span class="n">params</span> <span class="o">=</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Same tools: Adam, L-BFGS, JAX, PyTorch. “Backprop through the world model.”</p>
+</section>
+<hr class="docutils" />
+<section class="tex2jax_ignore mathjax_ignore" id="the-path-forward">
+<h1>The Path Forward<a class="headerlink" href="#the-path-forward" title="Link to this heading">#</a></h1>
+<p><strong>What we’re building toward:</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Model Predictive Control (MPC):</strong> Replan at each timestep</p></li>
+<li><p><strong>Dynamic Programming:</strong> Value functions and Bellman equations</p></li>
+<li><p><strong>Learning from Data:</strong> When models aren’t given</p></li>
+<li><p><strong>Learning from Humans:</strong> RLHF meets control</p></li>
+</ol>
+<p><strong>The mindset shift:</strong></p>
+<ul class="simple">
+<li><p>Stop treating problems as given (gym.make won’t save you)</p></li>
+<li><p>Modeling IS the hard part</p></li>
+<li><p>Structure enables learning from limited data</p></li>
+<li><p>Real impact requires real constraints</p></li>
+</ul>
+<p><strong>Next:</strong> From trajectories to policies - how do we go from open-loop plans to closed-loop control?</p>
+<hr class="docutils" />
+<!-- _class: lead -->
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="questions">
+<h1>Questions?<a class="headerlink" href="#questions" title="Link to this heading">#</a></h1>
+<p><strong>Remember:</strong>
+<em>“The difficulty is not in solving the problem,</em>
+<em>but in learning the underlying structure of the decision problem.”</em></p>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./."
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Practical Reinforcement Learning: From Algorithms to Applications</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#lecture-1-september-3rd-2025">Lecture 1: September 3rd, 2025</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#logistics">Logistics</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisites">Prerequisites</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#math-and-proofs-in-this-course">Math and proofs in this course</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#policy-regarding-llms">Policy Regarding LLMs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#grading-breakdown">Grading breakdown</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#why-rl-hasn-t-eaten-the-world-yet">Why RL Hasn’t Eaten the World (Yet)</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#the-real-bottleneck">The Real Bottleneck</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#the-modeling-gap">The Modeling Gap</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#models-for-decision-making">Models for Decision-Making</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#world-models">World models</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#state-space-models">State-Space Models</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#continuous-time-dot-notation">Continuous-time dot notation</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#linear-systems">Linear Systems</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#case-study-montreal-in-february-20c">Case Study: Montréal in February (-20°C)</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#walls-have-memory-two-state-model">Walls Have Memory: Two-State Model</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#why-not-just-neural-odes">Why Not Just Neural ODEs?</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#from-deterministic-to-stochastic">From Deterministic to Stochastic</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#from-function-noise-to-kernel-derivation">From function+noise to kernel (derivation)</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#real-example-quebec-s-giant-battery">Real Example: Québec’s Giant Battery</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#partial-observability-hidden-states">Partial Observability: Hidden States</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#example-adaptive-optics-for-telescopes">Example: Adaptive Optics for Telescopes</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#programs-as-models-beyond-equations">Programs as Models: Beyond Equations</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simulation-based-modeling-vs-closed-form-densities">Simulation-based modeling vs closed-form densities</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#discrete-events-hybrid-systems">Discrete Events &amp; Hybrid Systems</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#agent-based-models-emergence-from-individuals">Agent-Based Models: Emergence from Individuals</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#thousands-of-local-decisions-traffic-waves-bottlenecks">Thousands of local decisions → traffic waves, bottlenecks</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#discrete-time-trajectory-optimization-open-loop">Discrete-Time Trajectory Optimization (Open-Loop)</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-of-docps-native-discrete-time">Examples of DOCPs (native discrete-time)</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#from-odes-to-docps-via-a-one-step-map">From ODEs to DOCPs via a one-step map</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#programs-as-docps">Programs as DOCPs</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-http-retrier-with-backoff">Example: HTTP retrier with backoff</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-gradient-descent-with-momentum">Example: Gradient descent with momentum</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#backprop-reverse-time-costate">Backprop = reverse-time costate</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#the-discrete-time-optimal-control-problem">The Discrete-Time Optimal Control Problem</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#state-augmentation-everything-is-mayer">State Augmentation: Everything is Mayer</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#eco-cruise-complete-example">Eco-Cruise: Complete Example</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#solution-methods-three-approaches">Solution Methods: Three Approaches</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#single-shooting-deep-learning">Single Shooting = Deep Learning</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#the-path-forward">The Path Forward</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#questions">Questions?</a></li>
+</ul>
+
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Pierre-Luc Bacon
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

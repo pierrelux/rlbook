@@ -16,22 +16,20 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
-  <!-- 
-    this give us a css class that will be invisible only if js is disabled 
-  -->
-  <noscript>
-    <style>
-      .pst-js-only { display: none !important; }
-
-    </style>
-  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
     <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
@@ -41,11 +39,10 @@
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css" />
   
-  <!-- So that users can add custom icons -->
-  <script src="_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
     <script src="_static/documentation_options.js?v=9eb32ce0"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
@@ -66,7 +63,6 @@
     <script>window.MathJax = {"tex": {"macros": {"bm": ["{\\boldsymbol #1}", 1]}, "processEscapes": true}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'adp';</script>
-    <script src="_static/hydro.js?v=67e01585"></script>
     <script src="_static/iframe-modal.js?v=f72a1242"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -74,7 +70,6 @@
     <link rel="prev" title="Dynamic Programming" href="dp.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="" />
   </head>
   
   
@@ -90,8 +85,19 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <dialog id="pst-search-dialog">
-    
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
 <form class="bd-search d-flex align-items-center"
       action="search.html"
       method="get">
@@ -99,6 +105,7 @@
   <input type="search"
          class="form-control"
          name="q"
+         id="search-input"
          placeholder="Search this book..."
          aria-label="Search this book..."
          autocomplete="off"
@@ -106,8 +113,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form>
-  </dialog>
+</form></div>
+  </div>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -123,8 +130,7 @@
       
       
       
-      <dialog id="pst-primary-sidebar-modal"></dialog>
-      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+      <div class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -154,11 +160,15 @@
 </a></div>
         <div class="sidebar-primary-item">
 
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button></div>
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         
@@ -178,6 +188,7 @@
 
 
 
+
 <li class="toctree-l1"><a class="reference internal" href="simulation.html">Programs as Models</a></li>
 
 </ul>
@@ -185,7 +196,11 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="ocp.html">Discrete-Time Trajectory Optimization</a></li>
 
-<li class="toctree-l1"><a class="reference internal" href="cocp.html">Continuous-Time Trajectory Optimization</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="cocp.html">Trajectory Optimization in Continuous Time</a></li>
+
+
+
 
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">From Trajectories to Policies</span></p>
@@ -216,11 +231,9 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Appendix</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="appendix.html">Nonlinear Programming</a></li>
-
-
-
-
+<li class="toctree-l1"><a class="reference internal" href="appendix_examples.html">Example COCPs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_ivps.html">Solving Initial Value Problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_nlp.html">Nonlinear Programming</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
 <ul class="nav bd-sidenav">
@@ -396,16 +409,24 @@
 
 
 
-<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
-  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
-  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
-  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
-</button>
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
 
 
-<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
-</button>
+  </button>
+`);
+</script>
 <button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <span class="fa-solid fa-list"></span>
 </button>
@@ -808,7 +829,7 @@ $<span class="math notranslate nohighlight">\( \begin{aligned}
 \]</div>
 <p>for each <span class="math notranslate nohighlight">\(s_k \in \mathcal{B}\)</span>. A direct adaptation of the successive approximation method for this empirical operator leads to:</p>
 <div class="proof algorithm admonition" id="mc-value-iteration">
-<p class="admonition-title"><span class="caption-number">Algorithm 15 </span> (Monte Carlo Value Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 12 </span> (Monte Carlo Value Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, , number of samples <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span>, maximum iterations <span class="math notranslate nohighlight">\(K\)</span>
 <strong>Output:</strong> Value function <span class="math notranslate nohighlight">\(v\)</span></p>
@@ -887,7 +908,7 @@ This bias remains nonnegative at every step, and each application of the Bellman
 <h3>Decoupling Selection and Evaluation<a class="headerlink" href="#decoupling-selection-and-evaluation" title="Link to this heading">#</a></h3>
 <p>A simpler approach to addressing the upward bias is to maintain two separate q-function estimates - one for action selection and another for evaluation. Let’s first start by looking at the corresponding Monte Carlo value iteration algorithm and then convince ourselves that this is good idea using math. Assume a monte carlo integration setup over Q factors:</p>
 <div class="proof algorithm admonition" id="double-mc-value-iteration">
-<p class="admonition-title"><span class="caption-number">Algorithm 16 </span> (Double Monte Carlo Q-Value Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 13 </span> (Double Monte Carlo Q-Value Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong>: MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, number of samples <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span>, maximum iterations <span class="math notranslate nohighlight">\(K\)</span>
 <strong>Output</strong>: Q-functions <span class="math notranslate nohighlight">\(q^A, q^B\)</span></p>
@@ -1041,7 +1062,7 @@ v_{n+1}(s) := (\mathrm{L} v_n)(s) \equiv \max_{a \in \mathcal{A}_s} \left\{r(s,a
 \]</div>
 <p>Pay particular attention to the <span class="math notranslate nohighlight">\(\forall s \in \mathcal{S}\)</span> notation: what happens when we can’t afford to update all components in each step of value iteration? A potential solution is to use Gauss-Seidel Value Iteration, which updates states sequentially, immediately using fresh values for subsequent updates.</p>
 <div class="proof algorithm admonition" id="alg-gsvi">
-<p class="admonition-title"><span class="caption-number">Algorithm 17 </span> (Gauss-Seidel Value Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 14 </span> (Gauss-Seidel Value Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, convergence threshold <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span><br />
 <strong>Output:</strong> Value function <span class="math notranslate nohighlight">\(v\)</span> and policy <span class="math notranslate nohighlight">\(d\)</span></p>
@@ -1117,7 +1138,7 @@ v(s) \approx \sum_{i=0}^{n} \theta_i \phi_i(s)
 </ul>
 <p>The \texttt{fit} function in our algorithm represents this supervised learning step and can be implemented using any standard regression tool that follows the scikit-learn interface. This flexibility in choice of function approximator allows practitioners to leverage the extensive ecosystem of modern machine learning tools while maintaining the core dynamic programming structure.</p>
 <div class="proof algorithm admonition" id="parametric-value-iteration">
-<p class="admonition-title"><span class="caption-number">Algorithm 18 </span> (Parametric Value Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 15 </span> (Parametric Value Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given an MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, base points <span class="math notranslate nohighlight">\(B \subset S\)</span>, function approximator class <span class="math notranslate nohighlight">\(v(s; \boldsymbol{\theta})\)</span>, maximum iterations <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for value function approximation</p>
@@ -1183,7 +1204,7 @@ d_{n+1}(s_k) = \arg\max_{a \in \mathcal{A}} \left\{r(s_k,a) + \gamma \int v_n(s'
 </ol>
 <p>This leads to the following algorithm:</p>
 <div class="proof algorithm admonition" id="parametric-policy-iteration">
-<p class="admonition-title"><span class="caption-number">Algorithm 19 </span> (Parametric Policy Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 16 </span> (Parametric Policy Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given an MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, base points <span class="math notranslate nohighlight">\(B \subset S\)</span>, function approximator class <span class="math notranslate nohighlight">\(v(s; \boldsymbol{\theta})\)</span>, maximum iterations <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for value function approximation</p>
@@ -1244,7 +1265,7 @@ d(s) = \arg\max_{a \in \mathcal{A}(s)} q(s,a)
 \]</div>
 <p>With this insight, we can adapt our parametric value iteration algorithm to work with Q-functions:</p>
 <div class="proof algorithm admonition" id="parametric-q-value-iteration">
-<p class="admonition-title"><span class="caption-number">Algorithm 20 </span> (Parametric Q-Value Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 17 </span> (Parametric Q-Value Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given an MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, base points <span class="math notranslate nohighlight">\(\mathcal{B} \subset S\)</span>, function approximator class <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, maximum iterations <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
@@ -1276,7 +1297,7 @@ d(s) = \arg\max_{a \in \mathcal{A}(s)} q(s,a)
 <p>The basic idea is simple: rather than starting each fitting procedure from scratch, we initialize the function approximator with parameters from the previous iteration. This can speed up convergence since successive Q-functions tend to be similar. However, recent work suggests that persistent warmstarting might sometimes be detrimental, potentially leading to a form of overfitting. Alternative “reset” strategies that occasionally reinitialize parameters have shown promise in mitigating this issue.</p>
 <p>Here’s how warmstarting can be incorporated into parametric Q-learning with one-step Monte Carlo integration:</p>
 <div class="proof algorithm admonition" id="warmstarted-q-learning">
-<p class="admonition-title"><span class="caption-number">Algorithm 21 </span> (Warmstarted Parametric Q-Learning with N=1 Monte Carlo Integration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 18 </span> (Warmstarted Parametric Q-Learning with N=1 Monte Carlo Integration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given dataset <span class="math notranslate nohighlight">\(\mathcal{D}\)</span> with transitions <span class="math notranslate nohighlight">\((s, a, r, s')\)</span>, function approximator class <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, maximum iterations <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span>, warmstart frequency <span class="math notranslate nohighlight">\(k\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
@@ -1320,7 +1341,7 @@ d(s) = \arg\max_{a \in \mathcal{A}(s)} q(s,a)
 <p>The intuition for using early stopping in the inner optimization mirrors that of modified policy iteration in exact dynamic programming. Just as modified policy iteration truncates the Neumann series during policy evaluation rather than solving to convergence, we might only partially optimize our function approximator at each iteration. While this complicates the theoretical analysis, it often works well in practice and can be computationally more efficient.</p>
 <p>This perspective helps us understand modern deep reinforcement learning algorithms. For instance, DQN can be viewed as an instance of fitted Q-iteration where the inner optimization is intentionally limited. Here’s how we can formalize this approach:</p>
 <div class="proof algorithm admonition" id="early-stopping-fqi">
-<p class="admonition-title"><span class="caption-number">Algorithm 22 </span> (Early-Stopping Fitted Q-Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 19 </span> (Early-Stopping Fitted Q-Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given dataset <span class="math notranslate nohighlight">\(\mathcal{D}\)</span> with transitions <span class="math notranslate nohighlight">\((s, a, r, s')\)</span>, function approximator <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, maximum outer iterations <span class="math notranslate nohighlight">\(N_{outer}\)</span>, maximum inner iterations <span class="math notranslate nohighlight">\(N_{inner}\)</span>, outer tolerance <span class="math notranslate nohighlight">\(\varepsilon_{outer}\)</span>, inner tolerance <span class="math notranslate nohighlight">\(\varepsilon_{inner}\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
@@ -1367,7 +1388,7 @@ d(s) = \arg\max_{a \in \mathcal{A}(s)} q(s,a)
 <p>Ormoneit and Sen’s Kernel-Based Reinforcement Learning (KBRL) <span id="id15">[<a class="reference internal" href="bibliography.html#id35" title="Dirk Ormoneit and Śaunak Sen. Kernel-based reinforcement learning. Machine Learning, 49(2/3):161–178, 2002. URL: http://dx.doi.org/10.1023/A:1017928328829, doi:10.1023/a:1017928328829.">31</a>]</span> helped establish the general paradigm of batch reinforcement learning later advocated by <span id="id16">[<a class="reference internal" href="bibliography.html#id36" title="Damien Ernst, Pierre Geurts, and Louis Wehenkel. Tree-based batch mode reinforcement learning. J. Mach. Learn. Res., 6:503–556, 2005. URL: https://jmlr.org/papers/v6/ernst05a.html.">12</a>]</span>. KBRL is a purely offline method that first collects a fixed set of transitions and then uses kernel regression to solve the optimal control problem through value iteration on this dataset. While the dominant approaches at the time were online methods like temporal difference, KBRL showed that another path to developping reinforcement learning algorithm was possible: one that capable of leveraging advances in supervised learning to provide both theoretical and practical benefits.</p>
 <p>As the name suggests, KBRL uses kernel based regression within the general framework of outlined above.</p>
 <div class="proof algorithm admonition" id="kernel-based-q-iteration">
-<p class="admonition-title"><span class="caption-number">Algorithm 23 </span> (Kernel-Based Q-Value Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 20 </span> (Kernel-Based Q-Value Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given an MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, dataset <span class="math notranslate nohighlight">\(\mathcal{D}\)</span> with observed transitions <span class="math notranslate nohighlight">\((s, a, r, s')\)</span>, kernel bandwidth <span class="math notranslate nohighlight">\(b\)</span>, maximum iterations <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span></p>
 <p><strong>Output</strong> Kernel-based Q-function approximation</p>
@@ -1407,7 +1428,7 @@ d(s) = \arg\max_{a \in \mathcal{A}(s)} q(s,a)
 <p>Standard Extra-Trees (<span class="math notranslate nohighlight">\(K&gt;1\)</span>), however, uses target values to choose the best among K random splits by calculating which split best reduces the variance of the predictions. Since these target values change in each iteration of fitted Q iteration (as our estimate of Q evolves), we must rebuild the trees completely. While this is computationally more expensive, it allows the trees to better adapt their structure to capture the evolving Q-function.</p>
 <p>The complete algorithm can be formalized as follows:</p>
 <div class="proof algorithm admonition" id="extra-trees-fqi">
-<p class="admonition-title"><span class="caption-number">Algorithm 24 </span> (Extra-Trees Fitted Q Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 21 </span> (Extra-Trees Fitted Q Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given an MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, dataset <span class="math notranslate nohighlight">\(\mathcal{D}\)</span> with observed transitions <span class="math notranslate nohighlight">\((s, a, r, s')\)</span>, Extra-Trees parameters <span class="math notranslate nohighlight">\((K, n_{min}, M)\)</span>, maximum iterations <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span></p>
 <p><strong>Output</strong> Extra-Trees model for Q-function approximation</p>
@@ -1449,7 +1470,7 @@ d(s) = \arg\max_{a \in \mathcal{A}(s)} q(s,a)
 <p>where <span class="math notranslate nohighlight">\(s'_{observed}\)</span> is the actual next state that was observed after taking action <span class="math notranslate nohighlight">\(a\)</span> in state <span class="math notranslate nohighlight">\(s\)</span>. This is equivalent to Monte Carlo integration with a single sample, making the algorithm fully model-free.</p>
 <p>The algorithm follows from the parametric Q-value iteration template:</p>
 <div class="proof algorithm admonition" id="neural-fitted-q-iteration">
-<p class="admonition-title"><span class="caption-number">Algorithm 25 </span> (Neural Fitted Q Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 22 </span> (Neural Fitted Q Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given an MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, dataset <span class="math notranslate nohighlight">\(\mathcal{D}\)</span> with observed transitions <span class="math notranslate nohighlight">\((s, a, r, s')\)</span>, MLP architecture <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, maximum iterations <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
@@ -1481,7 +1502,7 @@ d(s) = \arg\max_{a \in \mathcal{A}(s)} q(s,a)
 <p>DQN <span id="id20">[<a class="reference internal" href="bibliography.html#id41" title="Volodymyr Mnih, Koray Kavukcuoglu, David Silver, Andrei A Rusu, Joel Veness, Marc G Bellemare, Alex Graves, Martin Riedmiller, Andreas K Fidjeland, Georg Ostrovski, and others. Playing atari with deep reinforcement learning. In NIPS Deep Learning Workshop. 2013.">30</a>]</span> is a close relative of NFQI - in fact, Riedmiller, the author of NFQI, was also an author on the DQN paper. What at first glance might look like a different algorithm can actually be understood as a special case of parametric dynamic programming with practical adaptations. Let’s build this connection step by step.</p>
 <p>First, let’s start with basic parametric Q-value iteration using a neural network:</p>
 <div class="proof algorithm admonition" id="basic-q-iteration">
-<p class="admonition-title"><span class="caption-number">Algorithm 26 </span> (Basic Offline Neural Fitted Q-Value Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 23 </span> (Basic Offline Neural Fitted Q-Value Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given an MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, dataset of transitions <span class="math notranslate nohighlight">\(\mathcal{T}\)</span>, neural network <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, maximum iterations <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span>, initialization <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_0\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
@@ -1507,7 +1528,7 @@ d(s) = \arg\max_{a \in \mathcal{A}(s)} q(s,a)
 </section>
 </div><p>Next, let’s open up the <code class="docutils literal notranslate"><span class="pre">fit</span></code> procedure to show the inner optimization loop using gradient descent:</p>
 <div class="proof algorithm admonition" id="q-iteration-inner-loop">
-<p class="admonition-title"><span class="caption-number">Algorithm 27 </span> (Fitted Q-Value Iteration with Explicit Inner Loop)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 24 </span> (Fitted Q-Value Iteration with Explicit Inner Loop)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, dataset of transitions <span class="math notranslate nohighlight">\(\mathcal{T}\)</span>, neural network <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, learning rate <span class="math notranslate nohighlight">\(\alpha\)</span>, convergence test <span class="math notranslate nohighlight">\(\texttt{has_converged}(\cdot)\)</span>, initialization <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_0\)</span>, regression loss function <span class="math notranslate nohighlight">\(\mathcal{L}\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
@@ -1545,7 +1566,7 @@ d(s) = \arg\max_{a \in \mathcal{A}(s)} q(s,a)
 <h3>Warmstarting and Partial Fitting<a class="headerlink" href="#warmstarting-and-partial-fitting" title="Link to this heading">#</a></h3>
 <p>A natural modification is to initialize the inner optimization loop with the previous iteration’s parameters - a strategy known as warmstarting - rather than starting from <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_0\)</span> each time. Additionally, similar to how modified policy iteration performs partial policy evaluation rather than solving to convergence, we can limit ourselves to a fixed number of optimization steps. These pragmatic changes, when combined, yield:</p>
 <div class="proof algorithm admonition" id="nfqi-warmstart-partial">
-<p class="admonition-title"><span class="caption-number">Algorithm 28 </span> (Neural Fitted Q-Iteration with Warmstarting and Partial Optimization)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 25 </span> (Neural Fitted Q-Iteration with Warmstarting and Partial Optimization)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, dataset of transitions <span class="math notranslate nohighlight">\(\mathcal{T}\)</span>, neural network <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, learning rate <span class="math notranslate nohighlight">\(\alpha\)</span>, number of steps <span class="math notranslate nohighlight">\(K\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
@@ -1581,7 +1602,7 @@ d(s) = \arg\max_{a \in \mathcal{A}(s)} q(s,a)
 <h3>Flattening the Updates with Target Swapping<a class="headerlink" href="#flattening-the-updates-with-target-swapping" title="Link to this heading">#</a></h3>
 <p>Now rather than maintaining two sets of indices for the outer and inner levels, we could also “flatten” this algorithm  under a single loop structure using modulo arithmetics. Here’s how we could rewrite it:</p>
 <div class="proof algorithm admonition" id="nfqi-flattened-swap">
-<p class="admonition-title"><span class="caption-number">Algorithm 29 </span> (Flattened Neural Fitted Q-Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 26 </span> (Flattened Neural Fitted Q-Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, dataset of transitions <span class="math notranslate nohighlight">\(\mathcal{T}\)</span>, neural network <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, learning rate <span class="math notranslate nohighlight">\(\alpha\)</span>, target update frequency <span class="math notranslate nohighlight">\(K\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
@@ -1616,7 +1637,7 @@ d(s) = \arg\max_{a \in \mathcal{A}(s)} q(s,a)
 <h3>Exponential Moving Average Targets<a class="headerlink" href="#exponential-moving-average-targets" title="Link to this heading">#</a></h3>
 <p>An alternative to this periodic swap of parameters is to use an exponential moving average (EMA) of the parameters:</p>
 <div class="proof algorithm admonition" id="nfqi-flattened-ema">
-<p class="admonition-title"><span class="caption-number">Algorithm 30 </span> (Flattened Neural Fitted Q-Iteration with EMA)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 27 </span> (Flattened Neural Fitted Q-Iteration with EMA)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, dataset of transitions <span class="math notranslate nohighlight">\(\mathcal{T}\)</span>, neural network <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, learning rate <span class="math notranslate nohighlight">\(\alpha\)</span>, EMA rate <span class="math notranslate nohighlight">\(\tau\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
@@ -1648,7 +1669,7 @@ EMA targets (also called “Polyak averaging”) started becoming popular in dee
 <h3>Online Data Collection and Experience Replay<a class="headerlink" href="#online-data-collection-and-experience-replay" title="Link to this heading">#</a></h3>
 <p>Rather than using offline data, we now consider a modification where we incrementally gather samples under our current policy. A common exploration strategy is <span class="math notranslate nohighlight">\(\varepsilon\)</span>-greedy: with probability <span class="math notranslate nohighlight">\(\varepsilon\)</span> we select a random action, and with probability <span class="math notranslate nohighlight">\(1-\varepsilon\)</span> we select the greedy action <span class="math notranslate nohighlight">\(\arg\max_a q(s,a;\boldsymbol{\theta}_n)\)</span>. This ensures we maintain some exploration even as our Q-function estimates improve. Typically <span class="math notranslate nohighlight">\(\varepsilon\)</span> is annealed over time, starting with a high value (e.g., 1.0) to encourage early exploration and gradually decreasing to a small final value (e.g., 0.01) to maintain a minimal level of exploration while mostly exploiting our learned policy.</p>
 <div class="proof algorithm admonition" id="online-nfqi-flattened">
-<p class="admonition-title"><span class="caption-number">Algorithm 31 </span> (Flattened Online Neural Fitted Q-Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 28 </span> (Flattened Online Neural Fitted Q-Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, neural network <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, learning rate <span class="math notranslate nohighlight">\(\alpha\)</span>, target update frequency <span class="math notranslate nohighlight">\(K\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
@@ -1689,7 +1710,7 @@ EMA targets (also called “Polyak averaging”) started becoming popular in dee
 </ol>
 <p>Here’s how we can modify our algorithm to incorporate these ideas:</p>
 <div class="proof algorithm admonition" id="online-nfqi-replay">
-<p class="admonition-title"><span class="caption-number">Algorithm 32 </span> (Deep-Q Network)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 29 </span> (Deep-Q Network)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, neural network <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, learning rate <span class="math notranslate nohighlight">\(\alpha\)</span>, target update frequency <span class="math notranslate nohighlight">\(K\)</span>, replay buffer size <span class="math notranslate nohighlight">\(B\)</span>, mini-batch size <span class="math notranslate nohighlight">\(b\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
@@ -1732,7 +1753,7 @@ EMA targets (also called “Polyak averaging”) started becoming popular in dee
 <p>As we saw earlier, the max operator in the target computation can lead to overestimation of Q-values. This happens because we use the same network to both select and evaluate actions in the target computation: <span class="math notranslate nohighlight">\(y_i \leftarrow r_i + \gamma \max_{a' \in A} q(s_i',a'; \boldsymbol{\theta}_{target})\)</span>. The max operator means we’re both choosing the action that looks best under our current estimates and then using that same set of estimates to evaluate how good that action is, potentially compounding any optimization bias.</p>
 <p>Double DQN <span id="id25">Van Hasselt <em>et al.</em> [<a class="reference internal" href="bibliography.html#id47" title="Hado Van Hasselt, Arthur Guez, and David Silver. Deep reinforcement learning with double q-learning. Proceedings of the AAAI Conference on Artificial Intelligence, 2016.">40</a>]</span> addresses this by using the current network parameters to select actions but the target network parameters to evaluate them. This leads to a simple modification of the DQN algorithm:</p>
 <div class="proof algorithm admonition" id="double-dqn">
-<p class="admonition-title"><span class="caption-number">Algorithm 33 </span> (Double Deep-Q Network)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 30 </span> (Double Deep-Q Network)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, neural network <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, learning rate <span class="math notranslate nohighlight">\(\alpha\)</span>, target update frequency <span class="math notranslate nohighlight">\(K\)</span>, replay buffer size <span class="math notranslate nohighlight">\(B\)</span>, mini-batch size <span class="math notranslate nohighlight">\(b\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
@@ -1776,7 +1797,7 @@ EMA targets (also called “Polyak averaging”) started becoming popular in dee
 <p>In flattening neural fitted Q-iteration, our field had perhaps lost sight of an important structural element: the choice of inner-loop initializer inherent in the original FQI algorithm. The traditional structure explicitly separated outer iterations (computing targets) from inner optimization (fitting to those targets), with each inner optimization starting fresh from parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_0\)</span>.</p>
 <p>The flattened version with persistent warmstarting seemed like a natural optimization - why throw away learned parameters? However, recent work <span id="id26">[<a class="reference internal" href="bibliography.html#id45" title="Pierluca D'Oro, Max Schwarzer, Evgenii Nikishin, Pierre-Luc Bacon, Marc G. Bellemare, and Aaron C. Courville. Sample-efficient reinforcement learning by breaking the replay ratio barrier. In The Eleventh International Conference on Learning Representations, ICLR 2023, Kigali, Rwanda, May 1-5, 2023. OpenReview.net, 2023.">10</a>]</span> has shown that persistent warmstarting can actually be detrimental to learning. Neural networks tend to lose their ability to learn and generalize over the course of training, suggesting that occasionally starting fresh from <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_0\)</span> might be beneficial. Here’s how this looks algorithmically in the context of DQN:</p>
 <div class="proof algorithm admonition" id="dqn-hard-resets">
-<p class="admonition-title"><span class="caption-number">Algorithm 34 </span> (DQN with Hard Resets)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 31 </span> (DQN with Hard Resets)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, neural network <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, learning rate <span class="math notranslate nohighlight">\(\alpha\)</span>, reset interval <span class="math notranslate nohighlight">\(K\)</span>, replay buffer size <span class="math notranslate nohighlight">\(B\)</span>, mini-batch size <span class="math notranslate nohighlight">\(b\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
@@ -1824,7 +1845,7 @@ EMA targets (also called “Polyak averaging”) started becoming popular in dee
 <p>The hard reset strategy, while effective, might be too aggressive in some settings as it completely discards learned parameters. An alternative approach is to use a softer form of reset, adapting the “Shrink and Perturb” technique originally introduced by <span id="id27">Ash and Adams [<a class="reference internal" href="bibliography.html#id44" title="Jordan T Ash and Ryan P Adams. Warm-starting and amortization in continual learning. In International Conference on Learning Representations (ICLR). 2020.">4</a>]</span> in the context of continual learning. In their work, they found that neural networks that had been trained on one task could better adapt to new tasks if their parameters were partially reset - interpolated with a fresh initialization - rather than either kept intact or completely reset.</p>
 <p>We can adapt this idea to our setting. Instead of completely resetting to <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_0\)</span>, we can perform a soft reset by interpolating between our current parameters and a fresh random initialization:</p>
 <div class="proof algorithm admonition" id="dqn-soft-resets">
-<p class="admonition-title"><span class="caption-number">Algorithm 35 </span> (DQN with Shrink and Perturb)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 32 </span> (DQN with Shrink and Perturb)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, neural network <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, learning rate <span class="math notranslate nohighlight">\(\alpha\)</span>, reset interval <span class="math notranslate nohighlight">\(K\)</span>, replay buffer size <span class="math notranslate nohighlight">\(B\)</span>, mini-batch size <span class="math notranslate nohighlight">\(b\)</span>, interpolation coefficient <span class="math notranslate nohighlight">\(\beta\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
@@ -2037,8 +2058,7 @@ EMA targets (also called “Polyak averaging”) started becoming popular in dee
             
             
               
-                <dialog id="pst-secondary-sidebar-modal"></dialog>
-                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
   <div class="sidebar-secondary-item">
@@ -2165,8 +2185,8 @@ By Pierre-Luc Bacon
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549"></script>
-<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549"></script>
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
 
   <footer class="bd-footer">
   </footer>
