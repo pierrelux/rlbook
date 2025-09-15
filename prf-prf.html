@@ -213,14 +213,16 @@ window.addEventListener("load", () => mermaid.run());
 
 
 
+
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">From Trajectories to Policies</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="mpc.html">From Trajectories to Policies</a></li>
-
+<li class="toctree-l1"><a class="reference internal" href="mpc.html">Model Predictive Control</a></li>
 
 
 <li class="toctree-l1"><a class="reference internal" href="dp.html">Dynamic Programming</a></li>
+
+
 
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Learning from Data</span></p>
@@ -419,17 +421,15 @@ document.write(`
    <a href="#cap-definition-0"><strong>definition-0</strong></a> | 
    <a href="#cap-definition-1"><strong>definition-1</strong></a> | 
    <a href="#cap-definition-2"><strong>definition-2</strong></a> | 
+   <a href="#cap-definition-3"><strong>definition-3</strong></a> | 
    <a href="#cap-definition-4"><strong>definition-4</strong></a> | 
    <a href="#cap-definition-5"><strong>definition-5</strong></a> | 
-   <a href="#cap-definition-6"><strong>definition-6</strong></a> | 
-   <a href="#cap-definition-7"><strong>definition-7</strong></a> | 
    <a href="#cap-double-dqn"><strong>double-dqn</strong></a> | 
    <a href="#cap-double-mc-value-iteration"><strong>double-mc-value-iteration</strong></a> | 
    <a href="#cap-dqn-hard-resets"><strong>dqn-hard-resets</strong></a> | 
    <a href="#cap-dqn-soft-resets"><strong>dqn-soft-resets</strong></a> | 
    <a href="#cap-early-stopping-fqi"><strong>early-stopping-fqi</strong></a> | 
    <a href="#cap-euler-method"><strong>euler-method</strong></a> | 
-   <a href="#cap-example-3"><strong>example-3</strong></a> | 
    <a href="#cap-extra-trees-fqi"><strong>extra-trees-fqi</strong></a> | 
    <a href="#cap-fitted-q-iteration-amortized"><strong>fitted-q-iteration-amortized</strong></a> | 
    <a href="#cap-fitted-q-iteration-explicit"><strong>fitted-q-iteration-explicit</strong></a> | 
@@ -456,7 +456,7 @@ document.write(`
    <a href="#cap-prop-5-3-1"><strong>prop-5-3-1</strong></a> | 
    <a href="#cap-proposition-1"><strong>proposition-1</strong></a> | 
    <a href="#cap-proposition-11"><strong>proposition-11</strong></a> | 
-   <a href="#cap-proposition-4"><strong>proposition-4</strong></a> | 
+   <a href="#cap-proposition-7"><strong>proposition-7</strong></a> | 
    <a href="#cap-q-iteration-inner-loop"><strong>q-iteration-inner-loop</strong></a> | 
    <a href="#cap-sac"><strong>sac</strong></a> | 
    <a href="#cap-single-shooting-forward-unroll"><strong>single-shooting-forward-unroll</strong></a> | 
@@ -556,7 +556,7 @@ document.write(`
      <tr>
        <td></td>
        <td>
-       <a href="mpc.html#backward-recursion"><code class="xref">backward-recursion</code></a> <em>(mpc)</em></td><td>
+       <a href="dp.html#backward-recursion"><code class="xref">backward-recursion</code></a> <em>(dp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-backward-recursion-interpolation"><td></td><td>
@@ -564,7 +564,7 @@ document.write(`
      <tr>
        <td></td>
        <td>
-       <a href="mpc.html#backward-recursion-interpolation"><code class="xref">backward-recursion-interpolation</code></a> <em>(mpc)</em></td><td>
+       <a href="dp.html#backward-recursion-interpolation"><code class="xref">backward-recursion-interpolation</code></a> <em>(dp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-basic-q-iteration"><td></td><td>
@@ -607,6 +607,14 @@ document.write(`
        <a href="cocp.html#definition-2"><code class="xref">definition-2</code></a> <em>(cocp)</em></td><td>
        <em>definition</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
+     <tr class="cap" id="cap-definition-3"><td></td><td>
+       <strong>definition-3</strong></td><td></td></tr>
+     <tr>
+       <td></td>
+       <td>
+       <a href="cocp.html#definition-3"><code class="xref">definition-3</code></a> <em>(cocp)</em></td><td>
+       <em>definition</em></td></tr>
+     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-definition-4"><td></td><td>
        <strong>definition-4</strong></td><td></td></tr>
      <tr>
@@ -621,22 +629,6 @@ document.write(`
        <td></td>
        <td>
        <a href="cocp.html#definition-5"><code class="xref">definition-5</code></a> <em>(cocp)</em></td><td>
-       <em>definition</em></td></tr>
-     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
-     <tr class="cap" id="cap-definition-6"><td></td><td>
-       <strong>definition-6</strong></td><td></td></tr>
-     <tr>
-       <td></td>
-       <td>
-       <a href="cocp.html#definition-6"><code class="xref">definition-6</code></a> <em>(cocp)</em></td><td>
-       <em>definition</em></td></tr>
-     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
-     <tr class="cap" id="cap-definition-7"><td></td><td>
-       <strong>definition-7</strong></td><td></td></tr>
-     <tr>
-       <td></td>
-       <td>
-       <a href="cocp.html#definition-7"><code class="xref">definition-7</code></a> <em>(cocp)</em></td><td>
        <em>definition</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-double-dqn"><td></td><td>
@@ -686,14 +678,6 @@ document.write(`
        <td>
        <a href="appendix_ivps.html#euler-method"><code class="xref">euler-method</code></a> <em>(appendix_ivps)</em></td><td>
        <em>algorithm</em></td></tr>
-     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
-     <tr class="cap" id="cap-example-3"><td></td><td>
-       <strong>example-3</strong></td><td></td></tr>
-     <tr>
-       <td></td>
-       <td>
-       <a href="cocp.html#example-3"><code class="xref">example-3</code></a> <em>(cocp)</em></td><td>
-       <em>example</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-extra-trees-fqi"><td></td><td>
        <strong>extra-trees-fqi</strong></td><td></td></tr>
@@ -903,12 +887,12 @@ document.write(`
        <a href="cadp.html#proposition-11"><code class="xref">proposition-11</code></a> <em>(cadp)</em></td><td>
        <em>proposition</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
-     <tr class="cap" id="cap-proposition-4"><td></td><td>
-       <strong>proposition-4</strong></td><td></td></tr>
+     <tr class="cap" id="cap-proposition-7"><td></td><td>
+       <strong>proposition-7</strong></td><td></td></tr>
      <tr>
        <td></td>
        <td>
-       <a href="dp.html#proposition-4"><code class="xref">proposition-4</code></a> <em>(dp)</em></td><td>
+       <a href="dp.html#proposition-7"><code class="xref">proposition-7</code></a> <em>(dp)</em></td><td>
        <em>proposition</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-q-iteration-inner-loop"><td></td><td>
@@ -940,7 +924,7 @@ document.write(`
      <tr>
        <td></td>
        <td>
-       <a href="mpc.html#stochastic-backward-recursion"><code class="xref">stochastic-backward-recursion</code></a> <em>(mpc)</em></td><td>
+       <a href="dp.html#stochastic-backward-recursion"><code class="xref">stochastic-backward-recursion</code></a> <em>(dp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-successive-approximation"><td></td><td>
