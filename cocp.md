@@ -82,12 +82,12 @@ With this catalog in place, we now pass from functions to finite representations
 
 # Direct Transcription Methods
 
-The discrete-time problems of the previous chapter already suggested how to proceed: we convert a continuous problem into one over finitely many numbers by deciding where to look at the trajectories and how to interpolate between those looks. We place a mesh $t_0<t_1<\cdots<t_N=t_f$ and, inside each window $[t_k,t_{k+1}]$, select a small set of interior fractions $\{\xi_i\}$ on the reference interval $[0,1]$. The running cost is additive over windows, so we write it as a sum of local integrals, map each window to $[0,1]$, and approximate each local integral by a quadrature rule with nodes $\xi_i$ and weights $w_i$. This produces
+The discrete-time problems of the previous chapter already suggested how to proceed: we convert a continuous problem into one over finitely many numbers by deciding where to look at the trajectories and how to interpolate between those looks. We place a mesh $t_0<t_1<\cdots<t_N=t_f$ and, inside each window $[t_k,t_{k+1}]$, select a small set of interior fractions $\{\tau_j\}$ on the reference interval $[0,1]$. The running cost is additive over windows, so we write it as a sum of local integrals, map each window to $[0,1]$, and approximate each local integral by a quadrature rule with nodes $\tau_j$ and weights $w_j$. This produces
 
 $$
 \int_{t_0}^{t_f} c(\mathbf{x}(t),\mathbf{u}(t))\,dt
 \;\approx\;
-\sum_{k=0}^{N-1} h_k \sum_{i=1}^q w_i\, c\!\big(\mathbf{x}(t_k+h_k\xi_i),\,\mathbf{u}(t_k+h_k\xi_i)\big),
+\sum_{k=0}^{N-1} h_k \sum_{j=1}^q w_j\, c\!\big(\mathbf{x}(t_k+h_k\tau_j),\,\mathbf{u}(t_k+h_k\tau_j)\big),
 $$
 
 with $h_k=t_{k+1}-t_k$. The dynamics are treated in the same way by the fundamental theorem of calculus,
@@ -95,12 +95,12 @@ with $h_k=t_{k+1}-t_k$. The dynamics are treated in the same way by the fundamen
 $$
 \mathbf{x}(t_{k+1})-\mathbf{x}(t_k)=\int_{t_k}^{t_{k+1}} \mathbf{f}(\mathbf{x}(t),\mathbf{u}(t))\,dt
 \;\approx\;
-h_k \sum_{i=1}^q b_i\, \mathbf{f}\!\big(\mathbf{x}(t_k+h_k\xi_i),\,\mathbf{u}(t_k+h_k\xi_i)\big),
+h_k \sum_{j=1}^q b_j\, \mathbf{f}\!\big(\mathbf{x}(t_k+h_k\tau_j),\,\mathbf{u}(t_k+h_k\tau_j)\big),
 $$
 
-so the places where we “pay” running cost are the same places where we “account” for state changes. Path constraints and bounds are then enforced at the same interior times. In the infinite-horizon discounted case, the same formulas apply with an extra factor $e^{-\rho(t_k+h_k\xi_i)}$ multiplying the weights in the cost.
+so the places where we “pay” running cost are the same places where we “account” for state changes. Path constraints and bounds are then enforced at the same interior times. In the infinite-horizon discounted case, the same formulas apply with an extra factor $e^{-\rho(t_k+h_k\tau_j)}$ multiplying the weights in the cost.
 
-The values $\mathbf{x}(t_k+h_k\xi_i)$ and $\mathbf{u}(t_k+h_k\xi_i)$ do not exist a priori. We create them by a finite representation. One option is shooting: parameterize $\mathbf{u}$ on the mesh, integrate the ODE across each window with a chosen numerical step, and read interior values from that step. Another is collocation: represent $\mathbf{x}$ inside each window by a local polynomial and choose its coefficients so that the ODE holds at the interior nodes. Both constructions lead to the same structure: a nonlinear program whose objective is a composite quadrature of the running term (plus any terminal term in the Bolza case) and whose constraints are algebraic relations that encode the ODE and the pointwise inequalities at the selected nodes.
+The values $\mathbf{x}(t_k+h_k\tau_j)$ and $\mathbf{u}(t_k+h_k\tau_j)$ do not exist a priori. We create them by a finite representation. One option is shooting: parameterize $\mathbf{u}$ on the mesh, integrate the ODE across each window with a chosen numerical step, and read interior values from that step. Another is collocation: represent $\mathbf{x}$ inside each window by a local polynomial and choose its coefficients so that the ODE holds at the interior nodes. Both constructions lead to the same structure: a nonlinear program whose objective is a composite quadrature of the running term (plus any terminal term in the Bolza case) and whose constraints are algebraic relations that encode the ODE and the pointwise inequalities at the selected nodes.
 
 Specific choices recover familiar schemes. If we use the left endpoint as the single interior node, we obtain the forward Euler transcription. If we use both endpoints with equal weights, we obtain the trapezoidal transcription. Higher-order rules arise when we include interior nodes and richer polynomials for $\mathbf{x}$. What matters here is the unifying picture: choose nodes, translate integrals into weighted sums, and couple those evaluations to a finite trajectory representation so that cost and physics are enforced at the same places. This is the organizing idea that will guide the rest of the chapter.
 
@@ -135,14 +135,14 @@ $$
 \mathbf{x}(t_{k+1})-\mathbf{x}(t_k)=\int_{t_k}^{t_{k+1}} \mathbf{f}(\mathbf{x}(t),\mathbf{u}(t))\,dt.
 $$
 
-When we approximate this integral, we introduce interior evaluation points $t_k^{(i)}\in[t_k,t_{k+1}]$. Using the **same points** in the cost and in the dynamics ties $\mathbf{x}$ and $\mathbf{u}$ together coherently: the places where we “pay” for running cost are also the places where we enforce the ODE. This avoids a mismatch between where we approximate the objective and where we impose feasibility.
+When we approximate this integral, we introduce interior evaluation points $t_{k,j}\in[t_k,t_{k+1}]$. Using the **same points** in the cost and in the dynamics ties $\mathbf{x}$ and $\mathbf{u}$ together coherently: the places where we “pay” for running cost are also the places where we enforce the ODE. This avoids a mismatch between where we approximate the objective and where we impose feasibility.
 
 Third, the decomposition yields a nonlinear program with **sparse structure**. Each interval contributes a small block to the objective and constraints that depends only on variables from that interval (and its endpoints). Modern solvers exploit this banded sparsity to scale to long horizons. 
 
-With the split justified, we standardize the approximation. Map each interval to a reference domain via $t=t_k+h_k\tau$ with $\tau\in[0,1]$ and $dt=h_k\,d\tau$. A **quadrature rule on $[0,1]$** is specified by evaluation points $\{\xi_i\}_{i=1}^q \subset [0,1]$ and positive weights $\{w_i\}_{i=1}^q$ such that, for a smooth $\phi$,
+With the split justified, we standardize the approximation. Map each interval to a reference domain via $t=t_k+h_k\tau$ with $\tau\in[0,1]$ and $dt=h_k\,d\tau$. A **quadrature rule on $[0,1]$** is specified by evaluation points $\{\tau_j\}_{j=1}^q \subset [0,1]$ and positive weights $\{w_j\}_{j=1}^q$ such that, for a smooth $\phi$,
 
 $$
-\int_0^1 \phi(\tau)\,d\tau \;\approx\; \sum_{i=1}^q w_i\,\phi(\xi_i).
+\int_0^1 \phi(\tau)\,d\tau \;\approx\; \sum_{j=1}^q w_j\,\phi(\tau_j).
 $$ 
 
 Applying it on each interval gives
@@ -150,7 +150,7 @@ Applying it on each interval gives
 $$
 \int_{t_k}^{t_{k+1}} c(\mathbf{x}(t),\mathbf{u}(t))\,dt
 \;\approx\;
-h_k\sum_{i=1}^q w_i\, c\!\big(\mathbf{x}(t_k+h_k\xi_i),\,\mathbf{u}(t_k+h_k\xi_i)\big).
+h_k\sum_{j=1}^q w_j\, c\!\big(\mathbf{x}(t_k+h_k\tau_j),\,\mathbf{u}(t_k+h_k\tau_j)\big).
 $$
 
 
@@ -159,7 +159,7 @@ Summing these window contributions gives a composite approximation of the integr
 $$
 \int_{t_0}^{t_f} c(\mathbf{x}(t),\mathbf{u}(t))\,dt
 \;\approx\;
-\sum_{k=0}^{N-1} h_k \sum_{i=1}^q w_i\, c\!\big(\mathbf{x}(t_k^{(i)}),\mathbf{u}(t_k^{(i)})\big).
+\sum_{k=0}^{N-1} h_k \sum_{j=1}^q w_j\, c\!\big(\mathbf{x}(t_{k,j}),\mathbf{u}(t_{k,j})\big).
 $$
 
 The outer index $k$ indicates the window; the inner index $i$ indicates the samples within that window; the factor $h_k$ appears from the change of variables.
@@ -177,16 +177,16 @@ Replacing this integral by a quadrature rule that uses the **same** nodes produc
 $$
 \mathbf{x}_{k+1}-\mathbf{x}_k
 \;\approx\;
-h_k\sum_{i=1}^q b_i\, \mathbf{f}\!\big(\mathbf{x}(t_k^{(i)}),\mathbf{u}(t_k^{(i)})\big),
+h_k\sum_{j=1}^q b_j\, \mathbf{f}\!\big(\mathbf{x}(t_{k,j}),\mathbf{u}(t_{k,j})\big),
 $$
 
-where $\{b_i\}$ are the weights used for the ODE. Path constraints $\mathbf{g}(\mathbf{x}(t),\mathbf{u}(t))\le 0$ are imposed at selected nodes $t_k^{(i)}$ in the same spirit. Using the same evaluation points for cost and dynamics keeps the representation coherent: we “pay” running cost and “account” for state changes at the same times.
+where $\{b_j\}$ are the weights used for the ODE. Path constraints $\mathbf{g}(\mathbf{x}(t),\mathbf{u}(t))\le 0$ are imposed at selected nodes $t_{k,j}$ in the same spirit. Using the same evaluation points for cost and dynamics keeps the representation coherent: we “pay” running cost and “account” for state changes at the same times.
 
 
 
-### How do values at interior points arise? (step functions vs interpolating functions)
+### On the choice of interior points
 
-Once we select a mesh $t_0<\cdots<t_N$ and interior fractions $\{\xi_i\}_{i=1}^q$ per window $[t_k,t_{k+1}]$, we need $\mathbf{x}(t_k^{(i)})$ and $\mathbf{u}(t_k^{(i)})$ at the evaluation times $t_k^{(i)} := t_k + h_k\xi_i$. These values do not preexist. They come from one of two constructions that align with the standard quadrature taxonomy: **step-function based** and **interpolating-function based** rules.
+Once we select a mesh $t_0<\cdots<t_N$ and interior fractions $\{\tau_j\}_{j=1}^q$ per window $[t_k,t_{k+1}]$, we need $\mathbf{x}(t_{k,j})$ and $\mathbf{u}(t_{k,j})$ at the evaluation times $t_{k,j} := t_k + h_k\tau_j$. These values do not preexist. They come from one of two constructions that align with the standard quadrature taxonomy: **step-function based** and **interpolating-function based** rules.
 
 #### Step-function based construction (piecewise constants; rectangle or midpoint)
 
@@ -228,12 +228,12 @@ $$
 With a quadratic interpolation that includes the midpoint, Simpson’s rule appears in the cost and the Hermite–Simpson relations tie $\mathbf{x}_{k+\frac12}$ to endpoint values and slopes. More generally, **collocation** chooses interior nodes on $[t_k,t_{k+1}]$ (equally spaced gives Newton–Cotes like trapezoid or Simpson; Gaussian points give Gauss, Radau, or Lobatto schemes) and enforces the ODE at those nodes:
 
 $$
-\frac{d}{dt}\mathbf{x}(t_k^{(i)})=\mathbf{f}\!\big(\mathbf{x}(t_k^{(i)}),\mathbf{u}(t_k^{(i)}),t_k^{(i)}\big),
+\frac{d}{dt}\mathbf{x}(t_{k,j})=\mathbf{f}\!\big(\mathbf{x}(t_{k,j}),\mathbf{u}(t_{k,j}),t_{k,j}\big),
 $$
 
-with continuity at endpoints. The interior values $\mathbf{x}(t_k^{(i)})$ are **evaluations of the decision polynomials**; $\mathbf{u}(t_k^{(i)})$ follows from the chosen control interpolation (constant, linear, or quadratic). The running cost is evaluated by the same interpolatory quadrature at the same nodes, which keeps “where we pay” aligned with “where we enforce.”
+with continuity at endpoints. The interior values $\mathbf{x}(t_{k,j})$ are **evaluations of the decision polynomials**; $\mathbf{u}(t_{k,j})$ follows from the chosen control interpolation (constant, linear, or quadratic). The running cost is evaluated by the same interpolatory quadrature at the same nodes, which keeps “where we pay” aligned with “where we enforce.”
 
-# The Interpolation Problem: Functions from Constraints
+# Polynomial Interpolation
 
 We often want to construct a function that passes through a given set of points. For example, suppose we know a function should satisfy:
 
@@ -257,9 +257,8 @@ $$
 
 Other valid bases include Legendre, Chebyshev, and Lagrange polynomials, each chosen for specific numerical properties. But all span the same function space.
 
-### How Many Coefficients Do We Need?
 
-Each constraint adds one equation to the system. To find a unique solution, we need the number of unknowns (the $c_n$) to match the number of constraints. Since a degree-$N$ polynomial has $N+1$ coefficients, we need:
+To find a unique solution, we need the number of unknowns (the $c_n$) to match the number of constraints. Since a degree-$N$ polynomial has $N+1$ coefficients, we need:
 
 $$
 N + 1 = m + 1 \quad \Rightarrow \quad N = m.
@@ -378,88 +377,230 @@ $$
 f(x)=\sum_{n=0}^N c_n\,\phi_n(x).
 $$
 
-### Interpolating ODE trajectories (collocation)
+### Interpolating ODE Trajectories (Collocation)
 
-We now specialize the interpolation viewpoint to trajectories governed by an ODE
+Having established the general framework of interpolation, we now apply these concepts to the specific context of approximating trajectories governed by ordinary differential equations.  The idea of applying polynomial interpolation with derivative constraints yields a method known as "collocation". More precisely, a **degree-$s$ collocation method** is a way to discretize an ordinary differential equation (ODE) by approximating the solution on each time interval with a polynomial of degree $s$, and then enforcing that this polynomial satisfies the ODE exactly at $s$ carefully chosen points (the *collocation nodes*).
 
-$$
-\dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t),\mathbf{u}(t),t).
-$$
-
-On each mesh interval $[t_i,t_{i+1}]$ with $h_i:=t_{i+1}-t_i$, choose collocation nodes $\{\xi_j\}_{j=0}^s\subset[0,1]$ and map $t=t_i+h_i\,\xi$. Use the monomial basis $\phi_n(\xi)=\xi^n$ to approximate the (unknown) trajectory by
+Consider a dynamical system described by the ordinary differential equation:
 
 $$
-\mathbf{x}_h(\xi) = \sum_{n=0}^s \mathbf{a}_n\,\xi^n,\quad \mathbf{a}_n\in\mathbb{R}^d.
+\dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t),\mathbf{u}(t),t)
 $$
 
-Differentiating with respect to time (using $\tfrac{d}{dt}=\tfrac{1}{h_i}\tfrac{d}{d\xi}$) gives, at the collocation nodes $\xi_j$,
+where $\mathbf{x}(t)$ represents the state trajectory and $\mathbf{u}(t)$ denotes the control input. 
+Let us focus on a single mesh interval $[t_k,t_{k+1}]$ with step size $h_k := t_{k+1}-t_k$. To work with a standardized domain, we introduce the transformation $t = t_k + h_k\tau$ that maps the physical interval $[t_k,t_{k+1}]$ to the reference interval $[0,1]$. On this reference interval, we select a set of collocation nodes $\{\tau_j\}_{j=0}^K \subset [0,1]$.
+
+Our goal is now to approximate the unknown trajectory using a polynomial of degree $K$. Using a monomial basis, we represent (parameterize) our trajectory as:
 
 $$
-\dot{\mathbf{x}}_h(t_i+h_i\,\xi_j) 
-\;=\; \frac{1}{h_i} \sum_{n=1}^s n\,\mathbf{a}_n\,\xi_j^{\,n-1}.
+\mathbf{x}_h(\tau) := \sum_{n=0}^K \mathbf{a}_n\,\tau^n
 $$
 
-Collocation enforces that these polynomial slopes match the ODE at the same nodes (this is exactly “interpolation with derivative constraints,” where the slopes come from the ODE):
+where $\mathbf{a}_n \in \mathbb{R}^d$ are coefficient vectors to be determined.
+Collocation enforces the differential equation at a chosen set of nodes on $[0,1]$. Depending on the node family, these nodes may be interior-only or may include one or both endpoints. With the polynomial state model, we can differentiate analytically. Using the change of variables $t=t_k+h_k\,\tau$, we obtain:
 
 $$
-\frac{1}{h_i} \sum_{n=1}^s n\,\mathbf{a}_n\,\xi_j^{\,n-1}
-\;=\; \mathbf{f}\Big( \sum_{n=0}^s \mathbf{a}_n\,\xi_j^{\,n},\ \mathbf{U}_j,\ t_i+h_i\,\xi_j \Big),\quad j=0,\ldots,s.
+\dot{\mathbf{x}}_h(t_k+h_k\,\tau_j) = \frac{1}{h_k} \sum_{n=1}^K n\,\mathbf{a}_n\,\tau_j^{n-1}
 $$
 
-Endpoint consistency provides linear constraints on the coefficients. If endpoints are included among $\{\xi_j\}$ (Lobatto-type nodes),
+The collocation condition requires that this polynomial derivative equals the right-hand side of the ODE at each collocation node $\tau_j$:
 
 $$
-\mathbf{x}_i = \mathbf{x}_h(0) = \mathbf{a}_0,\qquad
-\mathbf{x}_{i+1} = \mathbf{x}_h(1) = \sum_{n=0}^s \mathbf{a}_n.
+\frac{1}{h_k} \sum_{n=1}^K n\,\mathbf{a}_n\,\tau_j^{n-1} = \mathbf{f}\left( \sum_{n=0}^K \mathbf{a}_n\,\tau_j^{n},\ \mathbf{u}_j,\ t_k+h_k\,\tau_j \right), \quad \text{for each collocation node } \tau_j.
 $$
 
-Controls can be piecewise-constant/linear or also parameterized by a low-degree polynomial $\mathbf{u}_h(\xi)=\sum_{n=0}^{s_u} \mathbf{b}_n\,\xi^n$ with nodal values $\mathbf{U}_j=\mathbf{u}_h(\xi_j)$. The running cost on $[t_i,t_{i+1}]$ is evaluated with the same nodes and quadrature weights $\{w_j\}$:
+where $\mathbf{u}_j$ represents the control value at node $\tau_j$.
 
-$$
-\int_{t_i}^{t_{i+1}} c\,dt \;\approx\; h_i\sum_{j=0}^s w_j\, c\big(\mathbf{x}_h(\xi_j),\mathbf{u}_h(\xi_j), t_i+h_i\,\xi_j\big).
-$$
+#### Boundary Conditions and Node Families
 
-In words: pick a small set of points inside the interval, write a low-degree polynomial for $\mathbf{x}(t)$, and enforce that its time-derivative equals the ODE at those points. Endpoint equalities give value constraints; the ODE gives slope constraints. Stitch intervals by continuity, and use the same nodes and weights to evaluate the running cost. This is precisely the interpolation-with-derivatives idea, with derivatives supplied by the ODE.
-
-```{prf:example} Two worked collocation examples (solve the local linear system)
-Fix a window $[t_i,t_{i+1}]$ with step $h_i=t_{i+1}-t_i$ and map it to $\xi\in[0,1]$ via $t=t_i+h_i\,\xi$. Approximate the (unknown) scalar state by a degree-1 polynomial
-
-$$
-x_h(\xi)=a_0+a_1\,\xi,\qquad \dot{x}_h(t)=\frac{1}{h_i}\,a_1.
-$$
-
-We will impose a value constraint at the left endpoint $x_h(0)=x_i$ and one collocation condition $\dot{x}_h(t_i+h_i\xi_\star)=f\big(x_h(\xi_\star),u(\xi_\star),t_i+h_i\xi_\star\big)$ at a single node $\xi_\star$. This produces a tiny linear system for the coefficients $a_0,a_1$; evaluating $x_h(1)$ gives the step update.
-
-- Forward (explicit) Euler: choose the left-endpoint node $\xi_\star=0$ and piecewise-constant control $u(\xi_\star)=u_i$. The constraints are
-
-$$
-\underbrace{\begin{bmatrix}1 & 0\\ 0 & 1/h_i\end{bmatrix}}_{\text{linear in }(a_0,a_1)}
-\begin{bmatrix}a_0\\ a_1\end{bmatrix}
-=
-\begin{bmatrix}x_i\\ f(x_i,u_i,t_i)\end{bmatrix}.
-$$
-
-Hence $a_0=x_i$ and $a_1=h_i f(x_i,u_i,t_i)$, so
-
-$$
-x_{i+1}:=x_h(1)=x_i+h_i f(x_i,u_i,t_i),
-$$
-
-which is the forward Euler update recovered as one-point collocation.
-
-- Backward (implicit) Euler: choose the right-endpoint node $\xi_\star=1$ and use $u(\xi_\star)=u_{i+1}$. Then
-
-$$
-\frac{1}{h_i}a_1=f\big(x_h(1),u_{i+1},t_{i+1}\big)=f(x_{i+1},u_{i+1},t_{i+1}),\qquad a_0=x_i,
-$$
-
-so $x_{i+1}=x_i+h_i f(x_{i+1},u_{i+1},t_{i+1})$, the backward Euler relation. For the scalar linear ODE $\dot{x}=\lambda x$ this becomes a 2×2 linear system in $(a_0,a_1)$ that yields the closed form
-
-$$
-x_{i+1}=\frac{1}{1-h_i\lambda}\,x_i.
-$$
+```{code-cell} ipython3
+:tags: [remove-input, remove-output]
+from importlib import reload
+import sys
+sys.path.append('_static')
+import _static.collocation_illustration as _colloc
+reload(_colloc)
 
 ```
+
+```{glue:figure} collocation_figure
+:name: fig-collocation-illustration
+:figwidth: 90%
+:align: center
+
+
+Collocation node families and where slope and continuity constraints are enforced.
+```
+
+
+The choice of collocation nodes determines how boundary conditions are handled and affects the resulting discretization properties. Three standard families are commonly used: Labatto, Randau and and Gauss. 
+
+Let's consider these three setup with more generality over any given basis. We start again by taking a mesh interval $[t_k,t_{k+1}]$ of length $h_k=t_{k+1}-t_k$ and reparametrize time by
+
+$$
+t = t_k + h_k\,\tau,\qquad \tau\in[0,1].
+$$
+
+We then choose to represent the (unknown) state by a degree–$K$ polynomial
+
+$$
+\mathbf{x}_h(\tau) \;=\; \sum_{n=0}^{K}\mathbf{a}_n\,\phi_n(\tau),
+$$
+
+where $\{\phi_n\}_{n=0}^K$ is any linearly independent basis of polynomials of degree $\le K$, and $\mathbf{a}_0,\dots,\mathbf{a}_K$ are vector coefficients to be determined.
+
+The **collocation condition**  mean that we require for the chosen $K$ collocation points that:
+$$
+\frac{d}{dt}\mathbf{x}_h\bigl(\tau_j\bigr) \;=\; \mathbf{f}\bigl(\mathbf{x}_h(\tau_j),\mathbf{u}_h(\tau_j),t_k+h_k\tau_j\bigr),
+\qquad j=0,1,\dots,K,
+$$
+
+which, using $\tfrac{d}{dt}=(1/h_k)\tfrac{d}{d\tau}$, becomes
+
+$$
+\underbrace{\tfrac{1}{h_k}\mathbf{x}_h'(\tau_j)}_{\text{polynomial slope at node}}
+\;=\;
+\underbrace{\mathbf{f}\!\bigl(\mathbf{x}_h(\tau_j),\mathbf{u}_h(\tau_j),t_k+h_k\tau_j\bigr)}_{\text{ODE slope at same point}},
+\qquad j=0,\dots,K.
+$$
+
+Put simply: choose some nodes inside the interval, and at each of those nodes force the slope of the polynomial approximation to match the slope prescribed by the ODE. What we mean by the expression "collocation conditions" is simply to say that we want to satisfy a set of "slope-matching equations" at the chosen nodes. 
+
+By **definition of the mesh variables**,
+
+$$
+\mathbf{x}_k := \mathbf{x}_h(0),\qquad \mathbf{x}_{k+1} := \mathbf{x}_h(1),
+$$
+
+and (if you sample the control at endpoints)
+
+$$
+\mathbf{u}_k := \mathbf{u}_h(0),\qquad \mathbf{u}_{k+1} := \mathbf{u}_h(1).
+$$
+
+With the monomial basis,
+
+$$
+\phi_n(0)=\delta_{n0}\ \Rightarrow\ \mathbf{x}_h(0)=\sum_{n=0}^K \mathbf{a}_n \phi_n(0)=\mathbf{a}_0=\mathbf{x}_k,
+$$
+
+$$
+\phi_n(1)=1\ \Rightarrow\ \mathbf{x}_h(1)=\sum_{n=0}^K \mathbf{a}_n=\mathbf{x}_{k+1}.
+$$
+
+For the derivative, $\phi_n'(\tau)=n\,\tau^{n-1}$, so
+
+$$
+\mathbf{x}_h'(0)=\sum_{n=0}^K \mathbf{a}_n\,\phi_n'(0)=\mathbf{a}_1,
+\qquad
+\mathbf{x}_h'(1)=\sum_{n=1}^K n\,\mathbf{a}_n.
+$$
+
+When chaining intervals into a global trajectory, **direct collocation enforces state continuity by construction**: the variable $\mathbf{x}_{k+1}$ at the end of one interval is the same as the starting variable of the next. What is *not* enforced automatically is **slope continuity**; the derivative at the end of one interval generally does not match the derivative at the start of the next. Different collocation methods may have different slope continuity properties depending on the chosen collocation nodes. 
+
+
+**Lobatto Nodes (endpoints included):**
+
+The family of Labotto methods correspond to any set of so-called **Lobatto nodes** $\{\tau_j\}_{j=0}^K$ with the specificity that we require $\tau_0=0$ and $\tau_K=1$. Let's assume that we work with the **power (monomial) basis** $\phi_n(\tau)=\tau^n$, so that
+
+$$
+\mathbf{x}_h(\tau)=\sum_{n=0}^{K}\mathbf{a}_n\,\tau^n,
+$$
+
+Differentiating $\mathbf{x}_h$ with respect to $\tau$ gives
+
+$$
+\frac{d\mathbf{x}_h}{d\tau}(\tau)=\sum_{n=0}^{K}\mathbf{a}_n\,\phi_n'(\tau),
+$$
+
+Since we have the chain rule $\frac{d}{dt} = \frac{1}{h_k}\frac{d}{d\tau}$ from the time transformation $t = t_k + h_k\tau$, the time derivative becomes
+
+$$
+\frac{d\mathbf{x}_h}{dt}(t_k + h_k\tau) = \frac{1}{h_k}\frac{d\mathbf{x}_h}{d\tau}(\tau) = \frac{1}{h_k}\sum_{n=0}^{K}\mathbf{a}_n\,\phi_n'(\tau).
+$$
+
+so the **collocation equations** at Lobatto nodes are
+
+$$
+\frac{1}{h_k}\sum_{n=0}^{K}\mathbf{a}_n\,\phi_n'(\tau_j)
+\;=\;
+\mathbf{f}\!\Bigl(\sum_{n=0}^{K}\mathbf{a}_n\,\phi_n(\tau_j),\ \mathbf{u}_h(\tau_j),\ t_k+h_k\tau_j\Bigr),
+\qquad j=0,1,\dots,K.
+$$
+
+For $j=0$ and $j=K$, these conditions become: 
+
+$$
+\frac{1}{h_k}\sum_{n=0}^{K}\mathbf{a}_n\,\phi_n'(0)
+\;=\;
+\mathbf{f}\!\Bigl(\sum_{n=0}^{K}\mathbf{a}_n\,\phi_n(0),\ \mathbf{u}_h(0),\ t_k\Bigr),
+\qquad \text{(left endpoint)}
+$$
+
+$$
+\frac{1}{h_k}\sum_{n=0}^{K}\mathbf{a}_n\,\phi_n'(1)
+\;=\;
+\mathbf{f}\!\Bigl(\sum_{n=0}^{K}\mathbf{a}_n\,\phi_n(1),\ \mathbf{u}_h(1),\ t_{k+1}\Bigr),
+\qquad \text{(right endpoint)}
+$$
+
+With the monomial basis $\phi_n(\tau)=\tau^n$, we have $\phi_n'(0)=n\delta_{n,1}$ (only $\phi_1'=1$, others vanish) and $\phi_n'(1)=n$. Also, $\phi_n(0)=\delta_{n,0}$ and $\phi_n(1)=1$ for all $n$. This simplifies the endpoint conditions to:
+
+$$
+\frac{\mathbf{a}_1}{h_k} = \mathbf{f}(\mathbf{a}_0, \mathbf{u}_h(0), t_k) = \mathbf{f}(\mathbf{x}_k, \mathbf{u}_k, t_k),
+\qquad \text{(left endpoint slope)}
+$$
+
+$$
+\frac{1}{h_k}\sum_{n=1}^{K}n\,\mathbf{a}_n = \mathbf{f}\!\Bigl(\sum_{n=0}^{K}\mathbf{a}_n, \mathbf{u}_h(1), t_{k+1}\Bigr) = \mathbf{f}(\mathbf{x}_{k+1}, \mathbf{u}_{k+1}, t_{k+1}),
+\qquad \text{(right endpoint slope)}
+$$
+
+These equations enforce that the polynomial's slope at both endpoints matches the ODE's prescribed slope, which is why the figure shows red tangent lines at both endpoints for Lobatto methods.
+
+
+**Radau Nodes (one endpoint included):**
+Radau points include only one endpoint. Radau-I includes the left endpoint ($\tau_0 = 0$) while Radau-II includes the right endpoint ($\tau_K = 1$). This means that a radau collocation is defined by any set of collocation nodes such that $\tau_K = 1$. This translates into requireing that we match the ODE over the mesh only at the right endpoiunt in addition to the interior nodes.  As a consequence, we leave the solution unconstrained to take any value on the left endpoint. When chaining up multiple intervals across a global solution, this may pose some complication as we will no longer be able to ensure continuity as the slope at one endpoitn need not match that of the next endpoint. (But could you have a situation where slopes match but the states don't line up?)
+
+
+ At the included endpoint the ODE is enforced (slope shown in the figure), while at the other endpoint continuity links adjacent intervals. For Radau-I with $K+1$ points:
+
+$$
+\mathbf{x}_k = \mathbf{x}_h(0) = \mathbf{a}_0
+$$
+
+The endpoint $\mathbf{x}_{k+1} = \mathbf{x}_h(1) = \sum_{n=0}^K \mathbf{a}_n$ is not directly constrained by a collocation condition, requiring separate continuity enforcement between intervals.
+
+**Gauss Nodes (endpoints excluded):**
+Gauss points exclude both endpoints, using only interior points $\tau_j \in (0,1)$ for $j = 1,\ldots,K$. The ODE is enforced only at interior nodes; both endpoints are handled through separate continuity constraints:
+
+$$
+\mathbf{x}_k = \mathbf{x}_h(0) = \mathbf{a}_0
+$$
+$$
+\mathbf{x}_{k+1} = \mathbf{x}_h(1) = \sum_{n=0}^K \mathbf{a}_n
+$$
+
+**Origins and Selection Criteria:**
+These node families derive from orthogonal polynomial theory. Gauss nodes correspond to roots of Legendre polynomials and provide optimal quadrature accuracy for smooth integrands. Radau nodes are roots of modified Legendre polynomials with one endpoint constraint, while Lobatto nodes include both endpoints and correspond to roots of derivatives of Legendre polynomials.
+
+For optimal control applications, Radau-II nodes are often preferred because they provide implicit time-stepping behavior and good stability properties. Lobatto nodes simplify boundary condition handling but may require smaller time steps. Gauss nodes offer highest quadrature accuracy but complicate endpoint treatment.
+
+#### Control Parameterization and Cost Integration
+
+The control inputs can be handled with similar polynomial approximations. We may use piecewise-constant controls, piecewise-linear controls, or higher-order polynomial parameterizations of the form:
+
+$$
+\mathbf{u}_h(\tau) = \sum_{n=0}^{K_u} \mathbf{b}_n\,\tau^n
+$$
+
+where $\mathbf{u}_j = \mathbf{u}_h(\tau_j)$ represents the control values at each collocation point. This polynomial framework extends to cost function evaluation, where running costs are integrated using the same quadrature nodes and weights:
+
+$$
+\int_{t_k}^{t_{k+1}} c\,dt \approx h_k\sum_{j=0}^K w_j\, c\big(\mathbf{x}_h(\tau_j),\mathbf{u}_h(\tau_j), t_k+h_k\,\tau_j\big)
+$$
+
+
 
 # Applying the recipe: concrete transcriptions
 
@@ -467,25 +608,107 @@ The mesh and interior nodes are the common scaffold. What distinguishes one tran
 
 Below, each transcription should be read as “same grid, same interior points, same evaluations for cost and physics,” with only the local representation changing.
 
-*Euler (step functions; rectangle rule).*
-Here we treat $\mathbf{u}$ as piecewise constant and evaluate both cost and dynamics at the left endpoint. Interior values are not independent variables; they are whatever the step-function model implies. This is the simplest way to align “what we pay” with “how we advance,” and it reproduces the forward Euler update inside the NLP.
+## Euler Collocation
 
-```{prf:definition} Euler Transcription (Discrete Bolza NLP)
-Let $t_0<\cdots<t_N$ with $h_i:=t_{i+1}-t_i$. Decision variables are $\{\mathbf{x}_i\}_{i=0}^N$, $\{\mathbf{u}_i\}_{i=0}^{N-1}$. Given running cost $c$, terminal cost $c_T$, dynamics $\mathbf{f}$, and path constraint $\mathbf{g}\le \mathbf{0}$, solve
+Work on one interval $[t_k,t_{k+1}]$ of length $h_k$ with the reparametrization $t=t_k+h_k\,\tau$, $\tau\in[0,1]$. Assume a degree 1 polynomial:
+
+$$
+\mathbf{x}_h(\tau)=\sum_{n=0}^{1}\mathbf{a}_n\,\phi_n(\tau),
+$$
+
+for any basis $\{\phi_0,\phi_1\}$ of linear polynomials. 
+Endpoint conditions give
+
+$$
+\mathbf{x}_h(0)=\mathbf{x}_k\Rightarrow \mathbf{a}_0=\mathbf{x}_k,\qquad
+\mathbf{x}_h(1)=\mathbf{x}_{k+1}\Rightarrow \mathbf{a}_1=\mathbf{x}_{k+1}-\mathbf{x}_k.
+$$
+
+by backsubstitution and because 
+
+$$
+\mathbf{x}_h(\tau)=\mathbf{a}_0+\mathbf{a}_1\,\tau.
+$$
+
+Furthermore, the derivative with respect to $\tau$ is:
+$$
+\frac{d}{d\tau}\mathbf{x}_h(\tau)=\mathbf{a}_1=\mathbf{x}_{k+1}-\mathbf{x}_k,
+\qquad
+\frac{d}{dt}=\frac{1}{h_k}\frac{d}{d\tau}
+\Rightarrow
+\frac{d}{dt}\mathbf{x}_h=\frac{1}{h_k}\,(\mathbf{x}_{k+1}-\mathbf{x}_k).
+$$
+
+Because from the mapping $t(\tau)=t_k+h_k\tau$ we can invert:
+$\tau(t)=\frac{t-t_k}{h_k}$ and differentiating gives
+
+$$
+\frac{d\tau}{dt}=\frac{1}{h_k}.
+$$
+
+
+The **collocation condition** at a single **Radau-II node** $\tau=1$:
+
+$$
+\frac{1}{h_k}\,\mathbf{x}_h'(\tau)\Big|_{\tau=1}
+\;=\;
+\mathbf{f}\!\big(\mathbf{x}_h(1),\mathbf{u}_h(1),t_{k+1}\big)
+\;=\;
+\mathbf{f}\!\big(\mathbf{x}_{k+1},\mathbf{u}_{k+1},t_{k+1}\big).
+$$
+
+Because $\mathbf{x}_h$ is linear, $\mathbf{x}_h'(\tau)$ is constant in $\tau$, so $\mathbf{x}_h'(1)=\mathbf{x}_h'(\tau)$ for all $\tau$. Moreover, linear interpolation between the two endpoints gives
+
+$$
+\mathbf{x}_h'(\tau)=\mathbf{x}_{k+1}-\mathbf{x}_k.
+$$
+
+Substitute this into the collocation condition:
+
+$$
+\frac{1}{h_k}\big(\mathbf{x}_{k+1}-\mathbf{x}_k\big) \;=\; \mathbf{f}\!\big(\mathbf{x}_{k+1},\mathbf{u}_{k+1},t_{k+1}\big),
+$$
+
+which is exactly the **implicit Euler** step
+
+$$
+\boxed{\ \mathbf{x}_{k+1}=\mathbf{x}_k + h_k\,\mathbf{f}\!\big(\mathbf{x}_{k+1},\mathbf{u}_{k+1},t_{k+1}\big)\ }.
+$$
+
+> Side remark. If you instead collocate at the **left** endpoint (Radau-I with $\tau=0$) with the same linear model, you obtain $\frac{1}{h_k}(\mathbf{x}_{k+1}-\mathbf{x}_k)=\mathbf{f}(\mathbf{x}_k,\mathbf{u}_k,t_k)$, i.e., the **explicit Euler** step. In that very precise sense, explicit Euler can be viewed as a (left-endpoint) degree-1 collocation scheme.
+
+The overall direct transcription is then: 
+
+```{prf:definition} Implicit–Euler Collocation (Radau-II, degree 1)
+Let $t_0<\cdots<t_N$ with $h_i:=t_{i+1}-t_i$. Decision variables are $\{\mathbf{x}_i\}_{i=0}^N$, $\{\mathbf{u}_i\}_{i=0}^N$. Solve
 
 $$
 \begin{aligned}
-\min_{\{\mathbf{x}_i,\mathbf{u}_i\}}\ & c_T(\mathbf{x}_N)\; +\; \sum_{i=0}^{N-1} h_i\, c(\mathbf{x}_i,\mathbf{u}_i)\\
-\text{s.t.}\ & \mathbf{x}_{i+1}-\mathbf{x}_i - h_i\,\mathbf{f}(\mathbf{x}_i,\mathbf{u}_i) = \mathbf{0},\quad i=0,\ldots,N-1,\\
-& \mathbf{g}(\mathbf{x}_i,\mathbf{u}_i) \le \mathbf{0},\quad i=0,\ldots,N-1,\\
-& \mathbf{x}_{\min} \le \mathbf{x}_i \le \mathbf{x}_{\max},\ \ \mathbf{u}_{\min} \le \mathbf{u}_i \le \mathbf{u}_{\max},\\
-& \mathbf{x}_0 = \mathbf{x}(t_0).
+\min\ & c_T(\mathbf{x}_N)\;+\;\sum_{i=0}^{N-1} h_i\,c(\mathbf{x}_{i+1},\mathbf{u}_{i+1})\\
+\text{s.t.}\ & \mathbf{x}_{i+1}-\mathbf{x}_i - h_i\,\mathbf{f}(\mathbf{x}_{i+1},\mathbf{u}_{i+1})=\mathbf{0},\quad i=0,\ldots,N-1,\\
+& \mathbf{g}(\mathbf{x}_{i+1},\mathbf{u}_{i+1})\le \mathbf{0},\\
+& \mathbf{x}_{\min}\le \mathbf{x}_i\le \mathbf{x}_{\max},\quad \mathbf{u}_{\min}\le \mathbf{u}_i\le \mathbf{u}_{\max},\\
+& \mathbf{x}_0=\mathbf{x}(t_0).
 \end{aligned}
 $$
+
 ```
 
-*Trapezoidal collocation (linear interpolation; end nodes).*
-Now we let $\mathbf{x}$ vary linearly over the interval and evaluate both cost and dynamics at the two endpoints with equal weights. This matches the trapezoid rule in the objective and the trapezoidal defect in the dynamics, so cost accumulation and state accounting occur at the same two places.
+Note that:
+
+* The running cost and path constraints are evaluated at the **same** right-endpoint where the dynamics are enforced, keeping “where we pay” aligned with “where we enforce.”
+* State continuity is automatic because $\mathbf{x}_{i+1}$ is a shared variable between adjacent intervals; slope continuity is not enforced unless you add it.
+Here’s an updated subsection that explicitly says **what collocation nodes are chosen** and why the trapezoidal defect uses them the way it does.
+
+## Trapezoidal collocation
+
+In this scheme we take the **two endpoints as the nodes** on each interval:
+
+$$
+\tau_0=0,\qquad \tau_1=1\quad(\text{“Lobatto with }K=1\text{”}).
+$$
+
+We approximate $\mathbf{x}$ **linearly** over $[t_i,t_{i+1}]$, and we evaluate both the running cost and the dynamics at these two nodes with **equal weights**. Because a linear polynomial has a **constant** derivative, we do **not** try to match the ODE’s slope at both endpoints (that would overconstrain a linear function). Instead, we enforce the ODE in its **integral form** over the interval and approximate the integral of $\mathbf{f}$ by the **trapezoid rule** using those two nodes. This makes the cost quadrature and the state-update (“defect”) use the **same nodes and weights**.
 
 ```{prf:definition} Trapezoidal Collocation 
 Let $t_0<\cdots<t_N$ with $h_i:=t_{i+1}-t_i$. Decision variables are $\{\mathbf{x}_i\}_{i=0}^N$, $\{\mathbf{u}_i\}_{i=0}^N$. Solve
@@ -493,16 +716,34 @@ Let $t_0<\cdots<t_N$ with $h_i:=t_{i+1}-t_i$. Decision variables are $\{\mathbf{
 $$
 \begin{aligned}
 \min_{\{\mathbf{x}_i,\mathbf{u}_i\}}\ & c_T(\mathbf{x}_N)\; +\; \sum_{i=0}^{N-1} \tfrac{h_i}{2}\,\Big[c(\mathbf{x}_i,\mathbf{u}_i)+c(\mathbf{x}_{i+1},\mathbf{u}_{i+1})\Big]\\
-\text{s.t.}\ & \mathbf{x}_{i+1}-\mathbf{x}_i - \tfrac{h_i}{2}\Big[\mathbf{f}(\mathbf{x}_i,\mathbf{u}_i)+\mathbf{f}(\mathbf{x}_{i+1},\mathbf{u}_{i+1})\Big] = \mathbf{0},\quad i=0,\ldots,N-1,\\
+\text{s.t.}\ & \mathbf{x}_{i+1}-\mathbf{x}_i \;-\; \tfrac{h_i}{2}\Big[\mathbf{f}(\mathbf{x}_i,\mathbf{u}_i)+\mathbf{f}(\mathbf{x}_{i+1},\mathbf{u}_{i+1})\Big] \;=\; \mathbf{0},\quad i=0,\ldots,N-1,\\
 & \mathbf{g}(\mathbf{x}_i,\mathbf{u}_i) \le \mathbf{0},\ \ \mathbf{g}(\mathbf{x}_{i+1},\mathbf{u}_{i+1}) \le \mathbf{0},\\
 & \mathbf{x}_{\min} \le \mathbf{x}_i \le \mathbf{x}_{\max},\ \ \mathbf{u}_{\min} \le \mathbf{u}_i \le \mathbf{u}_{\max},\\
 & \mathbf{x}_0 = \mathbf{x}(t_0).
 \end{aligned}
 $$
+
 ```
 
-*Hermite–Simpson (quadratic interpolation; midpoint included).*  
-Adding a midpoint enriches the local model from linear to quadratic. Practically, this buys two things at once: (i) higher accuracy at low cost—Hermite–Simpson delivers fourth‑order state accuracy with a single interior node, so fewer intervals are needed for a given error; and (ii) tight alignment between physics and objective—Simpson’s rule in the cost and the Hermite–Simpson defect in the dynamics use the same three evaluation sites (left, middle, right). Introducing midpoint variables makes the interior state explicit so the ODE can be matched there, which reduces collocation defects and typically improves conditioning compared to trapezoid on smooth problems. In short, we evaluate and enforce at the same places we pay, and the extra node yields a noticeable accuracy boost without a large increase in variables.
+*Summary:* the **collocation nodes** for trapezoidal are the **two endpoints**; the state is **linear** on each interval; and the dynamics are enforced via the **integrated** ODE with the **trapezoid rule** at those two nodes, yielding the familiar trapezoidal defect.
+
+## Hermite–Simpson (quadratic interpolation; midpoint included)
+
+On each interval $[t_i,t_{i+1}]$ we pick **three collocation nodes** on the reference domain $\tau\in[0,1]$:
+
+$$
+\tau_0=0,\qquad \tau_{1/2}=\tfrac12,\qquad \tau_1=1.
+$$
+
+So we evaluate at **left, midpoint, right**. These are the same three nodes used by Simpson’s rule (weights $1{:}4{:}1$) for numerical quadrature. We let $\mathbf{x}_h$ be **quadratic** in $\tau$. Two things then happen:
+
+1. **Integral (defect) enforcement with Simpson’s rule.**
+   We enforce the ODE in integral form over the interval and approximate the integral of $\mathbf{f}$ with Simpson’s rule using the three nodes above. This yields the first constraint (the “Simpson defect”), which uses $\mathbf{f}$ evaluated at left, midpoint, and right.
+
+2. **Slope matching at the midpoint (collocation).**
+   Because a quadratic has limited shape, we don’t try to match slopes at both endpoints. Instead, we **introduce midpoint variables** $(\mathbf{x}_{i+\frac12},\mathbf{u}_{i+\frac12})$ and **match the ODE at the midpoint**. The second constraint below is exactly the midpoint collocation condition written in an equivalent Hermite form: it pins the midpoint state to the average of the endpoints plus a correction based on endpoint slopes, ensuring that the polynomial’s derivative is consistent with the ODE **at $\tau=\tfrac12$**.
+
+This way, **where we pay** (Simpson quadrature) and **where we enforce** (midpoint collocation + Simpson defect) are aligned at the same three nodes, which is why the method is both accurate and well conditioned on smooth problems.
 
 ```{prf:definition} Hermite–Simpson Transcription 
 Let $t_0<\cdots<t_N$ with $h_i:=t_{i+1}-t_i$ and midpoints $t_{i+\frac12}$. Decision variables are $\{\mathbf{x}_i\}_{i=0}^N$, $\{\mathbf{u}_i\}_{i=0}^N$, plus midpoint variables $\{\mathbf{x}_{i+\frac12},\mathbf{u}_{i+\frac12}\}_{i=0}^{N-1}$. Solve
@@ -510,8 +751,8 @@ Let $t_0<\cdots<t_N$ with $h_i:=t_{i+1}-t_i$ and midpoints $t_{i+\frac12}$. Deci
 $$
 \begin{aligned}
 \min\ & c_T(\mathbf{x}_N)\; +\; \sum_{i=0}^{N-1} \tfrac{h_i}{6}\Big[ c(\mathbf{x}_i,\mathbf{u}_i) + 4\,c(\mathbf{x}_{i+\frac12},\mathbf{u}_{i+\frac12}) + c(\mathbf{x}_{i+1},\mathbf{u}_{i+1}) \Big]\\
-\text{s.t.}\ & \mathbf{x}_{i+1}-\mathbf{x}_i - \tfrac{h_i}{6}\Big[\mathbf{f}(\mathbf{x}_i,\mathbf{u}_i) + 4\,\mathbf{f}(\mathbf{x}_{i+\frac12},\mathbf{u}_{i+\frac12}) + \mathbf{f}(\mathbf{x}_{i+1},\mathbf{u}_{i+1})\Big] = \mathbf{0},\\
-& \mathbf{x}_{i+\frac12} - \tfrac{\mathbf{x}_i+\mathbf{x}_{i+1}}{2} - \tfrac{h_i}{8}\Big[\mathbf{f}(\mathbf{x}_i,\mathbf{u}_i) - \mathbf{f}(\mathbf{x}_{i+1},\mathbf{u}_{i+1})\Big] = \mathbf{0},\\
+\text{s.t.}\ & \underbrace{\mathbf{x}_{i+1}-\mathbf{x}_i - \tfrac{h_i}{6}\Big[\mathbf{f}(\mathbf{x}_i,\mathbf{u}_i) + 4\,\mathbf{f}(\mathbf{x}_{i+\frac12},\mathbf{u}_{i+\frac12}) + \mathbf{f}(\mathbf{x}_{i+1},\mathbf{u}_{i+1})\Big]}_{\text{Simpson defect over }[t_i,t_{i+1}]} = \mathbf{0},\\
+& \underbrace{\mathbf{x}_{i+\frac12} - \tfrac{\mathbf{x}_i+\mathbf{x}_{i+1}}{2} - \tfrac{h_i}{8}\Big[\mathbf{f}(\mathbf{x}_i,\mathbf{u}_i) - \mathbf{f}(\mathbf{x}_{i+1},\mathbf{u}_{i+1})\Big]}_{\text{midpoint collocation (slope matching at }t_{i+\frac12}\text{)}} = \mathbf{0},\\
 & \mathbf{g}(\mathbf{x}_i,\mathbf{u}_i) \le \mathbf{0},\ \ \mathbf{g}(\mathbf{x}_{i+\frac12},\mathbf{u}_{i+\frac12}) \le \mathbf{0},\ \ \mathbf{g}(\mathbf{x}_{i+1},\mathbf{u}_{i+1}) \le \mathbf{0},\\
 & \mathbf{x}_{\min} \le \mathbf{x}_i,\mathbf{x}_{i+\frac12} \le \mathbf{x}_{\max},\ \ \mathbf{u}_{\min} \le \mathbf{u}_i,\mathbf{u}_{i+\frac12} \le \mathbf{u}_{\max},\\
 & \mathbf{x}_0 = \mathbf{x}(t_0),\quad i=0,\ldots,N-1.
@@ -519,51 +760,19 @@ $$
 $$
 ```
 
-*RK4 transcription (integrator stages as algebraic variables).*
-Runge–Kutta methods approximate the interval integral by evaluating the vector field at a set of staged points and combining them with fixed weights. Introducing the stages as variables brings the usual RK4 update inside the NLP, and again the evaluation sites used to advance the state are the same places where we evaluate the running cost.
+**Collocation nodes recap:** $\tau=0,\ \tfrac12,\ 1$.
 
-```{prf:definition} RK4 Transcription 
-Let $t_0<\cdots<t_N$ with $h_i:=t_{i+1}-t_i$. Decision variables are $\{\mathbf{x}_i\}_{i=0}^N$, $\{\mathbf{u}_i\}_{i=0}^N$, and stage vectors $\{\mathbf{s}^{(1)}_i,\mathbf{s}^{(2)}_i,\mathbf{s}^{(3)}_i,\mathbf{s}^{(4)}_i\}_{i=0}^{N-1}$ and midpoint controls $\{\bar{\mathbf{u}}_i\}$. Define the RK stages
+* The **midpoint** is where we explicitly **match the ODE slope** (collocation).
+* The **three nodes together** are used for the **Simpson integral** of $\mathbf{f}$ (state update) and of $c$ (cost), keeping physics and objective synchronized.
 
-$$
-\begin{aligned}
-\mathbf{s}^{(1)}_i &= \mathbf{f}(\mathbf{x}_i,\mathbf{u}_i),\\
-\mathbf{s}^{(2)}_i &= \mathbf{f}\!\big(\mathbf{x}_i + \tfrac{h_i}{2}\,\mathbf{s}^{(1)}_i,\ \bar{\mathbf{u}}_i\big),\\
-\mathbf{s}^{(3)}_i &= \mathbf{f}\!\big(\mathbf{x}_i + \tfrac{h_i}{2}\,\mathbf{s}^{(2)}_i,\ \bar{\mathbf{u}}_i\big),\\
-\mathbf{s}^{(4)}_i &= \mathbf{f}\!\big(\mathbf{x}_i + h_i\,\mathbf{s}^{(3)}_i,\ \mathbf{u}_{i+1}\big).
-\end{aligned}
-$$
 
-Solve
+# Examples
 
-$$
-\begin{aligned}
-\min\ & c_T(\mathbf{x}_N)\; +\; \sum_{i=0}^{N-1} \tfrac{h_i}{6}\Big[ c(\mathbf{x}_i,\mathbf{u}_i) + 4\,c\!\big(\mathbf{x}_i + \tfrac{h_i}{2}\,\mathbf{s}^{(2)}_i,\ \bar{\mathbf{u}}_i\big) + c(\mathbf{x}_{i+1},\mathbf{u}_{i+1}) \Big]\\
-\text{s.t.}\ & \mathbf{x}_{i+1}-\mathbf{x}_i - \tfrac{h_i}{6}\Big[\mathbf{s}^{(1)}_i + 2\mathbf{s}^{(2)}_i + 2\mathbf{s}^{(3)}_i + \mathbf{s}^{(4)}_i\Big] = \mathbf{0},\\
-& \mathbf{g}(\mathbf{x}_i,\mathbf{u}_i) \le \mathbf{0},\ \ \mathbf{g}(\mathbf{x}_{i+1},\mathbf{u}_{i+1}) \le \mathbf{0},\ \ \mathbf{g}\!\big(\mathbf{x}_i + \tfrac{h_i}{2}\,\mathbf{s}^{(2)}_i,\ \bar{\mathbf{u}}_i\big) \le \mathbf{0},\\
-& \mathbf{x}_{\min} \le \mathbf{x}_i \le \mathbf{x}_{\max},\ \ \mathbf{u}_{\min} \le \mathbf{u}_i,\bar{\mathbf{u}}_i \le \mathbf{u}_{\max},\\
-& \mathbf{x}_0 = \mathbf{x}(t_0),\quad i=0,\ldots,N-1.
-\end{aligned}
-$$
-```
+## Compressor Surge Problem 
 
-### Choosing among them
+A compressor is a machine that raises the pressure of a gas by squeezing it into a smaller volume. You find them in natural gas pipelines, jet engines, and factories. But compressors can run into trouble if the flow of gas becomes too small. In that case, the machine can “stall” much like an airplane wing at too high an angle. Instead of moving forward, the gas briefly pushes back, creating strong pressure oscillations that can damage the compressor and anything connected to it.
 
-All four transcriptions follow the same organizing idea from earlier: pick evaluation points, translate both integrals into weighted sums at those points, and couple those evaluations to a finite trajectory representation. Euler uses step functions and a single point per interval. Trapezoid and Hermite–Simpson use low-degree polynomials and endpoint or midpoint nodes, which brings collocation into play. RK4 uses staged vector-field samples in place of an explicit interpolant. In every case the mesh can be nonuniform and refined locally, and the resulting NLP keeps a banded sparsity that solvers exploit.
-
-## A brief note on reconstruction
-
-Once the finite problem is solved, the discrete solution $\{\mathbf{x}_i,\mathbf{u}_i\}$ and any interior values determine a continuous-time approximation on each interval. Linear reconstruction matches Euler and trapezoid; cubic Hermite for $\mathbf{x}(t)$ with quadratic $\mathbf{u}(t)$ matches Hermite–Simpson; for RK4, piecewise-constant or piecewise-linear controls on the half-steps are consistent with the staged evaluations. The reconstruction should mirror the choice made in the transcription so that what is plotted reflects what was optimized.
-
-# Example: Compressor Surge Problem 
-
-Compressors are mechanical devices used to increase the pressure of a gas by reducing its volume. They are found in many industrial settings, from natural gas pipelines to jet engines. However, compressors can suffer from a dangerous phenomenon called "surge" when the gas flow through the compressor falls too much below its design capacity. This can happen under different circumstances such as: 
-
-- In a natural gas pipeline system, when there is less customer demand (e.g., during warm weather when less heating is needed) the flow through the compressor lowers.
-- In a jet engine, when the pilot reduces thrust during landing, less air flows through the engine's compressors.
-- In factory, the compressor might be connected through some equipment downstream via a valve. Closing it partially restricts gas flow, similar to pinching a garden hose, and can lead to compressor surge.
-
-As the gas flow decreases, the compressor must work harder to maintain a steady flow. If the flow becomes too low, it can lead to a "breakdown": a phenomenon similar to an airplane stalling at low speeds or high angles of attack. In a compressor, when this breakdown occurs the gas briefly flows backward instead of moving forward, which in turn can cause violent oscillations in pressure that can damage the compressor and the equipment depending on it. One way to address this problem is by installing a close-coupled valve (CCV), which is a device connected at the output of the compressor to quickly modulate the flow. Our aim is not to devise an optimal control approach to ensure that the compressor does not experience a surge by operating this CCV appropriately. 
+To prevent this, engineers often add a close-coupled valve (CCV) at the outlet. The valve can quickly adjust the flow to keep the compressor away from these unstable conditions. Our goal is to design a control strategy for operating this valve so that the compressor never enters surge.
 
 Following  {cite:p}`Gravdahl1997` and {cite}`Grancharova2012`, we model the compressor using a simplified second-order representation:
 
@@ -674,20 +883,114 @@ where $\boldsymbol{\phi}_k$ denotes the state reached at step $k$ by an RK4 roll
 :load: code/compressor_surge_direct_single_shooting_rk4_paramid.py
 ```
 
-<!-- ## Parameterization of $f$ and Neural ODEs
-In our compressor surge problem, we were provided with a physically-motivated form for the function $f$. This set of equations was likely derived by scientists with deep knowledge of the physical phenomena at play (i.e., gas compression). However, in complex systems, the underlying physics might not be well understood or too complicated to model explicitly. In such cases, we might opt for a more flexible, data-driven approach.
+# Flight Trajectory Optimization
 
-Instead of specifying a fixed structure for $f$, we could use a "black box" model such as a neural network to learn the dynamics directly from data. 
-The optimization problem remains conceptually the same as that of parameter identification. However, we are now optimizing over the parameters of the neural network that defines $f$.
-
-Another possibility is to blend the two approaches and use a grey-box model. In this approach, we typically use a physics-informed parameterization which we then supplement with a black-box model to account for the discrepancies in the observations. Mathematically, this can be expressed as:
+Let us consider the problem of planning an aircraft trajectory. The task is to determine how the aircraft should move through space while respecting physical constraints and minimizing an operational cost. We represent the aircraft as a point-mass with state
 
 $$
-\dot{\mathbf{x}}(t) = f_{\text{physics}}(\mathbf{x}, t; \boldsymbol{\theta}_{\text{physics}}) + f_{\text{NN}}(\mathbf{x}, t; \boldsymbol{\theta}_{\text{NN}})
+\mathbf{x}(t) = (x(t), y(t), h(t), m(t)),
 $$
 
-where $f_{\text{physics}}$ is the physics-based model with parameters $\boldsymbol{\theta}_{\text{physics}}$, and $f_{\text{NN}}$ is a neural network with parameters $\boldsymbol{\theta}_{\text{NN}}$ that captures unmodeled dynamics.
+where $x(t), y(t)$ give horizontal position, $h(t)$ is altitude, and $m(t)$ is remaining mass. The controls are the Mach number $M(t)$, vertical speed $v_s(t)$, and heading angle $\psi(t)$. These inputs govern how the trajectory unfolds, how fuel is consumed, and how emissions are produced over time.
 
-We then learn the parameters of the black-box model in tandem with the output of the given physics-based model. You can think of the combination of these two models as a neural network of its own, with the key difference being that one subnetwork (the physics-based one) has frozen weights (non-adjustable parameters).
+The motion of the aircraft obeys a set of nonlinear differential equations:
 
-This approach is easy to implement using automatic differentiation techniques and allows us to leverage prior knowledge to make the data-driven modelling more sample efficient. From a learning perspective, it amounts to providing inductive biases to make learning more efficient and to generalize better.  -->
+$$
+\begin{aligned}
+\dot x &= v(M,h)\cos\psi\cos\gamma + u_w(t,h), \\
+\dot y &= v(M,h)\sin\psi\cos\gamma + v_w(t,h), \\
+\dot h &= v_s, \\
+\dot m &= -\,\mathrm{FF}(T(h,M,v_s), h, M, v_s),
+\end{aligned}
+$$
+
+where the flight path angle is defined by $\gamma = \arcsin(v_s / v)$, and the fuel flow model $\mathrm{FF}$ maps thrust and flight conditions to consumption rate. The objective typically reflects operational priorities: minimizing fuel, time, or environmental footprint, possibly using weighted combinations.
+
+For this demonstration we use **OpenAP.top**, a software package for flight performance analysis that implements both simulation and optimization methods. The trajectory optimization problem is solved by a direct collocation approach. However, rather than using the Hermite–Simpson or trapezoidal schemes that approximate the dynamics at midpoints or endpoints with uniformly spaced nodes, OpenAP.top uses collocation at Legendre–Gauss–Lobatto (LGL) points. These are non-uniformly spaced nodes derived from Legendre polynomials, with a clustering near the interval boundaries. The state is interpolated by Lagrange polynomials constructed at these nodes, and the dynamics are enforced at the interior points.
+
+
+
+We map each interval $[t_k,t_{k+1}]$ to $\tau \in [0,1]$ by $t=t_k+\tau\,\Delta t$, and choose LGL nodes
+
+$$
+0=\tau_0 < \tau_1 < \cdots < \tau_{d-1} < \tau_d=1,
+$$
+
+the extrema of the degree-$d$ Legendre polynomial. The state on the interval is a degree-$d$ Lagrange interpolant
+
+$$
+\mathbf{x}(t_k+\tau \Delta t)\;\approx\;\sum_{j=0}^{d} \mathbf{x}_{k,j}\,\ell_j(\tau),
+\qquad
+\ell_j(\tau)=\prod_{\substack{r=0\\ r\neq j}}^{d}\frac{\tau-\tau_r}{\tau_j-\tau_r}.
+$$
+
+Differentiation gives a **differentiation matrix** $D$ with entries $D_{ij}=\dot{\ell}_j(\tau_i)$. Collocation enforces the dynamics at interior nodes:
+
+$$
+\sum_{j=0}^{d} D_{ij}\,\mathbf{x}_{k,j}
+\;=\;
+\Delta t\; \mathbf{f}(\mathbf{x}_{k,i},\mathbf{u}_{k,i}),
+\qquad i=1,\ldots,d-1.
+$$
+
+Endpoint consistency uses the **final-value vector** $D^{(1)}_j=\ell_j(1)$:
+
+$$
+\mathbf{x}_{k+1,0} \;=\; \mathbf{x}(t_{k+1}) \;\approx\; \sum_{j=0}^{d} D^{(1)}_j\,\mathbf{x}_{k,j}.
+$$
+
+Running costs are integrated by LGL quadrature with weights $w_i=\int_0^1 \ell_i(\tau)\,d\tau$:
+
+$$
+\int_{t_k}^{t_{k+1}} L(\mathbf{x}(t),\mathbf{u}(t))\,dt
+\;\approx\;
+\Delta t \sum_{i=0}^{d} w_i\, L(\mathbf{x}_{k,i},\mathbf{u}_{k,i}).
+$$
+
+
+## Hydro Cascade Scheduling with Physical Routing and Multiple Shooting
+
+Earlier in the book, we introduced a simplified view of hydro reservoir control, where the water level evolves in discrete time by accounting for inflow and outflow, with precipitation treated as a noisy input. While useful for learning and control design, this model abstracts away much of the physical behavior of actual rivers and dams.
+
+In this chapter, we move toward a more realistic setup. We consider a series of dams arranged in a cascade, where the actions taken upstream influence downstream levels with a delay. The amount of power produced depends not only on how much water flows through the turbines, but also on the head—the vertical distance between the reservoir surface and the turbine outlet. The larger the head, the more potential energy is available for conversion into electricity, and the higher the power output.
+
+To capture these effects, we follow a modeling approach inspired by the Saint-Venant equations, which describe how water levels and flows evolve in open channels. Instead of solving the full PDEs, we use a reduced model that approximates each dammed section of river—called a reach—as a lumped system governed by an ordinary differential equation. The key variable is the water level $h_r(t)$, which changes over time depending on how much water enters, how much is discharged through the turbines $q_r(t)$, and how much is spilled $s_r(t)$. The mass balance for reach $r$ is written as:
+
+$$
+\frac{d h_r(t)}{dt} = \frac{1}{A_r} \left( z_r(t) - q_r(t) - s_r(t) \right),
+$$
+
+where $A_r$ is the surface area of the reservoir, assumed constant. The inflow $z_r(t)$ to a reach either comes from nature (for the first dam), or from the upstream turbine and spill discharge, delayed by a travel time $\tau_{r-1}$:
+
+$$
+z_1(t) = \text{inflow}(t), \qquad
+z_r(t) = q_{r-1}(t - \tau_{r-1}) + s_{r-1}(t - \tau_{r-1}), \quad \text{for } r > 1.
+$$
+
+Power generation at each reach depends on how much water is discharged and the available head:
+
+$$
+P_r(t) = \rho g \eta \, q_r(t) \, H_r(h_r(t)),
+$$
+
+where $\rho$ is water density, $g$ is gravitational acceleration, $\eta$ is turbine efficiency, and $H_r(h_r(t))$ denotes the head as a function of the water level. In some models, the head is approximated as the difference between the current level and a fixed tailwater height.
+
+The operator’s goal is to meet a target generation profile $P^\text{ref}(t)$, such as one dictated by a market dispatch or load-following constraint. This leads to an objective that minimizes the deviation from the target over the full horizon:
+
+$$
+\min_{\{q_r(t), s_r(t)\}} \int_0^T \left( \sum_{r=1}^R P_r(t) - P^\text{ref}(t) \right)^2 dt.
+$$
+
+In practice, this is combined with operational constraints: turbine capacity $0 \le q_r(t) \le \bar{q}_r$, spillway limits $0 \le s_r(t) \le \bar{s}_r$, and safe level bounds $h_r^{\min} \le h_r(t) \le h_r^{\max}$. Depending on the use case, one may also penalize spill to encourage water conservation, or penalize fast changes in levels for ecological reasons.
+
+What makes this problem particularly interesting is the coupling across space and time. An upstream reach cannot simply act in isolation: if the operator wants reach $r$ to produce power at a specific time, the water must be released by reach $r-1$ sufficiently in advance. This coordination is further complicated by delays, nonlinearities in head-dependent power, and limited storage capacity.
+
+We solve the problem using **multiple shooting**. Each reach is divided into local simulation segments over short time windows. Within each segment, the dynamics are integrated forward using the ODEs, and continuity constraints are added to ensure that the water levels match across segment boundaries. At the same time, the inflows passed from upstream reaches must arrive at the right time and be consistent with previous decisions. In discrete time, this gives rise to a set of state-update equations:
+
+$$
+h_r^{k+1} = h_r^k + \Delta t \cdot \frac{1}{A_r}(z_r^k - q_r^k - s_r^k),
+$$
+
+with delays handled by shifting $z_r^k$ according to the appropriate travel time. These constraints are enforced as part of a nonlinear program, alongside the power tracking objective and control bounds.
+
+Compared to the earlier inflow-outflow model, this richer setup introduces more structure, but also more opportunity. The cascade now behaves like a coordinated team: upstream reservoirs can store water in anticipation of future needs, while downstream dams adjust their output to match arrivals and avoid overflows. The optimization reveals not just a schedule, but a strategy for how the entire system should act together to meet demand.
