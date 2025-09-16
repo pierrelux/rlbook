@@ -98,7 +98,7 @@ $$
 h_k \sum_{j=1}^q b_j\, \mathbf{f}\!\big(\mathbf{x}(t_k+h_k\tau_j),\,\mathbf{u}(t_k+h_k\tau_j)\big),
 $$
 
-so the places where we “pay” running cost are the same places where we “account” for state changes. Path constraints and bounds are then enforced at the same interior times. In the infinite-horizon discounted case, the same formulas apply with an extra factor $e^{-\rho(t_k+h_k\tau_j)}$ multiplying the weights in the cost.
+so the places where we "pay" running cost are the same places where we "account" for state changes. Path constraints and bounds are then enforced at the same interior times. In the infinite-horizon discounted case, the same formulas apply with an extra factor $e^{-\rho(t_k+h_k\tau_j)}$ multiplying the weights in the cost.
 
 The values $\mathbf{x}(t_k+h_k\tau_j)$ and $\mathbf{u}(t_k+h_k\tau_j)$ do not exist a priori. We create them by a finite representation. One option is shooting: parameterize $\mathbf{u}$ on the mesh, integrate the ODE across each window with a chosen numerical step, and read interior values from that step. Another is collocation: represent $\mathbf{x}$ inside each window by a local polynomial and choose its coefficients so that the ODE holds at the interior nodes. Both constructions lead to the same structure: a nonlinear program whose objective is a composite quadrature of the running term (plus any terminal term in the Bolza case) and whose constraints are algebraic relations that encode the ODE and the pointwise inequalities at the selected nodes.
 
@@ -110,7 +110,7 @@ Specific choices recover familiar schemes. If we use the left endpoint as the si
 
 In a continuous-time OCP, integrals appear twice: in the objective, which accumulates running cost over time, and implicitly in the dynamics, since state changes over any interval are the integral of the vector field. To compute, we must approximate both the integrals and the unknown functions $\mathbf{x}(t)$ and $\mathbf{u}(t)$ with finitely many numbers that an optimizer can manipulate.
 
-A natural way to do this is to lay down a finite set of time points (a mesh) over the horizon. You can think of the mesh as a grid we overlay on the “true” trajectories that exist as mathematical objects but are not directly accessible. Our aim is to approximate those trajectories and their integrals using values and simple models tied to the mesh. Using the same mesh for both the cost and the dynamics keeps the representation coherent: we evaluate what we pay and how the state changes at consistent times.
+A natural way to do this is to lay down a finite set of time points (a mesh) over the horizon. You can think of the mesh as a grid we overlay on the "true" trajectories that exist as mathematical objects but are not directly accessible. Our aim is to approximate those trajectories and their integrals using values and simple models tied to the mesh. Using the same mesh for both the cost and the dynamics keeps the representation coherent: we evaluate what we pay and how the state changes at consistent times.
 
 Concretely, we begin by choosing a mesh
 
@@ -135,7 +135,7 @@ $$
 \mathbf{x}(t_{k+1})-\mathbf{x}(t_k)=\int_{t_k}^{t_{k+1}} \mathbf{f}(\mathbf{x}(t),\mathbf{u}(t))\,dt.
 $$
 
-When we approximate this integral, we introduce interior evaluation points $t_{k,j}\in[t_k,t_{k+1}]$. Using the **same points** in the cost and in the dynamics ties $\mathbf{x}$ and $\mathbf{u}$ together coherently: the places where we “pay” for running cost are also the places where we enforce the ODE. This avoids a mismatch between where we approximate the objective and where we impose feasibility.
+When we approximate this integral, we introduce interior evaluation points $t_{k,j}\in[t_k,t_{k+1}]$. Using the **same points** in the cost and in the dynamics ties $\mathbf{x}$ and $\mathbf{u}$ together coherently: the places where we "pay" for running cost are also the places where we enforce the ODE. This avoids a mismatch between where we approximate the objective and where we impose feasibility.
 
 Third, the decomposition yields a nonlinear program with **sparse structure**. Each interval contributes a small block to the objective and constraints that depends only on variables from that interval (and its endpoints). Modern solvers exploit this banded sparsity to scale to long horizons. 
 
@@ -180,7 +180,7 @@ $$
 h_k\sum_{j=1}^q b_j\, \mathbf{f}\!\big(\mathbf{x}(t_{k,j}),\mathbf{u}(t_{k,j})\big),
 $$
 
-where $\{b_j\}$ are the weights used for the ODE. Path constraints $\mathbf{g}(\mathbf{x}(t),\mathbf{u}(t))\le 0$ are imposed at selected nodes $t_{k,j}$ in the same spirit. Using the same evaluation points for cost and dynamics keeps the representation coherent: we “pay” running cost and “account” for state changes at the same times.
+where $\{b_j\}$ are the weights used for the ODE. Path constraints $\mathbf{g}(\mathbf{x}(t),\mathbf{u}(t))\le 0$ are imposed at selected nodes $t_{k,j}$ in the same spirit. Using the same evaluation points for cost and dynamics keeps the representation coherent: we "pay" running cost and "account" for state changes at the same times.
 
 
 
@@ -225,13 +225,13 @@ $$
 \mathbf{x}_{k+1}=\mathbf{x}_k+\tfrac{h_k}{2}\Big[\mathbf{f}(\mathbf{x}_k,\mathbf{u}_k,t_k)+\mathbf{f}(\mathbf{x}_{k+1},\mathbf{u}_{k+1},t_{k+1})\Big].
 $$
 
-With a quadratic interpolation that includes the midpoint, Simpson’s rule appears in the cost and the Hermite–Simpson relations tie $\mathbf{x}_{k+\frac12}$ to endpoint values and slopes. More generally, **collocation** chooses interior nodes on $[t_k,t_{k+1}]$ (equally spaced gives Newton–Cotes like trapezoid or Simpson; Gaussian points give Gauss, Radau, or Lobatto schemes) and enforces the ODE at those nodes:
+With a quadratic interpolation that includes the midpoint, Simpson's rule appears in the cost and the Hermite–Simpson relations tie $\mathbf{x}_{k+\frac12}$ to endpoint values and slopes. More generally, **collocation** chooses interior nodes on $[t_k,t_{k+1}]$ (equally spaced gives Newton–Cotes like trapezoid or Simpson; Gaussian points give Gauss, Radau, or Lobatto schemes) and enforces the ODE at those nodes:
 
 $$
 \frac{d}{dt}\mathbf{x}(t_{k,j})=\mathbf{f}\!\big(\mathbf{x}(t_{k,j}),\mathbf{u}(t_{k,j}),t_{k,j}\big),
 $$
 
-with continuity at endpoints. The interior values $\mathbf{x}(t_{k,j})$ are **evaluations of the decision polynomials**; $\mathbf{u}(t_{k,j})$ follows from the chosen control interpolation (constant, linear, or quadratic). The running cost is evaluated by the same interpolatory quadrature at the same nodes, which keeps “where we pay” aligned with “where we enforce.”
+with continuity at endpoints. The interior values $\mathbf{x}(t_{k,j})$ are **evaluations of the decision polynomials**; $\mathbf{u}(t_{k,j})$ follows from the chosen control interpolation (constant, linear, or quadratic). The running cost is evaluated by the same interpolatory quadrature at the same nodes, which keeps "where we pay" aligned with "where we enforce."
 
 # Polynomial Interpolation
 
@@ -606,7 +606,7 @@ $$
 
 The mesh and interior nodes are the common scaffold. What distinguishes one transcription from another is how we obtain values at those nodes and how we approximate the two integrals that appear implicitly and explicitly: the integral of the running cost and the integral that carries the state forward. In other words, we now commit to two design choices that mirror the previous section: a finite representation for $\mathbf{x}(t)$ and $\mathbf{u}(t)$ over each interval $[t_i,t_{i+1}]$, and a quadrature rule whose nodes and weights are used consistently for both cost and dynamics. The result is always a sparse nonlinear program; the differences are in where we sample and how we tie samples together.
 
-Below, each transcription should be read as “same grid, same interior points, same evaluations for cost and physics,” with only the local representation changing.
+Below, each transcription should be read as "same grid, same interior points, same evaluations for cost and physics," with only the local representation changing.
 
 ## Euler Collocation
 
@@ -672,10 +672,10 @@ $$
 which is exactly the **implicit Euler** step
 
 $$
-\boxed{\ \mathbf{x}_{k+1}=\mathbf{x}_k + h_k\,\mathbf{f}\!\big(\mathbf{x}_{k+1},\mathbf{u}_{k+1},t_{k+1}\big)\ }.
+{\ \mathbf{x}_{k+1}=\mathbf{x}_k + h_k\,\mathbf{f}\!\big(\mathbf{x}_{k+1},\mathbf{u}_{k+1},t_{k+1}\big)\ }.
 $$
 
-> Side remark. If you instead collocate at the **left** endpoint (Radau-I with $\tau=0$) with the same linear model, you obtain $\frac{1}{h_k}(\mathbf{x}_{k+1}-\mathbf{x}_k)=\mathbf{f}(\mathbf{x}_k,\mathbf{u}_k,t_k)$, i.e., the **explicit Euler** step. In that very precise sense, explicit Euler can be viewed as a (left-endpoint) degree-1 collocation scheme.
+
 
 The overall direct transcription is then: 
 
@@ -696,19 +696,35 @@ $$
 
 Note that:
 
-* The running cost and path constraints are evaluated at the **same** right-endpoint where the dynamics are enforced, keeping “where we pay” aligned with “where we enforce.”
+* The running cost and path constraints are evaluated at the **same** right-endpoint where the dynamics are enforced, keeping "where we pay" aligned with "where we enforce."
 * State continuity is automatic because $\mathbf{x}_{i+1}$ is a shared variable between adjacent intervals; slope continuity is not enforced unless you add it.
-Here’s an updated subsection that explicitly says **what collocation nodes are chosen** and why the trapezoidal defect uses them the way it does.
+Here's an updated subsection that explicitly says **what collocation nodes are chosen** and why the trapezoidal defect uses them the way it does.
+
+
+> Side remark. If you instead collocate at the **left** endpoint (Radau-I with $\tau=0$) with the same linear model, you obtain $\frac{1}{h_k}(\mathbf{x}_{k+1}-\mathbf{x}_k)=\mathbf{f}(\mathbf{x}_k,\mathbf{u}_k,t_k)$, i.e., the **explicit Euler** step. In that very precise sense, explicit Euler can be viewed as a (left-endpoint) degree-1 collocation scheme.
+
+```{prf:definition} Explicit–Euler Collocation (Radau-I, degree 1)
+Let $t_0<\cdots<t_N$ with $h_i:=t_{i+1}-t_i$. Decision variables are $\{\mathbf{x}_i\}_{i=0}^N$ and $\{\mathbf{u}_i\}_{i=0}^N$. Solve
+$$
+\begin{aligned}
+\min\ & c_T(\mathbf{x}_N)\;+\;\sum_{i=0}^{N-1} h_i\,c(\mathbf{x}_i,\mathbf{u}_i)\\
+\text{s.t.}\ & \mathbf{x}_{i+1}-\mathbf{x}_i - h_i\,\mathbf{f}(\mathbf{x}_i,\mathbf{u}_i)=\mathbf{0},\quad i=0,\ldots,N-1,\\
+& \mathbf{g}(\mathbf{x}_i,\mathbf{u}_i)\le \mathbf{0},\quad i=0,\ldots,N-1,\\
+& \mathbf{x}_{\min}\le \mathbf{x}_i\le \mathbf{x}_{\max},\quad \mathbf{u}_{\min}\le \mathbf{u}_i\le \mathbf{u}_{\max},\\
+& \mathbf{x}_0=\mathbf{x}(t_0).
+\end{aligned}
+$$
+```
 
 ## Trapezoidal collocation
 
 In this scheme we take the **two endpoints as the nodes** on each interval:
 
 $$
-\tau_0=0,\qquad \tau_1=1\quad(\text{“Lobatto with }K=1\text{”}).
+\tau_0=0,\qquad \tau_1=1\quad(\text{"Lobatto with }K=1\text{").
 $$
 
-We approximate $\mathbf{x}$ **linearly** over $[t_i,t_{i+1}]$, and we evaluate both the running cost and the dynamics at these two nodes with **equal weights**. Because a linear polynomial has a **constant** derivative, we do **not** try to match the ODE’s slope at both endpoints (that would overconstrain a linear function). Instead, we enforce the ODE in its **integral form** over the interval and approximate the integral of $\mathbf{f}$ by the **trapezoid rule** using those two nodes. This makes the cost quadrature and the state-update (“defect”) use the **same nodes and weights**.
+We approximate $\mathbf{x}$ **linearly** over $[t_i,t_{i+1}]$, and we evaluate both the running cost and the dynamics at these two nodes with **equal weights**. Because a linear polynomial has a **constant** derivative, we do **not** try to match the ODE's slope at both endpoints (that would overconstrain a linear function). Instead, we enforce the ODE in its **integral form** over the interval and approximate the integral of $\mathbf{f}$ by the **trapezoid rule** using those two nodes. This makes the cost quadrature and the state-update ("defect") use the **same nodes and weights**.
 
 ```{prf:definition} Trapezoidal Collocation 
 Let $t_0<\cdots<t_N$ with $h_i:=t_{i+1}-t_i$. Decision variables are $\{\mathbf{x}_i\}_{i=0}^N$, $\{\mathbf{u}_i\}_{i=0}^N$. Solve
@@ -735,13 +751,13 @@ $$
 \tau_0=0,\qquad \tau_{1/2}=\tfrac12,\qquad \tau_1=1.
 $$
 
-So we evaluate at **left, midpoint, right**. These are the same three nodes used by Simpson’s rule (weights $1{:}4{:}1$) for numerical quadrature. We let $\mathbf{x}_h$ be **quadratic** in $\tau$. Two things then happen:
+So we evaluate at **left, midpoint, right**. These are the same three nodes used by Simpson's rule (weights $1{:}4{:}1$) for numerical quadrature. We let $\mathbf{x}_h$ be **quadratic** in $\tau$. Two things then happen:
 
-1. **Integral (defect) enforcement with Simpson’s rule.**
-   We enforce the ODE in integral form over the interval and approximate the integral of $\mathbf{f}$ with Simpson’s rule using the three nodes above. This yields the first constraint (the “Simpson defect”), which uses $\mathbf{f}$ evaluated at left, midpoint, and right.
+1. **Integral (defect) enforcement with Simpson's rule.**
+   We enforce the ODE in integral form over the interval and approximate the integral of $\mathbf{f}$ with Simpson's rule using the three nodes above. This yields the first constraint (the "Simpson defect"), which uses $\mathbf{f}$ evaluated at left, midpoint, and right.
 
 2. **Slope matching at the midpoint (collocation).**
-   Because a quadratic has limited shape, we don’t try to match slopes at both endpoints. Instead, we **introduce midpoint variables** $(\mathbf{x}_{i+\frac12},\mathbf{u}_{i+\frac12})$ and **match the ODE at the midpoint**. The second constraint below is exactly the midpoint collocation condition written in an equivalent Hermite form: it pins the midpoint state to the average of the endpoints plus a correction based on endpoint slopes, ensuring that the polynomial’s derivative is consistent with the ODE **at $\tau=\tfrac12$**.
+   Because a quadratic has limited shape, we don't try to match slopes at both endpoints. Instead, we **introduce midpoint variables** $(\mathbf{x}_{i+\frac12},\mathbf{u}_{i+\frac12})$ and **match the ODE at the midpoint**. The second constraint below is exactly the midpoint collocation condition written in an equivalent Hermite form: it pins the midpoint state to the average of the endpoints plus a correction based on endpoint slopes, ensuring that the polynomial's derivative is consistent with the ODE **at $\tau=\tfrac12$**.
 
 This way, **where we pay** (Simpson quadrature) and **where we enforce** (midpoint collocation + Simpson defect) are aligned at the same three nodes, which is why the method is both accurate and well conditioned on smooth problems.
 
@@ -770,7 +786,7 @@ $$
 
 ## Compressor Surge Problem 
 
-A compressor is a machine that raises the pressure of a gas by squeezing it into a smaller volume. You find them in natural gas pipelines, jet engines, and factories. But compressors can run into trouble if the flow of gas becomes too small. In that case, the machine can “stall” much like an airplane wing at too high an angle. Instead of moving forward, the gas briefly pushes back, creating strong pressure oscillations that can damage the compressor and anything connected to it.
+A compressor is a machine that raises the pressure of a gas by squeezing it into a smaller volume. You find them in natural gas pipelines, jet engines, and factories. But compressors can run into trouble if the flow of gas becomes too small. In that case, the machine can "stall" much like an airplane wing at too high an angle. Instead of moving forward, the gas briefly pushes back, creating strong pressure oscillations that can damage the compressor and anything connected to it.
 
 To prevent this, engineers often add a close-coupled valve (CCV) at the outlet. The valve can quickly adjust the flow to keep the compressor away from these unstable conditions. Our goal is to design a control strategy for operating this valve so that the compressor never enters surge.
 
@@ -827,7 +843,7 @@ In the experiment below, we choose the setpoint $\mathbf{x}^* = [0.40, 0.60]^T$ 
 :load: code/compressor_surge_single_shooting.py
 ```
 
-## Solution by Trapezoidal Collocation
+### Solution by Trapezoidal Collocation
 
 Another way to pose the problem is by imposing a terminal state constraint on the system rather than through a penalty in the integral term. In the following experiment, we use a problem formulation of the form: 
 
@@ -851,7 +867,7 @@ We then find a control function $u(t)$ and state trajectory $x(t)$ using the tra
 
 You can try to vary the number of collocation points in the code and observe how the state trajectory progressively matches the ground truth (the line denoted "integrated solution"). Note that this version of the code also lacks bound constraints on the variable $x_2$ to ensure a minimum pressure, as we did earlier. Consider this a good exercise to try on your own. 
 
-## System Identification as Trajectory Optimization (Compressor Surge)
+### System Identification as Trajectory Optimization (Compressor Surge)
 
 We now turn the compressor surge model into a simple system identification task: estimate unknown parameters (here, the scalar $B$) from measured trajectories. This can be viewed as a trajectory optimization problem: choose parameters (and optionally states) to minimize reconstruction error while enforcing the dynamics.
 
@@ -883,70 +899,75 @@ where $\boldsymbol{\phi}_k$ denotes the state reached at step $k$ by an RK4 roll
 :load: code/compressor_surge_direct_single_shooting_rk4_paramid.py
 ```
 
-# Flight Trajectory Optimization
+## Flight Trajectory Optimization
 
-Let us consider the problem of planning an aircraft trajectory. The task is to determine how the aircraft should move through space while respecting physical constraints and minimizing an operational cost. We represent the aircraft as a point-mass with state
+We consider a concrete task: computing a fuel-optimal trajectory between Montréal–Trudeau (CYUL) and Toronto Pearson (CYYZ), taking into account both aircraft dynamics and wind conditions along the route. The wind field comes from **ERA5**, a global atmospheric dataset produced by the ECMWF. It combines historical observations from satellites, aircraft, and surface stations with a weather model to reconstruct the state of the atmosphere across space and time. In climate science, this is called a *reanalysis*.
+
+ERA5 data is stored in **GRIB files**, a compact format widely used in meteorology. Each file contains a **gridded field**: values of wind and other variables arranged on a regular 4D lattice over longitude, latitude, altitude, and time. Since the aircraft rarely sits exactly on a grid point, we interpolate the wind components it sees as it moves.
+
+The aircraft is modeled as a point mass with state
 
 $$
 \mathbf{x}(t) = (x(t), y(t), h(t), m(t)),
 $$
 
-where $x(t), y(t)$ give horizontal position, $h(t)$ is altitude, and $m(t)$ is remaining mass. The controls are the Mach number $M(t)$, vertical speed $v_s(t)$, and heading angle $\psi(t)$. These inputs govern how the trajectory unfolds, how fuel is consumed, and how emissions are produced over time.
-
-The motion of the aircraft obeys a set of nonlinear differential equations:
+where $(x, y)$ is horizontal position, $h$ is altitude, and $m$ is remaining mass. Controls are Mach number $M(t)$, vertical speed $v\_s(t)$, and heading angle $\psi(t)$. The equations of motion combine airspeed and wind:
 
 $$
 \begin{aligned}
-\dot x &= v(M,h)\cos\psi\cos\gamma + u_w(t,h), \\
-\dot y &= v(M,h)\sin\psi\cos\gamma + v_w(t,h), \\
+\dot x &= v(M,h)\cos\psi\cos\gamma + u_w(x,y,h,t), \\
+\dot y &= v(M,h)\sin\psi\cos\gamma + v_w(x,y,h,t), \\
 \dot h &= v_s, \\
 \dot m &= -\,\mathrm{FF}(T(h,M,v_s), h, M, v_s),
 \end{aligned}
 $$
 
-where the flight path angle is defined by $\gamma = \arcsin(v_s / v)$, and the fuel flow model $\mathrm{FF}$ maps thrust and flight conditions to consumption rate. The objective typically reflects operational priorities: minimizing fuel, time, or environmental footprint, possibly using weighted combinations.
+where $\gamma = \arcsin(v\_s / v)$ is the flight path angle and $\mathrm{FF}$ is the fuel flow rate based on current conditions. The wind terms $u\_w$ and $v\_w$ are taken from ERA5 and interpolated in space and time.
 
-For this demonstration we use **OpenAP.top**, a software package for flight performance analysis that implements both simulation and optimization methods. The trajectory optimization problem is solved by a direct collocation approach. However, rather than using the Hermite–Simpson or trapezoidal schemes that approximate the dynamics at midpoints or endpoints with uniformly spaced nodes, OpenAP.top uses collocation at Legendre–Gauss–Lobatto (LGL) points. These are non-uniformly spaced nodes derived from Legendre polynomials, with a clustering near the interval boundaries. The state is interpolated by Lagrange polynomials constructed at these nodes, and the dynamics are enforced at the interior points.
+The optimization minimizes fuel burn over the CYUL–CYYZ leg. But the same setup could be used to minimize arrival time, or some weighted combination of time, cost, and emissions.
+
+We use **OpenAP.top**, which solves the problem using direct collocation at **Legendre–Gauss–Lobatto (LGL)** points. Each trajectory segment is mapped to the unit interval, the state is interpolated by Lagrange polynomials at nonuniform LGL nodes, and the dynamics are enforced at those points. Integration is done with matching quadrature weights.
+
+This setup lets us optimize trajectories under realistic conditions by feeding in the appropriate ERA5 GRIB file (e.g., `era5_mtl_20230601_12.grib`). The result accounts for wind patterns (eg. headwinds, tailwinds, shear) along the corridor between Montréal and Toronto.
 
 
+```{code-cell} ipython3
+:tags: [hide-input]
+# OpenAP.top demo with optional wind overlay – docs: https://github.com/junzis/openap-top
+from openap import top
+import matplotlib.pyplot as plt
+import os
 
-We map each interval $[t_k,t_{k+1}]$ to $\tau \in [0,1]$ by $t=t_k+\tau\,\Delta t$, and choose LGL nodes
+# Montreal region route (Canada): CYUL (Montréal–Trudeau) → CYYZ (Toronto)
+opt = top.CompleteFlight("A320", "CYUL", "CYYZ", m0=0.85)
 
-$$
-0=\tau_0 < \tau_1 < \cdots < \tau_{d-1} < \tau_d=1,
-$$
+# Optional: point to a local ERA5/GRIB file to enable wind (set env var OPENAP_WIND_GRIB)
+# If not set, look for a default small file produced by `_static/openap_fetch_era5.py`.
+fgrib = os.environ.get("OPENAP_WIND_GRIB", "_static/era5_mtl_20230601_12.grib")
+windfield = None
+if fgrib and os.path.exists(fgrib):
+    try:
+        windfield = top.tools.read_grids(fgrib)
+        opt.enable_wind(windfield)
+    except Exception:
+        windfield = None  # fall back silently if GRIB reading deps are missing
 
-the extrema of the degree-$d$ Legendre polynomial. The state on the interval is a degree-$d$ Lagrange interpolant
+# Solve for a fuel-optimal trajectory (CasADi direct collocation under the hood)
+flight = opt.trajectory(objective="fuel")
 
-$$
-\mathbf{x}(t_k+\tau \Delta t)\;\approx\;\sum_{j=0}^{d} \mathbf{x}_{k,j}\,\ell_j(\tau),
-\qquad
-\ell_j(\tau)=\prod_{\substack{r=0\\ r\neq j}}^{d}\frac{\tau-\tau_r}{\tau_j-\tau_r}.
-$$
+# Visualize; overlay wind barbs if windfield available
+if windfield is not None:
+    ax = top.vis.trajectory(flight, windfield=windfield, barb_steps=15)
+else:
+    ax = top.vis.trajectory(flight)
 
-Differentiation gives a **differentiation matrix** $D$ with entries $D_{ij}=\dot{\ell}_j(\tau_i)$. Collocation enforces the dynamics at interior nodes:
+title = "OpenAP.top fuel-optimal trajectory (A320: CYUL → CYYZ)"
+if hasattr(ax, "set_title"):
+    ax.set_title(title)
+else:
+    plt.title(title)
 
-$$
-\sum_{j=0}^{d} D_{ij}\,\mathbf{x}_{k,j}
-\;=\;
-\Delta t\; \mathbf{f}(\mathbf{x}_{k,i},\mathbf{u}_{k,i}),
-\qquad i=1,\ldots,d-1.
-$$
-
-Endpoint consistency uses the **final-value vector** $D^{(1)}_j=\ell_j(1)$:
-
-$$
-\mathbf{x}_{k+1,0} \;=\; \mathbf{x}(t_{k+1}) \;\approx\; \sum_{j=0}^{d} D^{(1)}_j\,\mathbf{x}_{k,j}.
-$$
-
-Running costs are integrated by LGL quadrature with weights $w_i=\int_0^1 \ell_i(\tau)\,d\tau$:
-
-$$
-\int_{t_k}^{t_{k+1}} L(\mathbf{x}(t),\mathbf{u}(t))\,dt
-\;\approx\;
-\Delta t \sum_{i=0}^{d} w_i\, L(\mathbf{x}_{k,i},\mathbf{u}_{k,i}).
-$$
-
+```
 
 ## Hydro Cascade Scheduling with Physical Routing and Multiple Shooting
 
@@ -975,7 +996,7 @@ $$
 
 where $\rho$ is water density, $g$ is gravitational acceleration, $\eta$ is turbine efficiency, and $H_r(h_r(t))$ denotes the head as a function of the water level. In some models, the head is approximated as the difference between the current level and a fixed tailwater height.
 
-The operator’s goal is to meet a target generation profile $P^\text{ref}(t)$, such as one dictated by a market dispatch or load-following constraint. This leads to an objective that minimizes the deviation from the target over the full horizon:
+The operator's goal is to meet a target generation profile $P^\text{ref}(t)$, such as one dictated by a market dispatch or load-following constraint. This leads to an objective that minimizes the deviation from the target over the full horizon:
 
 $$
 \min_{\{q_r(t), s_r(t)\}} \int_0^T \left( \sum_{r=1}^R P_r(t) - P^\text{ref}(t) \right)^2 dt.
@@ -994,3 +1015,13 @@ $$
 with delays handled by shifting $z_r^k$ according to the appropriate travel time. These constraints are enforced as part of a nonlinear program, alongside the power tracking objective and control bounds.
 
 Compared to the earlier inflow-outflow model, this richer setup introduces more structure, but also more opportunity. The cascade now behaves like a coordinated team: upstream reservoirs can store water in anticipation of future needs, while downstream dams adjust their output to match arrivals and avoid overflows. The optimization reveals not just a schedule, but a strategy for how the entire system should act together to meet demand.
+
+```{code-cell} ipython3
+:tags: [hide-input]
+:load: _static/hydro.py
+
+```
+
+The figure shows the result of a multiple-shooting optimization applied to a three-reach hydroelectric cascade. The time horizon is discretized into 16 intervals, and SciPy's `trust-constr` solver is used to find a feasible control sequence that satisfies mass balance, turbine and spillway limits, and Muskingum-style routing dynamics. Each reach integrates its own local ODE, with continuity constraints linking the flows between reaches.
+
+The top-left panel shows the water levels in each reservoir. We observe that upstream reservoirs tend to increase their levels ahead of discharge events, building potential energy before releasing water downstream. The top-right panel shows turbine discharges for each reach. These vary smoothly and are temporally coordinated across the system. The bottom-right panel compares the total generation to a synthetic demand profile, which is generated by a sum of time-shifted sigmoids and normalized to be feasible given turbine capacities. The optimized schedule (orange) tracks this demand closely, while the initial guess (blue) lags behind. The bottom-left panel plots the routed inflows between reaches, which display the expected lag and smoothing effects from Muskingum routing. The interplay between these plots shows how the system anticipates, stores, and routes water to meet time-varying generation targets within physical and operational limits.
