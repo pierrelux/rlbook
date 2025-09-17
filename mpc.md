@@ -412,7 +412,6 @@ $$
 \text{s.t.} \quad & \mathbf{g}(\mathbf{x}; \boldsymbol{\theta}) \le \mathbf{0}, \\
 & \mathbf{h}(\mathbf{x}; \boldsymbol{\theta}) = \mathbf{0}.
 \end{aligned}
-\tag{P\(_\theta\)}
 $$
 
 For each value of $\boldsymbol{\theta}$, we obtain a concrete optimization problem. The goal is not just to solve it once, but to understand how the optimizer $\mathbf{x}^\star(\boldsymbol{\theta})$ and value function
@@ -435,7 +434,6 @@ $$
 \lambda_i g_i(\mathbf{x}; \boldsymbol{\theta}) &= 0, \\
 \mathbf{h}(\mathbf{x}; \boldsymbol{\theta}) &= 0.
 \end{aligned}
-\tag{KKT}
 $$
 
 If the active set remains fixed over changes in $\boldsymbol{\theta}$, the implicit function theorem ensures that the mappings
@@ -648,7 +646,6 @@ $$
 \text{s.t.} \quad & c(z;\boldsymbol{\theta}) = 0 \\
 & d(z;\boldsymbol{\theta}) \leq 0,
 \end{aligned}
-\tag{P\(_\theta\)}
 $$
 
 with decision variable $z = (\mathbf{x}_{0:N}, \mathbf{u}_{0:N-1})$. The equality constraints enforce dynamics and terminal conditions. The inequalities encode input and state bounds.
