@@ -16,33 +16,36 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!-- 
+    this give us a css class that will be invisible only if js is disabled 
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
 
-  
-  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
-
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
     <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
-    <link rel="stylesheet" type="text/css" href="_static/proof.css?v=b4b7a797" />
+    <link rel="stylesheet" type="text/css" href="_static/proof.css" />
     <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css" />
   
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
 
     <script src="_static/documentation_options.js?v=9eb32ce0"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
@@ -70,6 +73,7 @@
     <link rel="prev" title="Trajectory Optimization in Continuous Time" href="cocp.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
   </head>
   
   
@@ -85,19 +89,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="search.html"
       method="get">
@@ -105,7 +98,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search this book..."
          aria-label="Search this book..."
          autocomplete="off"
@@ -113,8 +105,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -130,7 +122,8 @@
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -160,15 +153,11 @@
 </a></div>
         <div class="sidebar-primary-item">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script></div>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         
@@ -409,24 +398,16 @@
 
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
-  </button>
-`);
-</script>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button>
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
-  </button>
-`);
-</script>
+</button>
 <button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <span class="fa-solid fa-list"></span>
 </button>
@@ -487,6 +468,7 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#deployment-patterns">Deployment Patterns</a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#demo-batch-bioreactor-mpc-with-do-mpc">Demo: Batch Bioreactor MPC with do-mpc</a></li>
 </ul>
 </li>
 </ul>
@@ -642,18 +624,18 @@ First, there is a delay in how fast the drug can reach a different compartments 
 <span class="expanded">Hide code cell source</span>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">minimize</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
-<span class="k">class</span><span class="w"> </span><span class="nc">Patient</span><span class="p">:</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">weight</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">Patient</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">weight</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">age</span> <span class="o">=</span> <span class="n">age</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="n">weight</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_pk_params</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_pd_params</span><span class="p">()</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_pk_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">set_pk_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">v1</span> <span class="o">=</span> <span class="mf">4.27</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">/</span> <span class="mi">70</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.71</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">age</span> <span class="o">/</span> <span class="mi">30</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.39</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">v2</span> <span class="o">=</span> <span class="mf">18.9</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">/</span> <span class="mi">70</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.64</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">age</span> <span class="o">/</span> <span class="mi">30</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.62</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">v3</span> <span class="o">=</span> <span class="mi">238</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">/</span> <span class="mi">70</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.95</span>
@@ -667,13 +649,13 @@ First, there is a delay in how fast the drug can reach a different compartments 
         <span class="bp">self</span><span class="o">.</span><span class="n">k31</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cl3</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">v3</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ke0</span> <span class="o">=</span> <span class="mf">0.456</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_pd_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">set_pd_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">E0</span> <span class="o">=</span> <span class="mi">100</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Emax</span> <span class="o">=</span> <span class="mi">100</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">EC50</span> <span class="o">=</span> <span class="mf">3.4</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">=</span> <span class="mi">3</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">pk_model</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">patient</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">pk_model</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">patient</span><span class="p">):</span>
     <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">x3</span><span class="p">,</span> <span class="n">xe</span> <span class="o">=</span> <span class="n">x</span>
     <span class="n">dx1</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">patient</span><span class="o">.</span><span class="n">k10</span> <span class="o">+</span> <span class="n">patient</span><span class="o">.</span><span class="n">k12</span> <span class="o">+</span> <span class="n">patient</span><span class="o">.</span><span class="n">k13</span><span class="p">)</span> <span class="o">*</span> <span class="n">x1</span> <span class="o">+</span> <span class="n">patient</span><span class="o">.</span><span class="n">k21</span> <span class="o">*</span> <span class="n">x2</span> <span class="o">+</span> <span class="n">patient</span><span class="o">.</span><span class="n">k31</span> <span class="o">*</span> <span class="n">x3</span> <span class="o">+</span> <span class="n">u</span> <span class="o">/</span> <span class="n">patient</span><span class="o">.</span><span class="n">v1</span>
     <span class="n">dx2</span> <span class="o">=</span> <span class="n">patient</span><span class="o">.</span><span class="n">k12</span> <span class="o">*</span> <span class="n">x1</span> <span class="o">-</span> <span class="n">patient</span><span class="o">.</span><span class="n">k21</span> <span class="o">*</span> <span class="n">x2</span>
@@ -681,15 +663,15 @@ First, there is a delay in how fast the drug can reach a different compartments 
     <span class="n">dxe</span> <span class="o">=</span> <span class="n">patient</span><span class="o">.</span><span class="n">ke0</span> <span class="o">*</span> <span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">xe</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">dx1</span><span class="p">,</span> <span class="n">dx2</span><span class="p">,</span> <span class="n">dx3</span><span class="p">,</span> <span class="n">dxe</span><span class="p">])</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">pd_model</span><span class="p">(</span><span class="n">ce</span><span class="p">,</span> <span class="n">patient</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">pd_model</span><span class="p">(</span><span class="n">ce</span><span class="p">,</span> <span class="n">patient</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">patient</span><span class="o">.</span><span class="n">E0</span> <span class="o">-</span> <span class="n">patient</span><span class="o">.</span><span class="n">Emax</span> <span class="o">*</span> <span class="p">(</span><span class="n">ce</span> <span class="o">**</span> <span class="n">patient</span><span class="o">.</span><span class="n">gamma</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">ce</span> <span class="o">**</span> <span class="n">patient</span><span class="o">.</span><span class="n">gamma</span> <span class="o">+</span> <span class="n">patient</span><span class="o">.</span><span class="n">EC50</span> <span class="o">**</span> <span class="n">patient</span><span class="o">.</span><span class="n">gamma</span><span class="p">)</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">simulate_step</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">simulate_step</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
     <span class="n">x_next</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">pk_model</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">patient</span><span class="p">)</span>
     <span class="n">bis</span> <span class="o">=</span> <span class="n">pd_model</span><span class="p">(</span><span class="n">x_next</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">patient</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">x_next</span><span class="p">,</span> <span class="n">bis</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">objective</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">target_bis</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">objective</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">target_bis</span><span class="p">):</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">x0</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
     <span class="n">total_cost</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
@@ -697,7 +679,7 @@ First, there is a delay in how fast the drug can reach a different compartments 
         <span class="n">total_cost</span> <span class="o">+=</span> <span class="p">(</span><span class="n">bis</span> <span class="o">-</span> <span class="n">target_bis</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span>
     <span class="k">return</span> <span class="n">total_cost</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">mpc_step</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">target_bis</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">mpc_step</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">target_bis</span><span class="p">):</span>
     <span class="n">u0</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>  <span class="c1"># Initial guess</span>
     <span class="n">bounds</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">20</span><span class="p">)]</span> <span class="o">*</span> <span class="n">N</span>  <span class="c1"># Infusion rate between 0 and 20 mg/kg/h</span>
     
@@ -706,7 +688,7 @@ First, there is a delay in how fast the drug can reach a different compartments 
     
     <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># Return only the first control input</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">run_mpc_simulation</span><span class="p">(</span><span class="n">patient</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">target_bis</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">run_mpc_simulation</span><span class="p">(</span><span class="n">patient</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">target_bis</span><span class="p">):</span>
     <span class="n">steps</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">T</span> <span class="o">/</span> <span class="n">dt</span><span class="p">)</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">steps</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
     <span class="n">bis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">steps</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
@@ -763,11 +745,11 @@ First, there is a delay in how fast the drug can reach a different compartments 
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="_images/eab339dd49c8770abe38e249e3dfb3c7b7114c64e61e08559602fd1f822a26e1.png" src="_images/eab339dd49c8770abe38e249e3dfb3c7b7114c64e61e08559602fd1f822a26e1.png" />
+<img alt="_images/195db722ceeb04a6c882cab512d35895718c193d21523bdd294b4a21aefe4c18.png" src="_images/195db722ceeb04a6c882cab512d35895718c193d21523bdd294b4a21aefe4c18.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Initial BIS: 100.00
-Final BIS: 50.10
-Mean infusion rate: 8.85 mg/kg/h
-Final effect-site concentration: 3.40 µg/mL
+Final BIS: 50.12
+Mean infusion rate: 8.86 mg/kg/h
+Final effect-site concentration: 3.39 µg/mL
 </pre></div>
 </div>
 </div>
@@ -1294,6 +1276,219 @@ u = \arg\min_v \tfrac12\|v-\tilde u\|^2 \quad \text{s.t. } g(x,v)\le 0.
 <p>A third option is <strong>amortized warm-starting</strong>, where the neural network provides an initialization for one or two Newton or SQP iterations of the underlying NMPC problem. In this setting, the learned map delivers an excellent starting point, so the optimizer converges quickly and the cost of re-solving at each time step is greatly reduced.</p>
 </section>
 </section>
+<section id="demo-batch-bioreactor-mpc-with-do-mpc">
+<h2>Demo: Batch Bioreactor MPC with do-mpc<a class="headerlink" href="#demo-batch-bioreactor-mpc-with-do-mpc" title="Link to this heading">#</a></h2>
+<p>We illustrate nonlinear MPC on a fed-batch bioreactor. The process has four states: biomass concentration (X_s), substrate (S_s), product (P_s), and liquid volume (V_s). The manipulated feed flow (u_{\text{inp}}) augments volume and changes concentrations. The dynamics are</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+\dot X_s &amp;= \mu(S_s)X_s - \tfrac{u_{\text{inp}}}{V_s} X_s, \\
+\dot S_s &amp;= -\tfrac{\mu(S_s)X_s}{Y_x} - \tfrac{v X_s}{Y_p} + \tfrac{u_{\text{inp}}}{V_s}(S_{\text{in}} - S_s), \\
+\dot P_s &amp;= v X_s - \tfrac{u_{\text{inp}}}{V_s} P_s, \\
+\dot V_s &amp;= u_{\text{inp}},
+\end{aligned}
+\end{split}\]</div>
+<p>with inhibited Monod kinetics</p>
+<div class="math notranslate nohighlight">
+\[
+\mu(S_s) = \frac{\mu_m S_s}{K_m + S_s + S_s^2/K_i}.
+\]</div>
+<p>We impose bounds on states and input, e.g. (0 \le X_s \le 3.7), (0 \le P_s \le 3.0), and (0 \le u_{\text{inp}} \le 0.2). Two parameters are uncertain: yield (Y_x) and inlet concentration (S_{\text{in}}). We treat them via a small scenario set with non-anticipativity (a single input sequence is shared across scenarios).</p>
+<p>At each MPC step, we solve a finite-horizon problem that encourages product formation while regularizing effort:</p>
+<div class="math notranslate nohighlight">
+\[
+\min_{x_{0:N},u_{0:N-1}} \; -\,P_s(N) + \sum_{k=0}^{N-1} \big( -\,P_s(k) + \rho\, u_k^2 \big)
+\]</div>
+<p>subject to the discretized dynamics and box constraints for all uncertainty scenarios, sharing the inputs across scenarios. The continuous-time ODEs are discretized by orthogonal collocation on finite elements, producing an NLP <a class="reference external" href="https://www.do-mpc.com/en/latest/theory_orthogonal_collocation.html">orthogonal collocation</a>. The resulting NMPC is re-solved in a receding-horizon loop <a class="reference external" href="https://www.do-mpc.com/en/latest/theory_mpc.html">MPC basics</a>.</p>
+<p>The cell below runs the closed-loop simulation and plots the states and input. The script is adapted from the do-mpc Batch Bioreactor example.</p>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Show code cell source</span>
+<span class="expanded">Hide code cell source</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">do_mpc</span>
+<span class="kn">from</span> <span class="nn">casadi</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># noqa: F401 - do-mpc constructs CasADi symbols under the hood</span>
+
+
+<span class="k">def</span> <span class="nf">build_model</span><span class="p">():</span>
+    <span class="n">model_type</span> <span class="o">=</span> <span class="s1">&#39;continuous&#39;</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">do_mpc</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Model</span><span class="p">(</span><span class="n">model_type</span><span class="p">)</span>
+
+    <span class="c1"># States</span>
+    <span class="n">X_s</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">set_variable</span><span class="p">(</span><span class="s1">&#39;_x&#39;</span><span class="p">,</span> <span class="s1">&#39;X_s&#39;</span><span class="p">)</span>  <span class="c1"># biomass</span>
+    <span class="n">S_s</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">set_variable</span><span class="p">(</span><span class="s1">&#39;_x&#39;</span><span class="p">,</span> <span class="s1">&#39;S_s&#39;</span><span class="p">)</span>  <span class="c1"># substrate</span>
+    <span class="n">P_s</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">set_variable</span><span class="p">(</span><span class="s1">&#39;_x&#39;</span><span class="p">,</span> <span class="s1">&#39;P_s&#39;</span><span class="p">)</span>  <span class="c1"># product</span>
+    <span class="n">V_s</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">set_variable</span><span class="p">(</span><span class="s1">&#39;_x&#39;</span><span class="p">,</span> <span class="s1">&#39;V_s&#39;</span><span class="p">)</span>  <span class="c1"># volume</span>
+
+    <span class="c1"># Control input (feed flow)</span>
+    <span class="n">inp</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">set_variable</span><span class="p">(</span><span class="s1">&#39;_u&#39;</span><span class="p">,</span> <span class="s1">&#39;inp&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Certain parameters</span>
+    <span class="n">mu_m</span> <span class="o">=</span> <span class="mf">0.02</span>
+    <span class="n">K_m</span> <span class="o">=</span> <span class="mf">0.05</span>
+    <span class="n">K_i</span> <span class="o">=</span> <span class="mf">5.0</span>
+    <span class="n">v_par</span> <span class="o">=</span> <span class="mf">0.004</span>
+    <span class="n">Y_p</span> <span class="o">=</span> <span class="mf">1.2</span>
+
+    <span class="c1"># Uncertain parameters</span>
+    <span class="n">Y_x</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">set_variable</span><span class="p">(</span><span class="s1">&#39;_p&#39;</span><span class="p">,</span> <span class="s1">&#39;Y_x&#39;</span><span class="p">)</span>
+    <span class="n">S_in</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">set_variable</span><span class="p">(</span><span class="s1">&#39;_p&#39;</span><span class="p">,</span> <span class="s1">&#39;S_in&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Specific growth rate</span>
+    <span class="n">mu_S</span> <span class="o">=</span> <span class="n">mu_m</span> <span class="o">*</span> <span class="n">S_s</span> <span class="o">/</span> <span class="p">(</span><span class="n">K_m</span> <span class="o">+</span> <span class="n">S_s</span> <span class="o">+</span> <span class="p">(</span><span class="n">S_s</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="n">K_i</span><span class="p">))</span>
+
+    <span class="c1"># Dynamics</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">set_rhs</span><span class="p">(</span><span class="s1">&#39;X_s&#39;</span><span class="p">,</span> <span class="n">mu_S</span> <span class="o">*</span> <span class="n">X_s</span> <span class="o">-</span> <span class="n">inp</span> <span class="o">/</span> <span class="n">V_s</span> <span class="o">*</span> <span class="n">X_s</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">set_rhs</span><span class="p">(</span><span class="s1">&#39;S_s&#39;</span><span class="p">,</span> <span class="o">-</span><span class="n">mu_S</span> <span class="o">*</span> <span class="n">X_s</span> <span class="o">/</span> <span class="n">Y_x</span> <span class="o">-</span> <span class="n">v_par</span> <span class="o">*</span> <span class="n">X_s</span> <span class="o">/</span> <span class="n">Y_p</span> <span class="o">+</span> <span class="n">inp</span> <span class="o">/</span> <span class="n">V_s</span> <span class="o">*</span> <span class="p">(</span><span class="n">S_in</span> <span class="o">-</span> <span class="n">S_s</span><span class="p">))</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">set_rhs</span><span class="p">(</span><span class="s1">&#39;P_s&#39;</span><span class="p">,</span> <span class="n">v_par</span> <span class="o">*</span> <span class="n">X_s</span> <span class="o">-</span> <span class="n">inp</span> <span class="o">/</span> <span class="n">V_s</span> <span class="o">*</span> <span class="n">P_s</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">set_rhs</span><span class="p">(</span><span class="s1">&#39;V_s&#39;</span><span class="p">,</span> <span class="n">inp</span><span class="p">)</span>
+
+    <span class="n">model</span><span class="o">.</span><span class="n">setup</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">model</span>
+
+
+<span class="k">def</span> <span class="nf">build_mpc</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
+    <span class="n">mpc</span> <span class="o">=</span> <span class="n">do_mpc</span><span class="o">.</span><span class="n">controller</span><span class="o">.</span><span class="n">MPC</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+    <span class="n">setup_mpc</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;n_horizon&#39;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+        <span class="s1">&#39;t_step&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+        <span class="s1">&#39;n_robust&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s1">&#39;store_full_solution&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">mpc</span><span class="o">.</span><span class="n">set_param</span><span class="p">(</span><span class="o">**</span><span class="n">setup_mpc</span><span class="p">)</span>
+
+    <span class="c1"># Objective: encourage product formation and small inputs (economic-like MPC)</span>
+    <span class="n">X_s</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;X_s&#39;</span><span class="p">]</span>
+    <span class="n">S_s</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;S_s&#39;</span><span class="p">]</span>
+    <span class="n">P_s</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;P_s&#39;</span><span class="p">]</span>
+    <span class="n">V_s</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;V_s&#39;</span><span class="p">]</span>
+    <span class="n">inp</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">u</span><span class="p">[</span><span class="s1">&#39;inp&#39;</span><span class="p">]</span>
+
+    <span class="n">mterm</span> <span class="o">=</span> <span class="o">-</span><span class="n">P_s</span>  <span class="c1"># maximize product at horizon end</span>
+    <span class="n">lterm</span> <span class="o">=</span> <span class="o">-</span><span class="n">P_s</span> <span class="o">+</span> <span class="mf">1e-4</span> <span class="o">*</span> <span class="n">inp</span><span class="o">**</span><span class="mi">2</span>  <span class="c1"># small input penalty</span>
+    <span class="n">mpc</span><span class="o">.</span><span class="n">set_objective</span><span class="p">(</span><span class="n">mterm</span><span class="o">=</span><span class="n">mterm</span><span class="p">,</span> <span class="n">lterm</span><span class="o">=</span><span class="n">lterm</span><span class="p">)</span>
+
+    <span class="c1"># Box constraints</span>
+    <span class="n">mpc</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">,</span> <span class="s1">&#39;_x&#39;</span><span class="p">,</span> <span class="s1">&#39;X_s&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">mpc</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">,</span> <span class="s1">&#39;_x&#39;</span><span class="p">,</span> <span class="s1">&#39;S_s&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.01</span>
+    <span class="n">mpc</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">,</span> <span class="s1">&#39;_x&#39;</span><span class="p">,</span> <span class="s1">&#39;P_s&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">mpc</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">,</span> <span class="s1">&#39;_x&#39;</span><span class="p">,</span> <span class="s1">&#39;V_s&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">mpc</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="s1">&#39;upper&#39;</span><span class="p">,</span> <span class="s1">&#39;_x&#39;</span><span class="p">,</span> <span class="s1">&#39;X_s&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">3.7</span>
+    <span class="n">mpc</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="s1">&#39;upper&#39;</span><span class="p">,</span> <span class="s1">&#39;_x&#39;</span><span class="p">,</span> <span class="s1">&#39;P_s&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">3.0</span>
+    <span class="n">mpc</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">,</span> <span class="s1">&#39;_u&#39;</span><span class="p">,</span> <span class="s1">&#39;inp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">mpc</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="s1">&#39;upper&#39;</span><span class="p">,</span> <span class="s1">&#39;_u&#39;</span><span class="p">,</span> <span class="s1">&#39;inp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.2</span>
+
+    <span class="c1"># Uncertainty scenarios (shared control across scenarios)</span>
+    <span class="n">Y_x_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">])</span>
+    <span class="n">S_in_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">200.0</span><span class="p">,</span> <span class="mf">220.0</span><span class="p">,</span> <span class="mf">180.0</span><span class="p">])</span>
+    <span class="n">mpc</span><span class="o">.</span><span class="n">set_uncertainty_values</span><span class="p">(</span><span class="n">Y_x</span><span class="o">=</span><span class="n">Y_x_values</span><span class="p">,</span> <span class="n">S_in</span><span class="o">=</span><span class="n">S_in_values</span><span class="p">)</span>
+
+    <span class="n">mpc</span><span class="o">.</span><span class="n">setup</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">mpc</span>
+
+
+<span class="k">def</span> <span class="nf">build_estimator</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">do_mpc</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">StateFeedback</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">build_simulator</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
+    <span class="n">simulator</span> <span class="o">=</span> <span class="n">do_mpc</span><span class="o">.</span><span class="n">simulator</span><span class="o">.</span><span class="n">Simulator</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+    <span class="n">params_sim</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;integration_tool&#39;</span><span class="p">:</span> <span class="s1">&#39;cvodes&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;abstol&#39;</span><span class="p">:</span> <span class="mf">1e-10</span><span class="p">,</span>
+        <span class="s1">&#39;reltol&#39;</span><span class="p">:</span> <span class="mf">1e-10</span><span class="p">,</span>
+        <span class="s1">&#39;t_step&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">simulator</span><span class="o">.</span><span class="n">set_param</span><span class="p">(</span><span class="o">**</span><span class="n">params_sim</span><span class="p">)</span>
+
+    <span class="c1"># Realizations of uncertain parameters used by the simulator</span>
+    <span class="n">p_num</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">get_p_template</span><span class="p">()</span>
+    <span class="n">p_num</span><span class="p">[</span><span class="s1">&#39;Y_x&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.4</span>
+    <span class="n">p_num</span><span class="p">[</span><span class="s1">&#39;S_in&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">200.0</span>
+
+    <span class="k">def</span> <span class="nf">p_fun</span><span class="p">(</span><span class="n">t_now</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">p_num</span>
+
+    <span class="n">simulator</span><span class="o">.</span><span class="n">set_p_fun</span><span class="p">(</span><span class="n">p_fun</span><span class="p">)</span>
+    <span class="n">simulator</span><span class="o">.</span><span class="n">setup</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">simulator</span>
+
+
+<span class="k">def</span> <span class="nf">run_closed_loop</span><span class="p">():</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">build_model</span><span class="p">()</span>
+    <span class="n">mpc</span> <span class="o">=</span> <span class="n">build_mpc</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+    <span class="n">estimator</span> <span class="o">=</span> <span class="n">build_estimator</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+    <span class="n">simulator</span> <span class="o">=</span> <span class="n">build_simulator</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+
+    <span class="c1"># Initial state</span>
+    <span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">120.0</span><span class="p">])</span>
+    <span class="n">mpc</span><span class="o">.</span><span class="n">x0</span> <span class="o">=</span> <span class="n">x0</span>
+    <span class="n">estimator</span><span class="o">.</span><span class="n">x0</span> <span class="o">=</span> <span class="n">x0</span>
+    <span class="n">simulator</span><span class="o">.</span><span class="n">x0</span> <span class="o">=</span> <span class="n">x0</span>
+    <span class="n">mpc</span><span class="o">.</span><span class="n">set_initial_guess</span><span class="p">()</span>
+
+    <span class="c1"># Closed-loop simulation</span>
+    <span class="n">n_steps</span> <span class="o">=</span> <span class="mi">60</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_steps</span><span class="p">):</span>
+        <span class="n">u0</span> <span class="o">=</span> <span class="n">mpc</span><span class="o">.</span><span class="n">make_step</span><span class="p">(</span><span class="n">x0</span><span class="p">)</span>
+        <span class="n">y_next</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">make_step</span><span class="p">(</span><span class="n">u0</span><span class="p">)</span>
+        <span class="n">x0</span> <span class="o">=</span> <span class="n">estimator</span><span class="o">.</span><span class="n">make_step</span><span class="p">(</span><span class="n">y_next</span><span class="p">)</span>
+
+    <span class="c1"># Visualization</span>
+    <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+    <span class="n">mpc_graphics</span> <span class="o">=</span> <span class="n">do_mpc</span><span class="o">.</span><span class="n">graphics</span><span class="o">.</span><span class="n">Graphics</span><span class="p">(</span><span class="n">mpc</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">sim_graphics</span> <span class="o">=</span> <span class="n">do_mpc</span><span class="o">.</span><span class="n">graphics</span><span class="o">.</span><span class="n">Graphics</span><span class="p">(</span><span class="n">simulator</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">align_ylabels</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="p">[</span><span class="n">sim_graphics</span><span class="p">,</span> <span class="n">mpc_graphics</span><span class="p">]:</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">add_line</span><span class="p">(</span><span class="n">var_type</span><span class="o">=</span><span class="s1">&#39;_x&#39;</span><span class="p">,</span> <span class="n">var_name</span><span class="o">=</span><span class="s1">&#39;X_s&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#1f77b4&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">add_line</span><span class="p">(</span><span class="n">var_type</span><span class="o">=</span><span class="s1">&#39;_x&#39;</span><span class="p">,</span> <span class="n">var_name</span><span class="o">=</span><span class="s1">&#39;S_s&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#1f77b4&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">add_line</span><span class="p">(</span><span class="n">var_type</span><span class="o">=</span><span class="s1">&#39;_x&#39;</span><span class="p">,</span> <span class="n">var_name</span><span class="o">=</span><span class="s1">&#39;P_s&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#1f77b4&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">add_line</span><span class="p">(</span><span class="n">var_type</span><span class="o">=</span><span class="s1">&#39;_x&#39;</span><span class="p">,</span> <span class="n">var_name</span><span class="o">=</span><span class="s1">&#39;V_s&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#1f77b4&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">add_line</span><span class="p">(</span><span class="n">var_type</span><span class="o">=</span><span class="s1">&#39;_u&#39;</span><span class="p">,</span> <span class="n">var_name</span><span class="o">=</span><span class="s1">&#39;inp&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#1f77b4&#39;</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;X_s [mol/l]&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;S_s [mol/l]&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;P_s [mol/l]&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;V_s [m^3]&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;u_inp [m^3/min]&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;t [min]&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Plot full horizon results</span>
+    <span class="n">sim_graphics</span><span class="o">.</span><span class="n">plot_results</span><span class="p">()</span>
+    <span class="n">mpc_graphics</span><span class="o">.</span><span class="n">plot_predictions</span><span class="p">()</span>
+    <span class="n">mpc_graphics</span><span class="o">.</span><span class="n">reset_axes</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">run_closed_loop</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">ModuleNotFoundError</span><span class="g g-Whitespace">                       </span>Traceback (most recent call last)
+<span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">line</span> <span class="mi">2</span>
+<span class="g g-Whitespace">      </span><span class="mi">1</span> <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="ne">----&gt; </span><span class="mi">2</span> <span class="kn">import</span> <span class="nn">do_mpc</span>
+<span class="g g-Whitespace">      </span><span class="mi">3</span> <span class="kn">from</span> <span class="nn">casadi</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># noqa: F401 - do-mpc constructs CasADi symbols under the hood</span>
+<span class="g g-Whitespace">      </span><span class="mi">6</span> <span class="k">def</span> <span class="nf">build_model</span><span class="p">():</span>
+
+<span class="ne">ModuleNotFoundError</span>: No module named &#39;do_mpc&#39;
+</pre></div>
+</div>
+</div>
+</div>
+</section>
 </section>
 
     <script type="text/x-thebe-config">
@@ -1351,7 +1546,8 @@ u = \arg\min_v \tfrac12\|v-\tilde u\|^2 \quad \text{s.t. } g(x,v)\le 0.
             
             
               
-                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
   <div class="sidebar-secondary-item">
@@ -1397,6 +1593,7 @@ u = \arg\min_v \tfrac12\|v-\tilde u\|^2 \quad \text{s.t. } g(x,v)\le 0.
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#deployment-patterns">Deployment Patterns</a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#demo-batch-bioreactor-mpc-with-do-mpc">Demo: Batch Bioreactor MPC with do-mpc</a></li>
 </ul>
 </li>
 </ul>
@@ -1448,8 +1645,8 @@ By Pierre-Luc Bacon
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549"></script>
 
   <footer class="bd-footer">
   </footer>

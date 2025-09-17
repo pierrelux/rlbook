@@ -773,3 +773,40 @@ $$
 Gradients are propagated through this correction using implicit differentiation, allowing the network to be trained end-to-end while retaining constraint satisfaction. This hybrid keeps the fast evaluation of a learned map while preserving the structure of MPC.
 
 A third option is **amortized warm-starting**, where the neural network provides an initialization for one or two Newton or SQP iterations of the underlying NMPC problem. In this setting, the learned map delivers an excellent starting point, so the optimizer converges quickly and the cost of re-solving at each time step is greatly reduced.
+
+
+## Demo: Batch Bioreactor MPC with do-mpc
+
+We illustrate nonlinear MPC on a fed-batch bioreactor. The process has four states: biomass concentration \(X_s\), substrate \(S_s\), product \(P_s\), and liquid volume \(V_s\). The manipulated feed flow \(u_{\text{inp}}\) augments volume and changes concentrations. The dynamics are
+
+$$
+\begin{aligned}
+\dot X_s &= \mu(S_s)X_s - \tfrac{u_{\text{inp}}}{V_s} X_s, \\
+\dot S_s &= -\tfrac{\mu(S_s)X_s}{Y_x} - \tfrac{v X_s}{Y_p} + \tfrac{u_{\text{inp}}}{V_s}(S_{\text{in}} - S_s), \\
+\dot P_s &= v X_s - \tfrac{u_{\text{inp}}}{V_s} P_s, \\
+\dot V_s &= u_{\text{inp}},
+\end{aligned}
+$$
+
+with inhibited Monod kinetics
+
+$$
+\mu(S_s) = \frac{\mu_m S_s}{K_m + S_s + S_s^2/K_i}.
+$$
+
+We impose bounds on states and input, e.g. \(0 \le X_s \le 3.7\), \(0 \le P_s \le 3.0\), and \(0 \le u_{\text{inp}} \le 0.2\). Two parameters are uncertain: yield \(Y_x\) and inlet concentration \(S_{\text{in}}\). We treat them via a small scenario set with non-anticipativity (a single input sequence is shared across scenarios).
+
+At each MPC step, we solve a finite-horizon problem that encourages product formation while regularizing effort:
+
+$$
+\min_{x_{0:N},u_{0:N-1}} \; -\,P_s(N) + \sum_{k=0}^{N-1} \big( -\,P_s(k) + \rho\, u_k^2 \big)
+$$
+
+subject to the discretized dynamics and box constraints for all uncertainty scenarios, sharing the inputs across scenarios. The continuous-time ODEs are discretized by orthogonal collocation on finite elements, producing an NLP [orthogonal collocation](https://www.do-mpc.com/en/latest/theory_orthogonal_collocation.html). The resulting NMPC is re-solved in a receding-horizon loop [MPC basics](https://www.do-mpc.com/en/latest/theory_mpc.html).
+
+The cell below runs the closed-loop simulation and plots the states and input. The script is adapted from the do-mpc Batch Bioreactor example.
+
+```{code-cell} ipython3
+:tags: [hide-input]
+:load: _static/do_mpc_batch_bioreactor.py
+```
