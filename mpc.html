@@ -66,7 +66,7 @@
     <script src="_static/iframe-modal.js?v=f72a1242"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Stochastic Dynamic Programming" href="dp.html" />
+    <link rel="next" title="Dynamic Programming" href="dp.html" />
     <link rel="prev" title="Trajectory Optimization in Continuous Time" href="cocp.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -207,7 +207,7 @@
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Model Predictive Control</a></li>
 
 
-<li class="toctree-l1"><a class="reference internal" href="dp.html">Stochastic Dynamic Programming</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dp.html">Dynamic Programming</a></li>
 
 
 
@@ -452,15 +452,41 @@ document.write(`
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Model Predictive Control</a></li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#closing-the-loop-by-replanning">Closing the Loop by Replanning</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-propofol-infusion-control">Example: Propofol Infusion Control</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-propofol-infusion-control">Example: Propofol Infusion Control</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#successive-linearization-and-quadratic-approximations">Successive Linearization and Quadratic Approximations</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#computational-efficiency-improvements">Computational Efficiency Improvements</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#explicit-mpc">Explicit MPC</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#amortized-optimization-and-neural-networks">Amortized Optimization and Neural Networks</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#warmstarting-and-predictor-corrector-mpc">Warmstarting and Predictor-Corrector MPC</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#the-landscape-of-mpc-variants">The Landscape of MPC Variants</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">The Landscape of MPC Variants</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracking-mpc">Tracking MPC</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#regulatory-mpc">Regulatory MPC</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#economic-mpc">Economic MPC</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#robust-mpc">Robust MPC</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-mpc">Stochastic MPC</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hybrid-and-mixed-integer-mpc">Hybrid and Mixed-Integer MPC</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#distributed-and-decentralized-mpc">Distributed and Decentralized MPC</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#adaptive-and-learning-based-mpc">Adaptive and Learning-Based MPC</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#computational-efficiency-via-parametric-programming">Computational Efficiency via Parametric Programming</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#general-framework-parametric-optimization">General Framework: Parametric Optimization</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-quick-reminder-the-implicit-function-theorem">A quick reminder: the implicit function theorem</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#predictor-corrector-mpc">Predictor-Corrector MPC</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#application-to-mpc">Application to MPC</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#two-approaches-to-efficient-mpc">Two Approaches to Efficient MPC</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#explicit-mpc">Explicit MPC</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sensitivity-based-mpc">Sensitivity-Based MPC</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#amortized-optimization-and-neural-approximation-of-controllers">Amortized Optimization and Neural Approximation of Controllers</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#imitation-learning-framework">Imitation Learning Framework</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#deployment-patterns">Deployment Patterns</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -746,98 +772,527 @@ Final effect-site concentration: 3.40 µg/mL
 </div>
 </div>
 </div>
-</section>
-</section>
-<section class="tex2jax_ignore mathjax_ignore" id="computational-efficiency-improvements">
-<h1>Computational Efficiency Improvements<a class="headerlink" href="#computational-efficiency-improvements" title="Link to this heading">#</a></h1>
-<p>One challenge of Model Predictive Control (MPC) is its computational cost. In real-time applications, such as adaptive optics, the controller may need to operate at extremely high frequencies—for example, 1000 Hz. In this scenario, the solver has just 1 millisecond to compute an optimal solution, pushing the limits of computational efficiency.</p>
-<section id="explicit-mpc">
-<h2>Explicit MPC<a class="headerlink" href="#explicit-mpc" title="Link to this heading">#</a></h2>
-<p>A potential solution to this problem is to offload some of the computational effort offline. Instead of solving the optimization problem at every time step during execution, we could attempt to <strong>precompute solutions</strong> for all potential states in advance. At first glance, this seems impractical—without leveraging specific structure or partitioning the state space intelligently, precomputing solutions for every possible state would be infeasible. However, with the right techniques, this approach becomes viable.</p>
-<p>This is the essence of <strong>explicit MPC</strong>, which hinges on a subfield of mathematical programming known as multi-parametric (or simply parametric) programming.  A multiparametric programming problem can be described by the following formulation:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}
-\begin{array}{cl}
-z(\boldsymbol{\theta}) = \min_{\mathbf{x}} &amp; f(\mathbf{x}, \boldsymbol{\theta}) \\
-\text { s.t. } &amp; \mathbf{g}(\mathbf{x}, \boldsymbol{\theta}) \leq 0 \\
-&amp; \mathbf{h}(\mathbf{x}, \boldsymbol{\theta}) = 0 \\
-&amp; \mathbf{x} \in \mathbb{R}^n \\
-&amp; \boldsymbol{\theta} \in \mathbb{R}^m
-\end{array}
-\end{split}\]</div>
-<p>where:</p>
-<ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(\mathbf{x} \in \mathbb{R}^n\)</span> are the decision variables,</p></li>
-<li><p><span class="math notranslate nohighlight">\(\boldsymbol{\theta} \in \mathbb{R}^m\)</span> are the parameters,</p></li>
-<li><p><span class="math notranslate nohighlight">\(f(\mathbf{x}, \boldsymbol{\theta})\)</span> is the objective function,</p></li>
-<li><p><span class="math notranslate nohighlight">\(\mathbf{g}(\mathbf{x}, \boldsymbol{\theta}) \leq 0\)</span> and <span class="math notranslate nohighlight">\(\mathbf{h}(\mathbf{x}, \boldsymbol{\theta}) = 0\)</span> are the inequality and equality constraints, respectively.</p></li>
-</ul>
-<p>Parametric programming methods provides ways for efficiently evaluating <span class="math notranslate nohighlight">\(z(\boldsymbol{\theta})\)</span> – the <strong>value function</strong> – by leveraging the structure of the solution space. In particular, it leverages the idea that the solution space can be partitioned into <strong>critical regions</strong>—regions of the parameter space where the optimal solution structure remains unchanged. Within each region, the solution can often be expressed as a <strong>piecewise affine function</strong> of the parameters, which is easy to represent and compute offline.</p>
-<p>In trajectory optimization problems, the initial state <span class="math notranslate nohighlight">\(\boldsymbol{x}_0\)</span> can also be treated as a <strong>parameter</strong>. This transforms the problem into a parametric optimization problem, where <span class="math notranslate nohighlight">\(\boldsymbol{x}_0\)</span> defines a family of optimization problems, each yielding a different optimal solution. The relationship between the parameters and solutions can be described using two key mappings:</p>
-<ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(\boldsymbol{u}^\star(\boldsymbol{x}_0)\)</span>: The optimal control sequence as a function of the initial state.</p></li>
-<li><p><span class="math notranslate nohighlight">\(v(\boldsymbol{x}_0)\)</span>: The value function, which gives the optimal objective value for a given <span class="math notranslate nohighlight">\(\boldsymbol{x}_0\)</span>.</p></li>
-</ul>
-<p>It is therefore at this level that parametric programming methods can come into play and provide efficient methods for computing the value function offline: that is without resorting to direct calls to a nonlinear programming solver for every new <span class="math notranslate nohighlight">\(\boldsymbol{x}\)</span> encountered along a trajectory.</p>
-<section id="amortized-optimization-and-neural-networks">
-<h3>Amortized Optimization and Neural Networks<a class="headerlink" href="#amortized-optimization-and-neural-networks" title="Link to this heading">#</a></h3>
-<p>The idea of solving an entire family of optimization problems efficiently is not unique to parametric programming. In machine learning, <strong>amortized optimization</strong> (or <strong>amortized inference</strong>) aims to “learn to optimize” by constructing models that generalize over a family of optimization problems. This approach is particularly relevant in applications such as hyperparameter optimization, meta-learning, and probabilistic inference.</p>
-<p>In contrast to explicit MPC, which partitions the state space, amortized optimization typically uses <strong>neural networks</strong> to approximate the mapping from parameters to optimal solutions. This has led to recent explorations of <strong>amortizing NMPC (Nonlinear MPC) controllers</strong> into neural networks, blending the structure of MPC with the generalization power of neural networks. This represents a promising direction for creating efficient controllers that combine physics-based models, safety constraints, and the flexibility of learned models.</p>
-<!-- 
-As usual, the KKT conditions provide necessary conditions for optimality:
-
-1. **Stationarity**:  
-
-   $$
-   \nabla_{\mathbf{x}} f(\mathbf{x}^*, \boldsymbol{\theta}) + \sum_{i=1}^{p} \gamma_i^* \nabla_{\mathbf{x}} g_i(\mathbf{x}^*, \boldsymbol{\theta}) + \sum_{j=1}^{q} \nu_j^* \nabla_{\mathbf{x}} h_j(\mathbf{x}^*, \boldsymbol{\theta}) = 0
-   $$
-   where $\boldsymbol{\gamma}^* = (\gamma_1^*, \ldots, \gamma_p^*)$ are the Lagrange multipliers for the inequality constraints, and $\boldsymbol{\nu}^* = (\nu_1^*, \ldots, \nu_q^*)$ are the Lagrange multipliers for the equality constraints.
-
-2. **Primal Feasibility**:  
-
-   $$
-   \mathbf{g}(\mathbf{x}^*, \boldsymbol{\theta}) \leq 0, \quad \mathbf{h}(\mathbf{x}^*, \boldsymbol{\theta}) = 0
-   $$
-
-3. **Dual Feasibility**:  
-
-   $$
-   \gamma_i^* \geq 0, \quad \forall i
-   $$
-
-4. **Complementary Slackness**:  
-
-   $$
-   \gamma_i^* g_i(\mathbf{x}^*, \boldsymbol{\theta}) = 0, \quad \forall i
-   $$
-
-
-We can combine the KKT conditions into a single system of equations, denoted as $\mathbf{F}(\mathbf{x}, \boldsymbol{\gamma}, \boldsymbol{\nu}, \boldsymbol{\theta}) = \mathbf{0}$, where:
-
-$$
-\mathbf{F}(\mathbf{x}, \boldsymbol{\gamma}, \boldsymbol{\nu}, \boldsymbol{\theta}) = \begin{pmatrix}
-\nabla_{\mathbf{x}} f(\mathbf{x}, \boldsymbol{\theta}) + \sum_{i=1}^{p} \gamma_i \nabla_{\mathbf{x}} g_i(\mathbf{x}, \boldsymbol{\theta}) + \sum_{j=1}^{q} \nu_j \nabla_{\mathbf{x}} h_j(\mathbf{x}, \boldsymbol{\theta}) \\
-\mathbf{g}(\mathbf{x}, \boldsymbol{\theta}) \\
-\mathbf{h}(\mathbf{x}, \boldsymbol{\theta}) \\
-\boldsymbol{\gamma} \odot \mathbf{g}(\mathbf{x}, \boldsymbol{\theta}) \\
-\min(\boldsymbol{\gamma}, \mathbf{0})
-\end{pmatrix} = \mathbf{0}
-$$
-
-Here, $\mathbf{F}(\mathbf{x}, \boldsymbol{\gamma}, \boldsymbol{\nu}, \boldsymbol{\theta}) = \mathbf{0}$ encapsulates the stationarity, primal feasibility, dual feasibility, and complementary slackness conditions. The symbol $\odot$ represents the element-wise product for the complementary slackness condition. -->
-</section>
-</section>
-<section id="warmstarting-and-predictor-corrector-mpc">
-<h2>Warmstarting and Predictor-Corrector MPC<a class="headerlink" href="#warmstarting-and-predictor-corrector-mpc" title="Link to this heading">#</a></h2>
-<p>Another way in which we can speed up NMPC is by providing good initial guesses for the solver. When solving a series of optimization problems along a trajectory, it is likely that the solution to previous problem might be close to that of the current one. Hence, as a heuristic it often makes sense to “warmstart” from the previous solution.</p>
-<p>Another alternative is to extrapolate what the next solution ought to be based on the previous one. What we mean here is that rather than simply using the last solution as a guess for that of the current problem, we leverage the “sensitivity information” around the last solution to make a guess about where we might be going. This idea is reminiscent of predictor-corrector schemes which we have briefly discussed in the first chapter.</p>
-<p>To implement a predictor corrector MPC scheme, we need to understand how the optimal solution <span class="math notranslate nohighlight">\(\mathbf{x}^*(\boldsymbol{\theta})\)</span> and the value function <span class="math notranslate nohighlight">\(z(\boldsymbol{\theta})\)</span> change as the parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> vary. We achieve this by applying the <strong>implicit function theorem</strong> to the <strong>KKT (Karush-Kuhn-Tucker) conditions</strong> of the parametric problem. The KKT conditions for a parametric optimization problem are necessary for optimality and can be written as:</p>
+<section id="successive-linearization-and-quadratic-approximations">
+<h3>Successive Linearization and Quadratic Approximations<a class="headerlink" href="#successive-linearization-and-quadratic-approximations" title="Link to this heading">#</a></h3>
+<p>For many regulation and tracking problems, the nonlinear dynamics and costs we encounter can be approximated locally by linear and quadratic functions. The basic idea is to linearize the system around the current operating point and approximate the cost with a quadratic form. This reduces each MPC subproblem to a <strong>quadratic program (QP)</strong>, which can be solved reliably and very quickly using standard solvers.</p>
+<p>Suppose the true dynamics are nonlinear,</p>
 <div class="math notranslate nohighlight">
 \[
-\mathbf{F}(\mathbf{x}, \boldsymbol{\gamma}, \boldsymbol{\nu}, \boldsymbol{\theta}) = 0,
+\mathbf{x}_{k+1} = f(\mathbf{x}_k,\mathbf{u}_k).
 \]</div>
-<p>where <span class="math notranslate nohighlight">\(\mathbf{F}\)</span> encapsulates the stationarity, primal feasibility, dual feasibility, and complementary slackness conditions from the KKT theorem. By treating <span class="math notranslate nohighlight">\(\mathbf{x}\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{\gamma}\)</span>, and <span class="math notranslate nohighlight">\(\boldsymbol{\nu}\)</span> as functions of the parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span>, the implicit function theorem guarantees that, under certain regularity conditions, these optimal variables are <strong>continuously differentiable</strong> with respect to <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span>. This allows us to compute <strong>sensitivity derivatives</strong>, which describe how small changes in <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> affect the optimal solution.</p>
-<p>By leveraging this sensitivity information, we can predict changes in the optimal solution and “warm-start” the optimization process at the next time step in MPC. This concept is related to <strong>numerical continuation</strong>, where a complex optimization problem is solved by gradually transforming a simpler, well-understood problem into the more difficult one.</p>
+<p>Around a nominal trajectory <span class="math notranslate nohighlight">\((\bar{\mathbf{x}}_k,\bar{\mathbf{u}}_k)\)</span>, we take a first-order expansion:</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{x}_{k+1} \approx f(\bar{\mathbf{x}}_k,\bar{\mathbf{u}}_k) 
++ A_k(\mathbf{x}_k - \bar{\mathbf{x}}_k) 
++ B_k(\mathbf{u}_k - \bar{\mathbf{u}}_k),
+\]</div>
+<p>with Jacobians</p>
+<div class="math notranslate nohighlight">
+\[
+A_k = \frac{\partial f}{\partial \mathbf{x}}(\bar{\mathbf{x}}_k,\bar{\mathbf{u}}_k), 
+\qquad
+B_k = \frac{\partial f}{\partial \mathbf{u}}(\bar{\mathbf{x}}_k,\bar{\mathbf{u}}_k).
+\]</div>
+<p>Similarly, if the stage cost is nonlinear,</p>
+<div class="math notranslate nohighlight">
+\[
+c(\mathbf{x}_k,\mathbf{u}_k),
+\]</div>
+<p>we approximate it quadratically near the nominal point:</p>
+<div class="math notranslate nohighlight">
+\[
+c(\mathbf{x}_k,\mathbf{u}_k) \;\approx\; 
+\|\mathbf{x}_k - \mathbf{x}_k^{\text{ref}}\|_{Q_k}^2 
++ \|\mathbf{u}_k - \mathbf{u}_k^{\text{ref}}\|_{R_k}^2,
+\]</div>
+<p>with positive semidefinite weighting matrices <span class="math notranslate nohighlight">\(Q_k\)</span> and <span class="math notranslate nohighlight">\(R_k\)</span>.</p>
+<p>The resulting MPC subproblem has the form</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+\min_{\mathbf{x}_{0:N},\mathbf{u}_{0:N-1}} \quad &amp;
+\|\mathbf{x}_N - \mathbf{x}_N^{\text{ref}}\|_{P}^2
++ \sum_{k=0}^{N-1} 
+\left(
+\|\mathbf{x}_k - \mathbf{x}_k^{\text{ref}}\|_{Q_k}^2
++ \|\mathbf{u}_k - \mathbf{u}_k^{\text{ref}}\|_{R_k}^2
+\right) \\
+\text{s.t.} \quad &amp;
+\mathbf{x}_{k+1} = A_k \mathbf{x}_k + B_k \mathbf{u}_k + d_k, \\
+&amp; \mathbf{u}_{\min} \leq \mathbf{u}_k \leq \mathbf{u}_{\max}, \\
+&amp; \mathbf{x}_{\min} \leq \mathbf{x}_k \leq \mathbf{x}_{\max}, \\
+&amp; \mathbf{x}_0 = \mathbf{x}_{\text{current}} ,
+\end{aligned}
+\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(d_k = f(\bar{\mathbf{x}}_k,\bar{\mathbf{u}}_k) - A_k \bar{\mathbf{x}}_k - B_k \bar{\mathbf{u}}_k\)</span> captures the local affine offset.</p>
+<p>Because the dynamics are now linear and the cost quadratic, this optimization problem is a convex quadratic program. Quadratic programs are attractive in practice: they can be solved at kilohertz rates with mature numerical methods, making them the backbone of many real-time MPC implementations.</p>
+<p>At each MPC step, the controller updates its linearization around the new operating point, constructs the local QP, and solves it. The process repeats, with the linear model and quadratic cost refreshed at every reoptimization. Despite the approximation, this yields a closed-loop controller that inherits the fast computation of QPs while retaining the ability to track trajectories of the underlying nonlinear system.</p>
+</section>
+</section>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="the-landscape-of-mpc-variants">
+<h1>The Landscape of MPC Variants<a class="headerlink" href="#the-landscape-of-mpc-variants" title="Link to this heading">#</a></h1>
+<p>Once the basic idea of receding horizon control is clear, it is helpful to see how the same backbone accommodates many variations. In every case, we transcribe the continuous problem to a nonlinear program of the form</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+\text{minimize}\quad &amp; c_T(\mathbf{x}_N)+\sum_{k=0}^{N-1} w_k\,c(\mathbf{x}_k,\mathbf{u}_k) \\
+\text{subject to}\quad &amp; \mathbf{x}_{k+1}=\mathbf{F}_k(\mathbf{x}_k,\mathbf{u}_k) \\
+&amp; \mathbf{g}(\mathbf{x}_k,\mathbf{u}_k)\leq \mathbf{0}, \\
+&amp; \mathbf{x}_{\min}\leq \mathbf{x}_k\leq \mathbf{x}_{\max},\quad \mathbf{u}_{\min}\leq \mathbf{u}_k\leq \mathbf{u}_{\max}, \\
+&amp; \mathbf{x}_0=\mathbf{x}_{\text{current}} ,
+\end{aligned}
+\end{split}\]</div>
+<p>with $\mathbf{F}_k$ the chosen discretization of the dynamics and $w_k$ the quadrature weights. From this skeleton, several families of MPC emerge.</p>
+<p>In <strong>tracking MPC</strong>, the stage and terminal costs are quadratic penalties on deviation from a reference trajectory,</p>
+<div class="math notranslate nohighlight">
+\[
+c(\mathbf{x}_k,\mathbf{u}_k)=\|\mathbf{x}_k-\mathbf{x}_k^{\text{ref}}\|_{\mathbf{Q}}^2+\|\mathbf{u}_k-\mathbf{u}_k^{\text{ref}}\|_{\mathbf{R}}^2 , \qquad c_T(\mathbf{x}_N)=\|\mathbf{x}_N-\mathbf{x}_N^{\text{ref}}\|_{\mathbf{P}}^2 .
+\]</div>
+<p>This is the industrial workhorse, ensuring that the system follows a desired profile within limits.</p>
+<p>In <strong>regulatory MPC</strong>, the reference is fixed at an equilibrium $(\mathbf{x}^e,\mathbf{u}^e)$, and the quadratic penalty encourages return to this point. Terminal constraints are often added so that stability can be guaranteed.</p>
+<p>In <strong>economic MPC</strong>, the quadratic structure disappears altogether. Instead, the cost encodes economic performance,</p>
+<div class="math notranslate nohighlight">
+\[
+c(\mathbf{x}_k,\mathbf{u}_k)=c_{\text{econ}}(\mathbf{x}_k,\mathbf{u}_k),
+\]</div>
+<p>for instance energy cost, profit, or resource efficiency. The optimization then steers the system not toward a setpoint but toward economically optimal regimes.</p>
+<p>When uncertainty is represented by bounded sets, one arrives at <strong>robust MPC</strong>, which seeks controls that satisfy the constraints for all admissible disturbances. The resulting NLP has a min–max structure. A tractable alternative is tube MPC, where the nominal optimization is carried out with tightened constraints to guarantee feasibility of the true system under a disturbance feedback law.</p>
+<p>If uncertainty is stochastic, the formulation turns into <strong>stochastic MPC</strong>, where the objective is the expected cost and the constraints are imposed with high probability,</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbb{P}\!\left[\mathbf{g}(\mathbf{x}_k,\mathbf{u}_k)\leq \mathbf{0}\right]\geq 1-\varepsilon .
+\]</div>
+<p>Scenario-based versions replace expectations by a sampled, deterministic problem.</p>
+<p>Some systems require discrete choices, such as switching devices on or off. <strong>Hybrid MPC</strong> introduces integer variables into the transcription, producing a mixed-integer NLP that can handle such logic.</p>
+<p>For large networks of subsystems, <strong>distributed MPC</strong> coordinates several local predictive controllers that optimize their own subsystems while communicating through coupling constraints.</p>
+<p>Finally, in settings where models are uncertain or slowly drifting, one finds <strong>adaptive or learning-based MPC</strong>, which uses parameter estimation or machine learning to update the model $\mathbf{F}_k(\cdot;\theta_t)$ and possibly the cost function. The optimization step remains the same, but the model evolves as more data are collected.</p>
+<p>These formulations illustrate that MPC is less a single algorithm than a recipe. The scaffolding is always the same: finite horizon prediction, state and input constraints, and receding horizon application of the control. What changes from one variant to another is the cost function, the way uncertainty is treated, the presence of discrete decisions, or the architecture across multiple agents.</p>
+<section id="id2">
+<h2>The Landscape of MPC Variants<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p>Once the basic idea of receding-horizon control is clear, it is helpful to see how the same backbone accommodates many variations. In every case, we transcribe the continuous-time optimal control problem into a nonlinear program of the form</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+    \text{minimize} \quad &amp; c(\mathbf{x}_N) + \sum_{k=0}^{N-1} w_k\,c(\mathbf{x}_k, \mathbf{u}_k) \\
+    \text{subject to} \quad &amp; \mathbf{x}_{k+1} = \mathbf{F}_k(\mathbf{x}_k, \mathbf{u}_k) \\
+                            &amp; \mathbf{g}(\mathbf{x}_k, \mathbf{u}_k) \leq \mathbf{0} \\
+                            &amp; \mathbf{x}_{\min} \leq \mathbf{x}_k \leq \mathbf{x}_{\max} \\
+                            &amp; \mathbf{u}_{\min} \leq \mathbf{u}_k \leq \mathbf{u}_{\max} \\
+    \text{given} \quad &amp; \mathbf{x}_0 = \hat{\mathbf{x}}(t) \enspace .
+\end{aligned}
+\end{split}\]</div>
+<p>The components in this NLP come from discretizing the continuous-time problem with a fixed horizon <span class="math notranslate nohighlight">\([t, t+T]\)</span> and step size <span class="math notranslate nohighlight">\(\Delta t\)</span>. The stage weights <span class="math notranslate nohighlight">\(w_k\)</span> and discrete dynamics <span class="math notranslate nohighlight">\(\mathbf{F}_k\)</span> are determined by the choice of quadrature and integration scheme. With this blueprint in place, the rest is a matter of interpretation: how we define the cost, how we handle uncertainty, how we treat constraints, and what structure we exploit.</p>
+<section id="tracking-mpc">
+<h3>Tracking MPC<a class="headerlink" href="#tracking-mpc" title="Link to this heading">#</a></h3>
+<p>The most common setup is reference tracking. Here, we are given time-varying target trajectories <span class="math notranslate nohighlight">\((\mathbf{x}_k^{\text{ref}}, \mathbf{u}_k^{\text{ref}})\)</span>, and the controller’s job is to keep the system close to these. The cost is typically quadratic:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+    c(\mathbf{x}_k, \mathbf{u}_k) &amp;= \| \mathbf{x}_k - \mathbf{x}_k^{\text{ref}} \|_{\mathbf{Q}}^2 + \| \mathbf{u}_k - \mathbf{u}_k^{\text{ref}} \|_{\mathbf{R}}^2 \\
+    c(\mathbf{x}_N) &amp;= \| \mathbf{x}_N - \mathbf{x}_N^{\text{ref}} \|_{\mathbf{P}}^2 \enspace .
+\end{aligned}
+\end{split}\]</div>
+<p>When dynamics are linear and constraints are polyhedral, this yields a convex quadratic program at each time step.</p>
+</section>
+<section id="regulatory-mpc">
+<h3>Regulatory MPC<a class="headerlink" href="#regulatory-mpc" title="Link to this heading">#</a></h3>
+<p>In regulation tasks, we aim to bring the system back to an equilibrium point <span class="math notranslate nohighlight">\((\mathbf{x}^e, \mathbf{u}^e)\)</span>, typically in the presence of disturbances. This is simply tracking MPC with constant references:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+    c(\mathbf{x}_k, \mathbf{u}_k) &amp;= \| \mathbf{x}_k - \mathbf{x}^e \|_{\mathbf{Q}}^2 + \| \mathbf{u}_k - \mathbf{u}^e \|_{\mathbf{R}}^2 \\
+    c(\mathbf{x}_N) &amp;= \| \mathbf{x}_N - \mathbf{x}^e \|_{\mathbf{P}}^2 \enspace .
+\end{aligned}
+\end{split}\]</div>
+<p>To guarantee stability, it is common to include a terminal constraint <span class="math notranslate nohighlight">\(\mathbf{x}_N \in \mathcal{X}_f\)</span>, where <span class="math notranslate nohighlight">\(\mathcal{X}_f\)</span> is a control-invariant set under a known feedback law.</p>
+</section>
+<section id="economic-mpc">
+<h3>Economic MPC<a class="headerlink" href="#economic-mpc" title="Link to this heading">#</a></h3>
+<p>Not all systems operate around a reference. Sometimes the goal is to optimize a true economic objective (eg. energy cost, revenue, efficiency) directly. This gives rise to <strong>economic MPC</strong>, where the cost functions reflect real operational performance:</p>
+<div class="math notranslate nohighlight">
+\[
+c(\mathbf{x}_k, \mathbf{u}_k) = c_{\text{op}}(\mathbf{x}_k, \mathbf{u}_k), \qquad
+c(\mathbf{x}_N) = c_{\text{op},T}(\mathbf{x}_N) \enspace .
+\]</div>
+<p>There is no reference trajectory here. The optimal behavior emerges from the cost itself. In this setting, standard stability arguments no longer apply automatically, and one must be careful to add terminal penalties or constraints that ensure the closed-loop system remains well-behaved.</p>
+</section>
+<section id="robust-mpc">
+<h3>Robust MPC<a class="headerlink" href="#robust-mpc" title="Link to this heading">#</a></h3>
+<p>Some systems are exposed to external disturbances or small errors in the model. In those cases, we want the controller to make decisions that will still work no matter what happens, as long as the disturbances stay within some known bounds. This is the idea behind <strong>robust MPC</strong>.</p>
+<p>Instead of planning a single trajectory, the controller plans a “nominal” path (what would happen in the absence of any disturbance) and then adds a feedback correction to react to whatever disturbances actually occur. This looks like:</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{u}_k = \bar{\mathbf{u}}_k + \mathbf{K} (\mathbf{x}_k - \bar{\mathbf{x}}_k) \enspace ,
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(\bar{\mathbf{u}}_k\)</span> is the planned input and <span class="math notranslate nohighlight">\(\mathbf{K}\)</span> is a feedback gain that pulls the system back toward the nominal path if it deviates.</p>
+<p>Because we know the worst-case size of the disturbance, we can estimate how far the real state might drift from the plan, and “shrink” the constraints accordingly. The result is that the nominal plan is kept safely away from constraint boundaries, so even if the system gets pushed around, it stays inside limits. This is often called <strong>tube MPC</strong> because the true trajectory stays inside a tube around the nominal one.</p>
+<p>The main benefit is that we can handle uncertainty without solving a complicated worst-case optimization at every time step. All the uncertainty is accounted for in the design of the feedback <span class="math notranslate nohighlight">\(\mathbf{K}\)</span> and the tightened constraints.</p>
+</section>
+<section id="stochastic-mpc">
+<h3>Stochastic MPC<a class="headerlink" href="#stochastic-mpc" title="Link to this heading">#</a></h3>
+<p>If disturbances are random rather than adversarial, a natural goal is to optimize expected cost while enforcing constraints probabilistically. This gives rise to <strong>stochastic MPC</strong>, in which:</p>
+<ul>
+<li><p>The cost becomes an expectation:</p>
+<div class="math notranslate nohighlight">
+\[
+  \mathbb{E} \left[ c(\mathbf{x}_N) + \sum_{k=0}^{N-1} w_k\, c(\mathbf{x}_k, \mathbf{u}_k) \right]
+  \]</div>
+</li>
+<li><p>Constraints are allowed to be violated with small probability:</p>
+<div class="math notranslate nohighlight">
+\[
+  \mathbb{P}[\mathbf{g}(\mathbf{x}_k, \mathbf{u}_k) \leq \mathbf{0}] \geq 1 - \varepsilon
+  \]</div>
+</li>
+</ul>
+<p>In practice, expectations are approximated using a finite set of disturbance scenarios drawn ahead of time. For each scenario, the system dynamics are simulated forward using the same control inputs <span class="math notranslate nohighlight">\(\mathbf{u}_k\)</span>, which are shared across all scenarios to respect non-anticipativity. The result is a single deterministic optimization problem with multiple parallel copies of the dynamics, one per sampled future. This retains the standard MPC structure, with only moderate growth in problem size.</p>
+<p>Despite appearances, this is not dynamic programming. There is no value function or tree of all possible paths. There is only a finite set of futures chosen a priori, and optimized over directly. This scenario-based approach is common in energy systems such as hydro scheduling, where inflows are uncertain but sample trajectories can be generated from forecasts.</p>
+<p>Risk constraints are typically enforced across all scenarios or encoded using risk measures like CVaR. For example, one might penalize violations that occur in the worst <span class="math notranslate nohighlight">\((1 - \alpha)\%\)</span> of samples, while still optimizing expected performance overall.</p>
+</section>
+<section id="hybrid-and-mixed-integer-mpc">
+<h3>Hybrid and Mixed-Integer MPC<a class="headerlink" href="#hybrid-and-mixed-integer-mpc" title="Link to this heading">#</a></h3>
+<p>When systems involve discrete switches — such as on/off valves, mode selection, or combinatorial logic — the MPC problem must include integer or binary variables. These show up in constraints like</p>
+<div class="math notranslate nohighlight">
+\[
+\boldsymbol{\delta}_k \in \{0,1\}^m, \qquad \mathbf{u}_k \in \mathcal{U}(\boldsymbol{\delta}_k)
+\]</div>
+<p>along with mode-dependent dynamics and costs. The resulting formulation is a <strong>mixed-integer nonlinear program</strong> (MINLP). The receding-horizon idea is the same, but each solve is more expensive due to the combinatorial nature of the decision space.</p>
+</section>
+<section id="distributed-and-decentralized-mpc">
+<h3>Distributed and Decentralized MPC<a class="headerlink" href="#distributed-and-decentralized-mpc" title="Link to this heading">#</a></h3>
+<p>Large-scale systems often consist of interacting subsystems. Distributed MPC decomposes the global NLP into smaller ones that run in parallel, with coordination constraints enforcing consistency across shared variables:</p>
+<div class="math notranslate nohighlight">
+\[
+\sum_{i} \mathbf{H}^i \mathbf{z}^i_k = \mathbf{0} \qquad \text{(coupling constraint)}
+\]</div>
+<p>Each subsystem solves a local problem over its own state and input variables, then exchanges information with neighbors. Coordination can be done via primal–dual methods, ADMM, or consensus schemes, but each local block looks like a standard MPC problem.</p>
+</section>
+<section id="adaptive-and-learning-based-mpc">
+<h3>Adaptive and Learning-Based MPC<a class="headerlink" href="#adaptive-and-learning-based-mpc" title="Link to this heading">#</a></h3>
+<p>In practice, we may not know the true model <span class="math notranslate nohighlight">\(\mathbf{F}_k\)</span> or cost function <span class="math notranslate nohighlight">\(c\)</span> precisely. In <strong>adaptive MPC</strong>, these are updated online from data:</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{x}_{k+1} = \mathbf{F}_k(\mathbf{x}_k, \mathbf{u}_k; \boldsymbol{\theta}_t), \qquad
+c(\mathbf{x}_k, \mathbf{u}_k) = c(\mathbf{x}_k, \mathbf{u}_k; \boldsymbol{\phi}_t)
+\]</div>
+<p>The parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_t\)</span> and <span class="math notranslate nohighlight">\(\boldsymbol{\phi}_t\)</span> are learned in real time. When combined with policy distillation, value approximation, or trajectory imitation, this leads to overlaps with reinforcement learning where the MPC solutions act as supervision for a reactive policy.</p>
+</section>
+</section>
+<section id="computational-efficiency-via-parametric-programming">
+<h2>Computational Efficiency via Parametric Programming<a class="headerlink" href="#computational-efficiency-via-parametric-programming" title="Link to this heading">#</a></h2>
+<p>Real-time model predictive control places strict limits on computation. In applications such as adaptive optics, the controller must run at kilohertz rates. A sampling frequency of 1000 Hz allows only one millisecond per step to compute and apply a control input. This makes efficiency a first-class concern.</p>
+<p>The structure of MPC lends itself naturally to optimization reuse. Each time step requires solving a problem with the same dynamics and constraints. Only the initial state, forecasts, or reference signals change. Instead of treating each instance as a new problem, we can frame MPC as a <em>parametric optimization problem</em> and focus on how the solution evolves with the parameter.</p>
+</section>
+<section id="general-framework-parametric-optimization">
+<h2>General Framework: Parametric Optimization<a class="headerlink" href="#general-framework-parametric-optimization" title="Link to this heading">#</a></h2>
+<p>We begin with a general optimization problem indexed by a parameter <span class="math notranslate nohighlight">\(\boldsymbol{\theta} \in \Theta \subset \mathbb{R}^p\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+\min_{\mathbf{x} \in \mathbb{R}^n} \quad &amp; f(\mathbf{x}; \boldsymbol{\theta}) \\
+\text{s.t.} \quad &amp; \mathbf{g}(\mathbf{x}; \boldsymbol{\theta}) \le \mathbf{0}, \\
+&amp; \mathbf{h}(\mathbf{x}; \boldsymbol{\theta}) = \mathbf{0}.
+\end{aligned}
+\end{split}\]</div>
+<p>For each value of <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span>, we obtain a concrete optimization problem. The goal is not just to solve it once, but to understand how the optimizer <span class="math notranslate nohighlight">\(\mathbf{x}^\star(\boldsymbol{\theta})\)</span> and value function</p>
+<div class="math notranslate nohighlight">
+\[
+v(\boldsymbol{\theta}) := \inf\{\, f(\mathbf{x}; \boldsymbol{\theta}) : \mathbf{x} \text{ feasible at } \boldsymbol{\theta}\,\}
+\]</div>
+<p>depend on <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span>.</p>
+<p>When the problem is smooth and regular, the Karush–Kuhn–Tucker (KKT) conditions characterize optimality:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+\nabla_{\mathbf{x}} f(\mathbf{x}; \boldsymbol{\theta})
++ \nabla_{\mathbf{x}} \mathbf{g}(\mathbf{x}; \boldsymbol{\theta})^\top \boldsymbol{\lambda}
++ \nabla_{\mathbf{x}} \mathbf{h}(\mathbf{x}; \boldsymbol{\theta})^\top \boldsymbol{\nu} &amp;= 0, \\
+\mathbf{g}(\mathbf{x}; \boldsymbol{\theta}) \le 0, \quad
+\boldsymbol{\lambda} \ge 0, \quad
+\lambda_i g_i(\mathbf{x}; \boldsymbol{\theta}) &amp;= 0, \\
+\mathbf{h}(\mathbf{x}; \boldsymbol{\theta}) &amp;= 0.
+\end{aligned}
+\end{split}\]</div>
+<p>If the active set remains fixed over changes in <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span>, the implicit function theorem ensures that the mappings</p>
+<div class="math notranslate nohighlight">
+\[
+\boldsymbol{\theta} \mapsto \mathbf{x}^\star(\boldsymbol{\theta}), \quad
+\boldsymbol{\theta} \mapsto \boldsymbol{\lambda}^\star(\boldsymbol{\theta}), \quad
+\boldsymbol{\theta} \mapsto \boldsymbol{\nu}^\star(\boldsymbol{\theta})
+\]</div>
+<p>are differentiable.</p>
+<p>In linear and quadratic programming, this structure becomes even more tractable. Consider a linear program with affine dependence on <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+\min_{\mathbf{x}} \ \mathbf{c}(\boldsymbol{\theta})^\top \mathbf{x}
+\quad \text{s.t.} \quad \mathbf{A}(\boldsymbol{\theta})\mathbf{x} \le \mathbf{b}(\boldsymbol{\theta}).
+\]</div>
+<p>Each active set determines a basis and thus a region in <span class="math notranslate nohighlight">\(\Theta\)</span> where the solution is affine in <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span>. The feasible parameter space is partitioned into polyhedral regions, each with its own affine law.</p>
+<p>Similarly, in strictly convex quadratic programs</p>
+<div class="math notranslate nohighlight">
+\[
+\min_{\mathbf{x}} \ \tfrac{1}{2} \mathbf{x}^\top \mathbf{H} \mathbf{x} + \mathbf{q}(\boldsymbol{\theta})^\top \mathbf{x}
+\quad \text{s.t.} \quad \mathbf{A}\mathbf{x} \le \mathbf{b}(\boldsymbol{\theta}), \qquad \mathbf{H} \succ 0,
+\]</div>
+<p>each active set again leads to an affine optimizer, with piecewise-affine global structure and a piecewise-quadratic value function.</p>
+<p>Parametric programming focuses on the structure of the map <span class="math notranslate nohighlight">\(\boldsymbol{\theta} \mapsto \mathbf{x}^\star(\boldsymbol{\theta})\)</span>, and the regions over which this map takes a simple form.</p>
+<p>Great spot to zoom in. Here’s a tight, pedagogical add-on you can drop right after your KKT display. It states the implicit function theorem (IFT) in the minimal form you need, then applies it to the KKT system and gives the sensitivity formula you’ll use later.</p>
+<section id="a-quick-reminder-the-implicit-function-theorem">
+<h3>A quick reminder: the implicit function theorem<a class="headerlink" href="#a-quick-reminder-the-implicit-function-theorem" title="Link to this heading">#</a></h3>
+<p>We often meet equations of the form</p>
+<div class="math notranslate nohighlight">
+\[
+F(y,\boldsymbol{\theta})=0,
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(y\in\mathbb{R}^m\)</span> are unknowns and <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\in\mathbb{R}^p\)</span> are parameters. The <strong>implicit function theorem</strong> says that, if <span class="math notranslate nohighlight">\(F\)</span> is smooth and the Jacobian with respect to <span class="math notranslate nohighlight">\(y\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[
+\frac{\partial F}{\partial y}(y^\star,\boldsymbol{\theta}^\star),
+\]</div>
+<p>is invertible at a solution <span class="math notranslate nohighlight">\((y^\star,\boldsymbol{\theta}^\star)\)</span>, then in a neighborhood of <span class="math notranslate nohighlight">\(\boldsymbol{\theta}^\star\)</span> there exists a unique smooth mapping <span class="math notranslate nohighlight">\(y(\boldsymbol{\theta})\)</span> with <span class="math notranslate nohighlight">\(F(y(\boldsymbol{\theta}),\boldsymbol{\theta})=0\)</span> and <span class="math notranslate nohighlight">\(y(\boldsymbol{\theta}^\star)=y^\star\)</span>. Moreover, its derivative is</p>
+<div class="math notranslate nohighlight">
+\[
+\frac{d y}{d\boldsymbol{\theta}}(\boldsymbol{\theta}^\star)
+\;=\;
+-\Big(\tfrac{\partial F}{\partial y}(y^\star,\boldsymbol{\theta}^\star)\Big)^{-1}
+\;\tfrac{\partial F}{\partial \boldsymbol{\theta}}(y^\star,\boldsymbol{\theta}^\star).
+\]</div>
+<p>In words: if the square Jacobian in <span class="math notranslate nohighlight">\(y\)</span> is nonsingular, the solution varies smoothly with the parameter, and we can differentiate it by solving one linear system.</p>
+<p>Return to <span class="math notranslate nohighlight">\((P_{\theta})\)</span> and its KKT system. Collect the primal and dual variables into</p>
+<div class="math notranslate nohighlight">
+\[
+y \;:=\; (\mathbf{x},\,\boldsymbol{\lambda},\,\boldsymbol{\nu}),
+\]</div>
+<p>and write the KKT equations as a single residual</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+F(y,\boldsymbol{\theta}) \;=\; 
+\begin{bmatrix}
+\nabla_{\mathbf{x}} f(\mathbf{x};\boldsymbol{\theta})
++ \nabla_{\mathbf{x}} \mathbf{g}(\mathbf{x};\boldsymbol{\theta})^\top \boldsymbol{\lambda}
++ \nabla_{\mathbf{x}} \mathbf{h}(\mathbf{x};\boldsymbol{\theta})^\top \boldsymbol{\nu} \\
+\mathbf{h}(\mathbf{x};\boldsymbol{\theta}) \\
+\mathbf{g}_\mathcal{A}(\mathbf{x};\boldsymbol{\theta})
+\end{bmatrix}
+\;=\; \mathbf{0}.
+\end{split}\]</div>
+<p>Here <span class="math notranslate nohighlight">\(\mathcal{A}\)</span> denotes the set of inequality constraints active at the solution (the complementarity part is encoded by keeping <span class="math notranslate nohighlight">\(\mathcal{A}\)</span> fixed; see below).</p>
+<p>To invoke IFT, we need the Jacobian <span class="math notranslate nohighlight">\(\partial F/\partial y\)</span> to be invertible at <span class="math notranslate nohighlight">\((y^\star,\boldsymbol{\theta}^\star)\)</span>. Standard regularity conditions that ensure this are:</p>
+<ul class="simple">
+<li><p><strong>LICQ (Linear Independence Constraint Qualification)</strong> at <span class="math notranslate nohighlight">\((\mathbf{x}^\star,\boldsymbol{\theta}^\star)\)</span>: the gradients of all active constraints are linearly independent.</p></li>
+<li><p><strong>Second-order sufficiency</strong> on the critical cone (the Lagrangian Hessian is positive definite on feasible directions).</p></li>
+<li><p><strong>Strict complementarity</strong> (optional but convenient): each active inequality has strictly positive multiplier.</p></li>
+</ul>
+<p>Under these, the <strong>KKT matrix</strong>,</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+K \;=\;
+\frac{\partial F}{\partial y}(y^\star,\boldsymbol{\theta}^\star)
+\;=\;
+\begin{bmatrix}
+\nabla^2_{\mathbf{x}\mathbf{x}} \mathcal{L}(\mathbf{x}^\star,\boldsymbol{\lambda}^\star,\boldsymbol{\nu}^\star;\boldsymbol{\theta}^\star)
+&amp; \nabla_{\mathbf{x}} \mathbf{g}_\mathcal{A}(\mathbf{x}^\star;\boldsymbol{\theta}^\star)^\top
+&amp; \nabla_{\mathbf{x}} \mathbf{h}(\mathbf{x}^\star;\boldsymbol{\theta}^\star)^\top \\
+\nabla_{\mathbf{x}} \mathbf{g}_\mathcal{A}(\mathbf{x}^\star;\boldsymbol{\theta}^\star) &amp; 0 &amp; 0 \\
+\nabla_{\mathbf{x}} \mathbf{h}(\mathbf{x}^\star;\boldsymbol{\theta}^\star) &amp; 0 &amp; 0
+\end{bmatrix},
+\end{split}\]</div>
+<p>is nonsingular. Here <span class="math notranslate nohighlight">\(\mathcal{L}=f+\boldsymbol{\lambda}^\top \mathbf{g}+\boldsymbol{\nu}^\top \mathbf{h}\)</span>.</p>
+<p>The right-hand side sensitivity to parameters is</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+G \;=\; \frac{\partial F}{\partial \boldsymbol{\theta}}(y^\star,\boldsymbol{\theta}^\star)
+\;=\;
+\begin{bmatrix}
+\nabla_{\boldsymbol{\theta}}\nabla_{\mathbf{x}} f
++ \sum_{i\in\mathcal{A}} \lambda_i^\star \nabla_{\boldsymbol{\theta}}\nabla_{\mathbf{x}} g_i
++ \sum_j \nu_j^\star \nabla_{\boldsymbol{\theta}}\nabla_{\mathbf{x}} h_j \\
+\nabla_{\boldsymbol{\theta}} \mathbf{h} \\
+\nabla_{\boldsymbol{\theta}} \mathbf{g}_\mathcal{A}
+\end{bmatrix}_{(\mathbf{x}^\star,\boldsymbol{\theta}^\star)} .
+\end{split}\]</div>
+<p>IFT then gives <strong>local differentiability of the optimizer and multipliers</strong>:</p>
+<div class="math notranslate nohighlight">
+\[
+\frac{d y^\star}{d\boldsymbol{\theta}}(\boldsymbol{\theta}^\star)
+\;=\; -\,K^{-1} G.
+\]</div>
+<p>The formula above is valid <strong>as long as the active set <span class="math notranslate nohighlight">\(\mathcal{A}\)</span> does not change</strong>. If a constraint switches between active/inactive, the mapping remains piecewise smooth, but the derivative may jump. In MPC, this is exactly why warm-starts are very effective most of the time and occasionally require a refactorization when the active set flips.</p>
+<p>In parametric MPC, <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> gathers the current state, references, and forecasts. The IFT tells us that, under regularity and a stable active set, the optimal trajectory and first input vary smoothly with <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span>. The linear map <span class="math notranslate nohighlight">\(-K^{-1}G\)</span> is exactly the object used in sensitivity-based warm starts and real-time iterations: small changes in <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> can be propagated through a single KKT solve to update the primal–dual guess before taking one or two Newton/SQP steps.</p>
+</section>
+<section id="predictor-corrector-mpc">
+<h3>Predictor-Corrector MPC<a class="headerlink" href="#predictor-corrector-mpc" title="Link to this heading">#</a></h3>
+<p>We start with a smooth root-finding problem</p>
+<div class="math notranslate nohighlight">
+\[
+F(z)=0,\qquad F:\mathbb{R}^m\to\mathbb{R}^m.
+\]</div>
+<p><strong>Newton’s method</strong> iterates</p>
+<div class="math notranslate nohighlight">
+\[
+z^{(t+1)} \;=\; z^{(t)} - \big[\nabla F(z^{(t)})\big]^{-1} F\big(z^{(t)}\big),
+\]</div>
+<p>or equivalently solves the linearized system</p>
+<div class="math notranslate nohighlight">
+\[
+\nabla F(z^{(t)})\,\Delta z^{(t)} = -F\big(z^{(t)}\big),\qquad z^{(t+1)}=z^{(t)}+\Delta z^{(t)}.
+\]</div>
+<p>Convergence is local and fast when the Jacobian is nonsingular and the initial guess is close.</p>
+<p>Now suppose the root depends on a parameter:</p>
+<div class="math notranslate nohighlight">
+\[
+F\big(z,\theta\big)=0,\qquad \theta\in\mathbb{R}.
+\]</div>
+<p>We want the solution path <span class="math notranslate nohighlight">\(\theta\mapsto z^\star(\theta)\)</span>. <strong>Numerical continuation</strong> advances <span class="math notranslate nohighlight">\(\theta\)</span> in small steps and uses the previous solution as a warm start for the next Newton solve. This is the simplest and most effective way to “track” solutions of parametric systems.</p>
+<p>At a known solution <span class="math notranslate nohighlight">\((z^\star,\theta^\star)\)</span>, differentiate <span class="math notranslate nohighlight">\(F(z^\star(\theta),\theta)=0\)</span> with respect to <span class="math notranslate nohighlight">\(\theta\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+\nabla_z F(z^\star,\theta^\star)\,\frac{dz^\star}{d\theta}(\theta^\star) \;+\; \nabla_\theta F(z^\star,\theta^\star) \;=\; 0.
+\]</div>
+<p>If <span class="math notranslate nohighlight">\(\nabla_z F\)</span> is invertible (IFT conditions), the <strong>tangent</strong> is</p>
+<div class="math notranslate nohighlight">
+\[
+\frac{dz^\star}{d\theta}(\theta^\star) \;=\; -\big[\nabla_z F(z^\star,\theta^\star)\big]^{-1}\,\nabla_\theta F(z^\star,\theta^\star).
+\]</div>
+<p>This is exactly the <strong>implicit differentiation</strong> formula. Continuation uses it as a <strong>predictor</strong>:</p>
+<div class="math notranslate nohighlight">
+\[
+z_{\text{pred}} \;=\; z^\star(\theta^\star) \;+\; \Delta\theta\;\frac{dz^\star}{d\theta}(\theta^\star).
+\]</div>
+<p>Then a few <strong>corrector</strong> steps apply Newton to <span class="math notranslate nohighlight">\(F(\,\cdot\,,\theta^\star+\Delta\theta)=0\)</span> starting from <span class="math notranslate nohighlight">\(z_{\text{pred}}\)</span>. If Newton converges quickly, the step <span class="math notranslate nohighlight">\(\Delta\theta\)</span> was appropriate; otherwise reduce <span class="math notranslate nohighlight">\(\Delta\theta\)</span> and retry.</p>
+<p>For parametric KKT systems, set <span class="math notranslate nohighlight">\(y=(x,\lambda,\nu)\)</span> and <span class="math notranslate nohighlight">\(F(y,\theta)=0\)</span> the KKT residual with <span class="math notranslate nohighlight">\(\theta\)</span> collecting state, references, forecasts. The <strong>KKT matrix</strong> <span class="math notranslate nohighlight">\(K=\partial F/\partial y\)</span> and <strong>parameter sensitivity</strong> <span class="math notranslate nohighlight">\(G=\partial F/\partial \theta\)</span> give the tangent</p>
+<div class="math notranslate nohighlight">
+\[
+\frac{dy^\star}{d\theta} \;=\; -\,K^{-1}G.
+\]</div>
+<p>Continuation then becomes:</p>
+<ol class="arabic simple">
+<li><p><strong>Predictor</strong>: <span class="math notranslate nohighlight">\(y_{\text{pred}} = y^\star + (\Delta\theta)\,(-K^{-1}G)\)</span>.</p></li>
+<li><p><strong>Corrector</strong>: a few Newton/SQP steps on the KKT equations at the new <span class="math notranslate nohighlight">\(\theta\)</span>.</p></li>
+</ol>
+<p>In MPC, this yields efficient <strong>warm starts</strong> across time: as the parameter <span class="math notranslate nohighlight">\(\theta_t\)</span> (current state, references) changes slightly, we predict the new primal–dual point and correct with 1–2 iterations—often enough to hit tolerance in real time.</p>
+</section>
+</section>
+<section id="application-to-mpc">
+<h2>Application to MPC<a class="headerlink" href="#application-to-mpc" title="Link to this heading">#</a></h2>
+<p>We now specialize this idea to the structure of finite-horizon MPC. Fix a prediction horizon <span class="math notranslate nohighlight">\(N\)</span>. At each time step, we solve a problem with fixed structure and varying data. Define</p>
+<div class="math notranslate nohighlight">
+\[
+\boldsymbol{\theta} := (\mathbf{x}_0,\, \mathbf{r},\, \mathbf{w}),
+\]</div>
+<p>which includes the current state <span class="math notranslate nohighlight">\(\mathbf{x}_0\)</span>, reference signals <span class="math notranslate nohighlight">\(\mathbf{r}\)</span>, and exogenous forecasts <span class="math notranslate nohighlight">\(\mathbf{w}\)</span>.</p>
+<p>The finite-horizon problem becomes</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+\min_{z} \quad &amp; J(z;\boldsymbol{\theta}) \\
+\text{s.t.} \quad &amp; c(z;\boldsymbol{\theta}) = 0 \\
+&amp; d(z;\boldsymbol{\theta}) \leq 0,
+\end{aligned}
+\end{split}\]</div>
+<p>with decision variable <span class="math notranslate nohighlight">\(z = (\mathbf{x}_{0:N}, \mathbf{u}_{0:N-1})\)</span>. The equality constraints enforce dynamics and terminal conditions. The inequalities encode input and state bounds.</p>
+<p>Solving <span class="math notranslate nohighlight">\((P_\theta)\)</span> produces an optimal trajectory <span class="math notranslate nohighlight">\(z^\star(\boldsymbol{\theta})\)</span>. The control law is the first input:</p>
+<div class="math notranslate nohighlight">
+\[
+\pi(\boldsymbol{\theta}) := \mathbf{u}_0^\star(\boldsymbol{\theta}).
+\]</div>
+<p>This mapping from parameter to input defines the MPC policy. Parametric programming helps us understand and exploit its structure to speed up evaluation.</p>
+</section>
+<section id="two-approaches-to-efficient-mpc">
+<h2>Two Approaches to Efficient MPC<a class="headerlink" href="#two-approaches-to-efficient-mpc" title="Link to this heading">#</a></h2>
+<p>Parametric structure can be used in two main ways: either to construct an explicit control law offline, or to warm-start the optimizer online using sensitivity information.</p>
+<section id="explicit-mpc">
+<h3>Explicit MPC<a class="headerlink" href="#explicit-mpc" title="Link to this heading">#</a></h3>
+<p>When the problem is a linear or quadratic program with affine dependence on <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span>, we can work out the solution symbolically. The parameter space is partitioned into regions <span class="math notranslate nohighlight">\(\mathcal{R}_1, \dots, \mathcal{R}_M\)</span>, each associated with a fixed active set. On each region:</p>
+<div class="math notranslate nohighlight">
+\[
+z^\star(\boldsymbol{\theta}) = A_r\,\boldsymbol{\theta} + b_r,
+\qquad
+\pi(\boldsymbol{\theta}) = K_r\,\boldsymbol{\theta} + k_r.
+\]</div>
+<p>At runtime, we identify which region contains <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span>, then apply the corresponding affine formula. This approach avoids optimization entirely during deployment.</p>
+<p>It requires storing the region definitions and control laws. The number of regions grows with horizon length and constraint count, which limits this approach to systems with low state dimension and short horizons.</p>
+</section>
+<section id="sensitivity-based-mpc">
+<h3>Sensitivity-Based MPC<a class="headerlink" href="#sensitivity-based-mpc" title="Link to this heading">#</a></h3>
+<p>When symbolic enumeration is intractable, we can still track how the solution varies locally. Suppose we have a solution <span class="math notranslate nohighlight">\(\bar{y} = (\bar{z}, \bar{\lambda}, \bar{\nu})\)</span> at parameter <span class="math notranslate nohighlight">\(\bar{\boldsymbol{\theta}}\)</span>. The KKT system reads:</p>
+<div class="math notranslate nohighlight">
+\[
+F(y; \boldsymbol{\theta}) = 0.
+\]</div>
+<p>Differentiating with respect to <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[
+\frac{\partial F}{\partial y}(\bar{y}; \bar{\boldsymbol{\theta}})\, \mathrm{d}y
+= - \frac{\partial F}{\partial \boldsymbol{\theta}}(\bar{y}; \bar{\boldsymbol{\theta}})\, \mathrm{d}\boldsymbol{\theta}.
+\]</div>
+<p>Let <span class="math notranslate nohighlight">\(K\)</span> be the KKT matrix and <span class="math notranslate nohighlight">\(G\)</span> the sensitivity of the residual. Then the sensitivity operator <span class="math notranslate nohighlight">\(T\)</span> satisfies</p>
+<div class="math notranslate nohighlight">
+\[
+K T = -G \quad \Rightarrow \quad \mathrm{d}y = T\, \mathrm{d}\boldsymbol{\theta}.
+\]</div>
+<p>If <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> changes slightly, we update the primal-dual pair:</p>
+<div class="math notranslate nohighlight">
+\[
+y^{(0)} \leftarrow \bar{y} + T\,\Delta\boldsymbol{\theta},
+\]</div>
+<p>and use it as the starting point for Newton or SQP.</p>
+<p>This is the basis of real-time iteration schemes. When the active set is stable, the warm start is accurate to first order. When it changes, we refactorize and repeat, still with far less effort than solving from scratch.</p>
+</section>
+</section>
+<section id="amortized-optimization-and-neural-approximation-of-controllers">
+<h2>Amortized Optimization and Neural Approximation of Controllers<a class="headerlink" href="#amortized-optimization-and-neural-approximation-of-controllers" title="Link to this heading">#</a></h2>
+<p>The idea of reusing structure across similar optimization problems is not exclusive to parametric programming. In machine learning, a related concept known as <strong>amortized optimization</strong> aims to reduce the cost of repeated inference by replacing explicit optimization with a function that has been <em>learned</em> to approximate the solution map. This approach shifts the computational burden from online solving to offline training.</p>
+<p>The goal is to construct a function <span class="math notranslate nohighlight">\(\hat{\pi}_{\phi}(\boldsymbol{\theta})\)</span>, typically parameterized by a neural network, that maps the input <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> to an approximate solution <span class="math notranslate nohighlight">\(\hat{z}^\star(\boldsymbol{\theta})\)</span> or control action <span class="math notranslate nohighlight">\(\hat{\mathbf{u}}_0^\star(\boldsymbol{\theta})\)</span>. Once trained, this map can be evaluated quickly at runtime, with no need to solve an optimization problem explicitly.</p>
+<p>Amortized optimization has emerged in several contexts:</p>
+<ul class="simple">
+<li><p>In <strong>probabilistic inference</strong>, where variational autoencoders (VAEs) amortize the computation of posterior distributions across a dataset.</p></li>
+<li><p>In <strong>meta-learning</strong>, where the objective is to learn a model that generalizes across tasks by internalizing how to adapt.</p></li>
+<li><p>In <strong>hyperparameter optimization</strong>, where learning a surrogate model can guide the search over configuration space efficiently.</p></li>
+</ul>
+<p>This perspective has also begun to influence control. Recent work investigates how to <strong>amortize nonlinear MPC (NMPC)</strong> policies into neural networks. The training data come from solving many instances of the underlying optimal control problem offline. The resulting neural policy <span class="math notranslate nohighlight">\(\hat{\pi}_\phi\)</span> acts as a differentiable, low-latency controller that can generalize to new situations within the training distribution.</p>
+<p>Compared to explicit MPC, which partitions the parameter space and stores exact solutions region by region, amortized control smooths over the domain by learning an approximate policy globally. It is less precise, but scalable to high-dimensional problems where enumeration of regions is impossible.</p>
+<p>Neural network amortization is advantageous due to the expressivity of these models. However, the challenge is ensuring <strong>constraint satisfaction and safety</strong>, which are hard to guarantee with unconstrained neural approximators. Hybrid approaches attempt to address this by combining a neural warm-start policy with a final projection step, or by embedding the network within a constrained optimization layer. Other strategies include learning structured architectures that respect known physics or control symmetries.</p>
+</section>
+<section id="imitation-learning-framework">
+<h2>Imitation Learning Framework<a class="headerlink" href="#imitation-learning-framework" title="Link to this heading">#</a></h2>
+<p>Consider a fixed horizon <span class="math notranslate nohighlight">\(N\)</span> and parameter vector <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> encoding the current state, references, and forecasts. The oracle MPC controller solves</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+z^\star(\boldsymbol{\theta}) \in \arg\min_{z=(x_{0:N},u_{0:N-1})}
+&amp;\; J(z;\boldsymbol{\theta})\\
+\text{s.t. }&amp; x_{k+1}=f(x_k,u_k;\boldsymbol{\theta}),\quad k=0..N-1,\\
+&amp; g(x_k,u_k;\boldsymbol{\theta})\le 0,\; h(x_N;\boldsymbol{\theta})=0.
+\end{aligned}
+\end{split}\]</div>
+<p>The applied action is <span class="math notranslate nohighlight">\(\pi^\star(\boldsymbol{\theta}) := u_0^\star(\boldsymbol{\theta})\)</span>. Our goal is to learn a fast surrogate mapping <span class="math notranslate nohighlight">\(\hat{\pi}_\phi:\boldsymbol{\theta}\mapsto \hat u_0 \approx \pi^\star(\boldsymbol{\theta})\)</span> that can be evaluated in microseconds, optionally followed by a safety projection layer.</p>
+<p><strong>Supervised learning from oracle solutions.</strong>
+One first samples parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}^{(i)}\)</span> from the operational domain and solves the corresponding NMPC problems offline. The resulting dataset</p>
+<div class="math notranslate nohighlight">
+\[
+\mathcal{D} = \{ (\boldsymbol{\theta}^{(i)},\, u_0^\star(\boldsymbol{\theta}^{(i)})) \}_{i=1}^M
+\]</div>
+<p>is then used to train a neural network <span class="math notranslate nohighlight">\(\hat{\pi}_\phi\)</span> by minimizing</p>
+<div class="math notranslate nohighlight">
+\[
+\min_\phi \; \frac{1}{M}\sum_{i=1}^M \big\|\hat{\pi}_\phi(\boldsymbol{\theta}^{(i)}) - u_0^\star(\boldsymbol{\theta}^{(i)})\big\|^2 .
+\]</div>
+<p>Once trained, the network acts as a surrogate for the optimizer, providing instantaneous evaluations that approximate the MPC law.</p>
+<section id="deployment-patterns">
+<h3>Deployment Patterns<a class="headerlink" href="#deployment-patterns" title="Link to this heading">#</a></h3>
+<p>There are several ways to use an amortized controller once it has been trained. The simplest option is <strong>direct amortization</strong>, where the control input is taken to be <span class="math notranslate nohighlight">\(u = \hat{\pi}_\phi(\boldsymbol{\theta})\)</span>. In this case, the neural network provides the control action directly, with no optimization performed during deployment.</p>
+<p>A second option is <strong>amortization with projection</strong>, where the network output <span class="math notranslate nohighlight">\(\tilde u = \hat{\pi}_\phi(\boldsymbol{\theta})\)</span> is passed through a small optimization step, such as a quadratic program or barrier-function filter, in order to enforce constraints. This adds a negligible computational overhead but restores guarantees of feasibility and safety.</p>
+<p>We could for example integrate a convex approximation of the MPC subproblem directly as a differentiable layer inside the network. The network proposes a candidate action <span class="math notranslate nohighlight">\(\tilde u\)</span>, which is then corrected through a small quadratic program:</p>
+<div class="math notranslate nohighlight">
+\[
+u = \arg\min_v \tfrac12\|v-\tilde u\|^2 \quad \text{s.t. } g(x,v)\le 0.
+\]</div>
+<p>Gradients are propagated through this correction using implicit differentiation, allowing the network to be trained end-to-end while retaining constraint satisfaction. This hybrid keeps the fast evaluation of a learned map while preserving the structure of MPC.</p>
+<p>A third option is <strong>amortized warm-starting</strong>, where the neural network provides an initialization for one or two Newton or SQP iterations of the underlying NMPC problem. In this setting, the learned map delivers an excellent starting point, so the optimizer converges quickly and the cost of re-solving at each time step is greatly reduced.</p>
+</section>
 </section>
 </section>
 
@@ -885,7 +1340,7 @@ Here, $\mathbf{F}(\mathbf{x}, \boldsymbol{\gamma}, \boldsymbol{\nu}, \boldsymbol
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Stochastic Dynamic Programming</p>
+        <p class="prev-next-title">Dynamic Programming</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -907,15 +1362,41 @@ Here, $\mathbf{F}(\mathbf{x}, \boldsymbol{\gamma}, \boldsymbol{\nu}, \boldsymbol
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Model Predictive Control</a></li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#closing-the-loop-by-replanning">Closing the Loop by Replanning</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-propofol-infusion-control">Example: Propofol Infusion Control</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-propofol-infusion-control">Example: Propofol Infusion Control</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#successive-linearization-and-quadratic-approximations">Successive Linearization and Quadratic Approximations</a></li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#computational-efficiency-improvements">Computational Efficiency Improvements</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#explicit-mpc">Explicit MPC</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#amortized-optimization-and-neural-networks">Amortized Optimization and Neural Networks</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#warmstarting-and-predictor-corrector-mpc">Warmstarting and Predictor-Corrector MPC</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#the-landscape-of-mpc-variants">The Landscape of MPC Variants</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">The Landscape of MPC Variants</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracking-mpc">Tracking MPC</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#regulatory-mpc">Regulatory MPC</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#economic-mpc">Economic MPC</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#robust-mpc">Robust MPC</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-mpc">Stochastic MPC</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hybrid-and-mixed-integer-mpc">Hybrid and Mixed-Integer MPC</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#distributed-and-decentralized-mpc">Distributed and Decentralized MPC</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#adaptive-and-learning-based-mpc">Adaptive and Learning-Based MPC</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#computational-efficiency-via-parametric-programming">Computational Efficiency via Parametric Programming</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#general-framework-parametric-optimization">General Framework: Parametric Optimization</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-quick-reminder-the-implicit-function-theorem">A quick reminder: the implicit function theorem</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#predictor-corrector-mpc">Predictor-Corrector MPC</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#application-to-mpc">Application to MPC</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#two-approaches-to-efficient-mpc">Two Approaches to Efficient MPC</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#explicit-mpc">Explicit MPC</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sensitivity-based-mpc">Sensitivity-Based MPC</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#amortized-optimization-and-neural-approximation-of-controllers">Amortized Optimization and Neural Approximation of Controllers</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#imitation-learning-framework">Imitation Learning Framework</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#deployment-patterns">Deployment Patterns</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
