@@ -534,7 +534,7 @@ Risk constraints are typically enforced across all scenarios or encoded using ri
 
 ## Hybrid and Mixed-Integer MPC
 
-When systems involve discrete switches — such as on/off valves, mode selection, or combinatorial logic — the MPC problem must include integer or binary variables. These show up in constraints like
+When systems involve discrete switches  (eg. on/off valves, mode selection, or combinatorial logic) the MPC problem must include integer or binary variables. These show up in constraints like
 
 $$
 \boldsymbol{\delta}_k \in \{0,1\}^m, \qquad \mathbf{u}_k \in \mathcal{U}(\boldsymbol{\delta}_k)
@@ -589,7 +589,7 @@ This scenario reveals the fundamental challenge of real-time MPC: **constraint i
 
 Even when feasible solutions exist, **computational constraints** can prevent their discovery. A control loop running at 100 Hz allows only 10 milliseconds per iteration. If the solver requires 15 milliseconds to converge, we face an impossible choice: delay the control action and risk destabilizing the system, or apply an unconverged iterate that may violate critical constraints.
 
-A third failure mode involves **numerical instabilities**—ill-conditioned matrices, rank deficiency, or division by zero in the linear algebra routines. These failures are particularly problematic because they occur sporadically, triggered by specific state configurations that create near-singular conditions in the optimization problem.
+A third failure mode involves **numerical instabilities**: ill-conditioned matrices, rank deficiency, or division by zero in the linear algebra routines. These failures are particularly problematic because they occur sporadically, triggered by specific state configurations that create near-singular conditions in the optimization problem.
 
 ## Softening Constraints Through Slack Variables
 
@@ -839,7 +839,7 @@ each active set again leads to an affine optimizer, with piecewise-affine global
 
 Parametric programming focuses on the structure of the map $\boldsymbol{\theta} \mapsto \mathbf{x}^\star(\boldsymbol{\theta})$, and the regions over which this map takes a simple form.
 
-### A quick reminder: the implicit function theorem
+### Solution Sensitivity via the Implicit Function Theorem 
 
 We often meet equations of the form
 
@@ -997,7 +997,7 @@ Continuation then becomes:
 
 In MPC, this yields efficient **warm starts** across time: as the parameter $\theta_t$ (current state, references) changes slightly, we predict the new primal–dual point and correct with 1–2 iterations—often enough to hit tolerance in real time.
 
-
+<!-- 
 ## Application to MPC
 
 We now specialize this idea to the structure of finite-horizon MPC. Fix a prediction horizon $N$. At each time step, we solve a problem with fixed structure and varying data. Define
@@ -1075,7 +1075,7 @@ $$
 
 and use it as the starting point for Newton or SQP.
 
-This is the basis of real-time iteration schemes. When the active set is stable, the warm start is accurate to first order. When it changes, we refactorize and repeat, still with far less effort than solving from scratch.
+This is the basis of real-time iteration schemes. When the active set is stable, the warm start is accurate to first order. When it changes, we refactorize and repeat, still with far less effort than solving from scratch. -->
 
 
 ## Amortized Optimization and Neural Approximation of Controllers

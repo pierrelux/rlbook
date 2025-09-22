@@ -486,14 +486,8 @@
 </li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#computational-efficiency-via-parametric-programming">Computational Efficiency via Parametric Programming</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#general-framework-parametric-optimization">General Framework: Parametric Optimization</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-quick-reminder-the-implicit-function-theorem">A quick reminder: the implicit function theorem</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#solution-sensitivity-via-the-implicit-function-theorem">Solution Sensitivity via the Implicit Function Theorem</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#predictor-corrector-mpc">Predictor-Corrector MPC</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#application-to-mpc">Application to MPC</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#two-approaches-to-efficient-mpc">Two Approaches to Efficient MPC</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#explicit-mpc">Explicit MPC</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sensitivity-based-mpc">Sensitivity-Based MPC</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#amortized-optimization-and-neural-approximation-of-controllers">Amortized Optimization and Neural Approximation of Controllers</a></li>
@@ -983,7 +977,7 @@ c(\mathbf{x}_N) = c_{\text{op},T}(\mathbf{x}_N) \enspace .
 </section>
 <section id="hybrid-and-mixed-integer-mpc">
 <h2>Hybrid and Mixed-Integer MPC<a class="headerlink" href="#hybrid-and-mixed-integer-mpc" title="Link to this heading">#</a></h2>
-<p>When systems involve discrete switches — such as on/off valves, mode selection, or combinatorial logic — the MPC problem must include integer or binary variables. These show up in constraints like</p>
+<p>When systems involve discrete switches  (eg. on/off valves, mode selection, or combinatorial logic) the MPC problem must include integer or binary variables. These show up in constraints like</p>
 <div class="math notranslate nohighlight">
 \[
 \boldsymbol{\delta}_k \in \{0,1\}^m, \qquad \mathbf{u}_k \in \mathcal{U}(\boldsymbol{\delta}_k)
@@ -1029,7 +1023,7 @@ c(\mathbf{x}_k, \mathbf{u}_k) = c(\mathbf{x}_k, \mathbf{u}_k; \boldsymbol{\phi}_
 <p>Now suppose an unexpected wind direction change occurs, shifting the incoming wind vector by 30 degrees. The current state <span class="math notranslate nohighlight">\(\mathbf{x}_{\text{current}}\)</span> reflects wake patterns that no longer align with the new wind direction, and the optimizer discovers that no feasible trajectory exists that can redirect all wakes appropriately within the physical limits of yaw rate and thrust adjustment. The solver reports infeasibility.</p>
 <p>This scenario reveals the fundamental challenge of real-time MPC: <strong>constraint incompatibility</strong>. When disturbances push the system into states from which recovery appears impossible, or when reference trajectories demand physically impossible maneuvers, the intersection of all constraint sets becomes empty. Model mismatch compounds this problem as prediction errors accumulate over the horizon.</p>
 <p>Even when feasible solutions exist, <strong>computational constraints</strong> can prevent their discovery. A control loop running at 100 Hz allows only 10 milliseconds per iteration. If the solver requires 15 milliseconds to converge, we face an impossible choice: delay the control action and risk destabilizing the system, or apply an unconverged iterate that may violate critical constraints.</p>
-<p>A third failure mode involves <strong>numerical instabilities</strong>—ill-conditioned matrices, rank deficiency, or division by zero in the linear algebra routines. These failures are particularly problematic because they occur sporadically, triggered by specific state configurations that create near-singular conditions in the optimization problem.</p>
+<p>A third failure mode involves <strong>numerical instabilities</strong>: ill-conditioned matrices, rank deficiency, or division by zero in the linear algebra routines. These failures are particularly problematic because they occur sporadically, triggered by specific state configurations that create near-singular conditions in the optimization problem.</p>
 </section>
 <section id="softening-constraints-through-slack-variables">
 <h2>Softening Constraints Through Slack Variables<a class="headerlink" href="#softening-constraints-through-slack-variables" title="Link to this heading">#</a></h2>
@@ -1245,8 +1239,8 @@ v(\boldsymbol{\theta}) := \inf\{\, f(\mathbf{x}; \boldsymbol{\theta}) : \mathbf{
 \]</div>
 <p>each active set again leads to an affine optimizer, with piecewise-affine global structure and a piecewise-quadratic value function.</p>
 <p>Parametric programming focuses on the structure of the map <span class="math notranslate nohighlight">\(\boldsymbol{\theta} \mapsto \mathbf{x}^\star(\boldsymbol{\theta})\)</span>, and the regions over which this map takes a simple form.</p>
-<section id="a-quick-reminder-the-implicit-function-theorem">
-<h3>A quick reminder: the implicit function theorem<a class="headerlink" href="#a-quick-reminder-the-implicit-function-theorem" title="Link to this heading">#</a></h3>
+<section id="solution-sensitivity-via-the-implicit-function-theorem">
+<h3>Solution Sensitivity via the Implicit Function Theorem<a class="headerlink" href="#solution-sensitivity-via-the-implicit-function-theorem" title="Link to this heading">#</a></h3>
 <p>We often meet equations of the form</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1379,73 +1373,85 @@ z_{\text{pred}} \;=\; z^\star(\theta^\star) \;+\; \Delta\theta\;\frac{dz^\star}{
 <li><p><strong>Corrector</strong>: a few Newton/SQP steps on the KKT equations at the new <span class="math notranslate nohighlight">\(\theta\)</span>.</p></li>
 </ol>
 <p>In MPC, this yields efficient <strong>warm starts</strong> across time: as the parameter <span class="math notranslate nohighlight">\(\theta_t\)</span> (current state, references) changes slightly, we predict the new primal–dual point and correct with 1–2 iterations—often enough to hit tolerance in real time.</p>
-</section>
-</section>
-<section id="application-to-mpc">
-<h2>Application to MPC<a class="headerlink" href="#application-to-mpc" title="Link to this heading">#</a></h2>
-<p>We now specialize this idea to the structure of finite-horizon MPC. Fix a prediction horizon <span class="math notranslate nohighlight">\(N\)</span>. At each time step, we solve a problem with fixed structure and varying data. Define</p>
-<div class="math notranslate nohighlight">
-\[
+<!-- 
+## Application to MPC
+
+We now specialize this idea to the structure of finite-horizon MPC. Fix a prediction horizon $N$. At each time step, we solve a problem with fixed structure and varying data. Define
+
+$$
 \boldsymbol{\theta} := (\mathbf{x}_0,\, \mathbf{r},\, \mathbf{w}),
-\]</div>
-<p>which includes the current state <span class="math notranslate nohighlight">\(\mathbf{x}_0\)</span>, reference signals <span class="math notranslate nohighlight">\(\mathbf{r}\)</span>, and exogenous forecasts <span class="math notranslate nohighlight">\(\mathbf{w}\)</span>.</p>
-<p>The finite-horizon problem becomes</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}
+$$
+
+which includes the current state $\mathbf{x}_0$, reference signals $\mathbf{r}$, and exogenous forecasts $\mathbf{w}$.
+
+The finite-horizon problem becomes
+
+$$
 \begin{aligned}
-\min_{z} \quad &amp; J(z;\boldsymbol{\theta}) \\
-\text{s.t.} \quad &amp; c(z;\boldsymbol{\theta}) = 0 \\
-&amp; d(z;\boldsymbol{\theta}) \leq 0,
+\min_{z} \quad & J(z;\boldsymbol{\theta}) \\
+\text{s.t.} \quad & c(z;\boldsymbol{\theta}) = 0 \\
+& d(z;\boldsymbol{\theta}) \leq 0,
 \end{aligned}
-\end{split}\]</div>
-<p>with decision variable <span class="math notranslate nohighlight">\(z = (\mathbf{x}_{0:N}, \mathbf{u}_{0:N-1})\)</span>. The equality constraints enforce dynamics and terminal conditions. The inequalities encode input and state bounds.</p>
-<p>Solving <span class="math notranslate nohighlight">\((P_\theta)\)</span> produces an optimal trajectory <span class="math notranslate nohighlight">\(z^\star(\boldsymbol{\theta})\)</span>. The control law is the first input:</p>
-<div class="math notranslate nohighlight">
-\[
+$$
+
+with decision variable $z = (\mathbf{x}_{0:N}, \mathbf{u}_{0:N-1})$. The equality constraints enforce dynamics and terminal conditions. The inequalities encode input and state bounds.
+
+Solving $(P_\theta)$ produces an optimal trajectory $z^\star(\boldsymbol{\theta})$. The control law is the first input:
+
+$$
 \pi(\boldsymbol{\theta}) := \mathbf{u}_0^\star(\boldsymbol{\theta}).
-\]</div>
-<p>This mapping from parameter to input defines the MPC policy. Parametric programming helps us understand and exploit its structure to speed up evaluation.</p>
-</section>
-<section id="two-approaches-to-efficient-mpc">
-<h2>Two Approaches to Efficient MPC<a class="headerlink" href="#two-approaches-to-efficient-mpc" title="Link to this heading">#</a></h2>
-<p>Parametric structure can be used in two main ways: either to construct an explicit control law offline, or to warm-start the optimizer online using sensitivity information.</p>
-<section id="explicit-mpc">
-<h3>Explicit MPC<a class="headerlink" href="#explicit-mpc" title="Link to this heading">#</a></h3>
-<p>When the problem is a linear or quadratic program with affine dependence on <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span>, we can work out the solution symbolically. The parameter space is partitioned into regions <span class="math notranslate nohighlight">\(\mathcal{R}_1, \dots, \mathcal{R}_M\)</span>, each associated with a fixed active set. On each region:</p>
-<div class="math notranslate nohighlight">
-\[
+$$
+
+This mapping from parameter to input defines the MPC policy. Parametric programming helps us understand and exploit its structure to speed up evaluation.
+
+## Two Approaches to Efficient MPC
+
+Parametric structure can be used in two main ways: either to construct an explicit control law offline, or to warm-start the optimizer online using sensitivity information.
+
+### Explicit MPC
+
+When the problem is a linear or quadratic program with affine dependence on $\boldsymbol{\theta}$, we can work out the solution symbolically. The parameter space is partitioned into regions $\mathcal{R}_1, \dots, \mathcal{R}_M$, each associated with a fixed active set. On each region:
+
+$$
 z^\star(\boldsymbol{\theta}) = A_r\,\boldsymbol{\theta} + b_r,
 \qquad
 \pi(\boldsymbol{\theta}) = K_r\,\boldsymbol{\theta} + k_r.
-\]</div>
-<p>At runtime, we identify which region contains <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span>, then apply the corresponding affine formula. This approach avoids optimization entirely during deployment.</p>
-<p>It requires storing the region definitions and control laws. The number of regions grows with horizon length and constraint count, which limits this approach to systems with low state dimension and short horizons.</p>
-</section>
-<section id="sensitivity-based-mpc">
-<h3>Sensitivity-Based MPC<a class="headerlink" href="#sensitivity-based-mpc" title="Link to this heading">#</a></h3>
-<p>When symbolic enumeration is intractable, we can still track how the solution varies locally. Suppose we have a solution <span class="math notranslate nohighlight">\(\bar{y} = (\bar{z}, \bar{\lambda}, \bar{\nu})\)</span> at parameter <span class="math notranslate nohighlight">\(\bar{\boldsymbol{\theta}}\)</span>. The KKT system reads:</p>
-<div class="math notranslate nohighlight">
-\[
+$$
+
+At runtime, we identify which region contains $\boldsymbol{\theta}$, then apply the corresponding affine formula. This approach avoids optimization entirely during deployment.
+
+It requires storing the region definitions and control laws. The number of regions grows with horizon length and constraint count, which limits this approach to systems with low state dimension and short horizons.
+
+### Sensitivity-Based MPC
+
+When symbolic enumeration is intractable, we can still track how the solution varies locally. Suppose we have a solution $\bar{y} = (\bar{z}, \bar{\lambda}, \bar{\nu})$ at parameter $\bar{\boldsymbol{\theta}}$. The KKT system reads:
+
+$$
 F(y; \boldsymbol{\theta}) = 0.
-\]</div>
-<p>Differentiating with respect to <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span>,</p>
-<div class="math notranslate nohighlight">
-\[
+$$
+
+Differentiating with respect to $\boldsymbol{\theta}$,
+
+$$
 \frac{\partial F}{\partial y}(\bar{y}; \bar{\boldsymbol{\theta}})\, \mathrm{d}y
 = - \frac{\partial F}{\partial \boldsymbol{\theta}}(\bar{y}; \bar{\boldsymbol{\theta}})\, \mathrm{d}\boldsymbol{\theta}.
-\]</div>
-<p>Let <span class="math notranslate nohighlight">\(K\)</span> be the KKT matrix and <span class="math notranslate nohighlight">\(G\)</span> the sensitivity of the residual. Then the sensitivity operator <span class="math notranslate nohighlight">\(T\)</span> satisfies</p>
-<div class="math notranslate nohighlight">
-\[
+$$
+
+Let $K$ be the KKT matrix and $G$ the sensitivity of the residual. Then the sensitivity operator $T$ satisfies
+
+$$
 K T = -G \quad \Rightarrow \quad \mathrm{d}y = T\, \mathrm{d}\boldsymbol{\theta}.
-\]</div>
-<p>If <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> changes slightly, we update the primal-dual pair:</p>
-<div class="math notranslate nohighlight">
-\[
+$$
+
+If $\boldsymbol{\theta}$ changes slightly, we update the primal-dual pair:
+
+$$
 y^{(0)} \leftarrow \bar{y} + T\,\Delta\boldsymbol{\theta},
-\]</div>
-<p>and use it as the starting point for Newton or SQP.</p>
-<p>This is the basis of real-time iteration schemes. When the active set is stable, the warm start is accurate to first order. When it changes, we refactorize and repeat, still with far less effort than solving from scratch.</p>
+$$
+
+and use it as the starting point for Newton or SQP.
+
+This is the basis of real-time iteration schemes. When the active set is stable, the warm start is accurate to first order. When it changes, we refactorize and repeat, still with far less effort than solving from scratch. -->
 </section>
 </section>
 <section id="amortized-optimization-and-neural-approximation-of-controllers">
@@ -1846,14 +1852,8 @@ The following cell creates an interactive animation of the batch bioreactor cont
 </li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#computational-efficiency-via-parametric-programming">Computational Efficiency via Parametric Programming</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#general-framework-parametric-optimization">General Framework: Parametric Optimization</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-quick-reminder-the-implicit-function-theorem">A quick reminder: the implicit function theorem</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#solution-sensitivity-via-the-implicit-function-theorem">Solution Sensitivity via the Implicit Function Theorem</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#predictor-corrector-mpc">Predictor-Corrector MPC</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#application-to-mpc">Application to MPC</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#two-approaches-to-efficient-mpc">Two Approaches to Efficient MPC</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#explicit-mpc">Explicit MPC</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sensitivity-based-mpc">Sensitivity-Based MPC</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#amortized-optimization-and-neural-approximation-of-controllers">Amortized Optimization and Neural Approximation of Controllers</a></li>
