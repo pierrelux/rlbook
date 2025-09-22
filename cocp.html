@@ -827,7 +827,7 @@ Collocation enforces the differential equation at a chosen set of nodes on <span
 <section id="boundary-conditions-and-node-families">
 <h3>Boundary Conditions and Node Families<a class="headerlink" href="#boundary-conditions-and-node-families" title="Link to this heading">#</a></h3>
 <figure class="align-center" id="fig-collocation-illustration" style="width: 90%">
-<img alt="_images/b8b61754cea49b59cc6f8d689a0441b018d0d840d5ee6951e54465c3cd786643.png" src="_images/b8b61754cea49b59cc6f8d689a0441b018d0d840d5ee6951e54465c3cd786643.png" />
+<img alt="_images/4c63c455e3c731a018124ee3a06bc5dbf09aa0d7a90cc1dbbb828e13c2832a02.png" src="_images/4c63c455e3c731a018124ee3a06bc5dbf09aa0d7a90cc1dbbb828e13c2832a02.png" />
 <figcaption>
 <p><span class="caption-number">Fig. 1 </span><span class="caption-text">Collocation node families and where slope and continuity constraints are enforced.</span><a class="headerlink" href="#fig-collocation-illustration" title="Link to this image">#</a></p>
 </figcaption>
@@ -1312,13 +1312,13 @@ The functions <span class="math notranslate nohighlight">\(\Psi_e(x_1)\)</span> 
 </details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
-            Current function value: 0.17449650787602988
+            Current function value: 0.17449650818410942
             Iterations: 37
             Function evaluations: 2306
             Gradient evaluations: 37
 </pre></div>
 </div>
-<img alt="_images/eb0ffa1d50977921de230aec061a1ac4b423b6e36dda6b69679531f6ff581bbf.png" src="_images/eb0ffa1d50977921de230aec061a1ac4b423b6e36dda6b69679531f6ff581bbf.png" />
+<img alt="_images/fe88815753f0d6bbd9b63595efd3044f40e07677c85c90c7be5ff2a502d53933.png" src="_images/fe88815753f0d6bbd9b63595efd3044f40e07677c85c90c7be5ff2a502d53933.png" />
 </div>
 </div>
 <section id="solution-by-trapezoidal-collocation">
@@ -1491,17 +1491,17 @@ The functions <span class="math notranslate nohighlight">\(\Psi_e(x_1)\)</span> 
 </details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
-            Current function value: 0.002354322209548216
+            Current function value: 0.0023543222096489565
             Iterations: 13
             Function evaluations: 794
             Gradient evaluations: 13
 Optimization successful: True
-Final objective value: 0.002354322209548216
+Final objective value: 0.0023543222096489565
 Final state: x1 = 0.4000, x2 = 0.6000
 Target state: x1 = 0.4000, x2 = 0.6000
 </pre></div>
 </div>
-<img alt="_images/9a74fc1652f3d21194ae87006d306c1071c1084523b7ec6c04eee27201ac3d2e.png" src="_images/9a74fc1652f3d21194ae87006d306c1071c1084523b7ec6c04eee27201ac3d2e.png" />
+<img alt="_images/3e444c5fc262305c8ca5619db8aa7f2c913af9e20259af16018089bdefb7b584.png" src="_images/3e444c5fc262305c8ca5619db8aa7f2c913af9e20259af16018089bdefb7b584.png" />
 </div>
 </div>
 <p>You can try to vary the number of collocation points in the code and observe how the state trajectory progressively matches the ground truth (the line denoted “integrated solution”). Note that this version of the code also lacks bound constraints on the variable <span class="math notranslate nohighlight">\(x_2\)</span> to ensure a minimum pressure, as we did earlier. Consider this a good exercise to try on your own.</p>
@@ -1632,21 +1632,21 @@ J(\boldsymbol{\theta}) := \sum_{k\in K}\;\big\|\mathbf{y}_k - \mathbf{h}(\boldsy
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="_images/2eda027356dc69b3f97a6ddbe109254f26c1b9b98e9913c5cff05dc598e9bb6c.png" src="_images/2eda027356dc69b3f97a6ddbe109254f26c1b9b98e9913c5cff05dc598e9bb6c.png" />
+<img alt="_images/3a1de97d8c65f2c5225f12b2122e47b877d87a50767db5c318a9e7bf55b40015.png" src="_images/3a1de97d8c65f2c5225f12b2122e47b877d87a50767db5c318a9e7bf55b40015.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Data collection complete. Results saved to &#39;compressor_surge_data_multi.npz&#39;
 Data shape: 10 trajectories, each with 501 time steps
 Time range: 0 to 50 seconds
 Initial conditions:
-  Trajectory 1: x1 = 0.4535, x2 = 0.5538
-  Trajectory 2: x1 = 0.4559, x2 = 0.5075
-  Trajectory 3: x1 = 0.4804, x2 = 0.5273
-  Trajectory 4: x1 = 0.4923, x2 = 0.4593
-  Trajectory 5: x1 = 0.4919, x2 = 0.4814
-  Trajectory 6: x1 = 0.4829, x2 = 0.4015
-  Trajectory 7: x1 = 0.5212, x2 = 0.5046
-  Trajectory 8: x1 = 0.5162, x2 = 0.4445
-  Trajectory 9: x1 = 0.5731, x2 = 0.4336
-  Trajectory 10: x1 = 0.4496, x2 = 0.4828
+  Trajectory 1: x1 = 0.5528, x2 = 0.4909
+  Trajectory 2: x1 = 0.4830, x2 = 0.5171
+  Trajectory 3: x1 = 0.5317, x2 = 0.4538
+  Trajectory 4: x1 = 0.4898, x2 = 0.5098
+  Trajectory 5: x1 = 0.4917, x2 = 0.4535
+  Trajectory 6: x1 = 0.4929, x2 = 0.5330
+  Trajectory 7: x1 = 0.4525, x2 = 0.5180
+  Trajectory 8: x1 = 0.5207, x2 = 0.5003
+  Trajectory 9: x1 = 0.4791, x2 = 0.4890
+  Trajectory 10: x1 = 0.4770, x2 = 0.5467
 </pre></div>
 </div>
 </div>
@@ -1752,15 +1752,15 @@ Initial conditions:
 </details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully.
-         Current function value: 6.037438
+         Current function value: 5.841233
          Iterations: 15
          Function evaluations: 30
 True B: 1.0
-Identified B: 0.9927978515624987
-Relative error: 0.72%
+Identified B: 1.0349853515624987
+Relative error: 3.50%
 </pre></div>
 </div>
-<img alt="_images/f09fa342132a1b32e91245c2c160fc55718932f5c9aab312fa805b30cae3addb.png" src="_images/f09fa342132a1b32e91245c2c160fc55718932f5c9aab312fa805b30cae3addb.png" />
+<img alt="_images/2c36ca2441853d410fb7eb3a7325c60350cdbd448839eff388d407a9d3d76200.png" src="_images/2c36ca2441853d410fb7eb3a7325c60350cdbd448839eff388d407a9d3d76200.png" />
 </div>
 </div>
 </section>
@@ -1833,7 +1833,7 @@ Relative error: 0.72%
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="_images/f9b6c8c1fa88ed1bdf864a5e7a4ae40a6f68104666bcd1ba3120a0a3be81531c.png" src="_images/f9b6c8c1fa88ed1bdf864a5e7a4ae40a6f68104666bcd1ba3120a0a3be81531c.png" />
+<img alt="_images/e4cb3e65ae954dbd844e85df63ac58152ecaeac9e92e1d9978e7264ac39a5982.png" src="_images/e4cb3e65ae954dbd844e85df63ac58152ecaeac9e92e1d9978e7264ac39a5982.png" />
 </div>
 </div>
 </section>
@@ -2303,7 +2303,7 @@ h_r^{k+1} = h_r^k + \Delta t \cdot \frac{1}{A_r}(z_r^k - q_r^k - s_r^k),
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="_images/a56e0a2ebcb206e2516003798af741666e22b241953ba0173b721004284b4568.png" src="_images/a56e0a2ebcb206e2516003798af741666e22b241953ba0173b721004284b4568.png" />
+<img alt="_images/0d7900a7409028908c3ab8cf6d1e668c72dc4a52d97bff35531fa5d34330c2cd.png" src="_images/0d7900a7409028908c3ab8cf6d1e668c72dc4a52d97bff35531fa5d34330c2cd.png" />
 </div>
 </div>
 <p>The figure shows the result of a multiple-shooting optimization applied to a three-reach hydroelectric cascade. The time horizon is discretized into 16 intervals, and SciPy’s <code class="docutils literal notranslate"><span class="pre">trust-constr</span></code> solver is used to find a feasible control sequence that satisfies mass balance, turbine and spillway limits, and Muskingum-style routing dynamics. Each reach integrates its own local ODE, with continuity constraints linking the flows between reaches.</p>

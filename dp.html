@@ -34,9 +34,9 @@
     <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
     <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
-    <link rel="stylesheet" type="text/css" href="_static/proof.css" />
+    <link rel="stylesheet" type="text/css" href="_static/proof.css?v=b4b7a797" />
     <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css" />
@@ -194,6 +194,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">From Trajectories to Policies</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="mpc.html">Model Predictive Control</a></li>
+
 
 
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Dynamic Programming</a></li>
@@ -674,7 +675,7 @@ J^\star(x_t, t) = \max_{h_t \in D} (F(x, h, t) + J^*(x_{t+1}, t+1))
 
 Population trajectory: [50.0, 54.0, 63.2016, 53.614938617856, 62.80047226002128, 65.89520835342945, 62.063500827311884, 65.23169346891407, 61.5424456170318, 64.7610004703774, 61.171531280797, 64.42514256278633, 60.90621923290014, 52.003257133909514, 61.11382126799714, 64.37282756165249, 60.86484408994034, 39.80100508132969, 28.038916051902078, 20.544298889444192, 15.422475391094192]
 Harvests: [5.0, 0.0, 18.960480000000004, 0.0, 6.280047226002129, 13.17904167068589, 6.206350082731189, 13.046338693782815, 6.15424456170318, 12.95220009407548, 6.1171531280797, 12.885028512557268, 18.271865769870047, 0.0, 6.111382126799715, 12.874565512330499, 30.43242204497017, 19.900502540664846, 14.019458025951039, 10.272149444722096]
-Total harvest: 212.66322943492608
+Total harvest: 212.66322943492605
 </pre></div>
 </div>
 </div>
@@ -883,7 +884,7 @@ I_{k+1}(x) = J_{k+1}^\star(x_l) + \frac{x - x_l}{x_u - x_l} \left(J_{k+1}^\star(
 
 Population trajectory: [50, 59.0, 62.445600000000006, 62.793456961535966, 60.906514028106535, 64.1847685511936, 60.71600257278426, 64.0117639631371, 60.5789261378371, 63.88717626457206, 60.48012279248407, 63.79731874379539, 60.40881570882111, 63.73243881376377, 60.3573056779798, 63.685556376683536, 60.32007179593332, 39.523630889226936, 27.8698229545787, 20.431713488016012, 15.34347899187751]
 Harvests: [0.0, 5.9, 9.027135936000038, 11.26173625265758, 6.0906514028106535, 12.83695371023872, 6.071600257278426, 12.80235279262742, 6.057892613783711, 12.777435252914414, 6.0480122792484075, 12.759463748759078, 6.040881570882111, 12.746487762752755, 6.03573056779798, 12.737111275336709, 30.16003589796666, 19.761815444613468, 13.93491147728935, 10.215856744008006]
-Total harvest: 213.26606498696546
+Total harvest: 213.2660649869655
 </pre></div>
 </div>
 </div>
@@ -1477,16 +1478,16 @@ J^\star(x_t, t) = \max_{d(t) \in D} \mathbb{E}\left[F(x_t \cdot h_t) + J^\star(x
   0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.4 0.4 0.4 0.4 0.4 0.4
   0.4 0.4 0.4 0.4 0.4 0.4 0.4 0.4 0.4 0.4]]
 
-Average population trajectory: [50.         59.144      63.01791265 61.90379293 62.48486942 62.5432987
- 62.50870009 63.28488739 62.36131516 62.63290211 62.52594072 62.19942686
- 62.72926534 62.55024395 62.85173443 62.48246875 62.51623895 62.55143499
- 62.64905504 62.18322939 62.35395919 62.05178891 62.61193761 62.02569485
- 62.46265882 62.64708742 61.37887892 42.75048552 30.14094071 21.89689001
- 16.30109051]
-Average total harvest: 313.30972350077883
+Average population trajectory: [50.         59.126      62.69619476 62.50888039 62.47469976 62.03661246
+ 62.53917782 62.49630981 62.52289919 62.39429827 62.6029934  62.3916502
+ 62.81830013 62.4175036  62.67827868 62.5822419  62.18842845 62.41458732
+ 62.58263582 62.98740346 62.17142674 62.18879702 62.0832301  62.62570881
+ 62.85043722 62.78845198 61.44489905 42.63269697 30.2230333  22.26564984
+ 16.40866945]
+Average total harvest: 313.43165025164313
 </pre></div>
 </div>
-<img alt="_images/4d8ea69c8a85927d37f554df2ad19beb63cc4dacfcbd3b9ba416152c14d26278.png" src="_images/4d8ea69c8a85927d37f554df2ad19beb63cc4dacfcbd3b9ba416152c14d26278.png" />
+<img alt="_images/4e4be39bb1c5af9167aa90f83815afb1b1be05d433aae03d5bf5e4b3d8053e17.png" src="_images/4e4be39bb1c5af9167aa90f83815afb1b1be05d433aae03d5bf5e4b3d8053e17.png" />
 </div>
 </div>
 </section>
@@ -1882,7 +1883,7 @@ v_\gamma^*(s) \equiv \max_{\pi \in \Pi^{HR}} v_\gamma^\pi(s)=\max_{\pi \in \Pi^{
 v_\nu^\pi(s) \equiv \mathbb{E}_s^\pi\left[\mathbb{E}_\nu\left\{\sum_{t=1}^\nu r(S_t, A_t)\right\}\right]
 \]</div>
 <div class="proof theorem admonition" id="prop-5-3-1">
-<p class="admonition-title"><span class="caption-number">Theorem 1 </span> (Random horizon interpretation of discounting)</p>
+<p class="admonition-title"><span class="caption-number">Theorem 2 </span> (Random horizon interpretation of discounting)</p>
 <section class="theorem-content" id="proof-content">
 <p>Suppose that the horizon <span class="math notranslate nohighlight">\(\nu\)</span> follows a geometric distribution with parameter <span class="math notranslate nohighlight">\(\gamma\)</span>, <span class="math notranslate nohighlight">\(0 \leq \gamma &lt; 1\)</span>, independent of the policy such that
 <span class="math notranslate nohighlight">\(P(\nu=n) = (1-\gamma) \gamma^{n-1}, \, n=1,2, \ldots\)</span>, then <span class="math notranslate nohighlight">\(v_\nu^\pi(s) = v_\gamma^\pi(s)\)</span> for all <span class="math notranslate nohighlight">\(s \in \mathcal{S}\)</span> .</p>

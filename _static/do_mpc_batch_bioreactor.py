@@ -158,7 +158,7 @@ def run_closed_loop():
     plt.show()
 
 
-if __name__ == '__main__':
-    run_closed_loop()
+# Run the closed-loop simulation
+run_closed_loop()
 
 

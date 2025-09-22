@@ -10,144 +10,167 @@ kernelspec:
   language: python
   name: python3
 ---
-
 # Model Predictive Control
 
+The trajectory optimization methods presented so far compute a complete control trajectory from an initial state to a final time or state. Once computed, this trajectory is executed without modification, making these methods fundamentally open-loop. The control function, $\mathbf{u}[k]$ in discrete time or $\mathbf{u}(t)$ in continuous time, depends only on the clock, reading off precomputed values from memory or interpolating between them. This approach assumes perfect models and no disturbances. Under these idealized conditions, repeating the same control sequence from the same initial state would always produce identical results.
 
-The methods seen so far, whether in discrete or continuous-time, were deterministic trajectory optimization methods. Given an initial state, they provide a prescription of controls to apply as a function of time. In the collocation case, we would also obtain a state trajectory corresponding to those controls as a by-product. The control function, $\mathbf{u}[i]$ (in discrete time) or $u(t)$ (in continuous-time), is blind to the system's state at any point in time. It simply reads off the values stored in memory or performs some form of interpolation in time. This approach is optimal under the assumption that our system is deterministic. We know that no matter how many times we repeat the experiment from the same initial state, we will always get the same result; hence, reapplying the same controls in the same order is sufficient.
+Real systems face modeling errors, external disturbances, and measurement noise that accumulate over time. A precomputed trajectory becomes increasingly irrelevant as these perturbations push the actual system state away from the predicted path. The solution is to incorporate feedback, making control decisions that respond to the current state rather than blindly following a predetermined schedule. While dynamic programming provides the theoretical framework for deriving feedback policies through value functions and Bellman equations, there exists a more direct approach that leverages the trajectory optimization methods already developed.
 
-However, no matter how good our model is, real-life deployment of our controller will inevitably involve prediction errors. In such cases, a simple control function that only considers the current time—an open-loop controller—won't suffice. We must inform our controller that the real world is likely not in the state it thinks it's in: we need to provide feedback to close the loop. Depending on the structure of the noise affecting our system, we may encounter feedback controllers that depend on the entire history (in the case of partial observability) or just the current state (under perfect observability). Dynamic programming methods will provide us with solution methods to derive such controllers. These methods exist for both the continuous-time setting (via the Hamilton-Jacobi equations) and the discrete setting through the Bellman optimality equations. It also provides us with the necessary framework to address partially observable systems (for which we can't directly measure the state) using the POMDP framework. We will cover these solution methods in this chapter.
+## Closing the Loop by Replanning
 
-# Closing the Loop by Replanning
+Model Predictive Control creates a feedback controller by repeatedly solving trajectory optimization problems. Rather than computing a single trajectory for the entire task duration, MPC solves a finite-horizon problem at each time step, starting from the current measured state. The controller then applies only the first control action from this solution before repeating the entire process. This strategy transforms any trajectory optimization method into a feedback controller.
 
-There exists a simple recipe for closing the loop: since we will likely end up in states that we haven't planned for, we might as well recompute our solution as frequently as possible using the updated state information as initial state to our trajectory optimization procedure. This replanning or reoptimization strategy is called Model Predictive Control (MPC). Given any trajectory optimization algorithm, we can turn it into a closed-loop variant using MPC.
+### The Receding Horizon Principle
 
-Consider a trajectory optimization problem in Bolza form, 
+The defining characteristic of MPC is its receding horizon strategy. At each time step, the controller solves an optimization problem looking a fixed duration into the future, but this prediction window constantly moves forward in time. The horizon "recedes" because it always starts from the current time and extends forward by the same amount.
+
+Consider the discrete-time optimal control problem in Bolza form:
 
 $$
 \begin{aligned}
-\text{minimize} \quad & c(\mathbf{x}(t_0 + T)) + \int_{t_0}^{t_0 + T} c(\mathbf{x}(t), \mathbf{u}(t)) \, dt \\
-\text{subject to} \quad & \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) \\
-& \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} \\
-& \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} \\
-\text{given} \quad & \mathbf{x}(t_0) = \mathbf{x}_{\text{current}} \enspace .
+\text{minimize} \quad & c_T(\mathbf{x}_N) + \sum_{k=0}^{N-1} c(\mathbf{x}_k, \mathbf{u}_k) \\
+\text{subject to} \quad & \mathbf{x}_{k+1} = \mathbf{f}(\mathbf{x}_k, \mathbf{u}_k) \\
+& \mathbf{g}(\mathbf{x}_k, \mathbf{u}_k) \leq \mathbf{0} \\
+& \mathbf{u}_{\text{min}} \leq \mathbf{u}_k \leq \mathbf{u}_{\text{max}} \\
+\text{given} \quad & \mathbf{x}_0 = \mathbf{x}_{\text{current}}
 \end{aligned}
 $$
 
-MPC then proceeds as follows. At the current time $ t_0 $, the MPC controller considers a prediction horizon $ T $ over which it optimizes the future trajectory of the system. The controller then solves the trajectory optimization problem with the initial state set to the current state $ \mathbf{x}_{\text{current}} = \mathbf{x}(t_0) $. This yields an optimal control trajectory $ \mathbf{u}^*(t) $ for $ t \in [t_0, t_0 + T] $. 
+At time step $t$, this problem optimizes over the interval $[t, t+N]$. At the next time step $t+1$, the horizon shifts to $[t+1, t+N+1]$. The key insight is that only the first control $\mathbf{u}_0^*$ from each optimization is applied. The remaining controls $\mathbf{u}_1^*, \ldots, \mathbf{u}_{N-1}^*$ are discarded, though they may initialize the next optimization through warm-starting.
 
-However,  Instead of applying the entire computed control trajectory, the controller extracts only the first part of the solution, namely $ \mathbf{u}^*(t_0) $, and applies it to the system. This strategy is called *receding horizon control*. The idea is that the control $ \mathbf{u}^*(t_0) $ is based on the best prediction available at time $ t_0 $, considering the current state of the system and expected future disturbances.
+This receding horizon principle enables feedback without computing an explicit policy. By constantly updating predictions based on current measurements, MPC naturally corrects for disturbances and model errors. The apparent waste of computing but not using most of the trajectory is actually the mechanism that provides robustness.
 
-After applying the first control input, the system evolves according to its dynamics, and the controller measures the new state at the next time step, $ t_0 + \Delta t $. Using this updated state as the new initial condition, the MPC controller re-solves the trajectory optimization problem over a shifted prediction horizon $ [t_0 + \Delta t, t_0 + \Delta t + T] $.
+### Horizon Selection and Problem Formulation
 
-This procedure is then repeated ad infinitum or until the end of overall control problem. More concisely, here's a pseudo-code showing the general blueprint of MPC methods: 
+The relationship between the prediction horizon and the control objective fundamentally changes the problem structure. We must distinguish between three cases, each requiring different mathematical formulations.
 
-````{prf:algorithm} Non-linear Model Predictive Control
-:label: alg-mpc
+#### Infinite-Horizon Regulation
+
+For stabilization problems where the system must operate indefinitely around an equilibrium, the true objective is:
+
+$$
+J_\infty = \sum_{k=0}^{\infty} c(\mathbf{x}_k, \mathbf{u}_k)
+$$
+
+Since this cannot be solved directly, MPC approximates it with:
+
+$$
+\begin{aligned}
+\text{minimize} \quad & V_f(\mathbf{x}_N) + \sum_{k=0}^{N-1} c(\mathbf{x}_k, \mathbf{u}_k) \\
+\text{subject to} \quad & \mathbf{x}_{k+1} = \mathbf{f}(\mathbf{x}_k, \mathbf{u}_k) \\
+& \mathbf{x}_N \in \mathcal{X}_f \\
+& \text{other constraints}
+\end{aligned}
+$$
+
+The terminal cost $V_f(\mathbf{x}_N)$ approximates $\sum_{k=N}^{\infty} c(\mathbf{x}_k, \mathbf{u}_k)$, the cost-to-go beyond the horizon. The terminal constraint $\mathbf{x}_N \in \mathcal{X}_f$ ensures the state reaches a region where a known stabilizing controller exists. Without these terminal ingredients, the finite-horizon approximation may produce unstable behavior, as the controller ignores consequences beyond the horizon.
+
+#### Finite-Duration Tasks
+
+For tasks ending at time $t_f$, the true objective spans from current time $t$ to $t_f$:
+
+$$
+J_{[t, t_f]} = c_f(\mathbf{x}(t_f)) + \sum_{k=t}^{t_f-1} c(\mathbf{x}_k, \mathbf{u}_k)
+$$
+
+The MPC formulation must adapt as time progresses:
+
+$$
+\begin{aligned}
+\text{minimize} \quad & c_{T,k}(\mathbf{x}_{N_k}) + \sum_{j=0}^{N_k-1} c(\mathbf{x}_j, \mathbf{u}_j) \\
+\text{where} \quad & N_k = \min(N, t_f - t_k) \\
+& c_{T,k} = \begin{cases}
+c_f & \text{if } t_k + N_k = t_f \\
+c_T & \text{otherwise}
+\end{cases}
+\end{aligned}
+$$
+
+As the task approaches completion, the horizon shrinks and the terminal cost switches from the approximation $c_T$ to the true final cost $c_f$. This prevents the controller from optimizing beyond task completion, which would produce meaningless or aggressive control actions.
+
+#### Periodic Tasks
+
+For tasks with period $T_p$, such as daily building operations, the formulation accounts for transitions across period boundaries:
+
+$$
+\begin{aligned}
+\text{minimize} \quad & \sum_{k=0}^{N-1} c_k(\mathbf{x}_k, \mathbf{u}_k, \phi_k) \\
+\text{where} \quad & \phi_k = (t + k) \mod T_p \\
+& c_k(\cdot, \cdot, \phi) = \begin{cases}
+c_{\text{day}}(\cdot, \cdot) & \text{if } \phi \in [6\text{am}, 6\text{pm}] \\
+c_{\text{night}}(\cdot, \cdot) & \text{otherwise}
+\end{cases}
+\end{aligned}
+$$
+
+The cost function changes based on the phase $\phi$ within the period. Constraints may similarly depend on the phase, reflecting different operational requirements at different times.
+
+### The MPC Algorithm
+
+The complete MPC procedure implements the receding horizon principle through repeated optimization:
+
+````{prf:algorithm} Model Predictive Control with Horizon Management
+:label: alg-mpc-complete
 
 **Input:**
-- Prediction horizon $ T $
-- Time step $ \Delta t $
-- Initial state $ \mathbf{x}(t_0) $
-- Cost functions $ c(\mathbf{x}(t), \mathbf{u}(t)) $ and $ c(\mathbf{x}(t_0 + T)) $
-- System dynamics $ \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) $
-- Constraints $ \mathbf{g}(\mathbf{x}(t), \mathbf{u}(t)) \leq \mathbf{0} $
-- Control limits $ \mathbf{u}_{\text{min}} \leq \mathbf{u}(t) \leq \mathbf{u}_{\text{max}} $
-
-**Output:**
-- Control input sequence $ \{\mathbf{u}(t)\} $ applied to the system
-
-**Initialization:**
-1. Set $ t \leftarrow t_0 $
-2. Measure initial state $ \mathbf{x}_{\text{current}} \leftarrow \mathbf{x}(t) $
+- Nominal prediction horizon $N$
+- Sampling period $\Delta t$
+- Task type: {infinite, finite with duration $t_f$, periodic with period $T_p$}
+- Cost functions and dynamics
+- Constraints
 
 **Procedure:**
 
-3. **Repeat** until the end of the control task:
+1. Initialize time $t \leftarrow 0$
+2. Measure initial state $\mathbf{x}_{\text{current}} \leftarrow \mathbf{x}(t)$
 
-   4. **Solve the following optimization problem:**
+3. **While** task continues:
 
-   $$
-   \begin{aligned}
-   \text{minimize} \quad & c(\mathbf{x}(t + T)) + \int_{t}^{t + T} c(\mathbf{x}(\tau), \mathbf{u}(\tau)) \, d\tau \\
-   \text{subject to} \quad & \dot{\mathbf{x}}(\tau) = \mathbf{f}(\mathbf{x}(\tau), \mathbf{u}(\tau)) \quad \forall \tau \in [t, t + T] \\
-   & \mathbf{g}(\mathbf{x}(\tau), \mathbf{u}(\tau)) \leq \mathbf{0} \quad \forall \tau \in [t, t + T] \\
-   & \mathbf{u}_{\text{min}} \leq \mathbf{u}(\tau) \leq \mathbf{u}_{\text{max}} \quad \forall \tau \in [t, t + T] \\
-   \text{given} \quad & \mathbf{x}(t) = \mathbf{x}_{\text{current}}
-   \end{aligned}
-   $$
-   - Obtain the optimal control trajectory $ \mathbf{u}^*(\tau) $ and the optimal state trajectory $ \mathbf{x}^*(\tau) $ for $ \tau \in [t, t + T] $.
+   4. **Determine effective horizon and costs:**
+      - If infinite task: 
+        - $N_{\text{eff}} \leftarrow N$
+        - Use terminal cost $V_f$ and constraint $\mathcal{X}_f$
+      - If finite task:
+        - $N_{\text{eff}} \leftarrow \min(N, \lfloor(t_f - t)/\Delta t\rfloor)$
+        - If $t + N_{\text{eff}}\Delta t = t_f$: use final cost $c_f$
+        - Otherwise: use approximation $c_T$
+      - If periodic task:
+        - $N_{\text{eff}} \leftarrow N$
+        - Adjust costs/constraints based on phase
 
-   5. **Apply the first control input:**
+   5. **Solve optimization:**
+      Minimize over $\mathbf{u}_{0:N_{\text{eff}}-1}$ subject to dynamics, constraints, and $\mathbf{x}_0 = \mathbf{x}_{\text{current}}$
 
-   $$
-   \mathbf{u}(t) \leftarrow \mathbf{u}^*(t)
-   $$
-   - Apply $ \mathbf{u}(t) $ to the system.
+   6. **Apply receding horizon control:**
+      - Extract $\mathbf{u}^*_0$ from solution
+      - Apply to system for duration $\Delta t$
+      - Measure new state
+      - Advance time: $t \leftarrow t + \Delta t$
 
-   6. **Advance the system state:**
-   - Let the system evolve under the control $ \mathbf{u}(t) $ according to the dynamics $ \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t)) $.
-   - Update $ t \leftarrow t + \Delta t $.
-
-   7. **Measure the new state:**
-
-   $$
-   \mathbf{x}_{\text{current}} \leftarrow \mathbf{x}(t)
-   $$
-
-8. **End Repeat**
-
+7. **End While**
 ````
+<!-- 
+### Computational Considerations
 
-## Example: Propofol Infusion Control 
+The receding horizon principle requires solving optimization problems in real-time, placing stringent demands on the solver. Each problem must be solved within the sampling period $\Delta t$. If the solver requires more time, the system operates without new control updates, potentially degrading performance or stability.
 
-This problem explores the control of propofol infusion in total intravenous anesthesia (TIVA). Our presentation follows the problem formulation developped by {cite:t}`Sawaguchi2008`. The primary objective is to maintain the desired level of unconsciousness while minimizing adverse reactions and ensuring quick recovery after surgery. 
+Fortunately, successive MPC problems differ only in their initial conditions and possibly their horizons. This similarity enables warm-starting strategies where the previous solution initializes the current optimization. The standard approach shifts the previous trajectory forward by one time step and appends a nominal control at the end. This initialization typically lies close to the new optimum, dramatically reducing iteration counts.
 
-The level of unconsciousness is measured by the Bispectral Index (BIS), which is obtained using an electroencephalography (EEG) device. The BIS ranges from $0$ (complete suppression of brain activity) to $100$ (fully awake), with the target range for general anesthesia typically between $40$ and $60$.
+The computational burden also depends on the horizon length $N$. Longer horizons provide better approximations to infinite-horizon problems and enable more sophisticated maneuvers, but increase problem size. The choice of $N$ balances solution quality against computational resources. For linear systems with quadratic costs, horizons of 10-50 steps often suffice. Nonlinear systems may require longer horizons to capture essential dynamics, though move-blocking and other parameterization techniques can reduce the effective number of decision variables. -->
 
-The goal is to design a control system that regulates the infusion rate of propofol to maintain the BIS within the target range. This can be formulated as an optimal control problem:
+### Connection to Dynamic Programming
+
+The receding horizon principle connects MPC to the dynamic programming framework covered in the next chapter. Each MPC optimization implicitly computes the optimal cost-to-go $V_N(\mathbf{x})$ from the current state over the horizon. This finite-horizon value function approximates the true infinite-horizon value function that dynamic programming seeks globally.
+
+MPC essentially performs one step of the Bellman equation:
 
 $$
-\begin{align*}
-\min_{u(t)} & \int_{0}^{T} \left( BIS(t) - BIS_{\text{target}} \right)^2 + \gamma u(t)^2 \, dt \\
-\text{subject to:} \\
-\dot{x}_1 &= -(k_{10} + k_{12} + k_{13})x_1 + k_{21}x_2 + k_{31}x_3 + \frac{u(t)}{V_1} \\
-\dot{x}_2 &= k_{12}x_1 - k_{21}x_2 \\
-\dot{x}_3 &= k_{13}x_1 - k_{31}x_3 \\
-\dot{x}_e &= k_{e0}(x_1 - x_e) \\
-BIS(t) &= E_0 - E_{\text{max}}\frac{x_e^\gamma}{x_e^\gamma + EC_{50}^\gamma}
-\end{align*}
+u^*_{\text{MPC}} = \arg\min_u \left[ c(\mathbf{x}, u) + V_{N-1}(f(\mathbf{x}, u)) \right]
 $$
 
-Where:
-- $u(t)$ is the propofol infusion rate (mg/kg/h)
-- $x_1$, $x_2$, and $x_3$ are the drug concentrations in different body compartments
-- $x_e$ is the effect-site concentration
-- $k_{ij}$ are rate constants for drug transfer between compartments
-- $BIS(t)$ is the Bispectral Index
-- $\gamma$ is a regularization parameter penalizing excessive drug use
-- $E_0$, $E_{\text{max}}$, $EC_{50}$, and $\gamma$ are parameters of the pharmacodynamic model
+where $V_{N-1}$ is computed locally through trajectory optimization rather than stored globally. The terminal cost $c_T$ in MPC serves exactly the role of a value function approximation for states at the horizon boundary. This perspective suggests hybrid approaches where approximate value functions from dynamic programming provide terminal costs for MPC, combining global optimality properties with local constraint handling capabilities.
 
-The specific dynamics model used in this problem is so-called "Pharmacokinetic-Pharmacodynamic Model" and consists of three main components:
-
-1. **Pharmacokinetic Model**, which describes how the drug distributes through the body over time. It's based on a three-compartment model:
-   - Central compartment (blood and well-perfused organs)
-   - Shallow peripheral compartment (muscle and other tissues)
-   - Deep peripheral compartment (fat)
-
-2. **Effect Site Model**, which represents the delay between drug concentration in the blood and its effect on the brain.
-
-3. **Pharmacodynamic Model** that relates the effect-site concentration to the observed BIS.
-
-The propofol infusion control problem presents several interesting challenges from a research perspective. 
-First, there is a delay in how fast the drug can reach a different compartments in addition to the BIS measurements which can lag. This could lead to instability if not properly addressed in the control design. 
-
-Furthermore, every patient is different from another. Hence, we cannot simply learn a single controller offline and hope that it will generalize to an entire patient population. We will account for this variability through Model Predictive Control (MPC) and dynamically adapt to the model mismatch through replanning. How a patient will react to a given dose of drug also varies and must be carefully controlled to avoid overdoses. This adds an additional layer of complexity since we have to incorporate safety constraints. Finally, the patient might suddenly change state, for example due to surgical stimuli, and the controller must be able to adapt quickly to compensate for the disturbance to the system.
-
-```{code-cell} ipython3
-:tags: [hide-input]
-:load: code/hypnosis_control_nmpc.py
-```
+This idea is what we would refer to as **bootstrapping** when working with temporal difference learning methods in reinforcement learning. In temporal difference methods like Q-learning or SARSA, bootstrapping occurs when we use our current estimate of the value function to update itself—essentially "pulling ourselves up by our bootstraps." Similarly, MPC bootstraps by using its finite-horizon value function approximation (computed through optimization) to make decisions, even though this approximation may not be perfect. The terminal cost $c_T$ acts as a bootstrap target, providing a value estimate for states beyond the horizon that guides the optimization process. 
 
 
 ### Successive Linearization and Quadratic Approximations
@@ -217,6 +240,133 @@ Because the dynamics are now linear and the cost quadratic, this optimization pr
 
 At each MPC step, the controller updates its linearization around the new operating point, constructs the local QP, and solves it. The process repeats, with the linear model and quadratic cost refreshed at every reoptimization. Despite the approximation, this yields a closed-loop controller that inherits the fast computation of QPs while retaining the ability to track trajectories of the underlying nonlinear system.
 
+## Theoretical Guarantees
+
+The finite-horizon approximation in MPC brings a new challenge: the controller cannot see consequences beyond the horizon. Without proper design, this myopia can destabilize even simple systems. The solution is to carefully encode information about the infinite-horizon problem into the finite-horizon optimization through its terminal conditions.
+
+The standard MPC formulation augments the finite-horizon problem with three interconnected components:
+
+1. **Terminal cost** $V_f(\mathbf{x})$: Approximates the cost-to-go beyond the horizon
+2. **Terminal constraint set** $\mathcal{X}_f$: A region where we know how to stabilize the system
+3. **Terminal controller** $\kappa_f(\mathbf{x})$: A local stabilizing control law valid in $\mathcal{X}_f$
+
+These components must satisfy specific compatibility conditions to provide guarantees:
+
+````{prf:theorem} Recursive Feasibility and Asymptotic Stability
+:label: thm-mpc-stability
+
+Consider the MPC problem with terminal cost $V_f$, terminal set $\mathcal{X}_f$, and local controller $\kappa_f$. If:
+
+1. **Control invariance**: For all $\mathbf{x} \in \mathcal{X}_f$:
+   - $\mathbf{f}(\mathbf{x}, \kappa_f(\mathbf{x})) \in \mathcal{X}_f$ (the set is invariant)
+   - $\mathbf{g}(\mathbf{x}, \kappa_f(\mathbf{x})) \leq \mathbf{0}$ (constraints remain satisfied)
+
+2. **Lyapunov decrease**: For all $\mathbf{x} \in \mathcal{X}_f$:
+
+   $$V_f(\mathbf{f}(\mathbf{x}, \kappa_f(\mathbf{x}))) - V_f(\mathbf{x}) \leq -\ell(\mathbf{x}, \kappa_f(\mathbf{x}))$$
+
+   where $\ell$ is the stage cost
+
+Then the MPC controller achieves:
+- **Recursive feasibility**: If the problem is feasible at time $k$, it remains feasible at time $k+1$
+- **Asymptotic stability**: For regulation problems, the closed-loop system is asymptotically stable
+- **Monotonic cost decrease**: $V_N(\mathbf{x}_k)$ decreases along trajectories
+````
+
+To understand why the terminal ingredients guarantee recursive feasibility and asymptotic stability, it's helpful to think operationally: what does the controller actually *do* from one step to the next?
+
+Suppose at time $k$ the MPC optimizer finds an optimal sequence of controls $(\mathbf{u}_0^*, \ldots, \mathbf{u}_{N-1}^*)$ and states $(\mathbf{x}_0^*, \ldots, \mathbf{x}_N^*)$, where $\mathbf{x}_N^* \in \mathcal{X}_f$. The first control $\mathbf{u}_0^*$ is applied to the system, and the rest of the plan is discarded.
+
+At time $k+1$, we need a new plan starting from the new state $\mathbf{x}_{\text{new}} = \mathbf{x}_1^*$. A natural fallback is to **shift** the previous plan forward by one step and **append the terminal controller** $\boldsymbol{\kappa}_f$ at the end:
+
+* Controls: $(\mathbf{u}_1^*, \ldots, \mathbf{u}_{N-1}^*, \boldsymbol{\kappa}_f(\mathbf{x}_N^*))$
+* States: recomputed using the dynamics, now starting from $\mathbf{x}_1^*$
+
+This shifted plan may no longer be optimal, but the **Lyapunov decrease condition** ensures it's still good enough: it leads to a lower total cost, and all constraints are satisfied (because of the invariance of $\mathcal{X}_f$).
+
+
+The condition
+
+$$
+V_f(\mathbf{f}(\mathbf{x}, \kappa_f(\mathbf{x}))) - V_f(\mathbf{x}) \leq -\ell(\mathbf{x}, \kappa_f(\mathbf{x}))
+\quad \forall\, \mathbf{x} \in \mathcal{X}_f
+$$
+
+means the terminal cost $V_f$ must **decrease faster than the stage cost accumulates** when following $\boldsymbol{\kappa}_f$ inside $\mathcal{X}_f$. In other words, the controller is making progress not just in terms of state evolution, but also in terms of predicted cost-to-go.
+
+This gives us a kind of “one-step contractiveness”: if you're inside the terminal set and apply $\kappa_f$, the value drops. When used at the tail of the horizon, this ensures that even a **non-optimal shifted trajectory** leads to lower overall cost, which makes $V_N$ behave like a Lyapunov function.
+
+### Computing Terminal Ingredients in Practice
+
+For linear systems with quadratic costs, the terminal ingredients follow naturally from LQR theory:
+
+**Step 1: Solve the infinite-horizon LQR**
+
+$$\mathbf{P} = \mathbf{Q} + \mathbf{A}^T \mathbf{P} \mathbf{A} - \mathbf{A}^T \mathbf{P} \mathbf{B}(\mathbf{R} + \mathbf{B}^T \mathbf{P} \mathbf{B})^{-1} \mathbf{B}^T \mathbf{P} \mathbf{A}$$
+$$\mathbf{K} = -(\mathbf{R} + \mathbf{B}^T \mathbf{P} \mathbf{B})^{-1} \mathbf{B}^T \mathbf{P} \mathbf{A}$$
+
+**Step 2: Set terminal cost and controller**
+
+$$V_f(\mathbf{x}) = \mathbf{x}^T \mathbf{P} \mathbf{x}, \quad \kappa_f(\mathbf{x}) = \mathbf{K}\mathbf{x}$$
+
+**Step 3: Construct the terminal set** $\mathcal{X}_f$
+
+Three common approaches, in order of increasing conservatism but decreasing computation:
+
+1. **Maximal control-invariant set**: Compute the largest set where $\mathbf{u} = \mathbf{K}\mathbf{x}$ keeps the state feasible indefinitely. This involves fixed-point iterations on polytopes—powerful but computationally intensive.
+
+2. **Ellipsoidal approximation**: Find the largest $\alpha$ such that:
+
+   $$\mathcal{X}_f = \{\mathbf{x} : \mathbf{x}^T \mathbf{P} \mathbf{x} \leq \alpha\}$$
+
+   satisfies all constraints under $\mathbf{u} = \mathbf{K}\mathbf{x}$. This requires checking constraint satisfaction at the ellipsoid boundary.
+
+3. **Small safe set**: Start with a tiny $\alpha$ where constraints are clearly satisfied and grow it until hitting a constraint boundary. Conservative but always works.
+
+For nonlinear systems, linearize around the equilibrium to compute $\mathbf{P}$ and $\mathbf{K}$, then verify the decrease condition holds locally. The terminal set becomes a neighborhood where the linear approximation remains valid.
+
+### Performance Implications
+
+The terminal ingredients create a tradeoff between conservatism and computational burden:
+
+- **Larger** $\mathcal{X}_f$: Greater region of attraction, less restrictive on trajectories, but harder to compute
+- **Smaller** $\mathcal{X}_f$: May require longer horizons to reach from typical initial conditions
+- **Better** $V_f$: Tighter approximation of infinite-horizon cost, enabling shorter horizons
+
+As the horizon $N$ increases, the importance of terminal ingredients diminishes. With $N \to \infty$, any stabilizing terminal controller suffices. In practice:
+
+- **Short horizons (N = 10-20)**: Terminal ingredients crucial for stability
+- **Medium horizons (N = 20-50)**: Help performance but less critical
+- **Long horizons (N > 50)**: Often omitted entirely, relying on the horizon for stability
+
+### Suboptimality Bounds
+
+The finite-horizon MPC value $V_N(\mathbf{x})$ upper-bounds but approximates the true infinite-horizon value $V_\infty(\mathbf{x})$. With proper terminal ingredients:
+
+$$V_\infty(\mathbf{x}) \leq V_N(\mathbf{x}) \leq V_\infty(\mathbf{x}) + \varepsilon_N$$
+
+where $\varepsilon_N \to 0$ as $N \to \infty$. For linear-quadratic problems with the LQR terminal cost, the convergence is exponential in $N$. This means surprisingly short horizons (N = 10-30) often achieve near-optimal performance.
+<!-- 
+### When Terminal Constraints Cause Infeasibility
+
+The terminal constraint $\mathbf{x}_N \in \mathcal{X}_f$ can make the optimization infeasible, especially for:
+- Large disturbances pushing the state far from equilibrium
+- Short horizons that cannot reach $\mathcal{X}_f$ in time
+- Conservative terminal sets that are unnecessarily small
+
+Common remedies:
+
+1. **Soft terminal constraints**: Replace hard constraint with penalty
+   $$\text{minimize} \quad V_f(\mathbf{x}_N) + \rho \cdot d(\mathbf{x}_N, \mathcal{X}_f) + \ldots$$
+   where $d(\cdot, \mathcal{X}_f)$ measures distance to the set
+
+2. **Adaptive horizons**: Extend horizon when far from $\mathcal{X}_f$
+
+3. **Backup strategy**: If infeasible, switch to unconstrained MPC or a fallback controller, then re-enable terminal constraints once feasible
+
+The choice depends on whether theoretical guarantees or practical performance takes priority. Many industrial implementations omit terminal constraints entirely, relying on well-tuned horizons and costs to ensure stability.
+ -->
+<!-- 
 # The Landscape of MPC Variants
 
 Once the basic idea of receding horizon control is clear, it is helpful to see how the same backbone accommodates many variations. In every case, we transcribe the continuous problem to a nonlinear program of the form
@@ -267,10 +417,10 @@ For large networks of subsystems, **distributed MPC** coordinates several local 
 
 Finally, in settings where models are uncertain or slowly drifting, one finds **adaptive or learning-based MPC**, which uses parameter estimation or machine learning to update the model \$\mathbf{F}\_k(\cdot;\theta\_t)\$ and possibly the cost function. The optimization step remains the same, but the model evolves as more data are collected.
 
-These formulations illustrate that MPC is less a single algorithm than a recipe. The scaffolding is always the same: finite horizon prediction, state and input constraints, and receding horizon application of the control. What changes from one variant to another is the cost function, the way uncertainty is treated, the presence of discrete decisions, or the architecture across multiple agents.
+These formulations illustrate that MPC is less a single algorithm than a recipe. The scaffolding is always the same: finite horizon prediction, state and input constraints, and receding horizon application of the control. What changes from one variant to another is the cost function, the way uncertainty is treated, the presence of discrete decisions, or the architecture across multiple agents. -->
 
 
-## The Landscape of MPC Variants
+# The Landscape of MPC Variants
 
 Once the basic idea of receding-horizon control is clear, it is helpful to see how the same backbone accommodates many variations. In every case, we transcribe the continuous-time optimal control problem into a nonlinear program of the form
 
@@ -287,7 +437,7 @@ $$
 
 The components in this NLP come from discretizing the continuous-time problem with a fixed horizon $[t, t+T]$ and step size $\Delta t$. The stage weights $w_k$ and discrete dynamics $\mathbf{F}_k$ are determined by the choice of quadrature and integration scheme. With this blueprint in place, the rest is a matter of interpretation: how we define the cost, how we handle uncertainty, how we treat constraints, and what structure we exploit.
 
-### Tracking MPC
+## Tracking MPC
 
 The most common setup is reference tracking. Here, we are given time-varying target trajectories $(\mathbf{x}_k^{\text{ref}}, \mathbf{u}_k^{\text{ref}})$, and the controller’s job is to keep the system close to these. The cost is typically quadratic:
 
@@ -300,7 +450,7 @@ $$
 
 When dynamics are linear and constraints are polyhedral, this yields a convex quadratic program at each time step.
 
-### Regulatory MPC
+## Regulatory MPC
 
 In regulation tasks, we aim to bring the system back to an equilibrium point $(\mathbf{x}^e, \mathbf{u}^e)$, typically in the presence of disturbances. This is simply tracking MPC with constant references:
 
@@ -314,7 +464,7 @@ $$
 To guarantee stability, it is common to include a terminal constraint $\mathbf{x}_N \in \mathcal{X}_f$, where $\mathcal{X}_f$ is a control-invariant set under a known feedback law.
 
 
-### Economic MPC
+## Economic MPC
 
 Not all systems operate around a reference. Sometimes the goal is to optimize a true economic objective (eg. energy cost, revenue, efficiency) directly. This gives rise to **economic MPC**, where the cost functions reflect real operational performance:
 
@@ -325,7 +475,7 @@ $$
 
 There is no reference trajectory here. The optimal behavior emerges from the cost itself. In this setting, standard stability arguments no longer apply automatically, and one must be careful to add terminal penalties or constraints that ensure the closed-loop system remains well-behaved.
 
-### Robust MPC
+## Robust MPC
 
 Some systems are exposed to external disturbances or small errors in the model. In those cases, we want the controller to make decisions that will still work no matter what happens, as long as the disturbances stay within some known bounds. This is the idea behind **robust MPC**.
 
@@ -342,7 +492,7 @@ Because we know the worst-case size of the disturbance, we can estimate how far 
 The main benefit is that we can handle uncertainty without solving a complicated worst-case optimization at every time step. All the uncertainty is accounted for in the design of the feedback $\mathbf{K}$ and the tightened constraints.
 
 
-### Stochastic MPC
+## Stochastic MPC
 
 If disturbances are random rather than adversarial, a natural goal is to optimize expected cost while enforcing constraints probabilistically. This gives rise to **stochastic MPC**, in which:
 
@@ -363,7 +513,7 @@ Despite appearances, this is not dynamic programming. There is no value function
 
 Risk constraints are typically enforced across all scenarios or encoded using risk measures like CVaR. For example, one might penalize violations that occur in the worst $(1 - \alpha)\%$ of samples, while still optimizing expected performance overall.
 
-### Hybrid and Mixed-Integer MPC
+## Hybrid and Mixed-Integer MPC
 
 When systems involve discrete switches — such as on/off valves, mode selection, or combinatorial logic — the MPC problem must include integer or binary variables. These show up in constraints like
 
@@ -373,7 +523,7 @@ $$
 
 along with mode-dependent dynamics and costs. The resulting formulation is a **mixed-integer nonlinear program** (MINLP). The receding-horizon idea is the same, but each solve is more expensive due to the combinatorial nature of the decision space.
 
-### Distributed and Decentralized MPC
+## Distributed and Decentralized MPC
 
 Large-scale systems often consist of interacting subsystems. Distributed MPC decomposes the global NLP into smaller ones that run in parallel, with coordination constraints enforcing consistency across shared variables:
 
@@ -384,7 +534,7 @@ $$
 Each subsystem solves a local problem over its own state and input variables, then exchanges information with neighbors. Coordination can be done via primal–dual methods, ADMM, or consensus schemes, but each local block looks like a standard MPC problem.
 
 
-### Adaptive and Learning-Based MPC
+## Adaptive and Learning-Based MPC
 
 In practice, we may not know the true model $\mathbf{F}_k$ or cost function $c$ precisely. In **adaptive MPC**, these are updated online from data:
 
@@ -396,7 +546,210 @@ $$
 The parameters $\boldsymbol{\theta}_t$ and $\boldsymbol{\phi}_t$ are learned in real time. When combined with policy distillation, value approximation, or trajectory imitation, this leads to overlaps with reinforcement learning where the MPC solutions act as supervision for a reactive policy.
 
 
-## Computational Efficiency via Parametric Programming
+# Robustness in Real-Time MPC
+
+The trajectory optimization methods we have studied assume perfect models and deterministic dynamics. In practice, however, MPC controllers must operate in environments where models are approximate, disturbances are unpredictable, and computational resources are limited. The mathematical elegance of optimal control must always yield to the engineering reality of robust operation as **perfect optimality is less important than reliable operation**. This philosophy permeates industrial MPC applications. A controller that achieves 95% performance 100% of the time is superior to one that achieves 100% performance 95% of the time and fails catastrophically the remaining 5%. Airlines accept suboptimal fuel consumption over missed approaches, power grids tolerate efficiency losses to prevent blackouts, and chemical plants sacrifice yield for safety. By designing for failure, we want to to create MPC systems that degrade gracefully rather than fail catastrophically, maintaining safety and stability even when the impossible is asked of them.
+
+
+## Example: Wind Farm Yield Optimization
+Consider a wind farm where MPC controllers coordinate individual turbines to maximize overall power production while minimizing wake interference. Each turbine can adjust both its thrust coefficient (through blade pitch) and yaw angle to redirect its wake away from downstream turbines. At time $t_k$, the MPC controller solves the optimization problem:
+
+$$
+\begin{aligned}
+\min_{\mathbf{u}_{0:N-1}} \quad & \sum_{i=0}^{N-1} \|\mathbf{x}_i - \mathbf{x}_i^{\text{ref}}\|_Q^2 + \|\mathbf{u}_i\|_R^2 \\
+\text{s.t.} \quad & \mathbf{x}_{i+1} = \mathbf{f}(\mathbf{x}_i, \mathbf{u}_i) \\
+& \mathbf{x}_i \in \mathcal{X}_{\text{safe}} \\
+& \|\mathbf{u}_i\|_\infty \leq u_{\max} \\
+& \mathbf{x}_0 = \mathbf{x}_{\text{current}}
+\end{aligned}
+$$
+
+Now suppose an unexpected wind direction change occurs, shifting the incoming wind vector by 30 degrees. The current state $\mathbf{x}_{\text{current}}$ reflects wake patterns that no longer align with the new wind direction, and the optimizer discovers that no feasible trajectory exists that can redirect all wakes appropriately within the physical limits of yaw rate and thrust adjustment. The solver reports infeasibility.
+
+This scenario reveals the fundamental challenge of real-time MPC: **constraint incompatibility**. When disturbances push the system into states from which recovery appears impossible, or when reference trajectories demand physically impossible maneuvers, the intersection of all constraint sets becomes empty. Model mismatch compounds this problem as prediction errors accumulate over the horizon.
+
+Even when feasible solutions exist, **computational constraints** can prevent their discovery. A control loop running at 100 Hz allows only 10 milliseconds per iteration. If the solver requires 15 milliseconds to converge, we face an impossible choice: delay the control action and risk destabilizing the system, or apply an unconverged iterate that may violate critical constraints.
+
+A third failure mode involves **numerical instabilities**—ill-conditioned matrices, rank deficiency, or division by zero in the linear algebra routines. These failures are particularly problematic because they occur sporadically, triggered by specific state configurations that create near-singular conditions in the optimization problem.
+
+## Softening Constraints Through Slack Variables
+
+The first approach to handling infeasibility recognizes that not all constraints carry equal importance. A chemical reactor's temperature must never exceed the runaway threshold—this is a hard constraint that cannot be violated. However, maintaining temperature within an optimal efficiency band is merely desirable—this can be treated as a soft constraint that we prefer to satisfy but can relax when necessary.
+
+This hierarchy motivates reformulating the optimization problem using **slack variables**:
+
+$$
+\begin{aligned}
+\min_{\mathbf{u}, \boldsymbol{\epsilon}} \quad & \sum_{i=0}^{N-1} \|\mathbf{x}_i - \mathbf{x}_i^{\text{ref}}\|_Q^2 + \|\mathbf{u}_i\|_R^2 + \boldsymbol{\rho}^T \boldsymbol{\epsilon}_i \\
+\text{s.t.} \quad & \mathbf{x}_{i+1} = \mathbf{f}(\mathbf{x}_i, \mathbf{u}_i) \\
+& \mathbf{g}_{\text{hard}}(\mathbf{x}_i, \mathbf{u}_i) \leq \mathbf{0} \\
+& \mathbf{g}_{\text{soft}}(\mathbf{x}_i, \mathbf{u}_i) \leq \boldsymbol{\epsilon}_i \\
+& \boldsymbol{\epsilon}_i \geq \mathbf{0}
+\end{aligned}
+$$
+
+The penalty weights $\boldsymbol{\rho}$ encode our priorities. Safety constraints might use $\rho_j = 10^6$, while comfort constraints use $\rho_j = 1$. The key insight is that this reformulated problem is always feasible as long as the hard constraints alone admit a solution—we can always make the slack variables $\boldsymbol{\epsilon}$ sufficiently large to satisfy the soft constraints.
+
+Rather than treating constraints as binary hard/soft categories, we can establish a **constraint hierarchy** that enables graceful degradation:
+
+$$
+\begin{aligned}
+\text{Safety:} \quad & T_{\text{reactor}} \leq T_{\text{runaway}} - 10 \quad & \rho = \infty \text{ (hard)} \\
+\text{Equipment:} \quad & 0 \leq u_{\text{valve}} \leq 100 \quad & \rho = 10^4 \\
+\text{Efficiency:} \quad & T_{\text{optimal}} - 5 \leq T \leq T_{\text{optimal}} + 5 \quad & \rho = 10^2 \\
+\text{Comfort:} \quad & |T - T_{\text{setpoint}}| \leq 1 \quad & \rho = 1
+\end{aligned}
+$$
+
+As conditions deteriorate, the controller abandons objectives in reverse priority order, maintaining safety even when optimality becomes impossible.
+
+## Feasibility Restoration
+
+When even soft constraints prove insufficient—perhaps due to catastrophic solver failure or corrupted problem structure—we need **feasibility restoration** that finds any feasible point regardless of optimality:
+
+$$
+\begin{aligned}
+\min_{\mathbf{u}, \mathbf{s}} \quad & \|\mathbf{s}\|_1 \\
+\text{s.t.} \quad & \mathbf{x}_{i+1} = \mathbf{f}(\mathbf{x}_i, \mathbf{u}_i) + \mathbf{s}_i \\
+& \mathbf{x}_{\min} - \mathbf{s}_{x,i} \leq \mathbf{x}_i \leq \mathbf{x}_{\max} + \mathbf{s}_{x,i} \\
+& \mathbf{u}_{\min} \leq \mathbf{u}_i \leq \mathbf{u}_{\max} \\
+& \mathbf{s} \geq \mathbf{0}
+\end{aligned}
+$$
+
+This formulation temporarily relaxes even the dynamics constraints, finding the "least infeasible" solution. It answers the question: if we must violate something, what is the minimal violation required? Once feasibility is restored, we can warm-start the original problem from this point.
+
+## Reference Governors
+
+Rather than reacting to infeasibility after it occurs, we can prevent it by filtering references through a **reference governor**. Consider an aircraft following waypoints. Instead of passing waypoints directly to the MPC, the governor asks: what is the closest approachable reference from our current state?
+
+$$
+\mathbf{r}_{\text{filtered}} = \arg\max_{\kappa \in [0,1]} \kappa \quad \text{s.t. MPC}(\mathbf{x}_{\text{current}}, \kappa \mathbf{r}_{\text{desired}} + (1-\kappa)\mathbf{x}_{\text{current}}) \text{ is feasible}
+$$
+
+The governor performs a line search between the current state (always feasible since staying put requires no action) and the desired reference (potentially infeasible). This guarantees the MPC always receives feasible problems while making maximum progress toward the goal.
+
+For computational efficiency, we can pre-compute the **maximal output admissible set**:
+
+$$
+\mathcal{O}_\infty = \{\mathbf{r} : \exists \text{ feasible trajectory from } \mathbf{x} \text{ to } \mathbf{r} \text{ respecting all constraints}\}
+$$
+
+Online, the governor simply projects the desired reference onto $\mathcal{O}_\infty$.
+
+## Backup Controllers
+
+When MPC fails entirely—due to solver crashes, timeouts, or numerical failures—we need backup controllers that require minimal computation while guaranteeing stability and keeping the system away from dangerous regions.
+
+The standard approach uses a pre-computed **local LQR controller** around the equilibrium:
+
+$$
+\mathbf{K}_{\text{LQR}}, \mathbf{P} = \text{LQR}(\mathbf{A}, \mathbf{B}, \mathbf{Q}, \mathbf{R})
+$$
+
+where $(\mathbf{A}, \mathbf{B})$ are the linearized dynamics at equilibrium. When MPC fails:
+
+$$
+\mathbf{u}_{\text{backup}} = \begin{cases}
+\mathbf{K}_{\text{LQR}}(\mathbf{x} - \mathbf{x}_{\text{eq}}) & \text{if } \mathbf{x} \in \mathcal{X}_{\text{LQR}} \\
+\mathbf{u}_{\text{safe}} & \text{otherwise}
+\end{cases}
+$$
+
+The region $\mathcal{X}_{\text{LQR}} = \{\mathbf{x} : (\mathbf{x} - \mathbf{x}_{\text{eq}})^T \mathbf{P} (\mathbf{x} - \mathbf{x}_{\text{eq}}) \leq \alpha\}$ represents the largest invariant set where LQR is guaranteed to work.
+
+## Cascade Architectures
+
+Production MPC systems rarely rely on a single solver. Instead, they implement a **cascade of increasingly conservative controllers** that trade optimality for reliability:
+
+```python
+def get_control(self, x, time_budget):
+    """
+    Multi-level cascade for robust real-time control
+    """
+    time_remaining = time_budget
+    
+    # Level 1: Full nonlinear MPC
+    if time_remaining > 5e-3:  # 5ms minimum
+        try:
+            u, solve_time = self.solve_nmpc(x, time_remaining)
+            if converged:
+                return u
+        except:
+            pass
+        time_remaining -= solve_time
+    
+    # Level 2: Simplified linear MPC
+    if time_remaining > 1e-3:  # 1ms minimum
+        try:
+            # Linearize around current state
+            A, B = self.linearize_dynamics(x)
+            u, solve_time = self.solve_lmpc(x, A, B, time_remaining)
+            return u
+        except:
+            pass
+        time_remaining -= solve_time
+    
+    # Level 3: Explicit MPC lookup
+    if time_remaining > 1e-4:  # 0.1ms minimum
+        region = self.find_critical_region(x)
+        if region is not None:
+            return self.explicit_control_law[region](x)
+    
+    # Level 4: LQR backup
+    if self.in_lqr_region(x):
+        return self.K_lqr @ (x - self.x_eq)
+    
+    # Level 5: Emergency safe mode
+    return self.emergency_stop(x)
+```
+
+Each level trades optimality for reliability: Level 1 provides optimal but computationally expensive control, Level 2 offers suboptimal but faster solutions, Level 3 provides pre-computed instant evaluation, Level 4 ensures stabilizing control without tracking, and Level 5 implements safe shutdown.
+
+## Maintaining Solution Continuity
+
+Even when using backup controllers, we can maintain solution continuity through **persistent warm-starting**:
+
+$$
+\begin{aligned}
+\mathbf{z}_{\text{warm}}^{(k+1)} = \begin{cases}
+\text{shift}(\mathbf{z}^{(k)}) & \text{if MPC succeeded at time } k \\
+\text{lift}(\mathbf{u}_{\text{backup}}^{(k)}) & \text{if backup controller used} \\
+\text{propagate}(\mathbf{z}_{\text{warm}}^{(k)}) & \text{if maintaining virtual solution}
+\end{cases}
+\end{aligned}
+$$
+
+The key insight is that even when MPC fails, we maintain a "virtual" trajectory by propagating the previous solution forward. This keeps the warm-start relevant for when MPC recovers.
+
+## Example: Chemical Reactor Control Under Failure
+
+Consider a continuous stirred tank reactor (CSTR) where an exothermic reaction must be controlled:
+
+$$
+\begin{aligned}
+\dot{C}_A &= \frac{q}{V}(C_{A,in} - C_A) - k_0 e^{-E/RT} C_A \\
+\dot{T} &= \frac{q}{V}(T_{in} - T) + \frac{\Delta H}{\rho c_p} k_0 e^{-E/RT} C_A - \frac{UA}{\rho c_p V}(T - T_c)
+\end{aligned}
+$$
+
+The MPC must maintain temperature below the runaway threshold $T_{\text{runaway}}$ while maximizing conversion. Under normal operation, it solves:
+
+$$
+\begin{aligned}
+\min \quad & -C_A(t_f) + \int_0^{t_f} \|T - T_{\text{optimal}}\|^2 dt \\
+\text{s.t.} \quad & T \leq T_{\text{runaway}} - \Delta T_{\text{safety}} \\
+& q_{\min} \leq q \leq q_{\max}
+\end{aligned}
+$$
+
+When the cooling system partially fails, $T_c$ suddenly increases. The MPC cannot maintain $T_{\text{optimal}}$ within safety limits. The cascade activates: soft constraints allow $T$ to exceed $T_{\text{optimal}}$ with penalty, the reference governor reduces the production target $C_{A,\text{target}}$, and if still infeasible, the backup controller switches to maximum cooling $q = q_{\max}$. If temperature approaches runaway, emergency shutdown stops the feed with $q = 0$.
+
+This cascade ensures the reactor never reaches dangerous conditions even under multiple simultaneous failures.
+
+
+
+# Computational Efficiency via Parametric Programming
 
 Real-time model predictive control places strict limits on computation. In applications such as adaptive optics, the controller must run at kilohertz rates. A sampling frequency of 1000 Hz allows only one millisecond per step to compute and apply a control input. This makes efficiency a first-class concern.
 
@@ -465,9 +818,6 @@ $$
 each active set again leads to an affine optimizer, with piecewise-affine global structure and a piecewise-quadratic value function.
 
 Parametric programming focuses on the structure of the map $\boldsymbol{\theta} \mapsto \mathbf{x}^\star(\boldsymbol{\theta})$, and the regions over which this map takes a simple form.
-
-
-Great spot to zoom in. Here’s a tight, pedagogical add-on you can drop right after your KKT display. It states the implicit function theorem (IFT) in the minimal form you need, then applies it to the KKT system and gives the sensitivity formula you’ll use later.
 
 ### A quick reminder: the implicit function theorem
 
@@ -758,7 +1108,58 @@ Once trained, the network acts as a surrogate for the optimizer, providing insta
 
 
 
-### Deployment Patterns
+
+## Example: Propofol Infusion Control 
+
+This problem explores the control of propofol infusion in total intravenous anesthesia (TIVA). Our presentation follows the problem formulation developped by {cite:t}`Sawaguchi2008`. The primary objective is to maintain the desired level of unconsciousness while minimizing adverse reactions and ensuring quick recovery after surgery. 
+
+The level of unconsciousness is measured by the Bispectral Index (BIS), which is obtained using an electroencephalography (EEG) device. The BIS ranges from $0$ (complete suppression of brain activity) to $100$ (fully awake), with the target range for general anesthesia typically between $40$ and $60$.
+
+The goal is to design a control system that regulates the infusion rate of propofol to maintain the BIS within the target range. This can be formulated as an optimal control problem:
+
+$$
+\begin{align*}
+\min_{u(t)} & \int_{0}^{T} \left( BIS(t) - BIS_{\text{target}} \right)^2 + \gamma u(t)^2 \, dt \\
+\text{subject to:} \\
+\dot{x}_1 &= -(k_{10} + k_{12} + k_{13})x_1 + k_{21}x_2 + k_{31}x_3 + \frac{u(t)}{V_1} \\
+\dot{x}_2 &= k_{12}x_1 - k_{21}x_2 \\
+\dot{x}_3 &= k_{13}x_1 - k_{31}x_3 \\
+\dot{x}_e &= k_{e0}(x_1 - x_e) \\
+BIS(t) &= E_0 - E_{\text{max}}\frac{x_e^\gamma}{x_e^\gamma + EC_{50}^\gamma}
+\end{align*}
+$$
+
+Where:
+- $u(t)$ is the propofol infusion rate (mg/kg/h)
+- $x_1$, $x_2$, and $x_3$ are the drug concentrations in different body compartments
+- $x_e$ is the effect-site concentration
+- $k_{ij}$ are rate constants for drug transfer between compartments
+- $BIS(t)$ is the Bispectral Index
+- $\gamma$ is a regularization parameter penalizing excessive drug use
+- $E_0$, $E_{\text{max}}$, $EC_{50}$, and $\gamma$ are parameters of the pharmacodynamic model
+
+The specific dynamics model used in this problem is so-called "Pharmacokinetic-Pharmacodynamic Model" and consists of three main components:
+
+1. **Pharmacokinetic Model**, which describes how the drug distributes through the body over time. It's based on a three-compartment model:
+   - Central compartment (blood and well-perfused organs)
+   - Shallow peripheral compartment (muscle and other tissues)
+   - Deep peripheral compartment (fat)
+
+2. **Effect Site Model**, which represents the delay between drug concentration in the blood and its effect on the brain.
+
+3. **Pharmacodynamic Model** that relates the effect-site concentration to the observed BIS.
+
+The propofol infusion control problem presents several interesting challenges from a research perspective. 
+First, there is a delay in how fast the drug can reach a different compartments in addition to the BIS measurements which can lag. This could lead to instability if not properly addressed in the control design. 
+
+Furthermore, every patient is different from another. Hence, we cannot simply learn a single controller offline and hope that it will generalize to an entire patient population. We will account for this variability through Model Predictive Control (MPC) and dynamically adapt to the model mismatch through replanning. How a patient will react to a given dose of drug also varies and must be carefully controlled to avoid overdoses. This adds an additional layer of complexity since we have to incorporate safety constraints. Finally, the patient might suddenly change state, for example due to surgical stimuli, and the controller must be able to adapt quickly to compensate for the disturbance to the system.
+
+```{code-cell} ipython3
+:tags: [hide-input]
+:load: code/hypnosis_control_nmpc.py
+```
+
+<!-- ### Deployment Patterns
 
 There are several ways to use an amortized controller once it has been trained. The simplest option is **direct amortization**, where the control input is taken to be $u = \hat{\pi}_\phi(\boldsymbol{\theta})$. In this case, the neural network provides the control action directly, with no optimization performed during deployment.
 
@@ -772,10 +1173,11 @@ $$
 
 Gradients are propagated through this correction using implicit differentiation, allowing the network to be trained end-to-end while retaining constraint satisfaction. This hybrid keeps the fast evaluation of a learned map while preserving the structure of MPC.
 
-A third option is **amortized warm-starting**, where the neural network provides an initialization for one or two Newton or SQP iterations of the underlying NMPC problem. In this setting, the learned map delivers an excellent starting point, so the optimizer converges quickly and the cost of re-solving at each time step is greatly reduced.
+A third option is **amortized warm-starting**, where the neural network provides an initialization for one or two Newton or SQP iterations of the underlying NMPC problem. In this setting, the learned map delivers an excellent starting point, so the optimizer converges quickly and the cost of re-solving at each time step is greatly reduced. -->
 
 
-## Demo: Batch Bioreactor MPC with do-mpc
+
+<!-- ## Demo: Batch Bioreactor MPC with do-mpc
 
 We illustrate nonlinear MPC on a fed-batch bioreactor. The process has four states: biomass concentration \(X_s\), substrate \(S_s\), product \(P_s\), and liquid volume \(V_s\). The manipulated feed flow \(u_{\text{inp}}\) augments volume and changes concentrations. The dynamics are
 
@@ -810,3 +1212,12 @@ The cell below runs the closed-loop simulation and plots the states and input. T
 :tags: [hide-input]
 :load: _static/do_mpc_batch_bioreactor.py
 ```
+
+### Interactive Animation
+
+The following cell creates an interactive animation of the batch bioreactor control process, showing the MPC predictions and the evolution of the system states in real-time. The visualization includes a tank representation with liquid level and biomass particles, along with time-series plots of all states and control inputs.
+
+```{code-cell} ipython3
+:tags: [hide-input]
+:load: _static/do_mpc_batch_bioreactor_animated.py
+``` -->
