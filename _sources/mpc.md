@@ -244,108 +244,127 @@ At each MPC step, the controller updates its linearization around the new operat
 
 The finite-horizon approximation in MPC brings a new challenge: the controller cannot see consequences beyond the horizon. Without proper design, this myopia can destabilize even simple systems. The solution is to carefully encode information about the infinite-horizon problem into the finite-horizon optimization through its terminal conditions.
 
-The standard MPC formulation augments the finite-horizon problem with three interconnected components:
+Before diving into the mathematics, we must clarify what "stability" means and which tasks these theoretical guarantees address, as the notion of stability varies significantly across different control objectives.
 
-1. **Terminal cost** $V_f(\mathbf{x})$: Approximates the cost-to-go beyond the horizon
-2. **Terminal constraint set** $\mathcal{X}_f$: A region where we know how to stabilize the system
-3. **Terminal controller** $\kappa_f(\mathbf{x})$: A local stabilizing control law valid in $\mathcal{X}_f$
+### Stability Notions Across Control Tasks
 
-These components must satisfy specific compatibility conditions to provide guarantees:
+The terminal conditions provide different types of guarantees depending on the control objective. For regulation problems, where the task is to drive the state to a fixed equilibrium $(\mathbf{x}_\mathrm{eq}, \mathbf{u}_\mathrm{eq})$ (often shifted to the origin), the stability guarantee is **asymptotic stability**: starting sufficiently close to the equilibrium, we have $\mathbf{x}_k \to \mathbf{x}_\mathrm{eq}$ while constraints remain satisfied throughout the trajectory (**recursive feasibility**). This requires the stage cost $\ell(\mathbf{x},\mathbf{u})$ to be positive definite in the deviation from equilibrium.
+
+When tracking a constant setpoint, the task becomes following a constant reference $(\mathbf{x}_\mathrm{ref},\mathbf{u}_\mathrm{ref})$ that solves the steady-state equations. This problem is handled by working in **error coordinates** $\tilde{\mathbf{x}}=\mathbf{x}-\mathbf{x}_\mathrm{ref}$ and $\tilde{\mathbf{u}}=\mathbf{u}-\mathbf{u}_\mathrm{ref}$, transforming the tracking problem into a regulation problem for the error system. The stability guarantee becomes asymptotic **tracking**, meaning $\tilde{\mathbf{x}}_k \to 0$, again with recursive feasibility.
+
+The terminal conditions we discuss below primarily address regulation and constant reference tracking. Time-varying tracking and economic MPC require additional techniques such as tube MPC and dissipativity theory.
+
+### The Standard MPC Formulation
+
+The standard MPC formulation augments the finite-horizon problem with three interconnected components. The **terminal cost** $V_f(\mathbf{x})$ approximates the cost-to-go beyond the horizon, providing a surrogate for the infinite-horizon tail that cannot be explicitly optimized. The **terminal constraint set** $\mathcal{X}_f$ defines a region where we have local knowledge of how to stabilize the system. Finally, the **terminal controller** $\kappa_f(\mathbf{x})$ provides a local stabilizing control law that remains valid within $\mathcal{X}_f$.
+
+These components must satisfy specific compatibility conditions to provide theoretical guarantees:
 
 ````{prf:theorem} Recursive Feasibility and Asymptotic Stability
 :label: thm-mpc-stability
 
-Consider the MPC problem with terminal cost $V_f$, terminal set $\mathcal{X}_f$, and local controller $\kappa_f$. If:
+Consider the MPC problem with terminal cost $V_f$, terminal set $\mathcal{X}_f$, and local controller $\kappa_f$. If the following conditions hold:
 
-1. **Control invariance**: For all $\mathbf{x} \in \mathcal{X}_f$:
-   - $\mathbf{f}(\mathbf{x}, \kappa_f(\mathbf{x})) \in \mathcal{X}_f$ (the set is invariant)
-   - $\mathbf{g}(\mathbf{x}, \kappa_f(\mathbf{x})) \leq \mathbf{0}$ (constraints remain satisfied)
+**Control invariance**: For all $\mathbf{x} \in \mathcal{X}_f$, we have $\mathbf{f}(\mathbf{x}, \kappa_f(\mathbf{x})) \in \mathcal{X}_f$ (the set is invariant) and $\mathbf{g}(\mathbf{x}, \kappa_f(\mathbf{x})) \leq \mathbf{0}$ (constraints remain satisfied).
 
-2. **Lyapunov decrease**: For all $\mathbf{x} \in \mathcal{X}_f$:
+**Lyapunov decrease**: For all $\mathbf{x} \in \mathcal{X}_f$:
 
    $$V_f(\mathbf{f}(\mathbf{x}, \kappa_f(\mathbf{x}))) - V_f(\mathbf{x}) \leq -\ell(\mathbf{x}, \kappa_f(\mathbf{x}))$$
 
-   where $\ell$ is the stage cost
+   where $\ell$ is the stage cost.
 
-Then the MPC controller achieves:
-- **Recursive feasibility**: If the problem is feasible at time $k$, it remains feasible at time $k+1$
-- **Asymptotic stability**: For regulation problems, the closed-loop system is asymptotically stable
-- **Monotonic cost decrease**: $V_N(\mathbf{x}_k)$ decreases along trajectories
+Then the MPC controller achieves recursive feasibility (if the problem is feasible at time $k$, it remains feasible at time $k+1$), asymptotic stability to the target equilibrium for regulation problems, and monotonic cost decrease along trajectories until the target is reached.
 ````
 
-To understand why the terminal ingredients guarantee recursive feasibility and asymptotic stability, it's helpful to think operationally: what does the controller actually *do* from one step to the next?
+### Why Terminal Conditions Work: The Operational View
 
-Suppose at time $k$ the MPC optimizer finds an optimal sequence of controls $(\mathbf{u}_0^*, \ldots, \mathbf{u}_{N-1}^*)$ and states $(\mathbf{x}_0^*, \ldots, \mathbf{x}_N^*)$, where $\mathbf{x}_N^* \in \mathcal{X}_f$. The first control $\mathbf{u}_0^*$ is applied to the system, and the rest of the plan is discarded.
+Understanding why the terminal conditions guarantee recursive feasibility and asymptotic stability requires examining what the controller actually does from one step to the next. Suppose at time $k$ the MPC optimizer finds an optimal sequence of controls $(\mathbf{u}_0^*, \ldots, \mathbf{u}_{N-1}^*)$ and states $(\mathbf{x}_0^*, \ldots, \mathbf{x}_N^*)$, where $\mathbf{x}_N^* \in \mathcal{X}_f$. The first control $\mathbf{u}_0^*$ is applied to the system, and the remaining plan is discarded according to the receding horizon principle.
 
-At time $k+1$, we need a new plan starting from the new state $\mathbf{x}_{\text{new}} = \mathbf{x}_1^*$. A natural fallback is to **shift** the previous plan forward by one step and **append the terminal controller** $\boldsymbol{\kappa}_f$ at the end:
+At time $k+1$, we need a new plan starting from the updated state $\mathbf{x}_{\text{new}} = \mathbf{x}_1^*$. A natural fallback strategy is to **shift** the previous plan forward by one step and **append the terminal controller** $\boldsymbol{\kappa}_f$ at the end, yielding controls $(\mathbf{u}_1^*, \ldots, \mathbf{u}_{N-1}^*, \boldsymbol{\kappa}_f(\mathbf{x}_N^*))$ with states recomputed from the dynamics starting from $\mathbf{x}_1^*$.
 
-* Controls: $(\mathbf{u}_1^*, \ldots, \mathbf{u}_{N-1}^*, \boldsymbol{\kappa}_f(\mathbf{x}_N^*))$
-* States: recomputed using the dynamics, now starting from $\mathbf{x}_1^*$
-
-This shifted plan may no longer be optimal, but the **Lyapunov decrease condition** ensures it's still good enough: it leads to a lower total cost, and all constraints are satisfied (because of the invariance of $\mathcal{X}_f$).
-
-
-The condition
+This shifted plan may no longer be optimal, but the **Lyapunov decrease condition** ensures it remains feasible and leads to progress. The condition
 
 $$
 V_f(\mathbf{f}(\mathbf{x}, \kappa_f(\mathbf{x}))) - V_f(\mathbf{x}) \leq -\ell(\mathbf{x}, \kappa_f(\mathbf{x}))
 \quad \forall\, \mathbf{x} \in \mathcal{X}_f
 $$
 
-means the terminal cost $V_f$ must **decrease faster than the stage cost accumulates** when following $\boldsymbol{\kappa}_f$ inside $\mathcal{X}_f$. In other words, the controller is making progress not just in terms of state evolution, but also in terms of predicted cost-to-go.
+requires that the terminal cost $V_f$ decrease faster than the stage cost accumulates when following $\boldsymbol{\kappa}_f$ inside $\mathcal{X}_f$. This means the controller makes progress not only in terms of state evolution but also in terms of predicted cost-to-go.
 
-This gives us a kind of “one-step contractiveness”: if you're inside the terminal set and apply $\kappa_f$, the value drops. When used at the tail of the horizon, this ensures that even a **non-optimal shifted trajectory** leads to lower overall cost, which makes $V_N$ behave like a Lyapunov function.
+This "one-step contractiveness" property ensures that applying $\kappa_f$ within the terminal set leads to value decrease. When used at the horizon's tail, this guarantees that even a non-optimal shifted trajectory results in lower overall cost, making $V_N$ behave like a Lyapunov function for regulation and tracking tasks.
 
-### Computing Terminal Ingredients in Practice
+### Computing Terminal Conditions in Practice
 
-For linear systems with quadratic costs, the terminal ingredients follow naturally from LQR theory:
-
-**Step 1: Solve the infinite-horizon LQR**
+For linear systems with quadratic costs, the terminal conditions follow naturally from LQR theory. The process begins by solving the infinite-horizon LQR problem:
 
 $$\mathbf{P} = \mathbf{Q} + \mathbf{A}^T \mathbf{P} \mathbf{A} - \mathbf{A}^T \mathbf{P} \mathbf{B}(\mathbf{R} + \mathbf{B}^T \mathbf{P} \mathbf{B})^{-1} \mathbf{B}^T \mathbf{P} \mathbf{A}$$
 $$\mathbf{K} = -(\mathbf{R} + \mathbf{B}^T \mathbf{P} \mathbf{B})^{-1} \mathbf{B}^T \mathbf{P} \mathbf{A}$$
 
-**Step 2: Set terminal cost and controller**
+The terminal cost and controller then follow directly: $V_f(\mathbf{x}) = \mathbf{x}^T \mathbf{P} \mathbf{x}$ and $\kappa_f(\mathbf{x}) = \mathbf{K}\mathbf{x}$. 
 
-$$V_f(\mathbf{x}) = \mathbf{x}^T \mathbf{P} \mathbf{x}, \quad \kappa_f(\mathbf{x}) = \mathbf{K}\mathbf{x}$$
+Constructing the terminal set $\mathcal{X}_f$ presents more options with varying computational complexity. The most powerful but computationally intensive approach computes the **maximal control-invariant set**: the largest set where $\mathbf{u} = \mathbf{K}\mathbf{x}$ keeps the state feasible indefinitely. This involves fixed-point iterations on polytopes. A more tractable alternative uses **ellipsoidal approximations**, finding the largest $\alpha$ such that $\mathcal{X}_f = \{\mathbf{x} : \mathbf{x}^T \mathbf{P} \mathbf{x} \leq \alpha\}$ satisfies all constraints under $\mathbf{u} = \mathbf{K}\mathbf{x}$. The most conservative but always feasible approach starts with a small safe set where constraints are clearly satisfied and grows it until hitting constraint boundaries.
 
-**Step 3: Construct the terminal set** $\mathcal{X}_f$
+For nonlinear systems, we linearize around the equilibrium to compute $\mathbf{P}$ and $\mathbf{K}$, then verify the decrease condition holds locally. The terminal set becomes a neighborhood where the linear approximation remains valid.
 
-Three common approaches, in order of increasing conservatism but decreasing computation:
 
-1. **Maximal control-invariant set**: Compute the largest set where $\mathbf{u} = \mathbf{K}\mathbf{x}$ keeps the state feasible indefinitely. This involves fixed-point iterations on polytopes—powerful but computationally intensive.
-
-2. **Ellipsoidal approximation**: Find the largest $\alpha$ such that:
-
-   $$\mathcal{X}_f = \{\mathbf{x} : \mathbf{x}^T \mathbf{P} \mathbf{x} \leq \alpha\}$$
-
-   satisfies all constraints under $\mathbf{u} = \mathbf{K}\mathbf{x}$. This requires checking constraint satisfaction at the ellipsoid boundary.
-
-3. **Small safe set**: Start with a tiny $\alpha$ where constraints are clearly satisfied and grow it until hitting a constraint boundary. Conservative but always works.
-
-For nonlinear systems, linearize around the equilibrium to compute $\mathbf{P}$ and $\mathbf{K}$, then verify the decrease condition holds locally. The terminal set becomes a neighborhood where the linear approximation remains valid.
 
 ### Performance Implications
 
-The terminal ingredients create a tradeoff between conservatism and computational burden:
+The terminal conditions create inherent tradeoffs between conservatism and computational burden. Larger terminal sets $\mathcal{X}_f$ provide greater regions of attraction and impose fewer restrictions on trajectories, but require more intensive computation. Smaller terminal sets may necessitate longer horizons to reach from typical initial conditions. Similarly, more accurate terminal costs $V_f$ provide tighter approximations of infinite-horizon costs, enabling effective control with shorter horizons.
 
-- **Larger** $\mathcal{X}_f$: Greater region of attraction, less restrictive on trajectories, but harder to compute
-- **Smaller** $\mathcal{X}_f$: May require longer horizons to reach from typical initial conditions
-- **Better** $V_f$: Tighter approximation of infinite-horizon cost, enabling shorter horizons
-
-As the horizon $N$ increases, the importance of terminal ingredients diminishes. With $N \to \infty$, any stabilizing terminal controller suffices. In practice:
-
-- **Short horizons (N = 10-20)**: Terminal ingredients crucial for stability
-- **Medium horizons (N = 20-50)**: Help performance but less critical
-- **Long horizons (N > 50)**: Often omitted entirely, relying on the horizon for stability
+The importance of terminal conditions diminishes as the horizon length increases. With $N \to \infty$, any stabilizing terminal controller suffices for stability. In practice, short horizons (N = 10-20) make terminal conditions crucial for stability, medium horizons (N = 20-50) benefit from but don't critically depend on them, while long horizons (N > 50) often omit them entirely, relying solely on horizon length for stability.
 
 ### Suboptimality Bounds
 
-The finite-horizon MPC value $V_N(\mathbf{x})$ upper-bounds but approximates the true infinite-horizon value $V_\infty(\mathbf{x})$. With proper terminal ingredients:
+The finite-horizon MPC value $V_N(\mathbf{x})$ provides an upper bound approximation of the true infinite-horizon value $V_\infty(\mathbf{x})$. Understanding how close this approximation can be reveals fundamental insights about the effectiveness of short-horizon MPC.
 
-$$V_\infty(\mathbf{x}) \leq V_N(\mathbf{x}) \leq V_\infty(\mathbf{x}) + \varepsilon_N$$
 
-where $\varepsilon_N \to 0$ as $N \to \infty$. For linear-quadratic problems with the LQR terminal cost, the convergence is exponential in $N$. This means surprisingly short horizons (N = 10-30) often achieve near-optimal performance.
+The upper bound $V_N(\mathbf{x}) \geq V_\infty(\mathbf{x})$ follows immediately from the fact that MPC considers fewer control choices. The infinite-horizon controller can choose any sequence $(\mathbf{u}_0, \mathbf{u}_1, \mathbf{u}_2, \ldots)$, while the $N$-horizon controller is restricted to sequences of the form $(\mathbf{u}_0, \ldots, \mathbf{u}_{N-1}, \kappa_f(\mathbf{x}_N), \kappa_f(\mathbf{x}_{N+1}), \ldots)$ where the tail follows the fixed terminal controller. Since the infinite-horizon problem optimizes over a larger feasible set, its optimal value cannot exceed that of the finite-horizon problem.
+
+#### Deriving the Approximation Error
+
+The interesting question is bounding the approximation error $\varepsilon_N = V_N(\mathbf{x}) - V_\infty(\mathbf{x})$. This error represents the cost of being forced to use $\kappa_f$ beyond the horizon rather than continuing to optimize.
+
+Let $(\mathbf{u}_0^*, \mathbf{u}_1^*, \ldots)$ denote the infinite-horizon optimal control sequence with corresponding state trajectory $(\mathbf{x}_0^*, \mathbf{x}_1^*, \ldots)$ where $\mathbf{x}_0^* = \mathbf{x}$. The infinite-horizon cost is:
+
+$$V_\infty(\mathbf{x}) = \sum_{k=0}^{\infty} \ell(\mathbf{x}_k^*, \mathbf{u}_k^*)$$
+
+Now consider what happens when we truncate this optimal sequence at horizon $N$ and continue with the terminal controller. The cost becomes:
+
+$$\tilde{V}_N(\mathbf{x}) = \sum_{k=0}^{N-1} \ell(\mathbf{x}_k^*, \mathbf{u}_k^*) + V_f(\mathbf{x}_N^*)$$
+
+where $V_f(\mathbf{x}_N^*)$ approximates the tail cost $\sum_{k=N}^{\infty} \ell(\mathbf{x}_k^*, \mathbf{u}_k^*)$.
+
+Since $V_N(\mathbf{x})$ is the optimal $N$-horizon cost (which may do better than this particular truncated sequence), we have $V_N(\mathbf{x}) \leq \tilde{V}_N(\mathbf{x})$. The approximation error therefore satisfies:
+
+$$\varepsilon_N \leq \tilde{V}_N(\mathbf{x}) - V_\infty(\mathbf{x}) = V_f(\mathbf{x}_N^*) - \sum_{k=N}^{\infty} \ell(\mathbf{x}_k^*, \mathbf{u}_k^*)$$
+
+This bound reveals that the approximation error depends on how well the terminal cost $V_f$ approximates the true tail cost along the infinite-horizon optimal trajectory.
+
+#### Exponential Convergence in the Linear-Quadratic Case
+
+For linear systems $\mathbf{x}_{k+1} = \mathbf{A}\mathbf{x}_k + \mathbf{B}\mathbf{u}_k$ with quadratic costs $\ell(\mathbf{x}, \mathbf{u}) = \mathbf{x}^T\mathbf{Q}\mathbf{x} + \mathbf{u}^T\mathbf{R}\mathbf{u}$, we can compute this error exactly. When the terminal cost is the LQR cost-to-go $V_f(\mathbf{x}) = \mathbf{x}^T\mathbf{P}\mathbf{x}$, the infinite-horizon optimal trajectory satisfies $\mathbf{x}_k^* = \mathbf{A}_{cl}^k \mathbf{x}$ where $\mathbf{A}_{cl} = \mathbf{A} + \mathbf{B}\mathbf{K}$ is the closed-loop matrix.
+
+The tail cost from time $N$ onward becomes:
+$\sum_{k=N}^{\infty} \ell(\mathbf{x}_k^*, \mathbf{u}_k^*) = \sum_{k=N}^{\infty} (\mathbf{x}_k^*)^T \mathbf{Q}_{cl} \mathbf{x}_k^* = (\mathbf{x}_N^*)^T \left(\sum_{k=0}^{\infty} (\mathbf{A}_{cl}^T)^k \mathbf{Q}_{cl} \mathbf{A}_{cl}^k\right) \mathbf{x}_N^*$
+
+where $\mathbf{Q}_{cl} = \mathbf{Q} + \mathbf{K}^T\mathbf{R}\mathbf{K}$ captures the quadratic cost under the optimal controller $\mathbf{u} = \mathbf{K}\mathbf{x}$.
+
+The infinite sum equals $\mathbf{P}$ by definition of the LQR solution, so the terminal cost $V_f(\mathbf{x}_N^*) = (\mathbf{x}_N^*)^T \mathbf{P} \mathbf{x}_N^*$ exactly matches the true tail cost when computed along the infinite-horizon optimal trajectory. This gives $\varepsilon_N = 0$ when following the infinite-horizon optimal path exactly!
+
+However, the finite-horizon optimizer typically finds a different trajectory for the first $N$ steps, leading to a different $\mathbf{x}_N$. The approximation error then depends on how much the finite-horizon trajectory deviates from the infinite-horizon one. Since both are optimal for their respective problems and the terminal cost provides the correct tail approximation, this deviation shrinks exponentially with horizon length at a rate determined by the eigenvalues of $\mathbf{A}_{cl}$.
+
+Specifically, if $\rho(\mathbf{A}_{cl})$ denotes the spectral radius of the closed-loop matrix, then:
+
+$\varepsilon_N = O(\rho(\mathbf{A}_{cl})^N)$
+
+For stable systems, $\rho(\mathbf{A}_{cl}) < 1$, yielding exponential convergence. This remarkable result explains why short horizons (N = 10-30) often achieve near-optimal performance: the approximation error decreases exponentially fast, making even modest horizons highly effective for regulation and constant reference tracking tasks.
+
+#### Implications for Horizon Selection
+
+These bounds provide practical guidance for choosing prediction horizons. The exponential convergence means that beyond a certain horizon length, further increases yield diminishing returns. The optimal horizon balances approximation accuracy against computational cost, with the break-even point typically occurring when $\rho(\mathbf{A}_{cl})^N$ drops below the desired tolerance level.
+
+For systems with slow dynamics (eigenvalues close to one), longer horizons may be necessary, while systems with fast dynamics achieve good approximations with surprisingly short horizons. This analysis also explains why terminal conditions become less critical as horizons increase: the exponential decay ensures that the tail beyond any reasonable horizon contributes negligibly to the total cost.
 <!-- 
 ### When Terminal Constraints Cause Infeasibility
 
@@ -574,7 +593,7 @@ A third failure mode involves **numerical instabilities**—ill-conditioned matr
 
 ## Softening Constraints Through Slack Variables
 
-The first approach to handling infeasibility recognizes that not all constraints carry equal importance. A chemical reactor's temperature must never exceed the runaway threshold—this is a hard constraint that cannot be violated. However, maintaining temperature within an optimal efficiency band is merely desirable—this can be treated as a soft constraint that we prefer to satisfy but can relax when necessary.
+The first approach to handling infeasibility recognizes that not all constraints carry equal importance. A chemical reactor's temperature must never exceed the runaway threshold: this is a hard constraint that cannot be violated. However, maintaining temperature within an optimal efficiency band is merely desirable. This can be treated as a soft constraint that we prefer to satisfy but can relax when necessary.
 
 This hierarchy motivates reformulating the optimization problem using **slack variables**:
 
@@ -588,7 +607,7 @@ $$
 \end{aligned}
 $$
 
-The penalty weights $\boldsymbol{\rho}$ encode our priorities. Safety constraints might use $\rho_j = 10^6$, while comfort constraints use $\rho_j = 1$. The key insight is that this reformulated problem is always feasible as long as the hard constraints alone admit a solution—we can always make the slack variables $\boldsymbol{\epsilon}$ sufficiently large to satisfy the soft constraints.
+The penalty weights $\boldsymbol{\rho}$ encode our priorities. Safety constraints might use $\rho_j = 10^6$, while comfort constraints use $\rho_j = 1$. This reformulated problem is always feasible as long as the hard constraints alone admit a solution. That is: we can always make the slack variables $\boldsymbol{\epsilon}$ sufficiently large to satisfy the soft constraints.
 
 Rather than treating constraints as binary hard/soft categories, we can establish a **constraint hierarchy** that enables graceful degradation:
 
@@ -605,7 +624,7 @@ As conditions deteriorate, the controller abandons objectives in reverse priorit
 
 ## Feasibility Restoration
 
-When even soft constraints prove insufficient—perhaps due to catastrophic solver failure or corrupted problem structure—we need **feasibility restoration** that finds any feasible point regardless of optimality:
+When even soft constraints prove insufficient (perhaps due to catastrophic solver failure or corrupted problem structure) we need **feasibility restoration** that finds any feasible point regardless of optimality:
 
 $$
 \begin{aligned}
@@ -639,7 +658,7 @@ Online, the governor simply projects the desired reference onto $\mathcal{O}_\in
 
 ## Backup Controllers
 
-When MPC fails entirely—due to solver crashes, timeouts, or numerical failures—we need backup controllers that require minimal computation while guaranteeing stability and keeping the system away from dangerous regions.
+When MPC fails entirely (due to solver crashes, timeouts, or numerical failures) we need backup controllers that require minimal computation while guaranteeing stability and keeping the system away from dangerous regions.
 
 The standard approach uses a pre-computed **local LQR controller** around the equilibrium:
 
@@ -706,8 +725,6 @@ def get_control(self, x, time_budget):
 
 Each level trades optimality for reliability: Level 1 provides optimal but computationally expensive control, Level 2 offers suboptimal but faster solutions, Level 3 provides pre-computed instant evaluation, Level 4 ensures stabilizing control without tracking, and Level 5 implements safe shutdown.
 
-## Maintaining Solution Continuity
-
 Even when using backup controllers, we can maintain solution continuity through **persistent warm-starting**:
 
 $$
@@ -720,7 +737,11 @@ $$
 \end{aligned}
 $$
 
-The key insight is that even when MPC fails, we maintain a "virtual" trajectory by propagating the previous solution forward. This keeps the warm-start relevant for when MPC recovers.
+The **shift** operation takes a successful MPC solution and moves it forward by one time step, appending a terminal action: $[\mathbf{u}_1^{(k)}, \mathbf{u}_2^{(k)}, \ldots, \mathbf{u}_{N-1}^{(k)}, \kappa_f(\mathbf{x}_N^{(k)})]$. This shifted sequence provides natural temporal continuity for the next optimization.
+
+When MPC fails and backup control is applied, the **lift** operation extends the single backup action $\mathbf{u}_{\text{backup}}^{(k)}$ into a full horizon-length sequence, either by repetition or by simulating the backup controller forward. This creates a reasonable warm-start guess from limited information.
+
+The **propagate** operation maintains a "virtual" trajectory by continuing to evolve the previous solution as if it were still being executed, even when the actual system follows backup control. This forward simulation keeps the warm-start temporally aligned and relevant for when MPC recovers.
 
 ## Example: Chemical Reactor Control Under Failure
 
@@ -745,7 +766,6 @@ $$
 
 When the cooling system partially fails, $T_c$ suddenly increases. The MPC cannot maintain $T_{\text{optimal}}$ within safety limits. The cascade activates: soft constraints allow $T$ to exceed $T_{\text{optimal}}$ with penalty, the reference governor reduces the production target $C_{A,\text{target}}$, and if still infeasible, the backup controller switches to maximum cooling $q = q_{\max}$. If temperature approaches runaway, emergency shutdown stops the feed with $q = 0$.
 
-This cascade ensures the reactor never reaches dangerous conditions even under multiple simultaneous failures.
 
 
 
