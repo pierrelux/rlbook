@@ -1127,9 +1127,7 @@ $$
 Once trained, the network acts as a surrogate for the optimizer, providing instantaneous evaluations that approximate the MPC law.
 
 
-
-
-## Example: Propofol Infusion Control 
+# Example: Propofol Infusion Control 
 
 This problem explores the control of propofol infusion in total intravenous anesthesia (TIVA). Our presentation follows the problem formulation developped by {cite:t}`Sawaguchi2008`. The primary objective is to maintain the desired level of unconsciousness while minimizing adverse reactions and ensuring quick recovery after surgery. 
 
