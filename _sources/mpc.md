@@ -42,7 +42,7 @@ This receding horizon principle enables feedback without computing an explicit p
 
 ### Horizon Selection and Problem Formulation
 
-The relationship between the prediction horizon and the control objective fundamentally changes the problem structure. We must distinguish between three cases, each requiring different mathematical formulations.
+The choice of prediction horizon depends on the control objective. We distinguish between three cases, each requiring different mathematical formulations.
 
 #### Infinite-Horizon Regulation
 
@@ -89,6 +89,8 @@ $$
 As the task approaches completion, the horizon shrinks and the terminal cost switches from the approximation $c_T$ to the true final cost $c_f$. This prevents the controller from optimizing beyond task completion, which would produce meaningless or aggressive control actions.
 
 #### Periodic Tasks
+
+Some systems operate on repeating cycles where the optimal behavior depends on the time of day, week, or season. Consider a commercial building where heating costs are higher at night, electricity prices vary hourly, and occupancy patterns repeat daily. The MPC controller must account for these periodic patterns while planning over a finite horizon.
 
 For tasks with period $T_p$, such as daily building operations, the formulation accounts for transitions across period boundaries:
 
@@ -158,20 +160,14 @@ Fortunately, successive MPC problems differ only in their initial conditions and
 
 The computational burden also depends on the horizon length $N$. Longer horizons provide better approximations to infinite-horizon problems and enable more sophisticated maneuvers, but increase problem size. The choice of $N$ balances solution quality against computational resources. For linear systems with quadratic costs, horizons of 10-50 steps often suffice. Nonlinear systems may require longer horizons to capture essential dynamics, though move-blocking and other parameterization techniques can reduce the effective number of decision variables. -->
 
-### Connection to Dynamic Programming
+<!-- ### Connection to Dynamic Programming
 
 The receding horizon principle connects MPC to the dynamic programming framework covered in the next chapter. Each MPC optimization implicitly computes the optimal cost-to-go $V_N(\mathbf{x})$ from the current state over the horizon. This finite-horizon value function approximates the true infinite-horizon value function that dynamic programming seeks globally.
 
-MPC essentially performs one step of the Bellman equation:
+The connection becomes clearer when we consider what MPC actually does: it solves a finite-horizon optimization problem and extracts only the first control action. The remaining $N-1$ steps of the optimal trajectory are discarded, but the terminal cost $V_f$ approximates the value function at the horizon boundary. This suggests hybrid approaches where approximate value functions from dynamic programming provide terminal costs for MPC, combining global optimality properties with local constraint handling capabilities.
 
-$$
-u^*_{\text{MPC}} = \arg\min_u \left[ c(\mathbf{x}, u) + V_{N-1}(f(\mathbf{x}, u)) \right]
-$$
-
-where $V_{N-1}$ is computed locally through trajectory optimization rather than stored globally. The terminal cost $c_T$ in MPC serves exactly the role of a value function approximation for states at the horizon boundary. This perspective suggests hybrid approaches where approximate value functions from dynamic programming provide terminal costs for MPC, combining global optimality properties with local constraint handling capabilities.
-
-This idea is what we would refer to as **bootstrapping** when working with temporal difference learning methods in reinforcement learning. In temporal difference methods like Q-learning or SARSA, bootstrapping occurs when we use our current estimate of the value function to update itself—essentially "pulling ourselves up by our bootstraps." Similarly, MPC bootstraps by using its finite-horizon value function approximation (computed through optimization) to make decisions, even though this approximation may not be perfect. The terminal cost $c_T$ acts as a bootstrap target, providing a value estimate for states beyond the horizon that guides the optimization process. 
-
+This idea is what we would refer to as **bootstrapping** when working with temporal difference learning methods in reinforcement learning. In temporal difference methods like Q-learning or SARSA, bootstrapping occurs when we use our current estimate of the value function to update itself—essentially "pulling ourselves up by our bootstraps." Similarly, MPC bootstraps by using its finite-horizon value function approximation (computed through optimization) to make decisions, even though this approximation may not be perfect. The terminal cost $V_f$ acts as a bootstrap target, providing a value estimate for states beyond the horizon that guides the optimization process. 
+ -->
 
 ### Successive Linearization and Quadratic Approximations
 
@@ -187,16 +183,16 @@ Around a nominal trajectory $(\bar{\mathbf{x}}_k,\bar{\mathbf{u}}_k)$, we take a
 
 $$
 \mathbf{x}_{k+1} \approx f(\bar{\mathbf{x}}_k,\bar{\mathbf{u}}_k) 
-+ A_k(\mathbf{x}_k - \bar{\mathbf{x}}_k) 
-+ B_k(\mathbf{u}_k - \bar{\mathbf{u}}_k),
++ \mathbf{A}_k(\mathbf{x}_k - \bar{\mathbf{x}}_k) 
++ \mathbf{B}_k(\mathbf{u}_k - \bar{\mathbf{u}}_k),
 $$
 
 with Jacobians
 
 $$
-A_k = \frac{\partial f}{\partial \mathbf{x}}(\bar{\mathbf{x}}_k,\bar{\mathbf{u}}_k), 
+\mathbf{A}_k = \frac{\partial f}{\partial \mathbf{x}}(\bar{\mathbf{x}}_k,\bar{\mathbf{u}}_k), 
 \qquad
-B_k = \frac{\partial f}{\partial \mathbf{u}}(\bar{\mathbf{x}}_k,\bar{\mathbf{u}}_k).
+\mathbf{B}_k = \frac{\partial f}{\partial \mathbf{u}}(\bar{\mathbf{x}}_k,\bar{\mathbf{u}}_k).
 $$
 
 Similarly, if the stage cost is nonlinear,
@@ -209,32 +205,32 @@ we approximate it quadratically near the nominal point:
 
 $$
 c(\mathbf{x}_k,\mathbf{u}_k) \;\approx\; 
-\|\mathbf{x}_k - \mathbf{x}_k^{\text{ref}}\|_{Q_k}^2 
-+ \|\mathbf{u}_k - \mathbf{u}_k^{\text{ref}}\|_{R_k}^2,
+\|\mathbf{x}_k - \mathbf{x}_k^{\text{ref}}\|_{\mathbf{Q}_k}^2 
++ \|\mathbf{u}_k - \mathbf{u}_k^{\text{ref}}\|_{\mathbf{R}_k}^2,
 $$
 
-with positive semidefinite weighting matrices $Q_k$ and $R_k$.
+with positive semidefinite weighting matrices $\mathbf{Q}_k$ and $\mathbf{R}_k$.
 
 The resulting MPC subproblem has the form
 
 $$
 \begin{aligned}
 \min_{\mathbf{x}_{0:N},\mathbf{u}_{0:N-1}} \quad &
-\|\mathbf{x}_N - \mathbf{x}_N^{\text{ref}}\|_{P}^2
+\|\mathbf{x}_N - \mathbf{x}_N^{\text{ref}}\|_{\mathbf{P}}^2
 + \sum_{k=0}^{N-1} 
 \left(
-\|\mathbf{x}_k - \mathbf{x}_k^{\text{ref}}\|_{Q_k}^2
-+ \|\mathbf{u}_k - \mathbf{u}_k^{\text{ref}}\|_{R_k}^2
+\|\mathbf{x}_k - \mathbf{x}_k^{\text{ref}}\|_{\mathbf{Q}_k}^2
++ \|\mathbf{u}_k - \mathbf{u}_k^{\text{ref}}\|_{\mathbf{R}_k}^2
 \right) \\
 \text{s.t.} \quad &
-\mathbf{x}_{k+1} = A_k \mathbf{x}_k + B_k \mathbf{u}_k + d_k, \\
+\mathbf{x}_{k+1} = \mathbf{A}_k \mathbf{x}_k + \mathbf{B}_k \mathbf{u}_k + \mathbf{d}_k, \\
 & \mathbf{u}_{\min} \leq \mathbf{u}_k \leq \mathbf{u}_{\max}, \\
 & \mathbf{x}_{\min} \leq \mathbf{x}_k \leq \mathbf{x}_{\max}, \\
 & \mathbf{x}_0 = \mathbf{x}_{\text{current}} ,
 \end{aligned}
 $$
 
-where $d_k = f(\bar{\mathbf{x}}_k,\bar{\mathbf{u}}_k) - A_k \bar{\mathbf{x}}_k - B_k \bar{\mathbf{u}}_k$ captures the local affine offset.
+where $\mathbf{d}_k = f(\bar{\mathbf{x}}_k,\bar{\mathbf{u}}_k) - \mathbf{A}_k \bar{\mathbf{x}}_k - \mathbf{B}_k \bar{\mathbf{u}}_k$ captures the local affine offset.
 
 Because the dynamics are now linear and the cost quadratic, this optimization problem is a convex quadratic program. Quadratic programs are attractive in practice: they can be solved at kilohertz rates with mature numerical methods, making them the backbone of many real-time MPC implementations.
 
@@ -254,9 +250,9 @@ When tracking a constant setpoint, the task becomes following a constant referen
 
 The terminal conditions we discuss below primarily address regulation and constant reference tracking. Time-varying tracking and economic MPC require additional techniques such as tube MPC and dissipativity theory.
 
-### The Standard MPC Formulation
+### MPC with Stability Guarantees
 
-The standard MPC formulation augments the finite-horizon problem with three interconnected components. The **terminal cost** $V_f(\mathbf{x})$ approximates the cost-to-go beyond the horizon, providing a surrogate for the infinite-horizon tail that cannot be explicitly optimized. The **terminal constraint set** $\mathcal{X}_f$ defines a region where we have local knowledge of how to stabilize the system. Finally, the **terminal controller** $\kappa_f(\mathbf{x})$ provides a local stabilizing control law that remains valid within $\mathcal{X}_f$.
+To provide theoretical guarantees, the finite-horizon MPC problem is augmented with three interconnected components. The **terminal cost** $V_f(\mathbf{x})$ approximates the cost-to-go beyond the horizon, providing a surrogate for the infinite-horizon tail that cannot be explicitly optimized. The **terminal constraint set** $\mathcal{X}_f$ defines a region where we have local knowledge of how to stabilize the system. Finally, the **terminal controller** $\kappa_f(\mathbf{x})$ provides a local stabilizing control law that remains valid within $\mathcal{X}_f$.
 
 These components must satisfy specific compatibility conditions to provide theoretical guarantees:
 
@@ -275,7 +271,7 @@ Consider the MPC problem with terminal cost $V_f$, terminal set $\mathcal{X}_f$,
 
 Then the MPC controller achieves recursive feasibility (if the problem is feasible at time $k$, it remains feasible at time $k+1$), asymptotic stability to the target equilibrium for regulation problems, and monotonic cost decrease along trajectories until the target is reached.
 ````
-
+<!-- 
 ### Why Terminal Conditions Work: The Operational View
 
 Understanding why the terminal conditions guarantee recursive feasibility and asymptotic stability requires examining what the controller actually does from one step to the next. Suppose at time $k$ the MPC optimizer finds an optimal sequence of controls $(\mathbf{u}_0^*, \ldots, \mathbf{u}_{N-1}^*)$ and states $(\mathbf{x}_0^*, \ldots, \mathbf{x}_N^*)$, where $\mathbf{x}_N^* \in \mathcal{X}_f$. The first control $\mathbf{u}_0^*$ is applied to the system, and the remaining plan is discarded according to the receding horizon principle.
@@ -291,9 +287,9 @@ $$
 
 requires that the terminal cost $V_f$ decrease faster than the stage cost accumulates when following $\boldsymbol{\kappa}_f$ inside $\mathcal{X}_f$. This means the controller makes progress not only in terms of state evolution but also in terms of predicted cost-to-go.
 
-This "one-step contractiveness" property ensures that applying $\kappa_f$ within the terminal set leads to value decrease. When used at the horizon's tail, this guarantees that even a non-optimal shifted trajectory results in lower overall cost, making $V_N$ behave like a Lyapunov function for regulation and tracking tasks.
+This "one-step contractiveness" property ensures that applying $\kappa_f$ within the terminal set leads to value decrease. When used at the horizon's tail, this guarantees that even a non-optimal shifted trajectory results in lower overall cost, making $V_N$ behave like a Lyapunov function for regulation and tracking tasks. -->
 
-### Computing Terminal Conditions in Practice
+<!-- ### Computing Terminal Conditions in Practice
 
 For linear systems with quadratic costs, the terminal conditions follow naturally from LQR theory. The process begins by solving the infinite-horizon LQR problem:
 
@@ -304,15 +300,15 @@ The terminal cost and controller then follow directly: $V_f(\mathbf{x}) = \mathb
 
 Constructing the terminal set $\mathcal{X}_f$ presents more options with varying computational complexity. The most powerful but computationally intensive approach computes the **maximal control-invariant set**: the largest set where $\mathbf{u} = \mathbf{K}\mathbf{x}$ keeps the state feasible indefinitely. This involves fixed-point iterations on polytopes. A more tractable alternative uses **ellipsoidal approximations**, finding the largest $\alpha$ such that $\mathcal{X}_f = \{\mathbf{x} : \mathbf{x}^T \mathbf{P} \mathbf{x} \leq \alpha\}$ satisfies all constraints under $\mathbf{u} = \mathbf{K}\mathbf{x}$. The most conservative but always feasible approach starts with a small safe set where constraints are clearly satisfied and grows it until hitting constraint boundaries.
 
-For nonlinear systems, we linearize around the equilibrium to compute $\mathbf{P}$ and $\mathbf{K}$, then verify the decrease condition holds locally. The terminal set becomes a neighborhood where the linear approximation remains valid.
+For nonlinear systems, we linearize around the equilibrium to compute $\mathbf{P}$ and $\mathbf{K}$, then verify the decrease condition holds locally. The terminal set becomes a neighborhood where the linear approximation remains valid. -->
 
 
-
+<!-- 
 ### Performance Implications
 
 The terminal conditions create inherent tradeoffs between conservatism and computational burden. Larger terminal sets $\mathcal{X}_f$ provide greater regions of attraction and impose fewer restrictions on trajectories, but require more intensive computation. Smaller terminal sets may necessitate longer horizons to reach from typical initial conditions. Similarly, more accurate terminal costs $V_f$ provide tighter approximations of infinite-horizon costs, enabling effective control with shorter horizons.
 
-The importance of terminal conditions diminishes as the horizon length increases. With $N \to \infty$, any stabilizing terminal controller suffices for stability. In practice, short horizons (N = 10-20) make terminal conditions crucial for stability, medium horizons (N = 20-50) benefit from but don't critically depend on them, while long horizons (N > 50) often omit them entirely, relying solely on horizon length for stability.
+The importance of terminal conditions diminishes as the horizon length increases. With $N \to \infty$, any stabilizing terminal controller suffices for stability. In practice, short horizons (N = 10-20) make terminal conditions crucial for stability, medium horizons (N = 20-50) benefit from but don't critically depend on them, while long horizons (N > 50) often omit them entirely, relying solely on horizon length for stability. -->
 
 ### Suboptimality Bounds
 
@@ -340,7 +336,7 @@ Since $V_N(\mathbf{x})$ is the optimal $N$-horizon cost (which may do better tha
 $$\varepsilon_N \leq \tilde{V}_N(\mathbf{x}) - V_\infty(\mathbf{x}) = V_f(\mathbf{x}_N^*) - \sum_{k=N}^{\infty} \ell(\mathbf{x}_k^*, \mathbf{u}_k^*)$$
 
 This bound reveals that the approximation error depends on how well the terminal cost $V_f$ approximates the true tail cost along the infinite-horizon optimal trajectory.
-
+<!-- 
 #### Exponential Convergence in the Linear-Quadratic Case
 
 For linear systems $\mathbf{x}_{k+1} = \mathbf{A}\mathbf{x}_k + \mathbf{B}\mathbf{u}_k$ with quadratic costs $\ell(\mathbf{x}, \mathbf{u}) = \mathbf{x}^T\mathbf{Q}\mathbf{x} + \mathbf{u}^T\mathbf{R}\mathbf{u}$, we can compute this error exactly. When the terminal cost is the LQR cost-to-go $V_f(\mathbf{x}) = \mathbf{x}^T\mathbf{P}\mathbf{x}$, the infinite-horizon optimal trajectory satisfies $\mathbf{x}_k^* = \mathbf{A}_{cl}^k \mathbf{x}$ where $\mathbf{A}_{cl} = \mathbf{A} + \mathbf{B}\mathbf{K}$ is the closed-loop matrix.
@@ -364,7 +360,7 @@ For stable systems, $\rho(\mathbf{A}_{cl}) < 1$, yielding exponential convergenc
 
 These bounds provide practical guidance for choosing prediction horizons. The exponential convergence means that beyond a certain horizon length, further increases yield diminishing returns. The optimal horizon balances approximation accuracy against computational cost, with the break-even point typically occurring when $\rho(\mathbf{A}_{cl})^N$ drops below the desired tolerance level.
 
-For systems with slow dynamics (eigenvalues close to one), longer horizons may be necessary, while systems with fast dynamics achieve good approximations with surprisingly short horizons. This analysis also explains why terminal conditions become less critical as horizons increase: the exponential decay ensures that the tail beyond any reasonable horizon contributes negligibly to the total cost.
+For systems with slow dynamics (eigenvalues close to one), longer horizons may be necessary, while systems with fast dynamics achieve good approximations with surprisingly short horizons. This analysis also explains why terminal conditions become less critical as horizons increase: the exponential decay ensures that the tail beyond any reasonable horizon contributes negligibly to the total cost. -->
 <!-- 
 ### When Terminal Constraints Cause Infeasibility
 
@@ -575,7 +571,7 @@ Consider a wind farm where MPC controllers coordinate individual turbines to max
 
 $$
 \begin{aligned}
-\min_{\mathbf{u}_{0:N-1}} \quad & \sum_{i=0}^{N-1} \|\mathbf{x}_i - \mathbf{x}_i^{\text{ref}}\|_Q^2 + \|\mathbf{u}_i\|_R^2 \\
+\min_{\mathbf{u}_{0:N-1}} \quad & \sum_{i=0}^{N-1} \|\mathbf{x}_i - \mathbf{x}_i^{\text{ref}}\|_{\mathbf{Q}}^2 + \|\mathbf{u}_i\|_{\mathbf{R}}^2 \\
 \text{s.t.} \quad & \mathbf{x}_{i+1} = \mathbf{f}(\mathbf{x}_i, \mathbf{u}_i) \\
 & \mathbf{x}_i \in \mathcal{X}_{\text{safe}} \\
 & \|\mathbf{u}_i\|_\infty \leq u_{\max} \\
@@ -599,7 +595,7 @@ This hierarchy motivates reformulating the optimization problem using **slack va
 
 $$
 \begin{aligned}
-\min_{\mathbf{u}, \boldsymbol{\epsilon}} \quad & \sum_{i=0}^{N-1} \|\mathbf{x}_i - \mathbf{x}_i^{\text{ref}}\|_Q^2 + \|\mathbf{u}_i\|_R^2 + \boldsymbol{\rho}^T \boldsymbol{\epsilon}_i \\
+\min_{\mathbf{u}, \boldsymbol{\epsilon}} \quad & \sum_{i=0}^{N-1} \|\mathbf{x}_i - \mathbf{x}_i^{\text{ref}}\|_{\mathbf{Q}}^2 + \|\mathbf{u}_i\|_{\mathbf{R}}^2 + \boldsymbol{\rho}^T \boldsymbol{\epsilon}_i \\
 \text{s.t.} \quad & \mathbf{x}_{i+1} = \mathbf{f}(\mathbf{x}_i, \mathbf{u}_i) \\
 & \mathbf{g}_{\text{hard}}(\mathbf{x}_i, \mathbf{u}_i) \leq \mathbf{0} \\
 & \mathbf{g}_{\text{soft}}(\mathbf{x}_i, \mathbf{u}_i) \leq \boldsymbol{\epsilon}_i \\
@@ -939,19 +935,19 @@ In parametric MPC, $\boldsymbol{\theta}$ gathers the current state, references, 
 We start with a smooth root-finding problem
 
 $$
-F(z)=0,\qquad F:\mathbb{R}^m\to\mathbb{R}^m.
+F(y)=0,\qquad F:\mathbb{R}^m\to\mathbb{R}^m.
 $$
 
 **Newton’s method** iterates
 
 $$
-z^{(t+1)} \;=\; z^{(t)} - \big[\nabla F(z^{(t)})\big]^{-1} F\big(z^{(t)}\big),
+y^{(t+1)} \;=\; y^{(t)} - \big[\nabla F(y^{(t)})\big]^{-1} F\big(y^{(t)}\big),
 $$
 
 or equivalently solves the linearized system
 
 $$
-\nabla F(z^{(t)})\,\Delta z^{(t)} = -F\big(z^{(t)}\big),\qquad z^{(t+1)}=z^{(t)}+\Delta z^{(t)}.
+\nabla F(y^{(t)})\,\Delta y^{(t)} = -F\big(y^{(t)}\big),\qquad y^{(t+1)}=y^{(t)}+\Delta y^{(t)}.
 $$
 
 Convergence is local and fast when the Jacobian is nonsingular and the initial guess is close.
@@ -959,32 +955,32 @@ Convergence is local and fast when the Jacobian is nonsingular and the initial g
 Now suppose the root depends on a parameter:
 
 $$
-F\big(z,\theta\big)=0,\qquad \theta\in\mathbb{R}.
+F\big(y,\theta\big)=0,\qquad \theta\in\mathbb{R}.
 $$
 
-We want the solution path $\theta\mapsto z^\star(\theta)$. **Numerical continuation** advances $\theta$ in small steps and uses the previous solution as a warm start for the next Newton solve. This is the simplest and most effective way to “track” solutions of parametric systems.
+We want the solution path $\theta\mapsto y^\star(\theta)$. **Numerical continuation** advances $\theta$ in small steps and uses the previous solution as a warm start for the next Newton solve. This is the simplest and most effective way to “track” solutions of parametric systems.
 
-At a known solution $(z^\star,\theta^\star)$, differentiate $F(z^\star(\theta),\theta)=0$ with respect to $\theta$:
-
-$$
-\nabla_z F(z^\star,\theta^\star)\,\frac{dz^\star}{d\theta}(\theta^\star) \;+\; \nabla_\theta F(z^\star,\theta^\star) \;=\; 0.
-$$
-
-If $\nabla_z F$ is invertible (IFT conditions), the **tangent** is
+At a known solution $(y^\star,\theta^\star)$, differentiate $F(y^\star(\theta),\theta)=0$ with respect to $\theta$:
 
 $$
-\frac{dz^\star}{d\theta}(\theta^\star) \;=\; -\big[\nabla_z F(z^\star,\theta^\star)\big]^{-1}\,\nabla_\theta F(z^\star,\theta^\star).
+\nabla_y F(y^\star,\theta^\star)\,\frac{dy^\star}{d\theta}(\theta^\star) \;+\; \nabla_\theta F(y^\star,\theta^\star) \;=\; 0.
+$$
+
+If $\nabla_y F$ is invertible (IFT conditions), the **tangent** is
+
+$$
+\frac{dy^\star}{d\theta}(\theta^\star) \;=\; -\big[\nabla_y F(y^\star,\theta^\star)\big]^{-1}\,\nabla_\theta F(y^\star,\theta^\star).
 $$
 
 This is exactly the **implicit differentiation** formula. Continuation uses it as a **predictor**:
 
 $$
-z_{\text{pred}} \;=\; z^\star(\theta^\star) \;+\; \Delta\theta\;\frac{dz^\star}{d\theta}(\theta^\star).
+y_{\text{pred}} \;=\; y^\star(\theta^\star) \;+\; \Delta\theta\;\frac{dy^\star}{d\theta}(\theta^\star).
 $$
 
-Then a few **corrector** steps apply Newton to $F(\,\cdot\,,\theta^\star+\Delta\theta)=0$ starting from $z_{\text{pred}}$. If Newton converges quickly, the step $\Delta\theta$ was appropriate; otherwise reduce $\Delta\theta$ and retry.
+Then a few **corrector** steps apply Newton to $F(\,\cdot\,,\theta^\star+\Delta\theta)=0$ starting from $y_{\text{pred}}$. If Newton converges quickly, the step $\Delta\theta$ was appropriate; otherwise reduce $\Delta\theta$ and retry.
 
-For parametric KKT systems, set $y=(x,\lambda,\nu)$ and $F(y,\theta)=0$ the KKT residual with $\theta$ collecting state, references, forecasts. The **KKT matrix** $K=\partial F/\partial y$ and **parameter sensitivity** $G=\partial F/\partial \theta$ give the tangent
+For parametric KKT systems, set $y=(\mathbf{x},\boldsymbol{\lambda},\boldsymbol{\nu})$ where $\mathbf{x}$ stacks the primal decision variables (states and inputs), and $F(y,\theta)=0$ the KKT residual with $\theta$ collecting state, references, forecasts. The **KKT matrix** $K=\partial F/\partial y$ and **parameter sensitivity** $G=\partial F/\partial \theta$ give the tangent
 
 $$
 \frac{dy^\star}{d\theta} \;=\; -\,K^{-1}G.
@@ -1102,26 +1098,26 @@ Consider a fixed horizon $N$ and parameter vector $\boldsymbol{\theta}$ encoding
 
 $$
 \begin{aligned}
-z^\star(\boldsymbol{\theta}) \in \arg\min_{z=(x_{0:N},u_{0:N-1})}
+z^\star(\boldsymbol{\theta}) \in \arg\min_{z=(\mathbf{x}_{0:N},\mathbf{u}_{0:N-1})}
 &\; J(z;\boldsymbol{\theta})\\
-\text{s.t. }& x_{k+1}=f(x_k,u_k;\boldsymbol{\theta}),\quad k=0..N-1,\\
-& g(x_k,u_k;\boldsymbol{\theta})\le 0,\; h(x_N;\boldsymbol{\theta})=0.
+\text{s.t. }& \mathbf{x}_{k+1}=f(\mathbf{x}_k,\mathbf{u}_k;\boldsymbol{\theta}),\quad k=0..N-1,\\
+& g(\mathbf{x}_k,\mathbf{u}_k;\boldsymbol{\theta})\le 0,\; h(\mathbf{x}_N;\boldsymbol{\theta})=0.
 \end{aligned}
 $$
 
-The applied action is $\pi^\star(\boldsymbol{\theta}) := u_0^\star(\boldsymbol{\theta})$. Our goal is to learn a fast surrogate mapping $\hat{\pi}_\phi:\boldsymbol{\theta}\mapsto \hat u_0 \approx \pi^\star(\boldsymbol{\theta})$ that can be evaluated in microseconds, optionally followed by a safety projection layer.
+The applied action is $\pi^\star(\boldsymbol{\theta}) := \mathbf{u}_0^\star(\boldsymbol{\theta})$. Our goal is to learn a fast surrogate mapping $\hat{\pi}_\phi:\boldsymbol{\theta}\mapsto \hat{\mathbf{u}}_0 \approx \pi^\star(\boldsymbol{\theta})$ that can be evaluated in microseconds, optionally followed by a safety projection layer.
 
 **Supervised learning from oracle solutions.**
 One first samples parameters $\boldsymbol{\theta}^{(i)}$ from the operational domain and solves the corresponding NMPC problems offline. The resulting dataset
 
 $$
-\mathcal{D} = \{ (\boldsymbol{\theta}^{(i)},\, u_0^\star(\boldsymbol{\theta}^{(i)})) \}_{i=1}^M
+\mathcal{D} = \{ (\boldsymbol{\theta}^{(i)},\, \mathbf{u}_0^\star(\boldsymbol{\theta}^{(i)})) \}_{i=1}^M
 $$
 
 is then used to train a neural network $\hat{\pi}_\phi$ by minimizing
 
 $$
-\min_\phi \; \frac{1}{M}\sum_{i=1}^M \big\|\hat{\pi}_\phi(\boldsymbol{\theta}^{(i)}) - u_0^\star(\boldsymbol{\theta}^{(i)})\big\|^2 .
+\min_\phi \; \frac{1}{M}\sum_{i=1}^M \big\|\hat{\pi}_\phi(\boldsymbol{\theta}^{(i)}) - \mathbf{u}_0^\star(\boldsymbol{\theta}^{(i)})\big\|^2 .
 $$
 
 Once trained, the network acts as a surrogate for the optimizer, providing instantaneous evaluations that approximate the MPC law.
@@ -1137,7 +1133,7 @@ The goal is to design a control system that regulates the infusion rate of propo
 
 $$
 \begin{align*}
-\min_{u(t)} & \int_{0}^{T} \left( BIS(t) - BIS_{\text{target}} \right)^2 + \gamma u(t)^2 \, dt \\
+\min_{u(t)} & \int_{0}^{T} \left( BIS(t) - BIS_{\text{target}} \right)^2 + \lambda\, u(t)^2 \, dt \\
 \text{subject to:} \\
 \dot{x}_1 &= -(k_{10} + k_{12} + k_{13})x_1 + k_{21}x_2 + k_{31}x_3 + \frac{u(t)}{V_1} \\
 \dot{x}_2 &= k_{12}x_1 - k_{21}x_2 \\
@@ -1153,7 +1149,7 @@ Where:
 - $x_e$ is the effect-site concentration
 - $k_{ij}$ are rate constants for drug transfer between compartments
 - $BIS(t)$ is the Bispectral Index
-- $\gamma$ is a regularization parameter penalizing excessive drug use
+- $\lambda$ is a regularization parameter penalizing excessive drug use
 - $E_0$, $E_{\text{max}}$, $EC_{50}$, and $\gamma$ are parameters of the pharmacodynamic model
 
 The specific dynamics model used in this problem is so-called "Pharmacokinetic-Pharmacodynamic Model" and consists of three main components:
