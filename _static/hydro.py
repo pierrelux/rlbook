@@ -413,7 +413,5 @@ def run_demo(show: bool = True, save_path: str | None = 'hydro.png', verbose: bo
     return fig
 
 
-if __name__ == '__main__':
-    # When executed as a loaded notebook cell, __name__ == '__main__'.
-    # Display once (no file write, no verbose prints).
-    run_demo(show=True, save_path=None, verbose=False)
+# Run the demo directly when loaded in a notebook cell
+run_demo(show=True, save_path=None, verbose=False)
