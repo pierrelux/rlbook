@@ -34,9 +34,9 @@
     <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
     <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
-    <link rel="stylesheet" type="text/css" href="_static/proof.css" />
+    <link rel="stylesheet" type="text/css" href="_static/proof.css?v=b4b7a797" />
     <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css" />
@@ -194,6 +194,8 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">From Trajectories to Policies</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="mpc.html">Model Predictive Control</a></li>
+
+
 
 
 <li class="toctree-l1"><a class="reference internal" href="dp.html">Dynamic Programming</a></li>
@@ -1632,21 +1634,21 @@ J(\boldsymbol{\theta}) := \sum_{k\in K}\;\big\|\mathbf{y}_k - \mathbf{h}(\boldsy
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="_images/3a1de97d8c65f2c5225f12b2122e47b877d87a50767db5c318a9e7bf55b40015.png" src="_images/3a1de97d8c65f2c5225f12b2122e47b877d87a50767db5c318a9e7bf55b40015.png" />
+<img alt="_images/2f380d2fe8280ac1db1f2473cd15989d0aa72753e70b9e66cc4f8515710c84cf.png" src="_images/2f380d2fe8280ac1db1f2473cd15989d0aa72753e70b9e66cc4f8515710c84cf.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Data collection complete. Results saved to &#39;compressor_surge_data_multi.npz&#39;
 Data shape: 10 trajectories, each with 501 time steps
 Time range: 0 to 50 seconds
 Initial conditions:
-  Trajectory 1: x1 = 0.5528, x2 = 0.4909
-  Trajectory 2: x1 = 0.4830, x2 = 0.5171
-  Trajectory 3: x1 = 0.5317, x2 = 0.4538
-  Trajectory 4: x1 = 0.4898, x2 = 0.5098
-  Trajectory 5: x1 = 0.4917, x2 = 0.4535
-  Trajectory 6: x1 = 0.4929, x2 = 0.5330
-  Trajectory 7: x1 = 0.4525, x2 = 0.5180
-  Trajectory 8: x1 = 0.5207, x2 = 0.5003
-  Trajectory 9: x1 = 0.4791, x2 = 0.4890
-  Trajectory 10: x1 = 0.4770, x2 = 0.5467
+  Trajectory 1: x1 = 0.4142, x2 = 0.5466
+  Trajectory 2: x1 = 0.5425, x2 = 0.5155
+  Trajectory 3: x1 = 0.4976, x2 = 0.4306
+  Trajectory 4: x1 = 0.4886, x2 = 0.4448
+  Trajectory 5: x1 = 0.5209, x2 = 0.5508
+  Trajectory 6: x1 = 0.4202, x2 = 0.5627
+  Trajectory 7: x1 = 0.4281, x2 = 0.5283
+  Trajectory 8: x1 = 0.4378, x2 = 0.4846
+  Trajectory 9: x1 = 0.5485, x2 = 0.4747
+  Trajectory 10: x1 = 0.4811, x2 = 0.5120
 </pre></div>
 </div>
 </div>
@@ -1752,15 +1754,15 @@ Initial conditions:
 </details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully.
-         Current function value: 5.841233
+         Current function value: 6.037293
          Iterations: 15
          Function evaluations: 30
 True B: 1.0
-Identified B: 1.0349853515624987
-Relative error: 3.50%
+Identified B: 1.0107421874999987
+Relative error: 1.07%
 </pre></div>
 </div>
-<img alt="_images/2c36ca2441853d410fb7eb3a7325c60350cdbd448839eff388d407a9d3d76200.png" src="_images/2c36ca2441853d410fb7eb3a7325c60350cdbd448839eff388d407a9d3d76200.png" />
+<img alt="_images/8170d7e06fd966f8026fc07047c384ac2e345142c3c4ce1167bee174897bc0f5.png" src="_images/8170d7e06fd966f8026fc07047c384ac2e345142c3c4ce1167bee174897bc0f5.png" />
 </div>
 </div>
 </section>
@@ -1840,8 +1842,8 @@ Relative error: 3.50%
 <section id="hydro-cascade-scheduling-with-physical-routing-and-multiple-shooting">
 <h2>Hydro Cascade Scheduling with Physical Routing and Multiple Shooting<a class="headerlink" href="#hydro-cascade-scheduling-with-physical-routing-and-multiple-shooting" title="Link to this heading">#</a></h2>
 <p>Earlier in the book, we introduced a simplified view of hydro reservoir control, where the water level evolves in discrete time by accounting for inflow and outflow, with precipitation treated as a noisy input. While useful for learning and control design, this model abstracts away much of the physical behavior of actual rivers and dams.</p>
-<p>In this chapter, we move toward a more realistic setup. We consider a series of dams arranged in a cascade, where the actions taken upstream influence downstream levels with a delay. The amount of power produced depends not only on how much water flows through the turbines, but also on the head—the vertical distance between the reservoir surface and the turbine outlet. The larger the head, the more potential energy is available for conversion into electricity, and the higher the power output.</p>
-<p>To capture these effects, we follow a modeling approach inspired by the Saint-Venant equations, which describe how water levels and flows evolve in open channels. Instead of solving the full PDEs, we use a reduced model that approximates each dammed section of river—called a reach—as a lumped system governed by an ordinary differential equation. The key variable is the water level <span class="math notranslate nohighlight">\(h_r(t)\)</span>, which changes over time depending on how much water enters, how much is discharged through the turbines <span class="math notranslate nohighlight">\(q_r(t)\)</span>, and how much is spilled <span class="math notranslate nohighlight">\(s_r(t)\)</span>. The mass balance for reach <span class="math notranslate nohighlight">\(r\)</span> is written as:</p>
+<p>In this chapter, we move toward a more realistic setup. We consider a series of dams arranged in a cascade, where the actions taken upstream influence downstream levels with a delay. The amount of power produced depends not only on how much water flows through the turbines, but also on the head (the vertical distance between the reservoir surface and the turbine outlet). The larger the head, the more potential energy is available for conversion into electricity, and the higher the power output.</p>
+<p>To capture these effects, we follow a modeling approach inspired by the Saint-Venant equations, which describe how water levels and flows evolve in open channels. Instead of solving the full PDEs, we use a reduced model that approximates each dammed section of river (called a reach) as a lumped system governed by an ordinary differential equation. The main variable of interest is the water level <span class="math notranslate nohighlight">\(h_r(t)\)</span>, which changes over time depending on how much water enters, how much is discharged through the turbines <span class="math notranslate nohighlight">\(q_r(t)\)</span>, and how much is spilled <span class="math notranslate nohighlight">\(s_r(t)\)</span>. The mass balance for reach <span class="math notranslate nohighlight">\(r\)</span> is written as:</p>
 <div class="math notranslate nohighlight">
 \[
 \frac{d h_r(t)}{dt} = \frac{1}{A_r} \left( z_r(t) - q_r(t) - s_r(t) \right),
@@ -1857,7 +1859,7 @@ z_r(t) = q_{r-1}(t - \tau_{r-1}) + s_{r-1}(t - \tau_{r-1}), \quad \text{for } r 
 \[
 P_r(t) = \rho g \eta \, q_r(t) \, H_r(h_r(t)),
 \]</div>
-<p>where <span class="math notranslate nohighlight">\(\rho\)</span> is water density, <span class="math notranslate nohighlight">\(g\)</span> is gravitational acceleration, <span class="math notranslate nohighlight">\(\eta\)</span> is turbine efficiency, and <span class="math notranslate nohighlight">\(H_r(h_r(t))\)</span> denotes the head as a function of the water level. In some models, the head is approximated as the difference between the current level and a fixed tailwater height.</p>
+<p>where <span class="math notranslate nohighlight">\(\rho\)</span> is water density, <span class="math notranslate nohighlight">\(g\)</span> is gravitational acceleration, <span class="math notranslate nohighlight">\(\eta\)</span> is turbine efficiency, and <span class="math notranslate nohighlight">\(H_r(h_r(t))\)</span> denotes the head as a function of the water level. In some models, the head is approximated as the difference between the current level and a fixed tailwater height (the water level downstream of the dam, after it has passed through the turbine).</p>
 <p>The operator’s goal is to meet a target generation profile <span class="math notranslate nohighlight">\(P^\text{ref}(t)\)</span>, such as one dictated by a market dispatch or load-following constraint. This leads to an objective that minimizes the deviation from the target over the full horizon:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -2294,10 +2296,8 @@ h_r^{k+1} = h_r^k + \Delta t \cdot \frac{1}{A_r}(z_r^k - q_r^k - s_r^k),
     <span class="k">return</span> <span class="n">fig</span>
 
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="c1"># When executed as a loaded notebook cell, __name__ == &#39;__main__&#39;.</span>
-    <span class="c1"># Display once (no file write, no verbose prints).</span>
-    <span class="n">run_demo</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">save_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="c1"># Run the demo directly when loaded in a notebook cell</span>
+<span class="n">run_demo</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">save_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
