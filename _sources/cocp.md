@@ -901,7 +901,7 @@ where $\boldsymbol{\phi}_k$ denotes the state reached at step $k$ by an RK4 roll
 
 ## Flight Trajectory Optimization
 
-We consider a concrete task: computing a fuel-optimal trajectory between Montréal–Trudeau (CYUL) and Toronto Pearson (CYYZ), taking into account both aircraft dynamics and wind conditions along the route. The wind field comes from **ERA5**, a global atmospheric dataset produced by the ECMWF. It combines historical observations from satellites, aircraft, and surface stations with a weather model to reconstruct the state of the atmosphere across space and time. In climate science, this is called a *reanalysis*.
+We consider a concrete task: computing a fuel-optimal trajectory between Montréal–Trudeau (CYUL) and Toronto Pearson (CYYZ), taking into account both aircraft dynamics and wind conditions along the route. For this demo, we leverage the excellent library [OpenAP.top](https://github.com/junzis/openap-top) which provides direct transcription methods and airplane dynamics models {cite:p}`Sun2022`. Furthermore, it allows us to import a a wind field comes from **ERA5** {cite:p}`ERA52018`, a global atmospheric dataset. It combines historical observations from satellites, aircraft, and surface stations with a weather model to reconstruct the state of the atmosphere across space and time. In climate science, this is called a *reanalysis*.
 
 ERA5 data is stored in **GRIB files**, a compact format widely used in meteorology. Each file contains a **gridded field**: values of wind and other variables arranged on a regular 4D lattice over longitude, latitude, altitude, and time. Since the aircraft rarely sits exactly on a grid point, we interpolate the wind components it sees as it moves.
 
@@ -911,7 +911,7 @@ $$
 \mathbf{x}(t) = (x(t), y(t), h(t), m(t)),
 $$
 
-where $(x, y)$ is horizontal position, $h$ is altitude, and $m$ is remaining mass. Controls are Mach number $M(t)$, vertical speed $v\_s(t)$, and heading angle $\psi(t)$. The equations of motion combine airspeed and wind:
+where $(x, y)$ is horizontal position, $h$ is altitude, and $m$ is remaining mass. Controls are Mach number $M(t)$, vertical speed $v_s(t)$, and heading angle $\psi(t)$. The equations of motion combine airspeed and wind:
 
 $$
 \begin{aligned}
@@ -922,7 +922,7 @@ $$
 \end{aligned}
 $$
 
-where $\gamma = \arcsin(v\_s / v)$ is the flight path angle and $\mathrm{FF}$ is the fuel flow rate based on current conditions. The wind terms $u\_w$ and $v\_w$ are taken from ERA5 and interpolated in space and time.
+where $\gamma = \arcsin(v_s / v)$ is the flight path angle and $\mathrm{FF}$ is the fuel flow rate based on current conditions. The wind terms $u_w$ and $v_w$ are taken from ERA5 and interpolated in space and time.
 
 The optimization minimizes fuel burn over the CYUL–CYYZ leg. But the same setup could be used to minimize arrival time, or some weighted combination of time, cost, and emissions.
 
@@ -973,7 +973,7 @@ else:
 
 Earlier in the book, we introduced a simplified view of hydro reservoir control, where the water level evolves in discrete time by accounting for inflow and outflow, with precipitation treated as a noisy input. While useful for learning and control design, this model abstracts away much of the physical behavior of actual rivers and dams.
 
-In this chapter, we move toward a more realistic setup. We consider a series of dams arranged in a cascade, where the actions taken upstream influence downstream levels with a delay. The amount of power produced depends not only on how much water flows through the turbines, but also on the head (the vertical distance between the reservoir surface and the turbine outlet). The larger the head, the more potential energy is available for conversion into electricity, and the higher the power output.
+In this chapter, we move toward a more realistic setup inspired by {cite:p}`Savorgnan2011`. We consider a series of dams arranged in a cascade, where the actions taken upstream influence downstream levels with a delay. The amount of power produced depends not only on how much water flows through the turbines, but also on the head (the vertical distance between the reservoir surface and the turbine outlet). The larger the head, the more potential energy is available for conversion into electricity, and the higher the power output.
 
 To capture these effects, we follow a modeling approach inspired by the Saint-Venant equations, which describe how water levels and flows evolve in open channels. Instead of solving the full PDEs, we use a reduced model that approximates each dammed section of river (called a reach) as a lumped system governed by an ordinary differential equation. The main variable of interest is the water level $h_r(t)$, which changes over time depending on how much water enters, how much is discharged through the turbines $q_r(t)$, and how much is spilled $s_r(t)$. The mass balance for reach $r$ is written as:
 
