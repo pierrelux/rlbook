@@ -602,7 +602,7 @@ $$
 
 
 
-# Applying the recipe: concrete transcriptions
+# A Compendium of Direct Transcription Methods in Trajectory Optimization
 
 The mesh and interior nodes are the common scaffold. What distinguishes one transcription from another is how we obtain values at those nodes and how we approximate the two integrals that appear implicitly and explicitly: the integral of the running cost and the integral that carries the state forward. In other words, we now commit to two design choices that mirror the previous section: a finite representation for $\mathbf{x}(t)$ and $\mathbf{u}(t)$ over each interval $[t_i,t_{i+1}]$, and a quadrature rule whose nodes and weights are used consistently for both cost and dynamics. The result is always a sparse nonlinear program; the differences are in where we sample and how we tie samples together.
 
@@ -721,7 +721,7 @@ $$
 In this scheme we take the **two endpoints as the nodes** on each interval:
 
 $$
-\tau_0=0,\qquad \tau_1=1\quad(\text{"Lobatto with }K=1\text{").
+\tau_0=0,\qquad \tau_1=1\quad(\text{``Lobatto with }K=1").
 $$
 
 We approximate $\mathbf{x}$ **linearly** over $[t_i,t_{i+1}]$, and we evaluate both the running cost and the dynamics at these two nodes with **equal weights**. Because a linear polynomial has a **constant** derivative, we do **not** try to match the ODE's slope at both endpoints (that would overconstrain a linear function). Instead, we enforce the ODE in its **integral form** over the interval and approximate the integral of $\mathbf{f}$ by the **trapezoid rule** using those two nodes. This makes the cost quadrature and the state-update ("defect") use the **same nodes and weights**.
