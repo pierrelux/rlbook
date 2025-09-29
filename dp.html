@@ -197,8 +197,8 @@
 
 
 
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Dynamic Programming</a></li>
 
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Dynamic Programming</a></li>
 
 
 </ul>
@@ -446,13 +446,13 @@
 </li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-dynamic-programming-in-control-theory">Stochastic Dynamic Programming in Control Theory</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-stochastic-optimal-harvest-in-resource-management">Example: Stochastic Optimal Harvest in Resource Management</a></li>
-</ul>
-</li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">Dynamic Programming</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#notation-in-operations-reseach">Notation in Operations Reseach</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-dynamic-programming-and-markov-decision-processes">Stochastic Dynamic Programming and Markov Decision Processes</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#decision-rules-and-policies">Decision Rules and Policies</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-system-dynamics">Stochastic System Dynamics</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#optimality-equations-and-policy-reduction-in-the-stochastic-setting">Optimality Equations and Policy Reduction in the Stochastic Setting</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-stochastic-optimal-harvest-in-resource-management">Example: Stochastic Optimal Harvest in Resource Management</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#markov-decision-process-formulation">Markov Decision Process Formulation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#notation-in-operations-reseach">Notation in Operations Reseach</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-an-optimal-policy">What is an Optimal Policy?</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-sample-size-determination-in-pharmaceutical-development">Example: Sample Size Determination in Pharmaceutical Development</a></li>
 </ul>
@@ -517,12 +517,12 @@ J_k^\star(\mathbf{x}_k) = \min_{\mathbf{u}_k} \left[ c_k(\mathbf{x}_k, \mathbf{u
 <blockquote>
 <div><p>An optimal policy has the property that whatever the previous state and decision, the remaining decisions must constitute an optimal policy with regard to the state resulting from the previous decision.</p>
 </div></blockquote>
-<p>In other words, any sub-path of an optimal path, from any intermediate point to the end, must itself be optimal.</p>
-<p>Dynamic programming can handle nonlinear systems and non-quadratic cost functions naturally. It provides a global optimal solution, when one exists, and can incorporate state and control constraints with relative ease. Howver, as the dimension of the state space increases, this approach suffers from what Bellman termed the “curse of dimensionality.” The computational complexity and memory requirements grow exponentially with the state dimension, rendering direct application of dynamic programming intractable for high-dimensional problems.</p>
+<p>In other words, any sub-path of an optimal path, from any intermediate point to the end, must itself be optimal. This principle is the basis for the backward induction procedure which computes the optimal value function and provides closed-loop control capabilities without having to use an explicit NLP solver.</p>
+<p>Dynamic programming can handle nonlinear systems and non-quadratic cost functions naturally. It provides a global optimal solution, when one exists, and can incorporate state and control constraints with relative ease. However, as the dimension of the state space increases, this approach suffers from what Bellman termed the “curse of dimensionality.” The computational complexity and memory requirements grow exponentially with the state dimension, rendering direct application of dynamic programming intractable for high-dimensional problems.</p>
 <p>Fortunately, learning-based methods offer efficient tools to combat the curse of dimensionality on two fronts: by using function approximation (e.g., neural networks) to avoid explicit discretization, and by leveraging randomization through Monte Carlo methods inherent in the learning paradigm. Most of this course is dedicated to those ideas.</p>
 <section id="backward-recursion">
 <h2>Backward Recursion<a class="headerlink" href="#backward-recursion" title="Link to this heading">#</a></h2>
-<p>The principle of optimality provides a methodology for solving optimal control problems. Beginning at the final time horizon and working backwards, at each stage the local optimization problem given by Bellman’s equation is solved. This process, termed backward recursion or backward induction constructs the optimal value function stage by stage.</p>
+<p>The principle of optimality provides a methodology for solving optimal control problems. Beginning at the final time horizon and working backwards, at each stage the local optimization problem given by Bellman’s equation is solved. This process, termed backward recursion or backward induction, constructs the optimal value function stage by stage.</p>
 <div class="proof algorithm admonition" id="backward-recursion">
 <p class="admonition-title"><span class="caption-number">Algorithm 3 </span> (Backward Recursion for Dynamic Programming)</p>
 <section class="algorithm-content" id="proof-content">
@@ -546,6 +546,88 @@ J_k^\star(\mathbf{x}_k) = \min_{\mathbf{u}_k} \left[ c_k(\mathbf{x}_k, \mathbf{u
 </ol>
 </section>
 </div><p>Upon completion of this backward pass, we now have access to the optimal control to take at any stage and in any state. Furthermore, we can simulate optimal trajectories from any initial state and applying the optimal policy at each stage to generate the optimal trajectory.</p>
+<div class="proof theorem admonition" id="thm-bolza-backward">
+<p class="admonition-title"><span class="caption-number">Theorem 2 </span> (Backward induction solves deterministic Bolza DOCP)</p>
+<section class="theorem-content" id="proof-content">
+<p><strong>Setting.</strong> Let <span class="math notranslate nohighlight">\(\mathbf{x}_{t+1}=\mathbf{f}_t(\mathbf{x}_t,\mathbf{u}_t)\)</span> for <span class="math notranslate nohighlight">\(t=1,\dots,T-1\)</span>, with admissible action sets <span class="math notranslate nohighlight">\(\mathcal{U}_t(\mathbf{x})\neq\varnothing\)</span>. Let stage costs <span class="math notranslate nohighlight">\(c_t(\mathbf{x},\mathbf{u})\)</span> and terminal cost <span class="math notranslate nohighlight">\(c_\mathrm{T}(\mathbf{x})\)</span> be real-valued and bounded below. Assume for every <span class="math notranslate nohighlight">\((t,\mathbf{x})\)</span> the one-step problem</p>
+<div class="math notranslate nohighlight">
+\[
+\min_{\mathbf{u}\in\mathcal{U}_t(\mathbf{x})}\big\{c_t(\mathbf{x},\mathbf{u})+J_{t+1}^\star(\mathbf{f}_t(\mathbf{x},\mathbf{u}))\big\}
+\]</div>
+<p>admits a minimizer (e.g., compact <span class="math notranslate nohighlight">\(\mathcal{U}_t(\mathbf{x})\)</span> and continuity suffice).</p>
+<p>Define <span class="math notranslate nohighlight">\(J_T^\star(\mathbf{x}) \equiv c_\mathrm{T}(\mathbf{x})\)</span> and for <span class="math notranslate nohighlight">\(t=T-1,\dots,1\)</span></p>
+<div class="math notranslate nohighlight">
+\[
+J_t^\star(\mathbf{x}) \;\triangleq\; \min_{\mathbf{u}\in\mathcal{U}_t(\mathbf{x})}
+\Big[c_t(\mathbf{x},\mathbf{u})+J_{t+1}^\star\big(\mathbf{f}_t(\mathbf{x},\mathbf{u})\big)\Big],
+\]</div>
+<p>and select any minimizer <span class="math notranslate nohighlight">\(\boldsymbol{\mu}_t^\star(\mathbf{x})\in\arg\min(\cdot)\)</span>.</p>
+<p><strong>Claim.</strong> For every initial state <span class="math notranslate nohighlight">\(\mathbf{x}_1\)</span>, the control sequence
+<span class="math notranslate nohighlight">\(\boldsymbol{\mu}_1^\star(\mathbf{x}_1),\dots,\boldsymbol{\mu}_{T-1}^\star(\mathbf{x}_{T-1})\)</span>
+generated by these selectors is optimal for the Bolza problem, and
+<span class="math notranslate nohighlight">\(J_1^\star(\mathbf{x}_1)\)</span> equals the optimal cost. Moreover, <span class="math notranslate nohighlight">\(J_t^\star(\cdot)\)</span> is the optimal cost-to-go from stage <span class="math notranslate nohighlight">\(t\)</span> for every state, i.e., backward induction recovers the entire value function.</p>
+</section>
+</div><div class="proof admonition" id="proof">
+<p>Proof. We give a direct proof by backward induction. The general idea is that any feasible sequence can be improved by replacing its tail with an optimal continuation, so optimal solutions can be built stage by stage. This is sometimes called a “cut-and-paste” argument.</p>
+<p><strong>Step 1 (verification of the recursion at a fixed stage).</strong><br />
+Fix <span class="math notranslate nohighlight">\(t\in\{1,\dots,T-1\}\)</span> and <span class="math notranslate nohighlight">\(\mathbf{x}\in\mathbb{X}\)</span>. Consider any admissible control sequence <span class="math notranslate nohighlight">\(\mathbf{u}_t,\dots,\mathbf{u}_{T-1}\)</span> starting from <span class="math notranslate nohighlight">\(\mathbf{x}_t=\mathbf{x}\)</span> and define the induced states <span class="math notranslate nohighlight">\(\mathbf{x}_{k+1}=\mathbf{f}_k(\mathbf{x}_k,\mathbf{u}_k)\)</span>. Its total cost from <span class="math notranslate nohighlight">\(t\)</span> is</p>
+<div class="math notranslate nohighlight">
+\[
+c_t(\mathbf{x}_t,\mathbf{u}_t)+\sum_{k=t+1}^{T-1}c_k(\mathbf{x}_k,\mathbf{u}_k)+c_\mathrm{T}(\mathbf{x}_T).
+\]</div>
+<p>By definition of <span class="math notranslate nohighlight">\(J_{t+1}^\star\)</span>, the tail cost satisfies</p>
+<div class="math notranslate nohighlight">
+\[
+\sum_{k=t+1}^{T-1}c_k(\mathbf{x}_k,\mathbf{u}_k)+c_\mathrm{T}(\mathbf{x}_T)
+\;\ge\; J_{t+1}^\star(\mathbf{x}_{t+1})
+\;=\; J_{t+1}^\star\big(\mathbf{f}_t(\mathbf{x},\mathbf{u}_t)\big).
+\]</div>
+<p>Hence the total cost is bounded below by</p>
+<div class="math notranslate nohighlight">
+\[
+c_t(\mathbf{x},\mathbf{u}_t)+J_{t+1}^\star\big(\mathbf{f}_t(\mathbf{x},\mathbf{u}_t)\big).
+\]</div>
+<p>Taking the minimum over <span class="math notranslate nohighlight">\(\mathbf{u}_t\in\mathcal{U}_t(\mathbf{x})\)</span> yields</p>
+<div class="math notranslate nohighlight">
+\[
+\text{(any admissible cost from $t$)}\;\ge\;J_t^\star(\mathbf{x}).
+\tag{$\ast$}
+\]</div>
+<p><strong>Step 2 (existence of an optimal prefix at stage <span class="math notranslate nohighlight">\(t\)</span>).</strong><br />
+By assumption, there exists <span class="math notranslate nohighlight">\(\boldsymbol{\mu}_t^\star(\mathbf{x})\)</span> attaining the minimum in the definition of <span class="math notranslate nohighlight">\(J_t^\star(\mathbf{x})\)</span>. If we now <strong>paste</strong> to <span class="math notranslate nohighlight">\(\boldsymbol{\mu}_t^\star(\mathbf{x})\)</span> an optimal tail policy from <span class="math notranslate nohighlight">\(t+1\)</span> (whose existence we will establish inductively), the resulting sequence attains cost exactly</p>
+<div class="math notranslate nohighlight">
+\[
+c_t\big(\mathbf{x},\boldsymbol{\mu}_t^\star(\mathbf{x})\big)
++J_{t+1}^\star\!\Big(\mathbf{f}_t\big(\mathbf{x},\boldsymbol{\mu}_t^\star(\mathbf{x})\big)\Big)
+=J_t^\star(\mathbf{x}),
+\]</div>
+<p>which matches the lower bound <span class="math notranslate nohighlight">\((\ast)\)</span>; hence it is optimal from <span class="math notranslate nohighlight">\(t\)</span>.</p>
+<p><strong>Step 3 (backward induction over time).</strong><br />
+Base case <span class="math notranslate nohighlight">\(t=T\)</span>. The statement holds because <span class="math notranslate nohighlight">\(J_T^\star(\mathbf{x})=c_\mathrm{T}(\mathbf{x})\)</span> and there is no control to choose.</p>
+<p>Inductive step. Assume the tail statement holds for <span class="math notranslate nohighlight">\(t+1\)</span>: from any state <span class="math notranslate nohighlight">\(\mathbf{x}_{t+1}\)</span> there exists an optimal control sequence realizing <span class="math notranslate nohighlight">\(J_{t+1}^\star(\mathbf{x}_{t+1})\)</span>. Then by Steps 1–2, selecting <span class="math notranslate nohighlight">\(\boldsymbol{\mu}_t^\star(\mathbf{x}_t)\)</span> at stage <span class="math notranslate nohighlight">\(t\)</span> and concatenating the optimal tail from <span class="math notranslate nohighlight">\(t+1\)</span> yields an optimal sequence from <span class="math notranslate nohighlight">\(t\)</span> with value <span class="math notranslate nohighlight">\(J_t^\star(\mathbf{x}_t)\)</span>.</p>
+<p>By backward induction, the claim holds for all <span class="math notranslate nohighlight">\(t\)</span>, in particular for <span class="math notranslate nohighlight">\(t=1\)</span> and any initial <span class="math notranslate nohighlight">\(\mathbf{x}_1\)</span>. Therefore the backward recursion both <strong>certifies</strong> optimality (verification) and <strong>constructs</strong> an optimal policy (synthesis), while recovering the full family <span class="math notranslate nohighlight">\(\{J_t^\star\}_{t=1}^T\)</span>.</p>
+</div>
+<div class="proof remark admonition" id="remark-2">
+<p class="admonition-title"><span class="caption-number">Remark 1 </span> (No “big NLP” required)</p>
+<section class="remark-content" id="proof-content">
+<p>The Bolza DOCP over the whole horizon couples all controls through the dynamics and is typically posed as a single large nonlinear program. The proof shows you can solve <strong><span class="math notranslate nohighlight">\(T-1\)</span> sequences of one-step problems</strong> instead: at each <span class="math notranslate nohighlight">\((t,\mathbf{x})\)</span> minimize
+$<span class="math notranslate nohighlight">\(
+\mathbf{u}\mapsto c_t(\mathbf{x},\mathbf{u}) + J_{t+1}^\star(\mathbf{f}_t(\mathbf{x},\mathbf{u})).
+\)</span>$
+In finite state–action spaces this becomes pure table lookup and argmin. In continuous spaces you still solve local one-step minimizations, but you avoid a monolithic horizon-coupled NLP.</p>
+</section>
+</div><div class="proof remark admonition" id="remark-3">
+<p class="admonition-title"><span class="caption-number">Remark 2 </span> (Graph interpretation (optional intuition))</p>
+<section class="remark-content" id="proof-content">
+<p>Unroll time to form a DAG whose nodes are <span class="math notranslate nohighlight">\((t,\mathbf{x})\)</span> and whose edges correspond to feasible controls with edge weight <span class="math notranslate nohighlight">\(c_t(\mathbf{x},\mathbf{u})\)</span>. The terminal node cost is <span class="math notranslate nohighlight">\(c_\mathrm{T}(\cdot)\)</span>. The Bolza problem is a shortest-path problem on this DAG. The equation
+$<span class="math notranslate nohighlight">\(
+J_t^\star(\mathbf{x})=\min_{\mathbf{u}}\{c_t(\mathbf{x},\mathbf{u})+J_{t+1}^\star(\mathbf{f}_t(\mathbf{x},\mathbf{u}))\}
+\)</span>$
+is exactly the dynamic programming recursion for shortest paths on acyclic graphs, hence backward induction is optimal.</p>
+</section>
+</div><!-- ```{prf:remark} If minimizers may not exist
+Replace each “min” by “inf” in the definitions and state that for every $\varepsilon>0$ there exist $\varepsilon$-optimal selectors $\boldsymbol{\mu}_t^\varepsilon(\cdot)$ achieving cost within $\varepsilon$ of $J_t^\star(\cdot)$. The same cut-and-paste and induction go through.
+``` -->
 <section id="example-optimal-harvest-in-resource-management">
 <h3>Example: Optimal Harvest in Resource Management<a class="headerlink" href="#example-optimal-harvest-in-resource-management" title="Link to this heading">#</a></h3>
 <p>Dynamic programming is often used in resource management and conservation biology to devise policies to be implemented by decision makers and stakeholders : for eg. in fishereries, or timber harvesting. Per <span id="id1">[<a class="reference internal" href="bibliography.html#id22" title="Michael J. Conroy and James T. Peterson. Decision Making in Natural Resource Management: A Structured, Adaptive Approach: A Structured, Adaptive Approach. Wiley, January 2013. ISBN 9781118506196. URL: http://dx.doi.org/10.1002/9781118506196, doi:10.1002/9781118506196.">9</a>]</span>, we consider a population of a particular species, whose abundance we denote by <span class="math notranslate nohighlight">\(x_t\)</span>, where <span class="math notranslate nohighlight">\(t\)</span> represents discrete time steps. Our objective is to maximize the cumulative harvest over a finite time horizon, while also considering the long-term sustainability of the population. This optimization problem can be formulated as:</p>
@@ -1213,9 +1295,45 @@ By tuning the weight $r$ and the sampling time $T_s$, we can balance the trade-o
 </section>
 </section>
 </section>
-<section class="tex2jax_ignore mathjax_ignore" id="stochastic-dynamic-programming-in-control-theory">
-<h1>Stochastic Dynamic Programming in Control Theory<a class="headerlink" href="#stochastic-dynamic-programming-in-control-theory" title="Link to this heading">#</a></h1>
-<p>While our previous discussion centered on deterministic systems, many real-world problems involve uncertainty. Stochastic Dynamic Programming (SDP) extends our framework to handle stochasticity in both the objective function and system dynamics.</p>
+<section class="tex2jax_ignore mathjax_ignore" id="stochastic-dynamic-programming-and-markov-decision-processes">
+<h1>Stochastic Dynamic Programming and Markov Decision Processes<a class="headerlink" href="#stochastic-dynamic-programming-and-markov-decision-processes" title="Link to this heading">#</a></h1>
+<p>While our previous discussion centered on deterministic systems, many real-world problems involve uncertainty. Stochastic Dynamic Programming (SDP) extends our framework to handle stochasticity in both the objective function and system dynamics. This extension naturally leads us to consider more general policy classes and to formalize when simpler policies suffice.</p>
+<section id="decision-rules-and-policies">
+<h2>Decision Rules and Policies<a class="headerlink" href="#decision-rules-and-policies" title="Link to this heading">#</a></h2>
+<p>Before diving into stochastic systems, we need to establish terminology for the different types of strategies a decision maker might employ. In the deterministic setting, we implicitly used feedback controllers of the form <span class="math notranslate nohighlight">\(u(\mathbf{x}, t)\)</span>. In the stochastic setting, we must be more precise about what information policies can use and how they select actions.</p>
+<p>A <strong>decision rule</strong> is a prescription for action selection in each state at a specified decision epoch. These rules can vary in their complexity based on two main criteria:</p>
+<ol class="arabic simple">
+<li><p><strong>Dependence on history</strong>: Markovian or History-dependent</p></li>
+<li><p><strong>Action selection method</strong>: Deterministic or Randomized</p></li>
+</ol>
+<p><strong>Markovian decision rules</strong> depend only on the current state, while <strong>history-dependent rules</strong> consider the entire sequence of past states and actions. Formally, a history <span class="math notranslate nohighlight">\(h_t\)</span> at time <span class="math notranslate nohighlight">\(t\)</span> is:</p>
+<div class="math notranslate nohighlight">
+\[h_t = (s_1, a_1, \ldots, s_{t-1}, a_{t-1}, s_t)\]</div>
+<p>The set of all possible histories at time <span class="math notranslate nohighlight">\(t\)</span>, denoted <span class="math notranslate nohighlight">\(H_t\)</span>, grows exponentially with <span class="math notranslate nohighlight">\(t\)</span>:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(H_1 = \mathcal{S}\)</span> (just the initial state)</p></li>
+<li><p><span class="math notranslate nohighlight">\(H_2 = \mathcal{S} \times \mathcal{A} \times \mathcal{S}\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(H_t = \mathcal{S} \times (\mathcal{A} \times \mathcal{S})^{t-1}\)</span></p></li>
+</ul>
+<p><strong>Deterministic rules</strong> select an action with certainty, while <strong>randomized rules</strong> specify a probability distribution over the action space.</p>
+<p>These classifications lead to four types of decision rules:</p>
+<ol class="arabic simple">
+<li><p><strong>Markovian Deterministic (MD)</strong>: <span class="math notranslate nohighlight">\(d_t: \mathcal{S} \rightarrow \mathcal{A}_s\)</span></p></li>
+<li><p><strong>Markovian Randomized (MR)</strong>: <span class="math notranslate nohighlight">\(d_t: \mathcal{S} \rightarrow \mathcal{P}(\mathcal{A}_s)\)</span></p></li>
+<li><p><strong>History-dependent Deterministic (HD)</strong>: <span class="math notranslate nohighlight">\(d_t: H_t \rightarrow \mathcal{A}_s\)</span></p></li>
+<li><p><strong>History-dependent Randomized (HR)</strong>: <span class="math notranslate nohighlight">\(d_t: H_t \rightarrow \mathcal{P}(\mathcal{A}_s)\)</span></p></li>
+</ol>
+<p>where <span class="math notranslate nohighlight">\(\mathcal{P}(\mathcal{A}_s)\)</span> denotes the set of probability distributions over <span class="math notranslate nohighlight">\(\mathcal{A}_s\)</span>.</p>
+<p>A <strong>policy</strong> <span class="math notranslate nohighlight">\(\pi\)</span> is a sequence of decision rules, one for each decision epoch:</p>
+<div class="math notranslate nohighlight">
+\[\pi = (d_1, d_2, ..., d_{N-1})\]</div>
+<p>The set of all policies of class <span class="math notranslate nohighlight">\(K\)</span> (where <span class="math notranslate nohighlight">\(K \in \{HR, HD, MR, MD\}\)</span>) is denoted as <span class="math notranslate nohighlight">\(\Pi^K\)</span>. These policy classes form a hierarchy:</p>
+<div class="math notranslate nohighlight">
+\[\Pi^{MD} \subset \Pi^{MR} \subset \Pi^{HR}, \quad \Pi^{MD} \subset \Pi^{HD} \subset \Pi^{HR}\]</div>
+<p>The largest set <span class="math notranslate nohighlight">\(\Pi^{HR}\)</span> contains all possible policies. A fundamental question in MDP theory is: under what conditions can we restrict attention to the much simpler set <span class="math notranslate nohighlight">\(\Pi^{MD}\)</span> without loss of optimality?</p>
+</section>
+<section id="stochastic-system-dynamics">
+<h2>Stochastic System Dynamics<a class="headerlink" href="#stochastic-system-dynamics" title="Link to this heading">#</a></h2>
 <p>In the stochastic setting, our system evolution takes the form:</p>
 <div class="math notranslate nohighlight">
 \[ \mathbf{x}_{t+1} = \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w}_t) \]</div>
@@ -1231,7 +1349,56 @@ By tuning the weight $r$ and the sampling time $T_s$, we can balance the trade-o
 <p>In practice, this expectation is often computed by discretizing the distribution of <span class="math notranslate nohighlight">\(\mathbf{w}_k\)</span> when the set of possible disturbances is very large or even continuous. Let’s say we approximate the distribution with <span class="math notranslate nohighlight">\(K\)</span> discrete values <span class="math notranslate nohighlight">\(\mathbf{w}_k^i\)</span>, each occurring with probability <span class="math notranslate nohighlight">\(p_k^i\)</span>. Then our Bellman equation becomes:</p>
 <div class="math notranslate nohighlight">
 \[ J_k^\star(\mathbf{x}_k) = \min_{\mathbf{u}_k} \sum_{i=1}^K p_k^i \left(c_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k^i) + J_{k+1}^\star(\mathbf{f}_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k^i))\right) \]</div>
-<p>The backward recursion algorithm for SDP follows a similar structure to its deterministic counterpart, with the key difference being that we now have to compute expected values:</p>
+</section>
+<section id="optimality-equations-and-policy-reduction-in-the-stochastic-setting">
+<h2>Optimality Equations and Policy Reduction in the Stochastic Setting<a class="headerlink" href="#optimality-equations-and-policy-reduction-in-the-stochastic-setting" title="Link to this heading">#</a></h2>
+<p>When dealing with stochastic systems, a fundamental question arises: what information should our control policy use? In the most general case, a policy might use the entire history of observations and actions. However, as we’ll see, the Markovian structure of our problems allows for dramatic simplifications.</p>
+<p>Let <span class="math notranslate nohighlight">\(h_t = (s_1, a_1, s_2, a_2, \ldots, s_{t-1}, a_{t-1}, s_t)\)</span> denote the complete history up to time <span class="math notranslate nohighlight">\(t\)</span>. In the stochastic setting, the history-based optimality equations become:</p>
+<div class="math notranslate nohighlight">
+\[
+u_t(h_t) = \sup_{a\in A_{s_t}}\left\{ r_t(s_t,a) + \sum_{j\in S} p_t(j\mid s_t,a)\, u_{t+1}(h_t,a,j) \right\},\quad u_N(h_N)=r_N(s_N)
+\]</div>
+<p>where we now explicitly use the transition probabilities <span class="math notranslate nohighlight">\(p_t(j|s_t,a)\)</span> rather than a deterministic dynamics function.</p>
+<div class="proof theorem admonition" id="stoch-principle-opt">
+<p class="admonition-title"><span class="caption-number">Theorem 3 </span> (Principle of optimality for stochastic systems)</p>
+<section class="theorem-content" id="proof-content">
+<p>Solutions to the stochastic optimality equations equal the optimal expected returns. Any policy that selects maximizing actions at each history is optimal.</p>
+</section>
+</div><p><strong>Intuition:</strong> Even with uncertainty, the recursive structure ensures that optimal local decisions lead to global optimality. The expectation over future states is captured by the transition probabilities.</p>
+<p>A remarkable simplification occurs when we examine these history-based equations more closely. The Markov property of our system dynamics and rewards means that the optimal return actually depends on the history only through the current state:</p>
+<div class="proof proposition admonition" id="stoch-state-suff">
+<p class="admonition-title"><span class="caption-number">Proposition 2 </span> (State sufficiency for stochastic MDPs)</p>
+<section class="proposition-content" id="proof-content">
+<p>In finite-horizon stochastic MDPs with Markovian dynamics and rewards, the optimal return <span class="math notranslate nohighlight">\(u_t^*(h_t)\)</span> depends on the history only through the current state <span class="math notranslate nohighlight">\(s_t\)</span>. Thus we can write <span class="math notranslate nohighlight">\(u_t^*(h_t) = v_t^*(s_t)\)</span> for some function <span class="math notranslate nohighlight">\(v_t^*\)</span> that depends only on state and time.</p>
+</section>
+</div><div class="proof admonition" id="proof">
+<p>Proof. Following <span id="id2">Puterman [<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">33</a>]</span> Theorem 4.4.2. We proceed by backward induction.</p>
+<p><strong>Base case:</strong> At the terminal time <span class="math notranslate nohighlight">\(N\)</span>, we have <span class="math notranslate nohighlight">\(u_N^*(h_N) = r_N(s_N)\)</span> by the boundary condition. Since the terminal reward depends only on the final state <span class="math notranslate nohighlight">\(s_N\)</span> and not on how we arrived there, <span class="math notranslate nohighlight">\(u_N^*(h_N) = u_N^*(s_N)\)</span>.</p>
+<p><strong>Inductive step:</strong> Assume <span class="math notranslate nohighlight">\(u_{t+1}^*(h_{t+1})\)</span> depends on <span class="math notranslate nohighlight">\(h_{t+1}\)</span> only through <span class="math notranslate nohighlight">\(s_{t+1}\)</span> for all <span class="math notranslate nohighlight">\(t+1, \ldots, N\)</span>. Then from the optimality equation:</p>
+<div class="math notranslate nohighlight">
+\[u_t^*(h_t) = \sup_{a \in A_{s_t}} \left\{ r_t(s_t, a) + \sum_{j \in S} p_t(j|s_t, a) u_{t+1}^*(h_t, a, j) \right\}\]</div>
+<p>By the induction hypothesis, <span class="math notranslate nohighlight">\(u_{t+1}^*(h_t, a, j)\)</span> depends only on the next state <span class="math notranslate nohighlight">\(j\)</span>, so:</p>
+<div class="math notranslate nohighlight">
+\[u_t^*(h_t) = \sup_{a \in A_{s_t}} \left\{ r_t(s_t, a) + \sum_{j \in S} p_t(j|s_t, a) u_{t+1}^*(j) \right\}\]</div>
+<p>Since the expression in brackets depends on <span class="math notranslate nohighlight">\(h_t\)</span> only through the current state <span class="math notranslate nohighlight">\(s_t\)</span> (the rewards and transition probabilities are Markovian), we conclude that <span class="math notranslate nohighlight">\(u_t^*(h_t) = u_t^*(s_t)\)</span>.</p>
+</div>
+<p><strong>Intuition:</strong> The Markov property means that the current state contains all information needed to predict future evolution—the past provides no additional value for decision-making. This powerful result allows us to work with value functions <span class="math notranslate nohighlight">\(v_t^*(s)\)</span> indexed only by state and time, dramatically simplifying both theory and computation.</p>
+<p>This state-sufficiency result, combined with the fact that randomization never helps when maximizing expected returns, leads to a dramatic simplification of the policy space:</p>
+<div class="proof theorem admonition" id="stoch-policy-reduction">
+<p class="admonition-title"><span class="caption-number">Theorem 4 </span> (Policy reduction for stochastic MDPs)</p>
+<section class="theorem-content" id="proof-content">
+<p>For finite-horizon stochastic MDPs with finite state and action sets:</p>
+<div class="math notranslate nohighlight">
+\[
+\sup_{\pi \in \Pi^{\mathrm{HR}}} v_\pi(s,t) = \max_{\pi \in \Pi^{\mathrm{MD}}} v_\pi(s,t)
+\]</div>
+<p>That is, there exists an optimal policy that is both deterministic and Markovian.</p>
+</section>
+</div><div class="proof admonition" id="proof">
+<p>Proof. Sketch following <span id="id3">Puterman [<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">33</a>]</span> Lemma 4.3.1 and Theorem 4.4.2. First, Lemma 4.3.1 shows that for any function <span class="math notranslate nohighlight">\(w\)</span> and any distribution <span class="math notranslate nohighlight">\(q\)</span> over actions, <span class="math notranslate nohighlight">\(\sup_a w(a) \ge \sum_a q(a) w(a)\)</span>. Thus randomization cannot improve the expected value over choosing a single maximizing action. Second, by state sufficiency (Proposition <span class="xref std std-ref">stoch-state-suff</span> and <span id="id4">Puterman [<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">33</a>]</span> Thm. 4.4.2(a)), the optimal return depends on the history only through <span class="math notranslate nohighlight">\((s_t,t)\)</span>. Therefore, selecting at each <span class="math notranslate nohighlight">\((s_t,t)\)</span> an action that attains the maximum yields a deterministic Markov decision rule which is optimal whenever the maximum is attained. If only a supremum exists, <span class="math notranslate nohighlight">\(\varepsilon\)</span>-optimal selectors exist by choosing actions within <span class="math notranslate nohighlight">\(\varepsilon\)</span> of the supremum (see <span id="id5">Puterman [<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">33</a>]</span> Thm. 4.3.4).</p>
+</div>
+<p><strong>Intuition:</strong> Even in stochastic systems, randomization in the policy doesn’t help when maximizing expected returns—you should always choose the action with the highest expected value. Combined with state sufficiency, this means simple state-to-action mappings are optimal.</p>
+<p>These results justify focusing on deterministic Markov policies and lead to the backward recursion algorithm for stochastic systems:</p>
 <div class="proof algorithm admonition" id="stochastic-backward-recursion">
 <p class="admonition-title"><span class="caption-number">Algorithm 5 </span> (Backward Recursion for Stochastic Dynamic Programming)</p>
 <section class="algorithm-content" id="proof-content">
@@ -1261,9 +1428,10 @@ By tuning the weight $r$ and the sampling time $T_s$, we can balance the trade-o
 <li><p>Monte Carlo integration (simulation)</p></li>
 </ol>
 <p>These two elements essentially distill the key ingredients of machine learning, which is the direction we’ll be exploring in this course.</p>
+</section>
 <section id="example-stochastic-optimal-harvest-in-resource-management">
 <h2>Example: Stochastic Optimal Harvest in Resource Management<a class="headerlink" href="#example-stochastic-optimal-harvest-in-resource-management" title="Link to this heading">#</a></h2>
-<p>Building upon our previous deterministic model, we now introduce stochasticity to more accurately reflect the uncertainties inherent in real-world resource management scenarios <span id="id2">[<a class="reference internal" href="bibliography.html#id22" title="Michael J. Conroy and James T. Peterson. Decision Making in Natural Resource Management: A Structured, Adaptive Approach: A Structured, Adaptive Approach. Wiley, January 2013. ISBN 9781118506196. URL: http://dx.doi.org/10.1002/9781118506196, doi:10.1002/9781118506196.">9</a>]</span>. As before, we consider a population of a particular species, whose abundance we denote by <span class="math notranslate nohighlight">\(x_t\)</span>, where <span class="math notranslate nohighlight">\(t\)</span> represents discrete time steps. Our objective remains to maximize the cumulative harvest over a finite time horizon, while also considering the long-term sustainability of the population. However, we now account for two sources of stochasticity: partial controllability of harvest and environmental variability affecting growth rates.
+<p>Building upon our previous deterministic model, we now introduce stochasticity to more accurately reflect the uncertainties inherent in real-world resource management scenarios <span id="id6">[<a class="reference internal" href="bibliography.html#id22" title="Michael J. Conroy and James T. Peterson. Decision Making in Natural Resource Management: A Structured, Adaptive Approach: A Structured, Adaptive Approach. Wiley, January 2013. ISBN 9781118506196. URL: http://dx.doi.org/10.1002/9781118506196, doi:10.1002/9781118506196.">9</a>]</span>. As before, we consider a population of a particular species, whose abundance we denote by <span class="math notranslate nohighlight">\(x_t\)</span>, where <span class="math notranslate nohighlight">\(t\)</span> represents discrete time steps. Our objective remains to maximize the cumulative harvest over a finite time horizon, while also considering the long-term sustainability of the population. However, we now account for two sources of stochasticity: partial controllability of harvest and environmental variability affecting growth rates.
 The optimization problem can be formulated as:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1491,9 +1659,8 @@ Average total harvest: 313.43165025164313
 </div>
 </div>
 </section>
-</section>
-<section class="tex2jax_ignore mathjax_ignore" id="id3">
-<h1>Dynamic Programming<a class="headerlink" href="#id3" title="Link to this heading">#</a></h1>
+<section id="markov-decision-process-formulation">
+<h2>Markov Decision Process Formulation<a class="headerlink" href="#markov-decision-process-formulation" title="Link to this heading">#</a></h2>
 <p>Rather than expressing the stochasticity in our system through a disturbance term as a parameter to a deterministic difference equation, we often work with an alternative representation (more common in operations research) which uses the Markov Decision Process formulation. The idea is that when we model our system in this way with the disturbance term being drawn indepently of the previous stages, the induced trajectory are those of a Markov chain. Hence, we can re-cast our control problem in that language, leading to the so-called Markov Decision Process framework in which we express the system dynamics in terms of transition probabilities rather than explicit state equations. In this framework, we express the probability that the system is in a given state using the transition probability function:</p>
 <div class="math notranslate nohighlight">
 \[ p_t(\mathbf{x}_{t+1} | \mathbf{x}_t, \mathbf{u}_t) \]</div>
@@ -1526,6 +1693,7 @@ p_t(\mathbf{x}_{t+1} | \mathbf{x}_t, \mathbf{u}_t) &amp;= \mathbb{P}(\mathbf{W}_
 <li><p>For discrete-state problems, the entire system dynamics can be specified by a set of transition matrices, one for each possible action.</p></li>
 <li><p>It allows us to bridge the gap with the wealth of methods in the field of probabilistic graphical models and statistical machine learning techniques for modelling and analysis.</p></li>
 </ol>
+</section>
 <section id="notation-in-operations-reseach">
 <h2>Notation in Operations Reseach<a class="headerlink" href="#notation-in-operations-reseach" title="Link to this heading">#</a></h2>
 <p>The presentation above was intended to bridge the gap between the control-theoretic perspective and the world of closed-loop control through the idea of determining the value function of a parametric optimal control problem. We then saw how the backward induction procedure was applicable to both the deterministic and stochastic cases by taking the expectation over the disturbance variable. We then said that we can alternatively work with a representation of our system where instead of writing our model as a deterministic dynamics function taking a disturbance as an input, we would rather work directly via its transition probability function, which gives rise to the Markov chain interpretation of our system in simulation.</p>
@@ -1542,50 +1710,6 @@ p_t(\mathbf{x}_{t+1} | \mathbf{x}_t, \mathbf{u}_t) &amp;= \mathbb{P}(\mathbf{W}_
 <div class="math notranslate nohighlight">
 \[\{T, S, \mathcal{A}_s, p_t(\cdot | s, a), r_t(s, a)\}\]</div>
 <p>where <span class="math notranslate nohighlight">\(\mathrm{T}\)</span> represents the set of decision epochs (the horizon).</p>
-</section>
-<section id="decision-rules-and-policies">
-<h2>Decision Rules and Policies<a class="headerlink" href="#decision-rules-and-policies" title="Link to this heading">#</a></h2>
-<p>In the presentation provided so far, we directly assumed that the form of our feedback controller was of the form <span class="math notranslate nohighlight">\(u(\mathbf{x}, t)\)</span>. The idea is that rather than just looking at the stage as in open-loop control, we would now consider the current state to account for the presence of noise. We came to that conclusion by considering the parametric optimization problem corresponding to the trajectory optimization perspective and saw that the “argmax” counterpart to the value function (the max) was exactly this function <span class="math notranslate nohighlight">\(u(x, t)\)</span>. But this presentation was mostly for intuition and neglected the fact that we could consider other kinds of feedback controllers. In the context of MDPs and under the OR terminology, we should now rather talk of policies instead of controllers.</p>
-<p>But to properly introduce the concept of policy, we first have to talk about decision rules. A decision rule is a prescription of a procedure for action selection in each state at a specified decision epoch. These rules can vary in their complexity due to their potential dependence on the history and ways in which actions are then selected. Decision rules can be classified based on two main criteria:</p>
-<ol class="arabic simple">
-<li><p>Dependence on history: Markovian or History-dependent</p></li>
-<li><p>Action selection method: Deterministic or Randomized</p></li>
-</ol>
-<p>Markovian decision rules are those that depend only on the current state, while history-dependent rules consider the entire sequence of past states and actions. Formally, we can define a history <span class="math notranslate nohighlight">\(h_t\)</span> at time <span class="math notranslate nohighlight">\(t\)</span> as:</p>
-<div class="math notranslate nohighlight">
-\[h_t = (s_1, a_1, \ldots, s_{t-1}, a_{t-1}, s_t)\]</div>
-<p>where <span class="math notranslate nohighlight">\(s_u\)</span> and <span class="math notranslate nohighlight">\(a_u\)</span> denote the state and action at decision epoch <span class="math notranslate nohighlight">\(u\)</span>. The set of all possible histories at time <span class="math notranslate nohighlight">\(t\)</span>, denoted <span class="math notranslate nohighlight">\(H_t\)</span>, grows rapidly with <span class="math notranslate nohighlight">\(t\)</span>:</p>
-<div class="math notranslate nohighlight">
-\[H_1 = \mathcal{S}\]</div>
-<div class="math notranslate nohighlight">
-\[H_2 = \mathcal{S} \times A \times \mathcal{S}\]</div>
-<div class="math notranslate nohighlight">
-\[H_t = H_{t-1} \times A \times \mathcal{S} = \mathcal{S} \times (A \times \mathcal{S})^{t-1}\]</div>
-<p>This exponential growth in the size of the history set motivates us to seek conditions under which we can avoid searching for history-dependent decision rules and instead focus on Markovian rules, which are much simpler to implement and evaluate.</p>
-<p>Decision rules can be further classified as deterministic or randomized. A deterministic rule selects an action with certainty, while a randomized rule specifies a probability distribution over the action space.</p>
-<p>These classifications lead to four types of decision rules:</p>
-<ol class="arabic simple">
-<li><p>Markovian Deterministic (MD): <span class="math notranslate nohighlight">\(d_t: \mathcal{S} \rightarrow \mathcal{A}_s\)</span></p></li>
-<li><p>Markovian Randomized (MR): <span class="math notranslate nohighlight">\(d_t: \mathcal{S} \rightarrow \mathcal{P}(\mathcal{A}_s)\)</span></p></li>
-<li><p>History-dependent Deterministic (HD): <span class="math notranslate nohighlight">\(d_t: H_t \rightarrow \mathcal{A}_s\)</span></p></li>
-<li><p>History-dependent Randomized (HR): <span class="math notranslate nohighlight">\(d_t: H_t \rightarrow \mathcal{P}(\mathcal{A}_s)\)</span></p></li>
-</ol>
-<p>Where <span class="math notranslate nohighlight">\(\mathcal{P}(\mathcal{A}_s)\)</span> denotes the set of probability distributions over <span class="math notranslate nohighlight">\(\mathcal{A}_s\)</span>.</p>
-<p>It’s important to note that decision rules are stage-wise objects. However, to solve an MDP, we need a strategy for the entire horizon. This is where we make a distinction and introduce the concept of a policy. A policy <span class="math notranslate nohighlight">\(\pi\)</span> is a sequence of decision rules, one for each decision epoch:</p>
-<div class="math notranslate nohighlight">
-\[\pi = (d_1, d_2, ..., d_{N-1})\]</div>
-<p>Where <span class="math notranslate nohighlight">\(N\)</span> is the horizon length (possibly infinite). The set of all policies of class <span class="math notranslate nohighlight">\(K\)</span> (where <span class="math notranslate nohighlight">\(K\)</span> can be HR, HD, MR, or MD) is denoted as <span class="math notranslate nohighlight">\(\Pi^K\)</span>.</p>
-<p>A special type of policy is a stationary policy, where the same decision rule is used at all epochs: <span class="math notranslate nohighlight">\(\pi = (d, d, ...)\)</span>, often denoted as <span class="math notranslate nohighlight">\(d^\infty\)</span>.</p>
-<p>The relationships between these policy classes form a hierarchy:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}\begin{align*}
-\Pi^{SD} \subset \Pi^{SR} \subset \Pi^{MR} \subset \Pi^{HR}\\
-\Pi^{SD} \subset \Pi^{MD} \subset \Pi^{MR} \subset \Pi^{HR} \\
-\Pi^{SD} \subset \Pi^{MD} \subset \Pi^{HD} \subset \Pi^{HR}
-\end{align*}
-\end{split}\]</div>
-<p>Where SD stands for Stationary Deterministic and SR for Stationary Randomized. The largest set is by far the set of history randomized policies.</p>
-<p>A fundamental question in MDP theory is: under what conditions can we avoid working with the set <span class="math notranslate nohighlight">\(\Pi^{HR}\)</span> and focus for example on the much simpler set of deterministic Markovian policy? Even more so, we will see that in the infinite horizon case, we can drop the dependance on time and simply consider stationary deterministic Markovian policies.</p>
 </section>
 <section id="what-is-an-optimal-policy">
 <h2>What is an Optimal Policy?<a class="headerlink" href="#what-is-an-optimal-policy" title="Link to this heading">#</a></h2>
@@ -1706,7 +1830,7 @@ a. Compute the value function for the given policy:</p>
 <li><p><strong>Regulatory Review</strong>: Submitting a New Drug Application (NDA) for approval.</p></li>
 <li><p><strong>Post-Market Safety Monitoring</strong>: Continuing to monitor the drug’s effects after market release.</p></li>
 </ol>
-<p>This process can take 10-15 years and cost over $1 billion <span id="id4">[<a class="reference internal" href="bibliography.html#id20" title="Christopher Paul Adams and Van Vu Brantner. Spending on new drug development1. Health Economics, 19(2):130–141, February 2009. URL: http://dx.doi.org/10.1002/hec.1454, doi:10.1002/hec.1454.">1</a>]</span>. The high costs and risks involved call for a principled approach to decision making. We’ll focus on the clinical trial phases and NDA approval, per the MDP model presented by <span id="id5">[<a class="reference internal" href="bibliography.html#id21" title="Mark Chang. Monte Carlo Simulation for the Pharmaceutical Industry: Concepts, Algorithms, and Case Studies. CRC Press, September 2010. ISBN 9780429152382. URL: http://dx.doi.org/10.1201/EBK1439835920, doi:10.1201/ebk1439835920.">6</a>]</span>:</p>
+<p>This process can take 10-15 years and cost over $1 billion <span id="id7">[<a class="reference internal" href="bibliography.html#id20" title="Christopher Paul Adams and Van Vu Brantner. Spending on new drug development1. Health Economics, 19(2):130–141, February 2009. URL: http://dx.doi.org/10.1002/hec.1454, doi:10.1002/hec.1454.">1</a>]</span>. The high costs and risks involved call for a principled approach to decision making. We’ll focus on the clinical trial phases and NDA approval, per the MDP model presented by <span id="id8">[<a class="reference internal" href="bibliography.html#id21" title="Mark Chang. Monte Carlo Simulation for the Pharmaceutical Industry: Concepts, Algorithms, and Case Studies. CRC Press, September 2010. ISBN 9780429152382. URL: http://dx.doi.org/10.1201/EBK1439835920, doi:10.1201/ebk1439835920.">6</a>]</span>:</p>
 <ol class="arabic simple">
 <li><p><strong>States</strong> (<span class="math notranslate nohighlight">\(S\)</span>): Our state space is <span class="math notranslate nohighlight">\(S = \{s_1, s_2, s_3, s_4\}\)</span>, where:</p>
 <ul class="simple">
@@ -1883,13 +2007,13 @@ v_\gamma^*(s) \equiv \max_{\pi \in \Pi^{HR}} v_\gamma^\pi(s)=\max_{\pi \in \Pi^{
 v_\nu^\pi(s) \equiv \mathbb{E}_s^\pi\left[\mathbb{E}_\nu\left\{\sum_{t=1}^\nu r(S_t, A_t)\right\}\right]
 \]</div>
 <div class="proof theorem admonition" id="prop-5-3-1">
-<p class="admonition-title"><span class="caption-number">Theorem 2 </span> (Random horizon interpretation of discounting)</p>
+<p class="admonition-title"><span class="caption-number">Theorem 5 </span> (Random horizon interpretation of discounting)</p>
 <section class="theorem-content" id="proof-content">
 <p>Suppose that the horizon <span class="math notranslate nohighlight">\(\nu\)</span> follows a geometric distribution with parameter <span class="math notranslate nohighlight">\(\gamma\)</span>, <span class="math notranslate nohighlight">\(0 \leq \gamma &lt; 1\)</span>, independent of the policy such that
 <span class="math notranslate nohighlight">\(P(\nu=n) = (1-\gamma) \gamma^{n-1}, \, n=1,2, \ldots\)</span>, then <span class="math notranslate nohighlight">\(v_\nu^\pi(s) = v_\gamma^\pi(s)\)</span> for all <span class="math notranslate nohighlight">\(s \in \mathcal{S}\)</span> .</p>
 </section>
 </div><div class="proof admonition" id="proof">
-<p>Proof. See proposition 5.3.1 in <span id="id6">[<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">33</a>]</span></p>
+<p>Proof. See proposition 5.3.1 in <span id="id9">[<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">33</a>]</span></p>
 <div class="math notranslate nohighlight">
 \[
 v_\nu^\pi(s) = E_s^\pi \left\{\sum_{n=1}^{\infty} \sum_{t=1}^n r(X_t, Y_t)(1-\gamma) \gamma^{n-1}\right\}.
@@ -2154,8 +2278,8 @@ v(s) = \max_{a \in A_s} \left\{r(s, a) + \gamma \sum_{j \in S} p(j | s, a) v(j)\
 (\mathrm{L} \mathbf{v})(s) = \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right\}
 \]</div>
 <p>The equivalence between these two forms can be shown mathematically, as demonstrated in the following proposition and proof.</p>
-<div class="proof proposition admonition" id="proposition-7">
-<p class="admonition-title"><span class="caption-number">Proposition 2 </span></p>
+<div class="proof proposition admonition" id="proposition-13">
+<p class="admonition-title"><span class="caption-number">Proposition 3 </span></p>
 <section class="proposition-content" id="proof-content">
 <p>The operator <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> defined as a maximization over Markov deterministic decision rules:</p>
 <div class="math notranslate nohighlight">
@@ -2222,9 +2346,9 @@ Since we’ve shown <span class="math notranslate nohighlight">\(R_1 \leq R_2\)<
 </div><p>The termination criterion in this algorithm is based on a specific bound that provides guarantees on the quality of the solution. This is in contrast to supervised learning, where we often use arbitrary termination criteria based on computational budget or early stopping when the learning curve flattens. This is because establishing implementable generalization bounds in supervised learning is challenging.</p>
 <p>However, in the dynamic programming context, we can derive various bounds that can be implemented in practice. These bounds help us terminate our procedure with a guarantee on the precision of our value function and, correspondingly, on the optimality of the resulting policy.</p>
 <div class="proof proposition admonition" id="value-iteration-convergence">
-<p class="admonition-title"><span class="caption-number">Proposition 3 </span> (Convergence of Value Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Proposition 4 </span> (Convergence of Value Iteration)</p>
 <section class="proposition-content" id="proof-content">
-<p>(Adapted from <span id="id7">Puterman [<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">33</a>]</span> theorem 6.3.1)</p>
+<p>(Adapted from <span id="id10">Puterman [<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">33</a>]</span> theorem 6.3.1)</p>
 <p>Let <span class="math notranslate nohighlight">\(v_0\)</span> be any initial value function, <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span> a desired accuracy, and let <span class="math notranslate nohighlight">\(\{v_n\}\)</span> be the sequence of value functions generated by value iteration, i.e., <span class="math notranslate nohighlight">\(v_{n+1} = \mathrm{L}v_n\)</span> for <span class="math notranslate nohighlight">\(n \geq 1\)</span>, where <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> is the Bellman optimality operator. Then:</p>
 <ol class="arabic simple">
 <li><p><span class="math notranslate nohighlight">\(v_n\)</span> converges to the optimal value function <span class="math notranslate nohighlight">\(v^*_\gamma\)</span>,</p></li>
@@ -2465,13 +2589,13 @@ Since we’ve shown <span class="math notranslate nohighlight">\(R_1 \leq R_2\)<
 </li>
 </ul>
 </li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-dynamic-programming-in-control-theory">Stochastic Dynamic Programming in Control Theory</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-stochastic-optimal-harvest-in-resource-management">Example: Stochastic Optimal Harvest in Resource Management</a></li>
-</ul>
-</li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">Dynamic Programming</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#notation-in-operations-reseach">Notation in Operations Reseach</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-dynamic-programming-and-markov-decision-processes">Stochastic Dynamic Programming and Markov Decision Processes</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#decision-rules-and-policies">Decision Rules and Policies</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-system-dynamics">Stochastic System Dynamics</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#optimality-equations-and-policy-reduction-in-the-stochastic-setting">Optimality Equations and Policy Reduction in the Stochastic Setting</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-stochastic-optimal-harvest-in-resource-management">Example: Stochastic Optimal Harvest in Resource Management</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#markov-decision-process-formulation">Markov Decision Process Formulation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#notation-in-operations-reseach">Notation in Operations Reseach</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-an-optimal-policy">What is an Optimal Policy?</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-sample-size-determination-in-pharmaceutical-development">Example: Sample Size Determination in Pharmaceutical Development</a></li>
 </ul>
