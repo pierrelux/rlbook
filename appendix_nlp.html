@@ -34,9 +34,9 @@
     <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
     <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
-    <link rel="stylesheet" type="text/css" href="_static/proof.css" />
+    <link rel="stylesheet" type="text/css" href="_static/proof.css?v=b4b7a797" />
     <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css" />
@@ -194,6 +194,8 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">From Trajectories to Policies</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="mpc.html">Model Predictive Control</a></li>
+
+
 
 
 <li class="toctree-l1"><a class="reference internal" href="dp.html">Dynamic Programming</a></li>
@@ -1065,7 +1067,7 @@ While solving this QP, we obtain not only the step <span class="math notranslate
 <p>Simultaneously, the Lagrange multipliers from the QP provide the updated dual variables <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^{k+1}\)</span>.
 We summarize the SQP algorithm in the following pseudo-code:</p>
 <div class="proof algorithm admonition" id="alg-sqp">
-<p class="admonition-title"><span class="caption-number">Algorithm 47 </span> (Sequential Quadratic Programming (SQP))</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 48 </span> (Sequential Quadratic Programming (SQP))</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Initial estimate <span class="math notranslate nohighlight">\(\mathbf{x}^0\)</span>, initial Lagrange multipliers <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^0\)</span>, tolerance <span class="math notranslate nohighlight">\(\epsilon &gt; 0\)</span>.</p>
 <p><strong>Output:</strong> Solution <span class="math notranslate nohighlight">\(\mathbf{x}^*\)</span>, Lagrange multipliers <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^*\)</span>.</p>
@@ -1124,7 +1126,7 @@ Consider a general nonlinear optimization problem that includes both equality an
 \end{align*}\]</div>
 <p>where <span class="math notranslate nohighlight">\(\Delta \mathbf{x} = \mathbf{x} - \mathbf{x}^k\)</span> represents the step direction for the primal variables. The following pseudocode outlines the steps involved in applying SQP to a problem with both equality and inequality constraints:</p>
 <div class="proof algorithm admonition" id="alg-sqp-ineq">
-<p class="admonition-title"><span class="caption-number">Algorithm 48 </span> (Sequential Quadratic Programming (SQP) with Inequality Constraints)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 49 </span> (Sequential Quadratic Programming (SQP) with Inequality Constraints)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Initial estimate <span class="math notranslate nohighlight">\(\mathbf{x}^0\)</span>, initial multipliers <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^0, \boldsymbol{\nu}^0\)</span>, tolerance <span class="math notranslate nohighlight">\(\epsilon &gt; 0\)</span>.</p>
 <p><strong>Output:</strong> Solution <span class="math notranslate nohighlight">\(\mathbf{x}^*\)</span>, Lagrange multipliers <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^*, \boldsymbol{\nu}^*\)</span>.</p>
@@ -1340,7 +1342,7 @@ If <span class="math notranslate nohighlight">\(\|\Delta \mathbf{x}^k\| &lt; \ep
 </ol>
 <p>Using this observation, we can devise an algorithm which, like SQP, will update both the primal and dual variables at every step. But rather than using second-order optimization, we will simply use a first-order gradient update step: a descent step in the primal variable, and an ascent step in the dual one. The corresponding procedure, when implemented by gradient descent, is called Gradient Ascent Descent in the learning and optimization communities. In the case of equality constraints only, the algorithm looks like the following:</p>
 <div class="proof algorithm admonition" id="ahuz-eq">
-<p class="admonition-title"><span class="caption-number">Algorithm 49 </span> (Arrow-Hurwicz-Uzawa for equality constraints only)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 50 </span> (Arrow-Hurwicz-Uzawa for equality constraints only)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Initial guess <span class="math notranslate nohighlight">\(\mathbf{x}^0\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^0\)</span>, step sizes <span class="math notranslate nohighlight">\(\alpha\)</span>, <span class="math notranslate nohighlight">\(\beta\)</span>
 <strong>Output:</strong> Optimal <span class="math notranslate nohighlight">\(\mathbf{x}^*\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^*\)</span></p>
@@ -1352,7 +1354,7 @@ If <span class="math notranslate nohighlight">\(\|\Delta \mathbf{x}^k\| &lt; \ep
 </section>
 </div><p>Now to account for the fact that the Lagrange multiplier needs to be non-negative for inequality constraints, we can use our previous idea from projected gradient descent for bound constraints and consider a projection, or clipping step to ensure that this condition is satisfied throughout. In this case, the algorithm looks like the following:</p>
 <div class="proof algorithm admonition" id="ahuz-full">
-<p class="admonition-title"><span class="caption-number">Algorithm 50 </span> (Arrow-Hurwicz-Uzawa for equality and inequality constraints)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 51 </span> (Arrow-Hurwicz-Uzawa for equality and inequality constraints)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Initial guess <span class="math notranslate nohighlight">\(\mathbf{x}^0\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^0\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{\mu}^0 \geq 0\)</span>, step sizes <span class="math notranslate nohighlight">\(\alpha\)</span>, <span class="math notranslate nohighlight">\(\beta\)</span>, <span class="math notranslate nohighlight">\(\gamma\)</span>
 <strong>Output:</strong> Optimal <span class="math notranslate nohighlight">\(\mathbf{x}^*\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^*\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{\mu}^*\)</span></p>
@@ -1546,7 +1548,7 @@ C = \{ \mathbf{x} \mid \mathbf{x}_{\mathrm{lb}} \leq \mathbf{x} \leq \mathbf{x}_
 \end{aligned}
 \end{split}\]</div>
 <div class="proof algorithm admonition" id="proj-grad-descent-bound-constraints">
-<p class="admonition-title"><span class="caption-number">Algorithm 51 </span> (Projected Gradient Descent for Bound Constraints)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 52 </span> (Projected Gradient Descent for Bound Constraints)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Initial point <span class="math notranslate nohighlight">\(\mathbf{x}_0\)</span>, step size <span class="math notranslate nohighlight">\(\alpha\)</span>, bounds <span class="math notranslate nohighlight">\(\mathbf{x}_{\mathrm{lb}}, \mathbf{x}_{\mathrm{ub}}\)</span>,
 maximum iterations <span class="math notranslate nohighlight">\(\max_\text{iter}\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon\)</span></p>

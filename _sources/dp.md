@@ -157,17 +157,21 @@ By backward induction, the claim holds for all $t$, in particular for $t=1$ and 
 
 ```{prf:remark} No “big NLP” required
 The Bolza DOCP over the whole horizon couples all controls through the dynamics and is typically posed as a single large nonlinear program. The proof shows you can solve **$T-1$ sequences of one-step problems** instead: at each $(t,\mathbf{x})$ minimize
+
 $$
 \mathbf{u}\mapsto c_t(\mathbf{x},\mathbf{u}) + J_{t+1}^\star(\mathbf{f}_t(\mathbf{x},\mathbf{u})).
 $$
+
 In finite state–action spaces this becomes pure table lookup and argmin. In continuous spaces you still solve local one-step minimizations, but you avoid a monolithic horizon-coupled NLP.
 ```
 
 ```{prf:remark} Graph interpretation (optional intuition)
 Unroll time to form a DAG whose nodes are $(t,\mathbf{x})$ and whose edges correspond to feasible controls with edge weight $c_t(\mathbf{x},\mathbf{u})$. The terminal node cost is $c_\mathrm{T}(\cdot)$. The Bolza problem is a shortest-path problem on this DAG. The equation
+
 $$
 J_t^\star(\mathbf{x})=\min_{\mathbf{u}}\{c_t(\mathbf{x},\mathbf{u})+J_{t+1}^\star(\mathbf{f}_t(\mathbf{x},\mathbf{u}))\}
 $$
+
 is exactly the dynamic programming recursion for shortest paths on acyclic graphs, hence backward induction is optimal.
 ```
 
@@ -211,74 +215,81 @@ It's worth noting that while this example uses a relatively simple model, the sa
 :load: code/harvest_dp.py
 
 ```
-## Discretization and Interpolation
 
-In many real-world problems, such as our resource management example, the state space is inherently continuous. However, the dynamic programming algorithm we've discussed operates on discrete state spaces. To bridge this gap, we have two main approaches: discretization and interpolation. In the previous example, we used a discretization method by rounding off values to the nearest grid point.
+## Handling Continuous Spaces with Interpolation
 
-In our idealized models, we imagined population sizes as whole numbers—1 fish, 2 fish, 3 fish—but nature rarely conforms to such simplicity. What do you do when your survey reports 42.7 fish, for example? Without much explanation, our reflex in the previous example was to simply round things off. After all, what's the harm in calling 42.7 fish just 43? This approach, known as discretization, is the simplest way to handle continuous states. It's like overlaying a grid on a smooth landscape and only allowing yourself to stand at the intersections. In our demo code, we implemented this step via the [numpy.searchsorted](https://numpy.org/doc/2.0/reference/generated/numpy.searchsorted.html) function.
+In many real-world problems, such as our resource management example, the state space is inherently continuous. Dynamic programming, however, is usually defined on discrete state spaces. To reconcile this, we approximate the value function on a finite grid of points and use interpolation to estimate its value elsewhere.
 
-Discretization is straightforward and allows you to apply dynamic programming algorithms directly. For many problems, it might even be sufficient. However, as you might imagine from the various time discretization schemes we've encountered in trajectory optimization, we can do better. Specifically, we want to address the following issues:
+In our earlier example, we acted as if population sizes could only be whole numbers—1 fish, 2 fish, 3 fish. But real measurements don’t fit neatly: what do you do with a survey that reports 42.7 fish? Our reflex in the code example was to round to the nearest integer, effectively saying “let’s just call it 43.” This corresponds to **nearest-neighbor interpolation**, also known as discretization. It’s the zeroth-order case: you assume the value between grid points is constant and equal to the closest one. In practice, this amounts to overlaying a grid on the continuous landscape and forcing yourself to stand at the intersections. In our demo code, this step was carried out with [`numpy.searchsorted`](https://numpy.org/doc/2.0/reference/generated/numpy.searchsorted.html).
 
-1. Our model might make abrupt changes in decisions, even when the population barely shifts.
-2. We're losing precision, especially when dealing with smaller population sizes where every individual counts.
-3. We might want to scale up and add more factors to our model—perhaps considering the population's age structure or environmental variables. However, the curse of dimensionality might leave us needing an impossibly large number of grid points to maintain accuracy.
+While easy to implement, nearest-neighbor interpolation can introduce artifacts:
 
-Rather than confining ourselves to grid intersections as we did with basic discretization, we can estimate the value between them via interpolation. When you encounter a state that doesn't exactly match a grid point—like that population of 42.7 fish—you can estimate its value based on nearby points you've already calculated. In its simplest form, we could use linear interpolation. Intuitively, it's like estimating the height of a hill between two surveyed points by drawing a straight line between them. Let's formalize this approach in the context of the backward induction procedure.
+1. Decisions may change abruptly, even if the state only shifts slightly.
+2. Precision is lost, particularly in regimes where small variations matter.
+3. The curse of dimensionality forces an impractically fine grid if many state variables are added.
+
+To address these issues, we can use **higher-order interpolation**. Instead of taking the nearest neighbor, we estimate the value at off-grid points by leveraging multiple nearby values.
+
 
 ### Backward Recursion with Interpolation
 
-In a continuous state space, we don't have $J_{k+1}^\star(\mathbf{x}_{k+1})$ directly available for all possible $\mathbf{x}_{k+1}$. Instead, we have $J_{k+1}^\star(\mathbf{x})$ for a set of discrete grid points $\mathbf{x} \in \mathcal{X}_\text{grid}$. We use interpolation to estimate $J_{k+1}^\star(\mathbf{x}_{k+1})$ for any $\mathbf{x}_{k+1}$ not in $\mathcal{X}_\text{grid}$.
-
-Let's define an interpolation function $I_{k+1}(\mathbf{x})$ that estimates $J_{k+1}^\star(\mathbf{x})$ for any $\mathbf{x}$ based on the known values at grid points. Then, we can express Bellman's equation with interpolation as:
-
-$$
-J_k^\star(\mathbf{x}_k) = \min_{\mathbf{u}_k} \left[ c_k(\mathbf{x}_k, \mathbf{u}_k) + I_{k+1}(\mathbf{f}_k(\mathbf{x}_k, \mathbf{u}_k)) \right]
-$$
-
-For linear interpolation in a one-dimensional state space, $I_{k+1}(\mathbf{x})$ would be defined as:
+Suppose we have computed $J_{k+1}^\star(\mathbf{x})$ only at grid points $\mathbf{x} \in \mathcal{X}_\text{grid}$. 
+To evaluate Bellman’s equation at an arbitrary $\mathbf{x}_{k+1}$, we interpolate. 
+Formally, let $I_{k+1}(\mathbf{x})$ be the interpolation operator that extends the value function from $\mathcal{X}_\text{grid}$ to the continuous space. Then:
 
 $$
-I_{k+1}(x) = J_{k+1}^\star(x_l) + \frac{x - x_l}{x_u - x_l} \left(J_{k+1}^\star(x_u) - J_{k+1}^\star(x_l)\right)
+J_k^\star(\mathbf{x}_k) 
+= \min_{\mathbf{u}_k} 
+\Big[ c_k(\mathbf{x}_k, \mathbf{u}_k) 
++ I_{k+1}\big(\mathbf{f}_k(\mathbf{x}_k, \mathbf{u}_k)\big) \Big].
 $$
 
-where $x_l$ and $x_u$ are the nearest lower and upper grid points to $x$, respectively.
+For instance, in one dimension, linear interpolation gives:
 
-Here's a pseudo-code algorithm for backward recursion with interpolation:
+$$
+I_{k+1}(x) = J_{k+1}^\star(x_l) + \frac{x - x_l}{x_u - x_l} \big(J_{k+1}^\star(x_u) - J_{k+1}^\star(x_l)\big),
+$$
 
-````{prf:algorithm} Backward Recursion with Interpolation for Dynamic Programming
+where $x_l$ and $x_u$ are the nearest grid points bracketing $x$. Linear interpolation is often sufficient, but higher-order methods (cubic splines, radial basis functions) can yield smoother and more accurate estimates. The choice of interpolation scheme and grid layout both affect accuracy and efficiency. A finer grid improves resolution but increases computational cost, motivating strategies like adaptive grid refinement or replacing interpolation altogether with parametric function approximation which we are going to see later in this book.
+
+In higher-dimensional spaces, naive interpolation becomes prohibitively expensive due to the curse of dimensionality. Several approaches such as tensorized multilinear interpolation, radial basis functions, and machine learning models address this challenge by extending a common principle: they approximate the value function at unobserved points using information from a finite set of evaluations. However, as dimensionality continues to grow, even tensor methods face scalability limits, which is why flexible parametric models like neural networks have become essential tools for high-dimensional function approximation.
+
+```{prf:algorithm} Backward Recursion with Interpolation
 :label: backward-recursion-interpolation
 
 **Input:** 
-- Terminal cost function $c_\mathrm{T}(\cdot)$
-- Stage cost functions $c_t(\cdot, \cdot)$
-- System dynamics $f_t(\cdot, \cdot)$
-- Time horizon $\mathrm{T}$
-- Grid of state points $\mathcal{X}_\text{grid}$
-- Set of possible actions $\mathcal{U}$
+- Terminal cost $c_\mathrm{T}(\cdot)$  
+- Stage costs $c_t(\cdot,\cdot)$  
+- Dynamics $f_t(\cdot,\cdot)$  
+- Time horizon $T$  
+- State grid $\mathcal{X}_\text{grid}$  
+- Action set $\mathcal{U}$  
+- Interpolation method $\mathcal{I}(\cdot)$ (e.g., linear, cubic spline, RBF, neural network)
 
-**Output:** Optimal value functions $J_t^\star(\cdot)$ and optimal control policies $\mu_t^\star(\cdot)$ for $t = 1, \ldots, T$ at grid points
+**Output:** Value functions $J_t^\star(\cdot)$ and policies $\mu_t^\star(\cdot)$ for all $t$
 
-1. Initialize $J_T^\star(\mathbf{x}) = c_\mathrm{T}(\mathbf{x})$ for all $\mathbf{x} \in \mathcal{X}_\text{grid}$
-2. For $t = T-1, T-2, \ldots, 1$:
-   1. For each state $\mathbf{x} \in \mathcal{X}_\text{grid}$:
-      1. Initialize $J_t^\star(\mathbf{x}) = \infty$ and $\mu_t^\star(\mathbf{x}) = \text{None}$
-      2. For each action $\mathbf{u} \in \mathcal{U}$:
-         1. Compute next state $\mathbf{x}_\text{next} = f_t(\mathbf{x}, \mathbf{u})$
-         2. Compute interpolated future cost $J_\text{future} = I_{t+1}(\mathbf{x}_\text{next})$
-         3. Compute total cost $J_\text{total} = c_t(\mathbf{x}, \mathbf{u}) + J_\text{future}$
-         4. If $J_\text{total} < J_t^\star(\mathbf{x})$:
-            1. Update $J_t^\star(\mathbf{x}) = J_\text{total}$
-            2. Update $\mu_t^\star(\mathbf{x}) = \mathbf{u}$
-   2. End For
-3. End For
-4. Return $J_t^\star(\cdot)$, $\mu_t^\star(\cdot)$ for $t = 1, \ldots, T$
-````
+1. **Initialize terminal values:**  
+   - Compute $J_T^\star(\mathbf{x}) = c_\mathrm{T}(\mathbf{x})$ for all $\mathbf{x} \in \mathcal{X}_\text{grid}$  
+   - Fit interpolator: $I_T \leftarrow \mathcal{I}(\{\mathbf{x}, J_T^\star(\mathbf{x})\}_{\mathbf{x} \in \mathcal{X}_\text{grid}})$
 
-The choice of interpolation method can significantly affect the accuracy of the solution. Linear interpolation is simple and often effective, but higher-order methods like cubic spline interpolation might provide better results in some problems. Furthermore, the layout and density of the grid points in $\mathcal{X}_\text{grid}$ can impact both the accuracy and computational efficiency. A finer grid generally provides better accuracy but increases computational cost. To balance this tradeoff, you might consider techniques like adaptive grid refinement or function approximation methods instead of fixed grid-based interpolation. Special care may also be needed for states near the boundaries, where interpolation might not be possible in all directions.
+2. **Backward recursion:**  
+   For $t = T-1, T-2, \dots, 0$:  
+   
+   a. **Bellman update at grid points:**  
+      For each $\mathbf{x} \in \mathcal{X}_\text{grid}$:  
+      - For each $\mathbf{u} \in \mathcal{U}$:  
+        - Compute next state: $\mathbf{x}_\text{next} = f_t(\mathbf{x}, \mathbf{u})$  
+        - **Interpolate future cost:** $\hat{J}_{t+1}(\mathbf{x}_\text{next}) = I_{t+1}(\mathbf{x}_\text{next})$  
+        - Compute total cost: $J_t(\mathbf{x}, \mathbf{u}) = c_t(\mathbf{x}, \mathbf{u}) + \hat{J}_{t+1}(\mathbf{x}_\text{next})$  
+      - **Minimize over actions:** $J_t^\star(\mathbf{x}) = \min_{\mathbf{u} \in \mathcal{U}} J_t(\mathbf{x}, \mathbf{u})$  
+      - Store optimal action: $\mu_t^\star(\mathbf{x}) = \arg\min_{\mathbf{u} \in \mathcal{U}} J_t(\mathbf{x}, \mathbf{u})$
+   
+   b. **Fit interpolator for current stage:**  
+      $I_t \leftarrow \mathcal{I}(\{\mathbf{x}, J_t^\star(\mathbf{x})\}_{\mathbf{x} \in \mathcal{X}_\text{grid}})$
 
-While simple to implement, interpolation methods scale poorly in multi-dimensional spaces in terms of computational complexity. Techniques like multilinear interpolation with tensorized representations or more advanced methods like radial basis function interpolation might be necessary.
+3. **Return:** Interpolated value functions $\{I_t\}_{t=0}^T$ and policies $\{\mu_t^\star\}_{t=0}^{T-1}$
+```
 
-To better address this computational challenge, we will broaden our perspective through the lens of numerical approximation methods for solving functional operator equations. Polynomial interpolation is a form of approximation, with properties akin to generalization in machine learning. By building these connections, we will develop techniques capable of more robustly handling the curse of dimensionality by leveraging the generalization properties of machine learning models, and the "blessing of randomness" inherent in supervised learning and Monte Carlo methods.
 
 #### Example: Optimal Harvest with Linear Interpolation
 
@@ -541,9 +552,9 @@ In practice, this expectation is often computed by discretizing the distribution
 
 $$ J_k^\star(\mathbf{x}_k) = \min_{\mathbf{u}_k} \sum_{i=1}^K p_k^i \left(c_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k^i) + J_{k+1}^\star(\mathbf{f}_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k^i))\right) $$
 
-## Optimality Equations and Policy Reduction in the Stochastic Setting
+## Optimality Equations in the Stochastic Setting
 
-When dealing with stochastic systems, a fundamental question arises: what information should our control policy use? In the most general case, a policy might use the entire history of observations and actions. However, as we'll see, the Markovian structure of our problems allows for dramatic simplifications.
+When dealing with stochastic systems, a central question arises: what information should our control policy use? In the most general case, a policy might use the entire history of observations and actions. However, as we'll see, the Markovian structure of our problems allows for dramatic simplifications.
 
 Let $h_t = (s_1, a_1, s_2, a_2, \ldots, s_{t-1}, a_{t-1}, s_t)$ denote the complete history up to time $t$. In the stochastic setting, the history-based optimality equations become:
 
@@ -556,10 +567,18 @@ where we now explicitly use the transition probabilities $p_t(j|s_t,a)$ rather t
 ````{prf:theorem} Principle of optimality for stochastic systems
 :label: stoch-principle-opt
 
-Solutions to the stochastic optimality equations equal the optimal expected returns. Any policy that selects maximizing actions at each history is optimal.
+Let $u_t^*$ be the optimal expected return from epoch $t$ onward. Then:
+
+**a.** $u_t^*$ satisfies the optimality equations:
+
+$$u_t^*(h_t) = \sup_{a \in A_{s_t}} \left\{ r_t(s_t, a) + \sum_{j \in S} p_t(j|s_t, a) u_{t+1}^*(h_t, a, j) \right\}$$
+
+with boundary condition $u_N^*(h_N) = r_N(s_N)$.
+
+**b.** Any policy $\pi^*$ that selects actions attaining the supremum (or maximum) in the above equation at each history is optimal.
 ````
 
-**Intuition:** Even with uncertainty, the recursive structure ensures that optimal local decisions lead to global optimality. The expectation over future states is captured by the transition probabilities.
+**Intuition:** This formalizes Bellman's principle of optimality: "An optimal policy has the property that whatever the initial state and initial decision are, the remaining decisions must constitute an optimal policy with regard to the state resulting from the first decision." The recursive structure means that optimal local decisions (choosing the best action at each step) lead to global optimality, even with uncertainty captured by the transition probabilities.
 
 A remarkable simplification occurs when we examine these history-based equations more closely. The Markov property of our system dynamics and rewards means that the optimal return actually depends on the history only through the current state:
 
@@ -605,7 +624,7 @@ That is, there exists an optimal policy that is both deterministic and Markovian
 Sketch following {cite:t}`Puterman1994` Lemma 4.3.1 and Theorem 4.4.2. First, Lemma 4.3.1 shows that for any function $w$ and any distribution $q$ over actions, $\sup_a w(a) \ge \sum_a q(a) w(a)$. Thus randomization cannot improve the expected value over choosing a single maximizing action. Second, by state sufficiency (Proposition {ref}`stoch-state-suff` and {cite:t}`Puterman1994` Thm. 4.4.2(a)), the optimal return depends on the history only through $(s_t,t)$. Therefore, selecting at each $(s_t,t)$ an action that attains the maximum yields a deterministic Markov decision rule which is optimal whenever the maximum is attained. If only a supremum exists, $\varepsilon$-optimal selectors exist by choosing actions within $\varepsilon$ of the supremum (see {cite:t}`Puterman1994` Thm. 4.3.4).
 ````
 
-**Intuition:** Even in stochastic systems, randomization in the policy doesn't help when maximizing expected returns—you should always choose the action with the highest expected value. Combined with state sufficiency, this means simple state-to-action mappings are optimal.
+**Intuition:** Even in stochastic systems, randomization in the policy doesn't help when maximizing expected returns: you should always choose the action with the highest expected value. Combined with state sufficiency, this means simple state-to-action mappings are optimal.
 
 These results justify focusing on deterministic Markov policies and lead to the backward recursion algorithm for stochastic systems: 
 
@@ -686,8 +705,130 @@ where the expectation is taken over the harvest and growth rate random variables
 :load: code/harvest_sdp.py
 ```
 
+## Linear Quadratic Regulator via Dynamic Programming
 
-## Markov Decision Process Formulation
+We now examine a special case where the backward recursion admits a remarkable closed-form solution. When the system dynamics are linear and the cost function is quadratic, the optimization at each stage can be solved analytically. Moreover, the value function itself maintains a quadratic structure throughout the recursion, and the optimal policy reduces to a simple linear feedback law. This elegant result eliminates the need for discretization, interpolation, or any function approximation—the infinite-dimensional problem collapses to tracking a finite set of matrices.
+
+Consider a discrete-time linear system:
+
+$$
+\mathbf{x}_{t+1} = A_t\mathbf{x}_t + B_t\mathbf{u}_t
+$$
+
+where $\mathbf{x}_t \in \mathbb{R}^n$ is the state and $\mathbf{u}_t \in \mathbb{R}^m$ is the control input. The matrices $A_t \in \mathbb{R}^{n \times n}$ and $B_t \in \mathbb{R}^{n \times m}$ describe the system dynamics at time $t$.
+
+The cost function to be minimized is quadratic:
+
+$$
+J = \frac{1}{2}\mathbf{x}_T^\top Q_T \mathbf{x}_T + \frac{1}{2}\sum_{t=0}^{T-1} \left(\mathbf{x}_t^\top Q_t \mathbf{x}_t + \mathbf{u}_t^\top R_t \mathbf{u}_t\right)
+$$
+
+where $Q_T \succeq 0$ (positive semidefinite), $Q_t \succeq 0$, and $R_t \succ 0$ (positive definite) are symmetric matrices of appropriate dimensions. The positive definiteness of $R_t$ ensures the minimization problem is well-posed.
+
+What we now have to observe is that if the terminal cost is quadratic, then the value function at every earlier stage remains quadratic. This is not immediately obvious, but it follows from the structure of Bellman's equation combined with the linearity of the dynamics.
+
+We claim that the optimal cost-to-go from any stage $t$ takes the form:
+
+$$
+J_t^\star(\mathbf{x}_t) = \frac{1}{2}\mathbf{x}_t^\top P_t \mathbf{x}_t
+$$
+
+for some positive semidefinite matrix $P_t$. At the terminal time, this is true by definition: $P_T = Q_T$.
+
+Let's verify this structure and derive the recursion for $P_t$ using backward induction. Suppose we've established that $J_{t+1}^\star(\mathbf{x}_{t+1}) = \frac{1}{2}\mathbf{x}_{t+1}^\top P_{t+1} \mathbf{x}_{t+1}$. Bellman's equation at stage $t$ states:
+
+$$
+J_t^\star(\mathbf{x}_t) = \min_{\mathbf{u}_t} \left[ \frac{1}{2}\mathbf{x}_t^\top Q_t \mathbf{x}_t + \frac{1}{2}\mathbf{u}_t^\top R_t \mathbf{u}_t + J_{t+1}^\star(\mathbf{x}_{t+1}) \right]
+$$
+
+Substituting the dynamics $\mathbf{x}_{t+1} = A_t\mathbf{x}_t + B_t\mathbf{u}_t$ and the quadratic form for $J_{t+1}^\star$:
+
+$$
+J_t^\star(\mathbf{x}_t) = \min_{\mathbf{u}_t} \left[ \frac{1}{2}\mathbf{x}_t^\top Q_t \mathbf{x}_t + \frac{1}{2}\mathbf{u}_t^\top R_t \mathbf{u}_t + \frac{1}{2}(A_t\mathbf{x}_t + B_t\mathbf{u}_t)^\top P_{t+1} (A_t\mathbf{x}_t + B_t\mathbf{u}_t) \right]
+$$
+
+Expanding the last term:
+
+$$
+(A_t\mathbf{x}_t + B_t\mathbf{u}_t)^\top P_{t+1} (A_t\mathbf{x}_t + B_t\mathbf{u}_t) = \mathbf{x}_t^\top A_t^\top P_{t+1} A_t \mathbf{x}_t + 2\mathbf{x}_t^\top A_t^\top P_{t+1} B_t \mathbf{u}_t + \mathbf{u}_t^\top B_t^\top P_{t+1} B_t \mathbf{u}_t
+$$
+
+The expression inside the minimization becomes:
+
+$$
+\frac{1}{2}\mathbf{x}_t^\top Q_t \mathbf{x}_t + \frac{1}{2}\mathbf{u}_t^\top R_t \mathbf{u}_t + \frac{1}{2}\mathbf{x}_t^\top A_t^\top P_{t+1} A_t \mathbf{x}_t + \mathbf{x}_t^\top A_t^\top P_{t+1} B_t \mathbf{u}_t + \frac{1}{2}\mathbf{u}_t^\top B_t^\top P_{t+1} B_t \mathbf{u}_t
+$$
+
+Collecting terms involving $\mathbf{u}_t$:
+
+$$
+= \frac{1}{2}\mathbf{x}_t^\top (Q_t + A_t^\top P_{t+1} A_t) \mathbf{x}_t + \mathbf{x}_t^\top A_t^\top P_{t+1} B_t \mathbf{u}_t + \frac{1}{2}\mathbf{u}_t^\top (R_t + B_t^\top P_{t+1} B_t) \mathbf{u}_t
+$$
+
+This is a quadratic function of $\mathbf{u}_t$. To find the minimizer, we take the gradient with respect to $\mathbf{u}_t$ and set it to zero:
+
+$$
+\frac{\partial}{\partial \mathbf{u}_t} = (R_t + B_t^\top P_{t+1} B_t) \mathbf{u}_t + B_t^\top P_{t+1} A_t \mathbf{x}_t = 0
+$$
+
+Since $R_t + B_t^\top P_{t+1} B_t$ is positive definite (both $R_t$ and $P_{t+1}$ are positive semidefinite with $R_t$ strictly positive), we can solve for the optimal control:
+
+$$
+\mathbf{u}_t^\star = -(R_t + B_t^\top P_{t+1} B_t)^{-1} B_t^\top P_{t+1} A_t \mathbf{x}_t
+$$
+
+Define the gain matrix:
+
+$$
+K_t = (R_t + B_t^\top P_{t+1} B_t)^{-1} B_t^\top P_{t+1} A_t
+$$
+
+so that $\mathbf{u}_t^\star = -K_t\mathbf{x}_t$. This is a **linear feedback policy**: the optimal control is simply a linear function of the current state.
+
+Substituting $\mathbf{u}_t^\star$ back into the cost-to-go expression and simplifying (by completing the square), we obtain:
+
+$$
+J_t^\star(\mathbf{x}_t) = \frac{1}{2}\mathbf{x}_t^\top P_t \mathbf{x}_t
+$$
+
+where $P_t$ satisfies the **discrete-time Riccati equation**:
+
+$$
+P_t = Q_t + A_t^\top P_{t+1} A_t - A_t^\top P_{t+1} B_t (R_t + B_t^\top P_{t+1} B_t)^{-1} B_t^\top P_{t+1} A_t
+$$
+
+
+Putting everything together, the backward induction procedure under the LQR setting then becomes: 
+
+
+````{prf:algorithm} Backward Recursion for LQR
+:label: lqr-backward-recursion
+
+**Input:** System matrices $A_t, B_t$, cost matrices $Q_t, R_t, Q_T$, time horizon $T$
+
+**Output:** Cost matrices $P_t$ and gain matrices $K_t$ for $t = 0, \ldots, T-1$
+
+1. **Initialize:** $P_T = Q_T$
+
+2. **For** $t = T-1, T-2, \ldots, 0$:
+   1. Compute the gain matrix:
+
+      $$K_t = (R_t + B_t^\top P_{t+1} B_t)^{-1} B_t^\top P_{t+1} A_t$$
+
+   2. Compute the cost matrix via the Riccati equation:
+
+      $$P_t = Q_t + A_t^\top P_{t+1} A_t - A_t^\top P_{t+1} B_t (R_t + B_t^\top P_{t+1} B_t)^{-1} B_t^\top P_{t+1} A_t$$
+
+3. **End For**
+
+4. **Return:** $\{P_0, \ldots, P_T\}$ and $\{K_0, \ldots, K_{T-1}\}$
+
+**Optimal policy:** $\mathbf{u}_t^\star = -K_t\mathbf{x}_t$
+
+**Optimal cost-to-go:** $J_t^\star(\mathbf{x}_t) = \frac{1}{2}\mathbf{x}_t^\top P_t \mathbf{x}_t$
+````
+
+# Markov Decision Process Formulation
 
 Rather than expressing the stochasticity in our system through a disturbance term as a parameter to a deterministic difference equation, we often work with an alternative representation (more common in operations research) which uses the Markov Decision Process formulation. The idea is that when we model our system in this way with the disturbance term being drawn indepently of the previous stages, the induced trajectory are those of a Markov chain. Hence, we can re-cast our control problem in that language, leading to the so-called Markov Decision Process framework in which we express the system dynamics in terms of transition probabilities rather than explicit state equations. In this framework, we express the probability that the system is in a given state using the transition probability function:
 
@@ -983,23 +1124,49 @@ $P(\nu=n) = (1-\gamma) \gamma^{n-1}, \, n=1,2, \ldots$, then $v_\nu^\pi(s) = v_\
 ````
 
 ````{prf:proof}
-See proposition 5.3.1 in {cite}`Puterman1994`
+See proposition 5.3.1 in {cite}`Puterman1994`.
+
+By definition of the finite-horizon value function and the law of total expectation:
 
 $$
-v_\nu^\pi(s) = E_s^\pi \left\{\sum_{n=1}^{\infty} \sum_{t=1}^n r(X_t, Y_t)(1-\gamma) \gamma^{n-1}\right\}.
+v_\nu^\pi(s) = \sum_{n=1}^{\infty} P(\nu=n) \cdot v_n^\pi(s) = \sum_{n=1}^{\infty} (1-\gamma) \gamma^{n-1} \cdot E_s^\pi \left\{\sum_{t=1}^n r(S_t, A_t)\right\}.
 $$
 
-Under the bounded reward assumption and $\gamma < 1$, the series converges and we can reverse the order of summation :
+Combining the expectation with the sum over $n$:
 
+$$
+v_\nu^\pi(s) = E_s^\pi \left\{\sum_{n=1}^{\infty} (1-\gamma) \gamma^{n-1} \sum_{t=1}^n r(S_t, A_t)\right\}.
+$$
+
+**Reordering the summations:** Under the bounded reward assumption $|r(s,a)| \leq R_{\max}$ and $\gamma < 1$, we have
+
+$$
+E_s^\pi \left\{\sum_{n=1}^{\infty} \sum_{t=1}^n |r(S_t, A_t)| \cdot (1-\gamma) \gamma^{n-1}\right\} \leq R_{\max} \sum_{n=1}^{\infty} n (1-\gamma) \gamma^{n-1} = \frac{R_{\max}}{1-\gamma} < \infty,
+$$
+which justifies exchanging the order of summation by Fubini's theorem.
+
+To reverse the order, note that the pair $(n,t)$ with $1 \leq t \leq n$ can be reindexed by fixing $t$ first and letting $n$ range from $t$ to $\infty$:
+
+$$
+\sum_{n=1}^{\infty} \sum_{t=1}^n = \sum_{t=1}^{\infty} \sum_{n=t}^{\infty}.
+$$
+
+Therefore:
 \begin{align*}
-v_\nu^\pi(s) &= E_s^\pi \left\{\sum_{t=1}^{\infty} \sum_{n=t}^{\infty} r(S_t, A_t)(1-\gamma) \gamma^{n-1}\right\} \\
-&= E_s^\pi \left\{\sum_{t=1}^{\infty} \gamma^{t-1} r(S_t, A_t)\right\} = v_\gamma^\pi(s)
+v_\nu^\pi(s) &= E_s^\pi \left\{\sum_{t=1}^{\infty} r(S_t, A_t) \sum_{n=t}^{\infty} (1-\gamma) \gamma^{n-1}\right\}.
 \end{align*}
 
-where the last line follows from the geometric series: 
+**Evaluating the inner sum:** Using the substitution $m = n - t + 1$ (so $n = m + t - 1$):
+\begin{align*}
+\sum_{n=t}^{\infty} (1-\gamma) \gamma^{n-1} &= \sum_{m=1}^{\infty} (1-\gamma) \gamma^{m+t-2} \\
+&= \gamma^{t-1} (1-\gamma) \sum_{m=1}^{\infty} \gamma^{m-1} \\
+&= \gamma^{t-1} (1-\gamma) \cdot \frac{1}{1-\gamma} = \gamma^{t-1}.
+\end{align*}
+
+Substituting back:
 
 $$
-\sum_{n=1}^{\infty} \gamma^{n-1} = \frac{1}{1-\gamma}
+v_\nu^\pi(s) = E_s^\pi \left\{\sum_{t=1}^{\infty} \gamma^{t-1} r(S_t, A_t)\right\} = v_\gamma^\pi(s).
 $$
 
 ````
@@ -1075,7 +1242,72 @@ $$
 \end{align*}
 $$
 
-This last expression is called a Neumann series expansion, and it's guaranteed to exists under the assumptions of bounded reward and discount factor strictly less than one. Consequently, for a stationary policy, $\mathbf{v}_\gamma^{d^\infty}$ can be determined as the solution to the linear equation:
+This last expression is called a Neumann series expansion, and it's guaranteed to exists under the assumptions of bounded reward and discount factor strictly less than one. 
+
+```{prf:theorem} Neumann Series and Invertibility
+:label: neumann-series
+
+The **spectral radius** of a matrix $\mathbf{H}$ is defined as:
+
+$$
+\rho(\mathbf{H}) \equiv \max_{i} |\lambda_i(\mathbf{H})|
+$$
+
+where $\lambda_i(\mathbf{H})$ are the eigenvalues of $\mathbf{H}$.
+
+**Neumann Series Existence:** For any matrix $\mathbf{H}$, the Neumann series
+
+$$
+\sum_{t=0}^{\infty} \mathbf{H}^t = \mathbf{I} + \mathbf{H} + \mathbf{H}^2 + \cdots
+$$
+
+converges if and only if $\rho(\mathbf{H}) < 1$. When this condition holds, the matrix $(\mathbf{I} - \mathbf{H})$ is invertible and
+
+$$
+(\mathbf{I} - \mathbf{H})^{-1} = \sum_{t=0}^{\infty} \mathbf{H}^t.
+$$
+
+```
+Note that for any induced matrix norm $\|\cdot\|$ (i.e., a norm satisfying $\|\mathbf{H}\mathbf{v}\| \leq \|\mathbf{H}\| \cdot \|\mathbf{v}\|$ for all vectors $\mathbf{v}$) and any matrix $\mathbf{H}$, the spectral radius is bounded by:
+
+$$
+\rho(\mathbf{H}) \leq \|\mathbf{H}\|.
+$$
+
+
+This inequality provides a practical way to verify the convergence condition $\rho(\mathbf{H}) < 1$ by checking the simpler condition $\|\mathbf{H}\| < 1$ rather than trying to compute the eigenvalues directly.
+
+We can now verify that $(\mathbf{I} - \gamma \mathbf{P}_d)$ is invertible and the Neumann series converges.
+
+1. **Norm of the transition matrix:** Since $\mathbf{P}_d$ is a stochastic matrix (each row sums to 1 and all entries are non-negative), its $\ell_\infty$-norm is:
+   $$
+   \|\mathbf{P}_d\| = \max_{s \in S} \sum_{j \in S} [\mathbf{P}_d]_{s,j} = \max_{s \in S} 1 = 1.
+   $$
+
+2. **Norm of the scaled matrix:** Using the homogeneity property of norms, we have:
+   $$
+   \|\gamma \mathbf{P}_d\| = |\gamma| \cdot \|\mathbf{P}_d\| = |\gamma| \cdot 1 = |\gamma|.
+   $$
+
+3. **Bounding the spectral radius:** Applying the fundamental inequality between spectral radius and matrix norm:
+   $$
+   \rho(\gamma \mathbf{P}_d) \leq \|\gamma \mathbf{P}_d\| = |\gamma|.
+   $$
+
+4. **Verifying convergence:** Since $0 \leq \gamma < 1$ by assumption, we have:
+   $$
+   \rho(\gamma \mathbf{P}_d) \leq |\gamma| < 1.
+   $$
+   
+   This strict inequality guarantees that $(\mathbf{I} - \gamma \mathbf{P}_d)$ is invertible and the Neumann series converges.
+
+Therefore, the Neumann series expansion converges and yields:
+
+$$
+\mathbf{v}_\gamma^{d^\infty} = (\mathbf{I} - \gamma \mathbf{P}_d)^{-1} \mathbf{r}_d = \sum_{t=0}^{\infty} (\gamma \mathbf{P}_d)^t \mathbf{r}_d = \sum_{t=1}^{\infty} \gamma^{t-1} \mathbf{P}_d^{t-1} \mathbf{r}_d.
+$$
+
+Consequently, for a stationary policy, $\mathbf{v}_\gamma^{d^\infty}$ can be determined as the solution to the linear equation:
 
 $$
 \mathbf{v} = \mathbf{r}_d+ \gamma \mathbf{P}_d\mathbf{v},
@@ -1087,66 +1319,44 @@ $$
 (\mathbf{I} - \gamma \mathbf{P}_d) \mathbf{v} = \mathbf{r}_d.
 $$
 
-We can also characterize $\mathbf{v}_\gamma^{d^\infty}$ as the solution to an operator equation. More specifically, define the linear transformation $\mathrm{L}_d$ by
+We can also characterize $\mathbf{v}_\gamma^{d^\infty}$ as the solution to an operator equation. More specifically, define the transformation $\mathrm{L}_d$ by
 
 $$
-\mathrm{L}_d \mathbf{v} \equiv \mathbf{r}_d+\gamma \mathbf{P}_dv
+\mathrm{L}_d \mathbf{v} \equiv \mathbf{r}_d+\gamma \mathbf{P}_d\mathbf{v}
 $$
 
-for any $v \in V$. Intuitively, $\mathrm{L}_d$ takes a value function $\mathbf{v}$ as input and returns a new value function that combines immediate rewards ($\mathbf{r}_d$) with discounted future values ($\gamma \mathbf{P}_d\mathbf{v}$). 
-<!-- 
+for any $\mathbf{v} \in V$. Intuitively, $\mathrm{L}_d$ takes a value function $\mathbf{v}$ as input and returns a new value function that combines immediate rewards ($\mathbf{r}_d$) with discounted future values ($\gamma \mathbf{P}_d\mathbf{v}$). 
 
-A key property of $\mathrm{L}_d$ is that it maps bounded functions to bounded functions, provided certain conditions are met. This is formalized in the following lemma:
+```{note}
+While we often refer to $\mathrm{L}_d$ as a "linear operator" in the RL literature, it is technically an **affine operator** (or affine transformation), not a linear operator in the strict sense. To see why, recall that a linear operator $\mathcal{T}$ must satisfy:
 
+1. **Additivity:** $\mathcal{T}(\mathbf{v}_1 + \mathbf{v}_2) = \mathcal{T}(\mathbf{v}_1) + \mathcal{T}(\mathbf{v}_2)$
+2. **Homogeneity:** $\mathcal{T}(\alpha \mathbf{v}) = \alpha \mathcal{T}(\mathbf{v})$ for all scalars $\alpha$
 
-```{prf:lemma} Bounded Reward and Value Function
-:label: bounded-reward-value
-
-Let $S$ be a discrete state space, and assume that the reward function is bounded such that $|r(s, a)| \leq M$ for all actions $a \in A_s$ and states $s \in S$. For any discount factor $\gamma$ where $0 \leq \gamma \leq 1$, and for all value functions $v \in V$ and decision rules $d \in D^{MR}$, the following holds:
+However, $\mathrm{L}_d$ fails the additivity test:
 
 $$
-\mathbf{r}_d+ \gamma \mathbf{P}_d \mathbf{v} \in V
+\mathrm{L}_d(\mathbf{v}_1 + \mathbf{v}_2) = \mathbf{r}_d + \gamma \mathbf{P}_d(\mathbf{v}_1 + \mathbf{v}_2) = \mathbf{r}_d + \gamma \mathbf{P}_d\mathbf{v}_1 + \gamma \mathbf{P}_d\mathbf{v}_2
 $$
 
-where $V$ is the space of bounded real-valued functions on $S$, $\mathbf{r}_d$ is the reward vector, and $\mathbf{P}_d$ is the transition probability matrix under decision rule $d$.
+while
+
+$$
+\mathrm{L}_d(\mathbf{v}_1) + \mathrm{L}_d(\mathbf{v}_2) = (\mathbf{r}_d + \gamma \mathbf{P}_d\mathbf{v}_1) + (\mathbf{r}_d + \gamma \mathbf{P}_d\mathbf{v}_2) = 2\mathbf{r}_d + \gamma \mathbf{P}_d\mathbf{v}_1 + \gamma \mathbf{P}_d\mathbf{v}_2.
+$$
+
+The presence of the constant term $\mathbf{r}_d$ makes $\mathrm{L}_d$ affine rather than linear. An affine operator has the form $\mathcal{A}(\mathbf{v}) = \mathbf{b} + \mathcal{T}(\mathbf{v})$, where $\mathbf{b}$ is a constant vector and $\mathcal{T}$ is a linear operator. In our case, $\mathbf{b} = \mathbf{r}_d$ and $\mathcal{T}(\mathbf{v}) = \gamma \mathbf{P}_d\mathbf{v}$.
+
+Despite this technical distinction, the term "linear operator" is commonly used in the reinforcement learning literature when referring to $\mathrm{L}_d$, following a slight abuse of terminology.
 ```
 
-```{prf:proof}
-We will prove this lemma in three steps:
-
-1. First, we'll show that $\mathbf{r}_d\in V$.
-2. Then, we'll prove that $\mathbf{P}_dv \in V$ for all $v \in V$.
-3. Finally, we'll combine these results to show that $\mathbf{r}_d+ \gamma \mathbf{P}_dv \in V$.
-
-**Step 1: Showing $\mathbf{r}_d\in V$**
-
-Given that $|r(s, a)| \leq M$ for all $a \in A_s$ and $s \in S$, we can conclude that $\|\mathbf{r}_d\| \leq M$ for all $d \in D^{MR}$. This is because $\mathbf{r}_d$ is a vector whose components are weighted averages of $r(s, a)$ values, which are all bounded by $M$. Therefore, $\mathbf{r}_d$ is a bounded function on $S$, meaning $\mathbf{r}_d\in V$.
-
-**Step 2: Showing $\mathbf{P}_d \mathbf{v} \in V$ for all $\mathbf{v} \in V$**
-
-$\mathbf{P}_d$ is a probability matrix, which means that each row sums to 1. This property implies that $\|\mathbf{P}_d\| = 1$. Now, for any $v \in V$, we have:
+Therefore, we view $\mathrm{L}_d$ as an operator mapping elements of $V$ to $V$: i.e., $\mathrm{L}_d: V \rightarrow V$. The fact that the value function of a policy is the solution to a fixed-point equation can then be expressed with the statement: 
 
 $$
-\|\mathbf{P}_d\mathbf{v}\| \leq \|\mathbf{P}_d\| \|\mathbf{v}\| = \|\mathbf{v}\|
+\mathbf{v}_\gamma^{d^\infty}=\mathrm{L}_d \mathbf{v}_\gamma^{d^\infty}.
 $$
 
-This inequality shows that if $v$ is bounded (which it is, since $v \in V$), then $\mathbf{P}_dv$ is also bounded by the same value. Therefore, $\mathbf{P}_d\mathbf{v} \in V$ for all $\mathbf{v} \in V$.
-
-**Step 3: Combining the results**
-
-We've shown that $\mathbf{r}_d\in V$ and $\mathbf{P}_d \mathbf{v} \in V$. Since $V$ is a vector space, it is closed under addition and scalar multiplication. Therefore, for any $\gamma$ where $0 \leq \gamma \leq 1$, we can conclude that:
-
-$$
-\mathbf{r}_d+ \gamma \mathbf{P}_d \mathbf{v} \in V
-$$
-
-This completes the proof.
-``` -->
-Therefore, we view $\mathrm{L}_d$ as an operator mapping elements of $V$ to $V$: ie. $\mathrm{L}_d: V \rightarrow V$. The fact that the value function of a policy is the solution to a system of equations can then be expressed with the statement: 
-
-$$
-\mathbf{v}_\gamma^{d^\infty}=\mathrm{L}_d \mathbf{v}_\gamma^{d^\infty} \text {. }
-$$
+This is a **fixed-point equation**: the value function $\mathbf{v}_\gamma^{d^\infty}$ is a fixed point of the operator $\mathrm{L}_d$.
 
 ## Solving Operator Equations
 
@@ -1369,7 +1579,7 @@ However, in the dynamic programming context, we can derive various bounds that c
 :label: value-iteration-convergence
 (Adapted from {cite:t}`Puterman1994` theorem 6.3.1)
 
-Let $v_0$ be any initial value function, $\varepsilon > 0$ a desired accuracy, and let $\{v_n\}$ be the sequence of value functions generated by value iteration, i.e., $v_{n+1} = \mathrm{L}v_n$ for $n \geq 1$, where $\mathrm{L}$ is the Bellman optimality operator. Then:
+Let $v_0$ be any initial value function, $\varepsilon > 0$ a desired accuracy, and let $\{v_n\}$ be the sequence of value functions generated by value iteration, i.e., $v_{n+1} = \mathrm{L}v_n$ for $n \geq 0$, where $\mathrm{L}$ is the Bellman optimality operator. Then:
 
 1. $v_n$ converges to the optimal value function $v^*_\gamma$,
 2. The algorithm terminates in finite time,
@@ -1379,87 +1589,85 @@ Let $v_0$ be any initial value function, $\varepsilon > 0$ a desired accuracy, a
 ````
 
 ````{prf:proof}
-Parts 1. and 2. follow directly from the fact that $\mathrm{L}$ is a contraction mapping. Hence, by Banach's fixed-point theorem, it has a unique fixed point (which is $v^*_\gamma$), and repeated application of $\mathrm{L}$ will converge to this fixed point. Moreover, this convergence happens at a linear/geometric rate, which ensures that we reach the termination condition in finite time.
+Parts 1 and 2 follow directly from the fact that $\mathrm{L}$ is a contraction mapping. Hence, by Banach's fixed-point theorem, it has a unique fixed point (which is $v^*_\gamma$), and repeated application of $\mathrm{L}$ will converge to this fixed point. Moreover, this convergence happens at a geometric rate, which ensures that we reach the termination condition in finite time.
 
 To show that the Bellman optimality operator $\mathrm{L}$ is a contraction mapping, we need to prove that for any two value functions $v$ and $u$:
 
-$$\|\mathrm{L}v - \mathrm{L}u\|_\infty \leq \gamma \|V - U\|_\infty$$
+$$\|\mathrm{L}v - \mathrm{L}u\|_\infty \leq \gamma \|v - u\|_\infty$$
 
 where $\gamma \in [0,1)$ is the discount factor and $\|\cdot\|_\infty$ is the supremum norm.
 
 Let's start by writing out the definition of $\mathrm{L}v$ and $\mathrm{L}u$:
 
-   $$\begin{align*}(\mathrm{L}v)(s) &= \max_{a \in A} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)V(s')\right\}\\
-   (\mathrm{L}u)(s) &= \max_{a \in A} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)U(s')\right\}\end{align*}$$
+$$\begin{align*}
+(\mathrm{L}v)(s) &= \max_{a \in A} \left\{r(s,a) + \gamma \sum_{s' \in \mathcal{S}} p(s'|s,a)v(s')\right\}\\
+(\mathrm{L}u)(s) &= \max_{a \in A} \left\{r(s,a) + \gamma \sum_{s' \in \mathcal{S}} p(s'|s,a)u(s')\right\}
+\end{align*}$$
 
-Now, for any state s, let $a_V$ be the action that achieves the maximum for $\mathrm{L}$V, and $a_U$ be the action that achieves the maximum for $\mathrm{L}u$. Then:
+For any state $s$, let $a_v$ be the action that achieves the maximum for $(\mathrm{L}v)(s)$, and $a_u$ be the action that achieves the maximum for $(\mathrm{L}u)(s)$. By the definition of these maximizers:
 
-   $$\begin{align*}(\mathrm{L}v)(s)&= r(s,a_V) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a_V)V(s')\\
-   (\mathrm{L}u)(s) &= r(s,a_U) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a_U)U(s')\end{align*}$$
-
-By the definition of $a_V$ and $a_U$, we know that:
-
-   $$\begin{align*}(\mathrm{L}v)(s) &\geq r(s,a_U) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a_U)V(s')\\
-   (\mathrm{L}u)(s) &\geq r(s,a_V) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a_V)U(s')\end{align*}$$
+$$\begin{align*}
+(\mathrm{L}v)(s) &\geq r(s,a_u) + \gamma \sum_{s' \in \mathcal{S}} p(s'|s,a_u)v(s')\\
+(\mathrm{L}u)(s) &\geq r(s,a_v) + \gamma \sum_{s' \in \mathcal{S}} p(s'|s,a_v)u(s')
+\end{align*}$$
 
 Subtracting these inequalities:
 
-   $$\begin{align*}(\mathrm{L}v)(s) - (\mathrm{L}u)(s) &\leq \gamma \sum_{j \in \mathcal{S}} p(j|s,a_V)(V(s') - U(s'))\\
-   (\mathrm{L}u)(s) - (\mathrm{L}v)(s) &\leq \gamma \sum_{j \in \mathcal{S}} p(j|s,a_U)(U(s') - V(s'))\end{align*}$$
+$$\begin{align*}
+(\mathrm{L}v)(s) - (\mathrm{L}u)(s) &\leq \gamma \sum_{s' \in \mathcal{S}} p(s'|s,a_v)(v(s') - u(s'))\\
+(\mathrm{L}u)(s) - (\mathrm{L}v)(s) &\leq \gamma \sum_{s' \in \mathcal{S}} p(s'|s,a_u)(u(s') - v(s'))
+\end{align*}$$
 
-Taking the absolute value of both sides and using the fact that $\sum_{j \in \mathcal{S}} p(j|s,a) = 1$ for any s and a:
+Taking the absolute value and using the fact that $\sum_{s' \in \mathcal{S}} p(s'|s,a) = 1$:
 
-   $$|(\mathrm{L}v)(s) - (\mathrm{L}u)(s)| \leq \gamma \max_{j \in \mathcal{S}} |V(s') - U(s')| = \gamma \|V - U\|_\infty$$
+$$|(\mathrm{L}v)(s) - (\mathrm{L}u)(s)| \leq \gamma \max_{s' \in \mathcal{S}} |v(s') - u(s')| = \gamma \|v - u\|_\infty$$
 
-Since this holds for all $s$, we can take the supremum over $s$:
+Since this holds for all $s \in \mathcal{S}$, taking the supremum over $s$ gives:
 
-   $$\|\mathrm{L}v - \mathrm{L}u\|_\infty \leq \gamma \|V - U\|_\infty$$
+$$\|\mathrm{L}v - \mathrm{L}u\|_\infty \leq \gamma \|v - u\|_\infty$$
 
-Thus, we have shown that $\mathrm{L}$ is indeed a contraction mapping with contraction factor $\gamma$.
+Thus, $\mathrm{L}$ is a contraction mapping with contraction factor $\gamma$.
 
-Now, let's focus on parts 3. and 4. Suppose our algorithm has just terminated, i.e., $\|v_{n+1} - v_n\| < \frac{\varepsilon(1-\gamma)}{2\gamma}$ for some $n$. We want to show that our current value function $v_{n+1}$ and the policy $\pi_\varepsilon$ derived from it are close to optimal.
+Now, let's prove parts 3 and 4. Suppose the algorithm has just terminated, i.e., $\|v_{n+1} - v_n\|_\infty < \frac{\varepsilon(1-\gamma)}{2\gamma}$ for some $n$. We want to show that our current value function $v_{n+1}$ and the policy $\pi_\varepsilon$ derived from it are close to optimal.
 
-We start with the following inequality:
+By the triangle inequality:
 
-$$\|V^{\pi_\varepsilon}_\gamma - v^*_\gamma\| \leq \|V^{\pi_\varepsilon}_\gamma - v_{n+1}\| + \|v_{n+1} - v^*_\gamma\|$$
+$$\|v^{\pi_\varepsilon}_\gamma - v^*_\gamma\|_\infty \leq \|v^{\pi_\varepsilon}_\gamma - v_{n+1}\|_\infty + \|v_{n+1} - v^*_\gamma\|_\infty$$
 
-This inequality is derived using the triangle inequality:
-
-$$\|V^{\pi_\varepsilon}_\gamma - v^*_\gamma\| = \|(V^{\pi_\varepsilon}_\gamma - v_{n+1}) + (v_{n+1} - v^*_\gamma)\| \leq \|V^{\pi_\varepsilon}_\gamma - v_{n+1}\| + \|v_{n+1} - v^*_\gamma\|$$
-
-Let's focus on the first term, $\|V^{\pi_\varepsilon}_\gamma - v_{n+1}\|$. We can expand this:
+For the first term, since $v^{\pi_\varepsilon}_\gamma$ is the fixed point of $\mathrm{L}_{\pi_\varepsilon}$ and $\pi_\varepsilon$ is greedy with respect to $v_{n+1}$ (i.e., $\mathrm{L}_{\pi_\varepsilon}v_{n+1} = \mathrm{L}v_{n+1}$):
 
 $$
 \begin{aligned}
-\|V^{\pi_\varepsilon}_\gamma - v_{n+1}\| &= \|\mathrm{L}_{\pi_\varepsilon}V^{\pi_\varepsilon}_\gamma - v_{n+1}\| \\
-&\leq \|\mathrm{L}_{\pi_\varepsilon}V^{\pi_\varepsilon}_\gamma - \mathrm{L}v_{n+1}\| + \|\mathrm{L}v_{n+1} - v_{n+1}\| \\
-&= \|\mathrm{L}_{\pi_\varepsilon}V^{\pi_\varepsilon}_\gamma - \mathrm{L}_{\pi_\varepsilon}v_{n+1}\| + \|\mathrm{L}v_{n+1} - \mathrm{L}v_n\| \\
-&\leq \gamma\|V^{\pi_\varepsilon}_\gamma - v_{n+1}\| + \gamma\|v_{n+1} - v_n\|
+\|v^{\pi_\varepsilon}_\gamma - v_{n+1}\|_\infty &= \|\mathrm{L}_{\pi_\varepsilon}v^{\pi_\varepsilon}_\gamma - v_{n+1}\|_\infty \\
+&\leq \|\mathrm{L}_{\pi_\varepsilon}v^{\pi_\varepsilon}_\gamma - \mathrm{L}_{\pi_\varepsilon}v_{n+1}\|_\infty + \|\mathrm{L}_{\pi_\varepsilon}v_{n+1} - v_{n+1}\|_\infty \\
+&= \|\mathrm{L}_{\pi_\varepsilon}v^{\pi_\varepsilon}_\gamma - \mathrm{L}_{\pi_\varepsilon}v_{n+1}\|_\infty + \|\mathrm{L}v_{n+1} - v_{n+1}\|_\infty \\
+&\leq \gamma\|v^{\pi_\varepsilon}_\gamma - v_{n+1}\|_\infty + \gamma\|v_{n+1} - v_n\|_\infty
 \end{aligned}
 $$
 
-Here, we've used the fact that $V^{\pi_\varepsilon}_\gamma$ is a fixed point of $\mathrm{L}_{\pi_\varepsilon}$, that $\mathrm{L}_{\pi_\varepsilon}v_{n+1} = \mathrm{L}v_{n+1}$ (by definition of $\pi_\varepsilon$), and that both $\mathrm{L}$ and $\mathrm{L}_{\pi_\varepsilon}$ are contractions with factor $\gamma$.
+where we used that both $\mathrm{L}$ and $\mathrm{L}_{\pi_\varepsilon}$ are contractions with factor $\gamma$, and that $v_{n+1} = \mathrm{L}v_n$.
 
-Rearranging this inequality, we get:
+Rearranging:
 
-   $$\|V^{\pi_\varepsilon}_\gamma - v_{n+1}\| \leq \frac{\gamma}{1-\gamma}\|v_{n+1} - v_n\|$$
+$$\|v^{\pi_\varepsilon}_\gamma - v_{n+1}\|_\infty \leq \frac{\gamma}{1-\gamma}\|v_{n+1} - v_n\|_\infty$$
 
-We can derive a similar bound for $\|v_{n+1} - v^*_\gamma\|$:
+Similarly, since $v^*_\gamma$ is the fixed point of $\mathrm{L}$:
 
-   $$\|v_{n+1} - v^*_\gamma\| \leq \frac{\gamma}{1-\gamma}\|v_{n+1} - v_n\|$$
+$$\|v_{n+1} - v^*_\gamma\|_\infty = \|\mathrm{L}v_n - \mathrm{L}v^*_\gamma\|_\infty \leq \gamma\|v_n - v^*_\gamma\|_\infty \leq \frac{\gamma}{1-\gamma}\|v_{n+1} - v_n\|_\infty$$
 
-Now, remember that our algorithm terminated when $\|v_{n+1} - v_n\| < \frac{\varepsilon(1-\gamma)}{2\gamma}$. Plugging this into our bounds:
+Since $\|v_{n+1} - v_n\|_\infty < \frac{\varepsilon(1-\gamma)}{2\gamma}$:
 
-   $$\|V^{\pi_\varepsilon}_\gamma - v_{n+1}\| \leq \frac{\gamma}{1-\gamma} \cdot \frac{\varepsilon(1-\gamma)}{2\gamma} = \frac{\varepsilon}{2}$$
-   
-   $$\|v_{n+1} - v^*_\gamma\| \leq \frac{\gamma}{1-\gamma} \cdot \frac{\varepsilon(1-\gamma)}{2\gamma} = \frac{\varepsilon}{2}$$
+$$\|v^{\pi_\varepsilon}_\gamma - v_{n+1}\|_\infty \leq \frac{\gamma}{1-\gamma} \cdot \frac{\varepsilon(1-\gamma)}{2\gamma} = \frac{\varepsilon}{2}$$
 
-Finally, combining these results with our initial inequality:
+$$\|v_{n+1} - v^*_\gamma\|_\infty \leq \frac{\gamma}{1-\gamma} \cdot \frac{\varepsilon(1-\gamma)}{2\gamma} = \frac{\varepsilon}{2}$$
 
-   $$\|V^{\pi_\varepsilon}_\gamma - v^*_\gamma\| \leq \|V^{\pi_\varepsilon}_\gamma - v_{n+1}\| + \|v_{n+1} - v^*_\gamma\| \leq \frac{\varepsilon}{2} + \frac{\varepsilon}{2} = \varepsilon$$
+Combining these:
 
-This completes the proof. We've shown that when the algorithm terminates, our value function $v_{n+1}$ is within $\varepsilon/2$ of optimal (part 4.), and our policy $\pi_\varepsilon$ is $\varepsilon$-optimal (part 3.).
+$$\|v^{\pi_\varepsilon}_\gamma - v^*_\gamma\|_\infty \leq \frac{\varepsilon}{2} + \frac{\varepsilon}{2} = \varepsilon$$
+
+This completes the proof, showing that $v_{n+1}$ is within $\varepsilon/2$ of $v^*_\gamma$ (part 4) and $\pi_\varepsilon$ is $\varepsilon$-optimal (part 3).
 ````
+
 ### Newton-Kantorovich applied to the Optimality Equations
 
 Another perspective on the optimality equations is that instead of looking for $v_\gamma^\star$ as the fixed-point of $\mathrm{L}$ in the fixed-point problem find $v$ such that $\mathrm{L} v = v$, we consider instead the related form in the nonlinear operator equation $\mathrm{L}v - v = 0$. Writing things in this way highlights the fact that we could also consider using Newton-Kantorovich iteration to solve this equation instead of the successive approximation method.

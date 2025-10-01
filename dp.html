@@ -201,6 +201,7 @@
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Dynamic Programming</a></li>
 
 
+
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Learning from Data</span></p>
 <ul class="nav bd-sidenav">
@@ -437,7 +438,7 @@
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-optimal-harvest-in-resource-management">Example: Optimal Harvest in Resource Management</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#discretization-and-interpolation">Discretization and Interpolation</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#handling-continuous-spaces-with-interpolation">Handling Continuous Spaces with Interpolation</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#backward-recursion-with-interpolation">Backward Recursion with Interpolation</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#example-optimal-harvest-with-linear-interpolation">Example: Optimal Harvest with Linear Interpolation</a></li>
 </ul>
@@ -449,9 +450,12 @@
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-dynamic-programming-and-markov-decision-processes">Stochastic Dynamic Programming and Markov Decision Processes</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#decision-rules-and-policies">Decision Rules and Policies</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-system-dynamics">Stochastic System Dynamics</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#optimality-equations-and-policy-reduction-in-the-stochastic-setting">Optimality Equations and Policy Reduction in the Stochastic Setting</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#optimality-equations-in-the-stochastic-setting">Optimality Equations in the Stochastic Setting</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-stochastic-optimal-harvest-in-resource-management">Example: Stochastic Optimal Harvest in Resource Management</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#markov-decision-process-formulation">Markov Decision Process Formulation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#linear-quadratic-regulator-via-dynamic-programming">Linear Quadratic Regulator via Dynamic Programming</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#markov-decision-process-formulation">Markov Decision Process Formulation</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#notation-in-operations-reseach">Notation in Operations Reseach</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-an-optimal-policy">What is an Optimal Policy?</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-sample-size-determination-in-pharmaceutical-development">Example: Sample Size Determination in Pharmaceutical Development</a></li>
@@ -610,20 +614,22 @@ Base case <span class="math notranslate nohighlight">\(t=T\)</span>. The stateme
 <div class="proof remark admonition" id="remark-2">
 <p class="admonition-title"><span class="caption-number">Remark 1 </span> (No “big NLP” required)</p>
 <section class="remark-content" id="proof-content">
-<p>The Bolza DOCP over the whole horizon couples all controls through the dynamics and is typically posed as a single large nonlinear program. The proof shows you can solve <strong><span class="math notranslate nohighlight">\(T-1\)</span> sequences of one-step problems</strong> instead: at each <span class="math notranslate nohighlight">\((t,\mathbf{x})\)</span> minimize
-$<span class="math notranslate nohighlight">\(
+<p>The Bolza DOCP over the whole horizon couples all controls through the dynamics and is typically posed as a single large nonlinear program. The proof shows you can solve <strong><span class="math notranslate nohighlight">\(T-1\)</span> sequences of one-step problems</strong> instead: at each <span class="math notranslate nohighlight">\((t,\mathbf{x})\)</span> minimize</p>
+<div class="math notranslate nohighlight">
+\[
 \mathbf{u}\mapsto c_t(\mathbf{x},\mathbf{u}) + J_{t+1}^\star(\mathbf{f}_t(\mathbf{x},\mathbf{u})).
-\)</span>$
-In finite state–action spaces this becomes pure table lookup and argmin. In continuous spaces you still solve local one-step minimizations, but you avoid a monolithic horizon-coupled NLP.</p>
+\]</div>
+<p>In finite state–action spaces this becomes pure table lookup and argmin. In continuous spaces you still solve local one-step minimizations, but you avoid a monolithic horizon-coupled NLP.</p>
 </section>
 </div><div class="proof remark admonition" id="remark-3">
 <p class="admonition-title"><span class="caption-number">Remark 2 </span> (Graph interpretation (optional intuition))</p>
 <section class="remark-content" id="proof-content">
-<p>Unroll time to form a DAG whose nodes are <span class="math notranslate nohighlight">\((t,\mathbf{x})\)</span> and whose edges correspond to feasible controls with edge weight <span class="math notranslate nohighlight">\(c_t(\mathbf{x},\mathbf{u})\)</span>. The terminal node cost is <span class="math notranslate nohighlight">\(c_\mathrm{T}(\cdot)\)</span>. The Bolza problem is a shortest-path problem on this DAG. The equation
-$<span class="math notranslate nohighlight">\(
+<p>Unroll time to form a DAG whose nodes are <span class="math notranslate nohighlight">\((t,\mathbf{x})\)</span> and whose edges correspond to feasible controls with edge weight <span class="math notranslate nohighlight">\(c_t(\mathbf{x},\mathbf{u})\)</span>. The terminal node cost is <span class="math notranslate nohighlight">\(c_\mathrm{T}(\cdot)\)</span>. The Bolza problem is a shortest-path problem on this DAG. The equation</p>
+<div class="math notranslate nohighlight">
+\[
 J_t^\star(\mathbf{x})=\min_{\mathbf{u}}\{c_t(\mathbf{x},\mathbf{u})+J_{t+1}^\star(\mathbf{f}_t(\mathbf{x},\mathbf{u}))\}
-\)</span>$
-is exactly the dynamic programming recursion for shortest paths on acyclic graphs, hence backward induction is optimal.</p>
+\]</div>
+<p>is exactly the dynamic programming recursion for shortest paths on acyclic graphs, hence backward induction is optimal.</p>
 </section>
 </div><!-- ```{prf:remark} If minimizers may not exist
 Replace each “min” by “inf” in the definitions and state that for every $\varepsilon>0$ there exist $\varepsilon$-optimal selectors $\boldsymbol{\mu}_t^\varepsilon(\cdot)$ achieving cost within $\varepsilon$ of $J_t^\star(\cdot)$. The same cut-and-paste and induction go through.
@@ -764,78 +770,79 @@ Total harvest: 212.66322943492605
 </div>
 </section>
 </section>
-<section id="discretization-and-interpolation">
-<h2>Discretization and Interpolation<a class="headerlink" href="#discretization-and-interpolation" title="Link to this heading">#</a></h2>
-<p>In many real-world problems, such as our resource management example, the state space is inherently continuous. However, the dynamic programming algorithm we’ve discussed operates on discrete state spaces. To bridge this gap, we have two main approaches: discretization and interpolation. In the previous example, we used a discretization method by rounding off values to the nearest grid point.</p>
-<p>In our idealized models, we imagined population sizes as whole numbers—1 fish, 2 fish, 3 fish—but nature rarely conforms to such simplicity. What do you do when your survey reports 42.7 fish, for example? Without much explanation, our reflex in the previous example was to simply round things off. After all, what’s the harm in calling 42.7 fish just 43? This approach, known as discretization, is the simplest way to handle continuous states. It’s like overlaying a grid on a smooth landscape and only allowing yourself to stand at the intersections. In our demo code, we implemented this step via the <a class="reference external" href="https://numpy.org/doc/2.0/reference/generated/numpy.searchsorted.html">numpy.searchsorted</a> function.</p>
-<p>Discretization is straightforward and allows you to apply dynamic programming algorithms directly. For many problems, it might even be sufficient. However, as you might imagine from the various time discretization schemes we’ve encountered in trajectory optimization, we can do better. Specifically, we want to address the following issues:</p>
+<section id="handling-continuous-spaces-with-interpolation">
+<h2>Handling Continuous Spaces with Interpolation<a class="headerlink" href="#handling-continuous-spaces-with-interpolation" title="Link to this heading">#</a></h2>
+<p>In many real-world problems, such as our resource management example, the state space is inherently continuous. Dynamic programming, however, is usually defined on discrete state spaces. To reconcile this, we approximate the value function on a finite grid of points and use interpolation to estimate its value elsewhere.</p>
+<p>In our earlier example, we acted as if population sizes could only be whole numbers—1 fish, 2 fish, 3 fish. But real measurements don’t fit neatly: what do you do with a survey that reports 42.7 fish? Our reflex in the code example was to round to the nearest integer, effectively saying “let’s just call it 43.” This corresponds to <strong>nearest-neighbor interpolation</strong>, also known as discretization. It’s the zeroth-order case: you assume the value between grid points is constant and equal to the closest one. In practice, this amounts to overlaying a grid on the continuous landscape and forcing yourself to stand at the intersections. In our demo code, this step was carried out with <a class="reference external" href="https://numpy.org/doc/2.0/reference/generated/numpy.searchsorted.html"><code class="docutils literal notranslate"><span class="pre">numpy.searchsorted</span></code></a>.</p>
+<p>While easy to implement, nearest-neighbor interpolation can introduce artifacts:</p>
 <ol class="arabic simple">
-<li><p>Our model might make abrupt changes in decisions, even when the population barely shifts.</p></li>
-<li><p>We’re losing precision, especially when dealing with smaller population sizes where every individual counts.</p></li>
-<li><p>We might want to scale up and add more factors to our model—perhaps considering the population’s age structure or environmental variables. However, the curse of dimensionality might leave us needing an impossibly large number of grid points to maintain accuracy.</p></li>
+<li><p>Decisions may change abruptly, even if the state only shifts slightly.</p></li>
+<li><p>Precision is lost, particularly in regimes where small variations matter.</p></li>
+<li><p>The curse of dimensionality forces an impractically fine grid if many state variables are added.</p></li>
 </ol>
-<p>Rather than confining ourselves to grid intersections as we did with basic discretization, we can estimate the value between them via interpolation. When you encounter a state that doesn’t exactly match a grid point—like that population of 42.7 fish—you can estimate its value based on nearby points you’ve already calculated. In its simplest form, we could use linear interpolation. Intuitively, it’s like estimating the height of a hill between two surveyed points by drawing a straight line between them. Let’s formalize this approach in the context of the backward induction procedure.</p>
+<p>To address these issues, we can use <strong>higher-order interpolation</strong>. Instead of taking the nearest neighbor, we estimate the value at off-grid points by leveraging multiple nearby values.</p>
 <section id="backward-recursion-with-interpolation">
 <h3>Backward Recursion with Interpolation<a class="headerlink" href="#backward-recursion-with-interpolation" title="Link to this heading">#</a></h3>
-<p>In a continuous state space, we don’t have <span class="math notranslate nohighlight">\(J_{k+1}^\star(\mathbf{x}_{k+1})\)</span> directly available for all possible <span class="math notranslate nohighlight">\(\mathbf{x}_{k+1}\)</span>. Instead, we have <span class="math notranslate nohighlight">\(J_{k+1}^\star(\mathbf{x})\)</span> for a set of discrete grid points <span class="math notranslate nohighlight">\(\mathbf{x} \in \mathcal{X}_\text{grid}\)</span>. We use interpolation to estimate <span class="math notranslate nohighlight">\(J_{k+1}^\star(\mathbf{x}_{k+1})\)</span> for any <span class="math notranslate nohighlight">\(\mathbf{x}_{k+1}\)</span> not in <span class="math notranslate nohighlight">\(\mathcal{X}_\text{grid}\)</span>.</p>
-<p>Let’s define an interpolation function <span class="math notranslate nohighlight">\(I_{k+1}(\mathbf{x})\)</span> that estimates <span class="math notranslate nohighlight">\(J_{k+1}^\star(\mathbf{x})\)</span> for any <span class="math notranslate nohighlight">\(\mathbf{x}\)</span> based on the known values at grid points. Then, we can express Bellman’s equation with interpolation as:</p>
+<p>Suppose we have computed <span class="math notranslate nohighlight">\(J_{k+1}^\star(\mathbf{x})\)</span> only at grid points <span class="math notranslate nohighlight">\(\mathbf{x} \in \mathcal{X}_\text{grid}\)</span>.
+To evaluate Bellman’s equation at an arbitrary <span class="math notranslate nohighlight">\(\mathbf{x}_{k+1}\)</span>, we interpolate.
+Formally, let <span class="math notranslate nohighlight">\(I_{k+1}(\mathbf{x})\)</span> be the interpolation operator that extends the value function from <span class="math notranslate nohighlight">\(\mathcal{X}_\text{grid}\)</span> to the continuous space. Then:</p>
 <div class="math notranslate nohighlight">
 \[
-J_k^\star(\mathbf{x}_k) = \min_{\mathbf{u}_k} \left[ c_k(\mathbf{x}_k, \mathbf{u}_k) + I_{k+1}(\mathbf{f}_k(\mathbf{x}_k, \mathbf{u}_k)) \right]
+J_k^\star(\mathbf{x}_k) 
+= \min_{\mathbf{u}_k} 
+\Big[ c_k(\mathbf{x}_k, \mathbf{u}_k) 
++ I_{k+1}\big(\mathbf{f}_k(\mathbf{x}_k, \mathbf{u}_k)\big) \Big].
 \]</div>
-<p>For linear interpolation in a one-dimensional state space, <span class="math notranslate nohighlight">\(I_{k+1}(\mathbf{x})\)</span> would be defined as:</p>
+<p>For instance, in one dimension, linear interpolation gives:</p>
 <div class="math notranslate nohighlight">
 \[
-I_{k+1}(x) = J_{k+1}^\star(x_l) + \frac{x - x_l}{x_u - x_l} \left(J_{k+1}^\star(x_u) - J_{k+1}^\star(x_l)\right)
+I_{k+1}(x) = J_{k+1}^\star(x_l) + \frac{x - x_l}{x_u - x_l} \big(J_{k+1}^\star(x_u) - J_{k+1}^\star(x_l)\big),
 \]</div>
-<p>where <span class="math notranslate nohighlight">\(x_l\)</span> and <span class="math notranslate nohighlight">\(x_u\)</span> are the nearest lower and upper grid points to <span class="math notranslate nohighlight">\(x\)</span>, respectively.</p>
-<p>Here’s a pseudo-code algorithm for backward recursion with interpolation:</p>
+<p>where <span class="math notranslate nohighlight">\(x_l\)</span> and <span class="math notranslate nohighlight">\(x_u\)</span> are the nearest grid points bracketing <span class="math notranslate nohighlight">\(x\)</span>. Linear interpolation is often sufficient, but higher-order methods (cubic splines, radial basis functions) can yield smoother and more accurate estimates. The choice of interpolation scheme and grid layout both affect accuracy and efficiency. A finer grid improves resolution but increases computational cost, motivating strategies like adaptive grid refinement or replacing interpolation altogether with parametric function approximation which we are going to see later in this book.</p>
+<p>In higher-dimensional spaces, naive interpolation becomes prohibitively expensive due to the curse of dimensionality. Several approaches such as tensorized multilinear interpolation, radial basis functions, and machine learning models address this challenge by extending a common principle: they approximate the value function at unobserved points using information from a finite set of evaluations. However, as dimensionality continues to grow, even tensor methods face scalability limits, which is why flexible parametric models like neural networks have become essential tools for high-dimensional function approximation.</p>
 <div class="proof algorithm admonition" id="backward-recursion-interpolation">
-<p class="admonition-title"><span class="caption-number">Algorithm 4 </span> (Backward Recursion with Interpolation for Dynamic Programming)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 4 </span> (Backward Recursion with Interpolation)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong></p>
 <ul class="simple">
-<li><p>Terminal cost function <span class="math notranslate nohighlight">\(c_\mathrm{T}(\cdot)\)</span></p></li>
-<li><p>Stage cost functions <span class="math notranslate nohighlight">\(c_t(\cdot, \cdot)\)</span></p></li>
-<li><p>System dynamics <span class="math notranslate nohighlight">\(f_t(\cdot, \cdot)\)</span></p></li>
-<li><p>Time horizon <span class="math notranslate nohighlight">\(\mathrm{T}\)</span></p></li>
-<li><p>Grid of state points <span class="math notranslate nohighlight">\(\mathcal{X}_\text{grid}\)</span></p></li>
-<li><p>Set of possible actions <span class="math notranslate nohighlight">\(\mathcal{U}\)</span></p></li>
+<li><p>Terminal cost <span class="math notranslate nohighlight">\(c_\mathrm{T}(\cdot)\)</span></p></li>
+<li><p>Stage costs <span class="math notranslate nohighlight">\(c_t(\cdot,\cdot)\)</span></p></li>
+<li><p>Dynamics <span class="math notranslate nohighlight">\(f_t(\cdot,\cdot)\)</span></p></li>
+<li><p>Time horizon <span class="math notranslate nohighlight">\(T\)</span></p></li>
+<li><p>State grid <span class="math notranslate nohighlight">\(\mathcal{X}_\text{grid}\)</span></p></li>
+<li><p>Action set <span class="math notranslate nohighlight">\(\mathcal{U}\)</span></p></li>
+<li><p>Interpolation method <span class="math notranslate nohighlight">\(\mathcal{I}(\cdot)\)</span> (e.g., linear, cubic spline, RBF, neural network)</p></li>
 </ul>
-<p><strong>Output:</strong> Optimal value functions <span class="math notranslate nohighlight">\(J_t^\star(\cdot)\)</span> and optimal control policies <span class="math notranslate nohighlight">\(\mu_t^\star(\cdot)\)</span> for <span class="math notranslate nohighlight">\(t = 1, \ldots, T\)</span> at grid points</p>
-<ol class="arabic simple">
-<li><p>Initialize <span class="math notranslate nohighlight">\(J_T^\star(\mathbf{x}) = c_\mathrm{T}(\mathbf{x})\)</span> for all <span class="math notranslate nohighlight">\(\mathbf{x} \in \mathcal{X}_\text{grid}\)</span></p></li>
-<li><p>For <span class="math notranslate nohighlight">\(t = T-1, T-2, \ldots, 1\)</span>:</p>
-<ol class="arabic simple">
-<li><p>For each state <span class="math notranslate nohighlight">\(\mathbf{x} \in \mathcal{X}_\text{grid}\)</span>:</p>
-<ol class="arabic simple">
-<li><p>Initialize <span class="math notranslate nohighlight">\(J_t^\star(\mathbf{x}) = \infty\)</span> and <span class="math notranslate nohighlight">\(\mu_t^\star(\mathbf{x}) = \text{None}\)</span></p></li>
-<li><p>For each action <span class="math notranslate nohighlight">\(\mathbf{u} \in \mathcal{U}\)</span>:</p>
-<ol class="arabic simple">
-<li><p>Compute next state <span class="math notranslate nohighlight">\(\mathbf{x}_\text{next} = f_t(\mathbf{x}, \mathbf{u})\)</span></p></li>
-<li><p>Compute interpolated future cost <span class="math notranslate nohighlight">\(J_\text{future} = I_{t+1}(\mathbf{x}_\text{next})\)</span></p></li>
-<li><p>Compute total cost <span class="math notranslate nohighlight">\(J_\text{total} = c_t(\mathbf{x}, \mathbf{u}) + J_\text{future}\)</span></p></li>
-<li><p>If <span class="math notranslate nohighlight">\(J_\text{total} &lt; J_t^\star(\mathbf{x})\)</span>:</p>
-<ol class="arabic simple">
-<li><p>Update <span class="math notranslate nohighlight">\(J_t^\star(\mathbf{x}) = J_\text{total}\)</span></p></li>
-<li><p>Update <span class="math notranslate nohighlight">\(\mu_t^\star(\mathbf{x}) = \mathbf{u}\)</span></p></li>
-</ol>
+<p><strong>Output:</strong> Value functions <span class="math notranslate nohighlight">\(J_t^\star(\cdot)\)</span> and policies <span class="math notranslate nohighlight">\(\mu_t^\star(\cdot)\)</span> for all <span class="math notranslate nohighlight">\(t\)</span></p>
+<ol class="arabic">
+<li><p><strong>Initialize terminal values:</strong></p>
+<ul class="simple">
+<li><p>Compute <span class="math notranslate nohighlight">\(J_T^\star(\mathbf{x}) = c_\mathrm{T}(\mathbf{x})\)</span> for all <span class="math notranslate nohighlight">\(\mathbf{x} \in \mathcal{X}_\text{grid}\)</span></p></li>
+<li><p>Fit interpolator: <span class="math notranslate nohighlight">\(I_T \leftarrow \mathcal{I}(\{\mathbf{x}, J_T^\star(\mathbf{x})\}_{\mathbf{x} \in \mathcal{X}_\text{grid}})\)</span></p></li>
+</ul>
 </li>
-</ol>
+<li><p><strong>Backward recursion:</strong><br />
+For <span class="math notranslate nohighlight">\(t = T-1, T-2, \dots, 0\)</span>:</p>
+<p>a. <strong>Bellman update at grid points:</strong><br />
+For each <span class="math notranslate nohighlight">\(\mathbf{x} \in \mathcal{X}_\text{grid}\)</span>:</p>
+<ul class="simple">
+<li><p>For each <span class="math notranslate nohighlight">\(\mathbf{u} \in \mathcal{U}\)</span>:</p>
+<ul>
+<li><p>Compute next state: <span class="math notranslate nohighlight">\(\mathbf{x}_\text{next} = f_t(\mathbf{x}, \mathbf{u})\)</span></p></li>
+<li><p><strong>Interpolate future cost:</strong> <span class="math notranslate nohighlight">\(\hat{J}_{t+1}(\mathbf{x}_\text{next}) = I_{t+1}(\mathbf{x}_\text{next})\)</span></p></li>
+<li><p>Compute total cost: <span class="math notranslate nohighlight">\(J_t(\mathbf{x}, \mathbf{u}) = c_t(\mathbf{x}, \mathbf{u}) + \hat{J}_{t+1}(\mathbf{x}_\text{next})\)</span></p></li>
+</ul>
 </li>
-</ol>
+<li><p><strong>Minimize over actions:</strong> <span class="math notranslate nohighlight">\(J_t^\star(\mathbf{x}) = \min_{\mathbf{u} \in \mathcal{U}} J_t(\mathbf{x}, \mathbf{u})\)</span></p></li>
+<li><p>Store optimal action: <span class="math notranslate nohighlight">\(\mu_t^\star(\mathbf{x}) = \arg\min_{\mathbf{u} \in \mathcal{U}} J_t(\mathbf{x}, \mathbf{u})\)</span></p></li>
+</ul>
+<p>b. <strong>Fit interpolator for current stage:</strong><br />
+<span class="math notranslate nohighlight">\(I_t \leftarrow \mathcal{I}(\{\mathbf{x}, J_t^\star(\mathbf{x})\}_{\mathbf{x} \in \mathcal{X}_\text{grid}})\)</span></p>
 </li>
-<li><p>End For</p></li>
-</ol>
-</li>
-<li><p>End For</p></li>
-<li><p>Return <span class="math notranslate nohighlight">\(J_t^\star(\cdot)\)</span>, <span class="math notranslate nohighlight">\(\mu_t^\star(\cdot)\)</span> for <span class="math notranslate nohighlight">\(t = 1, \ldots, T\)</span></p></li>
+<li><p><strong>Return:</strong> Interpolated value functions <span class="math notranslate nohighlight">\(\{I_t\}_{t=0}^T\)</span> and policies <span class="math notranslate nohighlight">\(\{\mu_t^\star\}_{t=0}^{T-1}\)</span></p></li>
 </ol>
 </section>
-</div><p>The choice of interpolation method can significantly affect the accuracy of the solution. Linear interpolation is simple and often effective, but higher-order methods like cubic spline interpolation might provide better results in some problems. Furthermore, the layout and density of the grid points in <span class="math notranslate nohighlight">\(\mathcal{X}_\text{grid}\)</span> can impact both the accuracy and computational efficiency. A finer grid generally provides better accuracy but increases computational cost. To balance this tradeoff, you might consider techniques like adaptive grid refinement or function approximation methods instead of fixed grid-based interpolation. Special care may also be needed for states near the boundaries, where interpolation might not be possible in all directions.</p>
-<p>While simple to implement, interpolation methods scale poorly in multi-dimensional spaces in terms of computational complexity. Techniques like multilinear interpolation with tensorized representations or more advanced methods like radial basis function interpolation might be necessary.</p>
-<p>To better address this computational challenge, we will broaden our perspective through the lens of numerical approximation methods for solving functional operator equations. Polynomial interpolation is a form of approximation, with properties akin to generalization in machine learning. By building these connections, we will develop techniques capable of more robustly handling the curse of dimensionality by leveraging the generalization properties of machine learning models, and the “blessing of randomness” inherent in supervised learning and Monte Carlo methods.</p>
-<section id="example-optimal-harvest-with-linear-interpolation">
+</div><section id="example-optimal-harvest-with-linear-interpolation">
 <h4>Example: Optimal Harvest with Linear Interpolation<a class="headerlink" href="#example-optimal-harvest-with-linear-interpolation" title="Link to this heading">#</a></h4>
 <p>Here is a demonstration of the backward recursion procedure using linear interpolation.</p>
 <div class="cell tag_hide-input docutils container">
@@ -1350,9 +1357,9 @@ By tuning the weight $r$ and the sampling time $T_s$, we can balance the trade-o
 <div class="math notranslate nohighlight">
 \[ J_k^\star(\mathbf{x}_k) = \min_{\mathbf{u}_k} \sum_{i=1}^K p_k^i \left(c_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k^i) + J_{k+1}^\star(\mathbf{f}_k(\mathbf{x}_k, \mathbf{u}_k, \mathbf{w}_k^i))\right) \]</div>
 </section>
-<section id="optimality-equations-and-policy-reduction-in-the-stochastic-setting">
-<h2>Optimality Equations and Policy Reduction in the Stochastic Setting<a class="headerlink" href="#optimality-equations-and-policy-reduction-in-the-stochastic-setting" title="Link to this heading">#</a></h2>
-<p>When dealing with stochastic systems, a fundamental question arises: what information should our control policy use? In the most general case, a policy might use the entire history of observations and actions. However, as we’ll see, the Markovian structure of our problems allows for dramatic simplifications.</p>
+<section id="optimality-equations-in-the-stochastic-setting">
+<h2>Optimality Equations in the Stochastic Setting<a class="headerlink" href="#optimality-equations-in-the-stochastic-setting" title="Link to this heading">#</a></h2>
+<p>When dealing with stochastic systems, a central question arises: what information should our control policy use? In the most general case, a policy might use the entire history of observations and actions. However, as we’ll see, the Markovian structure of our problems allows for dramatic simplifications.</p>
 <p>Let <span class="math notranslate nohighlight">\(h_t = (s_1, a_1, s_2, a_2, \ldots, s_{t-1}, a_{t-1}, s_t)\)</span> denote the complete history up to time <span class="math notranslate nohighlight">\(t\)</span>. In the stochastic setting, the history-based optimality equations become:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1362,9 +1369,14 @@ u_t(h_t) = \sup_{a\in A_{s_t}}\left\{ r_t(s_t,a) + \sum_{j\in S} p_t(j\mid s_t,a
 <div class="proof theorem admonition" id="stoch-principle-opt">
 <p class="admonition-title"><span class="caption-number">Theorem 3 </span> (Principle of optimality for stochastic systems)</p>
 <section class="theorem-content" id="proof-content">
-<p>Solutions to the stochastic optimality equations equal the optimal expected returns. Any policy that selects maximizing actions at each history is optimal.</p>
+<p>Let <span class="math notranslate nohighlight">\(u_t^*\)</span> be the optimal expected return from epoch <span class="math notranslate nohighlight">\(t\)</span> onward. Then:</p>
+<p><strong>a.</strong> <span class="math notranslate nohighlight">\(u_t^*\)</span> satisfies the optimality equations:</p>
+<div class="math notranslate nohighlight">
+\[u_t^*(h_t) = \sup_{a \in A_{s_t}} \left\{ r_t(s_t, a) + \sum_{j \in S} p_t(j|s_t, a) u_{t+1}^*(h_t, a, j) \right\}\]</div>
+<p>with boundary condition <span class="math notranslate nohighlight">\(u_N^*(h_N) = r_N(s_N)\)</span>.</p>
+<p><strong>b.</strong> Any policy <span class="math notranslate nohighlight">\(\pi^*\)</span> that selects actions attaining the supremum (or maximum) in the above equation at each history is optimal.</p>
 </section>
-</div><p><strong>Intuition:</strong> Even with uncertainty, the recursive structure ensures that optimal local decisions lead to global optimality. The expectation over future states is captured by the transition probabilities.</p>
+</div><p><strong>Intuition:</strong> This formalizes Bellman’s principle of optimality: “An optimal policy has the property that whatever the initial state and initial decision are, the remaining decisions must constitute an optimal policy with regard to the state resulting from the first decision.” The recursive structure means that optimal local decisions (choosing the best action at each step) lead to global optimality, even with uncertainty captured by the transition probabilities.</p>
 <p>A remarkable simplification occurs when we examine these history-based equations more closely. The Markov property of our system dynamics and rewards means that the optimal return actually depends on the history only through the current state:</p>
 <div class="proof proposition admonition" id="stoch-state-suff">
 <p class="admonition-title"><span class="caption-number">Proposition 2 </span> (State sufficiency for stochastic MDPs)</p>
@@ -1397,7 +1409,7 @@ u_t(h_t) = \sup_{a\in A_{s_t}}\left\{ r_t(s_t,a) + \sum_{j\in S} p_t(j\mid s_t,a
 </div><div class="proof admonition" id="proof">
 <p>Proof. Sketch following <span id="id3">Puterman [<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">33</a>]</span> Lemma 4.3.1 and Theorem 4.4.2. First, Lemma 4.3.1 shows that for any function <span class="math notranslate nohighlight">\(w\)</span> and any distribution <span class="math notranslate nohighlight">\(q\)</span> over actions, <span class="math notranslate nohighlight">\(\sup_a w(a) \ge \sum_a q(a) w(a)\)</span>. Thus randomization cannot improve the expected value over choosing a single maximizing action. Second, by state sufficiency (Proposition <span class="xref std std-ref">stoch-state-suff</span> and <span id="id4">Puterman [<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">33</a>]</span> Thm. 4.4.2(a)), the optimal return depends on the history only through <span class="math notranslate nohighlight">\((s_t,t)\)</span>. Therefore, selecting at each <span class="math notranslate nohighlight">\((s_t,t)\)</span> an action that attains the maximum yields a deterministic Markov decision rule which is optimal whenever the maximum is attained. If only a supremum exists, <span class="math notranslate nohighlight">\(\varepsilon\)</span>-optimal selectors exist by choosing actions within <span class="math notranslate nohighlight">\(\varepsilon\)</span> of the supremum (see <span id="id5">Puterman [<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">33</a>]</span> Thm. 4.3.4).</p>
 </div>
-<p><strong>Intuition:</strong> Even in stochastic systems, randomization in the policy doesn’t help when maximizing expected returns—you should always choose the action with the highest expected value. Combined with state sufficiency, this means simple state-to-action mappings are optimal.</p>
+<p><strong>Intuition:</strong> Even in stochastic systems, randomization in the policy doesn’t help when maximizing expected returns: you should always choose the action with the highest expected value. Combined with state sufficiency, this means simple state-to-action mappings are optimal.</p>
 <p>These results justify focusing on deterministic Markov policies and lead to the backward recursion algorithm for stochastic systems:</p>
 <div class="proof algorithm admonition" id="stochastic-backward-recursion">
 <p class="admonition-title"><span class="caption-number">Algorithm 5 </span> (Backward Recursion for Stochastic Dynamic Programming)</p>
@@ -1659,8 +1671,109 @@ Average total harvest: 313.43165025164313
 </div>
 </div>
 </section>
-<section id="markov-decision-process-formulation">
-<h2>Markov Decision Process Formulation<a class="headerlink" href="#markov-decision-process-formulation" title="Link to this heading">#</a></h2>
+<section id="linear-quadratic-regulator-via-dynamic-programming">
+<h2>Linear Quadratic Regulator via Dynamic Programming<a class="headerlink" href="#linear-quadratic-regulator-via-dynamic-programming" title="Link to this heading">#</a></h2>
+<p>We now examine a special case where the backward recursion admits a remarkable closed-form solution. When the system dynamics are linear and the cost function is quadratic, the optimization at each stage can be solved analytically. Moreover, the value function itself maintains a quadratic structure throughout the recursion, and the optimal policy reduces to a simple linear feedback law. This elegant result eliminates the need for discretization, interpolation, or any function approximation—the infinite-dimensional problem collapses to tracking a finite set of matrices.</p>
+<p>Consider a discrete-time linear system:</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{x}_{t+1} = A_t\mathbf{x}_t + B_t\mathbf{u}_t
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(\mathbf{x}_t \in \mathbb{R}^n\)</span> is the state and <span class="math notranslate nohighlight">\(\mathbf{u}_t \in \mathbb{R}^m\)</span> is the control input. The matrices <span class="math notranslate nohighlight">\(A_t \in \mathbb{R}^{n \times n}\)</span> and <span class="math notranslate nohighlight">\(B_t \in \mathbb{R}^{n \times m}\)</span> describe the system dynamics at time <span class="math notranslate nohighlight">\(t\)</span>.</p>
+<p>The cost function to be minimized is quadratic:</p>
+<div class="math notranslate nohighlight">
+\[
+J = \frac{1}{2}\mathbf{x}_T^\top Q_T \mathbf{x}_T + \frac{1}{2}\sum_{t=0}^{T-1} \left(\mathbf{x}_t^\top Q_t \mathbf{x}_t + \mathbf{u}_t^\top R_t \mathbf{u}_t\right)
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(Q_T \succeq 0\)</span> (positive semidefinite), <span class="math notranslate nohighlight">\(Q_t \succeq 0\)</span>, and <span class="math notranslate nohighlight">\(R_t \succ 0\)</span> (positive definite) are symmetric matrices of appropriate dimensions. The positive definiteness of <span class="math notranslate nohighlight">\(R_t\)</span> ensures the minimization problem is well-posed.</p>
+<p>What we now have to observe is that if the terminal cost is quadratic, then the value function at every earlier stage remains quadratic. This is not immediately obvious, but it follows from the structure of Bellman’s equation combined with the linearity of the dynamics.</p>
+<p>We claim that the optimal cost-to-go from any stage <span class="math notranslate nohighlight">\(t\)</span> takes the form:</p>
+<div class="math notranslate nohighlight">
+\[
+J_t^\star(\mathbf{x}_t) = \frac{1}{2}\mathbf{x}_t^\top P_t \mathbf{x}_t
+\]</div>
+<p>for some positive semidefinite matrix <span class="math notranslate nohighlight">\(P_t\)</span>. At the terminal time, this is true by definition: <span class="math notranslate nohighlight">\(P_T = Q_T\)</span>.</p>
+<p>Let’s verify this structure and derive the recursion for <span class="math notranslate nohighlight">\(P_t\)</span> using backward induction. Suppose we’ve established that <span class="math notranslate nohighlight">\(J_{t+1}^\star(\mathbf{x}_{t+1}) = \frac{1}{2}\mathbf{x}_{t+1}^\top P_{t+1} \mathbf{x}_{t+1}\)</span>. Bellman’s equation at stage <span class="math notranslate nohighlight">\(t\)</span> states:</p>
+<div class="math notranslate nohighlight">
+\[
+J_t^\star(\mathbf{x}_t) = \min_{\mathbf{u}_t} \left[ \frac{1}{2}\mathbf{x}_t^\top Q_t \mathbf{x}_t + \frac{1}{2}\mathbf{u}_t^\top R_t \mathbf{u}_t + J_{t+1}^\star(\mathbf{x}_{t+1}) \right]
+\]</div>
+<p>Substituting the dynamics <span class="math notranslate nohighlight">\(\mathbf{x}_{t+1} = A_t\mathbf{x}_t + B_t\mathbf{u}_t\)</span> and the quadratic form for <span class="math notranslate nohighlight">\(J_{t+1}^\star\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+J_t^\star(\mathbf{x}_t) = \min_{\mathbf{u}_t} \left[ \frac{1}{2}\mathbf{x}_t^\top Q_t \mathbf{x}_t + \frac{1}{2}\mathbf{u}_t^\top R_t \mathbf{u}_t + \frac{1}{2}(A_t\mathbf{x}_t + B_t\mathbf{u}_t)^\top P_{t+1} (A_t\mathbf{x}_t + B_t\mathbf{u}_t) \right]
+\]</div>
+<p>Expanding the last term:</p>
+<div class="math notranslate nohighlight">
+\[
+(A_t\mathbf{x}_t + B_t\mathbf{u}_t)^\top P_{t+1} (A_t\mathbf{x}_t + B_t\mathbf{u}_t) = \mathbf{x}_t^\top A_t^\top P_{t+1} A_t \mathbf{x}_t + 2\mathbf{x}_t^\top A_t^\top P_{t+1} B_t \mathbf{u}_t + \mathbf{u}_t^\top B_t^\top P_{t+1} B_t \mathbf{u}_t
+\]</div>
+<p>The expression inside the minimization becomes:</p>
+<div class="math notranslate nohighlight">
+\[
+\frac{1}{2}\mathbf{x}_t^\top Q_t \mathbf{x}_t + \frac{1}{2}\mathbf{u}_t^\top R_t \mathbf{u}_t + \frac{1}{2}\mathbf{x}_t^\top A_t^\top P_{t+1} A_t \mathbf{x}_t + \mathbf{x}_t^\top A_t^\top P_{t+1} B_t \mathbf{u}_t + \frac{1}{2}\mathbf{u}_t^\top B_t^\top P_{t+1} B_t \mathbf{u}_t
+\]</div>
+<p>Collecting terms involving <span class="math notranslate nohighlight">\(\mathbf{u}_t\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+= \frac{1}{2}\mathbf{x}_t^\top (Q_t + A_t^\top P_{t+1} A_t) \mathbf{x}_t + \mathbf{x}_t^\top A_t^\top P_{t+1} B_t \mathbf{u}_t + \frac{1}{2}\mathbf{u}_t^\top (R_t + B_t^\top P_{t+1} B_t) \mathbf{u}_t
+\]</div>
+<p>This is a quadratic function of <span class="math notranslate nohighlight">\(\mathbf{u}_t\)</span>. To find the minimizer, we take the gradient with respect to <span class="math notranslate nohighlight">\(\mathbf{u}_t\)</span> and set it to zero:</p>
+<div class="math notranslate nohighlight">
+\[
+\frac{\partial}{\partial \mathbf{u}_t} = (R_t + B_t^\top P_{t+1} B_t) \mathbf{u}_t + B_t^\top P_{t+1} A_t \mathbf{x}_t = 0
+\]</div>
+<p>Since <span class="math notranslate nohighlight">\(R_t + B_t^\top P_{t+1} B_t\)</span> is positive definite (both <span class="math notranslate nohighlight">\(R_t\)</span> and <span class="math notranslate nohighlight">\(P_{t+1}\)</span> are positive semidefinite with <span class="math notranslate nohighlight">\(R_t\)</span> strictly positive), we can solve for the optimal control:</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{u}_t^\star = -(R_t + B_t^\top P_{t+1} B_t)^{-1} B_t^\top P_{t+1} A_t \mathbf{x}_t
+\]</div>
+<p>Define the gain matrix:</p>
+<div class="math notranslate nohighlight">
+\[
+K_t = (R_t + B_t^\top P_{t+1} B_t)^{-1} B_t^\top P_{t+1} A_t
+\]</div>
+<p>so that <span class="math notranslate nohighlight">\(\mathbf{u}_t^\star = -K_t\mathbf{x}_t\)</span>. This is a <strong>linear feedback policy</strong>: the optimal control is simply a linear function of the current state.</p>
+<p>Substituting <span class="math notranslate nohighlight">\(\mathbf{u}_t^\star\)</span> back into the cost-to-go expression and simplifying (by completing the square), we obtain:</p>
+<div class="math notranslate nohighlight">
+\[
+J_t^\star(\mathbf{x}_t) = \frac{1}{2}\mathbf{x}_t^\top P_t \mathbf{x}_t
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(P_t\)</span> satisfies the <strong>discrete-time Riccati equation</strong>:</p>
+<div class="math notranslate nohighlight">
+\[
+P_t = Q_t + A_t^\top P_{t+1} A_t - A_t^\top P_{t+1} B_t (R_t + B_t^\top P_{t+1} B_t)^{-1} B_t^\top P_{t+1} A_t
+\]</div>
+<p>Putting everything together, the backward induction procedure under the LQR setting then becomes:</p>
+<div class="proof algorithm admonition" id="lqr-backward-recursion">
+<p class="admonition-title"><span class="caption-number">Algorithm 6 </span> (Backward Recursion for LQR)</p>
+<section class="algorithm-content" id="proof-content">
+<p><strong>Input:</strong> System matrices <span class="math notranslate nohighlight">\(A_t, B_t\)</span>, cost matrices <span class="math notranslate nohighlight">\(Q_t, R_t, Q_T\)</span>, time horizon <span class="math notranslate nohighlight">\(T\)</span></p>
+<p><strong>Output:</strong> Cost matrices <span class="math notranslate nohighlight">\(P_t\)</span> and gain matrices <span class="math notranslate nohighlight">\(K_t\)</span> for <span class="math notranslate nohighlight">\(t = 0, \ldots, T-1\)</span></p>
+<ol class="arabic">
+<li><p><strong>Initialize:</strong> <span class="math notranslate nohighlight">\(P_T = Q_T\)</span></p></li>
+<li><p><strong>For</strong> <span class="math notranslate nohighlight">\(t = T-1, T-2, \ldots, 0\)</span>:</p>
+<ol class="arabic">
+<li><p>Compute the gain matrix:</p>
+<div class="math notranslate nohighlight">
+\[K_t = (R_t + B_t^\top P_{t+1} B_t)^{-1} B_t^\top P_{t+1} A_t\]</div>
+</li>
+<li><p>Compute the cost matrix via the Riccati equation:</p>
+<div class="math notranslate nohighlight">
+\[P_t = Q_t + A_t^\top P_{t+1} A_t - A_t^\top P_{t+1} B_t (R_t + B_t^\top P_{t+1} B_t)^{-1} B_t^\top P_{t+1} A_t\]</div>
+</li>
+</ol>
+</li>
+<li><p><strong>End For</strong></p></li>
+<li><p><strong>Return:</strong> <span class="math notranslate nohighlight">\(\{P_0, \ldots, P_T\}\)</span> and <span class="math notranslate nohighlight">\(\{K_0, \ldots, K_{T-1}\}\)</span></p></li>
+</ol>
+<p><strong>Optimal policy:</strong> <span class="math notranslate nohighlight">\(\mathbf{u}_t^\star = -K_t\mathbf{x}_t\)</span></p>
+<p><strong>Optimal cost-to-go:</strong> <span class="math notranslate nohighlight">\(J_t^\star(\mathbf{x}_t) = \frac{1}{2}\mathbf{x}_t^\top P_t \mathbf{x}_t\)</span></p>
+</section>
+</div></section>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="markov-decision-process-formulation">
+<h1>Markov Decision Process Formulation<a class="headerlink" href="#markov-decision-process-formulation" title="Link to this heading">#</a></h1>
 <p>Rather than expressing the stochasticity in our system through a disturbance term as a parameter to a deterministic difference equation, we often work with an alternative representation (more common in operations research) which uses the Markov Decision Process formulation. The idea is that when we model our system in this way with the disturbance term being drawn indepently of the previous stages, the induced trajectory are those of a Markov chain. Hence, we can re-cast our control problem in that language, leading to the so-called Markov Decision Process framework in which we express the system dynamics in terms of transition probabilities rather than explicit state equations. In this framework, we express the probability that the system is in a given state using the transition probability function:</p>
 <div class="math notranslate nohighlight">
 \[ p_t(\mathbf{x}_{t+1} | \mathbf{x}_t, \mathbf{u}_t) \]</div>
@@ -1693,7 +1806,6 @@ p_t(\mathbf{x}_{t+1} | \mathbf{x}_t, \mathbf{u}_t) &amp;= \mathbb{P}(\mathbf{W}_
 <li><p>For discrete-state problems, the entire system dynamics can be specified by a set of transition matrices, one for each possible action.</p></li>
 <li><p>It allows us to bridge the gap with the wealth of methods in the field of probabilistic graphical models and statistical machine learning techniques for modelling and analysis.</p></li>
 </ol>
-</section>
 <section id="notation-in-operations-reseach">
 <h2>Notation in Operations Reseach<a class="headerlink" href="#notation-in-operations-reseach" title="Link to this heading">#</a></h2>
 <p>The presentation above was intended to bridge the gap between the control-theoretic perspective and the world of closed-loop control through the idea of determining the value function of a parametric optimal control problem. We then saw how the backward induction procedure was applicable to both the deterministic and stochastic cases by taking the expectation over the disturbance variable. We then said that we can alternatively work with a representation of our system where instead of writing our model as a deterministic dynamics function taking a disturbance as an input, we would rather work directly via its transition probability function, which gives rise to the Markov chain interpretation of our system in simulation.</p>
@@ -1745,7 +1857,7 @@ v_{\pi^*}(s) = v^*(s), \quad \forall s \in \mathcal{S}
 \[ v^*(s) = \max_{\pi \in \Pi^{\mathrm{HR}}} v_\pi(s) = \max _{\pi \in \Pi^{M D}} v_\pi(s), \quad s \in S\]</div>
 <p>This equality significantly simplifies the computational complexity of our algorithms, as the search problem can now be decomposed into <span class="math notranslate nohighlight">\(N\)</span> sub-problems in which we only have to search over the set of possible actions. This is the backward induction algorithm, which we present a second time, but departing this time from the control-theoretic notation and using the MDP formalism:</p>
 <div class="proof algorithm admonition" id="backward-induction">
-<p class="admonition-title"><span class="caption-number">Algorithm 6 </span> (Backward Induction)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 7 </span> (Backward Induction)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> State space <span class="math notranslate nohighlight">\(S\)</span>, Action space <span class="math notranslate nohighlight">\(A\)</span>, Transition probabilities <span class="math notranslate nohighlight">\(p_t\)</span>, Reward function <span class="math notranslate nohighlight">\(r_t\)</span>, Time horizon <span class="math notranslate nohighlight">\(N\)</span></p>
 <p><strong>Output:</strong> Optimal value functions <span class="math notranslate nohighlight">\(v^*\)</span></p>
@@ -1776,7 +1888,7 @@ a. Compute the optimal value function:</p>
 </section>
 </div><p>Note that the same procedure can also be used for finding the value of a policy with minor changes;</p>
 <div class="proof algorithm admonition" id="backward-policy-evaluation">
-<p class="admonition-title"><span class="caption-number">Algorithm 7 </span> (Policy Evaluation)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 8 </span> (Policy Evaluation)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong></p>
 <ul class="simple">
@@ -2013,21 +2125,44 @@ v_\nu^\pi(s) \equiv \mathbb{E}_s^\pi\left[\mathbb{E}_\nu\left\{\sum_{t=1}^\nu r(
 <span class="math notranslate nohighlight">\(P(\nu=n) = (1-\gamma) \gamma^{n-1}, \, n=1,2, \ldots\)</span>, then <span class="math notranslate nohighlight">\(v_\nu^\pi(s) = v_\gamma^\pi(s)\)</span> for all <span class="math notranslate nohighlight">\(s \in \mathcal{S}\)</span> .</p>
 </section>
 </div><div class="proof admonition" id="proof">
-<p>Proof. See proposition 5.3.1 in <span id="id9">[<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">33</a>]</span></p>
+<p>Proof. See proposition 5.3.1 in <span id="id9">[<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">33</a>]</span>.</p>
+<p>By definition of the finite-horizon value function and the law of total expectation:</p>
 <div class="math notranslate nohighlight">
 \[
-v_\nu^\pi(s) = E_s^\pi \left\{\sum_{n=1}^{\infty} \sum_{t=1}^n r(X_t, Y_t)(1-\gamma) \gamma^{n-1}\right\}.
+v_\nu^\pi(s) = \sum_{n=1}^{\infty} P(\nu=n) \cdot v_n^\pi(s) = \sum_{n=1}^{\infty} (1-\gamma) \gamma^{n-1} \cdot E_s^\pi \left\{\sum_{t=1}^n r(S_t, A_t)\right\}.
 \]</div>
-<p>Under the bounded reward assumption and <span class="math notranslate nohighlight">\(\gamma &lt; 1\)</span>, the series converges and we can reverse the order of summation :</p>
+<p>Combining the expectation with the sum over <span class="math notranslate nohighlight">\(n\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+v_\nu^\pi(s) = E_s^\pi \left\{\sum_{n=1}^{\infty} (1-\gamma) \gamma^{n-1} \sum_{t=1}^n r(S_t, A_t)\right\}.
+\]</div>
+<p><strong>Reordering the summations:</strong> Under the bounded reward assumption <span class="math notranslate nohighlight">\(|r(s,a)| \leq R_{\max}\)</span> and <span class="math notranslate nohighlight">\(\gamma &lt; 1\)</span>, we have</p>
+<div class="math notranslate nohighlight">
+\[
+E_s^\pi \left\{\sum_{n=1}^{\infty} \sum_{t=1}^n |r(S_t, A_t)| \cdot (1-\gamma) \gamma^{n-1}\right\} \leq R_{\max} \sum_{n=1}^{\infty} n (1-\gamma) \gamma^{n-1} = \frac{R_{\max}}{1-\gamma} &lt; \infty,
+\]</div>
+<p>which justifies exchanging the order of summation by Fubini’s theorem.</p>
+<p>To reverse the order, note that the pair <span class="math notranslate nohighlight">\((n,t)\)</span> with <span class="math notranslate nohighlight">\(1 \leq t \leq n\)</span> can be reindexed by fixing <span class="math notranslate nohighlight">\(t\)</span> first and letting <span class="math notranslate nohighlight">\(n\)</span> range from <span class="math notranslate nohighlight">\(t\)</span> to <span class="math notranslate nohighlight">\(\infty\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+\sum_{n=1}^{\infty} \sum_{t=1}^n = \sum_{t=1}^{\infty} \sum_{n=t}^{\infty}.
+\]</div>
+<p>Therefore:</p>
 <div class="amsmath math notranslate nohighlight">
 \[\begin{align*}
-v_\nu^\pi(s) &amp;= E_s^\pi \left\{\sum_{t=1}^{\infty} \sum_{n=t}^{\infty} r(S_t, A_t)(1-\gamma) \gamma^{n-1}\right\} \\
-&amp;= E_s^\pi \left\{\sum_{t=1}^{\infty} \gamma^{t-1} r(S_t, A_t)\right\} = v_\gamma^\pi(s)
+v_\nu^\pi(s) &amp;= E_s^\pi \left\{\sum_{t=1}^{\infty} r(S_t, A_t) \sum_{n=t}^{\infty} (1-\gamma) \gamma^{n-1}\right\}.
 \end{align*}\]</div>
-<p>where the last line follows from the geometric series:</p>
+<p><strong>Evaluating the inner sum:</strong> Using the substitution <span class="math notranslate nohighlight">\(m = n - t + 1\)</span> (so <span class="math notranslate nohighlight">\(n = m + t - 1\)</span>):</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{align*}
+\sum_{n=t}^{\infty} (1-\gamma) \gamma^{n-1} &amp;= \sum_{m=1}^{\infty} (1-\gamma) \gamma^{m+t-2} \\
+&amp;= \gamma^{t-1} (1-\gamma) \sum_{m=1}^{\infty} \gamma^{m-1} \\
+&amp;= \gamma^{t-1} (1-\gamma) \cdot \frac{1}{1-\gamma} = \gamma^{t-1}.
+\end{align*}\]</div>
+<p>Substituting back:</p>
 <div class="math notranslate nohighlight">
 \[
-\sum_{n=1}^{\infty} \gamma^{n-1} = \frac{1}{1-\gamma}
+v_\nu^\pi(s) = E_s^\pi \left\{\sum_{t=1}^{\infty} \gamma^{t-1} r(S_t, A_t)\right\} = v_\gamma^\pi(s).
 \]</div>
 </div>
 </section>
@@ -2089,7 +2224,60 @@ v_\nu^\pi(s) &amp;= E_s^\pi \left\{\sum_{t=1}^{\infty} \sum_{n=t}^{\infty} r(S_t
 &amp;=\sum_{t=1}^{\infty} \gamma^{t-1} \mathbf{P}_d^{t-1} \mathbf{r}_{d}
 \end{align*}
 \end{split}\]</div>
-<p>This last expression is called a Neumann series expansion, and it’s guaranteed to exists under the assumptions of bounded reward and discount factor strictly less than one. Consequently, for a stationary policy, <span class="math notranslate nohighlight">\(\mathbf{v}_\gamma^{d^\infty}\)</span> can be determined as the solution to the linear equation:</p>
+<p>This last expression is called a Neumann series expansion, and it’s guaranteed to exists under the assumptions of bounded reward and discount factor strictly less than one.</p>
+<div class="proof theorem admonition" id="neumann-series">
+<p class="admonition-title"><span class="caption-number">Theorem 6 </span> (Neumann Series and Invertibility)</p>
+<section class="theorem-content" id="proof-content">
+<p>The <strong>spectral radius</strong> of a matrix <span class="math notranslate nohighlight">\(\mathbf{H}\)</span> is defined as:</p>
+<div class="math notranslate nohighlight">
+\[
+\rho(\mathbf{H}) \equiv \max_{i} |\lambda_i(\mathbf{H})|
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(\lambda_i(\mathbf{H})\)</span> are the eigenvalues of <span class="math notranslate nohighlight">\(\mathbf{H}\)</span>.</p>
+<p><strong>Neumann Series Existence:</strong> For any matrix <span class="math notranslate nohighlight">\(\mathbf{H}\)</span>, the Neumann series</p>
+<div class="math notranslate nohighlight">
+\[
+\sum_{t=0}^{\infty} \mathbf{H}^t = \mathbf{I} + \mathbf{H} + \mathbf{H}^2 + \cdots
+\]</div>
+<p>converges if and only if <span class="math notranslate nohighlight">\(\rho(\mathbf{H}) &lt; 1\)</span>. When this condition holds, the matrix <span class="math notranslate nohighlight">\((\mathbf{I} - \mathbf{H})\)</span> is invertible and</p>
+<div class="math notranslate nohighlight">
+\[
+(\mathbf{I} - \mathbf{H})^{-1} = \sum_{t=0}^{\infty} \mathbf{H}^t.
+\]</div>
+</section>
+</div><p>Note that for any induced matrix norm <span class="math notranslate nohighlight">\(\|\cdot\|\)</span> (i.e., a norm satisfying <span class="math notranslate nohighlight">\(\|\mathbf{H}\mathbf{v}\| \leq \|\mathbf{H}\| \cdot \|\mathbf{v}\|\)</span> for all vectors <span class="math notranslate nohighlight">\(\mathbf{v}\)</span>) and any matrix <span class="math notranslate nohighlight">\(\mathbf{H}\)</span>, the spectral radius is bounded by:</p>
+<div class="math notranslate nohighlight">
+\[
+\rho(\mathbf{H}) \leq \|\mathbf{H}\|.
+\]</div>
+<p>This inequality provides a practical way to verify the convergence condition <span class="math notranslate nohighlight">\(\rho(\mathbf{H}) &lt; 1\)</span> by checking the simpler condition <span class="math notranslate nohighlight">\(\|\mathbf{H}\| &lt; 1\)</span> rather than trying to compute the eigenvalues directly.</p>
+<p>We can now verify that <span class="math notranslate nohighlight">\((\mathbf{I} - \gamma \mathbf{P}_d)\)</span> is invertible and the Neumann series converges.</p>
+<ol class="arabic">
+<li><p><strong>Norm of the transition matrix:</strong> Since <span class="math notranslate nohighlight">\(\mathbf{P}_d\)</span> is a stochastic matrix (each row sums to 1 and all entries are non-negative), its <span class="math notranslate nohighlight">\(\ell_\infty\)</span>-norm is:
+$<span class="math notranslate nohighlight">\(
+\|\mathbf{P}_d\| = \max_{s \in S} \sum_{j \in S} [\mathbf{P}_d]_{s,j} = \max_{s \in S} 1 = 1.
+\)</span>$</p></li>
+<li><p><strong>Norm of the scaled matrix:</strong> Using the homogeneity property of norms, we have:
+$<span class="math notranslate nohighlight">\(
+\|\gamma \mathbf{P}_d\| = |\gamma| \cdot \|\mathbf{P}_d\| = |\gamma| \cdot 1 = |\gamma|.
+\)</span>$</p></li>
+<li><p><strong>Bounding the spectral radius:</strong> Applying the fundamental inequality between spectral radius and matrix norm:
+$<span class="math notranslate nohighlight">\(
+\rho(\gamma \mathbf{P}_d) \leq \|\gamma \mathbf{P}_d\| = |\gamma|.
+\)</span>$</p></li>
+<li><p><strong>Verifying convergence:</strong> Since <span class="math notranslate nohighlight">\(0 \leq \gamma &lt; 1\)</span> by assumption, we have:
+$<span class="math notranslate nohighlight">\(
+\rho(\gamma \mathbf{P}_d) \leq |\gamma| &lt; 1.
+\)</span>$</p>
+<p>This strict inequality guarantees that <span class="math notranslate nohighlight">\((\mathbf{I} - \gamma \mathbf{P}_d)\)</span> is invertible and the Neumann series converges.</p>
+</li>
+</ol>
+<p>Therefore, the Neumann series expansion converges and yields:</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{v}_\gamma^{d^\infty} = (\mathbf{I} - \gamma \mathbf{P}_d)^{-1} \mathbf{r}_d = \sum_{t=0}^{\infty} (\gamma \mathbf{P}_d)^t \mathbf{r}_d = \sum_{t=1}^{\infty} \gamma^{t-1} \mathbf{P}_d^{t-1} \mathbf{r}_d.
+\]</div>
+<p>Consequently, for a stationary policy, <span class="math notranslate nohighlight">\(\mathbf{v}_\gamma^{d^\infty}\)</span> can be determined as the solution to the linear equation:</p>
 <div class="math notranslate nohighlight">
 \[
 \mathbf{v} = \mathbf{r}_d+ \gamma \mathbf{P}_d\mathbf{v},
@@ -2099,65 +2287,38 @@ v_\nu^\pi(s) &amp;= E_s^\pi \left\{\sum_{t=1}^{\infty} \sum_{n=t}^{\infty} r(S_t
 \[
 (\mathbf{I} - \gamma \mathbf{P}_d) \mathbf{v} = \mathbf{r}_d.
 \]</div>
-<p>We can also characterize <span class="math notranslate nohighlight">\(\mathbf{v}_\gamma^{d^\infty}\)</span> as the solution to an operator equation. More specifically, define the linear transformation <span class="math notranslate nohighlight">\(\mathrm{L}_d\)</span> by</p>
+<p>We can also characterize <span class="math notranslate nohighlight">\(\mathbf{v}_\gamma^{d^\infty}\)</span> as the solution to an operator equation. More specifically, define the transformation <span class="math notranslate nohighlight">\(\mathrm{L}_d\)</span> by</p>
 <div class="math notranslate nohighlight">
 \[
-\mathrm{L}_d \mathbf{v} \equiv \mathbf{r}_d+\gamma \mathbf{P}_dv
+\mathrm{L}_d \mathbf{v} \equiv \mathbf{r}_d+\gamma \mathbf{P}_d\mathbf{v}
 \]</div>
-<p>for any <span class="math notranslate nohighlight">\(v \in V\)</span>. Intuitively, <span class="math notranslate nohighlight">\(\mathrm{L}_d\)</span> takes a value function <span class="math notranslate nohighlight">\(\mathbf{v}\)</span> as input and returns a new value function that combines immediate rewards (<span class="math notranslate nohighlight">\(\mathbf{r}_d\)</span>) with discounted future values (<span class="math notranslate nohighlight">\(\gamma \mathbf{P}_d\mathbf{v}\)</span>).</p>
-<!-- 
-
-A key property of $\mathrm{L}_d$ is that it maps bounded functions to bounded functions, provided certain conditions are met. This is formalized in the following lemma:
-
-
-```{prf:lemma} Bounded Reward and Value Function
-:label: bounded-reward-value
-
-Let $S$ be a discrete state space, and assume that the reward function is bounded such that $|r(s, a)| \leq M$ for all actions $a \in A_s$ and states $s \in S$. For any discount factor $\gamma$ where $0 \leq \gamma \leq 1$, and for all value functions $v \in V$ and decision rules $d \in D^{MR}$, the following holds:
-
-$$
-\mathbf{r}_d+ \gamma \mathbf{P}_d \mathbf{v} \in V
-$$
-
-where $V$ is the space of bounded real-valued functions on $S$, $\mathbf{r}_d$ is the reward vector, and $\mathbf{P}_d$ is the transition probability matrix under decision rule $d$.
-```
-
-```{prf:proof}
-We will prove this lemma in three steps:
-
-1. First, we'll show that $\mathbf{r}_d\in V$.
-2. Then, we'll prove that $\mathbf{P}_dv \in V$ for all $v \in V$.
-3. Finally, we'll combine these results to show that $\mathbf{r}_d+ \gamma \mathbf{P}_dv \in V$.
-
-**Step 1: Showing $\mathbf{r}_d\in V$**
-
-Given that $|r(s, a)| \leq M$ for all $a \in A_s$ and $s \in S$, we can conclude that $\|\mathbf{r}_d\| \leq M$ for all $d \in D^{MR}$. This is because $\mathbf{r}_d$ is a vector whose components are weighted averages of $r(s, a)$ values, which are all bounded by $M$. Therefore, $\mathbf{r}_d$ is a bounded function on $S$, meaning $\mathbf{r}_d\in V$.
-
-**Step 2: Showing $\mathbf{P}_d \mathbf{v} \in V$ for all $\mathbf{v} \in V$**
-
-$\mathbf{P}_d$ is a probability matrix, which means that each row sums to 1. This property implies that $\|\mathbf{P}_d\| = 1$. Now, for any $v \in V$, we have:
-
-$$
-\|\mathbf{P}_d\mathbf{v}\| \leq \|\mathbf{P}_d\| \|\mathbf{v}\| = \|\mathbf{v}\|
-$$
-
-This inequality shows that if $v$ is bounded (which it is, since $v \in V$), then $\mathbf{P}_dv$ is also bounded by the same value. Therefore, $\mathbf{P}_d\mathbf{v} \in V$ for all $\mathbf{v} \in V$.
-
-**Step 3: Combining the results**
-
-We've shown that $\mathbf{r}_d\in V$ and $\mathbf{P}_d \mathbf{v} \in V$. Since $V$ is a vector space, it is closed under addition and scalar multiplication. Therefore, for any $\gamma$ where $0 \leq \gamma \leq 1$, we can conclude that:
-
-$$
-\mathbf{r}_d+ \gamma \mathbf{P}_d \mathbf{v} \in V
-$$
-
-This completes the proof.
-``` -->
-<p>Therefore, we view <span class="math notranslate nohighlight">\(\mathrm{L}_d\)</span> as an operator mapping elements of <span class="math notranslate nohighlight">\(V\)</span> to <span class="math notranslate nohighlight">\(V\)</span>: ie. <span class="math notranslate nohighlight">\(\mathrm{L}_d: V \rightarrow V\)</span>. The fact that the value function of a policy is the solution to a system of equations can then be expressed with the statement:</p>
+<p>for any <span class="math notranslate nohighlight">\(\mathbf{v} \in V\)</span>. Intuitively, <span class="math notranslate nohighlight">\(\mathrm{L}_d\)</span> takes a value function <span class="math notranslate nohighlight">\(\mathbf{v}\)</span> as input and returns a new value function that combines immediate rewards (<span class="math notranslate nohighlight">\(\mathbf{r}_d\)</span>) with discounted future values (<span class="math notranslate nohighlight">\(\gamma \mathbf{P}_d\mathbf{v}\)</span>).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>While we often refer to <span class="math notranslate nohighlight">\(\mathrm{L}_d\)</span> as a “linear operator” in the RL literature, it is technically an <strong>affine operator</strong> (or affine transformation), not a linear operator in the strict sense. To see why, recall that a linear operator <span class="math notranslate nohighlight">\(\mathcal{T}\)</span> must satisfy:</p>
+<ol class="arabic simple">
+<li><p><strong>Additivity:</strong> <span class="math notranslate nohighlight">\(\mathcal{T}(\mathbf{v}_1 + \mathbf{v}_2) = \mathcal{T}(\mathbf{v}_1) + \mathcal{T}(\mathbf{v}_2)\)</span></p></li>
+<li><p><strong>Homogeneity:</strong> <span class="math notranslate nohighlight">\(\mathcal{T}(\alpha \mathbf{v}) = \alpha \mathcal{T}(\mathbf{v})\)</span> for all scalars <span class="math notranslate nohighlight">\(\alpha\)</span></p></li>
+</ol>
+<p>However, <span class="math notranslate nohighlight">\(\mathrm{L}_d\)</span> fails the additivity test:</p>
 <div class="math notranslate nohighlight">
 \[
-\mathbf{v}_\gamma^{d^\infty}=\mathrm{L}_d \mathbf{v}_\gamma^{d^\infty} \text {. }
+\mathrm{L}_d(\mathbf{v}_1 + \mathbf{v}_2) = \mathbf{r}_d + \gamma \mathbf{P}_d(\mathbf{v}_1 + \mathbf{v}_2) = \mathbf{r}_d + \gamma \mathbf{P}_d\mathbf{v}_1 + \gamma \mathbf{P}_d\mathbf{v}_2
 \]</div>
+<p>while</p>
+<div class="math notranslate nohighlight">
+\[
+\mathrm{L}_d(\mathbf{v}_1) + \mathrm{L}_d(\mathbf{v}_2) = (\mathbf{r}_d + \gamma \mathbf{P}_d\mathbf{v}_1) + (\mathbf{r}_d + \gamma \mathbf{P}_d\mathbf{v}_2) = 2\mathbf{r}_d + \gamma \mathbf{P}_d\mathbf{v}_1 + \gamma \mathbf{P}_d\mathbf{v}_2.
+\]</div>
+<p>The presence of the constant term <span class="math notranslate nohighlight">\(\mathbf{r}_d\)</span> makes <span class="math notranslate nohighlight">\(\mathrm{L}_d\)</span> affine rather than linear. An affine operator has the form <span class="math notranslate nohighlight">\(\mathcal{A}(\mathbf{v}) = \mathbf{b} + \mathcal{T}(\mathbf{v})\)</span>, where <span class="math notranslate nohighlight">\(\mathbf{b}\)</span> is a constant vector and <span class="math notranslate nohighlight">\(\mathcal{T}\)</span> is a linear operator. In our case, <span class="math notranslate nohighlight">\(\mathbf{b} = \mathbf{r}_d\)</span> and <span class="math notranslate nohighlight">\(\mathcal{T}(\mathbf{v}) = \gamma \mathbf{P}_d\mathbf{v}\)</span>.</p>
+<p>Despite this technical distinction, the term “linear operator” is commonly used in the reinforcement learning literature when referring to <span class="math notranslate nohighlight">\(\mathrm{L}_d\)</span>, following a slight abuse of terminology.</p>
+</div>
+<p>Therefore, we view <span class="math notranslate nohighlight">\(\mathrm{L}_d\)</span> as an operator mapping elements of <span class="math notranslate nohighlight">\(V\)</span> to <span class="math notranslate nohighlight">\(V\)</span>: i.e., <span class="math notranslate nohighlight">\(\mathrm{L}_d: V \rightarrow V\)</span>. The fact that the value function of a policy is the solution to a fixed-point equation can then be expressed with the statement:</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{v}_\gamma^{d^\infty}=\mathrm{L}_d \mathbf{v}_\gamma^{d^\infty}.
+\]</div>
+<p>This is a <strong>fixed-point equation</strong>: the value function <span class="math notranslate nohighlight">\(\mathbf{v}_\gamma^{d^\infty}\)</span> is a fixed point of the operator <span class="math notranslate nohighlight">\(\mathrm{L}_d\)</span>.</p>
 </section>
 <section id="solving-operator-equations">
 <h2>Solving Operator Equations<a class="headerlink" href="#solving-operator-equations" title="Link to this heading">#</a></h2>
@@ -2177,7 +2338,7 @@ Here, <span class="math notranslate nohighlight">\(K\)</span> is a closed convex
 <h3>Successive Approximation Method<a class="headerlink" href="#successive-approximation-method" title="Link to this heading">#</a></h3>
 <p>For equations in fixed point form, a common numerical solution method is successive approximation, also known as fixed-point iteration:</p>
 <div class="proof algorithm admonition" id="successive-approximation">
-<p class="admonition-title"><span class="caption-number">Algorithm 8 </span> (Successive Approximation)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 9 </span> (Successive Approximation)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> An operator <span class="math notranslate nohighlight">\(\mathrm{T}: X \rightarrow X\)</span>, an initial guess <span class="math notranslate nohighlight">\(x_0 \in X\)</span>, and a tolerance <span class="math notranslate nohighlight">\(\epsilon &gt; 0\)</span><br />
 <strong>Output:</strong> An approximate fixed point <span class="math notranslate nohighlight">\(x^*\)</span> such that <span class="math notranslate nohighlight">\(\|x^* - \mathrm{T}(x^*)\| &lt; \epsilon\)</span></p>
@@ -2278,7 +2439,7 @@ v(s) = \max_{a \in A_s} \left\{r(s, a) + \gamma \sum_{j \in S} p(j | s, a) v(j)\
 (\mathrm{L} \mathbf{v})(s) = \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right\}
 \]</div>
 <p>The equivalence between these two forms can be shown mathematically, as demonstrated in the following proposition and proof.</p>
-<div class="proof proposition admonition" id="proposition-13">
+<div class="proof proposition admonition" id="proposition-15">
 <p class="admonition-title"><span class="caption-number">Proposition 3 </span></p>
 <section class="proposition-content" id="proof-content">
 <p>The operator <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> defined as a maximization over Markov deterministic decision rules:</p>
@@ -2316,7 +2477,7 @@ Since we’ve shown <span class="math notranslate nohighlight">\(R_1 \leq R_2\)<
 <h2>Algorithms for Solving the Optimality Equations<a class="headerlink" href="#algorithms-for-solving-the-optimality-equations" title="Link to this heading">#</a></h2>
 <p>The optimality equations are operator equations. Therefore, we can apply general numerical methods to solve them. Applying the successive approximation method to the Bellman optimality equation yields a method known as “value iteration” in dynamic programming. A direct application of the blueprint for successive approximation yields the following algorithm:</p>
 <div class="proof algorithm admonition" id="value-iteration">
-<p class="admonition-title"><span class="caption-number">Algorithm 9 </span> (Value Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 10 </span> (Value Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given an MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span> and tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span></p>
 <p><strong>Output</strong> Compute an <span class="math notranslate nohighlight">\(\varepsilon\)</span>-optimal value function <span class="math notranslate nohighlight">\(V\)</span> and policy <span class="math notranslate nohighlight">\(\pi\)</span></p>
@@ -2349,7 +2510,7 @@ Since we’ve shown <span class="math notranslate nohighlight">\(R_1 \leq R_2\)<
 <p class="admonition-title"><span class="caption-number">Proposition 4 </span> (Convergence of Value Iteration)</p>
 <section class="proposition-content" id="proof-content">
 <p>(Adapted from <span id="id10">Puterman [<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">33</a>]</span> theorem 6.3.1)</p>
-<p>Let <span class="math notranslate nohighlight">\(v_0\)</span> be any initial value function, <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span> a desired accuracy, and let <span class="math notranslate nohighlight">\(\{v_n\}\)</span> be the sequence of value functions generated by value iteration, i.e., <span class="math notranslate nohighlight">\(v_{n+1} = \mathrm{L}v_n\)</span> for <span class="math notranslate nohighlight">\(n \geq 1\)</span>, where <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> is the Bellman optimality operator. Then:</p>
+<p>Let <span class="math notranslate nohighlight">\(v_0\)</span> be any initial value function, <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span> a desired accuracy, and let <span class="math notranslate nohighlight">\(\{v_n\}\)</span> be the sequence of value functions generated by value iteration, i.e., <span class="math notranslate nohighlight">\(v_{n+1} = \mathrm{L}v_n\)</span> for <span class="math notranslate nohighlight">\(n \geq 0\)</span>, where <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> is the Bellman optimality operator. Then:</p>
 <ol class="arabic simple">
 <li><p><span class="math notranslate nohighlight">\(v_n\)</span> converges to the optimal value function <span class="math notranslate nohighlight">\(v^*_\gamma\)</span>,</p></li>
 <li><p>The algorithm terminates in finite time,</p></li>
@@ -2358,74 +2519,73 @@ Since we’ve shown <span class="math notranslate nohighlight">\(R_1 \leq R_2\)<
 </ol>
 </section>
 </div><div class="proof admonition" id="proof">
-<p>Proof. Parts 1. and 2. follow directly from the fact that <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> is a contraction mapping. Hence, by Banach’s fixed-point theorem, it has a unique fixed point (which is <span class="math notranslate nohighlight">\(v^*_\gamma\)</span>), and repeated application of <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> will converge to this fixed point. Moreover, this convergence happens at a linear/geometric rate, which ensures that we reach the termination condition in finite time.</p>
+<p>Proof. Parts 1 and 2 follow directly from the fact that <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> is a contraction mapping. Hence, by Banach’s fixed-point theorem, it has a unique fixed point (which is <span class="math notranslate nohighlight">\(v^*_\gamma\)</span>), and repeated application of <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> will converge to this fixed point. Moreover, this convergence happens at a geometric rate, which ensures that we reach the termination condition in finite time.</p>
 <p>To show that the Bellman optimality operator <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> is a contraction mapping, we need to prove that for any two value functions <span class="math notranslate nohighlight">\(v\)</span> and <span class="math notranslate nohighlight">\(u\)</span>:</p>
 <div class="math notranslate nohighlight">
-\[\|\mathrm{L}v - \mathrm{L}u\|_\infty \leq \gamma \|V - U\|_\infty\]</div>
+\[\|\mathrm{L}v - \mathrm{L}u\|_\infty \leq \gamma \|v - u\|_\infty\]</div>
 <p>where <span class="math notranslate nohighlight">\(\gamma \in [0,1)\)</span> is the discount factor and <span class="math notranslate nohighlight">\(\|\cdot\|_\infty\)</span> is the supremum norm.</p>
 <p>Let’s start by writing out the definition of <span class="math notranslate nohighlight">\(\mathrm{L}v\)</span> and <span class="math notranslate nohighlight">\(\mathrm{L}u\)</span>:</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}\begin{align*}(\mathrm{L}v)(s) &amp;= \max_{a \in A} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)V(s')\right\}\\
-   (\mathrm{L}u)(s) &amp;= \max_{a \in A} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)U(s')\right\}\end{align*}\end{split}\]</div>
-<p>Now, for any state s, let <span class="math notranslate nohighlight">\(a_V\)</span> be the action that achieves the maximum for <span class="math notranslate nohighlight">\(\mathrm{L}\)</span>V, and <span class="math notranslate nohighlight">\(a_U\)</span> be the action that achieves the maximum for <span class="math notranslate nohighlight">\(\mathrm{L}u\)</span>. Then:</p>
+\[\begin{split}\begin{align*}
+(\mathrm{L}v)(s) &amp;= \max_{a \in A} \left\{r(s,a) + \gamma \sum_{s' \in \mathcal{S}} p(s'|s,a)v(s')\right\}\\
+(\mathrm{L}u)(s) &amp;= \max_{a \in A} \left\{r(s,a) + \gamma \sum_{s' \in \mathcal{S}} p(s'|s,a)u(s')\right\}
+\end{align*}\end{split}\]</div>
+<p>For any state <span class="math notranslate nohighlight">\(s\)</span>, let <span class="math notranslate nohighlight">\(a_v\)</span> be the action that achieves the maximum for <span class="math notranslate nohighlight">\((\mathrm{L}v)(s)\)</span>, and <span class="math notranslate nohighlight">\(a_u\)</span> be the action that achieves the maximum for <span class="math notranslate nohighlight">\((\mathrm{L}u)(s)\)</span>. By the definition of these maximizers:</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}\begin{align*}(\mathrm{L}v)(s)&amp;= r(s,a_V) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a_V)V(s')\\
-   (\mathrm{L}u)(s) &amp;= r(s,a_U) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a_U)U(s')\end{align*}\end{split}\]</div>
-<p>By the definition of <span class="math notranslate nohighlight">\(a_V\)</span> and <span class="math notranslate nohighlight">\(a_U\)</span>, we know that:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}\begin{align*}(\mathrm{L}v)(s) &amp;\geq r(s,a_U) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a_U)V(s')\\
-   (\mathrm{L}u)(s) &amp;\geq r(s,a_V) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a_V)U(s')\end{align*}\end{split}\]</div>
+\[\begin{split}\begin{align*}
+(\mathrm{L}v)(s) &amp;\geq r(s,a_u) + \gamma \sum_{s' \in \mathcal{S}} p(s'|s,a_u)v(s')\\
+(\mathrm{L}u)(s) &amp;\geq r(s,a_v) + \gamma \sum_{s' \in \mathcal{S}} p(s'|s,a_v)u(s')
+\end{align*}\end{split}\]</div>
 <p>Subtracting these inequalities:</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}\begin{align*}(\mathrm{L}v)(s) - (\mathrm{L}u)(s) &amp;\leq \gamma \sum_{j \in \mathcal{S}} p(j|s,a_V)(V(s') - U(s'))\\
-   (\mathrm{L}u)(s) - (\mathrm{L}v)(s) &amp;\leq \gamma \sum_{j \in \mathcal{S}} p(j|s,a_U)(U(s') - V(s'))\end{align*}\end{split}\]</div>
-<p>Taking the absolute value of both sides and using the fact that <span class="math notranslate nohighlight">\(\sum_{j \in \mathcal{S}} p(j|s,a) = 1\)</span> for any s and a:</p>
+\[\begin{split}\begin{align*}
+(\mathrm{L}v)(s) - (\mathrm{L}u)(s) &amp;\leq \gamma \sum_{s' \in \mathcal{S}} p(s'|s,a_v)(v(s') - u(s'))\\
+(\mathrm{L}u)(s) - (\mathrm{L}v)(s) &amp;\leq \gamma \sum_{s' \in \mathcal{S}} p(s'|s,a_u)(u(s') - v(s'))
+\end{align*}\end{split}\]</div>
+<p>Taking the absolute value and using the fact that <span class="math notranslate nohighlight">\(\sum_{s' \in \mathcal{S}} p(s'|s,a) = 1\)</span>:</p>
 <div class="math notranslate nohighlight">
-\[|(\mathrm{L}v)(s) - (\mathrm{L}u)(s)| \leq \gamma \max_{j \in \mathcal{S}} |V(s') - U(s')| = \gamma \|V - U\|_\infty\]</div>
-<p>Since this holds for all <span class="math notranslate nohighlight">\(s\)</span>, we can take the supremum over <span class="math notranslate nohighlight">\(s\)</span>:</p>
+\[|(\mathrm{L}v)(s) - (\mathrm{L}u)(s)| \leq \gamma \max_{s' \in \mathcal{S}} |v(s') - u(s')| = \gamma \|v - u\|_\infty\]</div>
+<p>Since this holds for all <span class="math notranslate nohighlight">\(s \in \mathcal{S}\)</span>, taking the supremum over <span class="math notranslate nohighlight">\(s\)</span> gives:</p>
 <div class="math notranslate nohighlight">
-\[\|\mathrm{L}v - \mathrm{L}u\|_\infty \leq \gamma \|V - U\|_\infty\]</div>
-<p>Thus, we have shown that <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> is indeed a contraction mapping with contraction factor <span class="math notranslate nohighlight">\(\gamma\)</span>.</p>
-<p>Now, let’s focus on parts 3. and 4. Suppose our algorithm has just terminated, i.e., <span class="math notranslate nohighlight">\(\|v_{n+1} - v_n\| &lt; \frac{\varepsilon(1-\gamma)}{2\gamma}\)</span> for some <span class="math notranslate nohighlight">\(n\)</span>. We want to show that our current value function <span class="math notranslate nohighlight">\(v_{n+1}\)</span> and the policy <span class="math notranslate nohighlight">\(\pi_\varepsilon\)</span> derived from it are close to optimal.</p>
-<p>We start with the following inequality:</p>
+\[\|\mathrm{L}v - \mathrm{L}u\|_\infty \leq \gamma \|v - u\|_\infty\]</div>
+<p>Thus, <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> is a contraction mapping with contraction factor <span class="math notranslate nohighlight">\(\gamma\)</span>.</p>
+<p>Now, let’s prove parts 3 and 4. Suppose the algorithm has just terminated, i.e., <span class="math notranslate nohighlight">\(\|v_{n+1} - v_n\|_\infty &lt; \frac{\varepsilon(1-\gamma)}{2\gamma}\)</span> for some <span class="math notranslate nohighlight">\(n\)</span>. We want to show that our current value function <span class="math notranslate nohighlight">\(v_{n+1}\)</span> and the policy <span class="math notranslate nohighlight">\(\pi_\varepsilon\)</span> derived from it are close to optimal.</p>
+<p>By the triangle inequality:</p>
 <div class="math notranslate nohighlight">
-\[\|V^{\pi_\varepsilon}_\gamma - v^*_\gamma\| \leq \|V^{\pi_\varepsilon}_\gamma - v_{n+1}\| + \|v_{n+1} - v^*_\gamma\|\]</div>
-<p>This inequality is derived using the triangle inequality:</p>
-<div class="math notranslate nohighlight">
-\[\|V^{\pi_\varepsilon}_\gamma - v^*_\gamma\| = \|(V^{\pi_\varepsilon}_\gamma - v_{n+1}) + (v_{n+1} - v^*_\gamma)\| \leq \|V^{\pi_\varepsilon}_\gamma - v_{n+1}\| + \|v_{n+1} - v^*_\gamma\|\]</div>
-<p>Let’s focus on the first term, <span class="math notranslate nohighlight">\(\|V^{\pi_\varepsilon}_\gamma - v_{n+1}\|\)</span>. We can expand this:</p>
+\[\|v^{\pi_\varepsilon}_\gamma - v^*_\gamma\|_\infty \leq \|v^{\pi_\varepsilon}_\gamma - v_{n+1}\|_\infty + \|v_{n+1} - v^*_\gamma\|_\infty\]</div>
+<p>For the first term, since <span class="math notranslate nohighlight">\(v^{\pi_\varepsilon}_\gamma\)</span> is the fixed point of <span class="math notranslate nohighlight">\(\mathrm{L}_{\pi_\varepsilon}\)</span> and <span class="math notranslate nohighlight">\(\pi_\varepsilon\)</span> is greedy with respect to <span class="math notranslate nohighlight">\(v_{n+1}\)</span> (i.e., <span class="math notranslate nohighlight">\(\mathrm{L}_{\pi_\varepsilon}v_{n+1} = \mathrm{L}v_{n+1}\)</span>):</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
 \begin{aligned}
-\|V^{\pi_\varepsilon}_\gamma - v_{n+1}\| &amp;= \|\mathrm{L}_{\pi_\varepsilon}V^{\pi_\varepsilon}_\gamma - v_{n+1}\| \\
-&amp;\leq \|\mathrm{L}_{\pi_\varepsilon}V^{\pi_\varepsilon}_\gamma - \mathrm{L}v_{n+1}\| + \|\mathrm{L}v_{n+1} - v_{n+1}\| \\
-&amp;= \|\mathrm{L}_{\pi_\varepsilon}V^{\pi_\varepsilon}_\gamma - \mathrm{L}_{\pi_\varepsilon}v_{n+1}\| + \|\mathrm{L}v_{n+1} - \mathrm{L}v_n\| \\
-&amp;\leq \gamma\|V^{\pi_\varepsilon}_\gamma - v_{n+1}\| + \gamma\|v_{n+1} - v_n\|
+\|v^{\pi_\varepsilon}_\gamma - v_{n+1}\|_\infty &amp;= \|\mathrm{L}_{\pi_\varepsilon}v^{\pi_\varepsilon}_\gamma - v_{n+1}\|_\infty \\
+&amp;\leq \|\mathrm{L}_{\pi_\varepsilon}v^{\pi_\varepsilon}_\gamma - \mathrm{L}_{\pi_\varepsilon}v_{n+1}\|_\infty + \|\mathrm{L}_{\pi_\varepsilon}v_{n+1} - v_{n+1}\|_\infty \\
+&amp;= \|\mathrm{L}_{\pi_\varepsilon}v^{\pi_\varepsilon}_\gamma - \mathrm{L}_{\pi_\varepsilon}v_{n+1}\|_\infty + \|\mathrm{L}v_{n+1} - v_{n+1}\|_\infty \\
+&amp;\leq \gamma\|v^{\pi_\varepsilon}_\gamma - v_{n+1}\|_\infty + \gamma\|v_{n+1} - v_n\|_\infty
 \end{aligned}
 \end{split}\]</div>
-<p>Here, we’ve used the fact that <span class="math notranslate nohighlight">\(V^{\pi_\varepsilon}_\gamma\)</span> is a fixed point of <span class="math notranslate nohighlight">\(\mathrm{L}_{\pi_\varepsilon}\)</span>, that <span class="math notranslate nohighlight">\(\mathrm{L}_{\pi_\varepsilon}v_{n+1} = \mathrm{L}v_{n+1}\)</span> (by definition of <span class="math notranslate nohighlight">\(\pi_\varepsilon\)</span>), and that both <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> and <span class="math notranslate nohighlight">\(\mathrm{L}_{\pi_\varepsilon}\)</span> are contractions with factor <span class="math notranslate nohighlight">\(\gamma\)</span>.</p>
-<p>Rearranging this inequality, we get:</p>
+<p>where we used that both <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> and <span class="math notranslate nohighlight">\(\mathrm{L}_{\pi_\varepsilon}\)</span> are contractions with factor <span class="math notranslate nohighlight">\(\gamma\)</span>, and that <span class="math notranslate nohighlight">\(v_{n+1} = \mathrm{L}v_n\)</span>.</p>
+<p>Rearranging:</p>
 <div class="math notranslate nohighlight">
-\[\|V^{\pi_\varepsilon}_\gamma - v_{n+1}\| \leq \frac{\gamma}{1-\gamma}\|v_{n+1} - v_n\|\]</div>
-<p>We can derive a similar bound for <span class="math notranslate nohighlight">\(\|v_{n+1} - v^*_\gamma\|\)</span>:</p>
+\[\|v^{\pi_\varepsilon}_\gamma - v_{n+1}\|_\infty \leq \frac{\gamma}{1-\gamma}\|v_{n+1} - v_n\|_\infty\]</div>
+<p>Similarly, since <span class="math notranslate nohighlight">\(v^*_\gamma\)</span> is the fixed point of <span class="math notranslate nohighlight">\(\mathrm{L}\)</span>:</p>
 <div class="math notranslate nohighlight">
-\[\|v_{n+1} - v^*_\gamma\| \leq \frac{\gamma}{1-\gamma}\|v_{n+1} - v_n\|\]</div>
-<p>Now, remember that our algorithm terminated when <span class="math notranslate nohighlight">\(\|v_{n+1} - v_n\| &lt; \frac{\varepsilon(1-\gamma)}{2\gamma}\)</span>. Plugging this into our bounds:</p>
+\[\|v_{n+1} - v^*_\gamma\|_\infty = \|\mathrm{L}v_n - \mathrm{L}v^*_\gamma\|_\infty \leq \gamma\|v_n - v^*_\gamma\|_\infty \leq \frac{\gamma}{1-\gamma}\|v_{n+1} - v_n\|_\infty\]</div>
+<p>Since <span class="math notranslate nohighlight">\(\|v_{n+1} - v_n\|_\infty &lt; \frac{\varepsilon(1-\gamma)}{2\gamma}\)</span>:</p>
 <div class="math notranslate nohighlight">
-\[\|V^{\pi_\varepsilon}_\gamma - v_{n+1}\| \leq \frac{\gamma}{1-\gamma} \cdot \frac{\varepsilon(1-\gamma)}{2\gamma} = \frac{\varepsilon}{2}\]</div>
+\[\|v^{\pi_\varepsilon}_\gamma - v_{n+1}\|_\infty \leq \frac{\gamma}{1-\gamma} \cdot \frac{\varepsilon(1-\gamma)}{2\gamma} = \frac{\varepsilon}{2}\]</div>
 <div class="math notranslate nohighlight">
-\[\|v_{n+1} - v^*_\gamma\| \leq \frac{\gamma}{1-\gamma} \cdot \frac{\varepsilon(1-\gamma)}{2\gamma} = \frac{\varepsilon}{2}\]</div>
-<p>Finally, combining these results with our initial inequality:</p>
+\[\|v_{n+1} - v^*_\gamma\|_\infty \leq \frac{\gamma}{1-\gamma} \cdot \frac{\varepsilon(1-\gamma)}{2\gamma} = \frac{\varepsilon}{2}\]</div>
+<p>Combining these:</p>
 <div class="math notranslate nohighlight">
-\[\|V^{\pi_\varepsilon}_\gamma - v^*_\gamma\| \leq \|V^{\pi_\varepsilon}_\gamma - v_{n+1}\| + \|v_{n+1} - v^*_\gamma\| \leq \frac{\varepsilon}{2} + \frac{\varepsilon}{2} = \varepsilon\]</div>
-<p>This completes the proof. We’ve shown that when the algorithm terminates, our value function <span class="math notranslate nohighlight">\(v_{n+1}\)</span> is within <span class="math notranslate nohighlight">\(\varepsilon/2\)</span> of optimal (part 4.), and our policy <span class="math notranslate nohighlight">\(\pi_\varepsilon\)</span> is <span class="math notranslate nohighlight">\(\varepsilon\)</span>-optimal (part 3.).</p>
+\[\|v^{\pi_\varepsilon}_\gamma - v^*_\gamma\|_\infty \leq \frac{\varepsilon}{2} + \frac{\varepsilon}{2} = \varepsilon\]</div>
+<p>This completes the proof, showing that <span class="math notranslate nohighlight">\(v_{n+1}\)</span> is within <span class="math notranslate nohighlight">\(\varepsilon/2\)</span> of <span class="math notranslate nohighlight">\(v^*_\gamma\)</span> (part 4) and <span class="math notranslate nohighlight">\(\pi_\varepsilon\)</span> is <span class="math notranslate nohighlight">\(\varepsilon\)</span>-optimal (part 3).</p>
 </div>
 <section id="newton-kantorovich-applied-to-the-optimality-equations">
 <h3>Newton-Kantorovich applied to the Optimality Equations<a class="headerlink" href="#newton-kantorovich-applied-to-the-optimality-equations" title="Link to this heading">#</a></h3>
 <p>Another perspective on the optimality equations is that instead of looking for <span class="math notranslate nohighlight">\(v_\gamma^\star\)</span> as the fixed-point of <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> in the fixed-point problem find <span class="math notranslate nohighlight">\(v\)</span> such that <span class="math notranslate nohighlight">\(\mathrm{L} v = v\)</span>, we consider instead the related form in the nonlinear operator equation <span class="math notranslate nohighlight">\(\mathrm{L}v - v = 0\)</span>. Writing things in this way highlights the fact that we could also consider using Newton-Kantorovich iteration to solve this equation instead of the successive approximation method.</p>
 <p>If we were to apply the blueprint of Newton-Kantorovich, we would get:</p>
 <div class="proof algorithm admonition" id="nk-bellman">
-<p class="admonition-title"><span class="caption-number">Algorithm 10 </span> (Newton-Kantorovich for Bellman Optimality Equation)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 11 </span> (Newton-Kantorovich for Bellman Optimality Equation)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, initial guess <span class="math notranslate nohighlight">\(v_0\)</span>, tolerance <span class="math notranslate nohighlight">\(\epsilon &gt; 0\)</span></p>
 <p><strong>Output:</strong> Approximate optimal value function <span class="math notranslate nohighlight">\(v^\star\)</span></p>
@@ -2482,7 +2642,7 @@ Since we’ve shown <span class="math notranslate nohighlight">\(R_1 \leq R_2\)<
 <p>While we derived policy iteration-like steps from the Newton-Kantorovich method, it’s worth examining policy iteration as a standalone algorithm, as it has been traditionally presented in the field of dynamic programming.</p>
 <p>The policy iteration algorithm for discounted Markov decision problems is as follows:</p>
 <div class="proof algorithm admonition" id="policy-iteration">
-<p class="admonition-title"><span class="caption-number">Algorithm 11 </span> (Policy Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 12 </span> (Policy Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>
 <strong>Output:</strong> Optimal policy <span class="math notranslate nohighlight">\(\pi^*\)</span></p>
@@ -2580,7 +2740,7 @@ Since we’ve shown <span class="math notranslate nohighlight">\(R_1 \leq R_2\)<
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-optimal-harvest-in-resource-management">Example: Optimal Harvest in Resource Management</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#discretization-and-interpolation">Discretization and Interpolation</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#handling-continuous-spaces-with-interpolation">Handling Continuous Spaces with Interpolation</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#backward-recursion-with-interpolation">Backward Recursion with Interpolation</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#example-optimal-harvest-with-linear-interpolation">Example: Optimal Harvest with Linear Interpolation</a></li>
 </ul>
@@ -2592,9 +2752,12 @@ Since we’ve shown <span class="math notranslate nohighlight">\(R_1 \leq R_2\)<
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-dynamic-programming-and-markov-decision-processes">Stochastic Dynamic Programming and Markov Decision Processes</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#decision-rules-and-policies">Decision Rules and Policies</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#stochastic-system-dynamics">Stochastic System Dynamics</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#optimality-equations-and-policy-reduction-in-the-stochastic-setting">Optimality Equations and Policy Reduction in the Stochastic Setting</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#optimality-equations-in-the-stochastic-setting">Optimality Equations in the Stochastic Setting</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-stochastic-optimal-harvest-in-resource-management">Example: Stochastic Optimal Harvest in Resource Management</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#markov-decision-process-formulation">Markov Decision Process Formulation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#linear-quadratic-regulator-via-dynamic-programming">Linear Quadratic Regulator via Dynamic Programming</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#markov-decision-process-formulation">Markov Decision Process Formulation</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#notation-in-operations-reseach">Notation in Operations Reseach</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-an-optimal-policy">What is an Optimal Policy?</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-sample-size-determination-in-pharmaceutical-development">Example: Sample Size Determination in Pharmaceutical Development</a></li>
