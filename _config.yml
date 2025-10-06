@@ -10,6 +10,7 @@ baseurl: "/rlbook"
 execute:
   execute_notebooks: cache
   timeout: -1 
+  kernel_name: rlbook
 
 # Define the name of the latex output file for PDF builds
 latex:
