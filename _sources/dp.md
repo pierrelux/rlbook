@@ -1419,19 +1419,22 @@ In practice, when dealing with specific problems like MDPs or differential equat
 
 The Newton-Kantorovich method is a generalization of Newton's method from finite dimensional vector spaces to infinite dimensional function spaces: rather than iterating in the space of vectors, we are iterating in the space of functions. 
 
-Newton's method is often written as the familiar update
+Newton's method is often written as the familiar update:
+
 $$
 x_{k+1} = x_k - [DF(x_k)]^{-1} F(x_k),
 $$
 which makes it look as though the essence of the method is "take a derivative and invert it." But the real workhorse behind Newton's method — both in finite and infinite dimensions — is **linearization**.
 
 At each step, the idea is to replace the nonlinear operator $F:X \to Y$ by a local surrogate model of the form
+
 $$
 F(x+h) \approx F(x) + Lh,
 $$
 where $L$ is a linear map capturing how small perturbations in the input propagate to changes in the output. This is a Taylor-like expansion in Banach spaces: the role of the derivative is precisely to provide the correct notion of such a linear operator.
 
 To find a root of $F$, we impose the condition that the surrogate vanishes at the next iterate:
+
 $$
 0 = F(x+h) \approx F(x) + Lh.
 $$
@@ -1442,6 +1445,7 @@ But what exactly is a Fréchet derivative in infinite dimensions? To understand 
 **1. Gâteaux (Directional) Derivative**
 
 We say that the Gâteaux derivative of $F$ at $x$ in a specific direction $h$ is:
+
 $$
 F'(x; h) = \lim_{t \to 0} \frac{F(x + th) - F(x)}{t}
 $$
@@ -1451,6 +1455,7 @@ This quantity measures how the function $F$ changes along the ray $x + th$. Whil
 **2. Hadamard Directional Derivative**
 
 Rather than considering a single direction of perturbation, we now consider a bundle of perturbations around $h$. We ask how the function changes as we approach the target direction from nearby directions. We say that $F$ has a Hadamard directional derivative if:
+
 $$
 F'(x; h) = \lim_{\substack{t \downarrow 0 \\ h' \to h}} \frac{F(x + t h') - F(x)}{t}
 $$
@@ -1460,6 +1465,7 @@ This is a stronger condition than Gâteaux differentiability because it requires
 **3. Fréchet Derivative**
 
 The strongest and most natural notion: $F$ is Fréchet differentiable at $x$ if there exists a bounded linear operator $L$ such that:
+
 $$
 \lim_{h \to 0} \frac{\|F(x + h) - F(x) - Lh\|}{\|h\|} = 0
 $$
@@ -1472,6 +1478,7 @@ This definition directly addresses the inadequacy of the previous notions. Unlik
 - Notation: $L = F'(x)$ or $DF(x)$
 
 **Relationship:**
+
 $$
 \text{Fréchet differentiable} \Rightarrow \text{Hadamard directionally diff.} \Rightarrow \text{Gâteaux directionally diff.}
 $$
@@ -1722,9 +1729,11 @@ This completes the proof, showing that $v_{n+1}$ is within $\varepsilon/2$ of $v
 ### Newton-Kantorovich Applied to Bellman Optimality
 
 We now apply the Newton-Kantorovich framework to the Bellman optimality equation. Let
+
 $$
 (\mathrm{L}v)(s) = \max_{a \in A(s)} \left\{ r(s,a) + \gamma \sum_{s'} p(s' \mid s,a) v(s') \right\}.
 $$
+
 The problem is to find $v$ such that $\mathrm{L}v = v$, or equivalently $\mathrm{B}(v) := \mathrm{L}v - v = 0$. The operator $\mathrm{L}$ is piecewise affine, hence not globally differentiable, but it is directionally differentiable everywhere in the Hadamard sense and Fréchet differentiable at points where the maximizer is unique.
 
 We consider three complementary perspectives for understanding and computing its derivative.
@@ -1732,44 +1741,59 @@ We consider three complementary perspectives for understanding and computing its
 #### Perspective 1: Max of Affine Maps
 
 In tabular form, for finite state and action spaces, the Bellman operator can be written as a pointwise maximum of affine maps:
+
 $$
 (\mathrm{L}v)(s) = \max_{a \in A(s)} \left\{ r(s,a) + \gamma (P_a v)(s) \right\},
 $$
 where $P_a \in \mathbb{R}^{|S| \times |S|}$ is the transition matrix associated with action $a$. Each $Q_a v := r^a + \gamma P_a v$ is affine in $v$. The operator $\mathrm{L}$ therefore computes the upper envelope of a finite set of affine functions at each state.
 
 At any $v$, let the **active set** at state $s$ be
+
 $$
 \mathcal{A}^*(s; v) := \arg\max_{a \in A(s)} (Q_a v)(s).
 $$
+
 Then the Hadamard directional derivative exists and is given by
+
 $$
 (\mathrm{L}'(v; h))(s) = \max_{a \in \mathcal{A}^*(s; v)} \gamma (P_a h)(s).
 $$
+
 If the active set is a singleton, this expression becomes linear in $h$, and $\mathrm{L}$ is Fréchet differentiable at $v$, with
+
 $$
 \mathrm{L}'(v) = \gamma P_{\pi_v},
 $$
+
 where $\pi_v(s) := a^*(s)$ is the greedy policy at $v$. 
 <!-- In the presence of ties, the derivative becomes set-valued: the Clarke subdifferential consists of stochastic matrices whose rows are convex combinations of the $\gamma P_a$ over $a \in \mathcal{A}^*(s; v)$. -->
 
 #### Perspective 2: Envelope Theorem
 
 Consider now a value function approximated as a linear combination of basis functions:
+
 $$
 v_c(s) = \sum_j c_j \phi_j(s).
 $$
+
 At a node $s_i$, define the parametric maximization
+
 $$
 v_i(c) := (\mathrm{L}v_c)(s_i) = \max_{a \in A(s_i)} \left\{ r(s_i,a) + \gamma \sum_j c_j \mathbb{E}_{s' \mid s_i, a}[\phi_j(s')] \right\}.
 $$
+
 Define
+
 $$
 F_i(a, c) := r(s_i,a) + \gamma \sum_j c_j \mathbb{E}_{s' \mid s_i, a}[\phi_j(s')],
 $$
+
 so that $v_i(c) = \max_a F_i(a, c)$. Since $F_i$ is linear in $c$, we can apply the **envelope theorem** (Danskin's theorem): if the optimizer $a_i^*(c)$ is unique or selected measurably, then
+
 $$
 \frac{\partial v_i}{\partial c_j}(c) = \gamma \mathbb{E}_{s' \mid s_i, a_i^*(c)}[\phi_j(s')].
 $$
+
 The key is that we do not need to differentiate the optimizer $a_i^*(c)$ itself. The result extends to the subdifferential case when ties occur, where the Jacobian becomes set-valued.
 
 This result is particularly useful when solving the collocation equation $\Phi c = v(c)$. Newton's method requires the Jacobian $v'(c)$, and this expression allows us to compute it without involving any derivatives of the optimal action.
@@ -1779,21 +1803,25 @@ This result is particularly useful when solving the collocation equation $\Phi c
 The third perspective applies the implicit function theorem to understand when the Bellman operator is differentiable despite containing a max operator. The key insight is that the maximization problem defines an implicit relationship between the value function and the optimal action, and the implicit function theorem tells us when this relationship is smooth enough to differentiate through.
 
 The Bellman operator is defined as
+
 $$
 (\mathrm{L}v)(s) = \max_{a} \left\{ r(s,a) + \gamma \sum_j p(j \mid s,a) v(j) \right\}.
 $$
 
 The difficulty is that the max operator encodes a discrete selection: which action achieves the maximum. To apply the implicit function theorem, we reformulate this as follows. For each action $a$, define the **action-value function**:
+
 $$
 Q_a(v, s) := r(s,a) + \gamma \sum_j p(j \mid s,a) v(j).
 $$
 
 The optimal action at $v$ satisfies the **optimality condition**:
+
 $$
 Q_{a^*(s)}(v, s) \geq Q_a(v, s) \quad \text{for all } a.
 $$
 
 Now suppose that at a particular $v$, action $a^*(s)$ is a **strict local maximizer** in the sense that there exists $\delta > 0$ such that
+
 $$
 Q_{a^*(s)}(v, s) > Q_a(v, s) + \delta \quad \text{for all } a \neq a^*(s).
 $$
@@ -1801,11 +1829,13 @@ $$
 This strict inequality is the regularity condition needed for the implicit function theorem. It ensures that the optimal action is not only unique at $v$, but remains so in a neighborhood of $v$.
 
 To see why, consider any perturbation $v + h$ with $\|h\|$ small. Since $Q_a$ is linear in $v$, we have:
+
 $$
 Q_a(v+h, s) = Q_a(v, s) + \gamma \sum_j p(j \mid s,a) h(j).
 $$
 
 The perturbation term is bounded: $|\gamma \sum_j p(j \mid s,a) h(j)| \leq \gamma \|h\|$. Therefore, for $\|h\| < \delta/\gamma$, the strict gap ensures that
+
 $$
 Q_{a^*(s)}(v+h, s) > Q_a(v+h, s) \quad \text{for all } a \neq a^*(s).
 $$
@@ -1813,23 +1843,28 @@ $$
 Thus $a^*(s)$ remains the unique maximizer throughout the neighborhood $\{v + h : \|h\| < \delta/\gamma\}$.
 
 The implicit function theorem now applies: in this neighborhood, the mapping $v \mapsto a^*(s; v)$ is **constant** (and hence smooth), taking the value $a^*(s)$. This allows us to write
+
 $$
 (\mathrm{L}v)(s) = Q_{a^*(s)}(v, s) = r(s,a^*(s)) + \gamma \sum_j p(j \mid s,a^*(s)) v(j)
 $$
 as an explicit formula that holds throughout the neighborhood. Since $Q_{a^*(s)}(\cdot, s)$ is an affine (hence smooth) function of $v$, we can differentiate it:
+
 $$
 \frac{d}{dv} (\mathrm{L}v)(s) = \gamma P_{a^*(s)}.
 $$
 
 More precisely, for any perturbation $h$:
+
 $$
 (\mathrm{L}(v+h))(s) = (\mathrm{L}v)(s) + \gamma \sum_j p(j \mid s,a^*(s)) h(j) + o(\|h\|).
 $$
 
 This is the Fréchet derivative:
+
 $$
 \mathrm{L}'(v) = \gamma P_{\pi_v},
 $$
+
 where $\pi_v(s) = a^*(s)$ is the greedy policy.
 
 **The role of the implicit function theorem**: It guarantees that when the maximizer is unique with a strict gap (the regularity condition), the argmax function $v \mapsto a^*(s; v)$ is locally constant, which removes the non-differentiability of the max operator. Without this regularity condition—specifically, at points where multiple actions tie for optimality—the implicit function theorem does not apply, and the operator is not Fréchet differentiable. The active set perspective (Perspective 1) and the envelope theorem (Perspective 2) provide the tools to handle these non-smooth points.
@@ -1837,15 +1872,19 @@ where $\pi_v(s) = a^*(s)$ is the greedy policy.
 ### Connection to Policy Iteration
 
 We return to the Newton-Kantorovich step:
+
 $$
 (I - \mathrm{L}'(v_n)) h_n = v_n - \mathrm{L}v_n,
 \quad
 v_{n+1} = v_n - h_n.
 $$
+
 Suppose $\mathrm{L}'(v_n) = \gamma P_{\pi_{v_n}}$ for the greedy policy $\pi_{v_n}$. Then
+
 $$
 (I - \gamma P_{\pi_{v_n}}) v_{n+1} = r^{\pi_{v_n}},
 $$
+
 which is exactly policy evaluation for $\pi_{v_n}$. Recomputing the greedy policy from $v_{n+1}$ yields the next iterate.
 
 Thus, **policy iteration is Newton-Kantorovich** applied to the Bellman optimality equation. At points of nondifferentiability (when ties occur), the operator is still semismooth, and policy iteration corresponds to a semismooth Newton method. The envelope theorem is what justifies the simplification of the Jacobian to $\gamma P_{\pi_v}$, bypassing the need to differentiate through the optimizer. This completes the equivalence.
@@ -1859,6 +1898,7 @@ The classical Newton-Kantorovich method assumes the operator is Fréchet differe
 Semismooth Newton methods address this by replacing the notion of a single Jacobian with a generalized derivative that captures the behavior of the operator near non-smooth points. The most commonly used generalized derivative is the Clarke subdifferential, which we can think of as the convex hull of all possible "candidate Jacobians" that arise from limits approaching the non-smooth point from different directions.
 
 For the Bellman residual $\mathrm{B}(v) = \mathrm{L}v - v$, the Clarke subdifferential at a point $v$ can be characterized explicitly using our first perspective. Recall that at each state $s$, we defined the active set $\mathcal{A}^*(s; v) = \arg\max_a Q_a(v, s)$. When this set contains multiple actions, the operator is not Fréchet differentiable. However, it remains directionally differentiable in all directions, and the Clarke subdifferential consists of all matrices of the form
+
 $$
 \partial \mathrm{B}(v) = \left\{ I - \gamma P_\pi : \pi(s) \in \mathcal{A}^*(s; v) \text{ for all } s \right\}.
 $$
@@ -1883,6 +1923,7 @@ This theoretical result explains an empirical observation that has long been not
 The semismooth Newton framework also suggests a spectrum of methods interpolating between value iteration and policy iteration. Value iteration can be interpreted as a Newton-like method where we choose $J_k = I$ at every iteration, ignoring the dependence of $\mathrm{L}$ on $v$ entirely. This choice guarantees global convergence through the contraction property but sacrifices the quadratic local convergence rate. Policy iteration, at the other extreme, uses the full generalized Jacobian $J_k = I - \gamma P_{\pi_k}$, achieving quadratic convergence but at the cost of solving a linear system at each iteration.
 
 Between these extremes lie methods that use approximate Jacobians. One natural variant is to choose $J_k = \alpha I$ for some scalar $\alpha > 1$. This leads to the update
+
 $$
 v_{k+1} = \frac{\alpha - 1}{\alpha} v_k + \frac{1}{\alpha} \mathrm{L}v_k.
 $$

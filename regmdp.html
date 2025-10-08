@@ -1,0 +1,944 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Smooth Bellman Optimality Equations &#8212; Practical Reinforcement Learning: From Algorithms to Applications</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!-- 
+    this give us a css class that will be invisible only if js is disabled 
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
+    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="_static/proof.css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
+
+    <script src="_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"tex": {"macros": {"bm": ["{\\boldsymbol #1}", 1]}, "processEscapes": true}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'regmdp';</script>
+    <script src="_static/iframe-modal.js?v=f72a1242"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Projection Methods for Functional Equations" href="projdp.html" />
+    <link rel="prev" title="Dynamic Programming" href="dp.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="intro.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Practical Reinforcement Learning: From Algorithms to Applications</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="intro.html">
+                    Why This Book?
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Modeling</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="modeling.html">Why Build a Model? For Whom?</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="ssm.html">Dynamics Models for Decision Making</a></li>
+
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="simulation.html">Programs as Models</a></li>
+
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Numerical Trajectory Optimization</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="ocp.html">Discrete-Time Trajectory Optimization</a></li>
+
+
+<li class="toctree-l1"><a class="reference internal" href="cocp.html">Trajectory Optimization in Continuous Time</a></li>
+
+
+
+
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">From Trajectories to Policies</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="mpc.html">Model Predictive Control</a></li>
+
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="dp.html">Dynamic Programming</a></li>
+
+
+
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Approximate Dynamic Programming</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Smooth Bellman Optimality Equations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="projdp.html">Projection Methods for Functional Equations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simadp.html">Simulation-Based Approximate Dynamic Programming</a></li>
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="cadp.html">Policy Parametrization Methods</a></li>
+
+
+
+
+
+
+
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Appendix</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="appendix_examples.html">Example COCPs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_ivps.html">Solving Initial Value Problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_nlp.html">Nonlinear Programming</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">Bibliography</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/pierrelux/rlbook" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/pierrelux/rlbook/edit/main/regmdp.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/pierrelux/rlbook/issues/new?title=Issue%20on%20page%20%2Fregmdp.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/regmdp.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Smooth Bellman Optimality Equations</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gumbel-noise-on-the-rewards">Gumbel Noise on the Rewards</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#regularized-markov-decision-processes">Regularized Markov Decision Processes</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#legendre-fenchel-transform">Legendre-Fenchel Transform</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#regularized-bellman-operators">Regularized Bellman Operators</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#recovering-the-smooth-bellman-equations">Recovering the Smooth Bellman Equations</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#equivalence-between-smooth-bellman-equations-and-entropy-regularized-mdps">Equivalence Between Smooth Bellman Equations and Entropy-Regularized MDPs</a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <p>Dynamic programming methods suffer from the curse of dimensionality and can quickly become difficult to apply in practice. Not only this, we may also be dealing with large or continuous state or action spaces. We have seen so far that we could address this problem using discretization, or interpolation. These were already examples of approximate dynamic programming. In this chapter, we will see other forms of approximations meant to facilitate the optimization problem, either by approximating the optimality equations, the value function, or the policy itself.
+Approximation theory is at the heart of learning methods, and fundamentally, this chapter will be about the application of learning ideas to solve complex decision-making problems.</p>
+<section class="tex2jax_ignore mathjax_ignore" id="smooth-bellman-optimality-equations">
+<h1>Smooth Bellman Optimality Equations<a class="headerlink" href="#smooth-bellman-optimality-equations" title="Link to this heading">#</a></h1>
+<p>While the standard Bellman optimality equations use the max operator to determine the best action, an alternative formulation known as the smooth or soft Bellman optimality equations replaces this with a softmax operator. This approach originated from <span id="id1">[<a class="reference internal" href="bibliography.html#id24" title="John Rust. Optimal replacement of gmc bus engines: an empirical model of harold zurcher. Econometrica, 55(5):999-1033, 1987.">37</a>]</span> and was later rediscovered in the context of maximum entropy inverse reinforcement learning <span id="id2">[<a class="reference internal" href="bibliography.html#id25" title="Brian D. Ziebart, Andrew L. Maas, J. Andrew Bagnell, and Anind K. Dey. Maximum entropy inverse reinforcement learning. In Proceedings of the 23rd AAAI Conference on Artificial Intelligence, 1433-1438. 2008.">44</a>]</span>, which then led to soft Q-learning <span id="id3">[<a class="reference internal" href="bibliography.html#id26" title="Tuomas Haarnoja, Haoran Tang, Pieter Abbeel, and Sergey Levine. Reinforcement learning with deep energy-based policies. Proceedings of the 34th International Conference on Machine Learning, 70:1352-1361, 2017.">22</a>]</span> and soft actor-critic <span id="id4">[<a class="reference internal" href="bibliography.html#id30" title="Tuomas Haarnoja, Aurick Zhou, Pieter Abbeel, and Sergey Levine. Soft actor-critic: off-policy maximum entropy deep reinforcement learning with a stochastic actor. In Proceedings of the 35th International Conference on Machine Learning (ICML), 1861–1870. PMLR, 2018.">23</a>]</span>, a state-of-the-art deep reinforcement learning algorithm.</p>
+<p>In the infinite-horizon setting, the smooth Bellman optimality equations take the form:</p>
+<div class="math notranslate nohighlight">
+\[ v_\gamma^\star(s) = \frac{1}{\beta} \log \sum_{a \in A_s} \exp\left(\beta\left(r(s, a) + \gamma \sum_{j \in S} p(j | s, a) v_\gamma^\star(j)\right)\right) \]</div>
+<p>Adopting an operator-theoretic perspective, we can define a nonlinear operator <span class="math notranslate nohighlight">\(\mathrm{L}_\beta\)</span> such that the smooth value function of an MDP is then the solution to the following fixed-point equation:</p>
+<div class="math notranslate nohighlight">
+\[ (\mathrm{L}_\beta \mathbf{v})(s) = \frac{1}{\beta} \log \sum_{a \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right)\right) \]</div>
+<p>As <span class="math notranslate nohighlight">\(\beta \to \infty\)</span>, <span class="math notranslate nohighlight">\(\mathrm{L}_\beta\)</span> converges to the standard Bellman operator <span class="math notranslate nohighlight">\(\mathrm{L}\)</span>. Furthermore, it can be shown that the smooth Bellman operator is a contraction mapping in the supremum norm, and therefore has a unique fixed point. However, as opposed to the usual “hard” setting, the fixed point of <span class="math notranslate nohighlight">\(\mathrm{L}_\beta\)</span> is associated with the value function of an optimal stochastic policy defined by the softmax distribution:</p>
+<div class="math notranslate nohighlight">
+\[ d(a|s) = \frac{\exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v_\gamma^\star(j)\right)\right)}{\sum_{a' \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a') + \gamma \sum_{j \in \mathcal{S}} p(j|s,a') v_\gamma^\star(j)\right)\right)} \]</div>
+<p>Despite the confusing terminology, the above “softmax” policy is simply the smooth counterpart to the argmax operator in the original optimality equation: it acts as a soft-argmax.</p>
+<p>This formulation is interesting for several reasons. First, smoothness is a desirable property from an optimization standpoint. Unlike <span class="math notranslate nohighlight">\(\gamma\)</span>, we view <span class="math notranslate nohighlight">\(\beta\)</span> as a hyperparameter of our algorithm, which we can control to achieve the desired level of accuracy.</p>
+<p>Second, while presented from an intuitive standpoint where we replace the max by the log-sum-exp (a smooth maximum) and the argmax by the softmax (a smooth argmax), this formulation can also be obtained from various other perspectives, offering theoretical tools and solution methods. For example, <span id="id5">Rust [<a class="reference internal" href="bibliography.html#id24" title="John Rust. Optimal replacement of gmc bus engines: an empirical model of harold zurcher. Econometrica, 55(5):999-1033, 1987.">37</a>]</span> derived this algorithm by considering a setting in which the rewards are stochastic and perturbed by a Gumbel noise variable. When considering the corresponding augmented state space and integrating the noise, we obtain smooth equations. This interpretation is leveraged by Rust for modeling purposes.</p>
+<p>There is also a way to obtain this equation by starting from the energy-based formulation often used in supervised learning, in which we convert an unnormalized probability distribution into a distribution using the softmax transformation. This is essentially what <span id="id6">Ziebart <em>et al.</em> [<a class="reference internal" href="bibliography.html#id25" title="Brian D. Ziebart, Andrew L. Maas, J. Andrew Bagnell, and Anind K. Dey. Maximum entropy inverse reinforcement learning. In Proceedings of the 23rd AAAI Conference on Artificial Intelligence, 1433-1438. 2008.">44</a>]</span> did in their paper. Furthermore, this perspective bridges with the literature on probabilistic graphical models, in which we can now cast the problem of finding an optimal smooth policy into one of maximum likelihood estimation (an inference problem). This is the idea of control as inference, which also admits the converse - that of inference as control - used nowadays for deriving fast samples and amortized inference techniques using reinforcement learning <span id="id7">[<a class="reference internal" href="bibliography.html#id27" title="Sergey Levine, Aviral Kumar, George Tucker, and Justin Fu. Reinforcement learning as a framework for control: a survey. arXiv preprint arXiv:1806.04222, 2018.">28</a>]</span>.</p>
+<p>Finally, it’s worth noting that we can also derive this form by considering an entropy-regularized formulation in which we penalize for the entropy of our policy in the reward function term. This formulation admits a solution that coincides with the smooth Bellman equations <span id="id8">[<a class="reference internal" href="bibliography.html#id26" title="Tuomas Haarnoja, Haoran Tang, Pieter Abbeel, and Sergey Levine. Reinforcement learning with deep energy-based policies. Proceedings of the 34th International Conference on Machine Learning, 70:1352-1361, 2017.">22</a>]</span>.</p>
+<section id="gumbel-noise-on-the-rewards">
+<h2>Gumbel Noise on the Rewards<a class="headerlink" href="#gumbel-noise-on-the-rewards" title="Link to this heading">#</a></h2>
+<p>We can obtain the smooth Bellman equation by considering a setting in which we have Gumbel noise added to the reward function. More precisely, we define an MDP whose state space is now that of <span class="math notranslate nohighlight">\(\tilde{s} = (s, \epsilon)\)</span>, where the reward function is given by</p>
+<div class="math notranslate nohighlight">
+\[\tilde{r}(\tilde{s}, a) = r(s,a) + \epsilon(a)\]</div>
+<p>and where the transition probability function is:</p>
+<div class="math notranslate nohighlight">
+\[ p(\tilde{s}' | \tilde{s}, a) = p(s' | s, a) \cdot p(\epsilon') \]</div>
+<p>This expression stems from the conditional independence assumption that we make on the noise variable given the state.</p>
+<p>Furthermore, we assume that <span class="math notranslate nohighlight">\(\epsilon(a)\)</span> is a random variable following a Gumbel distribution with location 0 and scale <span class="math notranslate nohighlight">\(1/\beta\)</span>. The Gumbel distribution is a continuous probability distribution used to model the maximum (or minimum) of a number of samples of various distributions. Its probability density function is:</p>
+<div class="math notranslate nohighlight">
+\[ f(x; \mu, \beta) = \frac{1}{\beta}\exp\left(-\left(\frac{x-\mu}{\beta}+\exp\left(-\frac{x-\mu}{\beta}\right)\right)\right) \]</div>
+<p>where <span class="math notranslate nohighlight">\(\mu\)</span> is the location parameter and <span class="math notranslate nohighlight">\(\beta\)</span> is the scale parameter. To generate a Gumbel-distributed random variable, one can use the inverse transform sampling method: and set <span class="math notranslate nohighlight">\( X = \mu - \beta \ln(-\ln(U)) \)</span>
+where <span class="math notranslate nohighlight">\(U\)</span> is a uniform random variable on the interval <span class="math notranslate nohighlight">\((0,1)\)</span>.</p>
+<p>The Bellman equation in this augmented state space becomes:</p>
+<div class="math notranslate nohighlight">
+\[ v_\gamma^\star(\tilde{s}) = \max_{a \in \mathcal{A}_s} \left\{ \tilde{r}(\tilde{s},a) + \gamma \mathbb{E}_{}\left[v_\gamma^\star(\tilde{s}')\mid \tilde{s}, a\right] \right\} \]</div>
+<p>Furthermore, since all we did is to define another MDP, we still have a contraction and an optimal stationary policy <span class="math notranslate nohighlight">\(d^\infty = (d, d, ...)\)</span> can be found via the following deterministic Markovian decision rule:</p>
+<div class="math notranslate nohighlight">
+\[
+d(\tilde{s})  \in \operatorname{argmax}_{a \in \mathcal{A}_s} \left\{ \tilde{r}(\tilde{s},a) + \gamma \mathbb{E}_{}\left[v_\gamma^\star(\tilde{s}')\mid \tilde{s}, a\right] \right\}
+\]</div>
+<p>Note how the expectation is now over the next augmented state space and is therefore both over the next state in the original MDP and over the next perturbation. While in the general case there isn’t much that we can do to simplify the expression for the expectation over the next state in the MDP, we can however leverage a remarkable property of the Gumbel distribution which allows us to eliminate the <span class="math notranslate nohighlight">\(\epsilon\)</span> term in the above and recover the familiar smooth Bellman equation.</p>
+<p>For a set of random variables <span class="math notranslate nohighlight">\(X_1, \ldots, X_n\)</span>, each following a Gumbel distribution with location parameters <span class="math notranslate nohighlight">\(\mu_1, \ldots, \mu_n\)</span> and scale parameter <span class="math notranslate nohighlight">\(1/\beta\)</span>, extreme value theory tells us that:</p>
+<div class="math notranslate nohighlight">
+\[ \mathbb{E}\left[\max_{i} X_i\right] = \frac{1}{\beta} \log \sum_{i=1}^n \exp(\beta\mu_i) \]</div>
+<p>In our case, each <span class="math notranslate nohighlight">\(X_i\)</span> corresponds to <span class="math notranslate nohighlight">\(r(s,a_i) + \epsilon(a_i) + \gamma \mathbb{E}_{s'}[v(s')]\)</span> for a given action <span class="math notranslate nohighlight">\(a_i\)</span>. The location parameter <span class="math notranslate nohighlight">\(\mu_i\)</span> is <span class="math notranslate nohighlight">\(r(s,a_i) + \gamma \mathbb{E}_{s'}[v(s')]\)</span>, and the scale parameter is <span class="math notranslate nohighlight">\(1/\beta\)</span>.</p>
+<p>Applying this result to our problem, and taking the expectation over the noise <span class="math notranslate nohighlight">\(\epsilon\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split} \begin{align*}
+v_\gamma^\star(s,\epsilon) &amp;= \max_{a \in \mathcal{A}_s} \left\{ r(s,a) + \epsilon(a) + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, \epsilon, a\right] \right\} \\
+\mathbb{E}_\epsilon[v_\gamma^\star(s,\epsilon)] &amp;= \mathbb{E}_\epsilon\left[\max_{a \in \mathcal{A}_s} \left\{ r(s,a) + \epsilon(a) + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, \epsilon, a\right] \right\}\right] \\
+&amp;= \frac{1}{\beta} \log \sum_{a \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a) + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, a\right]\right)\right) \\
+&amp;= \frac{1}{\beta} \log \sum_{a \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a) + \gamma \mathbb{E}_{s'}\left[\mathbb{E}_{\epsilon'}[v_\gamma^\star(s',\epsilon')]\mid s, a\right]\right)\right)
+\end{align*}
+\end{split}\]</div>
+<p>If we define <span class="math notranslate nohighlight">\(v_\gamma^\star(s) = \mathbb{E}_\epsilon[v_\gamma^\star(s,\epsilon)]\)</span>, we obtain the smooth Bellman equation:</p>
+<div class="math notranslate nohighlight">
+\[ v_\gamma^\star(s) = \frac{1}{\beta} \log \sum_{a \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a) + \gamma \mathbb{E}_{s'}\left[v_\gamma^\star(s')\mid s, a\right]\right)\right) \]</div>
+<p>This final equation is the smooth Bellman equation, which we derived by introducing Gumbel noise to the reward function and leveraging properties of the Gumbel distribution and extreme value theory.</p>
+<p>Now, in the same way that we have been able to simplify and specialize the form of the value function under Gumbel noise, we can also derive an expression for the corresponding optimal policy. To see this, we apply similar steps and start with the optimal decision rule for the augmented MDP:</p>
+<div class="math notranslate nohighlight">
+\[
+d(\tilde{s}) \in \operatorname{argmax}_{a \in \mathcal{A}_s} \left\{ \tilde{r}(\tilde{s},a) + \gamma \mathbb{E}_{}\left[v_\gamma^\star(\tilde{s}') \mid \tilde{s}, a\right] \right\}
+\]</div>
+<p>In order to simplify this expression by taking the expectation over the noise variable, we define an indicator function for the event that action <span class="math notranslate nohighlight">\(a\)</span> is in the set of optimal actions:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split} I_a(\epsilon) = \begin{cases} 
+   1 &amp; \text{if } a \in \operatorname{argmax}_{a' \in \mathcal{A}_s} \left\{ r(s,a') + \epsilon(a') + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, a'\right] \right\} \\
+   0 &amp; \text{otherwise}
+   \end{cases} \end{split}\]</div>
+<p>Note that this definition allows us to recover the original expression since:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{align*}
+d(s,\epsilon) &amp;= \left\{a \in \mathcal{A}_s : I_a(\epsilon) = 1\right\} \\
+&amp;= \left\{a \in \mathcal{A}_s : a \in \operatorname{argmax}_{a' \in \mathcal{A}_s} \left\{ r(s,a') + \epsilon(a') + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, \epsilon,  a'\right] \right\}\right\}
+\end{align*}
+\end{split}\]</div>
+<p>This set-valued – but determinisic – function <span class="math notranslate nohighlight">\(d(s,\epsilon)\)</span> gives us the set of optimal actions for a given state <span class="math notranslate nohighlight">\(s\)</span> and noise realization <span class="math notranslate nohighlight">\(\epsilon\)</span>. For simplicity, consider the case where the optimal set of actions at <span class="math notranslate nohighlight">\(s\)</span> is a singleton such that taking the expection over the noise variable gives us:</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align*}
+\mathbb{E}_\epsilon[I_a(\epsilon)] = \mathbb{P}\left(a \in \operatorname{argmax}_{a' \in \mathcal{A}_s} \left\{ r(s,a') + \epsilon(a') + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, \epsilon, a'\right] \right\}\right)
+\end{align*} \]</div>
+<p>Now, we can leverage a key property of the Gumbel distribution. For a set of random variables <span class="math notranslate nohighlight">\(\{X_i = \mu_i + \epsilon_i\}\)</span> where <span class="math notranslate nohighlight">\(\epsilon_i\)</span> are i.i.d. Gumbel(0, 1/β) random variables, we have:</p>
+<div class="math notranslate nohighlight">
+\[ P(X_i \geq X_j, \forall j \neq i) = \frac{\exp(\beta\mu_i)}{\sum_j \exp(\beta\mu_j)} \]</div>
+<p>In our case, <span class="math notranslate nohighlight">\(X_a = r(s,a) + \epsilon(a) + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, a\right]\)</span> for each action <span class="math notranslate nohighlight">\(a\)</span>, with <span class="math notranslate nohighlight">\(\mu_a = r(s,a) + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, a\right]\)</span>.</p>
+<p>Applying this property and using the definition <span class="math notranslate nohighlight">\(v_\gamma^\star(s) = \mathbb{E}_\epsilon[v_\gamma^\star(s,\epsilon)]\)</span>, we get:</p>
+<div class="math notranslate nohighlight">
+\[ d(a|s) = \frac{\exp\left(\beta\left(r(s,a) + \gamma \mathbb{E}_{s'}\left[v_\gamma^\star(s')\mid s, a\right]\right)\right)}{\sum_{a' \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a') + \gamma \mathbb{E}_{s'}\left[v_\gamma^\star(s')\mid s, a'\right]\right)\right)} \]</div>
+<p>This gives us the optimal stochastic policy for the smooth MDP. Note that as <span class="math notranslate nohighlight">\(\beta \to \infty\)</span>, this policy approaches the deterministic policy of the original MDP, while for finite <span class="math notranslate nohighlight">\(\beta\)</span>, it gives a stochastic policy.</p>
+<!-- ## Control as Inference Perspective
+
+The smooth Bellman optimality equations can also be derived from probabilistic inference perspective. To see this, let's go back to the idea from the previous section in which we introduced an indicator function $I_a(\epsilon)$ to represent whether an action $a$ is optimal given a particular realization of the noise $\epsilon$:
+
+$$ I_a(\epsilon) = \begin{cases} 
+   1 & \text{if } a \in \operatorname{argmax}_{a' \in \mathcal{A}_s} \left\{ r(s,a') + \epsilon(a') + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, a'\right] \right\} \\
+   0 & \text{otherwise}
+   \end{cases} $$
+
+When we took the expectation over the noise $\epsilon$, we obtained a soft version of this indicator:
+
+$$ \begin{align*}
+\mathbb{E}_\epsilon[I_a(\epsilon)] &= \mathbb{P}\left(a \in \operatorname{argmax}_{a' \in \mathcal{A}_s} \left\{ r(s,a') + \epsilon(a') + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, \epsilon, a'\right] \right\}\right) \\
+&= \frac{\exp\left(\beta\left(r(s,a) + \gamma \mathbb{E}_{s'}\left[v_\gamma^\star(s')\mid s, a\right]\right)\right)}{\sum_{a' \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a') + \gamma \mathbb{E}_{s'}\left[v_\gamma^\star(s')\mid s, a'\right]\right)\right)}
+\end{align*} $$
+
+Given this indicator function, we can "infer" the optimal action in any state. This is the intuition and starting point behind the control as inference perspective in which we directly define a continuous-valued "optimality" variable $O_t$ at each time step $t$. We define the probability of optimality given a state-action pair as:
+
+$$ p(O_t = 1 | s_t, a_t) = \exp(\beta r(s_t, a_t)) $$
+
+Building on this notion of soft optimality, we can formulate the MDP as a probabilistic graphical model. We define the following probabilities:
+
+1. State transition probability: $p(s_{t+1} | s_t, a_t)$ (given by the MDP dynamics)
+2. Prior policy: $p(a_t | s_t)$ (which we'll assume to be uniform for simplicity)
+3. Optimality probability: $p(O_t = 1 | s_t, a_t) = \exp(\beta r(s_t, a_t))$
+
+This formulation encodes the idea that more rewarding state-action pairs are more likely to be "optimal," which directly parallels the soft assignment of optimality we obtained by taking the expectation over the Gumbel noise.
+
+The control problem can now be framed as an inference problem: we want to find the posterior distribution over actions given that all time steps are optimal:
+
+$$ p(a_t | s_t, O_{1:T} = 1) $$
+
+where $O_{1:T} = 1$ means $O_t = 1$ for all $t$ from 1 to T. 
+
+### Message Passing 
+
+To solve this inference problem, we can use a technique from probabilistic graphical models called message passing, specifically the belief propagation algorithm. Message passing is a way to efficiently compute marginal distributions in a graphical model by passing local messages between nodes. Messages are passed between nodes in both forward and backward directions. Each message represents a belief about the distribution of a variable, based on the information available to the sending node. After messages have been passed, each node updates its belief about its associated variable by combining all incoming messages.
+
+In our specific case, we're particularly interested in the backward messages, which propagate information about future optimality backwards in time. Let's define the backward message $\beta_t(s_t)$ as:
+
+$$ \beta_t(s_t) = p(O_{t:T} = 1 | s_t) $$
+
+This represents the probability of optimality for all future time steps given the current state. We can compute this recursively:
+
+$$ \beta_t(s_t) = \sum_{a_t} p(a_t | s_t) p(O_t = 1 | s_t, a_t) \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) \beta_{t+1}(s_{t+1}) $$
+
+
+Taking the log and assuming a uniform prior over actions, we get:
+
+$$ \log \beta_t(s_t) = \log \sum_{a_t} \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) \exp(\beta (r(s_t, a_t) + \gamma v(_{t+1}) + \frac{1}{\beta} \log \beta_{t+1}(s_{t+1}))) $$
+
+If we define the soft value function as $V_t(s_t) = \frac{1}{\beta} \log \beta_t(s_t)$, we can rewrite the above equation as:
+
+$$ V_t(s_t) = \frac{1}{\beta} \log \sum_{a_t} \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) \exp(\beta (r(s_t, a_t) + \gamma V_{t+1}(s_{t+1}))) $$
+
+This is exactly the smooth Bellman equation we derived earlier, but now interpreted as the result of probabilistic inference in a graphical model.
+
+### Deriving the Optimal Policy
+
+The backward message recursion we derived earlier assumes a uniform prior policy $p(a_t | s_t)$. However, our goal is to find not just any policy, but an optimal one. We can extract this optimal policy efficiently by computing the posterior distribution over actions given our backward messages.
+
+Starting from the definition of conditional probability and applying Bayes' rule, we can write:
+
+$$ \begin{align}
+p(a_t | s_t, O_{1:T} = 1) &= \frac{p(O_{1:T} = 1 | s_t, a_t) p(a_t | s_t)}{p(O_{1:T} = 1 | s_t)} \\
+&\propto p(a_t | s_t) p(O_t = 1 | s_t, a_t) p(O_{t+1:T} = 1 | s_t, a_t) \\
+&= p(a_t | s_t) p(O_t = 1 | s_t, a_t) \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) \beta_{t+1}(s_{t+1})
+\end{align} $$
+
+Here, $\beta_{t+1}(s_{t+1}) = p(O_{t+1:T} = 1 | s_{t+1})$ is our backward message.
+
+Now, let's substitute our definitions for the optimality probability and the soft value function:
+
+$$ \begin{align}
+p(a_t | s_t, O_{1:T} = 1) &\propto p(a_t | s_t) \exp(\beta r(s_t, a_t)) \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) \exp(\beta \gamma V_{t+1}(s_{t+1})) \\
+&= p(a_t | s_t) \exp(\beta (r(s_t, a_t) + \gamma \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) V_{t+1}(s_{t+1})))
+\end{align} $$
+
+After normalization, and assuming a uniform prior $p(a_t | s_t)$, we obtain the randomized decision rule:
+
+$$ d(a_t | s_t) = \frac{\exp(\beta (r(s_t, a_t) + \gamma \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) V_{t+1}(s_{t+1})))}{\sum_{a'_t} \exp(\beta (r(s_t, a'_t) + \gamma \sum_{s_{t+1}} p(s_{t+1} | s_t, a'_t) V_{t+1}(s_{t+1})))} $$ -->
+</section>
+<section id="regularized-markov-decision-processes">
+<h2>Regularized Markov Decision Processes<a class="headerlink" href="#regularized-markov-decision-processes" title="Link to this heading">#</a></h2>
+<p>Regularized MDPs <span id="id9">[<a class="reference internal" href="bibliography.html#id28" title="Matthieu Geist, Bruno Scherrer, and Olivier Pietquin. A theory of regularized Markov decision processes. In Kamalika Chaudhuri and Ruslan Salakhutdinov, editors, Proceedings of the 36th International Conference on Machine Learning, volume 97 of Proceedings of Machine Learning Research, 2160–2169. PMLR, 09–15 Jun 2019. URL: https://proceedings.mlr.press/v97/geist19a.html.">16</a>]</span> provide another perspective on how the smooth Bellman equations come to be. This framework offers a more general approach in which we seek to find optimal policies under the infinite horizon criterion while also accounting for a regularizer that influences the kind of policies we try to obtain.</p>
+<p>Let’s set up some necessary notation. First, recall that the policy evaluation operator for a stationary policy with decision rule <span class="math notranslate nohighlight">\(d\)</span> is defined as:</p>
+<div class="math notranslate nohighlight">
+\[ \mathrm{L}_d v = r_d + \gamma P_d v \]</div>
+<p>where <span class="math notranslate nohighlight">\(r_d\)</span> is the expected reward under policy <span class="math notranslate nohighlight">\(d\)</span>, <span class="math notranslate nohighlight">\(\gamma\)</span> is the discount factor, and <span class="math notranslate nohighlight">\(P_d\)</span> is the state transition probability matrix under <span class="math notranslate nohighlight">\(d\)</span>. A complementary object to the value function is the q-function (or Q-factor) representation:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split} \begin{align*}
+q_\gamma^{d^\infty}(s, a) &amp;= r(s, a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v_\gamma^{d^\infty}(j) \\
+v_\gamma^{d^\infty}(s) &amp;= \sum_{a \in \mathcal{A}_s} d(a | s) q_\gamma^{d^\infty}(s, a) 
+\end{align*} \end{split}\]</div>
+<p>The policy evaluation operator can then be written in terms of the q-function as:</p>
+<div class="math notranslate nohighlight">
+\[ [\mathrm{L}_d v](s) = \langle d(\cdot | s), q(s, \cdot) \rangle \]</div>
+<section id="legendre-fenchel-transform">
+<h3>Legendre-Fenchel Transform<a class="headerlink" href="#legendre-fenchel-transform" title="Link to this heading">#</a></h3>
+<p>The workhorse behind the theory of regularized MDPs is the Legendre-Fenchel transform, also known as the convex conjugate. For a strongly convex function <span class="math notranslate nohighlight">\(\Omega: \Delta_{\mathcal{A}} \rightarrow \mathbb{R}\)</span>, its Legendre-Fenchel transform <span class="math notranslate nohighlight">\(\Omega^*: \mathbb{R}^{\mathcal{A}} \rightarrow \mathbb{R}\)</span> is defined as:</p>
+<div class="math notranslate nohighlight">
+\[ \Omega^*(q(s, \cdot)) = \max_{d(\cdot|s) \in \Delta_{\mathcal{A}}} \langle d(\cdot | s), q(s, \cdot) \rangle - \Omega(d(\cdot | s)) \]</div>
+<p>An important property of this transform is that it has a unique maximizing argument, given by the gradient of <span class="math notranslate nohighlight">\(\Omega^*\)</span>. This gradient is Lipschitz and satisfies:</p>
+<div class="math notranslate nohighlight">
+\[ \nabla \Omega^*(q(s, \cdot)) = \arg\max_d \langle d(\cdot | s), q(s, \cdot) \rangle - \Omega(d(\cdot | s)) \]</div>
+<p>An important example of a regularizer is the negative entropy, which gives rise to the smooth Bellman equations as we are about to see.</p>
+</section>
+</section>
+<section id="regularized-bellman-operators">
+<h2>Regularized Bellman Operators<a class="headerlink" href="#regularized-bellman-operators" title="Link to this heading">#</a></h2>
+<p>With these concepts in place, we can now define the regularized Bellman operators:</p>
+<ol class="arabic">
+<li><p><strong>Regularized Policy Evaluation Operator</strong> <span class="math notranslate nohighlight">\((\mathrm{L}_{d,\Omega})\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[ [\mathrm{L}_{d,\Omega} v](s) = \langle q(s,\cdot), d(\cdot | s) \rangle - \Omega(d(\cdot | s)) \]</div>
+</li>
+<li><p><strong>Regularized Bellman Optimality Operator</strong> <span class="math notranslate nohighlight">\((\mathrm{L}_\Omega)\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[ [\mathrm{L}_\Omega v](s) = [\max_d \mathrm{L}_{d,\Omega} v ](s) = \Omega^*(q(s, \cdot)) \]</div>
+</li>
+</ol>
+<p>It can be shown that the addition of a regularizer in these regularized operators still preserves the contraction properties, and therefore the existence of a solution to the optimality equations and the convergence of successive approximation.</p>
+<p>The regularized value function of a stationary policy with decision rule <span class="math notranslate nohighlight">\(d\)</span>, denoted by <span class="math notranslate nohighlight">\(v_{d,\Omega}\)</span>, is the unique fixed point of the operator equation:</p>
+<div class="math notranslate nohighlight">
+\[\text{find $v$ such that } \enspace v = \mathrm{L}_{d,\Omega} v\]</div>
+<p>Under the usual assumptions on the discount factor and the boundedness of the reward, the value of a policy can also be found in closed form by solving for <span class="math notranslate nohighlight">\(v\)</span> in the linear system of equations:</p>
+<div class="math notranslate nohighlight">
+\[ (\mathbf{I} - \gamma P_d) v =  (r_d - \Omega(d)) \]</div>
+<p>The associated state-action value function <span class="math notranslate nohighlight">\(q_{d,\Omega}\)</span> is given by:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align*}
+q_{d,\Omega}(s, a) &amp;= r(s, a) + \sum_{j \in \mathcal{S}} \gamma p(j|s,a) v_{d,\Omega}(j) \\
+v_{d,\Omega}(s) &amp;= \sum_{a \in \mathcal{A}_s} d(a | s) q_{d,\Omega}(s, a) - \Omega(d(\cdot | s))
+\end{align*} \end{split}\]</div>
+<p>The regularized optimal value function <span class="math notranslate nohighlight">\(v^*_\Omega\)</span> is then the unique fixed point of <span class="math notranslate nohighlight">\(\mathrm{L}_\Omega\)</span> in the fixed point equation:</p>
+<div class="math notranslate nohighlight">
+\[\text{find $v$ such that } v = \mathrm{L}_\Omega v\]</div>
+<p>The associated state-action value function <span class="math notranslate nohighlight">\(q^*_\Omega\)</span> is given by:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split} \begin{align*}
+q^*_\Omega(s, a) &amp;= r(s, a) + \sum_{j \in \mathcal{S}} \gamma p(j|s,a) v^*_\Omega(j) \\
+v^*_\Omega(s) &amp;= \Omega^*(q^*_\Omega(s, \cdot))\end{align*} \end{split}\]</div>
+<p>An important result in the theory of regularized MDPs is that there exists a unique optimal regularized policy. Specifically, if <span class="math notranslate nohighlight">\(d^*_\Omega\)</span> is a conserving decision rule (i.e., <span class="math notranslate nohighlight">\(d^*_\Omega = \arg\max_d \mathrm{L}_{d,\Omega} v^*_\Omega\)</span>), then the randomized stationary policy <span class="math notranslate nohighlight">\((d^*_\Omega)^\infty\)</span> is the unique optimal regularized policy.</p>
+<p>In practice, once we have found <span class="math notranslate nohighlight">\(v^*_\Omega\)</span>, we can derive the optimal decision rule by taking the gradient of the convex conjugate evaluated at the optimal action-value function:</p>
+<div class="math notranslate nohighlight">
+\[ d^*(\cdot | s) = \nabla \Omega^*(q^*_\Omega(s, \cdot)) \]</div>
+<section id="recovering-the-smooth-bellman-equations">
+<h3>Recovering the Smooth Bellman Equations<a class="headerlink" href="#recovering-the-smooth-bellman-equations" title="Link to this heading">#</a></h3>
+<p>Under this framework, we can recover the smooth Bellman equations by choosing <span class="math notranslate nohighlight">\(\Omega\)</span> to be the negative entropy, and obtain the softmax policy as the gradient of the convex conjugate. Let’s show this explicitly:</p>
+<ol class="arabic">
+<li><p>Using the negative entropy regularizer:</p>
+<div class="math notranslate nohighlight">
+\[ \Omega(d(\cdot|s)) = \sum_{a \in \mathcal{A}_s} d(a|s) \ln d(a|s) \]</div>
+</li>
+<li><p>The convex conjugate:</p>
+<div class="math notranslate nohighlight">
+\[ \Omega^*(q(s, \cdot)) = \ln \sum_{a \in \mathcal{A}_s} \exp q(s,a) \]</div>
+</li>
+<li><p>Now, let’s write out the regularized Bellman optimality equation:</p>
+<div class="math notranslate nohighlight">
+\[ v^*_\Omega(s) = \Omega^*(q^*_\Omega(s, \cdot)) \]</div>
+</li>
+<li><p>Substituting the expressions for <span class="math notranslate nohighlight">\(\Omega^*\)</span> and <span class="math notranslate nohighlight">\(q^*_\Omega\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[ v^*_\Omega(s) = \ln \sum_{a \in \mathcal{A}_s} \exp \left(r(s, a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v^*_\Omega(j)\right) \]</div>
+</li>
+</ol>
+<p>This is precisely the form of the smooth Bellman equation we derived earlier, with the log-sum-exp operation replacing the max operation of the standard Bellman equation.</p>
+<p>Furthermore, the optimal policy is given by the gradient of <span class="math notranslate nohighlight">\(\Omega^*\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[ d^*(a|s) = \nabla \Omega^*(q^*_\Omega(s, \cdot)) = \frac{\exp(q^*_\Omega(s,a))}{\sum_{a' \in \mathcal{A}_s} \exp(q^*_\Omega(s,a'))} \]</div>
+<p>This is the familiar softmax policy we encountered in the smooth MDP setting.</p>
+</section>
+<section id="equivalence-between-smooth-bellman-equations-and-entropy-regularized-mdps">
+<h3>Equivalence Between Smooth Bellman Equations and Entropy-Regularized MDPs<a class="headerlink" href="#equivalence-between-smooth-bellman-equations-and-entropy-regularized-mdps" title="Link to this heading">#</a></h3>
+<p>We have now seen two distinct ways to arrive at smooth Bellman equations. Earlier in this chapter, we introduced the logsumexp operator as a smooth approximation to the max operator, motivated by analytical tractability and the desire for differentiability. Just now, we derived the same equations through the lens of regularized MDPs, where we explicitly penalize the entropy of policies. Remarkably, these two perspectives are mathematically equivalent: solving the smooth Bellman equation with inverse temperature parameter <span class="math notranslate nohighlight">\(\beta\)</span> yields exactly the same optimal value function and optimal policy as solving the entropy-regularized MDP with regularization strength <span class="math notranslate nohighlight">\(\alpha = 1/\beta\)</span>. The two formulations are not merely similar—they describe identical optimization problems.</p>
+<p>To see this equivalence clearly, consider the standard MDP problem with rewards <span class="math notranslate nohighlight">\(r(s,a)\)</span> and transition probabilities <span class="math notranslate nohighlight">\(p(j|s,a)\)</span>. The regularized MDP framework tells us to solve:</p>
+<div class="math notranslate nohighlight">
+\[
+\max_\pi \mathbb{E}_\pi \left[ \sum_{t=0}^\infty \gamma^t r(s_t, a_t) \right] + \alpha \mathbb{E}_\pi \left[ \sum_{t=0}^\infty \gamma^t H(\pi(\cdot|s_t)) \right],
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(H(\pi(\cdot|s)) = -\sum_a \pi(a|s) \ln \pi(a|s)\)</span> is the entropy of the policy at state <span class="math notranslate nohighlight">\(s\)</span>, and <span class="math notranslate nohighlight">\(\alpha &gt; 0\)</span> is the entropy regularization strength.</p>
+<p>We can rewrite this objective by absorbing the entropy term into a modified reward function. Define the entropy-augmented reward:</p>
+<div class="math notranslate nohighlight">
+\[
+\tilde{r}(s,a,\pi) = r(s,a) + \alpha H(\pi(\cdot|s)).
+\]</div>
+<p>However, this formulation makes the reward depend on the entire policy at each state, which is awkward. We can reformulate this more cleanly by expanding the entropy term. Recall that the entropy is:</p>
+<div class="math notranslate nohighlight">
+\[
+H(\pi(\cdot|s)) = -\sum_a \pi(a|s) \ln \pi(a|s).
+\]</div>
+<p>When we take the expectation over actions drawn from <span class="math notranslate nohighlight">\(\pi\)</span>, we have:</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbb{E}_{a \sim \pi(\cdot|s)} [H(\pi(\cdot|s))] = \sum_a \pi(a|s) \left[-\sum_{a'} \pi(a'|s) \ln \pi(a'|s)\right] = -\sum_{a'} \pi(a'|s) \ln \pi(a'|s),
+\]</div>
+<p>since the entropy doesn’t depend on which action is actually sampled. But we can also write this as:</p>
+<div class="math notranslate nohighlight">
+\[
+H(\pi(\cdot|s)) = -\sum_a \pi(a|s) \ln \pi(a|s) = \mathbb{E}_{a \sim \pi(\cdot|s)}[-\ln \pi(a|s)].
+\]</div>
+<p>This shows that adding <span class="math notranslate nohighlight">\(\alpha H(\pi(\cdot|s))\)</span> to the expected reward at state <span class="math notranslate nohighlight">\(s\)</span> is equivalent to adding <span class="math notranslate nohighlight">\(-\alpha \ln \pi(a|s)\)</span> to the reward of taking action <span class="math notranslate nohighlight">\(a\)</span> at state <span class="math notranslate nohighlight">\(s\)</span>. More formally:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{align*}
+&amp;\mathbb{E}_\pi \left[ \sum_{t=0}^\infty \gamma^t r(s_t, a_t) \right] + \alpha \mathbb{E}_\pi \left[ \sum_{t=0}^\infty \gamma^t H(\pi(\cdot|s_t)) \right] \\
+&amp;= \mathbb{E}_\pi \left[ \sum_{t=0}^\infty \gamma^t r(s_t, a_t) \right] + \alpha \mathbb{E}_\pi \left[ \sum_{t=0}^\infty \gamma^t \mathbb{E}_{a_t \sim \pi(\cdot|s_t)}[-\ln \pi(a_t|s_t)] \right] \\
+&amp;= \mathbb{E}_\pi \left[ \sum_{t=0}^\infty \gamma^t \left( r(s_t, a_t) - \alpha \ln \pi(a_t|s_t) \right) \right].
+\end{align*}
+\end{split}\]</div>
+<p>The entropy bonus at each state, when averaged over the policy, becomes a per-action penalty proportional to the negative log probability of the action taken. This reformulation is more useful because the modified reward now depends only on the state, the action taken, and the probability assigned to that specific action by the policy—not on the entire distribution over actions.</p>
+<p>This expression shows that entropy regularization is equivalent to adding a state-action dependent penalty term <span class="math notranslate nohighlight">\(-\alpha \ln \pi(a|s)\)</span> to the reward. Intuititively, this terms amounts to paying a cost for low-entropy (deterministic) policies.</p>
+<p>Now, when we write down the Bellman equation for this entropy-regularized problem, at each state <span class="math notranslate nohighlight">\(s\)</span> we need to find the decision rule <span class="math notranslate nohighlight">\(d(\cdot|s) \in \Delta(\mathcal{A}_s)\)</span> (a probability distribution over actions) that maximizes:</p>
+<div class="math notranslate nohighlight">
+\[
+v(s) = \max_{d(\cdot|s) \in \Delta(\mathcal{A}_s)} \sum_a d(a|s) \left[ r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j) - \alpha \ln d(a|s) \right].
+\]</div>
+<p>Here <span class="math notranslate nohighlight">\(\Delta(\mathcal{A}_s) = \{d(\cdot|s) : d(a|s) \geq 0, \sum_a d(a|s) = 1\}\)</span> denotes the probability simplex over actions available at state <span class="math notranslate nohighlight">\(s\)</span>. The optimization is over randomized decision rules at each state, constrained to be valid probability distributions.</p>
+<p>This is a convex optimization problem with a linear constraint. We form the Lagrangian:</p>
+<div class="math notranslate nohighlight">
+\[
+\mathcal{L}(d, \lambda) = \sum_a d(a|s) \left[ r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j) - \alpha \ln d(a|s) \right] - \lambda \left(\sum_a d(a|s) - 1\right),
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(\lambda\)</span> is the Lagrange multiplier enforcing the normalization constraint. Taking the derivative with respect to <span class="math notranslate nohighlight">\(d(a|s)\)</span> and setting it to zero:</p>
+<div class="math notranslate nohighlight">
+\[
+r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j) - \alpha(1 + \ln d^*(a|s)) - \lambda = 0.
+\]</div>
+<p>Solving for <span class="math notranslate nohighlight">\(d^*(a|s)\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+d^*(a|s) = \exp\left(\frac{1}{\alpha}\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j) - \lambda\right)\right).
+\]</div>
+<p>Using the normalization constraint <span class="math notranslate nohighlight">\(\sum_a d^*(a|s) = 1\)</span> to solve for <span class="math notranslate nohighlight">\(\lambda\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+\sum_a \exp\left(\frac{1}{\alpha}\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right)\right) = \exp\left(\frac{\lambda}{\alpha}\right).
+\]</div>
+<p>Therefore:</p>
+<div class="math notranslate nohighlight">
+\[
+\lambda = \alpha \ln \sum_a \exp\left(\frac{1}{\alpha}\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right)\right).
+\]</div>
+<p>Substituting this back into the Bellman equation and simplifying:</p>
+<div class="math notranslate nohighlight">
+\[
+v(s) = \alpha \ln \sum_a \exp\left(\frac{1}{\alpha}\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right)\right).
+\]</div>
+<p>Setting <span class="math notranslate nohighlight">\(\beta = 1/\alpha\)</span> (the inverse temperature), this becomes:</p>
+<div class="math notranslate nohighlight">
+\[
+v(s) = \frac{1}{\beta} \ln \sum_a \exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right)\right).
+\]</div>
+<p>This is precisely the smooth Bellman equation we derived earlier using the logsumexp operator. The inverse temperature parameter <span class="math notranslate nohighlight">\(\beta\)</span> controls how closely the logsumexp approximates the max: as <span class="math notranslate nohighlight">\(\beta \to \infty\)</span>, we recover the standard Bellman equation, while for finite <span class="math notranslate nohighlight">\(\beta\)</span>, we have a smooth approximation that corresponds to optimizing with entropy regularization strength <span class="math notranslate nohighlight">\(\alpha = 1/\beta\)</span>.</p>
+<p>The optimal policy is:</p>
+<div class="math notranslate nohighlight">
+\[
+\pi^*(a|s) = \frac{\exp\left(\beta q^*(s,a)\right)}{\sum_{a'} \exp\left(\beta q^*(s,a')\right)} = \text{softmax}_\beta(q^*(s,\cdot))(a),
+\]</div>
+<p>which is exactly the softmax policy parametrized by inverse temperature.</p>
+<p>The derivation establishes the complete equivalence: the value function <span class="math notranslate nohighlight">\(v^*\)</span> that solves the smooth Bellman equation is identical to the optimal value function <span class="math notranslate nohighlight">\(v^*_\Omega\)</span> of the entropy-regularized MDP (with <span class="math notranslate nohighlight">\(\Omega\)</span> being negative entropy and <span class="math notranslate nohighlight">\(\alpha = 1/\beta\)</span>), and the softmax policy that is greedy with respect to this value function achieves the maximum of the entropy-regularized objective. Both approaches yield the same numerical solution—the same values at every state and the same policy prescriptions. The only difference is how we conceptualize the problem: as smoothing the Bellman operator for computational tractability, or as explicitly trading off reward maximization against policy entropy.</p>
+<p>This equivalence has important implications. When we use smooth Bellman equations with a logsumexp operator, we are implicitly solving an entropy-regularized MDP. Conversely, when we explicitly add entropy regularization to an MDP objective, we arrive at smooth Bellman equations as the natural description of optimality. This dual perspective will prove valuable in understanding various algorithms and theoretical results. For instance, in soft actor-critic methods and other maximum entropy reinforcement learning algorithms, the connection between smooth operators and entropy regularization provides both computational benefits (differentiability) and conceptual clarity (why we want stochastic policies).</p>
+</section>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./."
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="dp.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Dynamic Programming</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="projdp.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Projection Methods for Functional Equations</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gumbel-noise-on-the-rewards">Gumbel Noise on the Rewards</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#regularized-markov-decision-processes">Regularized Markov Decision Processes</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#legendre-fenchel-transform">Legendre-Fenchel Transform</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#regularized-bellman-operators">Regularized Bellman Operators</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#recovering-the-smooth-bellman-equations">Recovering the Smooth Bellman Equations</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#equivalence-between-smooth-bellman-equations-and-entropy-regularized-mdps">Equivalence Between Smooth Bellman Equations and Entropy-Regularized MDPs</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Pierre-Luc Bacon
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

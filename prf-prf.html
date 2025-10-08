@@ -215,12 +215,11 @@ window.addEventListener("load", () => mermaid.run());
 
 
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Learning from Data</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Approximate Dynamic Programming</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="adp.html">Approximate Dynamic Programming</a></li>
-
-
-
+<li class="toctree-l1"><a class="reference internal" href="regmdp.html">Smooth Bellman Optimality Equations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="projdp.html">Projection Methods for Functional Equations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simadp.html">Simulation-Based Approximate Dynamic Programming</a></li>
 
 
 
@@ -492,7 +491,7 @@ window.addEventListener("load", () => mermaid.run());
      <tr>
        <td></td>
        <td>
-       <a href="adp.html#alg-gsvi"><code class="xref">alg-gsvi</code></a> <em>(adp)</em></td><td>
+       <a href="simadp.html#alg-gsvi"><code class="xref">alg-gsvi</code></a> <em>(simadp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-alg-mpc-complete"><td></td><td>
@@ -564,7 +563,7 @@ window.addEventListener("load", () => mermaid.run());
      <tr>
        <td></td>
        <td>
-       <a href="adp.html#basic-q-iteration"><code class="xref">basic-q-iteration</code></a> <em>(adp)</em></td><td>
+       <a href="simadp.html#basic-q-iteration"><code class="xref">basic-q-iteration</code></a> <em>(simadp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-ddpg"><td></td><td>
@@ -636,7 +635,7 @@ window.addEventListener("load", () => mermaid.run());
      <tr>
        <td></td>
        <td>
-       <a href="adp.html#double-dqn"><code class="xref">double-dqn</code></a> <em>(adp)</em></td><td>
+       <a href="simadp.html#double-dqn"><code class="xref">double-dqn</code></a> <em>(simadp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-double-mc-value-iteration"><td></td><td>
@@ -644,7 +643,7 @@ window.addEventListener("load", () => mermaid.run());
      <tr>
        <td></td>
        <td>
-       <a href="adp.html#double-mc-value-iteration"><code class="xref">double-mc-value-iteration</code></a> <em>(adp)</em></td><td>
+       <a href="simadp.html#double-mc-value-iteration"><code class="xref">double-mc-value-iteration</code></a> <em>(simadp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-dqn-hard-resets"><td></td><td>
@@ -652,7 +651,7 @@ window.addEventListener("load", () => mermaid.run());
      <tr>
        <td></td>
        <td>
-       <a href="adp.html#dqn-hard-resets"><code class="xref">dqn-hard-resets</code></a> <em>(adp)</em></td><td>
+       <a href="simadp.html#dqn-hard-resets"><code class="xref">dqn-hard-resets</code></a> <em>(simadp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-dqn-soft-resets"><td></td><td>
@@ -660,7 +659,7 @@ window.addEventListener("load", () => mermaid.run());
      <tr>
        <td></td>
        <td>
-       <a href="adp.html#dqn-soft-resets"><code class="xref">dqn-soft-resets</code></a> <em>(adp)</em></td><td>
+       <a href="simadp.html#dqn-soft-resets"><code class="xref">dqn-soft-resets</code></a> <em>(simadp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-early-stopping-fqi"><td></td><td>
@@ -668,7 +667,7 @@ window.addEventListener("load", () => mermaid.run());
      <tr>
        <td></td>
        <td>
-       <a href="adp.html#early-stopping-fqi"><code class="xref">early-stopping-fqi</code></a> <em>(adp)</em></td><td>
+       <a href="simadp.html#early-stopping-fqi"><code class="xref">early-stopping-fqi</code></a> <em>(simadp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-euler-method"><td></td><td>
@@ -684,7 +683,7 @@ window.addEventListener("load", () => mermaid.run());
      <tr>
        <td></td>
        <td>
-       <a href="adp.html#extra-trees-fqi"><code class="xref">extra-trees-fqi</code></a> <em>(adp)</em></td><td>
+       <a href="simadp.html#extra-trees-fqi"><code class="xref">extra-trees-fqi</code></a> <em>(simadp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-fitted-q-iteration-amortized"><td></td><td>
@@ -716,7 +715,7 @@ window.addEventListener("load", () => mermaid.run());
      <tr>
        <td></td>
        <td>
-       <a href="adp.html#kernel-based-q-iteration"><code class="xref">kernel-based-q-iteration</code></a> <em>(adp)</em></td><td>
+       <a href="simadp.html#kernel-based-q-iteration"><code class="xref">kernel-based-q-iteration</code></a> <em>(simadp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-kkt-conditions"><td></td><td>
@@ -740,7 +739,7 @@ window.addEventListener("load", () => mermaid.run());
      <tr>
        <td></td>
        <td>
-       <a href="adp.html#mc-value-iteration"><code class="xref">mc-value-iteration</code></a> <em>(adp)</em></td><td>
+       <a href="simadp.html#mc-value-iteration"><code class="xref">mc-value-iteration</code></a> <em>(simadp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-neumann-series"><td></td><td>
@@ -756,7 +755,7 @@ window.addEventListener("load", () => mermaid.run());
      <tr>
        <td></td>
        <td>
-       <a href="adp.html#neural-fitted-q-iteration"><code class="xref">neural-fitted-q-iteration</code></a> <em>(adp)</em></td><td>
+       <a href="simadp.html#neural-fitted-q-iteration"><code class="xref">neural-fitted-q-iteration</code></a> <em>(simadp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-nfqca"><td></td><td>
@@ -772,7 +771,7 @@ window.addEventListener("load", () => mermaid.run());
      <tr>
        <td></td>
        <td>
-       <a href="adp.html#nfqi-flattened-ema"><code class="xref">nfqi-flattened-ema</code></a> <em>(adp)</em></td><td>
+       <a href="simadp.html#nfqi-flattened-ema"><code class="xref">nfqi-flattened-ema</code></a> <em>(simadp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-nfqi-flattened-swap"><td></td><td>
@@ -780,7 +779,7 @@ window.addEventListener("load", () => mermaid.run());
      <tr>
        <td></td>
        <td>
-       <a href="adp.html#nfqi-flattened-swap"><code class="xref">nfqi-flattened-swap</code></a> <em>(adp)</em></td><td>
+       <a href="simadp.html#nfqi-flattened-swap"><code class="xref">nfqi-flattened-swap</code></a> <em>(simadp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-nfqi-warmstart-partial"><td></td><td>
@@ -788,7 +787,7 @@ window.addEventListener("load", () => mermaid.run());
      <tr>
        <td></td>
        <td>
-       <a href="adp.html#nfqi-warmstart-partial"><code class="xref">nfqi-warmstart-partial</code></a> <em>(adp)</em></td><td>
+       <a href="simadp.html#nfqi-warmstart-partial"><code class="xref">nfqi-warmstart-partial</code></a> <em>(simadp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-online-nfqi-flattened"><td></td><td>
@@ -796,7 +795,7 @@ window.addEventListener("load", () => mermaid.run());
      <tr>
        <td></td>
        <td>
-       <a href="adp.html#online-nfqi-flattened"><code class="xref">online-nfqi-flattened</code></a> <em>(adp)</em></td><td>
+       <a href="simadp.html#online-nfqi-flattened"><code class="xref">online-nfqi-flattened</code></a> <em>(simadp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-online-nfqi-replay"><td></td><td>
@@ -804,7 +803,7 @@ window.addEventListener("load", () => mermaid.run());
      <tr>
        <td></td>
        <td>
-       <a href="adp.html#online-nfqi-replay"><code class="xref">online-nfqi-replay</code></a> <em>(adp)</em></td><td>
+       <a href="simadp.html#online-nfqi-replay"><code class="xref">online-nfqi-replay</code></a> <em>(simadp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-parametric-policy-iteration"><td></td><td>
@@ -812,7 +811,7 @@ window.addEventListener("load", () => mermaid.run());
      <tr>
        <td></td>
        <td>
-       <a href="adp.html#parametric-policy-iteration"><code class="xref">parametric-policy-iteration</code></a> <em>(adp)</em></td><td>
+       <a href="simadp.html#parametric-policy-iteration"><code class="xref">parametric-policy-iteration</code></a> <em>(simadp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-parametric-q-value-iteration"><td></td><td>
@@ -820,7 +819,7 @@ window.addEventListener("load", () => mermaid.run());
      <tr>
        <td></td>
        <td>
-       <a href="adp.html#parametric-q-value-iteration"><code class="xref">parametric-q-value-iteration</code></a> <em>(adp)</em></td><td>
+       <a href="simadp.html#parametric-q-value-iteration"><code class="xref">parametric-q-value-iteration</code></a> <em>(simadp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-parametric-value-iteration"><td></td><td>
@@ -828,7 +827,7 @@ window.addEventListener("load", () => mermaid.run());
      <tr>
        <td></td>
        <td>
-       <a href="adp.html#parametric-value-iteration"><code class="xref">parametric-value-iteration</code></a> <em>(adp)</em></td><td>
+       <a href="simadp.html#parametric-value-iteration"><code class="xref">parametric-value-iteration</code></a> <em>(simadp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-policy-grad-baseline"><td></td><td>
@@ -908,7 +907,7 @@ window.addEventListener("load", () => mermaid.run());
      <tr>
        <td></td>
        <td>
-       <a href="adp.html#q-iteration-inner-loop"><code class="xref">q-iteration-inner-loop</code></a> <em>(adp)</em></td><td>
+       <a href="simadp.html#q-iteration-inner-loop"><code class="xref">q-iteration-inner-loop</code></a> <em>(simadp)</em></td><td>
        <em>algorithm</em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-remark-2"><td></td><td>
@@ -1036,7 +1035,7 @@ window.addEventListener("load", () => mermaid.run());
      <tr>
        <td></td>
        <td>
-       <a href="adp.html#warmstarted-q-learning"><code class="xref">warmstarted-q-learning</code></a> <em>(adp)</em></td><td>
+       <a href="simadp.html#warmstarted-q-learning"><code class="xref">warmstarted-q-learning</code></a> <em>(simadp)</em></td><td>
        <em>algorithm</em></td></tr>
    </table>
 
