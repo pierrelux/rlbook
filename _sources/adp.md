@@ -118,6 +118,7 @@ d(s,\epsilon) &= \left\{a \in \mathcal{A}_s : I_a(\epsilon) = 1\right\} \\
 $$
 
 This set-valued -- but determinisic -- function $d(s,\epsilon)$ gives us the set of optimal actions for a given state $s$ and noise realization $\epsilon$. For simplicity, consider the case where the optimal set of actions at $s$ is a singleton such that taking the expection over the noise variable gives us:
+
 $$ \begin{align*}
 \mathbb{E}_\epsilon[I_a(\epsilon)] = \mathbb{P}\left(a \in \operatorname{argmax}_{a' \in \mathcal{A}_s} \left\{ r(s,a') + \epsilon(a') + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, \epsilon, a'\right] \right\}\right)
 \end{align*} $$
@@ -135,7 +136,7 @@ Applying this property and using the definition $v_\gamma^\star(s) = \mathbb{E}_
 
 This gives us the optimal stochastic policy for the smooth MDP. Note that as $\beta \to \infty$, this policy approaches the deterministic policy of the original MDP, while for finite $\beta$, it gives a stochastic policy.
 
-## Control as Inference Perspective
+<!-- ## Control as Inference Perspective
 
 The smooth Bellman optimality equations can also be derived from probabilistic inference perspective. To see this, let's go back to the idea from the previous section in which we introduced an indicator function $I_a(\epsilon)$ to represent whether an action $a$ is optimal given a particular realization of the noise $\epsilon$:
 
@@ -215,7 +216,7 @@ p(a_t | s_t, O_{1:T} = 1) &\propto p(a_t | s_t) \exp(\beta r(s_t, a_t)) \sum_{s_
 
 After normalization, and assuming a uniform prior $p(a_t | s_t)$, we obtain the randomized decision rule:
 
-$$ d(a_t | s_t) = \frac{\exp(\beta (r(s_t, a_t) + \gamma \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) V_{t+1}(s_{t+1})))}{\sum_{a'_t} \exp(\beta (r(s_t, a'_t) + \gamma \sum_{s_{t+1}} p(s_{t+1} | s_t, a'_t) V_{t+1}(s_{t+1})))} $$
+$$ d(a_t | s_t) = \frac{\exp(\beta (r(s_t, a_t) + \gamma \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) V_{t+1}(s_{t+1})))}{\sum_{a'_t} \exp(\beta (r(s_t, a'_t) + \gamma \sum_{s_{t+1}} p(s_{t+1} | s_t, a'_t) V_{t+1}(s_{t+1})))} $$ -->
 
 ## Regularized Markov Decision Processes
 
@@ -223,7 +224,7 @@ Regularized MDPs {cite}`geist2019` provide another perspective on how the smooth
 
 Let's set up some necessary notation. First, recall that the policy evaluation operator for a stationary policy with decision rule $d$ is defined as:
 
-$$ L_d v = r_d + \gamma P_d v $$
+$$ \mathrm{L}_d v = r_d + \gamma P_d v $$
 
 where $r_d$ is the expected reward under policy $d$, $\gamma$ is the discount factor, and $P_d$ is the state transition probability matrix under $d$. A complementary object to the value function is the q-function (or Q-factor) representation:
 
@@ -234,11 +235,11 @@ v_\gamma^{d^\infty}(s) &= \sum_{a \in \mathcal{A}_s} d(a | s) q_\gamma^{d^\infty
 
 The policy evaluation operator can then be written in terms of the q-function as:
 
-$$ [L_d v](s) = \langle d(\cdot | s), q(s, \cdot) \rangle $$
+$$ [\mathrm{L}_d v](s) = \langle d(\cdot | s), q(s, \cdot) \rangle $$
 
 ### Legendre-Fenchel Transform
 
-A key concept in the theory of regularized MDPs is the Legendre-Fenchel transform, also known as the convex conjugate. For a strongly convex function $\Omega: \Delta_{\mathcal{A}} \rightarrow \mathbb{R}$, its Legendre-Fenchel transform $\Omega^*: \mathbb{R}^{\mathcal{A}} \rightarrow \mathbb{R}$ is defined as:
+The workhorse behind the theory of regularized MDPs is the Legendre-Fenchel transform, also known as the convex conjugate. For a strongly convex function $\Omega: \Delta_{\mathcal{A}} \rightarrow \mathbb{R}$, its Legendre-Fenchel transform $\Omega^*: \mathbb{R}^{\mathcal{A}} \rightarrow \mathbb{R}$ is defined as:
 
 $$ \Omega^*(q(s, \cdot)) = \max_{d(\cdot|s) \in \Delta_{\mathcal{A}}} \langle d(\cdot | s), q(s, \cdot) \rangle - \Omega(d(\cdot | s)) $$
 
@@ -252,23 +253,23 @@ An important example of a regularizer is the negative entropy, which gives rise 
 
 With these concepts in place, we can now define the regularized Bellman operators:
 
-1. **Regularized Policy Evaluation Operator** $(L_{d,\Omega})$:
+1. **Regularized Policy Evaluation Operator** $(\mathrm{L}_{d,\Omega})$:
 
-   $$ [L_{d,\Omega} v](s) = \langle q(s,\cdot), d(\cdot | s) \rangle - \Omega(d(\cdot | s)) $$
+   $$ [\mathrm{L}_{d,\Omega} v](s) = \langle q(s,\cdot), d(\cdot | s) \rangle - \Omega(d(\cdot | s)) $$
 
-2. **Regularized Bellman Optimality Operator** $(L_\Omega)$:
+2. **Regularized Bellman Optimality Operator** $(\mathrm{L}_\Omega)$:
            
-   $$ [L_\Omega v](s) = [\max_d L_{d,\Omega} v ](s) = \Omega^*(q(s, \cdot)) $$
+   $$ [\mathrm{L}_\Omega v](s) = [\max_d \mathrm{L}_{d,\Omega} v ](s) = \Omega^*(q(s, \cdot)) $$
 
 It can be shown that the addition of a regularizer in these regularized operators still preserves the contraction properties, and therefore the existence of a solution to the optimality equations and the convergence of successive approximation.
 
 The regularized value function of a stationary policy with decision rule $d$, denoted by $v_{d,\Omega}$, is the unique fixed point of the operator equation:
 
-$$\text{find $v$ such that } \enspace v = L_{d,\Omega} v$$
+$$\text{find $v$ such that } \enspace v = \mathrm{L}_{d,\Omega} v$$
 
 Under the usual assumptions on the discount factor and the boundedness of the reward, the value of a policy can also be found in closed form by solving for $v$ in the linear system of equations:
 
-$$ (I - \gamma P_d) v =  (r_d - \Omega(d)) $$
+$$ (\mathbf{I} - \gamma P_d) v =  (r_d - \Omega(d)) $$
 
 The associated state-action value function $q_{d,\Omega}$ is given by:
 
@@ -277,9 +278,9 @@ q_{d,\Omega}(s, a) &= r(s, a) + \sum_{j \in \mathcal{S}} \gamma p(j|s,a) v_{d,\O
 v_{d,\Omega}(s) &= \sum_{a \in \mathcal{A}_s} d(a | s) q_{d,\Omega}(s, a) - \Omega(d(\cdot | s))
 \end{align*} $$
 
-The regularized optimal value function $v^*_\Omega$ is then the unique fixed point of $L_\Omega$ in the fixed point equation:
+The regularized optimal value function $v^*_\Omega$ is then the unique fixed point of $\mathrm{L}_\Omega$ in the fixed point equation:
 
-$$\text{find $v$ such that } v = L_\Omega v$$
+$$\text{find $v$ such that } v = \mathrm{L}_\Omega v$$
 
 The associated state-action value function $q^*_\Omega$ is given by:
 
@@ -287,7 +288,7 @@ $$ \begin{align*}
 q^*_\Omega(s, a) &= r(s, a) + \sum_{j \in \mathcal{S}} \gamma p(j|s,a) v^*_\Omega(j) \\
 v^*_\Omega(s) &= \Omega^*(q^*_\Omega(s, \cdot))\end{align*} $$
 
-An important result in the theory of regularized MDPs is that there exists a unique optimal regularized policy. Specifically, if $d^*_\Omega$ is a conserving decision rule (i.e., $d^*_\Omega = \arg\max_d L_{d,\Omega} v^*_\Omega$), then the randomized stationary policy $(d^*_\Omega)^\infty$ is the unique optimal regularized policy.
+An important result in the theory of regularized MDPs is that there exists a unique optimal regularized policy. Specifically, if $d^*_\Omega$ is a conserving decision rule (i.e., $d^*_\Omega = \arg\max_d \mathrm{L}_{d,\Omega} v^*_\Omega$), then the randomized stationary policy $(d^*_\Omega)^\infty$ is the unique optimal regularized policy.
 
 In practice, once we have found $v^*_\Omega$, we can derive the optimal decision rule by taking the gradient of the convex conjugate evaluated at the optimal action-value function:
 
@@ -321,6 +322,267 @@ $$ d^*(a|s) = \nabla \Omega^*(q^*_\Omega(s, \cdot)) = \frac{\exp(q^*_\Omega(s,a)
 
 This is the familiar softmax policy we encountered in the smooth MDP setting.
 
+### Equivalence Between Smooth Bellman Equations and Entropy-Regularized MDPs
+
+We have now seen two distinct ways to arrive at smooth Bellman equations. Earlier in this chapter, we introduced the logsumexp operator as a smooth approximation to the max operator, motivated by analytical tractability and the desire for differentiability. Just now, we derived the same equations through the lens of regularized MDPs, where we explicitly penalize the entropy of policies. Remarkably, these two perspectives are mathematically equivalent: solving the smooth Bellman equation with inverse temperature parameter $\beta$ yields exactly the same optimal value function and optimal policy as solving the entropy-regularized MDP with regularization strength $\alpha = 1/\beta$. The two formulations are not merely similar—they describe identical optimization problems.
+
+To see this equivalence clearly, consider the standard MDP problem with rewards $r(s,a)$ and transition probabilities $p(j|s,a)$. The regularized MDP framework tells us to solve:
+
+$$
+\max_\pi \mathbb{E}_\pi \left[ \sum_{t=0}^\infty \gamma^t r(s_t, a_t) \right] + \alpha \mathbb{E}_\pi \left[ \sum_{t=0}^\infty \gamma^t H(\pi(\cdot|s_t)) \right],
+$$
+where $H(\pi(\cdot|s)) = -\sum_a \pi(a|s) \ln \pi(a|s)$ is the entropy of the policy at state $s$, and $\alpha > 0$ is the entropy regularization strength.
+
+We can rewrite this objective by absorbing the entropy term into a modified reward function. Define the entropy-augmented reward:
+
+$$
+\tilde{r}(s,a,\pi) = r(s,a) + \alpha H(\pi(\cdot|s)).
+$$
+
+However, this formulation makes the reward depend on the entire policy at each state, which is awkward. We can reformulate this more cleanly by expanding the entropy term. Recall that the entropy is:
+$$
+H(\pi(\cdot|s)) = -\sum_a \pi(a|s) \ln \pi(a|s).
+$$
+
+When we take the expectation over actions drawn from $\pi$, we have:
+$$
+\mathbb{E}_{a \sim \pi(\cdot|s)} [H(\pi(\cdot|s))] = \sum_a \pi(a|s) \left[-\sum_{a'} \pi(a'|s) \ln \pi(a'|s)\right] = -\sum_{a'} \pi(a'|s) \ln \pi(a'|s),
+$$
+since the entropy doesn't depend on which action is actually sampled. But we can also write this as:
+$$
+H(\pi(\cdot|s)) = -\sum_a \pi(a|s) \ln \pi(a|s) = \mathbb{E}_{a \sim \pi(\cdot|s)}[-\ln \pi(a|s)].
+$$
+
+This shows that adding $\alpha H(\pi(\cdot|s))$ to the expected reward at state $s$ is equivalent to adding $-\alpha \ln \pi(a|s)$ to the reward of taking action $a$ at state $s$. More formally:
+$$
+\begin{align*}
+&\mathbb{E}_\pi \left[ \sum_{t=0}^\infty \gamma^t r(s_t, a_t) \right] + \alpha \mathbb{E}_\pi \left[ \sum_{t=0}^\infty \gamma^t H(\pi(\cdot|s_t)) \right] \\
+&= \mathbb{E}_\pi \left[ \sum_{t=0}^\infty \gamma^t r(s_t, a_t) \right] + \alpha \mathbb{E}_\pi \left[ \sum_{t=0}^\infty \gamma^t \mathbb{E}_{a_t \sim \pi(\cdot|s_t)}[-\ln \pi(a_t|s_t)] \right] \\
+&= \mathbb{E}_\pi \left[ \sum_{t=0}^\infty \gamma^t \left( r(s_t, a_t) - \alpha \ln \pi(a_t|s_t) \right) \right].
+\end{align*}
+$$
+
+The entropy bonus at each state, when averaged over the policy, becomes a per-action penalty proportional to the negative log probability of the action taken. This reformulation is more useful because the modified reward now depends only on the state, the action taken, and the probability assigned to that specific action by the policy—not on the entire distribution over actions.
+
+This expression shows that entropy regularization is equivalent to adding a state-action dependent penalty term $-\alpha \ln \pi(a|s)$ to the reward. Intuititively, this terms amounts to paying a cost for low-entropy (deterministic) policies.
+
+Now, when we write down the Bellman equation for this entropy-regularized problem, at each state $s$ we need to find the decision rule $d(\cdot|s) \in \Delta(\mathcal{A}_s)$ (a probability distribution over actions) that maximizes:
+
+$$
+v(s) = \max_{d(\cdot|s) \in \Delta(\mathcal{A}_s)} \sum_a d(a|s) \left[ r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j) - \alpha \ln d(a|s) \right].
+$$
+
+Here $\Delta(\mathcal{A}_s) = \{d(\cdot|s) : d(a|s) \geq 0, \sum_a d(a|s) = 1\}$ denotes the probability simplex over actions available at state $s$. The optimization is over randomized decision rules at each state, constrained to be valid probability distributions.
+
+This is a convex optimization problem with a linear constraint. We form the Lagrangian:
+
+$$
+\mathcal{L}(d, \lambda) = \sum_a d(a|s) \left[ r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j) - \alpha \ln d(a|s) \right] - \lambda \left(\sum_a d(a|s) - 1\right),
+$$
+where $\lambda$ is the Lagrange multiplier enforcing the normalization constraint. Taking the derivative with respect to $d(a|s)$ and setting it to zero:
+
+$$
+r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j) - \alpha(1 + \ln d^*(a|s)) - \lambda = 0.
+$$
+
+Solving for $d^*(a|s)$:
+
+$$
+d^*(a|s) = \exp\left(\frac{1}{\alpha}\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j) - \lambda\right)\right).
+$$
+
+Using the normalization constraint $\sum_a d^*(a|s) = 1$ to solve for $\lambda$:
+
+$$
+\sum_a \exp\left(\frac{1}{\alpha}\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right)\right) = \exp\left(\frac{\lambda}{\alpha}\right).
+$$
+
+Therefore:
+
+$$
+\lambda = \alpha \ln \sum_a \exp\left(\frac{1}{\alpha}\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right)\right).
+$$
+
+Substituting this back into the Bellman equation and simplifying:
+
+$$
+v(s) = \alpha \ln \sum_a \exp\left(\frac{1}{\alpha}\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right)\right).
+$$
+
+Setting $\beta = 1/\alpha$ (the inverse temperature), this becomes:
+
+$$
+v(s) = \frac{1}{\beta} \ln \sum_a \exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right)\right).
+$$
+
+This is precisely the smooth Bellman equation we derived earlier using the logsumexp operator. The inverse temperature parameter $\beta$ controls how closely the logsumexp approximates the max: as $\beta \to \infty$, we recover the standard Bellman equation, while for finite $\beta$, we have a smooth approximation that corresponds to optimizing with entropy regularization strength $\alpha = 1/\beta$.
+
+The optimal policy is:
+
+$$
+\pi^*(a|s) = \frac{\exp\left(\beta q^*(s,a)\right)}{\sum_{a'} \exp\left(\beta q^*(s,a')\right)} = \text{softmax}_\beta(q^*(s,\cdot))(a),
+$$
+which is exactly the softmax policy parametrized by inverse temperature.
+
+The derivation establishes the complete equivalence: the value function $v^*$ that solves the smooth Bellman equation is identical to the optimal value function $v^*_\Omega$ of the entropy-regularized MDP (with $\Omega$ being negative entropy and $\alpha = 1/\beta$), and the softmax policy that is greedy with respect to this value function achieves the maximum of the entropy-regularized objective. Both approaches yield the same numerical solution—the same values at every state and the same policy prescriptions. The only difference is how we conceptualize the problem: as smoothing the Bellman operator for computational tractability, or as explicitly trading off reward maximization against policy entropy.
+
+This equivalence has important implications. When we use smooth Bellman equations with a logsumexp operator, we are implicitly solving an entropy-regularized MDP. Conversely, when we explicitly add entropy regularization to an MDP objective, we arrive at smooth Bellman equations as the natural description of optimality. This dual perspective will prove valuable in understanding various algorithms and theoretical results. For instance, in soft actor-critic methods and other maximum entropy reinforcement learning algorithms, the connection between smooth operators and entropy regularization provides both computational benefits (differentiability) and conceptual clarity (why we want stochastic policies).
+
+# Projection Methods for Functional Equations
+
+The Bellman optimality equation $\mathrm{L}v = v$ is a functional equation—an equation where the unknown is an entire function rather than a finite-dimensional vector. When the state space is continuous or very large, we cannot represent the value function exactly on a computer. We must instead work with finite-dimensional approximations. This leads us to projection methods, a general framework for transforming infinite-dimensional problems into tractable finite-dimensional ones.
+
+The key idea is elegant: rather than trying to represent an arbitrary function $v: \mathcal{S} \to \mathbb{R}$ on a computer (which is impossible), we restrict our search to a finite-dimensional subspace of functions that can be represented with a finite number of parameters. We then find the element of this subspace that best approximates the solution in some well-defined sense.
+
+## The General Framework
+
+Consider an operator equation of the form
+$$
+\mathscr{N}(f) = 0,
+$$
+where $\mathscr{N}: B_1 \to B_2$ is a continuous operator between complete normed vector spaces $B_1$ and $B_2$. For the Bellman equation, we have $\mathscr{N}(v) = \mathrm{L}v - v$, so that solving $\mathscr{N}(v) = 0$ is equivalent to finding the fixed point $v = \mathrm{L}v$.
+
+The projection method approach consists of several conceptual steps that transform this infinite-dimensional problem into a finite-dimensional one.
+
+### Step 1: Choose a Finite-Dimensional Approximation Space
+
+We begin by selecting a basis $\Phi = \{\varphi_1, \varphi_2, \ldots, \varphi_n\}$ and approximating the unknown function as a linear combination:
+
+$$
+\hat{f}(x) = \sum_{i=1}^n a_i \varphi_i(x).
+$$
+
+The choice of basis functions $\varphi_i$ is crucial and problem-dependent. Common choices include:
+- **Polynomials**: For smooth problems, we might use Chebyshev polynomials or other orthogonal polynomial families
+- **Splines**: For problems where we expect the solution to have regions of different smoothness
+- **Radial basis functions**: For high-dimensional problems where tensor product methods become intractable
+
+The number of basis functions $n$ determines the flexibility of our approximation. In practice, we start with small $n$ and increase it until the approximation quality is satisfactory. The only unknowns now are the coefficients $a = (a_1, \ldots, a_n)$.
+
+### Step 2: Define the Residual Function
+
+Since we are approximating $f$ with $\hat{f}$, the operator $\mathscr{N}$ will generally not vanish exactly. Instead, we obtain a **residual function**:
+
+$$
+R(x; a) = \mathscr{N}(\hat{f}(\cdot; a))(x).
+$$
+
+For a true solution, this residual would be identically zero. For our approximation, we aim to make it as small as possible in some well-defined sense. The residual measures how far our candidate solution is from satisfying the equation at each point $x$ in the domain.
+
+### Step 3: Choose Projection Conditions
+
+The heart of the projection method is deciding what it means for the residual to be "small." There are several standard approaches:
+
+**Least Squares Projection**: Minimize the $L^2$ norm of the residual:
+
+$$
+\min_a \int_{\mathcal{S}} R(x; a)^2 w(x) dx,
+$$
+for some weight function $w(x)$. This directly minimizes the squared error across the entire domain.
+
+**Galerkin Method**: Require the residual to be orthogonal to each basis function:
+
+$$
+\langle R(\cdot; a), \varphi_i \rangle = \int_{\mathcal{S}} R(x; a) \varphi_i(x) w(x) dx = 0, \quad i = 1, \ldots, n.
+$$
+
+This gives us $n$ equations for the $n$ unknowns in $a$. The intuition is that if the residual has no component in any of the basis function directions, it must be small relative to the approximation space we've chosen.
+
+**Collocation Method**: Require the residual to vanish exactly at $n$ carefully chosen points $\{x_1, \ldots, x_n\}$:
+
+$$
+R(x_i; a) = 0, \quad i = 1, \ldots, n.
+$$
+
+Collocation is computationally attractive because it avoids numerical integration—we only need to evaluate the residual at specific points. When using orthogonal polynomials, the collocation points are typically chosen as the zeros of the $n$-th polynomial in the family. For Chebyshev polynomials, these are precisely the points that minimize the interpolation error by the Chebyshev interpolation theorem.
+
+### Step 4: Solve the Finite-Dimensional Problem
+
+Each of these projection conditions transforms our infinite-dimensional problem into a finite-dimensional one:
+- **Least squares**: A nonlinear minimization problem in $\mathbb{R}^n$
+- **Galerkin**: A system of $n$ nonlinear equations in $n$ unknowns
+- **Collocation**: A system of $n$ nonlinear equations in $n$ unknowns
+
+These finite-dimensional problems can be solved using standard numerical methods—Newton's method for nonlinear systems, quasi-Newton methods for minimization, and so on.
+
+### Step 5: Verify the Solution
+
+Once we have computed a candidate solution $\hat{f}$, we must verify its quality. Projection methods optimize $\hat{f}$ with respect to specific criteria (specific test functions or collocation points), but we should check that the residual is small everywhere, not just in the directions or at the points we optimized over.
+
+Typical diagnostic checks include:
+- Computing $\|R(\cdot; a)\|$ using a more accurate quadrature rule than was used in the optimization
+- Evaluating $R(x; a)$ at many points not used in the fitting process
+- If using Galerkin with the first $n$ basis functions, checking orthogonality against higher-order basis functions
+
+## Application to the Bellman Equation
+
+We now apply this framework to the Bellman optimality equation. Recall that we seek a function $v$ satisfying
+$$
+v(s) = \mathrm{L}v(s) = \max_{a \in \mathcal{A}_s} \left\{ r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j) \right\}.
+$$
+
+Writing this as an operator equation $\mathscr{N}(v) = 0$ with $\mathscr{N}(v) = \mathrm{L}v - v$, the residual function for a candidate approximation $\hat{v}(s) = \sum_{i=1}^n a_i \varphi_i(s)$ is:
+
+$$
+R(s; a) = \mathrm{L}\hat{v}(s) - \hat{v}(s) = \max_{a \in \mathcal{A}_s} \left\{ r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) \hat{v}(j) \right\} - \sum_{i=1}^n a_i \varphi_i(s).
+$$
+
+### Collocation for the Bellman Equation
+
+In the collocation approach, we choose $n$ states $\{s_1, \ldots, s_n\}$ and require:
+
+$$
+R(s_i; a) = 0, \quad i = 1, \ldots, n.
+$$
+
+This gives us the system of equations:
+
+$$
+\sum_{j=1}^n a_j \varphi_j(s_i) = \max_{a \in \mathcal{A}_{s_i}} \left\{ r(s_i,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s_i,a) \hat{v}(j) \right\}, \quad i = 1, \ldots, n.
+$$
+
+The right-hand side requires evaluating the Bellman operator at the collocation points. For each collocation point $s_i$, we must:
+1. For each action $a \in \mathcal{A}_{s_i}$, compute the expected continuation value $\sum_{j \in \mathcal{S}} p(j|s_i,a) \hat{v}(j)$
+2. Take the maximum over actions
+
+When the state space is continuous, the expectation involves integration, which typically requires numerical quadrature. When the state space is discrete but large, this is a straightforward (though potentially expensive) summation.
+
+### Iterative Solution: Projection-Based Value Iteration
+
+Rather than solving the nonlinear system of collocation equations directly, we can use an iterative approach analogous to value iteration. Starting with an initial guess $a^{(0)}$, we iterate:
+
+1. **Maximization step**: At each collocation point $s_i$, compute
+   $$
+   v_i^{(k+1)} = \max_{a \in \mathcal{A}_{s_i}} \left\{ r(s_i,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s_i,a) \hat{v}(s_j; a^{(k)}) \right\}.
+   $$
+
+2. **Fitting step**: Find coefficients $a^{(k+1)}$ such that $\hat{v}(s_i; a^{(k+1)}) = v_i^{(k+1)}$ for all $i = 1, \ldots, n$. This is a linear system if our approximation is linear in the coefficients.
+
+3. **Check convergence**: If $\|a^{(k+1)} - a^{(k)}\|$ is sufficiently small, stop; otherwise return to step 1.
+
+This algorithm separates the difficult nonlinear optimization (the max operator in the Bellman equation) from the approximation problem. Each iteration improves the approximation by ensuring it matches the Bellman operator at the collocation points.
+
+### Shape-Preserving Considerations
+
+A subtle but important issue arises in dynamic programming: the value function typically has specific structural properties that we want our approximation to preserve. For instance:
+- **Monotonicity**: If having more of a resource is better, the value function should be increasing
+- **Concavity**: Diminishing returns often imply concave value functions
+- **Boundedness**: The value function is bounded when rewards are bounded
+
+Standard polynomial approximation does not automatically preserve these properties. A polynomial fit to increasing, concave data points can produce a function with non-monotonic or convex regions between the data points. This can destabilize the iterative algorithm: artificially high values at non-collocation points can lead to poor decisions in the maximization step, which feeds back into even worse approximations.
+
+**Shape-preserving approximation methods** address this issue. For one-dimensional problems, Schumaker's shape-preserving quadratic splines maintain monotonicity and concavity while providing continuously differentiable approximations. For multidimensional problems, linear interpolation on simplices preserves monotonicity and convex combinations (though not concavity or smoothness).
+
+The trade-off is between smoothness and shape preservation. Smooth approximations (high-order polynomials or splines) enable efficient optimization in the maximization step through gradient-based methods, but risk introducing spurious features. Simple approximations (linear interpolation) guarantee shape preservation but introduce kinks that complicate optimization and may produce discontinuous policies when the true policy is continuous.
+
+## Connection to Function Approximation in Reinforcement Learning
+
+The projection method framework provides a principled foundation for understanding function approximation in reinforcement learning. When we use a neural network with parameters $\theta$ to approximate the value function, we are implicitly choosing:
+- **Basis**: The function class representable by the neural network architecture
+- **Projection condition**: Typically a form of stochastic gradient descent on a temporal difference error, which can be viewed as approximately minimizing a Bellman residual
+
+The temporal difference methods we will encounter later can be understood as stochastic approximations to the projection methods described here, where the expectations in the Bellman operator are estimated from samples rather than computed exactly.
+
 # Approximating the Bellman Operator using Numerical Integration
 
 For both the "hard" and smooth Bellman operators, evaluating the expectation over next states can be challenging when the state space is very large or continuous. In scenarios where we have access to an explicit representation of the transition probability function—the so-called "model-based" setting we've worked with throughout this course—this problem can be addressed using numerical integration methods. But what if we lack these exact probabilities and instead only have access to samples of next states for given state-action pairs? In this case, we must turn to Monte Carlo integration methods, which brings us fully into what we would recognize as a learning setting.
@@ -343,6 +605,7 @@ $$ p_h(s'|s, a) \equiv \frac{p(s_{k(s')}|s_{k(s)}, a)}{\int p(s_{k(s')}|s_{k(s)}
 
 After defining our discretized reward and transition probability functions, we can write down our discretized Bellman operator.
 We start with the Bellman operator using our discretized functions $r_h$ and $p_h$. While these functions map to grid points, they're still defined over continuous spaces - we haven't yet dealt with the computational challenge of the integral. With this discretization approach, the value function is piecewise constant over cells. This lets us express the integral as a sum over cells, where each cell's contribution is the probability of transitioning to that cell multiplied by the value at that cell's grid point:
+
 $$ \begin{aligned}
 (\widehat{\mathrm{L}}_h v)(s) &= \max_{k=1,\ldots,N_a} \left\{r_h(s, a_k) + \gamma \int v(s')p_h(s'|s, a_k)ds'\right\} \\
 &= \max_{k=1,\ldots,N_a} \left\{r_h(s, a_k) + \gamma \int v(s_{k(s')})p_h(s'|s, a_k)ds'\right\} \\

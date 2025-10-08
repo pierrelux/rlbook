@@ -211,6 +211,7 @@
 
 
 
+
 <li class="toctree-l1"><a class="reference internal" href="cadp.html">Policy Parametrization Methods</a></li>
 
 
@@ -481,7 +482,7 @@
 <h2>Euler’s Method<a class="headerlink" href="#euler-s-method" title="Link to this heading">#</a></h2>
 <p>The algorithm to solve this problem is, in its simplest form, a for loop which closely resembles the updates encountered in gradient descent (in fact, gradient descent can be derived from the gradient flow ODE, but that’s another discussion). The so-called explicit Euler’s method can be implemented as follow:</p>
 <div class="proof algorithm admonition" id="euler-method">
-<p class="admonition-title"><span class="caption-number">Algorithm 45 </span> (Euler’s method)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 44 </span> (Euler’s method)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> <span class="math notranslate nohighlight">\(f(x, t)\)</span>, <span class="math notranslate nohighlight">\(x_0\)</span>, <span class="math notranslate nohighlight">\(t_0\)</span>, <span class="math notranslate nohighlight">\(t_{end}\)</span>, <span class="math notranslate nohighlight">\(h\)</span></p>
 <p><strong>Output:</strong> Approximate solution <span class="math notranslate nohighlight">\(x(t)\)</span> at discrete time points</p>
@@ -751,7 +752,7 @@ x_{new} = x + h f(x_{new}, t_{new})
 \]</div>
 <p>Note that <span class="math notranslate nohighlight">\(x_{new}\)</span> appears on both sides of the equation, making this an implicit method. The algorithm for the Implicit Euler method can be described as follows:</p>
 <div class="proof algorithm admonition" id="implicit-euler-method">
-<p class="admonition-title"><span class="caption-number">Algorithm 46 </span> (Implicit Euler’s Method)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 45 </span> (Implicit Euler’s Method)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> <span class="math notranslate nohighlight">\(f(x, t)\)</span>, <span class="math notranslate nohighlight">\(x_0\)</span>, <span class="math notranslate nohighlight">\(t_0\)</span>, <span class="math notranslate nohighlight">\(t_{end}\)</span>, <span class="math notranslate nohighlight">\(h\)</span></p>
 <p><strong>Output:</strong> Approximate solution <span class="math notranslate nohighlight">\(x(t)\)</span> at discrete time points</p>
@@ -907,7 +908,7 @@ x_{new} = x + \frac{h}{2}[f(x, t) + f(x_{new}, t_{new})]
 </div>
 <p>Algorithmically, the trapezoid method can be described as follows:</p>
 <div class="proof algorithm admonition" id="algorithm-2">
-<p class="admonition-title"><span class="caption-number">Algorithm 47 </span> (Trapezoid Method)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 46 </span> (Trapezoid Method)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> <span class="math notranslate nohighlight">\( f(x, t) \)</span>, <span class="math notranslate nohighlight">\( x_0 \)</span>, <span class="math notranslate nohighlight">\( t_0 \)</span>, <span class="math notranslate nohighlight">\( t_{end} \)</span>, <span class="math notranslate nohighlight">\( h \)</span></p>
 <p><strong>Output:</strong> Approximate solution <span class="math notranslate nohighlight">\( x(t) \)</span> at discrete time points</p>

@@ -211,6 +211,7 @@
 
 
 
+
 <li class="toctree-l1"><a class="reference internal" href="cadp.html">Policy Parametrization Methods</a></li>
 
 
@@ -436,19 +437,33 @@
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Approximate Dynamic Programming</a></li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#smooth-optimality-equations-for-infinite-horizon-mdps">Smooth Optimality Equations for Infinite-Horizon MDPs</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gumbel-noise-on-the-rewards">Gumbel Noise on the Rewards</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#control-as-inference-perspective">Control as Inference Perspective</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#message-passing">Message Passing</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#deriving-the-optimal-policy">Deriving the Optimal Policy</a></li>
-</ul>
-</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#regularized-markov-decision-processes">Regularized Markov Decision Processes</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#legendre-fenchel-transform">Legendre-Fenchel Transform</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#regularized-bellman-operators">Regularized Bellman Operators</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#recovering-the-smooth-bellman-equations">Recovering the Smooth Bellman Equations</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#equivalence-between-smooth-bellman-equations-and-entropy-regularized-mdps">Equivalence Between Smooth Bellman Equations and Entropy-Regularized MDPs</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#projection-methods-for-functional-equations">Projection Methods for Functional Equations</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-general-framework">The General Framework</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-1-choose-a-finite-dimensional-approximation-space">Step 1: Choose a Finite-Dimensional Approximation Space</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-2-define-the-residual-function">Step 2: Define the Residual Function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-3-choose-projection-conditions">Step 3: Choose Projection Conditions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-4-solve-the-finite-dimensional-problem">Step 4: Solve the Finite-Dimensional Problem</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-5-verify-the-solution">Step 5: Verify the Solution</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#application-to-the-bellman-equation">Application to the Bellman Equation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#collocation-for-the-bellman-equation">Collocation for the Bellman Equation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#iterative-solution-projection-based-value-iteration">Iterative Solution: Projection-Based Value Iteration</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#shape-preserving-considerations">Shape-Preserving Considerations</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#connection-to-function-approximation-in-reinforcement-learning">Connection to Function Approximation in Reinforcement Learning</a></li>
 </ul>
 </li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#approximating-the-bellman-operator-using-numerical-integration">Approximating the Bellman Operator using Numerical Integration</a><ul class="visible nav section-nav flex-column">
@@ -521,7 +536,7 @@ Approximation theory is at the heart of learning methods, and fundamentally, thi
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="smooth-optimality-equations-for-infinite-horizon-mdps">
 <h1>Smooth Optimality Equations for Infinite-Horizon MDPs<a class="headerlink" href="#smooth-optimality-equations-for-infinite-horizon-mdps" title="Link to this heading">#</a></h1>
-<p>While the standard Bellman optimality equations use the max operator to determine the best action, an alternative formulation known as the smooth or soft Bellman optimality equations replaces this with a softmax operator. This approach originated from <span id="id1">[<a class="reference internal" href="bibliography.html#id24" title="John Rust. Optimal replacement of gmc bus engines: an empirical model of harold zurcher. Econometrica, 55(5):999-1033, 1987.">36</a>]</span> and was later rediscovered in the context of maximum entropy inverse reinforcement learning <span id="id2">[<a class="reference internal" href="bibliography.html#id25" title="Brian D. Ziebart, Andrew L. Maas, J. Andrew Bagnell, and Anind K. Dey. Maximum entropy inverse reinforcement learning. In Proceedings of the 23rd AAAI Conference on Artificial Intelligence, 1433-1438. 2008.">43</a>]</span>, which then led to soft Q-learning <span id="id3">[<a class="reference internal" href="bibliography.html#id26" title="Tuomas Haarnoja, Haoran Tang, Pieter Abbeel, and Sergey Levine. Reinforcement learning with deep energy-based policies. Proceedings of the 34th International Conference on Machine Learning, 70:1352-1361, 2017.">21</a>]</span> and soft actor-critic <span id="id4">[<a class="reference internal" href="bibliography.html#id30" title="Tuomas Haarnoja, Aurick Zhou, Pieter Abbeel, and Sergey Levine. Soft actor-critic: off-policy maximum entropy deep reinforcement learning with a stochastic actor. In Proceedings of the 35th International Conference on Machine Learning (ICML), 1861–1870. PMLR, 2018.">22</a>]</span>, a state-of-the-art deep reinforcement learning algorithm.</p>
+<p>While the standard Bellman optimality equations use the max operator to determine the best action, an alternative formulation known as the smooth or soft Bellman optimality equations replaces this with a softmax operator. This approach originated from <span id="id1">[<a class="reference internal" href="bibliography.html#id24" title="John Rust. Optimal replacement of gmc bus engines: an empirical model of harold zurcher. Econometrica, 55(5):999-1033, 1987.">37</a>]</span> and was later rediscovered in the context of maximum entropy inverse reinforcement learning <span id="id2">[<a class="reference internal" href="bibliography.html#id25" title="Brian D. Ziebart, Andrew L. Maas, J. Andrew Bagnell, and Anind K. Dey. Maximum entropy inverse reinforcement learning. In Proceedings of the 23rd AAAI Conference on Artificial Intelligence, 1433-1438. 2008.">44</a>]</span>, which then led to soft Q-learning <span id="id3">[<a class="reference internal" href="bibliography.html#id26" title="Tuomas Haarnoja, Haoran Tang, Pieter Abbeel, and Sergey Levine. Reinforcement learning with deep energy-based policies. Proceedings of the 34th International Conference on Machine Learning, 70:1352-1361, 2017.">22</a>]</span> and soft actor-critic <span id="id4">[<a class="reference internal" href="bibliography.html#id30" title="Tuomas Haarnoja, Aurick Zhou, Pieter Abbeel, and Sergey Levine. Soft actor-critic: off-policy maximum entropy deep reinforcement learning with a stochastic actor. In Proceedings of the 35th International Conference on Machine Learning (ICML), 1861–1870. PMLR, 2018.">23</a>]</span>, a state-of-the-art deep reinforcement learning algorithm.</p>
 <p>In the infinite-horizon setting, the smooth Bellman optimality equations take the form:</p>
 <div class="math notranslate nohighlight">
 \[ v_\gamma^\star(s) = \frac{1}{\beta} \log \sum_{a \in A_s} \exp\left(\beta\left(r(s, a) + \gamma \sum_{j \in S} p(j | s, a) v_\gamma^\star(j)\right)\right) \]</div>
@@ -533,9 +548,9 @@ Approximation theory is at the heart of learning methods, and fundamentally, thi
 \[ d(a|s) = \frac{\exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v_\gamma^\star(j)\right)\right)}{\sum_{a' \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a') + \gamma \sum_{j \in \mathcal{S}} p(j|s,a') v_\gamma^\star(j)\right)\right)} \]</div>
 <p>Despite the confusing terminology, the above “softmax” policy is simply the smooth counterpart to the argmax operator in the original optimality equation: it acts as a soft-argmax.</p>
 <p>This formulation is interesting for several reasons. First, smoothness is a desirable property from an optimization standpoint. Unlike <span class="math notranslate nohighlight">\(\gamma\)</span>, we view <span class="math notranslate nohighlight">\(\beta\)</span> as a hyperparameter of our algorithm, which we can control to achieve the desired level of accuracy.</p>
-<p>Second, while presented from an intuitive standpoint where we replace the max by the log-sum-exp (a smooth maximum) and the argmax by the softmax (a smooth argmax), this formulation can also be obtained from various other perspectives, offering theoretical tools and solution methods. For example, <span id="id5">Rust [<a class="reference internal" href="bibliography.html#id24" title="John Rust. Optimal replacement of gmc bus engines: an empirical model of harold zurcher. Econometrica, 55(5):999-1033, 1987.">36</a>]</span> derived this algorithm by considering a setting in which the rewards are stochastic and perturbed by a Gumbel noise variable. When considering the corresponding augmented state space and integrating the noise, we obtain smooth equations. This interpretation is leveraged by Rust for modeling purposes.</p>
-<p>There is also a way to obtain this equation by starting from the energy-based formulation often used in supervised learning, in which we convert an unnormalized probability distribution into a distribution using the softmax transformation. This is essentially what <span id="id6">Ziebart <em>et al.</em> [<a class="reference internal" href="bibliography.html#id25" title="Brian D. Ziebart, Andrew L. Maas, J. Andrew Bagnell, and Anind K. Dey. Maximum entropy inverse reinforcement learning. In Proceedings of the 23rd AAAI Conference on Artificial Intelligence, 1433-1438. 2008.">43</a>]</span> did in their paper. Furthermore, this perspective bridges with the literature on probabilistic graphical models, in which we can now cast the problem of finding an optimal smooth policy into one of maximum likelihood estimation (an inference problem). This is the idea of control as inference, which also admits the converse - that of inference as control - used nowadays for deriving fast samples and amortized inference techniques using reinforcement learning <span id="id7">[<a class="reference internal" href="bibliography.html#id27" title="Sergey Levine, Aviral Kumar, George Tucker, and Justin Fu. Reinforcement learning as a framework for control: a survey. arXiv preprint arXiv:1806.04222, 2018.">27</a>]</span>.</p>
-<p>Finally, it’s worth noting that we can also derive this form by considering an entropy-regularized formulation in which we penalize for the entropy of our policy in the reward function term. This formulation admits a solution that coincides with the smooth Bellman equations <span id="id8">[<a class="reference internal" href="bibliography.html#id26" title="Tuomas Haarnoja, Haoran Tang, Pieter Abbeel, and Sergey Levine. Reinforcement learning with deep energy-based policies. Proceedings of the 34th International Conference on Machine Learning, 70:1352-1361, 2017.">21</a>]</span>.</p>
+<p>Second, while presented from an intuitive standpoint where we replace the max by the log-sum-exp (a smooth maximum) and the argmax by the softmax (a smooth argmax), this formulation can also be obtained from various other perspectives, offering theoretical tools and solution methods. For example, <span id="id5">Rust [<a class="reference internal" href="bibliography.html#id24" title="John Rust. Optimal replacement of gmc bus engines: an empirical model of harold zurcher. Econometrica, 55(5):999-1033, 1987.">37</a>]</span> derived this algorithm by considering a setting in which the rewards are stochastic and perturbed by a Gumbel noise variable. When considering the corresponding augmented state space and integrating the noise, we obtain smooth equations. This interpretation is leveraged by Rust for modeling purposes.</p>
+<p>There is also a way to obtain this equation by starting from the energy-based formulation often used in supervised learning, in which we convert an unnormalized probability distribution into a distribution using the softmax transformation. This is essentially what <span id="id6">Ziebart <em>et al.</em> [<a class="reference internal" href="bibliography.html#id25" title="Brian D. Ziebart, Andrew L. Maas, J. Andrew Bagnell, and Anind K. Dey. Maximum entropy inverse reinforcement learning. In Proceedings of the 23rd AAAI Conference on Artificial Intelligence, 1433-1438. 2008.">44</a>]</span> did in their paper. Furthermore, this perspective bridges with the literature on probabilistic graphical models, in which we can now cast the problem of finding an optimal smooth policy into one of maximum likelihood estimation (an inference problem). This is the idea of control as inference, which also admits the converse - that of inference as control - used nowadays for deriving fast samples and amortized inference techniques using reinforcement learning <span id="id7">[<a class="reference internal" href="bibliography.html#id27" title="Sergey Levine, Aviral Kumar, George Tucker, and Justin Fu. Reinforcement learning as a framework for control: a survey. arXiv preprint arXiv:1806.04222, 2018.">28</a>]</span>.</p>
+<p>Finally, it’s worth noting that we can also derive this form by considering an entropy-regularized formulation in which we penalize for the entropy of our policy in the reward function term. This formulation admits a solution that coincides with the smooth Bellman equations <span id="id8">[<a class="reference internal" href="bibliography.html#id26" title="Tuomas Haarnoja, Haoran Tang, Pieter Abbeel, and Sergey Levine. Reinforcement learning with deep energy-based policies. Proceedings of the 34th International Conference on Machine Learning, 70:1352-1361, 2017.">22</a>]</span>.</p>
 <section id="gumbel-noise-on-the-rewards">
 <h2>Gumbel Noise on the Rewards<a class="headerlink" href="#gumbel-noise-on-the-rewards" title="Link to this heading">#</a></h2>
 <p>We can obtain the smooth Bellman equation by considering a setting in which we have Gumbel noise added to the reward function. More precisely, we define an MDP whose state space is now that of <span class="math notranslate nohighlight">\(\tilde{s} = (s, \epsilon)\)</span>, where the reward function is given by</p>
@@ -595,10 +610,11 @@ d(s,\epsilon) &amp;= \left\{a \in \mathcal{A}_s : I_a(\epsilon) = 1\right\} \\
 &amp;= \left\{a \in \mathcal{A}_s : a \in \operatorname{argmax}_{a' \in \mathcal{A}_s} \left\{ r(s,a') + \epsilon(a') + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, \epsilon,  a'\right] \right\}\right\}
 \end{align*}
 \end{split}\]</div>
-<p>This set-valued – but determinisic – function <span class="math notranslate nohighlight">\(d(s,\epsilon)\)</span> gives us the set of optimal actions for a given state <span class="math notranslate nohighlight">\(s\)</span> and noise realization <span class="math notranslate nohighlight">\(\epsilon\)</span>. For simplicity, consider the case where the optimal set of actions at <span class="math notranslate nohighlight">\(s\)</span> is a singleton such that taking the expection over the noise variable gives us:
-$<span class="math notranslate nohighlight">\( \begin{align*}
+<p>This set-valued – but determinisic – function <span class="math notranslate nohighlight">\(d(s,\epsilon)\)</span> gives us the set of optimal actions for a given state <span class="math notranslate nohighlight">\(s\)</span> and noise realization <span class="math notranslate nohighlight">\(\epsilon\)</span>. For simplicity, consider the case where the optimal set of actions at <span class="math notranslate nohighlight">\(s\)</span> is a singleton such that taking the expection over the noise variable gives us:</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align*}
 \mathbb{E}_\epsilon[I_a(\epsilon)] = \mathbb{P}\left(a \in \operatorname{argmax}_{a' \in \mathcal{A}_s} \left\{ r(s,a') + \epsilon(a') + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, \epsilon, a'\right] \right\}\right)
-\end{align*} \)</span>$</p>
+\end{align*} \]</div>
 <p>Now, we can leverage a key property of the Gumbel distribution. For a set of random variables <span class="math notranslate nohighlight">\(\{X_i = \mu_i + \epsilon_i\}\)</span> where <span class="math notranslate nohighlight">\(\epsilon_i\)</span> are i.i.d. Gumbel(0, 1/β) random variables, we have:</p>
 <div class="math notranslate nohighlight">
 \[ P(X_i \geq X_j, \forall j \neq i) = \frac{\exp(\beta\mu_i)}{\sum_j \exp(\beta\mu_j)} \]</div>
@@ -607,80 +623,94 @@ $<span class="math notranslate nohighlight">\( \begin{align*}
 <div class="math notranslate nohighlight">
 \[ d(a|s) = \frac{\exp\left(\beta\left(r(s,a) + \gamma \mathbb{E}_{s'}\left[v_\gamma^\star(s')\mid s, a\right]\right)\right)}{\sum_{a' \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a') + \gamma \mathbb{E}_{s'}\left[v_\gamma^\star(s')\mid s, a'\right]\right)\right)} \]</div>
 <p>This gives us the optimal stochastic policy for the smooth MDP. Note that as <span class="math notranslate nohighlight">\(\beta \to \infty\)</span>, this policy approaches the deterministic policy of the original MDP, while for finite <span class="math notranslate nohighlight">\(\beta\)</span>, it gives a stochastic policy.</p>
-</section>
-<section id="control-as-inference-perspective">
-<h2>Control as Inference Perspective<a class="headerlink" href="#control-as-inference-perspective" title="Link to this heading">#</a></h2>
-<p>The smooth Bellman optimality equations can also be derived from probabilistic inference perspective. To see this, let’s go back to the idea from the previous section in which we introduced an indicator function <span class="math notranslate nohighlight">\(I_a(\epsilon)\)</span> to represent whether an action <span class="math notranslate nohighlight">\(a\)</span> is optimal given a particular realization of the noise <span class="math notranslate nohighlight">\(\epsilon\)</span>:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split} I_a(\epsilon) = \begin{cases} 
-   1 &amp; \text{if } a \in \operatorname{argmax}_{a' \in \mathcal{A}_s} \left\{ r(s,a') + \epsilon(a') + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, a'\right] \right\} \\
-   0 &amp; \text{otherwise}
-   \end{cases} \end{split}\]</div>
-<p>When we took the expectation over the noise <span class="math notranslate nohighlight">\(\epsilon\)</span>, we obtained a soft version of this indicator:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split} \begin{align*}
-\mathbb{E}_\epsilon[I_a(\epsilon)] &amp;= \mathbb{P}\left(a \in \operatorname{argmax}_{a' \in \mathcal{A}_s} \left\{ r(s,a') + \epsilon(a') + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, \epsilon, a'\right] \right\}\right) \\
-&amp;= \frac{\exp\left(\beta\left(r(s,a) + \gamma \mathbb{E}_{s'}\left[v_\gamma^\star(s')\mid s, a\right]\right)\right)}{\sum_{a' \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a') + \gamma \mathbb{E}_{s'}\left[v_\gamma^\star(s')\mid s, a'\right]\right)\right)}
-\end{align*} \end{split}\]</div>
-<p>Given this indicator function, we can “infer” the optimal action in any state. This is the intuition and starting point behind the control as inference perspective in which we directly define a continuous-valued “optimality” variable <span class="math notranslate nohighlight">\(O_t\)</span> at each time step <span class="math notranslate nohighlight">\(t\)</span>. We define the probability of optimality given a state-action pair as:</p>
-<div class="math notranslate nohighlight">
-\[ p(O_t = 1 | s_t, a_t) = \exp(\beta r(s_t, a_t)) \]</div>
-<p>Building on this notion of soft optimality, we can formulate the MDP as a probabilistic graphical model. We define the following probabilities:</p>
-<ol class="arabic simple">
-<li><p>State transition probability: <span class="math notranslate nohighlight">\(p(s_{t+1} | s_t, a_t)\)</span> (given by the MDP dynamics)</p></li>
-<li><p>Prior policy: <span class="math notranslate nohighlight">\(p(a_t | s_t)\)</span> (which we’ll assume to be uniform for simplicity)</p></li>
-<li><p>Optimality probability: <span class="math notranslate nohighlight">\(p(O_t = 1 | s_t, a_t) = \exp(\beta r(s_t, a_t))\)</span></p></li>
-</ol>
-<p>This formulation encodes the idea that more rewarding state-action pairs are more likely to be “optimal,” which directly parallels the soft assignment of optimality we obtained by taking the expectation over the Gumbel noise.</p>
-<p>The control problem can now be framed as an inference problem: we want to find the posterior distribution over actions given that all time steps are optimal:</p>
-<div class="math notranslate nohighlight">
-\[ p(a_t | s_t, O_{1:T} = 1) \]</div>
-<p>where <span class="math notranslate nohighlight">\(O_{1:T} = 1\)</span> means <span class="math notranslate nohighlight">\(O_t = 1\)</span> for all <span class="math notranslate nohighlight">\(t\)</span> from 1 to T.</p>
-<section id="message-passing">
-<h3>Message Passing<a class="headerlink" href="#message-passing" title="Link to this heading">#</a></h3>
-<p>To solve this inference problem, we can use a technique from probabilistic graphical models called message passing, specifically the belief propagation algorithm. Message passing is a way to efficiently compute marginal distributions in a graphical model by passing local messages between nodes. Messages are passed between nodes in both forward and backward directions. Each message represents a belief about the distribution of a variable, based on the information available to the sending node. After messages have been passed, each node updates its belief about its associated variable by combining all incoming messages.</p>
-<p>In our specific case, we’re particularly interested in the backward messages, which propagate information about future optimality backwards in time. Let’s define the backward message <span class="math notranslate nohighlight">\(\beta_t(s_t)\)</span> as:</p>
-<div class="math notranslate nohighlight">
-\[ \beta_t(s_t) = p(O_{t:T} = 1 | s_t) \]</div>
-<p>This represents the probability of optimality for all future time steps given the current state. We can compute this recursively:</p>
-<div class="math notranslate nohighlight">
-\[ \beta_t(s_t) = \sum_{a_t} p(a_t | s_t) p(O_t = 1 | s_t, a_t) \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) \beta_{t+1}(s_{t+1}) \]</div>
-<p>Taking the log and assuming a uniform prior over actions, we get:</p>
-<div class="math notranslate nohighlight">
-\[ \log \beta_t(s_t) = \log \sum_{a_t} \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) \exp(\beta (r(s_t, a_t) + \gamma v(_{t+1}) + \frac{1}{\beta} \log \beta_{t+1}(s_{t+1}))) \]</div>
-<p>If we define the soft value function as <span class="math notranslate nohighlight">\(V_t(s_t) = \frac{1}{\beta} \log \beta_t(s_t)\)</span>, we can rewrite the above equation as:</p>
-<div class="math notranslate nohighlight">
-\[ V_t(s_t) = \frac{1}{\beta} \log \sum_{a_t} \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) \exp(\beta (r(s_t, a_t) + \gamma V_{t+1}(s_{t+1}))) \]</div>
-<p>This is exactly the smooth Bellman equation we derived earlier, but now interpreted as the result of probabilistic inference in a graphical model.</p>
-</section>
-<section id="deriving-the-optimal-policy">
-<h3>Deriving the Optimal Policy<a class="headerlink" href="#deriving-the-optimal-policy" title="Link to this heading">#</a></h3>
-<p>The backward message recursion we derived earlier assumes a uniform prior policy <span class="math notranslate nohighlight">\(p(a_t | s_t)\)</span>. However, our goal is to find not just any policy, but an optimal one. We can extract this optimal policy efficiently by computing the posterior distribution over actions given our backward messages.</p>
-<p>Starting from the definition of conditional probability and applying Bayes’ rule, we can write:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split} \begin{align}
-p(a_t | s_t, O_{1:T} = 1) &amp;= \frac{p(O_{1:T} = 1 | s_t, a_t) p(a_t | s_t)}{p(O_{1:T} = 1 | s_t)} \\
-&amp;\propto p(a_t | s_t) p(O_t = 1 | s_t, a_t) p(O_{t+1:T} = 1 | s_t, a_t) \\
-&amp;= p(a_t | s_t) p(O_t = 1 | s_t, a_t) \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) \beta_{t+1}(s_{t+1})
-\end{align} \end{split}\]</div>
-<p>Here, <span class="math notranslate nohighlight">\(\beta_{t+1}(s_{t+1}) = p(O_{t+1:T} = 1 | s_{t+1})\)</span> is our backward message.</p>
-<p>Now, let’s substitute our definitions for the optimality probability and the soft value function:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split} \begin{align}
-p(a_t | s_t, O_{1:T} = 1) &amp;\propto p(a_t | s_t) \exp(\beta r(s_t, a_t)) \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) \exp(\beta \gamma V_{t+1}(s_{t+1})) \\
-&amp;= p(a_t | s_t) \exp(\beta (r(s_t, a_t) + \gamma \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) V_{t+1}(s_{t+1})))
-\end{align} \end{split}\]</div>
-<p>After normalization, and assuming a uniform prior <span class="math notranslate nohighlight">\(p(a_t | s_t)\)</span>, we obtain the randomized decision rule:</p>
-<div class="math notranslate nohighlight">
-\[ d(a_t | s_t) = \frac{\exp(\beta (r(s_t, a_t) + \gamma \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) V_{t+1}(s_{t+1})))}{\sum_{a'_t} \exp(\beta (r(s_t, a'_t) + \gamma \sum_{s_{t+1}} p(s_{t+1} | s_t, a'_t) V_{t+1}(s_{t+1})))} \]</div>
-</section>
+<!-- ## Control as Inference Perspective
+
+The smooth Bellman optimality equations can also be derived from probabilistic inference perspective. To see this, let's go back to the idea from the previous section in which we introduced an indicator function $I_a(\epsilon)$ to represent whether an action $a$ is optimal given a particular realization of the noise $\epsilon$:
+
+$$ I_a(\epsilon) = \begin{cases} 
+   1 & \text{if } a \in \operatorname{argmax}_{a' \in \mathcal{A}_s} \left\{ r(s,a') + \epsilon(a') + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, a'\right] \right\} \\
+   0 & \text{otherwise}
+   \end{cases} $$
+
+When we took the expectation over the noise $\epsilon$, we obtained a soft version of this indicator:
+
+$$ \begin{align*}
+\mathbb{E}_\epsilon[I_a(\epsilon)] &= \mathbb{P}\left(a \in \operatorname{argmax}_{a' \in \mathcal{A}_s} \left\{ r(s,a') + \epsilon(a') + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, \epsilon, a'\right] \right\}\right) \\
+&= \frac{\exp\left(\beta\left(r(s,a) + \gamma \mathbb{E}_{s'}\left[v_\gamma^\star(s')\mid s, a\right]\right)\right)}{\sum_{a' \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a') + \gamma \mathbb{E}_{s'}\left[v_\gamma^\star(s')\mid s, a'\right]\right)\right)}
+\end{align*} $$
+
+Given this indicator function, we can "infer" the optimal action in any state. This is the intuition and starting point behind the control as inference perspective in which we directly define a continuous-valued "optimality" variable $O_t$ at each time step $t$. We define the probability of optimality given a state-action pair as:
+
+$$ p(O_t = 1 | s_t, a_t) = \exp(\beta r(s_t, a_t)) $$
+
+Building on this notion of soft optimality, we can formulate the MDP as a probabilistic graphical model. We define the following probabilities:
+
+1. State transition probability: $p(s_{t+1} | s_t, a_t)$ (given by the MDP dynamics)
+2. Prior policy: $p(a_t | s_t)$ (which we'll assume to be uniform for simplicity)
+3. Optimality probability: $p(O_t = 1 | s_t, a_t) = \exp(\beta r(s_t, a_t))$
+
+This formulation encodes the idea that more rewarding state-action pairs are more likely to be "optimal," which directly parallels the soft assignment of optimality we obtained by taking the expectation over the Gumbel noise.
+
+The control problem can now be framed as an inference problem: we want to find the posterior distribution over actions given that all time steps are optimal:
+
+$$ p(a_t | s_t, O_{1:T} = 1) $$
+
+where $O_{1:T} = 1$ means $O_t = 1$ for all $t$ from 1 to T. 
+
+### Message Passing 
+
+To solve this inference problem, we can use a technique from probabilistic graphical models called message passing, specifically the belief propagation algorithm. Message passing is a way to efficiently compute marginal distributions in a graphical model by passing local messages between nodes. Messages are passed between nodes in both forward and backward directions. Each message represents a belief about the distribution of a variable, based on the information available to the sending node. After messages have been passed, each node updates its belief about its associated variable by combining all incoming messages.
+
+In our specific case, we're particularly interested in the backward messages, which propagate information about future optimality backwards in time. Let's define the backward message $\beta_t(s_t)$ as:
+
+$$ \beta_t(s_t) = p(O_{t:T} = 1 | s_t) $$
+
+This represents the probability of optimality for all future time steps given the current state. We can compute this recursively:
+
+$$ \beta_t(s_t) = \sum_{a_t} p(a_t | s_t) p(O_t = 1 | s_t, a_t) \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) \beta_{t+1}(s_{t+1}) $$
+
+
+Taking the log and assuming a uniform prior over actions, we get:
+
+$$ \log \beta_t(s_t) = \log \sum_{a_t} \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) \exp(\beta (r(s_t, a_t) + \gamma v(_{t+1}) + \frac{1}{\beta} \log \beta_{t+1}(s_{t+1}))) $$
+
+If we define the soft value function as $V_t(s_t) = \frac{1}{\beta} \log \beta_t(s_t)$, we can rewrite the above equation as:
+
+$$ V_t(s_t) = \frac{1}{\beta} \log \sum_{a_t} \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) \exp(\beta (r(s_t, a_t) + \gamma V_{t+1}(s_{t+1}))) $$
+
+This is exactly the smooth Bellman equation we derived earlier, but now interpreted as the result of probabilistic inference in a graphical model.
+
+### Deriving the Optimal Policy
+
+The backward message recursion we derived earlier assumes a uniform prior policy $p(a_t | s_t)$. However, our goal is to find not just any policy, but an optimal one. We can extract this optimal policy efficiently by computing the posterior distribution over actions given our backward messages.
+
+Starting from the definition of conditional probability and applying Bayes' rule, we can write:
+
+$$ \begin{align}
+p(a_t | s_t, O_{1:T} = 1) &= \frac{p(O_{1:T} = 1 | s_t, a_t) p(a_t | s_t)}{p(O_{1:T} = 1 | s_t)} \\
+&\propto p(a_t | s_t) p(O_t = 1 | s_t, a_t) p(O_{t+1:T} = 1 | s_t, a_t) \\
+&= p(a_t | s_t) p(O_t = 1 | s_t, a_t) \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) \beta_{t+1}(s_{t+1})
+\end{align} $$
+
+Here, $\beta_{t+1}(s_{t+1}) = p(O_{t+1:T} = 1 | s_{t+1})$ is our backward message.
+
+Now, let's substitute our definitions for the optimality probability and the soft value function:
+
+$$ \begin{align}
+p(a_t | s_t, O_{1:T} = 1) &\propto p(a_t | s_t) \exp(\beta r(s_t, a_t)) \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) \exp(\beta \gamma V_{t+1}(s_{t+1})) \\
+&= p(a_t | s_t) \exp(\beta (r(s_t, a_t) + \gamma \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) V_{t+1}(s_{t+1})))
+\end{align} $$
+
+After normalization, and assuming a uniform prior $p(a_t | s_t)$, we obtain the randomized decision rule:
+
+$$ d(a_t | s_t) = \frac{\exp(\beta (r(s_t, a_t) + \gamma \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) V_{t+1}(s_{t+1})))}{\sum_{a'_t} \exp(\beta (r(s_t, a'_t) + \gamma \sum_{s_{t+1}} p(s_{t+1} | s_t, a'_t) V_{t+1}(s_{t+1})))} $$ -->
 </section>
 <section id="regularized-markov-decision-processes">
 <h2>Regularized Markov Decision Processes<a class="headerlink" href="#regularized-markov-decision-processes" title="Link to this heading">#</a></h2>
-<p>Regularized MDPs <span id="id9">[<a class="reference internal" href="bibliography.html#id28" title="Matthieu Geist, Bruno Scherrer, and Olivier Pietquin. A theory of regularized Markov decision processes. In Kamalika Chaudhuri and Ruslan Salakhutdinov, editors, Proceedings of the 36th International Conference on Machine Learning, volume 97 of Proceedings of Machine Learning Research, 2160–2169. PMLR, 09–15 Jun 2019. URL: https://proceedings.mlr.press/v97/geist19a.html.">15</a>]</span> provide another perspective on how the smooth Bellman equations come to be. This framework offers a more general approach in which we seek to find optimal policies under the infinite horizon criterion while also accounting for a regularizer that influences the kind of policies we try to obtain.</p>
+<p>Regularized MDPs <span id="id9">[<a class="reference internal" href="bibliography.html#id28" title="Matthieu Geist, Bruno Scherrer, and Olivier Pietquin. A theory of regularized Markov decision processes. In Kamalika Chaudhuri and Ruslan Salakhutdinov, editors, Proceedings of the 36th International Conference on Machine Learning, volume 97 of Proceedings of Machine Learning Research, 2160–2169. PMLR, 09–15 Jun 2019. URL: https://proceedings.mlr.press/v97/geist19a.html.">16</a>]</span> provide another perspective on how the smooth Bellman equations come to be. This framework offers a more general approach in which we seek to find optimal policies under the infinite horizon criterion while also accounting for a regularizer that influences the kind of policies we try to obtain.</p>
 <p>Let’s set up some necessary notation. First, recall that the policy evaluation operator for a stationary policy with decision rule <span class="math notranslate nohighlight">\(d\)</span> is defined as:</p>
 <div class="math notranslate nohighlight">
-\[ L_d v = r_d + \gamma P_d v \]</div>
+\[ \mathrm{L}_d v = r_d + \gamma P_d v \]</div>
 <p>where <span class="math notranslate nohighlight">\(r_d\)</span> is the expected reward under policy <span class="math notranslate nohighlight">\(d\)</span>, <span class="math notranslate nohighlight">\(\gamma\)</span> is the discount factor, and <span class="math notranslate nohighlight">\(P_d\)</span> is the state transition probability matrix under <span class="math notranslate nohighlight">\(d\)</span>. A complementary object to the value function is the q-function (or Q-factor) representation:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split} \begin{align*}
@@ -689,10 +719,10 @@ v_\gamma^{d^\infty}(s) &amp;= \sum_{a \in \mathcal{A}_s} d(a | s) q_\gamma^{d^\i
 \end{align*} \end{split}\]</div>
 <p>The policy evaluation operator can then be written in terms of the q-function as:</p>
 <div class="math notranslate nohighlight">
-\[ [L_d v](s) = \langle d(\cdot | s), q(s, \cdot) \rangle \]</div>
+\[ [\mathrm{L}_d v](s) = \langle d(\cdot | s), q(s, \cdot) \rangle \]</div>
 <section id="legendre-fenchel-transform">
 <h3>Legendre-Fenchel Transform<a class="headerlink" href="#legendre-fenchel-transform" title="Link to this heading">#</a></h3>
-<p>A key concept in the theory of regularized MDPs is the Legendre-Fenchel transform, also known as the convex conjugate. For a strongly convex function <span class="math notranslate nohighlight">\(\Omega: \Delta_{\mathcal{A}} \rightarrow \mathbb{R}\)</span>, its Legendre-Fenchel transform <span class="math notranslate nohighlight">\(\Omega^*: \mathbb{R}^{\mathcal{A}} \rightarrow \mathbb{R}\)</span> is defined as:</p>
+<p>The workhorse behind the theory of regularized MDPs is the Legendre-Fenchel transform, also known as the convex conjugate. For a strongly convex function <span class="math notranslate nohighlight">\(\Omega: \Delta_{\mathcal{A}} \rightarrow \mathbb{R}\)</span>, its Legendre-Fenchel transform <span class="math notranslate nohighlight">\(\Omega^*: \mathbb{R}^{\mathcal{A}} \rightarrow \mathbb{R}\)</span> is defined as:</p>
 <div class="math notranslate nohighlight">
 \[ \Omega^*(q(s, \cdot)) = \max_{d(\cdot|s) \in \Delta_{\mathcal{A}}} \langle d(\cdot | s), q(s, \cdot) \rangle - \Omega(d(\cdot | s)) \]</div>
 <p>An important property of this transform is that it has a unique maximizing argument, given by the gradient of <span class="math notranslate nohighlight">\(\Omega^*\)</span>. This gradient is Lipschitz and satisfies:</p>
@@ -705,37 +735,37 @@ v_\gamma^{d^\infty}(s) &amp;= \sum_{a \in \mathcal{A}_s} d(a | s) q_\gamma^{d^\i
 <h2>Regularized Bellman Operators<a class="headerlink" href="#regularized-bellman-operators" title="Link to this heading">#</a></h2>
 <p>With these concepts in place, we can now define the regularized Bellman operators:</p>
 <ol class="arabic">
-<li><p><strong>Regularized Policy Evaluation Operator</strong> <span class="math notranslate nohighlight">\((L_{d,\Omega})\)</span>:</p>
+<li><p><strong>Regularized Policy Evaluation Operator</strong> <span class="math notranslate nohighlight">\((\mathrm{L}_{d,\Omega})\)</span>:</p>
 <div class="math notranslate nohighlight">
-\[ [L_{d,\Omega} v](s) = \langle q(s,\cdot), d(\cdot | s) \rangle - \Omega(d(\cdot | s)) \]</div>
+\[ [\mathrm{L}_{d,\Omega} v](s) = \langle q(s,\cdot), d(\cdot | s) \rangle - \Omega(d(\cdot | s)) \]</div>
 </li>
-<li><p><strong>Regularized Bellman Optimality Operator</strong> <span class="math notranslate nohighlight">\((L_\Omega)\)</span>:</p>
+<li><p><strong>Regularized Bellman Optimality Operator</strong> <span class="math notranslate nohighlight">\((\mathrm{L}_\Omega)\)</span>:</p>
 <div class="math notranslate nohighlight">
-\[ [L_\Omega v](s) = [\max_d L_{d,\Omega} v ](s) = \Omega^*(q(s, \cdot)) \]</div>
+\[ [\mathrm{L}_\Omega v](s) = [\max_d \mathrm{L}_{d,\Omega} v ](s) = \Omega^*(q(s, \cdot)) \]</div>
 </li>
 </ol>
 <p>It can be shown that the addition of a regularizer in these regularized operators still preserves the contraction properties, and therefore the existence of a solution to the optimality equations and the convergence of successive approximation.</p>
 <p>The regularized value function of a stationary policy with decision rule <span class="math notranslate nohighlight">\(d\)</span>, denoted by <span class="math notranslate nohighlight">\(v_{d,\Omega}\)</span>, is the unique fixed point of the operator equation:</p>
 <div class="math notranslate nohighlight">
-\[\text{find $v$ such that } \enspace v = L_{d,\Omega} v\]</div>
+\[\text{find $v$ such that } \enspace v = \mathrm{L}_{d,\Omega} v\]</div>
 <p>Under the usual assumptions on the discount factor and the boundedness of the reward, the value of a policy can also be found in closed form by solving for <span class="math notranslate nohighlight">\(v\)</span> in the linear system of equations:</p>
 <div class="math notranslate nohighlight">
-\[ (I - \gamma P_d) v =  (r_d - \Omega(d)) \]</div>
+\[ (\mathbf{I} - \gamma P_d) v =  (r_d - \Omega(d)) \]</div>
 <p>The associated state-action value function <span class="math notranslate nohighlight">\(q_{d,\Omega}\)</span> is given by:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{align*}
 q_{d,\Omega}(s, a) &amp;= r(s, a) + \sum_{j \in \mathcal{S}} \gamma p(j|s,a) v_{d,\Omega}(j) \\
 v_{d,\Omega}(s) &amp;= \sum_{a \in \mathcal{A}_s} d(a | s) q_{d,\Omega}(s, a) - \Omega(d(\cdot | s))
 \end{align*} \end{split}\]</div>
-<p>The regularized optimal value function <span class="math notranslate nohighlight">\(v^*_\Omega\)</span> is then the unique fixed point of <span class="math notranslate nohighlight">\(L_\Omega\)</span> in the fixed point equation:</p>
+<p>The regularized optimal value function <span class="math notranslate nohighlight">\(v^*_\Omega\)</span> is then the unique fixed point of <span class="math notranslate nohighlight">\(\mathrm{L}_\Omega\)</span> in the fixed point equation:</p>
 <div class="math notranslate nohighlight">
-\[\text{find $v$ such that } v = L_\Omega v\]</div>
+\[\text{find $v$ such that } v = \mathrm{L}_\Omega v\]</div>
 <p>The associated state-action value function <span class="math notranslate nohighlight">\(q^*_\Omega\)</span> is given by:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split} \begin{align*}
 q^*_\Omega(s, a) &amp;= r(s, a) + \sum_{j \in \mathcal{S}} \gamma p(j|s,a) v^*_\Omega(j) \\
 v^*_\Omega(s) &amp;= \Omega^*(q^*_\Omega(s, \cdot))\end{align*} \end{split}\]</div>
-<p>An important result in the theory of regularized MDPs is that there exists a unique optimal regularized policy. Specifically, if <span class="math notranslate nohighlight">\(d^*_\Omega\)</span> is a conserving decision rule (i.e., <span class="math notranslate nohighlight">\(d^*_\Omega = \arg\max_d L_{d,\Omega} v^*_\Omega\)</span>), then the randomized stationary policy <span class="math notranslate nohighlight">\((d^*_\Omega)^\infty\)</span> is the unique optimal regularized policy.</p>
+<p>An important result in the theory of regularized MDPs is that there exists a unique optimal regularized policy. Specifically, if <span class="math notranslate nohighlight">\(d^*_\Omega\)</span> is a conserving decision rule (i.e., <span class="math notranslate nohighlight">\(d^*_\Omega = \arg\max_d \mathrm{L}_{d,\Omega} v^*_\Omega\)</span>), then the randomized stationary policy <span class="math notranslate nohighlight">\((d^*_\Omega)^\infty\)</span> is the unique optimal regularized policy.</p>
 <p>In practice, once we have found <span class="math notranslate nohighlight">\(v^*_\Omega\)</span>, we can derive the optimal decision rule by taking the gradient of the convex conjugate evaluated at the optimal action-value function:</p>
 <div class="math notranslate nohighlight">
 \[ d^*(\cdot | s) = \nabla \Omega^*(q^*_\Omega(s, \cdot)) \]</div>
@@ -766,6 +796,235 @@ v^*_\Omega(s) &amp;= \Omega^*(q^*_\Omega(s, \cdot))\end{align*} \end{split}\]</d
 \[ d^*(a|s) = \nabla \Omega^*(q^*_\Omega(s, \cdot)) = \frac{\exp(q^*_\Omega(s,a))}{\sum_{a' \in \mathcal{A}_s} \exp(q^*_\Omega(s,a'))} \]</div>
 <p>This is the familiar softmax policy we encountered in the smooth MDP setting.</p>
 </section>
+<section id="equivalence-between-smooth-bellman-equations-and-entropy-regularized-mdps">
+<h3>Equivalence Between Smooth Bellman Equations and Entropy-Regularized MDPs<a class="headerlink" href="#equivalence-between-smooth-bellman-equations-and-entropy-regularized-mdps" title="Link to this heading">#</a></h3>
+<p>We have now seen two distinct ways to arrive at smooth Bellman equations. Earlier in this chapter, we introduced the logsumexp operator as a smooth approximation to the max operator, motivated by analytical tractability and the desire for differentiability. Just now, we derived the same equations through the lens of regularized MDPs, where we explicitly penalize the entropy of policies. Remarkably, these two perspectives are mathematically equivalent: solving the smooth Bellman equation with inverse temperature parameter <span class="math notranslate nohighlight">\(\beta\)</span> yields exactly the same optimal value function and optimal policy as solving the entropy-regularized MDP with regularization strength <span class="math notranslate nohighlight">\(\alpha = 1/\beta\)</span>. The two formulations are not merely similar—they describe identical optimization problems.</p>
+<p>To see this equivalence clearly, consider the standard MDP problem with rewards <span class="math notranslate nohighlight">\(r(s,a)\)</span> and transition probabilities <span class="math notranslate nohighlight">\(p(j|s,a)\)</span>. The regularized MDP framework tells us to solve:</p>
+<div class="math notranslate nohighlight">
+\[
+\max_\pi \mathbb{E}_\pi \left[ \sum_{t=0}^\infty \gamma^t r(s_t, a_t) \right] + \alpha \mathbb{E}_\pi \left[ \sum_{t=0}^\infty \gamma^t H(\pi(\cdot|s_t)) \right],
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(H(\pi(\cdot|s)) = -\sum_a \pi(a|s) \ln \pi(a|s)\)</span> is the entropy of the policy at state <span class="math notranslate nohighlight">\(s\)</span>, and <span class="math notranslate nohighlight">\(\alpha &gt; 0\)</span> is the entropy regularization strength.</p>
+<p>We can rewrite this objective by absorbing the entropy term into a modified reward function. Define the entropy-augmented reward:</p>
+<div class="math notranslate nohighlight">
+\[
+\tilde{r}(s,a,\pi) = r(s,a) + \alpha H(\pi(\cdot|s)).
+\]</div>
+<p>However, this formulation makes the reward depend on the entire policy at each state, which is awkward. We can reformulate this more cleanly by expanding the entropy term. Recall that the entropy is:
+$<span class="math notranslate nohighlight">\(
+H(\pi(\cdot|s)) = -\sum_a \pi(a|s) \ln \pi(a|s).
+\)</span>$</p>
+<p>When we take the expectation over actions drawn from <span class="math notranslate nohighlight">\(\pi\)</span>, we have:
+$<span class="math notranslate nohighlight">\(
+\mathbb{E}_{a \sim \pi(\cdot|s)} [H(\pi(\cdot|s))] = \sum_a \pi(a|s) \left[-\sum_{a'} \pi(a'|s) \ln \pi(a'|s)\right] = -\sum_{a'} \pi(a'|s) \ln \pi(a'|s),
+\)</span><span class="math notranslate nohighlight">\(
+since the entropy doesn't depend on which action is actually sampled. But we can also write this as:
+\)</span><span class="math notranslate nohighlight">\(
+H(\pi(\cdot|s)) = -\sum_a \pi(a|s) \ln \pi(a|s) = \mathbb{E}_{a \sim \pi(\cdot|s)}[-\ln \pi(a|s)].
+\)</span>$</p>
+<p>This shows that adding <span class="math notranslate nohighlight">\(\alpha H(\pi(\cdot|s))\)</span> to the expected reward at state <span class="math notranslate nohighlight">\(s\)</span> is equivalent to adding <span class="math notranslate nohighlight">\(-\alpha \ln \pi(a|s)\)</span> to the reward of taking action <span class="math notranslate nohighlight">\(a\)</span> at state <span class="math notranslate nohighlight">\(s\)</span>. More formally:
+$$</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{align*}
+&amp;\mathbb{E}_\pi \left[ \sum_{t=0}^\infty \gamma^t r(s_t, a_t) \right] + \alpha \mathbb{E}_\pi \left[ \sum_{t=0}^\infty \gamma^t H(\pi(\cdot|s_t)) \right] \\
+&amp;= \mathbb{E}_\pi \left[ \sum_{t=0}^\infty \gamma^t r(s_t, a_t) \right] + \alpha \mathbb{E}_\pi \left[ \sum_{t=0}^\infty \gamma^t \mathbb{E}_{a_t \sim \pi(\cdot|s_t)}[-\ln \pi(a_t|s_t)] \right] \\
+&amp;= \mathbb{E}_\pi \left[ \sum_{t=0}^\infty \gamma^t \left( r(s_t, a_t) - \alpha \ln \pi(a_t|s_t) \right) \right].
+\end{align*}\]</div>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}The entropy bonus at each state, when averaged over the policy, becomes a per-action penalty proportional to the negative log probability of the action taken. This reformulation is more useful because the modified reward now depends only on the state, the action taken, and the probability assigned to that specific action by the policy—not on the entire distribution over actions.\\This expression shows that entropy regularization is equivalent to adding a state-action dependent penalty term $-\alpha \ln \pi(a|s)$ to the reward. Intuititively, this terms amounts to paying a cost for low-entropy (deterministic) policies.\\Now, when we write down the Bellman equation for this entropy-regularized problem, at each state $s$ we need to find the decision rule $d(\cdot|s) \in \Delta(\mathcal{A}_s)$ (a probability distribution over actions) that maximizes:\end{aligned}\end{align} \]</div>
+<p>v(s) = \max_{d(\cdot|s) \in \Delta(\mathcal{A}<em>s)} \sum_a d(a|s) \left[ r(s,a) + \gamma \sum</em>{j \in \mathcal{S}} p(j|s,a) v(j) - \alpha \ln d(a|s) \right].
+$$</p>
+<p>Here <span class="math notranslate nohighlight">\(\Delta(\mathcal{A}_s) = \{d(\cdot|s) : d(a|s) \geq 0, \sum_a d(a|s) = 1\}\)</span> denotes the probability simplex over actions available at state <span class="math notranslate nohighlight">\(s\)</span>. The optimization is over randomized decision rules at each state, constrained to be valid probability distributions.</p>
+<p>This is a convex optimization problem with a linear constraint. We form the Lagrangian:</p>
+<div class="math notranslate nohighlight">
+\[
+\mathcal{L}(d, \lambda) = \sum_a d(a|s) \left[ r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j) - \alpha \ln d(a|s) \right] - \lambda \left(\sum_a d(a|s) - 1\right),
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(\lambda\)</span> is the Lagrange multiplier enforcing the normalization constraint. Taking the derivative with respect to <span class="math notranslate nohighlight">\(d(a|s)\)</span> and setting it to zero:</p>
+<div class="math notranslate nohighlight">
+\[
+r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j) - \alpha(1 + \ln d^*(a|s)) - \lambda = 0.
+\]</div>
+<p>Solving for <span class="math notranslate nohighlight">\(d^*(a|s)\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+d^*(a|s) = \exp\left(\frac{1}{\alpha}\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j) - \lambda\right)\right).
+\]</div>
+<p>Using the normalization constraint <span class="math notranslate nohighlight">\(\sum_a d^*(a|s) = 1\)</span> to solve for <span class="math notranslate nohighlight">\(\lambda\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+\sum_a \exp\left(\frac{1}{\alpha}\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right)\right) = \exp\left(\frac{\lambda}{\alpha}\right).
+\]</div>
+<p>Therefore:</p>
+<div class="math notranslate nohighlight">
+\[
+\lambda = \alpha \ln \sum_a \exp\left(\frac{1}{\alpha}\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right)\right).
+\]</div>
+<p>Substituting this back into the Bellman equation and simplifying:</p>
+<div class="math notranslate nohighlight">
+\[
+v(s) = \alpha \ln \sum_a \exp\left(\frac{1}{\alpha}\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right)\right).
+\]</div>
+<p>Setting <span class="math notranslate nohighlight">\(\beta = 1/\alpha\)</span> (the inverse temperature), this becomes:</p>
+<div class="math notranslate nohighlight">
+\[
+v(s) = \frac{1}{\beta} \ln \sum_a \exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right)\right).
+\]</div>
+<p>This is precisely the smooth Bellman equation we derived earlier using the logsumexp operator. The inverse temperature parameter <span class="math notranslate nohighlight">\(\beta\)</span> controls how closely the logsumexp approximates the max: as <span class="math notranslate nohighlight">\(\beta \to \infty\)</span>, we recover the standard Bellman equation, while for finite <span class="math notranslate nohighlight">\(\beta\)</span>, we have a smooth approximation that corresponds to optimizing with entropy regularization strength <span class="math notranslate nohighlight">\(\alpha = 1/\beta\)</span>.</p>
+<p>The optimal policy is:</p>
+<div class="math notranslate nohighlight">
+\[
+\pi^*(a|s) = \frac{\exp\left(\beta q^*(s,a)\right)}{\sum_{a'} \exp\left(\beta q^*(s,a')\right)} = \text{softmax}_\beta(q^*(s,\cdot))(a),
+\]</div>
+<p>which is exactly the softmax policy parametrized by inverse temperature.</p>
+<p>The derivation establishes the complete equivalence: the value function <span class="math notranslate nohighlight">\(v^*\)</span> that solves the smooth Bellman equation is identical to the optimal value function <span class="math notranslate nohighlight">\(v^*_\Omega\)</span> of the entropy-regularized MDP (with <span class="math notranslate nohighlight">\(\Omega\)</span> being negative entropy and <span class="math notranslate nohighlight">\(\alpha = 1/\beta\)</span>), and the softmax policy that is greedy with respect to this value function achieves the maximum of the entropy-regularized objective. Both approaches yield the same numerical solution—the same values at every state and the same policy prescriptions. The only difference is how we conceptualize the problem: as smoothing the Bellman operator for computational tractability, or as explicitly trading off reward maximization against policy entropy.</p>
+<p>This equivalence has important implications. When we use smooth Bellman equations with a logsumexp operator, we are implicitly solving an entropy-regularized MDP. Conversely, when we explicitly add entropy regularization to an MDP objective, we arrive at smooth Bellman equations as the natural description of optimality. This dual perspective will prove valuable in understanding various algorithms and theoretical results. For instance, in soft actor-critic methods and other maximum entropy reinforcement learning algorithms, the connection between smooth operators and entropy regularization provides both computational benefits (differentiability) and conceptual clarity (why we want stochastic policies).</p>
+</section>
+</section>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="projection-methods-for-functional-equations">
+<h1>Projection Methods for Functional Equations<a class="headerlink" href="#projection-methods-for-functional-equations" title="Link to this heading">#</a></h1>
+<p>The Bellman optimality equation <span class="math notranslate nohighlight">\(\mathrm{L}v = v\)</span> is a functional equation—an equation where the unknown is an entire function rather than a finite-dimensional vector. When the state space is continuous or very large, we cannot represent the value function exactly on a computer. We must instead work with finite-dimensional approximations. This leads us to projection methods, a general framework for transforming infinite-dimensional problems into tractable finite-dimensional ones.</p>
+<p>The key idea is elegant: rather than trying to represent an arbitrary function <span class="math notranslate nohighlight">\(v: \mathcal{S} \to \mathbb{R}\)</span> on a computer (which is impossible), we restrict our search to a finite-dimensional subspace of functions that can be represented with a finite number of parameters. We then find the element of this subspace that best approximates the solution in some well-defined sense.</p>
+<section id="the-general-framework">
+<h2>The General Framework<a class="headerlink" href="#the-general-framework" title="Link to this heading">#</a></h2>
+<p>Consider an operator equation of the form
+$<span class="math notranslate nohighlight">\(
+\mathscr{N}(f) = 0,
+\)</span><span class="math notranslate nohighlight">\(
+where \)</span>\mathscr{N}: B_1 \to B_2<span class="math notranslate nohighlight">\( is a continuous operator between complete normed vector spaces \)</span>B_1<span class="math notranslate nohighlight">\( and \)</span>B_2<span class="math notranslate nohighlight">\(. For the Bellman equation, we have \)</span>\mathscr{N}(v) = \mathrm{L}v - v<span class="math notranslate nohighlight">\(, so that solving \)</span>\mathscr{N}(v) = 0<span class="math notranslate nohighlight">\( is equivalent to finding the fixed point \)</span>v = \mathrm{L}v$.</p>
+<p>The projection method approach consists of several conceptual steps that transform this infinite-dimensional problem into a finite-dimensional one.</p>
+<section id="step-1-choose-a-finite-dimensional-approximation-space">
+<h3>Step 1: Choose a Finite-Dimensional Approximation Space<a class="headerlink" href="#step-1-choose-a-finite-dimensional-approximation-space" title="Link to this heading">#</a></h3>
+<p>We begin by selecting a basis <span class="math notranslate nohighlight">\(\Phi = \{\varphi_1, \varphi_2, \ldots, \varphi_n\}\)</span> and approximating the unknown function as a linear combination:</p>
+<div class="math notranslate nohighlight">
+\[
+\hat{f}(x) = \sum_{i=1}^n a_i \varphi_i(x).
+\]</div>
+<p>The choice of basis functions <span class="math notranslate nohighlight">\(\varphi_i\)</span> is crucial and problem-dependent. Common choices include:</p>
+<ul class="simple">
+<li><p><strong>Polynomials</strong>: For smooth problems, we might use Chebyshev polynomials or other orthogonal polynomial families</p></li>
+<li><p><strong>Splines</strong>: For problems where we expect the solution to have regions of different smoothness</p></li>
+<li><p><strong>Radial basis functions</strong>: For high-dimensional problems where tensor product methods become intractable</p></li>
+</ul>
+<p>The number of basis functions <span class="math notranslate nohighlight">\(n\)</span> determines the flexibility of our approximation. In practice, we start with small <span class="math notranslate nohighlight">\(n\)</span> and increase it until the approximation quality is satisfactory. The only unknowns now are the coefficients <span class="math notranslate nohighlight">\(a = (a_1, \ldots, a_n)\)</span>.</p>
+</section>
+<section id="step-2-define-the-residual-function">
+<h3>Step 2: Define the Residual Function<a class="headerlink" href="#step-2-define-the-residual-function" title="Link to this heading">#</a></h3>
+<p>Since we are approximating <span class="math notranslate nohighlight">\(f\)</span> with <span class="math notranslate nohighlight">\(\hat{f}\)</span>, the operator <span class="math notranslate nohighlight">\(\mathscr{N}\)</span> will generally not vanish exactly. Instead, we obtain a <strong>residual function</strong>:</p>
+<div class="math notranslate nohighlight">
+\[
+R(x; a) = \mathscr{N}(\hat{f}(\cdot; a))(x).
+\]</div>
+<p>For a true solution, this residual would be identically zero. For our approximation, we aim to make it as small as possible in some well-defined sense. The residual measures how far our candidate solution is from satisfying the equation at each point <span class="math notranslate nohighlight">\(x\)</span> in the domain.</p>
+</section>
+<section id="step-3-choose-projection-conditions">
+<h3>Step 3: Choose Projection Conditions<a class="headerlink" href="#step-3-choose-projection-conditions" title="Link to this heading">#</a></h3>
+<p>The heart of the projection method is deciding what it means for the residual to be “small.” There are several standard approaches:</p>
+<p><strong>Least Squares Projection</strong>: Minimize the <span class="math notranslate nohighlight">\(L^2\)</span> norm of the residual:</p>
+<div class="math notranslate nohighlight">
+\[
+\min_a \int_{\mathcal{S}} R(x; a)^2 w(x) dx,
+\]</div>
+<p>for some weight function <span class="math notranslate nohighlight">\(w(x)\)</span>. This directly minimizes the squared error across the entire domain.</p>
+<p><strong>Galerkin Method</strong>: Require the residual to be orthogonal to each basis function:</p>
+<div class="math notranslate nohighlight">
+\[
+\langle R(\cdot; a), \varphi_i \rangle = \int_{\mathcal{S}} R(x; a) \varphi_i(x) w(x) dx = 0, \quad i = 1, \ldots, n.
+\]</div>
+<p>This gives us <span class="math notranslate nohighlight">\(n\)</span> equations for the <span class="math notranslate nohighlight">\(n\)</span> unknowns in <span class="math notranslate nohighlight">\(a\)</span>. The intuition is that if the residual has no component in any of the basis function directions, it must be small relative to the approximation space we’ve chosen.</p>
+<p><strong>Collocation Method</strong>: Require the residual to vanish exactly at <span class="math notranslate nohighlight">\(n\)</span> carefully chosen points <span class="math notranslate nohighlight">\(\{x_1, \ldots, x_n\}\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+R(x_i; a) = 0, \quad i = 1, \ldots, n.
+\]</div>
+<p>Collocation is computationally attractive because it avoids numerical integration—we only need to evaluate the residual at specific points. When using orthogonal polynomials, the collocation points are typically chosen as the zeros of the <span class="math notranslate nohighlight">\(n\)</span>-th polynomial in the family. For Chebyshev polynomials, these are precisely the points that minimize the interpolation error by the Chebyshev interpolation theorem.</p>
+</section>
+<section id="step-4-solve-the-finite-dimensional-problem">
+<h3>Step 4: Solve the Finite-Dimensional Problem<a class="headerlink" href="#step-4-solve-the-finite-dimensional-problem" title="Link to this heading">#</a></h3>
+<p>Each of these projection conditions transforms our infinite-dimensional problem into a finite-dimensional one:</p>
+<ul class="simple">
+<li><p><strong>Least squares</strong>: A nonlinear minimization problem in <span class="math notranslate nohighlight">\(\mathbb{R}^n\)</span></p></li>
+<li><p><strong>Galerkin</strong>: A system of <span class="math notranslate nohighlight">\(n\)</span> nonlinear equations in <span class="math notranslate nohighlight">\(n\)</span> unknowns</p></li>
+<li><p><strong>Collocation</strong>: A system of <span class="math notranslate nohighlight">\(n\)</span> nonlinear equations in <span class="math notranslate nohighlight">\(n\)</span> unknowns</p></li>
+</ul>
+<p>These finite-dimensional problems can be solved using standard numerical methods—Newton’s method for nonlinear systems, quasi-Newton methods for minimization, and so on.</p>
+</section>
+<section id="step-5-verify-the-solution">
+<h3>Step 5: Verify the Solution<a class="headerlink" href="#step-5-verify-the-solution" title="Link to this heading">#</a></h3>
+<p>Once we have computed a candidate solution <span class="math notranslate nohighlight">\(\hat{f}\)</span>, we must verify its quality. Projection methods optimize <span class="math notranslate nohighlight">\(\hat{f}\)</span> with respect to specific criteria (specific test functions or collocation points), but we should check that the residual is small everywhere, not just in the directions or at the points we optimized over.</p>
+<p>Typical diagnostic checks include:</p>
+<ul class="simple">
+<li><p>Computing <span class="math notranslate nohighlight">\(\|R(\cdot; a)\|\)</span> using a more accurate quadrature rule than was used in the optimization</p></li>
+<li><p>Evaluating <span class="math notranslate nohighlight">\(R(x; a)\)</span> at many points not used in the fitting process</p></li>
+<li><p>If using Galerkin with the first <span class="math notranslate nohighlight">\(n\)</span> basis functions, checking orthogonality against higher-order basis functions</p></li>
+</ul>
+</section>
+</section>
+<section id="application-to-the-bellman-equation">
+<h2>Application to the Bellman Equation<a class="headerlink" href="#application-to-the-bellman-equation" title="Link to this heading">#</a></h2>
+<p>We now apply this framework to the Bellman optimality equation. Recall that we seek a function <span class="math notranslate nohighlight">\(v\)</span> satisfying
+$<span class="math notranslate nohighlight">\(
+v(s) = \mathrm{L}v(s) = \max_{a \in \mathcal{A}_s} \left\{ r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j) \right\}.
+\)</span>$</p>
+<p>Writing this as an operator equation <span class="math notranslate nohighlight">\(\mathscr{N}(v) = 0\)</span> with <span class="math notranslate nohighlight">\(\mathscr{N}(v) = \mathrm{L}v - v\)</span>, the residual function for a candidate approximation <span class="math notranslate nohighlight">\(\hat{v}(s) = \sum_{i=1}^n a_i \varphi_i(s)\)</span> is:</p>
+<div class="math notranslate nohighlight">
+\[
+R(s; a) = \mathrm{L}\hat{v}(s) - \hat{v}(s) = \max_{a \in \mathcal{A}_s} \left\{ r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) \hat{v}(j) \right\} - \sum_{i=1}^n a_i \varphi_i(s).
+\]</div>
+<section id="collocation-for-the-bellman-equation">
+<h3>Collocation for the Bellman Equation<a class="headerlink" href="#collocation-for-the-bellman-equation" title="Link to this heading">#</a></h3>
+<p>In the collocation approach, we choose <span class="math notranslate nohighlight">\(n\)</span> states <span class="math notranslate nohighlight">\(\{s_1, \ldots, s_n\}\)</span> and require:</p>
+<div class="math notranslate nohighlight">
+\[
+R(s_i; a) = 0, \quad i = 1, \ldots, n.
+\]</div>
+<p>This gives us the system of equations:</p>
+<div class="math notranslate nohighlight">
+\[
+\sum_{j=1}^n a_j \varphi_j(s_i) = \max_{a \in \mathcal{A}_{s_i}} \left\{ r(s_i,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s_i,a) \hat{v}(j) \right\}, \quad i = 1, \ldots, n.
+\]</div>
+<p>The right-hand side requires evaluating the Bellman operator at the collocation points. For each collocation point <span class="math notranslate nohighlight">\(s_i\)</span>, we must:</p>
+<ol class="arabic simple">
+<li><p>For each action <span class="math notranslate nohighlight">\(a \in \mathcal{A}_{s_i}\)</span>, compute the expected continuation value <span class="math notranslate nohighlight">\(\sum_{j \in \mathcal{S}} p(j|s_i,a) \hat{v}(j)\)</span></p></li>
+<li><p>Take the maximum over actions</p></li>
+</ol>
+<p>When the state space is continuous, the expectation involves integration, which typically requires numerical quadrature. When the state space is discrete but large, this is a straightforward (though potentially expensive) summation.</p>
+</section>
+<section id="iterative-solution-projection-based-value-iteration">
+<h3>Iterative Solution: Projection-Based Value Iteration<a class="headerlink" href="#iterative-solution-projection-based-value-iteration" title="Link to this heading">#</a></h3>
+<p>Rather than solving the nonlinear system of collocation equations directly, we can use an iterative approach analogous to value iteration. Starting with an initial guess <span class="math notranslate nohighlight">\(a^{(0)}\)</span>, we iterate:</p>
+<ol class="arabic simple">
+<li><p><strong>Maximization step</strong>: At each collocation point <span class="math notranslate nohighlight">\(s_i\)</span>, compute
+$<span class="math notranslate nohighlight">\(
+v_i^{(k+1)} = \max_{a \in \mathcal{A}_{s_i}} \left\{ r(s_i,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s_i,a) \hat{v}(s_j; a^{(k)}) \right\}.
+\)</span>$</p></li>
+<li><p><strong>Fitting step</strong>: Find coefficients <span class="math notranslate nohighlight">\(a^{(k+1)}\)</span> such that <span class="math notranslate nohighlight">\(\hat{v}(s_i; a^{(k+1)}) = v_i^{(k+1)}\)</span> for all <span class="math notranslate nohighlight">\(i = 1, \ldots, n\)</span>. This is a linear system if our approximation is linear in the coefficients.</p></li>
+<li><p><strong>Check convergence</strong>: If <span class="math notranslate nohighlight">\(\|a^{(k+1)} - a^{(k)}\|\)</span> is sufficiently small, stop; otherwise return to step 1.</p></li>
+</ol>
+<p>This algorithm separates the difficult nonlinear optimization (the max operator in the Bellman equation) from the approximation problem. Each iteration improves the approximation by ensuring it matches the Bellman operator at the collocation points.</p>
+</section>
+<section id="shape-preserving-considerations">
+<h3>Shape-Preserving Considerations<a class="headerlink" href="#shape-preserving-considerations" title="Link to this heading">#</a></h3>
+<p>A subtle but important issue arises in dynamic programming: the value function typically has specific structural properties that we want our approximation to preserve. For instance:</p>
+<ul class="simple">
+<li><p><strong>Monotonicity</strong>: If having more of a resource is better, the value function should be increasing</p></li>
+<li><p><strong>Concavity</strong>: Diminishing returns often imply concave value functions</p></li>
+<li><p><strong>Boundedness</strong>: The value function is bounded when rewards are bounded</p></li>
+</ul>
+<p>Standard polynomial approximation does not automatically preserve these properties. A polynomial fit to increasing, concave data points can produce a function with non-monotonic or convex regions between the data points. This can destabilize the iterative algorithm: artificially high values at non-collocation points can lead to poor decisions in the maximization step, which feeds back into even worse approximations.</p>
+<p><strong>Shape-preserving approximation methods</strong> address this issue. For one-dimensional problems, Schumaker’s shape-preserving quadratic splines maintain monotonicity and concavity while providing continuously differentiable approximations. For multidimensional problems, linear interpolation on simplices preserves monotonicity and convex combinations (though not concavity or smoothness).</p>
+<p>The trade-off is between smoothness and shape preservation. Smooth approximations (high-order polynomials or splines) enable efficient optimization in the maximization step through gradient-based methods, but risk introducing spurious features. Simple approximations (linear interpolation) guarantee shape preservation but introduce kinks that complicate optimization and may produce discontinuous policies when the true policy is continuous.</p>
+</section>
+</section>
+<section id="connection-to-function-approximation-in-reinforcement-learning">
+<h2>Connection to Function Approximation in Reinforcement Learning<a class="headerlink" href="#connection-to-function-approximation-in-reinforcement-learning" title="Link to this heading">#</a></h2>
+<p>The projection method framework provides a principled foundation for understanding function approximation in reinforcement learning. When we use a neural network with parameters <span class="math notranslate nohighlight">\(\theta\)</span> to approximate the value function, we are implicitly choosing:</p>
+<ul class="simple">
+<li><p><strong>Basis</strong>: The function class representable by the neural network architecture</p></li>
+<li><p><strong>Projection condition</strong>: Typically a form of stochastic gradient descent on a temporal difference error, which can be viewed as approximately minimizing a Bellman residual</p></li>
+</ul>
+<p>The temporal difference methods we will encounter later can be understood as stochastic approximations to the projection methods described here, where the expectations in the Bellman operator are estimated from samples rather than computed exactly.</p>
 </section>
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="approximating-the-bellman-operator-using-numerical-integration">
@@ -783,13 +1042,14 @@ v^*_\Omega(s) &amp;= \Omega^*(q^*_\Omega(s, \cdot))\end{align*} \end{split}\]</d
 <div class="math notranslate nohighlight">
 \[ p_h(s'|s, a) \equiv \frac{p(s_{k(s')}|s_{k(s)}, a)}{\int p(s_{k(s')}|s_{k(s)}, a) ds'} \]</div>
 <p>After defining our discretized reward and transition probability functions, we can write down our discretized Bellman operator.
-We start with the Bellman operator using our discretized functions <span class="math notranslate nohighlight">\(r_h\)</span> and <span class="math notranslate nohighlight">\(p_h\)</span>. While these functions map to grid points, they’re still defined over continuous spaces - we haven’t yet dealt with the computational challenge of the integral. With this discretization approach, the value function is piecewise constant over cells. This lets us express the integral as a sum over cells, where each cell’s contribution is the probability of transitioning to that cell multiplied by the value at that cell’s grid point:
-$<span class="math notranslate nohighlight">\( \begin{aligned}
+We start with the Bellman operator using our discretized functions <span class="math notranslate nohighlight">\(r_h\)</span> and <span class="math notranslate nohighlight">\(p_h\)</span>. While these functions map to grid points, they’re still defined over continuous spaces - we haven’t yet dealt with the computational challenge of the integral. With this discretization approach, the value function is piecewise constant over cells. This lets us express the integral as a sum over cells, where each cell’s contribution is the probability of transitioning to that cell multiplied by the value at that cell’s grid point:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split} \begin{aligned}
 (\widehat{\mathrm{L}}_h v)(s) &amp;= \max_{k=1,\ldots,N_a} \left\{r_h(s, a_k) + \gamma \int v(s')p_h(s'|s, a_k)ds'\right\} \\
 &amp;= \max_{k=1,\ldots,N_a} \left\{r_h(s, a_k) + \gamma \int v(s_{k(s')})p_h(s'|s, a_k)ds'\right\} \\
 &amp;= \max_{k=1,\ldots,N_a} \left\{r_h(s, a_k) + \gamma \sum_{i=1}^{N_s} v(s_i) \int_{cell_i} p_h(s'|s, a_k)ds'\right\} \\
 &amp;= \max_{k=1,\ldots,N_a} \left\{r_h(s, a_k) + \gamma \sum_{i=1}^{N_s} v(s_i)p_h(s_i|s_{k(s)}, a_k)\right\}
-\end{aligned} \)</span>$</p>
+\end{aligned} \end{split}\]</div>
 <p>This form makes clear how discretization converts our continuous-space problem into a finite computation: we’ve replaced integration over continuous space with summation over grid points. The price we pay is that the number of terms in our sum grows exponentially with the dimension of our state space - the familiar curse of dimensionality.</p>
 </section>
 <section id="monte-carlo-integration">
@@ -812,7 +1072,7 @@ $<span class="math notranslate nohighlight">\( \begin{aligned}
 \]</div>
 <p>for each <span class="math notranslate nohighlight">\(s_k \in \mathcal{B}\)</span>. A direct adaptation of the successive approximation method for this empirical operator leads to:</p>
 <div class="proof algorithm admonition" id="mc-value-iteration">
-<p class="admonition-title"><span class="caption-number">Algorithm 13 </span> (Monte Carlo Value Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 12 </span> (Monte Carlo Value Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, , number of samples <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span>, maximum iterations <span class="math notranslate nohighlight">\(K\)</span>
 <strong>Output:</strong> Value function <span class="math notranslate nohighlight">\(v\)</span></p>
@@ -891,7 +1151,7 @@ This bias remains nonnegative at every step, and each application of the Bellman
 <h3>Decoupling Selection and Evaluation<a class="headerlink" href="#decoupling-selection-and-evaluation" title="Link to this heading">#</a></h3>
 <p>A simpler approach to addressing the upward bias is to maintain two separate q-function estimates - one for action selection and another for evaluation. Let’s first start by looking at the corresponding Monte Carlo value iteration algorithm and then convince ourselves that this is good idea using math. Assume a monte carlo integration setup over Q factors:</p>
 <div class="proof algorithm admonition" id="double-mc-value-iteration">
-<p class="admonition-title"><span class="caption-number">Algorithm 14 </span> (Double Monte Carlo Q-Value Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 13 </span> (Double Monte Carlo Q-Value Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong>: MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, number of samples <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span>, maximum iterations <span class="math notranslate nohighlight">\(K\)</span>
 <strong>Output</strong>: Q-functions <span class="math notranslate nohighlight">\(q^A, q^B\)</span></p>
@@ -1045,7 +1305,7 @@ v_{n+1}(s) := (\mathrm{L} v_n)(s) \equiv \max_{a \in \mathcal{A}_s} \left\{r(s,a
 \]</div>
 <p>Pay particular attention to the <span class="math notranslate nohighlight">\(\forall s \in \mathcal{S}\)</span> notation: what happens when we can’t afford to update all components in each step of value iteration? A potential solution is to use Gauss-Seidel Value Iteration, which updates states sequentially, immediately using fresh values for subsequent updates.</p>
 <div class="proof algorithm admonition" id="alg-gsvi">
-<p class="admonition-title"><span class="caption-number">Algorithm 15 </span> (Gauss-Seidel Value Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 14 </span> (Gauss-Seidel Value Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, convergence threshold <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span><br />
 <strong>Output:</strong> Value function <span class="math notranslate nohighlight">\(v\)</span> and policy <span class="math notranslate nohighlight">\(d\)</span></p>
@@ -1115,13 +1375,13 @@ v(s) \approx \sum_{i=0}^{n} \theta_i \phi_i(s)
 <p>This target model framework emerges naturally from the structure of parametric value iteration — an insight that provides theoretical grounding for modern deep reinforcement learning algorithms where we commonly hear about the importance of the “target network trick” .</p>
 <p>Parametric successive approximation, known in reinforcement learning literature as Fitted Value Iteration, offers a flexible template for deriving new algorithms by varying the choice of function approximator. Various instantiations of this approach have emerged across different fields:</p>
 <ul class="simple">
-<li><p>Using polynomial basis functions with linear regression yields Kortum’s method <span id="id11">[<a class="reference internal" href="bibliography.html#id31" title="Samuel Kortum. Value function approximation in an estimation routine. 1992. Manuscript, Boston University.">26</a>]</span>, known to econometricians. In reinforcement learning terms, this corresponds to value iteration with projected Bellman equations <span id="id12">[<a class="reference internal" href="bibliography.html#id32" title="John Rust. Chapter 14 Numerical dynamic programming in economics, pages 619–729. Elsevier, 1996. URL: http://dx.doi.org/10.1016/S1574-0021(96)01016-7, doi:10.1016/s1574-0021(96)01016-7.">37</a>]</span>.</p></li>
+<li><p>Using polynomial basis functions with linear regression yields Kortum’s method <span id="id11">[<a class="reference internal" href="bibliography.html#id31" title="Samuel Kortum. Value function approximation in an estimation routine. 1992. Manuscript, Boston University.">27</a>]</span>, known to econometricians. In reinforcement learning terms, this corresponds to value iteration with projected Bellman equations <span id="id12">[<a class="reference internal" href="bibliography.html#id32" title="John Rust. Chapter 14 Numerical dynamic programming in economics, pages 619–729. Elsevier, 1996. URL: http://dx.doi.org/10.1016/S1574-0021(96)01016-7, doi:10.1016/s1574-0021(96)01016-7.">38</a>]</span>.</p></li>
 <li><p>Employing extremely randomized trees (via <code class="docutils literal notranslate"><span class="pre">ExtraTreesRegressor</span></code>) leads to the tree-based fitted value iteration of Ernst et al. <span id="id13">[<a class="reference internal" href="bibliography.html#id33" title="Damien Ernst, Pierre Geurts, and Louis Wehenkel. Tree-based batch mode reinforcement learning. Journal of Machine Learning Research, 6:503–556, 2005.">11</a>]</span>.</p></li>
-<li><p>Neural network approximation (via <code class="docutils literal notranslate"><span class="pre">MLPRegressor</span></code>) gives rise to Neural Fitted Q-Iteration as developed by Riedmiller <span id="id14">[<a class="reference internal" href="bibliography.html#id34" title="Martin Riedmiller. Neural fitted q iteration – first experiences with a data efficient neural reinforcement learning method. In Proceedings of the 16th European Conference on Machine Learning (ECML), 317–328. Berlin, Heidelberg, 2005. Springer.">34</a>]</span>.</p></li>
+<li><p>Neural network approximation (via <code class="docutils literal notranslate"><span class="pre">MLPRegressor</span></code>) gives rise to Neural Fitted Q-Iteration as developed by Riedmiller <span id="id14">[<a class="reference internal" href="bibliography.html#id34" title="Martin Riedmiller. Neural fitted q iteration – first experiences with a data efficient neural reinforcement learning method. In Proceedings of the 16th European Conference on Machine Learning (ECML), 317–328. Berlin, Heidelberg, 2005. Springer.">35</a>]</span>.</p></li>
 </ul>
 <p>The \texttt{fit} function in our algorithm represents this supervised learning step and can be implemented using any standard regression tool that follows the scikit-learn interface. This flexibility in choice of function approximator allows practitioners to leverage the extensive ecosystem of modern machine learning tools while maintaining the core dynamic programming structure.</p>
 <div class="proof algorithm admonition" id="parametric-value-iteration">
-<p class="admonition-title"><span class="caption-number">Algorithm 16 </span> (Parametric Value Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 15 </span> (Parametric Value Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given an MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, base points <span class="math notranslate nohighlight">\(B \subset S\)</span>, function approximator class <span class="math notranslate nohighlight">\(v(s; \boldsymbol{\theta})\)</span>, maximum iterations <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for value function approximation</p>
@@ -1187,7 +1447,7 @@ d_{n+1}(s_k) = \arg\max_{a \in \mathcal{A}} \left\{r(s_k,a) + \gamma \int v_n(s'
 </ol>
 <p>This leads to the following algorithm:</p>
 <div class="proof algorithm admonition" id="parametric-policy-iteration">
-<p class="admonition-title"><span class="caption-number">Algorithm 17 </span> (Parametric Policy Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 16 </span> (Parametric Policy Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given an MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, base points <span class="math notranslate nohighlight">\(B \subset S\)</span>, function approximator class <span class="math notranslate nohighlight">\(v(s; \boldsymbol{\theta})\)</span>, maximum iterations <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for value function approximation</p>
@@ -1248,7 +1508,7 @@ d(s) = \arg\max_{a \in \mathcal{A}(s)} q(s,a)
 \]</div>
 <p>With this insight, we can adapt our parametric value iteration algorithm to work with Q-functions:</p>
 <div class="proof algorithm admonition" id="parametric-q-value-iteration">
-<p class="admonition-title"><span class="caption-number">Algorithm 18 </span> (Parametric Q-Value Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 17 </span> (Parametric Q-Value Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given an MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, base points <span class="math notranslate nohighlight">\(\mathcal{B} \subset S\)</span>, function approximator class <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, maximum iterations <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
@@ -1280,7 +1540,7 @@ d(s) = \arg\max_{a \in \mathcal{A}(s)} q(s,a)
 <p>The basic idea is simple: rather than starting each fitting procedure from scratch, we initialize the function approximator with parameters from the previous iteration. This can speed up convergence since successive Q-functions tend to be similar. However, recent work suggests that persistent warmstarting might sometimes be detrimental, potentially leading to a form of overfitting. Alternative “reset” strategies that occasionally reinitialize parameters have shown promise in mitigating this issue.</p>
 <p>Here’s how warmstarting can be incorporated into parametric Q-learning with one-step Monte Carlo integration:</p>
 <div class="proof algorithm admonition" id="warmstarted-q-learning">
-<p class="admonition-title"><span class="caption-number">Algorithm 19 </span> (Warmstarted Parametric Q-Learning with N=1 Monte Carlo Integration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 18 </span> (Warmstarted Parametric Q-Learning with N=1 Monte Carlo Integration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given dataset <span class="math notranslate nohighlight">\(\mathcal{D}\)</span> with transitions <span class="math notranslate nohighlight">\((s, a, r, s')\)</span>, function approximator class <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, maximum iterations <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span>, warmstart frequency <span class="math notranslate nohighlight">\(k\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
@@ -1324,7 +1584,7 @@ d(s) = \arg\max_{a \in \mathcal{A}(s)} q(s,a)
 <p>The intuition for using early stopping in the inner optimization mirrors that of modified policy iteration in exact dynamic programming. Just as modified policy iteration truncates the Neumann series during policy evaluation rather than solving to convergence, we might only partially optimize our function approximator at each iteration. While this complicates the theoretical analysis, it often works well in practice and can be computationally more efficient.</p>
 <p>This perspective helps us understand modern deep reinforcement learning algorithms. For instance, DQN can be viewed as an instance of fitted Q-iteration where the inner optimization is intentionally limited. Here’s how we can formalize this approach:</p>
 <div class="proof algorithm admonition" id="early-stopping-fqi">
-<p class="admonition-title"><span class="caption-number">Algorithm 20 </span> (Early-Stopping Fitted Q-Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 19 </span> (Early-Stopping Fitted Q-Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given dataset <span class="math notranslate nohighlight">\(\mathcal{D}\)</span> with transitions <span class="math notranslate nohighlight">\((s, a, r, s')\)</span>, function approximator <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, maximum outer iterations <span class="math notranslate nohighlight">\(N_{outer}\)</span>, maximum inner iterations <span class="math notranslate nohighlight">\(N_{inner}\)</span>, outer tolerance <span class="math notranslate nohighlight">\(\varepsilon_{outer}\)</span>, inner tolerance <span class="math notranslate nohighlight">\(\varepsilon_{inner}\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
@@ -1368,10 +1628,10 @@ d(s) = \arg\max_{a \in \mathcal{A}(s)} q(s,a)
 <p>There are several moving parts we can swap in and out when working with parametric dynamic programming - from the function approximator we choose, to how we warm start things, to the specific methods we use for numerical integration and inner optimization. In this section, we’ll look at some concrete examples and see how they fit into this general framework.</p>
 <section id="kernel-based-reinforcement-learning-2002">
 <h2>Kernel-Based Reinforcement Learning (2002)<a class="headerlink" href="#kernel-based-reinforcement-learning-2002" title="Link to this heading">#</a></h2>
-<p>Ormoneit and Sen’s Kernel-Based Reinforcement Learning (KBRL) <span id="id15">[<a class="reference internal" href="bibliography.html#id35" title="Dirk Ormoneit and Śaunak Sen. Kernel-based reinforcement learning. Machine Learning, 49(2/3):161–178, 2002. URL: http://dx.doi.org/10.1023/A:1017928328829, doi:10.1023/a:1017928328829.">31</a>]</span> helped establish the general paradigm of batch reinforcement learning later advocated by <span id="id16">[<a class="reference internal" href="bibliography.html#id36" title="Damien Ernst, Pierre Geurts, and Louis Wehenkel. Tree-based batch mode reinforcement learning. J. Mach. Learn. Res., 6:503–556, 2005. URL: https://jmlr.org/papers/v6/ernst05a.html.">12</a>]</span>. KBRL is a purely offline method that first collects a fixed set of transitions and then uses kernel regression to solve the optimal control problem through value iteration on this dataset. While the dominant approaches at the time were online methods like temporal difference, KBRL showed that another path to developping reinforcement learning algorithm was possible: one that capable of leveraging advances in supervised learning to provide both theoretical and practical benefits.</p>
+<p>Ormoneit and Sen’s Kernel-Based Reinforcement Learning (KBRL) <span id="id15">[<a class="reference internal" href="bibliography.html#id35" title="Dirk Ormoneit and Śaunak Sen. Kernel-based reinforcement learning. Machine Learning, 49(2/3):161–178, 2002. URL: http://dx.doi.org/10.1023/A:1017928328829, doi:10.1023/a:1017928328829.">32</a>]</span> helped establish the general paradigm of batch reinforcement learning later advocated by <span id="id16">[<a class="reference internal" href="bibliography.html#id36" title="Damien Ernst, Pierre Geurts, and Louis Wehenkel. Tree-based batch mode reinforcement learning. J. Mach. Learn. Res., 6:503–556, 2005. URL: https://jmlr.org/papers/v6/ernst05a.html.">12</a>]</span>. KBRL is a purely offline method that first collects a fixed set of transitions and then uses kernel regression to solve the optimal control problem through value iteration on this dataset. While the dominant approaches at the time were online methods like temporal difference, KBRL showed that another path to developping reinforcement learning algorithm was possible: one that capable of leveraging advances in supervised learning to provide both theoretical and practical benefits.</p>
 <p>As the name suggests, KBRL uses kernel based regression within the general framework of outlined above.</p>
 <div class="proof algorithm admonition" id="kernel-based-q-iteration">
-<p class="admonition-title"><span class="caption-number">Algorithm 21 </span> (Kernel-Based Q-Value Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 20 </span> (Kernel-Based Q-Value Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given an MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, dataset <span class="math notranslate nohighlight">\(\mathcal{D}\)</span> with observed transitions <span class="math notranslate nohighlight">\((s, a, r, s')\)</span>, kernel bandwidth <span class="math notranslate nohighlight">\(b\)</span>, maximum iterations <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span></p>
 <p><strong>Output</strong> Kernel-based Q-function approximation</p>
@@ -1405,13 +1665,13 @@ d(s) = \arg\max_{a \in \mathcal{A}(s)} q(s,a)
 </section>
 <section id="ernst-s-fitted-q-iteration-2005">
 <h2>Ernst’s Fitted Q Iteration (2005)<a class="headerlink" href="#ernst-s-fitted-q-iteration-2005" title="Link to this heading">#</a></h2>
-<p>Ernst’s <span id="id17">[<a class="reference internal" href="bibliography.html#id36" title="Damien Ernst, Pierre Geurts, and Louis Wehenkel. Tree-based batch mode reinforcement learning. J. Mach. Learn. Res., 6:503–556, 2005. URL: https://jmlr.org/papers/v6/ernst05a.html.">12</a>]</span> specific instantiation of parametric q-value iteration uses extremely randomized trees, an extension to random forests proposed by  <span id="id18">Geurts <em>et al.</em> [<a class="reference internal" href="bibliography.html#id37" title="Pierre Geurts, Damien Ernst, and Louis Wehenkel. Extremely randomized trees. Machine Learning, 63(1):3–42, March 2006. URL: http://dx.doi.org/10.1007/s10994-006-6226-1, doi:10.1007/s10994-006-6226-1.">16</a>]</span>. This algorithm became particularly well-known, partly because it was one of the first to demonstrate the advantages of offline reinforcement learning in practice on several challenging benchmarks at the time.</p>
+<p>Ernst’s <span id="id17">[<a class="reference internal" href="bibliography.html#id36" title="Damien Ernst, Pierre Geurts, and Louis Wehenkel. Tree-based batch mode reinforcement learning. J. Mach. Learn. Res., 6:503–556, 2005. URL: https://jmlr.org/papers/v6/ernst05a.html.">12</a>]</span> specific instantiation of parametric q-value iteration uses extremely randomized trees, an extension to random forests proposed by  <span id="id18">Geurts <em>et al.</em> [<a class="reference internal" href="bibliography.html#id37" title="Pierre Geurts, Damien Ernst, and Louis Wehenkel. Extremely randomized trees. Machine Learning, 63(1):3–42, March 2006. URL: http://dx.doi.org/10.1007/s10994-006-6226-1, doi:10.1007/s10994-006-6226-1.">17</a>]</span>. This algorithm became particularly well-known, partly because it was one of the first to demonstrate the advantages of offline reinforcement learning in practice on several challenging benchmarks at the time.</p>
 <p>Random Forests and Extra-Trees differ primarily in how they construct individual trees. Random Forests creates diversity in two ways: it resamples the training data (bootstrap) for each tree, and at each node it randomly selects a subset of features but then searches exhaustively for the best cut-point within each selected feature. In contrast, Extra-Trees uses the full training set for each tree and injects randomization differently: at each node, it not only randomly selects features but also randomly selects the cut-points without searching for the optimal one. It then picks the best among these completely random splits according to a variance reduction criterion. This double randomization - in both feature and cut-point selection - combined with using the full dataset makes Extra-Trees faster than Random Forests while maintaining similar predictive accuracy.</p>
 <p>An important implementation detail concerns how tree structures can be reused across iterations of fitted Q iteration. With parametric methods like neural networks, warmstarting is straightforward - you simply initialize the weights with values from the previous iteration. For decision trees, the situation is more subtle because the model structure is determined by how splits are chosen at each node. When the number of candidate splits per node is <span class="math notranslate nohighlight">\(K=1\)</span> (totally randomized trees), the algorithm selects both the splitting variable and threshold purely at random, without looking at the target values (the Q-values we’re trying to predict) to evaluate the quality of the split. This means the tree structure only depends on the input variables and random choices, not on what we’re predicting. As a result, we can build the trees once in the first iteration and reuse their structure throughout all iterations, only updating the prediction values at the leaves.</p>
 <p>Standard Extra-Trees (<span class="math notranslate nohighlight">\(K&gt;1\)</span>), however, uses target values to choose the best among K random splits by calculating which split best reduces the variance of the predictions. Since these target values change in each iteration of fitted Q iteration (as our estimate of Q evolves), we must rebuild the trees completely. While this is computationally more expensive, it allows the trees to better adapt their structure to capture the evolving Q-function.</p>
 <p>The complete algorithm can be formalized as follows:</p>
 <div class="proof algorithm admonition" id="extra-trees-fqi">
-<p class="admonition-title"><span class="caption-number">Algorithm 22 </span> (Extra-Trees Fitted Q Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 21 </span> (Extra-Trees Fitted Q Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given an MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, dataset <span class="math notranslate nohighlight">\(\mathcal{D}\)</span> with observed transitions <span class="math notranslate nohighlight">\((s, a, r, s')\)</span>, Extra-Trees parameters <span class="math notranslate nohighlight">\((K, n_{min}, M)\)</span>, maximum iterations <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span></p>
 <p><strong>Output</strong> Extra-Trees model for Q-function approximation</p>
@@ -1439,7 +1699,7 @@ d(s) = \arg\max_{a \in \mathcal{A}(s)} q(s,a)
 </div></section>
 <section id="neural-fitted-q-iteration-2005">
 <h2>Neural Fitted Q Iteration (2005)<a class="headerlink" href="#neural-fitted-q-iteration-2005" title="Link to this heading">#</a></h2>
-<p>Riedmiller’s Neural Fitted Q Iteration (NFQI) <span id="id19">[<a class="reference internal" href="bibliography.html#id38" title="Martin A. Riedmiller. Neural fitted Q iteration - first experiences with a data efficient neural reinforcement learning method. In João Gama, Rui Camacho, Pavel Brazdil, Al\'ıpio Jorge, and Lu\'ıs Torgo, editors, Machine Learning: ECML 2005, 16th European Conference on Machine Learning, Porto, Portugal, October 3-7, 2005, Proceedings, volume 3720 of Lecture Notes in Computer Science, 317–328. Springer, 2005. URL: https://doi.org/10.1007/11564096\_32, doi:10.1007/11564096\_32.">35</a>]</span> is a natural instantiation of parametric Q-value iteration where:</p>
+<p>Riedmiller’s Neural Fitted Q Iteration (NFQI) <span id="id19">[<a class="reference internal" href="bibliography.html#id38" title="Martin A. Riedmiller. Neural fitted Q iteration - first experiences with a data efficient neural reinforcement learning method. In João Gama, Rui Camacho, Pavel Brazdil, Al\'ıpio Jorge, and Lu\'ıs Torgo, editors, Machine Learning: ECML 2005, 16th European Conference on Machine Learning, Porto, Portugal, October 3-7, 2005, Proceedings, volume 3720 of Lecture Notes in Computer Science, 317–328. Springer, 2005. URL: https://doi.org/10.1007/11564096\_32, doi:10.1007/11564096\_32.">36</a>]</span> is a natural instantiation of parametric Q-value iteration where:</p>
 <ol class="arabic simple">
 <li><p>The function approximator <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span> is a multi-layer perceptron</p></li>
 <li><p>The <span class="math notranslate nohighlight">\(\texttt{fit}\)</span> function uses Rprop optimization trained to convergence on each iteration’s pattern set</p></li>
@@ -1453,7 +1713,7 @@ d(s) = \arg\max_{a \in \mathcal{A}(s)} q(s,a)
 <p>where <span class="math notranslate nohighlight">\(s'_{observed}\)</span> is the actual next state that was observed after taking action <span class="math notranslate nohighlight">\(a\)</span> in state <span class="math notranslate nohighlight">\(s\)</span>. This is equivalent to Monte Carlo integration with a single sample, making the algorithm fully model-free.</p>
 <p>The algorithm follows from the parametric Q-value iteration template:</p>
 <div class="proof algorithm admonition" id="neural-fitted-q-iteration">
-<p class="admonition-title"><span class="caption-number">Algorithm 23 </span> (Neural Fitted Q Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 22 </span> (Neural Fitted Q Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given an MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, dataset <span class="math notranslate nohighlight">\(\mathcal{D}\)</span> with observed transitions <span class="math notranslate nohighlight">\((s, a, r, s')\)</span>, MLP architecture <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, maximum iterations <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
@@ -1482,10 +1742,10 @@ d(s) = \arg\max_{a \in \mathcal{A}(s)} q(s,a)
 </section>
 <section id="deep-q-networks-2013">
 <h2>Deep Q Networks (2013)<a class="headerlink" href="#deep-q-networks-2013" title="Link to this heading">#</a></h2>
-<p>DQN <span id="id20">[<a class="reference internal" href="bibliography.html#id41" title="Volodymyr Mnih, Koray Kavukcuoglu, David Silver, Andrei A Rusu, Joel Veness, Marc G Bellemare, Alex Graves, Martin Riedmiller, Andreas K Fidjeland, Georg Ostrovski, and others. Playing atari with deep reinforcement learning. In NIPS Deep Learning Workshop. 2013.">30</a>]</span> is a close relative of NFQI - in fact, Riedmiller, the author of NFQI, was also an author on the DQN paper. What at first glance might look like a different algorithm can actually be understood as a special case of parametric dynamic programming with practical adaptations. Let’s build this connection step by step.</p>
+<p>DQN <span id="id20">[<a class="reference internal" href="bibliography.html#id41" title="Volodymyr Mnih, Koray Kavukcuoglu, David Silver, Andrei A Rusu, Joel Veness, Marc G Bellemare, Alex Graves, Martin Riedmiller, Andreas K Fidjeland, Georg Ostrovski, and others. Playing atari with deep reinforcement learning. In NIPS Deep Learning Workshop. 2013.">31</a>]</span> is a close relative of NFQI - in fact, Riedmiller, the author of NFQI, was also an author on the DQN paper. What at first glance might look like a different algorithm can actually be understood as a special case of parametric dynamic programming with practical adaptations. Let’s build this connection step by step.</p>
 <p>First, let’s start with basic parametric Q-value iteration using a neural network:</p>
 <div class="proof algorithm admonition" id="basic-q-iteration">
-<p class="admonition-title"><span class="caption-number">Algorithm 24 </span> (Basic Offline Neural Fitted Q-Value Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 23 </span> (Basic Offline Neural Fitted Q-Value Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given an MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, dataset of transitions <span class="math notranslate nohighlight">\(\mathcal{T}\)</span>, neural network <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, maximum iterations <span class="math notranslate nohighlight">\(N\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span>, initialization <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_0\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
@@ -1511,7 +1771,7 @@ d(s) = \arg\max_{a \in \mathcal{A}(s)} q(s,a)
 </section>
 </div><p>Next, let’s open up the <code class="docutils literal notranslate"><span class="pre">fit</span></code> procedure to show the inner optimization loop using gradient descent:</p>
 <div class="proof algorithm admonition" id="q-iteration-inner-loop">
-<p class="admonition-title"><span class="caption-number">Algorithm 25 </span> (Fitted Q-Value Iteration with Explicit Inner Loop)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 24 </span> (Fitted Q-Value Iteration with Explicit Inner Loop)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, dataset of transitions <span class="math notranslate nohighlight">\(\mathcal{T}\)</span>, neural network <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, learning rate <span class="math notranslate nohighlight">\(\alpha\)</span>, convergence test <span class="math notranslate nohighlight">\(\texttt{has_converged}(\cdot)\)</span>, initialization <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_0\)</span>, regression loss function <span class="math notranslate nohighlight">\(\mathcal{L}\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
@@ -1549,7 +1809,7 @@ d(s) = \arg\max_{a \in \mathcal{A}(s)} q(s,a)
 <h3>Warmstarting and Partial Fitting<a class="headerlink" href="#warmstarting-and-partial-fitting" title="Link to this heading">#</a></h3>
 <p>A natural modification is to initialize the inner optimization loop with the previous iteration’s parameters - a strategy known as warmstarting - rather than starting from <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_0\)</span> each time. Additionally, similar to how modified policy iteration performs partial policy evaluation rather than solving to convergence, we can limit ourselves to a fixed number of optimization steps. These pragmatic changes, when combined, yield:</p>
 <div class="proof algorithm admonition" id="nfqi-warmstart-partial">
-<p class="admonition-title"><span class="caption-number">Algorithm 26 </span> (Neural Fitted Q-Iteration with Warmstarting and Partial Optimization)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 25 </span> (Neural Fitted Q-Iteration with Warmstarting and Partial Optimization)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, dataset of transitions <span class="math notranslate nohighlight">\(\mathcal{T}\)</span>, neural network <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, learning rate <span class="math notranslate nohighlight">\(\alpha\)</span>, number of steps <span class="math notranslate nohighlight">\(K\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
@@ -1585,7 +1845,7 @@ d(s) = \arg\max_{a \in \mathcal{A}(s)} q(s,a)
 <h3>Flattening the Updates with Target Swapping<a class="headerlink" href="#flattening-the-updates-with-target-swapping" title="Link to this heading">#</a></h3>
 <p>Now rather than maintaining two sets of indices for the outer and inner levels, we could also “flatten” this algorithm  under a single loop structure using modulo arithmetics. Here’s how we could rewrite it:</p>
 <div class="proof algorithm admonition" id="nfqi-flattened-swap">
-<p class="admonition-title"><span class="caption-number">Algorithm 27 </span> (Flattened Neural Fitted Q-Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 26 </span> (Flattened Neural Fitted Q-Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, dataset of transitions <span class="math notranslate nohighlight">\(\mathcal{T}\)</span>, neural network <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, learning rate <span class="math notranslate nohighlight">\(\alpha\)</span>, target update frequency <span class="math notranslate nohighlight">\(K\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
@@ -1620,7 +1880,7 @@ d(s) = \arg\max_{a \in \mathcal{A}(s)} q(s,a)
 <h3>Exponential Moving Average Targets<a class="headerlink" href="#exponential-moving-average-targets" title="Link to this heading">#</a></h3>
 <p>An alternative to this periodic swap of parameters is to use an exponential moving average (EMA) of the parameters:</p>
 <div class="proof algorithm admonition" id="nfqi-flattened-ema">
-<p class="admonition-title"><span class="caption-number">Algorithm 28 </span> (Flattened Neural Fitted Q-Iteration with EMA)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 27 </span> (Flattened Neural Fitted Q-Iteration with EMA)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, dataset of transitions <span class="math notranslate nohighlight">\(\mathcal{T}\)</span>, neural network <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, learning rate <span class="math notranslate nohighlight">\(\alpha\)</span>, EMA rate <span class="math notranslate nohighlight">\(\tau\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
@@ -1646,13 +1906,13 @@ d(s) = \arg\max_{a \in \mathcal{A}(s)} q(s,a)
 </ol>
 </section>
 </div><p>Note that the original DQN used the periodic swap of parameters rather than EMA targets.
-EMA targets (also called “Polyak averaging”) started becoming popular in deep RL with DDPG <span id="id21">[<a class="reference internal" href="bibliography.html#id42" title="Timothy P Lillicrap, Jonathan J Hunt, Alexander Pritzel, Nicolas Heess, Tom Erez, Yuval Tassa, David Silver, and Daan Wierstra. Continuous control with deep reinforcement learning. arXiv preprint arXiv:1509.02971, 2015.">28</a>]</span> where they used a “soft” target update: <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_{target} \leftarrow \tau\boldsymbol{\theta} + (1-\tau)\boldsymbol{\theta}_{target}\)</span> with a small <span class="math notranslate nohighlight">\(\tau\)</span> (like 0.001). This has since become a common choice in many algorithms like TD3 <span id="id22">[<a class="reference internal" href="bibliography.html#id43" title="Scott Fujimoto, Herke Hoof, and David Meger. Addressing function approximation error in actor-critic methods. In International Conference on Machine Learning (ICML), 1587–1596. 2018.">14</a>]</span> and SAC <span id="id23">[<a class="reference internal" href="bibliography.html#id30" title="Tuomas Haarnoja, Aurick Zhou, Pieter Abbeel, and Sergey Levine. Soft actor-critic: off-policy maximum entropy deep reinforcement learning with a stochastic actor. In Proceedings of the 35th International Conference on Machine Learning (ICML), 1861–1870. PMLR, 2018.">22</a>]</span>.</p>
+EMA targets (also called “Polyak averaging”) started becoming popular in deep RL with DDPG <span id="id21">[<a class="reference internal" href="bibliography.html#id42" title="Timothy P Lillicrap, Jonathan J Hunt, Alexander Pritzel, Nicolas Heess, Tom Erez, Yuval Tassa, David Silver, and Daan Wierstra. Continuous control with deep reinforcement learning. arXiv preprint arXiv:1509.02971, 2015.">29</a>]</span> where they used a “soft” target update: <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_{target} \leftarrow \tau\boldsymbol{\theta} + (1-\tau)\boldsymbol{\theta}_{target}\)</span> with a small <span class="math notranslate nohighlight">\(\tau\)</span> (like 0.001). This has since become a common choice in many algorithms like TD3 <span id="id22">[<a class="reference internal" href="bibliography.html#id43" title="Scott Fujimoto, Herke Hoof, and David Meger. Addressing function approximation error in actor-critic methods. In International Conference on Machine Learning (ICML), 1587–1596. 2018.">14</a>]</span> and SAC <span id="id23">[<a class="reference internal" href="bibliography.html#id30" title="Tuomas Haarnoja, Aurick Zhou, Pieter Abbeel, and Sergey Levine. Soft actor-critic: off-policy maximum entropy deep reinforcement learning with a stochastic actor. In Proceedings of the 35th International Conference on Machine Learning (ICML), 1861–1870. PMLR, 2018.">23</a>]</span>.</p>
 </section>
 <section id="online-data-collection-and-experience-replay">
 <h3>Online Data Collection and Experience Replay<a class="headerlink" href="#online-data-collection-and-experience-replay" title="Link to this heading">#</a></h3>
 <p>Rather than using offline data, we now consider a modification where we incrementally gather samples under our current policy. A common exploration strategy is <span class="math notranslate nohighlight">\(\varepsilon\)</span>-greedy: with probability <span class="math notranslate nohighlight">\(\varepsilon\)</span> we select a random action, and with probability <span class="math notranslate nohighlight">\(1-\varepsilon\)</span> we select the greedy action <span class="math notranslate nohighlight">\(\arg\max_a q(s,a;\boldsymbol{\theta}_n)\)</span>. This ensures we maintain some exploration even as our Q-function estimates improve. Typically <span class="math notranslate nohighlight">\(\varepsilon\)</span> is annealed over time, starting with a high value (e.g., 1.0) to encourage early exploration and gradually decreasing to a small final value (e.g., 0.01) to maintain a minimal level of exploration while mostly exploiting our learned policy.</p>
 <div class="proof algorithm admonition" id="online-nfqi-flattened">
-<p class="admonition-title"><span class="caption-number">Algorithm 29 </span> (Flattened Online Neural Fitted Q-Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 28 </span> (Flattened Online Neural Fitted Q-Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, neural network <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, learning rate <span class="math notranslate nohighlight">\(\alpha\)</span>, target update frequency <span class="math notranslate nohighlight">\(K\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
@@ -1688,12 +1948,12 @@ EMA targets (also called “Polyak averaging”) started becoming popular in dee
 </section>
 </div><p>This version faces two practical challenges. First, the transition dataset <span class="math notranslate nohighlight">\(\mathcal{T}_n\)</span> grows unbounded over time, creating memory issues. Second, computing gradients over the entire dataset becomes increasingly expensive. These are common challenges in online learning settings, and the standard solutions from supervised learning apply here:</p>
 <ol class="arabic simple">
-<li><p>Use a fixed-size circular buffer (often called replay buffer, in reference to “experience replay” by <span id="id24">[<a class="reference internal" href="bibliography.html#id46" title="Long-Ji Lin. Self-improving reactive agents based on reinforcement learning, planning, and teaching. PhD thesis, Carnegie Mellon University, Pittsburgh, PA, USA, 1992. Technical Report, CMU-CS-92-170.">29</a>]</span>) to limit memory usage</p></li>
+<li><p>Use a fixed-size circular buffer (often called replay buffer, in reference to “experience replay” by <span id="id24">[<a class="reference internal" href="bibliography.html#id46" title="Long-Ji Lin. Self-improving reactive agents based on reinforcement learning, planning, and teaching. PhD thesis, Carnegie Mellon University, Pittsburgh, PA, USA, 1992. Technical Report, CMU-CS-92-170.">30</a>]</span>) to limit memory usage</p></li>
 <li><p>Compute gradients on mini-batches rather than the full dataset</p></li>
 </ol>
 <p>Here’s how we can modify our algorithm to incorporate these ideas:</p>
 <div class="proof algorithm admonition" id="online-nfqi-replay">
-<p class="admonition-title"><span class="caption-number">Algorithm 30 </span> (Deep-Q Network)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 29 </span> (Deep-Q Network)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, neural network <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, learning rate <span class="math notranslate nohighlight">\(\alpha\)</span>, target update frequency <span class="math notranslate nohighlight">\(K\)</span>, replay buffer size <span class="math notranslate nohighlight">\(B\)</span>, mini-batch size <span class="math notranslate nohighlight">\(b\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
@@ -1734,9 +1994,9 @@ EMA targets (also called “Polyak averaging”) started becoming popular in dee
 <section id="double-q-network-variant">
 <h3>Double-Q Network Variant<a class="headerlink" href="#double-q-network-variant" title="Link to this heading">#</a></h3>
 <p>As we saw earlier, the max operator in the target computation can lead to overestimation of Q-values. This happens because we use the same network to both select and evaluate actions in the target computation: <span class="math notranslate nohighlight">\(y_i \leftarrow r_i + \gamma \max_{a' \in A} q(s_i',a'; \boldsymbol{\theta}_{target})\)</span>. The max operator means we’re both choosing the action that looks best under our current estimates and then using that same set of estimates to evaluate how good that action is, potentially compounding any optimization bias.</p>
-<p>Double DQN <span id="id25">Van Hasselt <em>et al.</em> [<a class="reference internal" href="bibliography.html#id47" title="Hado Van Hasselt, Arthur Guez, and David Silver. Deep reinforcement learning with double q-learning. Proceedings of the AAAI Conference on Artificial Intelligence, 2016.">42</a>]</span> addresses this by using the current network parameters to select actions but the target network parameters to evaluate them. This leads to a simple modification of the DQN algorithm:</p>
+<p>Double DQN <span id="id25">Van Hasselt <em>et al.</em> [<a class="reference internal" href="bibliography.html#id47" title="Hado Van Hasselt, Arthur Guez, and David Silver. Deep reinforcement learning with double q-learning. Proceedings of the AAAI Conference on Artificial Intelligence, 2016.">43</a>]</span> addresses this by using the current network parameters to select actions but the target network parameters to evaluate them. This leads to a simple modification of the DQN algorithm:</p>
 <div class="proof algorithm admonition" id="double-dqn">
-<p class="admonition-title"><span class="caption-number">Algorithm 31 </span> (Double Deep-Q Network)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 30 </span> (Double Deep-Q Network)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, neural network <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, learning rate <span class="math notranslate nohighlight">\(\alpha\)</span>, target update frequency <span class="math notranslate nohighlight">\(K\)</span>, replay buffer size <span class="math notranslate nohighlight">\(B\)</span>, mini-batch size <span class="math notranslate nohighlight">\(b\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
@@ -1780,7 +2040,7 @@ EMA targets (also called “Polyak averaging”) started becoming popular in dee
 <p>In flattening neural fitted Q-iteration, our field had perhaps lost sight of an important structural element: the choice of inner-loop initializer inherent in the original FQI algorithm. The traditional structure explicitly separated outer iterations (computing targets) from inner optimization (fitting to those targets), with each inner optimization starting fresh from parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_0\)</span>.</p>
 <p>The flattened version with persistent warmstarting seemed like a natural optimization - why throw away learned parameters? However, recent work <span id="id26">[<a class="reference internal" href="bibliography.html#id45" title="Pierluca D'Oro, Max Schwarzer, Evgenii Nikishin, Pierre-Luc Bacon, Marc G. Bellemare, and Aaron C. Courville. Sample-efficient reinforcement learning by breaking the replay ratio barrier. In The Eleventh International Conference on Learning Representations, ICLR 2023, Kigali, Rwanda, May 1-5, 2023. OpenReview.net, 2023.">10</a>]</span> has shown that persistent warmstarting can actually be detrimental to learning. Neural networks tend to lose their ability to learn and generalize over the course of training, suggesting that occasionally starting fresh from <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_0\)</span> might be beneficial. Here’s how this looks algorithmically in the context of DQN:</p>
 <div class="proof algorithm admonition" id="dqn-hard-resets">
-<p class="admonition-title"><span class="caption-number">Algorithm 32 </span> (DQN with Hard Resets)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 31 </span> (DQN with Hard Resets)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, neural network <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, learning rate <span class="math notranslate nohighlight">\(\alpha\)</span>, reset interval <span class="math notranslate nohighlight">\(K\)</span>, replay buffer size <span class="math notranslate nohighlight">\(B\)</span>, mini-batch size <span class="math notranslate nohighlight">\(b\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
@@ -1828,7 +2088,7 @@ EMA targets (also called “Polyak averaging”) started becoming popular in dee
 <p>The hard reset strategy, while effective, might be too aggressive in some settings as it completely discards learned parameters. An alternative approach is to use a softer form of reset, adapting the “Shrink and Perturb” technique originally introduced by <span id="id27">Ash and Adams [<a class="reference internal" href="bibliography.html#id44" title="Jordan T Ash and Ryan P Adams. Warm-starting and amortization in continual learning. In International Conference on Learning Representations (ICLR). 2020.">4</a>]</span> in the context of continual learning. In their work, they found that neural networks that had been trained on one task could better adapt to new tasks if their parameters were partially reset - interpolated with a fresh initialization - rather than either kept intact or completely reset.</p>
 <p>We can adapt this idea to our setting. Instead of completely resetting to <span class="math notranslate nohighlight">\(\boldsymbol{\theta}_0\)</span>, we can perform a soft reset by interpolating between our current parameters and a fresh random initialization:</p>
 <div class="proof algorithm admonition" id="dqn-soft-resets">
-<p class="admonition-title"><span class="caption-number">Algorithm 33 </span> (DQN with Shrink and Perturb)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 32 </span> (DQN with Shrink and Perturb)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input</strong> Given MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, neural network <span class="math notranslate nohighlight">\(q(s,a; \boldsymbol{\theta})\)</span>, learning rate <span class="math notranslate nohighlight">\(\alpha\)</span>, reset interval <span class="math notranslate nohighlight">\(K\)</span>, replay buffer size <span class="math notranslate nohighlight">\(B\)</span>, mini-batch size <span class="math notranslate nohighlight">\(b\)</span>, interpolation coefficient <span class="math notranslate nohighlight">\(\beta\)</span></p>
 <p><strong>Output</strong> Parameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span> for Q-function approximation</p>
@@ -1880,7 +2140,7 @@ EMA targets (also called “Polyak averaging”) started becoming popular in dee
 <h1>Does Parametric Dynamic Programming Converge?<a class="headerlink" href="#does-parametric-dynamic-programming-converge" title="Link to this heading">#</a></h1>
 <p>So far we have avoided the discussion of convergence and focused on intuitive algorithm development, showing how we can extend successive approximation by computing only a few operator evaluations which then get generalized over the entire domain at each step of the value iteration procedure. Now we turn our attention to understanding the conditions under which this general idea can be shown to converge.</p>
 <p>A crucial question to ask is whether our algorithm maintains the contraction property that made value iteration so appealing in the first place - the property that allowed us to show convergence to a unique fixed point. We must be careful here because the contraction mapping theorem is specific to a given norm. In the case of value iteration, we showed the Bellman optimality operator is a contraction in the sup-norm, which aligns naturally with how we compare policies based on their value functions.</p>
-<p>The situation becomes more complicated with fitted methods because we are not dealing with just a single operator. At each iteration, we perform exact, unbiased pointwise evaluations of the Bellman operator, but instead of obtaining the next function exactly, we get the closest representable one under our chosen function approximation scheme. A key insight from <span id="id28">Gordon [<a class="reference internal" href="bibliography.html#id39" title="Geoffrey J. Gordon. Stable function approximation in dynamic programming. In Proceedings of the Twelfth International Conference on International Conference on Machine Learning, ICML'95, 261–268. San Francisco, CA, USA, 1995. Morgan Kaufmann Publishers Inc.">18</a>]</span> is that the fitting step can be conceptualized as an additional operator that gets applied on top of the exact Bellman operator to produce the next function parameters. This leads to viewing fitted value methods - which for simplicity we describe only for the value case, though the Q-value setting follows similarly - as the composition of two operators:</p>
+<p>The situation becomes more complicated with fitted methods because we are not dealing with just a single operator. At each iteration, we perform exact, unbiased pointwise evaluations of the Bellman operator, but instead of obtaining the next function exactly, we get the closest representable one under our chosen function approximation scheme. A key insight from <span id="id28">Gordon [<a class="reference internal" href="bibliography.html#id39" title="Geoffrey J. Gordon. Stable function approximation in dynamic programming. In Proceedings of the Twelfth International Conference on International Conference on Machine Learning, ICML'95, 261–268. San Francisco, CA, USA, 1995. Morgan Kaufmann Publishers Inc.">19</a>]</span> is that the fitting step can be conceptualized as an additional operator that gets applied on top of the exact Bellman operator to produce the next function parameters. This leads to viewing fitted value methods - which for simplicity we describe only for the value case, though the Q-value setting follows similarly - as the composition of two operators:</p>
 <div class="math notranslate nohighlight">
 \[v_{n+1} = \Gamma(\mathrm{L}(v_n))\]</div>
 <p>where <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> is the Bellman operator and <span class="math notranslate nohighlight">\(\Gamma\)</span> represents the function approximation mapping.</p>
@@ -2054,19 +2314,33 @@ EMA targets (also called “Polyak averaging”) started becoming popular in dee
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Approximate Dynamic Programming</a></li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#smooth-optimality-equations-for-infinite-horizon-mdps">Smooth Optimality Equations for Infinite-Horizon MDPs</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gumbel-noise-on-the-rewards">Gumbel Noise on the Rewards</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#control-as-inference-perspective">Control as Inference Perspective</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#message-passing">Message Passing</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#deriving-the-optimal-policy">Deriving the Optimal Policy</a></li>
-</ul>
-</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#regularized-markov-decision-processes">Regularized Markov Decision Processes</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#legendre-fenchel-transform">Legendre-Fenchel Transform</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#regularized-bellman-operators">Regularized Bellman Operators</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#recovering-the-smooth-bellman-equations">Recovering the Smooth Bellman Equations</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#equivalence-between-smooth-bellman-equations-and-entropy-regularized-mdps">Equivalence Between Smooth Bellman Equations and Entropy-Regularized MDPs</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#projection-methods-for-functional-equations">Projection Methods for Functional Equations</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-general-framework">The General Framework</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-1-choose-a-finite-dimensional-approximation-space">Step 1: Choose a Finite-Dimensional Approximation Space</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-2-define-the-residual-function">Step 2: Define the Residual Function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-3-choose-projection-conditions">Step 3: Choose Projection Conditions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-4-solve-the-finite-dimensional-problem">Step 4: Solve the Finite-Dimensional Problem</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-5-verify-the-solution">Step 5: Verify the Solution</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#application-to-the-bellman-equation">Application to the Bellman Equation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#collocation-for-the-bellman-equation">Collocation for the Bellman Equation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#iterative-solution-projection-based-value-iteration">Iterative Solution: Projection-Based Value Iteration</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#shape-preserving-considerations">Shape-Preserving Considerations</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#connection-to-function-approximation-in-reinforcement-learning">Connection to Function Approximation in Reinforcement Learning</a></li>
 </ul>
 </li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#approximating-the-bellman-operator-using-numerical-integration">Approximating the Bellman Operator using Numerical Integration</a><ul class="visible nav section-nav flex-column">

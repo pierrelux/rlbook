@@ -211,6 +211,7 @@
 
 
 
+
 <li class="toctree-l1"><a class="reference internal" href="cadp.html">Policy Parametrization Methods</a></li>
 
 
@@ -784,7 +785,7 @@ ipopt
 \mathbf{z}^{k+1} = \mathbf{z}^k - [\nabla \mathbf{F}(\mathbf{z}^k)]^{-1} \mathbf{F}(\mathbf{z}^k)
 \]</div>
 <p>where <span class="math notranslate nohighlight">\(\mathbf{z}^k\)</span> is the k-th iterate, and <span class="math notranslate nohighlight">\(\nabla \mathbf{F}(\mathbf{z}^k)\)</span> is the Jacobian matrix of <span class="math notranslate nohighlight">\(\mathbf{F}\)</span> evaluated at <span class="math notranslate nohighlight">\(\mathbf{z}^k\)</span>.</p>
-<p>Newton’s method exhibits local quadratic convergence: if the initial guess <span class="math notranslate nohighlight">\(\mathbf{z}^0\)</span> is sufficiently close to the true solution <span class="math notranslate nohighlight">\(\mathbf{z}^*\)</span>, and <span class="math notranslate nohighlight">\(\nabla \mathbf{F}(\mathbf{z}^*)\)</span> is nonsingular, the method converges quadratically to <span class="math notranslate nohighlight">\(\mathbf{z}^*\)</span> <span id="id1">[<a class="reference internal" href="bibliography.html#id8" title="J. M. Ortega and W. C. Rheinboldt. Iterative Solution of Nonlinear Equations in Several Variables. Computer Science and Applied Mathematics. Academic Press, New York, 1970.">32</a>]</span>. However, the method is sensitive to the initial guess; if it’s too far from the desired solution, Newton’s method might fail to converge or converge to a different root. To mitigate this problem, a set of techniques known as numerical continuation methods <span id="id2">[<a class="reference internal" href="bibliography.html#id9" title="E. L. Allgower and K. Georg. Numerical Continuation Methods: An Introduction. Volume 13 of Springer Series in Computational Mathematics. Springer-Verlag, Berlin, Heidelberg, 1990.">2</a>]</span> have been developed. These methods effectively enlarge the basin of attraction of Newton’s method by solving a sequence of related problems, progressing from an easy one to the target problem. This approach is reminiscent of several concepts in machine learning and statistical inference: curriculum learning in machine learning, where models are trained on increasingly complex data; tempering in Markov Chain Monte Carlo (MCMC) samplers, which gradually adjusts the target distribution to improve mixing; and modern diffusion models, which use a similar concept of gradually transforming noise into structured data.</p>
+<p>Newton’s method exhibits local quadratic convergence: if the initial guess <span class="math notranslate nohighlight">\(\mathbf{z}^0\)</span> is sufficiently close to the true solution <span class="math notranslate nohighlight">\(\mathbf{z}^*\)</span>, and <span class="math notranslate nohighlight">\(\nabla \mathbf{F}(\mathbf{z}^*)\)</span> is nonsingular, the method converges quadratically to <span class="math notranslate nohighlight">\(\mathbf{z}^*\)</span> <span id="id1">[<a class="reference internal" href="bibliography.html#id8" title="J. M. Ortega and W. C. Rheinboldt. Iterative Solution of Nonlinear Equations in Several Variables. Computer Science and Applied Mathematics. Academic Press, New York, 1970.">33</a>]</span>. However, the method is sensitive to the initial guess; if it’s too far from the desired solution, Newton’s method might fail to converge or converge to a different root. To mitigate this problem, a set of techniques known as numerical continuation methods <span id="id2">[<a class="reference internal" href="bibliography.html#id9" title="E. L. Allgower and K. Georg. Numerical Continuation Methods: An Introduction. Volume 13 of Springer Series in Computational Mathematics. Springer-Verlag, Berlin, Heidelberg, 1990.">2</a>]</span> have been developed. These methods effectively enlarge the basin of attraction of Newton’s method by solving a sequence of related problems, progressing from an easy one to the target problem. This approach is reminiscent of several concepts in machine learning and statistical inference: curriculum learning in machine learning, where models are trained on increasingly complex data; tempering in Markov Chain Monte Carlo (MCMC) samplers, which gradually adjusts the target distribution to improve mixing; and modern diffusion models, which use a similar concept of gradually transforming noise into structured data.</p>
 <section id="efficient-implementation-of-newton-s-method">
 <h3>Efficient Implementation of Newton’s Method<a class="headerlink" href="#efficient-implementation-of-newton-s-method" title="Link to this heading">#</a></h3>
 <p>Note that each step of Newton’s method involves computing the inverse of a Jacobian matrix. However, a cardinal rule in numerical linear algebra is to avoid computing matrix inverses explicitly: rarely, if ever, should there be a <code class="docutils literal notranslate"><span class="pre">np.lindex.inv</span></code> in your code. Instead, the numerically stable and computationally efficient approach is to solve a linear system of equations at each step.
@@ -1067,7 +1068,7 @@ While solving this QP, we obtain not only the step <span class="math notranslate
 <p>Simultaneously, the Lagrange multipliers from the QP provide the updated dual variables <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^{k+1}\)</span>.
 We summarize the SQP algorithm in the following pseudo-code:</p>
 <div class="proof algorithm admonition" id="alg-sqp">
-<p class="admonition-title"><span class="caption-number">Algorithm 48 </span> (Sequential Quadratic Programming (SQP))</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 47 </span> (Sequential Quadratic Programming (SQP))</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Initial estimate <span class="math notranslate nohighlight">\(\mathbf{x}^0\)</span>, initial Lagrange multipliers <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^0\)</span>, tolerance <span class="math notranslate nohighlight">\(\epsilon &gt; 0\)</span>.</p>
 <p><strong>Output:</strong> Solution <span class="math notranslate nohighlight">\(\mathbf{x}^*\)</span>, Lagrange multipliers <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^*\)</span>.</p>
@@ -1126,7 +1127,7 @@ Consider a general nonlinear optimization problem that includes both equality an
 \end{align*}\]</div>
 <p>where <span class="math notranslate nohighlight">\(\Delta \mathbf{x} = \mathbf{x} - \mathbf{x}^k\)</span> represents the step direction for the primal variables. The following pseudocode outlines the steps involved in applying SQP to a problem with both equality and inequality constraints:</p>
 <div class="proof algorithm admonition" id="alg-sqp-ineq">
-<p class="admonition-title"><span class="caption-number">Algorithm 49 </span> (Sequential Quadratic Programming (SQP) with Inequality Constraints)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 48 </span> (Sequential Quadratic Programming (SQP) with Inequality Constraints)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Initial estimate <span class="math notranslate nohighlight">\(\mathbf{x}^0\)</span>, initial multipliers <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^0, \boldsymbol{\nu}^0\)</span>, tolerance <span class="math notranslate nohighlight">\(\epsilon &gt; 0\)</span>.</p>
 <p><strong>Output:</strong> Solution <span class="math notranslate nohighlight">\(\mathbf{x}^*\)</span>, Lagrange multipliers <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^*, \boldsymbol{\nu}^*\)</span>.</p>
@@ -1342,7 +1343,7 @@ If <span class="math notranslate nohighlight">\(\|\Delta \mathbf{x}^k\| &lt; \ep
 </ol>
 <p>Using this observation, we can devise an algorithm which, like SQP, will update both the primal and dual variables at every step. But rather than using second-order optimization, we will simply use a first-order gradient update step: a descent step in the primal variable, and an ascent step in the dual one. The corresponding procedure, when implemented by gradient descent, is called Gradient Ascent Descent in the learning and optimization communities. In the case of equality constraints only, the algorithm looks like the following:</p>
 <div class="proof algorithm admonition" id="ahuz-eq">
-<p class="admonition-title"><span class="caption-number">Algorithm 50 </span> (Arrow-Hurwicz-Uzawa for equality constraints only)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 49 </span> (Arrow-Hurwicz-Uzawa for equality constraints only)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Initial guess <span class="math notranslate nohighlight">\(\mathbf{x}^0\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^0\)</span>, step sizes <span class="math notranslate nohighlight">\(\alpha\)</span>, <span class="math notranslate nohighlight">\(\beta\)</span>
 <strong>Output:</strong> Optimal <span class="math notranslate nohighlight">\(\mathbf{x}^*\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^*\)</span></p>
@@ -1354,7 +1355,7 @@ If <span class="math notranslate nohighlight">\(\|\Delta \mathbf{x}^k\| &lt; \ep
 </section>
 </div><p>Now to account for the fact that the Lagrange multiplier needs to be non-negative for inequality constraints, we can use our previous idea from projected gradient descent for bound constraints and consider a projection, or clipping step to ensure that this condition is satisfied throughout. In this case, the algorithm looks like the following:</p>
 <div class="proof algorithm admonition" id="ahuz-full">
-<p class="admonition-title"><span class="caption-number">Algorithm 51 </span> (Arrow-Hurwicz-Uzawa for equality and inequality constraints)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 50 </span> (Arrow-Hurwicz-Uzawa for equality and inequality constraints)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Initial guess <span class="math notranslate nohighlight">\(\mathbf{x}^0\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^0\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{\mu}^0 \geq 0\)</span>, step sizes <span class="math notranslate nohighlight">\(\alpha\)</span>, <span class="math notranslate nohighlight">\(\beta\)</span>, <span class="math notranslate nohighlight">\(\gamma\)</span>
 <strong>Output:</strong> Optimal <span class="math notranslate nohighlight">\(\mathbf{x}^*\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^*\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{\mu}^*\)</span></p>
@@ -1366,7 +1367,7 @@ If <span class="math notranslate nohighlight">\(\|\Delta \mathbf{x}^k\| &lt; \ep
 <p>6: <strong>return</strong> <span class="math notranslate nohighlight">\(\mathbf{x}^k\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{\lambda}^k\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{\mu}^k\)</span></p>
 </section>
 </div><p>Here, <span class="math notranslate nohighlight">\([\cdot]_+\)</span> denotes the projection onto the non-negative orthant, ensuring that <span class="math notranslate nohighlight">\(\boldsymbol{\mu}\)</span> remains non-negative.</p>
-<p>However, as it is widely known from the lessons of GAN (Generative Adversarial Network) training <span id="id4">[<a class="reference internal" href="bibliography.html#id11" title="Ian Goodfellow, Jean Pouget-Abadie, Mehdi Mirza, Bing Xu, David Warde-Farley, Sherjil Ozair, Aaron Courville, and Yoshua Bengio. Generative adversarial nets. In Advances in neural information processing systems, volume 27. 2014.">17</a>]</span>, Gradient Descent Ascent (GDA) can fail to converge or suffer from instability. The Arrow-Hurwicz-Uzawa algorithm, also known as the first-order Lagrangian method, is known to converge only locally, in the vicinity of an optimal primal-dual pair.</p>
+<p>However, as it is widely known from the lessons of GAN (Generative Adversarial Network) training <span id="id4">[<a class="reference internal" href="bibliography.html#id11" title="Ian Goodfellow, Jean Pouget-Abadie, Mehdi Mirza, Bing Xu, David Warde-Farley, Sherjil Ozair, Aaron Courville, and Yoshua Bengio. Generative adversarial nets. In Advances in neural information processing systems, volume 27. 2014.">18</a>]</span>, Gradient Descent Ascent (GDA) can fail to converge or suffer from instability. The Arrow-Hurwicz-Uzawa algorithm, also known as the first-order Lagrangian method, is known to converge only locally, in the vicinity of an optimal primal-dual pair.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="hide above-input">
 <summary aria-label="Toggle hidden content">
@@ -1548,7 +1549,7 @@ C = \{ \mathbf{x} \mid \mathbf{x}_{\mathrm{lb}} \leq \mathbf{x} \leq \mathbf{x}_
 \end{aligned}
 \end{split}\]</div>
 <div class="proof algorithm admonition" id="proj-grad-descent-bound-constraints">
-<p class="admonition-title"><span class="caption-number">Algorithm 52 </span> (Projected Gradient Descent for Bound Constraints)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 51 </span> (Projected Gradient Descent for Bound Constraints)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> Initial point <span class="math notranslate nohighlight">\(\mathbf{x}_0\)</span>, step size <span class="math notranslate nohighlight">\(\alpha\)</span>, bounds <span class="math notranslate nohighlight">\(\mathbf{x}_{\mathrm{lb}}, \mathbf{x}_{\mathrm{ub}}\)</span>,
 maximum iterations <span class="math notranslate nohighlight">\(\max_\text{iter}\)</span>, tolerance <span class="math notranslate nohighlight">\(\varepsilon\)</span></p>

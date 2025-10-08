@@ -211,6 +211,7 @@
 
 
 
+
 <li class="toctree-l1"><a class="reference internal" href="cadp.html">Policy Parametrization Methods</a></li>
 
 
@@ -471,7 +472,14 @@
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#optimality-equations-for-infinite-horizon-mdps">Optimality Equations for Infinite-Horizon MDPs</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#algorithms-for-solving-the-optimality-equations">Algorithms for Solving the Optimality Equations</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#newton-kantorovich-applied-to-the-optimality-equations">Newton-Kantorovich applied to the Optimality Equations</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#newton-kantorovich-applied-to-bellman-optimality">Newton-Kantorovich Applied to Bellman Optimality</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#perspective-1-max-of-affine-maps">Perspective 1: Max of Affine Maps</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#perspective-2-envelope-theorem">Perspective 2: Envelope Theorem</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#perspective-3-the-implicit-function-theorem">Perspective 3: The Implicit Function Theorem</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#connection-to-policy-iteration">Connection to Policy Iteration</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-semismooth-newton-perspective">The Semismooth Newton Perspective</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#policy-iteration">Policy Iteration</a></li>
 </ul>
 </li>
@@ -1384,7 +1392,7 @@ u_t(h_t) = \sup_{a\in A_{s_t}}\left\{ r_t(s_t,a) + \sum_{j\in S} p_t(j\mid s_t,a
 <p>In finite-horizon stochastic MDPs with Markovian dynamics and rewards, the optimal return <span class="math notranslate nohighlight">\(u_t^*(h_t)\)</span> depends on the history only through the current state <span class="math notranslate nohighlight">\(s_t\)</span>. Thus we can write <span class="math notranslate nohighlight">\(u_t^*(h_t) = v_t^*(s_t)\)</span> for some function <span class="math notranslate nohighlight">\(v_t^*\)</span> that depends only on state and time.</p>
 </section>
 </div><div class="proof admonition" id="proof">
-<p>Proof. Following <span id="id2">Puterman [<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">33</a>]</span> Theorem 4.4.2. We proceed by backward induction.</p>
+<p>Proof. Following <span id="id2">Puterman [<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">34</a>]</span> Theorem 4.4.2. We proceed by backward induction.</p>
 <p><strong>Base case:</strong> At the terminal time <span class="math notranslate nohighlight">\(N\)</span>, we have <span class="math notranslate nohighlight">\(u_N^*(h_N) = r_N(s_N)\)</span> by the boundary condition. Since the terminal reward depends only on the final state <span class="math notranslate nohighlight">\(s_N\)</span> and not on how we arrived there, <span class="math notranslate nohighlight">\(u_N^*(h_N) = u_N^*(s_N)\)</span>.</p>
 <p><strong>Inductive step:</strong> Assume <span class="math notranslate nohighlight">\(u_{t+1}^*(h_{t+1})\)</span> depends on <span class="math notranslate nohighlight">\(h_{t+1}\)</span> only through <span class="math notranslate nohighlight">\(s_{t+1}\)</span> for all <span class="math notranslate nohighlight">\(t+1, \ldots, N\)</span>. Then from the optimality equation:</p>
 <div class="math notranslate nohighlight">
@@ -1407,7 +1415,7 @@ u_t(h_t) = \sup_{a\in A_{s_t}}\left\{ r_t(s_t,a) + \sum_{j\in S} p_t(j\mid s_t,a
 <p>That is, there exists an optimal policy that is both deterministic and Markovian.</p>
 </section>
 </div><div class="proof admonition" id="proof">
-<p>Proof. Sketch following <span id="id3">Puterman [<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">33</a>]</span> Lemma 4.3.1 and Theorem 4.4.2. First, Lemma 4.3.1 shows that for any function <span class="math notranslate nohighlight">\(w\)</span> and any distribution <span class="math notranslate nohighlight">\(q\)</span> over actions, <span class="math notranslate nohighlight">\(\sup_a w(a) \ge \sum_a q(a) w(a)\)</span>. Thus randomization cannot improve the expected value over choosing a single maximizing action. Second, by state sufficiency (Proposition <span class="xref std std-ref">stoch-state-suff</span> and <span id="id4">Puterman [<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">33</a>]</span> Thm. 4.4.2(a)), the optimal return depends on the history only through <span class="math notranslate nohighlight">\((s_t,t)\)</span>. Therefore, selecting at each <span class="math notranslate nohighlight">\((s_t,t)\)</span> an action that attains the maximum yields a deterministic Markov decision rule which is optimal whenever the maximum is attained. If only a supremum exists, <span class="math notranslate nohighlight">\(\varepsilon\)</span>-optimal selectors exist by choosing actions within <span class="math notranslate nohighlight">\(\varepsilon\)</span> of the supremum (see <span id="id5">Puterman [<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">33</a>]</span> Thm. 4.3.4).</p>
+<p>Proof. Sketch following <span id="id3">Puterman [<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">34</a>]</span> Lemma 4.3.1 and Theorem 4.4.2. First, Lemma 4.3.1 shows that for any function <span class="math notranslate nohighlight">\(w\)</span> and any distribution <span class="math notranslate nohighlight">\(q\)</span> over actions, <span class="math notranslate nohighlight">\(\sup_a w(a) \ge \sum_a q(a) w(a)\)</span>. Thus randomization cannot improve the expected value over choosing a single maximizing action. Second, by state sufficiency (Proposition <span class="xref std std-ref">stoch-state-suff</span> and <span id="id4">Puterman [<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">34</a>]</span> Thm. 4.4.2(a)), the optimal return depends on the history only through <span class="math notranslate nohighlight">\((s_t,t)\)</span>. Therefore, selecting at each <span class="math notranslate nohighlight">\((s_t,t)\)</span> an action that attains the maximum yields a deterministic Markov decision rule which is optimal whenever the maximum is attained. If only a supremum exists, <span class="math notranslate nohighlight">\(\varepsilon\)</span>-optimal selectors exist by choosing actions within <span class="math notranslate nohighlight">\(\varepsilon\)</span> of the supremum (see <span id="id5">Puterman [<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">34</a>]</span> Thm. 4.3.4).</p>
 </div>
 <p><strong>Intuition:</strong> Even in stochastic systems, randomization in the policy doesn’t help when maximizing expected returns: you should always choose the action with the highest expected value. Combined with state sufficiency, this means simple state-to-action mappings are optimal.</p>
 <p>These results justify focusing on deterministic Markov policies and lead to the backward recursion algorithm for stochastic systems:</p>
@@ -2125,7 +2133,7 @@ v_\nu^\pi(s) \equiv \mathbb{E}_s^\pi\left[\mathbb{E}_\nu\left\{\sum_{t=1}^\nu r(
 <span class="math notranslate nohighlight">\(P(\nu=n) = (1-\gamma) \gamma^{n-1}, \, n=1,2, \ldots\)</span>, then <span class="math notranslate nohighlight">\(v_\nu^\pi(s) = v_\gamma^\pi(s)\)</span> for all <span class="math notranslate nohighlight">\(s \in \mathcal{S}\)</span> .</p>
 </section>
 </div><div class="proof admonition" id="proof">
-<p>Proof. See proposition 5.3.1 in <span id="id9">[<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">33</a>]</span>.</p>
+<p>Proof. See proposition 5.3.1 in <span id="id9">[<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">34</a>]</span>.</p>
 <p>By definition of the finite-horizon value function and the law of total expectation:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -2253,22 +2261,29 @@ v_\nu^\pi(s) = E_s^\pi \left\{\sum_{t=1}^{\infty} \gamma^{t-1} r(S_t, A_t)\right
 <p>This inequality provides a practical way to verify the convergence condition <span class="math notranslate nohighlight">\(\rho(\mathbf{H}) &lt; 1\)</span> by checking the simpler condition <span class="math notranslate nohighlight">\(\|\mathbf{H}\| &lt; 1\)</span> rather than trying to compute the eigenvalues directly.</p>
 <p>We can now verify that <span class="math notranslate nohighlight">\((\mathbf{I} - \gamma \mathbf{P}_d)\)</span> is invertible and the Neumann series converges.</p>
 <ol class="arabic">
-<li><p><strong>Norm of the transition matrix:</strong> Since <span class="math notranslate nohighlight">\(\mathbf{P}_d\)</span> is a stochastic matrix (each row sums to 1 and all entries are non-negative), its <span class="math notranslate nohighlight">\(\ell_\infty\)</span>-norm is:
-$<span class="math notranslate nohighlight">\(
-\|\mathbf{P}_d\| = \max_{s \in S} \sum_{j \in S} [\mathbf{P}_d]_{s,j} = \max_{s \in S} 1 = 1.
-\)</span>$</p></li>
-<li><p><strong>Norm of the scaled matrix:</strong> Using the homogeneity property of norms, we have:
-$<span class="math notranslate nohighlight">\(
-\|\gamma \mathbf{P}_d\| = |\gamma| \cdot \|\mathbf{P}_d\| = |\gamma| \cdot 1 = |\gamma|.
-\)</span>$</p></li>
-<li><p><strong>Bounding the spectral radius:</strong> Applying the fundamental inequality between spectral radius and matrix norm:
-$<span class="math notranslate nohighlight">\(
-\rho(\gamma \mathbf{P}_d) \leq \|\gamma \mathbf{P}_d\| = |\gamma|.
-\)</span>$</p></li>
-<li><p><strong>Verifying convergence:</strong> Since <span class="math notranslate nohighlight">\(0 \leq \gamma &lt; 1\)</span> by assumption, we have:
-$<span class="math notranslate nohighlight">\(
-\rho(\gamma \mathbf{P}_d) \leq |\gamma| &lt; 1.
-\)</span>$</p>
+<li><p><strong>Norm of the transition matrix:</strong> Since <span class="math notranslate nohighlight">\(\mathbf{P}_d\)</span> is a stochastic matrix (each row sums to 1 and all entries are non-negative), its <span class="math notranslate nohighlight">\(\ell_\infty\)</span>-norm is:</p>
+<div class="math notranslate nohighlight">
+\[
+   \|\mathbf{P}_d\| = \max_{s \in S} \sum_{j \in S} [\mathbf{P}_d]_{s,j} = \max_{s \in S} 1 = 1.
+   \]</div>
+</li>
+<li><p><strong>Norm of the scaled matrix:</strong> Using the homogeneity property of norms, we have:</p>
+<div class="math notranslate nohighlight">
+\[
+   \|\gamma \mathbf{P}_d\| = |\gamma| \cdot \|\mathbf{P}_d\| = |\gamma| \cdot 1 = |\gamma|.
+   \]</div>
+</li>
+<li><p><strong>Bounding the spectral radius:</strong> Applying the fundamental inequality between spectral radius and matrix norm:</p>
+<div class="math notranslate nohighlight">
+\[
+   \rho(\gamma \mathbf{P}_d) \leq \|\gamma \mathbf{P}_d\| = |\gamma|.
+   \]</div>
+</li>
+<li><p><strong>Verifying convergence:</strong> Since <span class="math notranslate nohighlight">\(0 \leq \gamma &lt; 1\)</span> by assumption, we have:</p>
+<div class="math notranslate nohighlight">
+\[
+   \rho(\gamma \mathbf{P}_d) \leq |\gamma| &lt; 1.
+   \]</div>
 <p>This strict inequality guarantees that <span class="math notranslate nohighlight">\((\mathbf{I} - \gamma \mathbf{P}_d)\)</span> is invertible and the Neumann series converges.</p>
 </li>
 </ol>
@@ -2366,43 +2381,79 @@ d(x_n, x^*) \leq \frac{q^n}{1-q} d(x_1, x_0)
 </section>
 <section id="newton-kantorovich-method">
 <h3>Newton-Kantorovich Method<a class="headerlink" href="#newton-kantorovich-method" title="Link to this heading">#</a></h3>
-<p>The Newton-Kantorovich method is a generalization of Newton’s method from finite dimensional vector spaces to infinite dimensional function spaces: rather than iterating in the space of vectors, we are iterating in the space of functions. Just as in the finite-dimensional counterpart, the idea is to improve the rate of convergence of our method by taking an “educated guess” on where to move next using a linearization of our operator at the current point. Now the concept of linearization, which is synonymous with derivative, will also require a generalization. Here we are in essence trying to quantify how the output of the operator <span class="math notranslate nohighlight">\(\mathrm{T}\)</span> – a function – varies as we perturb its input – also a function. The right generalization here is that of the Fréchet derivative.</p>
-<p>Before we delve into the Fréchet derivative, it’s important to understand the context in which it operates: Banach spaces. A Banach space is a complete normed vector space: ie a vector space, that has a norm, and which every Cauchy sequence convergeces.   Banach spaces provide a natural generalization of finite-dimensional vector spaces to infinite-dimensional settings.
-The norm in a Banach space allows us to quantify the “size” of functions and the “distance” between functions. This allows us to define notions of continuity, differentiability, and for analyzing the convergence of our method.
-Furthermore, the completeness property of Banach spaces ensures that we have a well-defined notion of convergence.</p>
-<p>In the context of the Newton-Kantorovich method, we typically work with an operator <span class="math notranslate nohighlight">\(\mathrm{T}: X \to Y\)</span>, where both <span class="math notranslate nohighlight">\(X\)</span> and <span class="math notranslate nohighlight">\(Y\)</span> are Banach spaces and whose Fréchet derivative at a point <span class="math notranslate nohighlight">\(x \in X\)</span>, denoted <span class="math notranslate nohighlight">\(\mathrm{T}'(x)\)</span>, is a bounded linear operator from <span class="math notranslate nohighlight">\(X\)</span> to <span class="math notranslate nohighlight">\(Y\)</span> such that:</p>
-<div class="math notranslate nohighlight">
-\[
-\lim_{h \to 0} \frac{\|\mathrm{T}(x + h) - \mathrm{T}(x) - \mathrm{T}'(x)h\|_Y}{\|h\|_X} = 0
-\]</div>
-<p>where <span class="math notranslate nohighlight">\(\|\cdot\|_X\)</span> and <span class="math notranslate nohighlight">\(\|\cdot\|_Y\)</span> are the norms in <span class="math notranslate nohighlight">\(X\)</span> and <span class="math notranslate nohighlight">\(Y\)</span> respectively. In other words, <span class="math notranslate nohighlight">\(\mathrm{T}'(x)\)</span> is the best linear approximation of <span class="math notranslate nohighlight">\(\mathrm{T}\)</span> near <span class="math notranslate nohighlight">\(x\)</span>.</p>
+<p>The Newton-Kantorovich method is a generalization of Newton’s method from finite dimensional vector spaces to infinite dimensional function spaces: rather than iterating in the space of vectors, we are iterating in the space of functions.</p>
+<p>Newton’s method is often written as the familiar update
+$<span class="math notranslate nohighlight">\(
+x_{k+1} = x_k - [DF(x_k)]^{-1} F(x_k),
+\)</span>$
+which makes it look as though the essence of the method is “take a derivative and invert it.” But the real workhorse behind Newton’s method — both in finite and infinite dimensions — is <strong>linearization</strong>.</p>
+<p>At each step, the idea is to replace the nonlinear operator <span class="math notranslate nohighlight">\(F:X \to Y\)</span> by a local surrogate model of the form
+$<span class="math notranslate nohighlight">\(
+F(x+h) \approx F(x) + Lh,
+\)</span><span class="math notranslate nohighlight">\(
+where \)</span>L$ is a linear map capturing how small perturbations in the input propagate to changes in the output. This is a Taylor-like expansion in Banach spaces: the role of the derivative is precisely to provide the correct notion of such a linear operator.</p>
+<p>To find a root of <span class="math notranslate nohighlight">\(F\)</span>, we impose the condition that the surrogate vanishes at the next iterate:
+$<span class="math notranslate nohighlight">\(
+0 = F(x+h) \approx F(x) + Lh.
+\)</span><span class="math notranslate nohighlight">\(
+Solving this linear equation gives the increment \)</span>h<span class="math notranslate nohighlight">\(. In finite dimensions, \)</span>L$ is the Jacobian matrix; in Banach spaces, it must be the <strong>Fréchet derivative</strong>.</p>
+<p>But what exactly is a Fréchet derivative in infinite dimensions? To understand this, we need to generalize the concept of derivative from finite-dimensional calculus. In infinite-dimensional spaces, there are several notions of differentiability, each with different strengths and requirements:</p>
+<p><strong>1. Gâteaux (Directional) Derivative</strong></p>
+<p>We say that the Gâteaux derivative of <span class="math notranslate nohighlight">\(F\)</span> at <span class="math notranslate nohighlight">\(x\)</span> in a specific direction <span class="math notranslate nohighlight">\(h\)</span> is:
+$<span class="math notranslate nohighlight">\(
+F'(x; h) = \lim_{t \to 0} \frac{F(x + th) - F(x)}{t}
+\)</span>$</p>
+<p>This quantity measures how the function <span class="math notranslate nohighlight">\(F\)</span> changes along the ray <span class="math notranslate nohighlight">\(x + th\)</span>. While this limit may exist for each direction <span class="math notranslate nohighlight">\(h\)</span> separately, it doesn’t guarantee that the derivative is linear in <span class="math notranslate nohighlight">\(h\)</span>. This is a key limitation: the Gâteaux derivative can exist in all directions but still fail to provide a good linear approximation.</p>
+<p><strong>2. Hadamard Directional Derivative</strong></p>
+<p>Rather than considering a single direction of perturbation, we now consider a bundle of perturbations around <span class="math notranslate nohighlight">\(h\)</span>. We ask how the function changes as we approach the target direction from nearby directions. We say that <span class="math notranslate nohighlight">\(F\)</span> has a Hadamard directional derivative if:
+$<span class="math notranslate nohighlight">\(
+F'(x; h) = \lim_{\substack{t \downarrow 0 \\ h' \to h}} \frac{F(x + t h') - F(x)}{t}
+\)</span>$</p>
+<p>This is a stronger condition than Gâteaux differentiability because it requires the limit to be uniform over nearby directions. However, it still doesn’t guarantee linearity in <span class="math notranslate nohighlight">\(h\)</span>.</p>
+<p><strong>3. Fréchet Derivative</strong></p>
+<p>The strongest and most natural notion: <span class="math notranslate nohighlight">\(F\)</span> is Fréchet differentiable at <span class="math notranslate nohighlight">\(x\)</span> if there exists a bounded linear operator <span class="math notranslate nohighlight">\(L\)</span> such that:
+$<span class="math notranslate nohighlight">\(
+\lim_{h \to 0} \frac{\|F(x + h) - F(x) - Lh\|}{\|h\|} = 0
+\)</span>$</p>
+<p>This definition directly addresses the inadequacy of the previous notions. Unlike Gâteaux and Hadamard derivatives, the Fréchet derivative explicitly requires the existence of a linear operator <span class="math notranslate nohighlight">\(L\)</span> that provides a good approximation. Key properties:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(L\)</span> must be <strong>linear</strong> in <span class="math notranslate nohighlight">\(h\)</span> (unlike the directional derivatives above)</p></li>
+<li><p>The approximation error is <span class="math notranslate nohighlight">\(o(\|h\|)\)</span>, uniform in all directions</p></li>
+<li><p>This is the “true” derivative—it generalizes the Jacobian matrix to infinite dimensions</p></li>
+<li><p>Notation: <span class="math notranslate nohighlight">\(L = F'(x)\)</span> or <span class="math notranslate nohighlight">\(DF(x)\)</span></p></li>
+</ul>
+<p><strong>Relationship:</strong>
+$<span class="math notranslate nohighlight">\(
+\text{Fréchet differentiable} \Rightarrow \text{Hadamard directionally diff.} \Rightarrow \text{Gâteaux directionally diff.}
+\)</span>$</p>
+<p>In the context of the Newton-Kantorovich method, we work with an operator <span class="math notranslate nohighlight">\(F: X \to Y\)</span> where both <span class="math notranslate nohighlight">\(X\)</span> and <span class="math notranslate nohighlight">\(Y\)</span> are Banach spaces. The Fréchet derivative <span class="math notranslate nohighlight">\(F'(x)\)</span> is the best linear approximation of <span class="math notranslate nohighlight">\(F\)</span> near <span class="math notranslate nohighlight">\(x\)</span>, and it’s exactly this linear operator <span class="math notranslate nohighlight">\(L\)</span> that we use in our linearization <span class="math notranslate nohighlight">\(F(x+h) \approx F(x) + F'(x)h\)</span>.</p>
 <p>Now apart from those mathematical technicalities, Newton-Kantorovich has in essence the same structure as that of the original Newton’s method. That is, it applies the following sequence of steps:</p>
 <ol class="arabic">
 <li><p><strong>Linearize the Operator</strong>:
-Given an approximation <span class="math notranslate nohighlight">\( x_n \)</span>, we consider the Fréchet derivative of <span class="math notranslate nohighlight">\( \mathrm{T} \)</span>, denoted by <span class="math notranslate nohighlight">\( \mathrm{T}'(x_n) \)</span>. This derivative is a linear operator that provides a local approximation of  <span class="math notranslate nohighlight">\( \mathrm{T} \)</span>, near <span class="math notranslate nohighlight">\( x_n \)</span>.</p></li>
+Given an approximation <span class="math notranslate nohighlight">\( x_n \)</span>, we consider the Fréchet derivative of <span class="math notranslate nohighlight">\( F \)</span>, denoted by <span class="math notranslate nohighlight">\( F'(x_n) \)</span>. This derivative is a linear operator that provides a local approximation of <span class="math notranslate nohighlight">\( F \)</span> near <span class="math notranslate nohighlight">\( x_n \)</span>.</p></li>
 <li><p><strong>Set Up the Newton Step</strong>:
 The method then solves the linearized equation for a correction <span class="math notranslate nohighlight">\( h_n \)</span>:</p>
 <div class="math notranslate nohighlight">
 \[
-   \mathrm{T}(x_n) h_n = \mathrm{T}(x_n) - x_n.
+   F'(x_n) h_n = -F(x_n).
    \]</div>
-<p>This equation represents a linear system where <span class="math notranslate nohighlight">\( h_n \)</span> is chosen to minimize the difference between <span class="math notranslate nohighlight">\( x_n \)</span> and <span class="math notranslate nohighlight">\( \mathrm{T}(x_n) \)</span> with respect to the operator’s local behavior.</p>
+<p>This equation represents a linear system where <span class="math notranslate nohighlight">\( h_n \)</span> is chosen so that the linearized operator <span class="math notranslate nohighlight">\( F(x_n) + F'(x_n)h_n \)</span> equals zero.</p>
 </li>
 <li><p><strong>Update the Solution</strong>:
 The new approximation <span class="math notranslate nohighlight">\( x_{n+1} \)</span> is then given by:</p>
 <div class="math notranslate nohighlight">
 \[
-   x_{n+1} = x_n - h_n.
+   x_{n+1} = x_n + h_n.
    \]</div>
 <p>This correction step refines <span class="math notranslate nohighlight">\( x_n \)</span>, bringing it closer to the true solution.</p>
 </li>
 <li><p><strong>Repeat Until Convergence</strong>:
-We repeat the linearization and update steps until the solution <span class="math notranslate nohighlight">\( x_n \)</span> converges to the desired tolerance, which can be verified by checking that <span class="math notranslate nohighlight">\( \|\mathrm{T}(x_n) - x_n\| \)</span> is sufficiently small, or by monitoring the norm <span class="math notranslate nohighlight">\( \|x_{n+1} - x_n\| \)</span>.</p></li>
+We repeat the linearization and update steps until the solution <span class="math notranslate nohighlight">\( x_n \)</span> converges to the desired tolerance, which can be verified by checking that <span class="math notranslate nohighlight">\( \|F(x_n)\| \)</span> is sufficiently small, or by monitoring the norm <span class="math notranslate nohighlight">\( \|x_{n+1} - x_n\| \)</span>.</p></li>
 </ol>
-<p>The convergence of Newton-Kantorovich does not hinge on <span class="math notranslate nohighlight">\( \mathrm{T} \)</span> being a contraction over the entire domain – as it could be the case for successive approximation. The convergence properties of the Newton-Kantorovich method are as follows:</p>
+<p>The convergence of Newton-Kantorovich does not hinge on <span class="math notranslate nohighlight">\( F \)</span> being a contraction over the entire domain (as it could be the case for successive approximation). The convergence properties of the Newton-Kantorovich method are as follows:</p>
 <ol class="arabic">
-<li><p><strong>Local Convergence</strong>: Under mild conditions (e.g., <span class="math notranslate nohighlight">\(\mathrm{T}\)</span> is Fréchet differentiable and <span class="math notranslate nohighlight">\(\mathrm{T}'(x)\)</span> is invertible near the solution), the method converges locally. This means that if the initial guess is sufficiently close to the true solution, the method will converge.</p></li>
-<li><p><strong>Global Convergence</strong>: Global convergence is not guaranteed in general. However, under stronger conditions (e.g.,  <span class="math notranslate nohighlight">\( \mathrm{T} \)</span>, is analytic and satisfies certain bounds), the method can converge globally.</p></li>
+<li><p><strong>Local Convergence</strong>: Under mild conditions (e.g., <span class="math notranslate nohighlight">\(F\)</span> is Fréchet differentiable and <span class="math notranslate nohighlight">\(F'(x)\)</span> is invertible near the solution), the method converges locally. This means that if the initial guess is sufficiently close to the true solution, the method will converge.</p></li>
+<li><p><strong>Global Convergence</strong>: Global convergence is not guaranteed in general. However, under stronger conditions (e.g., <span class="math notranslate nohighlight">\(F\)</span> is analytic and satisfies certain bounds), the method can converge globally.</p></li>
 <li><p><strong>Rate of Convergence</strong>: When the method converges, it typically exhibits quadratic convergence. This means that the error at each step is proportional to the square of the error at the previous step:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -2509,7 +2560,7 @@ Since we’ve shown <span class="math notranslate nohighlight">\(R_1 \leq R_2\)<
 <div class="proof proposition admonition" id="value-iteration-convergence">
 <p class="admonition-title"><span class="caption-number">Proposition 4 </span> (Convergence of Value Iteration)</p>
 <section class="proposition-content" id="proof-content">
-<p>(Adapted from <span id="id10">Puterman [<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">33</a>]</span> theorem 6.3.1)</p>
+<p>(Adapted from <span id="id10">Puterman [<a class="reference internal" href="bibliography.html#id23" title="Martin L. Puterman. Markov Decision Processes: Discrete Stochastic Dynamic Programming. John Wiley &amp; Sons, New York, 1994. ISBN 978-0-471-61977-3. First published in 1994.">34</a>]</span> theorem 6.3.1)</p>
 <p>Let <span class="math notranslate nohighlight">\(v_0\)</span> be any initial value function, <span class="math notranslate nohighlight">\(\varepsilon &gt; 0\)</span> a desired accuracy, and let <span class="math notranslate nohighlight">\(\{v_n\}\)</span> be the sequence of value functions generated by value iteration, i.e., <span class="math notranslate nohighlight">\(v_{n+1} = \mathrm{L}v_n\)</span> for <span class="math notranslate nohighlight">\(n \geq 0\)</span>, where <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> is the Bellman optimality operator. Then:</p>
 <ol class="arabic simple">
 <li><p><span class="math notranslate nohighlight">\(v_n\)</span> converges to the optimal value function <span class="math notranslate nohighlight">\(v^*_\gamma\)</span>,</p></li>
@@ -2580,69 +2631,156 @@ Since we’ve shown <span class="math notranslate nohighlight">\(R_1 \leq R_2\)<
 \[\|v^{\pi_\varepsilon}_\gamma - v^*_\gamma\|_\infty \leq \frac{\varepsilon}{2} + \frac{\varepsilon}{2} = \varepsilon\]</div>
 <p>This completes the proof, showing that <span class="math notranslate nohighlight">\(v_{n+1}\)</span> is within <span class="math notranslate nohighlight">\(\varepsilon/2\)</span> of <span class="math notranslate nohighlight">\(v^*_\gamma\)</span> (part 4) and <span class="math notranslate nohighlight">\(\pi_\varepsilon\)</span> is <span class="math notranslate nohighlight">\(\varepsilon\)</span>-optimal (part 3).</p>
 </div>
-<section id="newton-kantorovich-applied-to-the-optimality-equations">
-<h3>Newton-Kantorovich applied to the Optimality Equations<a class="headerlink" href="#newton-kantorovich-applied-to-the-optimality-equations" title="Link to this heading">#</a></h3>
-<p>Another perspective on the optimality equations is that instead of looking for <span class="math notranslate nohighlight">\(v_\gamma^\star\)</span> as the fixed-point of <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> in the fixed-point problem find <span class="math notranslate nohighlight">\(v\)</span> such that <span class="math notranslate nohighlight">\(\mathrm{L} v = v\)</span>, we consider instead the related form in the nonlinear operator equation <span class="math notranslate nohighlight">\(\mathrm{L}v - v = 0\)</span>. Writing things in this way highlights the fact that we could also consider using Newton-Kantorovich iteration to solve this equation instead of the successive approximation method.</p>
-<p>If we were to apply the blueprint of Newton-Kantorovich, we would get:</p>
-<div class="proof algorithm admonition" id="nk-bellman">
-<p class="admonition-title"><span class="caption-number">Algorithm 11 </span> (Newton-Kantorovich for Bellman Optimality Equation)</p>
-<section class="algorithm-content" id="proof-content">
-<p><strong>Input:</strong> MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>, initial guess <span class="math notranslate nohighlight">\(v_0\)</span>, tolerance <span class="math notranslate nohighlight">\(\epsilon &gt; 0\)</span></p>
-<p><strong>Output:</strong> Approximate optimal value function <span class="math notranslate nohighlight">\(v^\star\)</span></p>
-<ol class="arabic">
-<li><p>Initialize <span class="math notranslate nohighlight">\(n = 0\)</span></p></li>
-<li><p><strong>repeat</strong></p>
-<ol class="arabic" start="3">
-<li><p>Compute the Fréchet derivative of <span class="math notranslate nohighlight">\(\mathrm{B}(v) = \mathrm{L}v - v\)</span> at <span class="math notranslate nohighlight">\(v_n\)</span>:</p>
-<div class="math notranslate nohighlight">
-\[\mathrm{B}'(v_n) = \mathrm{L}' - \mathrm{I}\]</div>
-<p>where <span class="math notranslate nohighlight">\(\mathrm{I}\)</span> is the identity operator</p>
-</li>
-<li><p>Solve the linear equation for <span class="math notranslate nohighlight">\(h_n\)</span>:</p>
-<div class="math notranslate nohighlight">
-\[(\mathrm{L}' - \mathrm{I})h_n = v_n - \mathrm{L}v_n\]</div>
-</li>
-<li><p>Update: <span class="math notranslate nohighlight">\(v_{n+1} = v_n - h_n\)</span></p></li>
-<li><p><span class="math notranslate nohighlight">\(n = n + 1\)</span></p></li>
-</ol>
-</li>
-<li><p><strong>until</strong> <span class="math notranslate nohighlight">\(\|\mathrm{L}v_n - v_n\| &lt; \epsilon\)</span></p></li>
-<li><p><strong>return</strong> <span class="math notranslate nohighlight">\(v_n\)</span></p></li>
-</ol>
+<section id="newton-kantorovich-applied-to-bellman-optimality">
+<h3>Newton-Kantorovich Applied to Bellman Optimality<a class="headerlink" href="#newton-kantorovich-applied-to-bellman-optimality" title="Link to this heading">#</a></h3>
+<p>We now apply the Newton-Kantorovich framework to the Bellman optimality equation. Let
+$<span class="math notranslate nohighlight">\(
+(\mathrm{L}v)(s) = \max_{a \in A(s)} \left\{ r(s,a) + \gamma \sum_{s'} p(s' \mid s,a) v(s') \right\}.
+\)</span><span class="math notranslate nohighlight">\(
+The problem is to find \)</span>v<span class="math notranslate nohighlight">\( such that \)</span>\mathrm{L}v = v<span class="math notranslate nohighlight">\(, or equivalently \)</span>\mathrm{B}(v) := \mathrm{L}v - v = 0<span class="math notranslate nohighlight">\(. The operator \)</span>\mathrm{L}$ is piecewise affine, hence not globally differentiable, but it is directionally differentiable everywhere in the Hadamard sense and Fréchet differentiable at points where the maximizer is unique.</p>
+<p>We consider three complementary perspectives for understanding and computing its derivative.</p>
+<section id="perspective-1-max-of-affine-maps">
+<h4>Perspective 1: Max of Affine Maps<a class="headerlink" href="#perspective-1-max-of-affine-maps" title="Link to this heading">#</a></h4>
+<p>In tabular form, for finite state and action spaces, the Bellman operator can be written as a pointwise maximum of affine maps:
+$<span class="math notranslate nohighlight">\(
+(\mathrm{L}v)(s) = \max_{a \in A(s)} \left\{ r(s,a) + \gamma (P_a v)(s) \right\},
+\)</span><span class="math notranslate nohighlight">\(
+where \)</span>P_a \in \mathbb{R}^{|S| \times |S|}<span class="math notranslate nohighlight">\( is the transition matrix associated with action \)</span>a<span class="math notranslate nohighlight">\(. Each \)</span>Q_a v := r^a + \gamma P_a v<span class="math notranslate nohighlight">\( is affine in \)</span>v<span class="math notranslate nohighlight">\(. The operator \)</span>\mathrm{L}$ therefore computes the upper envelope of a finite set of affine functions at each state.</p>
+<p>At any <span class="math notranslate nohighlight">\(v\)</span>, let the <strong>active set</strong> at state <span class="math notranslate nohighlight">\(s\)</span> be
+$<span class="math notranslate nohighlight">\(
+\mathcal{A}^*(s; v) := \arg\max_{a \in A(s)} (Q_a v)(s).
+\)</span><span class="math notranslate nohighlight">\(
+Then the Hadamard directional derivative exists and is given by
+\)</span><span class="math notranslate nohighlight">\(
+(\mathrm{L}'(v; h))(s) = \max_{a \in \mathcal{A}^*(s; v)} \gamma (P_a h)(s).
+\)</span><span class="math notranslate nohighlight">\(
+If the active set is a singleton, this expression becomes linear in \)</span>h<span class="math notranslate nohighlight">\(, and \)</span>\mathrm{L}<span class="math notranslate nohighlight">\( is Fréchet differentiable at \)</span>v<span class="math notranslate nohighlight">\(, with
+\)</span><span class="math notranslate nohighlight">\(
+\mathrm{L}'(v) = \gamma P_{\pi_v},
+\)</span><span class="math notranslate nohighlight">\(
+where \)</span>\pi_v(s) := a^*(s)<span class="math notranslate nohighlight">\( is the greedy policy at \)</span>v$.</p>
+<!-- In the presence of ties, the derivative becomes set-valued: the Clarke subdifferential consists of stochastic matrices whose rows are convex combinations of the $\gamma P_a$ over $a \in \mathcal{A}^*(s; v)$. -->
 </section>
-</div><p>The key difference in this application is the specific form of our operator <span class="math notranslate nohighlight">\(\mathrm{B}(v) = \mathrm{L}v - v\)</span>, where <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> is the Bellman optimality operator. The Fréchet derivative of this operator is <span class="math notranslate nohighlight">\(\mathrm{B}'(v) = \mathrm{L}' - \mathrm{I}\)</span>, where <span class="math notranslate nohighlight">\(\mathrm{L}'\)</span> is the Fréchet derivative of the Bellman optimality operator and <span class="math notranslate nohighlight">\(\mathrm{I}\)</span> is the identity operator.</p>
-<p>Let’s examine the Fréchet derivative of <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> more closely. The Bellman optimality operator <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> is defined as:</p>
+<section id="perspective-2-envelope-theorem">
+<h4>Perspective 2: Envelope Theorem<a class="headerlink" href="#perspective-2-envelope-theorem" title="Link to this heading">#</a></h4>
+<p>Consider now a value function approximated as a linear combination of basis functions:
+$<span class="math notranslate nohighlight">\(
+v_c(s) = \sum_j c_j \phi_j(s).
+\)</span><span class="math notranslate nohighlight">\(
+At a node \)</span>s_i<span class="math notranslate nohighlight">\(, define the parametric maximization
+\)</span><span class="math notranslate nohighlight">\(
+v_i(c) := (\mathrm{L}v_c)(s_i) = \max_{a \in A(s_i)} \left\{ r(s_i,a) + \gamma \sum_j c_j \mathbb{E}_{s' \mid s_i, a}[\phi_j(s')] \right\}.
+\)</span><span class="math notranslate nohighlight">\(
+Define
+\)</span><span class="math notranslate nohighlight">\(
+F_i(a, c) := r(s_i,a) + \gamma \sum_j c_j \mathbb{E}_{s' \mid s_i, a}[\phi_j(s')],
+\)</span><span class="math notranslate nohighlight">\(
+so that \)</span>v_i(c) = \max_a F_i(a, c)<span class="math notranslate nohighlight">\(. Since \)</span>F_i<span class="math notranslate nohighlight">\( is linear in \)</span>c<span class="math notranslate nohighlight">\(, we can apply the **envelope theorem** (Danskin's theorem): if the optimizer \)</span>a_i^<em>(c)<span class="math notranslate nohighlight">\( is unique or selected measurably, then
+\)</span><span class="math notranslate nohighlight">\(
+\frac{\partial v_i}{\partial c_j}(c) = \gamma \mathbb{E}_{s' \mid s_i, a_i^*(c)}[\phi_j(s')].
+\)</span><span class="math notranslate nohighlight">\(
+The key is that we do not need to differentiate the optimizer \)</span>a_i^</em>(c)$ itself. The result extends to the subdifferential case when ties occur, where the Jacobian becomes set-valued.</p>
+<p>This result is particularly useful when solving the collocation equation <span class="math notranslate nohighlight">\(\Phi c = v(c)\)</span>. Newton’s method requires the Jacobian <span class="math notranslate nohighlight">\(v'(c)\)</span>, and this expression allows us to compute it without involving any derivatives of the optimal action.</p>
+</section>
+<section id="perspective-3-the-implicit-function-theorem">
+<h4>Perspective 3: The Implicit Function Theorem<a class="headerlink" href="#perspective-3-the-implicit-function-theorem" title="Link to this heading">#</a></h4>
+<p>The third perspective applies the implicit function theorem to understand when the Bellman operator is differentiable despite containing a max operator. The key insight is that the maximization problem defines an implicit relationship between the value function and the optimal action, and the implicit function theorem tells us when this relationship is smooth enough to differentiate through.</p>
+<p>The Bellman operator is defined as
+$<span class="math notranslate nohighlight">\(
+(\mathrm{L}v)(s) = \max_{a} \left\{ r(s,a) + \gamma \sum_j p(j \mid s,a) v(j) \right\}.
+\)</span>$</p>
+<p>The difficulty is that the max operator encodes a discrete selection: which action achieves the maximum. To apply the implicit function theorem, we reformulate this as follows. For each action <span class="math notranslate nohighlight">\(a\)</span>, define the <strong>action-value function</strong>:
+$<span class="math notranslate nohighlight">\(
+Q_a(v, s) := r(s,a) + \gamma \sum_j p(j \mid s,a) v(j).
+\)</span>$</p>
+<p>The optimal action at <span class="math notranslate nohighlight">\(v\)</span> satisfies the <strong>optimality condition</strong>:
+$<span class="math notranslate nohighlight">\(
+Q_{a^*(s)}(v, s) \geq Q_a(v, s) \quad \text{for all } a.
+\)</span>$</p>
+<p>Now suppose that at a particular <span class="math notranslate nohighlight">\(v\)</span>, action <span class="math notranslate nohighlight">\(a^*(s)\)</span> is a <strong>strict local maximizer</strong> in the sense that there exists <span class="math notranslate nohighlight">\(\delta &gt; 0\)</span> such that
+$<span class="math notranslate nohighlight">\(
+Q_{a^*(s)}(v, s) &gt; Q_a(v, s) + \delta \quad \text{for all } a \neq a^*(s).
+\)</span>$</p>
+<p>This strict inequality is the regularity condition needed for the implicit function theorem. It ensures that the optimal action is not only unique at <span class="math notranslate nohighlight">\(v\)</span>, but remains so in a neighborhood of <span class="math notranslate nohighlight">\(v\)</span>.</p>
+<p>To see why, consider any perturbation <span class="math notranslate nohighlight">\(v + h\)</span> with <span class="math notranslate nohighlight">\(\|h\|\)</span> small. Since <span class="math notranslate nohighlight">\(Q_a\)</span> is linear in <span class="math notranslate nohighlight">\(v\)</span>, we have:
+$<span class="math notranslate nohighlight">\(
+Q_a(v+h, s) = Q_a(v, s) + \gamma \sum_j p(j \mid s,a) h(j).
+\)</span>$</p>
+<p>The perturbation term is bounded: <span class="math notranslate nohighlight">\(|\gamma \sum_j p(j \mid s,a) h(j)| \leq \gamma \|h\|\)</span>. Therefore, for <span class="math notranslate nohighlight">\(\|h\| &lt; \delta/\gamma\)</span>, the strict gap ensures that
+$<span class="math notranslate nohighlight">\(
+Q_{a^*(s)}(v+h, s) &gt; Q_a(v+h, s) \quad \text{for all } a \neq a^*(s).
+\)</span>$</p>
+<p>Thus <span class="math notranslate nohighlight">\(a^*(s)\)</span> remains the unique maximizer throughout the neighborhood <span class="math notranslate nohighlight">\(\{v + h : \|h\| &lt; \delta/\gamma\}\)</span>.</p>
+<p>The implicit function theorem now applies: in this neighborhood, the mapping <span class="math notranslate nohighlight">\(v \mapsto a^*(s; v)\)</span> is <strong>constant</strong> (and hence smooth), taking the value <span class="math notranslate nohighlight">\(a^*(s)\)</span>. This allows us to write
+$<span class="math notranslate nohighlight">\(
+(\mathrm{L}v)(s) = Q_{a^*(s)}(v, s) = r(s,a^*(s)) + \gamma \sum_j p(j \mid s,a^*(s)) v(j)
+\)</span><span class="math notranslate nohighlight">\(
+as an explicit formula that holds throughout the neighborhood. Since \)</span>Q_{a^*(s)}(\cdot, s)<span class="math notranslate nohighlight">\( is an affine (hence smooth) function of \)</span>v<span class="math notranslate nohighlight">\(, we can differentiate it:
+\)</span><span class="math notranslate nohighlight">\(
+\frac{d}{dv} (\mathrm{L}v)(s) = \gamma P_{a^*(s)}.
+\)</span>$</p>
+<p>More precisely, for any perturbation <span class="math notranslate nohighlight">\(h\)</span>:
+$<span class="math notranslate nohighlight">\(
+(\mathrm{L}(v+h))(s) = (\mathrm{L}v)(s) + \gamma \sum_j p(j \mid s,a^*(s)) h(j) + o(\|h\|).
+\)</span>$</p>
+<p>This is the Fréchet derivative:
+$<span class="math notranslate nohighlight">\(
+\mathrm{L}'(v) = \gamma P_{\pi_v},
+\)</span><span class="math notranslate nohighlight">\(
+where \)</span>\pi_v(s) = a^*(s)$ is the greedy policy.</p>
+<p><strong>The role of the implicit function theorem</strong>: It guarantees that when the maximizer is unique with a strict gap (the regularity condition), the argmax function <span class="math notranslate nohighlight">\(v \mapsto a^*(s; v)\)</span> is locally constant, which removes the non-differentiability of the max operator. Without this regularity condition—specifically, at points where multiple actions tie for optimality—the implicit function theorem does not apply, and the operator is not Fréchet differentiable. The active set perspective (Perspective 1) and the envelope theorem (Perspective 2) provide the tools to handle these non-smooth points.</p>
+</section>
+</section>
+<section id="connection-to-policy-iteration">
+<h3>Connection to Policy Iteration<a class="headerlink" href="#connection-to-policy-iteration" title="Link to this heading">#</a></h3>
+<p>We return to the Newton-Kantorovich step:
+$<span class="math notranslate nohighlight">\(
+(I - \mathrm{L}'(v_n)) h_n = v_n - \mathrm{L}v_n,
+\quad
+v_{n+1} = v_n - h_n.
+\)</span><span class="math notranslate nohighlight">\(
+Suppose \)</span>\mathrm{L}’(v_n) = \gamma P_{\pi_{v_n}}<span class="math notranslate nohighlight">\( for the greedy policy \)</span>\pi_{v_n}<span class="math notranslate nohighlight">\(. Then
+\)</span><span class="math notranslate nohighlight">\(
+(I - \gamma P_{\pi_{v_n}}) v_{n+1} = r^{\pi_{v_n}},
+\)</span><span class="math notranslate nohighlight">\(
+which is exactly policy evaluation for \)</span>\pi_{v_n}<span class="math notranslate nohighlight">\(. Recomputing the greedy policy from \)</span>v_{n+1}$ yields the next iterate.</p>
+<p>Thus, <strong>policy iteration is Newton-Kantorovich</strong> applied to the Bellman optimality equation. At points of nondifferentiability (when ties occur), the operator is still semismooth, and policy iteration corresponds to a semismooth Newton method. The envelope theorem is what justifies the simplification of the Jacobian to <span class="math notranslate nohighlight">\(\gamma P_{\pi_v}\)</span>, bypassing the need to differentiate through the optimizer. This completes the equivalence.</p>
+</section>
+<section id="the-semismooth-newton-perspective">
+<h3>The Semismooth Newton Perspective<a class="headerlink" href="#the-semismooth-newton-perspective" title="Link to this heading">#</a></h3>
+<p>The three perspectives we developed above—the active set view, the envelope theorem, and the implicit function theorem—all point toward a deeper framework for understanding Newton-type methods on non-smooth operators. This framework, known as semismooth Newton methods, was developed precisely to handle operators like the Bellman operator that are piecewise smooth but not globally differentiable. The connection between policy iteration and semismooth Newton methods has been rigorously developed in recent work <span id="id11">[<a class="reference internal" href="bibliography.html#id61" title="M. Gargiani, A. Zanelli, D. Liao-McPherson, T. H. Summers, and J. Lygeros. Dynamic programming through the lens of semismooth newton-type methods. IEEE Control Systems Letters, 6:2996-3001, 2022. doi:10.1109/LCSYS.2022.3181213.">15</a>]</span>.</p>
+<p>The classical Newton-Kantorovich method assumes the operator is Fréchet differentiable everywhere. The derivative exists, is unique, and varies continuously with the base point. But the Bellman operator <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> violates this assumption at any value function where multiple actions tie for optimality at some state. At such points, the implicit function theorem fails, and there is no unique Fréchet derivative.</p>
+<p>Semismooth Newton methods address this by replacing the notion of a single Jacobian with a generalized derivative that captures the behavior of the operator near non-smooth points. The most commonly used generalized derivative is the Clarke subdifferential, which we can think of as the convex hull of all possible “candidate Jacobians” that arise from limits approaching the non-smooth point from different directions.</p>
+<p>For the Bellman residual <span class="math notranslate nohighlight">\(\mathrm{B}(v) = \mathrm{L}v - v\)</span>, the Clarke subdifferential at a point <span class="math notranslate nohighlight">\(v\)</span> can be characterized explicitly using our first perspective. Recall that at each state <span class="math notranslate nohighlight">\(s\)</span>, we defined the active set <span class="math notranslate nohighlight">\(\mathcal{A}^*(s; v) = \arg\max_a Q_a(v, s)\)</span>. When this set contains multiple actions, the operator is not Fréchet differentiable. However, it remains directionally differentiable in all directions, and the Clarke subdifferential consists of all matrices of the form
+$<span class="math notranslate nohighlight">\(
+\partial \mathrm{B}(v) = \left\{ I - \gamma P_\pi : \pi(s) \in \mathcal{A}^*(s; v) \text{ for all } s \right\}.
+\)</span>$</p>
+<p>In words, the generalized Jacobian is the set of all matrices <span class="math notranslate nohighlight">\(I - \gamma P_\pi\)</span> where <span class="math notranslate nohighlight">\(\pi\)</span> is any policy that selects an action from the active set at each state. When the maximizer is unique everywhere, this set reduces to a singleton, and we recover the classical Fréchet derivative. When ties occur, the set has multiple elements—precisely the convex combinations mentioned in Perspective 1.</p>
+<p>The semismooth Newton method for solving <span class="math notranslate nohighlight">\(\mathrm{B}(v) = 0\)</span> proceeds by selecting an element <span class="math notranslate nohighlight">\(J_k \in \partial \mathrm{B}(v_k)\)</span> at each iteration and solving</p>
 <div class="math notranslate nohighlight">
-\[(\mathrm{L}v)(s) \equiv \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \sum_{j \in S} p(j|s,a)v(j)\right\}\]</div>
-<p>For each state <span class="math notranslate nohighlight">\(s\)</span>, let <span class="math notranslate nohighlight">\(a^*(s)\)</span> be the action that achieves the maximum in <span class="math notranslate nohighlight">\((\mathrm{L}v)(s)\)</span>. Then, for any function <span class="math notranslate nohighlight">\(h\)</span>, the Fréchet derivative of <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> <strong>at</strong> v has the following effect when applied to any function <span class="math notranslate nohighlight">\(h\)</span>:</p>
-<div class="math notranslate nohighlight">
-\[(\mathrm{L}'(v)h)(s) \equiv \gamma \sum_{j \in S} p(j|s,a^*(s))h(j)\]</div>
-<p>This means that the Fréchet derivative <span class="math notranslate nohighlight">\(\mathrm{L}'(v)\)</span> is a linear operator that, when applied to a function <span class="math notranslate nohighlight">\(h\)</span>, gives a new function whose value at each state <span class="math notranslate nohighlight">\(s\)</span> is a discounted expectation of <span class="math notranslate nohighlight">\(h\)</span> over the next states, using the transition probabilities corresponding to the optimal action <span class="math notranslate nohighlight">\(a^*(s)\)</span> at the current point <span class="math notranslate nohighlight">\(v\)</span>.</p>
-<p>Now, let’s look more closely at what happens in each iteration of this Newton-Kantorovich method:</p>
-<ol class="arabic">
-<li><p>In step 3, when we compute <span class="math notranslate nohighlight">\(\mathrm{L}'(v_n)\)</span>, we’re essentially defining a policy based on the current value function estimate. This policy chooses the action <span class="math notranslate nohighlight">\(a^*(s)\)</span> for each state <span class="math notranslate nohighlight">\(s\)</span>.</p></li>
-<li><p>In step 4, we solve the linear equation:</p>
-<div class="math notranslate nohighlight">
-\[(\mathrm{L}' - \mathrm{I})h_n = v_n - \mathrm{L}v_n\]</div>
-<p>This can be rearranged to:</p>
-<div class="math notranslate nohighlight">
-\[\mathrm{L}'h_n = \mathrm{L}v_n\]</div>
-<p>Solving this equation is equivalent to evaluating the policy defined by <span class="math notranslate nohighlight">\(a^*(s)\)</span>.</p>
-</li>
-<li><p>The update in step 5 can be rewritten as:</p>
-<div class="math notranslate nohighlight">
-\[v_{n+1} = \mathrm{L}v_n\]</div>
-<p>This step improves our value function estimate based on the policy we just evaluated.</p>
-</li>
-</ol>
-<p>Interestingly, this sequence of steps - deriving a policy from the current value function, evaluating that policy, and then improving the value function - is a well-known algorithm in dynamic programming called policy iteration. In fact, policy iteration can be viewed as simply the application of the Newton-Kantorovich method to the operator <span class="math notranslate nohighlight">\(\mathrm{B}(v) = \mathrm{L}v - v\)</span>.</p>
+\[
+J_k h_k = -\mathrm{B}(v_k), \quad v_{k+1} = v_k + h_k.
+\]</div>
+<p>The main takeaway is that any choice from the Clarke subdifferential yields a valid Newton-like update. In the context of the Bellman equation, choosing <span class="math notranslate nohighlight">\(J_k = I - \gamma P_{\pi_k}\)</span> where <span class="math notranslate nohighlight">\(\pi_k\)</span> is any greedy policy corresponds exactly to the policy evaluation step in policy iteration. The freedom in selecting which action to choose when ties occur translates to the freedom in selecting which element of the subdifferential to use.</p>
+<p>Under appropriate regularity conditions—specifically, when the residual function is BD-regular or CD-regular—the semismooth Newton method converges locally at a quadratic rate <span id="id12">[<a class="reference internal" href="bibliography.html#id61" title="M. Gargiani, A. Zanelli, D. Liao-McPherson, T. H. Summers, and J. Lygeros. Dynamic programming through the lens of semismooth newton-type methods. IEEE Control Systems Letters, 6:2996-3001, 2022. doi:10.1109/LCSYS.2022.3181213.">15</a>]</span>. This means that near the solution, the error decreases quadratically:
+$<span class="math notranslate nohighlight">\(
+\|v_{k+1} - v^*\| \leq C \|v_k - v^*\|^2.
+\)</span>$</p>
+<p>This theoretical result explains an empirical observation that has long been noted in practice: policy iteration typically converges in remarkably few iterations, often just a handful, even when the state and action spaces are enormous and the space of possible policies is exponentially large.</p>
+<p>The semismooth Newton framework also suggests a spectrum of methods interpolating between value iteration and policy iteration. Value iteration can be interpreted as a Newton-like method where we choose <span class="math notranslate nohighlight">\(J_k = I\)</span> at every iteration, ignoring the dependence of <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> on <span class="math notranslate nohighlight">\(v\)</span> entirely. This choice guarantees global convergence through the contraction property but sacrifices the quadratic local convergence rate. Policy iteration, at the other extreme, uses the full generalized Jacobian <span class="math notranslate nohighlight">\(J_k = I - \gamma P_{\pi_k}\)</span>, achieving quadratic convergence but at the cost of solving a linear system at each iteration.</p>
+<p>Between these extremes lie methods that use approximate Jacobians. One natural variant is to choose <span class="math notranslate nohighlight">\(J_k = \alpha I\)</span> for some scalar <span class="math notranslate nohighlight">\(\alpha &gt; 1\)</span>. This leads to the update
+$<span class="math notranslate nohighlight">\(
+v_{k+1} = \frac{\alpha - 1}{\alpha} v_k + \frac{1}{\alpha} \mathrm{L}v_k.
+\)</span>$</p>
+<p>This is known as <span class="math notranslate nohighlight">\(\alpha\)</span>-value iteration or successive over-relaxation when <span class="math notranslate nohighlight">\(\alpha &gt; 1\)</span>. For appropriate choices of <span class="math notranslate nohighlight">\(\alpha\)</span>, this method retains global convergence while achieving better local rates than standard value iteration, and it requires only pointwise operations rather than solving a linear system. The Newton perspective thus not only unifies existing algorithms but also generates new ones by systematically exploring different approximations to the generalized Jacobian.</p>
+<p>The connection to semismooth Newton methods places policy iteration within a broader mathematical framework that extends far beyond dynamic programming. Semismooth Newton methods are used in optimization (for complementarity problems and variational inequalities), in PDE-constrained optimization (for problems with control constraints), and in economics (for equilibrium problems). The Bellman equation, viewed through this lens, is simply one instance of a piecewise smooth equation, and the tools developed for such equations apply directly.</p>
 </section>
 <section id="policy-iteration">
 <h3>Policy Iteration<a class="headerlink" href="#policy-iteration" title="Link to this heading">#</a></h3>
 <p>While we derived policy iteration-like steps from the Newton-Kantorovich method, it’s worth examining policy iteration as a standalone algorithm, as it has been traditionally presented in the field of dynamic programming.</p>
 <p>The policy iteration algorithm for discounted Markov decision problems is as follows:</p>
 <div class="proof algorithm admonition" id="policy-iteration">
-<p class="admonition-title"><span class="caption-number">Algorithm 12 </span> (Policy Iteration)</p>
+<p class="admonition-title"><span class="caption-number">Algorithm 11 </span> (Policy Iteration)</p>
 <section class="algorithm-content" id="proof-content">
 <p><strong>Input:</strong> MDP <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>
 <strong>Output:</strong> Optimal policy <span class="math notranslate nohighlight">\(\pi^*\)</span></p>
@@ -2773,7 +2911,14 @@ Since we’ve shown <span class="math notranslate nohighlight">\(R_1 \leq R_2\)<
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#optimality-equations-for-infinite-horizon-mdps">Optimality Equations for Infinite-Horizon MDPs</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#algorithms-for-solving-the-optimality-equations">Algorithms for Solving the Optimality Equations</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#newton-kantorovich-applied-to-the-optimality-equations">Newton-Kantorovich applied to the Optimality Equations</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#newton-kantorovich-applied-to-bellman-optimality">Newton-Kantorovich Applied to Bellman Optimality</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#perspective-1-max-of-affine-maps">Perspective 1: Max of Affine Maps</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#perspective-2-envelope-theorem">Perspective 2: Envelope Theorem</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#perspective-3-the-implicit-function-theorem">Perspective 3: The Implicit Function Theorem</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#connection-to-policy-iteration">Connection to Policy Iteration</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-semismooth-newton-perspective">The Semismooth Newton Perspective</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#policy-iteration">Policy Iteration</a></li>
 </ul>
 </li>
