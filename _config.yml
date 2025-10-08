@@ -71,3 +71,10 @@ exclude_patterns:
   - venv/*
   - venv/
   - draft.md
+  - slides_backup/*
+  - slides_backup/
+  - presentation.md
+  - proposal.md
+  - puterman.md
+  - judd.md
+  - slides.marp.md

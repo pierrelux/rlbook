@@ -21,9 +21,11 @@ parts:
       - file: mpc
       - file: dp
 
-  - caption: Learning from Data
+  - caption: Approximate Dynamic Programming
     chapters:
-      - file: adp
+      - file: regmdp
+      - file: projdp
+      - file: simadp
       - file: cadp
 
   - caption: Appendix
