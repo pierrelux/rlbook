@@ -14,11 +14,11 @@ kernelspec:
 
 # Projection Methods for Functional Equations
 
-The Bellman optimality equation $\mathrm{L}v = v$ is a functional equation—an equation where the unknown is an entire function rather than a finite-dimensional vector. When the state space is continuous or very large, we cannot represent the value function exactly on a computer. We must instead work with finite-dimensional approximations. This motivates projection methods, a general framework for transforming infinite-dimensional problems into tractable finite-dimensional ones.
+The Bellman optimality equation $\mathrm{L}v = v$ is a functional equation: an equation where the unknown is an entire function rather than a finite-dimensional vector. When the state space is continuous or very large, we cannot represent the value function exactly on a computer. We must instead work with finite-dimensional approximations. This motivates projection methods, a general framework for transforming infinite-dimensional problems into tractable finite-dimensional ones.
 
-**The central challenge**: even if we restrict our search to a finite-dimensional subspace of functions, we still need to verify that our candidate solution $\hat{v}$ satisfies the equation. For a true solution, the **residual function** $R(s) = \mathrm{L}\hat{v}(s) - \hat{v}(s)$ should equal zero at every state $s$ in our (potentially infinite) state space. But we cannot check infinitely many conditions.
+Even if we restrict our search to a finite-dimensional subspace of functions, we still need to verify that our candidate solution $\hat{v}$ satisfies the equation. For a true solution, the **residual function** $R(s) = \mathrm{L}\hat{v}(s) - \hat{v}(s)$ should equal zero at every state $s$ in our (potentially infinite) state space. But we cannot check infinitely many conditions.
 
-**The projection method solution**: replace "the residual is zero everywhere" with a feasible requirement that we can verify computationally. We restrict our search to functions $\hat{v}(s) = \sum_{i=1}^n a_i \varphi_i(s)$ for some basis $\{\varphi_1, \ldots, \varphi_n\}$, and find coefficients $a$ that make the residual "small" according to a chosen criterion. The criterion determines the projection method. 
+Projection methods replace "the residual is zero everywhere" with a feasible requirement that we can verify computationally. We restrict our search to functions $\hat{v}(s) = \sum_{i=1}^n a_i \varphi_i(s)$ for some basis $\{\varphi_1, \ldots, \varphi_n\}$, and find coefficients $a$ that make the residual "small" according to a chosen criterion. The criterion determines the projection method. 
 
 ## The General Framework
 
@@ -57,21 +57,19 @@ $$
 
 For a true solution, this residual would be identically zero everywhere: $R(x; a) = 0$ for all $x$ in the domain. For our approximation, we aim to make it as close to the zero function as possible. **The residual measures how far our candidate solution is from satisfying the equation at each point $x$.** 
 
-Think of $R(\cdot; a)$ as living in an infinite-dimensional function space—you can imagine it as a "vector" with one component $R(x; a)$ for each point $x$ in the domain. In finite dimensions, we would check if a vector is zero by verifying that each component equals zero. Here, we face an impossible task: we cannot verify that $R(x; a) = 0$ at every single point. The projection conditions we introduce next provide different feasible ways to measure "how zero" this function is.
+Think of $R(\cdot; a)$ as living in an infinite-dimensional function space. You can imagine it as a "vector" with one component $R(x; a)$ for each point $x$ in the domain. In finite dimensions, we would check if a vector is zero by verifying that each component equals zero. Here, we face an impossible task: we cannot verify that $R(x; a) = 0$ at every single point. The projection conditions we introduce next provide different feasible ways to measure "how zero" this function is.
 
 ### Step 3: Choose Projection Conditions
 
-The heart of the projection method is choosing how to verify that $R(\cdot; a)$ is "close to zero." Since we cannot check $R(x; a) = 0$ at every point, we must select a feasible criterion. 
-
-**The unifying framework**: Nearly all projection methods work by choosing $n$ **test functions** $\{p_1, \ldots, p_n\}$ and requiring:
+The heart of the projection method is choosing how to verify that $R(\cdot; a)$ is "close to zero." Since we cannot check $R(x; a) = 0$ at every point, we must select a feasible criterion. Nearly all projection methods work by choosing $n$ **test functions** $\{p_1, \ldots, p_n\}$ and requiring:
 
 $$
 \langle R(\cdot; a), p_i \rangle = \int_{\mathcal{S}} R(x; a) p_i(x) w(x) dx = 0, \quad i = 1, \ldots, n,
 $$
 
-for some weight function $w(x)$. This yields $n$ equations to determine the $n$ coefficients in $a$. **The different projection methods are distinguished entirely by their choice of test functions** $p_i$. If the residual has zero projection against all our test functions, we declare it "close enough" to the zero function.
+for some weight function $w(x)$. This yields $n$ equations to determine the $n$ coefficients in $a$. The different projection methods are distinguished entirely by their choice of test functions $p_i$. If the residual has zero projection against all our test functions, we declare it "close enough" to the zero function.
 
-**Intuition from finite dimensions**: In $\mathbb{R}^n$, to verify a vector $\mathbf{r}$ is zero, we could check if $\langle \mathbf{r}, \mathbf{e}_i \rangle = 0$ for each standard basis vector $\mathbf{e}_i$. If $\mathbf{r}$ is orthogonal to all coordinate directions, it must be the zero vector. For functions in infinite dimensions, we cannot test against all directions, so we choose $n$ representative test functions and verify orthogonality against them.
+In $\mathbb{R}^n$, to verify a vector $\mathbf{r}$ is zero, we could check if $\langle \mathbf{r}, \mathbf{e}_i \rangle = 0$ for each standard basis vector $\mathbf{e}_i$. If $\mathbf{r}$ is orthogonal to all coordinate directions, it must be the zero vector. For functions in infinite dimensions, we cannot test against all directions, so we choose $n$ representative test functions and verify orthogonality against them.
 
 Let us examine the standard choices of test functions and what they reveal about the residual:
 
@@ -95,7 +93,7 @@ This shows that $R$ is orthogonal to every function we can represent with our ba
 
 This condition is the defining property of optimality. By choosing our approximation $\hat{f}$ so that the residual $R = \mathscr{N}(\hat{f})$ is orthogonal to the entire approximation space, we ensure that $\hat{f}$ is the orthogonal projection of the true solution onto $\text{span}{\varphi_1, \ldots, \varphi_n}$. Within this $n$-dimensional space, no better choice is possible: any other coefficients would yield a residual with a nonzero component inside the space, and therefore a larger norm.
 
-The finite-dimensional analogy makes this concrete. Suppose you want to approximate a vector $\mathbf{v} \in \mathbb{R}^3$ using only the $xy$-plane (a 2D subspace). The best approximation is to project $\mathbf{v}$ onto the plane, giving $\hat{\mathbf{v}} = (v_1, v_2, 0)$. The error is $\mathbf{r} = \mathbf{v} - \hat{\mathbf{v}} = (0, 0, v_3)$, which points purely in the $z$-direction—orthogonal to the entire $xy$-plane. This is precisely the Galerkin condition in action: the error is orthogonal to the approximation space.
+The finite-dimensional analogy makes this concrete. Suppose you want to approximate a vector $\mathbf{v} \in \mathbb{R}^3$ using only the $xy$-plane (a 2D subspace). The best approximation is to project $\mathbf{v}$ onto the plane, giving $\hat{\mathbf{v}} = (v_1, v_2, 0)$. The error is $\mathbf{r} = \mathbf{v} - \hat{\mathbf{v}} = (0, 0, v_3)$, which points purely in the $z$-direction, orthogonal to the entire $xy$-plane. This is precisely the Galerkin condition in action: the error is orthogonal to the approximation space.
 
 #### Method of Moments: Test Against Monomials
 
@@ -115,7 +113,7 @@ $$
 \langle R(\cdot; a), \delta(\cdot - x_i) \rangle = R(x_i; a) = 0, \quad i = 1, \ldots, n.
 $$
 
-This is projection against the most localized test functions possible—delta functions that "sample" the residual at specific points, requiring the residual to vanish exactly where we test it. When using orthogonal polynomials with collocation points at the zeros of the $n$-th polynomial, the Chebyshev interpolation theorem guarantees that forcing $R(x_i; a) = 0$ at these specific points makes $R(x; a)$ small everywhere. The choice of collocation points is crucial: using the zeros of orthogonal polynomials produces well-conditioned systems and near-optimal interpolation error. The computational advantage is significant—collocation avoids numerical integration entirely, requiring only pointwise evaluation of $R$.
+This is projection against the most localized test functions possible: delta functions that "sample" the residual at specific points, requiring the residual to vanish exactly where we test it. When using orthogonal polynomials with collocation points at the zeros of the $n$-th polynomial, the Chebyshev interpolation theorem guarantees that forcing $R(x_i; a) = 0$ at these specific points makes $R(x; a)$ small everywhere. The choice of collocation points is crucial: using the zeros of orthogonal polynomials produces well-conditioned systems and near-optimal interpolation error. The computational advantage is significant. Collocation avoids numerical integration entirely, requiring only pointwise evaluation of $R$.
 
 #### Subdomain Method: Test Against Indicator Functions
 
@@ -141,7 +139,7 @@ $$
 \left\langle R(\cdot; a), \frac{\partial R(\cdot; a)}{\partial a_i} \right\rangle = 0, \quad i = 1, \ldots, n.
 $$
 
-Thus least squares implicitly uses test functions $p_i = \partial R / \partial a_i$—the gradients of the residual with respect to parameters. Unlike other methods where test functions are chosen a priori, here they depend on the current guess for $a$ and on the structure of our approximation.
+Thus least squares implicitly uses test functions $p_i = \partial R / \partial a_i$, the gradients of the residual with respect to parameters. Unlike other methods where test functions are chosen a priori, here they depend on the current guess for $a$ and on the structure of our approximation.
 
 We can now see the unifying structure: all projection methods (except least squares in its direct form) follow the same template of picking $n$ test functions and requiring $\langle R, p_i \rangle = 0$. They differ only in their philosophy about which test functions best reveal whether the residual is "nearly zero." Galerkin tests against the approximation basis itself (natural for orthogonal bases), the method of moments tests against monomials (ensuring polynomial balance), collocation tests against delta functions (pointwise satisfaction), subdomain tests against indicators (local average satisfaction), and least squares tests against residual gradients (global norm minimization). Each choice reflects different priorities: computational efficiency, theoretical optimality, ease of implementation, or sensitivity to errors in different regions of the domain.
 
@@ -155,24 +153,22 @@ $$
 
 This is a system of $n$ (generally nonlinear) equations in $n$ unknowns. For least squares, we solve the optimization problem $\min_a \langle R(\cdot; a), R(\cdot; a) \rangle$.
 
-**Computational characteristics**:
-
-The **conditioning** of the system depends critically on the choice of test functions. The Jacobian matrix has entries:
+The **conditioning** of the system depends on the choice of test functions. The Jacobian matrix has entries:
 
 $$
 J_{ij} = \frac{\partial P_i}{\partial a_j} = \left\langle \frac{\partial R(\cdot; a)}{\partial a_j}, p_i \right\rangle.
 $$
 
-When test functions are orthogonal (or nearly so), the Jacobian tends to be well-conditioned. This is why orthogonal polynomial bases are preferred in Galerkin methods—they produce Jacobians with controlled condition numbers.
+When test functions are orthogonal (or nearly so), the Jacobian tends to be well-conditioned. This is why orthogonal polynomial bases are preferred in Galerkin methods: they produce Jacobians with controlled condition numbers.
 
 The **computational cost per iteration** varies significantly:
-- **Collocation**: Cheapest to evaluate since $P_i(a) = R(x_i; a)$ requires only pointwise evaluation—no integration. The Jacobian is also cheap: $J_{ij} = \frac{\partial R(x_i; a)}{\partial a_j}$.
+- **Collocation**: Cheapest to evaluate since $P_i(a) = R(x_i; a)$ requires only pointwise evaluation (no integration). The Jacobian is also cheap: $J_{ij} = \frac{\partial R(x_i; a)}{\partial a_j}$.
 - **Galerkin and moments**: More expensive due to integration. Computing $P_i(a) = \int R(x; a) p_i(x) w(x) dx$ requires numerical quadrature. Each Jacobian entry requires integrating $\frac{\partial R}{\partial a_j} p_i$.
 - **Least squares**: Most expensive when done via the objective function, which requires integrating $R^2$. However, the first-order conditions reduce it to a system like Galerkin, with test functions $p_i = \partial R / \partial a_i$.
 
-**Interaction with quadrature**: For methods requiring integration, the choice of quadrature rule should match the basis. Gaussian quadrature with nodes at orthogonal polynomial zeros is particularly efficient—and when combined with collocation at those same points, the quadrature is exact for polynomials up to a certain degree. This coordination between quadrature and collocation is what makes **orthogonal collocation** particularly powerful.
+For methods requiring integration, the choice of quadrature rule should match the basis. Gaussian quadrature with nodes at orthogonal polynomial zeros is efficient. When combined with collocation at those same points, the quadrature is exact for polynomials up to a certain degree. This coordination between quadrature and collocation makes **orthogonal collocation** effective.
 
-The choice of solver depends critically on whether the finite-dimensional approximation preserves the structural properties of the original infinite-dimensional problem. This is particularly important for the Bellman equation, where the original operator $\mathrm{L}$ is a contraction.
+The choice of solver depends on whether the finite-dimensional approximation preserves the structural properties of the original infinite-dimensional problem. This matters for the Bellman equation, where the original operator $\mathrm{L}$ is a contraction.
 
 **Successive approximation** (fixed-point iteration) is the natural choice when the original operator is a contraction, as it preserves the global convergence guarantees. However, the finite-dimensional approximation $\hat{\mathrm{L}}$ may not inherit the contraction property of $\mathrm{L}$. The approximation can introduce spurious fixed points or destroy the contraction constant, leading to divergence or slow convergence. This is especially problematic when using high-order polynomial approximations, which can create artificial oscillations that destabilize the iteration.
 
@@ -183,9 +179,9 @@ The choice of solver depends critically on whether the finite-dimensional approx
 - **High-order polynomials** may destroy contraction but provide smooth approximations suitable for Newton's method
 - **Shape-preserving splines** can maintain both smoothness and structural properties
 
-**In practice, which algorithm should we use?** When the operator equation can be written as a fixed-point problem $f = \mathscr{T}f$ and the operator $\mathscr{T}$ is known to be a contraction, successive approximation is often the best starting point—it is computationally cheap and globally convergent. However, not all equations $\mathscr{N}(f) = 0$ admit a natural fixed-point reformulation, and even when they do (e.g., $f = f - \alpha \mathscr{N}(f)$ for some $\alpha > 0$), the resulting operator may not be a contraction in the finite-dimensional approximation space. In such cases, Newton's method becomes the primary option despite its requirement for good initial guesses and higher computational cost per iteration. A hybrid approach often works well: use successive approximation when applicable to generate an initial guess, then switch to Newton's method for refinement.
+**In practice, which algorithm should we use?** When the operator equation can be written as a fixed-point problem $f = \mathscr{T}f$ and the operator $\mathscr{T}$ is known to be a contraction, successive approximation is often the best starting point: it is computationally cheap and globally convergent. However, not all equations $\mathscr{N}(f) = 0$ admit a natural fixed-point reformulation, and even when they do (e.g., $f = f - \alpha \mathscr{N}(f)$ for some $\alpha > 0$), the resulting operator may not be a contraction in the finite-dimensional approximation space. In such cases, Newton's method becomes the primary option despite its requirement for good initial guesses and higher computational cost per iteration. A hybrid approach often works well: use successive approximation when applicable to generate an initial guess, then switch to Newton's method for refinement.
 
-An major consideration is the conditioning of the resulting system. Poorly chosen basis functions or collocation points can lead to nearly singular Jacobians, causing numerical instability. This is why orthogonal bases and carefully chosen collocation points (like Chebyshev nodes) are preferred—they tend to produce well-conditioned systems.
+Another consideration is the conditioning of the resulting system. Poorly chosen basis functions or collocation points can lead to nearly singular Jacobians, causing numerical instability. Orthogonal bases and carefully chosen collocation points (like Chebyshev nodes) are preferred because they tend to produce well-conditioned systems.
 
 ### Step 5: Verify the Solution
 
@@ -210,7 +206,7 @@ $$
 R(s; a) = \mathrm{L}\hat{v}(s) - \hat{v}(s) = \max_{a \in \mathcal{A}_s} \left\{ r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) \hat{v}(j) \right\} - \sum_{i=1}^n a_i \varphi_i(s).
 $$
 
-Any of the projection methods we discussed—Galerkin, method of moments, collocation, subdomain, or least squares—can be applied here. Each would give us $n$ conditions to determine the $n$ coefficients in our approximation. For instance:
+Any of the projection methods we discussed (Galerkin, method of moments, collocation, subdomain, or least squares) can be applied here. Each would give us $n$ conditions to determine the $n$ coefficients in our approximation. For instance:
 - **Galerkin** would require $\langle R(\cdot; a), \varphi_i \rangle = 0$ for $i = 1, \ldots, n$, involving integration of the residual weighted by basis functions
 - **Method of moments** would require $\langle R(\cdot; a), s^{i-1} \rangle = 0$, setting the first $n$ moments of the residual to zero
 - **Collocation** would require $R(s_i; a) = 0$ at $n$ chosen states, forcing the residual to vanish pointwise
@@ -247,7 +243,7 @@ $$
 F_i(a) = \sum_{j=1}^n a_j \varphi_j(s_i) - \max_{u \in \mathcal{A}_{s_i}} \left\{ r(s_i,u) + \gamma \sum_{j \in \mathcal{S}} p(j|s_i,u) \hat{v}(j; a) \right\}.
 $$
 
-**Newton's method** is the standard approach for such systems. However, the max operator introduces a non-differentiability issue: the function $F(a)$ is not everywhere differentiable because the optimal action can change discontinuously as $a$ varies. Fortunately, the function is **semismooth**—it is locally Lipschitz continuous and directionally differentiable everywhere. This structure can be exploited by **semi-smooth Newton methods**, which generalize Newton's method to semismooth equations by using any element of the generalized Jacobian (in the sense of Clarke's generalized derivative) in place of the classical Jacobian.
+**Newton's method** is the standard approach for such systems. However, the max operator introduces a non-differentiability issue: the function $F(a)$ is not everywhere differentiable because the optimal action can change discontinuously as $a$ varies. Fortunately, the function is **semismooth**: it is locally Lipschitz continuous and directionally differentiable everywhere. This structure can be exploited by **semi-smooth Newton methods**, which generalize Newton's method to semismooth equations by using any element of the generalized Jacobian (in the sense of Clarke's generalized derivative) in place of the classical Jacobian.
 
 In practice, implementing semi-smooth Newton for the Bellman equation is straightforward: at each iteration, we fix the optimal action $a^*(s_i; a^{(k)})$ at the current guess $a^{(k)}$, compute the Jacobian assuming these actions remain optimal, and update:
 
@@ -281,13 +277,13 @@ We now have two approaches to solving the collocation equations:
 
 2. **Successive approximation (parametric value iteration)**: Iterate the map $a^{(k+1)} = \hat{\mathrm{L}}(a^{(k)})$ that alternates between maximization and fitting steps. This is more robust to poor initial guesses and inherits global convergence properties when the finite-dimensional approximation preserves the contraction property of the Bellman operator.
 
-**Which should we use?** Following Judd's guidance: When the Bellman operator is known to be a contraction and the finite-dimensional approximation preserves this property (as with linear interpolation or carefully chosen low-order approximations), successive approximation is often the best choice—it is globally convergent and each iteration is relatively cheap. However, high-order polynomial approximations may destroy the contraction property or introduce numerical instabilities. In such cases, or when convergence is too slow, Newton's method (or semi-smooth Newton) becomes necessary despite requiring good initial guesses.
+**Which should we use?** Following Judd's guidance: When the Bellman operator is known to be a contraction and the finite-dimensional approximation preserves this property (as with linear interpolation or carefully chosen low-order approximations), successive approximation is often the best choice. It is globally convergent and each iteration is relatively cheap. However, high-order polynomial approximations may destroy the contraction property or introduce numerical instabilities. In such cases, or when convergence is too slow, Newton's method (or semi-smooth Newton) becomes necessary despite requiring good initial guesses.
 
 A **hybrid strategy** works well in practice: use successive approximation to generate an initial approximation, then switch to semi-smooth Newton for rapid refinement once in the neighborhood of the solution. This combines the global convergence of successive approximation with the fast local convergence of Newton's method.
 
 ### Shape-Preserving Considerations
 
-A subtle but important issue arises in dynamic programming: the value function typically has specific structural properties that we want our approximation to preserve. For instance:
+In dynamic programming, the value function typically has specific structural properties that we want our approximation to preserve. For instance:
 - **Monotonicity**: If having more of a resource is better, the value function should be increasing
 - **Concavity**: Diminishing returns often imply concave value functions
 - **Boundedness**: The value function is bounded when rewards are bounded
@@ -315,40 +311,120 @@ $$
 The Galerkin projection requires the residual to be orthogonal to all basis functions with respect to some weighting:
 
 $$
-\sum_{s \in \mathcal{S}} d(s) R(s; \mathbf{a}) \varphi_j(s) = 0, \quad j = 1, \ldots, n,
+\sum_{s \in \mathcal{S}} \xi(s) R(s; \mathbf{a}) \varphi_j(s) = 0, \quad j = 1, \ldots, n,
 $$
 
-where $d(s)$ is a distribution over states (often the stationary distribution under policy $\pi$, or uniform over visited states). Substituting the residual:
+where $\xi(s)$ is a distribution over states (often the stationary distribution under policy $\pi$, or uniform over visited states). Substituting the residual:
 
 $$
-\sum_s d(s) \left[ r(s,\pi(s)) + \gamma \sum_{s'} p(s'|s,\pi(s)) \boldsymbol{\varphi}(s')^\top \mathbf{a} - \boldsymbol{\varphi}(s)^\top \mathbf{a} \right] \varphi_j(s) = 0.
+\sum_s \xi(s) \left[ r(s,\pi(s)) + \gamma \sum_{s'} p(s'|s,\pi(s)) \boldsymbol{\varphi}(s')^\top \mathbf{a} - \boldsymbol{\varphi}(s)^\top \mathbf{a} \right] \varphi_j(s) = 0.
 $$
 
-Rearranging and writing in matrix form, let $\mathbf{D}$ be a diagonal matrix with $D_{ss} = d(s)$, $\boldsymbol{\Phi}$ be the $|\mathcal{S}| \times n$ matrix with rows $\boldsymbol{\varphi}(s)^\top$, and $\mathbf{P}_\pi$ be the transition matrix under policy $\pi$. The Galerkin conditions become:
+Rearranging and writing in matrix form, let $\boldsymbol{\Xi}$ be a diagonal matrix with $\Xi_{ss} = \xi(s)$, $\boldsymbol{\Phi}$ be the $|\mathcal{S}| \times n$ matrix with rows $\boldsymbol{\varphi}(s)^\top$, and $\mathbf{P}_\pi$ be the transition matrix under policy $\pi$. The Galerkin conditions become:
 
 $$
-\boldsymbol{\Phi}^\top \mathbf{D} (\mathbf{r}_\pi + \gamma \mathbf{P}_\pi \boldsymbol{\Phi} \mathbf{a} - \boldsymbol{\Phi} \mathbf{a}) = \mathbf{0}.
+\boldsymbol{\Phi}^\top \boldsymbol{\Xi} (\mathbf{r}_\pi + \gamma \mathbf{P}_\pi \boldsymbol{\Phi} \mathbf{a} - \boldsymbol{\Phi} \mathbf{a}) = \mathbf{0}.
 $$
 
 Solving for $\mathbf{a}$:
 
 $$
-\boldsymbol{\Phi}^\top \mathbf{D} (\boldsymbol{\Phi} - \gamma \mathbf{P}_\pi \boldsymbol{\Phi}) \mathbf{a} = \boldsymbol{\Phi}^\top \mathbf{D} \mathbf{r}_\pi.
+\boldsymbol{\Phi}^\top \boldsymbol{\Xi} (\boldsymbol{\Phi} - \gamma \mathbf{P}_\pi \boldsymbol{\Phi}) \mathbf{a} = \boldsymbol{\Phi}^\top \boldsymbol{\Xi} \mathbf{r}_\pi.
 $$
 
 This is precisely the **Least Squares Temporal Difference (LSTD)** solution for policy evaluation. The connection reveals that LSTD is Galerkin projection applied to the linear policy evaluation Bellman equation. The "least squares" name comes from the fact that this is the projection (in the weighted $\ell^2$ sense) of the Bellman operator's output onto the span of the basis functions.
 
-Viewing LSTD through the projection lens reveals something fundamental about approximate dynamic programming. The solution $\mathbf{a}$ does not satisfy the true Bellman equation $v = \mathrm{L}_\pi v$—which is typically impossible within our finite-dimensional approximation space. Instead, it satisfies $\hat{v} = \Pi \mathrm{L}_\pi \hat{v}$, where $\Pi$ is the projection operator onto $\text{span}\{\varphi_1, \ldots, \varphi_n\}$. We find the fixed point of the *projected* Bellman operator, not the Bellman operator itself. This is why approximation error persists even at convergence: the best we can do is find the value function whose Bellman operator output projects back onto itself.
+The projection perspective clarifies a key aspect of approximate dynamic programming. The solution $\mathbf{a}$ does not satisfy the true Bellman equation $v = \mathrm{L}_\pi v$ (which is typically impossible within our finite-dimensional approximation space). Instead, it satisfies $\hat{v} = \Pi \mathrm{L}_\pi \hat{v}$, where $\Pi$ is the projection operator onto $\text{span}\{\varphi_1, \ldots, \varphi_n\}$. We find the fixed point of the *projected* Bellman operator, not the Bellman operator itself. This is why approximation error persists even at convergence: the best we can do is find the value function whose Bellman operator output projects back onto itself.
 
-This operator composition $\Pi \mathrm{L}_\pi$ has important contraction properties. The Bellman operator $\mathrm{L}_\pi$ is a $\gamma$-contraction in any weighted $\ell^\infty$ norm, while the projection operator $\Pi$ (with respect to the $d$-weighted $\ell^2$ norm) is a non-expansion: it cannot increase distances. However, the composition $\Pi \mathrm{L}_\pi$ is generally *not* a contraction in the $\ell^2$ norm—projecting after contracting can amplify certain components of the error.
+### The Projected Bellman Equations
 
-The exception is the **on-policy case**: when the weighting distribution $d(s)$ in the projection matches the stationary distribution of policy $\pi$. In this setting, $\Pi \mathrm{L}_\pi$ becomes a $\gamma$-contraction in the $d$-weighted $\ell^2$ norm. This guarantees that iterative methods for solving the LSTD equations (such as LSTDQ or temporal difference learning with linear function approximation) will converge to the unique fixed point. The on-policy condition ensures that the projection and the dynamics "align"—we're projecting with respect to the same distribution that governs how the Bellman operator propagates values through state transitions.
+The LSTD solution gives a closed-form expression and connects to iterative algorithms developed in the next chapter. Understanding convergence of these methods requires analyzing when the projected Bellman operator $\Pi \mathrm{L}_\pi$ is a contraction.
 
-When $d$ differs from the stationary distribution (the off-policy case), convergence is not guaranteed, and additional techniques like importance sampling corrections become necessary to restore stability.
+**Norms and projections.** Fix a feature matrix $\boldsymbol{\Phi} \in \mathbb{R}^{|\mathcal{S}| \times n}$ with full column rank and a probability distribution $\xi$ over states. Define the $\xi$-weighted inner product and norm by
 
-The linearity of the policy evaluation operator $\mathrm{L}_\pi$ is what gives us the closed-form solution. We could apply Galerkin projection to the Bellman optimality equation $v^* = \mathrm{L} v^*$, setting up orthogonality conditions $\sum_s d(s) R(s; \mathbf{a}) \varphi_j(s) = 0$. The max operator makes these conditions nonlinear in $\mathbf{a}$, eliminating the closed form and requiring iterative solution—which brings us back to the successive approximation methods discussed earlier for collocation.
+$$
+\langle u, v \rangle_\xi := \sum_s \xi(s) u(s) v(s) = u^\top \boldsymbol{\Xi} v, \qquad \|v\|_\xi := \sqrt{v^\top \boldsymbol{\Xi} v},
+$$
 
-This framework of projection methods—choosing test functions, defining residuals, and solving finite-dimensional systems—provides the conceptual foundation for approximate dynamic programming. However, we've left one critical question unresolved: how do we evaluate the expectations in the Bellman operator when we lack explicit transition probabilities or when the state space is too large for exact computation? The next chapter addresses this by introducing Monte Carlo integration methods, completing the bridge from classical projection methods to modern simulation-based approximate dynamic programming and reinforcement learning.
+where $\boldsymbol{\Xi} = \text{diag}(\xi)$. The orthogonal projection onto $\text{span}(\boldsymbol{\Phi})$ with respect to $\langle \cdot, \cdot \rangle_\xi$ is
+
+$$
+\Pi = \boldsymbol{\Phi}(\boldsymbol{\Phi}^\top \boldsymbol{\Xi} \boldsymbol{\Phi})^{-1} \boldsymbol{\Phi}^\top \boldsymbol{\Xi}.
+$$
+
+An operator $\mathrm{T}$ is a **$\beta$-contraction** in norm $\|\cdot\|$ if $\|\mathrm{T}v - \mathrm{T}w\| \leq \beta \|v - w\|$ for all $v, w$ and some $\beta < 1$. It is a **non-expansion** if the same holds with $\beta = 1$.
+
+**Why $\Pi$ is a non-expansion.** The key is the Pythagorean identity in weighted inner product spaces. For any $u \in \mathbb{R}^{|\mathcal{S}|}$, the projection $\Pi u$ and the residual $(I - \Pi)u$ are $\xi$-orthogonal: $\langle \Pi u, (I-\Pi)u \rangle_\xi = 0$. Therefore,
+
+$$
+\|u\|_\xi^2 = \|\Pi u\|_\xi^2 + \|(I-\Pi)u\|_\xi^2.
+$$
+
+Applying this to $u - v$ gives
+
+$$
+\|\Pi u - \Pi v\|_\xi^2 = \|\Pi(u-v)\|_\xi^2 \leq \|\Pi(u-v)\|_\xi^2 + \|(I-\Pi)(u-v)\|_\xi^2 = \|u - v\|_\xi^2,
+$$
+
+proving $\|\Pi u - \Pi v\|_\xi \leq \|u - v\|_\xi$.
+
+**When is $\mathrm{L}_\pi$ a contraction in $\|\cdot\|_\xi$?** Write the policy evaluation operator as $\mathrm{L}_\pi v = r_\pi + \gamma \mathbf{P}_\pi v$, where $\mathbf{P}_\pi$ is the transition matrix under policy $\pi$. We know $\mathrm{L}_\pi$ is a $\gamma$-contraction in $\|\cdot\|_\infty$ from earlier chapters. However, whether it contracts in $\|\cdot\|_\xi$ depends on the relationship between $\xi$ and $\mathbf{P}_\pi$.
+
+The key is to establish when the stochastic matrix $\mathbf{P}_\pi$ is non-expansive in $\|\cdot\|_\xi$. Following Bertsekas (Lemma 6.3.1), suppose $\xi$ is a **steady-state probability vector** for $\mathbf{P}_\pi$ with positive components, meaning:
+
+$$
+\xi^\top \mathbf{P}_\pi = \xi^\top, \qquad \text{or equivalently,} \qquad \xi(s') = \sum_s \xi(s) p(s'|s,\pi(s)) \text{ for all } s'.
+$$
+
+Then for any $z \in \mathbb{R}^{|\mathcal{S}|}$, using the convexity of the square function (Jensen's inequality):
+
+$$
+\begin{align*}
+\|\mathbf{P}_\pi z\|_\xi^2 &= \sum_s \xi(s) \left(\sum_{s'} p(s'|s,\pi(s)) z(s')\right)^2 \\
+&\leq \sum_s \xi(s) \sum_{s'} p(s'|s,\pi(s)) z(s')^2 \\
+&= \sum_{s'} \left(\sum_s \xi(s) p(s'|s,\pi(s))\right) z(s')^2
+\end{align*}
+$$
+
+Using the defining property of steady-state probabilities $\sum_s \xi(s) p(s'|s,\pi(s)) = \xi(s')$:
+
+$$
+= \sum_{s'} \xi(s') z(s')^2 = \|z\|_\xi^2.
+$$
+
+Therefore $\|\mathbf{P}_\pi z\|_\xi \leq \|z\|_\xi$, showing that $\mathbf{P}_\pi$ is non-expansive in $\|\cdot\|_\xi$. Since $\|\mathrm{L}_\pi v - \mathrm{L}_\pi w\|_\xi = \gamma \|\mathbf{P}_\pi(v-w)\|_\xi$:
+
+$$
+\|\mathrm{L}_\pi v - \mathrm{L}_\pi w\|_\xi \leq \gamma \|v - w\|_\xi.
+$$
+
+Thus $\mathrm{L}_\pi$ is a $\gamma$-contraction in $\|\cdot\|_\xi$ when $\xi$ is the steady-state distribution of $\pi$.
+
+**Contraction of the composition.** Combining our two results: $\Pi$ is a non-expansion and (under stationarity) $\mathrm{L}_\pi$ is a $\gamma$-contraction in $\|\cdot\|_\xi$. Therefore,
+
+$$
+\|\Pi \mathrm{L}_\pi v - \Pi \mathrm{L}_\pi w\|_\xi \leq \|\mathrm{L}_\pi v - \mathrm{L}_\pi w\|_\xi \leq \gamma \|v - w\|_\xi.
+$$
+
+By the Banach fixed-point theorem, $\Pi \mathrm{L}_\pi$ has a unique fixed point in $\mathbb{R}^{|\mathcal{S}|}$, and iterates $v_{k+1} = \Pi \mathrm{L}_\pi v_k$ converge to it from any $v_0$. This fixed point satisfies the **projected Bellman equation**
+
+$$
+v = \Pi(r_\pi + \gamma \mathbf{P}_\pi v), \qquad v \in \text{span}(\boldsymbol{\Phi}).
+$$
+
+Writing $v = \boldsymbol{\Phi} w$ and left-multiplying by $\boldsymbol{\Phi}^\top \boldsymbol{\Xi}$ yields the **normal equations**
+
+$$
+\boldsymbol{\Phi}^\top \boldsymbol{\Xi}(\boldsymbol{\Phi} - \gamma \mathbf{P}_\pi \boldsymbol{\Phi}) w = \boldsymbol{\Phi}^\top \boldsymbol{\Xi} r_\pi,
+$$
+
+which are precisely the LSTD equations we derived earlier. This result provides the theoretical foundation for temporal difference learning with linear function approximation: when learning on-policy (so $\xi$ is stationary), convergence is guaranteed.
+
+**Off-policy instability.** When $\xi$ is not stationary for $\mathbf{P}_\pi$ (as occurs when data come from a different behavior policy), the Jensen argument breaks down. The transition operator $\mathbf{P}_\pi$ need not be non-expansive in $\|\cdot\|_\xi$, so $\Pi \mathrm{L}_\pi$ may fail to be a contraction. This is the root cause of off-policy divergence phenomena in linear TD learning (e.g., Baird's counterexample). Importance weighting and other corrections are designed to restore stability in this regime.
+
+The linearity of the policy evaluation operator $\mathrm{L}_\pi$ is what gives us the closed-form solution. We could apply Galerkin projection to the Bellman optimality equation $v^* = \mathrm{L} v^*$, setting up orthogonality conditions $\sum_s \xi(s) R(s; \mathbf{a}) \varphi_j(s) = 0$. The max operator makes these conditions nonlinear in $\mathbf{a}$, eliminating the closed form and requiring iterative solution. This brings us back to the successive approximation methods discussed earlier for collocation.
+
+This framework of projection methods (choosing test functions, defining residuals, and solving finite-dimensional systems) provides the conceptual foundation for approximate dynamic programming. One question remains: how do we evaluate the expectations in the Bellman operator when we lack explicit transition probabilities or when the state space is too large for exact computation? The next chapter introduces Monte Carlo integration methods, connecting classical projection methods to simulation-based approximate dynamic programming and reinforcement learning.
 
 
 

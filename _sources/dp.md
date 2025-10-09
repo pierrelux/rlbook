@@ -13,7 +13,7 @@ kernelspec:
 
 # Dynamic Programming
 
-Unlike the methods we've discussed so far, dynamic programming takes a step back and considers not just a single optimization problem, but an entire family of related problems. This approach, while seemingly more complex at first glance, can often lead to efficient solutions.
+Unlike the methods we've discussed so far, dynamic programming takes a step back and considers an entire family of related problems rather than a single optimization problem. This approach, while seemingly more complex at first glance, can often lead to efficient solutions.
 
 Dynamic programming leverage the solution structure underlying many control problems that allows for a decomposition it into smaller, more manageable subproblems. Each subproblem is itself an optimization problem, embedded within the larger whole. This recursive structure is the foundation upon which dynamic programming constructs its solutions.
 
@@ -220,12 +220,12 @@ It's worth noting that while this example uses a relatively simple model, the sa
 
 In many real-world problems, such as our resource management example, the state space is inherently continuous. Dynamic programming, however, is usually defined on discrete state spaces. To reconcile this, we approximate the value function on a finite grid of points and use interpolation to estimate its value elsewhere.
 
-In our earlier example, we acted as if population sizes could only be whole numbers—1 fish, 2 fish, 3 fish. But real measurements don’t fit neatly: what do you do with a survey that reports 42.7 fish? Our reflex in the code example was to round to the nearest integer, effectively saying “let’s just call it 43.” This corresponds to **nearest-neighbor interpolation**, also known as discretization. It’s the zeroth-order case: you assume the value between grid points is constant and equal to the closest one. In practice, this amounts to overlaying a grid on the continuous landscape and forcing yourself to stand at the intersections. In our demo code, this step was carried out with [`numpy.searchsorted`](https://numpy.org/doc/2.0/reference/generated/numpy.searchsorted.html).
+In our earlier example, we acted as if population sizes could only be whole numbers: 1 fish, 2 fish, 3 fish. But real measurements don't fit neatly. What do you do with a survey that reports 42.7 fish? Our reflex in the code example was to round to the nearest integer, effectively saying "let's just call it 43." This corresponds to **nearest-neighbor interpolation**, also known as discretization. It's the zeroth-order case: you assume the value between grid points is constant and equal to the closest one. In practice, this amounts to overlaying a grid on the continuous landscape and forcing yourself to stand at the intersections. In our demo code, this step was carried out with [`numpy.searchsorted`](https://numpy.org/doc/2.0/reference/generated/numpy.searchsorted.html).
 
 While easy to implement, nearest-neighbor interpolation can introduce artifacts:
 
 1. Decisions may change abruptly, even if the state only shifts slightly.
-2. Precision is lost, particularly in regimes where small variations matter.
+2. Precision is lost, especially in regimes where small variations matter.
 3. The curse of dimensionality forces an impractically fine grid if many state variables are added.
 
 To address these issues, we can use **higher-order interpolation**. Instead of taking the nearest neighbor, we estimate the value at off-grid points by leveraging multiple nearby values.
@@ -604,7 +604,7 @@ $$u_t^*(h_t) = \sup_{a \in A_{s_t}} \left\{ r_t(s_t, a) + \sum_{j \in S} p_t(j|s
 Since the expression in brackets depends on $h_t$ only through the current state $s_t$ (the rewards and transition probabilities are Markovian), we conclude that $u_t^*(h_t) = u_t^*(s_t)$.
 ````
 
-**Intuition:** The Markov property means that the current state contains all information needed to predict future evolution—the past provides no additional value for decision-making. This powerful result allows us to work with value functions $v_t^*(s)$ indexed only by state and time, dramatically simplifying both theory and computation.
+**Intuition:** The Markov property means that the current state contains all information needed to predict future evolution. The past provides no additional value for decision-making. This powerful result allows us to work with value functions $v_t^*(s)$ indexed only by state and time, dramatically simplifying both theory and computation.
 
 This state-sufficiency result, combined with the fact that randomization never helps when maximizing expected returns, leads to a dramatic simplification of the policy space:
 
@@ -707,7 +707,7 @@ where the expectation is taken over the harvest and growth rate random variables
 
 ## Linear Quadratic Regulator via Dynamic Programming
 
-We now examine a special case where the backward recursion admits a remarkable closed-form solution. When the system dynamics are linear and the cost function is quadratic, the optimization at each stage can be solved analytically. Moreover, the value function itself maintains a quadratic structure throughout the recursion, and the optimal policy reduces to a simple linear feedback law. This elegant result eliminates the need for discretization, interpolation, or any function approximation—the infinite-dimensional problem collapses to tracking a finite set of matrices.
+We now examine a special case where the backward recursion admits a remarkable closed-form solution. When the system dynamics are linear and the cost function is quadratic, the optimization at each stage can be solved analytically. Moreover, the value function itself maintains a quadratic structure throughout the recursion, and the optimal policy reduces to a simple linear feedback law. This elegant result eliminates the need for discretization, interpolation, or any function approximation. The infinite-dimensional problem collapses to tracking a finite set of matrices.
 
 Consider a discrete-time linear system:
 
@@ -1424,7 +1424,7 @@ Newton's method is often written as the familiar update:
 $$
 x_{k+1} = x_k - [DF(x_k)]^{-1} F(x_k),
 $$
-which makes it look as though the essence of the method is "take a derivative and invert it." But the real workhorse behind Newton's method — both in finite and infinite dimensions — is **linearization**.
+which makes it look as though the essence of the method is "take a derivative and invert it." But the real workhorse behind Newton's method (both in finite and infinite dimensions) is **linearization**.
 
 At each step, the idea is to replace the nonlinear operator $F:X \to Y$ by a local surrogate model of the form
 
@@ -1474,7 +1474,7 @@ This definition directly addresses the inadequacy of the previous notions. Unlik
 
 - $L$ must be **linear** in $h$ (unlike the directional derivatives above)
 - The approximation error is $o(\|h\|)$, uniform in all directions
-- This is the "true" derivative—it generalizes the Jacobian matrix to infinite dimensions
+- This is the "true" derivative: it generalizes the Jacobian matrix to infinite dimensions
 - Notation: $L = F'(x)$ or $DF(x)$
 
 **Relationship:**
@@ -1796,7 +1796,7 @@ $$
 
 The key is that we do not need to differentiate the optimizer $a_i^*(c)$ itself. The result extends to the subdifferential case when ties occur, where the Jacobian becomes set-valued.
 
-This result is particularly useful when solving the collocation equation $\Phi c = v(c)$. Newton's method requires the Jacobian $v'(c)$, and this expression allows us to compute it without involving any derivatives of the optimal action.
+This result is useful when solving the collocation equation $\Phi c = v(c)$. Newton's method requires the Jacobian $v'(c)$, and this expression allows us to compute it without involving any derivatives of the optimal action.
 
 #### Perspective 3: The Implicit Function Theorem
 
@@ -1867,7 +1867,7 @@ $$
 
 where $\pi_v(s) = a^*(s)$ is the greedy policy.
 
-**The role of the implicit function theorem**: It guarantees that when the maximizer is unique with a strict gap (the regularity condition), the argmax function $v \mapsto a^*(s; v)$ is locally constant, which removes the non-differentiability of the max operator. Without this regularity condition—specifically, at points where multiple actions tie for optimality—the implicit function theorem does not apply, and the operator is not Fréchet differentiable. The active set perspective (Perspective 1) and the envelope theorem (Perspective 2) provide the tools to handle these non-smooth points.
+The implicit function theorem guarantees that when the maximizer is unique with a strict gap (the regularity condition), the argmax function $v \mapsto a^*(s; v)$ is locally constant, which removes the non-differentiability of the max operator. Without this regularity condition (specifically, at points where multiple actions tie for optimality), the implicit function theorem does not apply, and the operator is not Fréchet differentiable. The active set perspective (Perspective 1) and the envelope theorem (Perspective 2) provide the tools to handle these non-smooth points.
 
 ### Connection to Policy Iteration
 
@@ -1891,7 +1891,7 @@ Thus, **policy iteration is Newton-Kantorovich** applied to the Bellman optimali
 
 ### The Semismooth Newton Perspective
 
-The three perspectives we developed above—the active set view, the envelope theorem, and the implicit function theorem—all point toward a deeper framework for understanding Newton-type methods on non-smooth operators. This framework, known as semismooth Newton methods, was developed precisely to handle operators like the Bellman operator that are piecewise smooth but not globally differentiable. The connection between policy iteration and semismooth Newton methods has been rigorously developed in recent work {cite}`Gargiani2022`.
+The three perspectives we developed above (the active set view, the envelope theorem, and the implicit function theorem) all point toward a deeper framework for understanding Newton-type methods on non-smooth operators. This framework, known as semismooth Newton methods, was developed precisely to handle operators like the Bellman operator that are piecewise smooth but not globally differentiable. The connection between policy iteration and semismooth Newton methods has been rigorously developed in recent work {cite}`Gargiani2022`.
 
 The classical Newton-Kantorovich method assumes the operator is Fréchet differentiable everywhere. The derivative exists, is unique, and varies continuously with the base point. But the Bellman operator $\mathrm{L}$ violates this assumption at any value function where multiple actions tie for optimality at some state. At such points, the implicit function theorem fails, and there is no unique Fréchet derivative. 
 
@@ -1903,7 +1903,7 @@ $$
 \partial \mathrm{B}(v) = \left\{ I - \gamma P_\pi : \pi(s) \in \mathcal{A}^*(s; v) \text{ for all } s \right\}.
 $$
 
-In words, the generalized Jacobian is the set of all matrices $I - \gamma P_\pi$ where $\pi$ is any policy that selects an action from the active set at each state. When the maximizer is unique everywhere, this set reduces to a singleton, and we recover the classical Fréchet derivative. When ties occur, the set has multiple elements—precisely the convex combinations mentioned in Perspective 1.
+In words, the generalized Jacobian is the set of all matrices $I - \gamma P_\pi$ where $\pi$ is any policy that selects an action from the active set at each state. When the maximizer is unique everywhere, this set reduces to a singleton, and we recover the classical Fréchet derivative. When ties occur, the set has multiple elements: precisely the convex combinations mentioned in Perspective 1.
 
 The semismooth Newton method for solving $\mathrm{B}(v) = 0$ proceeds by selecting an element $J_k \in \partial \mathrm{B}(v_k)$ at each iteration and solving
 
@@ -1913,7 +1913,7 @@ $$
 
 The main takeaway is that any choice from the Clarke subdifferential yields a valid Newton-like update. In the context of the Bellman equation, choosing $J_k = I - \gamma P_{\pi_k}$ where $\pi_k$ is any greedy policy corresponds exactly to the policy evaluation step in policy iteration. The freedom in selecting which action to choose when ties occur translates to the freedom in selecting which element of the subdifferential to use.
 
-Under appropriate regularity conditions—specifically, when the residual function is BD-regular or CD-regular—the semismooth Newton method converges locally at a quadratic rate {cite}`Gargiani2022`. This means that near the solution, the error decreases quadratically:
+Under appropriate regularity conditions (specifically, when the residual function is BD-regular or CD-regular), the semismooth Newton method converges locally at a quadratic rate {cite}`Gargiani2022`. This means that near the solution, the error decreases quadratically:
 $$
 \|v_{k+1} - v^*\| \leq C \|v_k - v^*\|^2.
 $$

@@ -498,7 +498,7 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="dynamic-programming">
 <h1>Dynamic Programming<a class="headerlink" href="#dynamic-programming" title="Link to this heading">#</a></h1>
-<p>Unlike the methods we’ve discussed so far, dynamic programming takes a step back and considers not just a single optimization problem, but an entire family of related problems. This approach, while seemingly more complex at first glance, can often lead to efficient solutions.</p>
+<p>Unlike the methods we’ve discussed so far, dynamic programming takes a step back and considers an entire family of related problems rather than a single optimization problem. This approach, while seemingly more complex at first glance, can often lead to efficient solutions.</p>
 <p>Dynamic programming leverage the solution structure underlying many control problems that allows for a decomposition it into smaller, more manageable subproblems. Each subproblem is itself an optimization problem, embedded within the larger whole. This recursive structure is the foundation upon which dynamic programming constructs its solutions.</p>
 <p>To ground our discussion, let us return to the domain of discrete-time optimal control problems (DOCPs). These problems frequently arise from the discretization of continuous-time optimal control problems. While the focus here will be on deterministic problems, it is worth noting that these concepts extend naturally to stochastic problems by taking the expectation over the random quantities.</p>
 <p>Consider a typical DOCP of Bolza type:</p>
@@ -780,11 +780,11 @@ Total harvest: 212.66322943492605
 <section id="handling-continuous-spaces-with-interpolation">
 <h2>Handling Continuous Spaces with Interpolation<a class="headerlink" href="#handling-continuous-spaces-with-interpolation" title="Link to this heading">#</a></h2>
 <p>In many real-world problems, such as our resource management example, the state space is inherently continuous. Dynamic programming, however, is usually defined on discrete state spaces. To reconcile this, we approximate the value function on a finite grid of points and use interpolation to estimate its value elsewhere.</p>
-<p>In our earlier example, we acted as if population sizes could only be whole numbers—1 fish, 2 fish, 3 fish. But real measurements don’t fit neatly: what do you do with a survey that reports 42.7 fish? Our reflex in the code example was to round to the nearest integer, effectively saying “let’s just call it 43.” This corresponds to <strong>nearest-neighbor interpolation</strong>, also known as discretization. It’s the zeroth-order case: you assume the value between grid points is constant and equal to the closest one. In practice, this amounts to overlaying a grid on the continuous landscape and forcing yourself to stand at the intersections. In our demo code, this step was carried out with <a class="reference external" href="https://numpy.org/doc/2.0/reference/generated/numpy.searchsorted.html"><code class="docutils literal notranslate"><span class="pre">numpy.searchsorted</span></code></a>.</p>
+<p>In our earlier example, we acted as if population sizes could only be whole numbers: 1 fish, 2 fish, 3 fish. But real measurements don’t fit neatly. What do you do with a survey that reports 42.7 fish? Our reflex in the code example was to round to the nearest integer, effectively saying “let’s just call it 43.” This corresponds to <strong>nearest-neighbor interpolation</strong>, also known as discretization. It’s the zeroth-order case: you assume the value between grid points is constant and equal to the closest one. In practice, this amounts to overlaying a grid on the continuous landscape and forcing yourself to stand at the intersections. In our demo code, this step was carried out with <a class="reference external" href="https://numpy.org/doc/2.0/reference/generated/numpy.searchsorted.html"><code class="docutils literal notranslate"><span class="pre">numpy.searchsorted</span></code></a>.</p>
 <p>While easy to implement, nearest-neighbor interpolation can introduce artifacts:</p>
 <ol class="arabic simple">
 <li><p>Decisions may change abruptly, even if the state only shifts slightly.</p></li>
-<li><p>Precision is lost, particularly in regimes where small variations matter.</p></li>
+<li><p>Precision is lost, especially in regimes where small variations matter.</p></li>
 <li><p>The curse of dimensionality forces an impractically fine grid if many state variables are added.</p></li>
 </ol>
 <p>To address these issues, we can use <strong>higher-order interpolation</strong>. Instead of taking the nearest neighbor, we estimate the value at off-grid points by leveraging multiple nearby values.</p>
@@ -1401,7 +1401,7 @@ u_t(h_t) = \sup_{a\in A_{s_t}}\left\{ r_t(s_t,a) + \sum_{j\in S} p_t(j\mid s_t,a
 \[u_t^*(h_t) = \sup_{a \in A_{s_t}} \left\{ r_t(s_t, a) + \sum_{j \in S} p_t(j|s_t, a) u_{t+1}^*(j) \right\}\]</div>
 <p>Since the expression in brackets depends on <span class="math notranslate nohighlight">\(h_t\)</span> only through the current state <span class="math notranslate nohighlight">\(s_t\)</span> (the rewards and transition probabilities are Markovian), we conclude that <span class="math notranslate nohighlight">\(u_t^*(h_t) = u_t^*(s_t)\)</span>.</p>
 </div>
-<p><strong>Intuition:</strong> The Markov property means that the current state contains all information needed to predict future evolution—the past provides no additional value for decision-making. This powerful result allows us to work with value functions <span class="math notranslate nohighlight">\(v_t^*(s)\)</span> indexed only by state and time, dramatically simplifying both theory and computation.</p>
+<p><strong>Intuition:</strong> The Markov property means that the current state contains all information needed to predict future evolution. The past provides no additional value for decision-making. This powerful result allows us to work with value functions <span class="math notranslate nohighlight">\(v_t^*(s)\)</span> indexed only by state and time, dramatically simplifying both theory and computation.</p>
 <p>This state-sufficiency result, combined with the fact that randomization never helps when maximizing expected returns, leads to a dramatic simplification of the policy space:</p>
 <div class="proof theorem admonition" id="stoch-policy-reduction">
 <p class="admonition-title"><span class="caption-number">Theorem 4 </span> (Policy reduction for stochastic MDPs)</p>
@@ -1680,7 +1680,7 @@ Average total harvest: 313.43165025164313
 </section>
 <section id="linear-quadratic-regulator-via-dynamic-programming">
 <h2>Linear Quadratic Regulator via Dynamic Programming<a class="headerlink" href="#linear-quadratic-regulator-via-dynamic-programming" title="Link to this heading">#</a></h2>
-<p>We now examine a special case where the backward recursion admits a remarkable closed-form solution. When the system dynamics are linear and the cost function is quadratic, the optimization at each stage can be solved analytically. Moreover, the value function itself maintains a quadratic structure throughout the recursion, and the optimal policy reduces to a simple linear feedback law. This elegant result eliminates the need for discretization, interpolation, or any function approximation—the infinite-dimensional problem collapses to tracking a finite set of matrices.</p>
+<p>We now examine a special case where the backward recursion admits a remarkable closed-form solution. When the system dynamics are linear and the cost function is quadratic, the optimization at each stage can be solved analytically. Moreover, the value function itself maintains a quadratic structure throughout the recursion, and the optimal policy reduces to a simple linear feedback law. This elegant result eliminates the need for discretization, interpolation, or any function approximation. The infinite-dimensional problem collapses to tracking a finite set of matrices.</p>
 <p>Consider a discrete-time linear system:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -2386,7 +2386,7 @@ d(x_n, x^*) \leq \frac{q^n}{1-q} d(x_1, x_0)
 \[
 x_{k+1} = x_k - [DF(x_k)]^{-1} F(x_k),
 \]</div>
-<p>which makes it look as though the essence of the method is “take a derivative and invert it.” But the real workhorse behind Newton’s method — both in finite and infinite dimensions — is <strong>linearization</strong>.</p>
+<p>which makes it look as though the essence of the method is “take a derivative and invert it.” But the real workhorse behind Newton’s method (both in finite and infinite dimensions) is <strong>linearization</strong>.</p>
 <p>At each step, the idea is to replace the nonlinear operator <span class="math notranslate nohighlight">\(F:X \to Y\)</span> by a local surrogate model of the form</p>
 <div class="math notranslate nohighlight">
 \[
@@ -2424,7 +2424,7 @@ F'(x; h) = \lim_{\substack{t \downarrow 0 \\ h' \to h}} \frac{F(x + t h') - F(x)
 <ul class="simple">
 <li><p><span class="math notranslate nohighlight">\(L\)</span> must be <strong>linear</strong> in <span class="math notranslate nohighlight">\(h\)</span> (unlike the directional derivatives above)</p></li>
 <li><p>The approximation error is <span class="math notranslate nohighlight">\(o(\|h\|)\)</span>, uniform in all directions</p></li>
-<li><p>This is the “true” derivative—it generalizes the Jacobian matrix to infinite dimensions</p></li>
+<li><p>This is the “true” derivative: it generalizes the Jacobian matrix to infinite dimensions</p></li>
 <li><p>Notation: <span class="math notranslate nohighlight">\(L = F'(x)\)</span> or <span class="math notranslate nohighlight">\(DF(x)\)</span></p></li>
 </ul>
 <p><strong>Relationship:</strong></p>
@@ -2695,7 +2695,7 @@ F_i(a, c) := r(s_i,a) + \gamma \sum_j c_j \mathbb{E}_{s' \mid s_i, a}[\phi_j(s')
 \frac{\partial v_i}{\partial c_j}(c) = \gamma \mathbb{E}_{s' \mid s_i, a_i^*(c)}[\phi_j(s')].
 \]</div>
 <p>The key is that we do not need to differentiate the optimizer <span class="math notranslate nohighlight">\(a_i^*(c)\)</span> itself. The result extends to the subdifferential case when ties occur, where the Jacobian becomes set-valued.</p>
-<p>This result is particularly useful when solving the collocation equation <span class="math notranslate nohighlight">\(\Phi c = v(c)\)</span>. Newton’s method requires the Jacobian <span class="math notranslate nohighlight">\(v'(c)\)</span>, and this expression allows us to compute it without involving any derivatives of the optimal action.</p>
+<p>This result is useful when solving the collocation equation <span class="math notranslate nohighlight">\(\Phi c = v(c)\)</span>. Newton’s method requires the Jacobian <span class="math notranslate nohighlight">\(v'(c)\)</span>, and this expression allows us to compute it without involving any derivatives of the optimal action.</p>
 </section>
 <section id="perspective-3-the-implicit-function-theorem">
 <h4>Perspective 3: The Implicit Function Theorem<a class="headerlink" href="#perspective-3-the-implicit-function-theorem" title="Link to this heading">#</a></h4>
@@ -2753,7 +2753,7 @@ Q_{a^*(s)}(v+h, s) &gt; Q_a(v+h, s) \quad \text{for all } a \neq a^*(s).
 \mathrm{L}'(v) = \gamma P_{\pi_v},
 \]</div>
 <p>where <span class="math notranslate nohighlight">\(\pi_v(s) = a^*(s)\)</span> is the greedy policy.</p>
-<p><strong>The role of the implicit function theorem</strong>: It guarantees that when the maximizer is unique with a strict gap (the regularity condition), the argmax function <span class="math notranslate nohighlight">\(v \mapsto a^*(s; v)\)</span> is locally constant, which removes the non-differentiability of the max operator. Without this regularity condition—specifically, at points where multiple actions tie for optimality—the implicit function theorem does not apply, and the operator is not Fréchet differentiable. The active set perspective (Perspective 1) and the envelope theorem (Perspective 2) provide the tools to handle these non-smooth points.</p>
+<p>The implicit function theorem guarantees that when the maximizer is unique with a strict gap (the regularity condition), the argmax function <span class="math notranslate nohighlight">\(v \mapsto a^*(s; v)\)</span> is locally constant, which removes the non-differentiability of the max operator. Without this regularity condition (specifically, at points where multiple actions tie for optimality), the implicit function theorem does not apply, and the operator is not Fréchet differentiable. The active set perspective (Perspective 1) and the envelope theorem (Perspective 2) provide the tools to handle these non-smooth points.</p>
 </section>
 </section>
 <section id="connection-to-policy-iteration">
@@ -2775,7 +2775,7 @@ v_{n+1} = v_n - h_n.
 </section>
 <section id="the-semismooth-newton-perspective">
 <h3>The Semismooth Newton Perspective<a class="headerlink" href="#the-semismooth-newton-perspective" title="Link to this heading">#</a></h3>
-<p>The three perspectives we developed above—the active set view, the envelope theorem, and the implicit function theorem—all point toward a deeper framework for understanding Newton-type methods on non-smooth operators. This framework, known as semismooth Newton methods, was developed precisely to handle operators like the Bellman operator that are piecewise smooth but not globally differentiable. The connection between policy iteration and semismooth Newton methods has been rigorously developed in recent work <span id="id11">[<a class="reference internal" href="bibliography.html#id61" title="M. Gargiani, A. Zanelli, D. Liao-McPherson, T. H. Summers, and J. Lygeros. Dynamic programming through the lens of semismooth newton-type methods. IEEE Control Systems Letters, 6:2996-3001, 2022. doi:10.1109/LCSYS.2022.3181213.">15</a>]</span>.</p>
+<p>The three perspectives we developed above (the active set view, the envelope theorem, and the implicit function theorem) all point toward a deeper framework for understanding Newton-type methods on non-smooth operators. This framework, known as semismooth Newton methods, was developed precisely to handle operators like the Bellman operator that are piecewise smooth but not globally differentiable. The connection between policy iteration and semismooth Newton methods has been rigorously developed in recent work <span id="id11">[<a class="reference internal" href="bibliography.html#id61" title="M. Gargiani, A. Zanelli, D. Liao-McPherson, T. H. Summers, and J. Lygeros. Dynamic programming through the lens of semismooth newton-type methods. IEEE Control Systems Letters, 6:2996-3001, 2022. doi:10.1109/LCSYS.2022.3181213.">15</a>]</span>.</p>
 <p>The classical Newton-Kantorovich method assumes the operator is Fréchet differentiable everywhere. The derivative exists, is unique, and varies continuously with the base point. But the Bellman operator <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> violates this assumption at any value function where multiple actions tie for optimality at some state. At such points, the implicit function theorem fails, and there is no unique Fréchet derivative.</p>
 <p>Semismooth Newton methods address this by replacing the notion of a single Jacobian with a generalized derivative that captures the behavior of the operator near non-smooth points. The most commonly used generalized derivative is the Clarke subdifferential, which we can think of as the convex hull of all possible “candidate Jacobians” that arise from limits approaching the non-smooth point from different directions.</p>
 <p>For the Bellman residual <span class="math notranslate nohighlight">\(\mathrm{B}(v) = \mathrm{L}v - v\)</span>, the Clarke subdifferential at a point <span class="math notranslate nohighlight">\(v\)</span> can be characterized explicitly using our first perspective. Recall that at each state <span class="math notranslate nohighlight">\(s\)</span>, we defined the active set <span class="math notranslate nohighlight">\(\mathcal{A}^*(s; v) = \arg\max_a Q_a(v, s)\)</span>. When this set contains multiple actions, the operator is not Fréchet differentiable. However, it remains directionally differentiable in all directions, and the Clarke subdifferential consists of all matrices of the form</p>
@@ -2783,14 +2783,14 @@ v_{n+1} = v_n - h_n.
 \[
 \partial \mathrm{B}(v) = \left\{ I - \gamma P_\pi : \pi(s) \in \mathcal{A}^*(s; v) \text{ for all } s \right\}.
 \]</div>
-<p>In words, the generalized Jacobian is the set of all matrices <span class="math notranslate nohighlight">\(I - \gamma P_\pi\)</span> where <span class="math notranslate nohighlight">\(\pi\)</span> is any policy that selects an action from the active set at each state. When the maximizer is unique everywhere, this set reduces to a singleton, and we recover the classical Fréchet derivative. When ties occur, the set has multiple elements—precisely the convex combinations mentioned in Perspective 1.</p>
+<p>In words, the generalized Jacobian is the set of all matrices <span class="math notranslate nohighlight">\(I - \gamma P_\pi\)</span> where <span class="math notranslate nohighlight">\(\pi\)</span> is any policy that selects an action from the active set at each state. When the maximizer is unique everywhere, this set reduces to a singleton, and we recover the classical Fréchet derivative. When ties occur, the set has multiple elements: precisely the convex combinations mentioned in Perspective 1.</p>
 <p>The semismooth Newton method for solving <span class="math notranslate nohighlight">\(\mathrm{B}(v) = 0\)</span> proceeds by selecting an element <span class="math notranslate nohighlight">\(J_k \in \partial \mathrm{B}(v_k)\)</span> at each iteration and solving</p>
 <div class="math notranslate nohighlight">
 \[
 J_k h_k = -\mathrm{B}(v_k), \quad v_{k+1} = v_k + h_k.
 \]</div>
 <p>The main takeaway is that any choice from the Clarke subdifferential yields a valid Newton-like update. In the context of the Bellman equation, choosing <span class="math notranslate nohighlight">\(J_k = I - \gamma P_{\pi_k}\)</span> where <span class="math notranslate nohighlight">\(\pi_k\)</span> is any greedy policy corresponds exactly to the policy evaluation step in policy iteration. The freedom in selecting which action to choose when ties occur translates to the freedom in selecting which element of the subdifferential to use.</p>
-<p>Under appropriate regularity conditions—specifically, when the residual function is BD-regular or CD-regular—the semismooth Newton method converges locally at a quadratic rate <span id="id12">[<a class="reference internal" href="bibliography.html#id61" title="M. Gargiani, A. Zanelli, D. Liao-McPherson, T. H. Summers, and J. Lygeros. Dynamic programming through the lens of semismooth newton-type methods. IEEE Control Systems Letters, 6:2996-3001, 2022. doi:10.1109/LCSYS.2022.3181213.">15</a>]</span>. This means that near the solution, the error decreases quadratically:
+<p>Under appropriate regularity conditions (specifically, when the residual function is BD-regular or CD-regular), the semismooth Newton method converges locally at a quadratic rate <span id="id12">[<a class="reference internal" href="bibliography.html#id61" title="M. Gargiani, A. Zanelli, D. Liao-McPherson, T. H. Summers, and J. Lygeros. Dynamic programming through the lens of semismooth newton-type methods. IEEE Control Systems Letters, 6:2996-3001, 2022. doi:10.1109/LCSYS.2022.3181213.">15</a>]</span>. This means that near the solution, the error decreases quadratically:
 $<span class="math notranslate nohighlight">\(
 \|v_{k+1} - v^*\| \leq C \|v_k - v^*\|^2.
 \)</span>$</p>
