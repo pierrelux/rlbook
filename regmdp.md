@@ -36,6 +36,42 @@ This formulation is interesting for several reasons. First, smoothness is a desi
 
 Second, while presented from an intuitive standpoint where we replace the max by the log-sum-exp (a smooth maximum) and the argmax by the softmax (a smooth argmax), this formulation can also be obtained from various other perspectives, offering theoretical tools and solution methods. For example, {cite:t}`rust1987optimal` derived this algorithm by considering a setting in which the rewards are stochastic and perturbed by a Gumbel noise variable. When considering the corresponding augmented state space and integrating the noise, we obtain smooth equations. This interpretation is leveraged by Rust for modeling purposes.
 
+### Smooth Value Iteration Algorithm
+
+The smooth value iteration algorithm replaces the max operator in standard value iteration with the logsumexp operator. Here's the algorithm structure:
+
+```{prf:algorithm} Smooth Value Iteration
+:label: smooth-value-iteration
+
+**Input:** MDP $(S, A, r, p, \gamma)$, inverse temperature $\beta > 0$, tolerance $\epsilon > 0$
+
+**Output:** Approximate optimal value function $v$ and stochastic policy $\pi$
+
+1. Initialize $v(s) \leftarrow 0$ for all $s \in S$
+2. **repeat**
+3. $\quad \Delta \leftarrow 0$
+4. $\quad$ **for** each state $s \in S$ **do**
+5. $\quad\quad$ **for** each action $a \in A_s$ **do**
+6. $\quad\quad\quad q(s,a) \leftarrow r(s,a) + \gamma \sum_{j \in S} p(j|s,a) v(j)$
+7. $\quad\quad$ **end for**
+8. $\quad\quad v_{\text{new}}(s) \leftarrow \frac{1}{\beta} \log \sum_{a \in A_s} \exp(\beta \cdot q(s,a))$ 
+9. $\quad\quad \Delta \leftarrow \max(\Delta, |v_{\text{new}}(s) - v(s)|)$
+10. $\quad\quad v(s) \leftarrow v_{\text{new}}(s)$
+11. $\quad$ **end for**
+12. **until** $\Delta < \epsilon$
+13. Extract policy: **for** each state $s \in S$ **do**
+14. $\quad$ Compute $q(s,a)$ for all $a \in A_s$ as in lines 5-7
+15. $\quad \pi(a|s) \leftarrow \frac{\exp(\beta \cdot q(s,a))}{\sum_{a' \in A_s} \exp(\beta \cdot q(s,a'))}$ for all $a \in A_s$
+16. **end for**
+17. **return** $v, \pi$
+```
+
+**Key differences from standard value iteration:**
+- Line 8 uses $\frac{1}{\beta} \log \sum_a \exp(\beta \cdot q(s,a))$ instead of $\max_a q(s,a)$
+- Line 15 extracts a stochastic policy using softmax instead of a deterministic argmax policy
+- As $\beta \to \infty$, the algorithm converges to standard value iteration
+- Lower $\beta$ values produce more stochastic policies with higher entropy
+
 There is also a way to obtain this equation by starting from the energy-based formulation often used in supervised learning, in which we convert an unnormalized probability distribution into a distribution using the softmax transformation. This is essentially what {cite:t}`ziebart2008maximum` did in their paper. Furthermore, this perspective bridges with the literature on probabilistic graphical models, in which we can now cast the problem of finding an optimal smooth policy into one of maximum likelihood estimation (an inference problem). This is the idea of control as inference, which also admits the converse - that of inference as control - used nowadays for deriving fast samples and amortized inference techniques using reinforcement learning {cite}`levine2018reinforcement`.
 
 Finally, it's worth noting that we can also derive this form by considering an entropy-regularized formulation in which we penalize for the entropy of our policy in the reward function term. This formulation admits a solution that coincides with the smooth Bellman equations {cite}`haarnoja2017reinforcement`.
@@ -222,9 +258,9 @@ Regularized MDPs {cite}`geist2019` provide another perspective on how the smooth
 
 Let's set up some necessary notation. First, recall that the policy evaluation operator for a stationary policy with decision rule $d$ is defined as:
 
-$$ \mathrm{L}_d v = r_d + \gamma P_d v $$
+$$ \mathrm{L}_d \mathbf{v} = \mathbf{r}_d + \gamma \mathbf{P}_d \mathbf{v} $$
 
-where $r_d$ is the expected reward under policy $d$, $\gamma$ is the discount factor, and $P_d$ is the state transition probability matrix under $d$. A complementary object to the value function is the q-function (or Q-factor) representation:
+where $\mathbf{r}_d$ is the expected reward vector under policy $d$, $\gamma$ is the discount factor, and $\mathbf{P}_d$ is the state transition probability matrix under $d$. A complementary object to the value function is the q-function (or Q-factor) representation:
 
 $$ \begin{align*}
 q_\gamma^{d^\infty}(s, a) &= r(s, a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v_\gamma^{d^\infty}(j) \\
@@ -265,9 +301,11 @@ The regularized value function of a stationary policy with decision rule $d$, de
 
 $$\text{find $v$ such that } \enspace v = \mathrm{L}_{d,\Omega} v$$
 
-Under the usual assumptions on the discount factor and the boundedness of the reward, the value of a policy can also be found in closed form by solving for $v$ in the linear system of equations:
+Under the usual assumptions on the discount factor and the boundedness of the reward, the value of a policy can also be found in closed form by solving for $\mathbf{v}$ in the linear system of equations:
 
-$$ (\mathbf{I} - \gamma P_d) v =  (r_d - \Omega(d)) $$
+$$ (\mathbf{I} - \gamma \mathbf{P}_d) \mathbf{v} =  \mathbf{r}_d - \boldsymbol{\Omega}_d $$
+
+where $[\boldsymbol{\Omega}_d](s) = \Omega(d(\cdot|s))$ is the vector of regularization terms at each state.
 
 The associated state-action value function $q_{d,\Omega}$ is given by:
 
@@ -319,6 +357,74 @@ Furthermore, the optimal policy is given by the gradient of $\Omega^*$:
 $$ d^*(a|s) = \nabla \Omega^*(q^*_\Omega(s, \cdot)) = \frac{\exp(q^*_\Omega(s,a))}{\sum_{a' \in \mathcal{A}_s} \exp(q^*_\Omega(s,a'))} $$
 
 This is the familiar softmax policy we encountered in the smooth MDP setting.
+
+### Smooth Policy Iteration Algorithm
+
+Now that we've seen how the regularized MDP framework leads to smooth Bellman equations, we present smooth policy iteration. Unlike value iteration which directly iterates the Bellman operator, policy iteration alternates between policy evaluation and policy improvement steps.
+
+```{prf:algorithm} Smooth Policy Evaluation
+:label: smooth-policy-evaluation
+
+**Input:** MDP $(S, A, r, p, \gamma)$, policy $\pi$, inverse temperature $\beta > 0$, tolerance $\epsilon > 0$
+
+**Output:** Value function $v^\pi$ for policy $\pi$
+
+1. Initialize $v(s) \leftarrow 0$ for all $s \in S$
+2. Set $\alpha \leftarrow 1/\beta$
+3. **repeat**
+4. $\quad \Delta \leftarrow 0$
+5. $\quad$ **for** each state $s \in S$ **do**
+6. $\quad\quad v_{\text{old}} \leftarrow v(s)$
+7. $\quad\quad$ **for** each action $a \in A_s$ **do**
+8. $\quad\quad\quad q(s,a) \leftarrow r(s,a) + \gamma \sum_{j \in S} p(j|s,a) v(j)$
+9. $\quad\quad$ **end for**
+10. $\quad\quad$ Compute expected Q-value: $\bar{q} \leftarrow \sum_{a \in A_s} \pi(a|s) \cdot q(s,a)$
+11. $\quad\quad$ Compute policy entropy: $H \leftarrow -\sum_{a \in A_s} \pi(a|s) \log \pi(a|s)$
+12. $\quad\quad v(s) \leftarrow \bar{q} + \alpha H$
+13. $\quad\quad \Delta \leftarrow \max(\Delta, |v(s) - v_{\text{old}}|)$
+14. $\quad$ **end for**
+15. **until** $\Delta < \epsilon$
+16. **return** $v$
+```
+
+```{prf:algorithm} Smooth Policy Iteration
+:label: smooth-policy-iteration
+
+**Input:** MDP $(S, A, r, p, \gamma)$, inverse temperature $\beta > 0$, tolerance $\epsilon > 0$
+
+**Output:** Approximate optimal value function $v$ and stochastic policy $\pi$
+
+1. Initialize $\pi(a|s) \leftarrow 1/|A_s|$ for all $s \in S, a \in A_s$ (uniform policy)
+2. **repeat**
+3. $\quad$ **Policy Evaluation:**
+4. $\quad\quad$ $v \leftarrow$ SmoothPolicyEvaluation($S, A, r, p, \gamma, \pi, \beta, \epsilon$)
+5. $\quad$ **Policy Improvement:**
+6. $\quad$ policy_stable $\leftarrow$ true
+7. $\quad$ **for** each state $s \in S$ **do**
+8. $\quad\quad \pi_{\text{old}}(\cdot|s) \leftarrow \pi(\cdot|s)$
+9. $\quad\quad$ **for** each action $a \in A_s$ **do**
+10. $\quad\quad\quad q(s,a) \leftarrow r(s,a) + \gamma \sum_{j \in S} p(j|s,a) v(j)$
+11. $\quad\quad$ **end for**
+12. $\quad\quad$ **for** each action $a \in A_s$ **do**
+13. $\quad\quad\quad \pi(a|s) \leftarrow \frac{\exp(\beta \cdot q(s,a))}{\sum_{a' \in A_s} \exp(\beta \cdot q(s,a'))}$
+14. $\quad\quad$ **end for**
+15. $\quad\quad$ **if** $\|\pi(\cdot|s) - \pi_{\text{old}}(\cdot|s)\| > \epsilon$ **then**
+16. $\quad\quad\quad$ policy_stable $\leftarrow$ false
+17. $\quad\quad$ **end if**
+18. $\quad$ **end for**
+19. **until** policy_stable
+20. **return** $v, \pi$
+```
+
+**Key properties of smooth policy iteration:**
+
+1. **Entropy-regularized evaluation**: The policy evaluation step (line 12 of Algorithm {prf:ref}`smooth-policy-evaluation`) accounts for the entropy bonus $\alpha H(\pi(\cdot|s))$ where $\alpha = 1/\beta$
+2. **Stochastic policy improvement**: The policy improvement step (lines 12-14 of Algorithm {prf:ref}`smooth-policy-iteration`) uses softmax instead of deterministic argmax, producing a stochastic policy
+3. **Temperature parameter**: 
+   - Higher $\beta$ → policies closer to deterministic (lower entropy)
+   - Lower $\beta$ → more stochastic policies (higher entropy)
+   - As $\beta \to \infty$ → recovers standard policy iteration
+4. **Convergence**: Like standard policy iteration, this algorithm converges to the unique optimal regularized value function and policy
 
 ### Equivalence Between Smooth Bellman Equations and Entropy-Regularized MDPs
 
@@ -430,3 +536,92 @@ which is exactly the softmax policy parametrized by inverse temperature.
 The derivation establishes the complete equivalence: the value function $v^*$ that solves the smooth Bellman equation is identical to the optimal value function $v^*_\Omega$ of the entropy-regularized MDP (with $\Omega$ being negative entropy and $\alpha = 1/\beta$), and the softmax policy that is greedy with respect to this value function achieves the maximum of the entropy-regularized objective. Both approaches yield the same numerical solution—the same values at every state and the same policy prescriptions. The only difference is how we conceptualize the problem: as smoothing the Bellman operator for computational tractability, or as explicitly trading off reward maximization against policy entropy.
 
 This equivalence has important implications. When we use smooth Bellman equations with a logsumexp operator, we are implicitly solving an entropy-regularized MDP. Conversely, when we explicitly add entropy regularization to an MDP objective, we arrive at smooth Bellman equations as the natural description of optimality. This dual perspective will prove valuable in understanding various algorithms and theoretical results. For instance, in soft actor-critic methods and other maximum entropy reinforcement learning algorithms, the connection between smooth operators and entropy regularization provides both computational benefits (differentiability) and conceptual clarity (why we want stochastic policies).
+
+### Entropy-Regularized Dynamic Programming Algorithms
+
+While the smooth Bellman equations (using logsumexp) and entropy-regularized formulations are mathematically equivalent, it is instructive to present the algorithms explicitly in the entropy-regularized form, where the entropy bonus appears directly in the update equations.
+
+```{prf:algorithm} Entropy-Regularized Value Iteration
+:label: entropy-regularized-value-iteration
+
+**Input:** MDP $(S, A, r, p, \gamma)$, entropy weight $\alpha > 0$, tolerance $\epsilon > 0$
+
+**Output:** Approximate optimal value function $v$ and stochastic policy $\pi$
+
+1. Initialize $\pi(a|s) \leftarrow 1/|A_s|$ for all $s \in S, a \in A_s$ (uniform policy)
+2. Initialize $v(s) \leftarrow 0$ for all $s \in S$
+3. **repeat**
+4. $\quad \Delta \leftarrow 0$
+5. $\quad$ **for** each state $s \in S$ **do**
+6. $\quad\quad$ **Policy Improvement:** Update policy for current value estimate
+7. $\quad\quad$ **for** each action $a \in A_s$ **do**
+8. $\quad\quad\quad q(s,a) \leftarrow r(s,a) + \gamma \sum_{j \in S} p(j|s,a) v(j)$
+9. $\quad\quad$ **end for**
+10. $\quad\quad$ **for** each action $a \in A_s$ **do**
+11. $\quad\quad\quad \pi_{\text{new}}(a|s) \leftarrow \frac{\exp(q(s,a)/\alpha)}{\sum_{a' \in A_s} \exp(q(s,a')/\alpha)}$
+12. $\quad\quad$ **end for**
+13. $\quad\quad$ **Value Update:** Compute regularized value
+14. $\quad\quad v_{\text{new}}(s) \leftarrow \sum_{a \in A_s} \pi_{\text{new}}(a|s) \cdot q(s,a) + \alpha H(\pi_{\text{new}}(\cdot|s))$
+15. $\quad\quad$ where $H(\pi_{\text{new}}(\cdot|s)) = -\sum_{a \in A_s} \pi_{\text{new}}(a|s) \log \pi_{\text{new}}(a|s)$
+16. $\quad\quad \Delta \leftarrow \max(\Delta, |v_{\text{new}}(s) - v(s)|)$
+17. $\quad\quad v(s) \leftarrow v_{\text{new}}(s)$
+18. $\quad\quad \pi(\cdot|s) \leftarrow \pi_{\text{new}}(\cdot|s)$
+19. $\quad$ **end for**
+20. **until** $\Delta < \epsilon$
+21. **return** $v, \pi$
+```
+
+**Key features:**
+- Line 11 updates the policy using the softmax of Q-values, with temperature $\alpha$
+- Line 14 explicitly computes the entropy-regularized value: expected Q-value plus entropy bonus
+- The algorithm maintains and updates a stochastic policy throughout
+- As $\alpha \to 0$ (or equivalently $\beta \to \infty$), this recovers standard value iteration
+
+```{prf:algorithm} Entropy-Regularized Policy Iteration
+:label: entropy-regularized-policy-iteration
+
+**Input:** MDP $(S, A, r, p, \gamma)$, entropy weight $\alpha > 0$, tolerance $\epsilon > 0$
+
+**Output:** Approximate optimal value function $v$ and stochastic policy $\pi$
+
+1. Initialize $\pi(a|s) \leftarrow 1/|A_s|$ for all $s \in S, a \in A_s$ (uniform policy)
+2. **repeat**
+3. $\quad$ **Policy Evaluation:** Solve for $v^\pi$ such that for all $s \in S$:
+4. $\quad\quad$ **Option 1 (Iterative):**
+5. $\quad\quad$ Initialize $v(s) \leftarrow 0$ for all $s \in S$
+6. $\quad\quad$ **repeat**
+7. $\quad\quad\quad$ **for** each state $s \in S$ **do**
+8. $\quad\quad\quad\quad$ Compute $q^\pi(s,a) \leftarrow r(s,a) + \gamma \sum_{j \in S} p(j|s,a) v(j)$ for all $a \in A_s$
+9. $\quad\quad\quad\quad v_{\text{new}}(s) \leftarrow \sum_{a \in A_s} \pi(a|s) \cdot q^\pi(s,a) + \alpha H(\pi(\cdot|s))$
+10. $\quad\quad\quad$ **end for**
+11. $\quad\quad\quad$ **if** $\max_s |v_{\text{new}}(s) - v(s)| < \epsilon$ **then break**
+12. $\quad\quad\quad v \leftarrow v_{\text{new}}$
+13. $\quad\quad$ **until** convergence
+14. $\quad\quad$ **Option 2 (Direct):** Solve linear system $(\mathbf{I} - \gamma \mathbf{P}_\pi) \mathbf{v} = \mathbf{r}_\pi + \alpha \mathbf{H}_\pi$
+15. $\quad\quad$ where $[\mathbf{r}_\pi](s) = \sum_a \pi(a|s) r(s,a)$ and $[\mathbf{H}_\pi](s) = H(\pi(\cdot|s))$
+16. $\quad$ **Policy Improvement:**
+17. $\quad$ policy_changed $\leftarrow$ false
+18. $\quad$ **for** each state $s \in S$ **do**
+19. $\quad\quad \pi_{\text{old}}(\cdot|s) \leftarrow \pi(\cdot|s)$
+20. $\quad\quad$ **for** each action $a \in A_s$ **do**
+21. $\quad\quad\quad q(s,a) \leftarrow r(s,a) + \gamma \sum_{j \in S} p(j|s,a) v(j)$
+22. $\quad\quad$ **end for**
+23. $\quad\quad$ **for** each action $a \in A_s$ **do**
+24. $\quad\quad\quad \pi(a|s) \leftarrow \frac{\exp(q(s,a)/\alpha)}{\sum_{a' \in A_s} \exp(q(s,a')/\alpha)}$
+25. $\quad\quad$ **end for**
+26. $\quad\quad$ **if** $\|\pi(\cdot|s) - \pi_{\text{old}}(\cdot|s)\| > \epsilon$ **then**
+27. $\quad\quad\quad$ policy_changed $\leftarrow$ true
+28. $\quad\quad$ **end if**
+29. $\quad$ **end for**
+30. **until** policy_changed $=$ false
+31. **return** $v, \pi$
+```
+
+**Key features:**
+- **Policy Evaluation** (lines 3-15): Computes the value of the current policy including entropy bonus
+  - Option 1: Iterative method (successive approximation)
+  - Option 2: Direct solution via linear system
+- **Policy Improvement** (lines 16-29): Updates policy to softmax over Q-values
+- Line 14 shows the vector form: the linear system includes the entropy vector $\mathbf{H}_\pi$
+- The algorithm alternates between evaluating the current stochastic policy and improving it
+- Converges to the unique optimal entropy-regularized policy
