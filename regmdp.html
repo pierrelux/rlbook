@@ -34,9 +34,9 @@
     <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
     <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
-    <link rel="stylesheet" type="text/css" href="_static/proof.css" />
+    <link rel="stylesheet" type="text/css" href="_static/proof.css?v=b4b7a797" />
     <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css" />
@@ -433,6 +433,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#smooth-value-iteration-algorithm">Smooth Value Iteration Algorithm</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gumbel-noise-on-the-rewards">Gumbel Noise on the Rewards</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#regularized-markov-decision-processes">Regularized Markov Decision Processes</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#legendre-fenchel-transform">Legendre-Fenchel Transform</a></li>
@@ -440,7 +441,9 @@
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#regularized-bellman-operators">Regularized Bellman Operators</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#recovering-the-smooth-bellman-equations">Recovering the Smooth Bellman Equations</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#smooth-policy-iteration-algorithm">Smooth Policy Iteration Algorithm</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#equivalence-between-smooth-bellman-equations-and-entropy-regularized-mdps">Equivalence Between Smooth Bellman Equations and Entropy-Regularized MDPs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#entropy-regularized-dynamic-programming-algorithms">Entropy-Regularized Dynamic Programming Algorithms</a></li>
 </ul>
 </li>
 </ul>
@@ -467,12 +470,48 @@ Approximation theory is at the heart of learning methods, and fundamentally, thi
 \[ (\mathrm{L}_\beta \mathbf{v})(s) = \frac{1}{\beta} \log \sum_{a \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right)\right) \]</div>
 <p>As <span class="math notranslate nohighlight">\(\beta \to \infty\)</span>, <span class="math notranslate nohighlight">\(\mathrm{L}_\beta\)</span> converges to the standard Bellman operator <span class="math notranslate nohighlight">\(\mathrm{L}\)</span>. Furthermore, it can be shown that the smooth Bellman operator is a contraction mapping in the supremum norm, and therefore has a unique fixed point. However, as opposed to the usual “hard” setting, the fixed point of <span class="math notranslate nohighlight">\(\mathrm{L}_\beta\)</span> is associated with the value function of an optimal stochastic policy defined by the softmax distribution:</p>
 <div class="math notranslate nohighlight">
-\[ d(a|s) = \frac{\exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v_\gamma^\star(j)\right)\right)}{\sum_{a' \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a') + \gamma \sum_{j \in \mathcal{S}} p(j|s,a') v_\gamma^\star(j)\right)\right)} \]</div>
+\[ \pi(a|s) = \frac{\exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v_\gamma^\star(j)\right)\right)}{\sum_{a' \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a') + \gamma \sum_{j \in \mathcal{S}} p(j|s,a') v_\gamma^\star(j)\right)\right)} \]</div>
 <p>Despite the confusing terminology, the above “softmax” policy is simply the smooth counterpart to the argmax operator in the original optimality equation: it acts as a soft-argmax.</p>
 <p>This formulation is interesting for several reasons. First, smoothness is a desirable property from an optimization standpoint. Unlike <span class="math notranslate nohighlight">\(\gamma\)</span>, we view <span class="math notranslate nohighlight">\(\beta\)</span> as a hyperparameter of our algorithm, which we can control to achieve the desired level of accuracy.</p>
 <p>Second, while presented from an intuitive standpoint where we replace the max by the log-sum-exp (a smooth maximum) and the argmax by the softmax (a smooth argmax), this formulation can also be obtained from various other perspectives, offering theoretical tools and solution methods. For example, <span id="id5">Rust [<a class="reference internal" href="bibliography.html#id24" title="John Rust. Optimal replacement of gmc bus engines: an empirical model of harold zurcher. Econometrica, 55(5):999-1033, 1987.">37</a>]</span> derived this algorithm by considering a setting in which the rewards are stochastic and perturbed by a Gumbel noise variable. When considering the corresponding augmented state space and integrating the noise, we obtain smooth equations. This interpretation is leveraged by Rust for modeling purposes.</p>
+<section id="smooth-value-iteration-algorithm">
+<h2>Smooth Value Iteration Algorithm<a class="headerlink" href="#smooth-value-iteration-algorithm" title="Link to this heading">#</a></h2>
+<p>The smooth value iteration algorithm replaces the max operator in standard value iteration with the logsumexp operator. Here’s the algorithm structure:</p>
+<div class="proof algorithm admonition" id="smooth-value-iteration">
+<p class="admonition-title"><span class="caption-number">Algorithm 12 </span> (Smooth Value Iteration)</p>
+<section class="algorithm-content" id="proof-content">
+<p><strong>Input:</strong> MDP <span class="math notranslate nohighlight">\((S, A, r, p, \gamma)\)</span>, inverse temperature <span class="math notranslate nohighlight">\(\beta &gt; 0\)</span>, tolerance <span class="math notranslate nohighlight">\(\epsilon &gt; 0\)</span></p>
+<p><strong>Output:</strong> Approximate optimal value function <span class="math notranslate nohighlight">\(v\)</span> and stochastic policy <span class="math notranslate nohighlight">\(\pi\)</span></p>
+<ol class="arabic simple">
+<li><p>Initialize <span class="math notranslate nohighlight">\(v(s) \leftarrow 0\)</span> for all <span class="math notranslate nohighlight">\(s \in S\)</span></p></li>
+<li><p><strong>repeat</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad \Delta \leftarrow 0\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\)</span> <strong>for</strong> each state <span class="math notranslate nohighlight">\(s \in S\)</span> <strong>do</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> <strong>for</strong> each action <span class="math notranslate nohighlight">\(a \in A_s\)</span> <strong>do</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\quad q(s,a) \leftarrow r(s,a) + \gamma \sum_{j \in S} p(j|s,a) v(j)\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> <strong>end for</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad v_{\text{new}}(s) \leftarrow \frac{1}{\beta} \log \sum_{a \in A_s} \exp(\beta \cdot q(s,a))\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad \Delta \leftarrow \max(\Delta, |v_{\text{new}}(s) - v(s)|)\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad v(s) \leftarrow v_{\text{new}}(s)\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\)</span> <strong>end for</strong></p></li>
+<li><p><strong>until</strong> <span class="math notranslate nohighlight">\(\Delta &lt; \epsilon\)</span></p></li>
+<li><p>Extract policy: <strong>for</strong> each state <span class="math notranslate nohighlight">\(s \in S\)</span> <strong>do</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\)</span> Compute <span class="math notranslate nohighlight">\(q(s,a)\)</span> for all <span class="math notranslate nohighlight">\(a \in A_s\)</span> as in lines 5-7</p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad \pi(a|s) \leftarrow \frac{\exp(\beta \cdot q(s,a))}{\sum_{a' \in A_s} \exp(\beta \cdot q(s,a'))}\)</span> for all <span class="math notranslate nohighlight">\(a \in A_s\)</span></p></li>
+<li><p><strong>end for</strong></p></li>
+<li><p><strong>return</strong> <span class="math notranslate nohighlight">\(v, \pi\)</span></p></li>
+</ol>
+</section>
+</div><p><strong>Key differences from standard value iteration:</strong></p>
+<ul class="simple">
+<li><p>Line 8 uses <span class="math notranslate nohighlight">\(\frac{1}{\beta} \log \sum_a \exp(\beta \cdot q(s,a))\)</span> instead of <span class="math notranslate nohighlight">\(\max_a q(s,a)\)</span></p></li>
+<li><p>Line 15 extracts a stochastic policy using softmax instead of a deterministic argmax policy</p></li>
+<li><p>As <span class="math notranslate nohighlight">\(\beta \to \infty\)</span>, the algorithm converges to standard value iteration</p></li>
+<li><p>Lower <span class="math notranslate nohighlight">\(\beta\)</span> values produce more stochastic policies with higher entropy</p></li>
+</ul>
 <p>There is also a way to obtain this equation by starting from the energy-based formulation often used in supervised learning, in which we convert an unnormalized probability distribution into a distribution using the softmax transformation. This is essentially what <span id="id6">Ziebart <em>et al.</em> [<a class="reference internal" href="bibliography.html#id25" title="Brian D. Ziebart, Andrew L. Maas, J. Andrew Bagnell, and Anind K. Dey. Maximum entropy inverse reinforcement learning. In Proceedings of the 23rd AAAI Conference on Artificial Intelligence, 1433-1438. 2008.">44</a>]</span> did in their paper. Furthermore, this perspective bridges with the literature on probabilistic graphical models, in which we can now cast the problem of finding an optimal smooth policy into one of maximum likelihood estimation (an inference problem). This is the idea of control as inference, which also admits the converse - that of inference as control - used nowadays for deriving fast samples and amortized inference techniques using reinforcement learning <span id="id7">[<a class="reference internal" href="bibliography.html#id27" title="Sergey Levine, Aviral Kumar, George Tucker, and Justin Fu. Reinforcement learning as a framework for control: a survey. arXiv preprint arXiv:1806.04222, 2018.">28</a>]</span>.</p>
 <p>Finally, it’s worth noting that we can also derive this form by considering an entropy-regularized formulation in which we penalize for the entropy of our policy in the reward function term. This formulation admits a solution that coincides with the smooth Bellman equations <span id="id8">[<a class="reference internal" href="bibliography.html#id26" title="Tuomas Haarnoja, Haoran Tang, Pieter Abbeel, and Sergey Levine. Reinforcement learning with deep energy-based policies. Proceedings of the 34th International Conference on Machine Learning, 70:1352-1361, 2017.">22</a>]</span>.</p>
+</section>
 <section id="gumbel-noise-on-the-rewards">
 <h2>Gumbel Noise on the Rewards<a class="headerlink" href="#gumbel-noise-on-the-rewards" title="Link to this heading">#</a></h2>
 <p>We can obtain the smooth Bellman equation by considering a setting in which we have Gumbel noise added to the reward function. More precisely, we define an MDP whose state space is now that of <span class="math notranslate nohighlight">\(\tilde{s} = (s, \epsilon)\)</span>, where the reward function is given by</p>
@@ -490,60 +529,60 @@ where <span class="math notranslate nohighlight">\(U\)</span> is a uniform rando
 <p>The Bellman equation in this augmented state space becomes:</p>
 <div class="math notranslate nohighlight">
 \[ v_\gamma^\star(\tilde{s}) = \max_{a \in \mathcal{A}_s} \left\{ \tilde{r}(\tilde{s},a) + \gamma \mathbb{E}_{}\left[v_\gamma^\star(\tilde{s}')\mid \tilde{s}, a\right] \right\} \]</div>
-<p>Furthermore, since all we did is to define another MDP, we still have a contraction and an optimal stationary policy <span class="math notranslate nohighlight">\(d^\infty = (d, d, ...)\)</span> can be found via the following deterministic Markovian decision rule:</p>
+<p>Furthermore, since all we did is to define another MDP, we still have a contraction and an optimal stationary policy <span class="math notranslate nohighlight">\(\boldsymbol{\pi} = \mathrm{const}(\pi)\)</span> can be found via the following deterministic Markovian decision rule:</p>
 <div class="math notranslate nohighlight">
 \[
-d(\tilde{s})  \in \operatorname{argmax}_{a \in \mathcal{A}_s} \left\{ \tilde{r}(\tilde{s},a) + \gamma \mathbb{E}_{}\left[v_\gamma^\star(\tilde{s}')\mid \tilde{s}, a\right] \right\}
+\pi(\tilde{s})  \in \operatorname{argmax}_{a \in \mathcal{A}_s} \left\{ \tilde{r}(\tilde{s},a) + \gamma \mathbb{E}_{}\left[v_\gamma^\star(\tilde{s}')\mid \tilde{s}, a\right] \right\}
 \]</div>
 <p>Note how the expectation is now over the next augmented state space and is therefore both over the next state in the original MDP and over the next perturbation. While in the general case there isn’t much that we can do to simplify the expression for the expectation over the next state in the MDP, we can however leverage a remarkable property of the Gumbel distribution which allows us to eliminate the <span class="math notranslate nohighlight">\(\epsilon\)</span> term in the above and recover the familiar smooth Bellman equation.</p>
 <p>For a set of random variables <span class="math notranslate nohighlight">\(X_1, \ldots, X_n\)</span>, each following a Gumbel distribution with location parameters <span class="math notranslate nohighlight">\(\mu_1, \ldots, \mu_n\)</span> and scale parameter <span class="math notranslate nohighlight">\(1/\beta\)</span>, extreme value theory tells us that:</p>
 <div class="math notranslate nohighlight">
 \[ \mathbb{E}\left[\max_{i} X_i\right] = \frac{1}{\beta} \log \sum_{i=1}^n \exp(\beta\mu_i) \]</div>
-<p>In our case, each <span class="math notranslate nohighlight">\(X_i\)</span> corresponds to <span class="math notranslate nohighlight">\(r(s,a_i) + \epsilon(a_i) + \gamma \mathbb{E}_{s'}[v(s')]\)</span> for a given action <span class="math notranslate nohighlight">\(a_i\)</span>. The location parameter <span class="math notranslate nohighlight">\(\mu_i\)</span> is <span class="math notranslate nohighlight">\(r(s,a_i) + \gamma \mathbb{E}_{s'}[v(s')]\)</span>, and the scale parameter is <span class="math notranslate nohighlight">\(1/\beta\)</span>.</p>
+<p>In our case, each <span class="math notranslate nohighlight">\(X_i\)</span> corresponds to <span class="math notranslate nohighlight">\(r(s,a_i) + \epsilon(a_i) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a_i)v(j)\)</span> for a given action <span class="math notranslate nohighlight">\(a_i\)</span>. The location parameter <span class="math notranslate nohighlight">\(\mu_i\)</span> is <span class="math notranslate nohighlight">\(r(s,a_i) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a_i)v(j)\)</span>, and the scale parameter is <span class="math notranslate nohighlight">\(1/\beta\)</span>.</p>
 <p>Applying this result to our problem, and taking the expectation over the noise <span class="math notranslate nohighlight">\(\epsilon\)</span>:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split} \begin{align*}
-v_\gamma^\star(s,\epsilon) &amp;= \max_{a \in \mathcal{A}_s} \left\{ r(s,a) + \epsilon(a) + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, \epsilon, a\right] \right\} \\
-\mathbb{E}_\epsilon[v_\gamma^\star(s,\epsilon)] &amp;= \mathbb{E}_\epsilon\left[\max_{a \in \mathcal{A}_s} \left\{ r(s,a) + \epsilon(a) + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, \epsilon, a\right] \right\}\right] \\
-&amp;= \frac{1}{\beta} \log \sum_{a \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a) + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, a\right]\right)\right) \\
-&amp;= \frac{1}{\beta} \log \sum_{a \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a) + \gamma \mathbb{E}_{s'}\left[\mathbb{E}_{\epsilon'}[v_\gamma^\star(s',\epsilon')]\mid s, a\right]\right)\right)
+v_\gamma^\star(s,\epsilon) &amp;= \max_{a \in \mathcal{A}_s} \left\{ r(s,a) + \epsilon(a) + \gamma \mathbb{E}_{j, \epsilon'}\left[v_\gamma^\star(j,\epsilon')\mid s, \epsilon, a\right] \right\} \\
+\mathbb{E}_\epsilon[v_\gamma^\star(s,\epsilon)] &amp;= \mathbb{E}_\epsilon\left[\max_{a \in \mathcal{A}_s} \left\{ r(s,a) + \epsilon(a) + \gamma \mathbb{E}_{j, \epsilon'}\left[v_\gamma^\star(j,\epsilon')\mid s, \epsilon, a\right] \right\}\right] \\
+&amp;= \frac{1}{\beta} \log \sum_{a \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a) + \gamma \mathbb{E}_{j, \epsilon'}\left[v_\gamma^\star(j,\epsilon')\mid s, a\right]\right)\right) \\
+&amp;= \frac{1}{\beta} \log \sum_{a \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)\mathbb{E}_{\epsilon'}[v_\gamma^\star(j,\epsilon')]\right)\right)
 \end{align*}
 \end{split}\]</div>
 <p>If we define <span class="math notranslate nohighlight">\(v_\gamma^\star(s) = \mathbb{E}_\epsilon[v_\gamma^\star(s,\epsilon)]\)</span>, we obtain the smooth Bellman equation:</p>
 <div class="math notranslate nohighlight">
-\[ v_\gamma^\star(s) = \frac{1}{\beta} \log \sum_{a \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a) + \gamma \mathbb{E}_{s'}\left[v_\gamma^\star(s')\mid s, a\right]\right)\right) \]</div>
+\[ v_\gamma^\star(s) = \frac{1}{\beta} \log \sum_{a \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v_\gamma^\star(j)\right)\right) \]</div>
 <p>This final equation is the smooth Bellman equation, which we derived by introducing Gumbel noise to the reward function and leveraging properties of the Gumbel distribution and extreme value theory.</p>
 <p>Now, in the same way that we have been able to simplify and specialize the form of the value function under Gumbel noise, we can also derive an expression for the corresponding optimal policy. To see this, we apply similar steps and start with the optimal decision rule for the augmented MDP:</p>
 <div class="math notranslate nohighlight">
 \[
-d(\tilde{s}) \in \operatorname{argmax}_{a \in \mathcal{A}_s} \left\{ \tilde{r}(\tilde{s},a) + \gamma \mathbb{E}_{}\left[v_\gamma^\star(\tilde{s}') \mid \tilde{s}, a\right] \right\}
+\pi(\tilde{s}) \in \operatorname{argmax}_{a \in \mathcal{A}_s} \left\{ \tilde{r}(\tilde{s},a) + \gamma \mathbb{E}_{}\left[v_\gamma^\star(\tilde{s}') \mid \tilde{s}, a\right] \right\}
 \]</div>
 <p>In order to simplify this expression by taking the expectation over the noise variable, we define an indicator function for the event that action <span class="math notranslate nohighlight">\(a\)</span> is in the set of optimal actions:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split} I_a(\epsilon) = \begin{cases} 
-   1 &amp; \text{if } a \in \operatorname{argmax}_{a' \in \mathcal{A}_s} \left\{ r(s,a') + \epsilon(a') + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, a'\right] \right\} \\
+   1 &amp; \text{if } a \in \operatorname{argmax}_{a' \in \mathcal{A}_s} \left\{ r(s,a') + \epsilon(a') + \gamma \mathbb{E}_{j, \epsilon'}\left[v_\gamma^\star(j,\epsilon')\mid s, a'\right] \right\} \\
    0 &amp; \text{otherwise}
    \end{cases} \end{split}\]</div>
 <p>Note that this definition allows us to recover the original expression since:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
 \begin{align*}
-d(s,\epsilon) &amp;= \left\{a \in \mathcal{A}_s : I_a(\epsilon) = 1\right\} \\
-&amp;= \left\{a \in \mathcal{A}_s : a \in \operatorname{argmax}_{a' \in \mathcal{A}_s} \left\{ r(s,a') + \epsilon(a') + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, \epsilon,  a'\right] \right\}\right\}
+\pi(s,\epsilon) &amp;= \left\{a \in \mathcal{A}_s : I_a(\epsilon) = 1\right\} \\
+&amp;= \left\{a \in \mathcal{A}_s : a \in \operatorname{argmax}_{a' \in \mathcal{A}_s} \left\{ r(s,a') + \epsilon(a') + \gamma \mathbb{E}_{j, \epsilon'}\left[v_\gamma^\star(j,\epsilon')\mid s, \epsilon,  a'\right] \right\}\right\}
 \end{align*}
 \end{split}\]</div>
-<p>This set-valued – but determinisic – function <span class="math notranslate nohighlight">\(d(s,\epsilon)\)</span> gives us the set of optimal actions for a given state <span class="math notranslate nohighlight">\(s\)</span> and noise realization <span class="math notranslate nohighlight">\(\epsilon\)</span>. For simplicity, consider the case where the optimal set of actions at <span class="math notranslate nohighlight">\(s\)</span> is a singleton such that taking the expection over the noise variable gives us:</p>
+<p>This set-valued – but deterministic – function <span class="math notranslate nohighlight">\(\pi(s,\epsilon)\)</span> gives us the set of optimal actions for a given state <span class="math notranslate nohighlight">\(s\)</span> and noise realization <span class="math notranslate nohighlight">\(\epsilon\)</span>. For simplicity, consider the case where the optimal set of actions at <span class="math notranslate nohighlight">\(s\)</span> is a singleton such that taking the expectation over the noise variable gives us:</p>
 <div class="math notranslate nohighlight">
 \[ \begin{align*}
-\mathbb{E}_\epsilon[I_a(\epsilon)] = \mathbb{P}\left(a \in \operatorname{argmax}_{a' \in \mathcal{A}_s} \left\{ r(s,a') + \epsilon(a') + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, \epsilon, a'\right] \right\}\right)
+\mathbb{E}_\epsilon[I_a(\epsilon)] = \mathbb{P}\left(a \in \operatorname{argmax}_{a' \in \mathcal{A}_s} \left\{ r(s,a') + \epsilon(a') + \gamma \mathbb{E}_{j, \epsilon'}\left[v_\gamma^\star(j,\epsilon')\mid s, \epsilon, a'\right] \right\}\right)
 \end{align*} \]</div>
 <p>Now, we can leverage a key property of the Gumbel distribution. For a set of random variables <span class="math notranslate nohighlight">\(\{X_i = \mu_i + \epsilon_i\}\)</span> where <span class="math notranslate nohighlight">\(\epsilon_i\)</span> are i.i.d. Gumbel(0, 1/β) random variables, we have:</p>
 <div class="math notranslate nohighlight">
 \[ P(X_i \geq X_j, \forall j \neq i) = \frac{\exp(\beta\mu_i)}{\sum_j \exp(\beta\mu_j)} \]</div>
-<p>In our case, <span class="math notranslate nohighlight">\(X_a = r(s,a) + \epsilon(a) + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, a\right]\)</span> for each action <span class="math notranslate nohighlight">\(a\)</span>, with <span class="math notranslate nohighlight">\(\mu_a = r(s,a) + \gamma \mathbb{E}_{s', \epsilon'}\left[v_\gamma^\star(s',\epsilon')\mid s, a\right]\)</span>.</p>
+<p>In our case, <span class="math notranslate nohighlight">\(X_a = r(s,a) + \epsilon(a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v_\gamma^\star(j)\)</span> for each action <span class="math notranslate nohighlight">\(a\)</span> (after marginalizing out <span class="math notranslate nohighlight">\(\epsilon'\)</span>), with <span class="math notranslate nohighlight">\(\mu_a = r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v_\gamma^\star(j)\)</span>.</p>
 <p>Applying this property and using the definition <span class="math notranslate nohighlight">\(v_\gamma^\star(s) = \mathbb{E}_\epsilon[v_\gamma^\star(s,\epsilon)]\)</span>, we get:</p>
 <div class="math notranslate nohighlight">
-\[ d(a|s) = \frac{\exp\left(\beta\left(r(s,a) + \gamma \mathbb{E}_{s'}\left[v_\gamma^\star(s')\mid s, a\right]\right)\right)}{\sum_{a' \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a') + \gamma \mathbb{E}_{s'}\left[v_\gamma^\star(s')\mid s, a'\right]\right)\right)} \]</div>
+\[ \pi(a|s) = \frac{\exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v_\gamma^\star(j)\right)\right)}{\sum_{a' \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a') + \gamma \sum_{j \in \mathcal{S}} p(j|s,a')v_\gamma^\star(j)\right)\right)} \]</div>
 <p>This gives us the optimal stochastic policy for the smooth MDP. Note that as <span class="math notranslate nohighlight">\(\beta \to \infty\)</span>, this policy approaches the deterministic policy of the original MDP, while for finite <span class="math notranslate nohighlight">\(\beta\)</span>, it gives a stochastic policy.</p>
 <!-- ## Control as Inference Perspective
 
@@ -630,26 +669,26 @@ $$ d(a_t | s_t) = \frac{\exp(\beta (r(s_t, a_t) + \gamma \sum_{s_{t+1}} p(s_{t+1
 <section id="regularized-markov-decision-processes">
 <h2>Regularized Markov Decision Processes<a class="headerlink" href="#regularized-markov-decision-processes" title="Link to this heading">#</a></h2>
 <p>Regularized MDPs <span id="id9">[<a class="reference internal" href="bibliography.html#id28" title="Matthieu Geist, Bruno Scherrer, and Olivier Pietquin. A theory of regularized Markov decision processes. In Kamalika Chaudhuri and Ruslan Salakhutdinov, editors, Proceedings of the 36th International Conference on Machine Learning, volume 97 of Proceedings of Machine Learning Research, 2160–2169. PMLR, 09–15 Jun 2019. URL: https://proceedings.mlr.press/v97/geist19a.html.">16</a>]</span> provide another perspective on how the smooth Bellman equations come to be. This framework offers a more general approach in which we seek to find optimal policies under the infinite horizon criterion while also accounting for a regularizer that influences the kind of policies we try to obtain.</p>
-<p>Let’s set up some necessary notation. First, recall that the policy evaluation operator for a stationary policy with decision rule <span class="math notranslate nohighlight">\(d\)</span> is defined as:</p>
+<p>Let’s set up some necessary notation. First, recall that the policy evaluation operator for a stationary policy with decision rule <span class="math notranslate nohighlight">\(\pi\)</span> is defined as:</p>
 <div class="math notranslate nohighlight">
-\[ \mathrm{L}_d v = r_d + \gamma P_d v \]</div>
-<p>where <span class="math notranslate nohighlight">\(r_d\)</span> is the expected reward under policy <span class="math notranslate nohighlight">\(d\)</span>, <span class="math notranslate nohighlight">\(\gamma\)</span> is the discount factor, and <span class="math notranslate nohighlight">\(P_d\)</span> is the state transition probability matrix under <span class="math notranslate nohighlight">\(d\)</span>. A complementary object to the value function is the q-function (or Q-factor) representation:</p>
+\[ \mathrm{L}_\pi \mathbf{v} = \mathbf{r}_\pi + \gamma \mathbf{P}_\pi \mathbf{v} \]</div>
+<p>where <span class="math notranslate nohighlight">\(\mathbf{r}_\pi\)</span> is the expected reward vector under policy <span class="math notranslate nohighlight">\(\pi\)</span>, <span class="math notranslate nohighlight">\(\gamma\)</span> is the discount factor, and <span class="math notranslate nohighlight">\(\mathbf{P}_\pi\)</span> is the state transition probability matrix under <span class="math notranslate nohighlight">\(\pi\)</span>. A complementary object to the value function is the q-function (or Q-factor) representation:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split} \begin{align*}
-q_\gamma^{d^\infty}(s, a) &amp;= r(s, a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v_\gamma^{d^\infty}(j) \\
-v_\gamma^{d^\infty}(s) &amp;= \sum_{a \in \mathcal{A}_s} d(a | s) q_\gamma^{d^\infty}(s, a) 
+q_\gamma^{\pi}(s, a) &amp;= r(s, a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v_\gamma^{\pi}(j) \\
+v_\gamma^{\pi}(s) &amp;= \sum_{a \in \mathcal{A}_s} \pi(a | s) q_\gamma^{\pi}(s, a) 
 \end{align*} \end{split}\]</div>
 <p>The policy evaluation operator can then be written in terms of the q-function as:</p>
 <div class="math notranslate nohighlight">
-\[ [\mathrm{L}_d v](s) = \langle d(\cdot | s), q(s, \cdot) \rangle \]</div>
+\[ [\mathrm{L}_\pi v](s) = \langle \pi(\cdot | s), q(s, \cdot) \rangle \]</div>
 <section id="legendre-fenchel-transform">
 <h3>Legendre-Fenchel Transform<a class="headerlink" href="#legendre-fenchel-transform" title="Link to this heading">#</a></h3>
 <p>The workhorse behind the theory of regularized MDPs is the Legendre-Fenchel transform, also known as the convex conjugate. For a strongly convex function <span class="math notranslate nohighlight">\(\Omega: \Delta_{\mathcal{A}} \rightarrow \mathbb{R}\)</span>, its Legendre-Fenchel transform <span class="math notranslate nohighlight">\(\Omega^*: \mathbb{R}^{\mathcal{A}} \rightarrow \mathbb{R}\)</span> is defined as:</p>
 <div class="math notranslate nohighlight">
-\[ \Omega^*(q(s, \cdot)) = \max_{d(\cdot|s) \in \Delta_{\mathcal{A}}} \langle d(\cdot | s), q(s, \cdot) \rangle - \Omega(d(\cdot | s)) \]</div>
+\[ \Omega^*(q(s, \cdot)) = \max_{\pi(\cdot|s) \in \Delta_{\mathcal{A}}} \langle \pi(\cdot | s), q(s, \cdot) \rangle - \Omega(\pi(\cdot | s)) \]</div>
 <p>An important property of this transform is that it has a unique maximizing argument, given by the gradient of <span class="math notranslate nohighlight">\(\Omega^*\)</span>. This gradient is Lipschitz and satisfies:</p>
 <div class="math notranslate nohighlight">
-\[ \nabla \Omega^*(q(s, \cdot)) = \arg\max_d \langle d(\cdot | s), q(s, \cdot) \rangle - \Omega(d(\cdot | s)) \]</div>
+\[ \nabla \Omega^*(q(s, \cdot)) = \arg\max_\pi \langle \pi(\cdot | s), q(s, \cdot) \rangle - \Omega(\pi(\cdot | s)) \]</div>
 <p>An important example of a regularizer is the negative entropy, which gives rise to the smooth Bellman equations as we are about to see.</p>
 </section>
 </section>
@@ -657,27 +696,28 @@ v_\gamma^{d^\infty}(s) &amp;= \sum_{a \in \mathcal{A}_s} d(a | s) q_\gamma^{d^\i
 <h2>Regularized Bellman Operators<a class="headerlink" href="#regularized-bellman-operators" title="Link to this heading">#</a></h2>
 <p>With these concepts in place, we can now define the regularized Bellman operators:</p>
 <ol class="arabic">
-<li><p><strong>Regularized Policy Evaluation Operator</strong> <span class="math notranslate nohighlight">\((\mathrm{L}_{d,\Omega})\)</span>:</p>
+<li><p><strong>Regularized Policy Evaluation Operator</strong> <span class="math notranslate nohighlight">\((\mathrm{L}_{\pi,\Omega})\)</span>:</p>
 <div class="math notranslate nohighlight">
-\[ [\mathrm{L}_{d,\Omega} v](s) = \langle q(s,\cdot), d(\cdot | s) \rangle - \Omega(d(\cdot | s)) \]</div>
+\[ [\mathrm{L}_{\pi,\Omega} v](s) = \langle q(s,\cdot), \pi(\cdot | s) \rangle - \Omega(\pi(\cdot | s)) \]</div>
 </li>
 <li><p><strong>Regularized Bellman Optimality Operator</strong> <span class="math notranslate nohighlight">\((\mathrm{L}_\Omega)\)</span>:</p>
 <div class="math notranslate nohighlight">
-\[ [\mathrm{L}_\Omega v](s) = [\max_d \mathrm{L}_{d,\Omega} v ](s) = \Omega^*(q(s, \cdot)) \]</div>
+\[ [\mathrm{L}_\Omega v](s) = [\max_\pi \mathrm{L}_{\pi,\Omega} v ](s) = \Omega^*(q(s, \cdot)) \]</div>
 </li>
 </ol>
 <p>It can be shown that the addition of a regularizer in these regularized operators still preserves the contraction properties, and therefore the existence of a solution to the optimality equations and the convergence of successive approximation.</p>
-<p>The regularized value function of a stationary policy with decision rule <span class="math notranslate nohighlight">\(d\)</span>, denoted by <span class="math notranslate nohighlight">\(v_{d,\Omega}\)</span>, is the unique fixed point of the operator equation:</p>
+<p>The regularized value function of a stationary policy with decision rule <span class="math notranslate nohighlight">\(\pi\)</span>, denoted by <span class="math notranslate nohighlight">\(v_{\pi,\Omega}\)</span>, is the unique fixed point of the operator equation:</p>
 <div class="math notranslate nohighlight">
-\[\text{find $v$ such that } \enspace v = \mathrm{L}_{d,\Omega} v\]</div>
-<p>Under the usual assumptions on the discount factor and the boundedness of the reward, the value of a policy can also be found in closed form by solving for <span class="math notranslate nohighlight">\(v\)</span> in the linear system of equations:</p>
+\[\text{find $v$ such that } \enspace v = \mathrm{L}_{\pi,\Omega} v\]</div>
+<p>Under the usual assumptions on the discount factor and the boundedness of the reward, the value of a policy can also be found in closed form by solving for <span class="math notranslate nohighlight">\(\mathbf{v}\)</span> in the linear system of equations:</p>
 <div class="math notranslate nohighlight">
-\[ (\mathbf{I} - \gamma P_d) v =  (r_d - \Omega(d)) \]</div>
-<p>The associated state-action value function <span class="math notranslate nohighlight">\(q_{d,\Omega}\)</span> is given by:</p>
+\[ (\mathbf{I} - \gamma \mathbf{P}_\pi) \mathbf{v} =  \mathbf{r}_\pi - \boldsymbol{\Omega}_\pi \]</div>
+<p>where <span class="math notranslate nohighlight">\([\boldsymbol{\Omega}_\pi](s) = \Omega(\pi(\cdot|s))\)</span> is the vector of regularization terms at each state.</p>
+<p>The associated state-action value function <span class="math notranslate nohighlight">\(q_{\pi,\Omega}\)</span> is given by:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{align*}
-q_{d,\Omega}(s, a) &amp;= r(s, a) + \sum_{j \in \mathcal{S}} \gamma p(j|s,a) v_{d,\Omega}(j) \\
-v_{d,\Omega}(s) &amp;= \sum_{a \in \mathcal{A}_s} d(a | s) q_{d,\Omega}(s, a) - \Omega(d(\cdot | s))
+q_{\pi,\Omega}(s, a) &amp;= r(s, a) + \sum_{j \in \mathcal{S}} \gamma p(j|s,a) v_{\pi,\Omega}(j) \\
+v_{\pi,\Omega}(s) &amp;= \sum_{a \in \mathcal{A}_s} \pi(a | s) q_{\pi,\Omega}(s, a) - \Omega(\pi(\cdot | s))
 \end{align*} \end{split}\]</div>
 <p>The regularized optimal value function <span class="math notranslate nohighlight">\(v^*_\Omega\)</span> is then the unique fixed point of <span class="math notranslate nohighlight">\(\mathrm{L}_\Omega\)</span> in the fixed point equation:</p>
 <div class="math notranslate nohighlight">
@@ -687,10 +727,10 @@ v_{d,\Omega}(s) &amp;= \sum_{a \in \mathcal{A}_s} d(a | s) q_{d,\Omega}(s, a) - 
 \[\begin{split} \begin{align*}
 q^*_\Omega(s, a) &amp;= r(s, a) + \sum_{j \in \mathcal{S}} \gamma p(j|s,a) v^*_\Omega(j) \\
 v^*_\Omega(s) &amp;= \Omega^*(q^*_\Omega(s, \cdot))\end{align*} \end{split}\]</div>
-<p>An important result in the theory of regularized MDPs is that there exists a unique optimal regularized policy. Specifically, if <span class="math notranslate nohighlight">\(d^*_\Omega\)</span> is a conserving decision rule (i.e., <span class="math notranslate nohighlight">\(d^*_\Omega = \arg\max_d \mathrm{L}_{d,\Omega} v^*_\Omega\)</span>), then the randomized stationary policy <span class="math notranslate nohighlight">\((d^*_\Omega)^\infty\)</span> is the unique optimal regularized policy.</p>
+<p>An important result in the theory of regularized MDPs is that there exists a unique optimal regularized policy. Specifically, if <span class="math notranslate nohighlight">\(\pi^*_\Omega\)</span> is a conserving decision rule (i.e., <span class="math notranslate nohighlight">\(\pi^*_\Omega = \arg\max_\pi \mathrm{L}_{\pi,\Omega} v^*_\Omega\)</span>), then the randomized stationary policy <span class="math notranslate nohighlight">\(\boldsymbol{\pi} = \mathrm{const}(\pi^*_\Omega)\)</span> is the unique optimal regularized policy.</p>
 <p>In practice, once we have found <span class="math notranslate nohighlight">\(v^*_\Omega\)</span>, we can derive the optimal decision rule by taking the gradient of the convex conjugate evaluated at the optimal action-value function:</p>
 <div class="math notranslate nohighlight">
-\[ d^*(\cdot | s) = \nabla \Omega^*(q^*_\Omega(s, \cdot)) \]</div>
+\[ \pi^*(\cdot | s) = \nabla \Omega^*(q^*_\Omega(s, \cdot)) \]</div>
 <section id="recovering-the-smooth-bellman-equations">
 <h3>Recovering the Smooth Bellman Equations<a class="headerlink" href="#recovering-the-smooth-bellman-equations" title="Link to this heading">#</a></h3>
 <p>Under this framework, we can recover the smooth Bellman equations by choosing <span class="math notranslate nohighlight">\(\Omega\)</span> to be the negative entropy, and obtain the softmax policy as the gradient of the convex conjugate. Let’s show this explicitly:</p>
@@ -717,6 +757,75 @@ v^*_\Omega(s) &amp;= \Omega^*(q^*_\Omega(s, \cdot))\end{align*} \end{split}\]</d
 <div class="math notranslate nohighlight">
 \[ d^*(a|s) = \nabla \Omega^*(q^*_\Omega(s, \cdot)) = \frac{\exp(q^*_\Omega(s,a))}{\sum_{a' \in \mathcal{A}_s} \exp(q^*_\Omega(s,a'))} \]</div>
 <p>This is the familiar softmax policy we encountered in the smooth MDP setting.</p>
+</section>
+<section id="smooth-policy-iteration-algorithm">
+<h3>Smooth Policy Iteration Algorithm<a class="headerlink" href="#smooth-policy-iteration-algorithm" title="Link to this heading">#</a></h3>
+<p>Now that we’ve seen how the regularized MDP framework leads to smooth Bellman equations, we present smooth policy iteration. Unlike value iteration which directly iterates the Bellman operator, policy iteration alternates between policy evaluation and policy improvement steps.</p>
+<div class="proof algorithm admonition" id="smooth-policy-evaluation">
+<p class="admonition-title"><span class="caption-number">Algorithm 13 </span> (Smooth Policy Evaluation)</p>
+<section class="algorithm-content" id="proof-content">
+<p><strong>Input:</strong> MDP <span class="math notranslate nohighlight">\((S, A, r, p, \gamma)\)</span>, policy <span class="math notranslate nohighlight">\(\pi\)</span>, inverse temperature <span class="math notranslate nohighlight">\(\beta &gt; 0\)</span>, tolerance <span class="math notranslate nohighlight">\(\epsilon &gt; 0\)</span></p>
+<p><strong>Output:</strong> Value function <span class="math notranslate nohighlight">\(v^\pi\)</span> for policy <span class="math notranslate nohighlight">\(\pi\)</span></p>
+<ol class="arabic simple">
+<li><p>Initialize <span class="math notranslate nohighlight">\(v(s) \leftarrow 0\)</span> for all <span class="math notranslate nohighlight">\(s \in S\)</span></p></li>
+<li><p>Set <span class="math notranslate nohighlight">\(\alpha \leftarrow 1/\beta\)</span></p></li>
+<li><p><strong>repeat</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad \Delta \leftarrow 0\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\)</span> <strong>for</strong> each state <span class="math notranslate nohighlight">\(s \in S\)</span> <strong>do</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad v_{\text{old}} \leftarrow v(s)\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> <strong>for</strong> each action <span class="math notranslate nohighlight">\(a \in A_s\)</span> <strong>do</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\quad q(s,a) \leftarrow r(s,a) + \gamma \sum_{j \in S} p(j|s,a) v(j)\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> <strong>end for</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> Compute expected Q-value: <span class="math notranslate nohighlight">\(\bar{q} \leftarrow \sum_{a \in A_s} \pi(a|s) \cdot q(s,a)\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> Compute policy entropy: <span class="math notranslate nohighlight">\(H \leftarrow -\sum_{a \in A_s} \pi(a|s) \log \pi(a|s)\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad v(s) \leftarrow \bar{q} + \alpha H\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad \Delta \leftarrow \max(\Delta, |v(s) - v_{\text{old}}|)\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\)</span> <strong>end for</strong></p></li>
+<li><p><strong>until</strong> <span class="math notranslate nohighlight">\(\Delta &lt; \epsilon\)</span></p></li>
+<li><p><strong>return</strong> <span class="math notranslate nohighlight">\(v\)</span></p></li>
+</ol>
+</section>
+</div><div class="proof algorithm admonition" id="smooth-policy-iteration">
+<p class="admonition-title"><span class="caption-number">Algorithm 14 </span> (Smooth Policy Iteration)</p>
+<section class="algorithm-content" id="proof-content">
+<p><strong>Input:</strong> MDP <span class="math notranslate nohighlight">\((S, A, r, p, \gamma)\)</span>, inverse temperature <span class="math notranslate nohighlight">\(\beta &gt; 0\)</span>, tolerance <span class="math notranslate nohighlight">\(\epsilon &gt; 0\)</span></p>
+<p><strong>Output:</strong> Approximate optimal value function <span class="math notranslate nohighlight">\(v\)</span> and stochastic policy <span class="math notranslate nohighlight">\(\pi\)</span></p>
+<ol class="arabic simple">
+<li><p>Initialize <span class="math notranslate nohighlight">\(\pi(a|s) \leftarrow 1/|A_s|\)</span> for all <span class="math notranslate nohighlight">\(s \in S, a \in A_s\)</span> (uniform policy)</p></li>
+<li><p><strong>repeat</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\)</span> <strong>Policy Evaluation:</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> <span class="math notranslate nohighlight">\(v \leftarrow\)</span> SmoothPolicyEvaluation(<span class="math notranslate nohighlight">\(S, A, r, p, \gamma, \pi, \beta, \epsilon\)</span>)</p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\)</span> <strong>Policy Improvement:</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\)</span> policy_stable <span class="math notranslate nohighlight">\(\leftarrow\)</span> true</p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\)</span> <strong>for</strong> each state <span class="math notranslate nohighlight">\(s \in S\)</span> <strong>do</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad \pi_{\text{old}}(\cdot|s) \leftarrow \pi(\cdot|s)\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> <strong>for</strong> each action <span class="math notranslate nohighlight">\(a \in A_s\)</span> <strong>do</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\quad q(s,a) \leftarrow r(s,a) + \gamma \sum_{j \in S} p(j|s,a) v(j)\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> <strong>end for</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> <strong>for</strong> each action <span class="math notranslate nohighlight">\(a \in A_s\)</span> <strong>do</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\quad \pi(a|s) \leftarrow \frac{\exp(\beta \cdot q(s,a))}{\sum_{a' \in A_s} \exp(\beta \cdot q(s,a'))}\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> <strong>end for</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> <strong>if</strong> <span class="math notranslate nohighlight">\(\|\pi(\cdot|s) - \pi_{\text{old}}(\cdot|s)\| &gt; \epsilon\)</span> <strong>then</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\quad\)</span> policy_stable <span class="math notranslate nohighlight">\(\leftarrow\)</span> false</p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> <strong>end if</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\)</span> <strong>end for</strong></p></li>
+<li><p><strong>until</strong> policy_stable</p></li>
+<li><p><strong>return</strong> <span class="math notranslate nohighlight">\(v, \pi\)</span></p></li>
+</ol>
+</section>
+</div><p><strong>Key properties of smooth policy iteration:</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Entropy-regularized evaluation</strong>: The policy evaluation step (line 12 of Algorithm <a class="reference internal" href="#smooth-policy-evaluation">Algorithm 13</a>) accounts for the entropy bonus <span class="math notranslate nohighlight">\(\alpha H(\pi(\cdot|s))\)</span> where <span class="math notranslate nohighlight">\(\alpha = 1/\beta\)</span></p></li>
+<li><p><strong>Stochastic policy improvement</strong>: The policy improvement step (lines 12-14 of Algorithm <a class="reference internal" href="#smooth-policy-iteration">Algorithm 14</a>) uses softmax instead of deterministic argmax, producing a stochastic policy</p></li>
+<li><p><strong>Temperature parameter</strong>:</p>
+<ul class="simple">
+<li><p>Higher <span class="math notranslate nohighlight">\(\beta\)</span> → policies closer to deterministic (lower entropy)</p></li>
+<li><p>Lower <span class="math notranslate nohighlight">\(\beta\)</span> → more stochastic policies (higher entropy)</p></li>
+<li><p>As <span class="math notranslate nohighlight">\(\beta \to \infty\)</span> → recovers standard policy iteration</p></li>
+</ul>
+</li>
+<li><p><strong>Convergence</strong>: Like standard policy iteration, this algorithm converges to the unique optimal regularized value function and policy</p></li>
+</ol>
 </section>
 <section id="equivalence-between-smooth-bellman-equations-and-entropy-regularized-mdps">
 <h3>Equivalence Between Smooth Bellman Equations and Entropy-Regularized MDPs<a class="headerlink" href="#equivalence-between-smooth-bellman-equations-and-entropy-regularized-mdps" title="Link to this heading">#</a></h3>
@@ -809,6 +918,98 @@ v(s) = \frac{1}{\beta} \ln \sum_a \exp\left(\beta\left(r(s,a) + \gamma \sum_{j \
 <p>The derivation establishes the complete equivalence: the value function <span class="math notranslate nohighlight">\(v^*\)</span> that solves the smooth Bellman equation is identical to the optimal value function <span class="math notranslate nohighlight">\(v^*_\Omega\)</span> of the entropy-regularized MDP (with <span class="math notranslate nohighlight">\(\Omega\)</span> being negative entropy and <span class="math notranslate nohighlight">\(\alpha = 1/\beta\)</span>), and the softmax policy that is greedy with respect to this value function achieves the maximum of the entropy-regularized objective. Both approaches yield the same numerical solution—the same values at every state and the same policy prescriptions. The only difference is how we conceptualize the problem: as smoothing the Bellman operator for computational tractability, or as explicitly trading off reward maximization against policy entropy.</p>
 <p>This equivalence has important implications. When we use smooth Bellman equations with a logsumexp operator, we are implicitly solving an entropy-regularized MDP. Conversely, when we explicitly add entropy regularization to an MDP objective, we arrive at smooth Bellman equations as the natural description of optimality. This dual perspective will prove valuable in understanding various algorithms and theoretical results. For instance, in soft actor-critic methods and other maximum entropy reinforcement learning algorithms, the connection between smooth operators and entropy regularization provides both computational benefits (differentiability) and conceptual clarity (why we want stochastic policies).</p>
 </section>
+<section id="entropy-regularized-dynamic-programming-algorithms">
+<h3>Entropy-Regularized Dynamic Programming Algorithms<a class="headerlink" href="#entropy-regularized-dynamic-programming-algorithms" title="Link to this heading">#</a></h3>
+<p>While the smooth Bellman equations (using logsumexp) and entropy-regularized formulations are mathematically equivalent, it is instructive to present the algorithms explicitly in the entropy-regularized form, where the entropy bonus appears directly in the update equations.</p>
+<div class="proof algorithm admonition" id="entropy-regularized-value-iteration">
+<p class="admonition-title"><span class="caption-number">Algorithm 15 </span> (Entropy-Regularized Value Iteration)</p>
+<section class="algorithm-content" id="proof-content">
+<p><strong>Input:</strong> MDP <span class="math notranslate nohighlight">\((S, A, r, p, \gamma)\)</span>, entropy weight <span class="math notranslate nohighlight">\(\alpha &gt; 0\)</span>, tolerance <span class="math notranslate nohighlight">\(\epsilon &gt; 0\)</span></p>
+<p><strong>Output:</strong> Approximate optimal value function <span class="math notranslate nohighlight">\(v\)</span> and stochastic policy <span class="math notranslate nohighlight">\(\pi\)</span></p>
+<ol class="arabic simple">
+<li><p>Initialize <span class="math notranslate nohighlight">\(\pi(a|s) \leftarrow 1/|A_s|\)</span> for all <span class="math notranslate nohighlight">\(s \in S, a \in A_s\)</span> (uniform policy)</p></li>
+<li><p>Initialize <span class="math notranslate nohighlight">\(v(s) \leftarrow 0\)</span> for all <span class="math notranslate nohighlight">\(s \in S\)</span></p></li>
+<li><p><strong>repeat</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad \Delta \leftarrow 0\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\)</span> <strong>for</strong> each state <span class="math notranslate nohighlight">\(s \in S\)</span> <strong>do</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> <strong>Policy Improvement:</strong> Update policy for current value estimate</p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> <strong>for</strong> each action <span class="math notranslate nohighlight">\(a \in A_s\)</span> <strong>do</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\quad q(s,a) \leftarrow r(s,a) + \gamma \sum_{j \in S} p(j|s,a) v(j)\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> <strong>end for</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> <strong>for</strong> each action <span class="math notranslate nohighlight">\(a \in A_s\)</span> <strong>do</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\quad \pi_{\text{new}}(a|s) \leftarrow \frac{\exp(q(s,a)/\alpha)}{\sum_{a' \in A_s} \exp(q(s,a')/\alpha)}\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> <strong>end for</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> <strong>Value Update:</strong> Compute regularized value</p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad v_{\text{new}}(s) \leftarrow \sum_{a \in A_s} \pi_{\text{new}}(a|s) \cdot q(s,a) + \alpha H(\pi_{\text{new}}(\cdot|s))\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> where <span class="math notranslate nohighlight">\(H(\pi_{\text{new}}(\cdot|s)) = -\sum_{a \in A_s} \pi_{\text{new}}(a|s) \log \pi_{\text{new}}(a|s)\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad \Delta \leftarrow \max(\Delta, |v_{\text{new}}(s) - v(s)|)\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad v(s) \leftarrow v_{\text{new}}(s)\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad \pi(\cdot|s) \leftarrow \pi_{\text{new}}(\cdot|s)\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\)</span> <strong>end for</strong></p></li>
+<li><p><strong>until</strong> <span class="math notranslate nohighlight">\(\Delta &lt; \epsilon\)</span></p></li>
+<li><p><strong>return</strong> <span class="math notranslate nohighlight">\(v, \pi\)</span></p></li>
+</ol>
+</section>
+</div><p><strong>Key features:</strong></p>
+<ul class="simple">
+<li><p>Line 11 updates the policy using the softmax of Q-values, with temperature <span class="math notranslate nohighlight">\(\alpha\)</span></p></li>
+<li><p>Line 14 explicitly computes the entropy-regularized value: expected Q-value plus entropy bonus</p></li>
+<li><p>The algorithm maintains and updates a stochastic policy throughout</p></li>
+<li><p>As <span class="math notranslate nohighlight">\(\alpha \to 0\)</span> (or equivalently <span class="math notranslate nohighlight">\(\beta \to \infty\)</span>), this recovers standard value iteration</p></li>
+</ul>
+<div class="proof algorithm admonition" id="entropy-regularized-policy-iteration">
+<p class="admonition-title"><span class="caption-number">Algorithm 16 </span> (Entropy-Regularized Policy Iteration)</p>
+<section class="algorithm-content" id="proof-content">
+<p><strong>Input:</strong> MDP <span class="math notranslate nohighlight">\((S, A, r, p, \gamma)\)</span>, entropy weight <span class="math notranslate nohighlight">\(\alpha &gt; 0\)</span>, tolerance <span class="math notranslate nohighlight">\(\epsilon &gt; 0\)</span></p>
+<p><strong>Output:</strong> Approximate optimal value function <span class="math notranslate nohighlight">\(v\)</span> and stochastic policy <span class="math notranslate nohighlight">\(\pi\)</span></p>
+<ol class="arabic simple">
+<li><p>Initialize <span class="math notranslate nohighlight">\(\pi(a|s) \leftarrow 1/|A_s|\)</span> for all <span class="math notranslate nohighlight">\(s \in S, a \in A_s\)</span> (uniform policy)</p></li>
+<li><p><strong>repeat</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\)</span> <strong>Policy Evaluation:</strong> Solve for <span class="math notranslate nohighlight">\(v^\pi\)</span> such that for all <span class="math notranslate nohighlight">\(s \in S\)</span>:</p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> <strong>Option 1 (Iterative):</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> Initialize <span class="math notranslate nohighlight">\(v(s) \leftarrow 0\)</span> for all <span class="math notranslate nohighlight">\(s \in S\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> <strong>repeat</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\quad\)</span> <strong>for</strong> each state <span class="math notranslate nohighlight">\(s \in S\)</span> <strong>do</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\quad\quad\)</span> Compute <span class="math notranslate nohighlight">\(q^\pi(s,a) \leftarrow r(s,a) + \gamma \sum_{j \in S} p(j|s,a) v(j)\)</span> for all <span class="math notranslate nohighlight">\(a \in A_s\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\quad\quad v_{\text{new}}(s) \leftarrow \sum_{a \in A_s} \pi(a|s) \cdot q^\pi(s,a) + \alpha H(\pi(\cdot|s))\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\quad\)</span> <strong>end for</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\quad\)</span> <strong>if</strong> <span class="math notranslate nohighlight">\(\max_s |v_{\text{new}}(s) - v(s)| &lt; \epsilon\)</span> <strong>then break</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\quad v \leftarrow v_{\text{new}}\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> <strong>until</strong> convergence</p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> <strong>Option 2 (Direct):</strong> Solve linear system <span class="math notranslate nohighlight">\((\mathbf{I} - \gamma \mathbf{P}_\pi) \mathbf{v} = \mathbf{r}_\pi + \alpha \mathbf{H}_\pi\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> where <span class="math notranslate nohighlight">\([\mathbf{r}_\pi](s) = \sum_a \pi(a|s) r(s,a)\)</span> and <span class="math notranslate nohighlight">\([\mathbf{H}_\pi](s) = H(\pi(\cdot|s))\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\)</span> <strong>Policy Improvement:</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\)</span> policy_changed <span class="math notranslate nohighlight">\(\leftarrow\)</span> false</p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\)</span> <strong>for</strong> each state <span class="math notranslate nohighlight">\(s \in S\)</span> <strong>do</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad \pi_{\text{old}}(\cdot|s) \leftarrow \pi(\cdot|s)\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> <strong>for</strong> each action <span class="math notranslate nohighlight">\(a \in A_s\)</span> <strong>do</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\quad q(s,a) \leftarrow r(s,a) + \gamma \sum_{j \in S} p(j|s,a) v(j)\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> <strong>end for</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> <strong>for</strong> each action <span class="math notranslate nohighlight">\(a \in A_s\)</span> <strong>do</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\quad \pi(a|s) \leftarrow \frac{\exp(q(s,a)/\alpha)}{\sum_{a' \in A_s} \exp(q(s,a')/\alpha)}\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> <strong>end for</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> <strong>if</strong> <span class="math notranslate nohighlight">\(\|\pi(\cdot|s) - \pi_{\text{old}}(\cdot|s)\| &gt; \epsilon\)</span> <strong>then</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\quad\)</span> policy_changed <span class="math notranslate nohighlight">\(\leftarrow\)</span> true</p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\quad\)</span> <strong>end if</strong></p></li>
+<li><p><span class="math notranslate nohighlight">\(\quad\)</span> <strong>end for</strong></p></li>
+<li><p><strong>until</strong> policy_changed <span class="math notranslate nohighlight">\(=\)</span> false</p></li>
+<li><p><strong>return</strong> <span class="math notranslate nohighlight">\(v, \pi\)</span></p></li>
+</ol>
+</section>
+</div><p><strong>Key features:</strong></p>
+<ul class="simple">
+<li><p><strong>Policy Evaluation</strong> (lines 3-15): Computes the value of the current policy including entropy bonus</p>
+<ul>
+<li><p>Option 1: Iterative method (successive approximation)</p></li>
+<li><p>Option 2: Direct solution via linear system</p></li>
+</ul>
+</li>
+<li><p><strong>Policy Improvement</strong> (lines 16-29): Updates policy to softmax over Q-values</p></li>
+<li><p>Line 14 shows the vector form: the linear system includes the entropy vector <span class="math notranslate nohighlight">\(\mathbf{H}_\pi\)</span></p></li>
+<li><p>The algorithm alternates between evaluating the current stochastic policy and improving it</p></li>
+<li><p>Converges to the unique optimal entropy-regularized policy</p></li>
+</ul>
+</section>
 </section>
 </section>
 
@@ -877,6 +1078,7 @@ v(s) = \frac{1}{\beta} \ln \sum_a \exp\left(\beta\left(r(s,a) + \gamma \sum_{j \
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#smooth-value-iteration-algorithm">Smooth Value Iteration Algorithm</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gumbel-noise-on-the-rewards">Gumbel Noise on the Rewards</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#regularized-markov-decision-processes">Regularized Markov Decision Processes</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#legendre-fenchel-transform">Legendre-Fenchel Transform</a></li>
@@ -884,7 +1086,9 @@ v(s) = \frac{1}{\beta} \ln \sum_a \exp\left(\beta\left(r(s,a) + \gamma \sum_{j \
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#regularized-bellman-operators">Regularized Bellman Operators</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#recovering-the-smooth-bellman-equations">Recovering the Smooth Bellman Equations</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#smooth-policy-iteration-algorithm">Smooth Policy Iteration Algorithm</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#equivalence-between-smooth-bellman-equations-and-entropy-regularized-mdps">Equivalence Between Smooth Bellman Equations and Entropy-Regularized MDPs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#entropy-regularized-dynamic-programming-algorithms">Entropy-Regularized Dynamic Programming Algorithms</a></li>
 </ul>
 </li>
 </ul>

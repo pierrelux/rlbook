@@ -40,12 +40,15 @@ $$
 \hat{f}(x) = \sum_{i=1}^n a_i \varphi_i(x).
 $$
 
-The choice of basis functions $\varphi_i$ is crucial and problem-dependent. Common choices include:
+The choice of basis functions $\varphi_i$ is problem-dependent. Common choices include:
 - **Polynomials**: For smooth problems, we might use Chebyshev polynomials or other orthogonal polynomial families
 - **Splines**: For problems where we expect the solution to have regions of different smoothness
 - **Radial basis functions**: For high-dimensional problems where tensor product methods become intractable
 
 The number of basis functions $n$ determines the flexibility of our approximation. In practice, we start with small $n$ and increase it until the approximation quality is satisfactory. The only unknowns now are the coefficients $a = (a_1, \ldots, a_n)$.
+
+While the classical presentation of projection methods emphasizes polynomial bases, the framework applies equally well to other function classes. Neural networks, for instance, can be viewed through this lens: a neural network $\hat{f}(x; \theta)$ with parameters $\theta$ defines a flexible function class, and many training procedures can be interpreted as projection methods with specific choices of test functions or residual norms. The distinction is that classical methods typically use predetermined basis functions with linear coefficients, while neural networks use adaptive nonlinear features. Throughout this chapter, we focus on the classical setting to develop the core concepts, but the principles extend naturally to modern function approximators.
+
 
 ### Step 2: Define the Residual Function
 
@@ -113,7 +116,7 @@ $$
 \langle R(\cdot; a), \delta(\cdot - x_i) \rangle = R(x_i; a) = 0, \quad i = 1, \ldots, n.
 $$
 
-This is projection against the most localized test functions possible: delta functions that "sample" the residual at specific points, requiring the residual to vanish exactly where we test it. When using orthogonal polynomials with collocation points at the zeros of the $n$-th polynomial, the Chebyshev interpolation theorem guarantees that forcing $R(x_i; a) = 0$ at these specific points makes $R(x; a)$ small everywhere. The choice of collocation points is crucial: using the zeros of orthogonal polynomials produces well-conditioned systems and near-optimal interpolation error. The computational advantage is significant. Collocation avoids numerical integration entirely, requiring only pointwise evaluation of $R$.
+This is projection against the most localized test functions possible: delta functions that "sample" the residual at specific points, requiring the residual to vanish exactly where we test it. When using orthogonal polynomials with collocation points at the zeros of the $n$-th polynomial, the Chebyshev interpolation theorem guarantees that forcing $R(x_i; a) = 0$ at these specific points makes $R(x; a)$ small everywhere. Using the zeros of orthogonal polynomials as collocation points produces well-conditioned systems and near-optimal interpolation error. The computational advantage is significant. Collocation avoids numerical integration entirely, requiring only pointwise evaluation of $R$.
 
 #### Subdomain Method: Test Against Indicator Functions
 

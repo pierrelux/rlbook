@@ -68,7 +68,7 @@ $$
 If $q^*$ is the optimal state-action value function, then $v^*(s) = \max_a q^*(s,a)$, and we can derive the optimal policy directly by computing the decision rule:
 
 $$
-d^\star(s) = \arg\max_{a \in \mathcal{A}(s)} q^\star(s,a)
+\pi^\star(s) = \arg\max_{a \in \mathcal{A}(s)} q^\star(s,a)
 $$
 
 Since $q^*$ is a fixed point of $L$, we can write:
@@ -77,11 +77,11 @@ $$
 \begin{align*}
 q^\star(s,a) &= (Lq^*)(s,a) \\
 &= r(s,a) + \gamma \int p(ds'|s,a) \max_{a' \in \mathcal{A}(s')} q^\star(s', a') \\
-&= r(s,a) + \gamma \int p(ds'|s,a) q^\star(s', d^\star(s'))
+&= r(s,a) + \gamma \int p(ds'|s,a) q^\star(s', \pi^\star(s'))
 \end{align*}
 $$
 
-Note that $d^\star$ is implemented by our $\texttt{maximize}$ numerical solver in the procedure above. A practical strategy would be to collect these maximizer values at each step and use them to train a function approximator that directly predicts these solutions. Due to computational constraints, we might want to compute these exact maximizer values only for a subset of states, based on some computational budget, and use the fitted decision rule to generalize to the remaining states. This leads to the following amortized version:
+Note that $\pi^\star$ is implemented by our $\texttt{maximize}$ numerical solver in the procedure above. A practical strategy would be to collect these maximizer values at each step and use them to train a function approximator that directly predicts these solutions. Due to computational constraints, we might want to compute these exact maximizer values only for a subset of states, based on some computational budget, and use the fitted decision rule to generalize to the remaining states. This leads to the following amortized version:
 
 ```{prf:algorithm} Fitted Q-Iteration with Amortized Optimization
 :label: fitted-q-iteration-amortized
@@ -121,13 +121,13 @@ An important observation about this procedure is that the policy $d(s; \boldsymb
 A natural approach to handle this staleness would be to maintain only the most recent optimization data. We could modify our procedure to keep a sliding window of K iterations, where at iteration n, we only use data from iterations max(0, n-K) to n. This would be implemented by augmenting each entry in $\mathcal{D}_d$ with a timestamp:
 
 $$
-\mathcal{D}_d^t = \{(s', a^*_{s'}, t) \mid t \in \{n-K,\ldots,n\}\}
+\mathcal{D}_\pi^t = \{(s', a^*_{s'}, t) \mid t \in \{n-K,\ldots,n\}\}
 $$
 
 where t indicates the iteration at which the optimal action was computed. When fitting the policy network, we would then only use data points that are at most K iterations old:
 
 $$
-\boldsymbol{w}_{n+1} \leftarrow \texttt{fit}(\{(s', a^*_{s'}) \mid (s', a^*_{s'}, t) \in \mathcal{D}_d^t, n-K \leq t \leq n\})
+\boldsymbol{w}_{n+1} \leftarrow \texttt{fit}(\{(s', a^*_{s'}) \mid (s', a^*_{s'}, t) \in \mathcal{D}_\pi^t, n-K \leq t \leq n\})
 $$
 
 This introduces a trade-off between using more data (larger K) versus using more recent, accurate data (smaller K). The choice of K would depend on how quickly the Q-function evolves and the computational budget available for computing exact optimal actions.
@@ -316,25 +316,25 @@ Adapting the intuition of NFQCA to the smooth Bellman optimality equations leads
 Consider the standard Bellman operator augmented with an entropy term. The smooth Bellman operator $\mathrm{L}_\beta$ takes the form:
 
 $$
-(\mathrm{L}_\beta v)(s) = \max_{d \in D^{MR}}\{\mathbb{E}_{a \sim d}[r(s,a) + \gamma v(s')] + \beta\mathcal{H}(d)\}
+(\mathrm{L}_\beta v)(s) = \max_{\pi \in \Pi^{MR}}\{\mathbb{E}_{a \sim \pi}[r(s,a) + \gamma v(s')] + \beta\mathcal{H}(\pi)\}
 $$
 
-where $\mathcal{H}(d) = -\mathbb{E}_{a \sim d}[\log d(a|s)]$ represents the entropy of the policy. To find the solution to the optimization problem embedded in the operator $\mathrm{L}_\beta$, we set the functional derivative of the objective with respect to the decision rule to zero:
+where $\mathcal{H}(\pi) = -\mathbb{E}_{a \sim \pi}[\log \pi(a|s)]$ represents the entropy of the policy. To find the solution to the optimization problem embedded in the operator $\mathrm{L}_\beta$, we set the functional derivative of the objective with respect to the decision rule to zero:
 
 $$
-\frac{\delta}{\delta d(a|s)} \left[\int_A d(a|s)(r(s,a) + \gamma v(s'))da - \beta\int_A d(a|s)\log d(a|s)da \right] = 0
+\frac{\delta}{\delta \pi(a|s)} \left[\int_A \pi(a|s)(r(s,a) + \gamma v(s'))da - \beta\int_A \pi(a|s)\log \pi(a|s)da \right] = 0
 $$
 
-Enforcing that $\int_A d(a|s)da = 1$ leads to the following Lagrangian:
+Enforcing that $\int_A \pi(a|s)da = 1$ leads to the following Lagrangian:
 
 $$
-r(s,a) + \gamma v(s') - \beta(1 + \log d(a|s)) - \lambda(s) = 0
+r(s,a) + \gamma v(s') - \beta(1 + \log \pi(a|s)) - \lambda(s) = 0
 $$
 
-Solving for $d$ shows that the optimal policy is a Boltzmann distribution 
+Solving for $\pi$ shows that the optimal policy is a Boltzmann distribution 
 
 $$
-d^*(a|s) = \frac{\exp(\frac{1}{\beta}(r(s,a) + \gamma \mathbb{E}_{s'}[v(s')]))}{Z(s)}
+\pi^*(a|s) = \frac{\exp(\frac{1}{\beta}(r(s,a) + \gamma \mathbb{E}_{s'}[v(s')]))}{Z(s)}
 $$
 
 When we substitute this optimal policy back into the entropy-regularized objective, we obtain:

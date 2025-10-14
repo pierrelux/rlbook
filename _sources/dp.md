@@ -513,22 +513,33 @@ The set of all possible histories at time $t$, denoted $H_t$, grows exponentiall
 **Deterministic rules** select an action with certainty, while **randomized rules** specify a probability distribution over the action space.
 
 These classifications lead to four types of decision rules:
-1. **Markovian Deterministic (MD)**: $d_t: \mathcal{S} \rightarrow \mathcal{A}_s$
-2. **Markovian Randomized (MR)**: $d_t: \mathcal{S} \rightarrow \mathcal{P}(\mathcal{A}_s)$
-3. **History-dependent Deterministic (HD)**: $d_t: H_t \rightarrow \mathcal{A}_s$
-4. **History-dependent Randomized (HR)**: $d_t: H_t \rightarrow \mathcal{P}(\mathcal{A}_s)$
+1. **Markovian Deterministic (MD)**: $\pi_t: \mathcal{S} \rightarrow \mathcal{A}_s$
+2. **Markovian Randomized (MR)**: $\pi_t: \mathcal{S} \rightarrow \mathcal{P}(\mathcal{A}_s)$
+3. **History-dependent Deterministic (HD)**: $\pi_t: H_t \rightarrow \mathcal{A}_s$
+4. **History-dependent Randomized (HR)**: $\pi_t: H_t \rightarrow \mathcal{P}(\mathcal{A}_s)$
 
 where $\mathcal{P}(\mathcal{A}_s)$ denotes the set of probability distributions over $\mathcal{A}_s$.
 
-A **policy** $\pi$ is a sequence of decision rules, one for each decision epoch:
+A **policy** $\boldsymbol{\pi}$ is a sequence of decision rules, one for each decision epoch:
 
-$$\pi = (d_1, d_2, ..., d_{N-1})$$
+$$\boldsymbol{\pi} = (\pi_1, \pi_2, ..., \pi_{N-1})$$
 
 The set of all policies of class $K$ (where $K \in \{HR, HD, MR, MD\}$) is denoted as $\Pi^K$. These policy classes form a hierarchy:
 
 $$\Pi^{MD} \subset \Pi^{MR} \subset \Pi^{HR}, \quad \Pi^{MD} \subset \Pi^{HD} \subset \Pi^{HR}$$
 
-The largest set $\Pi^{HR}$ contains all possible policies. A fundamental question in MDP theory is: under what conditions can we restrict attention to the much simpler set $\Pi^{MD}$ without loss of optimality?
+The largest set $\Pi^{HR}$ contains all possible policies. We ask: under what conditions can we restrict attention to the much simpler set $\Pi^{MD}$ without loss of optimality?
+
+```{admonition} Notation: rules vs. policies
+:class: tip
+- **Decision rule (kernel).** A map from information to action distributions:
+  - Markov, deterministic:  $\pi_t:\mathcal{S}\to\mathcal{A}_s$
+  - Markov, randomized:     $\pi_t(\cdot\mid s)\in\Delta(\mathcal{A}_s)$
+  - History-dependent:       $\pi_t(\cdot\mid h_t)\in\Delta(\mathcal{A}_{s_t})$
+- **Policy (sequence).** $\boldsymbol{\pi}=(\pi_1,\pi_2,\ldots)$.
+- **Stationary policy.** $\boldsymbol{\pi}=\mathrm{const}(\pi)$ with $\pi_t\equiv\pi \ \forall t$.  
+  By convention, we identify $\pi$ with its stationary policy $\mathrm{const}(\pi)$ when no confusion arises.
+```
 
 ## Stochastic System Dynamics
 
@@ -899,43 +910,43 @@ where $\mathrm{T}$ represents the set of decision epochs (the horizon).
 
 ## What is an Optimal Policy?
 
-Let's go back to the starting point and define what it means for a policy to be optimal in a Markov Decision Problem. For this, we will be considering different possible search spaces (policy classes) and compare policies based on the ordering of their value from any possible start state. The value of a policy $\pi$ (optimal or not) is defined as the expected total reward obtained by following that policy from a given starting state. Formally, for a finite-horizon MDP with $N$ decision epochs, we define the value function $v_\pi(s, t)$ as:
+Let's go back to the starting point and define what it means for a policy to be optimal in a Markov Decision Problem. For this, we will be considering different possible search spaces (policy classes) and compare policies based on the ordering of their value from any possible start state. The value of a policy $\boldsymbol{\pi}$ (optimal or not) is defined as the expected total reward obtained by following that policy from a given starting state. Formally, for a finite-horizon MDP with $N$ decision epochs, we define the value function $v^{\boldsymbol{\pi}}(s, t)$ as:
 
 $$
-v_\pi(s, t) \triangleq \mathbb{E}\left[\sum_{k=t}^{N-1} r_t(S_k, A_k) + r_N(S_N) \mid S_t = s\right]
+v^{\boldsymbol{\pi}}(s, t) \triangleq \mathbb{E}\left[\sum_{k=t}^{N-1} r_t(S_k, A_k) + r_N(S_N) \mid S_t = s\right]
 $$
 
-where $S_t$ is the state at time $t$, $A_t$ is the action taken at time $t$, and $r_t$ is the reward function. For simplicity, we write $v_\pi(s)$ to denote $v_\pi(s, 1)$, the value of following policy $\pi$ from state $s$ at the first stage over the entire horizon $N$.
+where $S_t$ is the state at time $t$, $A_t$ is the action taken at time $t$, and $r_t$ is the reward function. For simplicity, we write $v^{\boldsymbol{\pi}}(s)$ to denote $v^{\boldsymbol{\pi}}(s, 1)$, the value of following policy $\boldsymbol{\pi}$ from state $s$ at the first stage over the entire horizon $N$.
 
-In finite-horizon MDPs, our goal is to identify an optimal policy, denoted by $\pi^*$, that maximizes total expected reward over the horizon $N$. Specifically:
-
-$$
-v_{\pi^*}(s) \geq v_\pi(s), \quad \forall s \in \mathcal{S}, \quad \forall \pi \in \Pi^{\text{HR}}
-$$
-
-We call $\pi^*$ an **optimal policy** because it yields the highest possible value across all states and all policies within the policy class $\Pi^{\text{HR}}$. We denote by $v^*$ the maximum value achievable by any policy:
+In finite-horizon MDPs, our goal is to identify an optimal policy, denoted by $\boldsymbol{\pi}^*$, that maximizes total expected reward over the horizon $N$. Specifically:
 
 $$
-v^*(s) = \max_{\pi \in \Pi^{\text{HR}}} v_\pi(s), \quad \forall s \in \mathcal{S}
+v^{\boldsymbol{\pi}^*}(s) \geq v^{\boldsymbol{\pi}}(s), \quad \forall s \in \mathcal{S}, \quad \forall \boldsymbol{\pi} \in \Pi^{\text{HR}}
 $$
 
-In reinforcement learning literature, $v^*$ is typically referred to as the "optimal value function," while in some operations research references, it might be called the "value of an MDP." An optimal policy $\pi^*$ is one for which its value function equals the optimal value function:
+We call $\boldsymbol{\pi}^*$ an **optimal policy** because it yields the highest possible value across all states and all policies within the policy class $\Pi^{\text{HR}}$. We denote by $v^*$ the maximum value achievable by any policy:
 
 $$
-v_{\pi^*}(s) = v^*(s), \quad \forall s \in \mathcal{S}
+v^*(s) = \max_{\boldsymbol{\pi} \in \Pi^{\text{HR}}} v^{\boldsymbol{\pi}}(s), \quad \forall s \in \mathcal{S}
 $$
 
-It's important to note that this notion of optimality applies to every state. Policies optimal in this sense are sometimes called "uniformly optimal policies." A weaker notion of optimality, often encountered in reinforcement learning practice, is optimality with respect to an initial distribution of states. In this case, we seek a policy $\pi \in \Pi^{\text{HR}}$ that maximizes:
+In reinforcement learning literature, $v^*$ is typically referred to as the "optimal value function," while in some operations research references, it might be called the "value of an MDP." An optimal policy $\boldsymbol{\pi}^*$ is one for which its value function equals the optimal value function:
 
 $$
-\sum_{s \in \mathcal{S}} v_\pi(s) P_1(S_1 = s)
+v^{\boldsymbol{\pi}^*}(s) = v^*(s), \quad \forall s \in \mathcal{S}
+$$
+
+This notion of optimality applies to every state. Policies optimal in this sense are sometimes called "uniformly optimal policies." A weaker notion of optimality, often encountered in reinforcement learning practice, is optimality with respect to an initial distribution of states. In this case, we seek a policy $\boldsymbol{\pi} \in \Pi^{\text{HR}}$ that maximizes:
+
+$$
+\sum_{s \in \mathcal{S}} v^{\boldsymbol{\pi}}(s) P_1(S_1 = s)
 $$
 
 where $P_1(S_1 = s)$ is the probability of starting in state $s$.
 
-A fundamental result in MDP theory states that the maximum value can be achieved by searching over the space of deterministic Markovian Policies. Consequently:
+The maximum value can be achieved by searching over the space of deterministic Markovian Policies. Consequently:
 
-$$ v^*(s) = \max_{\pi \in \Pi^{\mathrm{HR}}} v_\pi(s) = \max _{\pi \in \Pi^{M D}} v_\pi(s), \quad s \in S$$
+$$ v^*(s) = \max_{\boldsymbol{\pi} \in \Pi^{\mathrm{HR}}} v^{\boldsymbol{\pi}}(s) = \max _{\boldsymbol{\pi} \in \Pi^{M D}} v^{\boldsymbol{\pi}}(s), \quad s \in S$$
 
 This equality significantly simplifies the computational complexity of our algorithms, as the search problem can now be decomposed into $N$ sub-problems in which we only have to search over the set of possible actions. This is the backward induction algorithm, which we present a second time, but departing this time from the control-theoretic notation and using the MDP formalism:  
 
@@ -976,28 +987,28 @@ Note that the same procedure can also be used for finding the value of a policy 
 - Transition probabilities $p_t$
 - Reward function $r_t$
 - Time horizon $N$
-- A markovian deterministic policy $\pi$
+- A markovian deterministic policy $\boldsymbol{\pi} = (\pi_1, \ldots, \pi_{N-1})$
 
-**Output:** Value function $v^\pi$ for policy $\pi$
+**Output:** Value function $v^{\boldsymbol{\pi}}$ for policy $\boldsymbol{\pi}$
 
 1. Initialize:
    - Set $t = N$
    - For all $s_N \in S$:
 
-     $$v_\pi(s_N, N) = r_N(s_N)$$
+     $$v^{\boldsymbol{\pi}}(s_N, N) = r_N(s_N)$$
 
 2. For $t = N-1$ to $1$:
    - For each $s_t \in S$:
      a. Compute the value function for the given policy:
 
-        $$v_\pi(s_t, t) = r_t(s_t, d_t(s_t)) + \sum_{j \in S} p_t(j | s_t, d_t(s_t)) v_\pi(j, t+1)$$
+        $$v^{\boldsymbol{\pi}}(s_t, t) = r_t(s_t, \pi_t(s_t)) + \sum_{j \in S} p_t(j | s_t, \pi_t(s_t)) v^{\boldsymbol{\pi}}(j, t+1)$$
 
-3. Return the value function $v^\pi(s_t, t)$ for all $t$ and $s_t$
+3. Return the value function $v^{\boldsymbol{\pi}}(s_t, t)$ for all $t$ and $s_t$
 ````
 
 This code could also finally be adapted to support randomized policies using:
 
-$$v_\pi(s_t, t) = \sum_{a_t \in \mathcal{A}_{s_t}} d_t(a_t \mid s_t) \left( r_t(s_t, a_t) + \sum_{j \in S} p_t(j | s_t, a_t) v_\pi(j, t+1) \right)$$
+$$v^{\boldsymbol{\pi}}(s_t, t) = \sum_{a_t \in \mathcal{A}_{s_t}} \pi_t(a_t \mid s_t) \left( r_t(s_t, a_t) + \sum_{j \in S} p_t(j | s_t, a_t) v^{\boldsymbol{\pi}}(j, t+1) \right)$$
 
 
 ## Example: Sample Size Determination in Pharmaceutical Development
@@ -1063,64 +1074,64 @@ This process can take 10-15 years and cost over $1 billion {cite}`Adams2009`. Th
 
 # Infinite-Horizon MDPs
 
-It often makes sense to model control problems over infinite horizons. We extend the previous setting and define the expected total reward of policy $\pi \in \Pi^{\mathrm{HR}}$, $v^\pi$ as:
+It often makes sense to model control problems over infinite horizons. We extend the previous setting and define the expected total reward of policy $\boldsymbol{\pi} \in \Pi^{\mathrm{HR}}$, $v^{\boldsymbol{\pi}}$ as:
 
 $$
-v^\pi(s) = \mathbb{E}\left[\sum_{t=1}^{\infty} r(S_t, A_t)\right]
+v^{\boldsymbol{\pi}}(s) = \mathbb{E}\left[\sum_{t=1}^{\infty} r(S_t, A_t)\right]
 $$
 
 One drawback of this model is that we could easily encounter values that are $+\infty$ or $-\infty$, even in a setting as simple as a single-state MDP which loops back into itself and where the accrued reward is nonzero.
 
-Therefore, it is often more convenient to work with an alternative formulation which guarantees the existence of a limit: the expected total discounted reward of policy $\pi \in \Pi^{\mathrm{HR}}$ is defined to be:
+Therefore, it is often more convenient to work with an alternative formulation which guarantees the existence of a limit: the expected total discounted reward of policy $\boldsymbol{\pi} \in \Pi^{\mathrm{HR}}$ is defined to be:
 
 $$
-v_\gamma^\pi(s) \equiv \lim_{N \rightarrow \infty} \mathbb{E}\left[\sum_{t=1}^N \gamma^{t-1} r(S_t, A_t)\right]
+v_\gamma^{\boldsymbol{\pi}}(s) \equiv \lim_{N \rightarrow \infty} \mathbb{E}\left[\sum_{t=1}^N \gamma^{t-1} r(S_t, A_t)\right]
 $$
 
-for $0 \leq \gamma < 1$ and when $\max_{s \in \mathcal{S}} \max_{a \in \mathcal{A}_s}|r(s, a)| = R_{\max} < \infty$, in which case, $|v_\gamma^\pi(s)| \leq (1-\gamma)^{-1} R_{\max}$.
+for $0 \leq \gamma < 1$ and when $\max_{s \in \mathcal{S}} \max_{a \in \mathcal{A}_s}|r(s, a)| = R_{\max} < \infty$, in which case, $|v_\gamma^{\boldsymbol{\pi}}(s)| \leq (1-\gamma)^{-1} R_{\max}$.
 
 
-Finally, another possibility for the infinite-horizon setting is the so-called average reward or gain of policy $\pi \in \Pi^{\mathrm{HR}}$ defined as:
+Finally, another possibility for the infinite-horizon setting is the so-called average reward or gain of policy $\boldsymbol{\pi} \in \Pi^{\mathrm{HR}}$ defined as:
 
 $$
-g^\pi(s) \equiv \lim_{N \rightarrow \infty} \frac{1}{N} \mathbb{E}\left[\sum_{t=1}^N r(S_t, A_t)\right]
+g^{\boldsymbol{\pi}}(s) \equiv \lim_{N \rightarrow \infty} \frac{1}{N} \mathbb{E}\left[\sum_{t=1}^N r(S_t, A_t)\right]
 $$
 
 We won't be working with this formulation in this course due to its inherent practical and theoretical complexities. 
 
-Extending the previous notion of optimality from finite-horizon models, a policy $\pi^*$ is said to be discount optimal for a given $\gamma$ if: 
+Extending the previous notion of optimality from finite-horizon models, a policy $\boldsymbol{\pi}^*$ is said to be discount optimal for a given $\gamma$ if: 
 
 $$
-v_\gamma^{\pi^*}(s) \geq v_\gamma^\pi(s) \quad \text { for each } s \in S \text { and all } \pi \in \Pi^{\mathrm{HR}}
+v_\gamma^{\boldsymbol{\pi}^*}(s) \geq v_\gamma^{\boldsymbol{\pi}}(s) \quad \text { for each } s \in S \text { and all } \boldsymbol{\pi} \in \Pi^{\mathrm{HR}}
 $$
 
 Furthermore, the value of a discounted MDP $v_\gamma^*(s)$, is defined by:
 
 $$
-v_\gamma^*(s) \equiv \max _{\pi \in \Pi^{\mathrm{HR}}} v_\gamma^\pi(s)
+v_\gamma^*(s) \equiv \max _{\boldsymbol{\pi} \in \Pi^{\mathrm{HR}}} v_\gamma^{\boldsymbol{\pi}}(s)
 $$
 
 More often, we refer to $v_\gamma$ by simply calling it the optimal value function. 
 
-As for the finite-horizon setting, the infinite horizon discounted model does not require history-dependent policies, since for any $\pi \in \Pi^{HR}$ there exists a $\pi^{\prime} \in \Pi^{MR}$ with identical total discounted reward:
+As for the finite-horizon setting, the infinite horizon discounted model does not require history-dependent policies, since for any $\boldsymbol{\pi} \in \Pi^{HR}$ there exists a $\boldsymbol{\pi}^{\prime} \in \Pi^{MR}$ with identical total discounted reward:
 $$
-v_\gamma^*(s) \equiv \max_{\pi \in \Pi^{HR}} v_\gamma^\pi(s)=\max_{\pi \in \Pi^{MR}} v_\gamma^\pi(s) .
+v_\gamma^*(s) \equiv \max_{\boldsymbol{\pi} \in \Pi^{HR}} v_\gamma^{\boldsymbol{\pi}}(s)=\max_{\boldsymbol{\pi} \in \Pi^{MR}} v_\gamma^{\boldsymbol{\pi}}(s) .
 $$
 
 ## Random Horizon Interpretation of Discounting
 The use of discounting can be motivated both from a modeling perspective and as a means to ensure that the total reward remains bounded. From the modeling perspective, we can view discounting as a way to weight more or less importance on the immediate rewards vs. the long-term consequences. There is also another interpretation which stems from that of a finite horizon model but with an uncertain end time. More precisely:
 
-Let $v_\nu^\pi(s)$ denote the expected total reward obtained by using policy $\pi$ when the horizon length $\nu$ is random. We define it by:
+Let $v_\nu^{\boldsymbol{\pi}}(s)$ denote the expected total reward obtained by using policy $\boldsymbol{\pi}$ when the horizon length $\nu$ is random. We define it by:
 
 $$
-v_\nu^\pi(s) \equiv \mathbb{E}_s^\pi\left[\mathbb{E}_\nu\left\{\sum_{t=1}^\nu r(S_t, A_t)\right\}\right]
+v_\nu^{\boldsymbol{\pi}}(s) \equiv \mathbb{E}_s^{\boldsymbol{\pi}}\left[\mathbb{E}_\nu\left\{\sum_{t=1}^\nu r(S_t, A_t)\right\}\right]
 $$
 
 
 ````{prf:theorem} Random horizon interpretation of discounting
 :label: prop-5-3-1
 Suppose that the horizon $\nu$ follows a geometric distribution with parameter $\gamma$, $0 \leq \gamma < 1$, independent of the policy such that 
-$P(\nu=n) = (1-\gamma) \gamma^{n-1}, \, n=1,2, \ldots$, then $v_\nu^\pi(s) = v_\gamma^\pi(s)$ for all $s \in \mathcal{S}$ .
+$P(\nu=n) = (1-\gamma) \gamma^{n-1}, \, n=1,2, \ldots$, then $v_\nu^{\boldsymbol{\pi}}(s) = v_\gamma^{\boldsymbol{\pi}}(s)$ for all $s \in \mathcal{S}$ .
 ````
 
 ````{prf:proof}
@@ -1129,19 +1140,19 @@ See proposition 5.3.1 in {cite}`Puterman1994`.
 By definition of the finite-horizon value function and the law of total expectation:
 
 $$
-v_\nu^\pi(s) = \sum_{n=1}^{\infty} P(\nu=n) \cdot v_n^\pi(s) = \sum_{n=1}^{\infty} (1-\gamma) \gamma^{n-1} \cdot E_s^\pi \left\{\sum_{t=1}^n r(S_t, A_t)\right\}.
+v_\nu^{\boldsymbol{\pi}}(s) = \sum_{n=1}^{\infty} P(\nu=n) \cdot v_n^{\boldsymbol{\pi}}(s) = \sum_{n=1}^{\infty} (1-\gamma) \gamma^{n-1} \cdot E_s^{\boldsymbol{\pi}} \left\{\sum_{t=1}^n r(S_t, A_t)\right\}.
 $$
 
 Combining the expectation with the sum over $n$:
 
 $$
-v_\nu^\pi(s) = E_s^\pi \left\{\sum_{n=1}^{\infty} (1-\gamma) \gamma^{n-1} \sum_{t=1}^n r(S_t, A_t)\right\}.
+v_\nu^{\boldsymbol{\pi}}(s) = E_s^{\boldsymbol{\pi}} \left\{\sum_{n=1}^{\infty} (1-\gamma) \gamma^{n-1} \sum_{t=1}^n r(S_t, A_t)\right\}.
 $$
 
 **Reordering the summations:** Under the bounded reward assumption $|r(s,a)| \leq R_{\max}$ and $\gamma < 1$, we have
 
 $$
-E_s^\pi \left\{\sum_{n=1}^{\infty} \sum_{t=1}^n |r(S_t, A_t)| \cdot (1-\gamma) \gamma^{n-1}\right\} \leq R_{\max} \sum_{n=1}^{\infty} n (1-\gamma) \gamma^{n-1} = \frac{R_{\max}}{1-\gamma} < \infty,
+E_s^{\boldsymbol{\pi}} \left\{\sum_{n=1}^{\infty} \sum_{t=1}^n |r(S_t, A_t)| \cdot (1-\gamma) \gamma^{n-1}\right\} \leq R_{\max} \sum_{n=1}^{\infty} n (1-\gamma) \gamma^{n-1} = \frac{R_{\max}}{1-\gamma} < \infty,
 $$
 which justifies exchanging the order of summation by Fubini's theorem.
 
@@ -1153,7 +1164,7 @@ $$
 
 Therefore:
 \begin{align*}
-v_\nu^\pi(s) &= E_s^\pi \left\{\sum_{t=1}^{\infty} r(S_t, A_t) \sum_{n=t}^{\infty} (1-\gamma) \gamma^{n-1}\right\}.
+v_\nu^{\boldsymbol{\pi}}(s) &= E_s^{\boldsymbol{\pi}} \left\{\sum_{t=1}^{\infty} r(S_t, A_t) \sum_{n=t}^{\infty} (1-\gamma) \gamma^{n-1}\right\}.
 \end{align*}
 
 **Evaluating the inner sum:** Using the substitution $m = n - t + 1$ (so $n = m + t - 1$):
@@ -1166,7 +1177,7 @@ v_\nu^\pi(s) &= E_s^\pi \left\{\sum_{t=1}^{\infty} r(S_t, A_t) \sum_{n=t}^{\inft
 Substituting back:
 
 $$
-v_\nu^\pi(s) = E_s^\pi \left\{\sum_{t=1}^{\infty} \gamma^{t-1} r(S_t, A_t)\right\} = v_\gamma^\pi(s).
+v_\nu^{\boldsymbol{\pi}}(s) = E_s^{\boldsymbol{\pi}} \left\{\sum_{t=1}^{\infty} \gamma^{t-1} r(S_t, A_t)\right\} = v_\gamma^{\boldsymbol{\pi}}(s).
 $$
 
 ````
@@ -1189,35 +1200,35 @@ $$
 
 where $\mathbf{H}_{s,j}$ represents the $(s, j)$-th component of the matrix $\mathbf{H}$.
 
-For a Markovian decision rule $d \in D^{MD}$, we define:
+For a Markovian decision rule $\pi \in \Pi^{MD}$, we define:
 
 \begin{align*}
-\mathbf{r}_d(s) &\equiv r(s, d(s)), \quad \mathbf{r}_d \in \mathbb{R}^{|S|}, \\
-[\mathbf{P}_d]_{s,j} &\equiv p(j \mid s, d(s)), \quad \mathbf{P}_d \in \mathbb{R}^{|S| \times |S|}.
+\mathbf{r}_\pi(s) &\equiv r(s, \pi(s)), \quad \mathbf{r}_\pi \in \mathbb{R}^{|S|}, \\
+[\mathbf{P}_\pi]_{s,j} &\equiv p(j \mid s, \pi(s)), \quad \mathbf{P}_\pi \in \mathbb{R}^{|S| \times |S|}.
 \end{align*}
 
-For a randomized decision rule $d \in D^{MR}$, these definitions extend to:
+For a randomized decision rule $\pi \in \Pi^{MR}$, these definitions extend to:
 
 \begin{align*}
-\mathbf{r}_d(s) &\equiv \sum_{a \in A_s} d(a \mid s) \, r(s, a), \\
-[\mathbf{P}_d]_{s,j} &\equiv \sum_{a \in A_s} d(a \mid s) \, p(j \mid s, a).
+\mathbf{r}_\pi(s) &\equiv \sum_{a \in A_s} \pi(a \mid s) \, r(s, a), \\
+[\mathbf{P}_\pi]_{s,j} &\equiv \sum_{a \in A_s} \pi(a \mid s) \, p(j \mid s, a).
 \end{align*}
 
-In both cases, $\mathbf{r}_d$ denotes a reward vector in $\mathbb{R}^{|S|}$, with each component $\mathbf{r}_d(s)$ representing the reward associated with state $s$. Similarly, $\mathbf{P}_d$ is a transition probability matrix in $\mathbb{R}^{|S| \times |S|}$, capturing the transition probabilities under decision rule $d$.
+In both cases, $\mathbf{r}_\pi$ denotes a reward vector in $\mathbb{R}^{|S|}$, with each component $\mathbf{r}_\pi(s)$ representing the reward associated with state $s$. Similarly, $\mathbf{P}_\pi$ is a transition probability matrix in $\mathbb{R}^{|S| \times |S|}$, capturing the transition probabilities under decision rule $\pi$.
 
-For a nonstationary Markovian policy $\pi = (d_1, d_2, \ldots) \in \Pi^{MR}$, the expected total discounted reward is given by:
+For a nonstationary Markovian policy $\boldsymbol{\pi} = (\pi_1, \pi_2, \ldots) \in \Pi^{MR}$, the expected total discounted reward is given by:
 
 $$
-\mathbf{v}_\gamma^{\pi}(s)=\mathbb{E}\left[\sum_{t=1}^{\infty} \gamma^{t-1} r\left(S_t, A_t\right) \,\middle|\, S_1 = s\right].
+\mathbf{v}_\gamma^{\boldsymbol{\pi}}(s)=\mathbb{E}\left[\sum_{t=1}^{\infty} \gamma^{t-1} r\left(S_t, A_t\right) \,\middle|\, S_1 = s\right].
 $$
 
 Using vector notation, this can be expressed as:
 
 $$
 \begin{aligned}
-\mathbf{v}_\gamma^{\pi} &= \sum_{t=1}^{\infty} \gamma^{t-1} \mathbf{P}_\pi^{t-1} \mathbf{r}_{d_1} \\
-&= \mathbf{r}_{d_1} + \gamma \mathbf{P}_{d_1} \mathbf{r}_{d_2} + \gamma^2 \mathbf{P}_{d_1} \mathbf{P}_{d_2} \mathbf{r}_{d_3} + \cdots \\
-&= \mathbf{r}_{d_1} + \gamma \mathbf{P}_{d_1} \left( \mathbf{r}_{d_2} + \gamma \mathbf{P}_{d_2} \mathbf{r}_{d_3} + \gamma^2 \mathbf{P}_{d_2} \mathbf{P}_{d_3} \mathbf{r}_{d_4} + \cdots \right).
+\mathbf{v}_\gamma^{\boldsymbol{\pi}} &= \sum_{t=1}^{\infty} \gamma^{t-1} \mathbf{P}_{\boldsymbol{\pi}}^{t-1} \mathbf{r}_{\pi_1} \\
+&= \mathbf{r}_{\pi_1} + \gamma \mathbf{P}_{\pi_1} \mathbf{r}_{\pi_2} + \gamma^2 \mathbf{P}_{\pi_1} \mathbf{P}_{\pi_2} \mathbf{r}_{\pi_3} + \cdots \\
+&= \mathbf{r}_{\pi_1} + \gamma \mathbf{P}_{\pi_1} \left( \mathbf{r}_{\pi_2} + \gamma \mathbf{P}_{\pi_2} \mathbf{r}_{\pi_3} + \gamma^2 \mathbf{P}_{\pi_2} \mathbf{P}_{\pi_3} \mathbf{r}_{\pi_4} + \cdots \right).
 \end{aligned}
 $$
 
@@ -1225,20 +1236,20 @@ This formulation leads to a recursive relationship:
 
 $$
 \begin{align*}
-\mathbf{v}_\gamma^\pi &= \mathbf{r}_{d_1} + \gamma \mathbf{P}_{d_1} \mathbf{v}_\gamma^{\pi^{\prime}}\\
-&=\sum_{t=1}^{\infty} \gamma^{t-1} \mathbf{P}_\pi^{t-1} \mathbf{r}_{d_t}
+\mathbf{v}_\gamma^{\boldsymbol{\pi}} &= \mathbf{r}_{\pi_1} + \gamma \mathbf{P}_{\pi_1} \mathbf{v}_\gamma^{\boldsymbol{\pi}^{\prime}}\\
+&=\sum_{t=1}^{\infty} \gamma^{t-1} \mathbf{P}_{\boldsymbol{\pi}}^{t-1} \mathbf{r}_{\pi_t}
 \end{align*}
 $$
 
-where $\pi^{\prime} = (d_2, d_3, \ldots)$.
+where $\boldsymbol{\pi}^{\prime} = (\pi_2, \pi_3, \ldots)$.
 
 
-For stationary policies, where $\pi = d^{\infty} \equiv (d, d, \ldots)$, the total expected reward simplifies to:
+For a stationary policy $\boldsymbol{\pi} = \mathrm{const}(\pi)$ with constant decision rule $\pi$, the total expected reward simplifies to:
 
 $$
 \begin{align*}
-\mathbf{v}_\gamma^{d^\infty} &= \mathbf{r}_d+ \gamma \mathbf{P}_d \mathbf{v}_\gamma^{d^\infty} \\
-&=\sum_{t=1}^{\infty} \gamma^{t-1} \mathbf{P}_d^{t-1} \mathbf{r}_{d}
+\mathbf{v}_\gamma^{\pi} &= \mathbf{r}_\pi+ \gamma \mathbf{P}_\pi \mathbf{v}_\gamma^{\pi} \\
+&=\sum_{t=1}^{\infty} \gamma^{t-1} \mathbf{P}_\pi^{t-1} \mathbf{r}_{\pi}
 \end{align*}
 $$
 
@@ -1291,7 +1302,7 @@ We can now verify that $(\mathbf{I} - \gamma \mathbf{P}_d)$ is invertible and th
    \|\gamma \mathbf{P}_d\| = |\gamma| \cdot \|\mathbf{P}_d\| = |\gamma| \cdot 1 = |\gamma|.
    $$
 
-3. **Bounding the spectral radius:** Applying the fundamental inequality between spectral radius and matrix norm:
+3. **Bounding the spectral radius:** Since the spectral radius is bounded by the matrix norm:
 
    $$
    \rho(\gamma \mathbf{P}_d) \leq \|\gamma \mathbf{P}_d\| = |\gamma|.
@@ -1541,26 +1552,42 @@ $$
 
 which are called the optimality equations or Bellman equations for infinite-horizon MDPs.
 
-We can adopt an operator-theoretic perspective by defining a nonlinear operator $\mathrm{L}$ on the space $V$ of bounded real-valued functions on the state space $S$. We can then show that the value of an MDP is the solution to the following fixed-point equation:
+We can adopt an operator-theoretic perspective by defining operators on the space $V$ of bounded real-valued functions on the state space $S$. For a deterministic Markov rule $\pi \in \Pi^{MD}$, define the **policy-evaluation operator**:
 
 $$
-\mathrm{L} \mathbf{v} \equiv \max_{d \in D^{MD}} \left\{\mathbf{r}_d + \gamma \mathbf{P}_d \mathbf{v}\right\}
+(\mathrm{L}_\pi v)(s) = r(s,\pi(s)) + \gamma \sum_{j \in \mathcal{S}} p(j|s,\pi(s)) v(j)
 $$
 
-where $D^{MD}$ is the set of Markov deterministic decision rules, $\mathbf{r}_d$ is the reward vector under decision rule $d$, and $\mathbf{P}_d$ is the transition probability matrix under decision rule $d$.
+The **Bellman optimality operator** is then:
 
-Note that while we write $\max_{d \in D^{MD}}$, we do not implement the above operator in this way. Written in this fashion, it would indeed imply that we first need to enumerate all Markov deterministic decision rules and pick the maximum. Now the fact that we compare policies based on their value functions in a componentwise fashion, maxing over the space of Markovian deterministic rules amounts to the following update in component form:
+$$
+\mathrm{L} \mathbf{v} \equiv \max_{\pi \in \Pi^{MD}} \left\{\mathbf{r}_\pi + \gamma \mathbf{P}_\pi \mathbf{v}\right\}
+$$
+
+where $\Pi^{MD}$ is the set of Markov deterministic decision rules, $\mathbf{r}_\pi$ is the reward vector under decision rule $\pi$, and $\mathbf{P}_\pi$ is the transition probability matrix under decision rule $\pi$.
+
+Note that while we write $\max_{\pi \in \Pi^{MD}}$, we do not implement the above operator by enumerating all decision rules. Rather, the fact that we compare policies based on their value functions in a componentwise fashion means that maximizing over the space of Markovian deterministic rules reduces to the following update in component form:
 
 $$
 (\mathrm{L} \mathbf{v})(s) = \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right\}
 $$
+
+For convenience, we define the **greedy selector** $\mathrm{Greedy}(v) \in \Pi^{MD}$ that extracts an optimal decision rule from a value function:
+
+$$
+\mathrm{Greedy}(v)(s) \in \arg\max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right\}
+$$
+
+In Puterman's terminology, such a greedy selector is called **$v$-improving** (or **conserving** when it achieves the maximum). This operator will be useful for expressing algorithms succinctly:
+- **Value iteration:** $v_{k+1} = \mathrm{L}v_k$, then extract $\pi = \mathrm{Greedy}(v^*)$
+- **Policy iteration:** $\pi_{k+1} = \mathrm{Greedy}(v^{\pi_k})$ with $v^{\pi_k}$ solving $v = \mathrm{L}_{\pi_k}v$
 
 The equivalence between these two forms can be shown mathematically, as demonstrated in the following proposition and proof.
 
 ```{prf:proposition}
 The operator $\mathrm{L}$ defined as a maximization over Markov deterministic decision rules:
 
-$$(\mathrm{L} \mathbf{v})(s) = \max_{d \in D^{MD}} \left\{r(s,d(s)) + \gamma \sum_{j \in \mathcal{S}} p(j|s,d(s)) v(j)\right\}$$
+$$(\mathrm{L} \mathbf{v})(s) = \max_{\pi \in \Pi^{MD}} \left\{r(s,\pi(s)) + \gamma \sum_{j \in \mathcal{S}} p(j|s,\pi(s)) v(j)\right\}$$
 
 is equivalent to the componentwise maximization over actions:
 
@@ -1568,35 +1595,31 @@ $$(\mathrm{L} \mathbf{v})(s) = \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma
 ```
 
 ```{prf:proof}
-Let's define the right-hand side of the first equation as $R_1$ and the right-hand side of the second equation as $R_2$. We'll prove that $R_1 \leq R_2$ and $R_2 \leq R_1$, which will establish their equality.
+Fix $s$. Let 
 
-Step 1: Proving $R_1 \leq R_2$
+$$
+Q_v(s,a) \triangleq r(s,a)+\gamma\sum_{j}p(j\mid s,a)\,v(j).
+$$
 
-For any $d \in D^{MD}$, we have:
+For any rule $\pi \in \Pi^{MD}$, we have $(\mathrm{L}_\pi v)(s)=Q_v(s,\pi(s))\le \max_{a\in\mathcal{A}_s}Q_v(s,a)$.
 
-$$r(s,d(s)) + \gamma \sum_{j \in \mathcal{S}} p(j|s,d(s)) v(j) \leq \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right\}$$
+Taking the maximum over $\pi$ gives
 
-This is because $d(s) \in \mathcal{A}_s$, so the left-hand side is included in the set over which we're maximizing on the right-hand side.
+$$
+\max_{\pi\in\Pi^{MD}}(\mathrm{L}_\pi v)(s) \le \max_{a\in\mathcal{A}_s}Q_v(s,a).
+$$
 
-Taking the maximum over all $d \in D^{MD}$ on the left-hand side doesn't change this inequality:
+Conversely, choose a **greedy selector** $\pi^v\in\Pi^{MD}$ such that for each $s$,
 
-$$\max_{d \in D^{MD}} \left\{r(s,d(s)) + \gamma \sum_{j \in \mathcal{S}} p(j|s,d(s)) v(j)\right\} \leq \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right\}$$
+$$\pi^v(s)\in\arg\max_{a\in\mathcal{A}_s}Q_v(s,a)$$
 
-Therefore, $R_1 \leq R_2$.
+(possible since $\mathcal{A}_s$ is finite; otherwise use a measurable $\varepsilon$-greedy selector). Then
 
-Step 2: Proving $R_2 \leq R_1$
+$$
+(\mathrm{L}_{\pi^v}v)(s)=Q_v(s,\pi^v(s))=\max_{a\in\mathcal{A}_s}Q_v(s,a),
+$$
 
-Let $a^* \in \mathcal{A}_s$ be the action that achieves the maximum in $R_2$. We can construct a Markov deterministic decision rule $d^*$ such that $d^*(s) = a^*$ and $d^*(s')$ is arbitrary for $s' \neq s$. Then:
-
-$$\begin{align*}
-R_2 &= r(s,a^*) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a^*) v(j) \\
-&= r(s,d^*(s)) + \gamma \sum_{j \in \mathcal{S}} p(j|s,d^*(s)) v(j) \\
-&\leq \max_{d \in D^{MD}} \left\{r(s,d(s)) + \gamma \sum_{j \in \mathcal{S}} p(j|s,d(s)) v(j)\right\} \\
-&= R_1
-\end{align*}$$
-
-Conclusion:
-Since we've shown $R_1 \leq R_2$ and $R_2 \leq R_1$, we can conclude that $R_1 = R_2$, which proves the equivalence of the two forms of the operator.
+so $\max_{\pi}(\mathrm{L}_\pi v)(s)\ge \max_{a}Q_v(s,a)$. Combining both inequalities yields equality.
 ```
 
 ## Algorithms for Solving the Optimality Equations
@@ -1608,7 +1631,7 @@ The optimality equations are operator equations. Therefore, we can apply general
 
 **Input** Given an MDP $(S, A, P, R, \gamma)$ and tolerance $\varepsilon > 0$  
 
-**Output** Compute an $\varepsilon$-optimal value function $V$ and policy $\pi$  
+**Output** Compute an $\varepsilon$-optimal value function $v$ and policy $\pi$  
 
 1. Initialize $v_0(s) = 0$ for all $s \in S$  
 2. $n \leftarrow 0$  
@@ -1616,15 +1639,15 @@ The optimality equations are operator equations. Therefore, we can apply general
 
     1. For each $s \in S$:  
 
-        1. $v_{n+1}(s) \leftarrow \max_{a \in A} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v_n(s')\right\}$  
+        1. $v_{n+1}(s) \leftarrow (\mathrm{L}v_n)(s) = \max_{a \in A} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v_n(j)\right\}$  
 
     2. $\delta \leftarrow \|v_{n+1} - v_n\|_\infty$  
     3. $n \leftarrow n + 1$  
 
 4. **until** $\delta < \frac{\varepsilon(1-\gamma)}{2\gamma}$  
-5. For each $s \in S$:  
+5. Extract greedy policy: $\pi \leftarrow \mathrm{Greedy}(v_n)$ where
 
-    1. $\pi(s) \leftarrow \arg\max_{a \in A} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v_n(s')\right\}$  
+    $$\mathrm{Greedy}(v)(s) \in \arg\max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v(j)\right\}$$
 
 6. **return** $v_n, \pi$  
 ````
@@ -1658,27 +1681,27 @@ where $\gamma \in [0,1)$ is the discount factor and $\|\cdot\|_\infty$ is the su
 Let's start by writing out the definition of $\mathrm{L}v$ and $\mathrm{L}u$:
 
 $$\begin{align*}
-(\mathrm{L}v)(s) &= \max_{a \in A} \left\{r(s,a) + \gamma \sum_{s' \in \mathcal{S}} p(s'|s,a)v(s')\right\}\\
-(\mathrm{L}u)(s) &= \max_{a \in A} \left\{r(s,a) + \gamma \sum_{s' \in \mathcal{S}} p(s'|s,a)u(s')\right\}
+(\mathrm{L}v)(s) &= \max_{a \in A} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v(j)\right\}\\
+(\mathrm{L}u)(s) &= \max_{a \in A} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)u(j)\right\}
 \end{align*}$$
 
 For any state $s$, let $a_v$ be the action that achieves the maximum for $(\mathrm{L}v)(s)$, and $a_u$ be the action that achieves the maximum for $(\mathrm{L}u)(s)$. By the definition of these maximizers:
 
 $$\begin{align*}
-(\mathrm{L}v)(s) &\geq r(s,a_u) + \gamma \sum_{s' \in \mathcal{S}} p(s'|s,a_u)v(s')\\
-(\mathrm{L}u)(s) &\geq r(s,a_v) + \gamma \sum_{s' \in \mathcal{S}} p(s'|s,a_v)u(s')
+(\mathrm{L}v)(s) &\geq r(s,a_u) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a_u)v(j)\\
+(\mathrm{L}u)(s) &\geq r(s,a_v) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a_v)u(j)
 \end{align*}$$
 
 Subtracting these inequalities:
 
 $$\begin{align*}
-(\mathrm{L}v)(s) - (\mathrm{L}u)(s) &\leq \gamma \sum_{s' \in \mathcal{S}} p(s'|s,a_v)(v(s') - u(s'))\\
-(\mathrm{L}u)(s) - (\mathrm{L}v)(s) &\leq \gamma \sum_{s' \in \mathcal{S}} p(s'|s,a_u)(u(s') - v(s'))
+(\mathrm{L}v)(s) - (\mathrm{L}u)(s) &\leq \gamma \sum_{j \in \mathcal{S}} p(j|s,a_v)(v(j) - u(j))\\
+(\mathrm{L}u)(s) - (\mathrm{L}v)(s) &\leq \gamma \sum_{j \in \mathcal{S}} p(j|s,a_u)(u(j) - v(j))
 \end{align*}$$
 
-Taking the absolute value and using the fact that $\sum_{s' \in \mathcal{S}} p(s'|s,a) = 1$:
+Taking the absolute value and using the fact that $\sum_{j \in \mathcal{S}} p(j|s,a) = 1$:
 
-$$|(\mathrm{L}v)(s) - (\mathrm{L}u)(s)| \leq \gamma \max_{s' \in \mathcal{S}} |v(s') - u(s')| = \gamma \|v - u\|_\infty$$
+$$|(\mathrm{L}v)(s) - (\mathrm{L}u)(s)| \leq \gamma \max_{j \in \mathcal{S}} |v(j) - u(j)| = \gamma \|v - u\|_\infty$$
 
 Since this holds for all $s \in \mathcal{S}$, taking the supremum over $s$ gives:
 
@@ -1800,7 +1823,7 @@ This result is useful when solving the collocation equation $\Phi c = v(c)$. New
 
 #### Perspective 3: The Implicit Function Theorem
 
-The third perspective applies the implicit function theorem to understand when the Bellman operator is differentiable despite containing a max operator. The key insight is that the maximization problem defines an implicit relationship between the value function and the optimal action, and the implicit function theorem tells us when this relationship is smooth enough to differentiate through.
+The third perspective applies the implicit function theorem to understand when the Bellman operator is differentiable despite containing a max operator. The maximization problem defines an implicit relationship between the value function and the optimal action, and the implicit function theorem tells us when this relationship is smooth enough to differentiate through.
 
 The Bellman operator is defined as
 
@@ -1867,7 +1890,7 @@ $$
 
 where $\pi_v(s) = a^*(s)$ is the greedy policy.
 
-The implicit function theorem guarantees that when the maximizer is unique with a strict gap (the regularity condition), the argmax function $v \mapsto a^*(s; v)$ is locally constant, which removes the non-differentiability of the max operator. Without this regularity condition (specifically, at points where multiple actions tie for optimality), the implicit function theorem does not apply, and the operator is not Fréchet differentiable. The active set perspective (Perspective 1) and the envelope theorem (Perspective 2) provide the tools to handle these non-smooth points.
+**The role of the implicit function theorem**: It guarantees that when the maximizer is unique with a strict gap (the regularity condition), the argmax function $v \mapsto a^*(s; v)$ is locally constant, which removes the non-differentiability of the max operator. Without this regularity condition (specifically, at points where multiple actions tie for optimality), the implicit function theorem does not apply, and the operator is not Fréchet differentiable. The active set perspective (Perspective 1) and the envelope theorem (Perspective 2) provide the tools to handle these non-smooth points.
 
 ### Connection to Policy Iteration
 
@@ -1944,23 +1967,27 @@ The policy iteration algorithm for discounted Markov decision problems is as fol
 **Input:** MDP $(S, A, P, R, \gamma)$
 **Output:** Optimal policy $\pi^*$
 
-1. Initialize: $n = 0$, select an arbitrary decision rule $d_0 \in D$
+1. Initialize: $n = 0$, select an arbitrary decision rule $\pi_0 \in \Pi^{MD}$
 2. **repeat**
    3. (Policy evaluation) Obtain $\mathbf{v}^n$ by solving:
    
-      $$(\mathbf{I}-\gamma \mathbf{P}_{d_n}) \mathbf{v} = \mathbf{r}_{d_n}$$
+      $$(\mathbf{I}-\gamma \mathbf{P}_{\pi_n}) \mathbf{v} = \mathbf{r}_{\pi_n}$$
 
-   4. (Policy improvement) Choose $d_{n+1}$ to satisfy:
+   4. (Policy improvement) Choose $\pi_{n+1} = \mathrm{Greedy}(\mathbf{v}^n)$ where:
 
-       $$d_{n+1} \in \arg\max_{d \in D}\left\{\mathbf{r}_d+\gamma \mathbf{P}_d \mathbf{v}^n\right\}$$
+       $$\pi_{n+1} \in \arg\max_{\pi \in \Pi^{MD}}\left\{\mathbf{r}_\pi+\gamma \mathbf{P}_\pi \mathbf{v}^n\right\}$$
        
-       Set $d_{n+1} = d_n$ if possible.
+       equivalently, for each $s$:
+       
+       $$\pi_{n+1}(s) \in \arg\max_{a \in \mathcal{A}_s}\left\{r(s,a)+\gamma \sum_j p(j|s,a) \mathbf{v}^n(j)\right\}$$
+       
+       Set $\pi_{n+1} = \pi_n$ if possible.
 
-   5. If $d_{n+1} = d_n$, **return** $d^* = d_n$
+   5. If $\pi_{n+1} = \pi_n$, **return** $\pi^* = \pi_n$
 
    6. $n = n + 1$
 7. **until** convergence
 ````
 
-As opposed to value iteration, this algorithm produces a sequence of both deterministic Markovian decision rules $\{d_n\}$ and value functions $\{\mathbf{v}^n\}$. We recognize in this algorithm the linearization step of the Newton-Kantorovich procedure, which takes place here in the policy evaluation step 3 where we solve the linear system $(\mathbf{I}-\gamma \mathbf{P}_{d_n}) \mathbf{v} = \mathbf{r}_{d_n}$. In practice, this linear sytem could be solved either using direct methods (eg. Gaussian elimination), using  simple iterative methods such as the successive approximation method for policy evaluation, or more sophisticated methods such as GMRES. 
+As opposed to value iteration, this algorithm produces a sequence of both deterministic Markovian decision rules $\{\pi_n\}$ and value functions $\{\mathbf{v}^n\}$. We recognize in this algorithm the linearization step of the Newton-Kantorovich procedure, which takes place here in the policy evaluation step 3 where we solve the linear system $(\mathbf{I}-\gamma \mathbf{P}_{\pi_n}) \mathbf{v} = \mathbf{r}_{\pi_n}$. In practice, this linear system could be solved either using direct methods (eg. Gaussian elimination), using simple iterative methods such as the successive approximation method for policy evaluation, or more sophisticated methods such as GMRES. 
 
