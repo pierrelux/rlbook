@@ -16,9 +16,110 @@ kernelspec:
 
 The Bellman optimality equation $\mathrm{L}v = v$ is a functional equation: an equation where the unknown is an entire function rather than a finite-dimensional vector. When the state space is continuous or very large, we cannot represent the value function exactly on a computer. We must instead work with finite-dimensional approximations. This motivates projection methods, a general framework for transforming infinite-dimensional problems into tractable finite-dimensional ones.
 
-Even if we restrict our search to a finite-dimensional subspace of functions, we still need to verify that our candidate solution $\hat{v}$ satisfies the equation. For a true solution, the **residual function** $R(s) = \mathrm{L}\hat{v}(s) - \hat{v}(s)$ should equal zero at every state $s$ in our (potentially infinite) state space. But we cannot check infinitely many conditions.
+## What Does It Mean for a Residual to Be Zero?
 
-Projection methods replace "the residual is zero everywhere" with a feasible requirement that we can verify computationally. We restrict our search to functions $\hat{v}(s) = \sum_{i=1}^n a_i \varphi_i(s)$ for some basis $\{\varphi_1, \ldots, \varphi_n\}$, and find coefficients $a$ that make the residual "small" according to a chosen criterion. The criterion determines the projection method. 
+Suppose we have found a candidate approximate solution $\hat{v}$ to the Bellman equation. To verify it satisfies $\mathrm{L}\hat{v} = \hat{v}$, we compute the **residual function** $R(s) = \mathrm{L}\hat{v}(s) - \hat{v}(s)$. For a true solution, this residual should be the **zero function**: $R(s) = 0$ for every state $s$. But what does it really mean for a function to equal zero?
+
+In finite dimensions, a vector $\mathbf{r} \in \mathbb{R}^n$ equals zero if and only if $\langle \mathbf{r}, \mathbf{y} \rangle = 0$ for every vector $\mathbf{y} \in \mathbb{R}^n$. This follows because if $\mathbf{r} \neq \mathbf{0}$, we can always choose $\mathbf{y} = \mathbf{r}$, giving $\langle \mathbf{r}, \mathbf{r} \rangle = \|\mathbf{r}\|^2 > 0$. Conversely, if $\mathbf{r} = \mathbf{0}$, then $\langle \mathbf{r}, \mathbf{y} \rangle = 0$ trivially for all $\mathbf{y}$. 
+
+The key insight is that **inner products can distinguish the zero vector from any nonzero vector**: for any $\mathbf{r} \neq \mathbf{0}$, there exists some test vector $\mathbf{y}$ that "witnesses" the fact that $\mathbf{r}$ is nonzero by producing $\langle \mathbf{r}, \mathbf{y} \rangle \neq 0$. This property—that we can tell apart (separate) different vectors by testing them with inner products—is what makes inner products so useful for verification.
+
+**The same principle extends to functions.** A function $R$ equals the zero function if and only if its "inner product" with every "test function" $p$ vanishes:
+
+$$
+R = 0 \quad \text{if and only if} \quad \langle R, p \rangle = \int_{\mathcal{S}} R(s) p(s) w(s) ds = 0 \quad \text{for all test functions } p,
+$$
+
+where $w(s)$ is a weight function (often chosen to emphasize certain regions of the state space). Why does this work? For the same reason as in finite dimensions: if $R$ is not the zero function, there must be some region where $R(s) \neq 0$. We can then choose a test function $p$ that is nonzero in that same region (for instance, $p(s) = R(s)$ itself), which will produce $\langle R, p \rangle = \int R(s) p(s) w(s) ds > 0$, witnessing that $R$ is nonzero. Conversely, if $R$ is the zero function, then $\langle R, p \rangle = 0$ for any test function $p$.
+
+This ability to **distinguish between different functions using inner products** is a fundamental principle from functional analysis. Just as we can test a vector by taking inner products with other vectors, we can test a function by taking inner products with other functions.
+
+```{admonition} Connection to Functional Analysis
+:class: dropdown
+
+The principle that "a function equals zero if and only if it has zero inner product with all test functions" is a consequence of the **Hahn-Banach theorem**, one of the cornerstones of functional analysis. The theorem guarantees that for any nonzero function $R$ in a suitable function space, there exists a continuous linear functional (which can be represented as an inner product with some test function $p$) that produces a nonzero value when applied to $R$. This is often phrased as "the dual space separates points."
+
+While you don't need to know the Hahn-Banach theorem to use projection methods, it provides the rigorous mathematical foundation ensuring that our inner product tests are theoretically sound. The constructive argument we gave above (choosing $p = R$) works in simple cases with well-behaved functions, but the Hahn-Banach theorem extends this guarantee to much more general settings.
+```
+
+**Why is this useful?** It transforms the pointwise condition "$R(s) = 0$ for all $s$" (infinitely many conditions, one per state) into an equivalent condition about inner products. Of course, we still cannot test against *all* possible test functions—there are infinitely many of those too. But the inner product perspective suggests a natural computational strategy: **choose a finite collection of test functions** $\{p_1, \ldots, p_n\}$ and require
+
+$$
+\langle R, p_i \rangle = 0, \quad i = 1, \ldots, n.
+$$
+
+This gives us exactly $n$ conditions that we can actually compute. This approach defines what are called **weighted residual methods**: we make the residual "small" by requiring it to satisfy certain weighted integral conditions.
+
+Within weighted residual methods, there are two main families:
+
+**Projection methods** (also called orthogonal projection methods) directly require the residual to have zero inner product with chosen test functions:
+
+$$
+\langle R, p_i \rangle = 0, \quad i = 1, \ldots, n.
+$$
+
+We are "projecting" the residual to be orthogonal to the span of the test functions. Different choices of test functions give different projection methods:
+- **Galerkin**: Test against the basis functions used to represent $\hat{v}$, so $p_i = \varphi_i$
+- **Collocation**: Test against delta functions $p_i = \delta(s - s_i)$, which reduces to pointwise evaluation $R(s_i) = 0$
+- **Method of moments**: Test against polynomials $p_i = s^{i-1}$, ensuring low-order moments of the residual vanish
+- **Subdomain method**: Test against indicator functions $p_i = I_{D_i}$ for subregions $D_i$, requiring zero average residual in each subdomain
+
+#### The Special Role of Spectral Methods
+
+You may encounter the term **spectral methods** in the literature. This doesn't refer to a different choice of test functions, but rather to a choice of **basis functions** $\varphi_i$. Spectral methods use basis functions from families of orthogonal polynomials (like Chebyshev, Legendre, or Hermite polynomials) or trigonometric functions (Fourier series). The "spectral" name comes from the decomposition of the solution into these orthogonal components, analogous to decomposing a signal into frequency components.
+
+What makes spectral bases special is their approximation properties: for smooth problems (functions with many continuous derivatives), spectral approximations achieve **exponential convergence**. As you add more basis functions, the approximation error decreases exponentially rather than polynomially. A function with $k$ continuous derivatives approximated by piecewise polynomials of degree $p$ has error $O(h^{p+1})$ where $h$ is the grid spacing. But the same function approximated by a spectral method with $n$ terms has error that decreases like $O(e^{-cn})$ for some constant $c > 0$. This dramatic difference makes spectral methods extremely efficient for smooth problems.
+
+Now, spectral bases can be combined with any projection method. When we use a spectral basis with **Galerkin projection** (testing against the basis functions themselves), we get a **spectral Galerkin method**. The orthogonality of the basis functions often simplifies the resulting linear systems. When we use a spectral basis with **collocation**, we get what's often called a **pseudospectral method** or **spectral collocation method**.
+
+#### Orthogonal Collocation: Best of Both Worlds
+
+A particularly elegant variant is **orthogonal collocation**, which exploits a beautiful connection between collocation and quadrature. The idea is to:
+
+1. Choose basis functions from an orthogonal polynomial family (say, Chebyshev polynomials $T_0, T_1, \ldots, T_{n-1}$)
+2. Choose collocation points at the **zeros of the $n$-th polynomial** in that family
+
+Why is this clever? Because these same points are also the optimal nodes for **Gauss quadrature** using the weight function associated with that polynomial family. For example, the zeros of the Chebyshev polynomial $T_n(s)$ are also the Chebyshev-Gauss quadrature nodes. This means:
+
+- We get the computational simplicity of collocation: the projection conditions are just $R(s_i) = 0$ at the collocation points (no integrals to evaluate)
+- When we do need to compute integrals (say, inside the operator $\mathscr{N}$ itself), we can use the collocation points as quadrature nodes and the resulting quadrature is **exact** for polynomials up to degree $2n-1$
+- For smooth problems, we inherit the exponential convergence of spectral approximations
+
+This coordination between approximation and integration is why orthogonal collocation is so effective. You'll sometimes see it called a "pseudospectral method," though different authors use these terms with slight variations. The key point is that by carefully coordinating our choice of basis, test functions (collocation points), and quadrature nodes, we can achieve excellent accuracy with computational efficiency.
+
+In summary, "spectral" describes the basis choice (orthogonal polynomials or Fourier), while "Galerkin," "collocation," etc. describe the projection choice (which test functions). Orthogonal collocation represents an optimal marriage of these choices for smooth problems.
+
+**Least squares methods** take a different approach: instead of requiring orthogonality to specific test functions, we minimize the overall size of the residual measured in a weighted norm:
+
+$$
+\min_{a} \|R(\cdot; a)\|^2 = \min_{a} \int_{\mathcal{S}} R(s; a)^2 w(s) ds.
+$$
+
+This seeks the coefficients $a$ that make the residual as small as possible in the least squares sense. Interestingly, the first-order optimality conditions for this minimization problem turn out to be equivalent to a projection method with test functions $p_i = \partial R / \partial a_i$ (the derivatives of the residual with respect to the coefficients). So least squares can be viewed as a projection method with *data-dependent* test functions.
+
+Both families aim to make the residual "close to zero," but projection methods do this by requiring orthogonality to chosen directions, while least squares does this by directly minimizing the norm of the residual. The term "projection methods" as used in the approximate dynamic programming literature often refers to both families, since they share the same computational framework of restricting the search to a finite-dimensional subspace and solving for coefficients that satisfy certain residual conditions.
+
+In summary, we have transformed the impossible task of verifying "$R(s) = 0$ for all $s$" into a **finite-dimensional** problem: find coefficients $a = (a_1, \ldots, a_n)$ in our approximation $\hat{v}(s) = \sum_{i=1}^n a_i \varphi_i(s)$ such that either:
+- The residual is orthogonal to $n$ chosen test functions (projection methods), or
+- The residual has minimum norm (least squares methods)
+
+This is a major conceptual step forward: instead of infinitely many pointwise conditions, we have $n$ conditions. However, these $n$ conditions are not yet fully "feasible" computationally—each projection condition $\langle R, p_i \rangle = \int_{\mathcal{S}} R(s) p_i(s) w(s) ds = 0$ still involves an integral that may need to be approximated numerically. 
+
+**The computational cost hierarchy.** Different methods have different computational burdens:
+
+- **Collocation** is the cheapest: since $\langle R, \delta(\cdot - s_i) \rangle = R(s_i)$, we only evaluate the residual pointwise—no integration needed in the projection conditions themselves.
+
+- **Orthogonal collocation** shares this advantage (projection conditions are just pointwise evaluations), but adds a bonus: if integrals appear elsewhere—say, inside the operator $\mathscr{N}$—the collocation points double as optimal quadrature nodes. This synergy between approximation and integration is particularly valuable for smooth problems.
+
+- **Galerkin methods** require evaluating integrals $\int R(s) \varphi_i(s) w(s) ds$ for each basis function. When using orthogonal polynomial bases (spectral Galerkin), these integrals can sometimes be simplified by orthogonality, but numerical quadrature is still typically needed.
+
+- **Method of moments and subdomain methods** similarly require numerical quadrature to evaluate weighted integrals of the residual.
+
+- **Least squares** requires computing $\int R(s)^2 w(s) ds$, which involves integrating the squared residual—potentially expensive, though the first-order conditions reduce this to a system similar to Galerkin.
+
+The general pattern: collocation methods avoid integration in the projection step by testing at points rather than against functions, while methods that test against smooth functions (Galerkin, moments, subdomain) must pay the computational cost of numerical integration.
+
+The rest of this chapter develops this framework systematically, showing how to choose bases, select test functions, evaluate or approximate the necessary integrals, and solve the resulting finite-dimensional problems. 
 
 ## The General Framework
 
@@ -58,21 +159,24 @@ $$
 R(x; a) = \mathscr{N}(\hat{f}(\cdot; a))(x).
 $$
 
-For a true solution, this residual would be identically zero everywhere: $R(x; a) = 0$ for all $x$ in the domain. For our approximation, we aim to make it as close to the zero function as possible. **The residual measures how far our candidate solution is from satisfying the equation at each point $x$.** 
+This residual measures how far our candidate solution is from satisfying the equation at each point $x$. As we discussed in the introduction, we will assess whether this residual is "close to zero" by testing its inner products against chosen test functions.
 
-Think of $R(\cdot; a)$ as living in an infinite-dimensional function space. You can imagine it as a "vector" with one component $R(x; a)$ for each point $x$ in the domain. In finite dimensions, we would check if a vector is zero by verifying that each component equals zero. Here, we face an impossible task: we cannot verify that $R(x; a) = 0$ at every single point. The projection conditions we introduce next provide different feasible ways to measure "how zero" this function is.
+### Step 3: Choose Weighted Residual Conditions
 
-### Step 3: Choose Projection Conditions
+Having chosen our basis and defined the residual, we must decide how to make the residual "close to zero." As discussed in the introduction, we can either:
 
-The heart of the projection method is choosing how to verify that $R(\cdot; a)$ is "close to zero." Since we cannot check $R(x; a) = 0$ at every point, we must select a feasible criterion. Nearly all projection methods work by choosing $n$ **test functions** $\{p_1, \ldots, p_n\}$ and requiring:
+1. **Use projection conditions**: Select $n$ test functions $\{p_1, \ldots, p_n\}$ and require:
+   $$
+   \langle R(\cdot; a), p_i \rangle = \int_{\mathcal{S}} R(x; a) p_i(x) w(x) dx = 0, \quad i = 1, \ldots, n,
+   $$
+   for some weight function $w(x)$. This yields $n$ equations to determine the $n$ coefficients in $a$.
 
-$$
-\langle R(\cdot; a), p_i \rangle = \int_{\mathcal{S}} R(x; a) p_i(x) w(x) dx = 0, \quad i = 1, \ldots, n,
-$$
+2. **Use a least squares condition**: Minimize the norm of the residual directly:
+   $$
+   \min_a \int_{\mathcal{S}} R(x; a)^2 w(x) dx.
+   $$
 
-for some weight function $w(x)$. This yields $n$ equations to determine the $n$ coefficients in $a$. The different projection methods are distinguished entirely by their choice of test functions $p_i$. If the residual has zero projection against all our test functions, we declare it "close enough" to the zero function.
-
-In $\mathbb{R}^n$, to verify a vector $\mathbf{r}$ is zero, we could check if $\langle \mathbf{r}, \mathbf{e}_i \rangle = 0$ for each standard basis vector $\mathbf{e}_i$. If $\mathbf{r}$ is orthogonal to all coordinate directions, it must be the zero vector. For functions in infinite dimensions, we cannot test against all directions, so we choose $n$ representative test functions and verify orthogonality against them.
+We begin by examining the main projection methods, distinguished entirely by their choice of test functions $p_i$, then discuss least squares as an alternative approach.
 
 Let us examine the standard choices of test functions and what they reveal about the residual:
 
@@ -144,7 +248,7 @@ $$
 
 Thus least squares implicitly uses test functions $p_i = \partial R / \partial a_i$, the gradients of the residual with respect to parameters. Unlike other methods where test functions are chosen a priori, here they depend on the current guess for $a$ and on the structure of our approximation.
 
-We can now see the unifying structure: all projection methods (except least squares in its direct form) follow the same template of picking $n$ test functions and requiring $\langle R, p_i \rangle = 0$. They differ only in their philosophy about which test functions best reveal whether the residual is "nearly zero." Galerkin tests against the approximation basis itself (natural for orthogonal bases), the method of moments tests against monomials (ensuring polynomial balance), collocation tests against delta functions (pointwise satisfaction), subdomain tests against indicators (local average satisfaction), and least squares tests against residual gradients (global norm minimization). Each choice reflects different priorities: computational efficiency, theoretical optimality, ease of implementation, or sensitivity to errors in different regions of the domain.
+We can now see the unifying structure of **weighted residual methods**: whether we use projection conditions or least squares minimization, all these methods follow the same template of restricting the search to an $n$-dimensional function space and imposing $n$ conditions on the residual. For projection methods specifically, we pick $n$ test functions and require $\langle R, p_i \rangle = 0$. They differ only in their philosophy about which test functions best reveal whether the residual is "nearly zero." Galerkin tests against the approximation basis itself (natural for orthogonal bases), the method of moments tests against monomials (ensuring polynomial balance), collocation tests against delta functions (pointwise satisfaction), subdomain tests against indicators (local average satisfaction), and least squares tests against residual gradients (global norm minimization). Each choice reflects different priorities: computational efficiency, theoretical optimality, ease of implementation, or sensitivity to errors in different regions of the domain.
 
 ### Step 4: Solve the Finite-Dimensional Problem
 
