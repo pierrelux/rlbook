@@ -433,10 +433,15 @@
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-does-it-mean-for-a-residual-to-be-zero">What Does It Mean for a Residual to Be Zero?</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-special-role-of-spectral-methods">The Special Role of Spectral Methods</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#orthogonal-collocation-best-of-both-worlds">Orthogonal Collocation: Best of Both Worlds</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-general-framework">The General Framework</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-1-choose-a-finite-dimensional-approximation-space">Step 1: Choose a Finite-Dimensional Approximation Space</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-2-define-the-residual-function">Step 2: Define the Residual Function</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-3-choose-projection-conditions">Step 3: Choose Projection Conditions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-3-choose-weighted-residual-conditions">Step 3: Choose Weighted Residual Conditions</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#galerkin-method-test-against-the-basis">Galerkin Method: Test Against the Basis</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#method-of-moments-test-against-monomials">Method of Moments: Test Against Monomials</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#collocation-method-test-against-delta-functions">Collocation Method: Test Against Delta Functions</a></li>
@@ -478,8 +483,88 @@
   <section class="tex2jax_ignore mathjax_ignore" id="projection-methods-for-functional-equations">
 <h1>Projection Methods for Functional Equations<a class="headerlink" href="#projection-methods-for-functional-equations" title="Link to this heading">#</a></h1>
 <p>The Bellman optimality equation <span class="math notranslate nohighlight">\(\mathrm{L}v = v\)</span> is a functional equation: an equation where the unknown is an entire function rather than a finite-dimensional vector. When the state space is continuous or very large, we cannot represent the value function exactly on a computer. We must instead work with finite-dimensional approximations. This motivates projection methods, a general framework for transforming infinite-dimensional problems into tractable finite-dimensional ones.</p>
-<p>Even if we restrict our search to a finite-dimensional subspace of functions, we still need to verify that our candidate solution <span class="math notranslate nohighlight">\(\hat{v}\)</span> satisfies the equation. For a true solution, the <strong>residual function</strong> <span class="math notranslate nohighlight">\(R(s) = \mathrm{L}\hat{v}(s) - \hat{v}(s)\)</span> should equal zero at every state <span class="math notranslate nohighlight">\(s\)</span> in our (potentially infinite) state space. But we cannot check infinitely many conditions.</p>
-<p>Projection methods replace “the residual is zero everywhere” with a feasible requirement that we can verify computationally. We restrict our search to functions <span class="math notranslate nohighlight">\(\hat{v}(s) = \sum_{i=1}^n a_i \varphi_i(s)\)</span> for some basis <span class="math notranslate nohighlight">\(\{\varphi_1, \ldots, \varphi_n\}\)</span>, and find coefficients <span class="math notranslate nohighlight">\(a\)</span> that make the residual “small” according to a chosen criterion. The criterion determines the projection method.</p>
+<section id="what-does-it-mean-for-a-residual-to-be-zero">
+<h2>What Does It Mean for a Residual to Be Zero?<a class="headerlink" href="#what-does-it-mean-for-a-residual-to-be-zero" title="Link to this heading">#</a></h2>
+<p>Suppose we have found a candidate approximate solution <span class="math notranslate nohighlight">\(\hat{v}\)</span> to the Bellman equation. To verify it satisfies <span class="math notranslate nohighlight">\(\mathrm{L}\hat{v} = \hat{v}\)</span>, we compute the <strong>residual function</strong> <span class="math notranslate nohighlight">\(R(s) = \mathrm{L}\hat{v}(s) - \hat{v}(s)\)</span>. For a true solution, this residual should be the <strong>zero function</strong>: <span class="math notranslate nohighlight">\(R(s) = 0\)</span> for every state <span class="math notranslate nohighlight">\(s\)</span>. But what does it really mean for a function to equal zero?</p>
+<p>In finite dimensions, a vector <span class="math notranslate nohighlight">\(\mathbf{r} \in \mathbb{R}^n\)</span> equals zero if and only if <span class="math notranslate nohighlight">\(\langle \mathbf{r}, \mathbf{y} \rangle = 0\)</span> for every vector <span class="math notranslate nohighlight">\(\mathbf{y} \in \mathbb{R}^n\)</span>. This follows because if <span class="math notranslate nohighlight">\(\mathbf{r} \neq \mathbf{0}\)</span>, we can always choose <span class="math notranslate nohighlight">\(\mathbf{y} = \mathbf{r}\)</span>, giving <span class="math notranslate nohighlight">\(\langle \mathbf{r}, \mathbf{r} \rangle = \|\mathbf{r}\|^2 &gt; 0\)</span>. Conversely, if <span class="math notranslate nohighlight">\(\mathbf{r} = \mathbf{0}\)</span>, then <span class="math notranslate nohighlight">\(\langle \mathbf{r}, \mathbf{y} \rangle = 0\)</span> trivially for all <span class="math notranslate nohighlight">\(\mathbf{y}\)</span>.</p>
+<p>The key insight is that <strong>inner products can distinguish the zero vector from any nonzero vector</strong>: for any <span class="math notranslate nohighlight">\(\mathbf{r} \neq \mathbf{0}\)</span>, there exists some test vector <span class="math notranslate nohighlight">\(\mathbf{y}\)</span> that “witnesses” the fact that <span class="math notranslate nohighlight">\(\mathbf{r}\)</span> is nonzero by producing <span class="math notranslate nohighlight">\(\langle \mathbf{r}, \mathbf{y} \rangle \neq 0\)</span>. This property—that we can tell apart (separate) different vectors by testing them with inner products—is what makes inner products so useful for verification.</p>
+<p><strong>The same principle extends to functions.</strong> A function <span class="math notranslate nohighlight">\(R\)</span> equals the zero function if and only if its “inner product” with every “test function” <span class="math notranslate nohighlight">\(p\)</span> vanishes:</p>
+<div class="math notranslate nohighlight">
+\[
+R = 0 \quad \text{if and only if} \quad \langle R, p \rangle = \int_{\mathcal{S}} R(s) p(s) w(s) ds = 0 \quad \text{for all test functions } p,
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(w(s)\)</span> is a weight function (often chosen to emphasize certain regions of the state space). Why does this work? For the same reason as in finite dimensions: if <span class="math notranslate nohighlight">\(R\)</span> is not the zero function, there must be some region where <span class="math notranslate nohighlight">\(R(s) \neq 0\)</span>. We can then choose a test function <span class="math notranslate nohighlight">\(p\)</span> that is nonzero in that same region (for instance, <span class="math notranslate nohighlight">\(p(s) = R(s)\)</span> itself), which will produce <span class="math notranslate nohighlight">\(\langle R, p \rangle = \int R(s) p(s) w(s) ds &gt; 0\)</span>, witnessing that <span class="math notranslate nohighlight">\(R\)</span> is nonzero. Conversely, if <span class="math notranslate nohighlight">\(R\)</span> is the zero function, then <span class="math notranslate nohighlight">\(\langle R, p \rangle = 0\)</span> for any test function <span class="math notranslate nohighlight">\(p\)</span>.</p>
+<p>This ability to <strong>distinguish between different functions using inner products</strong> is a fundamental principle from functional analysis. Just as we can test a vector by taking inner products with other vectors, we can test a function by taking inner products with other functions.</p>
+<div class="dropdown admonition">
+<p class="admonition-title">Connection to Functional Analysis</p>
+<p>The principle that “a function equals zero if and only if it has zero inner product with all test functions” is a consequence of the <strong>Hahn-Banach theorem</strong>, one of the cornerstones of functional analysis. The theorem guarantees that for any nonzero function <span class="math notranslate nohighlight">\(R\)</span> in a suitable function space, there exists a continuous linear functional (which can be represented as an inner product with some test function <span class="math notranslate nohighlight">\(p\)</span>) that produces a nonzero value when applied to <span class="math notranslate nohighlight">\(R\)</span>. This is often phrased as “the dual space separates points.”</p>
+<p>While you don’t need to know the Hahn-Banach theorem to use projection methods, it provides the rigorous mathematical foundation ensuring that our inner product tests are theoretically sound. The constructive argument we gave above (choosing <span class="math notranslate nohighlight">\(p = R\)</span>) works in simple cases with well-behaved functions, but the Hahn-Banach theorem extends this guarantee to much more general settings.</p>
+</div>
+<p><strong>Why is this useful?</strong> It transforms the pointwise condition “<span class="math notranslate nohighlight">\(R(s) = 0\)</span> for all <span class="math notranslate nohighlight">\(s\)</span>” (infinitely many conditions, one per state) into an equivalent condition about inner products. Of course, we still cannot test against <em>all</em> possible test functions—there are infinitely many of those too. But the inner product perspective suggests a natural computational strategy: <strong>choose a finite collection of test functions</strong> <span class="math notranslate nohighlight">\(\{p_1, \ldots, p_n\}\)</span> and require</p>
+<div class="math notranslate nohighlight">
+\[
+\langle R, p_i \rangle = 0, \quad i = 1, \ldots, n.
+\]</div>
+<p>This gives us exactly <span class="math notranslate nohighlight">\(n\)</span> conditions that we can actually compute. This approach defines what are called <strong>weighted residual methods</strong>: we make the residual “small” by requiring it to satisfy certain weighted integral conditions.</p>
+<p>Within weighted residual methods, there are two main families:</p>
+<p><strong>Projection methods</strong> (also called orthogonal projection methods) directly require the residual to have zero inner product with chosen test functions:</p>
+<div class="math notranslate nohighlight">
+\[
+\langle R, p_i \rangle = 0, \quad i = 1, \ldots, n.
+\]</div>
+<p>We are “projecting” the residual to be orthogonal to the span of the test functions. Different choices of test functions give different projection methods:</p>
+<ul class="simple">
+<li><p><strong>Galerkin</strong>: Test against the basis functions used to represent <span class="math notranslate nohighlight">\(\hat{v}\)</span>, so <span class="math notranslate nohighlight">\(p_i = \varphi_i\)</span></p></li>
+<li><p><strong>Collocation</strong>: Test against delta functions <span class="math notranslate nohighlight">\(p_i = \delta(s - s_i)\)</span>, which reduces to pointwise evaluation <span class="math notranslate nohighlight">\(R(s_i) = 0\)</span></p></li>
+<li><p><strong>Method of moments</strong>: Test against polynomials <span class="math notranslate nohighlight">\(p_i = s^{i-1}\)</span>, ensuring low-order moments of the residual vanish</p></li>
+<li><p><strong>Subdomain method</strong>: Test against indicator functions <span class="math notranslate nohighlight">\(p_i = I_{D_i}\)</span> for subregions <span class="math notranslate nohighlight">\(D_i\)</span>, requiring zero average residual in each subdomain</p></li>
+</ul>
+<section id="the-special-role-of-spectral-methods">
+<h3>The Special Role of Spectral Methods<a class="headerlink" href="#the-special-role-of-spectral-methods" title="Link to this heading">#</a></h3>
+<p>You may encounter the term <strong>spectral methods</strong> in the literature. This doesn’t refer to a different choice of test functions, but rather to a choice of <strong>basis functions</strong> <span class="math notranslate nohighlight">\(\varphi_i\)</span>. Spectral methods use basis functions from families of orthogonal polynomials (like Chebyshev, Legendre, or Hermite polynomials) or trigonometric functions (Fourier series). The “spectral” name comes from the decomposition of the solution into these orthogonal components, analogous to decomposing a signal into frequency components.</p>
+<p>What makes spectral bases special is their approximation properties: for smooth problems (functions with many continuous derivatives), spectral approximations achieve <strong>exponential convergence</strong>. As you add more basis functions, the approximation error decreases exponentially rather than polynomially. A function with <span class="math notranslate nohighlight">\(k\)</span> continuous derivatives approximated by piecewise polynomials of degree <span class="math notranslate nohighlight">\(p\)</span> has error <span class="math notranslate nohighlight">\(O(h^{p+1})\)</span> where <span class="math notranslate nohighlight">\(h\)</span> is the grid spacing. But the same function approximated by a spectral method with <span class="math notranslate nohighlight">\(n\)</span> terms has error that decreases like <span class="math notranslate nohighlight">\(O(e^{-cn})\)</span> for some constant <span class="math notranslate nohighlight">\(c &gt; 0\)</span>. This dramatic difference makes spectral methods extremely efficient for smooth problems.</p>
+<p>Now, spectral bases can be combined with any projection method. When we use a spectral basis with <strong>Galerkin projection</strong> (testing against the basis functions themselves), we get a <strong>spectral Galerkin method</strong>. The orthogonality of the basis functions often simplifies the resulting linear systems. When we use a spectral basis with <strong>collocation</strong>, we get what’s often called a <strong>pseudospectral method</strong> or <strong>spectral collocation method</strong>.</p>
+</section>
+<section id="orthogonal-collocation-best-of-both-worlds">
+<h3>Orthogonal Collocation: Best of Both Worlds<a class="headerlink" href="#orthogonal-collocation-best-of-both-worlds" title="Link to this heading">#</a></h3>
+<p>A particularly elegant variant is <strong>orthogonal collocation</strong>, which exploits a beautiful connection between collocation and quadrature. The idea is to:</p>
+<ol class="arabic simple">
+<li><p>Choose basis functions from an orthogonal polynomial family (say, Chebyshev polynomials <span class="math notranslate nohighlight">\(T_0, T_1, \ldots, T_{n-1}\)</span>)</p></li>
+<li><p>Choose collocation points at the <strong>zeros of the <span class="math notranslate nohighlight">\(n\)</span>-th polynomial</strong> in that family</p></li>
+</ol>
+<p>Why is this clever? Because these same points are also the optimal nodes for <strong>Gauss quadrature</strong> using the weight function associated with that polynomial family. For example, the zeros of the Chebyshev polynomial <span class="math notranslate nohighlight">\(T_n(s)\)</span> are also the Chebyshev-Gauss quadrature nodes. This means:</p>
+<ul class="simple">
+<li><p>We get the computational simplicity of collocation: the projection conditions are just <span class="math notranslate nohighlight">\(R(s_i) = 0\)</span> at the collocation points (no integrals to evaluate)</p></li>
+<li><p>When we do need to compute integrals (say, inside the operator <span class="math notranslate nohighlight">\(\mathscr{N}\)</span> itself), we can use the collocation points as quadrature nodes and the resulting quadrature is <strong>exact</strong> for polynomials up to degree <span class="math notranslate nohighlight">\(2n-1\)</span></p></li>
+<li><p>For smooth problems, we inherit the exponential convergence of spectral approximations</p></li>
+</ul>
+<p>This coordination between approximation and integration is why orthogonal collocation is so effective. You’ll sometimes see it called a “pseudospectral method,” though different authors use these terms with slight variations. The key point is that by carefully coordinating our choice of basis, test functions (collocation points), and quadrature nodes, we can achieve excellent accuracy with computational efficiency.</p>
+<p>In summary, “spectral” describes the basis choice (orthogonal polynomials or Fourier), while “Galerkin,” “collocation,” etc. describe the projection choice (which test functions). Orthogonal collocation represents an optimal marriage of these choices for smooth problems.</p>
+<p><strong>Least squares methods</strong> take a different approach: instead of requiring orthogonality to specific test functions, we minimize the overall size of the residual measured in a weighted norm:</p>
+<div class="math notranslate nohighlight">
+\[
+\min_{a} \|R(\cdot; a)\|^2 = \min_{a} \int_{\mathcal{S}} R(s; a)^2 w(s) ds.
+\]</div>
+<p>This seeks the coefficients <span class="math notranslate nohighlight">\(a\)</span> that make the residual as small as possible in the least squares sense. Interestingly, the first-order optimality conditions for this minimization problem turn out to be equivalent to a projection method with test functions <span class="math notranslate nohighlight">\(p_i = \partial R / \partial a_i\)</span> (the derivatives of the residual with respect to the coefficients). So least squares can be viewed as a projection method with <em>data-dependent</em> test functions.</p>
+<p>Both families aim to make the residual “close to zero,” but projection methods do this by requiring orthogonality to chosen directions, while least squares does this by directly minimizing the norm of the residual. The term “projection methods” as used in the approximate dynamic programming literature often refers to both families, since they share the same computational framework of restricting the search to a finite-dimensional subspace and solving for coefficients that satisfy certain residual conditions.</p>
+<p>In summary, we have transformed the impossible task of verifying “<span class="math notranslate nohighlight">\(R(s) = 0\)</span> for all <span class="math notranslate nohighlight">\(s\)</span>” into a <strong>finite-dimensional</strong> problem: find coefficients <span class="math notranslate nohighlight">\(a = (a_1, \ldots, a_n)\)</span> in our approximation <span class="math notranslate nohighlight">\(\hat{v}(s) = \sum_{i=1}^n a_i \varphi_i(s)\)</span> such that either:</p>
+<ul class="simple">
+<li><p>The residual is orthogonal to <span class="math notranslate nohighlight">\(n\)</span> chosen test functions (projection methods), or</p></li>
+<li><p>The residual has minimum norm (least squares methods)</p></li>
+</ul>
+<p>This is a major conceptual step forward: instead of infinitely many pointwise conditions, we have <span class="math notranslate nohighlight">\(n\)</span> conditions. However, these <span class="math notranslate nohighlight">\(n\)</span> conditions are not yet fully “feasible” computationally—each projection condition <span class="math notranslate nohighlight">\(\langle R, p_i \rangle = \int_{\mathcal{S}} R(s) p_i(s) w(s) ds = 0\)</span> still involves an integral that may need to be approximated numerically.</p>
+<p><strong>The computational cost hierarchy.</strong> Different methods have different computational burdens:</p>
+<ul class="simple">
+<li><p><strong>Collocation</strong> is the cheapest: since <span class="math notranslate nohighlight">\(\langle R, \delta(\cdot - s_i) \rangle = R(s_i)\)</span>, we only evaluate the residual pointwise—no integration needed in the projection conditions themselves.</p></li>
+<li><p><strong>Orthogonal collocation</strong> shares this advantage (projection conditions are just pointwise evaluations), but adds a bonus: if integrals appear elsewhere—say, inside the operator <span class="math notranslate nohighlight">\(\mathscr{N}\)</span>—the collocation points double as optimal quadrature nodes. This synergy between approximation and integration is particularly valuable for smooth problems.</p></li>
+<li><p><strong>Galerkin methods</strong> require evaluating integrals <span class="math notranslate nohighlight">\(\int R(s) \varphi_i(s) w(s) ds\)</span> for each basis function. When using orthogonal polynomial bases (spectral Galerkin), these integrals can sometimes be simplified by orthogonality, but numerical quadrature is still typically needed.</p></li>
+<li><p><strong>Method of moments and subdomain methods</strong> similarly require numerical quadrature to evaluate weighted integrals of the residual.</p></li>
+<li><p><strong>Least squares</strong> requires computing <span class="math notranslate nohighlight">\(\int R(s)^2 w(s) ds\)</span>, which involves integrating the squared residual—potentially expensive, though the first-order conditions reduce this to a system similar to Galerkin.</p></li>
+</ul>
+<p>The general pattern: collocation methods avoid integration in the projection step by testing at points rather than against functions, while methods that test against smooth functions (Galerkin, moments, subdomain) must pay the computational cost of numerical integration.</p>
+<p>The rest of this chapter develops this framework systematically, showing how to choose bases, select test functions, evaluate or approximate the necessary integrals, and solve the resulting finite-dimensional problems.</p>
+</section>
+</section>
 <section id="the-general-framework">
 <h2>The General Framework<a class="headerlink" href="#the-general-framework" title="Link to this heading">#</a></h2>
 <p>Consider an operator equation of the form</p>
@@ -512,18 +597,23 @@
 \[
 R(x; a) = \mathscr{N}(\hat{f}(\cdot; a))(x).
 \]</div>
-<p>For a true solution, this residual would be identically zero everywhere: <span class="math notranslate nohighlight">\(R(x; a) = 0\)</span> for all <span class="math notranslate nohighlight">\(x\)</span> in the domain. For our approximation, we aim to make it as close to the zero function as possible. <strong>The residual measures how far our candidate solution is from satisfying the equation at each point <span class="math notranslate nohighlight">\(x\)</span>.</strong></p>
-<p>Think of <span class="math notranslate nohighlight">\(R(\cdot; a)\)</span> as living in an infinite-dimensional function space. You can imagine it as a “vector” with one component <span class="math notranslate nohighlight">\(R(x; a)\)</span> for each point <span class="math notranslate nohighlight">\(x\)</span> in the domain. In finite dimensions, we would check if a vector is zero by verifying that each component equals zero. Here, we face an impossible task: we cannot verify that <span class="math notranslate nohighlight">\(R(x; a) = 0\)</span> at every single point. The projection conditions we introduce next provide different feasible ways to measure “how zero” this function is.</p>
+<p>This residual measures how far our candidate solution is from satisfying the equation at each point <span class="math notranslate nohighlight">\(x\)</span>. As we discussed in the introduction, we will assess whether this residual is “close to zero” by testing its inner products against chosen test functions.</p>
 </section>
-<section id="step-3-choose-projection-conditions">
-<h3>Step 3: Choose Projection Conditions<a class="headerlink" href="#step-3-choose-projection-conditions" title="Link to this heading">#</a></h3>
-<p>The heart of the projection method is choosing how to verify that <span class="math notranslate nohighlight">\(R(\cdot; a)\)</span> is “close to zero.” Since we cannot check <span class="math notranslate nohighlight">\(R(x; a) = 0\)</span> at every point, we must select a feasible criterion. Nearly all projection methods work by choosing <span class="math notranslate nohighlight">\(n\)</span> <strong>test functions</strong> <span class="math notranslate nohighlight">\(\{p_1, \ldots, p_n\}\)</span> and requiring:</p>
-<div class="math notranslate nohighlight">
-\[
+<section id="step-3-choose-weighted-residual-conditions">
+<h3>Step 3: Choose Weighted Residual Conditions<a class="headerlink" href="#step-3-choose-weighted-residual-conditions" title="Link to this heading">#</a></h3>
+<p>Having chosen our basis and defined the residual, we must decide how to make the residual “close to zero.” As discussed in the introduction, we can either:</p>
+<ol class="arabic simple">
+<li><p><strong>Use projection conditions</strong>: Select <span class="math notranslate nohighlight">\(n\)</span> test functions <span class="math notranslate nohighlight">\(\{p_1, \ldots, p_n\}\)</span> and require:
+$<span class="math notranslate nohighlight">\(
 \langle R(\cdot; a), p_i \rangle = \int_{\mathcal{S}} R(x; a) p_i(x) w(x) dx = 0, \quad i = 1, \ldots, n,
-\]</div>
-<p>for some weight function <span class="math notranslate nohighlight">\(w(x)\)</span>. This yields <span class="math notranslate nohighlight">\(n\)</span> equations to determine the <span class="math notranslate nohighlight">\(n\)</span> coefficients in <span class="math notranslate nohighlight">\(a\)</span>. The different projection methods are distinguished entirely by their choice of test functions <span class="math notranslate nohighlight">\(p_i\)</span>. If the residual has zero projection against all our test functions, we declare it “close enough” to the zero function.</p>
-<p>In <span class="math notranslate nohighlight">\(\mathbb{R}^n\)</span>, to verify a vector <span class="math notranslate nohighlight">\(\mathbf{r}\)</span> is zero, we could check if <span class="math notranslate nohighlight">\(\langle \mathbf{r}, \mathbf{e}_i \rangle = 0\)</span> for each standard basis vector <span class="math notranslate nohighlight">\(\mathbf{e}_i\)</span>. If <span class="math notranslate nohighlight">\(\mathbf{r}\)</span> is orthogonal to all coordinate directions, it must be the zero vector. For functions in infinite dimensions, we cannot test against all directions, so we choose <span class="math notranslate nohighlight">\(n\)</span> representative test functions and verify orthogonality against them.</p>
+\)</span><span class="math notranslate nohighlight">\(
+for some weight function \)</span>w(x)<span class="math notranslate nohighlight">\(. This yields \)</span>n<span class="math notranslate nohighlight">\( equations to determine the \)</span>n<span class="math notranslate nohighlight">\( coefficients in \)</span>a$.</p></li>
+<li><p><strong>Use a least squares condition</strong>: Minimize the norm of the residual directly:
+$<span class="math notranslate nohighlight">\(
+\min_a \int_{\mathcal{S}} R(x; a)^2 w(x) dx.
+\)</span>$</p></li>
+</ol>
+<p>We begin by examining the main projection methods, distinguished entirely by their choice of test functions <span class="math notranslate nohighlight">\(p_i\)</span>, then discuss least squares as an alternative approach.</p>
 <p>Let us examine the standard choices of test functions and what they reveal about the residual:</p>
 <section id="galerkin-method-test-against-the-basis">
 <h4>Galerkin Method: Test Against the Basis<a class="headerlink" href="#galerkin-method-test-against-the-basis" title="Link to this heading">#</a></h4>
@@ -582,7 +672,7 @@ R(x; a) = \mathscr{N}(\hat{f}(\cdot; a))(x).
 \left\langle R(\cdot; a), \frac{\partial R(\cdot; a)}{\partial a_i} \right\rangle = 0, \quad i = 1, \ldots, n.
 \]</div>
 <p>Thus least squares implicitly uses test functions <span class="math notranslate nohighlight">\(p_i = \partial R / \partial a_i\)</span>, the gradients of the residual with respect to parameters. Unlike other methods where test functions are chosen a priori, here they depend on the current guess for <span class="math notranslate nohighlight">\(a\)</span> and on the structure of our approximation.</p>
-<p>We can now see the unifying structure: all projection methods (except least squares in its direct form) follow the same template of picking <span class="math notranslate nohighlight">\(n\)</span> test functions and requiring <span class="math notranslate nohighlight">\(\langle R, p_i \rangle = 0\)</span>. They differ only in their philosophy about which test functions best reveal whether the residual is “nearly zero.” Galerkin tests against the approximation basis itself (natural for orthogonal bases), the method of moments tests against monomials (ensuring polynomial balance), collocation tests against delta functions (pointwise satisfaction), subdomain tests against indicators (local average satisfaction), and least squares tests against residual gradients (global norm minimization). Each choice reflects different priorities: computational efficiency, theoretical optimality, ease of implementation, or sensitivity to errors in different regions of the domain.</p>
+<p>We can now see the unifying structure of <strong>weighted residual methods</strong>: whether we use projection conditions or least squares minimization, all these methods follow the same template of restricting the search to an <span class="math notranslate nohighlight">\(n\)</span>-dimensional function space and imposing <span class="math notranslate nohighlight">\(n\)</span> conditions on the residual. For projection methods specifically, we pick <span class="math notranslate nohighlight">\(n\)</span> test functions and require <span class="math notranslate nohighlight">\(\langle R, p_i \rangle = 0\)</span>. They differ only in their philosophy about which test functions best reveal whether the residual is “nearly zero.” Galerkin tests against the approximation basis itself (natural for orthogonal bases), the method of moments tests against monomials (ensuring polynomial balance), collocation tests against delta functions (pointwise satisfaction), subdomain tests against indicators (local average satisfaction), and least squares tests against residual gradients (global norm minimization). Each choice reflects different priorities: computational efficiency, theoretical optimality, ease of implementation, or sensitivity to errors in different regions of the domain.</p>
 </section>
 </section>
 <section id="step-4-solve-the-finite-dimensional-problem">
@@ -894,10 +984,15 @@ v = \Pi(r_\pi + \gamma \mathbf{P}_\pi v), \qquad v \in \text{span}(\boldsymbol{\
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-does-it-mean-for-a-residual-to-be-zero">What Does It Mean for a Residual to Be Zero?</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-special-role-of-spectral-methods">The Special Role of Spectral Methods</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#orthogonal-collocation-best-of-both-worlds">Orthogonal Collocation: Best of Both Worlds</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-general-framework">The General Framework</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-1-choose-a-finite-dimensional-approximation-space">Step 1: Choose a Finite-Dimensional Approximation Space</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-2-define-the-residual-function">Step 2: Define the Residual Function</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-3-choose-projection-conditions">Step 3: Choose Projection Conditions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-3-choose-weighted-residual-conditions">Step 3: Choose Weighted Residual Conditions</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#galerkin-method-test-against-the-basis">Galerkin Method: Test Against the Basis</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#method-of-moments-test-against-monomials">Method of Moments: Test Against Monomials</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#collocation-method-test-against-delta-functions">Collocation Method: Test Against Delta Functions</a></li>

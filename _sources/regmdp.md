@@ -78,97 +78,202 @@ Finally, it's worth noting that we can also derive this form by considering an e
 
 ## Gumbel Noise on the Rewards
 
-We can obtain the smooth Bellman equation by considering a setting in which we have Gumbel noise added to the reward function. More precisely, we define an MDP whose state space is now that of $\tilde{s} = (s, \epsilon)$, where the reward function is given by 
+We can obtain the smooth Bellman equation by considering a setting in which we have Gumbel noise added to the reward function. This derivation provides both theoretical insight and connects to practical modeling scenarios where rewards have random perturbations.
 
-$$\tilde{r}(\tilde{s}, a) = r(s,a) + \epsilon(a)$$
+### Step 1: Define the Augmented MDP with Gumbel Noise
 
-and where the transition probability function is:
+At each time period and state $s$, we draw an **action-indexed shock vector**:
 
-$$ p(\tilde{s}' | \tilde{s}, a) = p(s' | s, a) \cdot p(\epsilon') $$
+$$\boldsymbol{\epsilon}_t(s) = \big(\epsilon_t(s,a)\big)_{a \in \mathcal{A}_s}, \quad \text{where } \epsilon_t(s,a) \text{ i.i.d.} \sim \mathrm{Gumbel}(\mu_\epsilon, 1/\beta)$$
 
-This expression stems from the conditional independence assumption that we make on the noise variable given the state. 
+These shocks are independent across time periods, states, and actions, and are independent of the MDP transition dynamics $p(\cdot | s, a)$.
 
-Furthermore, we assume that $\epsilon(a)$ is a random variable following a Gumbel distribution with location 0 and scale $1/\beta$. The Gumbel distribution is a continuous probability distribution used to model the maximum (or minimum) of a number of samples of various distributions. Its probability density function is:
+The **Gumbel distribution** with location parameter $\mu$ and scale parameter $1/\beta$ has probability density function:
 
-$$ f(x; \mu, \beta) = \frac{1}{\beta}\exp\left(-\left(\frac{x-\mu}{\beta}+\exp\left(-\frac{x-\mu}{\beta}\right)\right)\right) $$
+$$ f(x; \mu, \beta) = \beta\exp\left(-\beta(x-\mu)-\exp(-\beta(x-\mu))\right) $$
 
-where $\mu$ is the location parameter and $\beta$ is the scale parameter. To generate a Gumbel-distributed random variable, one can use the inverse transform sampling method: and set $ X = \mu - \beta \ln(-\ln(U)) $
-where $U$ is a uniform random variable on the interval $(0,1)$.
+To generate a Gumbel-distributed random variable, we can use inverse transform sampling: $X = \mu - \frac{1}{\beta} \ln(-\ln(U))$ where $U$ is uniform on $(0,1)$.
 
-The Bellman equation in this augmented state space becomes:
+```{admonition} Zero-Mean Shocks
+:class: tip
+To ensure the shocks have zero mean, we set $\mu_\epsilon = -\gamma_E/\beta$ where $\gamma_E \approx 0.5772$ is the Euler-Mascheroni constant. This choice eliminates an additive constant that would otherwise appear in the smooth Bellman equation. For simplicity, we will adopt this convention throughout.
+```
 
-$$ v_\gamma^\star(\tilde{s}) = \max_{a \in \mathcal{A}_s} \left\{ \tilde{r}(\tilde{s},a) + \gamma \mathbb{E}_{}\left[v_\gamma^\star(\tilde{s}')\mid \tilde{s}, a\right] \right\} $$
+We now define an **augmented MDP** with:
+- **Augmented state**: $\tilde{s} = (s, \boldsymbol{\epsilon})$ where $s \in \mathcal{S}$ and $\boldsymbol{\epsilon} \in \mathbb{R}^{|\mathcal{A}_s|}$
+- **Augmented reward**: $\tilde{r}(\tilde{s}, a) = r(s,a) + \epsilon(a)$
+- **Augmented transition**: $\tilde{p}(\tilde{s}' | \tilde{s}, a) = p(s' | s, a) \cdot p(\boldsymbol{\epsilon}')$
 
-Furthermore, since all we did is to define another MDP, we still have a contraction and an optimal stationary policy $\boldsymbol{\pi} = \mathrm{const}(\pi)$ can be found via the following deterministic Markovian decision rule:
+The transition factorizes because the next shock vector $\boldsymbol{\epsilon}'$ is drawn independently of the current state and action (conditional independence).
 
-$$
-\pi(\tilde{s})  \in \operatorname{argmax}_{a \in \mathcal{A}_s} \left\{ \tilde{r}(\tilde{s},a) + \gamma \mathbb{E}_{}\left[v_\gamma^\star(\tilde{s}')\mid \tilde{s}, a\right] \right\}
-$$
+```{admonition} The Augmented State Space is Infinite-Dimensional
+:class: warning
+Even if the original state space $\mathcal{S}$ and action space $\mathcal{A}$ are finite, the augmented state space $\tilde{\mathcal{S}} = \mathcal{S} \times \mathbb{R}^{|\mathcal{A}|}$ is **uncountably infinite** because each shock vector $\boldsymbol{\epsilon}$ is a continuous random variable. Therefore:
+- We cannot enumerate the augmented states
+- Tabular dynamic programming methods do not apply directly
+- The augmented value function $\tilde{v}(s, \boldsymbol{\epsilon})$ maps a continuous space to $\mathbb{R}$
 
-Note how the expectation is now over the next augmented state space and is therefore both over the next state in the original MDP and over the next perturbation. While in the general case there isn't much that we can do to simplify the expression for the expectation over the next state in the MDP, we can however leverage a remarkable property of the Gumbel distribution which allows us to eliminate the $\epsilon$ term in the above and recover the familiar smooth Bellman equation. 
+**This is precisely why we immediately marginalize over the shocks** to obtain a finite-dimensional representation.
+```
 
-For a set of random variables $X_1, \ldots, X_n$, each following a Gumbel distribution with location parameters $\mu_1, \ldots, \mu_n$ and scale parameter $1/\beta$, extreme value theory tells us that:
+### Step 2: The Hard Bellman Equation on the Augmented State Space
 
-$$ \mathbb{E}\left[\max_{i} X_i\right] = \frac{1}{\beta} \log \sum_{i=1}^n \exp(\beta\mu_i) $$
+The Bellman optimality equation for the augmented MDP is:
 
-In our case, each $X_i$ corresponds to $r(s,a_i) + \epsilon(a_i) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a_i)v(j)$ for a given action $a_i$. The location parameter $\mu_i$ is $r(s,a_i) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a_i)v(j)$, and the scale parameter is $1/\beta$.
+$$ \tilde{v}(s, \boldsymbol{\epsilon}) = \max_{a \in \mathcal{A}_s} \left\{ r(s,a) + \epsilon(a) + \gamma \mathbb{E}_{s', \boldsymbol{\epsilon}'}\left[\tilde{v}(s', \boldsymbol{\epsilon}') \mid s, a\right] \right\} $$
 
-Applying this result to our problem, and taking the expectation over the noise $\epsilon$:
+Here the expectation is over the **next augmented state** $(s', \boldsymbol{\epsilon}')$, which includes both the next state $s' \sim p(\cdot | s, a)$ and the next shock vector $\boldsymbol{\epsilon}' \sim p(\cdot)$.
 
-$$ \begin{align*}
-v_\gamma^\star(s,\epsilon) &= \max_{a \in \mathcal{A}_s} \left\{ r(s,a) + \epsilon(a) + \gamma \mathbb{E}_{j, \epsilon'}\left[v_\gamma^\star(j,\epsilon')\mid s, \epsilon, a\right] \right\} \\
-\mathbb{E}_\epsilon[v_\gamma^\star(s,\epsilon)] &= \mathbb{E}_\epsilon\left[\max_{a \in \mathcal{A}_s} \left\{ r(s,a) + \epsilon(a) + \gamma \mathbb{E}_{j, \epsilon'}\left[v_\gamma^\star(j,\epsilon')\mid s, \epsilon, a\right] \right\}\right] \\
-&= \frac{1}{\beta} \log \sum_{a \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a) + \gamma \mathbb{E}_{j, \epsilon'}\left[v_\gamma^\star(j,\epsilon')\mid s, a\right]\right)\right) \\
-&= \frac{1}{\beta} \log \sum_{a \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)\mathbb{E}_{\epsilon'}[v_\gamma^\star(j,\epsilon')]\right)\right)
-\end{align*}
-$$
+This is a perfectly well-defined Bellman equation, and an optimal stationary policy exists:
 
-If we define $v_\gamma^\star(s) = \mathbb{E}_\epsilon[v_\gamma^\star(s,\epsilon)]$, we obtain the smooth Bellman equation:
+$$\pi(s, \boldsymbol{\epsilon}) \in \operatorname{argmax}_{a \in \mathcal{A}_s} \left\{ r(s,a) + \epsilon(a) + \gamma \mathbb{E}_{s', \boldsymbol{\epsilon}'}\left[\tilde{v}(s', \boldsymbol{\epsilon}') \mid s, a\right] \right\}$$
 
-$$ v_\gamma^\star(s) = \frac{1}{\beta} \log \sum_{a \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v_\gamma^\star(j)\right)\right) $$
+However, this equation is **computationally intractable** because:
+- The state space is continuous and infinite-dimensional
+- The shocks are fresh each period
+- We would need to solve for $\tilde{v}$ over an uncountable domain
 
-This final equation is the smooth Bellman equation, which we derived by introducing Gumbel noise to the reward function and leveraging properties of the Gumbel distribution and extreme value theory.
+**We never solve this equation directly.** Instead, we use it as a mathematical device to derive the smooth Bellman equation.
 
-Now, in the same way that we have been able to simplify and specialize the form of the value function under Gumbel noise, we can also derive an expression for the corresponding optimal policy. To see this, we apply similar steps and start with the optimal decision rule for the augmented MDP:
+### Step 3: Define the Ex-Ante (Inclusive) Value Function
 
-$$
-\pi(\tilde{s}) \in \operatorname{argmax}_{a \in \mathcal{A}_s} \left\{ \tilde{r}(\tilde{s},a) + \gamma \mathbb{E}_{}\left[v_\gamma^\star(\tilde{s}') \mid \tilde{s}, a\right] \right\}
-$$
+The idea here is to consider the **expected value before observing the current shocks**. We define what some authors in econometrics call the **inclusive value** or **ex-ante value**:
 
-In order to simplify this expression by taking the expectation over the noise variable, we define an indicator function for the event that action $a$ is in the set of optimal actions:
+$$ v(s) \coloneqq \mathbb{E}_{\boldsymbol{\epsilon}}\big[\tilde{v}(s, \boldsymbol{\epsilon})\big] $$
 
-   $$ I_a(\epsilon) = \begin{cases} 
-   1 & \text{if } a \in \operatorname{argmax}_{a' \in \mathcal{A}_s} \left\{ r(s,a') + \epsilon(a') + \gamma \mathbb{E}_{j, \epsilon'}\left[v_\gamma^\star(j,\epsilon')\mid s, a'\right] \right\} \\
+This is the value of being in state $s$ **before** we observe the current-period shock vector $\boldsymbol{\epsilon}$. 
+
+```{admonition} Two Different Value Functions
+:class: note
+It is crucial to distinguish:
+- $\tilde{v}(s, \boldsymbol{\epsilon})$: the value **after** observing shocks (conditional on $\boldsymbol{\epsilon}$) — defined on the augmented state space
+- $v(s)$: the value **before** observing shocks (marginalizing over $\boldsymbol{\epsilon}$) — defined on the original state space
+
+The function $v(s)$ is what we actually compute and care about. The augmented value $\tilde{v}$ exists only as a proof device.
+```
+
+### Step 4: Separate the Deterministic and Random Components
+
+Now we take the expectation of the augmented Bellman equation with respect to the **current shocks only** (everything that does not depend on the current $\boldsymbol{\epsilon}$ can be pulled out).
+
+First, note that by the law of iterated expectations and independence of shocks across time:
+
+$$ \mathbb{E}_{\boldsymbol{\epsilon}'}\big[\tilde{v}(s', \boldsymbol{\epsilon}')\big] = v(s') $$
+
+This follows from our definition of $v$ and the fact that the next shock is independent of everything else.
+
+Now define the **deterministic part** of the right-hand side:
+
+$$ x_a(s) \coloneqq r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j) $$
+
+This is the expected return from taking action $a$ in state $s$ **without the shock**. Using this notation, the augmented Bellman equation becomes:
+
+$$ \tilde{v}(s, \boldsymbol{\epsilon}) = \max_{a \in \mathcal{A}_s} \left\{ x_a(s) + \epsilon(a) \right\} $$
+
+Taking the expectation over $\boldsymbol{\epsilon}$ on both sides:
+
+$$ v(s) = \mathbb{E}_{\boldsymbol{\epsilon}}\left[\max_{a \in \mathcal{A}_s} \left\{ x_a(s) + \epsilon(a) \right\}\right] $$
+
+```{admonition} Expectation of a Max, Not Max of an Expectation
+:class: important
+Notice carefully: we have $\mathbb{E}[\max(\cdot)]$, **not** $\max \mathbb{E}[\cdot]$. We are **not** swapping max and expectation. 
+
+The expression $\mathbb{E}_{\boldsymbol{\epsilon}}[\max_a \{x_a + \epsilon(a)\}]$ is the expected value of the maximum of Gumbel-perturbed utilities. This is precisely the quantity that the Gumbel random utility identity evaluates in closed form.
+```
+
+### Step 5: Apply the Gumbel Random Utility Identity
+
+We now invoke a key result from extreme value theory:
+
+```{prf:lemma} Gumbel Random Utility Identity
+:label: gumbel-random-utility
+
+Let $\epsilon_1, \ldots, \epsilon_m$ be i.i.d. $\mathrm{Gumbel}(\mu_\epsilon, 1/\beta)$ random variables. For any deterministic values $x_1, \ldots, x_m \in \mathbb{R}$:
+
+$$ \max_{i=1,\ldots,m} \{x_i + \epsilon_i\} \overset{d}{=} \frac{1}{\beta} \log \sum_{i=1}^m \exp(\beta x_i) + \zeta $$
+
+where $\zeta \sim \mathrm{Gumbel}(\mu_\epsilon, 1/\beta)$ (same distribution as the original shocks).
+
+Taking expectations:
+
+$$ \mathbb{E}\left[\max_{i=1,\ldots,m} \{x_i + \epsilon_i\}\right] = \frac{1}{\beta} \log \sum_{i=1}^m \exp(\beta x_i) + \mu_\epsilon + \frac{\gamma_E}{\beta} $$
+
+where $\gamma_E \approx 0.5772$ is the Euler-Mascheroni constant.
+
+**With mean-zero shocks** ($\mu_\epsilon = -\gamma_E/\beta$), the constant term vanishes:
+
+$$ \mathbb{E}\left[\max_{i=1,\ldots,m} \{x_i + \epsilon_i\}\right] = \frac{1}{\beta} \log \sum_{i=1}^m \exp(\beta x_i) $$
+```
+
+Applying this identity to our problem (with mean-zero shocks):
+
+$$ v(s) = \mathbb{E}_{\boldsymbol{\epsilon}}\left[\max_{a \in \mathcal{A}_s} \{x_a(s) + \epsilon(a)\}\right] = \frac{1}{\beta} \log \sum_{a \in \mathcal{A}_s} \exp(\beta x_a(s)) $$
+
+Substituting the definition of $x_a(s)$:
+
+$$ v(s) = \frac{1}{\beta} \log \sum_{a \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right)\right) $$
+
+This is precisely the **smooth Bellman equation**.
+
+### Step 6: Summary of the Derivation
+
+To recap the logical flow:
+
+1. We constructed an augmented MDP with state $(s, \boldsymbol{\epsilon})$ where shocks perturb rewards
+2. We wrote the standard Bellman equation for this augmented MDP (hard max, but over an infinite-dimensional state space)
+3. We defined the ex-ante value $v(s) = \mathbb{E}_{\boldsymbol{\epsilon}}[\tilde{v}(s, \boldsymbol{\epsilon})]$ to eliminate the continuous shock component
+4. We separated deterministic and random terms: $\tilde{v}(s, \boldsymbol{\epsilon}) = \max_a \{x_a(s) + \epsilon(a)\}$
+5. We applied the Gumbel identity to evaluate $\mathbb{E}_{\boldsymbol{\epsilon}}[\max_a \{\cdots\}]$ in closed form as a log-sum-exp
+
+The augmented MDP with shocks exists **only as a mathematical device**. We never approximate $\tilde{v}$, never discretize $\boldsymbol{\epsilon}$, and never enumerate the augmented state space. The only computational object we work with is $v(s)$ on the original (finite) state space, which satisfies the smooth Bellman equation.
+
+### Deriving the Optimal Smooth Policy
+
+Now that we have derived the smooth value function, we can also obtain the corresponding optimal policy. The key question is: **what policy should we follow in the original MDP (without explicitly conditioning on shocks)?**
+
+In the augmented MDP, the optimal policy is deterministic but depends on the shock realization:
+
+$$\pi(s, \boldsymbol{\epsilon}) \in \operatorname{argmax}_{a \in \mathcal{A}_s} \left\{ r(s,a) + \epsilon(a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j) \right\}$$
+
+However, we want a policy for the **original** state space $s$ (not the augmented state). We obtain this by **marginalizing over the current shocks**—essentially asking: "what is the probability that action $a$ is optimal when we average over all possible shock realizations?"
+
+Define an indicator function:
+
+$$ I_a(\boldsymbol{\epsilon}) = \begin{cases} 
+   1 & \text{if } a \in \operatorname{argmax}_{a' \in \mathcal{A}_s} \left\{ x_{a'}(s) + \epsilon(a') \right\} \\
    0 & \text{otherwise}
    \end{cases} $$
 
-Note that this definition allows us to recover the original expression since:
+where $x_a(s) = r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)$ as before.
 
-$$
-\begin{align*}
-\pi(s,\epsilon) &= \left\{a \in \mathcal{A}_s : I_a(\epsilon) = 1\right\} \\
-&= \left\{a \in \mathcal{A}_s : a \in \operatorname{argmax}_{a' \in \mathcal{A}_s} \left\{ r(s,a') + \epsilon(a') + \gamma \mathbb{E}_{j, \epsilon'}\left[v_\gamma^\star(j,\epsilon')\mid s, \epsilon,  a'\right] \right\}\right\}
-\end{align*}
-$$
+The ex-ante probability that action $a$ is optimal at state $s$ is:
 
-This set-valued -- but deterministic -- function $\pi(s,\epsilon)$ gives us the set of optimal actions for a given state $s$ and noise realization $\epsilon$. For simplicity, consider the case where the optimal set of actions at $s$ is a singleton such that taking the expectation over the noise variable gives us:
+$$ \pi(a|s) = \mathbb{E}_{\boldsymbol{\epsilon}}[I_a(\boldsymbol{\epsilon})] = \mathbb{P}_{\boldsymbol{\epsilon}}\left(a \in \operatorname{argmax}_{a'} \left\{ x_{a'}(s) + \epsilon(a') \right\}\right) $$
 
-$$ \begin{align*}
-\mathbb{E}_\epsilon[I_a(\epsilon)] = \mathbb{P}\left(a \in \operatorname{argmax}_{a' \in \mathcal{A}_s} \left\{ r(s,a') + \epsilon(a') + \gamma \mathbb{E}_{j, \epsilon'}\left[v_\gamma^\star(j,\epsilon')\mid s, \epsilon, a'\right] \right\}\right)
-\end{align*} $$
+This is the probability that action $a$ achieves the maximum when utilities are perturbed by Gumbel noise.
 
-Now, we can leverage a key property of the Gumbel distribution. For a set of random variables $\{X_i = \mu_i + \epsilon_i\}$ where $\epsilon_i$ are i.i.d. Gumbel(0, 1/β) random variables, we have:
+```{prf:lemma} Gumbel-Max Probability (Softmax)
+:label: gumbel-softmax
 
-   $$ P(X_i \geq X_j, \forall j \neq i) = \frac{\exp(\beta\mu_i)}{\sum_j \exp(\beta\mu_j)} $$
+Let $\epsilon_1, \ldots, \epsilon_m$ be i.i.d. $\mathrm{Gumbel}(\mu_\epsilon, 1/\beta)$ random variables. For any deterministic values $x_1, \ldots, x_m \in \mathbb{R}$, the probability that index $i$ achieves the maximum is:
 
-In our case, $X_a = r(s,a) + \epsilon(a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v_\gamma^\star(j)$ for each action $a$ (after marginalizing out $\epsilon'$), with $\mu_a = r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v_\gamma^\star(j)$. 
+$$ \mathbb{P}\left(i \in \operatorname{argmax}_j \{x_j + \epsilon_j\}\right) = \frac{\exp(\beta x_i)}{\sum_{j=1}^m \exp(\beta x_j)} $$
 
-Applying this property and using the definition $v_\gamma^\star(s) = \mathbb{E}_\epsilon[v_\gamma^\star(s,\epsilon)]$, we get:
+This holds regardless of the location parameter $\mu_\epsilon$.
+```
 
-   $$ \pi(a|s) = \frac{\exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v_\gamma^\star(j)\right)\right)}{\sum_{a' \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a') + \gamma \sum_{j \in \mathcal{S}} p(j|s,a')v_\gamma^\star(j)\right)\right)} $$
+Applying this result to our problem:
 
+$$ \pi(a|s) = \frac{\exp\left(\beta x_a(s)\right)}{\sum_{a' \in \mathcal{A}_s} \exp\left(\beta x_{a'}(s)\right)} = \frac{\exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v(j)\right)\right)}{\sum_{a' \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a') + \gamma \sum_{j \in \mathcal{S}} p(j|s,a')v(j)\right)\right)} $$
 
-This gives us the optimal stochastic policy for the smooth MDP. Note that as $\beta \to \infty$, this policy approaches the deterministic policy of the original MDP, while for finite $\beta$, it gives a stochastic policy.
+This is the **softmax policy** or **Gibbs/Boltzmann policy** with inverse temperature $\beta$.
+
+**Properties:**
+- As $\beta \to \infty$: the policy becomes deterministic, concentrating on the action(s) with highest $x_a(s)$ (recovers standard greedy policy)
+- As $\beta \to 0$: the policy becomes uniform over all actions (maximum entropy)
+- For finite $\beta > 0$: the policy is stochastic, with probability mass proportional to exponentiated Q-values
+
+This completes the derivation: the smooth Bellman equation yields a value function $v(s)$, and the corresponding optimal policy is the softmax over Q-values.
 
 <!-- ## Control as Inference Perspective
 

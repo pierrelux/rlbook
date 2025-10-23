@@ -434,7 +434,16 @@
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#smooth-value-iteration-algorithm">Smooth Value Iteration Algorithm</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gumbel-noise-on-the-rewards">Gumbel Noise on the Rewards</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gumbel-noise-on-the-rewards">Gumbel Noise on the Rewards</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-1-define-the-augmented-mdp-with-gumbel-noise">Step 1: Define the Augmented MDP with Gumbel Noise</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-2-the-hard-bellman-equation-on-the-augmented-state-space">Step 2: The Hard Bellman Equation on the Augmented State Space</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-3-define-the-ex-ante-inclusive-value-function">Step 3: Define the Ex-Ante (Inclusive) Value Function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-4-separate-the-deterministic-and-random-components">Step 4: Separate the Deterministic and Random Components</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-5-apply-the-gumbel-random-utility-identity">Step 5: Apply the Gumbel Random Utility Identity</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-6-summary-of-the-derivation">Step 6: Summary of the Derivation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#deriving-the-optimal-smooth-policy">Deriving the Optimal Smooth Policy</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#regularized-markov-decision-processes">Regularized Markov Decision Processes</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#legendre-fenchel-transform">Legendre-Fenchel Transform</a></li>
 </ul>
@@ -514,76 +523,169 @@ Approximation theory is at the heart of learning methods, and fundamentally, thi
 </section>
 <section id="gumbel-noise-on-the-rewards">
 <h2>Gumbel Noise on the Rewards<a class="headerlink" href="#gumbel-noise-on-the-rewards" title="Link to this heading">#</a></h2>
-<p>We can obtain the smooth Bellman equation by considering a setting in which we have Gumbel noise added to the reward function. More precisely, we define an MDP whose state space is now that of <span class="math notranslate nohighlight">\(\tilde{s} = (s, \epsilon)\)</span>, where the reward function is given by</p>
+<p>We can obtain the smooth Bellman equation by considering a setting in which we have Gumbel noise added to the reward function. This derivation provides both theoretical insight and connects to practical modeling scenarios where rewards have random perturbations.</p>
+<section id="step-1-define-the-augmented-mdp-with-gumbel-noise">
+<h3>Step 1: Define the Augmented MDP with Gumbel Noise<a class="headerlink" href="#step-1-define-the-augmented-mdp-with-gumbel-noise" title="Link to this heading">#</a></h3>
+<p>At each time period and state <span class="math notranslate nohighlight">\(s\)</span>, we draw an <strong>action-indexed shock vector</strong>:</p>
 <div class="math notranslate nohighlight">
-\[\tilde{r}(\tilde{s}, a) = r(s,a) + \epsilon(a)\]</div>
-<p>and where the transition probability function is:</p>
+\[\boldsymbol{\epsilon}_t(s) = \big(\epsilon_t(s,a)\big)_{a \in \mathcal{A}_s}, \quad \text{where } \epsilon_t(s,a) \text{ i.i.d.} \sim \mathrm{Gumbel}(\mu_\epsilon, 1/\beta)\]</div>
+<p>These shocks are independent across time periods, states, and actions, and are independent of the MDP transition dynamics <span class="math notranslate nohighlight">\(p(\cdot | s, a)\)</span>.</p>
+<p>The <strong>Gumbel distribution</strong> with location parameter <span class="math notranslate nohighlight">\(\mu\)</span> and scale parameter <span class="math notranslate nohighlight">\(1/\beta\)</span> has probability density function:</p>
 <div class="math notranslate nohighlight">
-\[ p(\tilde{s}' | \tilde{s}, a) = p(s' | s, a) \cdot p(\epsilon') \]</div>
-<p>This expression stems from the conditional independence assumption that we make on the noise variable given the state.</p>
-<p>Furthermore, we assume that <span class="math notranslate nohighlight">\(\epsilon(a)\)</span> is a random variable following a Gumbel distribution with location 0 and scale <span class="math notranslate nohighlight">\(1/\beta\)</span>. The Gumbel distribution is a continuous probability distribution used to model the maximum (or minimum) of a number of samples of various distributions. Its probability density function is:</p>
+\[ f(x; \mu, \beta) = \beta\exp\left(-\beta(x-\mu)-\exp(-\beta(x-\mu))\right) \]</div>
+<p>To generate a Gumbel-distributed random variable, we can use inverse transform sampling: <span class="math notranslate nohighlight">\(X = \mu - \frac{1}{\beta} \ln(-\ln(U))\)</span> where <span class="math notranslate nohighlight">\(U\)</span> is uniform on <span class="math notranslate nohighlight">\((0,1)\)</span>.</p>
+<div class="tip admonition">
+<p class="admonition-title">Zero-Mean Shocks</p>
+<p>To ensure the shocks have zero mean, we set <span class="math notranslate nohighlight">\(\mu_\epsilon = -\gamma_E/\beta\)</span> where <span class="math notranslate nohighlight">\(\gamma_E \approx 0.5772\)</span> is the Euler-Mascheroni constant. This choice eliminates an additive constant that would otherwise appear in the smooth Bellman equation. For simplicity, we will adopt this convention throughout.</p>
+</div>
+<p>We now define an <strong>augmented MDP</strong> with:</p>
+<ul class="simple">
+<li><p><strong>Augmented state</strong>: <span class="math notranslate nohighlight">\(\tilde{s} = (s, \boldsymbol{\epsilon})\)</span> where <span class="math notranslate nohighlight">\(s \in \mathcal{S}\)</span> and <span class="math notranslate nohighlight">\(\boldsymbol{\epsilon} \in \mathbb{R}^{|\mathcal{A}_s|}\)</span></p></li>
+<li><p><strong>Augmented reward</strong>: <span class="math notranslate nohighlight">\(\tilde{r}(\tilde{s}, a) = r(s,a) + \epsilon(a)\)</span></p></li>
+<li><p><strong>Augmented transition</strong>: <span class="math notranslate nohighlight">\(\tilde{p}(\tilde{s}' | \tilde{s}, a) = p(s' | s, a) \cdot p(\boldsymbol{\epsilon}')\)</span></p></li>
+</ul>
+<p>The transition factorizes because the next shock vector <span class="math notranslate nohighlight">\(\boldsymbol{\epsilon}'\)</span> is drawn independently of the current state and action (conditional independence).</p>
+<div class="warning admonition">
+<p class="admonition-title">The Augmented State Space is Infinite-Dimensional</p>
+<p>Even if the original state space <span class="math notranslate nohighlight">\(\mathcal{S}\)</span> and action space <span class="math notranslate nohighlight">\(\mathcal{A}\)</span> are finite, the augmented state space <span class="math notranslate nohighlight">\(\tilde{\mathcal{S}} = \mathcal{S} \times \mathbb{R}^{|\mathcal{A}|}\)</span> is <strong>uncountably infinite</strong> because each shock vector <span class="math notranslate nohighlight">\(\boldsymbol{\epsilon}\)</span> is a continuous random variable. Therefore:</p>
+<ul class="simple">
+<li><p>We cannot enumerate the augmented states</p></li>
+<li><p>Tabular dynamic programming methods do not apply directly</p></li>
+<li><p>The augmented value function <span class="math notranslate nohighlight">\(\tilde{v}(s, \boldsymbol{\epsilon})\)</span> maps a continuous space to <span class="math notranslate nohighlight">\(\mathbb{R}\)</span></p></li>
+</ul>
+<p><strong>This is precisely why we immediately marginalize over the shocks</strong> to obtain a finite-dimensional representation.</p>
+</div>
+</section>
+<section id="step-2-the-hard-bellman-equation-on-the-augmented-state-space">
+<h3>Step 2: The Hard Bellman Equation on the Augmented State Space<a class="headerlink" href="#step-2-the-hard-bellman-equation-on-the-augmented-state-space" title="Link to this heading">#</a></h3>
+<p>The Bellman optimality equation for the augmented MDP is:</p>
 <div class="math notranslate nohighlight">
-\[ f(x; \mu, \beta) = \frac{1}{\beta}\exp\left(-\left(\frac{x-\mu}{\beta}+\exp\left(-\frac{x-\mu}{\beta}\right)\right)\right) \]</div>
-<p>where <span class="math notranslate nohighlight">\(\mu\)</span> is the location parameter and <span class="math notranslate nohighlight">\(\beta\)</span> is the scale parameter. To generate a Gumbel-distributed random variable, one can use the inverse transform sampling method: and set <span class="math notranslate nohighlight">\( X = \mu - \beta \ln(-\ln(U)) \)</span>
-where <span class="math notranslate nohighlight">\(U\)</span> is a uniform random variable on the interval <span class="math notranslate nohighlight">\((0,1)\)</span>.</p>
-<p>The Bellman equation in this augmented state space becomes:</p>
+\[ \tilde{v}(s, \boldsymbol{\epsilon}) = \max_{a \in \mathcal{A}_s} \left\{ r(s,a) + \epsilon(a) + \gamma \mathbb{E}_{s', \boldsymbol{\epsilon}'}\left[\tilde{v}(s', \boldsymbol{\epsilon}') \mid s, a\right] \right\} \]</div>
+<p>Here the expectation is over the <strong>next augmented state</strong> <span class="math notranslate nohighlight">\((s', \boldsymbol{\epsilon}')\)</span>, which includes both the next state <span class="math notranslate nohighlight">\(s' \sim p(\cdot | s, a)\)</span> and the next shock vector <span class="math notranslate nohighlight">\(\boldsymbol{\epsilon}' \sim p(\cdot)\)</span>.</p>
+<p>This is a perfectly well-defined Bellman equation, and an optimal stationary policy exists:</p>
 <div class="math notranslate nohighlight">
-\[ v_\gamma^\star(\tilde{s}) = \max_{a \in \mathcal{A}_s} \left\{ \tilde{r}(\tilde{s},a) + \gamma \mathbb{E}_{}\left[v_\gamma^\star(\tilde{s}')\mid \tilde{s}, a\right] \right\} \]</div>
-<p>Furthermore, since all we did is to define another MDP, we still have a contraction and an optimal stationary policy <span class="math notranslate nohighlight">\(\boldsymbol{\pi} = \mathrm{const}(\pi)\)</span> can be found via the following deterministic Markovian decision rule:</p>
+\[\pi(s, \boldsymbol{\epsilon}) \in \operatorname{argmax}_{a \in \mathcal{A}_s} \left\{ r(s,a) + \epsilon(a) + \gamma \mathbb{E}_{s', \boldsymbol{\epsilon}'}\left[\tilde{v}(s', \boldsymbol{\epsilon}') \mid s, a\right] \right\}\]</div>
+<p>However, this equation is <strong>computationally intractable</strong> because:</p>
+<ul class="simple">
+<li><p>The state space is continuous and infinite-dimensional</p></li>
+<li><p>The shocks are fresh each period</p></li>
+<li><p>We would need to solve for <span class="math notranslate nohighlight">\(\tilde{v}\)</span> over an uncountable domain</p></li>
+</ul>
+<p><strong>We never solve this equation directly.</strong> Instead, we use it as a mathematical device to derive the smooth Bellman equation.</p>
+</section>
+<section id="step-3-define-the-ex-ante-inclusive-value-function">
+<h3>Step 3: Define the Ex-Ante (Inclusive) Value Function<a class="headerlink" href="#step-3-define-the-ex-ante-inclusive-value-function" title="Link to this heading">#</a></h3>
+<p>The idea here is to consider the <strong>expected value before observing the current shocks</strong>. We define what some authors in econometrics call the <strong>inclusive value</strong> or <strong>ex-ante value</strong>:</p>
 <div class="math notranslate nohighlight">
-\[
-\pi(\tilde{s})  \in \operatorname{argmax}_{a \in \mathcal{A}_s} \left\{ \tilde{r}(\tilde{s},a) + \gamma \mathbb{E}_{}\left[v_\gamma^\star(\tilde{s}')\mid \tilde{s}, a\right] \right\}
-\]</div>
-<p>Note how the expectation is now over the next augmented state space and is therefore both over the next state in the original MDP and over the next perturbation. While in the general case there isn’t much that we can do to simplify the expression for the expectation over the next state in the MDP, we can however leverage a remarkable property of the Gumbel distribution which allows us to eliminate the <span class="math notranslate nohighlight">\(\epsilon\)</span> term in the above and recover the familiar smooth Bellman equation.</p>
-<p>For a set of random variables <span class="math notranslate nohighlight">\(X_1, \ldots, X_n\)</span>, each following a Gumbel distribution with location parameters <span class="math notranslate nohighlight">\(\mu_1, \ldots, \mu_n\)</span> and scale parameter <span class="math notranslate nohighlight">\(1/\beta\)</span>, extreme value theory tells us that:</p>
+\[ v(s) \coloneqq \mathbb{E}_{\boldsymbol{\epsilon}}\big[\tilde{v}(s, \boldsymbol{\epsilon})\big] \]</div>
+<p>This is the value of being in state <span class="math notranslate nohighlight">\(s\)</span> <strong>before</strong> we observe the current-period shock vector <span class="math notranslate nohighlight">\(\boldsymbol{\epsilon}\)</span>.</p>
+<div class="note admonition">
+<p class="admonition-title">Two Different Value Functions</p>
+<p>It is crucial to distinguish:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\tilde{v}(s, \boldsymbol{\epsilon})\)</span>: the value <strong>after</strong> observing shocks (conditional on <span class="math notranslate nohighlight">\(\boldsymbol{\epsilon}\)</span>) — defined on the augmented state space</p></li>
+<li><p><span class="math notranslate nohighlight">\(v(s)\)</span>: the value <strong>before</strong> observing shocks (marginalizing over <span class="math notranslate nohighlight">\(\boldsymbol{\epsilon}\)</span>) — defined on the original state space</p></li>
+</ul>
+<p>The function <span class="math notranslate nohighlight">\(v(s)\)</span> is what we actually compute and care about. The augmented value <span class="math notranslate nohighlight">\(\tilde{v}\)</span> exists only as a proof device.</p>
+</div>
+</section>
+<section id="step-4-separate-the-deterministic-and-random-components">
+<h3>Step 4: Separate the Deterministic and Random Components<a class="headerlink" href="#step-4-separate-the-deterministic-and-random-components" title="Link to this heading">#</a></h3>
+<p>Now we take the expectation of the augmented Bellman equation with respect to the <strong>current shocks only</strong> (everything that does not depend on the current <span class="math notranslate nohighlight">\(\boldsymbol{\epsilon}\)</span> can be pulled out).</p>
+<p>First, note that by the law of iterated expectations and independence of shocks across time:</p>
 <div class="math notranslate nohighlight">
-\[ \mathbb{E}\left[\max_{i} X_i\right] = \frac{1}{\beta} \log \sum_{i=1}^n \exp(\beta\mu_i) \]</div>
-<p>In our case, each <span class="math notranslate nohighlight">\(X_i\)</span> corresponds to <span class="math notranslate nohighlight">\(r(s,a_i) + \epsilon(a_i) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a_i)v(j)\)</span> for a given action <span class="math notranslate nohighlight">\(a_i\)</span>. The location parameter <span class="math notranslate nohighlight">\(\mu_i\)</span> is <span class="math notranslate nohighlight">\(r(s,a_i) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a_i)v(j)\)</span>, and the scale parameter is <span class="math notranslate nohighlight">\(1/\beta\)</span>.</p>
-<p>Applying this result to our problem, and taking the expectation over the noise <span class="math notranslate nohighlight">\(\epsilon\)</span>:</p>
+\[ \mathbb{E}_{\boldsymbol{\epsilon}'}\big[\tilde{v}(s', \boldsymbol{\epsilon}')\big] = v(s') \]</div>
+<p>This follows from our definition of <span class="math notranslate nohighlight">\(v\)</span> and the fact that the next shock is independent of everything else.</p>
+<p>Now define the <strong>deterministic part</strong> of the right-hand side:</p>
 <div class="math notranslate nohighlight">
-\[\begin{split} \begin{align*}
-v_\gamma^\star(s,\epsilon) &amp;= \max_{a \in \mathcal{A}_s} \left\{ r(s,a) + \epsilon(a) + \gamma \mathbb{E}_{j, \epsilon'}\left[v_\gamma^\star(j,\epsilon')\mid s, \epsilon, a\right] \right\} \\
-\mathbb{E}_\epsilon[v_\gamma^\star(s,\epsilon)] &amp;= \mathbb{E}_\epsilon\left[\max_{a \in \mathcal{A}_s} \left\{ r(s,a) + \epsilon(a) + \gamma \mathbb{E}_{j, \epsilon'}\left[v_\gamma^\star(j,\epsilon')\mid s, \epsilon, a\right] \right\}\right] \\
-&amp;= \frac{1}{\beta} \log \sum_{a \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a) + \gamma \mathbb{E}_{j, \epsilon'}\left[v_\gamma^\star(j,\epsilon')\mid s, a\right]\right)\right) \\
-&amp;= \frac{1}{\beta} \log \sum_{a \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)\mathbb{E}_{\epsilon'}[v_\gamma^\star(j,\epsilon')]\right)\right)
-\end{align*}
-\end{split}\]</div>
-<p>If we define <span class="math notranslate nohighlight">\(v_\gamma^\star(s) = \mathbb{E}_\epsilon[v_\gamma^\star(s,\epsilon)]\)</span>, we obtain the smooth Bellman equation:</p>
+\[ x_a(s) \coloneqq r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j) \]</div>
+<p>This is the expected return from taking action <span class="math notranslate nohighlight">\(a\)</span> in state <span class="math notranslate nohighlight">\(s\)</span> <strong>without the shock</strong>. Using this notation, the augmented Bellman equation becomes:</p>
 <div class="math notranslate nohighlight">
-\[ v_\gamma^\star(s) = \frac{1}{\beta} \log \sum_{a \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v_\gamma^\star(j)\right)\right) \]</div>
-<p>This final equation is the smooth Bellman equation, which we derived by introducing Gumbel noise to the reward function and leveraging properties of the Gumbel distribution and extreme value theory.</p>
-<p>Now, in the same way that we have been able to simplify and specialize the form of the value function under Gumbel noise, we can also derive an expression for the corresponding optimal policy. To see this, we apply similar steps and start with the optimal decision rule for the augmented MDP:</p>
+\[ \tilde{v}(s, \boldsymbol{\epsilon}) = \max_{a \in \mathcal{A}_s} \left\{ x_a(s) + \epsilon(a) \right\} \]</div>
+<p>Taking the expectation over <span class="math notranslate nohighlight">\(\boldsymbol{\epsilon}\)</span> on both sides:</p>
 <div class="math notranslate nohighlight">
-\[
-\pi(\tilde{s}) \in \operatorname{argmax}_{a \in \mathcal{A}_s} \left\{ \tilde{r}(\tilde{s},a) + \gamma \mathbb{E}_{}\left[v_\gamma^\star(\tilde{s}') \mid \tilde{s}, a\right] \right\}
-\]</div>
-<p>In order to simplify this expression by taking the expectation over the noise variable, we define an indicator function for the event that action <span class="math notranslate nohighlight">\(a\)</span> is in the set of optimal actions:</p>
+\[ v(s) = \mathbb{E}_{\boldsymbol{\epsilon}}\left[\max_{a \in \mathcal{A}_s} \left\{ x_a(s) + \epsilon(a) \right\}\right] \]</div>
+<div class="important admonition">
+<p class="admonition-title">Expectation of a Max, Not Max of an Expectation</p>
+<p>Notice carefully: we have <span class="math notranslate nohighlight">\(\mathbb{E}[\max(\cdot)]\)</span>, <strong>not</strong> <span class="math notranslate nohighlight">\(\max \mathbb{E}[\cdot]\)</span>. We are <strong>not</strong> swapping max and expectation.</p>
+<p>The expression <span class="math notranslate nohighlight">\(\mathbb{E}_{\boldsymbol{\epsilon}}[\max_a \{x_a + \epsilon(a)\}]\)</span> is the expected value of the maximum of Gumbel-perturbed utilities. This is precisely the quantity that the Gumbel random utility identity evaluates in closed form.</p>
+</div>
+</section>
+<section id="step-5-apply-the-gumbel-random-utility-identity">
+<h3>Step 5: Apply the Gumbel Random Utility Identity<a class="headerlink" href="#step-5-apply-the-gumbel-random-utility-identity" title="Link to this heading">#</a></h3>
+<p>We now invoke a key result from extreme value theory:</p>
+<div class="proof lemma admonition" id="gumbel-random-utility">
+<p class="admonition-title"><span class="caption-number">Lemma 1 </span> (Gumbel Random Utility Identity)</p>
+<section class="lemma-content" id="proof-content">
+<p>Let <span class="math notranslate nohighlight">\(\epsilon_1, \ldots, \epsilon_m\)</span> be i.i.d. <span class="math notranslate nohighlight">\(\mathrm{Gumbel}(\mu_\epsilon, 1/\beta)\)</span> random variables. For any deterministic values <span class="math notranslate nohighlight">\(x_1, \ldots, x_m \in \mathbb{R}\)</span>:</p>
 <div class="math notranslate nohighlight">
-\[\begin{split} I_a(\epsilon) = \begin{cases} 
-   1 &amp; \text{if } a \in \operatorname{argmax}_{a' \in \mathcal{A}_s} \left\{ r(s,a') + \epsilon(a') + \gamma \mathbb{E}_{j, \epsilon'}\left[v_\gamma^\star(j,\epsilon')\mid s, a'\right] \right\} \\
+\[ \max_{i=1,\ldots,m} \{x_i + \epsilon_i\} \overset{d}{=} \frac{1}{\beta} \log \sum_{i=1}^m \exp(\beta x_i) + \zeta \]</div>
+<p>where <span class="math notranslate nohighlight">\(\zeta \sim \mathrm{Gumbel}(\mu_\epsilon, 1/\beta)\)</span> (same distribution as the original shocks).</p>
+<p>Taking expectations:</p>
+<div class="math notranslate nohighlight">
+\[ \mathbb{E}\left[\max_{i=1,\ldots,m} \{x_i + \epsilon_i\}\right] = \frac{1}{\beta} \log \sum_{i=1}^m \exp(\beta x_i) + \mu_\epsilon + \frac{\gamma_E}{\beta} \]</div>
+<p>where <span class="math notranslate nohighlight">\(\gamma_E \approx 0.5772\)</span> is the Euler-Mascheroni constant.</p>
+<p><strong>With mean-zero shocks</strong> (<span class="math notranslate nohighlight">\(\mu_\epsilon = -\gamma_E/\beta\)</span>), the constant term vanishes:</p>
+<div class="math notranslate nohighlight">
+\[ \mathbb{E}\left[\max_{i=1,\ldots,m} \{x_i + \epsilon_i\}\right] = \frac{1}{\beta} \log \sum_{i=1}^m \exp(\beta x_i) \]</div>
+</section>
+</div><p>Applying this identity to our problem (with mean-zero shocks):</p>
+<div class="math notranslate nohighlight">
+\[ v(s) = \mathbb{E}_{\boldsymbol{\epsilon}}\left[\max_{a \in \mathcal{A}_s} \{x_a(s) + \epsilon(a)\}\right] = \frac{1}{\beta} \log \sum_{a \in \mathcal{A}_s} \exp(\beta x_a(s)) \]</div>
+<p>Substituting the definition of <span class="math notranslate nohighlight">\(x_a(s)\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[ v(s) = \frac{1}{\beta} \log \sum_{a \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right)\right) \]</div>
+<p>This is precisely the <strong>smooth Bellman equation</strong>.</p>
+</section>
+<section id="step-6-summary-of-the-derivation">
+<h3>Step 6: Summary of the Derivation<a class="headerlink" href="#step-6-summary-of-the-derivation" title="Link to this heading">#</a></h3>
+<p>To recap the logical flow:</p>
+<ol class="arabic simple">
+<li><p>We constructed an augmented MDP with state <span class="math notranslate nohighlight">\((s, \boldsymbol{\epsilon})\)</span> where shocks perturb rewards</p></li>
+<li><p>We wrote the standard Bellman equation for this augmented MDP (hard max, but over an infinite-dimensional state space)</p></li>
+<li><p>We defined the ex-ante value <span class="math notranslate nohighlight">\(v(s) = \mathbb{E}_{\boldsymbol{\epsilon}}[\tilde{v}(s, \boldsymbol{\epsilon})]\)</span> to eliminate the continuous shock component</p></li>
+<li><p>We separated deterministic and random terms: <span class="math notranslate nohighlight">\(\tilde{v}(s, \boldsymbol{\epsilon}) = \max_a \{x_a(s) + \epsilon(a)\}\)</span></p></li>
+<li><p>We applied the Gumbel identity to evaluate <span class="math notranslate nohighlight">\(\mathbb{E}_{\boldsymbol{\epsilon}}[\max_a \{\cdots\}]\)</span> in closed form as a log-sum-exp</p></li>
+</ol>
+<p>The augmented MDP with shocks exists <strong>only as a mathematical device</strong>. We never approximate <span class="math notranslate nohighlight">\(\tilde{v}\)</span>, never discretize <span class="math notranslate nohighlight">\(\boldsymbol{\epsilon}\)</span>, and never enumerate the augmented state space. The only computational object we work with is <span class="math notranslate nohighlight">\(v(s)\)</span> on the original (finite) state space, which satisfies the smooth Bellman equation.</p>
+</section>
+<section id="deriving-the-optimal-smooth-policy">
+<h3>Deriving the Optimal Smooth Policy<a class="headerlink" href="#deriving-the-optimal-smooth-policy" title="Link to this heading">#</a></h3>
+<p>Now that we have derived the smooth value function, we can also obtain the corresponding optimal policy. The key question is: <strong>what policy should we follow in the original MDP (without explicitly conditioning on shocks)?</strong></p>
+<p>In the augmented MDP, the optimal policy is deterministic but depends on the shock realization:</p>
+<div class="math notranslate nohighlight">
+\[\pi(s, \boldsymbol{\epsilon}) \in \operatorname{argmax}_{a \in \mathcal{A}_s} \left\{ r(s,a) + \epsilon(a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j) \right\}\]</div>
+<p>However, we want a policy for the <strong>original</strong> state space <span class="math notranslate nohighlight">\(s\)</span> (not the augmented state). We obtain this by <strong>marginalizing over the current shocks</strong>—essentially asking: “what is the probability that action <span class="math notranslate nohighlight">\(a\)</span> is optimal when we average over all possible shock realizations?”</p>
+<p>Define an indicator function:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split} I_a(\boldsymbol{\epsilon}) = \begin{cases} 
+   1 &amp; \text{if } a \in \operatorname{argmax}_{a' \in \mathcal{A}_s} \left\{ x_{a'}(s) + \epsilon(a') \right\} \\
    0 &amp; \text{otherwise}
    \end{cases} \end{split}\]</div>
-<p>Note that this definition allows us to recover the original expression since:</p>
+<p>where <span class="math notranslate nohighlight">\(x_a(s) = r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\)</span> as before.</p>
+<p>The ex-ante probability that action <span class="math notranslate nohighlight">\(a\)</span> is optimal at state <span class="math notranslate nohighlight">\(s\)</span> is:</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}
-\begin{align*}
-\pi(s,\epsilon) &amp;= \left\{a \in \mathcal{A}_s : I_a(\epsilon) = 1\right\} \\
-&amp;= \left\{a \in \mathcal{A}_s : a \in \operatorname{argmax}_{a' \in \mathcal{A}_s} \left\{ r(s,a') + \epsilon(a') + \gamma \mathbb{E}_{j, \epsilon'}\left[v_\gamma^\star(j,\epsilon')\mid s, \epsilon,  a'\right] \right\}\right\}
-\end{align*}
-\end{split}\]</div>
-<p>This set-valued – but deterministic – function <span class="math notranslate nohighlight">\(\pi(s,\epsilon)\)</span> gives us the set of optimal actions for a given state <span class="math notranslate nohighlight">\(s\)</span> and noise realization <span class="math notranslate nohighlight">\(\epsilon\)</span>. For simplicity, consider the case where the optimal set of actions at <span class="math notranslate nohighlight">\(s\)</span> is a singleton such that taking the expectation over the noise variable gives us:</p>
+\[ \pi(a|s) = \mathbb{E}_{\boldsymbol{\epsilon}}[I_a(\boldsymbol{\epsilon})] = \mathbb{P}_{\boldsymbol{\epsilon}}\left(a \in \operatorname{argmax}_{a'} \left\{ x_{a'}(s) + \epsilon(a') \right\}\right) \]</div>
+<p>This is the probability that action <span class="math notranslate nohighlight">\(a\)</span> achieves the maximum when utilities are perturbed by Gumbel noise.</p>
+<div class="proof lemma admonition" id="gumbel-softmax">
+<p class="admonition-title"><span class="caption-number">Lemma 2 </span> (Gumbel-Max Probability (Softmax))</p>
+<section class="lemma-content" id="proof-content">
+<p>Let <span class="math notranslate nohighlight">\(\epsilon_1, \ldots, \epsilon_m\)</span> be i.i.d. <span class="math notranslate nohighlight">\(\mathrm{Gumbel}(\mu_\epsilon, 1/\beta)\)</span> random variables. For any deterministic values <span class="math notranslate nohighlight">\(x_1, \ldots, x_m \in \mathbb{R}\)</span>, the probability that index <span class="math notranslate nohighlight">\(i\)</span> achieves the maximum is:</p>
 <div class="math notranslate nohighlight">
-\[ \begin{align*}
-\mathbb{E}_\epsilon[I_a(\epsilon)] = \mathbb{P}\left(a \in \operatorname{argmax}_{a' \in \mathcal{A}_s} \left\{ r(s,a') + \epsilon(a') + \gamma \mathbb{E}_{j, \epsilon'}\left[v_\gamma^\star(j,\epsilon')\mid s, \epsilon, a'\right] \right\}\right)
-\end{align*} \]</div>
-<p>Now, we can leverage a key property of the Gumbel distribution. For a set of random variables <span class="math notranslate nohighlight">\(\{X_i = \mu_i + \epsilon_i\}\)</span> where <span class="math notranslate nohighlight">\(\epsilon_i\)</span> are i.i.d. Gumbel(0, 1/β) random variables, we have:</p>
+\[ \mathbb{P}\left(i \in \operatorname{argmax}_j \{x_j + \epsilon_j\}\right) = \frac{\exp(\beta x_i)}{\sum_{j=1}^m \exp(\beta x_j)} \]</div>
+<p>This holds regardless of the location parameter <span class="math notranslate nohighlight">\(\mu_\epsilon\)</span>.</p>
+</section>
+</div><p>Applying this result to our problem:</p>
 <div class="math notranslate nohighlight">
-\[ P(X_i \geq X_j, \forall j \neq i) = \frac{\exp(\beta\mu_i)}{\sum_j \exp(\beta\mu_j)} \]</div>
-<p>In our case, <span class="math notranslate nohighlight">\(X_a = r(s,a) + \epsilon(a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v_\gamma^\star(j)\)</span> for each action <span class="math notranslate nohighlight">\(a\)</span> (after marginalizing out <span class="math notranslate nohighlight">\(\epsilon'\)</span>), with <span class="math notranslate nohighlight">\(\mu_a = r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v_\gamma^\star(j)\)</span>.</p>
-<p>Applying this property and using the definition <span class="math notranslate nohighlight">\(v_\gamma^\star(s) = \mathbb{E}_\epsilon[v_\gamma^\star(s,\epsilon)]\)</span>, we get:</p>
-<div class="math notranslate nohighlight">
-\[ \pi(a|s) = \frac{\exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v_\gamma^\star(j)\right)\right)}{\sum_{a' \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a') + \gamma \sum_{j \in \mathcal{S}} p(j|s,a')v_\gamma^\star(j)\right)\right)} \]</div>
-<p>This gives us the optimal stochastic policy for the smooth MDP. Note that as <span class="math notranslate nohighlight">\(\beta \to \infty\)</span>, this policy approaches the deterministic policy of the original MDP, while for finite <span class="math notranslate nohighlight">\(\beta\)</span>, it gives a stochastic policy.</p>
+\[ \pi(a|s) = \frac{\exp\left(\beta x_a(s)\right)}{\sum_{a' \in \mathcal{A}_s} \exp\left(\beta x_{a'}(s)\right)} = \frac{\exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v(j)\right)\right)}{\sum_{a' \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a') + \gamma \sum_{j \in \mathcal{S}} p(j|s,a')v(j)\right)\right)} \]</div>
+<p>This is the <strong>softmax policy</strong> or <strong>Gibbs/Boltzmann policy</strong> with inverse temperature <span class="math notranslate nohighlight">\(\beta\)</span>.</p>
+<p><strong>Properties:</strong></p>
+<ul class="simple">
+<li><p>As <span class="math notranslate nohighlight">\(\beta \to \infty\)</span>: the policy becomes deterministic, concentrating on the action(s) with highest <span class="math notranslate nohighlight">\(x_a(s)\)</span> (recovers standard greedy policy)</p></li>
+<li><p>As <span class="math notranslate nohighlight">\(\beta \to 0\)</span>: the policy becomes uniform over all actions (maximum entropy)</p></li>
+<li><p>For finite <span class="math notranslate nohighlight">\(\beta &gt; 0\)</span>: the policy is stochastic, with probability mass proportional to exponentiated Q-values</p></li>
+</ul>
+<p>This completes the derivation: the smooth Bellman equation yields a value function <span class="math notranslate nohighlight">\(v(s)\)</span>, and the corresponding optimal policy is the softmax over Q-values.</p>
 <!-- ## Control as Inference Perspective
 
 The smooth Bellman optimality equations can also be derived from probabilistic inference perspective. To see this, let's go back to the idea from the previous section in which we introduced an indicator function $I_a(\epsilon)$ to represent whether an action $a$ is optimal given a particular realization of the noise $\epsilon$:
@@ -665,6 +767,7 @@ p(a_t | s_t, O_{1:T} = 1) &\propto p(a_t | s_t) \exp(\beta r(s_t, a_t)) \sum_{s_
 After normalization, and assuming a uniform prior $p(a_t | s_t)$, we obtain the randomized decision rule:
 
 $$ d(a_t | s_t) = \frac{\exp(\beta (r(s_t, a_t) + \gamma \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) V_{t+1}(s_{t+1})))}{\sum_{a'_t} \exp(\beta (r(s_t, a'_t) + \gamma \sum_{s_{t+1}} p(s_{t+1} | s_t, a'_t) V_{t+1}(s_{t+1})))} $$ -->
+</section>
 </section>
 <section id="regularized-markov-decision-processes">
 <h2>Regularized Markov Decision Processes<a class="headerlink" href="#regularized-markov-decision-processes" title="Link to this heading">#</a></h2>
@@ -1079,7 +1182,16 @@ v(s) = \frac{1}{\beta} \ln \sum_a \exp\left(\beta\left(r(s,a) + \gamma \sum_{j \
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#smooth-value-iteration-algorithm">Smooth Value Iteration Algorithm</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gumbel-noise-on-the-rewards">Gumbel Noise on the Rewards</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gumbel-noise-on-the-rewards">Gumbel Noise on the Rewards</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-1-define-the-augmented-mdp-with-gumbel-noise">Step 1: Define the Augmented MDP with Gumbel Noise</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-2-the-hard-bellman-equation-on-the-augmented-state-space">Step 2: The Hard Bellman Equation on the Augmented State Space</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-3-define-the-ex-ante-inclusive-value-function">Step 3: Define the Ex-Ante (Inclusive) Value Function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-4-separate-the-deterministic-and-random-components">Step 4: Separate the Deterministic and Random Components</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-5-apply-the-gumbel-random-utility-identity">Step 5: Apply the Gumbel Random Utility Identity</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-6-summary-of-the-derivation">Step 6: Summary of the Derivation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#deriving-the-optimal-smooth-policy">Deriving the Optimal Smooth Policy</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#regularized-markov-decision-processes">Regularized Markov Decision Processes</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#legendre-fenchel-transform">Legendre-Fenchel Transform</a></li>
 </ul>
