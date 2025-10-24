@@ -458,7 +458,8 @@
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#solving-the-collocation-system">Solving the Collocation System</a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#iterative-solution-successive-approximation">Iterative Solution: Successive Approximation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#method-1-function-iteration-successive-approximation">Method 1: Function Iteration (Successive Approximation)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#method-2-newton-s-method-with-the-envelope-theorem">Method 2: Newton’s Method with the Envelope Theorem</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#comparison-of-solution-methods">Comparison of Solution Methods</a></li>
 </ul>
 </li>
@@ -763,43 +764,191 @@ R(s_i; a) = 0, \quad i = 1, \ldots, n.
 <p>When the state space is continuous, the expectation involves integration, which typically requires numerical quadrature. When the state space is discrete but large, this is a straightforward (though potentially expensive) summation.</p>
 <section id="solving-the-collocation-system">
 <h4>Solving the Collocation System<a class="headerlink" href="#solving-the-collocation-system" title="Link to this heading">#</a></h4>
-<p>The resulting system is nonlinear due to the max operator on the right-hand side. We can write this more compactly as finding <span class="math notranslate nohighlight">\(a \in \mathbb{R}^n\)</span> such that <span class="math notranslate nohighlight">\(F(a) = 0\)</span> where:</p>
+<p>To organize our thinking about solution methods, it helps to introduce the <strong>collocation function</strong> <span class="math notranslate nohighlight">\(v: \mathbb{R}^n \to \mathbb{R}^n\)</span>, which maps coefficient vectors to target values at the collocation points. Given a coefficient vector <span class="math notranslate nohighlight">\(a = (a_1, \ldots, a_n)\)</span>, the <span class="math notranslate nohighlight">\(i\)</span>-th component of <span class="math notranslate nohighlight">\(v(a)\)</span> is defined as:</p>
 <div class="math notranslate nohighlight">
 \[
-F_i(a) = \sum_{j=1}^n a_j \varphi_j(s_i) - \max_{u \in \mathcal{A}_{s_i}} \left\{ r(s_i,u) + \gamma \sum_{j \in \mathcal{S}} p(j|s_i,u) \hat{v}(j; a) \right\}.
+v_i(a) = \max_{u \in \mathcal{A}_{s_i}} \left\{ r(s_i, u) + \gamma \sum_{j \in \mathcal{S}} p(j|s_i, u) \sum_{\ell=1}^n a_\ell \varphi_\ell(j) \right\}.
 \]</div>
-<p><strong>Newton’s method</strong> is the standard approach for such systems. However, the max operator introduces a non-differentiability issue: the function <span class="math notranslate nohighlight">\(F(a)\)</span> is not everywhere differentiable because the optimal action can change discontinuously as <span class="math notranslate nohighlight">\(a\)</span> varies. Fortunately, the function is <strong>semismooth</strong>: it is locally Lipschitz continuous and directionally differentiable everywhere. This structure can be exploited by <strong>semi-smooth Newton methods</strong>, which generalize Newton’s method to semismooth equations by using any element of the generalized Jacobian (in the sense of Clarke’s generalized derivative) in place of the classical Jacobian.</p>
-<p>In practice, implementing semi-smooth Newton for the Bellman equation is straightforward: at each iteration, we fix the optimal action <span class="math notranslate nohighlight">\(a^*(s_i; a^{(k)})\)</span> at the current guess <span class="math notranslate nohighlight">\(a^{(k)}\)</span>, compute the Jacobian assuming these actions remain optimal, and update:</p>
+<p>In words: <span class="math notranslate nohighlight">\(v_i(a)\)</span> is the value obtained by solving the Bellman maximization problem at collocation node <span class="math notranslate nohighlight">\(s_i\)</span>, using the approximation <span class="math notranslate nohighlight">\(\hat{v}(s; a) = \sum_{\ell=1}^n a_\ell \varphi_\ell(s)\)</span> in place of the true value function. The collocation function evaluates the <strong>right-hand side</strong> of the Bellman equation at all collocation points, given a current guess for the coefficients.</p>
+<p>Let <span class="math notranslate nohighlight">\(\boldsymbol{\Phi}\)</span> denote the <span class="math notranslate nohighlight">\(n \times n\)</span> <strong>collocation matrix</strong> with entries <span class="math notranslate nohighlight">\(\Phi_{ij} = \varphi_j(s_i)\)</span>. The <strong>left-hand side</strong> of the collocation equations is <span class="math notranslate nohighlight">\(\boldsymbol{\Phi} a\)</span>, which gives the values of <span class="math notranslate nohighlight">\(\hat{v}(s_i; a)\)</span> at the collocation points. The collocation equation requires these to match:</p>
 <div class="math notranslate nohighlight">
 \[
-a^{(k+1)} = a^{(k)} - J_F(a^{(k)})^{-1} F(a^{(k)}).
+\boldsymbol{\Phi} a = v(a).
 \]</div>
-<p>As we approach the solution, the optimal actions typically stabilize, and the method achieves superlinear convergence despite the non-smoothness. The main practical requirement is a good initial guess, which can be obtained from the successive approximation method described next.</p>
+<p>This is the fixed-point problem we need to solve. We can approach it in two fundamentally different ways: as a <strong>fixed-point iteration</strong> (function iteration) or as a <strong>rootfinding problem</strong> (Newton’s method).</p>
 </section>
 </section>
-<section id="iterative-solution-successive-approximation">
-<h3>Iterative Solution: Successive Approximation<a class="headerlink" href="#iterative-solution-successive-approximation" title="Link to this heading">#</a></h3>
-<p>Rather than solving the nonlinear system directly via Newton’s method, we can exploit the fixed-point structure of the problem. The collocation equations can be viewed as requiring that the approximation matches the Bellman operator at the collocation points. This suggests an iterative scheme that performs <strong>successive approximation</strong> (fixed-point iteration) in the finite-dimensional coefficient space. Starting with an initial guess <span class="math notranslate nohighlight">\(a^{(0)}\)</span>, we iterate:</p>
-<ol class="arabic">
-<li><p><strong>Maximization step</strong>: At each collocation point <span class="math notranslate nohighlight">\(s_i\)</span>, compute</p>
+<section id="method-1-function-iteration-successive-approximation">
+<h3>Method 1: Function Iteration (Successive Approximation)<a class="headerlink" href="#method-1-function-iteration-successive-approximation" title="Link to this heading">#</a></h3>
+<p>We can rewrite the collocation equation as <span class="math notranslate nohighlight">\(a = \boldsymbol{\Phi}^{-1} v(a)\)</span> (assuming <span class="math notranslate nohighlight">\(\boldsymbol{\Phi}\)</span> is invertible, which holds when the basis functions are linearly independent at the collocation points). This suggests the <strong>function iteration</strong> scheme:</p>
 <div class="math notranslate nohighlight">
 \[
-   v_i^{(k+1)} = \max_{a \in \mathcal{A}_{s_i}} \left\{ r(s_i,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s_i,a) \hat{v}(s_j; a^{(k)}) \right\}.
-   \]</div>
+a^{(k+1)} = \boldsymbol{\Phi}^{-1} v(a^{(k)}).
+\]</div>
+<p>This iteration has an intuitive interpretation when we break it into two steps:</p>
+<p><strong>Step 1 (Apply Bellman operator):</strong> For the current coefficient guess <span class="math notranslate nohighlight">\(a^{(k)}\)</span>, compute the Bellman operator values at all collocation points:</p>
+<div class="math notranslate nohighlight">
+\[
+t_i^{(k)} = v_i(a^{(k)}) = \max_{u \in \mathcal{A}_{s_i}} \left\{ r(s_i, u) + \gamma \sum_{j \in \mathcal{S}} p(j|s_i, u) \sum_{\ell=1}^n a^{(k)}_\ell \varphi_\ell(j) \right\}, \quad i = 1, \ldots, n.
+\]</div>
+<p>We now have a vector of <strong>targets</strong> <span class="math notranslate nohighlight">\(t^{(k)} = (t_1^{(k)}, \ldots, t_n^{(k)}) = v(a^{(k)})\)</span>.</p>
+<p><strong>Step 2 (Fit to targets):</strong> Find new coefficients <span class="math notranslate nohighlight">\(a^{(k+1)}\)</span> such that the approximation matches the targets at the collocation points:</p>
+<div class="math notranslate nohighlight">
+\[
+\sum_{\ell=1}^n a^{(k+1)}_\ell \varphi_\ell(s_i) = t_i^{(k)}, \quad i = 1, \ldots, n.
+\]</div>
+<p>In matrix form: <span class="math notranslate nohighlight">\(\boldsymbol{\Phi} a^{(k+1)} = t^{(k)}\)</span>, which gives <span class="math notranslate nohighlight">\(a^{(k+1)} = \boldsymbol{\Phi}^{-1} t^{(k)} = \boldsymbol{\Phi}^{-1} v(a^{(k)})\)</span>.</p>
+<p>This is <strong>parametric value iteration</strong> or <strong>projection-based value iteration</strong>: we iterate the Bellman operator in the finite-dimensional coefficient space, projecting back onto the span of the basis functions at each step. The method:</p>
+<ul class="simple">
+<li><p>Separates the nonlinear optimization (maximization in the Bellman operator) from the linear fitting problem</p></li>
+<li><p>Is globally convergent when the finite-dimensional approximation preserves the contraction property</p></li>
+<li><p>Requires only solving a linear system <span class="math notranslate nohighlight">\(\boldsymbol{\Phi} a^{(k+1)} = t^{(k)}\)</span> at each iteration</p></li>
+</ul>
+<div class="note admonition">
+<p class="admonition-title">Handling Stochastic Expectations</p>
+<p>When the model includes a continuous random variable (e.g., <span class="math notranslate nohighlight">\(s' = g(s, u, \epsilon)\)</span> where <span class="math notranslate nohighlight">\(\epsilon\)</span> is a shock), we must approximate the expectation using <strong>numerical quadrature</strong>. We replace the continuous <span class="math notranslate nohighlight">\(\epsilon\)</span> with a discrete approximation taking values <span class="math notranslate nohighlight">\(\{\epsilon_1, \ldots, \epsilon_m\}\)</span> with probabilities <span class="math notranslate nohighlight">\(\{w_1, \ldots, w_m\}\)</span>. The collocation function becomes:</p>
+<div class="math notranslate nohighlight">
+\[
+v_i(a) = \max_{u \in \mathcal{A}_{s_i}} \left\{ r(s_i, u) + \gamma \sum_{k=1}^m w_k \sum_{\ell=1}^n a_\ell \varphi_\ell(g(s_i, u, \epsilon_k)) \right\}.
+\]</div>
+<p>Common quadrature schemes include Gauss-Hermite (for normal shocks), Gauss-Legendre (for uniform shocks), or more sophisticated methods like sparse grids for high-dimensional shocks.</p>
+</div>
+</section>
+<section id="method-2-newton-s-method-with-the-envelope-theorem">
+<h3>Method 2: Newton’s Method with the Envelope Theorem<a class="headerlink" href="#method-2-newton-s-method-with-the-envelope-theorem" title="Link to this heading">#</a></h3>
+<p>Alternatively, we can write the collocation equation as a <strong>rootfinding problem</strong>:</p>
+<div class="math notranslate nohighlight">
+\[
+F(a) \equiv \boldsymbol{\Phi} a - v(a) = 0.
+\]</div>
+<p>Newton’s method for this system uses the update:</p>
+<div class="math notranslate nohighlight">
+\[
+a^{(k+1)} = a^{(k)} - J_F(a^{(k)})^{-1} F(a^{(k)}),
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(J_F(a)\)</span> is the Jacobian of <span class="math notranslate nohighlight">\(F\)</span> at <span class="math notranslate nohighlight">\(a\)</span>. Since <span class="math notranslate nohighlight">\(J_F = \boldsymbol{\Phi} - J_v\)</span> where <span class="math notranslate nohighlight">\(J_v\)</span> is the Jacobian of the collocation function <span class="math notranslate nohighlight">\(v\)</span>, we can rewrite this as:</p>
+<div class="math notranslate nohighlight">
+\[
+a^{(k+1)} = a^{(k)} - [\boldsymbol{\Phi} - J_v(a^{(k)})]^{-1} [\boldsymbol{\Phi} a^{(k)} - v(a^{(k)})].
+\]</div>
+<p>The main challenge now is computing the Jacobian <span class="math notranslate nohighlight">\(J_v(a)\)</span>. The <span class="math notranslate nohighlight">\((i,j)\)</span>-th entry is:</p>
+<div class="math notranslate nohighlight">
+\[
+[J_v]_{ij} = \frac{\partial v_i}{\partial a_j}(a) = \frac{\partial}{\partial a_j} \left[ \max_{u \in \mathcal{A}_{s_i}} \left\{ r(s_i, u) + \gamma \sum_{k \in \mathcal{S}} p(k|s_i, u) \sum_{\ell=1}^n a_\ell \varphi_\ell(k) \right\} \right].
+\]</div>
+<p>At first glance, this appears problematic because the max operator is not differentiable. However, we can apply the <strong>Envelope Theorem</strong> to compute this derivative without dealing with the non-differentiability of the max operator.</p>
+<div class="important admonition">
+<p class="admonition-title">The Envelope Theorem</p>
+<p><strong>Setup:</strong> Consider a smooth objective function <span class="math notranslate nohighlight">\(f(\mathbf{x}, \boldsymbol{\theta})\)</span> and define the optimal value:</p>
+<div class="math notranslate nohighlight">
+\[
+v(\boldsymbol{\theta}) = \max_{\mathbf{x}} f(\mathbf{x}, \boldsymbol{\theta}).
+\]</div>
+<p>Let <span class="math notranslate nohighlight">\(\mathbf{x}(\boldsymbol{\theta})\)</span> denote the maximizer, satisfying the first-order condition:</p>
+<div class="math notranslate nohighlight">
+\[
+\nabla_{\mathbf{x}} f(\mathbf{x}(\boldsymbol{\theta}), \boldsymbol{\theta}) = \mathbf{0}.
+\]</div>
+<p><strong>The Result:</strong> To find how the <strong>optimal value</strong> changes with <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span>, write <span class="math notranslate nohighlight">\(v(\boldsymbol{\theta}) = f(\mathbf{x}(\boldsymbol{\theta}), \boldsymbol{\theta})\)</span> and apply the chain rule:</p>
+<div class="math notranslate nohighlight">
+\[
+\nabla_{\boldsymbol{\theta}} v(\boldsymbol{\theta}) = \underbrace{\nabla_{\boldsymbol{\theta}} f(\mathbf{x}(\boldsymbol{\theta}), \boldsymbol{\theta})}_{\text{direct effect}} + \underbrace{\nabla_{\mathbf{x}} f(\mathbf{x}(\boldsymbol{\theta}), \boldsymbol{\theta})^{\top}}_{\mathbf{0} \text{ at optimum}} \frac{\partial \mathbf{x}}{\partial \boldsymbol{\theta}}.
+\]</div>
+<p>Since <span class="math notranslate nohighlight">\(\nabla_{\mathbf{x}} f = \mathbf{0}\)</span> at the optimum, the second term vanishes:</p>
+<div class="math notranslate nohighlight">
+\[
+\boxed{\nabla_{\boldsymbol{\theta}} v(\boldsymbol{\theta}) = \nabla_{\boldsymbol{\theta}} f(\mathbf{x}(\boldsymbol{\theta}), \boldsymbol{\theta})}.
+\]</div>
+<p>This results tells us that you can compute the derivative of the optimal value by treating the maximizer as constant. You don’t need to compute <span class="math notranslate nohighlight">\(\frac{\partial \mathbf{x}}{\partial \boldsymbol{\theta}}\)</span>.</p>
+<p>In our Bellman collocation problem, <span class="math notranslate nohighlight">\(v_i(a) = \max_u \{r(s_i, u) + \gamma \mathbb{E}[\sum_\ell a_\ell \varphi_\ell(s')]\}\)</span>. To compute <span class="math notranslate nohighlight">\(\frac{\partial v_i}{\partial a_j}\)</span>, we don’t need to figure out how <span class="math notranslate nohighlight">\(u_i^*(a)\)</span> changes with <span class="math notranslate nohighlight">\(a\)</span>—we just evaluate the gradient at the optimal action:</p>
+<div class="math notranslate nohighlight">
+\[
+\frac{\partial v_i}{\partial a_j}(a) = \gamma \sum_{s'} p(s'|s_i, u_i^*(a)) \varphi_j(s').
+\]</div>
+<p><strong>Important assumptions:</strong> <span class="math notranslate nohighlight">\(f\)</span> is smooth, the maximizer is unique and in the interior (or constraints are smooth with stable active sets), and the first-order condition holds.</p>
+</div>
+<p>Specifically, let <span class="math notranslate nohighlight">\(u_i^*(a)\)</span> denote the optimal action at collocation point <span class="math notranslate nohighlight">\(s_i\)</span> given coefficients <span class="math notranslate nohighlight">\(a\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[
+u_i^*(a) \in \operatorname{argmax}_{u \in \mathcal{A}_{s_i}} \left\{ r(s_i, u) + \gamma \sum_{k \in \mathcal{S}} p(k|s_i, u) \sum_{\ell=1}^n a_\ell \varphi_\ell(k) \right\}.
+\]</div>
+<p>By the Envelope Theorem, we can compute the derivative by treating <span class="math notranslate nohighlight">\(u_i^*\)</span> as constant:</p>
+<div class="math notranslate nohighlight">
+\[
+\frac{\partial v_i}{\partial a_j}(a) = \gamma \sum_{k \in \mathcal{S}} p(k|s_i, u_i^*(a)) \varphi_j(k).
+\]</div>
+<p>This is simply the <strong>expected value of the <span class="math notranslate nohighlight">\(j\)</span>-th basis function at the next state</strong>, evaluated at the optimal action for the current coefficient vector.</p>
+<div class="dropdown admonition">
+<p class="admonition-title">Why the Envelope Theorem Works Here</p>
+<p>The Envelope Theorem applies to value functions of optimization problems. For a problem <span class="math notranslate nohighlight">\(V(\theta) = \max_x f(x, \theta)\)</span>, the derivative with respect to the parameter <span class="math notranslate nohighlight">\(\theta\)</span> is:</p>
+<div class="math notranslate nohighlight">
+\[
+\frac{dV}{d\theta} = \frac{\partial f}{\partial \theta}(x^*(\theta), \theta),
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(x^*(\theta)\)</span> is the optimal choice. We don’t need to account for <span class="math notranslate nohighlight">\(\frac{\partial x^*}{\partial \theta}\)</span> because at the optimum, the first-order condition <span class="math notranslate nohighlight">\(\frac{\partial f}{\partial x} = 0\)</span> makes that term vanish.</p>
+<p>In our case, <span class="math notranslate nohighlight">\(v_i(a)\)</span> is the value of maximizing over actions <span class="math notranslate nohighlight">\(u\)</span>, with <span class="math notranslate nohighlight">\(a\)</span> playing the role of the parameter vector. The Envelope Theorem lets us compute <span class="math notranslate nohighlight">\(\frac{\partial v_i}{\partial a_j}\)</span> by differentiating the objective (the Bellman right-hand side) with respect to <span class="math notranslate nohighlight">\(a_j\)</span> while holding the optimal action <span class="math notranslate nohighlight">\(u_i^*\)</span> fixed. Since <span class="math notranslate nohighlight">\(a_j\)</span> only appears in the continuation value <span class="math notranslate nohighlight">\(\sum_{\ell} a_\ell \varphi_\ell(k)\)</span>, the derivative picks out the coefficient of <span class="math notranslate nohighlight">\(a_j\)</span>, which is the expected basis function value.</p>
+<p>This approach is <strong>equivalent</strong> to the semi-smooth Newton method mentioned earlier: we’re computing a generalized Jacobian by treating the optimal action as locally constant. As we converge to the solution, the optimal actions stabilize, and Newton’s method achieves superlinear convergence.</p>
+</div>
+<p><strong>Newton’s method algorithm:</strong></p>
+<ol class="arabic simple">
+<li><p>Start with initial guess <span class="math notranslate nohighlight">\(a^{(0)}\)</span></p></li>
+<li><p>For iteration <span class="math notranslate nohighlight">\(k = 0, 1, 2, \ldots\)</span>:</p>
+<ul class="simple">
+<li><p>Compute <span class="math notranslate nohighlight">\(v(a^{(k)})\)</span> and optimal actions <span class="math notranslate nohighlight">\(u_i^*(a^{(k)})\)</span> for all collocation points</p></li>
+<li><p>Compute Jacobian entries: <span class="math notranslate nohighlight">\([J_v]_{ij} = \gamma \sum_{s' \in \mathcal{S}} p(s'|s_i, u_i^*(a^{(k)})) \varphi_j(s')\)</span></p></li>
+<li><p>Update: <span class="math notranslate nohighlight">\(a^{(k+1)} = a^{(k)} - [\boldsymbol{\Phi} - J_v(a^{(k)})]^{-1} [\boldsymbol{\Phi} a^{(k)} - v(a^{(k)})]\)</span></p></li>
+<li><p>Check convergence</p></li>
+</ul>
 </li>
-<li><p><strong>Fitting step</strong>: Find coefficients <span class="math notranslate nohighlight">\(a^{(k+1)}\)</span> such that <span class="math notranslate nohighlight">\(\hat{v}(s_i; a^{(k+1)}) = v_i^{(k+1)}\)</span> for all <span class="math notranslate nohighlight">\(i = 1, \ldots, n\)</span>. This is a linear system if our approximation is linear in the coefficients.</p></li>
-<li><p><strong>Check convergence</strong>: If <span class="math notranslate nohighlight">\(\|a^{(k+1)} - a^{(k)}\|\)</span> is sufficiently small, stop; otherwise return to step 1.</p></li>
 </ol>
-<p>This algorithm, which Judd calls <strong>parametric value function iteration</strong> or <strong>projection-based value iteration</strong>, separates the difficult nonlinear optimization (the max operator in the Bellman equation) from the approximation problem. Each iteration improves the approximation by ensuring it matches the Bellman operator at the collocation points. Mathematically, it performs successive approximation in the finite-dimensional coefficient space: we define an operator <span class="math notranslate nohighlight">\(\hat{\mathrm{L}}\)</span> that maps coefficients <span class="math notranslate nohighlight">\(a^{(k)}\)</span> to new coefficients <span class="math notranslate nohighlight">\(a^{(k+1)}\)</span> via the maximization and fitting steps, then iterate <span class="math notranslate nohighlight">\(a^{(k+1)} = \hat{\mathrm{L}}(a^{(k)})\)</span>.</p>
+<p>This method offers <strong>quadratic convergence</strong> near the solution but requires a good initial guess. The Jacobian computation via the Envelope Theorem is typically cheaper than explicit semi-smooth calculus and has a clear economic interpretation: it tracks how the value propagates through the optimal decisions.</p>
 <section id="comparison-of-solution-methods">
 <h4>Comparison of Solution Methods<a class="headerlink" href="#comparison-of-solution-methods" title="Link to this heading">#</a></h4>
-<p>We now have two approaches to solving the collocation equations:</p>
+<p>We now have two approaches to solving the collocation fixed-point equation <span class="math notranslate nohighlight">\(\boldsymbol{\Phi} a = v(a)\)</span>:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p><strong>Method</strong></p></th>
+<th class="head text-left"><p><strong>Formulation</strong></p></th>
+<th class="head text-left"><p><strong>Convergence</strong></p></th>
+<th class="head text-left"><p><strong>Per-iteration cost</strong></p></th>
+<th class="head text-left"><p><strong>Initial guess sensitivity</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p><strong>Function iteration</strong></p></td>
+<td class="text-left"><p><span class="math notranslate nohighlight">\(a^{(k+1)} = \boldsymbol{\Phi}^{-1} v(a^{(k)})\)</span></p></td>
+<td class="text-left"><p>Linear (when contraction holds)</p></td>
+<td class="text-left"><p>Low (one linear solve)</p></td>
+<td class="text-left"><p>Robust</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p><strong>Newton’s method</strong></p></td>
+<td class="text-left"><p><span class="math notranslate nohighlight">\(a^{(k+1)} = a^{(k)} - [\boldsymbol{\Phi} - J_v]^{-1}[\boldsymbol{\Phi} a^{(k)} - v(a^{(k)})]\)</span></p></td>
+<td class="text-left"><p>Quadratic (near solution)</p></td>
+<td class="text-left"><p>Moderate (Jacobian + linear solve)</p></td>
+<td class="text-left"><p>Requires good initial guess</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Function iteration</strong> exploits the fixed-point structure directly, treating the collocation problem as value iteration in coefficient space. When the finite-dimensional approximation preserves the contraction property of the Bellman operator, it converges globally from any initial guess. Each iteration is cheap: evaluate the Bellman operator at <span class="math notranslate nohighlight">\(n\)</span> points (the collocation nodes) and solve one linear system <span class="math notranslate nohighlight">\(\boldsymbol{\Phi} a^{(k+1)} = v(a^{(k)})\)</span>. However, convergence can be slow, especially when <span class="math notranslate nohighlight">\(\gamma\)</span> is close to 1.</p>
+<p><strong>Newton’s method</strong> treats the problem as rootfinding, exploiting smoothness (via the Envelope Theorem) to achieve fast local convergence. Once close to the solution, Newton’s method typically converges in just a few iterations. The per-iteration cost is higher: in addition to evaluating <span class="math notranslate nohighlight">\(v(a^{(k)})\)</span>, we must compute the Jacobian <span class="math notranslate nohighlight">\(J_v(a^{(k)})\)</span>, which requires evaluating expected basis function values at all collocation points. However, Newton’s method is sensitive to initial conditions and may diverge or converge to spurious solutions when started far from the true fixed point.</p>
+<div class="note admonition">
+<p class="admonition-title">Connection to Policy Iteration</p>
+<p>The Newton update <span class="math notranslate nohighlight">\(a^{(k+1)} = [\boldsymbol{\Phi} - J_v(a^{(k)})]^{-1} v(a^{(k)})\)</span> is equivalent to the <strong>policy iteration</strong> algorithm commonly used in discrete-state dynamic programming. To see this, note that at the optimal coefficients <span class="math notranslate nohighlight">\(a^*\)</span>, we have <span class="math notranslate nohighlight">\(\boldsymbol{\Phi} a^* = v(a^*)\)</span>. The Newton step finds the coefficients that would be optimal if the policy (the optimal actions at each collocation point) were held fixed at the current iteration’s policy. This connection explains why Newton’s method often converges rapidly: like policy iteration, it implicitly performs policy evaluation and policy improvement, which can converge in just a few iterations for well-behaved problems.</p>
+</div>
+<p><strong>Practical recommendations:</strong></p>
 <ol class="arabic simple">
-<li><p><strong>Semi-smooth Newton</strong>: Solve the nonlinear system <span class="math notranslate nohighlight">\(F(a) = 0\)</span> directly using Newton’s method adapted for semismooth functions. This offers fast (superlinear) convergence near the solution but requires a good initial guess and may fail to converge from poor starting points.</p></li>
-<li><p><strong>Successive approximation (parametric value iteration)</strong>: Iterate the map <span class="math notranslate nohighlight">\(a^{(k+1)} = \hat{\mathrm{L}}(a^{(k)})\)</span> that alternates between maximization and fitting steps. This is more robust to poor initial guesses and inherits global convergence properties when the finite-dimensional approximation preserves the contraction property of the Bellman operator.</p></li>
+<li><p><strong>For problems with strong contraction</strong> (small <span class="math notranslate nohighlight">\(\gamma\)</span>, well-conditioned <span class="math notranslate nohighlight">\(\boldsymbol{\Phi}\)</span>, shape-preserving bases): Start with function iteration. It’s simple, robust, and often converges adequately in 20-50 iterations.</p></li>
+<li><p><strong>For problems with weak contraction</strong> (large <span class="math notranslate nohighlight">\(\gamma\)</span>, high-order polynomial bases): Use a <strong>hybrid approach</strong>:</p>
+<ul class="simple">
+<li><p>Run function iteration for 5-10 iterations to get into the basin of attraction</p></li>
+<li><p>Switch to Newton’s method for fast convergence to high accuracy</p></li>
+</ul>
+</li>
+<li><p><strong>For problems where contraction fails</strong> (non-monotone bases, approximation destroys contraction): Newton’s method may be necessary from the start, but requires careful initialization (e.g., from a coarser approximation).</p></li>
+<li><p><strong>Quasi-Newton methods</strong> (like BFGS or Broyden) offer a middle ground: they approximate the Jacobian using function evaluations only, avoiding the Envelope Theorem calculation. This can be useful when computing <span class="math notranslate nohighlight">\(J_v\)</span> is expensive or when the Jacobian approximation is acceptable.</p></li>
 </ol>
-<p><strong>Which should we use?</strong> Following Judd’s guidance: When the Bellman operator is known to be a contraction and the finite-dimensional approximation preserves this property (as with linear interpolation or carefully chosen low-order approximations), successive approximation is often the best choice. It is globally convergent and each iteration is relatively cheap. However, high-order polynomial approximations may destroy the contraction property or introduce numerical instabilities. In such cases, or when convergence is too slow, Newton’s method (or semi-smooth Newton) becomes necessary despite requiring good initial guesses.</p>
-<p>A <strong>hybrid strategy</strong> works well in practice: use successive approximation to generate an initial approximation, then switch to semi-smooth Newton for rapid refinement once in the neighborhood of the solution. This combines the global convergence of successive approximation with the fast local convergence of Newton’s method.</p>
+<p>The choice often depends on the application domain. In economic models where the value function is guaranteed to be concave and monotone, simple bases (linear interpolation, shape-preserving splines) combined with function iteration are reliable. In control problems with complex dynamics, high-order approximations combined with Newton’s method may be necessary for accuracy.</p>
 </section>
 </section>
 <section id="shape-preserving-considerations">
@@ -1013,7 +1162,8 @@ v = \Pi(r_\pi + \gamma \mathbf{P}_\pi v), \qquad v \in \text{span}(\boldsymbol{\
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#solving-the-collocation-system">Solving the Collocation System</a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#iterative-solution-successive-approximation">Iterative Solution: Successive Approximation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#method-1-function-iteration-successive-approximation">Method 1: Function Iteration (Successive Approximation)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#method-2-newton-s-method-with-the-envelope-theorem">Method 2: Newton’s Method with the Envelope Theorem</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#comparison-of-solution-methods">Comparison of Solution Methods</a></li>
 </ul>
 </li>
