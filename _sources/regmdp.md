@@ -139,7 +139,7 @@ However, this equation is **computationally intractable** because:
 
 The idea here is to consider the **expected value before observing the current shocks**. We define what some authors in econometrics call the **inclusive value** or **ex-ante value**:
 
-$$ v(s) \coloneqq \mathbb{E}_{\boldsymbol{\epsilon}}\big[\tilde{v}(s, \boldsymbol{\epsilon})\big] $$
+$$ v(s) := \mathbb{E}_{\boldsymbol{\epsilon}}\big[\tilde{v}(s, \boldsymbol{\epsilon})\big] $$
 
 This is the value of being in state $s$ **before** we observe the current-period shock vector $\boldsymbol{\epsilon}$. 
 
@@ -164,7 +164,7 @@ This follows from our definition of $v$ and the fact that the next shock is inde
 
 Now define the **deterministic part** of the right-hand side:
 
-$$ x_a(s) \coloneqq r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j) $$
+$$ x_a(s) := r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j) $$
 
 This is the expected return from taking action $a$ in state $s$ **without the shock**. Using this notation, the augmented Bellman equation becomes:
 

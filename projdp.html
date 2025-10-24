@@ -602,16 +602,20 @@ R(x; a) = \mathscr{N}(\hat{f}(\cdot; a))(x).
 <section id="step-3-choose-weighted-residual-conditions">
 <h3>Step 3: Choose Weighted Residual Conditions<a class="headerlink" href="#step-3-choose-weighted-residual-conditions" title="Link to this heading">#</a></h3>
 <p>Having chosen our basis and defined the residual, we must decide how to make the residual “close to zero.” As discussed in the introduction, we can either:</p>
-<ol class="arabic simple">
-<li><p><strong>Use projection conditions</strong>: Select <span class="math notranslate nohighlight">\(n\)</span> test functions <span class="math notranslate nohighlight">\(\{p_1, \ldots, p_n\}\)</span> and require:
-$<span class="math notranslate nohighlight">\(
-\langle R(\cdot; a), p_i \rangle = \int_{\mathcal{S}} R(x; a) p_i(x) w(x) dx = 0, \quad i = 1, \ldots, n,
-\)</span><span class="math notranslate nohighlight">\(
-for some weight function \)</span>w(x)<span class="math notranslate nohighlight">\(. This yields \)</span>n<span class="math notranslate nohighlight">\( equations to determine the \)</span>n<span class="math notranslate nohighlight">\( coefficients in \)</span>a$.</p></li>
-<li><p><strong>Use a least squares condition</strong>: Minimize the norm of the residual directly:
-$<span class="math notranslate nohighlight">\(
-\min_a \int_{\mathcal{S}} R(x; a)^2 w(x) dx.
-\)</span>$</p></li>
+<ol class="arabic">
+<li><p><strong>Use projection conditions</strong>: Select <span class="math notranslate nohighlight">\(n\)</span> test functions <span class="math notranslate nohighlight">\(\{p_1, \ldots, p_n\}\)</span> and require:</p>
+<div class="math notranslate nohighlight">
+\[
+   \langle R(\cdot; a), p_i \rangle = \int_{\mathcal{S}} R(x; a) p_i(x) w(x) dx = 0, \quad i = 1, \ldots, n,
+   \]</div>
+<p>for some weight function <span class="math notranslate nohighlight">\(w(x)\)</span>. This yields <span class="math notranslate nohighlight">\(n\)</span> equations to determine the <span class="math notranslate nohighlight">\(n\)</span> coefficients in <span class="math notranslate nohighlight">\(a\)</span>.</p>
+</li>
+<li><p><strong>Use a least squares condition</strong>: Minimize the norm of the residual directly:</p>
+<div class="math notranslate nohighlight">
+\[
+   \min_a \int_{\mathcal{S}} R(x; a)^2 w(x) dx.
+   \]</div>
+</li>
 </ol>
 <p>We begin by examining the main projection methods, distinguished entirely by their choice of test functions <span class="math notranslate nohighlight">\(p_i\)</span>, then discuss least squares as an alternative approach.</p>
 <p>Let us examine the standard choices of test functions and what they reveal about the residual:</p>

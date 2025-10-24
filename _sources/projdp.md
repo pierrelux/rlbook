@@ -166,12 +166,15 @@ This residual measures how far our candidate solution is from satisfying the equ
 Having chosen our basis and defined the residual, we must decide how to make the residual "close to zero." As discussed in the introduction, we can either:
 
 1. **Use projection conditions**: Select $n$ test functions $\{p_1, \ldots, p_n\}$ and require:
+
    $$
    \langle R(\cdot; a), p_i \rangle = \int_{\mathcal{S}} R(x; a) p_i(x) w(x) dx = 0, \quad i = 1, \ldots, n,
    $$
+   
    for some weight function $w(x)$. This yields $n$ equations to determine the $n$ coefficients in $a$.
 
 2. **Use a least squares condition**: Minimize the norm of the residual directly:
+
    $$
    \min_a \int_{\mathcal{S}} R(x; a)^2 w(x) dx.
    $$

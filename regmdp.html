@@ -577,7 +577,7 @@ Approximation theory is at the heart of learning methods, and fundamentally, thi
 <h3>Step 3: Define the Ex-Ante (Inclusive) Value Function<a class="headerlink" href="#step-3-define-the-ex-ante-inclusive-value-function" title="Link to this heading">#</a></h3>
 <p>The idea here is to consider the <strong>expected value before observing the current shocks</strong>. We define what some authors in econometrics call the <strong>inclusive value</strong> or <strong>ex-ante value</strong>:</p>
 <div class="math notranslate nohighlight">
-\[ v(s) \coloneqq \mathbb{E}_{\boldsymbol{\epsilon}}\big[\tilde{v}(s, \boldsymbol{\epsilon})\big] \]</div>
+\[ v(s) := \mathbb{E}_{\boldsymbol{\epsilon}}\big[\tilde{v}(s, \boldsymbol{\epsilon})\big] \]</div>
 <p>This is the value of being in state <span class="math notranslate nohighlight">\(s\)</span> <strong>before</strong> we observe the current-period shock vector <span class="math notranslate nohighlight">\(\boldsymbol{\epsilon}\)</span>.</p>
 <div class="note admonition">
 <p class="admonition-title">Two Different Value Functions</p>
@@ -598,7 +598,7 @@ Approximation theory is at the heart of learning methods, and fundamentally, thi
 <p>This follows from our definition of <span class="math notranslate nohighlight">\(v\)</span> and the fact that the next shock is independent of everything else.</p>
 <p>Now define the <strong>deterministic part</strong> of the right-hand side:</p>
 <div class="math notranslate nohighlight">
-\[ x_a(s) \coloneqq r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j) \]</div>
+\[ x_a(s) := r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j) \]</div>
 <p>This is the expected return from taking action <span class="math notranslate nohighlight">\(a\)</span> in state <span class="math notranslate nohighlight">\(s\)</span> <strong>without the shock</strong>. Using this notation, the augmented Bellman equation becomes:</p>
 <div class="math notranslate nohighlight">
 \[ \tilde{v}(s, \boldsymbol{\epsilon}) = \max_{a \in \mathcal{A}_s} \left\{ x_a(s) + \epsilon(a) \right\} \]</div>
