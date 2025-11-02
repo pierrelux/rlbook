@@ -65,7 +65,7 @@ $$
 \int v_n(s')p(ds'|s_k,a) \approx \frac{1}{N} \sum_{i=1}^N v_n(s'_{k,i}), \quad s'_{k,i} \sim p(\cdot|s_k,a)
 $$
 
-where $s'_{k,i}$ denotes the $i$-th sample drawn from $p(\cdot|s_k,a)$ for base point $s_k$. This approach has two remarkable properties making it particularly attractive for high-dimensional problems and model-free settings:
+where $s'_{k,i}$ denotes the $i$-th sample drawn from $p(\cdot|s_k,a)$ for base point $s_k$. This approach has two properties making it particularly attractive for high-dimensional problems and model-free settings:
 1. The convergence rate is $O\left(\frac{1}{\sqrt{N}}\right)$ regardless of the number of dimensions
 2. It only requires samples from $p(\cdot|s_k,a)$, not explicit probability values
 
@@ -154,7 +154,7 @@ $$
 (\widetilde{\mathrm{L}}v_i)(s) \triangleq (\hat{\mathrm{L}}v_i)(s) - \hat{b}(s)
 $$
 
-Interestingly, while this bias correction approach has been influential in econometrics, it hasn't gained much traction in the machine learning community. A major drawback is the need for accurate operator estimation at benchmark states, which requires allocating substantially more samples to these states. In the next section, we'll explore an alternative strategy that, while requiring the maintenance of two sets of value estimates, achieves bias correction without demanding additional samples.
+While this bias correction approach has been influential in econometrics, it hasn't gained much traction in the machine learning community. A major drawback is the need for accurate operator estimation at benchmark states, which requires allocating substantially more samples to these states. In the next section, we'll explore an alternative strategy that, while requiring the maintenance of two sets of value estimates, achieves bias correction without demanding additional samples.
 
 ### Decoupling Selection and Evaluation
 
@@ -183,7 +183,7 @@ A simpler approach to addressing the upward bias is to maintain two separate q-f
 4. until $\delta < \varepsilon$ or $i \geq K$
 5. return final $q^A_{i+1}, q^B_{i+1}$
 ```
-In this algorithm, we maintain two separate Q-functions ($q^A$ and $q^B$) and use them asymmetrically: when updating $q^A$, we use network A to select the best action ($a^*_i = \arg\max_{a'} q^A_i(s'_j,a')$) but then evaluate that action using network B's estimates ($q^B_i(s'_j,a^*_i)$). We do the opposite for updating $q^B$. You can see this separation clearly in steps 3.2.2 and 3.2.3 of the algorithm, where for each network update, we first use one network to pick the action and then plug that chosen action into the other network for evaluation. We will see that this decomposition helps mitigate the positive bias that occurs due to Jensen's inequality. 
+In this algorithm, we maintain two separate Q-functions ($q^A$ and $q^B$) and use them asymmetrically: when updating $q^A$, we use network A to select the best action ($a^*_i = \arg\max_{a'} q^A_i(s'_j,a')$) but then evaluate that action using network B's estimates ($q^B_i(s'_j,a^*_i)$). We do the opposite for updating $q^B$. You can see this separation in steps 3.2.2 and 3.2.3 of the algorithm, where for each network update, we first use one network to pick the action and then plug that chosen action into the other network for evaluation. We will see that this decomposition helps mitigate the positive bias that occurs due to Jensen's inequality. 
 
 #### An HVAC analogy
 
@@ -231,7 +231,7 @@ $$
 $$
 
 
-To analyze $ \mathbb{E}[Y] $ more closely, let’s use a general result: if we have a real-valued function $ f $ defined on a discrete set of units $ \{1, \dots, n\} $ and a probability distribution $ q(\cdot) $ over these units, then the maximum value of $ f $ across all units is at least as large as the weighted sum of $ f $ values with weights $ q $. Formally,
+To analyze $ \mathbb{E}[Y] $ more closely, let's use a general result: if we have a real-valued function $ f $ defined on a discrete set of units $ \{1, \dots, n\} $ and a probability distribution $ q(\cdot) $ over these units, then the maximum value of $ f $ across all units is at least as large as the weighted sum of $ f $ values with weights $ q $. Formally,
 
 $$
 \max_{j \in \{1, \dots, n\}} f(j) \geq \sum_{j=1}^n q(j) f(j).
@@ -315,7 +315,7 @@ $$
 \mathrm{L} \mathbf{v} \equiv \max_{\pi \in \Pi^{MD}} \left\{\mathbf{r}_\pi + \gamma \mathbf{P}_\pi \mathbf{v}\right\}
 $$
 
-Value iteration — the name for the method of successive approximation applied to $\mathrm{L}$ — computes a sequence of iterates $v_{n+1} = \mathrm{L}v_n$ from some arbitrary $v_0$. Let's pause to consider what the equality sign in this expression means: it represents an assignment (perhaps better denoted as $:=$) across the entire domain. This becomes clearer when writing the update in component form:
+Value iteration -- the name for the method of successive approximation applied to $\mathrm{L}$ -- computes a sequence of iterates $v_{n+1} = \mathrm{L}v_n$ from some arbitrary $v_0$. Let's pause to consider what the equality sign in this expression means: it represents an assignment (perhaps better denoted as $:=$) across the entire domain. This becomes clearer when writing the update in component form:
 
 $$
 v_{n+1}(s) := (\mathrm{L} v_n)(s) \equiv \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v_n(j)\right\}, \, \forall s \in \mathcal{S}
@@ -364,7 +364,7 @@ The Gauss-Seidel value iteration approach offers several advantages over standar
 But what if maintaining such a table is impossible? This challenge arises naturally when dealing with continuous state spaces, where we cannot feasibly store values for every possible state, let alone update them. This is where function approximation comes into play. 
 
 
-## Partial Updates by Operator Fitting: Parametric Value Iteration
+## Parametric Value Iteration
 
 In the parametric approach to dynamic programming, instead of maintaining an explicit table of values, we represent the value function using a parametric function approximator $v(s; \boldsymbol{\theta})$, where $\boldsymbol{\theta}$ are parameters that get adjusted across iterations rather than the entries of a tabular representation. This idea traces back to the inception of dynamic programming and was described as early as 1963 by Bellman himself, who considered polynomial approximations. For a value function $v(s)$, we can write its polynomial approximation as:
 
@@ -558,7 +558,7 @@ With this insight, we can adapt our parametric value iteration algorithm to work
 5. **return** $\boldsymbol{\theta}_n$
 ```
 
-## Warmstarting: The Choice of Initialization
+## Initialization and Warmstarting
 
 Parametric dynamic programming involves solving a sequence of related optimization problems, one for each fitting procedure at each iteration. While we've presented these as independent fitting problems, in practice we can leverage the relationship between successive iterations through careful initialization. This "warmstarting" strategy can significantly impact both computational efficiency and solution quality.
 
@@ -593,7 +593,7 @@ Here's how warmstarting can be incorporated into parametric Q-learning with one-
 
 The main addition here is the periodic reset of parameters (controlled by frequency $k$) which helps balance the benefits of warmstarting with the need to avoid potential overfitting. When $k=\infty$, we get traditional persistent warmstarting, while $k=1$ corresponds to training from scratch each iteration.
 
-## Inner Optimization: Fit to Convergence or Not?
+## Inner Loop Convergence
 
 Beyond the choice of initialization and whether to chain optimization problems through warmstarting, we can also control how we terminate the inner optimization procedure. In the templates presented above, we implicitly assumed that $\texttt{fit}$ is run to convergence. However, this need not be the case, and different implementations handle this differently.
 
@@ -677,7 +677,7 @@ The main practical limitation of KBRL is computational - being a batch method, i
 
 Ernst's {cite}`ErnstGW05` specific instantiation of parametric q-value iteration uses extremely randomized trees, an extension to random forests proposed by  {cite:t}`Geurts2006`. This algorithm became particularly well-known, partly because it was one of the first to demonstrate the advantages of offline reinforcement learning in practice on several challenging benchmarks at the time. 
 
-Random Forests and Extra-Trees differ primarily in how they construct individual trees. Random Forests creates diversity in two ways: it resamples the training data (bootstrap) for each tree, and at each node it randomly selects a subset of features but then searches exhaustively for the best cut-point within each selected feature. In contrast, Extra-Trees uses the full training set for each tree and injects randomization differently: at each node, it not only randomly selects features but also randomly selects the cut-points without searching for the optimal one. It then picks the best among these completely random splits according to a variance reduction criterion. This double randomization - in both feature and cut-point selection - combined with using the full dataset makes Extra-Trees faster than Random Forests while maintaining similar predictive accuracy.
+Random Forests and Extra-Trees differ primarily in how they construct individual trees. Random Forests creates diversity in two ways: it resamples the training data (bootstrap) for each tree, and at each node it randomly selects a subset of features but then searches exhaustively for the best cut-point within each selected feature. In contrast, Extra-Trees uses the full training set for each tree and injects randomization differently: at each node, it randomly selects both features and cut-points without searching for the optimal one. It then picks the best among these completely random splits according to a variance reduction criterion. This double randomization - in both feature and cut-point selection - combined with using the full dataset makes Extra-Trees faster than Random Forests while maintaining similar predictive accuracy.
 
 An important implementation detail concerns how tree structures can be reused across iterations of fitted Q iteration. With parametric methods like neural networks, warmstarting is straightforward - you simply initialize the weights with values from the previous iteration. For decision trees, the situation is more subtle because the model structure is determined by how splits are chosen at each node. When the number of candidate splits per node is $K=1$ (totally randomized trees), the algorithm selects both the splitting variable and threshold purely at random, without looking at the target values (the Q-values we're trying to predict) to evaluate the quality of the split. This means the tree structure only depends on the input variables and random choices, not on what we're predicting. As a result, we can build the trees once in the first iteration and reuse their structure throughout all iterations, only updating the prediction values at the leaves.
 
@@ -1097,7 +1097,7 @@ The first inequality uses the non-expansion property of $\Gamma$, while the seco
 
 ## Gordon's Averagers
 
-But which function approximators satisfy this non-expansion property? Gordon shows that "averagers" - approximators that compute their outputs as weighted averages of their training values - are always non-expansions in sup-norm. This includes many common approximation schemes like k-nearest neighbors, linear interpolation, and kernel smoothing with normalized weights. The intuition is that if you're taking weighted averages with weights that sum to one, you can never extrapolate beyond the range of your training values -- these methods "interpolate".  This theoretical framework explains why simple interpolation methods like k-nearest neighbors have proven remarkably stable in practice, while more sophisticated approximators can fail catastrophically. It suggests a clear design principle: to guarantee convergence, we should either use averagers directly or modify other approximators to ensure they never extrapolate beyond their training targets.
+But which function approximators satisfy this non-expansion property? Gordon shows that "averagers", approximators that compute their outputs as weighted averages of their training values, are always non-expansions in sup-norm. This includes many common approximation schemes like k-nearest neighbors, linear interpolation, and kernel smoothing with normalized weights. The intuition is that if you're taking weighted averages with weights that sum to one, you can never extrapolate beyond the range of your training values. These methods "interpolate". This theoretical framework explains why simple interpolation methods like k-nearest neighbors have proven very stable in practice, while more complex approximators can fail catastrophically. To guarantee convergence, we should either use averagers directly or modify other approximators to ensure they never extrapolate beyond their training targets.
 
 More precisely, a function approximator $\Gamma$ is an averager if for any state $s$ and any target function $v$, the fitted value can be written as:
 
@@ -1132,7 +1132,7 @@ Let's look at specific examples, starting with k-nearest neighbors. For any stat
 
 $$\Gamma(v)(s) = \frac{1}{k}\sum_{i=1}^k v(s_{(i)})$$
 
-This is clearly an averager with weights $w_i(s) = \frac{1}{k}$ for the k nearest neighbors and 0 for all other points.
+This is an averager with weights $w_i(s) = \frac{1}{k}$ for the k nearest neighbors and 0 for all other points.
 
 For kernel smoothing with a kernel function $K$, the fitted value is:
 

@@ -25,7 +25,7 @@ We typically assume that the pendulum is mounted on a cart or movable base, whic
 
 This setup is more complex because the controller must deal with interactions between two different types of motion: linear (the cart) and rotational (the pendulum). This system is said to be "underactuated" because the number of control inputs (one) is less than the number of state variables (four). This makes the problem more challenging and interesting from a control perspective.
 
-We can simplify the problem by assuming that the base of the pendulum is fixed.  This is akin to having the bottom of the stick attached to a fixed pivot on a table. You can't move the base anymore; you can only apply small nudges at the pivot point to keep the stick balanced upright. In this case, you're only focusing on adjusting the stick's tilt without worrying about moving the base. This reduces the problem to stabilizing the pendulum’s upright orientation using only the rotational dynamics. The system's state can now be described by just two variables:
+We can simplify the problem by assuming that the base of the pendulum is fixed.  This is akin to having the bottom of the stick attached to a fixed pivot on a table. You can't move the base anymore; you can only apply small nudges at the pivot point to keep the stick balanced upright. In this case, you're only focusing on adjusting the stick's tilt without worrying about moving the base. This reduces the problem to stabilizing the pendulum's upright orientation using only the rotational dynamics. The system's state can now be described by just two variables:
 
 1. **Pendulum angle**: $ \theta(t) $ — the angle of the pendulum from the upright vertical position.
 2. **Angular velocity**: $ \dot{\theta}(t) $ — the rate at which the pendulum's angle is changing.
@@ -124,7 +124,7 @@ $$
 where we have:
 - $ v $: the average speed of the fluid moving through the tube,
 - $ h $: how easily heat transfers from the wall to the fluid,
-- $ \rho $ and $ C_p $: the fluid’s density and heat capacity.
+- $ \rho $ and $ C_p $: the fluid's density and heat capacity.
 
 This equation describes how the fluid's temperature changes as it moves along the tube and interacts with the tube's wall temperature. The fluid enters the tube with an initial temperature $ T_0 $ at the inlet (where $ z = 0 $). Our objective is to adjust the wall temperature $ T_w(t) $ so that by a specific final time $ t_f $, the fluid's temperature reaches a desired distribution $ T_s(z) $ along the length of the tube. The relationship for $ T_s(z) $ under steady-state conditions (ie. when changes over time are no longer considered), is given by:
 

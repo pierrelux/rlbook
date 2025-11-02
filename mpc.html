@@ -34,9 +34,9 @@
     <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
     <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
-    <link rel="stylesheet" type="text/css" href="_static/proof.css" />
+    <link rel="stylesheet" type="text/css" href="_static/proof.css?v=b4b7a797" />
     <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css" />
@@ -522,7 +522,7 @@
 \text{given} \quad &amp; \mathbf{x}_0 = \mathbf{x}_{\text{current}}
 \end{aligned}
 \end{split}\]</div>
-<p>At time step <span class="math notranslate nohighlight">\(t\)</span>, this problem optimizes over the interval <span class="math notranslate nohighlight">\([t, t+N]\)</span>. At the next time step <span class="math notranslate nohighlight">\(t+1\)</span>, the horizon shifts to <span class="math notranslate nohighlight">\([t+1, t+N+1]\)</span>. The key insight is that only the first control <span class="math notranslate nohighlight">\(\mathbf{u}_0^*\)</span> from each optimization is applied. The remaining controls <span class="math notranslate nohighlight">\(\mathbf{u}_1^*, \ldots, \mathbf{u}_{N-1}^*\)</span> are discarded, though they may initialize the next optimization through warm-starting.</p>
+<p>At time step <span class="math notranslate nohighlight">\(t\)</span>, this problem optimizes over the interval <span class="math notranslate nohighlight">\([t, t+N]\)</span>. At the next time step <span class="math notranslate nohighlight">\(t+1\)</span>, the horizon shifts to <span class="math notranslate nohighlight">\([t+1, t+N+1]\)</span>. What makes this work is that only the first control <span class="math notranslate nohighlight">\(\mathbf{u}_0^*\)</span> from each optimization is applied. The remaining controls <span class="math notranslate nohighlight">\(\mathbf{u}_1^*, \ldots, \mathbf{u}_{N-1}^*\)</span> are discarded, though they may initialize the next optimization through warm-starting.</p>
 <p>This receding horizon principle enables feedback without computing an explicit policy. By constantly updating predictions based on current measurements, MPC naturally corrects for disturbances and model errors. The apparent waste of computing but not using most of the trajectory is actually the mechanism that provides robustness.</p>
 </section>
 <section id="horizon-selection-and-problem-formulation">
@@ -722,7 +722,7 @@ c(\mathbf{x}_k,\mathbf{u}_k) \;\approx\;
 <section id="theoretical-guarantees">
 <h2>Theoretical Guarantees<a class="headerlink" href="#theoretical-guarantees" title="Link to this heading">#</a></h2>
 <p>The finite-horizon approximation in MPC brings a new challenge: the controller cannot see consequences beyond the horizon. Without proper design, this myopia can destabilize even simple systems. The solution is to carefully encode information about the infinite-horizon problem into the finite-horizon optimization through its terminal conditions.</p>
-<p>Before diving into the mathematics, we must clarify what “stability” means and which tasks these theoretical guarantees address, as the notion of stability varies significantly across different control objectives.</p>
+<p>Before diving into the mathematics, we should first establish what “stability” means and which tasks these theoretical guarantees address, as the notion of stability varies significantly across different control objectives.</p>
 <section id="stability-notions-across-control-tasks">
 <h3>Stability Notions Across Control Tasks<a class="headerlink" href="#stability-notions-across-control-tasks" title="Link to this heading">#</a></h3>
 <p>The terminal conditions provide different types of guarantees depending on the control objective. For regulation problems, where the task is to drive the state to a fixed equilibrium <span class="math notranslate nohighlight">\((\mathbf{x}_\mathrm{eq}, \mathbf{u}_\mathrm{eq})\)</span> (often shifted to the origin), the stability guarantee is <strong>asymptotic stability</strong>: starting sufficiently close to the equilibrium, we have <span class="math notranslate nohighlight">\(\mathbf{x}_k \to \mathbf{x}_\mathrm{eq}\)</span> while constraints remain satisfied throughout the trajectory (<strong>recursive feasibility</strong>). This requires the stage cost <span class="math notranslate nohighlight">\(\ell(\mathbf{x},\mathbf{u})\)</span> to be positive definite in the deviation from equilibrium.</p>
@@ -745,7 +745,7 @@ c(\mathbf{x}_k,\mathbf{u}_k) \;\approx\;
 <p>Then the MPC controller achieves recursive feasibility (if the problem is feasible at time <span class="math notranslate nohighlight">\(k\)</span>, it remains feasible at time <span class="math notranslate nohighlight">\(k+1\)</span>), asymptotic stability to the target equilibrium for regulation problems, and monotonic cost decrease along trajectories until the target is reached.</p>
 </section>
 </div><!-- 
-### Why Terminal Conditions Work: The Operational View
+### Why Terminal Conditions Work
 
 Understanding why the terminal conditions guarantee recursive feasibility and asymptotic stability requires examining what the controller actually does from one step to the next. Suppose at time $k$ the MPC optimizer finds an optimal sequence of controls $(\mathbf{u}_0^*, \ldots, \mathbf{u}_{N-1}^*)$ and states $(\mathbf{x}_0^*, \ldots, \mathbf{x}_N^*)$, where $\mathbf{x}_N^* \in \mathcal{X}_f$. The first control $\mathbf{u}_0^*$ is applied to the system, and the remaining plan is discarded according to the receding horizon principle.
 
@@ -758,7 +758,7 @@ V_f(\mathbf{f}(\mathbf{x}, \kappa_f(\mathbf{x}))) - V_f(\mathbf{x}) \leq -\ell(\
 \quad \forall\, \mathbf{x} \in \mathcal{X}_f
 $$
 
-requires that the terminal cost $V_f$ decrease faster than the stage cost accumulates when following $\boldsymbol{\kappa}_f$ inside $\mathcal{X}_f$. This means the controller makes progress not only in terms of state evolution but also in terms of predicted cost-to-go.
+requires that the terminal cost $V_f$ decrease faster than the stage cost accumulates when following $\boldsymbol{\kappa}_f$ inside $\mathcal{X}_f$. This means the controller makes progress in both state evolution and predicted cost-to-go.
 
 This "one-step contractiveness" property ensures that applying $\kappa_f$ within the terminal set leads to value decrease. When used at the horizon's tail, this guarantees that even a non-optimal shifted trajectory results in lower overall cost, making $V_N$ behave like a Lyapunov function for regulation and tracking tasks. -->
 <!-- ### Computing Terminal Conditions in Practice
@@ -770,7 +770,7 @@ $$\mathbf{K} = -(\mathbf{R} + \mathbf{B}^T \mathbf{P} \mathbf{B})^{-1} \mathbf{B
 
 The terminal cost and controller then follow directly: $V_f(\mathbf{x}) = \mathbf{x}^T \mathbf{P} \mathbf{x}$ and $\kappa_f(\mathbf{x}) = \mathbf{K}\mathbf{x}$. 
 
-Constructing the terminal set $\mathcal{X}_f$ presents more options with varying computational complexity. The most powerful but computationally intensive approach computes the **maximal control-invariant set**: the largest set where $\mathbf{u} = \mathbf{K}\mathbf{x}$ keeps the state feasible indefinitely. This involves fixed-point iterations on polytopes. A more tractable alternative uses **ellipsoidal approximations**, finding the largest $\alpha$ such that $\mathcal{X}_f = \{\mathbf{x} : \mathbf{x}^T \mathbf{P} \mathbf{x} \leq \alpha\}$ satisfies all constraints under $\mathbf{u} = \mathbf{K}\mathbf{x}$. The most conservative but always feasible approach starts with a small safe set where constraints are clearly satisfied and grows it until hitting constraint boundaries.
+Constructing the terminal set $\mathcal{X}_f$ presents more options with varying computational complexity. The most powerful but computationally intensive approach computes the **maximal control-invariant set**: the largest set where $\mathbf{u} = \mathbf{K}\mathbf{x}$ keeps the state feasible indefinitely. This involves fixed-point iterations on polytopes. A more tractable alternative uses **ellipsoidal approximations**, finding the largest $\alpha$ such that $\mathcal{X}_f = \{\mathbf{x} : \mathbf{x}^T \mathbf{P} \mathbf{x} \leq \alpha\}$ satisfies all constraints under $\mathbf{u} = \mathbf{K}\mathbf{x}$. The most conservative but always feasible approach starts with a small safe set where constraints are satisfied and grows it until hitting constraint boundaries.
 
 For nonlinear systems, we linearize around the equilibrium to compute $\mathbf{P}$ and $\mathbf{K}$, then verify the decrease condition holds locally. The terminal set becomes a neighborhood where the linear approximation remains valid. -->
 <!-- 
@@ -782,7 +782,7 @@ The importance of terminal conditions diminishes as the horizon length increases
 </section>
 <section id="suboptimality-bounds">
 <h3>Suboptimality Bounds<a class="headerlink" href="#suboptimality-bounds" title="Link to this heading">#</a></h3>
-<p>The finite-horizon MPC value <span class="math notranslate nohighlight">\(V_N(\mathbf{x})\)</span> provides an upper bound approximation of the true infinite-horizon value <span class="math notranslate nohighlight">\(V_\infty(\mathbf{x})\)</span>. Understanding how close this approximation can be reveals fundamental insights about the effectiveness of short-horizon MPC.</p>
+<p>The finite-horizon MPC value <span class="math notranslate nohighlight">\(V_N(\mathbf{x})\)</span> provides an upper bound approximation of the true infinite-horizon value <span class="math notranslate nohighlight">\(V_\infty(\mathbf{x})\)</span>. Understanding how close this approximation can be tells us about the effectiveness of short-horizon MPC.</p>
 <p>The upper bound <span class="math notranslate nohighlight">\(V_N(\mathbf{x}) \geq V_\infty(\mathbf{x})\)</span> follows immediately from the fact that MPC considers fewer control choices. The infinite-horizon controller can choose any sequence <span class="math notranslate nohighlight">\((\mathbf{u}_0, \mathbf{u}_1, \mathbf{u}_2, \ldots)\)</span>, while the <span class="math notranslate nohighlight">\(N\)</span>-horizon controller is restricted to sequences of the form <span class="math notranslate nohighlight">\((\mathbf{u}_0, \ldots, \mathbf{u}_{N-1}, \kappa_f(\mathbf{x}_N), \kappa_f(\mathbf{x}_{N+1}), \ldots)\)</span> where the tail follows the fixed terminal controller. Since the infinite-horizon problem optimizes over a larger feasible set, its optimal value cannot exceed that of the finite-horizon problem.</p>
 <section id="deriving-the-approximation-error">
 <h4>Deriving the Approximation Error<a class="headerlink" href="#deriving-the-approximation-error" title="Link to this heading">#</a></h4>
@@ -797,7 +797,7 @@ The importance of terminal conditions diminishes as the horizon length increases
 <p>Since <span class="math notranslate nohighlight">\(V_N(\mathbf{x})\)</span> is the optimal <span class="math notranslate nohighlight">\(N\)</span>-horizon cost (which may do better than this particular truncated sequence), we have <span class="math notranslate nohighlight">\(V_N(\mathbf{x}) \leq \tilde{V}_N(\mathbf{x})\)</span>. The approximation error therefore satisfies:</p>
 <div class="math notranslate nohighlight">
 \[\varepsilon_N \leq \tilde{V}_N(\mathbf{x}) - V_\infty(\mathbf{x}) = V_f(\mathbf{x}_N^*) - \sum_{k=N}^{\infty} \ell(\mathbf{x}_k^*, \mathbf{u}_k^*)\]</div>
-<p>This bound reveals that the approximation error depends on how well the terminal cost <span class="math notranslate nohighlight">\(V_f\)</span> approximates the true tail cost along the infinite-horizon optimal trajectory.</p>
+<p>This bound shows that the approximation error depends on how well the terminal cost <span class="math notranslate nohighlight">\(V_f\)</span> approximates the true tail cost along the infinite-horizon optimal trajectory.</p>
 <!-- 
 #### Exponential Convergence in the Linear-Quadratic Case
 
@@ -816,7 +816,7 @@ Specifically, if $\rho(\mathbf{A}_{cl})$ denotes the spectral radius of the clos
 
 $\varepsilon_N = O(\rho(\mathbf{A}_{cl})^N)$
 
-For stable systems, $\rho(\mathbf{A}_{cl}) < 1$, yielding exponential convergence. This remarkable result explains why short horizons (N = 10-30) often achieve near-optimal performance: the approximation error decreases exponentially fast, making even modest horizons highly effective for regulation and constant reference tracking tasks.
+For stable systems, $\rho(\mathbf{A}_{cl}) < 1$, yielding exponential convergence. This explains why short horizons (N = 10-30) often achieve near-optimal performance: the approximation error decreases exponentially fast, making even modest horizons highly effective for regulation and constant reference tracking tasks.
 
 #### Implications for Horizon Selection
 
@@ -1203,7 +1203,7 @@ c(\mathbf{x}_k, \mathbf{u}_k) = c(\mathbf{x}_k, \mathbf{u}_k; \boldsymbol{\phi}_
 &amp; \mathbf{h}(\mathbf{x}; \boldsymbol{\theta}) = \mathbf{0}.
 \end{aligned}
 \end{split}\]</div>
-<p>For each value of <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span>, we obtain a concrete optimization problem. The goal is not just to solve it once, but to understand how the optimizer <span class="math notranslate nohighlight">\(\mathbf{x}^\star(\boldsymbol{\theta})\)</span> and value function</p>
+<p>For each value of <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span>, we obtain a concrete optimization problem. The goal is to understand how the optimizer <span class="math notranslate nohighlight">\(\mathbf{x}^\star(\boldsymbol{\theta})\)</span> and value function</p>
 <div class="math notranslate nohighlight">
 \[
 v(\boldsymbol{\theta}) := \inf\{\, f(\mathbf{x}; \boldsymbol{\theta}) : \mathbf{x} \text{ feasible at } \boldsymbol{\theta}\,\}

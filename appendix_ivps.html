@@ -766,7 +766,7 @@ x_{new} = x + h f(x_{new}, t_{new})
 <li><p>End While</p></li>
 </ol>
 </section>
-</div><p>The key difference in the Implicit Euler method is step 4, where we need to solve a (potentially nonlinear) equation to find <span class="math notranslate nohighlight">\(x_{new}\)</span>. This is typically done using iterative methods such as fixed-point iteration or Newton’s method.</p>
+</div><p>The main difference in the Implicit Euler method is step 4, where we need to solve a (potentially nonlinear) equation to find <span class="math notranslate nohighlight">\(x_{new}\)</span>. This is typically done using iterative methods such as fixed-point iteration or Newton’s method.</p>
 <section id="stiff-odes">
 <h3>Stiff ODEs<a class="headerlink" href="#stiff-odes" title="Link to this heading">#</a></h3>
 <p>While the Implicit Euler method requires more computation per step, it often allows for larger step sizes and can provide better stability for certain types of problems, especially stiff ODEs.</p>
@@ -940,7 +940,7 @@ x_{n+1} &amp;= \frac{1}{2} \left( x_n + h f(x_n, t_n) \right) + \frac{1}{2} \lef
 &amp;= x_n + \frac{h}{2} \left( f(x_n, t_n) + f(x_{n+1}, t_{n+1}) \right)
 \end{aligned}
 \end{split}\]</div>
-<p>This is precisely the update rule for the trapezoid method. Recall that the forward Euler method approximates the solution by extrapolating linearly using the slope at the beginning of the interval <span class="math notranslate nohighlight">\([t_n, t_{n+1}] \)</span>. In contrast, the backward Euler method extrapolates linearly using the slope at the end of the interval. The trapezoid method, on the other hand, averages these two slopes. This averaging provides better approximation properties than either of the methods alone, offering both stability and accuracy. Note finally that unlike the forward or backward Euler methods, the trapezoid method is also symmetric in time. This means that if you were to reverse time and apply the method backward, you would get the same results (up to numerical precision).</p>
+<p>This gives us the update rule for the trapezoid method. Recall that the forward Euler method approximates the solution by extrapolating linearly using the slope at the beginning of the interval <span class="math notranslate nohighlight">\([t_n, t_{n+1}] \)</span>. In contrast, the backward Euler method extrapolates linearly using the slope at the end of the interval. The trapezoid method, on the other hand, averages these two slopes. This averaging provides better approximation properties than either of the methods alone, offering both stability and accuracy. Note finally that unlike the forward or backward Euler methods, the trapezoid method is also symmetric in time. This means that if you were to reverse time and apply the method backward, you would get the same results (up to numerical precision).</p>
 </section>
 <section id="trapezoidal-predictor-corrector">
 <h2>Trapezoidal Predictor-Corrector<a class="headerlink" href="#trapezoidal-predictor-corrector" title="Link to this heading">#</a></h2>
@@ -1097,7 +1097,7 @@ f(x) = \sum_{k=0}^{\infty} c_k p_k(x),
 <p>For instance, despite the monomial basis being easy to understand and implement, it often performs poorly in practice due to numerical instability. This instability arises as its coefficients take on large values: an ill-conditioning problem. The following kinds of polynomial often remedy this issues.</p>
 <section id="orthogonal-polynomials">
 <h3>Orthogonal Polynomials<a class="headerlink" href="#orthogonal-polynomials" title="Link to this heading">#</a></h3>
-<p>An <strong>orthogonal polynomial basis</strong> is a set of polynomials that are not only orthogonal to each other but also form a complete basis for a certain space of functions. This means that any function within that space can be represented as a linear combination of these polynomials.</p>
+<p>An <strong>orthogonal polynomial basis</strong> is a set of polynomials that are orthogonal to each other and form a complete basis for a certain space of functions. This means that any function within that space can be represented as a linear combination of these polynomials.</p>
 <p>More precisely, let <span class="math notranslate nohighlight">\( \{ p_0(x), p_1(x), p_2(x), \dots \} \)</span> be a sequence of polynomials where each <span class="math notranslate nohighlight">\( p_n(x) \)</span> is a polynomial of degree <span class="math notranslate nohighlight">\( n \)</span>. We say that this set forms an orthogonal polynomial basis if any polynomial <span class="math notranslate nohighlight">\( q(x) \)</span> of degree <span class="math notranslate nohighlight">\( n \)</span> or less can be uniquely expressed as a linear combination of <span class="math notranslate nohighlight">\( \{ p_0(x), p_1(x), \dots, p_n(x) \} \)</span>. Furthermore, the orthogonality property means that for any <span class="math notranslate nohighlight">\( i \neq j \)</span>:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1222,7 +1222,7 @@ T_{n+1}(x) = 2x T_n(x) - T_{n-1}(x),
 \[
 T_0(x) = 1, \quad T_1(x) = x.
 \]</div>
-<p>Remarkably, this recurrence relation also admits an explicit formula:</p>
+<p>This recurrence relation also admits an explicit formula:</p>
 <div class="math notranslate nohighlight">
 \[
 T_n(x) = \cos(n \cos^{-1}(x)).

@@ -15,7 +15,7 @@ kernelspec:
 
 In the previous chapter, we explored various approaches to approximate dynamic programming, focusing on ways to handle large state spaces through function approximation. However, these methods still face significant challenges when dealing with large or continuous action spaces. The need to maximize over actions during the Bellman operator evaluation becomes computationally prohibitive as the action space grows.
 
-This chapter explores a natural evolution of these ideas: rather than exhaustively searching over actions, we can parameterize and directly optimize the policy itself. We begin by examining how fitted Q methods, while powerful for handling large state spaces, still struggle with action space complexity. 
+This chapter explores a natural evolution of these ideas: rather than exhaustively searching over actions, we can parameterize and directly optimize the policy itself. We begin by examining how fitted Q methods, while effective for handling large state spaces, still struggle with action space complexity. 
 
 # Embedded Optimization
 
@@ -132,7 +132,7 @@ $$
 
 This introduces a trade-off between using more data (larger K) versus using more recent, accurate data (smaller K). The choice of K would depend on how quickly the Q-function evolves and the computational budget available for computing exact optimal actions.
 
-Now the main issue with this approach, apart from the intrinsic out-of-distribution drift that we are trying to track, is that it requires "ground truth" - samples of optimal actions computed by the actual solver. This raises an intriguing question: how few samples do we actually need? Could we even envision eliminating the solver entirely? What seems impossible at first glance turns out to be achievable. The intuition is that as our policy improves at selecting actions, we can bootstrap from these increasingly better choices. As we continuously amortize these improving actions over time, it creates a virtuous cycle of self-improvement towards the optimal policy. But for this bootstrapping process to work, we need careful management - move too quickly and the process may become unstable. Let's examine how this balance can be achieved.
+Now the main issue with this approach, apart from the intrinsic out-of-distribution drift that we are trying to track, is that it requires "ground truth" - samples of optimal actions computed by the actual solver. This raises a natural question: how few samples do we actually need? Could we even envision eliminating the solver entirely? What seems impossible at first glance turns out to be achievable. The intuition is that as our policy improves at selecting actions, we can bootstrap from these increasingly better choices. As we continuously amortize these improving actions over time, it creates a virtuous cycle of self-improvement towards the optimal policy. But for this bootstrapping process to work, we need careful management. Move too quickly and the process may become unstable. Let's examine how this balance can be achieved.
 
 
 # Deterministic Parametrized Policies 
@@ -396,7 +396,7 @@ $$
 y_i = r(s_i,a_i) + \gamma\left(q_\theta(s'_i,a'_i) - \beta \log d(a'_i|s'_i;\phi)\right)
 $$
 
-This is a remarkable idea! One that exists only due to the dual representation of the smooth Bellman equations as an entropy-regularized problem which transforms the intractable log-sum-exp into a form we can estimate efficiently through sampling.
+This approach exists only due to the dual representation of the smooth Bellman equations as an entropy-regularized problem, which transforms the intractable log-sum-exp into a form we can estimate efficiently through sampling.
 
 ## Approximating Boltzmann Policies by Gaussians
 
@@ -443,7 +443,7 @@ $$
 
 ## Reparameterizating the Objective 
 
-One last challenge remains: $\phi$ appears in the distribution underlying the inner expectation, not just in the integrand. This setting departs from standard empirical risk minimization (ERM) in supervised learning where the distribution of the data (e.g., cats and dogs in image classification) remains fixed regardless of model parameters. Here, however, the "data" - our sampled actions - depends directly on the parameters $\phi$ we're trying to optimize.
+One last challenge remains: $\phi$ appears in the distribution underlying the inner expectation, as well as in the integrand. This setting departs from standard empirical risk minimization (ERM) in supervised learning where the distribution of the data (e.g., cats and dogs in image classification) remains fixed regardless of model parameters. Here, however, the "data" - our sampled actions - depends directly on the parameters $\phi$ we're trying to optimize.
 
 This dependence prevents us from simply using sample average estimators and differentiating through them, as we typically do in supervised learning. The challenge of correctly and efficiently estimating such derivatives has been extensively studied in the simulation literature under the umbrella of "derivative estimation." SAC adopts a particular solution known as the reparameterization trick in deep learning (or the IPA estimator in simulation literature). This approach transforms the problem by pushing $\phi$ inside the expectation through a change of variables.
 
@@ -579,7 +579,7 @@ The issue here is that while the first term could be numerically integrated usin
 
 Would there be a way to transform our objective in such a way that the Monte Carlo estimator for the objective could be differentiated directly while ensuring that the resulting derivative is unbiased? We will see that there are two main solutions to that problem: by doing a change of measure, or a change of variables. 
 
-## Change of Measure: The Likelihood Ratio Method
+## The Likelihood Ratio Method
 
 One solution comes from rewriting our objective using any distribution $q(x)$:
 
@@ -607,7 +607,7 @@ $$
 $$
 
 
-## A Change of Variables Approach: The Reparameterization Trick
+## The Reparameterization Trick
 
 An alternative approach eliminates the $\theta$-dependence in the sampling distribution by expressing $x$ through a deterministic transformation of the noise:
 
@@ -640,7 +640,7 @@ where $\sigma = \sqrt{\sigma^2}$ is the standard deviation (square root of the v
 
 ### Common Examples of Reparameterization
 
-#### Bounded Intervals: The Truncated Normal
+#### The Truncated Normal Distribution
 When we need samples constrained to an interval $[a,b]$, we can use the truncated normal distribution. To sample from it, we transform uniform noise through the inverse cumulative distribution function (CDF) of the standard normal:
 
 $$
@@ -654,7 +654,7 @@ Here:
 
 The resulting samples follow a normal distribution restricted to $[a,b]$, with the density properly normalized over this interval.
 
-#### Sampling from [0,1]: The Kumaraswamy Distribution
+#### The Kumaraswamy Distribution
 When we need samples in the unit interval [0,1], a natural choice might be the Beta distribution. However, its inverse CDF doesn't have a closed form. Instead, we can use the Kumaraswamy distribution as a convenient approximation, which allows for a simple reparameterization:
 
 $$
@@ -673,7 +673,7 @@ $$
 f(x; \alpha, \beta) = \alpha\beta x^{\alpha-1}(1-x^{\alpha})^{\beta-1}, \quad x \in [0,1]
 $$
 
-#### Discrete Actions: The Gumbel-Softmax 
+#### The Gumbel-Softmax Distribution 
 
 When sampling from a categorical distribution with probabilities $\{\pi_i\}$, one approach uses $\text{Gumbel}(0,1)$ noise combined with the argmax of log-perturbed probabilities:
 
@@ -722,7 +722,7 @@ $$
 The resulting distribution over the probability simplex is called the Gumbel-Softmax (or Concrete) distribution. The temperature parameter $\tau$ controls the discreteness of our samples: smaller values give samples closer to one-hot vectors but with less stable gradients, while larger values give smoother gradients but more diffuse samples.
 
 
-## Demonstration: Numerical Analysis of Gradient Estimators
+## Numerical Analysis of Gradient Estimators
 
 Let us examine the behavior of our three gradient estimators for the stochastic optimization objective: 
 
@@ -1066,7 +1066,7 @@ The non-batched, purely online, GAE(0) algorithm then becomes:
       5. Update policy: $\boldsymbol{w} \leftarrow \boldsymbol{w} + \alpha_w \nabla_{\boldsymbol{w}}\log d(a_t|s_t;\boldsymbol{w})\delta_t$
 3. Return $\boldsymbol{w}$
 ```
-Interestingly, this version was first derived by Richard Sutton in his 1984 PhD thesis. He called it the Adaptive Heuristic Actor-Critic algorithm. As far as I know, it was not derived using the score function method outlined here, but rather through intuitive reasoning (great intuition!).
+This version was first derived by Richard Sutton in his 1984 PhD thesis. He called it the Adaptive Heuristic Actor-Critic algorithm. As far as I know, it was not derived using the score function method outlined here, but rather through intuitive reasoning (great intuition!).
 
 ## The Policy Gradient Theorem
 
@@ -1459,7 +1459,7 @@ $$
 a_t = (f_K \circ f_{K-1} \circ \cdots \circ f_1)(z_0;\boldsymbol{w})
 $$
 
-This is precisely the idea behind normalizing flows: a series of invertible transformations that can transform a simple base distribution (like a standard normal) into a complex target distribution while maintaining exact invertibility.
+This is the idea behind normalizing flows: a series of invertible transformations that can transform a simple base distribution (like a standard normal) into a complex target distribution while maintaining exact invertibility.
 
 The noise inference in this case would involve applying the inverse transformations:
 

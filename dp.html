@@ -500,7 +500,7 @@
 <h1>Dynamic Programming<a class="headerlink" href="#dynamic-programming" title="Link to this heading">#</a></h1>
 <p>Unlike the methods we’ve discussed so far, dynamic programming takes a step back and considers an entire family of related problems rather than a single optimization problem. This approach, while seemingly more complex at first glance, can often lead to efficient solutions.</p>
 <p>Dynamic programming leverage the solution structure underlying many control problems that allows for a decomposition it into smaller, more manageable subproblems. Each subproblem is itself an optimization problem, embedded within the larger whole. This recursive structure is the foundation upon which dynamic programming constructs its solutions.</p>
-<p>To ground our discussion, let us return to the domain of discrete-time optimal control problems (DOCPs). These problems frequently arise from the discretization of continuous-time optimal control problems. While the focus here will be on deterministic problems, it is worth noting that these concepts extend naturally to stochastic problems by taking the expectation over the random quantities.</p>
+<p>To ground our discussion, let us return to the domain of discrete-time optimal control problems (DOCPs). These problems frequently arise from the discretization of continuous-time optimal control problems. While the focus here will be on deterministic problems, these concepts extend naturally to stochastic problems by taking the expectation over the random quantities.</p>
 <p>Consider a typical DOCP of Bolza type:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
@@ -639,7 +639,7 @@ J_t^\star(\mathbf{x})=\min_{\mathbf{u}}\{c_t(\mathbf{x},\mathbf{u})+J_{t+1}^\sta
 <p>is exactly the dynamic programming recursion for shortest paths on acyclic graphs, hence backward induction is optimal.</p>
 </section>
 </div><!-- ```{prf:remark} If minimizers may not exist
-Replace each “min” by “inf” in the definitions and state that for every $\varepsilon>0$ there exist $\varepsilon$-optimal selectors $\boldsymbol{\mu}_t^\varepsilon(\cdot)$ achieving cost within $\varepsilon$ of $J_t^\star(\cdot)$. The same cut-and-paste and induction go through.
+Replace each "min" by "inf" in the definitions and state that for every $\varepsilon>0$ there exist $\varepsilon$-optimal selectors $\boldsymbol{\mu}_t^\varepsilon(\cdot)$ achieving cost within $\varepsilon$ of $J_t^\star(\cdot)$. The same cut-and-paste and induction go through.
 ``` -->
 <section id="example-optimal-harvest-in-resource-management">
 <h3>Example: Optimal Harvest in Resource Management<a class="headerlink" href="#example-optimal-harvest-in-resource-management" title="Link to this heading">#</a></h3>
@@ -1129,7 +1129,7 @@ Total harvest: 213.18951156269063
 </div>
 <!-- ## Linear Quadratic Regulator via Dynamic Programming
 
-Let us now consider a special case of our dynamic programming formulation: the discrete-time Linear Quadratic Regulator (LQR) problem. This example will illustrate how the structure of linear dynamics and quadratic costs leads to a particularly elegant form of the backward recursion.
+Let us now consider a special case of our dynamic programming formulation: the discrete-time Linear Quadratic Regulator (LQR) problem. This example will illustrate how the structure of linear dynamics and quadratic costs leads to a particularly clean form of the backward recursion.
 
 Consider a linear time-invariant system with dynamics:
 
@@ -1399,7 +1399,7 @@ u_t(h_t) = \sup_{a\in A_{s_t}}\left\{ r_t(s_t,a) + \sum_{j\in S} p_t(j\mid s_t,a
 <p><strong>b.</strong> Any policy <span class="math notranslate nohighlight">\(\pi^*\)</span> that selects actions attaining the supremum (or maximum) in the above equation at each history is optimal.</p>
 </section>
 </div><p><strong>Intuition:</strong> This formalizes Bellman’s principle of optimality: “An optimal policy has the property that whatever the initial state and initial decision are, the remaining decisions must constitute an optimal policy with regard to the state resulting from the first decision.” The recursive structure means that optimal local decisions (choosing the best action at each step) lead to global optimality, even with uncertainty captured by the transition probabilities.</p>
-<p>A remarkable simplification occurs when we examine these history-based equations more closely. The Markov property of our system dynamics and rewards means that the optimal return actually depends on the history only through the current state:</p>
+<p>A simplification occurs when we examine these history-based equations more closely. The Markov property of our system dynamics and rewards means that the optimal return actually depends on the history only through the current state:</p>
 <div class="proof proposition admonition" id="stoch-state-suff">
 <p class="admonition-title"><span class="caption-number">Proposition 2 </span> (State sufficiency for stochastic MDPs)</p>
 <section class="proposition-content" id="proof-content">
@@ -1416,7 +1416,7 @@ u_t(h_t) = \sup_{a\in A_{s_t}}\left\{ r_t(s_t,a) + \sum_{j\in S} p_t(j\mid s_t,a
 \[u_t^*(h_t) = \sup_{a \in A_{s_t}} \left\{ r_t(s_t, a) + \sum_{j \in S} p_t(j|s_t, a) u_{t+1}^*(j) \right\}\]</div>
 <p>Since the expression in brackets depends on <span class="math notranslate nohighlight">\(h_t\)</span> only through the current state <span class="math notranslate nohighlight">\(s_t\)</span> (the rewards and transition probabilities are Markovian), we conclude that <span class="math notranslate nohighlight">\(u_t^*(h_t) = u_t^*(s_t)\)</span>.</p>
 </div>
-<p><strong>Intuition:</strong> The Markov property means that the current state contains all information needed to predict future evolution. The past provides no additional value for decision-making. This powerful result allows us to work with value functions <span class="math notranslate nohighlight">\(v_t^*(s)\)</span> indexed only by state and time, dramatically simplifying both theory and computation.</p>
+<p><strong>Intuition:</strong> The Markov property means that the current state contains all information needed to predict future evolution. The past provides no additional value for decision-making. This result allows us to work with value functions <span class="math notranslate nohighlight">\(v_t^*(s)\)</span> indexed only by state and time, dramatically simplifying both theory and computation.</p>
 <p>This state-sufficiency result, combined with the fact that randomization never helps when maximizing expected returns, leads to a dramatic simplification of the policy space:</p>
 <div class="proof theorem admonition" id="stoch-policy-reduction">
 <p class="admonition-title"><span class="caption-number">Theorem 4 </span> (Policy reduction for stochastic MDPs)</p>
@@ -1455,7 +1455,7 @@ u_t(h_t) = \sup_{a\in A_{s_t}}\left\{ r_t(s_t,a) + \sum_{j\in S} p_t(j\mid s_t,a
 <li><p>Return <span class="math notranslate nohighlight">\(J_t^\star(\cdot)\)</span>, <span class="math notranslate nohighlight">\(\mu_t^\star(\cdot)\)</span> for <span class="math notranslate nohighlight">\(t = 1, \ldots, T\)</span></p></li>
 </ol>
 </section>
-</div><p>While SDP provides us with a framework to for handling uncertainty, it makes the curse of dimensionality even more difficult to handle in practice. Not only does the state space need to be discretized, but now the disturbance space must be discretized as well. This can lead to a combinatorial explosion in the number of scenarios to be evaluated at each stage.</p>
+</div><p>While SDP provides us with a framework to for handling uncertainty, it makes the curse of dimensionality even more difficult to handle in practice. Both the state space and the disturbance space must be discretized. This can lead to a combinatorial explosion in the number of scenarios to be evaluated at each stage.</p>
 <p>However, just as we tackled the challenges of continuous state spaces with discretization and interpolation, we can devise efficient methods to handle the additional complexity of evaluating expectations. This problem essentially becomes one of numerical integration. When the set of disturbances is continuous (as is often the case with continuous state spaces), we enter a domain where numerical quadrature methods could be applied. But these methods tend to scale poorly as the number of dimensions grows. This is where more efficient techniques, often rooted in Monte Carlo methods, come into play. The combination of two key ingredients emerges to tackle the curse of dimensionality:</p>
 <ol class="arabic simple">
 <li><p>Function approximation (through discretization, interpolation, neural networks, etc.)</p></li>
@@ -1695,7 +1695,7 @@ Average total harvest: 313.43165025164313
 </section>
 <section id="linear-quadratic-regulator-via-dynamic-programming">
 <h2>Linear Quadratic Regulator via Dynamic Programming<a class="headerlink" href="#linear-quadratic-regulator-via-dynamic-programming" title="Link to this heading">#</a></h2>
-<p>We now examine a special case where the backward recursion admits a remarkable closed-form solution. When the system dynamics are linear and the cost function is quadratic, the optimization at each stage can be solved analytically. Moreover, the value function itself maintains a quadratic structure throughout the recursion, and the optimal policy reduces to a simple linear feedback law. This elegant result eliminates the need for discretization, interpolation, or any function approximation. The infinite-dimensional problem collapses to tracking a finite set of matrices.</p>
+<p>We now examine a special case where the backward recursion admits a closed-form solution. When the system dynamics are linear and the cost function is quadratic, the optimization at each stage can be solved analytically. Moreover, the value function itself maintains a quadratic structure throughout the recursion, and the optimal policy reduces to a simple linear feedback law. This result eliminates the need for discretization, interpolation, or any function approximation. The infinite-dimensional problem collapses to tracking a finite set of matrices.</p>
 <p>Consider a discrete-time linear system:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1831,7 +1831,7 @@ p_t(\mathbf{x}_{t+1} | \mathbf{x}_t, \mathbf{u}_t) &amp;= \mathbb{P}(\mathbf{W}_
 <section id="notation-in-operations-reseach">
 <h2>Notation in Operations Reseach<a class="headerlink" href="#notation-in-operations-reseach" title="Link to this heading">#</a></h2>
 <p>The presentation above was intended to bridge the gap between the control-theoretic perspective and the world of closed-loop control through the idea of determining the value function of a parametric optimal control problem. We then saw how the backward induction procedure was applicable to both the deterministic and stochastic cases by taking the expectation over the disturbance variable. We then said that we can alternatively work with a representation of our system where instead of writing our model as a deterministic dynamics function taking a disturbance as an input, we would rather work directly via its transition probability function, which gives rise to the Markov chain interpretation of our system in simulation.</p>
-<p>Now we should highlight that the notation used in control theory tends to differ from that found in operations research communities, in which the field of dynamic programming flourished. We summarize those (purely notational) differences in this section.</p>
+<p>Note that the notation used in control theory tends to differ from that found in operations research communities, in which the field of dynamic programming flourished. We summarize those (purely notational) differences in this section.</p>
 <p>In operations research, the system state at each decision epoch is typically denoted by <span class="math notranslate nohighlight">\(s \in \mathcal{S}\)</span>, where <span class="math notranslate nohighlight">\(S\)</span> is the set of possible system states. When the system is in state <span class="math notranslate nohighlight">\(s\)</span>, the decision maker may choose an action <span class="math notranslate nohighlight">\(a\)</span> from the set of allowable actions <span class="math notranslate nohighlight">\(\mathcal{A}_s\)</span>. The union of all action sets is denoted as <span class="math notranslate nohighlight">\(\mathcal{A} = \bigcup_{s \in \mathcal{S}} \mathcal{A}_s\)</span>.</p>
 <p>The dynamics of the system are described by a transition probability function <span class="math notranslate nohighlight">\(p_t(j | s, a)\)</span>, which represents the probability of transitioning to state <span class="math notranslate nohighlight">\(j \in \mathcal{S}\)</span> at time <span class="math notranslate nohighlight">\(t+1\)</span>, given that the system is in state <span class="math notranslate nohighlight">\(s\)</span> at time <span class="math notranslate nohighlight">\(t\)</span> and action <span class="math notranslate nohighlight">\(a \in \mathcal{A}_s\)</span> is chosen. This transition probability function satisfies:</p>
 <div class="math notranslate nohighlight">
@@ -2722,7 +2722,7 @@ F_i(a, c) := r(s_i,a) + \gamma \sum_j c_j \mathbb{E}_{s' \mid s_i, a}[\phi_j(s')
 \[
 \frac{\partial v_i}{\partial c_j}(c) = \gamma \mathbb{E}_{s' \mid s_i, a_i^*(c)}[\phi_j(s')].
 \]</div>
-<p>The key is that we do not need to differentiate the optimizer <span class="math notranslate nohighlight">\(a_i^*(c)\)</span> itself. The result extends to the subdifferential case when ties occur, where the Jacobian becomes set-valued.</p>
+<p>We do not need to differentiate the optimizer <span class="math notranslate nohighlight">\(a_i^*(c)\)</span> itself. The result extends to the subdifferential case when ties occur, where the Jacobian becomes set-valued.</p>
 <p>This result is useful when solving the collocation equation <span class="math notranslate nohighlight">\(\Phi c = v(c)\)</span>. Newton’s method requires the Jacobian <span class="math notranslate nohighlight">\(v'(c)\)</span>, and this expression allows us to compute it without involving any derivatives of the optimal action.</p>
 </section>
 <section id="perspective-3-the-implicit-function-theorem">
@@ -2748,7 +2748,7 @@ Q_{a^*(s)}(v, s) \geq Q_a(v, s) \quad \text{for all } a.
 \[
 Q_{a^*(s)}(v, s) &gt; Q_a(v, s) + \delta \quad \text{for all } a \neq a^*(s).
 \]</div>
-<p>This strict inequality is the regularity condition needed for the implicit function theorem. It ensures that the optimal action is not only unique at <span class="math notranslate nohighlight">\(v\)</span>, but remains so in a neighborhood of <span class="math notranslate nohighlight">\(v\)</span>.</p>
+<p>This strict inequality is the regularity condition needed for the implicit function theorem. It ensures that the optimal action is unique at <span class="math notranslate nohighlight">\(v\)</span> and remains so in a neighborhood of <span class="math notranslate nohighlight">\(v\)</span>.</p>
 <p>To see why, consider any perturbation <span class="math notranslate nohighlight">\(v + h\)</span> with <span class="math notranslate nohighlight">\(\|h\|\)</span> small. Since <span class="math notranslate nohighlight">\(Q_a\)</span> is linear in <span class="math notranslate nohighlight">\(v\)</span>, we have:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -2817,19 +2817,19 @@ v_{n+1} = v_n - h_n.
 \[
 J_k h_k = -\mathrm{B}(v_k), \quad v_{k+1} = v_k + h_k.
 \]</div>
-<p>The main takeaway is that any choice from the Clarke subdifferential yields a valid Newton-like update. In the context of the Bellman equation, choosing <span class="math notranslate nohighlight">\(J_k = I - \gamma P_{\pi_k}\)</span> where <span class="math notranslate nohighlight">\(\pi_k\)</span> is any greedy policy corresponds exactly to the policy evaluation step in policy iteration. The freedom in selecting which action to choose when ties occur translates to the freedom in selecting which element of the subdifferential to use.</p>
+<p>What this tells us is that any choice from the Clarke subdifferential yields a valid Newton-like update. In the context of the Bellman equation, choosing <span class="math notranslate nohighlight">\(J_k = I - \gamma P_{\pi_k}\)</span> where <span class="math notranslate nohighlight">\(\pi_k\)</span> is any greedy policy corresponds exactly to the policy evaluation step in policy iteration. The freedom in selecting which action to choose when ties occur translates to the freedom in selecting which element of the subdifferential to use.</p>
 <p>Under appropriate regularity conditions (specifically, when the residual function is BD-regular or CD-regular), the semismooth Newton method converges locally at a quadratic rate <span id="id12">[<a class="reference internal" href="bibliography.html#id61" title="M. Gargiani, A. Zanelli, D. Liao-McPherson, T. H. Summers, and J. Lygeros. Dynamic programming through the lens of semismooth newton-type methods. IEEE Control Systems Letters, 6:2996-3001, 2022. doi:10.1109/LCSYS.2022.3181213.">15</a>]</span>. This means that near the solution, the error decreases quadratically:
 $<span class="math notranslate nohighlight">\(
 \|v_{k+1} - v^*\| \leq C \|v_k - v^*\|^2.
 \)</span>$</p>
-<p>This theoretical result explains an empirical observation that has long been noted in practice: policy iteration typically converges in remarkably few iterations, often just a handful, even when the state and action spaces are enormous and the space of possible policies is exponentially large.</p>
+<p>This theoretical result explains an empirical observation that has long been noted in practice: policy iteration typically converges in very few iterations, often just a handful, even when the state and action spaces are enormous and the space of possible policies is exponentially large.</p>
 <p>The semismooth Newton framework also suggests a spectrum of methods interpolating between value iteration and policy iteration. Value iteration can be interpreted as a Newton-like method where we choose <span class="math notranslate nohighlight">\(J_k = I\)</span> at every iteration, ignoring the dependence of <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> on <span class="math notranslate nohighlight">\(v\)</span> entirely. This choice guarantees global convergence through the contraction property but sacrifices the quadratic local convergence rate. Policy iteration, at the other extreme, uses the full generalized Jacobian <span class="math notranslate nohighlight">\(J_k = I - \gamma P_{\pi_k}\)</span>, achieving quadratic convergence but at the cost of solving a linear system at each iteration.</p>
 <p>Between these extremes lie methods that use approximate Jacobians. One natural variant is to choose <span class="math notranslate nohighlight">\(J_k = \alpha I\)</span> for some scalar <span class="math notranslate nohighlight">\(\alpha &gt; 1\)</span>. This leads to the update</p>
 <div class="math notranslate nohighlight">
 \[
 v_{k+1} = \frac{\alpha - 1}{\alpha} v_k + \frac{1}{\alpha} \mathrm{L}v_k.
 \]</div>
-<p>This is known as <span class="math notranslate nohighlight">\(\alpha\)</span>-value iteration or successive over-relaxation when <span class="math notranslate nohighlight">\(\alpha &gt; 1\)</span>. For appropriate choices of <span class="math notranslate nohighlight">\(\alpha\)</span>, this method retains global convergence while achieving better local rates than standard value iteration, and it requires only pointwise operations rather than solving a linear system. The Newton perspective thus not only unifies existing algorithms but also generates new ones by systematically exploring different approximations to the generalized Jacobian.</p>
+<p>This is known as <span class="math notranslate nohighlight">\(\alpha\)</span>-value iteration or successive over-relaxation when <span class="math notranslate nohighlight">\(\alpha &gt; 1\)</span>. For appropriate choices of <span class="math notranslate nohighlight">\(\alpha\)</span>, this method retains global convergence while achieving better local rates than standard value iteration, and it requires only pointwise operations rather than solving a linear system. The Newton perspective thus unifies existing algorithms and generates new ones by systematically exploring different approximations to the generalized Jacobian.</p>
 <p>The connection to semismooth Newton methods places policy iteration within a broader mathematical framework that extends far beyond dynamic programming. Semismooth Newton methods are used in optimization (for complementarity problems and variational inequalities), in PDE-constrained optimization (for problems with control constraints), and in economics (for equilibrium problems). The Bellman equation, viewed through this lens, is simply one instance of a piecewise smooth equation, and the tools developed for such equations apply directly.</p>
 </section>
 <section id="policy-iteration">

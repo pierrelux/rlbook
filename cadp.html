@@ -451,17 +451,17 @@
 </ul>
 </li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#derivative-estimation-for-stochastic-optimization">Derivative Estimation for Stochastic Optimization</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#change-of-measure-the-likelihood-ratio-method">Change of Measure: The Likelihood Ratio Method</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-change-of-variables-approach-the-reparameterization-trick">A Change of Variables Approach: The Reparameterization Trick</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-likelihood-ratio-method">The Likelihood Ratio Method</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-reparameterization-trick">The Reparameterization Trick</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#common-examples-of-reparameterization">Common Examples of Reparameterization</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#bounded-intervals-the-truncated-normal">Bounded Intervals: The Truncated Normal</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#sampling-from-0-1-the-kumaraswamy-distribution">Sampling from [0,1]: The Kumaraswamy Distribution</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#discrete-actions-the-gumbel-softmax">Discrete Actions: The Gumbel-Softmax</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#the-truncated-normal-distribution">The Truncated Normal Distribution</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#the-kumaraswamy-distribution">The Kumaraswamy Distribution</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#the-gumbel-softmax-distribution">The Gumbel-Softmax Distribution</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#demonstration-numerical-analysis-of-gradient-estimators">Demonstration: Numerical Analysis of Gradient Estimators</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#numerical-analysis-of-gradient-estimators">Numerical Analysis of Gradient Estimators</a></li>
 </ul>
 </li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#score-function-gradient-estimation-in-reinforcement-learning">Score Function Gradient Estimation in Reinforcement Learning</a><ul class="visible nav section-nav flex-column">
@@ -495,7 +495,7 @@
   <section class="tex2jax_ignore mathjax_ignore" id="policy-parametrization-methods">
 <h1>Policy Parametrization Methods<a class="headerlink" href="#policy-parametrization-methods" title="Link to this heading">#</a></h1>
 <p>In the previous chapter, we explored various approaches to approximate dynamic programming, focusing on ways to handle large state spaces through function approximation. However, these methods still face significant challenges when dealing with large or continuous action spaces. The need to maximize over actions during the Bellman operator evaluation becomes computationally prohibitive as the action space grows.</p>
-<p>This chapter explores a natural evolution of these ideas: rather than exhaustively searching over actions, we can parameterize and directly optimize the policy itself. We begin by examining how fitted Q methods, while powerful for handling large state spaces, still struggle with action space complexity.</p>
+<p>This chapter explores a natural evolution of these ideas: rather than exhaustively searching over actions, we can parameterize and directly optimize the policy itself. We begin by examining how fitted Q methods, while effective for handling large state spaces, still struggle with action space complexity.</p>
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="embedded-optimization">
 <h1>Embedded Optimization<a class="headerlink" href="#embedded-optimization" title="Link to this heading">#</a></h1>
@@ -616,7 +616,7 @@ q^\star(s,a) &amp;= (Lq^*)(s,a) \\
 \boldsymbol{w}_{n+1} \leftarrow \texttt{fit}(\{(s', a^*_{s'}) \mid (s', a^*_{s'}, t) \in \mathcal{D}_\pi^t, n-K \leq t \leq n\})
 \]</div>
 <p>This introduces a trade-off between using more data (larger K) versus using more recent, accurate data (smaller K). The choice of K would depend on how quickly the Q-function evolves and the computational budget available for computing exact optimal actions.</p>
-<p>Now the main issue with this approach, apart from the intrinsic out-of-distribution drift that we are trying to track, is that it requires “ground truth” - samples of optimal actions computed by the actual solver. This raises an intriguing question: how few samples do we actually need? Could we even envision eliminating the solver entirely? What seems impossible at first glance turns out to be achievable. The intuition is that as our policy improves at selecting actions, we can bootstrap from these increasingly better choices. As we continuously amortize these improving actions over time, it creates a virtuous cycle of self-improvement towards the optimal policy. But for this bootstrapping process to work, we need careful management - move too quickly and the process may become unstable. Let’s examine how this balance can be achieved.</p>
+<p>Now the main issue with this approach, apart from the intrinsic out-of-distribution drift that we are trying to track, is that it requires “ground truth” - samples of optimal actions computed by the actual solver. This raises a natural question: how few samples do we actually need? Could we even envision eliminating the solver entirely? What seems impossible at first glance turns out to be achievable. The intuition is that as our policy improves at selecting actions, we can bootstrap from these increasingly better choices. As we continuously amortize these improving actions over time, it creates a virtuous cycle of self-improvement towards the optimal policy. But for this bootstrapping process to work, we need careful management. Move too quickly and the process may become unstable. Let’s examine how this balance can be achieved.</p>
 </section>
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="deterministic-parametrized-policies">
@@ -873,7 +873,7 @@ v_\psi(s) \approx \mathbb{E}_{a \sim d(\cdot|s;\phi)}\left[q_\theta(s,a) - \beta
 \[
 y_i = r(s_i,a_i) + \gamma\left(q_\theta(s'_i,a'_i) - \beta \log d(a'_i|s'_i;\phi)\right)
 \]</div>
-<p>This is a remarkable idea! One that exists only due to the dual representation of the smooth Bellman equations as an entropy-regularized problem which transforms the intractable log-sum-exp into a form we can estimate efficiently through sampling.</p>
+<p>This approach exists only due to the dual representation of the smooth Bellman equations as an entropy-regularized problem, which transforms the intractable log-sum-exp into a form we can estimate efficiently through sampling.</p>
 </section>
 <section id="approximating-boltzmann-policies-by-gaussians">
 <h2>Approximating Boltzmann Policies by Gaussians<a class="headerlink" href="#approximating-boltzmann-policies-by-gaussians" title="Link to this heading">#</a></h2>
@@ -914,7 +914,7 @@ D_{KL}(d(\cdot|s;\phi)\|d_\theta) &amp;= \mathbb{E}_{a \sim d(\cdot|s;\phi)}[\lo
 </section>
 <section id="reparameterizating-the-objective">
 <h2>Reparameterizating the Objective<a class="headerlink" href="#reparameterizating-the-objective" title="Link to this heading">#</a></h2>
-<p>One last challenge remains: <span class="math notranslate nohighlight">\(\phi\)</span> appears in the distribution underlying the inner expectation, not just in the integrand. This setting departs from standard empirical risk minimization (ERM) in supervised learning where the distribution of the data (e.g., cats and dogs in image classification) remains fixed regardless of model parameters. Here, however, the “data” - our sampled actions - depends directly on the parameters <span class="math notranslate nohighlight">\(\phi\)</span> we’re trying to optimize.</p>
+<p>One last challenge remains: <span class="math notranslate nohighlight">\(\phi\)</span> appears in the distribution underlying the inner expectation, as well as in the integrand. This setting departs from standard empirical risk minimization (ERM) in supervised learning where the distribution of the data (e.g., cats and dogs in image classification) remains fixed regardless of model parameters. Here, however, the “data” - our sampled actions - depends directly on the parameters <span class="math notranslate nohighlight">\(\phi\)</span> we’re trying to optimize.</p>
 <p>This dependence prevents us from simply using sample average estimators and differentiating through them, as we typically do in supervised learning. The challenge of correctly and efficiently estimating such derivatives has been extensively studied in the simulation literature under the umbrella of “derivative estimation.” SAC adopts a particular solution known as the reparameterization trick in deep learning (or the IPA estimator in simulation literature). This approach transforms the problem by pushing <span class="math notranslate nohighlight">\(\phi\)</span> inside the expectation through a change of variables.</p>
 <p>To address this, we can express our Gaussian policy through a deterministic function <span class="math notranslate nohighlight">\(f_\phi\)</span> that transforms noise samples to actions:</p>
 <div class="math notranslate nohighlight">
@@ -1041,8 +1041,8 @@ J(\theta) \approx \frac{1}{N}\sum_{i=1}^N f(x_i,\theta), \quad x_i \sim p(x;\the
 \]</div>
 <p>The issue here is that while the first term could be numerically integrated using the Monte Carlo, the second one can’t as it’s not an expectation.</p>
 <p>Would there be a way to transform our objective in such a way that the Monte Carlo estimator for the objective could be differentiated directly while ensuring that the resulting derivative is unbiased? We will see that there are two main solutions to that problem: by doing a change of measure, or a change of variables.</p>
-<section id="change-of-measure-the-likelihood-ratio-method">
-<h2>Change of Measure: The Likelihood Ratio Method<a class="headerlink" href="#change-of-measure-the-likelihood-ratio-method" title="Link to this heading">#</a></h2>
+<section id="the-likelihood-ratio-method">
+<h2>The Likelihood Ratio Method<a class="headerlink" href="#the-likelihood-ratio-method" title="Link to this heading">#</a></h2>
 <p>One solution comes from rewriting our objective using any distribution <span class="math notranslate nohighlight">\(q(x)\)</span>:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1065,8 +1065,8 @@ J(\theta) = \mathbb{E}_{x \sim q(x)}[h(x,\theta)]
 \frac{d}{d\theta}J(\theta) = \mathbb{E}_{x \sim p(x;\theta)}\left[f(x,\theta)\frac{\partial \log p(x,\theta)}{\partial \theta} + \frac{\partial f(x,\theta)}{\partial \theta}\right]
 \]</div>
 </section>
-<section id="a-change-of-variables-approach-the-reparameterization-trick">
-<h2>A Change of Variables Approach: The Reparameterization Trick<a class="headerlink" href="#a-change-of-variables-approach-the-reparameterization-trick" title="Link to this heading">#</a></h2>
+<section id="the-reparameterization-trick">
+<h2>The Reparameterization Trick<a class="headerlink" href="#the-reparameterization-trick" title="Link to this heading">#</a></h2>
 <p>An alternative approach eliminates the <span class="math notranslate nohighlight">\(\theta\)</span>-dependence in the sampling distribution by expressing <span class="math notranslate nohighlight">\(x\)</span> through a deterministic transformation of the noise:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1090,8 +1090,8 @@ x = \mu + \sigma \epsilon, \quad \epsilon \sim \mathcal{N}(0,1)
 <p>where <span class="math notranslate nohighlight">\(\sigma = \sqrt{\sigma^2}\)</span> is the standard deviation (square root of the variance).</p>
 <section id="common-examples-of-reparameterization">
 <h3>Common Examples of Reparameterization<a class="headerlink" href="#common-examples-of-reparameterization" title="Link to this heading">#</a></h3>
-<section id="bounded-intervals-the-truncated-normal">
-<h4>Bounded Intervals: The Truncated Normal<a class="headerlink" href="#bounded-intervals-the-truncated-normal" title="Link to this heading">#</a></h4>
+<section id="the-truncated-normal-distribution">
+<h4>The Truncated Normal Distribution<a class="headerlink" href="#the-truncated-normal-distribution" title="Link to this heading">#</a></h4>
 <p>When we need samples constrained to an interval <span class="math notranslate nohighlight">\([a,b]\)</span>, we can use the truncated normal distribution. To sample from it, we transform uniform noise through the inverse cumulative distribution function (CDF) of the standard normal:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1105,8 +1105,8 @@ x = \Phi^{-1}(u\Phi(b) + (1-u)\Phi(a)), \quad u \sim \text{Uniform}(0,1)
 </ul>
 <p>The resulting samples follow a normal distribution restricted to <span class="math notranslate nohighlight">\([a,b]\)</span>, with the density properly normalized over this interval.</p>
 </section>
-<section id="sampling-from-0-1-the-kumaraswamy-distribution">
-<h4>Sampling from [0,1]: The Kumaraswamy Distribution<a class="headerlink" href="#sampling-from-0-1-the-kumaraswamy-distribution" title="Link to this heading">#</a></h4>
+<section id="the-kumaraswamy-distribution">
+<h4>The Kumaraswamy Distribution<a class="headerlink" href="#the-kumaraswamy-distribution" title="Link to this heading">#</a></h4>
 <p>When we need samples in the unit interval [0,1], a natural choice might be the Beta distribution. However, its inverse CDF doesn’t have a closed form. Instead, we can use the Kumaraswamy distribution as a convenient approximation, which allows for a simple reparameterization:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1125,8 +1125,8 @@ x = (1-(1-u^{\alpha})^{1/\beta}), \quad u \sim \text{Uniform}(0,1)
 f(x; \alpha, \beta) = \alpha\beta x^{\alpha-1}(1-x^{\alpha})^{\beta-1}, \quad x \in [0,1]
 \]</div>
 </section>
-<section id="discrete-actions-the-gumbel-softmax">
-<h4>Discrete Actions: The Gumbel-Softmax<a class="headerlink" href="#discrete-actions-the-gumbel-softmax" title="Link to this heading">#</a></h4>
+<section id="the-gumbel-softmax-distribution">
+<h4>The Gumbel-Softmax Distribution<a class="headerlink" href="#the-gumbel-softmax-distribution" title="Link to this heading">#</a></h4>
 <p>When sampling from a categorical distribution with probabilities <span class="math notranslate nohighlight">\(\{\pi_i\}\)</span>, one approach uses <span class="math notranslate nohighlight">\(\text{Gumbel}(0,1)\)</span> noise combined with the argmax of log-perturbed probabilities:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -1168,8 +1168,8 @@ z_i = \frac{\exp((\log \pi_i + g_i)/\tau)}{\sum_j \exp((\log \pi_j + g_j)/\tau)}
 </section>
 </section>
 </section>
-<section id="demonstration-numerical-analysis-of-gradient-estimators">
-<h2>Demonstration: Numerical Analysis of Gradient Estimators<a class="headerlink" href="#demonstration-numerical-analysis-of-gradient-estimators" title="Link to this heading">#</a></h2>
+<section id="numerical-analysis-of-gradient-estimators">
+<h2>Numerical Analysis of Gradient Estimators<a class="headerlink" href="#numerical-analysis-of-gradient-estimators" title="Link to this heading">#</a></h2>
 <p>Let us examine the behavior of our three gradient estimators for the stochastic optimization objective:</p>
 <div class="math notranslate nohighlight">
 \[J(\theta) = \mathbb{E}_{x \sim \mathcal{N}(\theta,1)}[x^2\theta]\]</div>
@@ -1628,7 +1628,7 @@ A^{\text{GAE}(\gamma,0)}(s_t,a_t) = \delta_t = r_t + \gamma v(s_{t+1}) - v(s_t)
 <li><p>Return <span class="math notranslate nohighlight">\(\boldsymbol{w}\)</span></p></li>
 </ol>
 </section>
-</div><p>Interestingly, this version was first derived by Richard Sutton in his 1984 PhD thesis. He called it the Adaptive Heuristic Actor-Critic algorithm. As far as I know, it was not derived using the score function method outlined here, but rather through intuitive reasoning (great intuition!).</p>
+</div><p>This version was first derived by Richard Sutton in his 1984 PhD thesis. He called it the Adaptive Heuristic Actor-Critic algorithm. As far as I know, it was not derived using the score function method outlined here, but rather through intuitive reasoning (great intuition!).</p>
 </section>
 <section id="the-policy-gradient-theorem">
 <h2>The Policy Gradient Theorem<a class="headerlink" href="#the-policy-gradient-theorem" title="Link to this heading">#</a></h2>
@@ -1988,7 +1988,7 @@ z_0 \sim \mathcal{N}(0,I) \xrightarrow{f_1} z_1 \xrightarrow{f_2} z_2 \xrightarr
 \[
 a_t = (f_K \circ f_{K-1} \circ \cdots \circ f_1)(z_0;\boldsymbol{w})
 \]</div>
-<p>This is precisely the idea behind normalizing flows: a series of invertible transformations that can transform a simple base distribution (like a standard normal) into a complex target distribution while maintaining exact invertibility.</p>
+<p>This is the idea behind normalizing flows: a series of invertible transformations that can transform a simple base distribution (like a standard normal) into a complex target distribution while maintaining exact invertibility.</p>
 <p>The noise inference in this case would involve applying the inverse transformations:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -2006,7 +2006,7 @@ z_0 = (f_1^{-1} \circ \cdots \circ f_K^{-1})(a_t;\boldsymbol{w})
 <h2>DPG as a Special Case of SAC<a class="headerlink" href="#dpg-as-a-special-case-of-sac" title="Link to this heading">#</a></h2>
 <p>At first glance, SAC and DPG might appear to be fundamentally different approaches to policy optimization. SAC begins with the principle of entropy maximization and policy distribution matching through KL divergence minimization, while DPG directly optimizes a deterministic policy to maximize expected Q-values. However, we can show that DPG emerges as a special case of SAC as we take the temperature parameter to zero.</p>
 <div class="proof proposition admonition" id="proposition-11">
-<p class="admonition-title"><span class="caption-number">Proposition 5 </span> (Convergence of SAC to DPG)</p>
+<p class="admonition-title"><span class="caption-number">Proposition 6 </span> (Convergence of SAC to DPG)</p>
 <section class="proposition-content" id="proof-content">
 <p>Let <span class="math notranslate nohighlight">\(d(\cdot|s;\boldsymbol{w}_\alpha)\)</span> be the optimal stochastic policy for SAC with temperature <span class="math notranslate nohighlight">\(\alpha\)</span>, and <span class="math notranslate nohighlight">\(d(s;\boldsymbol{w}_{DPG})\)</span> be the optimal deterministic policy gradient solution. Under appropriate assumptions, as <span class="math notranslate nohighlight">\(\alpha \to 0\)</span>:</p>
 <div class="math notranslate nohighlight">
@@ -2207,17 +2207,17 @@ x_k &amp; \text{otherwise}
 </ul>
 </li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#derivative-estimation-for-stochastic-optimization">Derivative Estimation for Stochastic Optimization</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#change-of-measure-the-likelihood-ratio-method">Change of Measure: The Likelihood Ratio Method</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-change-of-variables-approach-the-reparameterization-trick">A Change of Variables Approach: The Reparameterization Trick</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-likelihood-ratio-method">The Likelihood Ratio Method</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-reparameterization-trick">The Reparameterization Trick</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#common-examples-of-reparameterization">Common Examples of Reparameterization</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#bounded-intervals-the-truncated-normal">Bounded Intervals: The Truncated Normal</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#sampling-from-0-1-the-kumaraswamy-distribution">Sampling from [0,1]: The Kumaraswamy Distribution</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#discrete-actions-the-gumbel-softmax">Discrete Actions: The Gumbel-Softmax</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#the-truncated-normal-distribution">The Truncated Normal Distribution</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#the-kumaraswamy-distribution">The Kumaraswamy Distribution</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#the-gumbel-softmax-distribution">The Gumbel-Softmax Distribution</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#demonstration-numerical-analysis-of-gradient-estimators">Demonstration: Numerical Analysis of Gradient Estimators</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#numerical-analysis-of-gradient-estimators">Numerical Analysis of Gradient Estimators</a></li>
 </ul>
 </li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#score-function-gradient-estimation-in-reinforcement-learning">Score Function Gradient Estimation in Reinforcement Learning</a><ul class="visible nav section-nav flex-column">

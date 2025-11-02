@@ -435,7 +435,7 @@
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-does-it-mean-for-a-residual-to-be-zero">What Does It Mean for a Residual to Be Zero?</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-special-role-of-spectral-methods">The Special Role of Spectral Methods</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#orthogonal-collocation-best-of-both-worlds">Orthogonal Collocation: Best of Both Worlds</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#orthogonal-collocation">Orthogonal Collocation</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-general-framework">The General Framework</a><ul class="nav section-nav flex-column">
@@ -446,7 +446,7 @@
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#method-of-moments-test-against-monomials">Method of Moments: Test Against Monomials</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#collocation-method-test-against-delta-functions">Collocation Method: Test Against Delta Functions</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#subdomain-method-test-against-indicator-functions">Subdomain Method: Test Against Indicator Functions</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#least-squares-an-alternative-framework">Least Squares: An Alternative Framework</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#least-squares">Least Squares</a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-4-solve-the-finite-dimensional-problem">Step 4: Solve the Finite-Dimensional Problem</a></li>
@@ -464,6 +464,18 @@
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#shape-preserving-considerations">Shape-Preserving Considerations</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#monotone-projection-and-the-preservation-of-contraction">Monotone Projection and the Preservation of Contraction</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#monotone-approximators-and-stability">Monotone Approximators and Stability</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#monotonicity-implies-nonexpansiveness">Monotonicity Implies Nonexpansiveness</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#preservation-of-contraction">Preservation of Contraction</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#averagers-in-discrete-state-problems">Averagers in Discrete-State Problems</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#which-approximation-operators-are-monotone">Which Approximation Operators Are Monotone?</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#practical-implications">Practical Implications</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#weighted-norms-and-extensions">Weighted Norms and Extensions</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#galerkin-projection-and-least-squares-temporal-difference">Galerkin Projection and Least Squares Temporal Difference</a><ul class="nav section-nav flex-column">
@@ -488,8 +500,8 @@
 <h2>What Does It Mean for a Residual to Be Zero?<a class="headerlink" href="#what-does-it-mean-for-a-residual-to-be-zero" title="Link to this heading">#</a></h2>
 <p>Suppose we have found a candidate approximate solution <span class="math notranslate nohighlight">\(\hat{v}\)</span> to the Bellman equation. To verify it satisfies <span class="math notranslate nohighlight">\(\mathrm{L}\hat{v} = \hat{v}\)</span>, we compute the <strong>residual function</strong> <span class="math notranslate nohighlight">\(R(s) = \mathrm{L}\hat{v}(s) - \hat{v}(s)\)</span>. For a true solution, this residual should be the <strong>zero function</strong>: <span class="math notranslate nohighlight">\(R(s) = 0\)</span> for every state <span class="math notranslate nohighlight">\(s\)</span>. But what does it really mean for a function to equal zero?</p>
 <p>In finite dimensions, a vector <span class="math notranslate nohighlight">\(\mathbf{r} \in \mathbb{R}^n\)</span> equals zero if and only if <span class="math notranslate nohighlight">\(\langle \mathbf{r}, \mathbf{y} \rangle = 0\)</span> for every vector <span class="math notranslate nohighlight">\(\mathbf{y} \in \mathbb{R}^n\)</span>. This follows because if <span class="math notranslate nohighlight">\(\mathbf{r} \neq \mathbf{0}\)</span>, we can always choose <span class="math notranslate nohighlight">\(\mathbf{y} = \mathbf{r}\)</span>, giving <span class="math notranslate nohighlight">\(\langle \mathbf{r}, \mathbf{r} \rangle = \|\mathbf{r}\|^2 &gt; 0\)</span>. Conversely, if <span class="math notranslate nohighlight">\(\mathbf{r} = \mathbf{0}\)</span>, then <span class="math notranslate nohighlight">\(\langle \mathbf{r}, \mathbf{y} \rangle = 0\)</span> trivially for all <span class="math notranslate nohighlight">\(\mathbf{y}\)</span>.</p>
-<p>The key insight is that <strong>inner products can distinguish the zero vector from any nonzero vector</strong>: for any <span class="math notranslate nohighlight">\(\mathbf{r} \neq \mathbf{0}\)</span>, there exists some test vector <span class="math notranslate nohighlight">\(\mathbf{y}\)</span> that “witnesses” the fact that <span class="math notranslate nohighlight">\(\mathbf{r}\)</span> is nonzero by producing <span class="math notranslate nohighlight">\(\langle \mathbf{r}, \mathbf{y} \rangle \neq 0\)</span>. This property—that we can tell apart (separate) different vectors by testing them with inner products—is what makes inner products so useful for verification.</p>
-<p><strong>The same principle extends to functions.</strong> A function <span class="math notranslate nohighlight">\(R\)</span> equals the zero function if and only if its “inner product” with every “test function” <span class="math notranslate nohighlight">\(p\)</span> vanishes:</p>
+<p>Inner products can distinguish the zero vector from any nonzero vector: for any <span class="math notranslate nohighlight">\(\mathbf{r} \neq \mathbf{0}\)</span>, there exists some test vector <span class="math notranslate nohighlight">\(\mathbf{y}\)</span> that “witnesses” the fact that <span class="math notranslate nohighlight">\(\mathbf{r}\)</span> is nonzero by producing <span class="math notranslate nohighlight">\(\langle \mathbf{r}, \mathbf{y} \rangle \neq 0\)</span>. This property, that we can tell apart (separate) different vectors by testing them with inner products, is what makes inner products so useful for verification.</p>
+<p>The same principle extends to functions. A function <span class="math notranslate nohighlight">\(R\)</span> equals the zero function if and only if its “inner product” with every “test function” <span class="math notranslate nohighlight">\(p\)</span> vanishes:</p>
 <div class="math notranslate nohighlight">
 \[
 R = 0 \quad \text{if and only if} \quad \langle R, p \rangle = \int_{\mathcal{S}} R(s) p(s) w(s) ds = 0 \quad \text{for all test functions } p,
@@ -501,7 +513,7 @@ R = 0 \quad \text{if and only if} \quad \langle R, p \rangle = \int_{\mathcal{S}
 <p>The principle that “a function equals zero if and only if it has zero inner product with all test functions” is a consequence of the <strong>Hahn-Banach theorem</strong>, one of the cornerstones of functional analysis. The theorem guarantees that for any nonzero function <span class="math notranslate nohighlight">\(R\)</span> in a suitable function space, there exists a continuous linear functional (which can be represented as an inner product with some test function <span class="math notranslate nohighlight">\(p\)</span>) that produces a nonzero value when applied to <span class="math notranslate nohighlight">\(R\)</span>. This is often phrased as “the dual space separates points.”</p>
 <p>While you don’t need to know the Hahn-Banach theorem to use projection methods, it provides the rigorous mathematical foundation ensuring that our inner product tests are theoretically sound. The constructive argument we gave above (choosing <span class="math notranslate nohighlight">\(p = R\)</span>) works in simple cases with well-behaved functions, but the Hahn-Banach theorem extends this guarantee to much more general settings.</p>
 </div>
-<p><strong>Why is this useful?</strong> It transforms the pointwise condition “<span class="math notranslate nohighlight">\(R(s) = 0\)</span> for all <span class="math notranslate nohighlight">\(s\)</span>” (infinitely many conditions, one per state) into an equivalent condition about inner products. Of course, we still cannot test against <em>all</em> possible test functions—there are infinitely many of those too. But the inner product perspective suggests a natural computational strategy: <strong>choose a finite collection of test functions</strong> <span class="math notranslate nohighlight">\(\{p_1, \ldots, p_n\}\)</span> and require</p>
+<p>Why is this useful? It transforms the pointwise condition “<span class="math notranslate nohighlight">\(R(s) = 0\)</span> for all <span class="math notranslate nohighlight">\(s\)</span>” (infinitely many conditions, one per state) into an equivalent condition about inner products. We still cannot test against <em>all</em> possible test functions, since there are infinitely many of those too. But the inner product perspective suggests a natural computational strategy: choose a finite collection of test functions <span class="math notranslate nohighlight">\(\{p_1, \ldots, p_n\}\)</span> and require</p>
 <div class="math notranslate nohighlight">
 \[
 \langle R, p_i \rangle = 0, \quad i = 1, \ldots, n.
@@ -526,9 +538,9 @@ R = 0 \quad \text{if and only if} \quad \langle R, p \rangle = \int_{\mathcal{S}
 <p>What makes spectral bases special is their approximation properties: for smooth problems (functions with many continuous derivatives), spectral approximations achieve <strong>exponential convergence</strong>. As you add more basis functions, the approximation error decreases exponentially rather than polynomially. A function with <span class="math notranslate nohighlight">\(k\)</span> continuous derivatives approximated by piecewise polynomials of degree <span class="math notranslate nohighlight">\(p\)</span> has error <span class="math notranslate nohighlight">\(O(h^{p+1})\)</span> where <span class="math notranslate nohighlight">\(h\)</span> is the grid spacing. But the same function approximated by a spectral method with <span class="math notranslate nohighlight">\(n\)</span> terms has error that decreases like <span class="math notranslate nohighlight">\(O(e^{-cn})\)</span> for some constant <span class="math notranslate nohighlight">\(c &gt; 0\)</span>. This dramatic difference makes spectral methods extremely efficient for smooth problems.</p>
 <p>Now, spectral bases can be combined with any projection method. When we use a spectral basis with <strong>Galerkin projection</strong> (testing against the basis functions themselves), we get a <strong>spectral Galerkin method</strong>. The orthogonality of the basis functions often simplifies the resulting linear systems. When we use a spectral basis with <strong>collocation</strong>, we get what’s often called a <strong>pseudospectral method</strong> or <strong>spectral collocation method</strong>.</p>
 </section>
-<section id="orthogonal-collocation-best-of-both-worlds">
-<h3>Orthogonal Collocation: Best of Both Worlds<a class="headerlink" href="#orthogonal-collocation-best-of-both-worlds" title="Link to this heading">#</a></h3>
-<p>A particularly elegant variant is <strong>orthogonal collocation</strong>, which exploits a beautiful connection between collocation and quadrature. The idea is to:</p>
+<section id="orthogonal-collocation">
+<h3>Orthogonal Collocation<a class="headerlink" href="#orthogonal-collocation" title="Link to this heading">#</a></h3>
+<p><strong>Orthogonal collocation</strong> exploits a useful connection between collocation and quadrature. The idea is to:</p>
 <ol class="arabic simple">
 <li><p>Choose basis functions from an orthogonal polynomial family (say, Chebyshev polynomials <span class="math notranslate nohighlight">\(T_0, T_1, \ldots, T_{n-1}\)</span>)</p></li>
 <li><p>Choose collocation points at the <strong>zeros of the <span class="math notranslate nohighlight">\(n\)</span>-th polynomial</strong> in that family</p></li>
@@ -546,21 +558,21 @@ R = 0 \quad \text{if and only if} \quad \langle R, p \rangle = \int_{\mathcal{S}
 \[
 \min_{a} \|R(\cdot; a)\|^2 = \min_{a} \int_{\mathcal{S}} R(s; a)^2 w(s) ds.
 \]</div>
-<p>This seeks the coefficients <span class="math notranslate nohighlight">\(a\)</span> that make the residual as small as possible in the least squares sense. Interestingly, the first-order optimality conditions for this minimization problem turn out to be equivalent to a projection method with test functions <span class="math notranslate nohighlight">\(p_i = \partial R / \partial a_i\)</span> (the derivatives of the residual with respect to the coefficients). So least squares can be viewed as a projection method with <em>data-dependent</em> test functions.</p>
+<p>This seeks the coefficients <span class="math notranslate nohighlight">\(a\)</span> that make the residual as small as possible in the least squares sense. The first-order optimality conditions for this minimization problem turn out to be equivalent to a projection method with test functions <span class="math notranslate nohighlight">\(p_i = \partial R / \partial a_i\)</span> (the derivatives of the residual with respect to the coefficients). So least squares can be viewed as a projection method with <em>data-dependent</em> test functions.</p>
 <p>Both families aim to make the residual “close to zero,” but projection methods do this by requiring orthogonality to chosen directions, while least squares does this by directly minimizing the norm of the residual. The term “projection methods” as used in the approximate dynamic programming literature often refers to both families, since they share the same computational framework of restricting the search to a finite-dimensional subspace and solving for coefficients that satisfy certain residual conditions.</p>
 <p>In summary, we have transformed the impossible task of verifying “<span class="math notranslate nohighlight">\(R(s) = 0\)</span> for all <span class="math notranslate nohighlight">\(s\)</span>” into a <strong>finite-dimensional</strong> problem: find coefficients <span class="math notranslate nohighlight">\(a = (a_1, \ldots, a_n)\)</span> in our approximation <span class="math notranslate nohighlight">\(\hat{v}(s) = \sum_{i=1}^n a_i \varphi_i(s)\)</span> such that either:</p>
 <ul class="simple">
 <li><p>The residual is orthogonal to <span class="math notranslate nohighlight">\(n\)</span> chosen test functions (projection methods), or</p></li>
 <li><p>The residual has minimum norm (least squares methods)</p></li>
 </ul>
-<p>This is a major conceptual step forward: instead of infinitely many pointwise conditions, we have <span class="math notranslate nohighlight">\(n\)</span> conditions. However, these <span class="math notranslate nohighlight">\(n\)</span> conditions are not yet fully “feasible” computationally—each projection condition <span class="math notranslate nohighlight">\(\langle R, p_i \rangle = \int_{\mathcal{S}} R(s) p_i(s) w(s) ds = 0\)</span> still involves an integral that may need to be approximated numerically.</p>
-<p><strong>The computational cost hierarchy.</strong> Different methods have different computational burdens:</p>
+<p>This is a major conceptual step forward: instead of infinitely many pointwise conditions, we have <span class="math notranslate nohighlight">\(n\)</span> conditions. However, these <span class="math notranslate nohighlight">\(n\)</span> conditions are not yet fully “feasible” computationally. Each projection condition <span class="math notranslate nohighlight">\(\langle R, p_i \rangle = \int_{\mathcal{S}} R(s) p_i(s) w(s) ds = 0\)</span> still involves an integral that may need to be approximated numerically.</p>
+<p>The computational cost hierarchy. Different methods have different computational burdens:</p>
 <ul class="simple">
-<li><p><strong>Collocation</strong> is the cheapest: since <span class="math notranslate nohighlight">\(\langle R, \delta(\cdot - s_i) \rangle = R(s_i)\)</span>, we only evaluate the residual pointwise—no integration needed in the projection conditions themselves.</p></li>
-<li><p><strong>Orthogonal collocation</strong> shares this advantage (projection conditions are just pointwise evaluations), but adds a bonus: if integrals appear elsewhere—say, inside the operator <span class="math notranslate nohighlight">\(\mathscr{N}\)</span>—the collocation points double as optimal quadrature nodes. This synergy between approximation and integration is particularly valuable for smooth problems.</p></li>
+<li><p><strong>Collocation</strong> is the cheapest: since <span class="math notranslate nohighlight">\(\langle R, \delta(\cdot - s_i) \rangle = R(s_i)\)</span>, we only evaluate the residual pointwise. No integration is needed in the projection conditions themselves.</p></li>
+<li><p><strong>Orthogonal collocation</strong> shares this advantage (projection conditions are just pointwise evaluations), but adds a bonus: if integrals appear elsewhere, say inside the operator <span class="math notranslate nohighlight">\(\mathscr{N}\)</span>, the collocation points double as optimal quadrature nodes. This synergy between approximation and integration is particularly valuable for smooth problems.</p></li>
 <li><p><strong>Galerkin methods</strong> require evaluating integrals <span class="math notranslate nohighlight">\(\int R(s) \varphi_i(s) w(s) ds\)</span> for each basis function. When using orthogonal polynomial bases (spectral Galerkin), these integrals can sometimes be simplified by orthogonality, but numerical quadrature is still typically needed.</p></li>
 <li><p><strong>Method of moments and subdomain methods</strong> similarly require numerical quadrature to evaluate weighted integrals of the residual.</p></li>
-<li><p><strong>Least squares</strong> requires computing <span class="math notranslate nohighlight">\(\int R(s)^2 w(s) ds\)</span>, which involves integrating the squared residual—potentially expensive, though the first-order conditions reduce this to a system similar to Galerkin.</p></li>
+<li><p><strong>Least squares</strong> requires computing <span class="math notranslate nohighlight">\(\int R(s)^2 w(s) ds\)</span>, which involves integrating the squared residual. This is potentially expensive, though the first-order conditions reduce this to a system similar to Galerkin.</p></li>
 </ul>
 <p>The general pattern: collocation methods avoid integration in the projection step by testing at points rather than against functions, while methods that test against smooth functions (Galerkin, moments, subdomain) must pay the computational cost of numerical integration.</p>
 <p>The rest of this chapter develops this framework systematically, showing how to choose bases, select test functions, evaluate or approximate the necessary integrals, and solve the resulting finite-dimensional problems.</p>
@@ -589,7 +601,7 @@ R = 0 \quad \text{if and only if} \quad \langle R, p \rangle = \int_{\mathcal{S}
 <li><p><strong>Radial basis functions</strong>: For high-dimensional problems where tensor product methods become intractable</p></li>
 </ul>
 <p>The number of basis functions <span class="math notranslate nohighlight">\(n\)</span> determines the flexibility of our approximation. In practice, we start with small <span class="math notranslate nohighlight">\(n\)</span> and increase it until the approximation quality is satisfactory. The only unknowns now are the coefficients <span class="math notranslate nohighlight">\(a = (a_1, \ldots, a_n)\)</span>.</p>
-<p>While the classical presentation of projection methods emphasizes polynomial bases, the framework applies equally well to other function classes. Neural networks, for instance, can be viewed through this lens: a neural network <span class="math notranslate nohighlight">\(\hat{f}(x; \theta)\)</span> with parameters <span class="math notranslate nohighlight">\(\theta\)</span> defines a flexible function class, and many training procedures can be interpreted as projection methods with specific choices of test functions or residual norms. The distinction is that classical methods typically use predetermined basis functions with linear coefficients, while neural networks use adaptive nonlinear features. Throughout this chapter, we focus on the classical setting to develop the core concepts, but the principles extend naturally to modern function approximators.</p>
+<p>While the classical presentation of projection methods focuses on polynomial bases, the framework applies equally well to other function classes. Neural networks, for instance, can be viewed through this lens: a neural network <span class="math notranslate nohighlight">\(\hat{f}(x; \theta)\)</span> with parameters <span class="math notranslate nohighlight">\(\theta\)</span> defines a flexible function class, and many training procedures can be interpreted as projection methods with specific choices of test functions or residual norms. The distinction is that classical methods typically use predetermined basis functions with linear coefficients, while neural networks use adaptive nonlinear features. Throughout this chapter, we focus on the classical setting to develop the core concepts, but the principles extend naturally to modern function approximators.</p>
 </section>
 <section id="step-2-define-the-residual-function">
 <h3>Step 2: Define the Residual Function<a class="headerlink" href="#step-2-define-the-residual-function" title="Link to this heading">#</a></h3>
@@ -619,7 +631,7 @@ R(x; a) = \mathscr{N}(\hat{f}(\cdot; a))(x).
 </li>
 </ol>
 <p>We begin by examining the main projection methods, distinguished entirely by their choice of test functions <span class="math notranslate nohighlight">\(p_i\)</span>, then discuss least squares as an alternative approach.</p>
-<p>Let us examine the standard choices of test functions and what they reveal about the residual:</p>
+<p>Let us examine the standard choices of test functions and what they tell us about the residual:</p>
 <section id="galerkin-method-test-against-the-basis">
 <h4>Galerkin Method: Test Against the Basis<a class="headerlink" href="#galerkin-method-test-against-the-basis" title="Link to this heading">#</a></h4>
 <p>The Galerkin method chooses test functions <span class="math notranslate nohighlight">\(p_i = \varphi_i\)</span>, the same basis functions used to approximate <span class="math notranslate nohighlight">\(\hat{f}\)</span>:</p>
@@ -635,7 +647,7 @@ R(x; a) = \mathscr{N}(\hat{f}(\cdot; a))(x).
 \]</div>
 <p>This shows that <span class="math notranslate nohighlight">\(R\)</span> is orthogonal to every function we can represent with our basis. The residual has “zero overlap” with our approximation space: we cannot express any part of it using our basis functions. In this sense, the residual is as “invisible” to our approximation as possible.</p>
 <p>This condition is the defining property of optimality. By choosing our approximation <span class="math notranslate nohighlight">\(\hat{f}\)</span> so that the residual <span class="math notranslate nohighlight">\(R = \mathscr{N}(\hat{f})\)</span> is orthogonal to the entire approximation space, we ensure that <span class="math notranslate nohighlight">\(\hat{f}\)</span> is the orthogonal projection of the true solution onto <span class="math notranslate nohighlight">\(\text{span}{\varphi_1, \ldots, \varphi_n}\)</span>. Within this <span class="math notranslate nohighlight">\(n\)</span>-dimensional space, no better choice is possible: any other coefficients would yield a residual with a nonzero component inside the space, and therefore a larger norm.</p>
-<p>The finite-dimensional analogy makes this concrete. Suppose you want to approximate a vector <span class="math notranslate nohighlight">\(\mathbf{v} \in \mathbb{R}^3\)</span> using only the <span class="math notranslate nohighlight">\(xy\)</span>-plane (a 2D subspace). The best approximation is to project <span class="math notranslate nohighlight">\(\mathbf{v}\)</span> onto the plane, giving <span class="math notranslate nohighlight">\(\hat{\mathbf{v}} = (v_1, v_2, 0)\)</span>. The error is <span class="math notranslate nohighlight">\(\mathbf{r} = \mathbf{v} - \hat{\mathbf{v}} = (0, 0, v_3)\)</span>, which points purely in the <span class="math notranslate nohighlight">\(z\)</span>-direction, orthogonal to the entire <span class="math notranslate nohighlight">\(xy\)</span>-plane. This is precisely the Galerkin condition in action: the error is orthogonal to the approximation space.</p>
+<p>The finite-dimensional analogy makes this concrete. Suppose you want to approximate a vector <span class="math notranslate nohighlight">\(\mathbf{v} \in \mathbb{R}^3\)</span> using only the <span class="math notranslate nohighlight">\(xy\)</span>-plane (a 2D subspace). The best approximation is to project <span class="math notranslate nohighlight">\(\mathbf{v}\)</span> onto the plane, giving <span class="math notranslate nohighlight">\(\hat{\mathbf{v}} = (v_1, v_2, 0)\)</span>. The error is <span class="math notranslate nohighlight">\(\mathbf{r} = \mathbf{v} - \hat{\mathbf{v}} = (0, 0, v_3)\)</span>, which points purely in the <span class="math notranslate nohighlight">\(z\)</span>-direction, orthogonal to the entire <span class="math notranslate nohighlight">\(xy\)</span>-plane. We see the Galerkin condition in action: the error is orthogonal to the approximation space.</p>
 </section>
 <section id="method-of-moments-test-against-monomials">
 <h4>Method of Moments: Test Against Monomials<a class="headerlink" href="#method-of-moments-test-against-monomials" title="Link to this heading">#</a></h4>
@@ -664,8 +676,8 @@ R(x; a) = \mathscr{N}(\hat{f}(\cdot; a))(x).
 \]</div>
 <p>This requires the residual to have zero average over each subdomain, ensuring the approximation is good “on average” over each piece of the domain. This approach is particularly natural for finite element methods where the domain is divided into elements, ensuring local balance of the residual within each element.</p>
 </section>
-<section id="least-squares-an-alternative-framework">
-<h4>Least Squares: An Alternative Framework<a class="headerlink" href="#least-squares-an-alternative-framework" title="Link to this heading">#</a></h4>
+<section id="least-squares">
+<h4>Least Squares<a class="headerlink" href="#least-squares" title="Link to this heading">#</a></h4>
 <p>The least squares approach doesn’t fit the test function framework directly. Instead, we minimize:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -677,7 +689,7 @@ R(x; a) = \mathscr{N}(\hat{f}(\cdot; a))(x).
 \left\langle R(\cdot; a), \frac{\partial R(\cdot; a)}{\partial a_i} \right\rangle = 0, \quad i = 1, \ldots, n.
 \]</div>
 <p>Thus least squares implicitly uses test functions <span class="math notranslate nohighlight">\(p_i = \partial R / \partial a_i\)</span>, the gradients of the residual with respect to parameters. Unlike other methods where test functions are chosen a priori, here they depend on the current guess for <span class="math notranslate nohighlight">\(a\)</span> and on the structure of our approximation.</p>
-<p>We can now see the unifying structure of <strong>weighted residual methods</strong>: whether we use projection conditions or least squares minimization, all these methods follow the same template of restricting the search to an <span class="math notranslate nohighlight">\(n\)</span>-dimensional function space and imposing <span class="math notranslate nohighlight">\(n\)</span> conditions on the residual. For projection methods specifically, we pick <span class="math notranslate nohighlight">\(n\)</span> test functions and require <span class="math notranslate nohighlight">\(\langle R, p_i \rangle = 0\)</span>. They differ only in their philosophy about which test functions best reveal whether the residual is “nearly zero.” Galerkin tests against the approximation basis itself (natural for orthogonal bases), the method of moments tests against monomials (ensuring polynomial balance), collocation tests against delta functions (pointwise satisfaction), subdomain tests against indicators (local average satisfaction), and least squares tests against residual gradients (global norm minimization). Each choice reflects different priorities: computational efficiency, theoretical optimality, ease of implementation, or sensitivity to errors in different regions of the domain.</p>
+<p>We can now see the unifying structure of <strong>weighted residual methods</strong>: whether we use projection conditions or least squares minimization, all these methods follow the same template of restricting the search to an <span class="math notranslate nohighlight">\(n\)</span>-dimensional function space and imposing <span class="math notranslate nohighlight">\(n\)</span> conditions on the residual. For projection methods specifically, we pick <span class="math notranslate nohighlight">\(n\)</span> test functions and require <span class="math notranslate nohighlight">\(\langle R, p_i \rangle = 0\)</span>. They differ only in their philosophy about which test functions best detect whether the residual is “nearly zero.” Galerkin tests against the approximation basis itself (natural for orthogonal bases), the method of moments tests against monomials (ensuring polynomial balance), collocation tests against delta functions (pointwise satisfaction), subdomain tests against indicators (local average satisfaction), and least squares tests against residual gradients (global norm minimization). Each choice reflects different priorities: computational efficiency, theoretical optimality, ease of implementation, or sensitivity to errors in different regions of the domain.</p>
 </section>
 </section>
 <section id="step-4-solve-the-finite-dimensional-problem">
@@ -704,18 +716,18 @@ J_{ij} = \frac{\partial P_i}{\partial a_j} = \left\langle \frac{\partial R(\cdot
 <p>The choice of solver depends on whether the finite-dimensional approximation preserves the structural properties of the original infinite-dimensional problem. This matters for the Bellman equation, where the original operator <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> is a contraction.</p>
 <p><strong>Successive approximation</strong> (fixed-point iteration) is the natural choice when the original operator is a contraction, as it preserves the global convergence guarantees. However, the finite-dimensional approximation <span class="math notranslate nohighlight">\(\hat{\mathrm{L}}\)</span> may not inherit the contraction property of <span class="math notranslate nohighlight">\(\mathrm{L}\)</span>. The approximation can introduce spurious fixed points or destroy the contraction constant, leading to divergence or slow convergence. This is especially problematic when using high-order polynomial approximations, which can create artificial oscillations that destabilize the iteration.</p>
 <p><strong>Newton’s method</strong> is often the default choice for projection methods because it doesn’t rely on the contraction property. Instead, it exploits the smoothness of the residual function. When the original problem is smooth and the approximation preserves this smoothness, Newton’s method provides quadratic convergence near the solution. However, Newton’s method requires good initial guesses and may converge to spurious solutions if the finite-dimensional problem has multiple fixed points that the original problem lacks.</p>
-<p><strong>The choice of basis and projection method affects which algorithm is most appropriate</strong>. For example:</p>
+<p>The choice of basis and projection method affects which algorithm is most appropriate. For example:</p>
 <ul class="simple">
 <li><p><strong>Linear interpolation</strong> often preserves contraction properties, making successive approximation reliable</p></li>
 <li><p><strong>High-order polynomials</strong> may destroy contraction but provide smooth approximations suitable for Newton’s method</p></li>
 <li><p><strong>Shape-preserving splines</strong> can maintain both smoothness and structural properties</p></li>
 </ul>
-<p><strong>In practice, which algorithm should we use?</strong> When the operator equation can be written as a fixed-point problem <span class="math notranslate nohighlight">\(f = \mathscr{T}f\)</span> and the operator <span class="math notranslate nohighlight">\(\mathscr{T}\)</span> is known to be a contraction, successive approximation is often the best starting point: it is computationally cheap and globally convergent. However, not all equations <span class="math notranslate nohighlight">\(\mathscr{N}(f) = 0\)</span> admit a natural fixed-point reformulation, and even when they do (e.g., <span class="math notranslate nohighlight">\(f = f - \alpha \mathscr{N}(f)\)</span> for some <span class="math notranslate nohighlight">\(\alpha &gt; 0\)</span>), the resulting operator may not be a contraction in the finite-dimensional approximation space. In such cases, Newton’s method becomes the primary option despite its requirement for good initial guesses and higher computational cost per iteration. A hybrid approach often works well: use successive approximation when applicable to generate an initial guess, then switch to Newton’s method for refinement.</p>
+<p>In practice, which algorithm should we use? When the operator equation can be written as a fixed-point problem <span class="math notranslate nohighlight">\(f = \mathscr{T}f\)</span> and the operator <span class="math notranslate nohighlight">\(\mathscr{T}\)</span> is known to be a contraction, successive approximation is often the best starting point: it is computationally cheap and globally convergent. However, not all equations <span class="math notranslate nohighlight">\(\mathscr{N}(f) = 0\)</span> admit a natural fixed-point reformulation, and even when they do (e.g., <span class="math notranslate nohighlight">\(f = f - \alpha \mathscr{N}(f)\)</span> for some <span class="math notranslate nohighlight">\(\alpha &gt; 0\)</span>), the resulting operator may not be a contraction in the finite-dimensional approximation space. In such cases, Newton’s method becomes the primary option despite its requirement for good initial guesses and higher computational cost per iteration. A hybrid approach often works well: use successive approximation when applicable to generate an initial guess, then switch to Newton’s method for refinement.</p>
 <p>Another consideration is the conditioning of the resulting system. Poorly chosen basis functions or collocation points can lead to nearly singular Jacobians, causing numerical instability. Orthogonal bases and carefully chosen collocation points (like Chebyshev nodes) are preferred because they tend to produce well-conditioned systems.</p>
 </section>
 <section id="step-5-verify-the-solution">
 <h3>Step 5: Verify the Solution<a class="headerlink" href="#step-5-verify-the-solution" title="Link to this heading">#</a></h3>
-<p>Once we have computed a candidate solution <span class="math notranslate nohighlight">\(\hat{f}\)</span>, we must verify its quality. Projection methods optimize <span class="math notranslate nohighlight">\(\hat{f}\)</span> with respect to specific criteria (specific test functions or collocation points), but we should check that the residual is small everywhere, not just in the directions or at the points we optimized over.</p>
+<p>Once we have computed a candidate solution <span class="math notranslate nohighlight">\(\hat{f}\)</span>, we must verify its quality. Projection methods optimize <span class="math notranslate nohighlight">\(\hat{f}\)</span> with respect to specific criteria (specific test functions or collocation points), but we should check that the residual is small everywhere, including directions or points we did not optimize over.</p>
 <p>Typical diagnostic checks include:</p>
 <ul class="simple">
 <li><p>Computing <span class="math notranslate nohighlight">\(\|R(\cdot; a)\|\)</span> using a more accurate quadrature rule than was used in the optimization</p></li>
@@ -811,7 +823,7 @@ t_i^{(k)} = v_i(a^{(k)}) = \max_{u \in \mathcal{A}_{s_i}} \left\{ r(s_i, u) + \g
 \[
 v_i(a) = \max_{u \in \mathcal{A}_{s_i}} \left\{ r(s_i, u) + \gamma \sum_{k=1}^m w_k \sum_{\ell=1}^n a_\ell \varphi_\ell(g(s_i, u, \epsilon_k)) \right\}.
 \]</div>
-<p>Common quadrature schemes include Gauss-Hermite (for normal shocks), Gauss-Legendre (for uniform shocks), or more sophisticated methods like sparse grids for high-dimensional shocks.</p>
+<p>Common quadrature schemes include Gauss-Hermite (for normal shocks), Gauss-Legendre (for uniform shocks), or sparse grids for high-dimensional shocks.</p>
 </div>
 </section>
 <section id="method-2-newton-s-method-with-the-envelope-theorem">
@@ -860,7 +872,7 @@ v(\boldsymbol{\theta}) = \max_{\mathbf{x}} f(\mathbf{x}, \boldsymbol{\theta}).
 \boxed{\nabla_{\boldsymbol{\theta}} v(\boldsymbol{\theta}) = \nabla_{\boldsymbol{\theta}} f(\mathbf{x}(\boldsymbol{\theta}), \boldsymbol{\theta})}.
 \]</div>
 <p>This results tells us that you can compute the derivative of the optimal value by treating the maximizer as constant. You don’t need to compute <span class="math notranslate nohighlight">\(\frac{\partial \mathbf{x}}{\partial \boldsymbol{\theta}}\)</span>.</p>
-<p>In our Bellman collocation problem, <span class="math notranslate nohighlight">\(v_i(a) = \max_u \{r(s_i, u) + \gamma \mathbb{E}[\sum_\ell a_\ell \varphi_\ell(s')]\}\)</span>. To compute <span class="math notranslate nohighlight">\(\frac{\partial v_i}{\partial a_j}\)</span>, we don’t need to figure out how <span class="math notranslate nohighlight">\(u_i^*(a)\)</span> changes with <span class="math notranslate nohighlight">\(a\)</span>—we just evaluate the gradient at the optimal action:</p>
+<p>In our Bellman collocation problem, <span class="math notranslate nohighlight">\(v_i(a) = \max_u \{r(s_i, u) + \gamma \mathbb{E}[\sum_\ell a_\ell \varphi_\ell(s')]\}\)</span>. To compute <span class="math notranslate nohighlight">\(\frac{\partial v_i}{\partial a_j}\)</span>, we don’t need to figure out how <span class="math notranslate nohighlight">\(u_i^*(a)\)</span> changes with <span class="math notranslate nohighlight">\(a\)</span>. We just evaluate the gradient at the optimal action:</p>
 <div class="math notranslate nohighlight">
 \[
 \frac{\partial v_i}{\partial a_j}(a) = \gamma \sum_{s'} p(s'|s_i, u_i^*(a)) \varphi_j(s').
@@ -964,6 +976,171 @@ u_i^*(a) \in \operatorname{argmax}_{u \in \mathcal{A}_{s_i}} \left\{ r(s_i, u) +
 <p>The trade-off is between smoothness and shape preservation. Smooth approximations (high-order polynomials or splines) enable efficient optimization in the maximization step through gradient-based methods, but risk introducing spurious features. Simple approximations (linear interpolation) guarantee shape preservation but introduce kinks that complicate optimization and may produce discontinuous policies when the true policy is continuous.</p>
 </section>
 </section>
+<section id="monotone-projection-and-the-preservation-of-contraction">
+<h2>Monotone Projection and the Preservation of Contraction<a class="headerlink" href="#monotone-projection-and-the-preservation-of-contraction" title="Link to this heading">#</a></h2>
+<p>The informal discussion of shape preservation hints at a deeper theoretical question: <strong>when does the function iteration method converge?</strong> Recall from our discussion of collocation that function iteration proceeds in two steps:</p>
+<ol class="arabic simple">
+<li><p>Apply the Bellman operator at collocation points: <span class="math notranslate nohighlight">\(t^{(k)} = v(a^{(k)})\)</span> where <span class="math notranslate nohighlight">\(t_i^{(k)} = \mathrm{L}\hat{v}^{(k)}(s_i)\)</span></p></li>
+<li><p>Fit new coefficients to match these targets: <span class="math notranslate nohighlight">\(\boldsymbol{\Phi} a^{(k+1)} = t^{(k)}\)</span>, giving <span class="math notranslate nohighlight">\(a^{(k+1)} = \boldsymbol{\Phi}^{-1} v(a^{(k)})\)</span></p></li>
+</ol>
+<p>We can reinterpret this iteration in <strong>function space</strong> rather than coefficient space. Let <span class="math notranslate nohighlight">\(A\)</span> be the <strong>projection operator</strong> that takes any function <span class="math notranslate nohighlight">\(f\)</span> and returns its approximation in <span class="math notranslate nohighlight">\(\text{span}\{\varphi_1, \ldots, \varphi_n\}\)</span>. For collocation, <span class="math notranslate nohighlight">\(A\)</span> is the interpolation operator: <span class="math notranslate nohighlight">\((Af)(s)\)</span> is the unique linear combination of basis functions that matches <span class="math notranslate nohighlight">\(f\)</span> at the collocation points. Then Step 2 can be written as: fit <span class="math notranslate nohighlight">\(\hat{v}^{(k+1)}\)</span> so that <span class="math notranslate nohighlight">\(\hat{v}^{(k+1)}(s_i) = \mathrm{L}\hat{v}^{(k)}(s_i)\)</span> for all collocation points, which means <span class="math notranslate nohighlight">\(\hat{v}^{(k+1)} = A(\mathrm{L}\hat{v}^{(k)})\)</span>.</p>
+<p>In other words, function iteration is equivalent to <strong>projected value iteration in function space</strong>:</p>
+<div class="math notranslate nohighlight">
+\[
+\hat{v}^{(k+1)} = A \mathrm{L} \hat{v}^{(k)}.
+\]</div>
+<p>We know that standard value iteration <span class="math notranslate nohighlight">\(v_{k+1} = \mathrm{L} v_k\)</span> converges because <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> is a <span class="math notranslate nohighlight">\(\gamma\)</span>-contraction in the sup norm. But now we’re iterating with the <strong>composed operator</strong> <span class="math notranslate nohighlight">\(A\mathrm{L}\)</span> instead of <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> alone.</p>
+<p>This <span class="math notranslate nohighlight">\(A\mathrm{L}\)</span> structure is not specific to collocation. It is inherent in all projection methods. The general pattern is always the same: apply the Bellman operator to get a target function <span class="math notranslate nohighlight">\(\mathrm{L}\hat{v}^{(k)}\)</span>, then project it back onto our approximation space to get <span class="math notranslate nohighlight">\(\hat{v}^{(k+1)}\)</span>. The projection step defines an operator <span class="math notranslate nohighlight">\(A\)</span> that depends on our choice of test functions:</p>
+<ul class="simple">
+<li><p>For <strong>collocation</strong>, <span class="math notranslate nohighlight">\(A\)</span> interpolates values at collocation points</p></li>
+<li><p>For <strong>Galerkin</strong>, <span class="math notranslate nohighlight">\(A\)</span> is orthogonal projection with respect to <span class="math notranslate nohighlight">\(\langle \cdot, \cdot \rangle_w\)</span></p></li>
+<li><p>For <strong>least squares</strong>, <span class="math notranslate nohighlight">\(A\)</span> minimizes the weighted residual norm</p></li>
+</ul>
+<p>But regardless of which projection method we use, iteration takes the form <span class="math notranslate nohighlight">\(\hat{v}^{(k+1)} = A\mathrm{L}\hat{v}^{(k)}\)</span>.</p>
+<p>The critical question is: <strong>does the composition <span class="math notranslate nohighlight">\(A \mathrm{L}\)</span> inherit the contraction property of <span class="math notranslate nohighlight">\(\mathrm{L}\)</span>?</strong> If not, the iteration may diverge, oscillate, or converge to a spurious fixed point even though the original problem is well-posed.</p>
+<section id="monotone-approximators-and-stability">
+<h3>Monotone Approximators and Stability<a class="headerlink" href="#monotone-approximators-and-stability" title="Link to this heading">#</a></h3>
+<p>The answer turns out to depend on specific properties of the approximation operator <span class="math notranslate nohighlight">\(A\)</span>. This theory was developed independently across multiple research communities—computational economics (Judd 1992, 1996; Santos and Vigo-Aguiar 1998), economic dynamics (Stachurski 2009), and reinforcement learning (Gordon 1995, 1999)—arriving at essentially the same mathematical conditions.</p>
+<section id="monotonicity-implies-nonexpansiveness">
+<h4>Monotonicity Implies Nonexpansiveness<a class="headerlink" href="#monotonicity-implies-nonexpansiveness" title="Link to this heading">#</a></h4>
+<p>It turns out that approximation operators satisfying simple structural properties automatically preserve contraction.</p>
+<div class="proof proposition admonition" id="monotone-nonexpansive">
+<p class="admonition-title"><span class="caption-number">Proposition 5 </span> (Monotone operators are nonexpansive (Stachurski))</p>
+<section class="proposition-content" id="proof-content">
+<p>Let <span class="math notranslate nohighlight">\(A: B(\mathcal{S}) \to B(\mathcal{S})\)</span> be a linear operator on the space of bounded functions. If <span class="math notranslate nohighlight">\(A\)</span> satisfies:</p>
+<ol class="arabic simple">
+<li><p><strong>Monotonicity</strong>: <span class="math notranslate nohighlight">\(f \leq g\)</span> pointwise implies <span class="math notranslate nohighlight">\(Af \leq Ag\)</span></p></li>
+<li><p><strong>Constant preservation</strong>: <span class="math notranslate nohighlight">\(A\mathbf{1} = \mathbf{1}\)</span> where <span class="math notranslate nohighlight">\(\mathbf{1}\)</span> is the constant function equal to <span class="math notranslate nohighlight">\(1\)</span></p></li>
+</ol>
+<p>Then <span class="math notranslate nohighlight">\(A\)</span> is nonexpansive in the sup norm: <span class="math notranslate nohighlight">\(\|Af - Ag\|_\infty \leq \|f - g\|_\infty\)</span> for all <span class="math notranslate nohighlight">\(f, g \in B(\mathcal{S})\)</span>.</p>
+</section>
+</div><div class="proof admonition" id="proof">
+<p>Proof. Let <span class="math notranslate nohighlight">\(M = \|f - g\|_\infty\)</span>. Then <span class="math notranslate nohighlight">\(-M \leq f(s) - g(s) \leq M\)</span> for all <span class="math notranslate nohighlight">\(s\)</span>, which can be written as <span class="math notranslate nohighlight">\(g - M\mathbf{1} \leq f \leq g + M\mathbf{1}\)</span>. By monotonicity, <span class="math notranslate nohighlight">\(A(g - M\mathbf{1}) \leq Af \leq A(g + M\mathbf{1})\)</span>. By linearity and constant preservation, <span class="math notranslate nohighlight">\(Ag - M\mathbf{1} \leq Af \leq Ag + M\mathbf{1}\)</span>, which means <span class="math notranslate nohighlight">\(|Af(s) - Ag(s)| \leq M\)</span> for all <span class="math notranslate nohighlight">\(s\)</span>. Therefore <span class="math notranslate nohighlight">\(\|Af - Ag\|_\infty \leq \|f - g\|_\infty\)</span>.</p>
+</div>
+<p>This proposition shows that monotonicity and constant preservation automatically imply nonexpansiveness. There is no need to verify this separately. The intuition is that a monotone, constant-preserving operator acts like a weighted average that respects order structure and cannot amplify differences between functions.</p>
+</section>
+<section id="preservation-of-contraction">
+<h4>Preservation of Contraction<a class="headerlink" href="#preservation-of-contraction" title="Link to this heading">#</a></h4>
+<p>Combining nonexpansiveness with the contraction property of the Bellman operator yields the main stability result.</p>
+<div class="proof theorem admonition" id="santos-vigo-aguiar-stability">
+<p class="admonition-title"><span class="caption-number">Theorem 7 </span> (Stability of projected value iteration (Santos-Vigo-Aguiar))</p>
+<section class="theorem-content" id="proof-content">
+<p>Let <span class="math notranslate nohighlight">\(\mathrm{L}: B(\mathcal{S}) \to B(\mathcal{S})\)</span> be a <span class="math notranslate nohighlight">\(\gamma\)</span>-contraction on the space of bounded functions with respect to the sup norm. Let <span class="math notranslate nohighlight">\(A: B(\mathcal{S}) \to B(\mathcal{S})\)</span> be a linear approximation operator satisfying monotonicity and constant preservation.</p>
+<p>Then the composed operator <span class="math notranslate nohighlight">\(A\mathrm{L}\)</span> is a <span class="math notranslate nohighlight">\(\gamma\)</span>-contraction, and projected value iteration <span class="math notranslate nohighlight">\(v_{k+1} = A\mathrm{L} v_k\)</span> converges globally to a unique fixed point <span class="math notranslate nohighlight">\(v_A \in \text{Range}(A)\)</span> with approximation error:</p>
+<div class="math notranslate nohighlight">
+\[
+\|v_A - v^*\|_\infty \leq \frac{1}{1-\gamma} \|Av^* - v^*\|_\infty,
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(v^*\)</span> is the true value function.</p>
+</section>
+</div><div class="proof admonition" id="proof">
+<p>Proof. Since <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> is a <span class="math notranslate nohighlight">\(\gamma\)</span>-contraction, we have <span class="math notranslate nohighlight">\(-\gamma\|f-g\|_\infty \leq \mathrm{L} f - \mathrm{L} g \leq \gamma\|f-g\|_\infty\)</span> pointwise. By monotonicity of <span class="math notranslate nohighlight">\(A\)</span>, <span class="math notranslate nohighlight">\(A(-\gamma\|f-g\|_\infty) \leq A(\mathrm{L} f - \mathrm{L} g) \leq A(\gamma\|f-g\|_\infty)\)</span>. By constant preservation, <span class="math notranslate nohighlight">\(-\gamma\|f-g\|_\infty \leq A(\mathrm{L} f - \mathrm{L} g) \leq \gamma\|f-g\|_\infty\)</span>, which implies <span class="math notranslate nohighlight">\(\|A\mathrm{L} f - A\mathrm{L} g\|_\infty \leq \gamma\|f-g\|_\infty\)</span>.</p>
+<p>The error bound follows from fixed-point analysis: <span class="math notranslate nohighlight">\(v^* - v_A = (I - A\mathrm{L})^{-1}(v^* - Av^*)\)</span>, and since <span class="math notranslate nohighlight">\(A\mathrm{L}\)</span> is a <span class="math notranslate nohighlight">\(\gamma\)</span>-contraction, <span class="math notranslate nohighlight">\(\|(I - A\mathrm{L})^{-1}\| \leq (1-\gamma)^{-1}\)</span>.</p>
+</div>
+<p>This error bound tells us that the fixed-point error is controlled by how well <span class="math notranslate nohighlight">\(A\)</span> can represent <span class="math notranslate nohighlight">\(v^*\)</span>. If <span class="math notranslate nohighlight">\(v^* \in \text{Range}(A)\)</span>, then <span class="math notranslate nohighlight">\(Av^* = v^*\)</span> and the error vanishes. Otherwise, the error is proportional to the approximation error <span class="math notranslate nohighlight">\(\|Av^* - v^*\|_\infty\)</span>, amplified by the factor <span class="math notranslate nohighlight">\((1-\gamma)^{-1}\)</span>.</p>
+</section>
+<section id="averagers-in-discrete-state-problems">
+<h4>Averagers in Discrete-State Problems<a class="headerlink" href="#averagers-in-discrete-state-problems" title="Link to this heading">#</a></h4>
+<p>For discrete-state problems, the monotonicity conditions have a natural interpretation as <strong>averaging with nonnegative weights</strong>. This characterization was developed by Gordon in the context of reinforcement learning.</p>
+<div class="proof definition admonition" id="gordon-averager">
+<p class="admonition-title"><span class="caption-number">Definition 8 </span> (Averager (Gordon))</p>
+<section class="definition-content" id="proof-content">
+<p>An operator <span class="math notranslate nohighlight">\(A: \mathbb{R}^{|\mathcal{S}|} \to \mathbb{R}^{|\mathcal{S}|}\)</span> is an <strong>averager</strong> if <span class="math notranslate nohighlight">\(Av = Wv\)</span> where <span class="math notranslate nohighlight">\(W\)</span> is a <span class="math notranslate nohighlight">\(|\mathcal{S}| \times |\mathcal{S}|\)</span> stochastic matrix: <span class="math notranslate nohighlight">\(w_{ij} \geq 0\)</span> and <span class="math notranslate nohighlight">\(\sum_j w_{ij} = 1\)</span> for all <span class="math notranslate nohighlight">\(i\)</span>.</p>
+</section>
+</div><p>Averagers automatically satisfy the monotonicity conditions: linearity follows from matrix multiplication, monotonicity follows from nonnegativity of entries, and constant preservation follows from row sums equaling one.</p>
+<div class="proof theorem admonition" id="gordon-stability">
+<p class="admonition-title"><span class="caption-number">Theorem 8 </span> (Stability with averagers (Gordon))</p>
+<section class="theorem-content" id="proof-content">
+<p>If <span class="math notranslate nohighlight">\(A\)</span> is an averager and <span class="math notranslate nohighlight">\(\mathrm{L}\)</span> is the Bellman operator (a <span class="math notranslate nohighlight">\(\gamma\)</span>-contraction), then <span class="math notranslate nohighlight">\(A\mathrm{L}\)</span> is a <span class="math notranslate nohighlight">\(\gamma\)</span>-contraction, and value iteration <span class="math notranslate nohighlight">\(v_{k+1} = A\mathrm{L} v_k\)</span> converges to a unique fixed point.</p>
+</section>
+</div><p>This specializes the Santos-Vigo-Aguiar theorem to discrete states, expressed in the probabilistic language of stochastic matrices. The stochastic matrix characterization connects to Markov chain theory: <span class="math notranslate nohighlight">\(Av\)</span> represents expected values after one transition, and the monotonicity property reflects the fact that expectations preserve order.</p>
+<p><strong>Examples of averagers</strong> include state aggregation (averaging values within groups), K-nearest neighbors (averaging over nearest states), kernel smoothing with positive kernels, and multilinear interpolation on grids (barycentric weights are nonnegative and sum to one). <strong>Counterexamples</strong> include linear least squares regression (projection matrix may have negative entries) and high-order polynomial interpolation (Runge phenomenon produces negative weights).</p>
+</section>
+<section id="which-approximation-operators-are-monotone">
+<h4>Which Approximation Operators Are Monotone?<a class="headerlink" href="#which-approximation-operators-are-monotone" title="Link to this heading">#</a></h4>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p><strong>Method</strong></p></th>
+<th class="head text-left"><p><strong>Monotone?</strong></p></th>
+<th class="head text-left"><p><strong>Notes</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p>Piecewise linear interpolation</p></td>
+<td class="text-left"><p>Yes</p></td>
+<td class="text-left"><p>Always an averager; guaranteed stability</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>Multilinear interpolation (grid)</p></td>
+<td class="text-left"><p>Yes</p></td>
+<td class="text-left"><p>Barycentric weights are nonnegative and sum to one</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>Shape-preserving splines (Schumaker)</p></td>
+<td class="text-left"><p>Yes</p></td>
+<td class="text-left"><p>Designed to maintain monotonicity</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>State aggregation</p></td>
+<td class="text-left"><p>Yes</p></td>
+<td class="text-left"><p>Exact averaging within groups</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>Kernel smoothing (positive kernels)</p></td>
+<td class="text-left"><p>Yes</p></td>
+<td class="text-left"><p>If kernel integrates to one</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>High-order polynomial interpolation</p></td>
+<td class="text-left"><p>No</p></td>
+<td class="text-left"><p>Oscillations violate monotonicity (Runge phenomenon)</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>Least squares projection (arbitrary basis)</p></td>
+<td class="text-left"><p>No</p></td>
+<td class="text-left"><p>Projection matrix may have negative entries</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>Fourier/spectral methods</p></td>
+<td class="text-left"><p>No</p></td>
+<td class="text-left"><p>Not monotone-preserving in general</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>Neural networks</p></td>
+<td class="text-left"><p>No</p></td>
+<td class="text-left"><p>Highly flexible but no monotonicity guarantees</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The distinction between “safe” (monotone) and “potentially unstable” (non-monotone) approximators provides rigorous foundation for the folk wisdom that linear interpolation is reliable while high-order polynomials can be dangerous for value iteration.</p>
+</section>
+</section>
+<section id="practical-implications">
+<h3>Practical Implications<a class="headerlink" href="#practical-implications" title="Link to this heading">#</a></h3>
+<p><strong>When using successive approximation (fixed-point iteration):</strong></p>
+<ul class="simple">
+<li><p>Choose monotone approximators to guarantee convergence</p></li>
+<li><p>Piecewise linear interpolation, state aggregation, and kernel methods with positive kernels are safe choices</p></li>
+<li><p>High-order polynomials and least squares regression may fail to converge even when the Bellman operator is a strong contraction</p></li>
+</ul>
+<p><strong>When using rootfinding methods (Newton):</strong></p>
+<ul class="simple">
+<li><p>Monotonicity is not required for convergence</p></li>
+<li><p>Can use smooth approximations (polynomials, splines, neural networks) for better approximation quality</p></li>
+<li><p>Requires good initial guesses and well-conditioned systems</p></li>
+<li><p>Stability depends on numerical properties of the Jacobian, not contraction preservation</p></li>
+</ul>
+<p><strong>Hybrid strategies:</strong></p>
+<ol class="arabic simple">
+<li><p>Use smooth approximation for policy representation, but monotone averager for value iteration</p></li>
+<li><p>Regularize smooth approximations with monotonicity constraints (monotone neural networks)</p></li>
+<li><p>Run a few iterations with a monotone method to generate initial guess, then switch to Newton’s method with smooth approximation</p></li>
+<li><p>Solve projection equations directly (collocation with Newton) rather than iterating</p></li>
+</ol>
+<p>This explains observed differences across research communities: reinforcement learning (traditionally using iterative TD methods) emphasized averagers, while computational economics (using collocation with Newton solvers) was more comfortable with polynomial bases.</p>
+</section>
+<section id="weighted-norms-and-extensions">
+<h3>Weighted Norms and Extensions<a class="headerlink" href="#weighted-norms-and-extensions" title="Link to this heading">#</a></h3>
+<p>The monotone approximation theory provides complete characterization for contraction in the sup norm. Several important extensions remain active research areas:</p>
+<p><strong>Weighted <span class="math notranslate nohighlight">\(L^2\)</span> norms</strong>: For policy evaluation with Galerkin projection, the relevant norm is <span class="math notranslate nohighlight">\(\|\cdot\|_\xi\)</span> where <span class="math notranslate nohighlight">\(\xi\)</span> is a state distribution. The contraction preservation condition becomes: <span class="math notranslate nohighlight">\(\xi\)</span> must be stationary under the policy’s transition operator. On-policy TD methods converge while off-policy methods can diverge because the weighting distribution must match the policy dynamics.</p>
+<p><strong>Nonlinear approximation</strong>: Neural networks don’t fit the linear operator framework. Recent work on monotone and convex neural networks attempts to recover stability through architectural constraints, but a complete theory is still emerging.</p>
+<p><strong>High-dimensional state spaces</strong>: Grid-based averagers become intractable due to curse of dimensionality. Understanding which non-averaging approximations provide acceptable stability-accuracy trade-offs is crucial for modern applications.</p>
+<p><strong>Off-policy learning</strong>: The averager framework assumes on-policy evaluation. Off-policy methods require additional machinery (importance sampling, gradient corrections) to maintain stability, even with averaging operators.</p>
+</section>
+</section>
 <section id="galerkin-projection-and-least-squares-temporal-difference">
 <h2>Galerkin Projection and Least Squares Temporal Difference<a class="headerlink" href="#galerkin-projection-and-least-squares-temporal-difference" title="Link to this heading">#</a></h2>
 <p>An important special case emerges when we apply Galerkin projection to the <strong>policy evaluation</strong> problem rather than the optimality problem. For a fixed policy <span class="math notranslate nohighlight">\(\pi\)</span>, the policy evaluation Bellman equation is:</p>
@@ -996,8 +1173,8 @@ R(s; \mathbf{a}) = \mathrm{L}_\pi \hat{v}(s) - \hat{v}(s) = r(s,\pi(s)) + \gamma
 \[
 \boldsymbol{\Phi}^\top \boldsymbol{\Xi} (\boldsymbol{\Phi} - \gamma \mathbf{P}_\pi \boldsymbol{\Phi}) \mathbf{a} = \boldsymbol{\Phi}^\top \boldsymbol{\Xi} \mathbf{r}_\pi.
 \]</div>
-<p>This is precisely the <strong>Least Squares Temporal Difference (LSTD)</strong> solution for policy evaluation. The connection reveals that LSTD is Galerkin projection applied to the linear policy evaluation Bellman equation. The “least squares” name comes from the fact that this is the projection (in the weighted <span class="math notranslate nohighlight">\(\ell^2\)</span> sense) of the Bellman operator’s output onto the span of the basis functions.</p>
-<p>The projection perspective clarifies a key aspect of approximate dynamic programming. The solution <span class="math notranslate nohighlight">\(\mathbf{a}\)</span> does not satisfy the true Bellman equation <span class="math notranslate nohighlight">\(v = \mathrm{L}_\pi v\)</span> (which is typically impossible within our finite-dimensional approximation space). Instead, it satisfies <span class="math notranslate nohighlight">\(\hat{v} = \Pi \mathrm{L}_\pi \hat{v}\)</span>, where <span class="math notranslate nohighlight">\(\Pi\)</span> is the projection operator onto <span class="math notranslate nohighlight">\(\text{span}\{\varphi_1, \ldots, \varphi_n\}\)</span>. We find the fixed point of the <em>projected</em> Bellman operator, not the Bellman operator itself. This is why approximation error persists even at convergence: the best we can do is find the value function whose Bellman operator output projects back onto itself.</p>
+<p>We have just derived the <strong>Least Squares Temporal Difference (LSTD)</strong> solution for policy evaluation. This shows that LSTD is Galerkin projection applied to the linear policy evaluation Bellman equation. The “least squares” name comes from the fact that this is the projection (in the weighted <span class="math notranslate nohighlight">\(\ell^2\)</span> sense) of the Bellman operator’s output onto the span of the basis functions.</p>
+<p>The projection perspective makes clear an important aspect of approximate dynamic programming. The solution <span class="math notranslate nohighlight">\(\mathbf{a}\)</span> does not satisfy the true Bellman equation <span class="math notranslate nohighlight">\(v = \mathrm{L}_\pi v\)</span> (which is typically impossible within our finite-dimensional approximation space). Instead, it satisfies <span class="math notranslate nohighlight">\(\hat{v} = \Pi \mathrm{L}_\pi \hat{v}\)</span>, where <span class="math notranslate nohighlight">\(\Pi\)</span> is the projection operator onto <span class="math notranslate nohighlight">\(\text{span}\{\varphi_1, \ldots, \varphi_n\}\)</span>. We find the fixed point of the <em>projected</em> Bellman operator, not the Bellman operator itself. This is why approximation error persists even at convergence: the best we can do is find the value function whose Bellman operator output projects back onto itself.</p>
 <section id="the-projected-bellman-equations">
 <h3>The Projected Bellman Equations<a class="headerlink" href="#the-projected-bellman-equations" title="Link to this heading">#</a></h3>
 <p>The LSTD solution gives a closed-form expression and connects to iterative algorithms developed in the next chapter. Understanding convergence of these methods requires analyzing when the projected Bellman operator <span class="math notranslate nohighlight">\(\Pi \mathrm{L}_\pi\)</span> is a contraction.</p>
@@ -1012,7 +1189,7 @@ R(s; \mathbf{a}) = \mathrm{L}_\pi \hat{v}(s) - \hat{v}(s) = r(s,\pi(s)) + \gamma
 \Pi = \boldsymbol{\Phi}(\boldsymbol{\Phi}^\top \boldsymbol{\Xi} \boldsymbol{\Phi})^{-1} \boldsymbol{\Phi}^\top \boldsymbol{\Xi}.
 \]</div>
 <p>An operator <span class="math notranslate nohighlight">\(\mathrm{T}\)</span> is a <strong><span class="math notranslate nohighlight">\(\beta\)</span>-contraction</strong> in norm <span class="math notranslate nohighlight">\(\|\cdot\|\)</span> if <span class="math notranslate nohighlight">\(\|\mathrm{T}v - \mathrm{T}w\| \leq \beta \|v - w\|\)</span> for all <span class="math notranslate nohighlight">\(v, w\)</span> and some <span class="math notranslate nohighlight">\(\beta &lt; 1\)</span>. It is a <strong>non-expansion</strong> if the same holds with <span class="math notranslate nohighlight">\(\beta = 1\)</span>.</p>
-<p><strong>Why <span class="math notranslate nohighlight">\(\Pi\)</span> is a non-expansion.</strong> The key is the Pythagorean identity in weighted inner product spaces. For any <span class="math notranslate nohighlight">\(u \in \mathbb{R}^{|\mathcal{S}|}\)</span>, the projection <span class="math notranslate nohighlight">\(\Pi u\)</span> and the residual <span class="math notranslate nohighlight">\((I - \Pi)u\)</span> are <span class="math notranslate nohighlight">\(\xi\)</span>-orthogonal: <span class="math notranslate nohighlight">\(\langle \Pi u, (I-\Pi)u \rangle_\xi = 0\)</span>. Therefore,</p>
+<p><strong>Why <span class="math notranslate nohighlight">\(\Pi\)</span> is a non-expansion.</strong> This follows from the Pythagorean identity in weighted inner product spaces. For any <span class="math notranslate nohighlight">\(u \in \mathbb{R}^{|\mathcal{S}|}\)</span>, the projection <span class="math notranslate nohighlight">\(\Pi u\)</span> and the residual <span class="math notranslate nohighlight">\((I - \Pi)u\)</span> are <span class="math notranslate nohighlight">\(\xi\)</span>-orthogonal: <span class="math notranslate nohighlight">\(\langle \Pi u, (I-\Pi)u \rangle_\xi = 0\)</span>. Therefore,</p>
 <div class="math notranslate nohighlight">
 \[
 \|u\|_\xi^2 = \|\Pi u\|_\xi^2 + \|(I-\Pi)u\|_\xi^2.
@@ -1023,8 +1200,8 @@ R(s; \mathbf{a}) = \mathrm{L}_\pi \hat{v}(s) - \hat{v}(s) = r(s,\pi(s)) + \gamma
 \|\Pi u - \Pi v\|_\xi^2 = \|\Pi(u-v)\|_\xi^2 \leq \|\Pi(u-v)\|_\xi^2 + \|(I-\Pi)(u-v)\|_\xi^2 = \|u - v\|_\xi^2,
 \]</div>
 <p>proving <span class="math notranslate nohighlight">\(\|\Pi u - \Pi v\|_\xi \leq \|u - v\|_\xi\)</span>.</p>
-<p><strong>When is <span class="math notranslate nohighlight">\(\mathrm{L}_\pi\)</span> a contraction in <span class="math notranslate nohighlight">\(\|\cdot\|_\xi\)</span>?</strong> Write the policy evaluation operator as <span class="math notranslate nohighlight">\(\mathrm{L}_\pi v = r_\pi + \gamma \mathbf{P}_\pi v\)</span>, where <span class="math notranslate nohighlight">\(\mathbf{P}_\pi\)</span> is the transition matrix under policy <span class="math notranslate nohighlight">\(\pi\)</span>. We know <span class="math notranslate nohighlight">\(\mathrm{L}_\pi\)</span> is a <span class="math notranslate nohighlight">\(\gamma\)</span>-contraction in <span class="math notranslate nohighlight">\(\|\cdot\|_\infty\)</span> from earlier chapters. However, whether it contracts in <span class="math notranslate nohighlight">\(\|\cdot\|_\xi\)</span> depends on the relationship between <span class="math notranslate nohighlight">\(\xi\)</span> and <span class="math notranslate nohighlight">\(\mathbf{P}_\pi\)</span>.</p>
-<p>The key is to establish when the stochastic matrix <span class="math notranslate nohighlight">\(\mathbf{P}_\pi\)</span> is non-expansive in <span class="math notranslate nohighlight">\(\|\cdot\|_\xi\)</span>. Following Bertsekas (Lemma 6.3.1), suppose <span class="math notranslate nohighlight">\(\xi\)</span> is a <strong>steady-state probability vector</strong> for <span class="math notranslate nohighlight">\(\mathbf{P}_\pi\)</span> with positive components, meaning:</p>
+<p>When is <span class="math notranslate nohighlight">\(\mathrm{L}_\pi\)</span> a contraction in <span class="math notranslate nohighlight">\(\|\cdot\|_\xi\)</span>? Write the policy evaluation operator as <span class="math notranslate nohighlight">\(\mathrm{L}_\pi v = r_\pi + \gamma \mathbf{P}_\pi v\)</span>, where <span class="math notranslate nohighlight">\(\mathbf{P}_\pi\)</span> is the transition matrix under policy <span class="math notranslate nohighlight">\(\pi\)</span>. We know <span class="math notranslate nohighlight">\(\mathrm{L}_\pi\)</span> is a <span class="math notranslate nohighlight">\(\gamma\)</span>-contraction in <span class="math notranslate nohighlight">\(\|\cdot\|_\infty\)</span> from earlier chapters. However, whether it contracts in <span class="math notranslate nohighlight">\(\|\cdot\|_\xi\)</span> depends on the relationship between <span class="math notranslate nohighlight">\(\xi\)</span> and <span class="math notranslate nohighlight">\(\mathbf{P}_\pi\)</span>.</p>
+<p>We need to establish when the stochastic matrix <span class="math notranslate nohighlight">\(\mathbf{P}_\pi\)</span> is non-expansive in <span class="math notranslate nohighlight">\(\|\cdot\|_\xi\)</span>. Following Bertsekas (Lemma 6.3.1), suppose <span class="math notranslate nohighlight">\(\xi\)</span> is a <strong>steady-state probability vector</strong> for <span class="math notranslate nohighlight">\(\mathbf{P}_\pi\)</span> with positive components, meaning:</p>
 <div class="math notranslate nohighlight">
 \[
 \xi^\top \mathbf{P}_\pi = \xi^\top, \qquad \text{or equivalently,} \qquad \xi(s') = \sum_s \xi(s) p(s'|s,\pi(s)) \text{ for all } s'.
@@ -1139,7 +1316,7 @@ v = \Pi(r_\pi + \gamma \mathbf{P}_\pi v), \qquad v \in \text{span}(\boldsymbol{\
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-does-it-mean-for-a-residual-to-be-zero">What Does It Mean for a Residual to Be Zero?</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-special-role-of-spectral-methods">The Special Role of Spectral Methods</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#orthogonal-collocation-best-of-both-worlds">Orthogonal Collocation: Best of Both Worlds</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#orthogonal-collocation">Orthogonal Collocation</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-general-framework">The General Framework</a><ul class="nav section-nav flex-column">
@@ -1150,7 +1327,7 @@ v = \Pi(r_\pi + \gamma \mathbf{P}_\pi v), \qquad v \in \text{span}(\boldsymbol{\
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#method-of-moments-test-against-monomials">Method of Moments: Test Against Monomials</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#collocation-method-test-against-delta-functions">Collocation Method: Test Against Delta Functions</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#subdomain-method-test-against-indicator-functions">Subdomain Method: Test Against Indicator Functions</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#least-squares-an-alternative-framework">Least Squares: An Alternative Framework</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#least-squares">Least Squares</a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-4-solve-the-finite-dimensional-problem">Step 4: Solve the Finite-Dimensional Problem</a></li>
@@ -1168,6 +1345,18 @@ v = \Pi(r_\pi + \gamma \mathbf{P}_\pi v), \qquad v \in \text{span}(\boldsymbol{\
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#shape-preserving-considerations">Shape-Preserving Considerations</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#monotone-projection-and-the-preservation-of-contraction">Monotone Projection and the Preservation of Contraction</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#monotone-approximators-and-stability">Monotone Approximators and Stability</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#monotonicity-implies-nonexpansiveness">Monotonicity Implies Nonexpansiveness</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#preservation-of-contraction">Preservation of Contraction</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#averagers-in-discrete-state-problems">Averagers in Discrete-State Problems</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#which-approximation-operators-are-monotone">Which Approximation Operators Are Monotone?</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#practical-implications">Practical Implications</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#weighted-norms-and-extensions">Weighted Norms and Extensions</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#galerkin-projection-and-least-squares-temporal-difference">Galerkin Projection and Least Squares Temporal Difference</a><ul class="nav section-nav flex-column">

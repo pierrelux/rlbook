@@ -216,6 +216,6 @@ where $\phi$ is a learned mapping from external conditions to the expected corre
 
 ## Looking Ahead
 
-There’s no universally correct way to model a system. Your choice depends on what you know, what you can observe, what you care about, and what tools you have.
+There's no universally correct way to model a system. Your choice depends on what you know, what you can observe, what you care about, and what tools you have.
 
-This chapter laid out a spectrum—from explicit, mechanistic models to black-box simulators and learned dynamics. In every case, modeling choices define the structure of the problem and the space of possible solutions. In the next chapters, we’ll see how they anchor learning, optimization, and decision-making.
+This chapter laid out a spectrum—from explicit, mechanistic models to black-box simulators and learned dynamics. In every case, modeling choices define the structure of the problem and the space of possible solutions. In the next chapters, we'll see how they anchor learning, optimization, and decision-making.

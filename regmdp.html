@@ -466,7 +466,7 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <p>Dynamic programming methods suffer from the curse of dimensionality and can quickly become difficult to apply in practice. Not only this, we may also be dealing with large or continuous state or action spaces. We have seen so far that we could address this problem using discretization, or interpolation. These were already examples of approximate dynamic programming. In this chapter, we will see other forms of approximations meant to facilitate the optimization problem, either by approximating the optimality equations, the value function, or the policy itself.
+  <p>Dynamic programming methods suffer from the curse of dimensionality and can quickly become difficult to apply in practice. We may also be dealing with large or continuous state or action spaces. We have seen so far that we could address this problem using discretization, or interpolation. These were already examples of approximate dynamic programming. In this chapter, we will see other forms of approximations meant to facilitate the optimization problem, either by approximating the optimality equations, the value function, or the policy itself.
 Approximation theory is at the heart of learning methods, and fundamentally, this chapter will be about the application of learning ideas to solve complex decision-making problems.</p>
 <section class="tex2jax_ignore mathjax_ignore" id="smooth-bellman-optimality-equations">
 <h1>Smooth Bellman Optimality Equations<a class="headerlink" href="#smooth-bellman-optimality-equations" title="Link to this heading">#</a></h1>
@@ -511,7 +511,7 @@ Approximation theory is at the heart of learning methods, and fundamentally, thi
 <li><p><strong>return</strong> <span class="math notranslate nohighlight">\(v, \pi\)</span></p></li>
 </ol>
 </section>
-</div><p><strong>Key differences from standard value iteration:</strong></p>
+</div><p><strong>Differences from standard value iteration:</strong></p>
 <ul class="simple">
 <li><p>Line 8 uses <span class="math notranslate nohighlight">\(\frac{1}{\beta} \log \sum_a \exp(\beta \cdot q(s,a))\)</span> instead of <span class="math notranslate nohighlight">\(\max_a q(s,a)\)</span></p></li>
 <li><p>Line 15 extracts a stochastic policy using softmax instead of a deterministic argmax policy</p></li>
@@ -553,7 +553,7 @@ Approximation theory is at the heart of learning methods, and fundamentally, thi
 <li><p>Tabular dynamic programming methods do not apply directly</p></li>
 <li><p>The augmented value function <span class="math notranslate nohighlight">\(\tilde{v}(s, \boldsymbol{\epsilon})\)</span> maps a continuous space to <span class="math notranslate nohighlight">\(\mathbb{R}\)</span></p></li>
 </ul>
-<p><strong>This is precisely why we immediately marginalize over the shocks</strong> to obtain a finite-dimensional representation.</p>
+<p><strong>This motivates why we immediately marginalize over the shocks</strong> to obtain a finite-dimensional representation.</p>
 </div>
 </section>
 <section id="step-2-the-hard-bellman-equation-on-the-augmented-state-space">
@@ -583,8 +583,8 @@ Approximation theory is at the heart of learning methods, and fundamentally, thi
 <p class="admonition-title">Two Different Value Functions</p>
 <p>It is crucial to distinguish:</p>
 <ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(\tilde{v}(s, \boldsymbol{\epsilon})\)</span>: the value <strong>after</strong> observing shocks (conditional on <span class="math notranslate nohighlight">\(\boldsymbol{\epsilon}\)</span>) — defined on the augmented state space</p></li>
-<li><p><span class="math notranslate nohighlight">\(v(s)\)</span>: the value <strong>before</strong> observing shocks (marginalizing over <span class="math notranslate nohighlight">\(\boldsymbol{\epsilon}\)</span>) — defined on the original state space</p></li>
+<li><p><span class="math notranslate nohighlight">\(\tilde{v}(s, \boldsymbol{\epsilon})\)</span>: the value <strong>after</strong> observing shocks (conditional on <span class="math notranslate nohighlight">\(\boldsymbol{\epsilon}\)</span>), defined on the augmented state space</p></li>
+<li><p><span class="math notranslate nohighlight">\(v(s)\)</span>: the value <strong>before</strong> observing shocks (marginalizing over <span class="math notranslate nohighlight">\(\boldsymbol{\epsilon}\)</span>), defined on the original state space</p></li>
 </ul>
 <p>The function <span class="math notranslate nohighlight">\(v(s)\)</span> is what we actually compute and care about. The augmented value <span class="math notranslate nohighlight">\(\tilde{v}\)</span> exists only as a proof device.</p>
 </div>
@@ -608,12 +608,12 @@ Approximation theory is at the heart of learning methods, and fundamentally, thi
 <div class="important admonition">
 <p class="admonition-title">Expectation of a Max, Not Max of an Expectation</p>
 <p>Notice carefully: we have <span class="math notranslate nohighlight">\(\mathbb{E}[\max(\cdot)]\)</span>, <strong>not</strong> <span class="math notranslate nohighlight">\(\max \mathbb{E}[\cdot]\)</span>. We are <strong>not</strong> swapping max and expectation.</p>
-<p>The expression <span class="math notranslate nohighlight">\(\mathbb{E}_{\boldsymbol{\epsilon}}[\max_a \{x_a + \epsilon(a)\}]\)</span> is the expected value of the maximum of Gumbel-perturbed utilities. This is precisely the quantity that the Gumbel random utility identity evaluates in closed form.</p>
+<p>The expression <span class="math notranslate nohighlight">\(\mathbb{E}_{\boldsymbol{\epsilon}}[\max_a \{x_a + \epsilon(a)\}]\)</span> is the expected value of the maximum of Gumbel-perturbed utilities. The Gumbel random utility identity evaluates this quantity in closed form.</p>
 </div>
 </section>
 <section id="step-5-apply-the-gumbel-random-utility-identity">
 <h3>Step 5: Apply the Gumbel Random Utility Identity<a class="headerlink" href="#step-5-apply-the-gumbel-random-utility-identity" title="Link to this heading">#</a></h3>
-<p>We now invoke a key result from extreme value theory:</p>
+<p>We now invoke a result from extreme value theory:</p>
 <div class="proof lemma admonition" id="gumbel-random-utility">
 <p class="admonition-title"><span class="caption-number">Lemma 1 </span> (Gumbel Random Utility Identity)</p>
 <section class="lemma-content" id="proof-content">
@@ -635,7 +635,7 @@ Approximation theory is at the heart of learning methods, and fundamentally, thi
 <p>Substituting the definition of <span class="math notranslate nohighlight">\(x_a(s)\)</span>:</p>
 <div class="math notranslate nohighlight">
 \[ v(s) = \frac{1}{\beta} \log \sum_{a \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right)\right) \]</div>
-<p>This is precisely the <strong>smooth Bellman equation</strong>.</p>
+<p>We have arrived at the <strong>smooth Bellman equation</strong>.</p>
 </section>
 <section id="step-6-summary-of-the-derivation">
 <h3>Step 6: Summary of the Derivation<a class="headerlink" href="#step-6-summary-of-the-derivation" title="Link to this heading">#</a></h3>
@@ -651,11 +651,11 @@ Approximation theory is at the heart of learning methods, and fundamentally, thi
 </section>
 <section id="deriving-the-optimal-smooth-policy">
 <h3>Deriving the Optimal Smooth Policy<a class="headerlink" href="#deriving-the-optimal-smooth-policy" title="Link to this heading">#</a></h3>
-<p>Now that we have derived the smooth value function, we can also obtain the corresponding optimal policy. The key question is: <strong>what policy should we follow in the original MDP (without explicitly conditioning on shocks)?</strong></p>
+<p>Now that we have derived the smooth value function, we can also obtain the corresponding optimal policy. The question is: <strong>what policy should we follow in the original MDP (without explicitly conditioning on shocks)?</strong></p>
 <p>In the augmented MDP, the optimal policy is deterministic but depends on the shock realization:</p>
 <div class="math notranslate nohighlight">
 \[\pi(s, \boldsymbol{\epsilon}) \in \operatorname{argmax}_{a \in \mathcal{A}_s} \left\{ r(s,a) + \epsilon(a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j) \right\}\]</div>
-<p>However, we want a policy for the <strong>original</strong> state space <span class="math notranslate nohighlight">\(s\)</span> (not the augmented state). We obtain this by <strong>marginalizing over the current shocks</strong>—essentially asking: “what is the probability that action <span class="math notranslate nohighlight">\(a\)</span> is optimal when we average over all possible shock realizations?”</p>
+<p>However, we want a policy for the <strong>original</strong> state space <span class="math notranslate nohighlight">\(s\)</span> (not the augmented state). We obtain this by <strong>marginalizing over the current shocks</strong>, essentially asking: “what is the probability that action <span class="math notranslate nohighlight">\(a\)</span> is optimal when we average over all possible shock realizations?”</p>
 <p>Define an indicator function:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split} I_a(\boldsymbol{\epsilon}) = \begin{cases} 
@@ -745,7 +745,7 @@ This is exactly the smooth Bellman equation we derived earlier, but now interpre
 
 ### Deriving the Optimal Policy
 
-The backward message recursion we derived earlier assumes a uniform prior policy $p(a_t | s_t)$. However, our goal is to find not just any policy, but an optimal one. We can extract this optimal policy efficiently by computing the posterior distribution over actions given our backward messages.
+The backward message recursion we derived earlier assumes a uniform prior policy $p(a_t | s_t)$. However, our goal is to find an optimal policy. We can extract this optimal policy efficiently by computing the posterior distribution over actions given our backward messages.
 
 Starting from the definition of conditional probability and applying Bayes' rule, we can write:
 
@@ -855,7 +855,7 @@ v^*_\Omega(s) &amp;= \Omega^*(q^*_\Omega(s, \cdot))\end{align*} \end{split}\]</d
 \[ v^*_\Omega(s) = \ln \sum_{a \in \mathcal{A}_s} \exp \left(r(s, a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v^*_\Omega(j)\right) \]</div>
 </li>
 </ol>
-<p>This is precisely the form of the smooth Bellman equation we derived earlier, with the log-sum-exp operation replacing the max operation of the standard Bellman equation.</p>
+<p>This matches the form of the smooth Bellman equation we derived earlier, with the log-sum-exp operation replacing the max operation of the standard Bellman equation.</p>
 <p>Furthermore, the optimal policy is given by the gradient of <span class="math notranslate nohighlight">\(\Omega^*\)</span>:</p>
 <div class="math notranslate nohighlight">
 \[ d^*(a|s) = \nabla \Omega^*(q^*_\Omega(s, \cdot)) = \frac{\exp(q^*_\Omega(s,a))}{\sum_{a' \in \mathcal{A}_s} \exp(q^*_\Omega(s,a'))} \]</div>
@@ -932,7 +932,7 @@ v^*_\Omega(s) &amp;= \Omega^*(q^*_\Omega(s, \cdot))\end{align*} \end{split}\]</d
 </section>
 <section id="equivalence-between-smooth-bellman-equations-and-entropy-regularized-mdps">
 <h3>Equivalence Between Smooth Bellman Equations and Entropy-Regularized MDPs<a class="headerlink" href="#equivalence-between-smooth-bellman-equations-and-entropy-regularized-mdps" title="Link to this heading">#</a></h3>
-<p>We have now seen two distinct ways to arrive at smooth Bellman equations. Earlier in this chapter, we introduced the logsumexp operator as a smooth approximation to the max operator, motivated by analytical tractability and the desire for differentiability. Just now, we derived the same equations through the lens of regularized MDPs, where we explicitly penalize the entropy of policies. Remarkably, these two perspectives are mathematically equivalent: solving the smooth Bellman equation with inverse temperature parameter <span class="math notranslate nohighlight">\(\beta\)</span> yields exactly the same optimal value function and optimal policy as solving the entropy-regularized MDP with regularization strength <span class="math notranslate nohighlight">\(\alpha = 1/\beta\)</span>. The two formulations are not merely similar—they describe identical optimization problems.</p>
+<p>We have now seen two distinct ways to arrive at smooth Bellman equations. Earlier in this chapter, we introduced the logsumexp operator as a smooth approximation to the max operator, motivated by analytical tractability and the desire for differentiability. Just now, we derived the same equations through the lens of regularized MDPs, where we explicitly penalize the entropy of policies. These two perspectives are mathematically equivalent: solving the smooth Bellman equation with inverse temperature parameter <span class="math notranslate nohighlight">\(\beta\)</span> yields exactly the same optimal value function and optimal policy as solving the entropy-regularized MDP with regularization strength <span class="math notranslate nohighlight">\(\alpha = 1/\beta\)</span>. The two formulations are not merely similar. They describe identical optimization problems.</p>
 <p>To see this equivalence clearly, consider the standard MDP problem with rewards <span class="math notranslate nohighlight">\(r(s,a)\)</span> and transition probabilities <span class="math notranslate nohighlight">\(p(j|s,a)\)</span>. The regularized MDP framework tells us to solve:</p>
 <div class="math notranslate nohighlight">
 \[
@@ -968,7 +968,7 @@ H(\pi(\cdot|s)) = -\sum_a \pi(a|s) \ln \pi(a|s) = \mathbb{E}_{a \sim \pi(\cdot|s
 &amp;= \mathbb{E}_\pi \left[ \sum_{t=0}^\infty \gamma^t \left( r(s_t, a_t) - \alpha \ln \pi(a_t|s_t) \right) \right].
 \end{align*}
 \end{split}\]</div>
-<p>The entropy bonus at each state, when averaged over the policy, becomes a per-action penalty proportional to the negative log probability of the action taken. This reformulation is more useful because the modified reward now depends only on the state, the action taken, and the probability assigned to that specific action by the policy—not on the entire distribution over actions.</p>
+<p>The entropy bonus at each state, when averaged over the policy, becomes a per-action penalty proportional to the negative log probability of the action taken. This reformulation is more useful because the modified reward now depends only on the state, the action taken, and the probability assigned to that specific action by the policy, not on the entire distribution over actions.</p>
 <p>This expression shows that entropy regularization is equivalent to adding a state-action dependent penalty term <span class="math notranslate nohighlight">\(-\alpha \ln \pi(a|s)\)</span> to the reward. Intuititively, this terms amounts to paying a cost for low-entropy (deterministic) policies.</p>
 <p>Now, when we write down the Bellman equation for this entropy-regularized problem, at each state <span class="math notranslate nohighlight">\(s\)</span> we need to find the decision rule <span class="math notranslate nohighlight">\(d(\cdot|s) \in \Delta(\mathcal{A}_s)\)</span> (a probability distribution over actions) that maximizes:</p>
 <div class="math notranslate nohighlight">
@@ -1011,14 +1011,14 @@ v(s) = \alpha \ln \sum_a \exp\left(\frac{1}{\alpha}\left(r(s,a) + \gamma \sum_{j
 \[
 v(s) = \frac{1}{\beta} \ln \sum_a \exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right)\right).
 \]</div>
-<p>This is precisely the smooth Bellman equation we derived earlier using the logsumexp operator. The inverse temperature parameter <span class="math notranslate nohighlight">\(\beta\)</span> controls how closely the logsumexp approximates the max: as <span class="math notranslate nohighlight">\(\beta \to \infty\)</span>, we recover the standard Bellman equation, while for finite <span class="math notranslate nohighlight">\(\beta\)</span>, we have a smooth approximation that corresponds to optimizing with entropy regularization strength <span class="math notranslate nohighlight">\(\alpha = 1/\beta\)</span>.</p>
+<p>We recover the smooth Bellman equation we derived earlier using the logsumexp operator. The inverse temperature parameter <span class="math notranslate nohighlight">\(\beta\)</span> controls how closely the logsumexp approximates the max: as <span class="math notranslate nohighlight">\(\beta \to \infty\)</span>, we recover the standard Bellman equation, while for finite <span class="math notranslate nohighlight">\(\beta\)</span>, we have a smooth approximation that corresponds to optimizing with entropy regularization strength <span class="math notranslate nohighlight">\(\alpha = 1/\beta\)</span>.</p>
 <p>The optimal policy is:</p>
 <div class="math notranslate nohighlight">
 \[
 \pi^*(a|s) = \frac{\exp\left(\beta q^*(s,a)\right)}{\sum_{a'} \exp\left(\beta q^*(s,a')\right)} = \text{softmax}_\beta(q^*(s,\cdot))(a),
 \]</div>
 <p>which is exactly the softmax policy parametrized by inverse temperature.</p>
-<p>The derivation establishes the complete equivalence: the value function <span class="math notranslate nohighlight">\(v^*\)</span> that solves the smooth Bellman equation is identical to the optimal value function <span class="math notranslate nohighlight">\(v^*_\Omega\)</span> of the entropy-regularized MDP (with <span class="math notranslate nohighlight">\(\Omega\)</span> being negative entropy and <span class="math notranslate nohighlight">\(\alpha = 1/\beta\)</span>), and the softmax policy that is greedy with respect to this value function achieves the maximum of the entropy-regularized objective. Both approaches yield the same numerical solution—the same values at every state and the same policy prescriptions. The only difference is how we conceptualize the problem: as smoothing the Bellman operator for computational tractability, or as explicitly trading off reward maximization against policy entropy.</p>
+<p>The derivation establishes the complete equivalence: the value function <span class="math notranslate nohighlight">\(v^*\)</span> that solves the smooth Bellman equation is identical to the optimal value function <span class="math notranslate nohighlight">\(v^*_\Omega\)</span> of the entropy-regularized MDP (with <span class="math notranslate nohighlight">\(\Omega\)</span> being negative entropy and <span class="math notranslate nohighlight">\(\alpha = 1/\beta\)</span>), and the softmax policy that is greedy with respect to this value function achieves the maximum of the entropy-regularized objective. Both approaches yield the same numerical solution: the same values at every state and the same policy prescriptions. The only difference is how we conceptualize the problem: as smoothing the Bellman operator for computational tractability, or as explicitly trading off reward maximization against policy entropy.</p>
 <p>This equivalence has important implications. When we use smooth Bellman equations with a logsumexp operator, we are implicitly solving an entropy-regularized MDP. Conversely, when we explicitly add entropy regularization to an MDP objective, we arrive at smooth Bellman equations as the natural description of optimality. This dual perspective will prove valuable in understanding various algorithms and theoretical results. For instance, in soft actor-critic methods and other maximum entropy reinforcement learning algorithms, the connection between smooth operators and entropy regularization provides both computational benefits (differentiability) and conceptual clarity (why we want stochastic policies).</p>
 </section>
 <section id="entropy-regularized-dynamic-programming-algorithms">
@@ -1053,7 +1053,7 @@ v(s) = \frac{1}{\beta} \ln \sum_a \exp\left(\beta\left(r(s,a) + \gamma \sum_{j \
 <li><p><strong>return</strong> <span class="math notranslate nohighlight">\(v, \pi\)</span></p></li>
 </ol>
 </section>
-</div><p><strong>Key features:</strong></p>
+</div><p><strong>Features:</strong></p>
 <ul class="simple">
 <li><p>Line 11 updates the policy using the softmax of Q-values, with temperature <span class="math notranslate nohighlight">\(\alpha\)</span></p></li>
 <li><p>Line 14 explicitly computes the entropy-regularized value: expected Q-value plus entropy bonus</p></li>
@@ -1099,7 +1099,7 @@ v(s) = \frac{1}{\beta} \ln \sum_a \exp\left(\beta\left(r(s,a) + \gamma \sum_{j \
 <li><p><strong>return</strong> <span class="math notranslate nohighlight">\(v, \pi\)</span></p></li>
 </ol>
 </section>
-</div><p><strong>Key features:</strong></p>
+</div><p><strong>Features:</strong></p>
 <ul class="simple">
 <li><p><strong>Policy Evaluation</strong> (lines 3-15): Computes the value of the current policy including entropy bonus</p>
 <ul>
