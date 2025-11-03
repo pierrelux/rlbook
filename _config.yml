@@ -16,6 +16,11 @@ execute:
 latex:
   latex_documents:
     targetname: book.tex
+  latex_additional_files:
+    - _static/latex_preamble.tex
+  latex_elements:
+    preamble: |
+      \usepackage{hyperref}
 
 # Add a bibtex file so that we can create citations
 bibtex_bibfiles:
