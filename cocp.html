@@ -16,36 +16,33 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
-  <!-- 
-    this give us a css class that will be invisible only if js is disabled 
-  -->
-  <noscript>
-    <style>
-      .pst-js-only { display: none !important; }
-
-    </style>
-  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
     <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
     <link rel="stylesheet" type="text/css" href="_static/proof.css?v=b4b7a797" />
     <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css" />
   
-  <!-- So that users can add custom icons -->
-  <script src="_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
     <script src="_static/documentation_options.js?v=9eb32ce0"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
@@ -73,7 +70,6 @@
     <link rel="prev" title="Discrete-Time Trajectory Optimization" href="ocp.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="" />
   </head>
   
   
@@ -89,8 +85,19 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <dialog id="pst-search-dialog">
-    
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
 <form class="bd-search d-flex align-items-center"
       action="search.html"
       method="get">
@@ -98,6 +105,7 @@
   <input type="search"
          class="form-control"
          name="q"
+         id="search-input"
          placeholder="Search this book..."
          aria-label="Search this book..."
          autocomplete="off"
@@ -105,8 +113,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form>
-  </dialog>
+</form></div>
+  </div>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -122,8 +130,7 @@
       
       
       
-      <dialog id="pst-primary-sidebar-modal"></dialog>
-      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+      <div class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -153,11 +160,15 @@
 </a></div>
         <div class="sidebar-primary-item">
 
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button></div>
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         
@@ -400,16 +411,24 @@
 
 
 
-<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
-  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
-  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
-  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
-</button>
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
 
 
-<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
-</button>
+  </button>
+`);
+</script>
 <button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <span class="fa-solid fa-list"></span>
 </button>
@@ -1186,15 +1205,15 @@ The functions <span class="math notranslate nohighlight">\(\Psi_e(x_1)\)</span> 
 <p>The authors in <span id="id4">[<a class="reference internal" href="bibliography.html#id17" title="Alexandra Ivanova Grancharova and Tor Arne Johansen. Explicit nonlinear model predictive control. Lecture notes in control and information sciences. Springer, Berlin, Germany, 2012 edition, March 2012.">20</a>]</span> also add a soft path constraint <span class="math notranslate nohighlight">\(x_2(t) \geq 0.4\)</span> to ensure that we maintain a minimum pressure at all time. This is implemented as a soft constraint using slack variables. The reason that we have the term <span class="math notranslate nohighlight">\(R v^2\)</span> in the objective is to penalizes violations of the soft constraint: we allow for deviations, but don’t want to do it too much.</p>
 <p>In the experiment below, we choose the setpoint <span class="math notranslate nohighlight">\(\mathbf{x}^* = [0.40, 0.60]^T\)</span> as it corresponds to an unstable equilibrium point. If we were to run the system without applying any control, we would see that the system starts to oscillate.</p>
 <div class="cell tag_hide-input docutils container">
-<details class="hide above-input">
+<details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
-<span class="collapsed">Show code cell source</span>
-<span class="expanded">Hide code cell source</span>
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">minimize</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 
 <span class="c1"># System parameters</span>
 <span class="n">gamma</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">psi_c0</span><span class="p">,</span> <span class="n">W</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.18</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.25</span>
@@ -1203,28 +1222,28 @@ The functions <span class="math notranslate nohighlight">\(\Psi_e(x_1)\)</span> 
 <span class="n">dt</span> <span class="o">=</span> <span class="n">T</span> <span class="o">/</span> <span class="n">N</span>
 <span class="n">x1_star</span><span class="p">,</span> <span class="n">x2_star</span> <span class="o">=</span> <span class="mf">0.40</span><span class="p">,</span> <span class="mf">0.60</span>
 
-<span class="k">def</span> <span class="nf">psi_e</span><span class="p">(</span><span class="n">x1</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">psi_e</span><span class="p">(</span><span class="n">x1</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">psi_c0</span> <span class="o">+</span> <span class="n">H</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mf">1.5</span> <span class="o">*</span> <span class="p">((</span><span class="n">x1</span> <span class="o">/</span> <span class="n">W</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">((</span><span class="n">x1</span> <span class="o">/</span> <span class="n">W</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">phi</span><span class="p">(</span><span class="n">x2</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">phi</span><span class="p">(</span><span class="n">x2</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">x2</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x2</span><span class="p">))</span>
 
-<span class="k">def</span> <span class="nf">system_dynamics</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">system_dynamics</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">):</span>
     <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span> <span class="o">=</span> <span class="n">x</span>
     <span class="n">dx1dt</span> <span class="o">=</span> <span class="n">B</span> <span class="o">*</span> <span class="p">(</span><span class="n">psi_e</span><span class="p">(</span><span class="n">x1</span><span class="p">)</span> <span class="o">-</span> <span class="n">x2</span> <span class="o">-</span> <span class="n">u</span><span class="p">)</span>
     <span class="n">dx2dt</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">B</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">phi</span><span class="p">(</span><span class="n">x2</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">dx1dt</span><span class="p">,</span> <span class="n">dx2dt</span><span class="p">])</span>
 
-<span class="k">def</span> <span class="nf">euler_step</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">euler_step</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">system_dynamics</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">instantenous_cost</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">instantenous_cost</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">):</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">alpha</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x1_star</span><span class="p">,</span> <span class="n">x2_star</span><span class="p">]))</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">kappa</span> <span class="o">*</span> <span class="n">u</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">terminal_cost</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">terminal_cost</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">beta</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x1_star</span><span class="p">,</span> <span class="n">x2_star</span><span class="p">]))</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">objective_and_constraints</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">objective_and_constraints</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
     <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="n">z</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">z</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
     <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">x0</span>
@@ -1237,7 +1256,7 @@ The functions <span class="math notranslate nohighlight">\(\Psi_e(x_1)\)</span> 
     <span class="n">obj</span> <span class="o">+=</span> <span class="n">terminal_cost</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="n">R</span> <span class="o">*</span> <span class="n">v</span><span class="o">**</span><span class="mi">2</span>
     <span class="k">return</span> <span class="n">obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cons</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">solve_trajectory_optimization</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">u_init</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">solve_trajectory_optimization</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">u_init</span><span class="p">):</span>
     <span class="n">z0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">N</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
     <span class="n">z0</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">u_init</span>
     <span class="n">bounds</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">)]</span> <span class="o">*</span> <span class="n">N</span> <span class="o">+</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)]</span>
@@ -1251,7 +1270,7 @@ The functions <span class="math notranslate nohighlight">\(\Psi_e(x_1)\)</span> 
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">result</span>
 
-<span class="k">def</span> <span class="nf">simulate_trajectory</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">u</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">simulate_trajectory</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">u</span><span class="p">):</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
     <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">x0</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
@@ -1339,17 +1358,17 @@ The functions <span class="math notranslate nohighlight">\(\Psi_e(x_1)\)</span> 
 \end{split}\]</div>
 <p>We then find a control function <span class="math notranslate nohighlight">\(u(t)\)</span> and state trajectory <span class="math notranslate nohighlight">\(x(t)\)</span> using the trapezoidal collocation method.</p>
 <div class="cell tag_hide-input docutils container">
-<details class="hide above-input">
+<details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
-<span class="collapsed">Show code cell source</span>
-<span class="expanded">Hide code cell source</span>
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize</span>
-<span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="kn">import</span> <span class="n">solve_ivp</span>
-<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">interp1d</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">minimize</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.integrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">solve_ivp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.interpolate</span><span class="w"> </span><span class="kn">import</span> <span class="n">interp1d</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 
 <span class="c1"># System parameters</span>
 <span class="n">gamma</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">psi_c0</span><span class="p">,</span> <span class="n">W</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.18</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.25</span>
@@ -1359,20 +1378,20 @@ The functions <span class="math notranslate nohighlight">\(\Psi_e(x_1)\)</span> 
 <span class="n">dt</span> <span class="o">=</span> <span class="n">T</span> <span class="o">/</span> <span class="p">(</span><span class="n">N</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
 <span class="n">x1_star</span><span class="p">,</span> <span class="n">x2_star</span> <span class="o">=</span> <span class="mf">0.40</span><span class="p">,</span> <span class="mf">0.60</span>
 
-<span class="k">def</span> <span class="nf">psi_e</span><span class="p">(</span><span class="n">x1</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">psi_e</span><span class="p">(</span><span class="n">x1</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">psi_c0</span> <span class="o">+</span> <span class="n">H</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mf">1.5</span> <span class="o">*</span> <span class="p">((</span><span class="n">x1</span> <span class="o">/</span> <span class="n">W</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">((</span><span class="n">x1</span> <span class="o">/</span> <span class="n">W</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">phi</span><span class="p">(</span><span class="n">x2</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">phi</span><span class="p">(</span><span class="n">x2</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">x2</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x2</span><span class="p">))</span>
 
-<span class="k">def</span> <span class="nf">system_dynamics</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">u_func</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">system_dynamics</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">u_func</span><span class="p">):</span>
     <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span> <span class="o">=</span> <span class="n">x</span>
     <span class="n">u</span> <span class="o">=</span> <span class="n">u_func</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
     <span class="n">dx1dt</span> <span class="o">=</span> <span class="n">B</span> <span class="o">*</span> <span class="p">(</span><span class="n">psi_e</span><span class="p">(</span><span class="n">x1</span><span class="p">)</span> <span class="o">-</span> <span class="n">x2</span> <span class="o">-</span> <span class="n">u</span><span class="p">)</span>
     <span class="n">dx2dt</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">B</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">phi</span><span class="p">(</span><span class="n">x2</span><span class="p">))</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">dx1dt</span><span class="p">,</span> <span class="n">dx2dt</span><span class="p">]</span>
 
-<span class="k">def</span> <span class="nf">objective</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">objective</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">z</span><span class="p">[:</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">N</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
     <span class="n">u</span> <span class="o">=</span> <span class="n">z</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">:]</span>
     
@@ -1383,7 +1402,7 @@ The functions <span class="math notranslate nohighlight">\(\Psi_e(x_1)\)</span> 
     
     <span class="k">return</span> <span class="n">cost</span>
 
-<span class="k">def</span> <span class="nf">constraints</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">constraints</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">z</span><span class="p">[:</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">N</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
     <span class="n">u</span> <span class="o">=</span> <span class="n">z</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">:]</span>
     
@@ -1403,7 +1422,7 @@ The functions <span class="math notranslate nohighlight">\(\Psi_e(x_1)\)</span> 
     
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cons</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">solve_trajectory_optimization</span><span class="p">(</span><span class="n">x0</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">solve_trajectory_optimization</span><span class="p">(</span><span class="n">x0</span><span class="p">):</span>
     <span class="c1"># Initial guess</span>
     <span class="n">x_init</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="p">[</span><span class="n">x1_star</span><span class="p">,</span> <span class="n">x2_star</span><span class="p">],</span> <span class="n">N</span><span class="p">)</span>
     <span class="n">u_init</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
@@ -1527,15 +1546,15 @@ J(\boldsymbol{\theta}) := \sum_{k\in K}\;\big\|\mathbf{y}_k - \mathbf{h}(\boldsy
 \]</div>
 <p>where <span class="math notranslate nohighlight">\(\boldsymbol{\phi}_k\)</span> denotes the state reached at step <span class="math notranslate nohighlight">\(k\)</span> by an RK4 rollout under parameter <span class="math notranslate nohighlight">\(\boldsymbol{\theta}\)</span>. In our demo the data grid and rollout grid coincide, so <span class="math notranslate nohighlight">\(\boldsymbol{\phi}_k = \mathbf{x}_k\)</span> and no interpolation is required. We will identify <span class="math notranslate nohighlight">\(B\)</span> by fitting the model to data generated from the ground-truth <span class="math notranslate nohighlight">\(B=1\)</span> system under randomized initial conditions and small input perturbations.</p>
 <div class="cell tag_hide-input docutils container">
-<details class="hide above-input">
+<details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
-<span class="collapsed">Show code cell source</span>
-<span class="expanded">Hide code cell source</span>
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="kn">import</span> <span class="n">solve_ivp</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.integrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">solve_ivp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 
 <span class="c1"># System parameters</span>
 <span class="n">gamma</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">psi_c0</span><span class="p">,</span> <span class="n">W</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.18</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.25</span>
@@ -1549,24 +1568,24 @@ J(\boldsymbol{\theta}) := \sum_{k\in K}\;\big\|\mathbf{y}_k - \mathbf{h}(\boldsy
 <span class="c1"># Number of trajectories</span>
 <span class="n">num_trajectories</span> <span class="o">=</span> <span class="mi">10</span>
 
-<span class="k">def</span> <span class="nf">psi_e</span><span class="p">(</span><span class="n">x1</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">psi_e</span><span class="p">(</span><span class="n">x1</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">psi_c0</span> <span class="o">+</span> <span class="n">H</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mf">1.5</span> <span class="o">*</span> <span class="p">((</span><span class="n">x1</span> <span class="o">/</span> <span class="n">W</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">((</span><span class="n">x1</span> <span class="o">/</span> <span class="n">W</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">phi</span><span class="p">(</span><span class="n">x2</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">phi</span><span class="p">(</span><span class="n">x2</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">x2</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x2</span><span class="p">))</span>
 
-<span class="k">def</span> <span class="nf">system_dynamics</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">system_dynamics</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">):</span>
     <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span> <span class="o">=</span> <span class="n">x</span>
     <span class="n">dx1dt</span> <span class="o">=</span> <span class="n">B</span> <span class="o">*</span> <span class="p">(</span><span class="n">psi_e</span><span class="p">(</span><span class="n">x1</span><span class="p">)</span> <span class="o">-</span> <span class="n">x2</span> <span class="o">-</span> <span class="n">u</span><span class="p">)</span>
     <span class="n">dx2dt</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">B</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">phi</span><span class="p">(</span><span class="n">x2</span><span class="p">))</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">dx1dt</span><span class="p">,</span> <span class="n">dx2dt</span><span class="p">]</span>
 
 <span class="c1"># &quot;Do nothing&quot; controller with small random noise</span>
-<span class="k">def</span> <span class="nf">u_func</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">u_func</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>  <span class="c1"># Mean 0, standard deviation 0.01</span>
 
 <span class="c1"># Function to simulate a single trajectory</span>
-<span class="k">def</span> <span class="nf">simulate_trajectory</span><span class="p">(</span><span class="n">x0</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">simulate_trajectory</span><span class="p">(</span><span class="n">x0</span><span class="p">):</span>
     <span class="n">sol</span> <span class="o">=</span> <span class="n">solve_ivp</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">system_dynamics</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">u_func</span><span class="p">(</span><span class="n">t</span><span class="p">)),</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">T</span><span class="p">],</span> <span class="n">x0</span><span class="p">,</span> <span class="n">t_eval</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;RK45&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">sol</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">sol</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 
@@ -1654,15 +1673,15 @@ Initial conditions:
 </div>
 </div>
 <div class="cell tag_hide-input docutils container">
-<details class="hide above-input">
+<details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
-<span class="collapsed">Show code cell source</span>
-<span class="expanded">Hide code cell source</span>
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">minimize</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 
 <span class="c1"># Load the data</span>
 <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;_static/compressor_surge_data_multi.npz&#39;</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -1676,33 +1695,33 @@ Initial conditions:
 <span class="c1"># B is the parameter we want to identify</span>
 <span class="n">B_true</span> <span class="o">=</span> <span class="mf">1.0</span>  <span class="c1"># True value, used for comparison</span>
 
-<span class="k">def</span> <span class="nf">psi_e</span><span class="p">(</span><span class="n">x1</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">psi_e</span><span class="p">(</span><span class="n">x1</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">psi_c0</span> <span class="o">+</span> <span class="n">H</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mf">1.5</span> <span class="o">*</span> <span class="p">((</span><span class="n">x1</span> <span class="o">/</span> <span class="n">W</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">((</span><span class="n">x1</span> <span class="o">/</span> <span class="n">W</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">phi</span><span class="p">(</span><span class="n">x2</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">phi</span><span class="p">(</span><span class="n">x2</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">x2</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x2</span><span class="p">))</span>
 
-<span class="k">def</span> <span class="nf">system_dynamics</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">B</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">system_dynamics</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">B</span><span class="p">):</span>
     <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span> <span class="o">=</span> <span class="n">x</span>
     <span class="n">dx1dt</span> <span class="o">=</span> <span class="n">B</span> <span class="o">*</span> <span class="p">(</span><span class="n">psi_e</span><span class="p">(</span><span class="n">x1</span><span class="p">)</span> <span class="o">-</span> <span class="n">x2</span> <span class="o">-</span> <span class="n">u</span><span class="p">)</span>
     <span class="n">dx2dt</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">B</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">phi</span><span class="p">(</span><span class="n">x2</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">dx1dt</span><span class="p">,</span> <span class="n">dx2dt</span><span class="p">])</span>
 
-<span class="k">def</span> <span class="nf">rk4_step</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">B</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">rk4_step</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">B</span><span class="p">):</span>
     <span class="n">k1</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
     <span class="n">k2</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">t</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">dt</span><span class="p">,</span> <span class="n">x</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">dt</span><span class="o">*</span><span class="n">k1</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
     <span class="n">k3</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">t</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">dt</span><span class="p">,</span> <span class="n">x</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">dt</span><span class="o">*</span><span class="n">k2</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
     <span class="n">k4</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">t</span> <span class="o">+</span> <span class="n">dt</span><span class="p">,</span> <span class="n">x</span> <span class="o">+</span> <span class="n">dt</span><span class="o">*</span><span class="n">k3</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="p">(</span><span class="n">dt</span><span class="o">/</span><span class="mi">6</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">k1</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">k2</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">k3</span> <span class="o">+</span> <span class="n">k4</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">simulate_trajectory</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">B</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">simulate_trajectory</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">B</span><span class="p">):</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="mi">2</span><span class="p">))</span>
     <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">x0</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">)):</span>
         <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">rk4_step</span><span class="p">(</span><span class="n">system_dynamics</span><span class="p">,</span> <span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">B</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">x</span>
 
-<span class="k">def</span> <span class="nf">objective</span><span class="p">(</span><span class="n">B</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">objective</span><span class="p">(</span><span class="n">B</span><span class="p">):</span>
     <span class="n">error</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">x1_obs</span><span class="p">,</span> <span class="n">x2_obs</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">trajectories</span><span class="p">):</span>
         <span class="n">x_sim</span> <span class="o">=</span> <span class="n">simulate_trajectory</span><span class="p">(</span><span class="n">initial_conditions</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">B</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
@@ -1791,16 +1810,16 @@ Relative error: 1.07%
 <p>We use <strong>OpenAP.top</strong>, which solves the problem using direct collocation at <strong>Legendre–Gauss–Lobatto (LGL)</strong> points. Each trajectory segment is mapped to the unit interval, the state is interpolated by Lagrange polynomials at nonuniform LGL nodes, and the dynamics are enforced at those points. Integration is done with matching quadrature weights.</p>
 <p>This setup lets us optimize trajectories under realistic conditions by feeding in the appropriate ERA5 GRIB file (e.g., <code class="docutils literal notranslate"><span class="pre">era5_mtl_20230601_12.grib</span></code>). The result accounts for wind patterns (eg. headwinds, tailwinds, shear) along the corridor between Montréal and Toronto.</p>
 <div class="cell tag_hide-input docutils container">
-<details class="hide above-input">
+<details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
-<span class="collapsed">Show code cell source</span>
-<span class="expanded">Hide code cell source</span>
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># OpenAP.top demo with optional wind overlay – docs: https://github.com/junzis/openap-top</span>
-<span class="kn">from</span> <span class="nn">openap</span> <span class="kn">import</span> <span class="n">top</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">openap</span><span class="w"> </span><span class="kn">import</span> <span class="n">top</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
 <span class="c1"># Montreal region route (Canada): CYUL (Montréal–Trudeau) → CYYZ (Toronto)</span>
 <span class="n">opt</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">CompleteFlight</span><span class="p">(</span><span class="s2">&quot;A320&quot;</span><span class="p">,</span> <span class="s2">&quot;CYUL&quot;</span><span class="p">,</span> <span class="s2">&quot;CYYZ&quot;</span><span class="p">,</span> <span class="n">m0</span><span class="o">=</span><span class="mf">0.85</span><span class="p">)</span>
@@ -1875,10 +1894,10 @@ h_r^{k+1} = h_r^k + \Delta t \cdot \frac{1}{A_r}(z_r^k - q_r^k - s_r^k),
 <p>with delays handled by shifting <span class="math notranslate nohighlight">\(z_r^k\)</span> according to the appropriate travel time. These constraints are enforced as part of a nonlinear program, alongside the power tracking objective and control bounds.</p>
 <p>Compared to the earlier inflow-outflow model, this richer setup introduces more structure, but also more opportunity. The cascade now behaves like a coordinated team: upstream reservoirs can store water in anticipation of future needs, while downstream dams adjust their output to match arrivals and avoid overflows. The optimization reveals not just a schedule, but a strategy for how the entire system should act together to meet demand.</p>
 <div class="cell tag_hide-input docutils container">
-<details class="hide above-input">
+<details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
-<span class="collapsed">Show code cell source</span>
-<span class="expanded">Hide code cell source</span>
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Instrumented MSD hydro demo with heterogeneity + diagnostics</span>
@@ -1887,45 +1906,45 @@ h_r^{k+1} = h_r^k + \Delta t \cdot \frac{1}{A_r}(z_r^k - q_r^k - s_r^k),
 <span class="c1">#</span>
 <span class="c1"># This cell runs end-to-end and shows plots + tables.</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span>
-<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize</span>
-<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">sqrt</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tuple</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">minimize</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">math</span><span class="w"> </span><span class="kn">import</span> <span class="n">sqrt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 
 <span class="c1"># ---------- Model ----------</span>
 
 <span class="n">g</span> <span class="o">=</span> <span class="mf">9.81</span>  <span class="c1"># m/s^2</span>
 
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">ReachParams</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReachParams</span><span class="p">:</span>
     <span class="n">L</span><span class="p">:</span> <span class="nb">float</span>
     <span class="n">W</span><span class="p">:</span> <span class="nb">float</span>
     <span class="n">k_b</span><span class="p">:</span> <span class="nb">float</span>
     <span class="n">S_b</span><span class="p">:</span> <span class="nb">float</span>
     <span class="n">k_t</span><span class="p">:</span> <span class="nb">float</span>
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">A_surf</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">A_surf</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">L</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">W</span>
 
-<span class="k">def</span> <span class="nf">smooth_relu</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-9</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">smooth_relu</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-9</span><span class="p">):</span>
     <span class="k">return</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">eps</span><span class="p">))</span>
 
-<span class="k">def</span> <span class="nf">q_bypass</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">rp</span><span class="p">:</span> <span class="n">ReachParams</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">q_bypass</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">rp</span><span class="p">:</span> <span class="n">ReachParams</span><span class="p">):</span>
     <span class="n">H_eff</span> <span class="o">=</span> <span class="n">smooth_relu</span><span class="p">(</span><span class="n">H</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">rp</span><span class="o">.</span><span class="n">k_b</span> <span class="o">*</span> <span class="n">rp</span><span class="o">.</span><span class="n">S_b</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">g</span><span class="o">*</span><span class="n">H_eff</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">muskingum_coeffs</span><span class="p">(</span><span class="n">K</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">muskingum_coeffs</span><span class="p">(</span><span class="n">K</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
     <span class="n">D</span>  <span class="o">=</span> <span class="mf">2.0</span><span class="o">*</span><span class="n">K</span><span class="o">*</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">X</span><span class="p">)</span> <span class="o">+</span> <span class="n">dt</span>
     <span class="n">C0</span> <span class="o">=</span> <span class="p">(</span><span class="n">dt</span> <span class="o">-</span> <span class="mf">2.0</span><span class="o">*</span><span class="n">K</span><span class="o">*</span><span class="n">X</span><span class="p">)</span> <span class="o">/</span> <span class="n">D</span>
     <span class="n">C1</span> <span class="o">=</span> <span class="p">(</span><span class="n">dt</span> <span class="o">+</span> <span class="mf">2.0</span><span class="o">*</span><span class="n">K</span><span class="o">*</span><span class="n">X</span><span class="p">)</span> <span class="o">/</span> <span class="n">D</span>
     <span class="n">C2</span> <span class="o">=</span> <span class="p">(</span><span class="mf">2.0</span><span class="o">*</span><span class="n">K</span><span class="o">*</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">X</span><span class="p">)</span> <span class="o">-</span> <span class="n">dt</span><span class="p">)</span> <span class="o">/</span> <span class="n">D</span>
     <span class="k">return</span> <span class="n">C0</span><span class="p">,</span> <span class="n">C1</span><span class="p">,</span> <span class="n">C2</span>
 
-<span class="k">def</span> <span class="nf">integrate_interval</span><span class="p">(</span><span class="n">H0</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">nsub</span><span class="p">,</span> <span class="n">rp</span><span class="p">:</span> <span class="n">ReachParams</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">integrate_interval</span><span class="p">(</span><span class="n">H0</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">nsub</span><span class="p">,</span> <span class="n">rp</span><span class="p">:</span> <span class="n">ReachParams</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Forward Euler. Returns Hend, avg_qout.&quot;&quot;&quot;</span>
     <span class="n">h</span> <span class="o">=</span> <span class="n">dt</span><span class="o">/</span><span class="n">nsub</span>
     <span class="n">H</span> <span class="o">=</span> <span class="n">H0</span>
@@ -1938,20 +1957,20 @@ h_r^{k+1} = h_r^k + \Delta t \cdot \frac{1}{A_r}(z_r^k - q_r^k - s_r^k),
         <span class="n">qsum</span> <span class="o">+=</span> <span class="n">qout</span>
     <span class="k">return</span> <span class="n">H</span><span class="p">,</span> <span class="n">qsum</span><span class="o">/</span><span class="n">nsub</span>
 
-<span class="k">def</span> <span class="nf">shapes</span><span class="p">(</span><span class="n">M</span><span class="p">,</span><span class="n">N</span><span class="p">):</span> <span class="k">return</span> <span class="p">(</span><span class="n">M</span><span class="o">*</span><span class="p">(</span><span class="n">N</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">M</span><span class="o">*</span><span class="n">N</span><span class="p">,</span> <span class="n">M</span><span class="o">*</span><span class="n">N</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">shapes</span><span class="p">(</span><span class="n">M</span><span class="p">,</span><span class="n">N</span><span class="p">):</span> <span class="k">return</span> <span class="p">(</span><span class="n">M</span><span class="o">*</span><span class="p">(</span><span class="n">N</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">M</span><span class="o">*</span><span class="n">N</span><span class="p">,</span> <span class="n">M</span><span class="o">*</span><span class="n">N</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">unpack</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">N</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">unpack</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">N</span><span class="p">):</span>
     <span class="n">nH</span><span class="p">,</span> <span class="n">nu</span><span class="p">,</span> <span class="n">nz</span> <span class="o">=</span> <span class="n">shapes</span><span class="p">(</span><span class="n">M</span><span class="p">,</span><span class="n">N</span><span class="p">)</span>
     <span class="n">H</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:</span><span class="n">nH</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">M</span><span class="p">,</span><span class="n">N</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">u</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">nH</span><span class="p">:</span><span class="n">nH</span><span class="o">+</span><span class="n">nu</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">M</span><span class="p">,</span><span class="n">N</span><span class="p">)</span>
     <span class="n">z</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">nH</span><span class="o">+</span><span class="n">nu</span><span class="p">:</span><span class="n">nH</span><span class="o">+</span><span class="n">nu</span><span class="o">+</span><span class="n">nz</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">M</span><span class="p">,</span><span class="n">N</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">H</span><span class="p">,</span><span class="n">u</span><span class="p">,</span><span class="n">z</span>
 
-<span class="k">def</span> <span class="nf">pack</span><span class="p">(</span><span class="n">H</span><span class="p">,</span><span class="n">u</span><span class="p">,</span><span class="n">z</span><span class="p">):</span> <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">H</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">u</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">z</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">pack</span><span class="p">(</span><span class="n">H</span><span class="p">,</span><span class="n">u</span><span class="p">,</span><span class="n">z</span><span class="p">):</span> <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">H</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">u</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">z</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span>
 
 <span class="c1"># ---------- Problem builder ----------</span>
 
-<span class="k">def</span> <span class="nf">make_params_hetero</span><span class="p">(</span><span class="n">M</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_params_hetero</span><span class="p">(</span><span class="n">M</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Heterogeneous reaches to break symmetry.&quot;&quot;&quot;</span>
     <span class="c1"># Widths, spillway areas, and power coeffs vary by reach</span>
     <span class="n">W_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">140</span><span class="p">,</span> <span class="n">M</span><span class="p">)</span>         <span class="c1"># m</span>
@@ -1963,7 +1982,7 @@ h_r^{k+1} = h_r^k + \Delta t \cdot \frac{1}{A_r}(z_r^k - q_r^k - s_r^k),
                         <span class="n">k_b</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">k_b_list</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span> <span class="n">S_b</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">S_b_list</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span>
                         <span class="n">k_t</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">k_t_list</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">M</span><span class="p">)]</span>
 
-<span class="k">def</span> <span class="nf">build_demo</span><span class="p">(</span><span class="n">M</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="mf">900.0</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">hetero</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_demo</span><span class="p">(</span><span class="n">M</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="mf">900.0</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">hetero</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
     <span class="n">params</span> <span class="o">=</span> <span class="n">make_params_hetero</span><span class="p">(</span><span class="n">M</span><span class="p">)</span> <span class="k">if</span> <span class="n">hetero</span> <span class="k">else</span> <span class="p">[</span><span class="n">ReachParams</span><span class="p">(</span><span class="mf">4000.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">18.26</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">M</span><span class="p">)]</span>
 
@@ -1994,7 +2013,7 @@ h_r^{k+1} = h_r^k + \Delta t \cdot \frac{1}{A_r}(z_r^k - q_r^k - s_r^k),
 
 <span class="c1"># ---------- Objective / constraints / helpers ----------</span>
 
-<span class="k">def</span> <span class="nf">compute_total_power</span><span class="p">(</span><span class="n">H</span><span class="p">,</span><span class="n">u</span><span class="p">,</span><span class="n">params</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_total_power</span><span class="p">(</span><span class="n">H</span><span class="p">,</span><span class="n">u</span><span class="p">,</span><span class="n">params</span><span class="p">):</span>
     <span class="n">M</span><span class="p">,</span><span class="n">N</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">shape</span>
     <span class="n">Pn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
@@ -2002,7 +2021,7 @@ h_r^{k+1} = h_r^k + \Delta t \cdot \frac{1}{A_r}(z_r^k - q_r^k - s_r^k),
             <span class="n">Pn</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">+=</span> <span class="n">params</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">k_t</span> <span class="o">*</span> <span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">n</span><span class="p">]</span> <span class="o">*</span> <span class="n">H</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">n</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">Pn</span>
 
-<span class="k">def</span> <span class="nf">decompose_objective</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">Pref</span><span class="p">,</span> <span class="n">wP</span><span class="p">,</span> <span class="n">wH</span><span class="p">,</span> <span class="n">wDu</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">decompose_objective</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">Pref</span><span class="p">,</span> <span class="n">wP</span><span class="p">,</span> <span class="n">wH</span><span class="p">,</span> <span class="n">wDu</span><span class="p">):</span>
     <span class="n">H</span><span class="p">,</span><span class="n">u</span><span class="p">,</span><span class="n">z</span> <span class="o">=</span> <span class="n">unpack</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;M&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;N&quot;</span><span class="p">])</span>
     <span class="n">params</span><span class="p">,</span> <span class="n">H_ref</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;params&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;H_ref&quot;</span><span class="p">]</span>
     <span class="n">track</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">compute_total_power</span><span class="p">(</span><span class="n">H</span><span class="p">,</span><span class="n">u</span><span class="p">,</span><span class="n">params</span><span class="p">)</span><span class="o">-</span><span class="n">Pref</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
@@ -2010,9 +2029,9 @@ h_r^{k+1} = h_r^k + \Delta t \cdot \frac{1}{A_r}(z_r^k - q_r^k - s_r^k),
     <span class="n">du</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">u</span><span class="p">[:,</span><span class="mi">1</span><span class="p">:]</span><span class="o">-</span><span class="n">u</span><span class="p">[:,:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">track</span><span class="o">=</span><span class="n">wP</span><span class="o">*</span><span class="n">track</span><span class="p">,</span> <span class="n">lvl</span><span class="o">=</span><span class="n">wH</span><span class="o">*</span><span class="n">lvl</span><span class="p">,</span> <span class="n">du</span><span class="o">=</span><span class="n">wDu</span><span class="o">*</span><span class="n">du</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">track</span><span class="o">=</span><span class="n">track</span><span class="p">,</span><span class="n">lvl</span><span class="o">=</span><span class="n">lvl</span><span class="p">,</span><span class="n">du</span><span class="o">=</span><span class="n">du</span><span class="p">))</span>
 
-<span class="k">def</span> <span class="nf">make_objective</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">Pref</span><span class="p">,</span> <span class="n">wP</span><span class="o">=</span><span class="mf">8.0</span><span class="p">,</span> <span class="n">wH</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span> <span class="n">wDu</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_objective</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">Pref</span><span class="p">,</span> <span class="n">wP</span><span class="o">=</span><span class="mf">8.0</span><span class="p">,</span> <span class="n">wH</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span> <span class="n">wDu</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">):</span>
     <span class="n">params</span><span class="p">,</span> <span class="n">H_ref</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">M</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;params&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;H_ref&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;N&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;M&quot;</span><span class="p">]</span>
-    <span class="k">def</span> <span class="nf">obj</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">obj</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
         <span class="n">H</span><span class="p">,</span><span class="n">u</span><span class="p">,</span><span class="n">z</span> <span class="o">=</span> <span class="n">unpack</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">M</span><span class="p">,</span><span class="n">N</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">(</span>
             <span class="n">wP</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">compute_total_power</span><span class="p">(</span><span class="n">H</span><span class="p">,</span><span class="n">u</span><span class="p">,</span><span class="n">params</span><span class="p">)</span><span class="o">-</span><span class="n">Pref</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
@@ -2021,15 +2040,15 @@ h_r^{k+1} = h_r^k + \Delta t \cdot \frac{1}{A_r}(z_r^k - q_r^k - s_r^k),
         <span class="p">)</span>
     <span class="k">return</span> <span class="n">obj</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">wP</span><span class="o">=</span><span class="n">wP</span><span class="p">,</span><span class="n">wH</span><span class="o">=</span><span class="n">wH</span><span class="p">,</span><span class="n">wDu</span><span class="o">=</span><span class="n">wDu</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">make_constraints</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_constraints</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
     <span class="n">params</span><span class="p">,</span> <span class="n">H0</span><span class="p">,</span> <span class="n">Qin_ext</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">nsub</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">data</span><span class="p">[</span><span class="s2">&quot;params&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;H0&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;Qin_ext&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;dt&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;N&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;M&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;nsub&quot;</span><span class="p">]</span>
     <span class="p">)</span>
     <span class="n">cons</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">def</span> <span class="nf">init_fun</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">init_fun</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
         <span class="n">H</span><span class="p">,</span><span class="n">u</span><span class="p">,</span><span class="n">z</span> <span class="o">=</span> <span class="n">unpack</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">M</span><span class="p">,</span><span class="n">N</span><span class="p">);</span> <span class="k">return</span> <span class="n">H</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">H0</span>
     <span class="n">cons</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span><span class="s1">&#39;eq&#39;</span><span class="p">,</span><span class="s1">&#39;fun&#39;</span><span class="p">:</span><span class="n">init_fun</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">dyn_fun</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">dyn_fun</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
         <span class="n">H</span><span class="p">,</span><span class="n">u</span><span class="p">,</span><span class="n">z</span> <span class="o">=</span> <span class="n">unpack</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">M</span><span class="p">,</span><span class="n">N</span><span class="p">)</span>
         <span class="n">res</span><span class="o">=</span><span class="p">[]</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">M</span><span class="p">):</span>
@@ -2038,7 +2057,7 @@ h_r^{k+1} = h_r^k + \Delta t \cdot \frac{1}{A_r}(z_r^k - q_r^k - s_r^k),
                 <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">H</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">Hend</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
     <span class="n">cons</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span><span class="s1">&#39;eq&#39;</span><span class="p">,</span><span class="s1">&#39;fun&#39;</span><span class="p">:</span><span class="n">dyn_fun</span><span class="p">})</span>
-    <span class="k">def</span> <span class="nf">coup_fun</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">coup_fun</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
         <span class="n">H</span><span class="p">,</span><span class="n">u</span><span class="p">,</span><span class="n">z</span> <span class="o">=</span> <span class="n">unpack</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">M</span><span class="p">,</span><span class="n">N</span><span class="p">)</span>
         <span class="n">res</span><span class="o">=</span><span class="p">[]</span>
         <span class="c1"># First reach is exogenous inflow per interval</span>
@@ -2065,7 +2084,7 @@ h_r^{k+1} = h_r^k + \Delta t \cdot \frac{1}{A_r}(z_r^k - q_r^k - s_r^k),
     <span class="n">cons</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span><span class="s1">&#39;eq&#39;</span><span class="p">,</span><span class="s1">&#39;fun&#39;</span><span class="p">:</span><span class="n">coup_fun</span><span class="p">})</span>
     <span class="k">return</span> <span class="n">cons</span>
 
-<span class="k">def</span> <span class="nf">make_bounds</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_bounds</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
     <span class="n">Hmin</span><span class="p">,</span><span class="n">Hmax</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;H_bounds&quot;</span><span class="p">]</span>
     <span class="n">umin</span><span class="p">,</span><span class="n">umax</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;u_bounds&quot;</span><span class="p">]</span>
     <span class="n">M</span><span class="p">,</span><span class="n">N</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;M&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;N&quot;</span><span class="p">]</span>
@@ -2076,7 +2095,7 @@ h_r^{k+1} = h_r^k + \Delta t \cdot \frac{1}{A_r}(z_r^k - q_r^k - s_r^k),
     <span class="n">lb</span><span class="p">[</span><span class="n">nH</span><span class="o">+</span><span class="n">nu</span><span class="p">:]</span><span class="o">=</span><span class="mf">0.0</span><span class="p">;</span> <span class="n">ub</span><span class="p">[</span><span class="n">nH</span><span class="o">+</span><span class="n">nu</span><span class="p">:]</span><span class="o">=</span><span class="mf">2000.0</span>
     <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">lb</span><span class="p">,</span><span class="n">ub</span><span class="p">))</span>
 
-<span class="k">def</span> <span class="nf">residuals</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">residuals</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
     <span class="n">params</span><span class="p">,</span> <span class="n">H0</span><span class="p">,</span> <span class="n">Qin_ext</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">nsub</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">data</span><span class="p">[</span><span class="s2">&quot;params&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;H0&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;Qin_ext&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;dt&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;N&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;M&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;nsub&quot;</span><span class="p">]</span>
     <span class="p">)</span>
@@ -2103,7 +2122,7 @@ h_r^{k+1} = h_r^k + \Delta t \cdot \frac{1}{A_r}(z_r^k - q_r^k - s_r^k),
 
 <span class="c1"># ---------- Feasible initial guess with hetero controls ----------</span>
 
-<span class="k">def</span> <span class="nf">feasible_initial_guess</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">feasible_initial_guess</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Feasible x0 with nontrivial u by setting u at mid + per-reach pattern, then integrating to define H,z.&quot;&quot;&quot;</span>
     <span class="n">M</span><span class="p">,</span><span class="n">N</span><span class="p">,</span><span class="n">dt</span><span class="p">,</span><span class="n">nsub</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;M&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;N&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;dt&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;nsub&quot;</span><span class="p">]</span>
     <span class="n">params</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;params&quot;</span><span class="p">]</span>
@@ -2151,13 +2170,13 @@ h_r^{k+1} = h_r^k + \Delta t \cdot \frac{1}{A_r}(z_r^k - q_r^k - s_r^k),
             <span class="n">qavg_up</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="n">qavg</span>
     <span class="k">return</span> <span class="n">pack</span><span class="p">(</span><span class="n">H</span><span class="p">,</span><span class="n">u</span><span class="p">,</span><span class="n">z</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">scale_pref</span><span class="p">(</span><span class="n">Pref_raw</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">scale_pref</span><span class="p">(</span><span class="n">Pref_raw</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
     <span class="n">H</span><span class="p">,</span><span class="n">u</span><span class="p">,</span><span class="n">z</span> <span class="o">=</span> <span class="n">unpack</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;M&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;N&quot;</span><span class="p">])</span>
     <span class="n">P0</span> <span class="o">=</span> <span class="n">compute_total_power</span><span class="p">(</span><span class="n">H</span><span class="p">,</span><span class="n">u</span><span class="p">,</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;params&quot;</span><span class="p">])</span>
     <span class="n">s</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">P0</span><span class="p">),</span><span class="mf">1e-6</span><span class="p">)</span><span class="o">/</span><span class="nb">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">Pref_raw</span><span class="p">),</span><span class="mf">1e-6</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">Pref_raw</span><span class="o">*</span><span class="n">s</span><span class="p">,</span> <span class="n">P0</span>
 
-<span class="k">def</span> <span class="nf">run_demo</span><span class="p">(</span><span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">save_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="s1">&#39;hydro.png&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_demo</span><span class="p">(</span><span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">save_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="s1">&#39;hydro.png&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Build, solve, and render the hydro demo.</span>
 
 <span class="sd">    Parameters</span>
@@ -2234,7 +2253,7 @@ h_r^{k+1} = h_r^k + \Delta t \cdot \frac{1}{A_r}(z_r^k - q_r^k - s_r^k),
             <span class="nb">print</span><span class="p">(</span><span class="n">mean_abs_res</span><span class="p">)</span>
 
     <span class="c1"># Per-interval diagnostic table for each reach (kept for debugging but unused here)</span>
-    <span class="k">def</span> <span class="nf">interval_table</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">interval_table</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
         <span class="n">rp</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;params&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
         <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;N&quot;</span><span class="p">]):</span>
@@ -2366,8 +2385,7 @@ h_r^{k+1} = h_r^k + \Delta t \cdot \frac{1}{A_r}(z_r^k - q_r^k - s_r^k),
             
             
               
-                <dialog id="pst-secondary-sidebar-modal"></dialog>
-                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
   <div class="sidebar-secondary-item">
@@ -2464,8 +2482,8 @@ By Pierre-Luc Bacon
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549"></script>
-<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549"></script>
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
 
   <footer class="bd-footer">
   </footer>

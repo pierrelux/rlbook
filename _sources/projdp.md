@@ -237,7 +237,7 @@ This requires the residual to have zero average over each subdomain, ensuring th
 
 #### Least Squares
 
-The least squares approach doesn't fit the test function framework directly. Instead, we minimize:
+The least squares approach appears different at first glance, but it also fits the test function framework. We minimize:
 
 $$
 \min_a \int_{\mathcal{S}} R(x; a)^2 w(x) dx = \min_a \langle R(\cdot; a), R(\cdot; a) \rangle.
@@ -310,16 +310,16 @@ $$
 v(s) = \mathrm{L}v(s) = \max_{a \in \mathcal{A}_s} \left\{ r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j) \right\}.
 $$
 
-Writing this as an operator equation $\mathscr{N}(v) = 0$ with $\mathscr{N}(v) = \mathrm{L}v - v$, the residual function for a candidate approximation $\hat{v}(s) = \sum_{i=1}^n a_i \varphi_i(s)$ is:
+Writing this as an operator equation $\mathscr{N}(v) = 0$ with $\mathscr{N}(v) = \mathrm{L}v - v$, the residual function for a candidate approximation $\hat{v}(s) = \sum_{i=1}^n \theta_i \varphi_i(s)$ is:
 
 $$
-R(s; a) = \mathrm{L}\hat{v}(s) - \hat{v}(s) = \max_{a \in \mathcal{A}_s} \left\{ r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) \hat{v}(j) \right\} - \sum_{i=1}^n a_i \varphi_i(s).
+R(s; \theta) = \mathrm{L}\hat{v}(s) - \hat{v}(s) = \max_{a \in \mathcal{A}_s} \left\{ r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) \hat{v}(j) \right\} - \sum_{i=1}^n \theta_i \varphi_i(s).
 $$
 
 Any of the projection methods we discussed (Galerkin, method of moments, collocation, subdomain, or least squares) can be applied here. Each would give us $n$ conditions to determine the $n$ coefficients in our approximation. For instance:
-- **Galerkin** would require $\langle R(\cdot; a), \varphi_i \rangle = 0$ for $i = 1, \ldots, n$, involving integration of the residual weighted by basis functions
-- **Method of moments** would require $\langle R(\cdot; a), s^{i-1} \rangle = 0$, setting the first $n$ moments of the residual to zero
-- **Collocation** would require $R(s_i; a) = 0$ at $n$ chosen states, forcing the residual to vanish pointwise
+- **Galerkin** would require $\langle R(\cdot; \theta), \varphi_i \rangle = 0$ for $i = 1, \ldots, n$, involving integration of the residual weighted by basis functions
+- **Method of moments** would require $\langle R(\cdot; \theta), s^{i-1} \rangle = 0$, setting the first $n$ moments of the residual to zero
+- **Collocation** would require $R(s_i; \theta) = 0$ at $n$ chosen states, forcing the residual to vanish pointwise
 
 In practice, **collocation is the most commonly used** projection method for the Bellman equation. The reason is computational: collocation avoids the numerical integration required by Galerkin and method of moments. Since the Bellman operator already involves integration (or summation) over next states, adding another layer of integration for the projection conditions would be computationally expensive. Collocation sidesteps this by requiring the equation to hold exactly at specific points.
 
@@ -330,13 +330,13 @@ We focus on collocation in detail, though the principles extend to other project
 The collocation approach chooses $n$ states $\{s_1, \ldots, s_n\}$ (the collocation points) and requires:
 
 $$
-R(s_i; a) = 0, \quad i = 1, \ldots, n.
+R(s_i; \theta) = 0, \quad i = 1, \ldots, n.
 $$
 
 This gives us a system of $n$ nonlinear equations in $n$ unknowns:
 
 $$
-\sum_{j=1}^n a_j \varphi_j(s_i) = \max_{a \in \mathcal{A}_{s_i}} \left\{ r(s_i,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s_i,a) \hat{v}(j) \right\}, \quad i = 1, \ldots, n.
+\sum_{j=1}^n \theta_j \varphi_j(s_i) = \max_{a \in \mathcal{A}_{s_i}} \left\{ r(s_i,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s_i,a) \hat{v}(j) \right\}, \quad i = 1, \ldots, n.
 $$
 
 The right-hand side requires evaluating the Bellman operator at the collocation points. For each collocation point $s_i$, we must:
@@ -347,62 +347,62 @@ When the state space is continuous, the expectation involves integration, which 
 
 #### Solving the Collocation System
 
-To organize our thinking about solution methods, it helps to introduce the **collocation function** $v: \mathbb{R}^n \to \mathbb{R}^n$, which maps coefficient vectors to target values at the collocation points. Given a coefficient vector $a = (a_1, \ldots, a_n)$, the $i$-th component of $v(a)$ is defined as:
+To organize our thinking about solution methods, it helps to introduce the **collocation function** $v: \mathbb{R}^n \to \mathbb{R}^n$, which maps coefficient vectors to target values at the collocation points. Given a coefficient vector $\theta = (\theta_1, \ldots, \theta_n)$, the $i$-th component of $v(\theta)$ is defined as:
 
 $$
-v_i(a) = \max_{u \in \mathcal{A}_{s_i}} \left\{ r(s_i, u) + \gamma \sum_{j \in \mathcal{S}} p(j|s_i, u) \sum_{\ell=1}^n a_\ell \varphi_\ell(j) \right\}.
+v_i(\theta) = \max_{a \in \mathcal{A}_{s_i}} \left\{ r(s_i, a) + \gamma \sum_{j \in \mathcal{S}} p(j|s_i, a) \sum_{\ell=1}^n \theta_\ell \varphi_\ell(j) \right\}.
 $$
 
-In words: $v_i(a)$ is the value obtained by solving the Bellman maximization problem at collocation node $s_i$, using the approximation $\hat{v}(s; a) = \sum_{\ell=1}^n a_\ell \varphi_\ell(s)$ in place of the true value function. The collocation function evaluates the **right-hand side** of the Bellman equation at all collocation points, given a current guess for the coefficients.
+In words: $v_i(\theta)$ is the value obtained by solving the Bellman maximization problem at collocation node $s_i$, using the approximation $\hat{v}(s; \theta) = \sum_{\ell=1}^n \theta_\ell \varphi_\ell(s)$ in place of the true value function. The collocation function evaluates the **right-hand side** of the Bellman equation at all collocation points, given a current guess for the coefficients.
 
-Let $\boldsymbol{\Phi}$ denote the $n \times n$ **collocation matrix** with entries $\Phi_{ij} = \varphi_j(s_i)$. The **left-hand side** of the collocation equations is $\boldsymbol{\Phi} a$, which gives the values of $\hat{v}(s_i; a)$ at the collocation points. The collocation equation requires these to match:
+Let $\boldsymbol{\Phi}$ denote the $n \times n$ **collocation matrix** with entries $\Phi_{ij} = \varphi_j(s_i)$. The **left-hand side** of the collocation equations is $\boldsymbol{\Phi} \theta$, which gives the values of $\hat{v}(s_i; \theta)$ at the collocation points. The collocation equation requires these to match:
 
 $$
-\boldsymbol{\Phi} a = v(a).
+\boldsymbol{\Phi} \theta = v(\theta).
 $$
 
 This is the fixed-point problem we need to solve. We can approach it in two fundamentally different ways: as a **fixed-point iteration** (function iteration) or as a **rootfinding problem** (Newton's method).
 
 ### Method 1: Function Iteration (Successive Approximation)
 
-We can rewrite the collocation equation as $a = \boldsymbol{\Phi}^{-1} v(a)$ (assuming $\boldsymbol{\Phi}$ is invertible, which holds when the basis functions are linearly independent at the collocation points). This suggests the **function iteration** scheme:
+We can rewrite the collocation equation as $\theta = \boldsymbol{\Phi}^{-1} v(\theta)$ (assuming $\boldsymbol{\Phi}$ is invertible, which holds when the basis functions are linearly independent at the collocation points). This suggests the **function iteration** scheme:
 
 $$
-a^{(k+1)} = \boldsymbol{\Phi}^{-1} v(a^{(k)}).
+\theta^{(k+1)} = \boldsymbol{\Phi}^{-1} v(\theta^{(k)}).
 $$
 
 This iteration has an intuitive interpretation when we break it into two steps:
 
-**Step 1 (Apply Bellman operator):** For the current coefficient guess $a^{(k)}$, compute the Bellman operator values at all collocation points:
+**Step 1 (Apply Bellman operator):** For the current coefficient guess $\theta^{(k)}$, compute the Bellman operator values at all collocation points:
 
 $$
-t_i^{(k)} = v_i(a^{(k)}) = \max_{u \in \mathcal{A}_{s_i}} \left\{ r(s_i, u) + \gamma \sum_{j \in \mathcal{S}} p(j|s_i, u) \sum_{\ell=1}^n a^{(k)}_\ell \varphi_\ell(j) \right\}, \quad i = 1, \ldots, n.
+t_i^{(k)} = v_i(\theta^{(k)}) = \max_{a \in \mathcal{A}_{s_i}} \left\{ r(s_i, a) + \gamma \sum_{j \in \mathcal{S}} p(j|s_i, a) \sum_{\ell=1}^n \theta^{(k)}_\ell \varphi_\ell(j) \right\}, \quad i = 1, \ldots, n.
 $$
 
-We now have a vector of **targets** $t^{(k)} = (t_1^{(k)}, \ldots, t_n^{(k)}) = v(a^{(k)})$.
+We now have a vector of **targets** $t^{(k)} = (t_1^{(k)}, \ldots, t_n^{(k)}) = v(\theta^{(k)})$.
 
-**Step 2 (Fit to targets):** Find new coefficients $a^{(k+1)}$ such that the approximation matches the targets at the collocation points:
+**Step 2 (Fit to targets):** Find new coefficients $\theta^{(k+1)}$ such that the approximation matches the targets at the collocation points:
 
 $$
-\sum_{\ell=1}^n a^{(k+1)}_\ell \varphi_\ell(s_i) = t_i^{(k)}, \quad i = 1, \ldots, n.
+\sum_{\ell=1}^n \theta^{(k+1)}_\ell \varphi_\ell(s_i) = t_i^{(k)}, \quad i = 1, \ldots, n.
 $$
 
-In matrix form: $\boldsymbol{\Phi} a^{(k+1)} = t^{(k)}$, which gives $a^{(k+1)} = \boldsymbol{\Phi}^{-1} t^{(k)} = \boldsymbol{\Phi}^{-1} v(a^{(k)})$.
+In matrix form: $\boldsymbol{\Phi} \theta^{(k+1)} = t^{(k)}$, which gives $\theta^{(k+1)} = \boldsymbol{\Phi}^{-1} t^{(k)} = \boldsymbol{\Phi}^{-1} v(\theta^{(k)})$.
 
 This is **parametric value iteration** or **projection-based value iteration**: we iterate the Bellman operator in the finite-dimensional coefficient space, projecting back onto the span of the basis functions at each step. The method:
 - Separates the nonlinear optimization (maximization in the Bellman operator) from the linear fitting problem
 - Is globally convergent when the finite-dimensional approximation preserves the contraction property
-- Requires only solving a linear system $\boldsymbol{\Phi} a^{(k+1)} = t^{(k)}$ at each iteration
+- Requires only solving a linear system $\boldsymbol{\Phi} \theta^{(k+1)} = t^{(k)}$ at each iteration
 
 ```{admonition} Handling Stochastic Expectations
 :class: note
-When the model includes a continuous random variable (e.g., $s' = g(s, u, \epsilon)$ where $\epsilon$ is a shock), we must approximate the expectation using **numerical quadrature**. We replace the continuous $\epsilon$ with a discrete approximation taking values $\{\epsilon_1, \ldots, \epsilon_m\}$ with probabilities $\{w_1, \ldots, w_m\}$. The collocation function becomes:
+When the model includes a continuous random variable (e.g., $s' = g(s, a, \epsilon)$ where $\epsilon$ is a random disturbance, often called a "shock" in economics and econometrics), we must approximate the expectation using **numerical quadrature**. We replace the continuous $\epsilon$ with a discrete approximation taking values $\{\epsilon_1, \ldots, \epsilon_m\}$ with probabilities $\{w_1, \ldots, w_m\}$. The collocation function becomes:
 
 $$
-v_i(a) = \max_{u \in \mathcal{A}_{s_i}} \left\{ r(s_i, u) + \gamma \sum_{k=1}^m w_k \sum_{\ell=1}^n a_\ell \varphi_\ell(g(s_i, u, \epsilon_k)) \right\}.
+v_i(\theta) = \max_{a \in \mathcal{A}_{s_i}} \left\{ r(s_i, a) + \gamma \sum_{k=1}^m w_k \sum_{\ell=1}^n \theta_\ell \varphi_\ell(g(s_i, a, \epsilon_k)) \right\}.
 $$
 
-Common quadrature schemes include Gauss-Hermite (for normal shocks), Gauss-Legendre (for uniform shocks), or sparse grids for high-dimensional shocks.
+Common quadrature schemes include Gauss-Hermite (for normal random variables), Gauss-Legendre (for uniform random variables), or sparse grids for high-dimensional random variables.
 ```
 
 ### Method 2: Newton's Method with the Envelope Theorem
@@ -410,25 +410,25 @@ Common quadrature schemes include Gauss-Hermite (for normal shocks), Gauss-Legen
 Alternatively, we can write the collocation equation as a **rootfinding problem**:
 
 $$
-F(a) \equiv \boldsymbol{\Phi} a - v(a) = 0.
+F(\theta) \equiv \boldsymbol{\Phi} \theta - v(\theta) = 0.
 $$
 
 Newton's method for this system uses the update:
 
 $$
-a^{(k+1)} = a^{(k)} - J_F(a^{(k)})^{-1} F(a^{(k)}),
+\theta^{(k+1)} = \theta^{(k)} - J_F(\theta^{(k)})^{-1} F(\theta^{(k)}),
 $$
 
-where $J_F(a)$ is the Jacobian of $F$ at $a$. Since $J_F = \boldsymbol{\Phi} - J_v$ where $J_v$ is the Jacobian of the collocation function $v$, we can rewrite this as:
+where $J_F(\theta)$ is the Jacobian of $F$ at $\theta$. Since $J_F = \boldsymbol{\Phi} - J_v$ where $J_v$ is the Jacobian of the collocation function $v$, we can rewrite this as:
 
 $$
-a^{(k+1)} = a^{(k)} - [\boldsymbol{\Phi} - J_v(a^{(k)})]^{-1} [\boldsymbol{\Phi} a^{(k)} - v(a^{(k)})].
+\theta^{(k+1)} = \theta^{(k)} - [\boldsymbol{\Phi} - J_v(\theta^{(k)})]^{-1} [\boldsymbol{\Phi} \theta^{(k)} - v(\theta^{(k)})].
 $$
 
-The main challenge now is computing the Jacobian $J_v(a)$. The $(i,j)$-th entry is:
+The main challenge now is computing the Jacobian $J_v(\theta)$. The $(i,j)$-th entry is:
 
 $$
-[J_v]_{ij} = \frac{\partial v_i}{\partial a_j}(a) = \frac{\partial}{\partial a_j} \left[ \max_{u \in \mathcal{A}_{s_i}} \left\{ r(s_i, u) + \gamma \sum_{k \in \mathcal{S}} p(k|s_i, u) \sum_{\ell=1}^n a_\ell \varphi_\ell(k) \right\} \right].
+[J_v]_{ij} = \frac{\partial v_i}{\partial \theta_j}(\theta) = \frac{\partial}{\partial \theta_j} \left[ \max_{a \in \mathcal{A}_{s_i}} \left\{ r(s_i, a) + \gamma \sum_{k \in \mathcal{S}} p(k|s_i, a) \sum_{\ell=1}^n \theta_\ell \varphi_\ell(k) \right\} \right].
 $$
 
 At first glance, this appears problematic because the max operator is not differentiable. However, we can apply the **Envelope Theorem** to compute this derivative without dealing with the non-differentiability of the max operator.
@@ -462,25 +462,25 @@ $$
 
 This results tells us that you can compute the derivative of the optimal value by treating the maximizer as constant. You don't need to compute $\frac{\partial \mathbf{x}}{\partial \boldsymbol{\theta}}$.
 
-In our Bellman collocation problem, $v_i(a) = \max_u \{r(s_i, u) + \gamma \mathbb{E}[\sum_\ell a_\ell \varphi_\ell(s')]\}$. To compute $\frac{\partial v_i}{\partial a_j}$, we don't need to figure out how $u_i^*(a)$ changes with $a$. We just evaluate the gradient at the optimal action:
+In our Bellman collocation problem, $v_i(\theta) = \max_a \{r(s_i, a) + \gamma \mathbb{E}[\sum_\ell \theta_\ell \varphi_\ell(s')]\}$. To compute $\frac{\partial v_i}{\partial \theta_j}$, we don't need to figure out how $a_i^*(\theta)$ changes with $\theta$. We just evaluate the gradient at the optimal action:
 
 $$
-\frac{\partial v_i}{\partial a_j}(a) = \gamma \sum_{s'} p(s'|s_i, u_i^*(a)) \varphi_j(s').
+\frac{\partial v_i}{\partial \theta_j}(\theta) = \gamma \sum_{s'} p(s'|s_i, a_i^*(\theta)) \varphi_j(s').
 $$
 
 **Important assumptions:** $f$ is smooth, the maximizer is unique and in the interior (or constraints are smooth with stable active sets), and the first-order condition holds.
 ```
 
-Specifically, let $u_i^*(a)$ denote the optimal action at collocation point $s_i$ given coefficients $a$:
+Specifically, let $a_i^*(\theta)$ denote the optimal action at collocation point $s_i$ given coefficients $\theta$:
 
 $$
-u_i^*(a) \in \operatorname{argmax}_{u \in \mathcal{A}_{s_i}} \left\{ r(s_i, u) + \gamma \sum_{k \in \mathcal{S}} p(k|s_i, u) \sum_{\ell=1}^n a_\ell \varphi_\ell(k) \right\}.
+a_i^*(\theta) \in \operatorname{argmax}_{a \in \mathcal{A}_{s_i}} \left\{ r(s_i, a) + \gamma \sum_{k \in \mathcal{S}} p(k|s_i, a) \sum_{\ell=1}^n \theta_\ell \varphi_\ell(k) \right\}.
 $$
 
-By the Envelope Theorem, we can compute the derivative by treating $u_i^*$ as constant:
+By the Envelope Theorem, we can compute the derivative by treating $a_i^*$ as constant:
 
 $$
-\frac{\partial v_i}{\partial a_j}(a) = \gamma \sum_{k \in \mathcal{S}} p(k|s_i, u_i^*(a)) \varphi_j(k).
+\frac{\partial v_i}{\partial \theta_j}(\theta) = \gamma \sum_{k \in \mathcal{S}} p(k|s_i, a_i^*(\theta)) \varphi_j(k).
 $$
 
 This is simply the **expected value of the $j$-th basis function at the next state**, evaluated at the optimal action for the current coefficient vector.
@@ -495,38 +495,38 @@ $$
 
 where $x^*(\theta)$ is the optimal choice. We don't need to account for $\frac{\partial x^*}{\partial \theta}$ because at the optimum, the first-order condition $\frac{\partial f}{\partial x} = 0$ makes that term vanish.
 
-In our case, $v_i(a)$ is the value of maximizing over actions $u$, with $a$ playing the role of the parameter vector. The Envelope Theorem lets us compute $\frac{\partial v_i}{\partial a_j}$ by differentiating the objective (the Bellman right-hand side) with respect to $a_j$ while holding the optimal action $u_i^*$ fixed. Since $a_j$ only appears in the continuation value $\sum_{\ell} a_\ell \varphi_\ell(k)$, the derivative picks out the coefficient of $a_j$, which is the expected basis function value.
+In our case, $v_i(\theta)$ is the value of maximizing over actions $a$, with $\theta$ playing the role of the parameter vector. The Envelope Theorem lets us compute $\frac{\partial v_i}{\partial \theta_j}$ by differentiating the objective (the Bellman right-hand side) with respect to $\theta_j$ while holding the optimal action $a_i^*$ fixed. Since $\theta_j$ only appears in the continuation value $\sum_{\ell} \theta_\ell \varphi_\ell(k)$, the derivative picks out the coefficient of $\theta_j$, which is the expected basis function value.
 
 This approach is **equivalent** to the semi-smooth Newton method mentioned earlier: we're computing a generalized Jacobian by treating the optimal action as locally constant. As we converge to the solution, the optimal actions stabilize, and Newton's method achieves superlinear convergence.
 ```
 
 **Newton's method algorithm:**
 
-1. Start with initial guess $a^{(0)}$
+1. Start with initial guess $\theta^{(0)}$
 2. For iteration $k = 0, 1, 2, \ldots$:
-   - Compute $v(a^{(k)})$ and optimal actions $u_i^*(a^{(k)})$ for all collocation points
-   - Compute Jacobian entries: $[J_v]_{ij} = \gamma \sum_{s' \in \mathcal{S}} p(s'|s_i, u_i^*(a^{(k)})) \varphi_j(s')$
-   - Update: $a^{(k+1)} = a^{(k)} - [\boldsymbol{\Phi} - J_v(a^{(k)})]^{-1} [\boldsymbol{\Phi} a^{(k)} - v(a^{(k)})]$
+   - Compute $v(\theta^{(k)})$ and optimal actions $a_i^*(\theta^{(k)})$ for all collocation points
+   - Compute Jacobian entries: $[J_v]_{ij} = \gamma \sum_{s' \in \mathcal{S}} p(s'|s_i, a_i^*(\theta^{(k)})) \varphi_j(s')$
+   - Update: $\theta^{(k+1)} = \theta^{(k)} - [\boldsymbol{\Phi} - J_v(\theta^{(k)})]^{-1} [\boldsymbol{\Phi} \theta^{(k)} - v(\theta^{(k)})]$
    - Check convergence
 
 This method offers **quadratic convergence** near the solution but requires a good initial guess. The Jacobian computation via the Envelope Theorem is typically cheaper than explicit semi-smooth calculus and has a clear economic interpretation: it tracks how the value propagates through the optimal decisions.
 
 #### Comparison of Solution Methods
 
-We now have two approaches to solving the collocation fixed-point equation $\boldsymbol{\Phi} a = v(a)$:
+We now have two approaches to solving the collocation fixed-point equation $\boldsymbol{\Phi} \theta = v(\theta)$:
 
 | **Method** | **Formulation** | **Convergence** | **Per-iteration cost** | **Initial guess sensitivity** |
 |:-----------|:----------------|:----------------|:-----------------------|:------------------------------|
-| **Function iteration** | $a^{(k+1)} = \boldsymbol{\Phi}^{-1} v(a^{(k)})$ | Linear (when contraction holds) | Low (one linear solve) | Robust |
-| **Newton's method** | $a^{(k+1)} = a^{(k)} - [\boldsymbol{\Phi} - J_v]^{-1}[\boldsymbol{\Phi} a^{(k)} - v(a^{(k)})]$ | Quadratic (near solution) | Moderate (Jacobian + linear solve) | Requires good initial guess |
+| **Function iteration** | $\theta^{(k+1)} = \boldsymbol{\Phi}^{-1} v(\theta^{(k)})$ | Linear (when contraction holds) | Low (one linear solve) | Robust |
+| **Newton's method** | $\theta^{(k+1)} = \theta^{(k)} - [\boldsymbol{\Phi} - J_v]^{-1}[\boldsymbol{\Phi} \theta^{(k)} - v(\theta^{(k)})]$ | Quadratic (near solution) | Moderate (Jacobian + linear solve) | Requires good initial guess |
 
-**Function iteration** exploits the fixed-point structure directly, treating the collocation problem as value iteration in coefficient space. When the finite-dimensional approximation preserves the contraction property of the Bellman operator, it converges globally from any initial guess. Each iteration is cheap: evaluate the Bellman operator at $n$ points (the collocation nodes) and solve one linear system $\boldsymbol{\Phi} a^{(k+1)} = v(a^{(k)})$. However, convergence can be slow, especially when $\gamma$ is close to 1.
+**Function iteration** exploits the fixed-point structure directly, treating the collocation problem as value iteration in coefficient space. When the finite-dimensional approximation preserves the contraction property of the Bellman operator, it converges globally from any initial guess. Each iteration is cheap: evaluate the Bellman operator at $n$ points (the collocation nodes) and solve one linear system $\boldsymbol{\Phi} \theta^{(k+1)} = v(\theta^{(k)})$. However, convergence can be slow, especially when $\gamma$ is close to 1.
 
-**Newton's method** treats the problem as rootfinding, exploiting smoothness (via the Envelope Theorem) to achieve fast local convergence. Once close to the solution, Newton's method typically converges in just a few iterations. The per-iteration cost is higher: in addition to evaluating $v(a^{(k)})$, we must compute the Jacobian $J_v(a^{(k)})$, which requires evaluating expected basis function values at all collocation points. However, Newton's method is sensitive to initial conditions and may diverge or converge to spurious solutions when started far from the true fixed point.
+**Newton's method** treats the problem as rootfinding, exploiting smoothness (via the Envelope Theorem) to achieve fast local convergence. Once close to the solution, Newton's method typically converges in just a few iterations. The per-iteration cost is higher: in addition to evaluating $v(\theta^{(k)})$, we must compute the Jacobian $J_v(\theta^{(k)})$, which requires evaluating expected basis function values at all collocation points. However, Newton's method is sensitive to initial conditions and may diverge or converge to spurious solutions when started far from the true fixed point.
 
 ```{admonition} Connection to Policy Iteration
 :class: note
-The Newton update $a^{(k+1)} = [\boldsymbol{\Phi} - J_v(a^{(k)})]^{-1} v(a^{(k)})$ is equivalent to the **policy iteration** algorithm commonly used in discrete-state dynamic programming. To see this, note that at the optimal coefficients $a^*$, we have $\boldsymbol{\Phi} a^* = v(a^*)$. The Newton step finds the coefficients that would be optimal if the policy (the optimal actions at each collocation point) were held fixed at the current iteration's policy. This connection explains why Newton's method often converges rapidly: like policy iteration, it implicitly performs policy evaluation and policy improvement, which can converge in just a few iterations for well-behaved problems.
+The Newton update $\theta^{(k+1)} = [\boldsymbol{\Phi} - J_v(\theta^{(k)})]^{-1} v(\theta^{(k)})$ is equivalent to the **policy iteration** algorithm commonly used in discrete-state dynamic programming. To see this, note that at the optimal coefficients $\theta^*$, we have $\boldsymbol{\Phi} \theta^* = v(\theta^*)$. The Newton step finds the coefficients that would be optimal if the policy (the optimal actions at each collocation point) were held fixed at the current iteration's policy. This connection explains why Newton's method often converges rapidly: like policy iteration, it implicitly performs policy evaluation and policy improvement, which can converge in just a few iterations for well-behaved problems.
 ```
 
 **Practical recommendations:**
@@ -560,8 +560,8 @@ The trade-off is between smoothness and shape preservation. Smooth approximation
 
 The informal discussion of shape preservation hints at a deeper theoretical question: **when does the function iteration method converge?** Recall from our discussion of collocation that function iteration proceeds in two steps:
 
-1. Apply the Bellman operator at collocation points: $t^{(k)} = v(a^{(k)})$ where $t_i^{(k)} = \mathrm{L}\hat{v}^{(k)}(s_i)$
-2. Fit new coefficients to match these targets: $\boldsymbol{\Phi} a^{(k+1)} = t^{(k)}$, giving $a^{(k+1)} = \boldsymbol{\Phi}^{-1} v(a^{(k)})$
+1. Apply the Bellman operator at collocation points: $t^{(k)} = v(\theta^{(k)})$ where $t_i^{(k)} = \mathrm{L}\hat{v}^{(k)}(s_i)$
+2. Fit new coefficients to match these targets: $\boldsymbol{\Phi} \theta^{(k+1)} = t^{(k)}$, giving $\theta^{(k+1)} = \boldsymbol{\Phi}^{-1} v(\theta^{(k)})$
 
 We can reinterpret this iteration in **function space** rather than coefficient space. Let $A$ be the **projection operator** that takes any function $f$ and returns its approximation in $\text{span}\{\varphi_1, \ldots, \varphi_n\}$. For collocation, $A$ is the interpolation operator: $(Af)(s)$ is the unique linear combination of basis functions that matches $f$ at the collocation points. Then Step 2 can be written as: fit $\hat{v}^{(k+1)}$ so that $\hat{v}^{(k+1)}(s_i) = \mathrm{L}\hat{v}^{(k)}(s_i)$ for all collocation points, which means $\hat{v}^{(k+1)} = A(\mathrm{L}\hat{v}^{(k)})$.
 
