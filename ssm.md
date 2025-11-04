@@ -495,7 +495,8 @@ This example therefore highlights the dual advantages of physics-based modeling:
 
 ```{code-cell} ipython3
 :tags: [hide-input]
-:load: _static/rcnetwork.py
+
+%run _static/rcnetwork.py
 ``` -->
 
 

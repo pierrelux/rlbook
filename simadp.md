@@ -404,7 +404,7 @@ Parametric successive approximation, known in reinforcement learning literature 
 The \texttt{fit} function in our algorithm represents this supervised learning step and can be implemented using any standard regression tool that follows the scikit-learn interface. This flexibility in choice of function approximator allows practitioners to leverage the extensive ecosystem of modern machine learning tools while maintaining the core dynamic programming structure.
 
 ```{prf:algorithm} Parametric Value Iteration
-:label: parametric-value-iteration
+:label: simadp-parametric-value-iteration
 
 **Input** Given an MDP $(S, A, P, R, \gamma)$, base points $B \subset S$, function approximator class $v(s; \boldsymbol{\theta})$, maximum iterations $N$, tolerance $\varepsilon > 0$
 
@@ -475,7 +475,7 @@ $$
 This leads to the following algorithm:
 
 ```{prf:algorithm} Parametric Policy Iteration
-:label: parametric-policy-iteration
+:label: simadp-parametric-policy-iteration
 
 **Input** Given an MDP $(S, A, P, R, \gamma)$, base points $B \subset S$, function approximator class $v(s; \boldsymbol{\theta})$, maximum iterations $N$, tolerance $\varepsilon > 0$
 
@@ -538,7 +538,7 @@ $$
 With this insight, we can adapt our parametric value iteration algorithm to work with Q-functions:
 
 ```{prf:algorithm} Parametric Q-Value Iteration
-:label: parametric-q-value-iteration
+:label: simadp-parametric-q-value-iteration
 
 **Input** Given an MDP $(S, A, P, R, \gamma)$, base points $\mathcal{B} \subset S$, function approximator class $q(s,a; \boldsymbol{\theta})$, maximum iterations $N$, tolerance $\varepsilon > 0$
 
@@ -776,7 +776,7 @@ Next, let's open up the `fit` procedure to show the inner optimization loop usin
 ```{prf:algorithm} Fitted Q-Value Iteration with Explicit Inner Loop
 :label: q-iteration-inner-loop
 
-**Input** Given MDP $(S, A, P, R, \gamma)$, dataset of transitions $\mathcal{T}$, neural network $q(s,a; \boldsymbol{\theta})$, learning rate $\alpha$, convergence test $\texttt{has_converged}(\cdot)$, initialization $\boldsymbol{\theta}_0$, regression loss function $\mathcal{L}$
+**Input** Given MDP $(S, A, P, R, \gamma)$, dataset of transitions $\mathcal{T}$, neural network $q(s,a; \boldsymbol{\theta})$, learning rate $\alpha$, convergence test $\texttt{has\_converged}(\cdot)$, initialization $\boldsymbol{\theta}_0$, regression loss function $\mathcal{L}$
 
 **Output** Parameters $\boldsymbol{\theta}$ for Q-function approximation
 
@@ -793,7 +793,7 @@ Next, let's open up the `fit` procedure to show the inner optimization loop usin
     6. **repeat**
         1. $\boldsymbol{\theta}^{(k+1)} \leftarrow \boldsymbol{\theta}^{(k)} - \alpha \nabla_{\boldsymbol{\theta}} \mathcal{L}(\boldsymbol{\theta}^{(k)}; \mathcal{D}_n)$
         2. $k \leftarrow k + 1$
-    7. **until** $\texttt{has_converged}(\boldsymbol{\theta}^{(0)}, ..., \boldsymbol{\theta}^{(k)}, \mathcal{D}_n)$
+    7. **until** $\texttt{has\_converged}(\boldsymbol{\theta}^{(0)}, ..., \boldsymbol{\theta}^{(k)}, \mathcal{D}_n)$
     8. $\boldsymbol{\theta}_{n+1} \leftarrow \boldsymbol{\theta}^{(k)}$
     9. $n \leftarrow n + 1$
 4. **until** training complete

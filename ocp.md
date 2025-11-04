@@ -266,7 +266,201 @@ As an example we cast the problem of optimizing a "HTTP retrier with backoff" as
 
 ```{code-cell} ipython3
 :tags: [hide-input]
-:load: _static/prog.py
+
+
+from dataclasses import dataclass
+import math, random
+
+# ---------------------------
+# PROGRAM = "HTTP retrier with backoff"
+# ---------------------------
+
+@dataclass
+class State:
+    t: float            # wall-clock time (s)
+    k: int              # attempt index
+    done: bool          # success flag
+    code: int | None    # last HTTP code or None
+    jitter: float       # per-run jitter (simulates clock/socket noise)
+
+# Controls (decision variables): per-step wait times (backoff schedule)
+# u[k] can be optimized; in a fixed policy you'd set u[k] = base * gamma**k
+# We'll keep them bounded for realism.
+def clamp(x, lo, hi): return max(lo, min(hi, x))
+
+# Simulated environment: availability is time-varying (spiky outage)
+def server_success_prob(t: float) -> float:
+    # Low availability for the first 2 seconds, then rebounds
+    base = 0.15 if t < 2.0 else 0.85
+    # Some diurnal-like wobble (toy)
+    wobble = 0.1 * math.sin(2 * math.pi * (t / 3.0))
+    return clamp(base + wobble, 0.01, 0.99)
+
+def http_request():
+    # Just returns a code; success = 200, failure = 503
+    return 200 if random.random() < 0.5 else 503
+
+# -------- DOCP ingredients --------
+# State x_k = (t, k, done, code, jitter)
+# Control u_k = wait time before next attempt (our backoff schedule entry)
+# Transition Phi_k: one "program step" = (optional wait) + (one request) + (branch)
+def Phi(state: State, u_k: float) -> State:
+    if state.done:
+        # No-ops after success (absorbing state)
+        return State(state.t, state.k, True, state.code, state.jitter)
+
+    # 1) Wait according to control (backoff schedule) + jitter
+    wait = clamp(u_k + 0.02 * state.jitter, 0.0, 3.0)
+    t = state.t + wait
+
+    # 2) Environment: success probability depends on time t
+    p = server_success_prob(t)
+
+    # 3) "Perform request": success with prob p; otherwise 503
+    code = 200 if random.random() < p else 503
+    done = (code == 200)
+
+    # 4) Advance attempt counter and wall clock
+    return State(t=t, k=state.k + 1, done=done, code=code, jitter=state.jitter)
+
+# Stage cost: latency penalty each step; heavy penalty if still failing late
+def stage_cost(state: State, u_k: float) -> float:
+    # Latency/energy per unit wait + small per-step overhead when not done
+    return 0.20 * u_k + (0.00 if state.done else 0.002)
+
+# Terminal cost: if failed after horizon, big penalty; if succeeded, pay total time
+def terminal_cost(state: State, max_attempts: int) -> float:
+    # Pay for elapsed time; fail late incurs extra penalty
+    return 0.3 * state.t + (5.0 if (not state.done and state.k >= max_attempts) else 0.0)
+
+def rollout(u, max_attempts=8, seed=0):
+    random.seed(seed)
+    s = State(t=0.0, k=0, done=False, code=None, jitter=random.uniform(-1,1))
+    J = 0.0
+    for k in range(max_attempts):
+        J += stage_cost(s, u[k])
+        s = Phi(s, u[k])
+        if s.done:  # early stop like a real program
+            break
+    J += terminal_cost(s, max_attempts)
+    return J, s  # return final state for debugging if needed
+
+# ---------- helpers for SPSA with common random numbers ----------
+def eval_policy(u, seeds, max_attempts=8):
+    # Average over a fixed set of seeds (CRN helps SPSA a lot)
+    Js = []
+    for sd in seeds:
+        J, _ = rollout(u, max_attempts=max_attempts, seed=sd)
+        Js.append(J)
+    return sum(Js) / len(Js)
+
+def project_waits(u):
+    # Keep waits in [0, 3] for realism
+    return [max(0.0, min(3.0, x)) for x in u]
+
+# ---------- schedule parameterizations ----------
+def schedule_exp(base, gamma, K):
+    # u[k] = base * gamma**k
+    return [base * (gamma ** k) for k in range(K)]
+
+# If you prefer per-step but monotone nonnegative waits, use softplus increments:
+def schedule_softplus(z, K):
+    # z in R^K -> u monotone via cumulative softplus increments
+    def softplus(x):
+        return math.log1p(math.exp(-abs(x))) + max(x, 0.0)
+    inc = [softplus(zi) for zi in z]
+    u = []
+    s_accum = 0.0
+    for i in range(K):
+        s_accum += inc[i]
+        u.append(s_accum)
+    return u
+
+# ---------------------------
+# Black-box optimization (SPSA) of the schedule u[0:K]
+# ---------------------------
+def spsa_optimize(K=8, iters=200, seed=0):
+    random.seed(seed)
+    # Initialize a conservative schedule (small linear backoff)
+    u = [0.05 + 0.1*k for k in range(K)]
+    alpha = 0.2      # learning rate
+    c0 = 0.1         # perturbation scale
+    for t in range(1, iters+1):
+        c = c0 / (t ** 0.101)
+        # Rademacher perturbation
+        delta = [1.0 if random.random() < 0.5 else -1.0 for _ in range(K)]
+        u_plus  = [clamp(u[i] + c * delta[i], 0.0, 3.0) for i in range(K)]
+        u_minus = [clamp(u[i] - c * delta[i], 0.0, 3.0) for i in range(K)]
+
+        Jp, _ = rollout(u_plus, seed=seed + 10*t + 1)
+        Jm, _ = rollout(u_minus, seed=seed + 10*t + 2)
+
+        # SPSA gradient estimate
+        g = [(Jp - Jm) / (2.0 * c * delta[i]) for i in range(K)]
+        # Update (project back to bounds)
+        u = [clamp(u[i] - alpha * g[i], 0.0, 3.0) for i in range(K)]
+    return u
+
+# ---------- SPSA over 2 parameters (base, gamma) with CRN ----------
+def spsa_optimize_exp(K=8, iters=200, seed=0, Nmc=16):
+    random.seed(seed)
+    # fixed seeds reused every iteration (CRN)
+    seeds = [seed + 1000 + i for i in range(Nmc)]
+
+    # init: small base, mild growth
+    base, gamma = 0.05, 1.4
+    alpha0, c0 = 0.15, 0.2  # learning rate and perturbation scales
+
+    for t in range(1, iters + 1):
+        a_t = alpha0 / (t ** 0.602)   # standard SPSA decay
+        c_t = c0 / (t ** 0.101)
+
+        # Rademacher perturbations for 2 params
+        d_base = 1.0 if random.random() < 0.5 else -1.0
+        d_gamma = 1.0 if random.random() < 0.5 else -1.0
+
+        base_plus  = base  + c_t * d_base
+        base_minus = base  - c_t * d_base
+        gamma_plus  = gamma + c_t * d_gamma
+        gamma_minus = gamma - c_t * d_gamma
+
+        u_plus  = project_waits(schedule_exp(base_plus,  gamma_plus,  K))
+        u_minus = project_waits(schedule_exp(base_minus, gamma_minus, K))
+
+        Jp = eval_policy(u_plus, seeds, max_attempts=K)
+        Jm = eval_policy(u_minus, seeds, max_attempts=K)
+
+        # SPSA gradient estimate
+        g_base  = (Jp - Jm) / (2.0 * c_t * d_base)
+        g_gamma = (Jp - Jm) / (2.0 * c_t * d_gamma)
+
+        # Update
+        base  = max(0.0, base  - a_t * g_base)
+        gamma = max(0.5, gamma - a_t * g_gamma)  # keep reasonable
+
+    return base, gamma
+
+if __name__ == "__main__":
+    K = 8
+    # Baseline linear schedule
+    u0 = [0.05 + 0.1*k for k in range(K)]
+    J0, s0 = rollout(u0, seed=42)
+
+    # Optimize per-step waits (K-dim SPSA)
+    u_opt = spsa_optimize(K=K, iters=200, seed=123)
+    J1, s1 = rollout(u_opt, seed=999)
+
+    # Optimize exponential schedule parameters (2-dim SPSA with CRN)
+    base_opt, gamma_opt = spsa_optimize_exp(K=K, iters=200, seed=321, Nmc=16)
+    u_exp = project_waits(schedule_exp(base_opt, gamma_opt, K))
+    J2, s2 = rollout(u_exp, seed=777)
+
+    print("Initial schedule:", [round(x,3) for x in u0], "  Cost ≈", round(J0,3))
+    print("Optimized (per-step SPSA):", [round(x,3) for x in u_opt], "  Cost ≈", round(J1,3))
+    print("Optimized (exp base, gamma): base=", round(base_opt,3), " gamma=", round(gamma_opt,3),
+          "  schedule=", [round(x,3) for x in u_exp], "  Cost ≈", round(J2,3))
+    print("Attempts (init → per-step → exp):", s0.k, "→", s1.k, "→", s2.k,
+          "  Success codes:", s0.code, s1.code, s2.code)
 ```
 
 
@@ -514,8 +708,241 @@ $$
 Once the objective and constraints are expressed as Python functions, the problem can be passed to a generic optimizer with very little extra work. Here is a direct implementation using `scipy.optimize.minimize` with the SLSQP method:
 
 ```{code-cell} ipython3
-:load: code/eco-cruise.py
 :tags: [remove-input, remove-output]
+
+import numpy as np
+import json
+import matplotlib.pyplot as plt
+from scipy.optimize import minimize, Bounds
+
+def solve_eco_cruise(beta=1.0, gamma=0.05, T=60, v_max=20.0, a_max=3.0, distance=1000.0):
+    """Solve the eco-cruise optimization problem."""
+    
+    n_state, n_control = T + 1, T
+    
+    def unpack(z):
+        s, v, u = z[:n_state], z[n_state:2*n_state], z[2*n_state:]
+        return s, v, u
+
+    def objective(z):
+        _, v, u = unpack(z)
+        return 0.5 * beta * np.sum(u**2) + 0.5 * gamma * np.sum(v[:-1]**2)
+
+    def dynamics(z):
+        s, v, u = unpack(z)
+        ceq = np.empty(2*T)
+        ceq[0::2] = s[1:] - s[:-1] - v[:-1]  # position dynamics
+        ceq[1::2] = v[1:] - v[:-1] - u        # velocity dynamics
+        return ceq
+
+    def boundary(z):
+        s, v, _ = unpack(z)
+        return np.array([s[0], v[0], s[-1]-distance, v[-1]])  # start/end conditions
+
+    # Optimization setup
+    cons = [{'type':'eq', 'fun': dynamics}, {'type':'eq', 'fun': boundary}]
+    bounds = Bounds(
+        lb=np.concatenate([np.full(n_state,-1e4), np.zeros(n_state), np.full(n_control,-a_max)]),
+        ub=np.concatenate([np.full(n_state,1e4), v_max*np.ones(n_state), np.full(n_control,a_max)])
+    )
+
+    # Initial guess: triangular velocity profile
+    accel_time = int(0.3 * T)
+    decel_time = int(0.3 * T)
+    cruise_time = T - accel_time - decel_time
+    peak_v = min(1.2 * distance/T, 0.8 * v_max)
+    
+    v0 = np.zeros(n_state)
+    v0[:accel_time+1] = np.linspace(0, peak_v, accel_time+1)
+    v0[accel_time:accel_time+cruise_time+1] = peak_v
+    v0[accel_time+cruise_time:] = np.linspace(peak_v, 0, decel_time+1)
+    
+    s0 = np.cumsum(np.concatenate([[0], v0[:-1]]))
+    scale = distance / s0[-1]
+    s0, v0 = s0 * scale, v0 * scale
+    u0 = np.diff(v0)
+    
+    z0 = np.concatenate([s0, v0, u0])
+    
+    # Solve optimization
+    print(f"Solving eco-cruise optimization (β={beta}, γ={gamma})...")
+    res = minimize(objective, z0, method="SLSQP", bounds=bounds, constraints=cons,
+                   options={"maxiter": 1000, "ftol": 1e-9})
+    
+    if not res.success:
+        print(f"Optimization failed: {res.message}")
+        return None
+        
+    s_opt, v_opt, u_opt = unpack(res.x)
+    
+    # Create trajectory data
+    eco_trajectory = []
+    cumulative_energy = 0
+    
+    for t in range(T + 1):
+        if t < T:
+            stage_cost = 0.5 * beta * u_opt[t]**2 + 0.5 * gamma * v_opt[t]**2
+            cumulative_energy += stage_cost
+        else:
+            stage_cost = 0
+            
+        eco_trajectory.append({
+            "time": float(t), "position": float(s_opt[t]), "velocity": float(v_opt[t]),
+            "acceleration": float(u_opt[t]) if t < T else 0.0,
+            "stageCost": float(stage_cost), "cumulativeEnergy": float(cumulative_energy)
+        })
+    
+    return {
+        "eco_trajectory": eco_trajectory,
+        "total_energy": float(cumulative_energy),
+        "optimization_success": True,
+        "parameters": {"beta": beta, "gamma": gamma, "T": T, "v_max": v_max, "a_max": a_max, "distance": distance}
+    }
+
+def generate_naive_trajectory(T=60, distance=1000.0, gamma=0.05):
+    """Generate naive constant-speed trajectory for comparison."""
+    
+    # Simple triangular profile: accelerate, cruise, decelerate
+    accel_time = decel_time = 4
+    cruise_time = T - accel_time - decel_time
+    cruise_speed = distance / (0.5 * accel_time + cruise_time + 0.5 * decel_time)
+    
+    naive_trajectory = []
+    cumulative_energy = 0
+    
+    for t in range(T + 1):
+        if t <= accel_time:
+            velocity = (cruise_speed / accel_time) * t
+            acceleration = cruise_speed / accel_time
+        elif t <= accel_time + cruise_time:
+            velocity = cruise_speed
+            acceleration = 0.0
+        else:
+            remaining_time = T - t
+            velocity = (cruise_speed / decel_time) * remaining_time
+            acceleration = -cruise_speed / decel_time
+        
+        # Calculate position by integration
+        position = 0 if t == 0 else naive_trajectory[t-1]['position'] + naive_trajectory[t-1]['velocity']
+        
+        # Calculate costs
+        if t < T:
+            stage_cost = 0.5 * 1.0 * acceleration**2 + 0.5 * gamma * velocity**2
+            cumulative_energy += stage_cost
+        else:
+            stage_cost = 0.0
+            
+        naive_trajectory.append({
+            "time": float(t), "position": float(position), "velocity": float(velocity),
+            "acceleration": float(acceleration), "stageCost": float(stage_cost),
+            "cumulativeEnergy": float(cumulative_energy)
+        })
+    
+    return {"naive_trajectory": naive_trajectory, "total_energy": float(cumulative_energy)}
+
+def plot_comparison(eco_data, naive_data=None, save_plot=True):
+    """Create visualization plots comparing eco-cruise and naive trajectories."""
+    
+    eco_traj = eco_data['eco_trajectory']
+    times = [p['time'] for p in eco_traj]
+    positions = [p['position'] for p in eco_traj]
+    velocities = [p['velocity'] for p in eco_traj]
+    accelerations = [p['acceleration'] for p in eco_traj]
+    energy_costs = [p['stageCost'] for p in eco_traj]
+    cumulative_energy = [p['cumulativeEnergy'] for p in eco_traj]
+    
+    fig, axes = plt.subplots(2, 3, figsize=(15, 10))
+    fig.suptitle('Eco-Cruise vs Naive Trajectory Comparison', fontsize=16, fontweight='bold')
+    
+    # Plot 1: Position vs Time
+    axes[0, 0].plot(times, positions, 'b-', linewidth=2, label='Eco-Cruise')
+    if naive_data:
+        naive_traj = naive_data['naive_trajectory']
+        naive_times = [p['time'] for p in naive_traj]
+        naive_positions = [p['position'] for p in naive_traj]
+        axes[0, 0].plot(naive_times, naive_positions, 'r--', linewidth=2, label='Naive')
+    axes[0, 0].set_xlabel('Time (s)'); axes[0, 0].set_ylabel('Position (m)')
+    axes[0, 0].set_title('Position vs Time'); axes[0, 0].grid(True, alpha=0.3); axes[0, 0].legend()
+    
+    # Plot 2: Velocity vs Time
+    axes[0, 1].plot(times, velocities, 'b-', linewidth=2, label='Eco-Cruise')
+    if naive_data:
+        naive_velocities = [p['velocity'] for p in naive_traj]
+        axes[0, 1].plot(naive_times, naive_velocities, 'r--', linewidth=2, label='Naive')
+    axes[0, 1].set_xlabel('Time (s)'); axes[0, 1].set_ylabel('Velocity (m/s)')
+    axes[0, 1].set_title('Velocity vs Time'); axes[0, 1].grid(True, alpha=0.3); axes[0, 1].legend()
+    
+    # Plot 3: Acceleration vs Time
+    axes[0, 2].plot(times[:-1], accelerations[:-1], 'b-', linewidth=2, label='Eco-Cruise')
+    axes[0, 2].axhline(y=0, color='k', linestyle='-', alpha=0.3)
+    axes[0, 2].set_xlabel('Time (s)'); axes[0, 2].set_ylabel('Acceleration (m/s²)')
+    axes[0, 2].set_title('Acceleration vs Time'); axes[0, 2].grid(True, alpha=0.3); axes[0, 2].legend()
+    
+    # Plot 4: Stage Cost vs Time
+    axes[1, 0].plot(times[:-1], energy_costs[:-1], 'b-', linewidth=2, label='Eco-Cruise')
+    if naive_data:
+        naive_costs = [p['stageCost'] for p in naive_traj[:-1]]
+        axes[1, 0].plot(naive_times[:-1], naive_costs, 'r--', linewidth=2, label='Naive')
+    axes[1, 0].set_xlabel('Time (s)'); axes[1, 0].set_ylabel('Stage Cost')
+    axes[1, 0].set_title('Stage Cost vs Time'); axes[1, 0].grid(True, alpha=0.3); axes[1, 0].legend()
+    
+    # Plot 5: Cumulative Energy vs Time
+    axes[1, 1].plot(times, cumulative_energy, 'b-', linewidth=2, label='Eco-Cruise')
+    if naive_data:
+        naive_cumulative = [p['cumulativeEnergy'] for p in naive_traj]
+        axes[1, 1].plot(naive_times, naive_cumulative, 'r--', linewidth=2, label='Naive')
+    axes[1, 1].set_xlabel('Time (s)'); axes[1, 1].set_ylabel('Cumulative Energy')
+    axes[1, 1].set_title('Cumulative Energy vs Time'); axes[1, 1].grid(True, alpha=0.3); axes[1, 1].legend()
+    
+    # Plot 6: Phase Space (Velocity vs Position)
+    axes[1, 2].plot(positions, velocities, 'b-', linewidth=2, label='Eco-Cruise')
+    if naive_data:
+        naive_positions = [p['position'] for p in naive_traj]
+        axes[1, 2].plot(naive_positions, naive_velocities, 'r--', linewidth=2, label='Naive')
+    axes[1, 2].set_xlabel('Position (m)'); axes[1, 2].set_ylabel('Velocity (m/s)')
+    axes[1, 2].set_title('Phase Space: Velocity vs Position'); axes[1, 2].grid(True, alpha=0.3); axes[1, 2].legend()
+    
+    plt.tight_layout()
+    
+    if save_plot:
+        plt.savefig('_static/eco_cruise_visualization.png', dpi=300, bbox_inches='tight')
+        print("Plot saved to _static/eco_cruise_visualization.png")
+    
+    plt.show()
+    return fig
+
+def demo():
+    """Run complete eco-cruise demonstration with visualization."""
+    
+    # Solve optimization
+    eco_data = solve_eco_cruise(beta=1.0, gamma=0.05, T=60, distance=1000.0)
+    if eco_data is None:
+        # Use Jupyter Book's gluing feature for error message
+        try:
+            from myst_nb import glue
+            glue("eco_cruise_output", "❌ Optimization failed!", display=False)
+        except ImportError:
+            print("Optimization failed!")
+        return None
+    
+    # Generate naive trajectory
+    naive_data = generate_naive_trajectory(T=60, distance=1000.0, gamma=0.05)
+    
+    # Create visualization
+    fig = plot_comparison(eco_data, naive_data, save_plot=True)
+    
+    # Use Jupyter Book's gluing feature to display the figure
+    try:
+        from myst_nb import glue
+        glue("eco_cruise_figure", fig, display=False)
+    except ImportError:
+        # Fallback for when not running in Jupyter Book context
+        pass
+    
+    return eco_data, naive_data, fig
+
+if __name__ == "__main__":
+    demo()
 ```
 
 ```{glue:figure} eco_cruise_figure
@@ -712,7 +1139,294 @@ By adjusting the number of segments $K$, we can interpolate between the two extr
 
 ```{code-cell} ipython3
 :tags: [hide-input]
-:load: code/multiple_shooting.py
+
+"""
+Multiple Shooting as a Boundary-Value Problem (BVP) for a Ballistic Trajectory
+-----------------------------------------------------------------------------
+We solve for the initial velocities (and total flight time) so that the terminal
+position hits a target, enforcing continuity between shooting segments.
+"""
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import solve_ivp
+from scipy.optimize import minimize
+from IPython.display import HTML, display
+
+# -----------------------------
+# Physical parameters
+# -----------------------------
+g = 9.81          # gravity (m/s^2)
+m = 1.0           # mass (kg)
+drag_coeff = 0.1  # quadratic drag coefficient
+
+
+def dynamics(t, state):
+    """Ballistic dynamics with quadratic drag. state = [x, y, vx, vy]."""
+    x, y, vx, vy = state
+    v = np.hypot(vx, vy)
+    drag_x = -drag_coeff * v * vx / m if v > 0 else 0.0
+    drag_y = -drag_coeff * v * vy / m if v > 0 else 0.0
+    dx  = vx
+    dy  = vy
+    dvx = drag_x
+    dvy = drag_y - g
+    return np.array([dx, dy, dvx, dvy])
+
+
+def flow(y0, h):
+    """One-segment flow map Φ(y0; h): integrate dynamics over duration h."""
+    sol = solve_ivp(dynamics, (0.0, h), y0, method="RK45", rtol=1e-7, atol=1e-9)
+    return sol.y[:, -1], sol
+
+# -----------------------------
+# Multiple-shooting BVP residuals
+# -----------------------------
+
+def residuals(z, K, x_init, x_target):
+    """
+    Unknowns z = [vx0, vy0, H, y1(4), y2(4), ..., y_{K-1}(4)]  (total len = 3 + 4*(K-1))
+    We define y0 from x_init and (vx0, vy0). Each segment has duration h = H/K.
+    Residual vector stacks:
+      - initial position constraints: y0[:2] - x_init[:2]
+      - continuity: y_{k+1} - Φ(y_k; h) for k=0..K-2
+      - terminal position constraint at end of last segment: Φ(y_{K-1}; h)[:2] - x_target[:2]
+    """
+    n = 4
+    vx0, vy0, H = z[0], z[1], z[2]
+    if H <= 0:
+        # Strongly penalize nonpositive durations to keep solver away
+        return 1e6 * np.ones(2 + 4*(K-1) + 2)
+
+    h = H / K
+
+    # Build list of segment initial states y_0..y_{K-1}
+    ys = []
+    y0 = np.array([x_init[0], x_init[1], vx0, vy0], dtype=float)
+    ys.append(y0)
+    if K > 1:
+        rest = z[3:]
+        y_internals = rest.reshape(K-1, n)
+        ys.extend(list(y_internals))  # y1..y_{K-1}
+
+    res = []
+
+    # Initial position must match exactly
+    res.extend(ys[0][:2] - x_init[:2])
+
+    # Continuity across segments
+    for k in range(K-1):
+        yk = ys[k]
+        yk1_pred, _ = flow(yk, h)
+        res.extend(ys[k+1] - yk1_pred)
+
+    # Terminal position at the end of last segment equals target
+    y_last_end, _ = flow(ys[-1], h)
+    res.extend(y_last_end[:2] - x_target[:2])
+
+    # Optional soft "stay above ground" at knots (kept gentle)
+    # res.extend(np.minimum(0.0, np.array([y[1] for y in ys])).ravel())
+
+    return np.asarray(res)
+
+# -----------------------------
+# Solve BVP via optimization on 0.5*||residuals||^2
+# -----------------------------
+
+def solve_bvp_multiple_shooting(K=5, x_init=np.array([0., 0.]), x_target=np.array([10., 0.])):
+    """
+    K: number of shooting segments.
+    x_init: initial position (x0, y0). Initial velocities are unknown.
+    x_target: desired terminal position (xT, yT) at time H (unknown).
+    """
+    # Heuristic initial guesses:
+    dx = x_target[0] - x_init[0]
+    dy = x_target[1] - x_init[1]
+    H0 = max(0.5, dx / 5.0)  # guess ~ 5 m/s horizontal
+    vx0_0 = dx / H0
+    vy0_0 = (dy + 0.5 * g * H0**2) / H0  # vacuum guess
+
+    # Intentionally disconnected internal knots to visualize defect shrinkage
+    internals = []
+    for k in range(1, K):  # y1..y_{K-1}
+        xk = x_init[0] + (dx * k) / K
+        yk = x_init[1] + (dy * k) / K + 2.0  # offset to create mismatch
+        internals.append(np.array([xk, yk, 0.0, 0.0]))
+    internals = np.array(internals) if K > 1 else np.array([])
+
+    z0 = np.concatenate(([vx0_0, vy0_0, H0], internals.ravel()))
+
+    # Variable bounds: H > 0, keep velocities within a reasonable range
+    # Use wide bounds to let the solver work; tune if needed.
+    lb = np.full_like(z0, -np.inf, dtype=float)
+    ub = np.full_like(z0,  np.inf, dtype=float)
+    lb[2] = 1e-2  # H lower bound
+    # Optional velocity bounds
+    lb[0], ub[0] = -50.0, 50.0
+    lb[1], ub[1] = -50.0, 50.0
+
+    # Objective and callback for L-BFGS-B
+    def objective(z):
+        r = residuals(z, K,
+                      np.array([x_init[0], x_init[1], 0., 0.]),
+                      np.array([x_target[0], x_target[1], 0., 0.]))
+        return 0.5 * np.dot(r, r)
+
+    iterate_history = []
+    def cb(z):
+        iterate_history.append(z.copy())
+
+    bounds = list(zip(lb.tolist(), ub.tolist()))
+    sol = minimize(objective, z0, method='L-BFGS-B', bounds=bounds,
+                   callback=cb, options={'maxiter': 300, 'ftol': 1e-12})
+
+    return sol, iterate_history
+
+# -----------------------------
+# Reconstruct and plot (optional static figure)
+# -----------------------------
+
+def reconstruct_and_plot(sol, K, x_init, x_target):
+    n = 4
+    vx0, vy0, H = sol.x[0], sol.x[1], sol.x[2]
+    h = H / K
+
+    ys = []
+    y0 = np.array([x_init[0], x_init[1], vx0, vy0])
+    ys.append(y0)
+    if K > 1:
+        internals = sol.x[3:].reshape(K-1, n)
+        ys.extend(list(internals))
+
+    # Integrate each segment and stitch
+    traj_x, traj_y = [], []
+    for k in range(K):
+        yk = ys[k]
+        yend, seg = flow(yk, h)
+        traj_x.extend(seg.y[0, :].tolist() if k == 0 else seg.y[0, 1:].tolist())
+        traj_y.extend(seg.y[1, :].tolist() if k == 0 else seg.y[1, 1:].tolist())
+
+    # Plot
+    fig, ax = plt.subplots(figsize=(7, 4.2))
+    ax.plot(traj_x, traj_y, '-', label='Multiple-shooting solution')
+    ax.plot([x_init[0]], [x_init[1]], 'go', label='Start')
+    ax.plot([x_target[0]], [x_target[1]], 'r*', ms=12, label='Target')
+    total_pts = len(traj_x)
+    for k in range(1, K):
+        idx = int(k * total_pts / K)
+        ax.axvline(traj_x[idx], color='k', ls='--', alpha=0.3, lw=1)
+
+    ax.set_xlabel('x (m)')
+    ax.set_ylabel('y (m)')
+    ax.set_title(f'Multiple Shooting BVP (K={K})   H={H:.3f}s   v0=({vx0:.2f},{vy0:.2f}) m/s')
+    ax.grid(True, alpha=0.3)
+    ax.legend(loc='best')
+    plt.tight_layout()
+    plt.show()
+
+    # Report residual norms
+    res = residuals(sol.x, K, np.array([x_init[0], x_init[1], 0., 0.]), np.array([x_target[0], x_target[1], 0., 0.]))
+    print(f"\nFinal residual norm: {np.linalg.norm(res):.3e}")
+    print(f"vx0={vx0:.4f} m/s, vy0={vy0:.4f} m/s, H={H:.4f} s")
+
+# -----------------------------
+# Create JS animation for notebooks
+# -----------------------------
+
+def create_animation_progress(iter_history, K, x_init, x_target):
+    """Return a JS animation (to_jshtml) showing defect shrinkage across segments."""
+    import matplotlib.pyplot as plt
+    from matplotlib.animation import FuncAnimation
+
+    n = 4
+
+    def unpack(z):
+        vx0, vy0, H = z[0], z[1], z[2]
+        ys = [np.array([x_init[0], x_init[1], vx0, vy0])]
+        if K > 1 and len(z) > 3:
+            internals = z[3:].reshape(K-1, n)
+            ys.extend(list(internals))
+        return H, ys
+
+    fig, ax = plt.subplots(figsize=(7, 4.2))
+    ax.set_xlabel('Segment index (normalized time)')
+    ax.set_ylabel('y (m)')
+    ax.set_title('Multiple Shooting: Defect Shrinkage (Fixed Boundaries)')
+    ax.grid(True, alpha=0.3)
+
+    # Start/target markers at fixed indices
+    ax.plot([0], [x_init[1]], 'go', label='Start')
+    ax.plot([K], [x_target[1]], 'r*', ms=12, label='Target')
+    # Vertical dashed lines at boundaries
+    for k in range(1, K):
+        ax.axvline(k, color='k', ls='--', alpha=0.35, lw=1)
+    ax.legend(loc='best')
+
+    # Pre-create line artists
+    colors = plt.cm.plasma(np.linspace(0, 1, K))
+    segment_lines = [ax.plot([], [], '-', color=colors[k], lw=2, alpha=0.9)[0] for k in range(K)]
+    connector_lines = [ax.plot([], [], 'r-', lw=1.4, alpha=0.75)[0] for _ in range(K-1)]
+
+    text_iter = ax.text(0.02, 0.98, '', transform=ax.transAxes,
+                        va='top', fontsize=9,
+                        bbox=dict(boxstyle='round', facecolor='white', alpha=0.7))
+
+    def animate(i):
+        idx = min(i, len(iter_history)-1)
+        z = iter_history[idx]
+        H, ys = unpack(z)
+        h = H / K
+
+        all_y = [x_init[1], x_target[1]]
+        total_defect = 0.0
+        for k in range(K):
+            yk = ys[k]
+            yend, seg = flow(yk, h)
+            # Map local time to [k, k+1]
+            t_local = seg.t
+            x_vals = k + (t_local / t_local[-1])
+            y_vals = seg.y[1, :]
+            segment_lines[k].set_data(x_vals, y_vals)
+            all_y.extend(y_vals.tolist())
+            if k < K-1:
+                y_next = ys[k+1]
+                # Vertical connector at boundary x=k+1
+                connector_lines[k].set_data([k+1, k+1], [yend[1], y_next[1]])
+                total_defect += abs(y_next[1] - yend[1])
+
+        # Fixed x-limits in index space
+        ax.set_xlim(-0.1, K + 0.1)
+        ymin, ymax = min(all_y), max(all_y)
+        margin_y = 0.10 * max(1.0, ymax - ymin)
+        ax.set_ylim(ymin - margin_y, ymax + margin_y)
+
+        text_iter.set_text(f'Iterate {idx+1}/{len(iter_history)}  |  Sum vertical defect: {total_defect:.3e}')
+        return segment_lines + connector_lines + [text_iter]
+
+    anim = FuncAnimation(fig, animate, frames=len(iter_history), interval=600, blit=False, repeat=True)
+    plt.tight_layout()
+    js_anim = anim.to_jshtml()
+    plt.close(fig)
+    return js_anim
+
+
+def main():
+    # Problem definition
+    x_init = np.array([0.0, 0.0])      # start at origin
+    x_target = np.array([10.0, 0.0])   # hit ground at x=10 m
+    K = 6                               # number of shooting segments
+
+    sol, iter_hist = solve_bvp_multiple_shooting(K=K, x_init=x_init, x_target=x_target)
+    # Optionally show static reconstruction (commented for docs cleanliness)
+    # reconstruct_and_plot(sol, K, x_init, x_target)
+
+    # Animate progression (defect shrinkage across segments) and display as JS
+    js_anim = create_animation_progress(iter_hist, K, x_init, x_target)
+    display(HTML(js_anim))
+
+
+if __name__ == "__main__":
+    main()
 ```
 
 

@@ -1,6 +1,5 @@
 from pyomo.environ import *
 from pyomo.opt import SolverFactory
-from myst_nb import glue
 import math
 
 # Define the Pyomo model
@@ -47,10 +46,16 @@ if (results.solver.status == SolverStatus.ok and
 
     # Print the Lagrange multipliers (dual values)
     print("\nLagrange multipliers:")
+    ineq_lambda = None
+    eq_lambda = None
     for c in model.component_objects(Constraint, active=True):
         for index in c:
-            print(f"{c.name}[{index}]: {model.dual[c[index]]}")
-            glue(f"{c.name}[{index}]", model.dual[c[index]], display=False)
+            dual_val = model.dual[c[index]]
+            print(f"{c.name}[{index}]: {dual_val}")
+            if c.name == "ineq_constraint":
+                ineq_lambda = dual_val
+            elif c.name == "eq_constraint":
+                eq_lambda = dual_val
 else:
     print("Solver did not find an optimal solution.")
     print(f"Solver Status: {results.solver.status}")

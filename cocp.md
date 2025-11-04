@@ -16,7 +16,6 @@ kernelspec:
 As in the discrete-time setting, we work with three continuous-time variants that differ only in how the objective is written while sharing the same dynamics, path constraints, and bounds. The path constraints $\mathbf{g}(\mathbf{x}(t),\mathbf{u}(t))\le \mathbf{0}$ are pointwise in time, and the bounds $\mathbf{x}_{\min}\le \mathbf{x}(t)\le \mathbf{x}_{\max}$ and $\mathbf{u}_{\min}\le \mathbf{u}(t)\le \mathbf{u}_{\max}$ are understood in the same pointwise sense.
 
 ::::{grid}
-:gutter: 1
 
 :::{grid-item}
 
@@ -414,22 +413,171 @@ where $\mathbf{u}_j$ represents the control value at node $\tau_j$.
 #### Boundary Conditions and Node Families
 
 ```{code-cell} ipython3
-:tags: [remove-input, remove-output]
-from importlib import reload
-import sys
-sys.path.append('_static')
-import _static.collocation_illustration as _colloc
-reload(_colloc)
+:tags: [hide-input]
 
-```
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.patches import Rectangle
+import matplotlib.patches as mpatches
+from scipy.interpolate import CubicSpline
 
-```{glue:figure} collocation_figure
-:name: fig-collocation-illustration
-:figwidth: 90%
-:align: center
+# Set up the figure with subplots
+fig = plt.figure(figsize=(16, 12))
 
+# Create a 2x2 subplot layout
+gs = fig.add_gridspec(2, 2, hspace=0.3, wspace=0.3)
 
-Collocation node families and where slope and continuity constraints are enforced.
+def create_collocation_plot(ax, title, node_positions, slope_nodes, endpoint_types):
+    """
+    Create a collocation method illustration
+    
+    Parameters:
+    - ax: matplotlib axis
+    - title: plot title
+    - node_positions: list of x-positions for nodes (normalized 0-1)
+    - slope_nodes: list of booleans indicating which nodes enforce slopes
+    - endpoint_types: tuple of (left_type, right_type) where type is 'slope', 'eval', or 'continuity'
+    """
+    
+    # Time interval
+    t_start, t_end = 0, 1
+    
+    # Create a smooth trajectory curve for illustration
+    x = np.linspace(t_start, t_end, 100)
+    # Create an S-shaped curve to represent state trajectory
+    y = 0.3 + 0.4 * np.sin(3 * np.pi * x) * np.exp(-2 * x)
+    
+    # Build a cubic spline of the trajectory for consistent slope evaluation
+    spline = CubicSpline(x, y, bc_type='natural')
+    
+    # Plot the trajectory
+    ax.plot(x, y, 'k-', linewidth=2, label='State trajectory x(t)')
+    
+    # Plot collocation points
+    for i, pos in enumerate(node_positions):
+        t_node = t_start + pos * (t_end - t_start)
+        y_node = 0.3 + 0.4 * np.sin(3 * np.pi * t_node) * np.exp(-2 * t_node)
+        
+        # Endpoints are rendered in the endpoint section (as squares). Skip here.
+        if np.isclose(t_node, 0.0) or np.isclose(t_node, 1.0):
+            continue
+
+        if slope_nodes[i]:
+            # Blue dot for slope constraint nodes
+            ax.plot(t_node, y_node, 'bo', markersize=8, markerfacecolor='blue', 
+                   markeredgecolor='darkblue', linewidth=1.5)
+            # Add tangent line to show slope constraint (centered on node)
+            dt = 0.08  # Half-length for symmetric extension
+            t_prev = max(0, t_node - dt)
+            t_next = min(1, t_node + dt)
+            
+            # Calculate slope from the spline derivative (matches plotted curve)
+            slope = spline.derivative()(t_node)
+            
+            # Create symmetric tangent line centered on the node
+            y_prev = y_node + slope * (t_prev - t_node)
+            y_next = y_node + slope * (t_next - t_node)
+            ax.plot([t_prev, t_next], [y_prev, y_next], 'r--', alpha=0.8, linewidth=2)
+        else:
+            # Green dot for evaluation-only nodes
+            ax.plot(t_node, y_node, 'go', markersize=8, markerfacecolor='lightgreen', 
+                   markeredgecolor='darkgreen', linewidth=1.5)
+    
+    # Handle endpoints specially (always render as squares if applicable)
+    endpoints = [(0, 'left'), (1, 'right')]
+    for pos, side in endpoints:
+        y_end = 0.3 + 0.4 * np.sin(3 * np.pi * pos) * np.exp(-2 * pos)
+        end_type = endpoint_types[0] if side == 'left' else endpoint_types[1]
+        
+        if end_type == 'slope':
+            ax.plot(pos, y_end, 'bs', markersize=10, markerfacecolor='blue', 
+                   markeredgecolor='darkblue', linewidth=2)
+            # Add tangent line (centered on endpoint)
+            dt = 0.08  # Half-length for symmetric extension
+            
+            # Calculate slope from the spline derivative (matches plotted curve)
+            slope = spline.derivative()(pos)
+            
+            t_prev = pos - dt
+            t_next = pos + dt
+            y_prev = y_end + slope * (t_prev - pos)
+            y_next = y_end + slope * (t_next - pos)
+            ax.plot([t_prev, t_next], [y_prev, y_next], 'r--', alpha=0.8, linewidth=2)
+        elif end_type == 'eval':
+            ax.plot(pos, y_end, 'gs', markersize=10, markerfacecolor='lightgreen', 
+                   markeredgecolor='darkgreen', linewidth=2)
+        elif end_type == 'continuity':
+            ax.plot(pos, y_end, 'ms', markersize=10, markerfacecolor='orange', 
+                   markeredgecolor='darkorange', linewidth=2)
+    
+    # Add time markers
+    ax.axvline(x=0, color='gray', linestyle=':', alpha=0.5)
+    ax.axvline(x=1, color='gray', linestyle=':', alpha=0.5)
+    ax.text(0, -0.15, r'$t_k$', ha='center', va='top', fontsize=12)
+    ax.text(1, -0.15, r'$t_{k+1}$', ha='center', va='top', fontsize=12)
+    
+    # Formatting
+    ax.set_xlim(-0.1, 1.1)
+    ax.set_ylim(-0.2, 0.8)
+    ax.set_xlabel('Time', fontsize=12)
+    ax.set_ylabel('State', fontsize=12)
+    ax.set_title(title, fontsize=14, fontweight='bold')
+    ax.grid(True, alpha=0.3)
+
+# Define node positions for each method (normalized to [0,1])
+# Using 4 nodes total for fair comparison
+
+# Lobatto IIIA nodes (includes both endpoints)
+lobatto_nodes = [0.0, 0.276, 0.724, 1.0]
+lobatto_slopes = [True, True, True, True]
+lobatto_endpoints = ('slope', 'slope')
+
+# Radau IA nodes (includes left endpoint)
+radau1_nodes = [0.0, 0.155, 0.645, 0.955]
+radau1_slopes = [True, True, True, True]  # Collocation at left endpoint and interior nodes
+radau1_endpoints = ('slope', 'eval')  # Left: slope, Right: evaluation-only
+
+# Radau IIA nodes (includes right endpoint)
+radau2_nodes = [0.045, 0.355, 0.845, 1.0]
+radau2_slopes = [True, True, True, True]  # Collocation at interior nodes and right endpoint
+radau2_endpoints = ('continuity', 'slope')  # Left: continuity, Right: slope
+
+# Gauss nodes (no endpoints)
+gauss_nodes = [0.113, 0.387, 0.613, 0.887]
+gauss_slopes = [True, True, True, True]
+gauss_endpoints = ('eval', 'eval')
+
+# Create subplots
+ax1 = fig.add_subplot(gs[0, 0])
+create_collocation_plot(ax1, 'Lobatto IIIA Method', lobatto_nodes, lobatto_slopes, lobatto_endpoints)
+
+ax2 = fig.add_subplot(gs[0, 1])
+create_collocation_plot(ax2, 'Radau IA Method', radau1_nodes, radau1_slopes, radau1_endpoints)
+
+ax3 = fig.add_subplot(gs[1, 0])
+create_collocation_plot(ax3, 'Radau IIA Method', radau2_nodes, radau2_slopes, radau2_endpoints)
+
+ax4 = fig.add_subplot(gs[1, 1])
+create_collocation_plot(ax4, 'Gauss Method', gauss_nodes, gauss_slopes, gauss_endpoints)
+
+# Create legend
+legend_elements = [
+    mpatches.Patch(color='blue', label='Slope constraint (f = dynamics)'),
+    mpatches.Patch(color='lightgreen', label='Polynomial evaluation only'),
+    mpatches.Patch(color='orange', label='Continuity constraint'),
+    plt.Line2D([0], [0], color='red', linestyle='--', alpha=0.7, label='Tangent (slope direction)'),
+    plt.Line2D([0], [0], color='black', linewidth=2, label='State trajectory')
+]
+
+fig.legend(handles=legend_elements, loc='lower center', bbox_to_anchor=(0.5, 0.03), 
+           ncol=3, fontsize=12, frameon=True, fancybox=True, shadow=False)
+
+# Add main title
+fig.suptitle('Collocation Methods for Optimal Control\n(Illustration of Node Types and Constraints)', 
+             fontsize=16, fontweight='bold', y=0.95)
+
+plt.tight_layout(rect=[0.04, 0.10, 0.98, 0.93])
+plt.show()
 ```
 
 
@@ -840,7 +988,123 @@ In the experiment below, we choose the setpoint $\mathbf{x}^* = [0.40, 0.60]^T$ 
 
 ```{code-cell} ipython3
 :tags: [hide-input]
-:load: code/compressor_surge_single_shooting.py
+
+import numpy as np
+from scipy.optimize import minimize
+import matplotlib.pyplot as plt
+
+# System parameters
+gamma, B, H, psi_c0, W = 0.5, 1, 0.18, 0.3, 0.25
+alpha, beta, kappa, R = 1, 0, 0.08, 0
+T, N = 12, 60
+dt = T / N
+x1_star, x2_star = 0.40, 0.60
+
+def psi_e(x1):
+    return psi_c0 + H * (1 + 1.5 * ((x1 / W) - 1) - 0.5 * ((x1 / W) - 1)**3)
+
+def phi(x2):
+    return gamma * np.sign(x2) * np.sqrt(np.abs(x2))
+
+def system_dynamics(x, u):
+    x1, x2 = x
+    dx1dt = B * (psi_e(x1) - x2 - u)
+    dx2dt = (1 / B) * (x1 - phi(x2))
+    return np.array([dx1dt, dx2dt])
+
+def euler_step(x, u, dt):
+    return x + dt * system_dynamics(x, u)
+
+def instantenous_cost(x, u):
+    return (alpha * np.sum((x - np.array([x1_star, x2_star]))**2) + kappa * u**2)
+
+def terminal_cost(x):
+    return beta * np.sum((x - np.array([x1_star, x2_star]))**2)
+
+def objective_and_constraints(z):
+    u, v = z[:-1], z[-1]
+    x = np.zeros((N+1, 2))
+    x[0] = x0
+    obj = 0
+    cons = []
+    for i in range(N):
+        x[i+1] = euler_step(x[i], u[i], dt)
+        obj += dt * instantenous_cost(x[i], u[i])
+        cons.append(0.4 - x[i+1, 1] - v)
+    obj += terminal_cost(x[-1]) + R * v**2
+    return obj, np.array(cons)
+
+def solve_trajectory_optimization(x0, u_init):
+    z0 = np.zeros(N + 1)
+    z0[:-1] = u_init
+    bounds = [(0, 0.3)] * N + [(0, None)]
+    result = minimize(
+        lambda z: objective_and_constraints(z)[0],
+        z0,
+        method='SLSQP',
+        bounds=bounds,
+        constraints={'type': 'ineq', 'fun': lambda z: -objective_and_constraints(z)[1]},
+        options={'disp': True, 'maxiter': 1000, 'ftol': 1e-6}
+    )
+    return result.x, result
+
+def simulate_trajectory(x0, u):
+    x = np.zeros((N+1, 2))
+    x[0] = x0
+    for i in range(N):
+        x[i+1] = euler_step(x[i], u[i], dt)
+    return x
+
+# Run optimizations and simulations
+x0 = np.array([0.25, 0.25])
+t = np.linspace(0, T, N+1)
+
+# Optimized control starting from zero
+z_single_shooting, _ = solve_trajectory_optimization(x0, np.zeros(N))
+u_opt_shoot, v_opt_shoot = z_single_shooting[:-1], z_single_shooting[-1]
+x_opt_shoot = simulate_trajectory(x0, u_opt_shoot)
+
+# Do-nothing control (u = 0)
+u_nothing = np.zeros(N)
+x_nothing = simulate_trajectory(x0, u_nothing)
+
+# Plotting
+plt.figure(figsize=(15, 20))
+
+# State variables over time
+plt.subplot(3, 1, 1)
+plt.plot(t, x_opt_shoot[:, 0], label='x1 (opt from 0)')
+plt.plot(t, x_opt_shoot[:, 1], label='x2 (opt from 0)')
+plt.plot(t, x_nothing[:, 0], ':', label='x1 (do-nothing)')
+plt.plot(t, x_nothing[:, 1], ':', label='x2 (do-nothing)')
+plt.axhline(y=x1_star, color='r', linestyle='--', label='x1 setpoint')
+plt.axhline(y=x2_star, color='g', linestyle='--', label='x2 setpoint')
+plt.xlabel('Time')
+plt.ylabel('State variables')
+plt.title('State variables over time')
+plt.legend()
+plt.grid(True)
+
+# Phase portrait
+plt.subplot(3, 1, 2)
+plt.plot(x_opt_shoot[:, 0], x_opt_shoot[:, 1], label='Optimized from 0')
+plt.plot(x_nothing[:, 0], x_nothing[:, 1], ':', label='Do-nothing')
+plt.plot(x1_star, x2_star, 'r*', markersize=10, label='Setpoint')
+plt.xlabel('x1 (mass flow)')
+plt.ylabel('x2 (pressure)')
+plt.title('Phase portrait')
+plt.legend()
+plt.grid(True)
+
+# Control inputs
+plt.subplot(3, 1, 3)
+plt.plot(t[:-1], u_opt_shoot, label='Optimized from 0')
+plt.plot(t[:-1], u_nothing, ':', label='Do-nothing')
+plt.xlabel('Time')
+plt.ylabel('Control input (u)')
+plt.title('Control input over time')
+plt.legend()
+plt.grid(True)
 ```
 
 ### Solution by Trapezoidal Collocation
@@ -862,7 +1126,149 @@ We then find a control function $u(t)$ and state trajectory $x(t)$ using the tra
 
 ```{code-cell} ipython3
 :tags: [hide-input]
-:load: code/compressor_surge_trapezoidal_collocation.py
+
+import numpy as np
+from scipy.optimize import minimize
+from scipy.integrate import solve_ivp
+from scipy.interpolate import interp1d
+import matplotlib.pyplot as plt
+
+# System parameters
+gamma, B, H, psi_c0, W = 0.5, 1, 0.18, 0.3, 0.25
+kappa = 0.08
+T, N = 12, 20  # Number of collocation points
+t = np.linspace(0, T, N)
+dt = T / (N - 1)
+x1_star, x2_star = 0.40, 0.60
+
+def psi_e(x1):
+    return psi_c0 + H * (1 + 1.5 * ((x1 / W) - 1) - 0.5 * ((x1 / W) - 1)**3)
+
+def phi(x2):
+    return gamma * np.sign(x2) * np.sqrt(np.abs(x2))
+
+def system_dynamics(t, x, u_func):
+    x1, x2 = x
+    u = u_func(t)
+    dx1dt = B * (psi_e(x1) - x2 - u)
+    dx2dt = (1 / B) * (x1 - phi(x2))
+    return [dx1dt, dx2dt]
+
+def objective(z):
+    x = z[:2*N].reshape((N, 2))
+    u = z[2*N:]
+    
+    # Trapezoidal rule for the cost function
+    cost = 0
+    for i in range(N-1):
+        cost += 0.5 * dt * (kappa * u[i]**2 + kappa * u[i+1]**2)
+    
+    return cost
+
+def constraints(z):
+    x = z[:2*N].reshape((N, 2))
+    u = z[2*N:]
+    
+    cons = []
+    
+    # Dynamics constraints (trapezoidal rule)
+    for i in range(N-1):
+        f_i = system_dynamics(t[i], x[i], lambda t: u[i])
+        f_ip1 = system_dynamics(t[i+1], x[i+1], lambda t: u[i+1])
+        cons.extend(x[i+1] - x[i] - 0.5 * dt * (np.array(f_i) + np.array(f_ip1)))
+    
+    # Terminal constraint
+    cons.extend([x[-1, 0] - x1_star, x[-1, 1] - x2_star])
+    
+    # Initial condition constraint
+    cons.extend([x[0, 0] - x0[0], x[0, 1] - x0[1]])
+    
+    return np.array(cons)
+
+def solve_trajectory_optimization(x0):
+    # Initial guess
+    x_init = np.linspace(x0, [x1_star, x2_star], N)
+    u_init = np.zeros(N)
+    z0 = np.concatenate([x_init.flatten(), u_init])
+    
+    # Bounds
+    bounds = [(None, None)] * (2*N)  # State variables
+    bounds += [(0, 0.3)] * N  # Control inputs
+    
+    # Constraints
+    cons = {'type': 'eq', 'fun': constraints}
+    
+    result = minimize(
+        objective,
+        z0,
+        method='SLSQP',
+        bounds=bounds,
+        constraints=cons,
+        options={'disp': True, 'maxiter': 1000, 'ftol': 1e-6}
+    )
+    return result.x, result
+
+# Run optimization
+x0 = np.array([0.5, 0.5])
+z_opt, result = solve_trajectory_optimization(x0)
+x_opt_coll = z_opt[:2*N].reshape((N, 2))
+u_opt_coll = z_opt[2*N:]
+
+print(f"Optimization successful: {result.success}")
+print(f"Final objective value: {result.fun}")
+print(f"Final state: x1 = {x_opt_coll[-1, 0]:.4f}, x2 = {x_opt_coll[-1, 1]:.4f}")
+print(f"Target state: x1 = {x1_star:.4f}, x2 = {x2_star:.4f}")
+
+# Create interpolated control function
+u_func = interp1d(t, u_opt_coll, kind='linear', bounds_error=False, fill_value=(u_opt_coll[0], u_opt_coll[-1]))
+
+# Solve IVP with the optimized control
+sol = solve_ivp(lambda t, x: system_dynamics(t, x, u_func), [0, T], x0, dense_output=True)
+
+# Generate solution points
+t_dense = np.linspace(0, T, 200)
+x_ivp = sol.sol(t_dense).T
+
+# Plotting
+plt.figure(figsize=(15, 20))
+
+# State variables over time
+plt.subplot(3, 1, 1)
+plt.plot(t, x_opt_coll[:, 0], 'bo-', label='x1 (collocation)')
+plt.plot(t, x_opt_coll[:, 1], 'ro-', label='x2 (collocation)')
+plt.plot(t_dense, x_ivp[:, 0], 'b--', label='x1 (integrated)')
+plt.plot(t_dense, x_ivp[:, 1], 'r--', label='x2 (integrated)')
+plt.axhline(y=x1_star, color='b', linestyle=':', label='x1 setpoint')
+plt.axhline(y=x2_star, color='r', linestyle=':', label='x2 setpoint')
+plt.xlabel('Time')
+plt.ylabel('State variables')
+plt.title('State variables over time')
+plt.legend()
+plt.grid(True)
+
+# Phase portrait
+plt.subplot(3, 1, 2)
+plt.plot(x_opt_coll[:, 0], x_opt_coll[:, 1], 'go-', label='Collocation')
+plt.plot(x_ivp[:, 0], x_ivp[:, 1], 'm--', label='Integrated')
+plt.plot(x1_star, x2_star, 'r*', markersize=10, label='Setpoint')
+plt.xlabel('x1 (mass flow)')
+plt.ylabel('x2 (pressure)')
+plt.title('Phase portrait')
+plt.legend()
+plt.grid(True)
+
+# Control inputs
+plt.subplot(3, 1, 3)
+plt.step(t, u_opt_coll, 'g-', where='post', label='Collocation')
+plt.plot(t_dense, u_func(t_dense), 'm--', label='Interpolated')
+plt.xlabel('Time')
+plt.ylabel('Control input (u)')
+plt.title('Control input over time')
+plt.legend()
+plt.grid(True)
+
+plt.tight_layout()
+plt.show()
 ```
 
 You can try to vary the number of collocation points in the code and observe how the state trajectory progressively matches the ground truth (the line denoted "integrated solution"). Note that this version of the code also lacks bound constraints on the variable $x_2$ to ensure a minimum pressure, as we did earlier. Consider this a good exercise to try on your own. 
@@ -891,12 +1297,196 @@ where $\boldsymbol{\phi}_k$ denotes the state reached at step $k$ by an RK4 roll
 
 ```{code-cell} ipython3
 :tags: [hide-input]
-:load: code/compressor_surge_data_collection.py
+
+import numpy as np
+from scipy.integrate import solve_ivp
+import matplotlib.pyplot as plt
+
+# System parameters
+gamma, B, H, psi_c0, W = 0.5, 1, 0.18, 0.3, 0.25
+
+# Simulation parameters
+T = 50  # Total simulation time
+dt = 0.1  # Time step
+t = np.arange(0, T + dt, dt)
+N = len(t)
+
+# Number of trajectories
+num_trajectories = 10
+
+def psi_e(x1):
+    return psi_c0 + H * (1 + 1.5 * ((x1 / W) - 1) - 0.5 * ((x1 / W) - 1)**3)
+
+def phi(x2):
+    return gamma * np.sign(x2) * np.sqrt(np.abs(x2))
+
+def system_dynamics(t, x, u):
+    x1, x2 = x
+    dx1dt = B * (psi_e(x1) - x2 - u)
+    dx2dt = (1 / B) * (x1 - phi(x2))
+    return [dx1dt, dx2dt]
+
+# "Do nothing" controller with small random noise
+def u_func(t):
+    return np.random.normal(0, 0.01)  # Mean 0, standard deviation 0.01
+
+# Function to simulate a single trajectory
+def simulate_trajectory(x0):
+    sol = solve_ivp(lambda t, x: system_dynamics(t, x, u_func(t)), [0, T], x0, t_eval=t, method='RK45')
+    return sol.y[0], sol.y[1]
+
+# Generate multiple trajectories
+trajectories = []
+initial_conditions = []
+
+for i in range(num_trajectories):
+    # Randomize initial conditions around [0.5, 0.5]
+    x0 = np.array([0.5, 0.5]) + np.random.normal(0, 0.05, 2)
+    initial_conditions.append(x0)
+    x1, x2 = simulate_trajectory(x0)
+    trajectories.append((x1, x2))
+
+# Calculate control inputs (small random noise)
+u = np.array([u_func(ti) for ti in t])
+
+# Plotting
+plt.figure(figsize=(15, 15))
+
+# State variables over time
+plt.subplot(3, 1, 1)
+for i, (x1, x2) in enumerate(trajectories):
+    plt.plot(t, x1, label=f'x1 (Traj {i+1})' if i == 0 else "_nolegend_")
+    plt.plot(t, x2, label=f'x2 (Traj {i+1})' if i == 0 else "_nolegend_")
+plt.xlabel('Time')
+plt.ylabel('State variables')
+plt.title('State variables over time (Multiple Trajectories)')
+plt.legend()
+plt.grid(True)
+
+# Phase portrait
+plt.subplot(3, 1, 2)
+for x1, x2 in trajectories:
+    plt.plot(x1, x2)
+    plt.plot(x1[0], x2[0], 'bo', markersize=5)
+    plt.plot(x1[-1], x2[-1], 'ro', markersize=5)
+plt.xlabel('x1 (mass flow)')
+plt.ylabel('x2 (pressure)')
+plt.title('Phase portrait (Multiple Trajectories)')
+plt.grid(True)
+
+# Control input (small random noise)
+plt.subplot(3, 1, 3)
+plt.plot(t, u, 'k-')
+plt.xlabel('Time')
+plt.ylabel('Control input (u)')
+plt.title('Control input over time (Small random noise)')
+plt.grid(True)
+
+plt.tight_layout()
+plt.show()
+
+# Save the data
+np.savez('_static/compressor_surge_data_multi.npz', t=t, trajectories=trajectories, u=u, initial_conditions=initial_conditions)
+
+print("Data collection complete. Results saved to 'compressor_surge_data_multi.npz'")
+print(f"Data shape: {num_trajectories} trajectories, each with {N} time steps")
+print(f"Time range: 0 to {T} seconds")
+print("Initial conditions:")
+for i, x0 in enumerate(initial_conditions):
+    print(f"  Trajectory {i+1}: x1 = {x0[0]:.4f}, x2 = {x0[1]:.4f}")
 ```
 
 ```{code-cell} ipython3
 :tags: [hide-input]
-:load: code/compressor_surge_direct_single_shooting_rk4_paramid.py
+
+import numpy as np
+from scipy.optimize import minimize
+import matplotlib.pyplot as plt
+
+# Load the data
+data = np.load('_static/compressor_surge_data_multi.npz', allow_pickle=True)
+t = data['t']
+trajectories = data['trajectories']
+u = data['u']
+initial_conditions = data['initial_conditions']
+
+# Known system parameters
+gamma, H, psi_c0, W = 0.5, 0.18, 0.3, 0.25
+# B is the parameter we want to identify
+B_true = 1.0  # True value, used for comparison
+
+def psi_e(x1):
+    return psi_c0 + H * (1 + 1.5 * ((x1 / W) - 1) - 0.5 * ((x1 / W) - 1)**3)
+
+def phi(x2):
+    return gamma * np.sign(x2) * np.sqrt(np.abs(x2))
+
+def system_dynamics(t, x, u, B):
+    x1, x2 = x
+    dx1dt = B * (psi_e(x1) - x2 - u)
+    dx2dt = (1 / B) * (x1 - phi(x2))
+    return np.array([dx1dt, dx2dt])
+
+def rk4_step(f, t, x, u, dt, B):
+    k1 = f(t, x, u, B)
+    k2 = f(t + 0.5*dt, x + 0.5*dt*k1, u, B)
+    k3 = f(t + 0.5*dt, x + 0.5*dt*k2, u, B)
+    k4 = f(t + dt, x + dt*k3, u, B)
+    return x + (dt/6) * (k1 + 2*k2 + 2*k3 + k4)
+
+def simulate_trajectory(x0, B):
+    x = np.zeros((len(t), 2))
+    x[0] = x0
+    for i in range(1, len(t)):
+        x[i] = rk4_step(system_dynamics, t[i-1], x[i-1], u[i-1], t[i] - t[i-1], B)
+    return x
+
+def objective(B):
+    error = 0
+    for i, (x1_obs, x2_obs) in enumerate(trajectories):
+        x_sim = simulate_trajectory(initial_conditions[i], B[0])
+        error += np.sum((x_sim[:, 0] - x1_obs)**2 + (x_sim[:, 1] - x2_obs)**2)
+    return error
+
+# Perform optimization
+result = minimize(objective, x0=[1.5], method='Nelder-Mead', options={'disp': True})
+
+B_identified = result.x[0]
+
+print(f"True B: {B_true}")
+print(f"Identified B: {B_identified}")
+print(f"Relative error: {abs(B_identified - B_true) / B_true * 100:.2f}%")
+
+# Plot results
+plt.figure(figsize=(15, 10))
+
+# Plot one trajectory for comparison
+traj_index = 0
+x1_obs, x2_obs = trajectories[traj_index]
+x_sim = simulate_trajectory(initial_conditions[traj_index], B_identified)
+
+plt.subplot(2, 1, 1)
+plt.plot(t, x1_obs, 'b-', label='Observed x1')
+plt.plot(t, x2_obs, 'r-', label='Observed x2')
+plt.plot(t, x_sim[:, 0], 'b--', label='Simulated x1')
+plt.plot(t, x_sim[:, 1], 'r--', label='Simulated x2')
+plt.xlabel('Time')
+plt.ylabel('State variables')
+plt.title('Observed vs Simulated Trajectory')
+plt.legend()
+plt.grid(True)
+
+plt.subplot(2, 1, 2)
+plt.plot(x1_obs, x2_obs, 'g-', label='Observed')
+plt.plot(x_sim[:, 0], x_sim[:, 1], 'm--', label='Simulated')
+plt.xlabel('x1 (mass flow)')
+plt.ylabel('x2 (pressure)')
+plt.title('Phase Portrait: Observed vs Simulated')
+plt.legend()
+plt.grid(True)
+
+plt.tight_layout()
+plt.show()
 ```
 
 ## Flight Trajectory Optimization
@@ -1018,7 +1608,424 @@ Compared to the earlier inflow-outflow model, this richer setup introduces more 
 
 ```{code-cell} ipython3
 :tags: [hide-input]
-:load: _static/hydro.py
+
+# Instrumented MSD hydro demo with heterogeneity + diagnostics
+# - Breaks symmetry to avoid trivial identical plots
+# - Adds rich diagnostics to explain flat levels and equalities
+#
+# This cell runs end-to-end and shows plots + tables.
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from dataclasses import dataclass
+from typing import Tuple
+from scipy.optimize import minimize
+from math import sqrt
+import warnings
+
+# ---------- Model ----------
+
+g = 9.81  # m/s^2
+
+@dataclass
+class ReachParams:
+    L: float
+    W: float
+    k_b: float
+    S_b: float
+    k_t: float
+    @property
+    def A_surf(self) -> float:
+        return self.L * self.W
+
+def smooth_relu(x, eps=1e-9):
+    return 0.5*(x + np.sqrt(x*x + eps))
+
+def q_bypass(H, rp: ReachParams):
+    H_eff = smooth_relu(H)
+    return rp.k_b * rp.S_b * np.sqrt(2*g*H_eff)
+
+def muskingum_coeffs(K: float, X: float, dt: float) -> Tuple[float, float, float]:
+    D  = 2.0*K*(1.0 - X) + dt
+    C0 = (dt - 2.0*K*X) / D
+    C1 = (dt + 2.0*K*X) / D
+    C2 = (2.0*K*(1.0 - X) - dt) / D
+    return C0, C1, C2
+
+def integrate_interval(H0, u, z, dt, nsub, rp: ReachParams):
+    """Forward Euler. Returns Hend, avg_qout."""
+    h = dt/nsub
+    H = H0
+    qsum = 0.0
+    for _ in range(nsub):
+        qb = q_bypass(H, rp)
+        qout = u + qb
+        dHdt = (z - qout) / rp.A_surf
+        H += h*dHdt
+        qsum += qout
+    return H, qsum/nsub
+
+def shapes(M,N): return (M*(N+1), M*N, M*N)
+
+def unpack(x, M, N):
+    nH, nu, nz = shapes(M,N)
+    H = x[:nH].reshape(M,N+1)
+    u = x[nH:nH+nu].reshape(M,N)
+    z = x[nH+nu:nH+nu+nz].reshape(M,N)
+    return H,u,z
+
+def pack(H,u,z): return np.concatenate([H.ravel(), u.ravel(), z.ravel()])
+
+# ---------- Problem builder ----------
+
+def make_params_hetero(M):
+    """Heterogeneous reaches to break symmetry."""
+    # Widths, spillway areas, and power coeffs vary by reach
+    W_list = np.linspace(80, 140, M)         # m
+    L_list = np.full(M, 4000.0)              # m
+    S_b_list = np.linspace(14.0, 20.0, M)    # m^2
+    k_t_list = np.linspace(7.5, 8.5, M)      # power coeff
+    k_b_list = np.linspace(0.55, 0.65, M)    # spill coeff
+    return [ReachParams(L=float(L_list[i]), W=float(W_list[i]),
+                        k_b=float(k_b_list[i]), S_b=float(S_b_list[i]),
+                        k_t=float(k_t_list[i])) for i in range(M)]
+
+def build_demo(M=3, N=12, dt=900.0, seed=0, hetero=True):
+    rng = np.random.default_rng(seed)
+    params = make_params_hetero(M) if hetero else [ReachParams(4000.0, 100.0, 0.6, 18.26, 8.0) for _ in range(M)]
+
+    # initial levels (heterogeneous)
+    H0 = np.array([17.0, 16.7, 17.3][:M])
+
+    H_ref = np.array([17.0, 16.9, 17.1][:M]) if hetero else np.full(M, 17.0)
+    H_bounds = (16.0, 18.5)
+    u_bounds = (40.0, 160.0)
+
+    Qin_base = 300.0
+    Qin_ext = Qin_base + 30.0*np.sin(2*np.pi*np.arange(N)/N)  # stronger swing
+
+    Pref_raw = 60.0 + 15.0*np.sin(2*np.pi*(np.arange(N)-2)/N)
+
+    # default Muskingum parameters per link (M-1 links)
+    if M > 1:
+        K_list = list(np.linspace(1800.0, 2700.0, M-1))
+        X_list = [0.2]*(M-1)
+    else:
+        K_list = []
+        X_list = []
+
+    return dict(params=params, H0=H0, H_ref=H_ref, H_bounds=H_bounds,
+                u_bounds=u_bounds, Qin_ext=Qin_ext, Pref_raw=Pref_raw,
+                dt=dt, N=N, M=M, nsub=10,
+                muskingum=dict(K=K_list, X=X_list))
+
+# ---------- Objective / constraints / helpers ----------
+
+def compute_total_power(H,u,params):
+    M,N = u.shape
+    Pn = np.zeros(N)
+    for n in range(N):
+        for i in range(M):
+            Pn[n] += params[i].k_t * u[i,n] * H[i,n]
+    return Pn
+
+def decompose_objective(x, data, Pref, wP, wH, wDu):
+    H,u,z = unpack(x, data["M"], data["N"])
+    params, H_ref = data["params"], data["H_ref"]
+    track = np.sum((compute_total_power(H,u,params)-Pref)**2)
+    lvl   = np.sum((H[:,:-1]-H_ref[:,None])**2)
+    du    = np.sum((u[:,1:]-u[:,:-1])**2)
+    return dict(track=wP*track, lvl=wH*lvl, du=wDu*du, raw=dict(track=track,lvl=lvl,du=du))
+
+def make_objective(data, Pref, wP=8.0, wH=0.02, wDu=1e-4):
+    params, H_ref, N, M = data["params"], data["H_ref"], data["N"], data["M"]
+    def obj(x):
+        H,u,z = unpack(x,M,N)
+        return (
+            wP*np.sum((compute_total_power(H,u,params)-Pref)**2)
+            + wH*np.sum((H[:,:-1]-H_ref[:,None])**2)
+            + wDu*np.sum((u[:,1:]-u[:,:-1])**2)
+        )
+    return obj, dict(wP=wP,wH=wH,wDu=wDu)
+
+def make_constraints(data):
+    params, H0, Qin_ext, dt, N, M, nsub = (
+        data["params"], data["H0"], data["Qin_ext"], data["dt"], data["N"], data["M"], data["nsub"]
+    )
+    cons = []
+    def init_fun(x):
+        H,u,z = unpack(x,M,N); return H[:,0]-H0
+    cons.append({'type':'eq','fun':init_fun})
+    def dyn_fun(x):
+        H,u,z = unpack(x,M,N)
+        res=[]
+        for i in range(M):
+            for n in range(N):
+                Hend, _ = integrate_interval(H[i,n], u[i,n], z[i,n], dt, nsub, params[i])
+                res.append(H[i,n+1]-Hend)
+        return np.array(res)
+    cons.append({'type':'eq','fun':dyn_fun})
+    def coup_fun(x):
+        H,u,z = unpack(x,M,N)
+        res=[]
+        # First reach is exogenous inflow per interval
+        for n in range(N):
+            res.append(z[0,n]-Qin_ext[n])
+        # Downstream links: Muskingum routing
+        K_list = data.get("muskingum", {}).get("K", [])
+        X_list = data.get("muskingum", {}).get("X", [])
+        for i in range(1,M):
+            # Seed condition for z[i,0]
+            _, I0 = integrate_interval(H[i-1,0], u[i-1,0], z[i-1,0], dt, nsub, params[i-1])
+            res.append(z[i,0] - I0)
+            # Coefficients
+            Ki = K_list[i-1] if i-1 < len(K_list) else 1800.0
+            Xi = X_list[i-1] if i-1 < len(X_list) else 0.2
+            C0, C1, C2 = muskingum_coeffs(Ki, Xi, dt)
+            # Recursion over intervals
+            for n in range(N-1):
+                # upstream interval-average outflows for n and n+1
+                _, I_n   = integrate_interval(H[i-1,n],   u[i-1,n],   z[i-1,n],   dt, nsub, params[i-1])
+                _, I_np1 = integrate_interval(H[i-1,n+1], u[i-1,n+1], z[i-1,n+1], dt, nsub, params[i-1])
+                res.append(z[i,n+1] - (C0*I_np1 + C1*I_n + C2*z[i,n]))
+        return np.array(res)
+    cons.append({'type':'eq','fun':coup_fun})
+    return cons
+
+def make_bounds(data):
+    Hmin,Hmax = data["H_bounds"]
+    umin,umax = data["u_bounds"]
+    M,N = data["M"], data["N"]
+    nH,nu,nz = shapes(M,N)
+    lb = np.empty(nH+nu+nz); ub = np.empty_like(lb)
+    lb[:nH]=Hmin; ub[:nH]=Hmax
+    lb[nH:nH+nu]=umin; ub[nH:nH+nu]=umax
+    lb[nH+nu:]=0.0; ub[nH+nu:]=2000.0
+    return list(zip(lb,ub))
+
+def residuals(x, data):
+    params, H0, Qin_ext, dt, N, M, nsub = (
+        data["params"], data["H0"], data["Qin_ext"], data["dt"], data["N"], data["M"], data["nsub"]
+    )
+    H,u,z = unpack(x, M, N)
+    dyn = np.zeros((M,N)); coup = np.zeros((M,N))
+    for i in range(M):
+        for n in range(N):
+            Hend, qavg = integrate_interval(H[i,n], u[i,n], z[i,n], dt, nsub, params[i])
+            dyn[i,n] = H[i,n+1] - Hend
+            if i == 0:
+                coup[i,n] = z[i,n] - Qin_ext[n]
+            else:
+                # Muskingum residual, align on current index using n and n-1
+                Ki = data.get("muskingum", {}).get("K", [1800.0]*(M-1))[i-1]
+                Xi = data.get("muskingum", {}).get("X", [0.2]*(M-1))[i-1]
+                C0, C1, C2 = muskingum_coeffs(Ki, Xi, dt)
+                if n == 0:
+                    coup[i,n] = 0.0
+                else:
+                    _, I_nm1 = integrate_interval(H[i-1,n-1], u[i-1,n-1], z[i-1,n-1], dt, nsub, params[i-1])
+                    _, I_n   = integrate_interval(H[i-1,n],   u[i-1,n],   z[i-1,n],   dt, nsub, params[i-1])
+                    coup[i,n] = z[i,n] - (C0*I_n + C1*I_nm1 + C2*z[i,n-1])
+    return dyn, coup
+
+# ---------- Feasible initial guess with hetero controls ----------
+
+def feasible_initial_guess(data):
+    """Feasible x0 with nontrivial u by setting u at mid + per-reach pattern, then integrating to define H,z."""
+    M,N,dt,nsub = data["M"], data["N"], data["dt"], data["nsub"]
+    params = data["params"]
+    umin,umax = data["u_bounds"]
+    Qin_ext = data["Qin_ext"]
+
+    # pattern to break symmetry
+    base = 0.5*(umin+umax)
+    phase = np.linspace(0, np.pi/2, M)
+    tgrid = np.arange(N)
+    u_pattern = np.array([base + 25*np.sin(2*np.pi*(tgrid/N) + ph) for ph in phase])
+    u_pattern = np.clip(u_pattern, umin, umax)
+
+    H = np.zeros((M, N+1)); u = np.zeros((M, N)); z = np.zeros((M, N))
+    H[:,0] = data["H0"]
+    # Set controls from pattern first
+    for i in range(M):
+        u[i,:] = u_pattern[i,:]
+
+    # First reach: exogenous inflow, integrate forward and record outflow averages
+    qavg_up = np.zeros((M, N))
+    for n in range(N):
+        z[0,n] = Qin_ext[n]
+        Hend, qavg = integrate_interval(H[0,n], u[0,n], z[0,n], dt, nsub, params[0])
+        H[0,n+1] = Hend
+        qavg_up[0,n] = qavg
+
+    # Downstream reaches with Muskingum routing
+    K_list = data.get("muskingum", {}).get("K", [1800.0]*(M-1))
+    X_list = data.get("muskingum", {}).get("X", [0.2]*(M-1))
+    for i in range(1,M):
+        Ki = K_list[i-1] if i-1 < len(K_list) else 1800.0
+        Xi = X_list[i-1] if i-1 < len(X_list) else 0.2
+        C0, C1, C2 = muskingum_coeffs(Ki, Xi, dt)
+        I = qavg_up[i-1,:]
+        # seed
+        z[i,0] = I[0]
+        # propagate recursively over time
+        for n in range(N-1):
+            z[i,n+1] = C0*I[n+1] + C1*I[n] + C2*z[i,n]
+        # integrate levels for reach i using routed inflow
+        for n in range(N):
+            Hend, qavg = integrate_interval(H[i,n], u[i,n], z[i,n], dt, nsub, params[i])
+            H[i,n+1] = Hend
+            qavg_up[i,n] = qavg
+    return pack(H,u,z)
+
+def scale_pref(Pref_raw, x0, data):
+    H,u,z = unpack(x0, data["M"], data["N"])
+    P0 = compute_total_power(H,u,data["params"])
+    s = max(np.mean(P0),1e-6)/max(np.mean(Pref_raw),1e-6)
+    return Pref_raw*s, P0
+
+def run_demo(show: bool = True, save_path: str | None = 'hydro.png', verbose: bool = False):
+    """Build, solve, and render the hydro demo.
+
+    Parameters
+    ----------
+    show : bool
+        If True, displays the matplotlib figure via plt.show().
+    save_path : str | None
+        If provided, saves the figure to this path.
+    verbose : bool
+        If True, prints diagnostic information.
+
+    Returns
+    -------
+    matplotlib.figure.Figure | None
+        Returns the Figure when show is False; otherwise returns None.
+    """
+    # ---------- Solve ----------
+    data = build_demo(M=3, N=16, dt=900.0, hetero=True)
+    x0 = feasible_initial_guess(data)
+    Pref, P0 = scale_pref(data["Pref_raw"], x0, data)
+
+    objective, weights = make_objective(data, Pref, wP=8.0, wH=0.02, wDu=5e-4)
+    # Suppress noisy SciPy warning about delta_grad during quasi-Newton updates
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            message=r"delta_grad == 0.0",
+            category=UserWarning,
+            module=r"scipy\.optimize\.\_differentiable_functions",
+        )
+        res = minimize(
+            fun=objective,
+            x0=x0,
+            method='trust-constr',
+            bounds=make_bounds(data),
+            constraints=make_constraints(data),
+            options=dict(maxiter=1000, disp=verbose),
+        )
+
+    H,u,z = unpack(res.x, data["M"], data["N"])
+    P = compute_total_power(H,u,data["params"])
+    dyn_res, coup_res = residuals(res.x, data)
+
+    # ---------- Diagnostics ----------
+    if verbose:
+        terms = decompose_objective(res.x, data, Pref, **weights)
+        print("\n=== Objective decomposition ===")
+        print({k: float(v) if not isinstance(v, dict) else {kk: float(vv) for kk,vv in v.items()} for k,v in terms.items()})
+
+        print("\n=== Constraint residuals (max |.|) ===")
+        print("dyn:", float(np.max(np.abs(dyn_res)))), print("coup:", float(np.max(np.abs(coup_res))))
+
+        # Muskingum coefficient sanity and residuals
+        if data.get("M", 1) > 1:
+            K_list = data.get("muskingum", {}).get("K", [])
+            X_list = data.get("muskingum", {}).get("X", [])
+            coef_checks = []
+            mean_abs_res = []
+            for i in range(1, data["M"]):
+                Ki = K_list[i-1] if i-1 < len(K_list) else 1800.0
+                Xi = X_list[i-1] if i-1 < len(X_list) else 0.2
+                C0, C1, C2 = muskingum_coeffs(Ki, Xi, data["dt"])
+                coef_checks.append(dict(link=i, sum=float(C0+C1+C2), min_coef=float(min(C0,C1,C2))))
+                # compute mean abs residual for this link
+                res_vals = []
+                for n in range(data["N"]-1):
+                    _, I_n   = integrate_interval(H[i-1,n],   u[i-1,n],   z[i-1,n],   data["dt"], data["nsub"], data["params"][i-1])
+                    _, I_np1 = integrate_interval(H[i-1,n+1], u[i-1,n+1], z[i-1,n+1], data["dt"], data["nsub"], data["params"][i-1])
+                    res_vals.append(float(abs(z[i,n+1] - (C0*I_np1 + C1*I_n + C2*z[i,n]))))
+                mean_abs_res.append(dict(link=i, mean_abs=float(np.mean(res_vals))))
+            print("\n=== Muskingum coeff checks (sum, min_coef) ===")
+            print(coef_checks)
+            print("=== Muskingum mean |residual| per link ===")
+            print(mean_abs_res)
+
+    # Per-interval diagnostic table for each reach (kept for debugging but unused here)
+    def interval_table(i):
+        rp = data["params"][i]
+        rows = []
+        for n in range(data["N"]):
+            qb = q_bypass(H[i,n], rp)
+            net = z[i,n] - (u[i,n] + qb)
+            dH = data["dt"]*net/rp.A_surf
+            rows.append(dict(interval=n, Hn=H[i,n], Hn1=H[i,n+1], u=u[i,n], z=z[i,n], qb=qb, net_flow=net, dH_pred=dH))
+        return pd.DataFrame(rows)
+
+    # summary and tables available to callers if needed
+    tables = [interval_table(i) for i in range(data["M"])]
+    summary = pd.DataFrame([
+        dict(reach=i+1,
+             H_mean=float(np.mean(H[i])), H_std=float(np.std(H[i])),
+             u_mean=float(np.mean(u[i])), u_std=float(np.std(u[i])),
+             z_mean=float(np.mean(z[i])), z_std=float(np.std(z[i])))
+        for i in range(data["M"])
+    ])
+
+    # ---------- Plots ----------
+    M,N = data["M"], data["N"]
+    t_nodes = np.arange(N+1)
+    t = np.arange(N)
+
+    fig, axes = plt.subplots(2, 2, figsize=(15, 10))
+    fig.suptitle('Hydroelectric System Optimization Results', fontsize=16)
+
+    ax1 = axes[0, 0]
+    for i in range(M):
+        ax1.plot(t_nodes, H[i], marker='o', label=f'Reach {i+1}')
+    ax1.set_xlabel("Node n"); ax1.set_ylabel("H [m]"); ax1.set_title("Water Levels")
+    ax1.grid(True); ax1.legend()
+
+    ax2 = axes[0, 1]
+    for i in range(M):
+        ax2.step(t, u[i], where='post', label=f'Reach {i+1}')
+    ax2.set_xlabel("Interval n"); ax2.set_ylabel("u [m³/s]"); ax2.set_title("Turbine Discharge")
+    ax2.grid(True); ax2.legend()
+
+    ax3 = axes[1, 0]
+    for i in range(M):
+        ax3.step(t, z[i], where='post', label=f'Reach {i+1}')
+    ax3.set_xlabel("Interval n"); ax3.set_ylabel("z [m³/s]"); ax3.set_title("Inflow (Coupling)")
+    ax3.grid(True); ax3.legend()
+
+    ax4 = axes[1, 1]
+    ax4.plot(t, P0, marker='s', label="Power @ x0")
+    ax4.plot(t, P, marker='o', label="Power @ optimum")
+    ax4.plot(t, Pref, marker='x', label="Scaled Pref")
+    ax4.set_xlabel("Interval n"); ax4.set_ylabel("Power units"); ax4.set_title("Power Tracking")
+    ax4.legend(); ax4.grid(True)
+
+    plt.tight_layout()
+    if save_path:
+        fig.savefig(save_path, bbox_inches='tight')
+    if show:
+        plt.show()
+        return None
+    return fig
+
+
+# Run the demo directly when loaded in a notebook cell
+run_demo(show=True, save_path=None, verbose=False)
 
 ```
 

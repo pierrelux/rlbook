@@ -61,7 +61,7 @@ Fortunately, learning-based methods offer efficient tools to combat the curse of
 The principle of optimality provides a methodology for solving optimal control problems. Beginning at the final time horizon and working backwards, at each stage the local optimization problem given by Bellman's equation is solved. This process, termed backward recursion or backward induction, constructs the optimal value function stage by stage.
 
 ````{prf:algorithm} Backward Recursion for Dynamic Programming
-:label: backward-recursion
+:label: backward-recursion-deterministic
 
 **Input:** Terminal cost function $c_\mathrm{T}(\cdot)$, stage cost functions $c_t(\cdot, \cdot)$, system dynamics $f_t(\cdot, \cdot)$, time horizon $\mathrm{T}$
 
@@ -212,7 +212,92 @@ It's worth noting that while this example uses a relatively simple model, the sa
 
 ```{code-cell} ipython3
 :tags: [hide-input]
-:load: code/harvest_dp.py
+
+import numpy as np
+
+# Parameters
+r_max = 0.3
+K = 125
+T = 20  # Number of time steps
+N_max = 100  # Maximum population size to consider
+h_max = 0.5  # Maximum harvest rate
+h_step = 0.1  # Step size for harvest rate
+
+# Create state and decision spaces
+N_space = np.arange(1, N_max + 1)
+h_space = np.arange(0, h_max + h_step, h_step)
+
+# Initialize value function and policy
+V = np.zeros((T + 1, len(N_space)))
+policy = np.zeros((T, len(N_space)))
+
+# Terminal value function (F_T)
+def terminal_value(N):
+    return 0
+
+# State return function (F)
+def state_return(N, h):
+    return N * h
+
+# State dynamics function
+def state_dynamics(N, h):
+    return N + r_max * N * (1 - N / K) - N * h
+
+# Backward iteration
+for t in range(T - 1, -1, -1):
+    for i, N in enumerate(N_space):
+        max_value = float('-inf')
+        best_h = 0
+
+        for h in h_space:
+            if h > 1:  # Ensure harvest rate doesn't exceed 100%
+                continue
+
+            next_N = state_dynamics(N, h)
+            if next_N < 1:  # Ensure population doesn't go extinct
+                continue
+
+            next_N_index = np.searchsorted(N_space, next_N)
+            if next_N_index == len(N_space):
+                next_N_index -= 1
+
+            value = state_return(N, h) + V[t + 1, next_N_index]
+
+            if value > max_value:
+                max_value = value
+                best_h = h
+
+        V[t, i] = max_value
+        policy[t, i] = best_h
+
+# Function to simulate the optimal policy with conversion to Python floats
+def simulate_optimal_policy(initial_N, T):
+    trajectory = [float(initial_N)]  # Ensure first value is a Python float
+    harvests = []
+
+    for t in range(T):
+        N = trajectory[-1]
+        N_index = np.searchsorted(N_space, N)
+        if N_index == len(N_space):
+            N_index -= 1
+
+        h = policy[t, N_index]
+        harvests.append(float(N * h))  # Ensure harvest is a Python float
+
+        next_N = state_dynamics(N, h)
+        trajectory.append(float(next_N))  # Ensure next population value is a Python float
+
+    return trajectory, harvests
+
+# Example usage
+initial_N = 50
+trajectory, harvests = simulate_optimal_policy(initial_N, T)
+
+print("Optimal policy:")
+print(policy)
+print("\nPopulation trajectory:", trajectory)
+print("Harvests:", harvests)
+print("Total harvest:", sum(harvests))
 
 ```
 
@@ -255,7 +340,7 @@ where $x_l$ and $x_u$ are the nearest grid points bracketing $x$. Linear interpo
 In higher-dimensional spaces, naive interpolation becomes prohibitively expensive due to the curse of dimensionality. Several approaches such as tensorized multilinear interpolation, radial basis functions, and machine learning models address this challenge by extending a common principle: they approximate the value function at unobserved points using information from a finite set of evaluations. However, as dimensionality continues to grow, even tensor methods face scalability limits, which is why flexible parametric models like neural networks have become essential tools for high-dimensional function approximation.
 
 ```{prf:algorithm} Backward Recursion with Interpolation
-:label: backward-recursion-interpolation
+:label: backward-recursion-interp
 
 **Input:** 
 - Terminal cost $c_\mathrm{T}(\cdot)$  
@@ -297,7 +382,113 @@ Here is a demonstration of the backward recursion procedure using linear interpo
 
 ```{code-cell} ipython3
 :tags: [hide-input]
-:load: code/harvest_dp_linear_interpolation.py
+
+
+import numpy as np
+
+# Parameters
+r_max = 0.3
+K = 125
+T = 20  # Number of time steps
+N_max = 100  # Maximum population size to consider
+h_max = 0.5  # Maximum harvest rate
+h_step = 0.1  # Step size for harvest rate
+
+# Create state and decision spaces
+N_space = np.arange(1, N_max + 1)
+h_space = np.arange(0, h_max + h_step, h_step)
+
+# Initialize value function and policy
+V = np.zeros((T + 1, len(N_space)))
+policy = np.zeros((T, len(N_space)))
+
+# Terminal value function (F_T)
+def terminal_value(N):
+    return 0
+
+# State return function (F)
+def state_return(N, h):
+    return N * h
+
+# State dynamics function
+def state_dynamics(N, h):
+    return N + r_max * N * (1 - N / K) - N * h
+
+# Function to linearly interpolate between grid points in N_space
+def interpolate_value_function(V, N_space, next_N, t):
+    if next_N <= N_space[0]:
+        return V[t, 0]  # Below or at minimum population, return minimum value
+    if next_N >= N_space[-1]:
+        return V[t, -1]  # Above or at maximum population, return maximum value
+    
+    # Find indices to interpolate between
+    lower_idx = np.searchsorted(N_space, next_N) - 1
+    upper_idx = lower_idx + 1
+    
+    # Linear interpolation
+    N_lower = N_space[lower_idx]
+    N_upper = N_space[upper_idx]
+    weight = (next_N - N_lower) / (N_upper - N_lower)
+    return (1 - weight) * V[t, lower_idx] + weight * V[t, upper_idx]
+
+# Backward iteration with interpolation
+for t in range(T - 1, -1, -1):
+    for i, N in enumerate(N_space):
+        max_value = float('-inf')
+        best_h = 0
+        
+        for h in h_space:
+            if h > 1:  # Ensure harvest rate doesn't exceed 100%
+                continue
+            
+            next_N = state_dynamics(N, h)
+            if next_N < 1:  # Ensure population doesn't go extinct
+                continue
+            
+            # Interpolate value for next_N
+            value = state_return(N, h) + interpolate_value_function(V, N_space, next_N, t + 1)
+            
+            if value > max_value:
+                max_value = value
+                best_h = h
+        
+        V[t, i] = max_value
+        policy[t, i] = best_h
+
+# Function to simulate the optimal policy using interpolation
+def simulate_optimal_policy(initial_N, T):
+    trajectory = [initial_N]
+    harvests = []
+
+    for t in range(T):
+        N = trajectory[-1]
+        
+        # Interpolate optimal harvest rate
+        if N <= N_space[0]:
+            h = policy[t, 0]
+        elif N >= N_space[-1]:
+            h = policy[t, -1]
+        else:
+            lower_idx = np.searchsorted(N_space, N) - 1
+            upper_idx = lower_idx + 1
+            weight = (N - N_space[lower_idx]) / (N_space[upper_idx] - N_space[lower_idx])
+            h = (1 - weight) * policy[t, lower_idx] + weight * policy[t, upper_idx]
+        
+        harvests.append(float(N * h))  # Ensure harvest is a Python float
+        next_N = state_dynamics(N, h)
+        trajectory.append(float(next_N))  # Ensure next population value is a Python float
+
+    return trajectory, harvests
+
+# Example usage
+initial_N = 50
+trajectory, harvests = simulate_optimal_policy(initial_N, T)
+
+print("Optimal policy:")
+print(policy)
+print("\nPopulation trajectory:", trajectory)
+print("Harvests:", harvests)
+print("Total harvest:", sum(harvests))
 ```
 
 Due to pedagogical considerations, this example is using our own implementation of the linear interpolation procedure. However, a more general and practical approach would be to use a built-in interpolation procedure in Numpy. Because our state space has a single dimension, we can simply use [scipy.interpolate.interp1d](https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.) which offers various interpolation methods through its `kind` argument, which can take values in 'linear', 'nearest', 'nearest-up', 'zero', 'slinear', 'quadratic', 'cubic', 'previous', or 'next'. 'zero', 'slinear', 'quadratic' and 'cubic'.
@@ -306,7 +497,97 @@ Here's a more general implementation which here uses cubic interpolation through
 
 ```{code-cell} ipython3
 :tags: [hide-input]
-:load: code/harvest_dp_interp1d.py
+
+
+import numpy as np
+from scipy.interpolate import interp1d
+
+# Parameters
+r_max = 0.3
+K = 125
+T = 20  # Number of time steps
+N_max = 100  # Maximum population size to consider
+h_max = 0.5  # Maximum harvest rate
+h_step = 0.1  # Step size for harvest rate
+
+# Create state and decision spaces
+N_space = np.arange(1, N_max + 1)
+h_space = np.arange(0, h_max + h_step, h_step)
+
+# Initialize value function and policy
+V = np.zeros((T + 1, len(N_space)))
+policy = np.zeros((T, len(N_space)))
+
+# Terminal value function (F_T)
+def terminal_value(N):
+    return 0
+
+# State return function (F)
+def state_return(N, h):
+    return N * h
+
+# State dynamics function
+def state_dynamics(N, h):
+    return N + r_max * N * (1 - N / K) - N * h
+
+# Function to create interpolation function for a given time step
+def create_interpolator(V_t, N_space):
+    return interp1d(N_space, V_t, kind='cubic', bounds_error=False, fill_value=(V_t[0], V_t[-1]))
+
+# Backward iteration with interpolation
+for t in range(T - 1, -1, -1):
+    interpolator = create_interpolator(V[t+1], N_space)
+    
+    for i, N in enumerate(N_space):
+        max_value = float('-inf')
+        best_h = 0
+
+        for h in h_space:
+            if h > 1:  # Ensure harvest rate doesn't exceed 100%
+                continue
+
+            next_N = state_dynamics(N, h)
+            if next_N < 1:  # Ensure population doesn't go extinct
+                continue
+
+            # Use interpolation to get the value for next_N
+            value = state_return(N, h) + interpolator(next_N)
+
+            if value > max_value:
+                max_value = value
+                best_h = h
+
+        V[t, i] = max_value
+        policy[t, i] = best_h
+
+# Function to simulate the optimal policy using interpolation
+def simulate_optimal_policy(initial_N, T):
+    trajectory = [initial_N]
+    harvests = []
+
+    for t in range(T):
+        N = trajectory[-1]
+        
+        # Create interpolator for the policy at time t
+        policy_interpolator = interp1d(N_space, policy[t], kind='cubic', bounds_error=False, fill_value=(policy[t][0], policy[t][-1]))
+        
+        h = policy_interpolator(N)
+        harvests.append(float(N * h))  # Ensure harvest is a Python float
+
+        next_N = state_dynamics(N, h)
+        trajectory.append(float(next_N))  # Ensure next population value is a Python float
+
+    return trajectory, harvests
+
+# Example usage
+initial_N = 50
+trajectory, harvests = simulate_optimal_policy(initial_N, T)
+
+print("Optimal policy (first few rows):")
+print(policy[:5])
+print("\nPopulation trajectory:", trajectory)
+print("Harvests:", harvests)
+print("Total harvest:", sum(harvests))
 ```
 
 <!-- ## Linear Quadratic Regulator via Dynamic Programming
@@ -640,7 +921,7 @@ Sketch following {cite:t}`Puterman1994` Lemma 4.3.1 and Theorem 4.4.2. First, Le
 These results justify focusing on deterministic Markov policies and lead to the backward recursion algorithm for stochastic systems: 
 
 ````{prf:algorithm} Backward Recursion for Stochastic Dynamic Programming
-:label: stochastic-backward-recursion
+:label: backward-recursion-stochastic
 
 **Input:** Terminal cost function $c_\mathrm{T}(\cdot)$, stage cost functions $c_t(\cdot, \cdot, \cdot)$, system dynamics $\mathbf{f}_t(\cdot, \cdot, \cdot)$, time horizon $\mathrm{T}$, disturbance distributions
 
@@ -713,7 +994,143 @@ where the expectation is taken over the harvest and growth rate random variables
 
 ```{code-cell} ipython3
 :tags: [hide-input]
-:load: code/harvest_sdp.py
+
+
+import numpy as np
+from scipy.interpolate import interp1d
+
+# Parameters
+r_max = 0.3
+K = 125
+T = 30  # Number of time steps
+N_max = 100  # Maximum population size to consider
+h_max = 0.5  # Maximum harvest rate
+h_step = 0.1  # Step size for harvest rate
+
+# Create state and decision spaces
+N_space = np.linspace(1, N_max, 100)  # Using more granular state space
+h_space = np.arange(0, h_max + h_step, h_step)
+
+# Stochastic parameters
+h_outcomes = np.array([0.75, 1.0, 1.25])
+h_probs = np.array([0.25, 0.5, 0.25])
+r_outcomes = np.array([0.85, 1.05, 1.15]) * r_max
+r_probs = np.array([0.25, 0.5, 0.25])
+
+# Initialize value function and policy
+V = np.zeros((T + 1, len(N_space)))
+policy = np.zeros((T, len(N_space)))
+
+# State return function (F)
+def state_return(N, h):
+    return N * h
+
+# State dynamics function (stochastic)
+def state_dynamics(N, h, r):
+    return N + r * N * (1 - N / K) - h * N
+
+# Function to create interpolation function for a given time step
+def create_interpolator(V_t, N_space):
+    return interp1d(N_space, V_t, kind='linear', bounds_error=False, fill_value=(V_t[0], V_t[-1]))
+
+# Backward iteration with stochastic dynamics
+for t in range(T - 1, -1, -1):
+    interpolator = create_interpolator(V[t+1], N_space)
+    
+    for i, N in enumerate(N_space):
+        max_value = float('-inf')
+        best_h = 0
+
+        for h in h_space:
+            if h > 1:  # Ensure harvest rate doesn't exceed 100%
+                continue
+
+            expected_value = 0
+            for h_factor, h_prob in zip(h_outcomes, h_probs):
+                for r_factor, r_prob in zip(r_outcomes, r_probs):
+                    realized_h = h * h_factor
+                    realized_r = r_factor
+
+                    next_N = state_dynamics(N, realized_h, realized_r)
+                    if next_N < 1:  # Ensure population doesn't go extinct
+                        continue
+
+                    # Use interpolation to get the value for next_N
+                    value = state_return(N, realized_h) + interpolator(next_N)
+                    expected_value += value * h_prob * r_prob
+
+            if expected_value > max_value:
+                max_value = expected_value
+                best_h = h
+
+        V[t, i] = max_value
+        policy[t, i] = best_h
+
+# Function to simulate the optimal policy using interpolation (stochastic version)
+def simulate_optimal_policy(initial_N, T, num_simulations=100):
+    all_trajectories = []
+    all_harvests = []
+
+    for _ in range(num_simulations):
+        trajectory = [initial_N]
+        harvests = []
+
+        for t in range(T):
+            N = trajectory[-1]
+            
+            # Create interpolator for the policy at time t
+            policy_interpolator = interp1d(N_space, policy[t], kind='linear', bounds_error=False, fill_value=(policy[t][0], policy[t][-1]))
+            
+            intended_h = policy_interpolator(N)
+            
+            # Apply stochasticity
+            h_factor = np.random.choice(h_outcomes, p=h_probs)
+            r_factor = np.random.choice(r_outcomes, p=r_probs)
+            
+            realized_h = intended_h * h_factor
+            harvests.append(N * realized_h)
+
+            next_N = state_dynamics(N, realized_h, r_factor)
+            trajectory.append(next_N)
+
+        all_trajectories.append(trajectory)
+        all_harvests.append(harvests)
+
+    return all_trajectories, all_harvests
+
+# Example usage
+initial_N = 50
+trajectories, harvests = simulate_optimal_policy(initial_N, T)
+
+# Calculate average trajectory and total harvest
+avg_trajectory = np.mean(trajectories, axis=0)
+avg_total_harvest = np.mean([sum(h) for h in harvests])
+
+print("Optimal policy (first few rows):")
+print(policy[:5])
+print("\nAverage population trajectory:", avg_trajectory)
+print("Average total harvest:", avg_total_harvest)
+
+# Plot results
+import matplotlib.pyplot as plt
+
+plt.figure(figsize=(12, 6))
+plt.subplot(121)
+for traj in trajectories[:20]:  # Plot first 20 trajectories
+    plt.plot(range(T+1), traj, alpha=0.3)
+plt.plot(range(T+1), avg_trajectory, 'r-', linewidth=2)
+plt.title('Population Trajectories')
+plt.xlabel('Time')
+plt.ylabel('Population')
+
+plt.subplot(122)
+plt.hist([sum(h) for h in harvests], bins=20)
+plt.title('Distribution of Total Harvest')
+plt.xlabel('Total Harvest')
+plt.ylabel('Frequency')
+
+plt.tight_layout()
+plt.show()
 ```
 
 ## Linear Quadratic Regulator via Dynamic Programming
@@ -813,7 +1230,7 @@ Putting everything together, the backward induction procedure under the LQR sett
 
 
 ````{prf:algorithm} Backward Recursion for LQR
-:label: lqr-backward-recursion
+:label: backward-recursion-lqr
 
 **Input:** System matrices $A_t, B_t$, cost matrices $Q_t, R_t, Q_T$, time horizon $T$
 
@@ -1068,7 +1485,71 @@ This process can take 10-15 years and cost over $1 billion {cite}`Adams2009`. Th
 
 ```{code-cell} ipython3
 :tags: [hide-input]
-:load: code/sample_size_drug_dev_dp.py
+
+import numpy as np
+from scipy.stats import binom
+from scipy.stats import norm
+
+def binomial_pmf(k, n, p):
+    return binom.pmf(k, n, p)
+
+def transition_prob_phase1(n1, eta1, p0):
+    return np.sum([binomial_pmf(i, n1, p0) for i in range(int(eta1 * n1) + 1)])
+
+def transition_prob_phase2(n2, eta2, delta):
+    return norm.cdf((np.sqrt(n2) / 2) * delta - norm.ppf(1 - eta2))
+
+def transition_prob_phase3(n3, eta3, delta):
+    return norm.cdf((np.sqrt(n3) / 2) * delta - norm.ppf(1 - eta3))
+
+def immediate_reward(n):
+    return -n  # Negative to represent cost
+
+def backward_induction(S, A, gamma, g4, p0, delta, eta1, eta2, eta3):
+    V = np.zeros(len(S))
+    V[3] = g4  # Value for NDA approval state
+    optimal_n = [None] * 3  # Store optimal n for each phase
+
+    # Backward induction
+    for i in range(2, -1, -1):  # Iterate backwards from Phase III to Phase I
+        max_value = -np.inf
+        for n in A:
+            if i == 0:  # Phase I
+                p = transition_prob_phase1(n, eta1, p0)
+            elif i == 1:  # Phase II
+                p = transition_prob_phase2(n, eta2, delta)
+            else:  # Phase III
+                p = transition_prob_phase3(n, eta3, delta)
+            value = immediate_reward(n) + gamma * p * V[i+1]
+            if value > max_value:
+                max_value = value
+                optimal_n[i] = n
+        V[i] = max_value
+
+    return V, optimal_n
+
+# Set up the problem parameters
+S = ['Phase I', 'Phase II', 'Phase III', 'NDA approval']
+A = range(10, 1001)
+gamma = 0.95
+g4 = 10000
+p0 = 0.1  # Example toxicity rate for Phase I
+delta = 0.5  # Example normalized treatment difference
+eta1, eta2, eta3 = 0.2, 0.1, 0.025
+
+# Run the backward induction algorithm
+V, optimal_n = backward_induction(S, A, gamma, g4, p0, delta, eta1, eta2, eta3)
+
+# Print results
+for i, state in enumerate(S):
+    print(f"Value for {state}: {V[i]:.2f}")
+print(f"Optimal sample sizes: Phase I: {optimal_n[0]}, Phase II: {optimal_n[1]}, Phase III: {optimal_n[2]}")
+
+# Sanity checks
+print("\nSanity checks:")
+print(f"1. NDA approval value: {V[3]}")
+print(f"2. All values non-positive and <= NDA value: {all(v <= V[3] for v in V)}")
+print(f"3. Optimal sample sizes in range: {all(10 <= n <= 1000 for n in optimal_n if n is not None)}")
 
 ```
 
@@ -1962,7 +2443,7 @@ While we derived policy iteration-like steps from the Newton-Kantorovich method,
 The policy iteration algorithm for discounted Markov decision problems is as follows:
 
 ````{prf:algorithm} Policy Iteration
-:label: policy-iteration
+:label: policy-iteration-standard
 
 **Input:** MDP $(S, A, P, R, \gamma)$
 **Output:** Optimal policy $\pi^*$

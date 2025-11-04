@@ -7,10 +7,14 @@ authors = [
 ]
 dependencies = [
     "ecos>=2.0.14",
-    "jupyter-book",
+    "jupyter-book>=2.0.0",
     "matplotlib",
     "numpy",
     "scipy",
+    "sphinx-proof",
+    "sphinxcontrib-mermaid",
+    "sphinxcontrib-tikz",
+    "sphinxcontrib-bibtex",
 ]
 
 [build-system]

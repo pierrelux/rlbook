@@ -14,5 +14,4 @@ kernelspec:
 # Bibliography 
 
 ```{bibliography}
-:style: plain
 ```

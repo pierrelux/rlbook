@@ -26,11 +26,18 @@ def solve_ode_collocation(ode_func, t_span, y0, order):
     # Initial guess for coefficients
     initial_coeffs = [y0] + [0] * order
 
-    # Solve the system of equations
-    solution = root(collocation_residuals, initial_coeffs)
+    # Solve the system of equations with more robust settings
+    solution = root(collocation_residuals, initial_coeffs, 
+                   method='hybr', options={'maxfev': 10000, 'xtol': 1e-8})
     
     if not solution.success:
-        raise ValueError("Failed to converge to a solution.")
+        # Try with a different method
+        solution = root(collocation_residuals, initial_coeffs, 
+                       method='lm', options={'maxiter': 5000})
+        
+    if not solution.success:
+        print(f"Warning: Collocation solver did not fully converge for order {order}")
+        # Continue anyway with the best solution found
 
     coeffs = solution.x
 

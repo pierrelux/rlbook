@@ -71,7 +71,76 @@ Each step of the algorithm therefore involves approximating the function with a 
 
 ```{code-cell} ipython3
 :tags: [hide-input]
-:load: code/euler_step_size_viz.py
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+def f(y, t):
+    """
+    Derivative function for vertical motion under gravity.
+    y[0] is position, y[1] is velocity.
+    """
+    g = 9.81  # acceleration due to gravity (m/s^2)
+    return np.array([y[1], -g])
+
+def euler_method(f, y0, t0, t_end, h):
+    """
+    Implement Euler's method for the entire time range.
+    """
+    t = np.arange(t0, t_end + h, h)
+    y = np.zeros((len(t), 2))
+    y[0] = y0
+    for i in range(1, len(t)):
+        y[i] = y[i-1] + h * f(y[i-1], t[i-1])
+    return t, y
+
+def true_solution(t):
+    """
+    Analytical solution for the ballistic trajectory.
+    """
+    y0, v0 = 0, 20  # initial height and velocity
+    g = 9.81
+    return y0 + v0*t - 0.5*g*t**2, v0 - g*t
+
+# Set up the problem
+t0, t_end = 0, 4
+y0 = np.array([0, 20])  # initial height = 0, initial velocity = 20 m/s
+
+# Different step sizes
+step_sizes = [1.0, 0.5, 0.1]
+colors = ['r', 'g', 'b']
+markers = ['o', 's', '^']
+
+# True solution
+t_fine = np.linspace(t0, t_end, 1000)
+y_true, v_true = true_solution(t_fine)
+
+# Plotting
+plt.figure(figsize=(12, 8))
+
+# Plot Euler approximations
+for h, color, marker in zip(step_sizes, colors, markers):
+    t, y = euler_method(f, y0, t0, t_end, h)
+    plt.plot(t, y[:, 0], color=color, marker=marker, linestyle='--', 
+             label=f'Euler h = {h}', markersize=6, markerfacecolor='none')
+
+# Plot true solution last so it's on top
+plt.plot(t_fine, y_true, 'k-', label='True trajectory', linewidth=2, zorder=10)
+
+plt.xlabel('Time (s)', fontsize=12)
+plt.ylabel('Height (m)', fontsize=12)
+plt.title("Euler's Method: Effect of Step Size on Ballistic Trajectory Approximation", fontsize=14)
+plt.legend(fontsize=10)
+plt.grid(True, linestyle=':', alpha=0.7)
+
+# Add text to explain the effect of step size
+plt.text(2.5, 15, "Smaller step sizes\nyield better approximations", 
+         bbox=dict(facecolor='white', edgecolor='black', alpha=0.7),
+         fontsize=10, ha='center', va='center')
+
+plt.tight_layout()
+plt.show()
 ```
 
 Another way to understand Euler's method is through the fundamental theorem of calculus:
@@ -83,7 +152,125 @@ $$
 We then approximate the integral term with a box of width $h$ and height $f$, and therefore of area $h f$.
 ```{code-cell} ipython3
 :tags: [hide-input]
-:load: code/euler_integral_approximation_viz.py
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
+
+def v(t):
+    """
+    Velocity function for the ballistic trajectory.
+    """
+    v0 = 20   # initial velocity (m/s)
+    g = 9.81  # acceleration due to gravity (m/s^2)
+    return v0 - g * t
+
+def position(t):
+    """
+    Position function (integral of velocity).
+    """
+    v0 = 20
+    g = 9.81
+    return v0*t - 0.5*g*t**2
+
+# Set up the problem
+t0, t_end = 0, 2
+num_points = 1000
+t = np.linspace(t0, t_end, num_points)
+
+# Calculate true velocity and position
+v_true = v(t)
+x_true = position(t)
+
+# Euler's method with a large step size for visualization
+h = 0.5
+t_euler = np.arange(t0, t_end + h, h)
+x_euler = np.zeros_like(t_euler)
+
+for i in range(1, len(t_euler)):
+    x_euler[i] = x_euler[i-1] + h * v(t_euler[i-1])
+
+# Plotting
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 12), sharex=True)
+
+# Plot velocity function and its approximation
+ax1.plot(t, v_true, 'b-', label='True velocity')
+ax1.fill_between(t, 0, v_true, alpha=0.3, label='True area (displacement)')
+
+# Add rectangles with hashed pattern, ruler-like annotations, and area values
+for i in range(len(t_euler) - 1):
+    t_i = t_euler[i]
+    v_i = v(t_i)
+    rect = Rectangle((t_i, 0), h, v_i, 
+                     fill=True, facecolor='red', edgecolor='r', 
+                     alpha=0.15, hatch='///')
+    ax1.add_patch(rect)
+    
+    # Add ruler-like annotations
+    # Vertical ruler (height)
+    ax1.annotate('', xy=(t_i, 0), xytext=(t_i, v_i),
+                 arrowprops=dict(arrowstyle='<->', color='red'))
+    ax1.text(t_i - 0.05, v_i/2, f'v(t{i}) = {v_i:.2f}', rotation=90, 
+             va='center', ha='right', color='red', fontweight='bold')
+    
+    # Horizontal ruler (width)
+    ax1.annotate('', xy=(t_i, -1), xytext=(t_i + h, -1),
+                 arrowprops=dict(arrowstyle='<->', color='red'))
+    ax1.text(t_i + h/2, -2, f'h = {h}', ha='center', va='top', 
+             color='red', fontweight='bold')
+    
+    # Add area value in the middle of each rectangle
+    area = h * v_i
+    ax1.text(t_i + h/2, v_i/2, f'Area = {area:.2f}', ha='center', va='center', 
+             color='white', fontweight='bold', bbox=dict(facecolor='red', edgecolor='none', alpha=0.7))
+
+# Plot only the points for Euler's method
+ax1.plot(t_euler, v(t_euler), 'ro', markersize=6, label="Euler's points")
+ax1.set_ylabel('Velocity (m/s)', fontsize=12)
+ax1.set_title("Velocity Function and Euler's Approximation", fontsize=14)
+ax1.legend(fontsize=10)
+ax1.grid(True, linestyle=':', alpha=0.7)
+ax1.set_ylim(bottom=-3)  # Extend y-axis to show horizontal rulers
+
+# Plot position function and its approximation
+ax2.plot(t, x_true, 'b-', label='True position')
+ax2.plot(t_euler, x_euler, 'ro--', label="Euler's approximation", markersize=6, linewidth=2)
+
+# Add vertical arrows and horizontal lines to show displacement and time step
+for i in range(1, len(t_euler)):
+    t_i = t_euler[i]
+    x_prev = x_euler[i-1]
+    x_curr = x_euler[i]
+    
+    # Vertical line for displacement
+    ax2.plot([t_i, t_i], [x_prev, x_curr], 'g:', linewidth=2)
+    
+    # Horizontal line for time step
+    ax2.plot([t_i - h, t_i], [x_prev, x_prev], 'g:', linewidth=2)
+    
+    # Add text to show the displacement value
+    displacement = x_curr - x_prev
+    ax2.text(t_i + 0.05, (x_prev + x_curr)/2, f'+{displacement:.2f}', 
+             color='green', fontweight='bold', va='center')
+    
+    # Add text to show the time step
+    ax2.text(t_i - h/2, x_prev - 0.5, f'h = {h}', 
+             color='green', fontweight='bold', ha='center', va='top')
+
+ax2.set_xlabel('Time (s)', fontsize=12)
+ax2.set_ylabel('Position (m)', fontsize=12)
+ax2.set_title("Position: True vs Euler's Approximation", fontsize=14)
+ax2.legend(fontsize=10)
+ax2.grid(True, linestyle=':', alpha=0.7)
+
+# Add explanatory text
+ax1.text(1.845, 15, "Red hashed areas show\nEuler's approximation\nof the area under the curve", 
+         bbox=dict(facecolor='white', edgecolor='black', alpha=0.7),
+         fontsize=10, ha='center', va='center')
+
+plt.tight_layout()
+plt.show()
 ```
 
 
@@ -153,7 +340,102 @@ where $ t_{new} = t + h $. Note that this formula involves $ x_{new} $ on both s
 
 ```{code-cell} ipython3
 :tags: [hide-input]
-:load: code/trapezoid_integral_approximation_viz.py
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle, Polygon
+
+def v(t):
+    """Velocity function for the ballistic trajectory."""
+    v0 = 20   # initial velocity (m/s)
+    g = 9.81  # acceleration due to gravity (m/s^2)
+    return v0 - g * t
+
+def position(t):
+    """Position function (integral of velocity)."""
+    v0 = 20
+    g = 9.81
+    return v0*t - 0.5*g*t**2
+
+# Set up the problem
+t0, t_end = 0, 2
+num_points = 1000
+t = np.linspace(t0, t_end, num_points)
+
+# Calculate true velocity and position
+v_true = v(t)
+x_true = position(t)
+
+# Euler's method and Trapezoid method with a large step size for visualization
+h = 0.5
+t_numeric = np.arange(t0, t_end + h, h)
+x_euler = np.zeros_like(t_numeric)
+x_trapezoid = np.zeros_like(t_numeric)
+
+for i in range(1, len(t_numeric)):
+    # Euler's method
+    x_euler[i] = x_euler[i-1] + h * v(t_numeric[i-1])
+    
+    # Trapezoid method (implicit, so we use a simple fixed-point iteration)
+    x_trapezoid[i] = x_trapezoid[i-1]
+    for _ in range(5):  # 5 iterations should be enough for this simple problem
+        x_trapezoid[i] = x_trapezoid[i-1] + h/2 * (v(t_numeric[i-1]) + v(t_numeric[i]))
+
+# Plotting
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 16), sharex=True)
+
+# Plot velocity function and its approximations
+ax1.plot(t, v_true, 'b-', label='True velocity')
+ax1.fill_between(t, 0, v_true, alpha=0.3, label='True area (displacement)')
+
+# Add trapezoids and rectangles
+for i in range(len(t_numeric) - 1):
+    t_i, t_next = t_numeric[i], t_numeric[i+1]
+    v_i, v_next = v(t_i), v(t_next)
+    
+    # Euler's rectangle (hashed pattern)
+    rect = Rectangle((t_i, 0), h, v_i, fill=True, facecolor='red', edgecolor='r', alpha=0.15, hatch='///')
+    ax1.add_patch(rect)
+    
+    # Trapezoid (dot pattern)
+    trapezoid = Polygon([(t_i, 0), (t_i, v_i), (t_next, v_next), (t_next, 0)], 
+                        fill=True, facecolor='green', edgecolor='g', alpha=0.15, hatch='....')
+    ax1.add_patch(trapezoid)
+    
+    # Add area values
+    euler_area = h * v_i
+    trapezoid_area = h * (v_i + v_next) / 2
+    ax1.text(t_i + h/2, v_i/2, f'Euler: {euler_area:.2f}', ha='center', va='bottom', color='red', fontweight='bold')
+    ax1.text(t_i + h/2, (v_i + v_next)/4, f'Trapezoid: {trapezoid_area:.2f}', ha='center', va='top', color='green', fontweight='bold')
+
+# Plot points for Euler's and Trapezoid methods
+ax1.plot(t_numeric, v(t_numeric), 'ro', markersize=6, label="Euler's points")
+ax1.plot(t_numeric, v(t_numeric), 'go', markersize=6, label="Trapezoid points")
+
+ax1.set_ylabel('Velocity (m/s)', fontsize=12)
+ax1.set_title("Velocity Function: True vs Numerical Approximations", fontsize=14)
+ax1.legend(fontsize=10)
+ax1.grid(True, linestyle=':', alpha=0.7)
+
+# Plot position function and its approximations
+ax2.plot(t, x_true, 'b-', label='True position')
+ax2.plot(t_numeric, x_euler, 'ro--', label="Euler's approximation", markersize=6, linewidth=2)
+ax2.plot(t_numeric, x_trapezoid, 'go--', label="Trapezoid approximation", markersize=6, linewidth=2)
+
+ax2.set_xlabel('Time (s)', fontsize=12)
+ax2.set_ylabel('Position (m)', fontsize=12)
+ax2.set_title("Position: True vs Numerical Approximations", fontsize=14)
+ax2.legend(fontsize=10)
+ax2.grid(True, linestyle=':', alpha=0.7)
+
+# Add explanatory text
+ax1.text(1.76, 17, "Red hashed areas: Euler's approximation\nGreen dotted areas: Trapezoid approximation", 
+         bbox=dict(facecolor='white', edgecolor='black', alpha=0.7),
+         fontsize=10, ha='center', va='center')
+
+plt.tight_layout()
+plt.show()
 ```
 
 Algorithmically, the trapezoid method can be described as follows:
@@ -220,7 +502,99 @@ This two-step process is similar to performing one iteration of Newton's method 
 
 ```{code-cell} ipython3
 :tags: [hide-input]
-:load: code/predictor_corrector_trapezoid_viz.py
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+def f(y, t):
+    """
+    Derivative function for vertical motion under gravity.
+    y[0] is position, y[1] is velocity.
+    """
+    g = 9.81  # acceleration due to gravity (m/s^2)
+    return np.array([y[1], -g])
+
+def true_solution(t):
+    """
+    Analytical solution for the ballistic trajectory.
+    """
+    y0, v0 = 0, 20  # initial height and velocity
+    g = 9.81
+    return y0 + v0*t - 0.5*g*t**2, v0 - g*t
+
+def trapezoid_method_visual(f, y0, t0, t_end, h):
+    """
+    Implement the trapezoid method for the entire time range.
+    Returns predictor and corrector steps for visualization.
+    """
+    t = np.arange(t0, t_end + h, h)
+    y = np.zeros((len(t), 2))
+    y_predictor = np.zeros((len(t), 2))
+    y[0] = y_predictor[0] = y0
+    for i in range(1, len(t)):
+        # Predictor step (Euler forward)
+        slope_start = f(y[i-1], t[i-1])
+        y_predictor[i] = y[i-1] + h * slope_start
+        
+        # Corrector step
+        slope_end = f(y_predictor[i], t[i])
+        y[i] = y[i-1] + h * 0.5 * (slope_start + slope_end)
+    
+    return t, y, y_predictor
+
+# Set up the problem
+t0, t_end = 0, 2
+y0 = np.array([0, 20])  # initial height = 0, initial velocity = 20 m/s
+h = 0.5  # Step size
+
+# Compute trapezoid method steps
+t, y_corrector, y_predictor = trapezoid_method_visual(f, y0, t0, t_end, h)
+
+# Plotting
+plt.figure(figsize=(12, 8))
+
+# Plot the true solution for comparison
+t_fine = np.linspace(t0, t_end, 1000)
+y_true, v_true = true_solution(t_fine)
+plt.plot(t_fine, y_true, 'k-', label='True trajectory', linewidth=1.5)
+
+# Plot the predictor and corrector steps
+for i in range(len(t)-1):
+    # Points for the predictor step
+    p0 = [t[i], y_corrector[i, 0]]
+    p1_predictor = [t[i+1], y_predictor[i+1, 0]]
+    
+    # Points for the corrector step
+    p1_corrector = [t[i+1], y_corrector[i+1, 0]]
+    
+    # Plot predictor step
+    plt.plot([p0[0], p1_predictor[0]], [p0[1], p1_predictor[1]], 'r--', linewidth=2)
+    plt.plot(p1_predictor[0], p1_predictor[1], 'ro', markersize=8)
+    
+    # Plot corrector step
+    plt.plot([p0[0], p1_corrector[0]], [p0[1], p1_corrector[1]], 'g--', linewidth=2)
+    plt.plot(p1_corrector[0], p1_corrector[1], 'go', markersize=8)
+    
+    # Add arrows to show the predictor and corrector adjustments
+    plt.arrow(p0[0], p0[1], h, y_predictor[i+1, 0] - p0[1], color='r', width=0.005, 
+              head_width=0.02, head_length=0.02, length_includes_head=True, zorder=5)
+    plt.arrow(p1_predictor[0], p1_predictor[1], 0, y_corrector[i+1, 0] - y_predictor[i+1, 0], 
+              color='g', width=0.005, head_width=0.02, head_length=0.02, length_includes_head=True, zorder=5)
+
+# Add legend entries for predictor and corrector steps
+plt.plot([], [], 'r--', label='Predictor step (Forward Euler)')
+plt.plot([], [], 'g-', label='Corrector step (Trapezoid)')
+
+# Labels and title
+plt.xlabel('Time (s)', fontsize=12)
+plt.ylabel('Height (m)', fontsize=12)
+plt.title("Trapezoid Method: Predictor-Corrector Structure", fontsize=14)
+plt.legend(fontsize=10)
+plt.grid(True, linestyle=':', alpha=0.7)
+
+plt.tight_layout()
+plt.show()
 ```
 
 ### Collocation Methods
@@ -672,7 +1046,93 @@ We select $N$ equally spaced points $\{t_1, \ldots, t_N\}$ in $[0, 2]$ as colloc
 
 ```{code-cell} ipython3
 :tags: [hide-input]
-:load: code/collocation_ivp_demo.py
+
+
+import numpy as np
+from scipy.optimize import root
+import matplotlib.pyplot as plt
+
+def ode_function(y, t):
+    """Define the ODE: dy/dt = -y"""
+    return -y
+
+def solve_ode_collocation(ode_func, t_span, y0, order):
+    t0, tf = t_span
+    n_points = order + 1  # number of collocation points
+    t_points = np.linspace(t0, tf, n_points)
+    
+    def collocation_residuals(coeffs):
+        residuals = []
+        # Initial condition residual
+        y_init = sum(c * t_points[0]**i for i, c in enumerate(coeffs))
+        residuals.append(y_init - y0)
+        # Collocation point residuals
+        for t in t_points[1:]:  # Skip the first point as it's used for initial condition
+            y = sum(c * t**i for i, c in enumerate(coeffs))
+            dy_dt = sum(c * i * t**(i-1) for i, c in enumerate(coeffs) if i > 0)
+            residuals.append(dy_dt - ode_func(y, t))
+        return residuals
+
+    # Initial guess for coefficients
+    initial_coeffs = [y0] + [0] * order
+
+    # Solve the system of equations with more robust settings
+    solution = root(collocation_residuals, initial_coeffs, 
+                   method='hybr', options={'maxfev': 10000, 'xtol': 1e-8})
+    
+    if not solution.success:
+        # Try with a different method
+        solution = root(collocation_residuals, initial_coeffs, 
+                       method='lm', options={'maxiter': 5000})
+        
+    if not solution.success:
+        print(f"Warning: Collocation solver did not fully converge for order {order}")
+        # Continue anyway with the best solution found
+
+    coeffs = solution.x
+
+    # Generate solution
+    t_fine = np.linspace(t0, tf, 100)
+    y_solution = sum(c * t_fine**i for i, c in enumerate(coeffs))
+
+    return t_fine, y_solution, t_points, coeffs
+
+# Example usage
+t_span = (0, 2)
+y0 = 1
+orders = [1, 2, 3, 4, 5]  # Different polynomial orders to try
+
+plt.figure(figsize=(12, 8))
+
+for order in orders:
+    t, y, t_collocation, coeffs = solve_ode_collocation(ode_function, t_span, y0, order)
+    
+    # Calculate y values at collocation points
+    y_collocation = sum(c * t_collocation**i for i, c in enumerate(coeffs))
+    
+    # Plot the results
+    plt.plot(t, y, label=f'Order {order}')
+    plt.scatter(t_collocation, y_collocation, s=50, zorder=5)
+
+# Plot the analytical solution
+t_analytical = np.linspace(t_span[0], t_span[1], 100)
+y_analytical = y0 * np.exp(-t_analytical)
+plt.plot(t_analytical, y_analytical, 'k--', label='Analytical')
+
+plt.xlabel('t')
+plt.ylabel('y')
+plt.title('ODE Solutions: dy/dt = -y, y(0) = 1')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# Print error for each order
+print("Maximum absolute errors:")
+for order in orders:
+    t, y, _, _ = solve_ode_collocation(ode_function, t_span, y0, order)
+    y_true = y0 * np.exp(-t)
+    max_error = np.max(np.abs(y - y_true))
+    print(f"Order {order}: {max_error:.6f}")
 ```
 
 

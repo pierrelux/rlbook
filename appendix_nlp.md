@@ -42,7 +42,99 @@ In this example, the objective function $f(x_1, x_2)$ is quadratic, the inequali
 
 ```{code-cell} ipython3
 :tags: [hide-input]
-:load: code/nlp_geometry.py
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.optimize import minimize
+
+# Define the objective function
+def objective(x):
+    return (x[0] - 1)**2 + (x[1] - 2.5)**2
+
+# Define the inequality constraint function
+def constraint(x):
+    return -(x[0] - 1)**2 - (x[1] - 1)**2 + 1.5
+
+# Define the gradient of the objective function
+def objective_gradient(x):
+    return np.array([2*(x[0] - 1), 2*(x[1] - 2.5)])
+
+# Define the gradient of the inequality constraint function
+def constraint_gradient(x):
+    return np.array([-2*(x[0] - 1), -2*(x[1] - 1)])
+
+# Define the sine wave equality constraint function
+def sine_wave_equality_constraint(x):
+    return x[1] - (0.5 * np.sin(2 * np.pi * x[0]) + 1.5)
+
+# Define the gradient of the sine wave equality constraint function
+def sine_wave_equality_constraint_gradient(x):
+    return np.array([-np.pi * np.cos(2 * np.pi * x[0]), 1])
+
+# Define the constraints including the sine wave equality constraint
+sine_wave_constraints = [{'type': 'ineq', 'fun': constraint, 'jac': constraint_gradient},  # Inequality constraint
+                         {'type': 'eq', 'fun': sine_wave_equality_constraint, 'jac': sine_wave_equality_constraint_gradient}]  # Sine wave equality constraint
+
+# Define only the inequality constraint
+inequality_constraints = [{'type': 'ineq', 'fun': constraint, 'jac': constraint_gradient}]
+
+# Initial guess
+x0 = [1.25, 1.5]
+
+# Solve the optimization problem with the sine wave equality constraint
+res_sine_wave_constraint = minimize(objective, x0, method='SLSQP', jac=objective_gradient, 
+                                    constraints=sine_wave_constraints, options={'disp': False})
+
+x_opt_sine_wave_constraint = res_sine_wave_constraint.x
+
+# Solve the optimization problem with only the inequality constraint
+res_inequality_only = minimize(objective, x0, method='SLSQP', jac=objective_gradient, 
+                               constraints=inequality_constraints, options={'disp': False})
+
+x_opt_inequality_only = res_inequality_only.x
+
+# Solve the unconstrained optimization problem for reference
+res_unconstrained = minimize(objective, x0, method='SLSQP', jac=objective_gradient, options={'disp': False})
+x_opt_unconstrained = res_unconstrained.x
+
+# Generate data for visualization
+x = np.linspace(-1, 4, 400)
+y = np.linspace(-1, 4, 400)
+X, Y = np.meshgrid(x, y)
+Z = (X - 1)**2 + (Y - 2.5)**2  # Objective function values
+constraint_values = (X - 1)**2 + (Y - 1)**2
+
+# Data for sine wave constraint
+x_sine = np.linspace(-1, 4, 400)
+y_sine = 0.5 * np.sin(2 * np.pi * x_sine) + 1.5
+
+# Visualization with Improved Color Scheme
+plt.figure(figsize=(8, 6))
+plt.contourf(X, Y, Z, levels=100, cmap='viridis', alpha=0.6)  # Heatmap for the objective function
+
+# Plot all the optimal points
+plt.plot(x_opt_inequality_only[0], x_opt_inequality_only[1], 'ro', label='Optimal Solution (Inequality Only)', markersize=8, markeredgecolor='black')
+plt.plot(x_opt_sine_wave_constraint[0], x_opt_sine_wave_constraint[1], 'mo', label='Optimal Solution (Sine Wave Equality & Inequality)', markersize=8, markeredgecolor='black')
+plt.plot(x_opt_unconstrained[0], x_opt_unconstrained[1], 'co', label='Unconstrained Minimum', markersize=8, markeredgecolor='black')
+
+# Adjust constraint boundary colors
+plt.contour(X, Y, constraint_values, levels=[1.5], colors='navy', linewidths=2, linestyles='dashed')
+plt.contourf(X, Y, constraint_values, levels=[0, 1.5], colors='skyblue', alpha=0.3)
+
+# Plot the sine wave equality constraint with a high contrast color
+plt.plot(x_sine, y_sine, 'lime', linestyle='--', linewidth=2, label='Sine Wave Equality Constraint')
+
+plt.xlim([-1, 4])
+plt.ylim([-1, 4])
+plt.xlabel('x1')
+plt.ylabel('x2')
+plt.title('Example NLP')
+plt.legend(loc='upper left', fontsize='small', edgecolor='black', fancybox=True)
+plt.grid(True)
+# Set the aspect ratio to be equal so the circle appears correctly
+plt.gca().set_aspect('equal', adjustable='box')
+plt.show()
 ```
 
 #### Karush-Kuhn-Tucker (KKT) conditions
@@ -84,10 +176,72 @@ where $\boldsymbol{\mu} \in \mathbb{R}^m$ and $\boldsymbol{\lambda} \in \mathbb{
 Let's now solve our example problem above, this time using [Ipopt](https://coin-or.github.io/Ipopt/) via the [Pyomo](http://www.pyomo.org/) interface so that we can access the Lagrange multipliers found by the solver.
 
 ```{code-cell} ipython3
-:tags: [hide-cell]
-:load: code/kkt_lagrangian_verif.py
+
+from pyomo.environ import *
+from pyomo.opt import SolverFactory
+import math
+
+# Define the Pyomo model
+model = ConcreteModel()
+
+# Define the variables
+model.x1 = Var(initialize=1.25)
+model.x2 = Var(initialize=1.5)
+
+# Define the objective function
+def objective_rule(model):
+    return (model.x1 - 1)**2 + (model.x2 - 2.5)**2
+model.obj = Objective(rule=objective_rule, sense=minimize)
+
+# Define the inequality constraint (circle)
+def inequality_constraint_rule(model):
+    return (model.x1 - 1)**2 + (model.x2 - 1)**2 <= 1.5
+model.ineq_constraint = Constraint(rule=inequality_constraint_rule)
+
+# Define the equality constraint (sine wave) using Pyomo's math functions
+def equality_constraint_rule(model):
+    return model.x2 == 0.5 * sin(2 * math.pi * model.x1) + 1.5
+model.eq_constraint = Constraint(rule=equality_constraint_rule)
+
+# Create a suffix component to capture dual values
+model.dual = Suffix(direction=Suffix.IMPORT)
+
+# Create a solver
+solver=SolverFactory('ipopt')
+
+# Solve the problem
+results = solver.solve(model, tee=False)
+
+# Check if the solver found an optimal solution
+if (results.solver.status == SolverStatus.ok and 
+    results.solver.termination_condition == TerminationCondition.optimal):
+    
+    # Print the results
+    print(f"x1: {value(model.x1)}")
+    print(f"x2: {value(model.x2)}")
+    
+    # Print the objective value
+    print(f"Objective value: {value(model.obj)}")
+
+    # Print the Lagrange multipliers (dual values)
+    print("\nLagrange multipliers:")
+    ineq_lambda = None
+    eq_lambda = None
+    for c in model.component_objects(Constraint, active=True):
+        for index in c:
+            dual_val = model.dual[c[index]]
+            print(f"{c.name}[{index}]: {dual_val}")
+            if c.name == "ineq_constraint":
+                ineq_lambda = dual_val
+            elif c.name == "eq_constraint":
+                eq_lambda = dual_val
+else:
+    print("Solver did not find an optimal solution.")
+    print(f"Solver Status: {results.solver.status}")
+    print(f"Termination Condition: {results.solver.termination_condition}")
 ```
-After running the code, we find that the Lagrange multiplier associated with the inequality constraint is approximately {glue:text}`ineq_constraint[None]:.2e`. This very small value, close to zero, suggests that the inequality constraint is not active at the optimal solution, meaning that the solution point lies inside the circle defined by this constraint. This can be verified visually in the figure above. As for the equality constraint, its corresponding Lagrange multiplier is {glue:text}`eq_constraint[None]:.2e` and the fact that it's non-zero indicates that this constraint is active at the optimal solution. In general when we find a Lagrange multiplier close to zero (like the one for the inequality constraint), it means that constraint is not "binding"—the optimal solution does not lie on the boundary defined by this constraint. In contrast, a non-zero Lagrange multiplier, such as the one for the equality constraint, indicates that the constraint is active and that any relaxation would directly affect the objective function's value, as required by the stationarity condition.
+
+After running the code above, we can observe the Lagrange multipliers. The Lagrange multiplier associated with the inequality constraint is very small (close to zero), suggesting that the inequality constraint is not active at the optimal solution—meaning that the solution point lies inside the circle defined by this constraint. This can be verified visually in the figure above. As for the equality constraint, its corresponding Lagrange multiplier is non-zero, indicating that this constraint is active at the optimal solution. In general, when we find a Lagrange multiplier close to zero (like the one for the inequality constraint), it means that constraint is not "binding"—the optimal solution does not lie on the boundary defined by this constraint. In contrast, a non-zero Lagrange multiplier, such as the one for the equality constraint, indicates that the constraint is active and that any relaxation would directly affect the objective function's value, as required by the stationarity condition.
 
 #### Lagrange Multiplier Theorem
 
@@ -231,15 +385,154 @@ From the first two equations, we then get:
    $$x_1 = \frac{2}{1 + \lambda}, \quad x_2 = \frac{1}{1 + \lambda}$$
 
 which we can substitute these into the 3rd constraint equation to obtain:
-   
-   $$(\frac{2}{1 + \lambda})^2 + (\frac{1}{1 + \lambda})^2 = 1 \Leftrightarrow \lambda = \sqrt{5} - 1$$$
+  
+  $$(\frac{2}{1 + \lambda})^2 + (\frac{1}{1 + \lambda})^2 = 1 \Leftrightarrow \lambda = \sqrt{5} - 1$$
 
 This value of the Lagrange multiplier can then be backsubstituted into the above equations to obtain $x_1 = \frac{2}{\sqrt{5}}$ and $x_2 =  \frac{1}{\sqrt{5}}$.
 We can verify numerically (and visually on the following graph) that the point $(2/\sqrt{5}, 1/\sqrt{5})$ is indeed the point on the unit circle closest to $(2, 1)$.
 
 ```{code-cell} ipython3
 :tags: [hide-input]
-:load: code/ecp_newton.py
+
+
+import jax
+import jax.numpy as jnp
+from jax import grad, jit, jacfwd
+import matplotlib.pyplot as plt
+
+# Define the objective function and constraint
+def f(x):
+    return (x[0] - 2)**2 + (x[1] - 1)**2
+
+def g(x):
+    return x[0]**2 + x[1]**2 - 1
+
+# Lagrangian
+def L(x, lambda_):
+    return f(x) + lambda_ * g(x)
+
+# Gradient and Hessian of Lagrangian
+grad_L_x = jit(grad(L, argnums=0))
+grad_L_lambda = jit(grad(L, argnums=1))
+hess_L_xx = jit(jacfwd(grad_L_x, argnums=0))
+hess_L_xlambda = jit(jacfwd(grad_L_x, argnums=1))
+
+# Newton's method
+@jit
+def newton_step(x, lambda_):
+    grad_x = grad_L_x(x, lambda_)
+    grad_lambda = grad_L_lambda(x, lambda_)
+    hess_xx = hess_L_xx(x, lambda_)
+    hess_xlambda = hess_L_xlambda(x, lambda_).reshape(-1)
+    
+    # Construct the full KKT matrix
+    kkt_matrix = jnp.block([
+        [hess_xx, hess_xlambda.reshape(-1, 1)],
+        [hess_xlambda, jnp.array([[0.0]])]
+    ])
+    
+    # Construct the right-hand side
+    rhs = jnp.concatenate([-grad_x, -jnp.array([grad_lambda])])
+    
+    # Solve the KKT system
+    delta = jnp.linalg.solve(kkt_matrix, rhs)
+    
+    return x + delta[:2], lambda_ + delta[2]
+
+def solve_constrained_optimization(x0, lambda0, max_iter=100, tol=1e-6):
+    x, lambda_ = x0, lambda0
+    
+    for i in range(max_iter):
+        x_new, lambda_new = newton_step(x, lambda_)
+        if jnp.linalg.norm(jnp.concatenate([x_new - x, jnp.array([lambda_new - lambda_])])) < tol:
+            break
+        x, lambda_ = x_new, lambda_new
+    
+    return x, lambda_, i+1
+
+# Analytical solution
+def analytical_solution():
+    x1 = 2 / jnp.sqrt(5)
+    x2 = 1 / jnp.sqrt(5)
+    lambda_opt = jnp.sqrt(5) - 1
+    return jnp.array([x1, x2]), lambda_opt
+
+# Solve the problem numerically
+x0 = jnp.array([0.5, 0.5])
+lambda0 = 0.0
+x_opt_num, lambda_opt_num, iterations = solve_constrained_optimization(x0, lambda0)
+
+# Compute analytical solution
+x_opt_ana, lambda_opt_ana = analytical_solution()
+
+# Verify the result
+print("\nNumerical Solution:")
+print(f"Constraint violation: {g(x_opt_num):.6f}")
+print(f"Objective function value: {f(x_opt_num):.6f}")
+
+print("\nAnalytical Solution:")
+print(f"Constraint violation: {g(x_opt_ana):.6f}")
+print(f"Objective function value: {f(x_opt_ana):.6f}")
+
+print("\nComparison:")
+x_diff = jnp.linalg.norm(x_opt_num - x_opt_ana)
+lambda_diff = jnp.abs(lambda_opt_num - lambda_opt_ana)
+print(f"Difference in x: {x_diff}")
+print(f"Difference in lambda: {lambda_diff}")
+
+# Precision test
+rtol = 1e-5  # relative tolerance
+atol = 1e-8  # absolute tolerance
+
+x_close = jnp.allclose(x_opt_num, x_opt_ana, rtol=rtol, atol=atol)
+lambda_close = jnp.isclose(lambda_opt_num, lambda_opt_ana, rtol=rtol, atol=atol)
+
+print("\nPrecision Test:")
+print(f"x values are close: {x_close}")
+print(f"lambda values are close: {lambda_close}")
+
+if x_close and lambda_close:
+    print("The numerical solution matches the analytical solution within the specified tolerance.")
+else:
+    print("The numerical solution differs from the analytical solution more than the specified tolerance.")
+
+# Visualize the result
+plt.figure(figsize=(12, 10))
+
+# Create a mesh for the contour plot
+x1_range = jnp.linspace(-1.5, 2.5, 100)
+x2_range = jnp.linspace(-1.5, 2.5, 100)
+X1, X2 = jnp.meshgrid(x1_range, x2_range)
+Z = jnp.array([[f(jnp.array([x1, x2])) for x1 in x1_range] for x2 in x2_range])
+
+# Plot filled contours
+contour = plt.contourf(X1, X2, Z, levels=50, cmap='viridis', alpha=0.7, extent=[-1.5, 2.5, -1.5, 2.5])
+plt.colorbar(contour, label='Objective Function Value')
+
+# Plot the constraint
+theta = jnp.linspace(0, 2*jnp.pi, 100)
+x1 = jnp.cos(theta)
+x2 = jnp.sin(theta)
+plt.plot(x1, x2, color='red', linewidth=2, label='Constraint')
+
+# Plot the optimal points (numerical and analytical) and initial point
+plt.scatter(x_opt_num[0], x_opt_num[1], color='red', s=100, edgecolor='white', linewidth=2, label='Numerical Optimal Point')
+plt.scatter(x_opt_ana[0], x_opt_ana[1], color='blue', s=100, edgecolor='white', linewidth=2, label='Analytical Optimal Point')
+plt.scatter(x0[0], x0[1], color='green', s=100, edgecolor='white', linewidth=2, label='Initial Point')
+
+# Add labels and title
+plt.xlabel('x1', fontsize=12)
+plt.ylabel('x2', fontsize=12)
+plt.title('Constrained Optimization: Numerical vs Analytical Solution', fontsize=14)
+plt.legend(fontsize=10)
+plt.grid(True, linestyle='--', alpha=0.7)
+
+# Set the axis limits explicitly
+plt.xlim(-1.5, 2.5)
+plt.ylim(-1.5, 2.5)
+
+plt.tight_layout()
+plt.show()
 ```
 
 ### The SQP Approach: Taylor Expansion and Quadratic Approximation
@@ -411,7 +704,142 @@ This example builds on our previous one but adds a parabola-shaped inequality co
 
 ```{code-cell} ipython3
 :tags: [hide-input]
-:load: code/sqp_ineq_cvxpy_jax.py
+
+
+import jax
+import jax.numpy as jnp
+from jax import grad, jit, jacfwd, hessian
+import numpy as np
+import cvxpy as cp
+import matplotlib.pyplot as plt
+
+# Define the objective function and constraints
+@jit
+def f(x):
+    return (x[0] - 2)**2 + (x[1] - 1)**2
+
+@jit
+def g(x):
+    return jnp.array([x[0]**2 + x[1]**2 - 1])
+
+@jit
+def h(x):
+    return jnp.array([x[0]**2 - x[1]])  # Corrected inequality constraint: x[1] <= x[0]^2
+
+# Compute gradients and Jacobians using JAX
+grad_f = jit(grad(f))
+hess_f = jit(hessian(f))
+jac_g = jit(jacfwd(g))
+jac_h = jit(jacfwd(h))
+
+@jit
+def lagrangian(x, lambda_, nu):
+    return f(x) + jnp.dot(lambda_, g(x)) + jnp.dot(nu, h(x))
+
+hess_L = jit(hessian(lagrangian, argnums=0))
+
+def solve_qp_subproblem(x, lambda_, nu):
+    n = len(x)
+    delta_x = cp.Variable(n)
+    
+    # Convert JAX arrays to numpy for cvxpy
+    grad_f_np = np.array(grad_f(x))
+    hess_L_np = np.array(hess_L(x, lambda_, nu))
+    jac_g_np = np.array(jac_g(x))
+    jac_h_np = np.array(jac_h(x))
+    g_np = np.array(g(x))
+    h_np = np.array(h(x))
+    
+    obj = cp.Minimize(grad_f_np.T @ delta_x + 0.5 * cp.quad_form(delta_x, hess_L_np))
+    
+    constraints = [
+        jac_g_np @ delta_x + g_np == 0,
+        jac_h_np @ delta_x + h_np <= 0
+    ]
+    
+    prob = cp.Problem(obj, constraints)
+    prob.solve()
+    
+    return delta_x.value, prob.constraints[0].dual_value, prob.constraints[1].dual_value
+
+def sqp(x0, max_iter=100, tol=1e-6):
+    x = x0
+    lambda_ = jnp.zeros(1)
+    nu = jnp.zeros(1)
+    
+    for i in range(max_iter):
+        delta_x, new_lambda, new_nu = solve_qp_subproblem(x, lambda_, nu)
+        
+        if jnp.linalg.norm(delta_x) < tol:
+            break
+        
+        x = x + delta_x
+        lambda_ = new_lambda
+        nu = new_nu
+        
+    return x, lambda_, nu, i+1
+
+# Initial point
+x0 = jnp.array([0.5, 0.5])
+
+# Solve using SQP
+x_opt, lambda_opt, nu_opt, iterations = sqp(x0)
+
+print(f"Optimal x: {x_opt}")
+print(f"Optimal lambda: {lambda_opt}")
+print(f"Optimal nu: {nu_opt}")
+print(f"Iterations: {iterations}")
+
+# Visualize the result
+plt.figure(figsize=(12, 10))
+
+# Create a mesh for the contour plot
+x1_range = jnp.linspace(-1.5, 2.5, 100)
+x2_range = jnp.linspace(-1.5, 2.5, 100)
+X1, X2 = jnp.meshgrid(x1_range, x2_range)
+Z = jnp.array([[f(jnp.array([x1, x2])) for x1 in x1_range] for x2 in x2_range])
+
+# Plot filled contours
+contour = plt.contourf(X1, X2, Z, levels=50, cmap='viridis', alpha=0.7)
+plt.colorbar(contour, label='Objective Function Value')
+
+# Plot the equality constraint
+theta = jnp.linspace(0, 2*jnp.pi, 100)
+x1_eq = jnp.cos(theta)
+x2_eq = jnp.sin(theta)
+plt.plot(x1_eq, x2_eq, color='red', linewidth=2, label='Equality Constraint')
+
+# Plot the inequality constraint and shade the feasible region
+x1_ineq = jnp.linspace(-1.5, 2.5, 100)
+x2_ineq = x1_ineq**2
+plt.plot(x1_ineq, x2_ineq, color='orange', linewidth=2, label='Inequality Constraint')
+
+# Shade the feasible region for the inequality constraint
+x2_lower = jnp.minimum(x2_ineq, 2.5)
+plt.fill_between(x1_ineq, -1.5, x2_lower, color='gray', alpha=0.2, hatch='\\/...', label='Feasible Region')
+
+# Plot the optimal and initial points
+plt.scatter(x_opt[0], x_opt[1], color='red', s=100, edgecolor='white', linewidth=2, label='Optimal Point')
+plt.scatter(x0[0], x0[1], color='green', s=100, edgecolor='white', linewidth=2, label='Initial Point')
+
+# Add labels and title
+plt.xlabel('x1', fontsize=12)
+plt.ylabel('x2', fontsize=12)
+plt.title('SQP for Inequality Constraints with CVXPY and JAX', fontsize=14)
+plt.legend(fontsize=10, loc='upper center')
+plt.grid(True, linestyle='--', alpha=0.7)
+
+# Set the axis limits explicitly
+plt.xlim(-1.5, 2.5)
+plt.ylim(-1.5, 2.5)
+
+plt.tight_layout()
+plt.show()
+
+# Verify the result
+print(f"\nEquality constraint violation: {g(x_opt)[0]:.6f}")
+print(f"Inequality constraint violation: {h(x_opt)[0]:.6f}")
+print(f"Objective function value: {f(x_opt):.6f}")
 ```
 
 ### The Arrow-Hurwicz-Uzawa algorithm
@@ -484,7 +912,149 @@ However, as it is widely known from the lessons of GAN (Generative Adversarial N
 
 ```{code-cell} ipython3
 :tags: [hide-input]
-:load: code/arrow_hurwicz_uzawa_jax.py
+
+
+import jax
+import jax.numpy as jnp
+from jax import grad, jit, value_and_grad
+import optax
+import matplotlib.pyplot as plt
+
+# Define the objective function and constraints
+@jit
+def f(x):
+    return (x[0] - 2)**2 + (x[1] - 1)**2
+
+@jit
+def g(x):
+    return jnp.array([x[0]**2 + x[1]**2 - 1])
+
+@jit
+def h(x):
+    return jnp.array([x[0]**2 - x[1]])  # Inequality constraint: x[1] <= x[0]^2
+
+# Define the Lagrangian
+@jit
+def lagrangian(x, lambda_, mu):
+    return f(x) + jnp.dot(lambda_, g(x)) + jnp.dot(mu, h(x))
+
+# Compute gradients of the Lagrangian
+grad_L_x = jit(grad(lagrangian, argnums=0))
+grad_L_lambda = jit(grad(lagrangian, argnums=1))
+grad_L_mu = jit(grad(lagrangian, argnums=2))
+
+# Define the Arrow-Hurwicz-Uzawa update step
+@jit
+def update(carry, t):
+    x, lambda_, mu, opt_state_x, opt_state_lambda, opt_state_mu = carry
+    
+    # Compute gradients
+    grad_x = grad_L_x(x, lambda_, mu)
+    grad_lambda = grad_L_lambda(x, lambda_, mu)
+    grad_mu = grad_L_mu(x, lambda_, mu)
+    
+    # Update primal variables (minimization)
+    updates_x, opt_state_x = optimizer_x.update(grad_x, opt_state_x)
+    x = optax.apply_updates(x, updates_x)
+    
+    # Update dual variables (maximization)
+    updates_lambda, opt_state_lambda = optimizer_lambda.update(grad_lambda, opt_state_lambda)
+    lambda_ = optax.apply_updates(lambda_, -updates_lambda)  # Positive update for maximization
+    
+    updates_mu, opt_state_mu = optimizer_mu.update(grad_mu, opt_state_mu)
+    mu = optax.apply_updates(mu, -updates_mu)  # Positive update for maximization
+    
+    # Project mu onto the non-negative orthant
+    mu = jnp.maximum(mu, 0)
+    
+    return (x, lambda_, mu, opt_state_x, opt_state_lambda, opt_state_mu), x
+
+def arrow_hurwicz_uzawa(x0, lambda0, mu0, max_iter=1000):
+    # Initialize optimizers
+    global optimizer_x, optimizer_lambda, optimizer_mu
+    optimizer_x = optax.adam(learning_rate=0.01)
+    optimizer_lambda = optax.adam(learning_rate=0.01)
+    optimizer_mu = optax.adam(learning_rate=0.01)
+    
+    opt_state_x = optimizer_x.init(x0)
+    opt_state_lambda = optimizer_lambda.init(lambda0)
+    opt_state_mu = optimizer_mu.init(mu0)
+    
+    init_carry = (x0, lambda0, mu0, opt_state_x, opt_state_lambda, opt_state_mu)
+    
+    # Use jax.lax.scan for the optimization loop
+    (x, lambda_, mu, _, _, _), trajectory = jax.lax.scan(update, init_carry, jnp.arange(max_iter))
+    
+    return x, lambda_, mu, trajectory
+
+# Initial point
+x0 = jnp.array([0.5, 0.5])
+lambda0 = jnp.zeros(1)
+mu0 = jnp.zeros(1)
+
+# Solve using Arrow-Hurwicz-Uzawa
+x_opt, lambda_opt, mu_opt, trajectory = arrow_hurwicz_uzawa(x0, lambda0, mu0, max_iter=1000)
+
+print(f"Final x: {x_opt}")
+print(f"Final lambda: {lambda_opt}")
+print(f"Final mu: {mu_opt}")
+
+# Visualize the result
+plt.figure(figsize=(12, 10))
+
+# Create a mesh for the contour plot
+x1_range = jnp.linspace(-1.5, 2.5, 100)
+x2_range = jnp.linspace(-1.5, 2.5, 100)
+X1, X2 = jnp.meshgrid(x1_range, x2_range)
+Z = jnp.array([[f(jnp.array([x1, x2])) for x1 in x1_range] for x2 in x2_range])
+
+# Plot filled contours
+contour = plt.contourf(X1, X2, Z, levels=50, cmap='viridis', alpha=0.7)
+plt.colorbar(contour, label='Objective Function Value')
+
+# Plot the equality constraint
+theta = jnp.linspace(0, 2*jnp.pi, 100)
+x1_eq = jnp.cos(theta)
+x2_eq = jnp.sin(theta)
+plt.plot(x1_eq, x2_eq, color='red', linewidth=2, label='Equality Constraint')
+
+# Plot the inequality constraint and shade the feasible region
+x1_ineq = jnp.linspace(-1.5, 2.5, 100)
+x2_ineq = x1_ineq**2
+plt.plot(x1_ineq, x2_ineq, color='orange', linewidth=2, label='Inequality Constraint')
+
+# Shade the feasible region for the inequality constraint
+x2_lower = jnp.minimum(x2_ineq, 2.5)
+plt.fill_between(x1_ineq, -1.5, x2_lower, color='gray', alpha=0.2, hatch='\\/...', label='Feasible Region')
+
+# Plot the optimal and initial points
+plt.scatter(x_opt[0], x_opt[1], color='red', s=100, edgecolor='white', linewidth=2, label='Final Point')
+plt.scatter(x0[0], x0[1], color='green', s=100, edgecolor='white', linewidth=2, label='Initial Point')
+
+# Plot the optimization trajectory using scatter plot
+scatter = plt.scatter(trajectory[:, 0], trajectory[:, 1], c=jnp.arange(len(trajectory)), 
+                      cmap='cool', s=10, alpha=0.5)
+plt.colorbar(scatter, label='Iteration')
+
+# Add labels and title
+plt.xlabel('x1', fontsize=12)
+plt.ylabel('x2', fontsize=12)
+plt.title('Arrow-Hurwicz-Uzawa Algorithm with JAX and Adam (Corrected Min/Max)', fontsize=14)
+plt.legend(fontsize=10, loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=3)
+plt.grid(True, linestyle='--', alpha=0.7)
+
+# Set the axis limits explicitly
+plt.xlim(-1.5, 2.5)
+plt.ylim(-1.5, 2.5)
+
+plt.tight_layout()
+plt.show()
+
+
+# Verify the result
+print(f"\nEquality constraint violation: {g(x_opt)[0]:.6f}")
+print(f"Inequality constraint violation: {h(x_opt)[0]:.6f}")
+print(f"Objective function value: {f(x_opt):.6f}")
 ```
 
 ### Projected Gradient Descent

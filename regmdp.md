@@ -493,7 +493,7 @@ Now that we've seen how the regularized MDP framework leads to smooth Bellman eq
 ```
 
 ```{prf:algorithm} Smooth Policy Iteration
-:label: smooth-policy-iteration
+:label: policy-iteration-smooth
 
 **Input:** MDP $(S, A, r, p, \gamma)$, inverse temperature $\beta > 0$, tolerance $\epsilon > 0$
 
@@ -524,7 +524,7 @@ Now that we've seen how the regularized MDP framework leads to smooth Bellman eq
 **Key properties of smooth policy iteration:**
 
 1. **Entropy-regularized evaluation**: The policy evaluation step (line 12 of Algorithm {prf:ref}`smooth-policy-evaluation`) accounts for the entropy bonus $\alpha H(\pi(\cdot|s))$ where $\alpha = 1/\beta$
-2. **Stochastic policy improvement**: The policy improvement step (lines 12-14 of Algorithm {prf:ref}`smooth-policy-iteration`) uses softmax instead of deterministic argmax, producing a stochastic policy
+2. **Stochastic policy improvement**: The policy improvement step (lines 12-14 of Algorithm {prf:ref}`policy-iteration-smooth`) uses softmax instead of deterministic argmax, producing a stochastic policy
 3. **Temperature parameter**: 
    - Higher $\beta$ → policies closer to deterministic (lower entropy)
    - Lower $\beta$ → more stochastic policies (higher entropy)
@@ -683,7 +683,7 @@ While the smooth Bellman equations (using logsumexp) and entropy-regularized for
 - As $\alpha \to 0$ (or equivalently $\beta \to \infty$), this recovers standard value iteration
 
 ```{prf:algorithm} Entropy-Regularized Policy Iteration
-:label: entropy-regularized-policy-iteration
+:label: policy-iteration-entropy-regularized
 
 **Input:** MDP $(S, A, r, p, \gamma)$, entropy weight $\alpha > 0$, tolerance $\epsilon > 0$
 

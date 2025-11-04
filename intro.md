@@ -28,7 +28,7 @@ Working in industry and consulting changed that. Real problems rarely fit neatly
 
 John Rust captures this precisely when reflecting on dynamic programming in practice:
 
-> *"The range of known real-world applications of Dynamic Programming seems disappointingly small, given the immense computer power and decades of research that have produced a myriad of alternative solution methods for DP problems. I believe the biggest constraint on progress is not limited computer power, but instead the difficulty of learning the underlying structure of the decision problem."* {cite:t}`Rust2008`
+> *"The range of known real-world applications of Dynamic Programming seems disappointingly small, given the immense computer power and decades of research that have produced a myriad of alternative solution methods for DP problems. I believe the biggest constraint on progress is not limited computer power, but instead the difficulty of learning the underlying structure of the decision problem."* {cite:t}`Rust1996`
 
 In other words, solving a real-world decision problem starts with formulating it correctly. What are we optimizing? What can we observe and control? How does information flow? These questions are not secondary details; they define the problem itself.
 
