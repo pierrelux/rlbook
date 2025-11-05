@@ -4,7 +4,11 @@ Version: 0.1.0
 Summary: Practical Reinforcement Learning: From Algorithms to Applications
 Author: Pierre-Luc Bacon
 Requires-Dist: ecos>=2.0.14
-Requires-Dist: jupyter-book
+Requires-Dist: jupyter-book>=2.0.0
 Requires-Dist: matplotlib
 Requires-Dist: numpy
 Requires-Dist: scipy
+Requires-Dist: sphinx-proof
+Requires-Dist: sphinxcontrib-mermaid
+Requires-Dist: sphinxcontrib-tikz
+Requires-Dist: sphinxcontrib-bibtex

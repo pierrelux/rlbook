@@ -11,6 +11,12 @@ project:
     - references.bib
   jupyter:
     kernel: rlbook
+  math:
+    '\Proj': '\mathsf{P}'
+    '\Residual': '\mathsf{N}'
+    '\Contraction': '\mathsf{T}'
+    '\Bellman': '\mathsf{L}'
+    '\BellmanPi': '\mathsf{L}_\pi'
   exports:
     - format: pdf
       output: exports/book.pdf

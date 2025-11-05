@@ -2036,13 +2036,13 @@ which are called the optimality equations or Bellman equations for infinite-hori
 We can adopt an operator-theoretic perspective by defining operators on the space $V$ of bounded real-valued functions on the state space $S$. For a deterministic Markov rule $\pi \in \Pi^{MD}$, define the **policy-evaluation operator**:
 
 $$
-(\mathrm{L}_\pi v)(s) = r(s,\pi(s)) + \gamma \sum_{j \in \mathcal{S}} p(j|s,\pi(s)) v(j)
+(\BellmanPi v)(s) = r(s,\pi(s)) + \gamma \sum_{j \in \mathcal{S}} p(j|s,\pi(s)) v(j)
 $$
 
 The **Bellman optimality operator** is then:
 
 $$
-\mathrm{L} \mathbf{v} \equiv \max_{\pi \in \Pi^{MD}} \left\{\mathbf{r}_\pi + \gamma \mathbf{P}_\pi \mathbf{v}\right\}
+\Bellman \mathbf{v} \equiv \max_{\pi \in \Pi^{MD}} \left\{\mathbf{r}_\pi + \gamma \mathbf{P}_\pi \mathbf{v}\right\}
 $$
 
 where $\Pi^{MD}$ is the set of Markov deterministic decision rules, $\mathbf{r}_\pi$ is the reward vector under decision rule $\pi$, and $\mathbf{P}_\pi$ is the transition probability matrix under decision rule $\pi$.
@@ -2050,7 +2050,7 @@ where $\Pi^{MD}$ is the set of Markov deterministic decision rules, $\mathbf{r}_
 Note that while we write $\max_{\pi \in \Pi^{MD}}$, we do not implement the above operator by enumerating all decision rules. Rather, the fact that we compare policies based on their value functions in a componentwise fashion means that maximizing over the space of Markovian deterministic rules reduces to the following update in component form:
 
 $$
-(\mathrm{L} \mathbf{v})(s) = \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right\}
+(\Bellman \mathbf{v})(s) = \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right\}
 $$
 
 For convenience, we define the **greedy selector** $\mathrm{Greedy}(v) \in \Pi^{MD}$ that extracts an optimal decision rule from a value function:
@@ -2060,19 +2060,19 @@ $$
 $$
 
 In Puterman's terminology, such a greedy selector is called **$v$-improving** (or **conserving** when it achieves the maximum). This operator will be useful for expressing algorithms succinctly:
-- **Value iteration:** $v_{k+1} = \mathrm{L}v_k$, then extract $\pi = \mathrm{Greedy}(v^*)$
+- **Value iteration:** $v_{k+1} = \Bellman v_k$, then extract $\pi = \mathrm{Greedy}(v^*)$
 - **Policy iteration:** $\pi_{k+1} = \mathrm{Greedy}(v^{\pi_k})$ with $v^{\pi_k}$ solving $v = \mathrm{L}_{\pi_k}v$
 
 The equivalence between these two forms can be shown mathematically, as demonstrated in the following proposition and proof.
 
 ```{prf:proposition}
-The operator $\mathrm{L}$ defined as a maximization over Markov deterministic decision rules:
+The operator $\Bellman$ defined as a maximization over Markov deterministic decision rules:
 
-$$(\mathrm{L} \mathbf{v})(s) = \max_{\pi \in \Pi^{MD}} \left\{r(s,\pi(s)) + \gamma \sum_{j \in \mathcal{S}} p(j|s,\pi(s)) v(j)\right\}$$
+$$(\Bellman \mathbf{v})(s) = \max_{\pi \in \Pi^{MD}} \left\{r(s,\pi(s)) + \gamma \sum_{j \in \mathcal{S}} p(j|s,\pi(s)) v(j)\right\}$$
 
 is equivalent to the componentwise maximization over actions:
 
-$$(\mathrm{L} \mathbf{v})(s) = \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right\}$$
+$$(\Bellman \mathbf{v})(s) = \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right\}$$
 ```
 
 ```{prf:proof}
@@ -2082,12 +2082,12 @@ $$
 Q_v(s,a) \triangleq r(s,a)+\gamma\sum_{j}p(j\mid s,a)\,v(j).
 $$
 
-For any rule $\pi \in \Pi^{MD}$, we have $(\mathrm{L}_\pi v)(s)=Q_v(s,\pi(s))\le \max_{a\in\mathcal{A}_s}Q_v(s,a)$.
+For any rule $\pi \in \Pi^{MD}$, we have $(\BellmanPi v)(s)=Q_v(s,\pi(s))\le \max_{a\in\mathcal{A}_s}Q_v(s,a)$.
 
 Taking the maximum over $\pi$ gives
 
 $$
-\max_{\pi\in\Pi^{MD}}(\mathrm{L}_\pi v)(s) \le \max_{a\in\mathcal{A}_s}Q_v(s,a).
+\max_{\pi\in\Pi^{MD}}(\BellmanPi v)(s) \le \max_{a\in\mathcal{A}_s}Q_v(s,a).
 $$
 
 Conversely, choose a **greedy selector** $\pi^v\in\Pi^{MD}$ such that for each $s$,
@@ -2097,10 +2097,10 @@ $$\pi^v(s)\in\arg\max_{a\in\mathcal{A}_s}Q_v(s,a)$$
 (possible since $\mathcal{A}_s$ is finite; otherwise use a measurable $\varepsilon$-greedy selector). Then
 
 $$
-(\mathrm{L}_{\pi^v}v)(s)=Q_v(s,\pi^v(s))=\max_{a\in\mathcal{A}_s}Q_v(s,a),
+(\Bellman _{\pi^v}v)(s)=Q_v(s,\pi^v(s))=\max_{a\in\mathcal{A}_s}Q_v(s,a),
 $$
 
-so $\max_{\pi}(\mathrm{L}_\pi v)(s)\ge \max_{a}Q_v(s,a)$. Combining both inequalities yields equality.
+so $\max_{\pi}(\BellmanPi v)(s)\ge \max_{a}Q_v(s,a)$. Combining both inequalities yields equality.
 ```
 
 ## Algorithms for Solving the Optimality Equations
@@ -2120,7 +2120,7 @@ The optimality equations are operator equations. Therefore, we can apply general
 
     1. For each $s \in S$:  
 
-        1. $v_{n+1}(s) \leftarrow (\mathrm{L}v_n)(s) = \max_{a \in A} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v_n(j)\right\}$  
+        1. $v_{n+1}(s) \leftarrow (\Bellman v_n)(s) = \max_{a \in A} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v_n(j)\right\}$  
 
     2. $\delta \leftarrow \|v_{n+1} - v_n\|_\infty$  
     3. $n \leftarrow n + 1$  
@@ -2141,7 +2141,7 @@ However, in the dynamic programming context, we can derive various bounds that c
 :label: value-iteration-convergence
 (Adapted from {cite:t}`Puterman1994` theorem 6.3.1)
 
-Let $v_0$ be any initial value function, $\varepsilon > 0$ a desired accuracy, and let $\{v_n\}$ be the sequence of value functions generated by value iteration, i.e., $v_{n+1} = \mathrm{L}v_n$ for $n \geq 0$, where $\mathrm{L}$ is the Bellman optimality operator. Then:
+Let $v_0$ be any initial value function, $\varepsilon > 0$ a desired accuracy, and let $\{v_n\}$ be the sequence of value functions generated by value iteration, i.e., $v_{n+1} = \Bellman v_n$ for $n \geq 0$, where $\Bellman$ is the Bellman optimality operator. Then:
 
 1. $v_n$ converges to the optimal value function $v^*_\gamma$,
 2. The algorithm terminates in finite time,
@@ -2151,44 +2151,44 @@ Let $v_0$ be any initial value function, $\varepsilon > 0$ a desired accuracy, a
 ````
 
 ````{prf:proof}
-Parts 1 and 2 follow directly from the fact that $\mathrm{L}$ is a contraction mapping. Hence, by Banach's fixed-point theorem, it has a unique fixed point (which is $v^*_\gamma$), and repeated application of $\mathrm{L}$ will converge to this fixed point. Moreover, this convergence happens at a geometric rate, which ensures that we reach the termination condition in finite time.
+Parts 1 and 2 follow directly from the fact that $\Bellman$ is a contraction mapping. Hence, by Banach's fixed-point theorem, it has a unique fixed point (which is $v^*_\gamma$), and repeated application of $\Bellman$ will converge to this fixed point. Moreover, this convergence happens at a geometric rate, which ensures that we reach the termination condition in finite time.
 
-To show that the Bellman optimality operator $\mathrm{L}$ is a contraction mapping, we need to prove that for any two value functions $v$ and $u$:
+To show that the Bellman optimality operator $\Bellman$ is a contraction mapping, we need to prove that for any two value functions $v$ and $u$:
 
-$$\|\mathrm{L}v - \mathrm{L}u\|_\infty \leq \gamma \|v - u\|_\infty$$
+$$\|\Bellman v - \Bellman u\|_\infty \leq \gamma \|v - u\|_\infty$$
 
 where $\gamma \in [0,1)$ is the discount factor and $\|\cdot\|_\infty$ is the supremum norm.
 
-Let's start by writing out the definition of $\mathrm{L}v$ and $\mathrm{L}u$:
+Let's start by writing out the definition of $\Bellman v$ and $\Bellman u$:
 
 $$\begin{align*}
-(\mathrm{L}v)(s) &= \max_{a \in A} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v(j)\right\}\\
-(\mathrm{L}u)(s) &= \max_{a \in A} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)u(j)\right\}
+(\Bellman v)(s) &= \max_{a \in A} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)v(j)\right\}\\
+(\Bellman u)(s) &= \max_{a \in A} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)u(j)\right\}
 \end{align*}$$
 
-For any state $s$, let $a_v$ be the action that achieves the maximum for $(\mathrm{L}v)(s)$, and $a_u$ be the action that achieves the maximum for $(\mathrm{L}u)(s)$. By the definition of these maximizers:
+For any state $s$, let $a_v$ be the action that achieves the maximum for $(\Bellman v)(s)$, and $a_u$ be the action that achieves the maximum for $(\Bellman u)(s)$. By the definition of these maximizers:
 
 $$\begin{align*}
-(\mathrm{L}v)(s) &\geq r(s,a_u) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a_u)v(j)\\
-(\mathrm{L}u)(s) &\geq r(s,a_v) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a_v)u(j)
+(\Bellman v)(s) &\geq r(s,a_u) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a_u)v(j)\\
+(\Bellman u)(s) &\geq r(s,a_v) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a_v)u(j)
 \end{align*}$$
 
 Subtracting these inequalities:
 
 $$\begin{align*}
-(\mathrm{L}v)(s) - (\mathrm{L}u)(s) &\leq \gamma \sum_{j \in \mathcal{S}} p(j|s,a_v)(v(j) - u(j))\\
-(\mathrm{L}u)(s) - (\mathrm{L}v)(s) &\leq \gamma \sum_{j \in \mathcal{S}} p(j|s,a_u)(u(j) - v(j))
+(\Bellman v)(s) - (\Bellman u)(s) &\leq \gamma \sum_{j \in \mathcal{S}} p(j|s,a_v)(v(j) - u(j))\\
+(\Bellman u)(s) - (\Bellman v)(s) &\leq \gamma \sum_{j \in \mathcal{S}} p(j|s,a_u)(u(j) - v(j))
 \end{align*}$$
 
 Taking the absolute value and using the fact that $\sum_{j \in \mathcal{S}} p(j|s,a) = 1$:
 
-$$|(\mathrm{L}v)(s) - (\mathrm{L}u)(s)| \leq \gamma \max_{j \in \mathcal{S}} |v(j) - u(j)| = \gamma \|v - u\|_\infty$$
+$$|(\Bellman v)(s) - (\Bellman u)(s)| \leq \gamma \max_{j \in \mathcal{S}} |v(j) - u(j)| = \gamma \|v - u\|_\infty$$
 
 Since this holds for all $s \in \mathcal{S}$, taking the supremum over $s$ gives:
 
-$$\|\mathrm{L}v - \mathrm{L}u\|_\infty \leq \gamma \|v - u\|_\infty$$
+$$\|\Bellman v - \Bellman u\|_\infty \leq \gamma \|v - u\|_\infty$$
 
-Thus, $\mathrm{L}$ is a contraction mapping with contraction factor $\gamma$.
+Thus, $\Bellman$ is a contraction mapping with contraction factor $\gamma$.
 
 Now, let's prove parts 3 and 4. Suppose the algorithm has just terminated, i.e., $\|v_{n+1} - v_n\|_\infty < \frac{\varepsilon(1-\gamma)}{2\gamma}$ for some $n$. We want to show that our current value function $v_{n+1}$ and the policy $\pi_\varepsilon$ derived from it are close to optimal.
 
@@ -2196,26 +2196,26 @@ By the triangle inequality:
 
 $$\|v^{\pi_\varepsilon}_\gamma - v^*_\gamma\|_\infty \leq \|v^{\pi_\varepsilon}_\gamma - v_{n+1}\|_\infty + \|v_{n+1} - v^*_\gamma\|_\infty$$
 
-For the first term, since $v^{\pi_\varepsilon}_\gamma$ is the fixed point of $\mathrm{L}_{\pi_\varepsilon}$ and $\pi_\varepsilon$ is greedy with respect to $v_{n+1}$ (i.e., $\mathrm{L}_{\pi_\varepsilon}v_{n+1} = \mathrm{L}v_{n+1}$):
+For the first term, since $v^{\pi_\varepsilon}_\gamma$ is the fixed point of $\mathrm{L}_{\pi_\varepsilon}$ and $\pi_\varepsilon$ is greedy with respect to $v_{n+1}$ (i.e., $\mathrm{L}_{\pi_\varepsilon}v_{n+1} = \Bellman v_{n+1}$):
 
 $$
 \begin{aligned}
 \|v^{\pi_\varepsilon}_\gamma - v_{n+1}\|_\infty &= \|\mathrm{L}_{\pi_\varepsilon}v^{\pi_\varepsilon}_\gamma - v_{n+1}\|_\infty \\
 &\leq \|\mathrm{L}_{\pi_\varepsilon}v^{\pi_\varepsilon}_\gamma - \mathrm{L}_{\pi_\varepsilon}v_{n+1}\|_\infty + \|\mathrm{L}_{\pi_\varepsilon}v_{n+1} - v_{n+1}\|_\infty \\
-&= \|\mathrm{L}_{\pi_\varepsilon}v^{\pi_\varepsilon}_\gamma - \mathrm{L}_{\pi_\varepsilon}v_{n+1}\|_\infty + \|\mathrm{L}v_{n+1} - v_{n+1}\|_\infty \\
+&= \|\mathrm{L}_{\pi_\varepsilon}v^{\pi_\varepsilon}_\gamma - \mathrm{L}_{\pi_\varepsilon}v_{n+1}\|_\infty + \|\Bellman v_{n+1} - v_{n+1}\|_\infty \\
 &\leq \gamma\|v^{\pi_\varepsilon}_\gamma - v_{n+1}\|_\infty + \gamma\|v_{n+1} - v_n\|_\infty
 \end{aligned}
 $$
 
-where we used that both $\mathrm{L}$ and $\mathrm{L}_{\pi_\varepsilon}$ are contractions with factor $\gamma$, and that $v_{n+1} = \mathrm{L}v_n$.
+where we used that both $\Bellman$ and $\mathrm{L}_{\pi_\varepsilon}$ are contractions with factor $\gamma$, and that $v_{n+1} = \Bellman v_n$.
 
 Rearranging:
 
 $$\|v^{\pi_\varepsilon}_\gamma - v_{n+1}\|_\infty \leq \frac{\gamma}{1-\gamma}\|v_{n+1} - v_n\|_\infty$$
 
-Similarly, since $v^*_\gamma$ is the fixed point of $\mathrm{L}$:
+Similarly, since $v^*_\gamma$ is the fixed point of $\Bellman$:
 
-$$\|v_{n+1} - v^*_\gamma\|_\infty = \|\mathrm{L}v_n - \mathrm{L}v^*_\gamma\|_\infty \leq \gamma\|v_n - v^*_\gamma\|_\infty \leq \frac{\gamma}{1-\gamma}\|v_{n+1} - v_n\|_\infty$$
+$$\|v_{n+1} - v^*_\gamma\|_\infty = \|\Bellman v_n - \Bellman v^*_\gamma\|_\infty \leq \gamma\|v_n - v^*_\gamma\|_\infty \leq \frac{\gamma}{1-\gamma}\|v_{n+1} - v_n\|_\infty$$
 
 Since $\|v_{n+1} - v_n\|_\infty < \frac{\varepsilon(1-\gamma)}{2\gamma}$:
 
@@ -2235,10 +2235,10 @@ This completes the proof, showing that $v_{n+1}$ is within $\varepsilon/2$ of $v
 We now apply the Newton-Kantorovich framework to the Bellman optimality equation. Let
 
 $$
-(\mathrm{L}v)(s) = \max_{a \in A(s)} \left\{ r(s,a) + \gamma \sum_{s'} p(s' \mid s,a) v(s') \right\}.
+(\Bellman v)(s) = \max_{a \in A(s)} \left\{ r(s,a) + \gamma \sum_{s'} p(s' \mid s,a) v(s') \right\}.
 $$
 
-The problem is to find $v$ such that $\mathrm{L}v = v$, or equivalently $\mathrm{B}(v) := \mathrm{L}v - v = 0$. The operator $\mathrm{L}$ is piecewise affine, hence not globally differentiable, but it is directionally differentiable everywhere in the Hadamard sense and Fréchet differentiable at points where the maximizer is unique.
+The problem is to find $v$ such that $\Bellman v = v$, or equivalently $\mathrm{B}(v) := \Bellman v - v = 0$. The operator $\Bellman$ is piecewise affine, hence not globally differentiable, but it is directionally differentiable everywhere in the Hadamard sense and Fréchet differentiable at points where the maximizer is unique.
 
 We consider three complementary perspectives for understanding and computing its derivative.
 
@@ -2247,9 +2247,9 @@ We consider three complementary perspectives for understanding and computing its
 In tabular form, for finite state and action spaces, the Bellman operator can be written as a pointwise maximum of affine maps:
 
 $$
-(\mathrm{L}v)(s) = \max_{a \in A(s)} \left\{ r(s,a) + \gamma (P_a v)(s) \right\},
+(\Bellman v)(s) = \max_{a \in A(s)} \left\{ r(s,a) + \gamma (P_a v)(s) \right\},
 $$
-where $P_a \in \mathbb{R}^{|S| \times |S|}$ is the transition matrix associated with action $a$. Each $Q_a v := r^a + \gamma P_a v$ is affine in $v$. The operator $\mathrm{L}$ therefore computes the upper envelope of a finite set of affine functions at each state.
+where $P_a \in \mathbb{R}^{|S| \times |S|}$ is the transition matrix associated with action $a$. Each $Q_a v := r^a + \gamma P_a v$ is affine in $v$. The operator $\Bellman$ therefore computes the upper envelope of a finite set of affine functions at each state.
 
 At any $v$, let the **active set** at state $s$ be
 
@@ -2260,13 +2260,13 @@ $$
 Then the Hadamard directional derivative exists and is given by
 
 $$
-(\mathrm{L}'(v; h))(s) = \max_{a \in \mathcal{A}^*(s; v)} \gamma (P_a h)(s).
+(\Bellman '(v; h))(s) = \max_{a \in \mathcal{A}^*(s; v)} \gamma (P_a h)(s).
 $$
 
-If the active set is a singleton, this expression becomes linear in $h$, and $\mathrm{L}$ is Fréchet differentiable at $v$, with
+If the active set is a singleton, this expression becomes linear in $h$, and $\Bellman$ is Fréchet differentiable at $v$, with
 
 $$
-\mathrm{L}'(v) = \gamma P_{\pi_v},
+\Bellman'(v) = \gamma P_{\pi_v},
 $$
 
 where $\pi_v(s) := a^*(s)$ is the greedy policy at $v$. 
@@ -2283,7 +2283,7 @@ $$
 At a node $s_i$, define the parametric maximization
 
 $$
-v_i(c) := (\mathrm{L}v_c)(s_i) = \max_{a \in A(s_i)} \left\{ r(s_i,a) + \gamma \sum_j c_j \mathbb{E}_{s' \mid s_i, a}[\phi_j(s')] \right\}.
+v_i(c) := (\Bellman v_c)(s_i) = \max_{a \in A(s_i)} \left\{ r(s_i,a) + \gamma \sum_j c_j \mathbb{E}_{s' \mid s_i, a}[\phi_j(s')] \right\}.
 $$
 
 Define
@@ -2309,7 +2309,7 @@ The third perspective applies the implicit function theorem to understand when t
 The Bellman operator is defined as
 
 $$
-(\mathrm{L}v)(s) = \max_{a} \left\{ r(s,a) + \gamma \sum_j p(j \mid s,a) v(j) \right\}.
+(\Bellman v)(s) = \max_{a} \left\{ r(s,a) + \gamma \sum_j p(j \mid s,a) v(j) \right\}.
 $$
 
 The difficulty is that the max operator encodes a discrete selection: which action achieves the maximum. To apply the implicit function theorem, we reformulate this as follows. For each action $a$, define the **action-value function**:
@@ -2349,24 +2349,24 @@ Thus $a^*(s)$ remains the unique maximizer throughout the neighborhood $\{v + h 
 The implicit function theorem now applies: in this neighborhood, the mapping $v \mapsto a^*(s; v)$ is **constant** (and hence smooth), taking the value $a^*(s)$. This allows us to write
 
 $$
-(\mathrm{L}v)(s) = Q_{a^*(s)}(v, s) = r(s,a^*(s)) + \gamma \sum_j p(j \mid s,a^*(s)) v(j)
+(\Bellman v)(s) = Q_{a^*(s)}(v, s) = r(s,a^*(s)) + \gamma \sum_j p(j \mid s,a^*(s)) v(j)
 $$
 as an explicit formula that holds throughout the neighborhood. Since $Q_{a^*(s)}(\cdot, s)$ is an affine (hence smooth) function of $v$, we can differentiate it:
 
 $$
-\frac{d}{dv} (\mathrm{L}v)(s) = \gamma P_{a^*(s)}.
+\frac{d}{dv} (\Bellman v)(s) = \gamma P_{a^*(s)}.
 $$
 
 More precisely, for any perturbation $h$:
 
 $$
-(\mathrm{L}(v+h))(s) = (\mathrm{L}v)(s) + \gamma \sum_j p(j \mid s,a^*(s)) h(j) + o(\|h\|).
+(\Bellman (v+h))(s) = (\Bellman v)(s) + \gamma \sum_j p(j \mid s,a^*(s)) h(j) + o(\|h\|).
 $$
 
 This is the Fréchet derivative:
 
 $$
-\mathrm{L}'(v) = \gamma P_{\pi_v},
+\Bellman'(v) = \gamma P_{\pi_v},
 $$
 
 where $\pi_v(s) = a^*(s)$ is the greedy policy.
@@ -2378,12 +2378,12 @@ where $\pi_v(s) = a^*(s)$ is the greedy policy.
 We return to the Newton-Kantorovich step:
 
 $$
-(I - \mathrm{L}'(v_n)) h_n = v_n - \mathrm{L}v_n,
+(I - \Bellman'(v_n)) h_n = v_n - \Bellman v_n,
 \quad
 v_{n+1} = v_n - h_n.
 $$
 
-Suppose $\mathrm{L}'(v_n) = \gamma P_{\pi_{v_n}}$ for the greedy policy $\pi_{v_n}$. Then
+Suppose $\Bellman'(v_n) = \gamma P_{\pi_{v_n}}$ for the greedy policy $\pi_{v_n}$. Then
 
 $$
 (I - \gamma P_{\pi_{v_n}}) v_{n+1} = r^{\pi_{v_n}},
@@ -2397,11 +2397,11 @@ Thus, **policy iteration is Newton-Kantorovich** applied to the Bellman optimali
 
 The three perspectives we developed above (the active set view, the envelope theorem, and the implicit function theorem) all point toward a deeper framework for understanding Newton-type methods on non-smooth operators. This framework, known as semismooth Newton methods, was developed precisely to handle operators like the Bellman operator that are piecewise smooth but not globally differentiable. The connection between policy iteration and semismooth Newton methods has been rigorously developed in recent work {cite}`Gargiani2022`.
 
-The classical Newton-Kantorovich method assumes the operator is Fréchet differentiable everywhere. The derivative exists, is unique, and varies continuously with the base point. But the Bellman operator $\mathrm{L}$ violates this assumption at any value function where multiple actions tie for optimality at some state. At such points, the implicit function theorem fails, and there is no unique Fréchet derivative. 
+The classical Newton-Kantorovich method assumes the operator is Fréchet differentiable everywhere. The derivative exists, is unique, and varies continuously with the base point. But the Bellman operator $\Bellman$ violates this assumption at any value function where multiple actions tie for optimality at some state. At such points, the implicit function theorem fails, and there is no unique Fréchet derivative. 
 
 Semismooth Newton methods address this by replacing the notion of a single Jacobian with a generalized derivative that captures the behavior of the operator near non-smooth points. The most commonly used generalized derivative is the Clarke subdifferential, which we can think of as the convex hull of all possible "candidate Jacobians" that arise from limits approaching the non-smooth point from different directions.
 
-For the Bellman residual $\mathrm{B}(v) = \mathrm{L}v - v$, the Clarke subdifferential at a point $v$ can be characterized explicitly using our first perspective. Recall that at each state $s$, we defined the active set $\mathcal{A}^*(s; v) = \arg\max_a Q_a(v, s)$. When this set contains multiple actions, the operator is not Fréchet differentiable. However, it remains directionally differentiable in all directions, and the Clarke subdifferential consists of all matrices of the form
+For the Bellman residual $\mathrm{B}(v) = \Bellman v - v$, the Clarke subdifferential at a point $v$ can be characterized explicitly using our first perspective. Recall that at each state $s$, we defined the active set $\mathcal{A}^*(s; v) = \arg\max_a Q_a(v, s)$. When this set contains multiple actions, the operator is not Fréchet differentiable. However, it remains directionally differentiable in all directions, and the Clarke subdifferential consists of all matrices of the form
 
 $$
 \partial \mathrm{B}(v) = \left\{ I - \gamma P_\pi : \pi(s) \in \mathcal{A}^*(s; v) \text{ for all } s \right\}.
@@ -2424,12 +2424,12 @@ $$
 
 This theoretical result explains an empirical observation that has long been noted in practice: policy iteration typically converges in very few iterations, often just a handful, even when the state and action spaces are enormous and the space of possible policies is exponentially large. 
 
-The semismooth Newton framework also suggests a spectrum of methods interpolating between value iteration and policy iteration. Value iteration can be interpreted as a Newton-like method where we choose $J_k = I$ at every iteration, ignoring the dependence of $\mathrm{L}$ on $v$ entirely. This choice guarantees global convergence through the contraction property but sacrifices the quadratic local convergence rate. Policy iteration, at the other extreme, uses the full generalized Jacobian $J_k = I - \gamma P_{\pi_k}$, achieving quadratic convergence but at the cost of solving a linear system at each iteration.
+The semismooth Newton framework also suggests a spectrum of methods interpolating between value iteration and policy iteration. Value iteration can be interpreted as a Newton-like method where we choose $J_k = I$ at every iteration, ignoring the dependence of $\Bellman$ on $v$ entirely. This choice guarantees global convergence through the contraction property but sacrifices the quadratic local convergence rate. Policy iteration, at the other extreme, uses the full generalized Jacobian $J_k = I - \gamma P_{\pi_k}$, achieving quadratic convergence but at the cost of solving a linear system at each iteration.
 
 Between these extremes lie methods that use approximate Jacobians. One natural variant is to choose $J_k = \alpha I$ for some scalar $\alpha > 1$. This leads to the update
 
 $$
-v_{k+1} = \frac{\alpha - 1}{\alpha} v_k + \frac{1}{\alpha} \mathrm{L}v_k.
+v_{k+1} = \frac{\alpha - 1}{\alpha} v_k + \frac{1}{\alpha} \Bellman v_k.
 $$
 
 This is known as $\alpha$-value iteration or successive over-relaxation when $\alpha > 1$. For appropriate choices of $\alpha$, this method retains global convergence while achieving better local rates than standard value iteration, and it requires only pointwise operations rather than solving a linear system. The Newton perspective thus unifies existing algorithms and generates new ones by systematically exploring different approximations to the generalized Jacobian.

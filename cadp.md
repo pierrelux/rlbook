@@ -62,7 +62,7 @@ This process is computationally intensive. A natural question is whether we can 
 For Q-functions, recall that the operator is given by:
 
 $$
-(\mathrm{L}q)(s,a) = r(s,a) + \gamma \int p(ds'|s,a)\max_{a' \in \mathcal{A}(s')} q(s', a')
+(\Bellman q)(s,a) = r(s,a) + \gamma \int p(ds'|s,a)\max_{a' \in \mathcal{A}(s')} q(s', a')
 $$
 
 If $q^*$ is the optimal state-action value function, then $v^*(s) = \max_a q^*(s,a)$, and we can derive the optimal policy directly by computing the decision rule:
@@ -316,7 +316,7 @@ Adapting the intuition of NFQCA to the smooth Bellman optimality equations leads
 Consider the standard Bellman operator augmented with an entropy term. The smooth Bellman operator $\mathrm{L}_\beta$ takes the form:
 
 $$
-(\mathrm{L}_\beta v)(s) = \max_{\pi \in \Pi^{MR}}\{\mathbb{E}_{a \sim \pi}[r(s,a) + \gamma v(s')] + \beta\mathcal{H}(\pi)\}
+(\Bellman _\beta v)(s) = \max_{\pi \in \Pi^{MR}}\{\mathbb{E}_{a \sim \pi}[r(s,a) + \gamma v(s')] + \beta\mathcal{H}(\pi)\}
 $$
 
 where $\mathcal{H}(\pi) = -\mathbb{E}_{a \sim \pi}[\log \pi(a|s)]$ represents the entropy of the policy. To find the solution to the optimization problem embedded in the operator $\mathrm{L}_\beta$, we set the functional derivative of the objective with respect to the decision rule to zero:
@@ -349,7 +349,7 @@ $$
 As we saw at the beginning of this chapter, the smooth Bellman optimality operator for Q-factors is defined as:
 
 $$
-(\mathrm{L}_\beta q)(s,a) = r(s,a) + \gamma \mathbb{E}_{s'}\left[\beta \log \int_A \exp(\frac{1}{\beta}q(s',a'))da'\right]
+(\Bellman _\beta q)(s,a) = r(s,a) + \gamma \mathbb{E}_{s'}\left[\beta \log \int_A \exp(\frac{1}{\beta}q(s',a'))da'\right]
 $$
 
 This operator maintains the contraction property of its standard counterpart, guaranteeing a unique fixed point $q^*$. The optimal policy takes the form:

@@ -60,6 +60,11 @@ sphinx:
       tex:
         macros:
           "bm": ["{\\boldsymbol #1}",1]
+          "Proj": "\\mathscr{P}"
+          "Residual": "\\mathscr{N}"
+          "Contraction": "\\mathscr{T}"
+          "Bellman": "\\mathrm{L}"
+          "BellmanPi": "\\mathrm{L}_\\pi"
         processEscapes: True
   html_static_path: ["_static"]
   html_css_files:

@@ -3,7 +3,6 @@ import numpy as np
 from matplotlib.patches import Rectangle
 import matplotlib.patches as mpatches
 from scipy.interpolate import CubicSpline
-from myst_nb import glue
 
 # Set up the figure with subplots
 fig = plt.figure(figsize=(16, 12))
@@ -161,6 +160,4 @@ fig.suptitle('Collocation Methods for Optimal Control\n(Illustration of Node Typ
              fontsize=16, fontweight='bold', y=0.95)
 
 plt.tight_layout(rect=[0.04, 0.10, 0.98, 0.93])
-
-# Glue the figure for later insertion in MyST using the glue:figure directive
-glue("collocation_figure", fig, display=False)
+plt.show()

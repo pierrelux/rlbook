@@ -13,12 +13,12 @@ kernelspec:
 
 # Simulation-Based Approximate Dynamic Programming 
 
-In the previous chapter, we developed the projection method framework for solving functional equations. We saw how to transform the infinite-dimensional problem of finding $v$ such that $\mathrm{L}v = v$ into a finite-dimensional one by choosing basis functions and projection conditions (least squares, Galerkin, collocation). The main idea was to make the residual $R(s) = \mathrm{L}v(s) - v(s)$ "small" according to some criterion—whether by minimizing its squared norm, requiring orthogonality to basis functions, or forcing it to vanish at specific collocation points.
+In the previous chapter, we developed the projection method framework for solving functional equations. We saw how to transform the infinite-dimensional problem of finding $v$ such that $\Bellman v = v$ into a finite-dimensional one by choosing basis functions and projection conditions (least squares, Galerkin, collocation). The main idea was to make the residual $R(s) = \Bellman v(s) - v(s)$ "small" according to some criterion—whether by minimizing its squared norm, requiring orthogonality to basis functions, or forcing it to vanish at specific collocation points.
 
-However, we left one critical question unresolved: **how do we actually evaluate the Bellman operator** at a state $s$? Recall that applying $\mathrm{L}$ requires computing an expectation:
+However, we left one critical question unresolved: **how do we actually evaluate the Bellman operator** at a state $s$? Recall that applying $\Bellman$ requires computing an expectation:
 
 $$
-(\mathrm{L} v)(s) = \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \int v(s')p(ds'|s,a)\right\}
+(\Bellman v)(s) = \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \int v(s')p(ds'|s,a)\right\}
 $$
 
 In our discussion of projection methods, we remained agnostic about numerical integration—we didn't commit to a specific technique for evaluating this integral. When the state space is discrete and small, this expectation is simply a finite sum we can compute exactly. When the state space is continuous or very large, we face a computational challenge.
@@ -31,7 +31,7 @@ This same combination is precisely what the machine learning community recognize
 
 Recall that the Bellman operator for continuous state spaces takes the form:
 
-$$ (\mathrm{L} v)(s) \equiv \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \int v(s')p(ds'|s,a)\right\}, \, \forall s \in \mathcal{S} $$
+$$ (\Bellman v)(s) \equiv \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \int v(s')p(ds'|s,a)\right\}, \, \forall s \in \mathcal{S} $$
 
 To make this computationally tractable for continuous state spaces, we can discretize the state space and approximate the integral over this discretized space. While this allows us to evaluate the Bellman operator componentwise, we must first decide how to represent value functions in this discretized setting.
 
@@ -47,7 +47,7 @@ After defining our discretized reward and transition probability functions, we c
 We start with the Bellman operator using our discretized functions $r_h$ and $p_h$. While these functions map to grid points, they're still defined over continuous spaces - we haven't yet dealt with the computational challenge of the integral. With this discretization approach, the value function is piecewise constant over cells. This lets us express the integral as a sum over cells, where each cell's contribution is the probability of transitioning to that cell multiplied by the value at that cell's grid point:
 
 $$ \begin{aligned}
-(\widehat{\mathrm{L}}_h v)(s) &= \max_{k=1,\ldots,N_a} \left\{r_h(s, a_k) + \gamma \int v(s')p_h(s'|s, a_k)ds'\right\} \\
+(\widehat{\Bellman}_h v)(s) &= \max_{k=1,\ldots,N_a} \left\{r_h(s, a_k) + \gamma \int v(s')p_h(s'|s, a_k)ds'\right\} \\
 &= \max_{k=1,\ldots,N_a} \left\{r_h(s, a_k) + \gamma \int v(s_{k(s')})p_h(s'|s, a_k)ds'\right\} \\
 &= \max_{k=1,\ldots,N_a} \left\{r_h(s, a_k) + \gamma \sum_{i=1}^{N_s} v(s_i) \int_{cell_i} p_h(s'|s, a_k)ds'\right\} \\
 &= \max_{k=1,\ldots,N_a} \left\{r_h(s, a_k) + \gamma \sum_{i=1}^{N_s} v(s_i)p_h(s_i|s_{k(s)}, a_k)\right\}
@@ -72,7 +72,7 @@ where $s'_{k,i}$ denotes the $i$-th sample drawn from $p(\cdot|s_k,a)$ for base 
 Using this approximation of the expected value over the next state, we can define a new "empirical" Bellman optimality operator:
 
 $$
-(\widehat{\mathrm{L}}_N v)(s_k) \equiv \max_{a \in \mathcal{A}_{s_k}} \left\{r(s_k,a) + \frac{\gamma}{N} \sum_{i=1}^N v(s'_{k,i})\right\}, \quad s'_{k,i} \sim p(\cdot|s_k,a)
+(\widehat{\Bellman}_N v)(s_k) \equiv \max_{a \in \mathcal{A}_{s_k}} \left\{r(s_k,a) + \frac{\gamma}{N} \sum_{i=1}^N v(s'_{k,i})\right\}, \quad s'_{k,i} \sim p(\cdot|s_k,a)
 $$
 
 for each $s_k \in \mathcal{B}$. A direct adaptation of the successive approximation method for this empirical operator leads to:
@@ -101,23 +101,23 @@ Note that the original error bound derived as a termination criterion for value 
 
 In statistics, bias refers to a systematic error where an estimator consistently deviates from the true parameter value. For an estimator $\hat{\theta}$ of a parameter $\theta$, we define bias as: $\text{Bias}(\hat{\theta}) = \mathbb{E}[\hat{\theta}] - \theta$. While bias isn't always problematic — sometimes we deliberately introduce bias to reduce variance, as in ridge regression — uncontrolled bias can lead to significantly distorted results. In the context of value iteration, this distortion gets amplified even more due to the recursive nature of the algorithm.
 
-Consider how the Bellman operator works in value iteration. At iteration n, we have a value function estimate $v_i(s)$ and aim to improve it by applying the Bellman operator $\mathrm{L}$. The ideal update would be:
+Consider how the Bellman operator works in value iteration. At iteration n, we have a value function estimate $v_i(s)$ and aim to improve it by applying the Bellman operator $\Bellman$. The ideal update would be:
 
 $$(\mathrm{{L}}v_i)(s) = \max_{a \in \mathcal{A}(s)} \left\{ r(s,a) + \gamma \int v_i(s') p(ds'|s,a) \right\}$$
 
 However, we can't compute this integral exactly and use Monte Carlo integration instead, drawing $N$ next-state samples for each state and action pair. The bias emerges when we take the maximum over actions:
 
-$$(\widehat{\mathrm{L}}v_i)(s) = \max_{a \in \mathcal{A}(s)} \hat{q}_i(s,a), \enspace \text{where} \enspace \hat{q}_i(s,a) \equiv r(s,a) + \frac{\gamma}{N} \sum_{j=1}^N v_i(s'_j), \quad s'_j \sim p(\cdot|s,a)$$
+$$(\widehat{\Bellman}v_i)(s) = \max_{a \in \mathcal{A}(s)} \hat{q}_i(s,a), \enspace \text{where} \enspace \hat{q}_i(s,a) \equiv r(s,a) + \frac{\gamma}{N} \sum_{j=1}^N v_i(s'_j), \quad s'_j \sim p(\cdot|s,a)$$
 
 White the Monte Carlo estimate $\hat{q}_n(s,a)$ is unbiased for any individual action, the empirical Bellman operator is biased upward due to Jensen's inequality, which states that for any convex function $f$, we have $\mathbb{E}[f(X)] \geq f(\mathbb{E}[X])$. Since the maximum operator is convex, this implies:
 
-$$\mathbb{E}[(\widehat{\mathrm{L}}v_i)(s)] = \mathbb{E}\left[\max_{a \in \mathcal{A}(s)} \hat{q}_i(s,a)\right] \geq \max_{a \in \mathcal{A}(s)} \mathbb{E}[\hat{q}_i(s,a)] = (\mathrm{L}v_i)(s)$$
+$$\mathbb{E}[(\widehat{\Bellman}v_i)(s)] = \mathbb{E}\left[\max_{a \in \mathcal{A}(s)} \hat{q}_i(s,a)\right] \geq \max_{a \in \mathcal{A}(s)} \mathbb{E}[\hat{q}_i(s,a)] = (\Bellman v_i)(s)$$
 
 This means that our Monte Carlo approximation of the Bellman operator is biased upward:
 
-$$b_i(s) = \mathbb{E}[(\widehat{\mathrm{L}}v_i)(s)] - (\mathrm{L}v_i)(s) \geq 0$$
+$$b_i(s) = \mathbb{E}[(\widehat{\Bellman}v_i)(s)] - (\Bellman v_i)(s) \geq 0$$
 
-Even worse, this bias compounds through iterations as each new value function estimate $v_{n+1}$ is based on targets generated by the biased operator $\widehat{\mathrm{L}}$, creating a nested structure of bias accumulation.
+Even worse, this bias compounds through iterations as each new value function estimate $v_{n+1}$ is based on targets generated by the biased operator $\widehat{\Bellman}$, creating a nested structure of bias accumulation.
 This bias remains nonnegative at every step, and each application of the Bellman operator potentially adds more upward bias. As a result, instead of converging to the true value function $v^*$, the algorithm typically stabilizes at a biased approximation that systematically overestimates true values.
 
 ### The Keane-Wolpin Bias Correction Algorithm
@@ -125,7 +125,7 @@ This bias remains nonnegative at every step, and each application of the Bellman
 Keane and Wolpin proposed to de-bias such estimators by essentially "learning" the bias, then subtracting it when computing the empirical Bellman operator. If we knew this bias function, we could subtract it from our empirical estimate to get an unbiased estimate of the true Bellman operator:
 
 $$
-(\widehat{\mathrm{L}}v_n)(s) - \text{bias}(s) = (\widehat{\mathrm{L}}v_n)(s) - (\mathbb{E}[(\widehat{\mathrm{L}}v_n)(s)] - (\mathrm{L}v_n)(s)) \approx (\mathrm{L}v_n)(s)
+(\widehat{\Bellman}v_n)(s) - \text{bias}(s) = (\widehat{\Bellman}v_n)(s) - (\mathbb{E}[(\widehat{\Bellman}v_n)(s)] - (\Bellman v_n)(s)) \approx (\Bellman v_n)(s)
 $$
 
 This equality holds in expectation, though any individual estimate would still have variance around the true value.
@@ -142,7 +142,7 @@ The variance term $\max_{a \in \mathcal{A}} \text{Var}_i(s,a)$ will typically be
 2. For these states, compute more accurate value estimates using many more Monte Carlo samples (10-100x more than usual)
 3. Compute the empirical bias at each benchmark state $s$:
 
-   $$\hat{b}_i(s) = (\hat{\mathrm{L}}v_i)(s) - (\hat{\mathrm{L}}_{\text{accurate}}v_i)(s)$$
+   $$\hat{b}_i(s) = (\hat{\Bellman}v_i)(s) - (\hat{\Bellman}_{\text{accurate}}v_i)(s)$$
 
 4. Fit a linear relationship between this bias and the variance at the greedy action:
 
@@ -151,7 +151,7 @@ The variance term $\max_{a \in \mathcal{A}} \text{Var}_i(s,a)$ will typically be
 This creates a dataset of pairs $(\text{Var}_i(s,a^*_i(s)), \hat{b}_i(s))$ that can be used to estimate $\alpha_i$ through ordinary least squares regression. Once we have learned this bias function $\hat{b}$, we can define the bias-corrected Bellman operator:
 
 $$ 
-(\widetilde{\mathrm{L}}v_i)(s) \triangleq (\hat{\mathrm{L}}v_i)(s) - \hat{b}(s)
+(\widetilde{\Bellman}v_i)(s) \triangleq (\hat{\Bellman}v_i)(s) - \hat{b}(s)
 $$
 
 While this bias correction approach has been influential in econometrics, it hasn't gained much traction in the machine learning community. A major drawback is the need for accurate operator estimation at benchmark states, which requires allocating substantially more samples to these states. In the next section, we'll explore an alternative strategy that, while requiring the maintenance of two sets of value estimates, achieves bias correction without demanding additional samples.
@@ -303,22 +303,22 @@ This establishes the **consistency** of $ Y $ as an estimator for $ \max_i \mu_i
 
 We have so far considered a specific kind of approximation: that of the Bellman operator itself. We explored a modified version of the operator with the desirable property of smoothness, which we deemed beneficial for optimization purposes and due to its rich multifaceted interpretations. We now turn our attention to another form of approximation, complementary to the previous kind, which seeks to address the challenge of applying the operator across the entire state space.
 
-To be precise, suppose we can compute the Bellman operator $\mathrm{L}v$ at some state $s$, producing a new function $U$ whose value at state $s$ is $u(s) = (\mathrm{L}v)(s)$. Then, putting aside the problem of pointwise evaluation, we want to carry out this update across the entire domain of $v$. When working with small state spaces, this is not an issue, and we can afford to carry out the update across the entirety of the state space. However, for larger or infinite state spaces, this becomes a major challenge.
+To be precise, suppose we can compute the Bellman operator $\Bellman v$ at some state $s$, producing a new function $U$ whose value at state $s$ is $u(s) = (\Bellman v)(s)$. Then, putting aside the problem of pointwise evaluation, we want to carry out this update across the entire domain of $v$. When working with small state spaces, this is not an issue, and we can afford to carry out the update across the entirety of the state space. However, for larger or infinite state spaces, this becomes a major challenge.
 
 So what can we do? Our approach will be to compute the operator at chosen "grid points," then "fill in the blanks" for the states where we haven't carried out the update by "fitting" the resulting output function on a dataset of input-output pairs. The intuition is that for sufficiently well-behaved functions and sufficiently expressive function approximators, we hope to generalize well enough. Our community calls this "learning," while others would call it "function approximation" — a field of its own in mathematics. To truly have a "learning algorithm," we'll need to add one more piece of machinery: the use of samples — of simulation — to pick the grid points and perform numerical integration. But this is for the next section...
 
 ## Partial Updates in the Tabular Case
 
-The ideas presented in this section apply more broadly to the successive approximation method applied to a fixed-point problem. Consider again the problem of finding the optimal value function $v_\gamma^\star$ as the solution to the Bellman optimality operator $\mathrm{L}$: 
+The ideas presented in this section apply more broadly to the successive approximation method applied to a fixed-point problem. Consider again the problem of finding the optimal value function $v_\gamma^\star$ as the solution to the Bellman optimality operator $\Bellman$: 
 
 $$
-\mathrm{L} \mathbf{v} \equiv \max_{\pi \in \Pi^{MD}} \left\{\mathbf{r}_\pi + \gamma \mathbf{P}_\pi \mathbf{v}\right\}
+\Bellman \mathbf{v} \equiv \max_{\pi \in \Pi^{MD}} \left\{\mathbf{r}_\pi + \gamma \mathbf{P}_\pi \mathbf{v}\right\}
 $$
 
-Value iteration -- the name for the method of successive approximation applied to $\mathrm{L}$ -- computes a sequence of iterates $v_{n+1} = \mathrm{L}v_n$ from some arbitrary $v_0$. Let's pause to consider what the equality sign in this expression means: it represents an assignment (perhaps better denoted as $:=$) across the entire domain. This becomes clearer when writing the update in component form:
+Value iteration -- the name for the method of successive approximation applied to $\Bellman$ -- computes a sequence of iterates $v_{n+1} = \Bellman v_n$ from some arbitrary $v_0$. Let's pause to consider what the equality sign in this expression means: it represents an assignment (perhaps better denoted as $:=$) across the entire domain. This becomes clearer when writing the update in component form:
 
 $$
-v_{n+1}(s) := (\mathrm{L} v_n)(s) \equiv \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v_n(j)\right\}, \, \forall s \in \mathcal{S}
+v_{n+1}(s) := (\Bellman v_n)(s) \equiv \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v_n(j)\right\}, \, \forall s \in \mathcal{S}
 $$
 
 Pay particular attention to the $\forall s \in \mathcal{S}$ notation: what happens when we can't afford to update all components in each step of value iteration? A potential solution is to use Gauss-Seidel Value Iteration, which updates states sequentially, immediately using fresh values for subsequent updates. 
@@ -382,7 +382,7 @@ As we discussed earlier in the context of trajectory optimization, we can choose
 Given a parameterization, our value iteration procedure must now update the parameters $\boldsymbol{\theta}$ rather than tabular values directly. At each iteration, we aim to find parameters that best approximate the Bellman operator's output at chosen base points. More precisely, we collect a dataset:
 
 $$
-\mathcal{D}_n = \{(s_i, (\mathrm{L}v)(s_i; \boldsymbol{\theta}_n)) \mid s_i \in B\}
+\mathcal{D}_n = \{(s_i, (\Bellman v)(s_i; \boldsymbol{\theta}_n)) \mid s_i \in B\}
 $$
 
 and fit a regressor $v(\cdot; \boldsymbol{\theta}_{n+1})$ to this data.
@@ -524,7 +524,7 @@ $$
 If $q^*$ is an optimal state-action value function, then $v^*(s) = \max_a q^*(s,a)$. Just as we had a Bellman operator for value functions, we can also define an optimality operator for Q-functions. In component form:
 
 $$
-(\mathrm{L}q)(s,a) = r(s,a) + \gamma \int p(ds'|s,a)\max_{a' \in \mathcal{A}(s')} q(s', a')
+(\Bellman q)(s,a) = r(s,a) + \gamma \int p(ds'|s,a)\max_{a' \in \mathcal{A}(s')} q(s', a')
 $$
 
 Furthermore, this operator for Q-functions is also a contraction in the sup-norm and therefore has a unique fixed point $q^*$.
@@ -1075,25 +1075,25 @@ A crucial question to ask is whether our algorithm maintains the contraction pro
 
 The situation becomes more complicated with fitted methods because we are not dealing with just a single operator. At each iteration, we perform exact, unbiased pointwise evaluations of the Bellman operator, but instead of obtaining the next function exactly, we get the closest representable one under our chosen function approximation scheme. Gordon {cite:t}`Gordon1995` showed that the fitting step can be conceptualized as an additional operator that gets applied on top of the exact Bellman operator to produce the next function parameters. This leads to viewing fitted value methods - which for simplicity we describe only for the value case, though the Q-value setting follows similarly - as the composition of two operators:
 
-$$v_{n+1} = \Gamma(\mathrm{L}(v_n))$$
+$$v_{n+1} = \Gamma(\Bellman(v_n))$$
 
-where $\mathrm{L}$ is the Bellman operator and $\Gamma$ represents the function approximation mapping.
+where $\Bellman$ is the Bellman operator and $\Gamma$ represents the function approximation mapping.
 
-Now we arrive at the central question: if $\mathrm{L}$ was a sup-norm contraction, is $\Gamma$ composed with $\mathrm{L}$ still a sup-norm contraction? What conditions must hold for this to be true? This question is fundamental because if we can establish that the composition of these two operators maintains the contraction property in the sup-norm, we get directly that our resulting successive approximation method will converge.
+Now we arrive at the central question: if $\Bellman$ was a sup-norm contraction, is $\Gamma$ composed with $\Bellman$ still a sup-norm contraction? What conditions must hold for this to be true? This question is fundamental because if we can establish that the composition of these two operators maintains the contraction property in the sup-norm, we get directly that our resulting successive approximation method will converge.
 
 ## The Search for Nonexpansive Operators
 
-Consider what happens in the fitting step: we have two value functions $v$ and $w$, and after applying the Bellman operator $\mathrm{L}$ to each, we get new target values that differ by at most $\gamma$ times their original difference in sup-norm (due to $\mathrm{L}$ being a $\gamma$-contraction in the sup norm). But what happens when we fit to these target values? If the function approximator can exaggerate differences between its target values, even a small difference in the targets could lead to a larger difference in the fitted functions. This would be disastrous - even though the Bellman operator shrinks differences between value functions by a factor of $\gamma$, the fitting step could amplify them back up, potentially breaking the contraction property of the composite operator.
+Consider what happens in the fitting step: we have two value functions $v$ and $w$, and after applying the Bellman operator $\Bellman$ to each, we get new target values that differ by at most $\gamma$ times their original difference in sup-norm (due to $\Bellman$ being a $\gamma$-contraction in the sup norm). But what happens when we fit to these target values? If the function approximator can exaggerate differences between its target values, even a small difference in the targets could lead to a larger difference in the fitted functions. This would be disastrous - even though the Bellman operator shrinks differences between value functions by a factor of $\gamma$, the fitting step could amplify them back up, potentially breaking the contraction property of the composite operator.
 
-In order to ensure that the composite operator is contractive, we need conditions on $\Gamma$ such that if $\mathrm{L}$ is a sup-norm contraction then the composition also is. A natural property to consider is when $\Gamma$ is a non-expansion. By definition, this means that for any functions $v$ and $w$:
+In order to ensure that the composite operator is contractive, we need conditions on $\Gamma$ such that if $\Bellman$ is a sup-norm contraction then the composition also is. A natural property to consider is when $\Gamma$ is a non-expansion. By definition, this means that for any functions $v$ and $w$:
 
 $$\|\Gamma(v) - \Gamma(w)\|_\infty \leq \|v - w\|_\infty$$
 
 This turns out to be exactly what we need, since if $\Gamma$ is a non-expansion, then for any functions $v$ and $w$:
 
-$$\|\Gamma(\mathrm{L}(v)) - \Gamma(\mathrm{L}(w))\|_\infty \leq \|L(v) - L(w)\|_\infty \leq \gamma\|v - w\|_\infty$$
+$$\|\Gamma(\Bellman(v)) - \Gamma(\Bellman(w))\|_\infty \leq \|\Bellman(v) - L(w)\|_\infty \leq \gamma\|v - w\|_\infty$$
 
-The first inequality uses the non-expansion property of $\Gamma$, while the second uses the fact that $\mathrm{L}$ is a $\gamma$-contraction. Together they show that the composite operator $\Gamma \circ L$ remains a $\gamma$-contraction.
+The first inequality uses the non-expansion property of $\Gamma$, while the second uses the fact that $\Bellman$ is a $\gamma$-contraction. Together they show that the composite operator $\Gamma \circ L$ remains a $\gamma$-contraction.
 
 ## Gordon's Averagers
 
