@@ -14,7 +14,7 @@ kernelspec:
 
 # Weighted Residual Methods for Functional Equations
 
-The Bellman optimality equation $\Bellman v = v$ is a functional equation: an equation where the unknown is an entire function rather than a finite-dimensional vector. When the state space is continuous or very large, we cannot represent the value function exactly on a computer. We must instead work with finite-dimensional approximations. This motivates weighted residual methods (also called minimum residual methods), a general framework for transforming infinite-dimensional problems into tractable finite-dimensional ones.
+The Bellman optimality equation $\Bellman v = v$ is a functional equation: an equation where the unknown is an entire function rather than a finite-dimensional vector. When the state space is continuous or very large, we cannot represent the value function exactly on a computer. We must instead work with finite-dimensional approximations. This motivates weighted residual methods (also called minimum residual methods), a general framework for transforming infinite-dimensional problems into tractable finite-dimensional ones {cite}`Chakraverty2019,AtkinsonPotra1987`.
 
 ## What Does It Mean for a Residual to Be Zero?
 
@@ -621,7 +621,7 @@ But regardless of which projection method we use, iteration takes the form $\hat
 
 ### Monotone Approximators and Stability
 
-The answer turns out to depend on specific properties of the approximation operator $\Proj$. This theory was developed independently across multiple research communities—computational economics {cite}`Judd1992,Judd1996,SantosVigoAguiar1998`, economic dynamics {cite}`Stachurski2009`, and reinforcement learning {cite}`Gordon1995,Gordon1999`—arriving at essentially the same mathematical conditions.
+The answer turns out to depend on specific properties of the approximation operator $\Proj$. This theory was developed independently across multiple research communities—computational economics {cite}`Judd1992,Judd1996,McGrattan1997,SantosVigoAguiar1998`, economic dynamics {cite}`Stachurski2009`, and reinforcement learning {cite}`Gordon1995,Gordon1999`—arriving at essentially the same mathematical conditions.
 
 #### Monotonicity Implies Nonexpansiveness
 
@@ -877,7 +877,7 @@ The result shows that convergence depends on matching the weighting to the opera
 
 In reinforcement learning, this has a practical interpretation. When we learn by following policy $\pi$ and collecting transitions $(s, a, r, s')$, the states we visit are distributed according to the stationary distribution of $\pi$. This is **on-policy learning**. The LSTD algorithm uses data sampled from this distribution, which means the empirical weighting naturally matches the operator structure. Our analysis shows that the iterative algorithm $v_{k+1} = \Proj \BellmanPi v_k$ converges to the same fixed point that LSTD computes in closed form.
 
-This is fundamentally different from the monotone approximator theory. There, we required structural properties of $\Proj$ itself (monotonicity, constant preservation) to guarantee that $\Proj$ preserves the sup-norm contraction property of $\Bellman$. Here, we place no such restriction on $\Proj$—Galerkin projection is not monotone. Instead, convergence depends on matching the norm to the operator. When $\xi$ does not match the stationary distribution, as in off-policy learning where data comes from a different behavior policy, the Jensen inequality argument breaks down. The operator $\mathbf{P}_\pi$ need not be non-expansive in $\|\cdot\|_\xi$, and $\Proj \BellmanPi$ may fail to contract. This explains divergence phenomena such as Baird's counterexample.
+This is fundamentally different from the monotone approximator theory. There, we required structural properties of $\Proj$ itself (monotonicity, constant preservation) to guarantee that $\Proj$ preserves the sup-norm contraction property of $\Bellman$. Here, we place no such restriction on $\Proj$—Galerkin projection is not monotone. Instead, convergence depends on matching the norm to the operator. When $\xi$ does not match the stationary distribution, as in off-policy learning where data comes from a different behavior policy, the Jensen inequality argument breaks down. The operator $\mathbf{P}_\pi$ need not be non-expansive in $\|\cdot\|_\xi$, and $\Proj \BellmanPi$ may fail to contract. This explains divergence phenomena such as Baird's counterexample {cite}`Baird1995`.
 
 ### Why Not Bellman Optimality?
 
@@ -935,6 +935,31 @@ This extends beyond linear basis functions. Neural networks, decision trees, and
 The abstraction $\mathtt{fit}$ encapsulates all the complexity of function approximation, whether that involves solving a linear system, running gradient descent, or training an ensemble. The projection operator $\Proj$ is one instantiation: when $\mathcal{F}$ is a linear subspace and we minimize weighted squared error, we recover Galerkin or collocation. Neural networks and other non-linear methods extend this framework beyond theoretical tractability.
 
 A limitation of this algorithm is that it assumes we can evaluate the Bellman operator exactly. Computing $y_i = (\Bellman v_k)(s_i)$ requires knowing transition probabilities and summing over all next states. In practice, we often have only a simulator or observed data. The next chapter shows how to approximate these expectations from samples, connecting the fitted-value iteration framework developed here to simulation-based methods and reinforcement learning.
+
+## The Minimum Residual Framework for Nonlinear Approximators
+
+The weighted residual methods developed in this chapter have focused on linear function classes: polynomial bases, piecewise linear interpolants, and linear combinations of fixed basis functions. Neural networks, kernel methods, and decision trees do not fit this template. How does the framework extend to nonlinear approximators?
+
+Recall the Galerkin approach for linear approximation $v_{\boldsymbol{\theta}} = \sum_{i=1}^d \theta_i \varphi_i$. The orthogonality conditions $\langle v - \Bellman v, \varphi_i \rangle_w = 0$ for all $i$ define a linear system with a closed-form solution. These equations arise from minimizing $\|v - \Bellman v\|_w^2$ over the subspace, since at the minimum, the gradient with respect to each coefficient must vanish. The connection between norm minimization and orthogonality holds generally. For any norm $\|\cdot\|_w$ induced by an inner product $\langle \cdot, \cdot \rangle_w$, minimizing $\|f(\boldsymbol{\theta})\|_w^2$ with respect to parameters requires $\frac{\partial}{\partial \theta_i} \|f(\boldsymbol{\theta})\|_w^2 = 0$. Since $\|f\|_w^2 = \langle f, f \rangle_w$, the chain rule gives $2\langle f, \frac{\partial f}{\partial \theta_i} \rangle_w = 0$. Minimizing the residual norm is thus equivalent to requiring orthogonality $\langle f, \frac{\partial f}{\partial \theta_i} \rangle_w = 0$ for all $i$. The equivalence holds for any choice of inner product: weighted $L^2$ integrals for Galerkin, sums over collocation points for collocation, or sampled expectations for neural networks.
+
+For nonlinear function classes parameterized by $\boldsymbol{\theta} \in \mathbb{R}^p$ (neural networks, kernel expansions), the same minimization principle applies:
+
+$$
+\boldsymbol{\theta}^* = \arg\min_{\boldsymbol{\theta}} \|v_{\boldsymbol{\theta}} - \Bellman v_{\boldsymbol{\theta}}\|_w^2.
+$$
+
+The first-order stationarity condition yields orthogonality:
+
+$$
+\Big\langle v_{\boldsymbol{\theta}} - \Bellman v_{\boldsymbol{\theta}}, \frac{\partial v_{\boldsymbol{\theta}}}{\partial \theta_i} \Big\rangle_w = 0 \quad \text{for all } i.
+$$
+
+The test functions are now the partial derivatives $\frac{\partial v_{\boldsymbol{\theta}}}{\partial \theta_i}$, which span the tangent space to the manifold $\{v_{\boldsymbol{\theta}} : \boldsymbol{\theta} \in \mathbb{R}^p\}$ at the current parameters. In the linear case $v_{\boldsymbol{\theta}} = \sum_i \theta_i \varphi_i$, the partial derivative $\frac{\partial v_{\boldsymbol{\theta}}}{\partial \theta_i} = \varphi_i$ recovers the fixed basis functions of Galerkin. For nonlinear parameterizations, the test functions change with $\boldsymbol{\theta}$, and the orthogonality conditions define a nonlinear system solved by iterative gradient descent.
+
+
+The **dual pairing** formulation {cite}`LegrandJunca2025` extends this framework to settings where test objects need not be regular functions. We have been informal about this distinction in our treatment of collocation, but the Dirac deltas $\delta(x - x_i)$ used there are not classical functions—they are distributions, defined rigorously only through their action on test functions via $\langle \Residual(v), \delta(x - x_i) \rangle = (\Residual v)(x_i)$. The simple calculus argument for orthogonality does not apply directly to such objects; the dual pairing framework provides the proper mathematical foundation. The induced dual norm $\|\Residual(v)\|_* = \sup_{\|w\|=1} |\langle \Residual(v), w \rangle|$ measures residuals by their worst-case effect on test functions, a perspective that has inspired adversarial formulations {cite}`Zang2020` where both trial and test functions are learned.
+
+The minimum residual framework thus connects classical projection methods to modern function approximation. The unifying principle is orthogonality of residuals to test functions. Linear methods use fixed test functions and admit closed-form solutions. Nonlinear methods use parameter-dependent test functions and require iterative optimization. Convergence guarantees are well understood for linear projections (monotonicity, matched weightings) but remain an active research area for neural networks. The next chapter extends this framework to the simulation-based setting, where the Bellman operator itself must be approximated from samples rather than computed exactly.
 
 
 
