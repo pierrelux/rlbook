@@ -17,6 +17,8 @@ project:
     '\Contraction': '\mathsf{T}'
     '\Bellman': '\mathsf{L}'
     '\BellmanPi': '\mathsf{L}_\pi'
+    '\BellmanQuad': '\widetilde{\mathsf{L}}'
+    '\EulerResidual': '\mathsf{H}'
   exports:
     - format: pdf
       output: exports/book.pdf
