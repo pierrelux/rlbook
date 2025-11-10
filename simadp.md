@@ -667,31 +667,25 @@ $$
 
 because the maximum of noisy variables exceeds the maximum of their means on average.
 
-Suppose instead we maintain two independent Q-function approximations, $q^{(1)}(s,a; \theta^{(1)})$ and $q^{(2)}(s,a; \theta^{(2)})$, each with its own parameters and its own Monte Carlo noise. When updating $q^{(1)}$, we use $q^{(1)}$ to select the action but $q^{(2)}$ to evaluate it:
+Suppose instead we maintain two independent Q-function approximations, $q^{(1)}(s,a)$ and $q^{(2)}(s,a)$, each with its own Monte Carlo noise. When updating $q^{(1)}$, we use $q^{(1)}$ to select the action but $q^{(2)}$ to evaluate it:
 
 $$
-Y^{(1)} = r(s,a) + \gamma \, q^{(2)}\big(s', a^\star; \theta^{(2)}\big), \quad \text{where } a^\star = \arg\max_{a'} q^{(1)}(s',a'; \theta^{(1)}).
+Y^{(1)} = r(s,a) + \gamma \, q^{(2)}(s', a^\star), \quad \text{where } a^\star = \arg\max_{a'} q^{(1)}(s',a').
 $$
 
 Symmetrically, when updating $q^{(2)}$, we reverse the roles:
 
 $$
-Y^{(2)} = r(s,a) + \gamma \, q^{(1)}\big(s', a^\star; \theta^{(1)}\big), \quad \text{where } a^\star = \arg\max_{a'} q^{(2)}(s',a'; \theta^{(2)}).
+Y^{(2)} = r(s,a) + \gamma \, q^{(1)}(s', a^\star), \quad \text{where } a^\star = \arg\max_{a'} q^{(2)}(s',a').
 $$
 
-To see why this reduces bias, consider the first update. The action $a^\star$ is selected based on the noise in $q^{(1)}$. The evaluation $q^{(2)}(s', a^\star; \theta^{(2)})$ uses the noise in $q^{(2)}$. If these two sources of noise are independent, then conditional on the selected action $a^\star$,
+To see why this reduces bias, consider the first update. The action $a^\star$ is selected based on the noise in $q^{(1)}$. The evaluation $q^{(2)}(s', a^\star)$ uses the noise in $q^{(2)}$. If these two sources of noise are independent, then conditional on the selected action $a^\star$,
 
 $$
-\mathbb{E}\big[q^{(2)}(s', a^\star; \theta^{(2)}) \mid a^\star\big] = q(s', a^\star),
+\mathbb{E}\big[q^{(2)}(s', a^\star) \mid a^\star\big] = q^\star(s', a^\star),
 $$
 
-because the noise in $q^{(2)}$ has zero mean and is independent of the selection. Taking expectations over the randomness in $a^\star$:
-
-$$
-\mathbb{E}\big[q^{(2)}(s', a^\star; \theta^{(2)})\big] = \mathbb{E}\big[q(s', a^\star)\big].
-$$
-
-There is no extra positive term from the maximum of noise, because the maximization step never sees the noise used in the evaluation. The coupling is broken.
+where $q^\star$ denotes the true Q-value. Taking expectations over $a^\star$, the estimator remains unbiased. There is no extra positive term from the maximum of noise, because the maximization step never sees the noise used in the evaluation. The coupling is broken.
 
 This is the principle behind double Q-learning {cite}`van2016deep`. We maintain two Q-functions $q^{(1)}$ and $q^{(2)}$ and alternate which one selects actions and which one evaluates them during value iteration. The following algorithm implements this with Monte Carlo integration. The maximization bias is a property of taking the max over noisy estimates, independent of whether we use a table, linear approximation, or neural networks to represent the Q-functions.
 
