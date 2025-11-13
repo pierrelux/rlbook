@@ -42,9 +42,11 @@ project:
       children:
         - file: regmdp.md
         - file: projdp.md
-        - file: simadp.md
-        - file: batch_rl.md
-        - file: online_rl.md
+        - title: Simulation-Based Methods
+          children:
+            - file: simadp.md
+            - file: batch_rl.md
+            - file: online_rl.md
         - file: cadp.md
     - title: Appendix
       children:
