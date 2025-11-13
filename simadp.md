@@ -272,6 +272,53 @@ The expectation inside the braces is now replaced by a random sample average. In
 
 At this stage nothing about approximation or projection has entered yet. For a fixed value function $v$, Monte Carlo provides unbiased, noisy evaluations of $(\Bellman v)(s)$. The approximation question arises once we couple this stochastic evaluation with basis functions and projections.
 
+### The Single-Sample Reality: Why N=1 in Practice
+
+The Monte Carlo framework developed above allows arbitrary sample size $N$ when approximating $\mathbb{E}[v(S') \mid s,a]$. In principle, we could draw many next states $S'^{(1)}, \ldots, S'^{(N)}$ from $p(\cdot \mid s,a)$ and average $\frac{1}{N}\sum_{n=1}^N v(S'^{(n)})$ to reduce variance. However, most practical reinforcement learning settings operate under constraints that force $N=1$.
+
+The fundamental constraint is the **no-reset condition**: we cannot repeatedly "rewind" the environment to the same state $(s,a)$ and sample different continuations. Consider:
+
+- **Real-world systems**: A robot executing action $a$ in state $s$ observes one outcome $s'$. We cannot reset the robot to the exact same state and try again to collect multiple samples.
+- **Single trajectory collection**: An agent playing a video game or controlling a system experiences one sequence $(s_0, a_0, r_0, s_1, a_1, r_1, s_2, \ldots)$. Each state-action pair $(s_t, a_t)$ yields exactly one observed next state $s_{t+1}$.
+- **Simulators with side effects**: Even when a simulator exists, resetting to an arbitrary state $s$ may be impossible or expensive. Many simulators only support initialization from specific starting states.
+
+This leads to a fundamental data structure shift. Instead of organizing experience as
+
+$$
+\text{state-action pairs with multiple next-state samples: } (s, a) \mapsto \{s'^{(1)}, s'^{(2)}, \ldots, s'^{(N)}\},
+$$
+
+we work with **transition quadruples**:
+
+$$
+\mathcal{D} = \{(s_i, a_i, r_i, s'_i)\}_{i=1}^M,
+$$
+
+where each tuple records a single observed transition. The Monte Carlo estimator becomes:
+
+$$
+\widehat{G}_1(s_i, a_i) = r_i + \gamma v(s'_i), \quad N=1.
+$$
+
+This is unbiased but high-variance: $\mathbb{E}[\widehat{G}_1(s,a)] = r(s,a) + \gamma \int v(s')p(ds'|s,a)$, but $\mathrm{Var}(\widehat{G}_1) = \mathrm{Var}(v(S'))$. We cannot reduce this variance by sampling multiple next states from the same $(s,a)$ because we only get one.
+
+How then do we reduce variance? Through **aggregation across different samples**. If the dataset contains multiple transitions from similar state-action pairs (even if not identical), the regression problem $\min_\theta \sum_i \ell(q(s_i, a_i; \theta), y_i)$ with targets $y_i = \widehat{G}_1(s_i, a_i)$ effectively pools information. The function approximator $q(s,a; \theta)$ smooths and generalizes across the noisy single-sample targets.
+
+This clarifies three aspects of simulation-based algorithms that follow:
+
+1. **Data structure**: All algorithms work with quadruples $\{(s_i, a_i, r_i, s'_i)\}$, not $(s,a)$ pairs with multiple next-state samples
+2. **Variance reduction**: Comes from function approximation (sharing across samples) and trajectory length (multiple transitions per episode), not from repeated sampling at fixed $(s,a)$
+3. **Target computation**: Each transition $(s_i, a_i, r_i, s'_i)$ yields exactly one target $y_i = r_i + \gamma \max_{a'} q(s'_i, a')$ using the single observed $s'_i$
+
+In offline batch settings where we have a fixed dataset $\mathcal{D}$ collected once, every algorithm reuses these same quadruples across iterations. We recompute targets $y_i$ using updated $q$ but never collect new samples from the same $(s,a)$ pairs. In online settings, we collect new quadruples sequentially and add them to the dataset or replay buffer.
+
+The special case where $N>1$ sampling is feasible occurs when:
+- We have a generative model that supports arbitrary state initialization (e.g., some MuJoCo environments)
+- The environment is fast enough that repeated sampling is cheap
+- We explicitly design data collection to revisit states
+
+Even then, most practical algorithms stick with $N=1$ and compensate through other means (larger replay buffers, better function approximation, multi-step returns). The single-sample case is not a limitation to work around but the fundamental operating mode of reinforcement learning.
+
 ### Sampling the outer expectations
 
 Projection methods introduce a second layer of integration. In Galerkin and least squares schemes, we choose a distribution $\mu$ over states (and sometimes actions) and enforce conditions of the form
@@ -322,10 +369,11 @@ $$
 \hat{v}^{(k+1)} = \Proj_M\,\widehat{\Bellman}_N \hat{v}^{(k)}.
 $$
 
-Unlike deterministic quadrature, which introduces a fixed bias at each iteration, Monte Carlo introduces random error with zero mean but nonzero variance. However, combining Monte Carlo with the maximization in the Bellman operator creates a systematic problem: while the estimate of the expected return for any individual action is unbiased, taking the maximum over these noisy estimates introduces upward bias. This overestimation compounds through value iteration and degrades the resulting policies.
+In the typical reinforcement learning setting, $N=1$: each observed transition $(s_i, a_i, r_i, s'_i)$ provides exactly one sample of the next state, as explained in the previous subsection. This means we work with high-variance single-sample estimates $r_i + \gamma v(s'_i)$ rather than averaged returns. Variance reduction comes from aggregating information across different transitions through the function approximator and from collecting long trajectories with many transitions.
 
+Unlike deterministic quadrature, which introduces a fixed bias at each iteration, Monte Carlo introduces random error with zero mean but nonzero variance. However, combining Monte Carlo with the maximization in the Bellman operator creates a systematic problem: while the estimate of the expected return for any individual action is unbiased, taking the maximum over these noisy estimates introduces upward bias. This overestimation compounds through value iteration and degrades the resulting policies. We address this challenge in the [next chapter on batch reinforcement learning](batch_rl.md).
 
-## Amortizing Action Selection via Q-Functions
+### Amortizing Action Selection via Q-Functions
 
 Monte Carlo integration enables model-free approximate dynamic programming: we no longer need explicit transition probabilities $p(s'|s,a)$, only the ability to sample next states. However, one computational challenge remains. The standard formulation of an optimal decision rule is
 
@@ -366,354 +414,22 @@ Like the Bellman operator on value functions, $\Bellman$ is a $\gamma$-contracti
 ```{prf:algorithm} Parametric Q-Value Iteration
 :label: simadp-parametric-q-value-iteration
 
-**Input** Given an MDP $(S, A, P, R, \gamma)$, base points $\mathcal{B} \subset S$, function approximator class $q(s,a; \boldsymbol{\theta})$, maximum iterations $N$, tolerance $\varepsilon > 0$
+**Input** Given an MDP $(S, A, P, R, \gamma)$, base points $\mathcal{B} \subset S$, function approximator class $q(s,a; \boldsymbol{\theta})$, maximum iterations $N$, tolerance $\varepsilon > 0$, initial parameters $\boldsymbol{\theta}_0$
 
 **Output** Parameters $\boldsymbol{\theta}$ for Q-function approximation
 
-1. Initialize $\boldsymbol{\theta}_0$ (e.g., for zero initialization)
+1. Initialize $\boldsymbol{\theta}_0$ (e.g., random initialization)
 2. $n \leftarrow 0$
 3. **repeat**
     1. $\mathcal{D} \leftarrow \emptyset$
     2. For each $(s,a) \in \mathcal{B} \times A$:
         1. $y_{s,a} \leftarrow r(s,a) + \gamma \int p(ds'|s,a)\max_{a' \in A} q(s',a'; \boldsymbol{\theta}_n)$
         2. $\mathcal{D} \leftarrow \mathcal{D} \cup \{((s,a), y_{s,a})\}$
-    3. $\boldsymbol{\theta}_{n+1} \leftarrow \texttt{fit}(\mathcal{D})$
+    3. $\boldsymbol{\theta}_{n+1} \leftarrow \texttt{fit}(\mathcal{D}, \boldsymbol{\theta}_{\text{init}}=\boldsymbol{\theta}_0, K=\infty)$
     4. $\delta \leftarrow \frac{1}{|\mathcal{D}||A|}\sum_{(s,a) \in \mathcal{D} \times A} (q(s,a; \boldsymbol{\theta}_{n+1}) - q(s,a; \boldsymbol{\theta}_n))^2$
     5. $n \leftarrow n + 1$
 4. **until** ($\delta < \varepsilon$ or $n \geq N$)
 5. **return** $\boldsymbol{\theta}_n$
 ```
 
-## Upward Bias from Maximizing Noisy Estimates
-
-The source of the problem is simple to state: we are now optimizing over noisy estimates of expected returns. Each Monte Carlo estimate is, by itself, unbiased. The bias appears when we take a maximum over several such noisy estimates and then feed that maximum back into the next iteration.
-
-Fix some state $s$ and a current value function $v$. For each action $a$, define the true expected continuation value
-
-$$
-\mu(s,a) \equiv \int v(s')\,p(ds' \mid s,a),
-$$
-
-so that the exact Bellman update is
-
-$$
-(\Bellman v)(s) = \max_{a \in \mathcal{A}_s} \left\{ r(s,a) + \gamma \mu(s,a)\right\}.
-$$
-
-Under Monte Carlo integration with $N$ samples, we replace $\mu(s,a)$ by the empirical mean
-
-$$
-\hat{\mu}_N(s,a) \equiv \frac{1}{N} \sum_{i=1}^N v(s'_{i}), \quad s'_{i} \sim p(\cdot \mid s,a),
-$$
-
-and define the empirical Bellman update
-
-$$
-(\widehat{\Bellman}_N v)(s) = \max_{a \in \mathcal{A}_s} \left\{ r(s,a) + \gamma \hat{\mu}_N(s,a)\right\}.
-$$
-
-For any fixed $s$ and $a$, the Monte Carlo estimator is unbiased:
-
-$$
-\mathbb{E}\big[\hat{\mu}_N(s,a)\big] = \mu(s,a).
-$$
-
-If we removed the maximization over actions, we would have an unbiased approximation of $(\Bellman v)(s)$. The problem is that we do not remove it. Instead, we compute
-
-$$
-\max_a \left\{ r(s,a) + \gamma \hat{\mu}_N(s,a)\right\},
-$$
-
-where each term inside the maximum is a random quantity. The nonlinearity of the max operator breaks unbiasedness.
-
-### A Simple Inequality
-
-To see this clearly, suppress $s$ in the notation and consider random variables
-
-$$
-Y_a \equiv r(a) + \gamma \hat{\mu}_N(a), \quad a \in \mathcal{A},
-$$
-
-with expectations
-
-$$
-\mathbb{E}[Y_a] = r(a) + \gamma \mu(a).
-$$
-
-Let $a^*$ be any action that maximizes the **true** expected return:
-
-$$
-a^* \in \arg\max_{a} \left\{r(a) + \gamma \mu(a)\right\}.
-$$
-
-Then, for every outcome of the randomness,
-
-$$
-\max_a Y_a \ge Y_{a^*}.
-$$
-
-This is not a probabilistic statement but a simple algebraic fact: the maximum of a collection of numbers is at least as large as any particular element of that collection. Since this inequality holds for every realization of the random variables, we can take expectations on both sides. Expectation is monotone: if $X \ge Z$ almost surely, then $\mathbb{E}[X] \ge \mathbb{E}[Z]$. Applying this gives
-
-$$
-\mathbb{E}\big[\max_a Y_a\big] \ge \mathbb{E}[Y_{a^*}]
-= r(a^*) + \gamma \mu(a^*)
-= (\Bellman v)(s).
-$$
-
-So we obtain the inequality
-
-$$
-\mathbb{E}\big[(\widehat{\Bellman}_N v)(s)\big]
-=
-\mathbb{E}\Big[\max_a \left\{r(s,a) + \gamma \hat{\mu}_N(s,a)\right\}\Big]
-\ge
-(\Bellman v)(s).
-$$
-
-The inequality is strict as soon as there is more than one action and at least one of the $\hat{\mu}_N(s,a)$ has nonzero variance. In other words, even if each action's Monte Carlo estimate is unbiased, the maximization step introduces an upward bias.
-
-This is a general phenomenon: for any collection of random variables $\{Y_a\}$,
-
-$$
-\mathbb{E}[\max_a Y_a] \ge \max_a \mathbb{E}[Y_a],
-$$
-
-because the maximum of random variables is a convex function of the vector $(Y_a)_a$. We have simply applied that fact in the specific setting of our empirical Bellman operator.
-
-### A One-State Thought Experiment
-
-It is instructive to strip away all structure and consider a one-state MDP with two actions $a_1$ and $a_2$. Suppose that, under the current value function $v$, both actions have the same true continuation value:
-
-$$
-\mu(a_1) = \mu(a_2) = \mu.
-$$
-
-We estimate each using
-
-$$
-\hat{\mu}_N(a_i) = \mu + \varepsilon_i, \quad i = 1,2,
-$$
-
-where $\varepsilon_1$ and $\varepsilon_2$ are zero-mean noise terms (for instance, independent Gaussian random variables with variance $\sigma^2/N$).
-
-Then
-
-$$
-(\Bellman v) = r + \gamma \mu
-$$
-
-is the true next value, while the empirical update is
-
-$$
-\begin{aligned}
-(\widehat{\Bellman}_N v) &= r + \gamma \max\{\hat{\mu}_N(a_1), \hat{\mu}_N(a_2)\} \\
-&= r + \gamma \left(\mu + \max\{\varepsilon_1,\varepsilon_2\}\right).
-\end{aligned}
-$$
-
-Since $\varepsilon_1$ and $\varepsilon_2$ are symmetric around zero, the expected maximum of the two is strictly positive:
-
-$$
-\mathbb{E}[\max\{\varepsilon_1,\varepsilon_2\}] > 0.
-$$
-
-Consequently,
-
-$$
-\begin{aligned}
-\mathbb{E}\big[(\widehat{\Bellman}_N v)\big]
-&= r + \gamma \left(\mu + \mathbb{E}[\max\{\varepsilon_1,\varepsilon_2\}]\right) \\
-&> r + \gamma \mu \\
-&= (\Bellman v).
-\end{aligned}
-$$
-
-Nothing in the problem "wants" action $a_1$ or $a_2$ to be better. The only asymmetry comes from the random noise. Yet by always picking the empirically best action, we systematically favor "lucky" noise realizations. The algorithm interprets these lucky draws as evidence that the optimal value is higher than it truly is.
-
-### Bias Accumulation Under Iteration
-
-The Monte Carlo value iteration algorithm applies this empirical operator repeatedly:
-
-$$
-v_{k+1} \approx \widehat{\Bellman}_N v_k.
-$$
-
-At every iteration, for every state, we:
-
-1. Generate noisy estimates of expected returns for each action.
-2. Take a maximum over these noisy estimates.
-3. Use this maximum as the new value estimate and feed it into the next iteration.
-
-The upward bias therefore does not cancel out over time. Instead, it can be amplified in two ways.
-
-First, the algorithm is recursive: the next round of Monte Carlo estimates is taken around a value function that is already slightly too optimistic. When we maximize over noisy estimates again, the new "bump" from favorable noise is added on top of the previous one.
-
-Second, once a state–action pair has been overestimated through a lucky sequence of samples, it becomes more attractive in the maximization step. The algorithm will tend to pick it again, which increases the chance of reinforcing that overestimate. Negative noise, in contrast, tends to be ignored because it lowers an action's estimated value and makes it less likely to be selected.
-
-The result is an algorithm that, in expectation, computes a value function that satisfies
-
-$$
-\mathbb{E}[v_k] \ge v^*
-$$
-
-componentwise, where $v^*$ is the true optimal value function. How large the gap becomes depends on the variance of the Monte Carlo estimates, the number of actions, and the number of iterations. But the important qualitative fact is that the gap is systematically upward.
-
-### Implications for Value Iteration
-
-In the exact, model-based setting, value iteration has two reassuring properties:
-
-1. The Bellman operator is a contraction, so repeated application converges to $v^*$.
-2. The sequence of values remains "honest" in the sense that each iterate is the result of applying a deterministic operator to the previous iterate.
-
-Once we replace $\Bellman$ with $\widehat{\Bellman}_N$, both properties need to be revisited. Our operator is now random, and, because of the maximization over noisy estimates, it is optimistic on average. The algorithm tends to overstate the achievable return, even if the number of samples $N$ is held fixed and the number of iterations goes to infinity.
-
-This upward bias appears in many reinforcement learning algorithms that bootstrap and maximize over noisy value estimates, and it motivates a whole family of variance-reduction and "double" methods that we will encounter later in the chapter.
-
-## Learning the Bias Correction
-
-We now turn to methods for addressing the overestimation bias introduced by maximizing over noisy Monte Carlo estimates. The approach we examine here, developed by Keane and Wolpin {cite}`Keane1994` in the context of dynamic discrete choice models, takes a direct approach: learn a model of the bias itself, then subtract it from the Bellman updates.
-
-For a given value function $v$ and Monte Carlo sample size $N$, define the bias at state $s$ as
-
-$$
-\delta(s) = \mathbb{E}\big[(\widehat{\Bellman}_N v)(s)\big] - (\Bellman v)(s).
-$$
-
-If we could compute $\delta(s)$, we could correct our empirical updates by subtracting it. While we cannot compute either the expectation $\mathbb{E}[(\widehat{\Bellman}_N v)(s)]$ or the exact Bellman application $(\Bellman v)(s)$ directly, the bias $\delta(s)$ depends on observable quantities:
-
-1. The number of Monte Carlo samples $N$: more samples reduce variance and thus reduce the bias from maximization.
-2. The number of actions $|\mathcal{A}_s|$: more actions increase the chance that at least one gets a favorable draw.
-3. The spread of action values: when actions have similar values, small noise can flip the maximizer.
-
-Rather than computing $\delta(s)$ analytically, Keane and Wolpin proposed learning it empirically. The strategy is to perform high-fidelity simulation at a subset of states to estimate the bias, then fit a regression model that predicts the bias from simple features. This learned correction can then be applied throughout the state space.
-
-The method follows the "simulate on a subset, interpolate everywhere" template common in econometric dynamic programming. At a carefully chosen set of states, we simulate the Bellman operator with both high and low fidelity to estimate the bias. We then build a regression surrogate that predicts this bias from features of the state and action-value distribution. During routine value iteration, we use the fast low-fidelity Monte Carlo estimate and subtract the predicted bias correction.
-
-To formalize this, consider a state $s$ with current value function $v$. Let
-
-$$
-\mu(s,a) = \int v(s') \, p(ds' \mid s,a), \qquad \hat{\mu}_N(s,a) = \frac{1}{N}\sum_{i=1}^N v(s'_i)
-$$
-
-where $s'_i \sim p(\cdot \mid s,a)$. With Monte Carlo sampling, we compute $\max_a \hat{\mu}_N(s,a)$. The noise-free target for the maximization step is $\max_a \mu(s,a)$. The gap
-
-$$
-\delta(s) = \mathbb{E}\big[\max_a \hat{\mu}_N(s,a)\big] - \max_a \mu(s,a) \geq 0
-$$
-
-is what we aim to learn. Once we have an estimator $\hat{\delta}(s)$, we can form a bias-corrected update:
-
-$$
-r(s,a^\star) + \gamma\Big(\max_a \hat{\mu}_N(s,a) - \hat{\delta}(s)\Big).
-$$
-
-The bias depends on the dispersion and cardinality of the action set. If one action dominates, $\delta(s)$ is small. If several actions have similar values, $\delta(s)$ grows because noise is more likely to change the maximizer. Useful features for predicting the bias include:
-
-- Gaps to the best action: $g_a(s) = \max_{a'} \bar{\mu}(s,a') - \bar{\mu}(s,a)$, where $\bar{\mu}$ is a low-variance estimate of action values (from a fitted value model or large-$N$ simulation).
-- Aggregates of the gap distribution: $\min_a g_a$ (zero by construction), $\text{mean}(g_a)$, $\text{std}(g_a)$, the top-2 gap.
-- Number of actions: $\log|\mathcal{A}_s|$.
-- Spread measures: $\log\sum_a \exp(\bar{\mu}(s,a)) - \max_a \bar{\mu}(s,a)$, which captures how "soft" the maximum is.
-
-These features are cheap to compute and track regimes where maximization bias is large.
-
-The procedure has two phases. First, we perform a high-cost simulation pass at a subset of states to estimate the bias. Second, we fit a regression model to predict the bias from features.
-
-1. Choose a subset of states $\mathcal{S}^\star$ using a space-filling design over the state space.
-2. For each $s \in \mathcal{S}^\star$:
-   - Compute a high-precision reference $\mu^{\text{ref}}(s,a)$ using many draws (or exact integration in tractable models).
-   - Form the deterministic max $M^{\text{ref}}(s) = \max_a \mu^{\text{ref}}(s,a)$.
-   - Independently, compute a noisy max $\widehat{M}_N(s) = \max_a \hat{\mu}_N(s,a)$ using the same $N$ that will be used in routine value iteration.
-   - Record the gap $y(s) = \widehat{M}_N(s) - M^{\text{ref}}(s)$.
-   - Construct the feature vector $\phi(s)$ from the gaps and spreads of $\mu^{\text{ref}}(s,\cdot)$.
-3. Fit a regression model $y \approx g_\eta(\phi)$ using least squares or another fitting method.
-4. Freeze the fitted model $g_{\hat{\eta}}$. During routine value iteration, replace the raw noisy max with the bias-corrected expression that subtracts $g_{\hat{\eta}}(\phi(s))$.
-
-The algorithm can be summarized as:
-
-```{prf:algorithm} Keane-Wolpin Bias-Corrected Update
-:label: keane-wolpin-bias-correction
-
-**Input:** MDP, current value model $v$, sample size $N$, learned correction $g_\eta$
-
-**Output:** Bias-corrected value estimate at state $s$
-
-1. For each action $a \in \mathcal{A}_s$:
-   - Draw $N$ next states $s'_1, \ldots, s'_N \sim p(\cdot \mid s,a)$
-   - Compute $\hat{\mu}_N(s,a) = \frac{1}{N}\sum_{i=1}^N v(s'_i)$
-2. Compute raw max: $\widehat{M}(s) = \max_a \hat{\mu}_N(s,a)$
-3. Construct features $\phi(s)$ from a low-variance estimate of action values (from a separate large-$N$ simulation)
-4. Return bias-corrected target: $T(s) = r(s,a^\star) + \gamma\big[\widehat{M}(s) - g_\eta(\phi(s))\big]$
-```
-
-Note that step 3 should use a separate, lower-variance estimate of action values to construct features, not the same noisy samples from step 1. This can be obtained from a separate high-fidelity simulation or by caching values from the training phase. This avoids using the same randomness twice and stabilizes the feature computation.
-
-The Keane-Wolpin method has been influential in econometrics for estimating dynamic discrete choice models, where the goal is often structural parameter estimation rather than optimal control. However, it has seen limited adoption in reinforcement learning. The method's computational overhead—requiring variance computation, high-fidelity simulation at training states, and careful feature engineering—makes it expensive relative to the alternatives we discuss next. More fundamentally, the circular dependency between the bias estimate and the value function can amplify errors: if the regression model $g_\eta$ is misspecified or estimated poorly, the correction can introduce more harm than the original bias. While the approach remains conceptually appealing as a principled way to learn and subtract systematic errors, it represents a research direction that has not been extensively developed in the reinforcement learning literature. We now turn to a simpler and more widely adopted approach: decoupling the selection and evaluation steps to reduce overestimation bias without explicit bias modeling.
-
-## Decoupling Selection and Evaluation
-
-The Keane-Wolpin approach treated maximization bias as a quantity to be learned and subtracted. There is an alternative strategy that modifies the estimator itself so that the maximization step does not introduce systematic overestimation. The bias arises when we use the same noisy estimate both to select an action and to evaluate it. If we maintain two independent value estimates and use one to choose the action while the other evaluates it, we can eliminate the coupling that produces upward drift.
-
-Consider the Monte Carlo Bellman operator $\widehat{\Bellman}_N$ applied at state $s$. For each action $a$, we compute
-
-$$
-\hat{q}_N(s,a) = r(s,a) + \frac{\gamma}{N}\sum_{i=1}^N v(s'_i),
-$$
-
-where $s'_i \sim p(\cdot \mid s,a)$. The standard Monte Carlo update forms the target $\max_a \hat{q}_N(s,a)$. This maximum both selects the best action according to the noisy estimates and uses that same noise to compute the value. Write $\hat{q}_N(s,a) = q(s,a) + \varepsilon_a$ where $\mathbb{E}[\varepsilon_a] = 0$. Then
-
-$$
-\mathbb{E}\Big[\max_a \hat{q}_N(s,a)\Big] = \mathbb{E}\Big[\max_a (q(s,a) + \varepsilon_a)\Big] \geq \max_a q(s,a),
-$$
-
-because the maximum of noisy variables exceeds the maximum of their means on average.
-
-Suppose instead we maintain two independent Q-function approximations, $q^{(1)}(s,a)$ and $q^{(2)}(s,a)$, each with its own Monte Carlo noise. When updating $q^{(1)}$, we use $q^{(1)}$ to select the action but $q^{(2)}$ to evaluate it:
-
-$$
-Y^{(1)} = r(s,a) + \gamma \, q^{(2)}(s', a^\star), \quad \text{where } a^\star = \arg\max_{a'} q^{(1)}(s',a').
-$$
-
-Symmetrically, when updating $q^{(2)}$, we reverse the roles:
-
-$$
-Y^{(2)} = r(s,a) + \gamma \, q^{(1)}(s', a^\star), \quad \text{where } a^\star = \arg\max_{a'} q^{(2)}(s',a').
-$$
-
-To see why this reduces bias, consider the first update. The action $a^\star$ is selected based on the noise in $q^{(1)}$. The evaluation $q^{(2)}(s', a^\star)$ uses the noise in $q^{(2)}$. If these two sources of noise are independent, then conditional on the selected action $a^\star$,
-
-$$
-\mathbb{E}\big[q^{(2)}(s', a^\star) \mid a^\star\big] = q^\star(s', a^\star),
-$$
-
-where $q^\star$ denotes the true Q-value. Taking expectations over $a^\star$, the estimator remains unbiased. There is no extra positive term from the maximum of noise, because the maximization step never sees the noise used in the evaluation. The coupling is broken.
-
-This is the principle behind double Q-learning {cite}`van2016deep`. We maintain two Q-functions $q^{(1)}$ and $q^{(2)}$ and alternate which one selects actions and which one evaluates them during value iteration. The following algorithm implements this with Monte Carlo integration. The maximization bias is a property of taking the max over noisy estimates, independent of whether we use a table, linear approximation, or neural networks to represent the Q-functions.
-
-```{prf:algorithm} Double Q Value Iteration with Monte Carlo
-:label: double-q-value-iteration
-
-**Input:** MDP, state sample $\mathcal{S}$, Monte Carlo sample size $N$, maximum iterations $K$
-
-**Output:** Two Q-functions $q^{(1)}$, $q^{(2)}$
-
-1. Initialize $q^{(1)}_0(s,a)$ and $q^{(2)}_0(s,a)$ for all $s,a$
-2. $k \leftarrow 0$
-3. **repeat**
-4. $\quad$ **for** each $s \in \mathcal{S}$ **do**
-5. $\quad\quad$ **for** each $a \in \mathcal{A}(s)$ **do**
-6. $\quad\quad\quad$ Draw $N$ next states: $s'_1, \ldots, s'_N \sim p(\cdot \mid s,a)$
-7. $\quad\quad\quad$ **// Compute targets using decoupled selection-evaluation**
-8. $\quad\quad\quad$ **for** $i = 1, \ldots, N$ **do**
-9. $\quad\quad\quad\quad$ $a^{(1)}_i \leftarrow \arg\max_{a'} q^{(1)}_k(s'_i, a')$
-10. $\quad\quad\quad\quad$ $a^{(2)}_i \leftarrow \arg\max_{a'} q^{(2)}_k(s'_i, a')$
-11. $\quad\quad\quad$ **end for**
-12. $\quad\quad\quad$ $q^{(1)}_{k+1}(s,a) \leftarrow r(s,a) + \frac{\gamma}{N}\sum_{i=1}^N q^{(2)}_k(s'_i, a^{(1)}_i)$
-13. $\quad\quad\quad$ $q^{(2)}_{k+1}(s,a) \leftarrow r(s,a) + \frac{\gamma}{N}\sum_{i=1}^N q^{(1)}_k(s'_i, a^{(2)}_i)$
-14. $\quad\quad$ **end for**
-15. $\quad$ **end for**
-16. $\quad$ $k \leftarrow k+1$
-17. **until** convergence or $k \geq K$
-18. **return** $q^{(1)}_k$, $q^{(2)}_k$
-```
-
-At lines 9-10, we use $q^{(1)}$ to select the action for updating $q^{(1)}$, but then at line 12 we evaluate that action using $q^{(2)}$. This decouples the noise in the selection step from the noise in the evaluation step. The same principle applies symmetrically for $q^{(2)}$ at lines 10 and 13. The Monte Carlo averages are unbiased for the expected values of the selected actions, and the maximization bias is removed because selection and evaluation use independent noise sources. This principle applies whether we store Q-values in a table or use function approximation.
+With Q-functions in hand and Monte Carlo integration established, we can now turn to how these components combine to form practical reinforcement learning algorithms. The [next chapter](batch_rl.md) examines batch methods that work with fixed offline datasets, while the [subsequent chapter](online_rl.md) addresses online learning with continuous data collection.
