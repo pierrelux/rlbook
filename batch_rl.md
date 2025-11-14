@@ -134,24 +134,9 @@ $$
 This distinction matters pedagogically: the **transition data** is fixed (offline) or evolves via online collection, while the **regression data** evolves via target recomputation. Fitted Q-iteration is the outer loop over target recomputation, not the inner loop over gradient steps.
 ```
 
-The `fit` operation abstracts the supervised learning step that appears in every value-based algorithm. Given a regression dataset $\mathcal{D}^{\text{fit}} = \{((s_i, a_i), y_i)\}$ of state-action pairs with target values, it returns parameters $\boldsymbol{\theta}$ for a Q-function approximator:
-
-$$
-\boldsymbol{\theta} = \texttt{fit}(\mathcal{D}^{\text{fit}}, \boldsymbol{\theta}_{\text{init}}, K)
-$$
-
-Two parameters have universal meaning across all function approximators:
-
-- **Initialization** $\boldsymbol{\theta}_{\text{init}}$: Cold start resets to a fixed point $\boldsymbol{\theta}_0$ each iteration; warm start continues from the previous solution $\boldsymbol{\theta}_n$
-- **Truncation** $K \in \mathbb{N} \cup \{\infty\}$: $K=\infty$ runs optimization to convergence (sample average approximation), finite $K$ performs partial optimization, $K=1$ makes a single update (stochastic approximation)
-
-The interpretation of these parameters depends on the approximator. For neural networks trained with gradient descent, $K$ counts gradient steps and $\boldsymbol{\theta}_{\text{init}}$ provides the starting weights. For tree ensembles, $K$ might control the number of trees or refinement passes, though many implementations simply build a fixed ensemble to completion ($K=\infty$ always). For linear models with squared loss, $K=1$ suffices since the normal equations $\boldsymbol{\theta} = (X^\top X)^{-1}X^\top y$ give the exact solution directly.
-
-What objective is being optimized? This is method-specific and often implicit. Neural networks minimize an explicit loss function (squared error, Huber, cross-entropy). Tree ensembles use splitting criteria (variance reduction, Gini impurity) that implicitly define a prediction objective but don't correspond to the same squared error loss that gradient methods optimize. Linear least squares minimizes squared error in closed form. The unified framework lies not in a shared loss function but in the shared structure: all methods solve $\mathcal{D}^{\text{fit}} \mapsto \boldsymbol{\theta}$ to approximate Bellman targets.
-
 ## Loss Functions for Neural Network Approximators
 
-For neural network approximators, the `fit` operation minimizes an explicit loss function $\mathcal{L}(\boldsymbol{\theta}; \mathcal{D}^{\text{fit}})$ via gradient descent. Unlike tree-based methods where the objective is implicit in the splitting criteria, neural networks require us to specify what to minimize. The choice of loss function encodes assumptions about the statistical relationship between state-action pairs and the Bellman targets we are trying to match. Different loss functions correspond to different implicit noise models, and in deep reinforcement learning, where targets are noisy and network capacity is high, this choice can substantially affect performance.
+The previous chapter examined algorithmic approaches to bias mitigation (Keane-Wolpin correction, double Q-learning). A complementary approach modifies the loss function in the supervised learning step. For neural network approximators, the `fit` operation minimizes an explicit loss function $\mathcal{L}(\boldsymbol{\theta}; \mathcal{D}^{\text{fit}})$ via gradient descent. Unlike tree-based methods where the objective is implicit in splitting criteria, neural networks require us to specify what to minimize. The choice of loss function encodes assumptions about the statistical relationship between state-action pairs and Bellman targets. Different loss functions correspond to different implicit noise models, and in deep reinforcement learning, where targets are noisy and network capacity is high, this choice can substantially affect performance.
 
 ### Squared Error and Its Statistical Interpretation
 
@@ -187,7 +172,7 @@ The Gaussian assumption is not arbitrary. Even when rewards are not Gaussian, sa
 
 ### Bias Correction via Explicit Adjustment
 
-Lee and Powell proposed a direct solution: estimate the bias and subtract it from the targets before regression. At iteration $n$, for each state-action pair $(s,a)$, compute the corrected target:
+{cite}`lee2013bias` proposed a direct solution: estimate the bias and subtract it from the targets before regression. At iteration $n$, for each state-action pair $(s,a)$, compute the corrected target:
 
 $$
 \tilde{y}_i = r_i + \gamma \max_{a'} q(s'_i, a'; \boldsymbol{\theta}^{(n)}) - B(s_i, a_i)
@@ -201,7 +186,7 @@ $$
 
 The variance $\hat{\sigma}^2(s,a)$ can be estimated from observed reward samples or from the variance of Q-values across the action set at the next state. This keeps squared error loss but removes the systematic overestimation from the targets. The corrected targets are asymptotically unbiased estimates of $q^*(s,a)$ when the Gaussian noise assumption holds. The method requires estimating variance, which adds complexity, and the correction is optimal specifically for Gaussian errors. If the true errors have heavier tails, the correction may be insufficient.
 
-D'Eramo et al. {cite}`deramo2016estimating` approached the same problem from a different angle. Instead of correcting the bias after taking the maximum, they avoid taking a hard maximum at all. They compute a weighted average of Q-values where the weights reflect the probability that each action is optimal. Under the Gaussian approximation for the sampling distribution of Q-value estimates, the weight for action $a'$ is the probability that $q(s', a'; \boldsymbol{\theta})$ is the largest:
+{cite}`deramo2016estimating` approached the same problem from a different angle. Instead of correcting the bias after taking the maximum, they avoid taking a hard maximum at all. They compute a weighted average of Q-values where the weights reflect the probability that each action is optimal. Under the Gaussian approximation for the sampling distribution of Q-value estimates, the weight for action $a'$ is the probability that $q(s', a'; \boldsymbol{\theta})$ is the largest:
 
 $$
 w_{a'} = \int_{-\infty}^{+\infty} \phi\left(\frac{x - \hat{\mu}_{a'}}{\hat{\sigma}_{a'}/\sqrt{n}}\right) \prod_{b \neq a'} \Phi\left(\frac{x - \hat{\mu}_b}{\hat{\sigma}_b/\sqrt{n}}\right) dx
@@ -215,7 +200,9 @@ $$
 
 This weighted estimator has lower bias than the simple maximum (which is too optimistic) and lower bias than cross-validation holdout (which is too pessimistic). It still uses squared error loss but constructs targets differently. The Gaussian weights can be computed in closed form for small action spaces, though the integral becomes expensive when $|\mathcal{A}|$ is large.
 
-Both approaches address the max-operator bias under the Gaussian noise assumption but preserve the squared error loss. An alternative is to change the loss function itself.
+These analytical bias corrections build on the econometric tradition of bias adjustment in dynamic discrete choice models. Keane and Wolpin {cite}`Keane1994` pioneered the empirical approach described in the [previous chapter](simadp.md): rather than deriving the bias formula analytically, they learned it via regression. At a subset of states, they compared high-fidelity simulation (many samples) against the low-fidelity estimates used in value iteration, then fit a model predicting bias from features like action-value spread and the number of actions. Lee-Powell's analytical formula can be viewed as deriving what Keane-Wolpin learned empirically, replacing the regression model with a closed-form expression from extreme value theory. The trade-off is generality versus computational cost: Keane-Wolpin adapts to any noise structure but requires expensive high-fidelity simulations at training states; Lee-Powell assumes Gaussian noise but evaluates instantly once $\hat{\sigma}$ is estimated. Both subtract a correction term from targets. D'Eramo's weighted estimator takes a different path, avoiding the hard maximum entirely rather than correcting its bias afterward.
+
+All three preserve the squared error loss while modifying targets. An alternative is to change the loss function itself.
 
 ### Gumbel Regression and the Correct Likelihood
 
@@ -320,10 +307,6 @@ We now have four approaches to max-operator bias: explicit correction (Lee-Powel
 
 Practical implementation requires choosing the number of bins $K$ and their range $[z_1, z_K]$. Typical choices use $K \in \{51, 101, 201\}$ bins uniformly spaced over the expected return range. The range can be estimated from domain knowledge or learned adaptively during training. The network architecture changes minimally: instead of a single scalar output per action, we output $K$ logits per action. For discrete action spaces with $|\mathcal{A}|$ actions, this means a final layer of size $K \times |\mathcal{A}|$ rather than $|\mathcal{A}|$. The computational overhead is modest, and the implementation can use standard cross-entropy loss functions available in deep learning libraries. The main conceptual shift is viewing Q-learning as categorical prediction rather than scalar regression.
 
-## Unified Q-Iteration Template
-
-With these components, we can state the unified template that encompasses all value-based reinforcement learning algorithms:
-
 ```{prf:algorithm} Unified Simulation-Based Q-Iteration Template
 :label: unified-q-iteration
 
@@ -360,8 +343,9 @@ With these components, we can state the unified template that encompasses all va
 ## Batch Algorithms: FQI and NFQI
 
 The offline (batch) setting begins with a fixed dataset $\mathcal{D} = \{(s_i, a_i, r_i, s'_i)\}_{i=1}^N$ collected once before learning. This data might come from a previous controller, from human demonstrations, or from exploratory interactions. The task is to extract the best Q-function approximation from this data without additional environment interactions.
+The offline (batch) setting begins with a fixed dataset $\mathcal{D} = \{(s_i, a_i, r_i, s'_i)\}_{i=1}^N$ collected once before learning. This data might come from a previous controller, from human demonstrations, or from exploratory interactions. The task is to extract the best Q-function approximation from this data without additional environment interactions.
 
-Fitted Q-iteration (FQI) and Neural Fitted Q-iteration (NFQI) are **approximate versions of Value Iteration**. They implement the classic successive approximation scheme $q^{(k+1)} = \Bellman q^{(k)}$ using function approximation and Monte Carlo integration. This creates a **nested two-loop structure**:
+Fitted Q-iteration (FQI) and Neural Fitted Q-iteration (NFQI) are approximate versions of Value Iteration. They implement the classic successive approximation scheme $q^{(k+1)} = \Bellman q^{(k)}$ using function approximation and Monte Carlo integration. This creates a nested two-loop structure:
 
 - **Outer loop** (Value Iteration): Compute Bellman targets from current Q-function, iterate until convergence
 - **Inner loop** (Regression): Fit the function approximator to the targets, solving $\min_\theta \sum_i \ell(q(s_i, a_i; \theta), y_i)$
@@ -384,7 +368,7 @@ The choice of function approximator determines how we solve this problem. Ernst 
 
 Riedmiller {cite}`riedmiller2005neural` replaced the tree ensemble with a neural network, yielding Neural Fitted Q-Iteration (NFQI). The neural network $q(s,a; \theta)$ provides smooth interpolation and leverages gradient-based optimization (RProp, chosen for its insensitivity to hyperparameter choices). NFQI runs the inner optimization to convergence at each iteration: train the network until the loss stops decreasing, then compute new targets using the converged Q-function. This full optimization ensures the network accurately represents the projected Bellman operator before moving to the next iteration. NFQI uses warm starting: the network is initialized once at the beginning and continues learning from the previous iteration's weights rather than resetting. RProp itself operates on mini-batches or the full dataset per gradient update, but critically, NFQI performs many such updates (multiple epochs through the data) at each outer iteration until convergence. This is $K=\infty$ in our framework.
 
-An important variant described by Riedmiller uses **incremental data collection**. After each outer iteration $k$, new episodes are collected using the current greedy policy $\pi_k(s) = \arg\max_a q(s,a;\theta_k)$, and these transitions are **added to the existing dataset** (not replacing it). Future iterations train on the accumulated set of all transitions collected so far. This sits between pure offline learning (fixed dataset collected once) and online learning (immediate use and discard). The growing dataset improves exploration beyond random actions while retaining the sample efficiency of batch learning. Riedmiller used this variant for the Mountain Car and Cart-Pole benchmarks where random exploration is insufficient.
+An important variant described by Riedmiller uses incremental data collection. After each outer iteration $k$, new episodes are collected using the current greedy policy $\pi_k(s) = \arg\max_a q(s,a;\theta_k)$, and these transitions are added to the existing dataset (not replacing it). Future iterations train on the accumulated set of all transitions collected so far. This sits between pure offline learning (fixed dataset collected once) and online learning (immediate use and discard). The growing dataset improves exploration beyond random actions while retaining the sample efficiency of batch learning. Riedmiller used this variant for the Mountain Car and Cart-Pole benchmarks where random exploration is insufficient.
 
 For episodic tasks with goal and forbidden regions, Riedmiller uses a modified target structure. Let $S^+$ denote goal states and $S^-$ denote forbidden states. The targets become:
 
@@ -396,7 +380,7 @@ c(s_i, a_i, s'_i) + \gamma \max_{a'} q(s'_i, a'; \theta_k) & \text{otherwise}
 \end{cases}
 $$
 
-Additionally, the **hint-to-goal heuristic** adds synthetic transitions $(s, a, s')$ where $s \in S^+$ with target value $c(s,a,s') = 0$ to explicitly clamp the Q-function to zero in the goal region. This stabilizes learning by encoding the boundary condition without requiring additional prior knowledge.
+Additionally, the hint-to-goal heuristic adds synthetic transitions $(s, a, s')$ where $s \in S^+$ with target value $c(s,a,s') = 0$ to explicitly clamp the Q-function to zero in the goal region. This stabilizes learning by encoding the boundary condition without requiring additional prior knowledge.
 
 The following algorithm shows the basic offline structure:
 
@@ -421,7 +405,7 @@ The following algorithm shows the basic offline structure:
 12. **return** $\theta_k$
 ```
 
-Line 9 hides an entire **inner optimization loop**. The loss $\ell$ is typically squared error $(q - y)^2$ but can be Huber loss (used in DQN) or other regression losses. For FQI with trees, this loop trains the ensemble until completion. For NFQI with neural networks, this loop runs gradient descent until convergence (measured by validation loss or a fixed number of epochs). Each outer iteration $k$ involves one full pass through this inner loop. The algorithm reuses the same offline dataset $\mathcal{D}$ at every outer iteration. The transitions never change, but the targets $y_i$ are recomputed using the updated Q-function $q(\cdot, \cdot; \theta_k)$.
+Line 9 hides an entire inner optimization loop. The loss $\ell$ is typically squared error $(q - y)^2$ but can be Huber loss (used in DQN) or other regression losses. For FQI with trees, this loop trains the ensemble until completion. For NFQI with neural networks, this loop runs gradient descent until convergence (measured by validation loss or a fixed number of epochs). Each outer iteration $k$ involves one full pass through this inner loop. The algorithm reuses the same offline dataset $\mathcal{D}$ at every outer iteration. The transitions never change, but the targets $y_i$ are recomputed using the updated Q-function $q(\cdot, \cdot; \theta_k)$.
 
 ## From Nested to Flattened Q-Iteration
 
@@ -568,4 +552,3 @@ An alternative to periodic updates is exponential moving average (EMA), which up
 EMA targets (also called Polyak averaging) became popular with DDPG {cite}`lillicrap2015continuous` and are now standard in continuous control algorithms like TD3 {cite}`fujimoto2018addressing` and SAC {cite}`haarnoja2018soft`, typically using small $\tau$ values like 0.001.
 
 With the batch algorithms established and the nested-to-flattened progression clear, the [next chapter](online_rl.md) extends these ideas to online learning with replay buffers, yielding algorithms like DQN that collect data and learn simultaneously.
-
