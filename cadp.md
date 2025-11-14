@@ -137,8 +137,29 @@ Now the main issue with this approach, apart from the intrinsic out-of-distribut
 
 # Deterministic Parametrized Policies 
 
-
 In this section, we consider deterministic parametrized policies of the form $d(s; \boldsymbol{w})$ which directly output an action given a state. This approach differs from stochastic policies that output probability distributions over actions, making it particularly suitable for continuous control problems where the optimal policy is often deterministic. We'll see how fitted Q-value methods can be naturally extended to simultaneously learn both the Q-function and such a deterministic policy.
+
+## The Amortization Problem for Continuous Actions
+
+When actions are continuous, $a \in \mathbb{R}^d$, extracting a greedy policy from a Q-function becomes computationally expensive. Consider a robot arm control task where the action is a $d$-dimensional torque vector. To act greedily given Q-function $q(s,a; \boldsymbol{\theta})$, we must solve:
+
+$$
+\pi(s) = \arg\max_{a \in \mathcal{A}} q(s, a; \boldsymbol{\theta}),
+$$
+
+where $\mathcal{A} \subset \mathbb{R}^d$ is a continuous set (often a box or polytope). This requires running an optimization algorithm at every time step. For neural network Q-functions, this means solving a nonlinear program whose objective involves forward passes through the network.
+
+This computation happens at inference time. After training converges, we deploy the agent and it must select actions in real-time. Running interior-point methods or gradient-based optimizers at every decision creates unacceptable latency, especially in high-frequency control where decisions occur at 100Hz or faster.
+
+The solution is to **amortize** the optimization cost by learning a separate policy network $d(s; \boldsymbol{w})$ that directly outputs actions. During training, we optimize $\boldsymbol{w}$ so that $d(s; \boldsymbol{w}) \approx \arg\max_a q(s,a; \boldsymbol{\theta})$ for states we encounter. At deployment, action selection reduces to a single forward pass through the policy network: $a = d(s; \boldsymbol{w})$. The computational cost of optimization is paid during training (where time is less constrained) rather than at inference.
+
+This introduces a second approximation beyond the Q-function. We now have two function approximators: a **critic** $q(s,a; \boldsymbol{\theta})$ that estimates values, and an **actor** $d(s; \boldsymbol{w})$ that selects actions. The critic is trained using Bellman targets as in standard fitted Q-iteration. The actor is trained to maximize the critic:
+
+$$
+\boldsymbol{w} \leftarrow \boldsymbol{w} + \alpha \mathbb{E}_s \left[\nabla_{\boldsymbol{w}} q(s, d(s; \boldsymbol{w}); \boldsymbol{\theta})\right],
+$$
+
+where the expectation is over states in the dataset or replay buffer. This gradient ascent pushes the actor toward actions that the critic considers valuable. By the chain rule, this equals $(\nabla_a q(s,a; \boldsymbol{\theta})|_{a=d(s;\boldsymbol{w})}) \cdot (\nabla_{\boldsymbol{w}} d(s; \boldsymbol{w}))$, which can be efficiently computed via backpropagation through the composition of the two networks.
 
 
 ## Neural Fitted Q-iteration for Continuous Actions (NFQCA)
