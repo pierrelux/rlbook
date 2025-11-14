@@ -34,7 +34,7 @@ The input points $X^{(n)}$ may stay fixed (batch setting) or change (online sett
 
 ### Design Choices and Algorithm Space
 
-This template provides a blueprint for instantiating concrete algorithms. Six design axes generate algorithmic diversity: the function approximator (trees, neural networks, linear models), the Bellman operator (hard max vs smooth logsumexp), the inner optimization strategy (full convergence, $K$ steps, or single step), the initialization scheme (cold vs warm start), the data collection mechanism (offline, online, replay buffer), and bias mitigation approaches (none, double Q-learning, learned correction). While individual algorithms include additional refinements, these axes capture the primary sources of variation. The table below shows how several well-known methods instantiate this template:
+This template provides a blueprint for instantiating concrete algorithms. Six design axes generate algorithmic diversity: the function approximator (trees, neural networks, linear models), the Bellman operator (hard max vs smooth logsumexp, discussed in the [regularized MDP chapter](regmdp.md)), the inner optimization strategy (full convergence, $K$ steps, or single step), the initialization scheme (cold vs warm start), the data collection mechanism (offline, online, replay buffer), and bias mitigation approaches (none, double Q-learning, learned correction). While individual algorithms include additional refinements, these axes capture the primary sources of variation. The table below shows how several well-known methods instantiate this template:
 
 | **Algorithm** | **Approximator** | **Bellman** | **Inner Loop** | **Initialization** | **Data** | **Bias Fix** |
 |:--------------|:-----------------|:------------|:---------------|:-------------------|:---------|:-------------|
@@ -114,7 +114,7 @@ The term "bootstrap" appears in reinforcement learning with two distinct meaning
 
 2. **Temporal difference bootstrapping**: Using current value estimates $q(s', a')$ to form targets, rather than complete Monte Carlo returns. When we write $y_i = r_i + \gamma \max_{a'} q(s'_i, a')$, we "bootstrap" from the estimated value at $s'_i$ instead of rolling out a full trajectory.
 
-Both forms of bootstrapping are present simultaneously in fitted Q-iteration: we resample transitions from the empirical distribution (statistical bootstrap) and use Q-function estimates in targets (TD bootstrap). The two concepts are independent—we could have statistical bootstrapping without TD bootstrapping (sample from $\hat{P}_{\mathcal{D}}$ but use full Monte Carlo returns) or TD bootstrapping without statistical bootstrapping (use a fixed set of transitions without resampling).
+Both forms of bootstrapping are present simultaneously in fitted Q-iteration: we resample transitions from the empirical distribution (statistical bootstrap) and use Q-function estimates in targets (TD bootstrap). The two concepts are independent. We could have statistical bootstrapping without TD bootstrapping (sample from $\hat{P}_{\mathcal{D}}$ but use full Monte Carlo returns) or TD bootstrapping without statistical bootstrapping (use a fixed set of transitions without resampling).
 ```
 
 ```{prf:remark} Notation: Transition Data vs Regression Data
@@ -134,42 +134,129 @@ $$
 This distinction matters pedagogically: the **transition data** is fixed (offline) or evolves via online collection, while the **regression data** evolves via target recomputation. Fitted Q-iteration is the outer loop over target recomputation, not the inner loop over gradient steps.
 ```
 
-The `fit` operation itself has the following signature and semantics:
+The `fit` operation abstracts the supervised learning step that appears in every value-based algorithm. Given a regression dataset $\mathcal{D}^{\text{fit}} = \{((s_i, a_i), y_i)\}$ of state-action pairs with target values, it returns parameters $\boldsymbol{\theta}$ for a Q-function approximator:
 
-```{prf:algorithm} Fit Operation
-:label: fit-operation
+$$
+\boldsymbol{\theta} = \texttt{fit}(\mathcal{D}^{\text{fit}}, \boldsymbol{\theta}_{\text{init}}, K)
+$$
 
-**Input**: Regression dataset $\mathcal{D}^{\text{fit}} = \{((s_i, a_i), y_i)\}$, initialization $\boldsymbol{\theta}_{\text{init}}$, truncation steps $K \in \mathbb{N} \cup \{\infty\}$, learning rate $\alpha$, loss function $\mathcal{L}$
+Two parameters have universal meaning across all function approximators:
 
-**Output**: Parameters $\boldsymbol{\theta}$ minimizing $\mathcal{L}(\boldsymbol{\theta}; \mathcal{D}^{\text{fit}}) = \frac{1}{|\mathcal{D}^{\text{fit}}|}\sum_{((s,a), y) \in \mathcal{D}^{\text{fit}}} \ell(q(s,a; \boldsymbol{\theta}), y)$
+- **Initialization** $\boldsymbol{\theta}_{\text{init}}$: Cold start resets to a fixed point $\boldsymbol{\theta}_0$ each iteration; warm start continues from the previous solution $\boldsymbol{\theta}_n$
+- **Truncation** $K \in \mathbb{N} \cup \{\infty\}$: $K=\infty$ runs optimization to convergence (sample average approximation), finite $K$ performs partial optimization, $K=1$ makes a single update (stochastic approximation)
 
-1. $\boldsymbol{\theta} \leftarrow \boldsymbol{\theta}_{\text{init}}$
-2. $k \leftarrow 0$
-3. **if** $K = \infty$:
-    1. **repeat**
-        1. $\boldsymbol{\theta} \leftarrow \boldsymbol{\theta} - \alpha \nabla_{\boldsymbol{\theta}} \mathcal{L}(\boldsymbol{\theta}; \mathcal{D}^{\text{fit}})$
-        2. $k \leftarrow k + 1$
-    2. **until** convergence
-4. **else**:
-    1. **for** $k = 0$ to $K-1$:
-        1. $\boldsymbol{\theta} \leftarrow \boldsymbol{\theta} - \alpha \nabla_{\boldsymbol{\theta}} \mathcal{L}(\boldsymbol{\theta}; \mathcal{D}^{\text{fit}})$
-5. **return** $\boldsymbol{\theta}$
-```
+The interpretation of these parameters depends on the approximator. For neural networks trained with gradient descent, $K$ counts gradient steps and $\boldsymbol{\theta}_{\text{init}}$ provides the starting weights. For tree ensembles, $K$ might control the number of trees or refinement passes, though many implementations simply build a fixed ensemble to completion ($K=\infty$ always). For linear models with squared loss, $K=1$ suffices since the normal equations $\boldsymbol{\theta} = (X^\top X)^{-1}X^\top y$ give the exact solution directly.
 
-This makes explicit the three key parameters:
-- **Initialization** $\boldsymbol{\theta}_{\text{init}}$: Cold start ($\boldsymbol{\theta}_0$) resets to a fixed point each iteration; warm start ($\boldsymbol{\theta}_n$) continues from the previous solution
-- **Truncation** $K$: Controls SAA ($K=\infty$), partial optimization ($K \in \{10, \ldots, 100\}$), or stochastic approximation ($K=1$)
-- **Regression dataset** $\mathcal{D}^{\text{fit}}$: Supervised learning data with state-action pairs and computed targets, derived from transition data in buffer
+What objective is being optimized? This is method-specific and often implicit. Neural networks minimize an explicit loss function (squared error, Huber, cross-entropy). Tree ensembles use splitting criteria (variance reduction, Gini impurity) that implicitly define a prediction objective but don't correspond to the same squared error loss that gradient methods optimize. Linear least squares minimizes squared error in closed form. The unified framework lies not in a shared loss function but in the shared structure: all methods solve $\mathcal{D}^{\text{fit}} \mapsto \boldsymbol{\theta}$ to approximate Bellman targets.
 
-## Loss Functions and Statistical Perspectives on Fitted Q-Iteration
+## Loss Functions for Neural Network Approximators
 
-### Statistical Interpretation of Loss Functions
+For neural network approximators, the `fit` operation minimizes an explicit loss function $\mathcal{L}(\boldsymbol{\theta}; \mathcal{D}^{\text{fit}})$ via gradient descent. Unlike tree-based methods where the objective is implicit in the splitting criteria, neural networks require us to specify what to minimize. The choice of loss function encodes assumptions about the statistical relationship between state-action pairs and the Bellman targets we are trying to match. Different loss functions correspond to different implicit noise models, and in deep reinforcement learning, where targets are noisy and network capacity is high, this choice can substantially affect performance.
 
-The `fit` operation takes a loss function $\mathcal{L}$ as a parameter, which we have been treating as squared error by default. The loss function encodes assumptions about the statistical relationship between state-action pairs and the Bellman targets we are trying to match. Different loss functions correspond to different implicit noise models, and in deep reinforcement learning, where targets are noisy and network capacity is high, the choice of loss can substantially affect performance.
+### Squared Error and Its Statistical Interpretation
 
 The standard squared error loss $\ell(q(s,a; \boldsymbol{\theta}), y) = (q(s,a; \boldsymbol{\theta}) - y)^2$ corresponds to maximum likelihood estimation under the assumption that targets are corrupted by additive Gaussian noise. If we write the relationship as $y = q^*(s,a) + \varepsilon$ where $\varepsilon \sim \mathcal{N}(0, \sigma^2)$, minimizing squared error is equivalent to maximizing the likelihood of the observed targets. This statistical interpretation is standard in regression: L2 loss assumes Gaussian noise.
 
 In reinforcement learning, however, the "noise" in our targets comes from multiple sources with different characteristics. Monte Carlo sampling contributes variance that may have heavy tails, especially early in learning when the policy explores poorly. Function approximation error introduces bias. Bootstrap targets compound errors recursively. The resulting noise distribution need not be Gaussian. Outliers from bad exploration or initialization can create targets with large errors, and squared loss penalizes these quadratically, potentially dominating the gradient signal. Other score functions, designed for robustness to non-Gaussian noise, may perform better.
+
+### The Max Operator and Extreme Value Theory
+
+One source of non-Gaussian noise deserves particular attention. The Bellman target $y_i = r_i + \gamma \max_{a'} q(s'_i, a'; \boldsymbol{\theta}^{(n)})$ involves taking a maximum over actions. Even when the underlying Q-value estimates have symmetric, zero-mean errors, their maximum does not. Suppose that for a given next state $s'$, each Q-value estimate has the form $q(s', a'; \boldsymbol{\theta}) = q^*(s', a') + \varepsilon_a$ where the errors $\varepsilon_a$ are independent and identically distributed with mean zero. The Bellman target becomes:
+
+$$
+\max_{a'} q(s', a'; \boldsymbol{\theta}) = \max_{a'} [q^*(s', a') + \varepsilon_a]
+$$
+
+The [previous chapter](simadp.md) established that this creates systematic upward bias: $\mathbb{E}[\max_{a'} (q^* + \varepsilon_{a'})] > \max_{a'} q^*(s', a')$ by Jensen's inequality. We now examine the magnitude and structure of this bias through extreme value theory. When we take the maximum of $M$ independent random variables, the tail behavior of the maximum depends on the tail of the underlying distribution. Classical results show that, under appropriate scaling, the maximum of i.i.d. random variables converges to one of three limiting distributions: Gumbel, Fréchet, or Weibull (the Fisher-Tippett-Gnedenko theorem). For light-tailed distributions like the Gaussian, the limit is Gumbel. This connects to the [smooth Bellman equations](regmdp.md) discussed earlier: there, Gumbel noise is added to rewards as a modeling assumption to derive logsumexp operators; here, Gumbel distributions arise naturally as a consequence of applying the hard max to noisy estimates.
+
+{cite}`lee2013bias,lee2019biascorrected` analyzed this phenomenon in the context of Q-learning with Gaussian reward noise. Suppose that for each action $a$, the observed reward is $\widehat{R}(s,a) = \mu_a + \varepsilon_a$ where $\varepsilon_a \sim \mathcal{N}(0, \sigma^2)$. When we form the target $\max_a \widehat{R}(s,a)$, we are taking the maximum of $M = |\mathcal{A}(s)|$ independent Gaussians. After appropriate centering and scaling, this maximum converges in distribution to a Gumbel random variable:
+
+$$
+b_M \left(\max_{a} \frac{\varepsilon_a}{\sigma} - b_M\right) \xrightarrow{d} \text{Gumbel}(0,1)
+$$
+
+where $b_M = \sqrt{2\log M - \log\log M - \log 4\pi}$. The standard Gumbel distribution has mean equal to the Euler-Mascheroni constant $\xi \approx 0.5772$, so the expected value of the maximum is approximately:
+
+$$
+\mathbb{E}\left[\max_{a} \varepsilon_a\right] \approx \sigma \left(\frac{\xi}{b_M} + b_M\right)
+$$
+
+This quantity is positive and grows with the number of actions $M$. The bias scales with the noise level $\sigma$ and with the action space size. With ten actions and unit variance, the expected bias is roughly $2\sigma$. With a hundred actions, it grows to about $3.4\sigma$.
+
+The Gaussian assumption is not arbitrary. Even when rewards are not Gaussian, sample means of rewards are approximately Gaussian by the central limit theorem when visitation counts are moderate. The Q-learning target uses single-sample estimates at each next state, but when those estimates are aggregated across many transitions, their sampling distribution approaches normality. The Gaussian model thus provides a reasonable first-order approximation for the noise in Q-value estimates, particularly in the batch setting where we repeatedly fit to the same data.
+
+### Bias Correction via Explicit Adjustment
+
+Lee and Powell proposed a direct solution: estimate the bias and subtract it from the targets before regression. At iteration $n$, for each state-action pair $(s,a)$, compute the corrected target:
+
+$$
+\tilde{y}_i = r_i + \gamma \max_{a'} q(s'_i, a'; \boldsymbol{\theta}^{(n)}) - B(s_i, a_i)
+$$
+
+where the bias correction term is:
+
+$$
+B(s,a) = \left(\frac{\xi}{b_{|A(s)|}} + b_{|A(s)|}\right) \hat{\sigma}(s,a)
+$$
+
+The variance $\hat{\sigma}^2(s,a)$ can be estimated from observed reward samples or from the variance of Q-values across the action set at the next state. This keeps squared error loss but removes the systematic overestimation from the targets. The corrected targets are asymptotically unbiased estimates of $q^*(s,a)$ when the Gaussian noise assumption holds. The method requires estimating variance, which adds complexity, and the correction is optimal specifically for Gaussian errors. If the true errors have heavier tails, the correction may be insufficient.
+
+D'Eramo et al. {cite}`deramo2016estimating` approached the same problem from a different angle. Instead of correcting the bias after taking the maximum, they avoid taking a hard maximum at all. They compute a weighted average of Q-values where the weights reflect the probability that each action is optimal. Under the Gaussian approximation for the sampling distribution of Q-value estimates, the weight for action $a'$ is the probability that $q(s', a'; \boldsymbol{\theta})$ is the largest:
+
+$$
+w_{a'} = \int_{-\infty}^{+\infty} \phi\left(\frac{x - \hat{\mu}_{a'}}{\hat{\sigma}_{a'}/\sqrt{n}}\right) \prod_{b \neq a'} \Phi\left(\frac{x - \hat{\mu}_b}{\hat{\sigma}_b/\sqrt{n}}\right) dx
+$$
+
+where $\phi$ and $\Phi$ are the standard normal PDF and CDF, and $n$ is the sample size for each estimate. The target becomes:
+
+$$
+y_i = r_i + \gamma \sum_{a'} w_{a'} \, q(s'_i, a'; \boldsymbol{\theta}^{(n)})
+$$
+
+This weighted estimator has lower bias than the simple maximum (which is too optimistic) and lower bias than cross-validation holdout (which is too pessimistic). It still uses squared error loss but constructs targets differently. The Gaussian weights can be computed in closed form for small action spaces, though the integral becomes expensive when $|\mathcal{A}|$ is large.
+
+Both approaches address the max-operator bias under the Gaussian noise assumption but preserve the squared error loss. An alternative is to change the loss function itself.
+
+### Gumbel Regression and the Correct Likelihood
+
+If the noise introduced by the max operator is Gumbel-distributed rather than Gaussian, then maximum likelihood estimation should use a Gumbel likelihood, not a Gaussian one. Garg, Tang, Kahn, and Levine {cite}`garg2023extreme` developed this idea in Extreme Q-Learning (XQL). Instead of modeling the Bellman error as additive Gaussian noise:
+
+$$
+y_i = q^*(s_i, a_i) + \varepsilon_i, \quad \varepsilon_i \sim \mathcal{N}(0, \sigma^2)
+$$
+
+they model it as Gumbel noise:
+
+$$
+y_i = q^*(s_i, a_i) + \varepsilon_i, \quad \varepsilon_i \sim -\text{Gumbel}(0, \beta)
+$$
+
+The negative Gumbel distribution arises because we are modeling errors in targets that overestimate the true value. The corresponding maximum likelihood loss is Gumbel regression:
+
+$$
+\mathcal{L}_{\text{Gumbel}}(\boldsymbol{\theta}) = \sum_i \left[\frac{q(s_i, a_i; \boldsymbol{\theta}) - y_i}{\beta} + \exp\left(\frac{q(s_i, a_i; \boldsymbol{\theta}) - y_i}{\beta}\right)\right]
+$$
+
+The temperature parameter $\beta$ controls the heaviness of the tail. As $\beta \to 0$, the loss focuses sharply on the maximum (hard max), while as $\beta \to \infty$, it approaches the mean (soft max). For intermediate values, the loss asymmetrically penalizes overestimation more heavily than underestimation, matching the structure of the noise.
+
+The Gumbel loss can be understood as the natural likelihood for problems involving max operators, just as the Gaussian is the natural likelihood for problems involving averages. The central limit theorem tells us that sums converge to Gaussians; extreme value theory tells us that maxima converge to Gumbel (for light-tailed base distributions). Squared error is optimal for Gaussian noise; Gumbel regression is optimal for Gumbel noise.
+
+The practical advantage is that we do not need to estimate variances or compute weighted averages. The loss function itself handles the asymmetric error structure. XQL has shown improvements in both value-based and actor-critic methods, particularly in offline reinforcement learning where the max-operator bias compounds across iterations without corrective exploration.
+
+### Three Perspectives on Max-Operator Bias
+
+The preceding analysis reveals three approaches to correcting max-operator bias, each grounded in a different statistical assumption:
+
+| **Method** | **Noise Model** | **Loss Function** | **Target** | **Parameters** |
+|:-----------|:----------------|:------------------|:-----------|:---------------|
+| Bias-corrected Q | Gaussian | L2 | $r + \gamma \max_{a'} q(s', a') - B$ | Requires $\hat{\sigma}$ |
+| Weighted Q | Gaussian | L2 | $r + \gamma \sum_{a'} w_{a'} q(s', a')$ | Requires $\hat{\sigma}$, $n$ |
+| Extreme Q (XQL) | Gumbel | Gumbel regression | $r + \gamma \max_{a'} q(s', a')$ | Requires $\beta$ |
+| Standard Q | Gaussian | L2 | $r + \gamma \max_{a'} q(s', a')$ | None |
+
+Bias-corrected Q explicitly adjusts targets for expected overestimation. Weighted Q sidesteps the hard maximum by computing probabilities that each action is optimal. Extreme Q changes the likelihood function itself to match the Gumbel noise structure. All three require auxiliary parameters (variance estimates or temperature) and all assume the dominant noise source is known.
+
+Which assumption is correct? If reward stochasticity dominates and the central limit theorem applies, Gaussian-based methods are appropriate. If the max operator amplifies function approximation errors with uncertain estimates, the Gumbel model may be more accurate. In practice, modern deep RL has mixed error sources (reward noise, TD bootstrapping, function approximation error, and max-operator bias), suggesting the optimal choice is problem-dependent. A fourth approach addresses robustness without explicit distributional assumptions.
 
 ### Classification-Based Q-Learning
 
@@ -217,17 +304,17 @@ This asymmetry suggests an interpretation. Classical dynamic programming theory 
 
 An alternative to the two-hot encoding is the histogram loss with Gaussian smoothing (HL-Gauss), which treats the scalar target $y_i$ as the mean of a Gaussian and projects that Gaussian onto the histogram bins to produce a smoothed categorical distribution. This adds a form of label smoothing: instead of placing mass only on the two immediate neighbors, the Gaussian tail spreads small amounts of probability to nearby bins. This regularization can improve generalization, particularly when targets are noisy.
 
-The classification approach has connections to distributional reinforcement learning, particularly the C51 algorithm {cite}`bellemare2017distributional`, which applies the Bellman operator to entire return distributions rather than scalar expectations. C51 uses a categorical representation and KL divergence (equivalently, cross-entropy) between distributions. However, the classification framework can be applied without adopting the full distributional Bellman machinery. Using cross-entropy loss on scalar TD targets already provides substantial benefits, suggesting that the loss geometry itself, not just the distributional perspective, contributes to improved performance.
+The classification approach has connections to distributional reinforcement learning, particularly the C51 algorithm {cite}`bellemare2017distributional`, which applies the Bellman operator to entire return distributions rather than scalar expectations. C51 uses a categorical representation and KL divergence (equivalently, cross-entropy) between distributions. However, the classification framework can be applied without adopting the full distributional Bellman machinery. Using cross-entropy loss on scalar TD targets already provides substantial benefits, suggesting that the loss geometry contributes to improved performance independently of the distributional perspective.
 
-### Advantages of Cross-Entropy Loss
+### Robustness Through Loss Geometry
 
-Cross-entropy loss provides several advantages over squared error in the deep Q-learning setting. First, it is more robust to outliers. Squared error penalizes large deviations quadratically, so a single bad target with $|y_i - q(s_i,a_i; \boldsymbol{\theta})| = 100$ contributes 10,000 to the loss. Cross-entropy, by contrast, penalizes incorrect categorical predictions logarithmically. A target that falls in a low-probability region of the predicted distribution incurs a large but bounded gradient. This reduced sensitivity to extreme TD errors can stabilize learning when early targets are unreliable.
+Classification-based Q-learning addresses max-operator bias through a different mechanism than the methods above. Cross-entropy loss provides robustness to outliers through its logarithmic penalty structure. Squared error penalizes large deviations quadratically: a single bad target with error 100 contributes 10,000 to the loss. Cross-entropy penalizes incorrect categorical predictions logarithmically. A target falling in a low-probability region incurs a large but bounded gradient. When targets are systematically overestimated due to the max operator, squared error amplifies outliers into dominant gradient signals. Cross-entropy remains robust without requiring explicit bias correction or variance estimation.
 
-Second, the categorical representation encodes ordinal structure. Neighboring bins represent similar values, and the two-hot or Gaussian-smoothed encodings ensure that nearby bins receive similar probabilities. This is a form of structured prediction: the network learns that a Q-value of 5.1 is similar to 5.0 and 4.9, which L2 regression does not explicitly encode. The ordinal structure acts as an inductive bias that can improve sample efficiency.
+The categorical representation also encodes ordinal structure. Neighboring bins represent similar values, and the two-hot or Gaussian-smoothed encodings ensure nearby bins receive similar probabilities. The network learns that a Q-value of 5.1 resembles 5.0 and 4.9, which L2 regression does not explicitly encode. This ordinal inductive bias can improve sample efficiency.
 
-Third, cross-entropy loss has been shown to scale better with network capacity than squared error in deep Q-learning. Farebrother et al. {cite}`farebrother2024stop` found that standard DQN and offline methods like CQL degrade when the Q-network is scaled up to large ResNets or mixture-of-experts architectures, but using classification loss (specifically HL-Gauss) maintains or improves performance as network size increases. This suggests that L2 loss may be overfitting to noise in the targets when given high-capacity approximators, while cross-entropy's implicit regularization prevents this degradation. The same study showed gains across online Atari, offline Atari, and robotic manipulation tasks.
+Empirically, cross-entropy loss scales better with network capacity. Farebrother et al. {cite}`farebrother2024stop` found that standard DQN and CQL degrade when Q-networks are scaled to large ResNets or mixture-of-experts architectures, but classification loss (specifically HL-Gauss) maintains or improves performance as network size increases. L2 loss appears to overfit to noise in targets when given high-capacity approximators, while cross-entropy's implicit regularization prevents this degradation. The study demonstrated gains across online Atari, offline Atari, and robotic manipulation tasks.
 
-This provides a third approach to mitigating the overestimation bias discussed earlier in this chapter. Keane-Wolpin bias correction explicitly learns and subtracts the bias term, and double Q-learning decouples selection from evaluation to eliminate evaluation bias. Classification loss takes a different route: it changes the projection geometry itself. Instead of projecting onto the function class using L2 distance (which amplifies outliers), we project using KL divergence (cross-entropy), which provides robustness to the noisy target distribution. All three approaches address the same fundamental problem—noisy, biased targets—but through different mechanisms.
+We now have four approaches to max-operator bias: explicit correction (Lee-Powell), weighted estimation (D'Eramo et al.), Gumbel regression (XQL), and robust loss geometry (classification). The first three require distributional assumptions and auxiliary parameters. The fourth provides robustness without explicit distributional modeling. Bias correction and weighted estimation modify targets while preserving L2 loss. Gumbel regression matches the loss to the noise distribution. Classification changes the projection geometry from L2 to cross-entropy. The choice depends on whether distributional assumptions are justified, whether variance can be estimated reliably, and whether computational resources permit the more complex methods.
 
 ### Practical Implementation
 

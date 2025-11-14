@@ -272,53 +272,6 @@ The expectation inside the braces is now replaced by a random sample average. In
 
 At this stage nothing about approximation or projection has entered yet. For a fixed value function $v$, Monte Carlo provides unbiased, noisy evaluations of $(\Bellman v)(s)$. The approximation question arises once we couple this stochastic evaluation with basis functions and projections.
 
-### The Single-Sample Reality: Why N=1 in Practice
-
-The Monte Carlo framework developed above allows arbitrary sample size $N$ when approximating $\mathbb{E}[v(S') \mid s,a]$. In principle, we could draw many next states $S'^{(1)}, \ldots, S'^{(N)}$ from $p(\cdot \mid s,a)$ and average $\frac{1}{N}\sum_{n=1}^N v(S'^{(n)})$ to reduce variance. However, most practical reinforcement learning settings operate under constraints that force $N=1$.
-
-The fundamental constraint is the **no-reset condition**: we cannot repeatedly "rewind" the environment to the same state $(s,a)$ and sample different continuations. Consider:
-
-- **Real-world systems**: A robot executing action $a$ in state $s$ observes one outcome $s'$. We cannot reset the robot to the exact same state and try again to collect multiple samples.
-- **Single trajectory collection**: An agent playing a video game or controlling a system experiences one sequence $(s_0, a_0, r_0, s_1, a_1, r_1, s_2, \ldots)$. Each state-action pair $(s_t, a_t)$ yields exactly one observed next state $s_{t+1}$.
-- **Simulators with side effects**: Even when a simulator exists, resetting to an arbitrary state $s$ may be impossible or expensive. Many simulators only support initialization from specific starting states.
-
-This leads to a fundamental data structure shift. Instead of organizing experience as
-
-$$
-\text{state-action pairs with multiple next-state samples: } (s, a) \mapsto \{s'^{(1)}, s'^{(2)}, \ldots, s'^{(N)}\},
-$$
-
-we work with **transition quadruples**:
-
-$$
-\mathcal{D} = \{(s_i, a_i, r_i, s'_i)\}_{i=1}^M,
-$$
-
-where each tuple records a single observed transition. The Monte Carlo estimator becomes:
-
-$$
-\widehat{G}_1(s_i, a_i) = r_i + \gamma v(s'_i), \quad N=1.
-$$
-
-This is unbiased but high-variance: $\mathbb{E}[\widehat{G}_1(s,a)] = r(s,a) + \gamma \int v(s')p(ds'|s,a)$, but $\mathrm{Var}(\widehat{G}_1) = \mathrm{Var}(v(S'))$. We cannot reduce this variance by sampling multiple next states from the same $(s,a)$ because we only get one.
-
-How then do we reduce variance? Through **aggregation across different samples**. If the dataset contains multiple transitions from similar state-action pairs (even if not identical), the regression problem $\min_\theta \sum_i \ell(q(s_i, a_i; \theta), y_i)$ with targets $y_i = \widehat{G}_1(s_i, a_i)$ effectively pools information. The function approximator $q(s,a; \theta)$ smooths and generalizes across the noisy single-sample targets.
-
-This clarifies three aspects of simulation-based algorithms that follow:
-
-1. **Data structure**: All algorithms work with quadruples $\{(s_i, a_i, r_i, s'_i)\}$, not $(s,a)$ pairs with multiple next-state samples
-2. **Variance reduction**: Comes from function approximation (sharing across samples) and trajectory length (multiple transitions per episode), not from repeated sampling at fixed $(s,a)$
-3. **Target computation**: Each transition $(s_i, a_i, r_i, s'_i)$ yields exactly one target $y_i = r_i + \gamma \max_{a'} q(s'_i, a')$ using the single observed $s'_i$
-
-In offline batch settings where we have a fixed dataset $\mathcal{D}$ collected once, every algorithm reuses these same quadruples across iterations. We recompute targets $y_i$ using updated $q$ but never collect new samples from the same $(s,a)$ pairs. In online settings, we collect new quadruples sequentially and add them to the dataset or replay buffer.
-
-The special case where $N>1$ sampling is feasible occurs when:
-- We have a generative model that supports arbitrary state initialization (e.g., some MuJoCo environments)
-- The environment is fast enough that repeated sampling is cheap
-- We explicitly design data collection to revisit states
-
-Even then, most practical algorithms stick with $N=1$ and compensate through other means (larger replay buffers, better function approximation, multi-step returns). The single-sample case is not a limitation to work around but the fundamental operating mode of reinforcement learning.
-
 ### Sampling the outer expectations
 
 Projection methods introduce a second layer of integration. In Galerkin and least squares schemes, we choose a distribution $\mu$ over states (and sometimes actions) and enforce conditions of the form
@@ -369,7 +322,7 @@ $$
 \hat{v}^{(k+1)} = \Proj_M\,\widehat{\Bellman}_N \hat{v}^{(k)}.
 $$
 
-In the typical reinforcement learning setting, $N=1$: each observed transition $(s_i, a_i, r_i, s'_i)$ provides exactly one sample of the next state, as explained in the previous subsection. This means we work with high-variance single-sample estimates $r_i + \gamma v(s'_i)$ rather than averaged returns. Variance reduction comes from aggregating information across different transitions through the function approximator and from collecting long trajectories with many transitions.
+In the typical reinforcement learning setting, $N=1$: each observed transition $(s_i, a_i, r_i, s'_i)$ provides exactly one sample of the next state. This means we work with high-variance single-sample estimates $r_i + \gamma v(s'_i)$ rather than averaged returns. Variance reduction comes from aggregating information across different transitions through the function approximator and from collecting long trajectories with many transitions. We examine this single-sample constraint in detail after introducing Q-functions below.
 
 Unlike deterministic quadrature, which introduces a fixed bias at each iteration, Monte Carlo introduces random error with zero mean but nonzero variance. However, combining Monte Carlo with the maximization in the Bellman operator creates a systematic problem: while the estimate of the expected return for any individual action is unbiased, taking the maximum over these noisy estimates introduces upward bias. This overestimation compounds through value iteration and degrades the resulting policies. We address this challenge in the [next chapter on batch reinforcement learning](batch_rl.md).
 
@@ -432,7 +385,27 @@ Like the Bellman operator on value functions, $\Bellman$ is a $\gamma$-contracti
 5. **return** $\boldsymbol{\theta}_n$
 ```
 
-With Q-functions in hand and Monte Carlo integration established, we have the basic machinery for simulation-based approximate dynamic programming. However, before turning to practical algorithms, we must address a fundamental challenge that arises from combining Monte Carlo sampling with the maximization operation in the Bellman operator.
+The algorithm above evaluates the expectation $\int p(ds'|s,a)\max_{a'} q(s',a'; \boldsymbol{\theta}_n)$ at each state-action pair. In principle, we could approximate this integral using many Monte Carlo samples: draw $N$ next states from $p(\cdot|s,a)$ and average $\frac{1}{N}\sum_{i=1}^N \max_{a'} q(s'_i, a')$ to reduce variance. This is standard Monte Carlo integration applied to the Bellman operator.
+
+### The Single-Sample Paradigm
+
+Most reinforcement learning algorithms do not follow this pattern. Instead, they work with datasets of **transition tuples** $\mathcal{D} = \{(s_i, a_i, r_i, s'_i)\}_{i=1}^M$, where each tuple records a single observed next state $s'_i$ from executing action $a_i$ in state $s_i$. Each transition provides exactly one sample of the dynamics: the target becomes $y_i = r_i + \gamma \max_{a'} q(s'_i, a')$ using only the single observed $s'_i$.
+
+This design choice has two origins. First, it reflects genuine constraints in some problem settings. A robot executing action $a$ in state $s$ observes one outcome $s'$ and cannot rewind to the exact same state to sample alternative continuations. Real physical systems, biological experiments, and costly interactions (clinical trials, manufacturing processes) provide one sample per executed action. However, many domains where RL is applied do not face this constraint. Game emulators support state saving and restoration, physics simulators can reset to arbitrary configurations, and software environments can be cloned cheaply. The single-sample pattern persists in these settings not from necessity but from algorithmic convention.
+
+Second, and perhaps more fundamentally, the single-sample paradigm emerged from reinforcement learning's roots in computational neuroscience and models of biological intelligence. Early work viewed RL as a model of animal learning, where organisms experience one consequence per action and must learn from streaming sensory data. This perspective shaped the field's algorithmic agenda: develop methods that learn from single sequential experiences, as biological agents do. Temporal difference learning, Q-learning, and actor-critic methods all follow this template.
+
+These origins matter because they established design choices that persist even when the original constraints do not apply. In many practical applications, we have fast simulators that support arbitrary state initialization (e.g., physics engines for robotics, game emulators for Atari). We could collect multiple next-state samples per $(s,a)$ pair to reduce variance in target computation. However, most algorithms do not exploit this capability. The transition tuple $(s_i, a_i, r_i, s'_i)$ with $N=1$ remains the standard data structure, and methods compensate for high variance through other means: larger replay buffers, function approximation that pools information across samples, multi-step returns, and careful optimization strategies.
+
+This creates an asymmetry in how algorithms use Monte Carlo integration. For the outer expectation (sampling which states to evaluate at), algorithms freely adjust sample size: offline methods reuse entire datasets, replay buffers store thousands of transitions, online methods process one sample per step. For the inner expectation (sampling next states to evaluate the Bellman operator at a given $(s,a)$), the overwhelming majority of practical methods use $N=1$ regardless of whether the environment permits larger samples.
+
+The single-sample paradigm shapes three aspects of algorithm design:
+
+1. **Data structure**: Algorithms store and manipulate tuples $\{(s_i, a_i, r_i, s'_i)\}$, not state-action pairs with multiple next-state samples
+2. **Variance reduction**: Comes from aggregation across different samples through function approximation and from trajectory length, not from repeated sampling at fixed $(s,a)$
+3. **Target computation**: Each transition yields exactly one target $y_i = r_i + \gamma \max_{a'} q(s'_i, a')$ evaluated at the single observed $s'_i$
+
+The algorithms that follow in the next chapters all adopt this single-sample structure. Understanding its origins clarifies when the design choice might be revisited: in domains with cheap, resettable simulators and high target variance, averaging multiple next-state samples per $(s,a)$ pair offers a direct variance reduction mechanism that is rarely exploited in current practice.
 
 ## Overestimation Bias and Mitigation Strategies
 
@@ -472,7 +445,7 @@ Operationally, this means that repeatedly sampling fresh states and taking the m
 This inequality also underlies why deterministic policies are optimal in MDPs (Theorem {prf:ref}`stoch-policy-reduction`): $\max_a w(a) \ge \sum_a q(a) w(a)$ shows randomization cannot improve expected returns. The same mathematical principle appears in two contexts: (1) deterministic policies suffice, (2) maximization over noisy estimates creates upward bias.
 ```
 
-Monte Carlo value iteration applies $v_{k+1} = \widehat{\Bellman}_N v_k$ repeatedly. The overestimation bias does not stay confined to a single iteration: it accumulates through the recursion. To see why, note that each iteration's output becomes the next iteration's input. At iteration 2, we compute Monte Carlo estimates $\hat{\mu}_N(s,a) = \frac{1}{N}\sum_{i=1}^N v_1(s'_i)$, but $v_1$ is already biased upward from iteration 1. We are now averaging an overestimated function before we even apply the maximization, which adds another layer of bias on top of what was inherited. This pattern repeats at each iteration, creating a feedback loop where $\mathbb{E}[v_k] \ge \mathbb{E}[v_{k-1}] \ge \cdots \ge v^*$. Favorable noise at iteration $k$ becomes embedded in the value function and treated as truth by iteration $k+1$.
+Monte Carlo value iteration applies $v_{k+1} = \widehat{\Bellman}_N v_k$ repeatedly. The overestimation bias does not stay confined to a single iteration: it accumulates through the recursion. At iteration 2, we compute Monte Carlo estimates $\hat{\mu}_N(s,a) = \frac{1}{N}\sum_{i=1}^N v_1(s'_i)$, but $v_1$ is already biased upward from iteration 1. Averaging an overestimated function and then maximizing over noisy estimates compounds the bias: $\mathbb{E}[v_k] \ge \mathbb{E}[v_{k-1}] \ge \cdots \ge v^*$. Without correction, this feedback loop can produce severely inflated value estimates that yield poor policies.
 
 ### Learning the Bias Correction
 

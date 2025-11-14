@@ -61,6 +61,7 @@ site:
   template: book-theme
   options:
     logo_text: "RL & Control"
+    logo: _static/logo.png
     numbered: true
   actions:
     - title: View on GitHub
