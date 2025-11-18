@@ -76,6 +76,18 @@ There is also a way to obtain this equation by starting from the energy-based fo
 
 Finally, it's worth noting that we can also derive this form by considering an entropy-regularized formulation in which we penalize for the entropy of our policy in the reward function term. This formulation admits a solution that coincides with the smooth Bellman equations {cite}`haarnoja2017reinforcement`.
 
+## Alternative Soft Maximum: Gaussian Uncertainty-Weighted Aggregation
+
+The logsumexp operator provides one way to soften the hard maximum, but alternative approaches exist. When Q-value estimates have heterogeneous uncertainty (some actions estimated more precisely than others), we can weight actions by the probability they are optimal under a Gaussian uncertainty model. {cite}`deramo2016estimating` proposed computing weights as:
+
+$$
+w_{a'} = \int_{-\infty}^{+\infty} \phi\left(\frac{x - \hat{\mu}_{a'}}{\hat{\sigma}_{a'}/\sqrt{n}}\right) \prod_{b \neq a'} \Phi\left(\frac{x - \hat{\mu}_b}{\hat{\sigma}_b/\sqrt{n}}\right) dx
+$$
+
+where $\hat{\mu}_{a'}$ and $\hat{\sigma}_{a'}$ are the sample mean and standard deviation of Q-value estimates, $n$ is the sample size, and $\phi$, $\Phi$ are the standard normal PDF and CDF. The soft Bellman target becomes $v(s') = \sum_{a'} w_{a'} q(s', a')$, a probability-weighted expectation rather than a hard maximum.
+
+This differs from logsumexp in that it adapts to state-action-specific uncertainty (actions with tighter confidence intervals receive more weight), whereas logsumexp applies uniform smoothing via temperature $\beta$. The Gaussian-weighted approach requires maintaining variance estimates and computing integrals, making it more expensive than logsumexp. However, it provides a principled way to reduce overestimation bias in Q-learning while avoiding the pessimism of double Q-learning. We return to this estimator in the [simulation-based methods chapter](simadp.md) when discussing overestimation bias mitigation strategies.
+
 ## Gumbel Noise on the Rewards
 
 We can obtain the smooth Bellman equation by considering a setting in which we have Gumbel noise added to the reward function. This derivation provides both theoretical insight and connects to practical modeling scenarios where rewards have random perturbations.

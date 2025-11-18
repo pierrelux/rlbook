@@ -332,7 +332,7 @@ While DDPG used the OU process which generates temporally correlated noise, TD3'
 Finally, TD3 updates the policy network (and target networks) less frequently than the Q-networks, typically once every $d$ Q-function updates. This helps reduce the per-update error and gives the Q-functions time to become more accurate before they are used to update the policy.
 
 # Soft Actor-Critic
-Adapting the intuition of NFQCA to the smooth Bellman optimality equations leads us to the soft actor-critic algorithm {cite}`haarnoja2018soft`. To understand this connection, let's first examine how the smooth Bellman equations emerge naturally from entropy regularization.
+Adapting the intuition of NFQCA to the smooth Bellman optimality equations leads us to the soft actor-critic algorithm {cite}`haarnoja2018soft`. To understand this connection, let's first examine how the smooth Bellman equations follow from entropy regularization.
 
 Consider the standard Bellman operator augmented with an entropy term. The smooth Bellman operator $\mathrm{L}_\beta$ takes the form:
 
@@ -1579,7 +1579,7 @@ As far as I know, this approach has not been explored in the literature.
 
 ## DPG as a Special Case of SAC 
 
-At first glance, SAC and DPG might appear to be fundamentally different approaches to policy optimization. SAC begins with the principle of entropy maximization and policy distribution matching through KL divergence minimization, while DPG directly optimizes a deterministic policy to maximize expected Q-values. However, we can show that DPG emerges as a special case of SAC as we take the temperature parameter to zero.
+At first glance, SAC and DPG might appear to be fundamentally different approaches to policy optimization. SAC begins with the principle of entropy maximization and policy distribution matching through KL divergence minimization, while DPG directly optimizes a deterministic policy to maximize expected Q-values. However, we can show that DPG is a special case of SAC when the temperature parameter goes to zero.
 
 ```{prf:proposition} Convergence of SAC to DPG 
 Let $d(\cdot|s;\boldsymbol{w}_\alpha)$ be the optimal stochastic policy for SAC with temperature $\alpha$, and $d(s;\boldsymbol{w}_{DPG})$ be the optimal deterministic policy gradient solution. Under appropriate assumptions, as $\alpha \to 0$:

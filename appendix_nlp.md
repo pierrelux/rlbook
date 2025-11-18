@@ -844,7 +844,7 @@ print(f"Objective function value: {f(x_opt):.6f}")
 
 ### The Arrow-Hurwicz-Uzawa algorithm
 
-While the SQP method addresses constrained optimization problems by sequentially solving quadratic subproblems, an alternative approach emerges from viewing constrained optimization as a min-max problem. This perspective leads to a simpler algorithm, originally introduced by the Arrow-Hurwicz-Uzawa {cite}`arrow1958studies`. Consider the following general constrained optimization problem encompassing both equality and inequality constraints:
+While the SQP method addresses constrained optimization problems by sequentially solving quadratic subproblems, an alternative approach follows from viewing constrained optimization as a min-max problem. This perspective leads to a simpler algorithm, originally introduced by the Arrow-Hurwicz-Uzawa {cite}`arrow1958studies`. Consider the following general constrained optimization problem encompassing both equality and inequality constraints:
 
 $$
 \begin{aligned}

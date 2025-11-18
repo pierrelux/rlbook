@@ -11,7 +11,7 @@ kernelspec:
   name: python3
 ---
 
-# Simulation-Based Approximate Dynamic Programming 
+# Monte Carlo Integration in Approximate Dynamic Programming 
 
 The projection methods from the previous chapter showed how to transform the infinite-dimensional fixed-point problem $\Bellman v = v$ into a finite-dimensional one by choosing basis functions $\{\varphi_i\}$ and imposing conditions that make the residual $R(s) = \Bellman v(s) - v(s)$ small. Different projection conditions (Galerkin orthogonality, collocation at points, least squares minimization) yield different finite-dimensional systems to solve.
 
@@ -409,7 +409,7 @@ The algorithms that follow in the next chapters all adopt this single-sample str
 
 ## Overestimation Bias and Mitigation Strategies
 
-Monte Carlo integration provides unbiased estimates of individual expectations, but when we apply the Bellman operator's maximization to these noisy estimates, a systematic problem emerges: taking the maximum over noisy values creates upward bias. This overestimation compounds through iterative algorithms and can severely degrade the quality of learned policies. This section examines the sources of this bias and presents two approaches for mitigating it.
+Monte Carlo integration provides unbiased estimates of individual expectations, but when we apply the Bellman operator's maximization to these noisy estimates, a systematic problem arises: taking the maximum over noisy values creates upward bias. This overestimation compounds through iterative algorithms and can severely degrade the quality of learned policies. This section examines the sources of this bias and presents two approaches for mitigating it.
 
 ### Sources of Overestimation Bias
 
@@ -477,7 +477,39 @@ Useful features for predicting the bias include the spread of action values (fro
    - Bias-corrected value: $v_{k+1}(s) = M(s) - g_\eta(\phi(s))$
 ```
 
-The regression model $g_\eta$ is trained offline by comparing high and low-fidelity simulations at a grid of states, then applied during each value iteration step. This approach has been influential in econometrics for structural estimation problems. However, it has seen limited adoption in reinforcement learning. The computational overhead is substantial: it requires high-fidelity simulation at training states, careful feature engineering, and maintaining the regression model throughout learning. More critically, the circular dependency between the bias estimate and the value function can amplify errors if $g_\eta$ is misspecified. We now turn to a simpler alternative that avoids explicit bias modeling.
+The regression model $g_\eta$ is trained offline by comparing high and low-fidelity simulations at a grid of states, then applied during each value iteration step. This approach has been influential in econometrics for structural estimation problems. However, it has seen limited adoption in reinforcement learning. The computational overhead is substantial: it requires high-fidelity simulation at training states, careful feature engineering, and maintaining the regression model throughout learning. More critically, the circular dependency between the bias estimate and the value function can amplify errors if $g_\eta$ is misspecified.
+
+### Analytical Bias Correction
+
+{cite}`lee2013bias,lee2019biascorrected` developed an alternative that derives the bias analytically using extreme value theory rather than learning it empirically. Their analysis considers the distributional structure of the noise in Monte Carlo estimates. When rewards are Gaussian with variance $\sigma^2$, the bias in $\max_a \widehat{R}(s,a)$ can be computed from extreme value theory.
+
+For a single-state MDP where all randomness comes from stochastic rewards, suppose that for each action $a$, the observed reward is $\widehat{R}(s,a) = \mu_a + \varepsilon_a$ where $\varepsilon_a \sim \mathcal{N}(0, \sigma^2)$. When we form the target $\max_a \widehat{R}(s,a)$, we are taking the maximum of $M = |\mathcal{A}(s)|$ independent Gaussians. After appropriate centering and scaling, this maximum converges in distribution to a Gumbel random variable. The expected bias can be computed as:
+
+$$
+\mathbb{E}\left[\max_{a} \varepsilon_a\right] \approx \sigma \left(\frac{\xi}{b_M} + b_M\right)
+$$
+
+where $b_M = \sqrt{2\log M - \log\log M - \log 4\pi}$ and $\xi \approx 0.5772$ is the Euler-Mascheroni constant. This quantity is positive and grows with the number of actions $M$. The bias scales with the noise level $\sigma$ and with the action space size.
+
+The corrected target becomes:
+
+$$
+\tilde{y}_i = r_i + \gamma \max_{a'} q(s'_i, a'; \boldsymbol{\theta}^{(n)}) - B(s_i, a_i)
+$$
+
+where the bias correction term is:
+
+$$
+B(s,a) = \left(\frac{\xi}{b_{|A(s)|}} + b_{|A(s)|}\right) \hat{\sigma}(s,a)
+$$
+
+Here $\hat{\sigma}(s,a) = \sqrt{\widehat{\text{Var}}[R(s,a)]}$ is the estimated standard deviation of the reward at state-action pair $(s,a)$. This can be computed from multiple observed reward samples at the same $(s,a)$ pair if available.
+
+This approach is exact for single-state MDPs where Q-values equal expected rewards and all bias comes from reward noise. For general multi-state MDPs, the situation is more complex. The bias arises from the max operator over Q-values at the next state $s'$, not from reward stochasticity at the current state. Lee and Powell's multistate extension addresses this by introducing a separate correction term $B^T$ for transition stochasticity, estimated empirically by averaging $\max_{a'} q(s', a')$ over multiple sampled next states from the same $(s,a)$ pair, rather than using an analytical formula. The single-state analytical correction remains valuable for bandit problems and as a first-order approximation when reward variance dominates, but does not directly address max-operator bias from function approximation error in the Q-values themselves. The correction is optimal specifically for Gaussian errors. If the true errors have heavier tails, the correction may be insufficient.
+
+Lee-Powell's analytical formula can be viewed as deriving what Keane-Wolpin learned empirically, replacing the regression model with a closed-form expression from extreme value theory. The trade-off is generality versus computational cost: Keane-Wolpin adapts to any noise structure but requires expensive high-fidelity simulations at training states; Lee-Powell assumes Gaussian noise but evaluates instantly once $\hat{\sigma}$ is estimated. Both subtract a correction term from targets while preserving squared error loss.
+
+An alternative to explicit bias correction is to replace the hard max operator with a soft maximum. The [regularized MDP chapter](regmdp.md) discusses smooth Bellman operators that use logsumexp or Gaussian uncertainty-weighted aggregation to avoid the discontinuity and overestimation inherent in taking a hard maximum. These approaches modify the Bellman operator itself rather than correcting its bias after the fact, preserving squared error loss while constructing smoother targets. Another approach, examined in the [next chapter](batch_rl.md), changes the loss function itself to match the noise structure in TD targets.
 
 ### Decoupling Selection and Evaluation
 
@@ -584,14 +616,62 @@ Note that this algorithm is written in the theoretical form that assumes we can 
 
 At lines 9 and 12, $q^{(1)}$ selects the action but $q^{(2)}$ evaluates it. The noise in $q^{(1)}$ influences which action is chosen, but the independent noise in $q^{(2)}$ does not inflate the evaluation. Lines 10 and 13 apply the same principle symmetrically for updating $q^{(2)}$.
 
+### Weighted Estimators: A Third Approach
+
+The Keane-Wolpin and double Q-learning approaches represent two strategies for addressing overestimation bias: explicit correction and decoupled estimation. A third approach, developed by D'Eramo et al. {cite}`deramo2016estimating`, replaces the hard maximum with a probability-weighted average that accounts for uncertainty in value estimates.
+
+The **maximum estimator (ME)** used in standard Q-learning takes the maximum of sample mean Q-values:
+
+$$
+\hat{\mu}^{ME}_* = \max_{a \in \mathcal{A}} \hat{\mu}_a
+$$
+
+where $\hat{\mu}_a$ is the sample mean Q-value for action $a$. While each individual $\hat{\mu}_a$ may be unbiased, the maximum is systematically upward biased. The bias can be bounded by:
+
+$$
+\text{Bias}(\hat{\mu}^{ME}_*) \leq \sqrt{\frac{M-1}{M}\sum_{a=1}^M \frac{\sigma_a^2}{n_a}}
+$$
+
+where $M = |\mathcal{A}|$ is the number of actions, $\sigma_a^2$ is the variance of Q-values for action $a$, and $n_a$ is the number of samples used to estimate it.
+
+The **double estimator (DE)** from double Q-learning reduces this bias by decoupling selection and evaluation, but introduces negative bias:
+
+$$
+\mathbb{E}[\hat{\mu}^{DE}_*] \leq \max_a \mu_a
+$$
+
+This pessimism can be problematic when one action is clearly superior to others, as the estimator may systematically undervalue the optimal action.
+
+The **weighted estimator (WE)** provides a middle ground. Instead of taking a hard maximum, compute a weighted average where weights reflect the probability that each action is optimal. Under a Gaussian approximation for the sampling distribution of Q-value estimates, the weight for action $a$ is:
+
+$$
+w_a = \mathbb{P}\left(a \in \arg\max_{a' \in \mathcal{A}} \hat{\mu}_{a'}\right) = \int_{-\infty}^{+\infty} \phi\left(\frac{x - \hat{\mu}_a}{\hat{\sigma}_a/\sqrt{n_a}}\right) \prod_{b \neq a} \Phi\left(\frac{x - \hat{\mu}_b}{\hat{\sigma}_b/\sqrt{n_b}}\right) dx
+$$
+
+where $\phi$ and $\Phi$ are the standard normal PDF and CDF. This integral computes the probability that action $a$ achieves the maximum by integrating over all possible true values $x$. For each $x$, the $\phi$ term gives the probability density that action $a$ has true value $x$, while the product of $\Phi$ terms gives the probability that all other actions have true values below $x$.
+
+The weighted estimator then becomes:
+
+$$
+\hat{\mu}^{WE}_* = \sum_{a \in \mathcal{A}} w_a \hat{\mu}_a
+$$
+
+D'Eramo et al. established that this estimator satisfies $\text{Bias}(\hat{\mu}^{WE}_*) \leq \text{Bias}(\hat{\mu}^{ME}_*)$ and $\text{Bias}(\hat{\mu}^{WE}_*) \geq \text{Bias}(\hat{\mu}^{DE}_*)$. The weighted estimator thus provides a middle ground between the optimism of ME and the pessimism of DE.
+
+The relative performance depends on the problem structure. When one action is clearly superior ($\mu_1 - \mu_2 \gg \sigma$), the signal dominates the noise and ME performs well with minimal overestimation. When multiple actions have similar values ($\mu_1 \approx \mu_2$), eliminating overestimation becomes critical and DE excels despite its pessimism. In intermediate cases, which represent most practical scenarios, WE adapts to the actual uncertainty and avoids both extremes.
+
+The weighted estimator can be incorporated into Q-learning by maintaining variance estimates alongside Q-values and computing the weighted target at each step. The weights $w_a$ themselves can serve as an exploration policy that naturally adapts to estimation uncertainty. This approach adapts automatically to heterogeneous uncertainty across actions and provides balanced bias, but requires maintaining variance estimates (adding memory overhead) and computing integrals (expensive for large action spaces). The method assumes Gaussian sampling distributions, though it proves robust in practice even when this assumption is violated.
+
+The weighted estimator relates to the smooth Bellman operators discussed in the [regularized MDP chapter](regmdp.md). Both replace the discontinuous hard maximum with smooth aggregation, but weighted estimation adapts to state-action-specific uncertainty while logsumexp applies uniform smoothing via temperature. The choice among ME, DE, and WE depends on computational constraints and problem characteristics. When variance estimates are available and action spaces are small, WE offers a principled approach that balances the extremes of overestimation and underestimation. When maintaining variance is expensive or action spaces are large, double Q-learning provides a simpler alternative that eliminates evaluation bias without explicit probability weighting.
+
 ## Summary and Forward Look
 
-This chapter developed the simulation-based approach to approximate dynamic programming by replacing analytical integration with Monte Carlo sampling. We showed how deterministic quadrature rules give way to randomized estimation when transition densities are expensive to evaluate or the state space is high-dimensional. The key insight is that we need only the ability to **sample** from transition distributions, not to compute their densities explicitly.
+This chapter developed the simulation-based approach to approximate dynamic programming by replacing analytical integration with Monte Carlo sampling. We showed how deterministic quadrature rules give way to randomized estimation when transition densities are expensive to evaluate or the state space is high-dimensional. We need only the ability to **sample** from transition distributions, not to compute their densities explicitly.
 
 Three foundational components emerged:
 
 1. **Monte Carlo Bellman operator**: Replace exact expectations $\int v(s')p(ds'|s,a)$ with sample averages $\frac{1}{N}\sum v(s'_i)$, typically with $N=1$ in practice
 2. **Q-functions**: Cache state-action values to amortize the cost of action selection, eliminating the need for repeated sampling at decision time
-3. **Bias mitigation**: Address the systematic overestimation that arises from maximizing over noisy estimates, either by learning explicit corrections (Keane-Wolpin) or by decoupling selection from evaluation (double Q-learning)
+3. **Bias mitigation**: Address the systematic overestimation that arises from maximizing over noisy estimates through four approaches: learning empirical corrections (Keane-Wolpin), analytical adjustment from extreme value theory (Lee-Powell), decoupling selection from evaluation (double Q-learning), and probability-weighted aggregation (weighted estimators)
 
 The algorithms presented (Parametric Q-Value Iteration, Keane-Wolpin, Double Q) remain in the theoretical setting where we can draw multiple samples from each state-action pair and choose optimization parameters freely. The [next chapter](batch_rl.md) addresses the practical constraints of reinforcement learning: working with fixed offline datasets of single-sample transitions, choosing function approximators and optimization strategies, and understanding the algorithmic design space that yields methods like FQI, NFQI, and DQN.

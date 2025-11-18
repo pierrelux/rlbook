@@ -1604,7 +1604,7 @@ $$
 
 with delays handled by shifting $z_r^k$ according to the appropriate travel time. These constraints are enforced as part of a nonlinear program, alongside the power tracking objective and control bounds.
 
-Compared to the earlier inflow-outflow model, this richer setup introduces more structure, but also more opportunity. The cascade now behaves like a coordinated team: upstream reservoirs can store water in anticipation of future needs, while downstream dams adjust their output to match arrivals and avoid overflows. The optimization reveals not just a schedule, but a strategy for how the entire system should act together to meet demand.
+Compared to the earlier inflow-outflow model, this richer setup introduces more structure, but also more opportunity. The cascade now behaves like a coordinated team: upstream reservoirs can store water in anticipation of future needs, while downstream dams adjust their output to match arrivals and avoid overflows. The optimization produces not just a schedule, but a strategy for how the entire system should act together to meet demand.
 
 ```{code-cell} ipython3
 :tags: [hide-input]

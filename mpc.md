@@ -396,7 +396,7 @@ $$
 \end{aligned}
 $$
 
-with \$\mathbf{F}\_k\$ the chosen discretization of the dynamics and \$w\_k\$ the quadrature weights. From this skeleton, several families of MPC emerge.
+with \$\mathbf{F}\_k\$ the chosen discretization of the dynamics and \$w\_k\$ the quadrature weights. From this skeleton, we can construct several families of MPC.
 
 In **tracking MPC**, the stage and terminal costs are quadratic penalties on deviation from a reference trajectory,
 
@@ -488,7 +488,7 @@ c(\mathbf{x}_k, \mathbf{u}_k) = c_{\text{op}}(\mathbf{x}_k, \mathbf{u}_k), \qqua
 c(\mathbf{x}_N) = c_{\text{op},T}(\mathbf{x}_N) \enspace .
 $$
 
-There is no reference trajectory here. The optimal behavior emerges from the cost itself. In this setting, standard stability arguments no longer apply automatically, and one must be careful to add terminal penalties or constraints that ensure the closed-loop system remains well-behaved.
+There is no reference trajectory here. The cost function determines the optimal behavior. In this setting, standard stability arguments no longer apply automatically, and one must be careful to add terminal penalties or constraints that ensure the closed-loop system remains well-behaved.
 
 ## Robust MPC
 
@@ -581,7 +581,7 @@ $$
 
 Now suppose an unexpected wind direction change occurs, shifting the incoming wind vector by 30 degrees. The current state $\mathbf{x}_{\text{current}}$ reflects wake patterns that no longer align with the new wind direction, and the optimizer discovers that no feasible trajectory exists that can redirect all wakes appropriately within the physical limits of yaw rate and thrust adjustment. The solver reports infeasibility.
 
-This scenario reveals the fundamental challenge of real-time MPC: **constraint incompatibility**. When disturbances push the system into states from which recovery appears impossible, or when reference trajectories demand physically impossible maneuvers, the intersection of all constraint sets becomes empty. Model mismatch compounds this problem as prediction errors accumulate over the horizon.
+This scenario illustrates the fundamental challenge of real-time MPC: **constraint incompatibility**. When disturbances push the system into states from which recovery appears impossible, or when reference trajectories demand physically impossible maneuvers, the intersection of all constraint sets becomes empty. Model mismatch compounds this problem as prediction errors accumulate over the horizon.
 
 Even when feasible solutions exist, **computational constraints** can prevent their discovery. A control loop running at 100 Hz allows only 10 milliseconds per iteration. If the solver requires 15 milliseconds to converge, we face an impossible choice: delay the control action and risk destabilizing the system, or apply an unconverged iterate that may violate critical constraints.
 
