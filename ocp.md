@@ -444,53 +444,52 @@ def spsa_optimize_exp(K=8, iters=200, seed=0, Nmc=16):
 
     return base, gamma
 
-if __name__ == "__main__":
-    K = 8
-    # Baseline linear schedule
-    u0 = [0.05 + 0.1*k for k in range(K)]
-    J0, s0 = rollout(u0, seed=42)
+K = 8
+# Baseline linear schedule
+u0 = [0.05 + 0.1*k for k in range(K)]
+J0, s0 = rollout(u0, seed=42)
 
-    # Optimize per-step waits (K-dim SPSA)
-    u_opt = spsa_optimize(K=K, iters=200, seed=123)
-    J1, s1 = rollout(u_opt, seed=999)
+# Optimize per-step waits (K-dim SPSA)
+u_opt = spsa_optimize(K=K, iters=200, seed=123)
+J1, s1 = rollout(u_opt, seed=999)
 
-    # Optimize exponential schedule parameters (2-dim SPSA with CRN)
-    base_opt, gamma_opt = spsa_optimize_exp(K=K, iters=200, seed=321, Nmc=16)
-    u_exp = project_waits(schedule_exp(base_opt, gamma_opt, K))
-    J2, s2 = rollout(u_exp, seed=777)
+# Optimize exponential schedule parameters (2-dim SPSA with CRN)
+base_opt, gamma_opt = spsa_optimize_exp(K=K, iters=200, seed=321, Nmc=16)
+u_exp = project_waits(schedule_exp(base_opt, gamma_opt, K))
+J2, s2 = rollout(u_exp, seed=777)
 
-    print("Initial schedule:", [round(x,3) for x in u0], "  Cost ≈", round(J0,3))
-    print("Optimized (per-step SPSA):", [round(x,3) for x in u_opt], "  Cost ≈", round(J1,3))
-    print("Optimized (exp base, gamma): base=", round(base_opt,3), " gamma=", round(gamma_opt,3),
-          "  schedule=", [round(x,3) for x in u_exp], "  Cost ≈", round(J2,3))
-    print("Attempts (init → per-step → exp):", s0.k, "→", s1.k, "→", s2.k,
-          "  Success codes:", s0.code, s1.code, s2.code)
+print("Initial schedule:", [round(x,3) for x in u0], "  Cost ≈", round(J0,3))
+print("Optimized (per-step SPSA):", [round(x,3) for x in u_opt], "  Cost ≈", round(J1,3))
+print("Optimized (exp base, gamma): base=", round(base_opt,3), " gamma=", round(gamma_opt,3),
+      "  schedule=", [round(x,3) for x in u_exp], "  Cost ≈", round(J2,3))
+print("Attempts (init → per-step → exp):", s0.k, "→", s1.k, "→", s2.k,
+      "  Success codes:", s0.code, s1.code, s2.code)
 
-    strategies = {
-        "Baseline": u0,
-        "Per-step SPSA": u_opt,
-        "Exp SPSA": u_exp,
-    }
-    costs = {"Baseline": J0, "Per-step SPSA": J1, "Exp SPSA": J2}
+strategies = {
+    "Baseline": u0,
+    "Per-step SPSA": u_opt,
+    "Exp SPSA": u_exp,
+}
+costs = {"Baseline": J0, "Per-step SPSA": J1, "Exp SPSA": J2}
 
-    fig, axes = plt.subplots(2, 1, figsize=(9, 7), sharex=True)
+fig, axes = plt.subplots(2, 1, figsize=(9, 7), sharex=True)
 
-    k = range(1, K + 1)
-    for name, waits in strategies.items():
-        axes[0].step(k, waits, where="mid", label=name)
-    axes[0].set_ylabel("Wait time (s)")
-    axes[0].set_title("Backoff Schedules")
-    axes[0].grid(alpha=0.3)
-    axes[0].legend()
+k = range(1, K + 1)
+for name, waits in strategies.items():
+    axes[0].step(k, waits, where="mid", label=name)
+axes[0].set_ylabel("Wait time (s)")
+axes[0].set_title("Backoff Schedules")
+axes[0].grid(alpha=0.3)
+axes[0].legend()
 
-    axes[1].bar(list(costs.keys()), [costs[key] for key in costs], color=["#4a90e2", "#f5a623", "#7ed321"])
-    axes[1].set_ylabel("Mean rollout cost")
-    axes[1].set_title("Objective Values (lower is better)")
-    axes[1].grid(axis="y", alpha=0.3)
-    axes[1].set_xlabel("Strategy")
+axes[1].bar(list(costs.keys()), [costs[key] for key in costs], color=["#4a90e2", "#f5a623", "#7ed321"])
+axes[1].set_ylabel("Mean rollout cost")
+axes[1].set_title("Objective Values (lower is better)")
+axes[1].grid(axis="y", alpha=0.3)
+axes[1].set_xlabel("Strategy")
 
-    fig.tight_layout()
-    plt.show()
+fig.tight_layout()
+plt.show()
 ```
 
 :::{figure} #fig-ocp-http-retrier
