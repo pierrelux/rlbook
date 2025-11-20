@@ -210,9 +210,12 @@ with the boundary condition $J^*(x_{t_f}) = 0$.
 
 It's worth noting that while this example uses a relatively simple model, the same principles can be applied to more complex scenarios involving stochasticity, multiple species interactions, or spatial heterogeneity. 
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
 
+
+#| label: dp-harvest-policy
+%config InlineBackend.figure_format = 'retina'
 import numpy as np
 
 # Parameters
@@ -301,6 +304,10 @@ print("Total harvest:", sum(harvests))
 
 ```
 
+:::{figure} #dp-harvest-policy
+Dynamic programming harvest example: printed output shows the optimal policy table, resulting population trajectory, and per-period harvests for an initial population of 50 fish.
+:::
+
 ## Handling Continuous Spaces with Interpolation
 
 In many real-world problems, such as our resource management example, the state space is inherently continuous. Dynamic programming, however, is usually defined on discrete state spaces. To reconcile this, we approximate the value function on a finite grid of points and use interpolation to estimate its value elsewhere.
@@ -380,8 +387,11 @@ In higher-dimensional spaces, naive interpolation becomes prohibitively expensiv
 
 Here is a demonstration of the backward recursion procedure using linear interpolation. 
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
+
+
+#| label: dp-harvest-interp
 
 
 import numpy as np
@@ -491,12 +501,19 @@ print("Harvests:", harvests)
 print("Total harvest:", sum(harvests))
 ```
 
+:::{figure} #dp-harvest-interp
+Backward recursion with linear interpolation: console output summarizes the smoothed optimal policy, state trajectory, and harvest totals for the resource management example.
+:::
+
 Due to pedagogical considerations, this example is using our own implementation of the linear interpolation procedure. However, a more general and practical approach would be to use a built-in interpolation procedure in Numpy. Because our state space has a single dimension, we can simply use [scipy.interpolate.interp1d](https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.) which offers various interpolation methods through its `kind` argument, which can take values in 'linear', 'nearest', 'nearest-up', 'zero', 'slinear', 'quadratic', 'cubic', 'previous', or 'next'. 'zero', 'slinear', 'quadratic' and 'cubic'.
 
 Here's a more general implementation which here uses cubic interpolation through the `scipy.interpolate.interp1d` function: 
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
+
+
+#| label: dp-harvest-cubic
 
 
 import numpy as np
@@ -589,6 +606,10 @@ print("\nPopulation trajectory:", trajectory)
 print("Harvests:", harvests)
 print("Total harvest:", sum(harvests))
 ```
+
+:::{figure} #dp-harvest-cubic
+Cubic interpolation further smooths the optimal harvest policy—this output prints the leading rows of the policy table along with the resulting trajectory and harvest statistics.
+:::
 
 <!-- ## Linear Quadratic Regulator via Dynamic Programming
 
@@ -992,9 +1013,12 @@ $$
 
 where the expectation is taken over the harvest and growth rate random variables. The boundary condition remains $J^*(x_{t_f}) = 0$. We can now adapt our previous code to account for the stochasticity in our model. One important difference is that simulating a solution in this context requires multiple realizations of our process. This is an important consideration when evaluating reinforcement learning methods in practice, as success cannot be claimed based on a single successful trajectory.
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
 
+
+
+#| label: dp-harvest-stochastic
 
 import numpy as np
 from scipy.interpolate import interp1d
@@ -1112,6 +1136,7 @@ print("\nAverage population trajectory:", avg_trajectory)
 print("Average total harvest:", avg_total_harvest)
 
 # Plot results
+%config InlineBackend.figure_format = 'retina'
 import matplotlib.pyplot as plt
 
 plt.figure(figsize=(12, 6))
@@ -1132,6 +1157,10 @@ plt.ylabel('Frequency')
 plt.tight_layout()
 plt.show()
 ```
+
+:::{figure} #dp-harvest-stochastic
+Stochastic resource management simulation: the cell reports the optimal policy sample, average trajectory, and visualizes ensemble trajectories plus the distribution of total harvest.
+:::
 
 ## Linear Quadratic Regulator via Dynamic Programming
 
@@ -1483,8 +1512,11 @@ This process can take 10-15 years and cost over $1 billion {cite}`Adams2009`. Th
 
 5. **Discount Factor** ($\gamma$): We use a discount factor $0 < \gamma \leq 1$ to account for the time value of money and risk preferences.
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
+
+
+#| label: dp-clinical-trials
 
 import numpy as np
 from scipy.stats import binom
@@ -1552,6 +1584,10 @@ print(f"2. All values non-positive and <= NDA value: {all(v <= V[3] for v in V)}
 print(f"3. Optimal sample sizes in range: {all(10 <= n <= 1000 for n in optimal_n if n is not None)}")
 
 ```
+
+:::{figure} #dp-clinical-trials
+Clinical trial phase-sizing via backward induction: the console output lists the phase values, recommended enrollment for each phase, and basic sanity checks on the resulting policy.
+:::
 
 # Infinite-Horizon MDPs
 
@@ -2471,4 +2507,3 @@ The policy iteration algorithm for discounted Markov decision problems is as fol
 ````
 
 As opposed to value iteration, this algorithm produces a sequence of both deterministic Markovian decision rules $\{\pi_n\}$ and value functions $\{\mathbf{v}^n\}$. We recognize in this algorithm the linearization step of the Newton-Kantorovich procedure, which takes place here in the policy evaluation step 3 where we solve the linear system $(\mathbf{I}-\gamma \mathbf{P}_{\pi_n}) \mathbf{v} = \mathbf{r}_{\pi_n}$. In practice, this linear system could be solved either using direct methods (eg. Gaussian elimination), using simple iterative methods such as the successive approximation method for policy evaluation, or more sophisticated methods such as GMRES. 
-

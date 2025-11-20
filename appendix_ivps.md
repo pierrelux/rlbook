@@ -69,10 +69,12 @@ $$
 
 Each step of the algorithm therefore involves approximating the function with a linear function of slope $f$ over the given interval $h$. 
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
 
+#| label: appendix_ivps-cell-01
 
+%config InlineBackend.figure_format = 'retina'
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -143,6 +145,10 @@ plt.tight_layout()
 plt.show()
 ```
 
+:::{figure} #appendix_ivps-cell-01
+Rendered output from the preceding code cell.
+:::
+
 Another way to understand Euler's method is through the fundamental theorem of calculus:
 
 $$
@@ -150,10 +156,12 @@ x(t + h) = x(t) + \int_t^{t+h} f(x(\tau), \tau) d\tau
 $$
 
 We then approximate the integral term with a box of width $h$ and height $f$, and therefore of area $h f$.
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
 
+#| label: appendix_ivps-cell-02
 
+%config InlineBackend.figure_format = 'retina'
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
@@ -273,6 +281,10 @@ plt.tight_layout()
 plt.show()
 ```
 
+:::{figure} #appendix_ivps-cell-02
+Rendered output from the preceding code cell.
+:::
+
 
 ### Implicit Euler's Method
 
@@ -338,10 +350,12 @@ $$
 
 where $ t_{new} = t + h $. Note that this formula involves $ x_{new} $ on both sides of the equation, making it an implicit method, similar to the implicit Euler method discussed earlier.
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
 
+#| label: appendix_ivps-cell-03
 
+%config InlineBackend.figure_format = 'retina'
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle, Polygon
@@ -438,6 +452,10 @@ plt.tight_layout()
 plt.show()
 ```
 
+:::{figure} #appendix_ivps-cell-03
+Rendered output from the preceding code cell.
+:::
+
 Algorithmically, the trapezoid method can be described as follows:
 
 ````{prf:algorithm} Trapezoid Method
@@ -500,10 +518,12 @@ The trapezoid method can also be implemented under the so-called predictor-corre
 
 This two-step process is similar to performing one iteration of Newton's method to solve the implicit trapezoid equation, starting from the Euler prediction. However, to fully solve the implicit equation, multiple iterations would be necessary until convergence is achieved.
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
 
+#| label: appendix_ivps-cell-04
 
+%config InlineBackend.figure_format = 'retina'
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -597,6 +617,10 @@ plt.tight_layout()
 plt.show()
 ```
 
+:::{figure} #appendix_ivps-cell-04
+Rendered output from the preceding code cell.
+:::
+
 ### Collocation Methods
 
 The numerical integration methods we discussed earlier are inherently **sequential**: given an initial state, we step forward in time and approximate what happens over a short interval. The accuracy of this procedure depends on the chosen rule (Euler, trapezoid, Runge–Kutta) and on the information available locally. Each new state is obtained by evaluating a formula that approximates the derivative or integral over that small step.
@@ -677,8 +701,10 @@ $$
 
 The first four Legendre polynomials resulting from this recurrence are the following: 
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
+#| label: appendix_ivps-cell-05
+
 import numpy as np
 from IPython.display import display, Math
 
@@ -726,6 +752,10 @@ for n in range(4):
     display(Math(f"P_{n}(x) = {poly_to_latex(poly)}"))
 ```
 
+:::{figure} #appendix_ivps-cell-05
+Rendered output from the preceding code cell.
+:::
+
 ##### Chebyshev Polynomials
 
 There are two types of Chebyshev polynomials: **Chebyshev polynomials of the first kind**, $ \{ T_n(x) \} $, and **Chebyshev polynomials of the second kind**, $ \{ U_n(x) \} $. We typically focus on the first kind. They are defined on the interval $[-1, 1]$ and satisfy the orthogonality condition:
@@ -760,8 +790,10 @@ $$
 
 Let's now implement it in Python:
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
+#| label: appendix_ivps-cell-06
+
 def chebyshev_polynomial(n, x):
     if n == 0:
         return np.poly1d([1])
@@ -784,6 +816,10 @@ for n in range(4):
     poly = chebyshev_coefficients(n)
     display(Math(f"T_{n}(x) = {poly_to_latex(poly)}"))
 ```
+
+:::{figure} #appendix_ivps-cell-06
+Rendered output from the preceding code cell.
+:::
 
 ##### Hermite Polynomials
 
@@ -811,8 +847,10 @@ $$
 
 The following code computes the coefficients of the first four Hermite polynomials: 
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
+#| label: appendix_ivps-cell-07
+
 def hermite_polynomial(n, x):
     if n == 0:
         return np.poly1d([1])
@@ -835,6 +873,10 @@ for n in range(4):
     poly = hermite_coefficients(n)
     display(Math(f"H_{n}(x) = {poly_to_latex(poly)}"))
 ```
+
+:::{figure} #appendix_ivps-cell-07
+Rendered output from the preceding code cell.
+:::
 
 ### Collocation Conditions
 
@@ -1044,8 +1086,10 @@ $$
 
 We select $N$ equally spaced points $\{t_1, \ldots, t_N\}$ in $[0, 2]$ as collocation points. 
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
+
+#| label: appendix_ivps-cell-08
 
 
 import numpy as np
@@ -1135,4 +1179,7 @@ for order in orders:
     print(f"Order {order}: {max_error:.6f}")
 ```
 
+:::{figure} #appendix_ivps-cell-08
+Rendered output from the preceding code cell.
+:::
 

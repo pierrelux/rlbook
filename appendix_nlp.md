@@ -40,10 +40,12 @@ $$
 
 In this example, the objective function $f(x_1, x_2)$ is quadratic, the inequality constraint $g(x_1, x_2)$ defines a circular feasible region centered at $(1, 1)$ with a radius of $\sqrt{1.5}$ and the equality constraint $h(x_1, x_2)$ requires $x_2$ to lie on a sine wave function. The following code demonstrates the difference between the unconstrained, and constrained solutions to this problem. 
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
 
+#| label: appendix_nlp-cell-01
 
+%config InlineBackend.figure_format = 'retina'
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize
@@ -137,6 +139,10 @@ plt.gca().set_aspect('equal', adjustable='box')
 plt.show()
 ```
 
+:::{figure} #appendix_nlp-cell-01
+Rendered output from the preceding code cell.
+:::
+
 #### Karush-Kuhn-Tucker (KKT) conditions
 
 While this example is simple enough to convince ourselves visually of the solution to this particular problem, it falls short of providing us with actionable chracterization of what constitutes and optimal solution in general. 
@@ -175,7 +181,9 @@ where $\boldsymbol{\mu} \in \mathbb{R}^m$ and $\boldsymbol{\lambda} \in \mathbb{
 
 Let's now solve our example problem above, this time using [Ipopt](https://coin-or.github.io/Ipopt/) via the [Pyomo](http://www.pyomo.org/) interface so that we can access the Lagrange multipliers found by the solver.
 
-```{code-cell} ipython3
+```{code-cell} python
+
+#| label: appendix_nlp-cell-02
 
 from pyomo.environ import *
 from pyomo.opt import SolverFactory
@@ -240,6 +248,10 @@ else:
     print(f"Solver Status: {results.solver.status}")
     print(f"Termination Condition: {results.solver.termination_condition}")
 ```
+
+:::{figure} #appendix_nlp-cell-02
+Rendered output from the preceding code cell.
+:::
 
 After running the code above, we can observe the Lagrange multipliers. The Lagrange multiplier associated with the inequality constraint is very small (close to zero), suggesting that the inequality constraint is not active at the optimal solution—meaning that the solution point lies inside the circle defined by this constraint. This can be verified visually in the figure above. As for the equality constraint, its corresponding Lagrange multiplier is non-zero, indicating that this constraint is active at the optimal solution. In general, when we find a Lagrange multiplier close to zero (like the one for the inequality constraint), it means that constraint is not "binding"—the optimal solution does not lie on the boundary defined by this constraint. In contrast, a non-zero Lagrange multiplier, such as the one for the equality constraint, indicates that the constraint is active and that any relaxation would directly affect the objective function's value, as required by the stationarity condition.
 
@@ -391,10 +403,12 @@ which we can substitute these into the 3rd constraint equation to obtain:
 This value of the Lagrange multiplier can then be backsubstituted into the above equations to obtain $x_1 = \frac{2}{\sqrt{5}}$ and $x_2 =  \frac{1}{\sqrt{5}}$.
 We can verify numerically (and visually on the following graph) that the point $(2/\sqrt{5}, 1/\sqrt{5})$ is indeed the point on the unit circle closest to $(2, 1)$.
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
 
+#| label: appendix_nlp-cell-03
 
+%config InlineBackend.figure_format = 'retina'
 import jax
 import jax.numpy as jnp
 from jax import grad, jit, jacfwd
@@ -534,6 +548,10 @@ plt.ylim(-1.5, 2.5)
 plt.tight_layout()
 plt.show()
 ```
+
+:::{figure} #appendix_nlp-cell-03
+Rendered output from the preceding code cell.
+:::
 
 ### The SQP Approach: Taylor Expansion and Quadratic Approximation
 
@@ -702,10 +720,12 @@ Consider the following equality and inequality-constrained problem:
 
 This example builds on our previous one but adds a parabola-shaped inequality constraint. We require our solution to lie not only on the circle defining our equality constraint but also below the parabola. To solve the QP subproblem, we will be using the [CVXPY](https://www.cvxpy.org/) package. While the Lagrangian and derivatives could be computed easily by hand, we use [JAX](https://jax.readthedocs.io/) for generality:
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
 
+#| label: appendix_nlp-cell-04
 
+%config InlineBackend.figure_format = 'retina'
 import jax
 import jax.numpy as jnp
 from jax import grad, jit, jacfwd, hessian
@@ -842,6 +862,10 @@ print(f"Inequality constraint violation: {h(x_opt)[0]:.6f}")
 print(f"Objective function value: {f(x_opt):.6f}")
 ```
 
+:::{figure} #appendix_nlp-cell-04
+Rendered output from the preceding code cell.
+:::
+
 ### The Arrow-Hurwicz-Uzawa algorithm
 
 While the SQP method addresses constrained optimization problems by sequentially solving quadratic subproblems, an alternative approach follows from viewing constrained optimization as a min-max problem. This perspective leads to a simpler algorithm, originally introduced by the Arrow-Hurwicz-Uzawa {cite}`arrow1958studies`. Consider the following general constrained optimization problem encompassing both equality and inequality constraints:
@@ -910,10 +934,12 @@ Here, $[\cdot]_+$ denotes the projection onto the non-negative orthant, ensuring
 
 However, as it is widely known from the lessons of GAN (Generative Adversarial Network) training {cite}`goodfellow2014generative`, Gradient Descent Ascent (GDA) can fail to converge or suffer from instability. The Arrow-Hurwicz-Uzawa algorithm, also known as the first-order Lagrangian method, is known to converge only locally, in the vicinity of an optimal primal-dual pair.
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
 
+#| label: appendix_nlp-cell-05
 
+%config InlineBackend.figure_format = 'retina'
 import jax
 import jax.numpy as jnp
 from jax import grad, jit, value_and_grad
@@ -1057,6 +1083,10 @@ print(f"Inequality constraint violation: {h(x_opt)[0]:.6f}")
 print(f"Objective function value: {f(x_opt):.6f}")
 ```
 
+:::{figure} #appendix_nlp-cell-05
+Rendered output from the preceding code cell.
+:::
+
 ### Projected Gradient Descent
 
 The Arrow-Hurwicz-Uzawa algorithm provided a way to handle constraints through dual variables and a primal-dual update scheme. Another commonly used approach for constrained optimization is **Projected Gradient Descent (PGD)**. The idea is simple: take a gradient descent step as if the problem were unconstrained, then project the result back onto the feasible set. Formally:
@@ -1110,5 +1140,4 @@ $$
 $$
 
 Under mild conditions such as Lipschitz continuity of the gradient, PGD converges to a stationary point of the constrained problem. Its simplicity and low cost make it a common choice whenever the projection can be computed efficiently.
-
 

@@ -493,7 +493,7 @@ The results of this comparison illustrate a fundamental point. Although the MLP 
 
 This example therefore highlights the dual advantages of physics-based modeling: the ability to generalize beyond the training window and the guarantee of action-consistency rooted in thermodynamic reasoning. At the same time, it underscores the limitations of purely data-driven black-box models when asked to predict system behavior under conditions not seen during training.
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
 
 %run _static/rcnetwork.py

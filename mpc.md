@@ -1168,10 +1168,12 @@ First, there is a delay in how fast the drug can reach a different compartments 
 
 Furthermore, every patient is different from another. Hence, we cannot simply learn a single controller offline and hope that it will generalize to an entire patient population. We will account for this variability through Model Predictive Control (MPC) and dynamically adapt to the model mismatch through replanning. How a patient will react to a given dose of drug also varies and must be carefully controlled to avoid overdoses. This adds an additional layer of complexity since we have to incorporate safety constraints. Finally, the patient might suddenly change state, for example due to surgical stimuli, and the controller must be able to adapt quickly to compensate for the disturbance to the system.
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
 
 
+#| label: fig-mpc-propofol
+%config InlineBackend.figure_format = 'retina'
 import numpy as np
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
@@ -1290,6 +1292,10 @@ print(f"Mean infusion rate: {np.mean(u):.2f} mg/kg/h")
 print(f"Final effect-site concentration: {x[-1, 3]:.2f} µg/mL")
 ```
 
+:::{figure} #fig-mpc-propofol
+Closed-loop MPC for propofol infusion keeps the Bispectral Index near the target (top), regulates infusion rates (middle), and tracks the effect-site concentration (bottom).
+:::
+
 <!-- ### Deployment Patterns
 
 There are several ways to use an amortized controller once it has been trained. The simplest option is **direct amortization**, where the control input is taken to be $u = \hat{\pi}_\phi(\boldsymbol{\theta})$. In this case, the neural network provides the control action directly, with no optimization performed during deployment.
@@ -1339,13 +1345,14 @@ subject to the discretized dynamics and box constraints for all uncertainty scen
 
 The cell below runs the closed-loop simulation and plots the states and input. The script is adapted from the do-mpc Batch Bioreactor example.
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
 
-
+%config InlineBackend.figure_format = 'retina'
 import numpy as np
 import do_mpc
 from casadi import *  # noqa: F401 - do-mpc constructs CasADi symbols under the hood
+import matplotlib.pyplot as plt
 
 
 def build_model():
@@ -1511,10 +1518,10 @@ run_closed_loop()
 
 The following cell creates an interactive animation of the batch bioreactor control process, showing the MPC predictions and the evolution of the system states in real-time. The visualization includes a tank representation with liquid level and biomass particles, along with time-series plots of all states and control inputs.
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
 
-
+%config InlineBackend.figure_format = 'retina'
 import numpy as np
 import do_mpc
 from casadi import *  # noqa: F401 - do-mpc constructs CasADi symbols under the hood

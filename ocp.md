@@ -264,10 +264,13 @@ In differentiable programming (e.g., JAX, PyTorch), the composed map $\Phi_{T-1}
 
 As an example we cast the problem of optimizing a "HTTP retrier with backoff" as a DOCP where the state tracks wall-clock time, attempt index, success, last code, and jitter; the control is the chosen wait time before the next request (the backoff schedule); the transition encapsulates waiting and a probabilistic request outcome; and the objective penalizes latency and failure. We then optimize the schedule either directly (per-step SPSA) or via a two-parameter exponential policy using common random numbers for variance reduction.
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
 
 
+#| label: fig-ocp-http-retrier
+
+%config InlineBackend.figure_format = 'retina'
 from dataclasses import dataclass
 import math, random
 
@@ -462,6 +465,10 @@ if __name__ == "__main__":
     print("Attempts (init → per-step → exp):", s0.k, "→", s1.k, "→", s2.k,
           "  Success codes:", s0.code, s1.code, s2.code)
 ```
+
+:::{figure} #fig-ocp-http-retrier
+Console output comparing the baseline backoff schedule with SPSA-optimized schedules for the HTTP retrier DOCP, including costs, attempts, and success codes.
+:::
 
 
 #### Example: Gradient Descent with Momentum as DOCP
@@ -707,7 +714,7 @@ $$
 
 Once the objective and constraints are expressed as Python functions, the problem can be passed to a generic optimizer with very little extra work. Here is a direct implementation using `scipy.optimize.minimize` with the SLSQP method:
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [remove-input, remove-output]
 
 import numpy as np
@@ -1087,14 +1094,135 @@ In JAX or PyTorch, this loop can be JIT-compiled and differentiated automaticall
 
 Single shooting is attractive for its simplicity and compatibility with differentiable programming, but it has limitations. The absence of intermediate constraints makes it sensitive to initialization and prone to numerical instability over long horizons. When state constraints or robustness matter, formulations that keep states explicit—such as multiple shooting or collocation—become preferable. These trade-offs are the focus of the next section.
 
-<!-- 
-```{code-cell} ipython3
-:tags: [hide-cell]
-:mystnb:
-:  code_prompt_show: "Show code demonstration"
-:  code_prompt_hide: "Hide code demonstration"
-:load: code/single_shooting_unrolled.py
-``` -->
+```{code-cell} python
+:tags: [hide-input]
+
+
+#| label: fig-ocp-single-shooting
+
+%config InlineBackend.figure_format = 'retina'
+import jax
+import jax.numpy as jnp
+from jax import grad, jit
+from jax.example_libraries import optimizers
+import matplotlib.pyplot as plt
+
+def single_shooting_ev_optimization(T=20, num_iterations=1000, step_size=0.01):
+    """
+    Implements the single shooting method for the electric vehicle energy optimization problem.
+    
+    Args:
+    T: time horizon
+    num_iterations: number of optimization iterations
+    step_size: step size for the optimizer
+    
+    Returns:
+    optimal_u: optimal control sequence
+    """
+    
+    def f(x, u, t):
+        return jnp.array([
+            x[0] + 0.1 * x[1] + 0.05 * u,
+            x[1] + 0.1 * u
+        ])
+    
+    def c(x, u, t):
+        if t == T:
+            return x[0]**2 + x[1]**2
+        else:
+            return 0.1 * (x[0]**2 + x[1]**2 + u**2)
+    
+    def compute_trajectory_and_cost(u, x1):
+        x = x1
+        total_cost = 0
+        for t in range(1, T):
+            total_cost += c(x, u[t-1], t)
+            x = f(x, u[t-1], t)
+        total_cost += c(x, 0.0, T)  # No control at final step
+        return total_cost
+    
+    def objective(u):
+        return compute_trajectory_and_cost(u, x1)
+    
+    def clip_controls(u):
+        return jnp.clip(u, -1.0, 1.0)
+    
+    x1 = jnp.array([1.0, 0.0])  # Initial state: full battery, zero speed
+    
+    # Initialize controls
+    u_init = jnp.zeros(T-1)
+    
+    # Setup optimizer
+    optimizer = optimizers.adam(step_size)
+    opt_init, opt_update, get_params = optimizer
+    opt_state = opt_init(u_init)
+    
+    @jit
+    def step(i, opt_state):
+        u = get_params(opt_state)
+        value, grads = jax.value_and_grad(objective)(u)
+        opt_state = opt_update(i, grads, opt_state)
+        u = get_params(opt_state)
+        u = clip_controls(u)
+        opt_state = opt_init(u)
+        return value, opt_state
+    
+    # Run optimization
+    for i in range(num_iterations):
+        value, opt_state = step(i, opt_state)
+        if i % 100 == 0:
+            print(f"Iteration {i}, Cost: {value}")
+    
+    optimal_u = get_params(opt_state)
+    return optimal_u
+
+def plot_results(optimal_u, T):
+    # Compute state trajectory
+    x1 = jnp.array([1.0, 0.0])
+    x_trajectory = [x1]
+    for t in range(T-1):
+        x_next = jnp.array([
+            x_trajectory[-1][0] + 0.1 * x_trajectory[-1][1] + 0.05 * optimal_u[t],
+            x_trajectory[-1][1] + 0.1 * optimal_u[t]
+        ])
+        x_trajectory.append(x_next)
+    x_trajectory = jnp.array(x_trajectory)
+
+    time = jnp.arange(T)
+    
+    plt.figure(figsize=(12, 8))
+    
+    plt.subplot(2, 1, 1)
+    plt.plot(time, x_trajectory[:, 0], label='Battery State of Charge')
+    plt.plot(time, x_trajectory[:, 1], label='Vehicle Speed')
+    plt.xlabel('Time Step')
+    plt.ylabel('State Value')
+    plt.title('Optimal State Trajectories')
+    plt.legend()
+    plt.grid(True)
+    
+    plt.subplot(2, 1, 2)
+    plt.plot(time[:-1], optimal_u, label='Motor Power Input')
+    plt.xlabel('Time Step')
+    plt.ylabel('Control Input')
+    plt.title('Optimal Control Inputs')
+    plt.legend()
+    plt.grid(True)
+    
+    plt.tight_layout()
+    plt.show()
+
+# Run the optimization
+optimal_u = single_shooting_ev_optimization()
+print("Optimal control sequence:", optimal_u)
+
+# Plot the results
+plot_results(optimal_u, T=20)
+```
+
+:::{figure} #fig-ocp-single-shooting
+Single-shooting EV example: the plot shows optimal state trajectories (battery charge and speed) plus the control sequence, while the console reports the optimized control inputs.
+:::
 
 ## In Between Sequential and Simultaneous
 
@@ -1137,9 +1265,13 @@ Compared to the full NLP, we no longer introduce every intermediate state as a v
 By adjusting the number of segments $K$, we can interpolate between the two extremes: $K = 1$ gives single shooting, while $K = T$ recovers the full direct NLP. In practice, a moderate number of segments often strikes a good balance between robustness and complexity.
 
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
 
+
+#| label: fig-ocp-multiple-shooting
+
+%config InlineBackend.figure_format = 'retina'
 """
 Multiple Shooting as a Boundary-Value Problem (BVP) for a Ballistic Trajectory
 -----------------------------------------------------------------------------
@@ -1428,6 +1560,10 @@ def main():
 if __name__ == "__main__":
     main()
 ```
+
+:::{figure} #fig-ocp-multiple-shooting
+Multiple shooting ballistic BVP: the code produces an animation (and optional static plot) that shows how segment defects shrink while steering the projectile to the target.
+:::
 
 
 

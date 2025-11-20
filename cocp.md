@@ -412,9 +412,12 @@ where $\mathbf{u}_j$ represents the control value at node $\tau_j$.
 
 #### Boundary Conditions and Node Families
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
 
+#| label: cocp-cell-01
+
+%config InlineBackend.figure_format = 'retina'
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Rectangle
@@ -579,6 +582,10 @@ fig.suptitle('Collocation Methods for Optimal Control\n(Illustration of Node Typ
 plt.tight_layout(rect=[0.04, 0.10, 0.98, 0.93])
 plt.show()
 ```
+
+:::{figure} #cocp-cell-01
+Rendered output from the preceding code cell.
+:::
 
 
 The choice of collocation nodes determines how boundary conditions are handled and affects the resulting discretization properties. Three standard families are commonly used: Labatto, Randau and and Gauss. 
@@ -986,9 +993,12 @@ The authors in {cite}`Grancharova2012` also add a soft path constraint $x_2(t) \
 
 In the experiment below, we choose the setpoint $\mathbf{x}^* = [0.40, 0.60]^T$ as it corresponds to an unstable equilibrium point. If we were to run the system without applying any control, we would see that the system starts to oscillate. 
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
 
+#| label: cocp-cell-02
+
+%config InlineBackend.figure_format = 'retina'
 import numpy as np
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
@@ -1107,6 +1117,10 @@ plt.legend()
 plt.grid(True)
 ```
 
+:::{figure} #cocp-cell-02
+Rendered output from the preceding code cell.
+:::
+
 ### Solution by Trapezoidal Collocation
 
 Another way to pose the problem is by imposing a terminal state constraint on the system rather than through a penalty in the integral term. In the following experiment, we use a problem formulation of the form: 
@@ -1124,9 +1138,12 @@ $$
 
 We then find a control function $u(t)$ and state trajectory $x(t)$ using the trapezoidal collocation method. 
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
 
+#| label: cocp-cell-03
+
+%config InlineBackend.figure_format = 'retina'
 import numpy as np
 from scipy.optimize import minimize
 from scipy.integrate import solve_ivp
@@ -1271,6 +1288,10 @@ plt.tight_layout()
 plt.show()
 ```
 
+:::{figure} #cocp-cell-03
+Rendered output from the preceding code cell.
+:::
+
 You can try to vary the number of collocation points in the code and observe how the state trajectory progressively matches the ground truth (the line denoted "integrated solution"). Note that this version of the code also lacks bound constraints on the variable $x_2$ to ensure a minimum pressure, as we did earlier. Consider this a good exercise to try on your own. 
 
 ### System Identification as Trajectory Optimization (Compressor Surge)
@@ -1295,9 +1316,12 @@ $$
 
 where $\boldsymbol{\phi}_k$ denotes the state reached at step $k$ by an RK4 rollout under parameter $\boldsymbol{\theta}$. In our demo the data grid and rollout grid coincide, so $\boldsymbol{\phi}_k = \mathbf{x}_k$ and no interpolation is required. We will identify $B$ by fitting the model to data generated from the ground-truth $B=1$ system under randomized initial conditions and small input perturbations.
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
 
+#| label: cocp-cell-04
+
+%config InlineBackend.figure_format = 'retina'
 import numpy as np
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
@@ -1396,9 +1420,16 @@ for i, x0 in enumerate(initial_conditions):
     print(f"  Trajectory {i+1}: x1 = {x0[0]:.4f}, x2 = {x0[1]:.4f}")
 ```
 
-```{code-cell} ipython3
+:::{figure} #cocp-cell-04
+Rendered output from the preceding code cell.
+:::
+
+```{code-cell} python
 :tags: [hide-input]
 
+#| label: cocp-cell-05
+
+%config InlineBackend.figure_format = 'retina'
 import numpy as np
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
@@ -1489,6 +1520,10 @@ plt.tight_layout()
 plt.show()
 ```
 
+:::{figure} #cocp-cell-05
+Rendered output from the preceding code cell.
+:::
+
 ## Flight Trajectory Optimization
 
 We consider a concrete task: computing a fuel-optimal trajectory between Montréal–Trudeau (CYUL) and Toronto Pearson (CYYZ), taking into account both aircraft dynamics and wind conditions along the route. For this demo, we leverage the excellent library [OpenAP.top](https://github.com/junzis/openap-top) which provides direct transcription methods and airplane dynamics models {cite:p}`Sun2022`. Furthermore, it allows us to import a a wind field comes from **ERA5** {cite:p}`ERA52018`, a global atmospheric dataset. It combines historical observations from satellites, aircraft, and surface stations with a weather model to reconstruct the state of the atmosphere across space and time. In climate science, this is called a *reanalysis*.
@@ -1521,8 +1556,12 @@ We use **OpenAP.top**, which solves the problem using direct collocation at **Le
 This setup lets us optimize trajectories under realistic conditions by feeding in the appropriate ERA5 GRIB file (e.g., `era5_mtl_20230601_12.grib`). The result accounts for wind patterns (eg. headwinds, tailwinds, shear) along the corridor between Montréal and Toronto.
 
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
+
+#| label: cocp-cell-06
+
+%config InlineBackend.figure_format = 'retina'
 # OpenAP.top demo with optional wind overlay – docs: https://github.com/junzis/openap-top
 from openap import top
 import matplotlib.pyplot as plt
@@ -1558,6 +1597,10 @@ else:
     plt.title(title)
 
 ```
+
+:::{figure} #cocp-cell-06
+Rendered output from the preceding code cell.
+:::
 
 ## Hydro Cascade Scheduling with Physical Routing and Multiple Shooting
 
@@ -1606,9 +1649,12 @@ with delays handled by shifting $z_r^k$ according to the appropriate travel time
 
 Compared to the earlier inflow-outflow model, this richer setup introduces more structure, but also more opportunity. The cascade now behaves like a coordinated team: upstream reservoirs can store water in anticipation of future needs, while downstream dams adjust their output to match arrivals and avoid overflows. The optimization produces not just a schedule, but a strategy for how the entire system should act together to meet demand.
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
 
+#| label: cocp-cell-07
+
+%config InlineBackend.figure_format = 'retina'
 # Instrumented MSD hydro demo with heterogeneity + diagnostics
 # - Breaks symmetry to avoid trivial identical plots
 # - Adds rich diagnostics to explain flat levels and equalities
@@ -2028,6 +2074,10 @@ def run_demo(show: bool = True, save_path: str | None = 'hydro.png', verbose: bo
 run_demo(show=True, save_path=None, verbose=False)
 
 ```
+
+:::{figure} #cocp-cell-07
+Rendered output from the preceding code cell.
+:::
 
 The figure shows the result of a multiple-shooting optimization applied to a three-reach hydroelectric cascade. The time horizon is discretized into 16 intervals, and SciPy's `trust-constr` solver is used to find a feasible control sequence that satisfies mass balance, turbine and spillway limits, and Muskingum-style routing dynamics. Each reach integrates its own local ODE, with continuity constraints linking the flows between reaches.
 

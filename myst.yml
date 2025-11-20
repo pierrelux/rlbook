@@ -19,6 +19,7 @@ project:
     '\BellmanPi': '\mathsf{L}_\pi'
     '\BellmanQuad': '\widetilde{\mathsf{L}}'
     '\EulerResidual': '\mathsf{H}'
+    '\Policy': '\pi'
   exports:
     - format: pdf
       output: exports/book.pdf
@@ -47,14 +48,12 @@ project:
             - file: simadp.md
             - file: fqi.md
         - file: cadp.md
+        - file: pg.md
     - title: Appendix
       children:
         - file: appendix_examples.md
         - file: appendix_ivps.md
         - file: appendix_nlp.md
-    - title: References
-      children:
-        - file: bibliography.md
     
 site:
   template: book-theme

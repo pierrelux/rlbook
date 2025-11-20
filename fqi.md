@@ -17,12 +17,12 @@ The [previous chapter](simadp.md) established the theoretical foundations of sim
 
 ## Design Choices in FQI Methods
 
-All FQI methods share the same two-level structure built on three core ingredients: a buffer $\mathcal{B}_t$ of transitions inducing an empirical distribution $\hat{P}_{\mathcal{B}_t}$, a target map $T_q$ derived from the current Q-function, and an optimization procedure to fit the Q-function to the resulting targets. At iteration $n$, the outer loop applies the Bellman operator to construct targets $y_i^{(n)} = T_{q_n}(s_i, a_i, r_i, s'_i)$ by sampling transitions from $\hat{P}_{\mathcal{B}_n}$. The inner loop solves the regression problem $\min_{\boldsymbol{\theta}} \mathbb{E}_{((s,a),y) \sim \hat{P}_n^{\text{fit}}}[\ell(q(s, a; \boldsymbol{\theta}), y)]$ to find parameters that match these targets. We can write this abstractly as:
+All FQI methods share the same two-level structure built on three core ingredients: a buffer $\mathcal{B}_t$ of transitions inducing an empirical distribution $\hat{P}_{\mathcal{B}_t}$, a target function $g$ that computes regression targets from the current Q-function, and an optimization procedure to fit the Q-function to the resulting targets. At iteration $n$, the outer loop constructs targets from individual transitions using the target function: for each transition $(s_i, a_i, r_i, s'_i)$, we compute $y_i^{(n)} = g(s_i, a_i, r_i, s'_i; \boldsymbol{\theta}_n)$ where typically $g(s,a,r,s'; \boldsymbol{\theta}) = r + \gamma \max_{a'} q(s',a'; \boldsymbol{\theta})$. The inner loop solves the regression problem $\min_{\boldsymbol{\theta}} \mathbb{E}_{((s,a),y) \sim \hat{P}_n^{\text{fit}}}[\ell(q(s, a; \boldsymbol{\theta}), y)]$ to find parameters that match these targets. We can write this abstractly as:
 
 $$
 \begin{aligned}
 &\textbf{repeat } n = 0, 1, 2, \ldots \\
-&\quad \text{Sample transitions from } \hat{P}_{\mathcal{B}_n} \text{ and construct targets via } T_{q_n} \\
+&\quad \text{Sample transitions from } \hat{P}_{\mathcal{B}_n} \text{ and construct targets via } g(\cdot; \boldsymbol{\theta}_n) \\
 &\quad \boldsymbol{\theta}^{(n+1)} \leftarrow \texttt{fit}(\hat{P}_n^{\text{fit}}, \boldsymbol{\theta}_{\text{init}}, K) \\
 &\textbf{until } \text{convergence}
 \end{aligned}
@@ -30,7 +30,7 @@ $$
 
 The `fit` operation minimizes the regression loss using $K$ optimization steps (gradient descent for neural networks, tree construction for ensembles, matrix inversion for linear models) starting from initialization $\boldsymbol{\theta}_{\text{init}}$. Standard supervised learning uses random initialization ($\boldsymbol{\theta}_{\text{init}} = \boldsymbol{\theta}_0$) and runs to convergence ($K = \infty$). Reinforcement learning algorithms vary these choices: warm starting from the previous iteration ($\boldsymbol{\theta}_{\text{init}} = \boldsymbol{\theta}^{(n)}$), partial optimization ($K \in \{10, \ldots, 100\}$), or single-step updates ($K=1$).
 
-The buffer $\mathcal{B}_t$ may stay fixed (batch setting) or change (online setting), but the targets always change because they depend on the evolving target map $T_{q_n}$. In practice, we typically have one observed next state per transition, giving $T_q(s_i, a_i, r_i, s'_i) = r_i + \gamma \max_{a'} q(s'_i, a'; \boldsymbol{\theta})$ for transition tuples $(s_i, a_i, r_i, s'_i)$.
+The buffer $\mathcal{B}_t$ may stay fixed (batch setting) or change (online setting), but the targets always change because they depend on the evolving target function $g(\cdot; \boldsymbol{\theta}_n)$. In practice, we typically have one observed next state per transition, giving $g(s_i, a_i, r_i, s'_i; \boldsymbol{\theta}) = r_i + \gamma \max_{a'} q(s'_i, a'; \boldsymbol{\theta})$ for transition tuples $(s_i, a_i, r_i, s'_i)$.
 
 
 ```{prf:remark} Notation: Buffer vs Regression Distribution
@@ -40,13 +40,13 @@ We maintain a careful distinction between two empirical distributions throughout
 
 - **Buffer distribution** $\hat{P}_{\mathcal{B}_t}$ over transitions $\tau = (s, a, r, s')$: The empirical distribution induced by the replay buffer $\mathcal{B}_t$, which contains raw experience tuples. This is fixed (offline) or evolves via online collection (adding new transitions, dropping old ones).
 
-- **Regression distribution** $\hat{P}_t^{\text{fit}}$ over pairs $((s,a), y)$: The empirical distribution over supervised learning targets. This changes every outer iteration $n$ as we recompute targets using the current target map $T_{q_n}$.
+- **Regression distribution** $\hat{P}_t^{\text{fit}}$ over pairs $((s,a), y)$: The empirical distribution over supervised learning targets. This changes every outer iteration $n$ as we recompute targets using the current target function $g(\cdot; \boldsymbol{\theta}_n)$.
 
-The relationship: at iteration $n$, we construct $\hat{P}_n^{\text{fit}}$ from $\hat{P}_{\mathcal{B}_n}$ by applying the target map:
+The relationship: at iteration $n$, we construct $\hat{P}_n^{\text{fit}}$ from $\hat{P}_{\mathcal{B}_n}$ by applying the target function:
 $$
-\hat{P}_n^{\text{fit}} = (\mathrm{id}, T_{q_n})_\# \hat{P}_{\mathcal{B}_n}
+\hat{P}_n^{\text{fit}} = (\mathrm{id}, g(\cdot; \boldsymbol{\theta}_n))_\# \hat{P}_{\mathcal{B}_n}
 $$
-where $T_{q_n}(s,a,r,s') = r + \gamma \max_{a'} q(s', a'; \boldsymbol{\theta}_n)$ or uses the smooth logsumexp operator.
+where $g(s,a,r,s'; \boldsymbol{\theta}_n) = r + \gamma \max_{a'} q(s', a'; \boldsymbol{\theta}_n)$ or uses the smooth logsumexp operator.
 
 This distinction matters pedagogically: the **buffer distribution** $\hat{P}_{\mathcal{B}_t}$ is fixed (offline) or evolves via online collection, while the **regression distribution** $\hat{P}_t^{\text{fit}}$ evolves via target recomputation. Fitted Q-iteration is the outer loop over target recomputation, not the inner loop over gradient steps.
 ```
@@ -112,14 +112,14 @@ The empirical distribution assigns probability $1/|\mathcal{B}_t|$ to each obser
 Fitted Q-iteration is built around three ingredients at any time $t$:
 
 1. A **replay buffer** $\mathcal{B}_t$ containing transitions, inducing an empirical distribution $\hat{P}_{\mathcal{B}_t}$
-2. A **target map** $T_q : (s,a,r,s') \mapsto y$ derived from the Bellman operator (hard max or soft logsumexp)
+2. A **target function** $g(s,a,r,s'; \boldsymbol{\theta}) : \mathcal{S} \times \mathcal{A} \times \mathbb{R} \times \mathcal{S} \times \Theta \mapsto \mathbb{R}$ that computes regression targets for individual transitions. Unlike the Bellman operator $\mathcal{T}$ which acts on function spaces, $g$ operates on transition tuples with parameters $\boldsymbol{\theta}$ (after the semicolon) specifying the current Q-function. Typically $g(s,a,r,s'; \boldsymbol{\theta}) = r + \gamma \max_{a'} q(s',a'; \boldsymbol{\theta})$ (hard max) or uses the smooth logsumexp operator.
 3. A **loss function** $\ell$ and **optimization budget** (replay ratio, number of gradient steps)
 
-Pushing transitions through the target map transforms $\hat{P}_{\mathcal{B}_t}$ into a regression distribution $\hat{P}_t^{\text{fit}}$ over pairs $((s,a), y)$, as described in the notation remark above. The inner loop minimizes the empirical risk $\mathbb{E}_{((s,a),y)\sim \hat{P}_t^{\text{fit}}} [\ell(q(s,a;\boldsymbol{\theta}), y)]$ via stochastic gradient descent on mini-batches.
+Pushing transitions through the target function transforms $\hat{P}_{\mathcal{B}_t}$ into a regression distribution $\hat{P}_t^{\text{fit}}$ over pairs $((s,a), y)$, as described in the notation remark above. The inner loop minimizes the empirical risk $\mathbb{E}_{((s,a),y)\sim \hat{P}_t^{\text{fit}}} [\ell(q(s,a;\boldsymbol{\theta}), y)]$ via stochastic gradient descent on mini-batches.
 
 Different algorithms correspond to different ways of evolving the buffer $\mathcal{B}_t$ and different replay ratios:
 
-- **Offline FQI.** We start from a fixed dataset $\mathcal{D}$ and never collect new data. The buffer is constant, $\mathcal{B}_t \equiv \mathcal{D}$ and $\hat{P}_{\mathcal{B}_t} \equiv \hat{P}_{\mathcal{D}}$, and only the target map $T_{q_t}$ changes as the Q-function evolves.
+- **Offline FQI.** We start from a fixed dataset $\mathcal{D}$ and never collect new data. The buffer is constant, $\mathcal{B}_t \equiv \mathcal{D}$ and $\hat{P}_{\mathcal{B}_t} \equiv \hat{P}_{\mathcal{D}}$, and only the target function $g(\cdot; \boldsymbol{\theta}_t)$ changes as the Q-function evolves.
 
 - **Replay (DQN-style).** The buffer is a **circular buffer** of fixed capacity $B$. At each interaction step we append the new transition and, if the buffer is full, drop the oldest one: $\mathcal{B}_t = \{\tau_{t-B+1},\ldots,\tau_t\}$ and $\hat{P}_{\mathcal{B}_t} = \frac{1}{|\mathcal{B}_t|} \sum_{\tau \in \mathcal{B}_t} \delta_{\tau}$. The empirical distribution slides forward through time, but at each update we still sample uniformly from the current buffer.
 
@@ -146,32 +146,9 @@ This perspective separates two different "bootstraps" that appear in FQI:
 
 2. **Temporal-difference bootstrap over values.** When we compute $y = r + \gamma \max_{a'} q(s',a';\boldsymbol{\theta})$, we replace the unknown continuation value by our current estimate. This is the TD notion of bootstrapping and the source of maximization bias studied in the previous chapter.
 
-FQI, DQN, and their variants combine both: the empirical distribution $\hat{P}_{\mathcal{B}_t}$ encodes how we reuse data (statistical bootstrap), and the target map $T_q$ encodes how we bootstrap values (TD bootstrap). Most bias-correction techniques (Keane–Wolpin, Double Q-learning, Gumbel losses) modify the second kind of bootstrapping while leaving the statistical bootstrap unchanged.
+FQI, DQN, and their variants combine both: the empirical distribution $\hat{P}_{\mathcal{B}_t}$ encodes how we reuse data (statistical bootstrap), and the target function $g$ encodes how we bootstrap values (TD bootstrap). Most bias-correction techniques (Keane–Wolpin, Double Q-learning, Gumbel losses) modify the second kind of bootstrapping while leaving the statistical bootstrap unchanged.
 
-Every algorithm in this chapter minimizes an empirical risk of the form $\mathbb{E}_{((s,a),y)\sim \hat{P}_t^{\text{fit}}} [\ell(q(s,a;\boldsymbol{\theta}), y)]$, where expectations are computed via the sample average estimator over the buffer. Algorithmic diversity arises from choices of buffer evolution, target map, loss, and optimization schedule.
-```
-
-```{prf:remark} Unified FQI Template
-:label: unified-fqi-template
-
-At any time $t$, fitted Q-iteration is completely characterized by four components:
-
-1. A **replay buffer** $\mathcal{B}_t$ and its empirical distribution $\hat{P}_{\mathcal{B}_t}$
-2. A **target map** $T_{q_t}$ derived from the current Q-function
-3. A **loss function** $\ell$ specifying a noise model
-4. An **optimization budget** (replay ratio, number of gradient steps $K$)
-
-The algorithms we study differ only in how they instantiate these choices:
-
-- **Offline FQI**: Fixes $\mathcal{B}_t \equiv \mathcal{D}$ once, uses hard-max target map $T_q(s,a,r,s') = r + \gamma \max_{a'} q(s',a')$, squared loss $\ell(q,y) = (q-y)^2$, and large optimization budgets ($K=\infty$ or $K \gg 1$).
-
-- **DQN**: Uses circular buffer $\mathcal{B}_t = \{\tau_{t-B+1}, \ldots, \tau_t\}$ with capacity $B$, same hard-max target map, squared loss, and minimal optimization budget ($K=1$ step per transition).
-
-- **Double DQN**: Changes only the target map to $T_q(s,a,r,s') = r + \gamma q(s', \arg\max_{a'} q_{\text{online}}(s',a'); \boldsymbol{\theta}_{\text{target}})$, decoupling selection from evaluation.
-
-- **Classification-based Q-learning**: Changes only the loss to cross-entropy over value bins and the target representation to categorical distributions.
-
-This unified view makes it clear that the transition from offline to online is continuous (varying buffer size $B$ and replay ratio), and that algorithmic innovations typically modify just one or two components while leaving the rest unchanged.
+Every algorithm in this chapter minimizes an empirical risk of the form $\mathbb{E}_{((s,a),y)\sim \hat{P}_t^{\text{fit}}} [\ell(q(s,a;\boldsymbol{\theta}), y)]$, where expectations are computed via the sample average estimator over the buffer. Algorithmic diversity arises from choices of buffer evolution, target function, loss, and optimization schedule.
 ```
 
 ## Batch Algorithms: Ernst's FQI and NFQI
@@ -182,9 +159,9 @@ $$
 \mathcal{B}_t \equiv \mathcal{D}, \qquad \hat{P}_{\mathcal{B}_t} \equiv \hat{P}_{\mathcal{D}}
 $$
 
-so the only thing that changes across iterations is the target map $T_{q_n}$ induced by the current Q-function. Every outer iteration of FQI samples from the same empirical distribution $\hat{P}_{\mathcal{D}}$ but pushes it through a new target map, producing a new regression distribution $\hat{P}_n^{\text{fit}}$.
+so the only thing that changes across iterations is the target function $g(\cdot; \boldsymbol{\theta}_n)$ induced by the current Q-function. Every outer iteration of FQI samples from the same empirical distribution $\hat{P}_{\mathcal{D}}$ but pushes it through a new target function, producing a new regression distribution $\hat{P}_n^{\text{fit}}$.
 
-At each outer iteration $n$, we construct the input set $X^{(n)} = \{(s_i, a_i)\}_{i=1}^N$ from the same transitions (the state-action pairs remain fixed), compute targets $y_i^{(n)} = T_{q_n}(s_i, a_i, r_i, s'_i) = r_i + \gamma \max_{a'} q(s'_i, a'; \boldsymbol{\theta}^{(n)})$ using the current Q-function, and solve the regression problem $\boldsymbol{\theta}^{(n+1)} \leftarrow \texttt{fit}(X^{(n)}, y^{(n)}, \boldsymbol{\theta}_{\text{init}}, K)$. The buffer $\mathcal{B}_t = \mathcal{D}$ never changes, but the targets change at every iteration because they depend on the evolving target map $T_{q_n}$. Each transition $(s_i, a_i, r_i, s'_i)$ provides a single Monte Carlo sample $s'_i$ for evaluating the Bellman operator at $(s_i, a_i)$, giving us $\widehat{\Bellman}_1 q$ with $N=1$.
+At each outer iteration $n$, we construct the input set $X^{(n)} = \{(s_i, a_i)\}_{i=1}^N$ from the same transitions (the state-action pairs remain fixed), compute targets $y_i^{(n)} = g(s_i, a_i, r_i, s'_i; \boldsymbol{\theta}^{(n)}) = r_i + \gamma \max_{a'} q(s'_i, a'; \boldsymbol{\theta}^{(n)})$ using the current Q-function, and solve the regression problem $\boldsymbol{\theta}^{(n+1)} \leftarrow \texttt{fit}(X^{(n)}, y^{(n)}, \boldsymbol{\theta}_{\text{init}}, K)$. The buffer $\mathcal{B}_t = \mathcal{D}$ never changes, but the targets change at every iteration because they depend on the evolving target function $g(\cdot; \boldsymbol{\theta}_n)$. Each transition $(s_i, a_i, r_i, s'_i)$ provides a single Monte Carlo sample $s'_i$ for evaluating the Bellman operator at $(s_i, a_i)$, giving us $\widehat{\Bellman}_1 q$ with $N=1$.
 
 The following algorithm is simply approximate value iteration where expectations under the transition kernel $P$ are replaced by expectations under the fixed empirical distribution $\hat{P}_{\mathcal{D}}$:
 
@@ -210,7 +187,7 @@ The following algorithm is simply approximate value iteration where expectations
 13. **return** $\boldsymbol{\theta}_n$
 ```
 
-The `fit` operation in line 10 abstracts the inner optimization loop that minimizes $\sum_{i=1}^N \ell(q(s_i, a_i; \boldsymbol{\theta}), y_i^{(n)})$. This line hides the key algorithmic choice: which function approximator to use and how to optimize it. The initialization $\boldsymbol{\theta}_{\text{init}}$ and number of optimization steps $K$ control whether we use cold or warm starting and whether we optimize to convergence or perform partial updates.
+The `fit` operation in line 10 abstracts the inner optimization loop that minimizes $\sum_{i=1}^N \ell(q(s_i, a_i; \boldsymbol{\theta}), y_i^{(n)})$. This line encodes the algorithmic choice of which function approximator to use and how to optimize it. The initialization $\boldsymbol{\theta}_{\text{init}}$ and number of optimization steps $K$ control whether we use cold or warm starting and whether we optimize to convergence or perform partial updates.
 
 **Fitted Q-Iteration (FQI)**: Ernst et al. {cite}`ernst2005tree` instantiate this template with extremely randomized trees (extra trees), an ensemble method that partitions the state-action space into regions with piecewise constant Q-values. The `fit` operation trains the ensemble until completion using the tree construction algorithm. Trees handle high-dimensional inputs naturally and the ensemble reduces overfitting. FQI uses cold start initialization: $\boldsymbol{\theta}_{\text{init}} = \boldsymbol{\theta}_0$ (randomly initialized) at every iteration, since trees don't naturally support incremental refinement. The loss $\ell$ is squared error. This method demonstrated that batch reinforcement learning could work with complex function approximators on continuous-state problems.
 
@@ -244,7 +221,11 @@ $$
 
 This is a sequence of updates $\boldsymbol{\theta}_n^{(k+1)} = \boldsymbol{\theta}_n^{(k)} - \alpha \nabla_{\boldsymbol{\theta}} \mathcal{L}(\boldsymbol{\theta}_n^{(k)}; \mathcal{D}_n^{\text{fit}})$ for $k = 0, \ldots, K-1$ starting from $\boldsymbol{\theta}_n^{(0)} = \boldsymbol{\theta}_n$. Since these inner updates are themselves a loop, we can algebraically rewrite the nested loops as a single flattened loop. This flattening is purely representational. The algorithm remains approximate value iteration, but the presentation obscures the conceptual structure.
 
-In the flattened form, the parameters used for computing targets are called the **target network** $\boldsymbol{\theta}_{\text{target}}$, which corresponds to $\boldsymbol{\theta}_n$ in the nested form. The target network gets updated every $K$ steps, marking the boundaries between outer iterations. Many modern algorithms, especially those that collect data online like DQN, are presented in flattened form. This can make them appear different from batch methods when they are the same template with different design choices.
+In the flattened form, the parameters used for computing targets are called the **target network** $\boldsymbol{\theta}_{\text{target}}$, which corresponds to $\boldsymbol{\theta}_n$ in the nested form. The target network gets updated every $K$ steps, marking the boundaries between outer iterations. 
+
+In contrast, the parameters being actively trained via gradient descent at each step are called the **online network** $\boldsymbol{\theta}_t$. In the nested view, these correspond to $\boldsymbol{\theta}_n^{(k)}$ within the inner loop. The term "online" here refers to the fact that these parameters are continuously updated at each gradient step, not that data must be collected online. The distinction is between the actively-training parameters ($\boldsymbol{\theta}_t$) and the frozen parameters used for target computation ($\boldsymbol{\theta}_{\text{target}}$).
+
+The online/target terminology is standard in the deep RL community. Many modern algorithms, especially those that collect data online like DQN, are presented in flattened form. This can make them appear different from batch methods when they are the same template with different design choices.
 
 Tree ensemble methods like random forests or extra trees have no continuous parameter space and no gradient-based optimization. The `fit` operation builds the entire tree structure in one pass. There's no sequence of incremental updates to unfold into a single loop. Ernst's FQI {cite}`ernst2005tree` retains the explicit nested structure with cold start initialization at each outer iteration, while neural methods can be flattened.
 
@@ -256,7 +237,7 @@ $$
 \mathbb{E}_{((s,a),y)\sim \hat{P}_n^{\text{fit}}}[\ell(q(s,a;\boldsymbol{\theta}), y)]
 $$
 
-induced by the fixed buffer $\mathcal{B}_n = \mathcal{D}$ and target map $T_{q_n}$. Starting from the generic batch FQI template (Algorithm {prf:ref}`fitted-q-iteration-batch`), we replace the abstract `fit` call with explicit gradient updates:
+induced by the fixed buffer $\mathcal{B}_n = \mathcal{D}$ and target function $g(\cdot; \boldsymbol{\theta}_n)$. Starting from the generic batch FQI template (Algorithm {prf:ref}`fitted-q-iteration-batch`), we replace the abstract `fit` call with explicit gradient updates:
 
 ```{prf:algorithm} Neural Fitted Q-Iteration with Explicit Inner Loop
 :label: nfqi-explicit-inner
@@ -321,7 +302,7 @@ This transformation is purely algebraic. No algorithmic behavior changes, only t
 5. **return** $\boldsymbol{\theta}_t$
 ```
 
-At step $t$, we have $n = \lfloor t/K \rfloor$ (outer iteration) and $k = t \bmod K$ (position within inner loop). The target network $\boldsymbol{\theta}_{\text{target}}$ equals $\boldsymbol{\theta}_n$ throughout the $K$ steps from $t = nK$ to $t = (n+1)K - 1$, then gets updated to $\boldsymbol{\theta}_{n+1}$ at $t = (n+1)K$. The parameters $\boldsymbol{\theta}_t$ correspond to $\boldsymbol{\theta}_n^{(k)}$ in the nested form. The flattening reindexes the iteration structure: outer iteration 3, inner step 7 becomes step 37.
+At step $t$, we have $n = \lfloor t/K \rfloor$ (outer iteration) and $k = t \bmod K$ (position within inner loop). The target network $\boldsymbol{\theta}_{\text{target}}$ equals $\boldsymbol{\theta}_n$ throughout the $K$ steps from $t = nK$ to $t = (n+1)K - 1$, then gets updated to $\boldsymbol{\theta}_{n+1}$ at $t = (n+1)K$. The parameters $\boldsymbol{\theta}_t$ correspond to $\boldsymbol{\theta}_n^{(k)}$ in the nested form. The flattening reindexes the iteration structure: with $K=10$, outer iteration $n=3$, inner step $k=7$ becomes global step $t = 3 \cdot 10 + 7 = 37$.
 
 Flattening replaces the pair $(n,k)$ by a single global step index $t$, but the underlying empirical distribution $\hat{P}_{\mathcal{D}}$ remains the same. We still sample from the fixed offline dataset throughout.
 
@@ -361,13 +342,19 @@ With EMA updates, the target network slowly tracks the online network instead of
 
 We now keep the same fitted Q-iteration template but allow the buffer $\mathcal{B}_t$ and its empirical distribution $\hat{P}_{\mathcal{B}_t}$ to evolve while we learn. Instead of repeatedly sampling from a fixed $\hat{P}_{\mathcal{D}}$, we collect new transitions during learning and store them in a circular replay buffer. 
 
-Deep Q-Network (DQN) instantiates the online template with moderate choices along the design axes: buffer capacity $B \approx 10^6$, mini-batch size $b \approx 32$, and target network update frequency $K \approx 10^4$. Crucially, DQN is not an ad hoc collection of tricks. It is fitted Q-iteration in flattened form (as developed in the nested-to-flattened transformation earlier) with an evolving buffer $\mathcal{B}_t$ and low replay ratio.
+Note that "online" here takes on a second meaning: we collect data online (interacting with the environment) while also maintaining the online network (actively-updated parameters $\boldsymbol{\theta}_t$) and target network (frozen parameters $\boldsymbol{\theta}_{\text{target}}$) distinction from the flattened FQI structure. The online network now plays a dual role: it is both the parameters being trained and the policy used to collect new data for the buffer. 
+
+Deep Q-Network (DQN) instantiates the online template with moderate choices along the design axes: buffer capacity $B \approx 10^6$, mini-batch size $b \approx 32$, and target network update frequency $K \approx 10^4$. DQN is not an ad hoc collection of tricks. It is fitted Q-iteration in flattened form (as developed in the nested-to-flattened transformation earlier) with an evolving buffer $\mathcal{B}_t$ and low replay ratio.
 
 ### Deep Q-Network (DQN)
 
 Deep Q-Network (DQN) maintains a circular replay buffer of capacity $B$ (typically $B \approx 10^6$). At each environment step, we store the new transition and sample a mini-batch of size $b$ from the buffer for training. This increases the replay ratio, reducing gradient variance at the cost of older, potentially off-policy data. 
 
-DQN uses a separate target network $\boldsymbol{\theta}_{\text{target}}$ that updates every $K$ steps (typically $K \approx 10^4$). As shown in the nested-to-flattened section, this target network is not a stabilization trick but the natural consequence of periodic outer-iteration boundaries in flattened FQI. The target network keeps targets fixed for $K$ gradient steps, which corresponds to the inner loop in the nested view:
+DQN uses two copies of the Q-network parameters:
+- The **online network** $\boldsymbol{\theta}_t$: actively updated at each gradient step (corresponds to $\boldsymbol{\theta}_n^{(k)}$ in the nested view). It serves a dual role: (1) the policy for collecting new data via $\varepsilon$-greedy action selection, and (2) the parameters being trained.
+- The **target network** $\boldsymbol{\theta}_{\text{target}}$: frozen parameters updated every $K$ steps (corresponds to $\boldsymbol{\theta}_n$ in the nested view). Used only for computing Bellman targets.
+
+As shown in the nested-to-flattened section, the target network is not a stabilization trick but the natural consequence of periodic outer-iteration boundaries in flattened FQI. The target network keeps targets fixed for $K$ gradient steps, which corresponds to the inner loop in the nested view:
 
 ```{prf:algorithm} Deep Q-Network (DQN)
 :label: dqn
@@ -382,20 +369,23 @@ DQN uses a separate target network $\boldsymbol{\theta}_{\text{target}}$ that up
 4. $t \leftarrow 0$
 5. **while** training **do**
     1. Observe current state $s$
-    2. Select action: $a \leftarrow \begin{cases} \arg\max_{a'} q(s,a';\boldsymbol{\theta}_t) & \text{with probability } 1-\varepsilon \\ \text{random action} & \text{with probability } \varepsilon \end{cases}$
-    3. Execute $a$, observe reward $r$ and next state $s'$
-    4. Store $(s,a,r,s')$ in $\mathcal{B}$, replacing oldest if full
-    5. Sample mini-batch of $b$ transitions $\{(s_i,a_i,r_i,s_i')\}_{i=1}^b$ from $\mathcal{B}$
-    6. For each sampled transition $(s_i,a_i,r_i,s_i')$:
-        1. $y_i \leftarrow r_i + \gamma \max_{a' \in A} q(s_i',a'; \boldsymbol{\theta}_{\text{target}})$
-    7. $\boldsymbol{\theta}_{t+1} \leftarrow \boldsymbol{\theta}_t - \alpha \nabla_{\boldsymbol{\theta}} \frac{1}{b}\sum_{i=1}^b (q(s_i,a_i;\boldsymbol{\theta}_t) - y_i)^2$
-    8. **if** $t \bmod K = 0$ **then**
+    2. **// Use online network to collect data**
+    3. Select action: $a \leftarrow \begin{cases} \arg\max_{a'} q(s,a';\boldsymbol{\theta}_t) & \text{with probability } 1-\varepsilon \\ \text{random action} & \text{with probability } \varepsilon \end{cases}$
+    4. Execute $a$, observe reward $r$ and next state $s'$
+    5. Store $(s,a,r,s')$ in $\mathcal{B}$, replacing oldest if full
+    6. Sample mini-batch of $b$ transitions $\{(s_i,a_i,r_i,s_i')\}_{i=1}^b$ from $\mathcal{B}$
+    7. For each sampled transition $(s_i,a_i,r_i,s_i')$:
+        1. $y_i \leftarrow r_i + \gamma \color{blue}{\max_{a' \in A} q(s_i',a'; \boldsymbol{\theta}_{\text{target}})}$ (both selection AND evaluation with target network)
+    8. $\boldsymbol{\theta}_{t+1} \leftarrow \boldsymbol{\theta}_t - \alpha \nabla_{\boldsymbol{\theta}} \frac{1}{b}\sum_{i=1}^b (q(s_i,a_i;\boldsymbol{\theta}_t) - y_i)^2$
+    9. **if** $t \bmod K = 0$ **then**
         1. $\boldsymbol{\theta}_{\text{target}} \leftarrow \boldsymbol{\theta}_t$
-    9. $t \leftarrow t + 1$
+    10. $t \leftarrow t + 1$
 6. **return** $\boldsymbol{\theta}_t$
 ```
 
-Double DQN addresses overestimation bias by decoupling action selection from evaluation. The online network selects the action, while the target network evaluates it:
+### Double Deep Q-Network (Double DQN)
+
+Double DQN addresses overestimation bias by decoupling action selection from evaluation. Instead of using the target network for both purposes (as DQN does), Double DQN uses the online network (currently-training parameters $\boldsymbol{\theta}_t$) to select which action looks best, then uses the target network (frozen parameters $\boldsymbol{\theta}_{\text{target}}$) to evaluate that action:
 
 ```{prf:algorithm} Double Deep Q-Network (Double DQN)
 :label: double-dqn
@@ -410,21 +400,27 @@ Double DQN addresses overestimation bias by decoupling action selection from eva
 4. $t \leftarrow 0$
 5. **while** training **do**
     1. Observe current state $s$
-    2. Select action: $a \leftarrow \begin{cases} \arg\max_{a'} q(s,a';\boldsymbol{\theta}_t) & \text{with probability } 1-\varepsilon \\ \text{random action} & \text{with probability } \varepsilon \end{cases}$
-    3. Execute $a$, observe reward $r$ and next state $s'$
-    4. Store $(s,a,r,s')$ in $\mathcal{B}$, replacing oldest if full
-    5. Sample mini-batch of $b$ transitions $\{(s_i,a_i,r_i,s_i')\}_{i=1}^b$ from $\mathcal{B}$
-    6. For each sampled transition $(s_i,a_i,r_i,s_i')$:
-        1. $a^*_i \leftarrow \arg\max_{a' \in A} q(s_i',a'; \boldsymbol{\theta}_t)$
-        2. $y_i \leftarrow r_i + \gamma q(s_i',a^*_i; \boldsymbol{\theta}_{\text{target}})$
-    7. $\boldsymbol{\theta}_{t+1} \leftarrow \boldsymbol{\theta}_t - \alpha \nabla_{\boldsymbol{\theta}} \frac{1}{b}\sum_{i=1}^b (q(s_i,a_i;\boldsymbol{\theta}_t) - y_i)^2$
-    8. **if** $t \bmod K = 0$ **then**
+    2. **// Use online network to collect data**
+    3. Select action: $a \leftarrow \begin{cases} \arg\max_{a'} q(s,a';\boldsymbol{\theta}_t) & \text{with probability } 1-\varepsilon \\ \text{random action} & \text{with probability } \varepsilon \end{cases}$
+    4. Execute $a$, observe reward $r$ and next state $s'$
+    5. Store $(s,a,r,s')$ in $\mathcal{B}$, replacing oldest if full
+    6. Sample mini-batch of $b$ transitions $\{(s_i,a_i,r_i,s_i')\}_{i=1}^b$ from $\mathcal{B}$
+    7. For each sampled transition $(s_i,a_i,r_i,s_i')$:
+        1. $a^*_i \leftarrow \color{red}{\arg\max_{a' \in A} q(s_i',a'; \boldsymbol{\theta}_t)}$ (action selection with online network)
+        2. $y_i \leftarrow r_i + \gamma \color{green}{q(s_i',a^*_i; \boldsymbol{\theta}_{\text{target}})}$ (action evaluation with target network)
+    8. $\boldsymbol{\theta}_{t+1} \leftarrow \boldsymbol{\theta}_t - \alpha \nabla_{\boldsymbol{\theta}} \frac{1}{b}\sum_{i=1}^b (q(s_i,a_i;\boldsymbol{\theta}_t) - y_i)^2$
+    9. **if** $t \bmod K = 0$ **then**
         1. $\boldsymbol{\theta}_{\text{target}} \leftarrow \boldsymbol{\theta}_t$
-    9. $t \leftarrow t + 1$
+    10. $t \leftarrow t + 1$
 6. **return** $\boldsymbol{\theta}_t$
 ```
 
-Double DQN leaves $\mathcal{B}_t$ and $\hat{P}_{\mathcal{B}_t}$ unchanged and modifies only the target map $T_q$ by decoupling action selection (online network) from evaluation (target network).
+Double DQN leaves $\mathcal{B}_t$ and $\hat{P}_{\mathcal{B}_t}$ unchanged and modifies only the target function $g$ by decoupling action selection (online network) from evaluation (target network). Compare the two approaches:
+
+- **DQN (blue)**: Uses the target network $\boldsymbol{\theta}_{\text{target}}$ for BOTH selecting which action is best AND evaluating it: $\max_{a'} q(s',a'; \boldsymbol{\theta}_{\text{target}})$ implicitly finds $a^* = \arg\max_{a'} q(s',a'; \boldsymbol{\theta}_{\text{target}})$ and then evaluates $q(s',a^*; \boldsymbol{\theta}_{\text{target}})$
+- **Double DQN (red + green)**: Uses the online network $\boldsymbol{\theta}_t$ to select $a^* = \arg\max_{a'} q(s',a'; \boldsymbol{\theta}_t)$, then uses the target network $\boldsymbol{\theta}_{\text{target}}$ to evaluate $q(s',a^*; \boldsymbol{\theta}_{\text{target}})$
+
+This decoupling prevents overestimation bias because the noise in action selection (from the online network) is independent of the noise in action evaluation (from the target network). Recall that the online network represents the currently-training parameters being updated at each gradient step, while the target network represents the frozen parameters used for computing targets. By using different parameters for selection versus evaluation, we break the correlation that leads to systematic overestimation in the standard max operator.
 
 ### Q-Learning: The Limiting Case
 
@@ -432,13 +428,13 @@ DQN and Double DQN use moderate settings: $B \approx 10^6$, $K \approx 10^4$, mi
 
 In the buffer perspective, Q-learning has $\mathcal{B}_t = \{(s_t, a_t, r_t, s'_t)\}$ with $|\mathcal{B}_t | = 1$. The empirical distribution $\hat{P}_{\mathcal{B}_t}$ collapses to a Dirac mass at the current transition. We use each transition exactly once then discard it. There is no separate target network: the parameters used for computing targets are immediately updated after each step ($K=1$, or equivalently $\tau=1$ in EMA). This makes Q-learning a **stochastic approximation** method with replay ratio 1.
 
-**Stochastic approximation** is a general framework for solving equations of the form $\mathbb{E}[h(X; \boldsymbol{\theta})] = 0$ using noisy samples, without computing expectations explicitly. The classic example is root-finding: given function $g(\boldsymbol{\theta})$ whose expectation $\mathbb{E}[g(\boldsymbol{\theta}; Z)] = G(\boldsymbol{\theta})$ we want to solve $G(\boldsymbol{\theta}) = 0$, the Robbins-Monro procedure updates:
+**Stochastic approximation** is a general framework for solving equations of the form $\mathbb{E}[h(X; \boldsymbol{\theta})] = 0$ using noisy samples, without computing expectations explicitly. The classic example is root-finding: given function $f(\boldsymbol{\theta}; Z)$ whose expectation $\mathbb{E}[f(\boldsymbol{\theta}; Z)] = F(\boldsymbol{\theta})$ we want to solve $F(\boldsymbol{\theta}) = 0$, the Robbins-Monro procedure updates:
 
 $$
-\boldsymbol{\theta}_{t+1} = \boldsymbol{\theta}_t - \alpha_t g(\boldsymbol{\theta}_t; Z_t)
+\boldsymbol{\theta}_{t+1} = \boldsymbol{\theta}_t - \alpha_t f(\boldsymbol{\theta}_t; Z_t)
 $$
 
-using noisy samples $Z_t$ without ever computing $G(\boldsymbol{\theta})$ or its Jacobian. This is analogous to Newton's method in the deterministic case, but replaces exact gradients with stochastic estimates and avoids computing or inverting the Jacobian. Under diminishing step sizes ($\alpha_t \to 0$, $\sum_t \alpha_t = \infty$), the iterates converge to solutions of $G(\boldsymbol{\theta}) = 0$.
+using noisy samples $Z_t$ without ever computing $F(\boldsymbol{\theta})$ or its Jacobian. This is analogous to Newton's method in the deterministic case, but replaces exact gradients with stochastic estimates and avoids computing or inverting the Jacobian. Under diminishing step sizes ($\alpha_t \to 0$, $\sum_t \alpha_t = \infty$), the iterates converge to solutions of $F(\boldsymbol{\theta}) = 0$.
 
 Q-learning fits this framework by solving the Bellman residual equation. Recall from the [projection methods chapter](projdp.md) that the Bellman equation $q^* = \Bellman q^*$ can be written as a residual equation $\Residual(q) \equiv \Bellman q - q = 0$. For a parameterized Q-function $q(s,a; \boldsymbol{\theta})$, the residual at observed transition $(s,a,r,s')$ is:
 
@@ -509,7 +505,7 @@ For linear Q-learning with function approximation, the ODE analysis becomes more
 
 ## Regression Losses and Noise Models
 
-Fix a particular time $t$ and buffer contents $\mathcal{B}_t$. Sampling from $\mathcal{B}_t$ and pushing transitions through the target map $T_{q_t}$ gives a regression distribution $\hat{P}_t^{\text{fit}}$ over pairs $((s,a), y)$. The `fit` operation in the inner loop is then a standard statistical estimation problem: given empirical samples from $\hat{P}_t^{\text{fit}}$, choose parameters $\boldsymbol{\theta}$ to minimize a loss:
+Fix a particular time $t$ and buffer contents $\mathcal{B}_t$. Sampling from $\mathcal{B}_t$ and pushing transitions through the target function $g(\cdot; \boldsymbol{\theta}_t)$ gives a regression distribution $\hat{P}_t^{\text{fit}}$ over pairs $((s,a), y)$. The `fit` operation in the inner loop is then a standard statistical estimation problem: given empirical samples from $\hat{P}_t^{\text{fit}}$, choose parameters $\boldsymbol{\theta}$ to minimize a loss:
 
 $$
 \mathcal{L}(\boldsymbol{\theta}; \mathcal{B}_t) \approx \mathbb{E}_{((s,a),y)\sim \hat{P}_t^{\text{fit}}} \big[\ell(q(s,a;\boldsymbol{\theta}), y)\big]
@@ -549,11 +545,117 @@ When $q < y$ (underestimation), the exponential term is small and the gradient i
 
 The Gumbel loss can be understood as the natural likelihood for problems involving max operators, just as the Gaussian is the natural likelihood for problems involving averages. The central limit theorem tells us that sums converge to Gaussians; extreme value theory tells us that maxima converge to Gumbel (for light-tailed base distributions). Squared error is optimal for Gaussian noise; Gumbel regression is optimal for Gumbel noise.
 
-The practical advantage is that we do not need to estimate variances or compute weighted averages. The loss function itself handles the asymmetric error structure through its score function. XQL has shown improvements in both value-based and actor-critic methods, particularly in offline reinforcement learning where the max-operator bias compounds across iterations without corrective exploration.
+```{code-cell} python
+:tags: [hide-input]
+
+
+#| label: fig-gumbel-loss
+%config InlineBackend.figure_format = 'retina'
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Set up the figure with two subplots
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
+
+# Define error range (q - y)
+error = np.linspace(-3, 3, 500)
+
+# Different beta values to show control over asymmetry
+betas = [0.5, 1.0, 2.0]
+colors = ['#1f77b4', '#ff7f0e', '#2ca02c']
+labels = [r'$\beta = 0.5$ (aggressive)', r'$\beta = 1.0$ (moderate)', r'$\beta = 2.0$ (mild)']
+
+# Plot 1: Gumbel loss function
+for beta, color, label in zip(betas, colors, labels):
+    loss = error / beta + np.exp(error / beta)
+    ax1.plot(error, loss, color=color, linewidth=2, label=label)
+
+# Add reference: squared error for comparison
+squared_error = error**2
+ax1.plot(error, squared_error, 'k--', linewidth=1.5, alpha=0.5, label='Squared error')
+
+ax1.axvline(x=0, color='gray', linestyle=':', alpha=0.5)
+ax1.axhline(y=0, color='gray', linestyle=':', alpha=0.5)
+ax1.set_xlabel(r'Error: $q - y$', fontsize=11)
+ax1.set_ylabel('Loss', fontsize=11)
+ax1.set_title('Gumbel Loss Function', fontsize=12, fontweight='bold')
+ax1.legend(fontsize=9)
+ax1.grid(True, alpha=0.3)
+ax1.set_ylim([0, 10])
+
+# Annotate regions
+ax1.text(-2, 7, 'Underestimation\n' + r'$(q < y)$', 
+         fontsize=9, ha='center', color='darkred', alpha=0.7)
+ax1.text(2, 7, 'Overestimation\n' + r'$(q > y)$', 
+         fontsize=9, ha='center', color='darkblue', alpha=0.7)
+
+# Plot 2: Gradient (score function) - showing asymmetry
+for beta, color, label in zip(betas, colors, labels):
+    gradient = (1/beta) * (1 + np.exp(error / beta))
+    ax2.plot(error, gradient, color=color, linewidth=2, label=label)
+
+# Add reference: gradient of squared error
+squared_error_grad = 2 * error
+ax2.plot(error, squared_error_grad, 'k--', linewidth=1.5, alpha=0.5, label='Squared error')
+
+ax2.axvline(x=0, color='gray', linestyle=':', alpha=0.5)
+ax2.axhline(y=0, color='gray', linestyle=':', alpha=0.5)
+ax2.set_xlabel(r'Error: $q - y$', fontsize=11)
+ax2.set_ylabel('Gradient magnitude', fontsize=11)
+ax2.set_title('Gumbel Loss Gradient (Score Function)', fontsize=12, fontweight='bold')
+ax2.legend(fontsize=9)
+ax2.grid(True, alpha=0.3)
+ax2.set_ylim([-5, 10])
+
+# Annotate asymmetry
+ax2.text(-2, -3, 'Mild gradient\n(tolerates underestimation)', 
+         fontsize=9, ha='center', color='darkred', alpha=0.7)
+ax2.text(2, 7, 'Steep gradient\n(penalizes overestimation)', 
+         fontsize=9, ha='center', color='darkblue', alpha=0.7)
+
+plt.tight_layout()
+plt.show()
+```
+
+:::{figure} #fig-gumbel-loss
+Gumbel regression reshapes the loss landscape (left) and gradient geometry (right), penalizing overestimation exponentially while keeping underestimation gentle.
+:::
+
+The left panel shows the Gumbel loss as a function of the error $q - y$. Notice the asymmetry: the loss grows exponentially for positive errors (overestimation) but increases only linearly for negative errors (underestimation). The parameter $\beta$ controls the degree of this asymmetry—smaller $\beta$ values create more aggressive penalization of overestimation.
+
+The right panel shows the gradient (score function), which determines how strongly the optimizer pushes back against errors. For overestimation ($q > y$), the gradient grows exponentially, creating strong corrective pressure. For underestimation ($q < y$), the gradient remains relatively flat (approaching $1/\beta$). This is in stark contrast to squared error (dashed line), which treats over- and underestimation symmetrically. By tuning $\beta$, we can calibrate how aggressively the loss combats the overestimation bias induced by the max operator in the Bellman target.
+
+```{prf:remark} XQL vs Soft Q-Learning: Target Function vs Loss
+:class: dropdown
+
+XQL (Gumbel loss) and Soft Q-learning both involve Gumbel distributions, but they operate at different levels of the FQI template. Recall our unified framework: buffer $\mathcal{B}_t$, target function $g$, loss $\ell$, optimization budget $K$.
+
+**Soft Q-learning** changes the target function by using the smooth Bellman operator from [regularized MDPs](regmdp.md):
+
+$$
+g^{\text{soft}}(s,a,r,s'; \boldsymbol{\theta}) = r + \gamma \frac{1}{\beta}\log\sum_{a'} \exp(\beta q(s',a'; \boldsymbol{\theta}))
+$$
+
+This replaces the hard max with logsumexp for entropy regularization. The loss remains standard: $\ell(q,y) = (q-y)^2$. The Gumbel distribution appears through the Gumbel-max trick (logsumexp = soft max), but this is about making the optimal policy stochastic, not about the noise structure in TD errors.
+
+**XQL** keeps the hard max target function:
+
+$$
+g^{\text{hard}}(s,a,r,s'; \boldsymbol{\theta}) = r + \gamma \max_{a'} q(s',a'; \boldsymbol{\theta})
+$$
+
+and instead changes the loss to Gumbel regression: $\ell_{\text{Gumbel}}(q,y) = \frac{q-y}{\beta} + \exp(\frac{q-y}{\beta})$. The Gumbel distribution here models the noise in the TD errors themselves, not the policy.
+
+The asymmetric penalization in XQL (exponential penalty for overestimation) comes from the score function of the Gumbel likelihood, which is designed to handle extreme-value noise. Soft Q-learning uses symmetric L2 loss, so it does not preferentially penalize overestimation. The logsumexp smoothing in Soft Q reduces maximization bias by averaging over actions, but this is a property of the target function, not the loss geometry.
+
+Both can be combined: Soft Q-learning with Gumbel loss would change both the target function (logsumexp) and the loss (asymmetric penalization).
+```
+
+The practical advantage of XQL is that the loss function itself handles the asymmetric error structure through its score function. We do not need to estimate variances or compute weighted averages. XQL has shown improvements in both value-based and actor-critic methods, particularly in offline reinforcement learning where the max-operator bias compounds across iterations without corrective exploration.
 
 ### Classification-Based Q-Learning
 
-From the buffer viewpoint, nothing changes upstream: we still sample transitions from $\hat{P}_{\mathcal{B}_t}$ and apply the same target map $T_{q_t}$. Classification-based Q-learning changes only the loss $\ell$ and target representation. Instead of regressing on a scalar $y\in\mathbb{R}$ with L2, we represent values as categorical distributions over bins and use cross-entropy loss.
+From the buffer viewpoint, nothing changes upstream: we still sample transitions from $\hat{P}_{\mathcal{B}_t}$ and apply the same target function $g(\cdot; \boldsymbol{\theta}_t)$. Classification-based Q-learning changes only the loss $\ell$ and target representation. Instead of regressing on a scalar $y\in\mathbb{R}$ with L2, we represent values as categorical distributions over bins and use cross-entropy loss.
 
 Choose a finite grid $z_1 < z_2 < \cdots < z_K$ spanning plausible return values. The network outputs logits $\ell_{\boldsymbol{\theta}}(s,a) \in \mathbb{R}^K$ converted to probabilities:
 
@@ -567,7 +669,116 @@ $$
 q_j(y_i) = \frac{z_{j+1} - y_i}{z_{j+1} - z_j}, \quad q_{j+1}(y_i) = \frac{y_i - z_j}{z_{j+1} - z_j}, \quad q_k(y_i) = 0 \text{ for } k \notin \{j, j+1\}
 $$
 
-This is barycentric interpolation: $\sum_k z_k q_k(y_i) = y_i$ recovers the scalar exactly. The loss minimizes cross-entropy:
+This is barycentric interpolation: $\sum_k z_k q_k(y_i) = y_i$ recovers the scalar exactly, placing the two-hot encoding within the same framework as linear interpolation in the [dynamic programming chapter](dp.md) (Algorithm {prf:ref}`backward-recursion-interp`).
+
+```{code-cell} python
+:tags: [hide-input]
+
+
+#| label: fig-two-hot
+%config InlineBackend.figure_format = 'retina'
+import numpy as np
+import matplotlib.pyplot as plt
+
+def two_hot_encode(y, z_bins):
+    """Compute two-hot encoding weights for target value y on grid z_bins."""
+    K = len(z_bins)
+    q = np.zeros(K)
+    
+    # Clip to grid boundaries
+    if y <= z_bins[0]:
+        q[0] = 1.0
+        return q, 0
+    if y >= z_bins[-1]:
+        q[-1] = 1.0
+        return q, K - 1
+    
+    # Find bins j, j+1 such that z_j <= y < z_{j+1}
+    j = np.searchsorted(z_bins, y, side='right') - 1
+    
+    # Barycentric coordinates (linear interpolation)
+    q[j+1] = (y - z_bins[j]) / (z_bins[j+1] - z_bins[j])
+    q[j] = (z_bins[j+1] - y) / (z_bins[j+1] - z_bins[j])
+    
+    return q, j
+
+# Set up the figure with two panels
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
+
+# Define a grid of K=11 bins spanning [-5, 5]
+K = 11
+z_bins = np.linspace(-5, 5, K)
+
+# Panel 1: Two-hot encoding for a specific target
+y_target = 0.7
+q, j = two_hot_encode(y_target, z_bins)
+
+# Plot bins as vertical lines
+for z in z_bins:
+    ax1.axvline(z, color='lightgray', linestyle='--', linewidth=0.8, alpha=0.5)
+
+# Plot the distribution
+colors_bar = ['#E63946' if qi > 0 else '#A8DADC' for qi in q]
+ax1.bar(z_bins, q, width=(z_bins[1] - z_bins[0]) * 0.8, 
+        color=colors_bar, alpha=0.7, edgecolor='black', linewidth=1.5)
+
+# Highlight the target value
+ax1.axvline(y_target, color='#2E86AB', linewidth=3, label=f'Target $y = {y_target}$', zorder=10)
+ax1.plot(y_target, 0, 'o', color='#2E86AB', markersize=12, zorder=11)
+
+# Annotate the two active bins with barycentric coordinates
+ax1.annotate(f'$q_{{{j}}} = {q[j]:.3f}$\n$= \\frac{{z_{{{j+1}}} - y}}{{z_{{{j+1}}} - z_{{{j}}}}}$',
+            xy=(z_bins[j], q[j]), xytext=(z_bins[j] - 1.8, q[j] + 0.25),
+            fontsize=10, color='#E63946', weight='bold',
+            arrowprops=dict(arrowstyle='->', color='#E63946', lw=2))
+ax1.annotate(f'$q_{{{j+1}}} = {q[j+1]:.3f}$\n$= \\frac{{y - z_{{{j}}}}}{{z_{{{j+1}}} - z_{{{j}}}}}$',
+            xy=(z_bins[j+1], q[j+1]), xytext=(z_bins[j+1] + 0.5, q[j+1] + 0.25),
+            fontsize=10, color='#E63946', weight='bold',
+            arrowprops=dict(arrowstyle='->', color='#E63946', lw=2))
+
+# Verify barycentric property
+reconstruction = np.sum(z_bins * q)
+textstr = f'Barycentric property:\n$\\sum_k z_k q_k(y) = {reconstruction:.4f} = y$'
+ax1.text(0.02, 0.97, textstr, transform=ax1.transAxes, fontsize=10,
+        verticalalignment='top', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+
+ax1.set_xlabel('Bin value $z_k$', fontsize=11)
+ax1.set_ylabel('Probability $q_k(y)$', fontsize=11)
+ax1.set_title('Two-Hot Encoding = Linear Interpolation', fontsize=12, fontweight='bold')
+ax1.set_ylim([0, 1.2])
+ax1.legend(loc='upper right', fontsize=10)
+ax1.grid(axis='y', alpha=0.3)
+
+# Panel 2: Multiple targets to show the pattern
+targets = [0.7, -2.3, 3.8]
+colors = ['#2E86AB', '#A23B72', '#F18F01']
+
+for idx, (y_target, color) in enumerate(zip(targets, colors)):
+    q, _ = two_hot_encode(y_target, z_bins)
+    offset = idx * 0.2
+    ax2.bar(z_bins + offset, q, width=0.18, color=color, alpha=0.7, 
+           label=f'$y = {y_target}$', edgecolor='black', linewidth=0.8)
+
+for z in z_bins:
+    ax2.axvline(z, color='lightgray', linestyle='--', linewidth=0.5, alpha=0.4)
+
+ax2.set_xlabel('Bin value $z_k$', fontsize=11)
+ax2.set_ylabel('Probability $q_k(y)$', fontsize=11)
+ax2.set_title('Multiple Targets: Each Encoded as Two-Hot', fontsize=12, fontweight='bold')
+ax2.legend(loc='upper right', fontsize=10)
+ax2.grid(axis='y', alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+:::{figure} #fig-two-hot
+Two-hot encoding as barycentric interpolation: the left panel shows a single target spread over two bins, while the right panel compares encodings for multiple targets.
+:::
+
+The left panel shows two-hot encoding for $y=0.7$ on a grid of 11 bins. The target value is distributed over exactly two adjacent bins $z_j$ and $z_{j+1}$ with weights that are barycentric coordinates: the weight assigned to each bin is inversely proportional to the distance from the target to that bin. The inset verifies that $\sum_k z_k q_k(y)$ exactly recovers the original target—this is the same linear interpolation formula used throughout the book. The right panel shows that different targets produce different two-hot patterns, each concentrating mass on the two bins surrounding the target value.
+
+The loss minimizes cross-entropy:
 
 $$
 \mathcal{L}_{\text{CE}}(\boldsymbol{\theta}) = -\mathbb{E}_{((s,a),y) \sim \hat{P}_t^{\text{fit}}}\left[ \sum_{k=1}^K q_k(y) \log p_{\boldsymbol{\theta}}(k \mid s, a) \right]
@@ -581,18 +792,12 @@ The two-hot weights $q_j(y_i), q_{j+1}(y_i)$ are barycentric coordinates, identi
 
 Empirically, cross-entropy loss scales better with network capacity. Farebrother et al. {cite}`farebrother2024stop` found that L2-based DQN and CQL degrade when Q-networks scale to large ResNets, while classification loss (specifically HL-Gauss, which uses Gaussian smoothing instead of two-hot) maintains performance. The combination of KL geometry, quantization, and smoothing prevents overfitting to noisy targets that plagues L2 with high-capacity networks.
 
-### Practical Considerations
-
-Implementing classification-based Q-learning requires choosing the number of bins $K$ and their range $[z_1, z_K]$. Typical choices use $K \in \{51, 101, 201\}$ bins uniformly spaced over the expected return range. The range can be estimated from domain knowledge or learned adaptively during training. The network architecture changes minimally: instead of a single scalar output per action, we output $K$ logits per action. For discrete action spaces with $|\mathcal{A}|$ actions, this means a final layer of size $K \times |\mathcal{A}|$ rather than $|\mathcal{A}|$. The computational overhead is modest, and the implementation can use standard cross-entropy loss functions available in deep learning libraries. The main conceptual shift is viewing Q-learning as categorical prediction rather than scalar regression.
-
-Gumbel regression and classification-based Q-learning represent two strategies for matching the loss function to the noise structure in TD targets. Gumbel regression commits to an extreme-value noise model and uses the corresponding likelihood. Classification avoids parametric assumptions by working with distributions over bins, changing both the target representation and the projection geometry from $L^2$ to KL divergence. The choice depends on whether the Gumbel assumption is justified and whether the computational overhead of maintaining $K$ bins per action is acceptable.
-
 ## Summary
 
-Fitted Q-iteration has a two-level structure: an outer loop applies the Bellman operator to construct targets, an inner loop fits a function approximator to those targets. All algorithms in this chapter instantiate this template with different choices of buffer $\mathcal{B}_t$, target map $T_q$, loss $\ell$, and optimization budget $K$.
+Fitted Q-iteration has a two-level structure: an outer loop applies the Bellman operator to construct targets, an inner loop fits a function approximator to those targets. All algorithms in this chapter instantiate this template with different choices of buffer $\mathcal{B}_t$, target function $g$, loss $\ell$, and optimization budget $K$.
 
 The empirical distribution $\hat{P}_{\mathcal{B}_t}$ unifies offline and online methods through plug-in approximation: replace unknown transition law $P$ with $\hat{P}_{\mathcal{B}_t}$ and minimize empirical risk $\mathbb{E}_{((s,a),y)\sim \hat{P}_t^{\text{fit}}} [\ell(q, y)]$. Offline uses fixed $\mathcal{B}_t \equiv \mathcal{D}$ (sample average approximation), online uses circular buffer (Q-learning with $B=1$ is stochastic approximation, DQN with large $B$ is hybrid).
 
-Target networks arise from flattening the nested loops. Merging inner gradient steps with outer value iteration creates a single loop where the parameters for targets, $\boldsymbol{\theta}_{\text{target}}$, update every $K$ steps to mark outer-iteration boundaries.
+Target networks and online networks arise from flattening the nested loops. Merging inner gradient steps with outer value iteration creates a single loop where two sets of parameters coexist: the **online network** $\boldsymbol{\theta}_t$ (actively updated at each gradient step, corresponds to $\boldsymbol{\theta}_n^{(k)}$) and the **target network** $\boldsymbol{\theta}_{\text{target}}$ (frozen for computing targets, updated every $K$ steps to mark outer-iteration boundaries, corresponds to $\boldsymbol{\theta}_n$). In online algorithms like DQN, the online network additionally serves as the behavior policy for data collection.
 
 The [next chapter](cadp.md) directly parameterizes and optimizes policies instead of searching over value functions.

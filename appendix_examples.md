@@ -47,10 +47,12 @@ where:
 
 We expect that when no control is applied to the system, the rod should be falling down when started from the upright position. 
 
-```{code-cell} ipython3
+```{code-cell} python
 :tags: [hide-input]
 
+#| label: appendix_examples-cell-01
 
+%config InlineBackend.figure_format = 'retina'
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import odeint
@@ -143,6 +145,10 @@ plt.close(fig)
 # Display only the JavaScript animation
 display(HTML(js_anim))
 ```
+
+:::{figure} #appendix_examples-cell-01
+Rendered output from the preceding code cell.
+:::
 
 ### Pendulum in the Gym Environment
 
@@ -364,4 +370,3 @@ The optimal control problem can be formulated as follows:
 \end{align*}
 
 The state variables are the accumulated awareness of past corruption $C(t)$ and the politician's popularity $P(t)$. The control variable is the extent of corruption $u(t)$. The objective functional represents the discounted stream of benefits coming from being honest (popularity) and from being dishonest (corruption).
-
