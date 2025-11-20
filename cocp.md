@@ -587,7 +587,6 @@ fig.suptitle('Collocation Methods for Optimal Control\n(Illustration of Node Typ
              fontsize=16, fontweight='bold', y=0.95)
 
 plt.tight_layout(rect=[0.04, 0.10, 0.98, 0.93])
-plt.show()
 ```
 
 :::{figure} #cocp-cell-01
@@ -1306,7 +1305,6 @@ plt.legend()
 plt.grid(True)
 
 plt.tight_layout()
-plt.show()
 ```
 
 :::{figure} #cocp-cell-03
@@ -1435,7 +1433,6 @@ plt.title('Control input over time (Small random noise)')
 plt.grid(True)
 
 plt.tight_layout()
-plt.show()
 
 # Save the data
 np.savez('_static/compressor_surge_data_multi.npz', t=t, trajectories=trajectories, u=u, initial_conditions=initial_conditions)
@@ -1552,7 +1549,6 @@ plt.legend()
 plt.grid(True)
 
 plt.tight_layout()
-plt.show()
 ```
 
 :::{figure} #cocp-cell-05
@@ -2114,7 +2110,6 @@ def run_demo(show: bool = True, save_path: str | None = 'hydro.png', verbose: bo
     if save_path:
         fig.savefig(save_path, bbox_inches='tight')
     if show:
-        plt.show()
         return None
     return fig
 

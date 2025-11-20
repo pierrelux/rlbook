@@ -114,7 +114,6 @@ ax2.set_title('Pendulum Angular Velocity over Time')
 ax2.grid(True)
 
 plt.tight_layout()
-plt.show()
 
 # Function to create animation frames
 def get_pendulum_position(theta):

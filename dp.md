@@ -1162,7 +1162,6 @@ plt.xlabel('Total Harvest')
 plt.ylabel('Frequency')
 
 plt.tight_layout()
-plt.show()
 ```
 
 :::{figure} #dp-harvest-stochastic

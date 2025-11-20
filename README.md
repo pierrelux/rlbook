@@ -40,9 +40,8 @@ plots and widgets visible both on `localhost:3000` and on GitHub Pages:
    ```
 
    Skipping `--execute` will re-use whatever cache happens to exist (or nothing,
-   if you changed the cell), which is why we previously saw the HTTP retrier
-   section printing only text.
-
+   if you changed the cell), which can lead to empty output. 
+   
 3. When iterating locally, `uv run jupyter-book start --execute --port 3000`
    reproduces exactly what GitHub Pages will host, including cached PNG outputs.
 

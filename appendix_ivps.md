@@ -149,7 +149,6 @@ plt.text(2.5, 15, "Smaller step sizes\nyield better approximations",
          fontsize=10, ha='center', va='center')
 
 plt.tight_layout()
-plt.show()
 ```
 
 :::{figure} #appendix_ivps-cell-01
@@ -292,7 +291,6 @@ ax1.text(1.845, 15, "Red hashed areas show\nEuler's approximation\nof the area u
          fontsize=10, ha='center', va='center')
 
 plt.tight_layout()
-plt.show()
 ```
 
 :::{figure} #appendix_ivps-cell-02
@@ -470,7 +468,6 @@ ax1.text(1.76, 17, "Red hashed areas: Euler's approximation\nGreen dotted areas:
          fontsize=10, ha='center', va='center')
 
 plt.tight_layout()
-plt.show()
 ```
 
 :::{figure} #appendix_ivps-cell-03
@@ -642,7 +639,6 @@ plt.legend(fontsize=10)
 plt.grid(True, linestyle=':', alpha=0.7)
 
 plt.tight_layout()
-plt.show()
 ```
 
 :::{figure} #appendix_ivps-cell-04
@@ -1203,7 +1199,6 @@ plt.ylabel('y')
 plt.title('ODE Solutions: dy/dt = -y, y(0) = 1')
 plt.legend()
 plt.grid(True)
-plt.show()
 
 # Print error for each order
 print("Maximum absolute errors:")

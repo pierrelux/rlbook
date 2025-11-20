@@ -496,7 +496,6 @@ axes[1].grid(axis="y", alpha=0.3)
 axes[1].set_xlabel("Strategy")
 
 fig.tight_layout()
-plt.show()
 ```
 
 :::{figure} #fig-ocp-http-retrier
@@ -1257,7 +1256,6 @@ def plot_results(optimal_u, T):
     plt.grid(True)
     
     plt.tight_layout()
-    plt.show()
 
 # Run the optimization
 optimal_u = single_shooting_ev_optimization()
@@ -1508,7 +1506,6 @@ def reconstruct_and_plot(sol, K, x_init, x_target):
     ax.grid(True, alpha=0.3)
     ax.legend(loc='best')
     plt.tight_layout()
-    plt.show()
 
     # Report residual norms
     res = residuals(sol.x, K, np.array([x_init[0], x_init[1], 0., 0.]), np.array([x_target[0], x_target[1], 0., 0.]))

@@ -143,7 +143,6 @@ plt.legend(loc='upper left', fontsize='small', edgecolor='black', fancybox=True)
 plt.grid(True)
 # Set the aspect ratio to be equal so the circle appears correctly
 plt.gca().set_aspect('equal', adjustable='box')
-plt.show()
 ```
 
 :::{figure} #appendix_nlp-cell-01
@@ -560,7 +559,6 @@ plt.xlim(-1.5, 2.5)
 plt.ylim(-1.5, 2.5)
 
 plt.tight_layout()
-plt.show()
 ```
 
 :::{figure} #appendix_nlp-cell-03
@@ -875,7 +873,6 @@ plt.xlim(-1.5, 2.5)
 plt.ylim(-1.5, 2.5)
 
 plt.tight_layout()
-plt.show()
 
 # Verify the result
 print(f"\nEquality constraint violation: {g(x_opt)[0]:.6f}")
@@ -1102,7 +1099,6 @@ plt.xlim(-1.5, 2.5)
 plt.ylim(-1.5, 2.5)
 
 plt.tight_layout()
-plt.show()
 
 
 # Verify the result

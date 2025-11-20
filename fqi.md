@@ -621,7 +621,6 @@ ax2.text(2, 7, 'Steep gradient\n(penalizes overestimation)',
          fontsize=9, ha='center', color='darkblue', alpha=0.7)
 
 plt.tight_layout()
-plt.show()
 ```
 
 :::{figure} #fig-gumbel-loss
@@ -783,7 +782,6 @@ ax2.legend(loc='upper right', fontsize=10)
 ax2.grid(axis='y', alpha=0.3)
 
 plt.tight_layout()
-plt.show()
 ```
 
 :::{figure} #fig-two-hot

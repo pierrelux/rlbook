@@ -1291,7 +1291,6 @@ ax3.set_ylabel('Effect-site Concentration (µg/mL)')
 ax3.set_xlabel('Time (min)')
 
 plt.tight_layout()
-plt.show()
 
 print(f"Initial BIS: {bis[0]:.2f}")
 print(f"Final BIS: {bis[-1]:.2f}")
