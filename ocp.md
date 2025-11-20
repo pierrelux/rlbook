@@ -273,6 +273,7 @@ As an example we cast the problem of optimizing a "HTTP retrier with backoff" as
 %config InlineBackend.figure_format = 'retina'
 from dataclasses import dataclass
 import math, random
+import matplotlib.pyplot as plt
 
 # ---------------------------
 # PROGRAM = "HTTP retrier with backoff"
@@ -464,6 +465,32 @@ if __name__ == "__main__":
           "  schedule=", [round(x,3) for x in u_exp], "  Cost ≈", round(J2,3))
     print("Attempts (init → per-step → exp):", s0.k, "→", s1.k, "→", s2.k,
           "  Success codes:", s0.code, s1.code, s2.code)
+
+    strategies = {
+        "Baseline": u0,
+        "Per-step SPSA": u_opt,
+        "Exp SPSA": u_exp,
+    }
+    costs = {"Baseline": J0, "Per-step SPSA": J1, "Exp SPSA": J2}
+
+    fig, axes = plt.subplots(2, 1, figsize=(9, 7), sharex=True)
+
+    k = range(1, K + 1)
+    for name, waits in strategies.items():
+        axes[0].step(k, waits, where="mid", label=name)
+    axes[0].set_ylabel("Wait time (s)")
+    axes[0].set_title("Backoff Schedules")
+    axes[0].grid(alpha=0.3)
+    axes[0].legend()
+
+    axes[1].bar(list(costs.keys()), [costs[key] for key in costs], color=["#4a90e2", "#f5a623", "#7ed321"])
+    axes[1].set_ylabel("Mean rollout cost")
+    axes[1].set_title("Objective Values (lower is better)")
+    axes[1].grid(axis="y", alpha=0.3)
+    axes[1].set_xlabel("Strategy")
+
+    fig.tight_layout()
+    plt.show()
 ```
 
 :::{figure} #fig-ocp-http-retrier
