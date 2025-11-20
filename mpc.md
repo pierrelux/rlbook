@@ -1173,10 +1173,17 @@ Furthermore, every patient is different from another. Hence, we cannot simply le
 
 
 #| label: fig-mpc-propofol
-%config InlineBackend.figure_format = 'retina'
+%config InlineBackend.figure_format = 'svg'
 import numpy as np
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
+
+# Apply book style
+try:
+    import scienceplots
+    plt.style.use(['science', 'notebook'])
+except (ImportError, OSError):
+    pass  # Use matplotlib defaults
 
 class Patient:
     def __init__(self, age, weight):
@@ -1348,11 +1355,18 @@ The cell below runs the closed-loop simulation and plots the states and input. T
 ```{code-cell} python
 :tags: [hide-input]
 
-%config InlineBackend.figure_format = 'retina'
+%config InlineBackend.figure_format = 'svg'
 import numpy as np
 import do_mpc
 from casadi import *  # noqa: F401 - do-mpc constructs CasADi symbols under the hood
 import matplotlib.pyplot as plt
+
+# Apply book style
+try:
+    import scienceplots
+    plt.style.use(['science', 'notebook'])
+except (ImportError, OSError):
+    pass  # Use matplotlib defaults
 
 
 def build_model():
@@ -1482,6 +1496,13 @@ def run_closed_loop():
     # Visualization
     import matplotlib.pyplot as plt
 
+# Apply book style
+try:
+    import scienceplots
+    plt.style.use(['science', 'notebook'])
+except (ImportError, OSError):
+    pass  # Use matplotlib defaults
+
     mpc_graphics = do_mpc.graphics.Graphics(mpc.data)
     sim_graphics = do_mpc.graphics.Graphics(simulator.data)
 
@@ -1521,11 +1542,18 @@ The following cell creates an interactive animation of the batch bioreactor cont
 ```{code-cell} python
 :tags: [hide-input]
 
-%config InlineBackend.figure_format = 'retina'
+%config InlineBackend.figure_format = 'svg'
 import numpy as np
 import do_mpc
 from casadi import *  # noqa: F401 - do-mpc constructs CasADi symbols under the hood
 import matplotlib.pyplot as plt
+
+# Apply book style
+try:
+    import scienceplots
+    plt.style.use(['science', 'notebook'])
+except (ImportError, OSError):
+    pass  # Use matplotlib defaults
 from matplotlib.animation import FuncAnimation
 from IPython.display import HTML, display
 import matplotlib.patches as mpatches

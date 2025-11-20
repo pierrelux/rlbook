@@ -236,10 +236,17 @@ For concreteness, we fix $\theta = 1.0$ and analyze samples drawn using Monte Ca
 ```{code-cell} python
 :tags: [hide-input]
 
-%config InlineBackend.figure_format = 'retina'
+%config InlineBackend.figure_format = 'svg'
 import jax
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
+
+# Apply book style
+try:
+    import scienceplots
+    plt.style.use(['science', 'notebook'])
+except (ImportError, OSError):
+    pass  # Use matplotlib defaults
 
 key = jax.random.PRNGKey(0)
 
@@ -816,4 +823,3 @@ This chapter developed the mathematical foundations for policy gradient methods.
 For reinforcement learning, the score function estimator provides a model-free gradient that depends only on the policy parametrization, not the transition dynamics. Through variance reduction techniques (leveraging conditional independence, using control variates, and the Generalized Advantage Estimator), we can make these gradients practical for learning. The resulting algorithms form the foundation of modern policy optimization methods.
 
 The next chapter explores advanced policy optimization techniques including trust region methods, proximal policy optimization, and connections to optimal control theory.
-

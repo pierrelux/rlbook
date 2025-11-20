@@ -45,9 +45,16 @@ In this example, the objective function $f(x_1, x_2)$ is quadratic, the inequali
 
 #| label: appendix_nlp-cell-01
 
-%config InlineBackend.figure_format = 'retina'
+%config InlineBackend.figure_format = 'svg'
 import numpy as np
 import matplotlib.pyplot as plt
+
+# Apply book style
+try:
+    import scienceplots
+    plt.style.use(['science', 'notebook'])
+except (ImportError, OSError):
+    pass  # Use matplotlib defaults
 from scipy.optimize import minimize
 
 # Define the objective function
@@ -408,11 +415,18 @@ We can verify numerically (and visually on the following graph) that the point $
 
 #| label: appendix_nlp-cell-03
 
-%config InlineBackend.figure_format = 'retina'
+%config InlineBackend.figure_format = 'svg'
 import jax
 import jax.numpy as jnp
 from jax import grad, jit, jacfwd
 import matplotlib.pyplot as plt
+
+# Apply book style
+try:
+    import scienceplots
+    plt.style.use(['science', 'notebook'])
+except (ImportError, OSError):
+    pass  # Use matplotlib defaults
 
 # Define the objective function and constraint
 def f(x):
@@ -725,13 +739,20 @@ This example builds on our previous one but adds a parabola-shaped inequality co
 
 #| label: appendix_nlp-cell-04
 
-%config InlineBackend.figure_format = 'retina'
+%config InlineBackend.figure_format = 'svg'
 import jax
 import jax.numpy as jnp
 from jax import grad, jit, jacfwd, hessian
 import numpy as np
 import cvxpy as cp
 import matplotlib.pyplot as plt
+
+# Apply book style
+try:
+    import scienceplots
+    plt.style.use(['science', 'notebook'])
+except (ImportError, OSError):
+    pass  # Use matplotlib defaults
 
 # Define the objective function and constraints
 @jit
@@ -939,12 +960,19 @@ However, as it is widely known from the lessons of GAN (Generative Adversarial N
 
 #| label: appendix_nlp-cell-05
 
-%config InlineBackend.figure_format = 'retina'
+%config InlineBackend.figure_format = 'svg'
 import jax
 import jax.numpy as jnp
 from jax import grad, jit, value_and_grad
 import optax
 import matplotlib.pyplot as plt
+
+# Apply book style
+try:
+    import scienceplots
+    plt.style.use(['science', 'notebook'])
+except (ImportError, OSError):
+    pass  # Use matplotlib defaults
 
 # Define the objective function and constraints
 @jit
@@ -1140,4 +1168,3 @@ $$
 $$
 
 Under mild conditions such as Lipschitz continuity of the gradient, PGD converges to a stationary point of the constrained problem. Its simplicity and low cost make it a common choice whenever the projection can be computed efficiently.
-

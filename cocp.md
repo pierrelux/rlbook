@@ -417,8 +417,15 @@ where $\mathbf{u}_j$ represents the control value at node $\tau_j$.
 
 #| label: cocp-cell-01
 
-%config InlineBackend.figure_format = 'retina'
+%config InlineBackend.figure_format = 'svg'
 import matplotlib.pyplot as plt
+
+# Apply book style
+try:
+    import scienceplots
+    plt.style.use(['science', 'notebook'])
+except (ImportError, OSError):
+    pass  # Use matplotlib defaults
 import numpy as np
 from matplotlib.patches import Rectangle
 import matplotlib.patches as mpatches
@@ -998,10 +1005,17 @@ In the experiment below, we choose the setpoint $\mathbf{x}^* = [0.40, 0.60]^T$ 
 
 #| label: cocp-cell-02
 
-%config InlineBackend.figure_format = 'retina'
+%config InlineBackend.figure_format = 'svg'
 import numpy as np
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
+
+# Apply book style
+try:
+    import scienceplots
+    plt.style.use(['science', 'notebook'])
+except (ImportError, OSError):
+    pass  # Use matplotlib defaults
 
 # System parameters
 gamma, B, H, psi_c0, W = 0.5, 1, 0.18, 0.3, 0.25
@@ -1143,12 +1157,19 @@ We then find a control function $u(t)$ and state trajectory $x(t)$ using the tra
 
 #| label: cocp-cell-03
 
-%config InlineBackend.figure_format = 'retina'
+%config InlineBackend.figure_format = 'svg'
 import numpy as np
 from scipy.optimize import minimize
 from scipy.integrate import solve_ivp
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
+
+# Apply book style
+try:
+    import scienceplots
+    plt.style.use(['science', 'notebook'])
+except (ImportError, OSError):
+    pass  # Use matplotlib defaults
 
 # System parameters
 gamma, B, H, psi_c0, W = 0.5, 1, 0.18, 0.3, 0.25
@@ -1321,10 +1342,17 @@ where $\boldsymbol{\phi}_k$ denotes the state reached at step $k$ by an RK4 roll
 
 #| label: cocp-cell-04
 
-%config InlineBackend.figure_format = 'retina'
+%config InlineBackend.figure_format = 'svg'
 import numpy as np
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
+
+# Apply book style
+try:
+    import scienceplots
+    plt.style.use(['science', 'notebook'])
+except (ImportError, OSError):
+    pass  # Use matplotlib defaults
 
 # System parameters
 gamma, B, H, psi_c0, W = 0.5, 1, 0.18, 0.3, 0.25
@@ -1429,10 +1457,17 @@ Rendered output from the preceding code cell.
 
 #| label: cocp-cell-05
 
-%config InlineBackend.figure_format = 'retina'
+%config InlineBackend.figure_format = 'svg'
 import numpy as np
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
+
+# Apply book style
+try:
+    import scienceplots
+    plt.style.use(['science', 'notebook'])
+except (ImportError, OSError):
+    pass  # Use matplotlib defaults
 
 # Load the data
 data = np.load('_static/compressor_surge_data_multi.npz', allow_pickle=True)
@@ -1561,10 +1596,17 @@ This setup lets us optimize trajectories under realistic conditions by feeding i
 
 #| label: cocp-cell-06
 
-%config InlineBackend.figure_format = 'retina'
+%config InlineBackend.figure_format = 'svg'
 # OpenAP.top demo with optional wind overlay – docs: https://github.com/junzis/openap-top
 from openap import top
 import matplotlib.pyplot as plt
+
+# Apply book style
+try:
+    import scienceplots
+    plt.style.use(['science', 'notebook'])
+except (ImportError, OSError):
+    pass  # Use matplotlib defaults
 import os
 
 # Montreal region route (Canada): CYUL (Montréal–Trudeau) → CYYZ (Toronto)
@@ -1654,7 +1696,7 @@ Compared to the earlier inflow-outflow model, this richer setup introduces more 
 
 #| label: cocp-cell-07
 
-%config InlineBackend.figure_format = 'retina'
+%config InlineBackend.figure_format = 'svg'
 # Instrumented MSD hydro demo with heterogeneity + diagnostics
 # - Breaks symmetry to avoid trivial identical plots
 # - Adds rich diagnostics to explain flat levels and equalities
@@ -1664,6 +1706,13 @@ Compared to the earlier inflow-outflow model, this richer setup introduces more 
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+
+# Apply book style
+try:
+    import scienceplots
+    plt.style.use(['science', 'notebook'])
+except (ImportError, OSError):
+    pass  # Use matplotlib defaults
 from dataclasses import dataclass
 from typing import Tuple
 from scipy.optimize import minimize

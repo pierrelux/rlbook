@@ -270,10 +270,17 @@ As an example we cast the problem of optimizing a "HTTP retrier with backoff" as
 
 #| label: fig-ocp-http-retrier
 
-%config InlineBackend.figure_format = 'retina'
+%config InlineBackend.figure_format = 'svg'
 from dataclasses import dataclass
 import math, random
 import matplotlib.pyplot as plt
+
+# Apply book style
+try:
+    import scienceplots
+    plt.style.use(['science', 'notebook'])
+except (ImportError, OSError):
+    pass  # Use matplotlib defaults
 
 # ---------------------------
 # PROGRAM = "HTTP retrier with backoff"
@@ -746,6 +753,13 @@ Once the objective and constraints are expressed as Python functions, the proble
 import numpy as np
 import json
 import matplotlib.pyplot as plt
+
+# Apply book style
+try:
+    import scienceplots
+    plt.style.use(['science', 'notebook'])
+except (ImportError, OSError):
+    pass  # Use matplotlib defaults
 from scipy.optimize import minimize, Bounds
 
 def solve_eco_cruise(beta=1.0, gamma=0.05, T=60, v_max=20.0, a_max=3.0, distance=1000.0):
@@ -1126,12 +1140,19 @@ Single shooting is attractive for its simplicity and compatibility with differen
 
 #| label: fig-ocp-single-shooting
 
-%config InlineBackend.figure_format = 'retina'
+%config InlineBackend.figure_format = 'svg'
 import jax
 import jax.numpy as jnp
 from jax import grad, jit
 from jax.example_libraries import optimizers
 import matplotlib.pyplot as plt
+
+# Apply book style
+try:
+    import scienceplots
+    plt.style.use(['science', 'notebook'])
+except (ImportError, OSError):
+    pass  # Use matplotlib defaults
 
 def single_shooting_ev_optimization(T=20, num_iterations=1000, step_size=0.01):
     """
@@ -1297,7 +1318,7 @@ By adjusting the number of segments $K$, we can interpolate between the two extr
 
 #| label: fig-ocp-multiple-shooting
 
-%config InlineBackend.figure_format = 'retina'
+%config InlineBackend.figure_format = 'svg'
 """
 Multiple Shooting as a Boundary-Value Problem (BVP) for a Ballistic Trajectory
 -----------------------------------------------------------------------------
@@ -1307,6 +1328,13 @@ position hits a target, enforcing continuity between shooting segments.
 
 import numpy as np
 import matplotlib.pyplot as plt
+
+# Apply book style
+try:
+    import scienceplots
+    plt.style.use(['science', 'notebook'])
+except (ImportError, OSError):
+    pass  # Use matplotlib defaults
 from scipy.integrate import solve_ivp
 from scipy.optimize import minimize
 from IPython.display import HTML, display
@@ -1494,6 +1522,13 @@ def reconstruct_and_plot(sol, K, x_init, x_target):
 def create_animation_progress(iter_history, K, x_init, x_target):
     """Return a JS animation (to_jshtml) showing defect shrinkage across segments."""
     import matplotlib.pyplot as plt
+
+# Apply book style
+try:
+    import scienceplots
+    plt.style.use(['science', 'notebook'])
+except (ImportError, OSError):
+    pass  # Use matplotlib defaults
     from matplotlib.animation import FuncAnimation
 
     n = 4

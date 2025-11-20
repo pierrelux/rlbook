@@ -52,9 +52,16 @@ We expect that when no control is applied to the system, the rod should be falli
 
 #| label: appendix_examples-cell-01
 
-%config InlineBackend.figure_format = 'retina'
+%config InlineBackend.figure_format = 'svg'
 import numpy as np
 import matplotlib.pyplot as plt
+
+# Apply book style
+try:
+    import scienceplots
+    plt.style.use(['science', 'notebook'])
+except (ImportError, OSError):
+    pass  # Use matplotlib defaults
 from scipy.integrate import odeint
 from IPython.display import HTML, display
 from matplotlib.animation import FuncAnimation

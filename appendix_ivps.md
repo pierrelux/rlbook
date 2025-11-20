@@ -74,9 +74,16 @@ Each step of the algorithm therefore involves approximating the function with a 
 
 #| label: appendix_ivps-cell-01
 
-%config InlineBackend.figure_format = 'retina'
+%config InlineBackend.figure_format = 'svg'
 import numpy as np
 import matplotlib.pyplot as plt
+
+# Apply book style
+try:
+    import scienceplots
+    plt.style.use(['science', 'notebook'])
+except (ImportError, OSError):
+    pass  # Use matplotlib defaults
 
 def f(y, t):
     """
@@ -161,9 +168,16 @@ We then approximate the integral term with a box of width $h$ and height $f$, an
 
 #| label: appendix_ivps-cell-02
 
-%config InlineBackend.figure_format = 'retina'
+%config InlineBackend.figure_format = 'svg'
 import numpy as np
 import matplotlib.pyplot as plt
+
+# Apply book style
+try:
+    import scienceplots
+    plt.style.use(['science', 'notebook'])
+except (ImportError, OSError):
+    pass  # Use matplotlib defaults
 from matplotlib.patches import Rectangle
 
 def v(t):
@@ -355,9 +369,16 @@ where $ t_{new} = t + h $. Note that this formula involves $ x_{new} $ on both s
 
 #| label: appendix_ivps-cell-03
 
-%config InlineBackend.figure_format = 'retina'
+%config InlineBackend.figure_format = 'svg'
 import numpy as np
 import matplotlib.pyplot as plt
+
+# Apply book style
+try:
+    import scienceplots
+    plt.style.use(['science', 'notebook'])
+except (ImportError, OSError):
+    pass  # Use matplotlib defaults
 from matplotlib.patches import Rectangle, Polygon
 
 def v(t):
@@ -523,9 +544,16 @@ This two-step process is similar to performing one iteration of Newton's method 
 
 #| label: appendix_ivps-cell-04
 
-%config InlineBackend.figure_format = 'retina'
+%config InlineBackend.figure_format = 'svg'
 import numpy as np
 import matplotlib.pyplot as plt
+
+# Apply book style
+try:
+    import scienceplots
+    plt.style.use(['science', 'notebook'])
+except (ImportError, OSError):
+    pass  # Use matplotlib defaults
 
 def f(y, t):
     """
@@ -1096,6 +1124,13 @@ import numpy as np
 from scipy.optimize import root
 import matplotlib.pyplot as plt
 
+# Apply book style
+try:
+    import scienceplots
+    plt.style.use(['science', 'notebook'])
+except (ImportError, OSError):
+    pass  # Use matplotlib defaults
+
 def ode_function(y, t):
     """Define the ODE: dy/dt = -y"""
     return -y
@@ -1182,4 +1217,3 @@ for order in orders:
 :::{figure} #appendix_ivps-cell-08
 Rendered output from the preceding code cell.
 :::
-

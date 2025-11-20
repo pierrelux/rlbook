@@ -550,9 +550,16 @@ The Gumbel loss can be understood as the natural likelihood for problems involvi
 
 
 #| label: fig-gumbel-loss
-%config InlineBackend.figure_format = 'retina'
+%config InlineBackend.figure_format = 'svg'
 import numpy as np
 import matplotlib.pyplot as plt
+
+# Apply book style
+try:
+    import scienceplots
+    plt.style.use(['science', 'notebook'])
+except (ImportError, OSError):
+    pass  # Use matplotlib defaults
 
 # Set up the figure with two subplots
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
@@ -676,9 +683,16 @@ This is barycentric interpolation: $\sum_k z_k q_k(y_i) = y_i$ recovers the scal
 
 
 #| label: fig-two-hot
-%config InlineBackend.figure_format = 'retina'
+%config InlineBackend.figure_format = 'svg'
 import numpy as np
 import matplotlib.pyplot as plt
+
+# Apply book style
+try:
+    import scienceplots
+    plt.style.use(['science', 'notebook'])
+except (ImportError, OSError):
+    pass  # Use matplotlib defaults
 
 def two_hot_encode(y, z_bins):
     """Compute two-hot encoding weights for target value y on grid z_bins."""
