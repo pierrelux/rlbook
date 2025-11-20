@@ -52,7 +52,7 @@ We expect that when no control is applied to the system, the rod should be falli
 
 #| label: appendix_examples-cell-01
 
-%config InlineBackend.figure_format = 'svg'
+%config InlineBackend.figure_format = 'retina'
 import numpy as np
 import matplotlib.pyplot as plt
 

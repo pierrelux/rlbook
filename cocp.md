@@ -417,7 +417,7 @@ where $\mathbf{u}_j$ represents the control value at node $\tau_j$.
 
 #| label: cocp-cell-01
 
-%config InlineBackend.figure_format = 'svg'
+%config InlineBackend.figure_format = 'retina'
 import matplotlib.pyplot as plt
 
 # Apply book style
@@ -1005,7 +1005,7 @@ In the experiment below, we choose the setpoint $\mathbf{x}^* = [0.40, 0.60]^T$ 
 
 #| label: cocp-cell-02
 
-%config InlineBackend.figure_format = 'svg'
+%config InlineBackend.figure_format = 'retina'
 import numpy as np
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
@@ -1157,7 +1157,7 @@ We then find a control function $u(t)$ and state trajectory $x(t)$ using the tra
 
 #| label: cocp-cell-03
 
-%config InlineBackend.figure_format = 'svg'
+%config InlineBackend.figure_format = 'retina'
 import numpy as np
 from scipy.optimize import minimize
 from scipy.integrate import solve_ivp
@@ -1342,7 +1342,7 @@ where $\boldsymbol{\phi}_k$ denotes the state reached at step $k$ by an RK4 roll
 
 #| label: cocp-cell-04
 
-%config InlineBackend.figure_format = 'svg'
+%config InlineBackend.figure_format = 'retina'
 import numpy as np
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
@@ -1457,7 +1457,7 @@ Rendered output from the preceding code cell.
 
 #| label: cocp-cell-05
 
-%config InlineBackend.figure_format = 'svg'
+%config InlineBackend.figure_format = 'retina'
 import numpy as np
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
@@ -1596,7 +1596,7 @@ This setup lets us optimize trajectories under realistic conditions by feeding i
 
 #| label: cocp-cell-06
 
-%config InlineBackend.figure_format = 'svg'
+%config InlineBackend.figure_format = 'retina'
 # OpenAP.top demo with optional wind overlay – docs: https://github.com/junzis/openap-top
 from openap import top
 import matplotlib.pyplot as plt
@@ -1696,7 +1696,7 @@ Compared to the earlier inflow-outflow model, this richer setup introduces more 
 
 #| label: cocp-cell-07
 
-%config InlineBackend.figure_format = 'svg'
+%config InlineBackend.figure_format = 'retina'
 # Instrumented MSD hydro demo with heterogeneity + diagnostics
 # - Breaks symmetry to avoid trivial identical plots
 # - Adds rich diagnostics to explain flat levels and equalities

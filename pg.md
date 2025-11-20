@@ -236,7 +236,7 @@ For concreteness, we fix $\theta = 1.0$ and analyze samples drawn using Monte Ca
 ```{code-cell} python
 :tags: [hide-input]
 
-%config InlineBackend.figure_format = 'svg'
+%config InlineBackend.figure_format = 'retina'
 import jax
 import jax.numpy as jnp
 import matplotlib.pyplot as plt

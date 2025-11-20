@@ -215,7 +215,7 @@ It's worth noting that while this example uses a relatively simple model, the sa
 
 
 #| label: dp-harvest-policy
-%config InlineBackend.figure_format = 'svg'
+%config InlineBackend.figure_format = 'retina'
 import numpy as np
 
 # Parameters
@@ -1136,7 +1136,7 @@ print("\nAverage population trajectory:", avg_trajectory)
 print("Average total harvest:", avg_total_harvest)
 
 # Plot results
-%config InlineBackend.figure_format = 'svg'
+%config InlineBackend.figure_format = 'retina'
 import matplotlib.pyplot as plt
 
 # Apply book style

@@ -270,7 +270,7 @@ As an example we cast the problem of optimizing a "HTTP retrier with backoff" as
 
 #| label: fig-ocp-http-retrier
 
-%config InlineBackend.figure_format = 'svg'
+%config InlineBackend.figure_format = 'retina'
 from dataclasses import dataclass
 import math, random
 import matplotlib.pyplot as plt
@@ -1140,7 +1140,7 @@ Single shooting is attractive for its simplicity and compatibility with differen
 
 #| label: fig-ocp-single-shooting
 
-%config InlineBackend.figure_format = 'svg'
+%config InlineBackend.figure_format = 'retina'
 import jax
 import jax.numpy as jnp
 from jax import grad, jit
@@ -1318,7 +1318,7 @@ By adjusting the number of segments $K$, we can interpolate between the two extr
 
 #| label: fig-ocp-multiple-shooting
 
-%config InlineBackend.figure_format = 'svg'
+%config InlineBackend.figure_format = 'retina'
 """
 Multiple Shooting as a Boundary-Value Problem (BVP) for a Ballistic Trajectory
 -----------------------------------------------------------------------------

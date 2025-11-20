@@ -45,7 +45,7 @@ In this example, the objective function $f(x_1, x_2)$ is quadratic, the inequali
 
 #| label: appendix_nlp-cell-01
 
-%config InlineBackend.figure_format = 'svg'
+%config InlineBackend.figure_format = 'retina'
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -415,7 +415,7 @@ We can verify numerically (and visually on the following graph) that the point $
 
 #| label: appendix_nlp-cell-03
 
-%config InlineBackend.figure_format = 'svg'
+%config InlineBackend.figure_format = 'retina'
 import jax
 import jax.numpy as jnp
 from jax import grad, jit, jacfwd
@@ -739,7 +739,7 @@ This example builds on our previous one but adds a parabola-shaped inequality co
 
 #| label: appendix_nlp-cell-04
 
-%config InlineBackend.figure_format = 'svg'
+%config InlineBackend.figure_format = 'retina'
 import jax
 import jax.numpy as jnp
 from jax import grad, jit, jacfwd, hessian
@@ -960,7 +960,7 @@ However, as it is widely known from the lessons of GAN (Generative Adversarial N
 
 #| label: appendix_nlp-cell-05
 
-%config InlineBackend.figure_format = 'svg'
+%config InlineBackend.figure_format = 'retina'
 import jax
 import jax.numpy as jnp
 from jax import grad, jit, value_and_grad

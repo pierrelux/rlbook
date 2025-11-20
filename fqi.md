@@ -550,7 +550,7 @@ The Gumbel loss can be understood as the natural likelihood for problems involvi
 
 
 #| label: fig-gumbel-loss
-%config InlineBackend.figure_format = 'svg'
+%config InlineBackend.figure_format = 'retina'
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -683,7 +683,7 @@ This is barycentric interpolation: $\sum_k z_k q_k(y_i) = y_i$ recovers the scal
 
 
 #| label: fig-two-hot
-%config InlineBackend.figure_format = 'svg'
+%config InlineBackend.figure_format = 'retina'
 import numpy as np
 import matplotlib.pyplot as plt
 

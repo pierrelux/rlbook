@@ -1173,7 +1173,7 @@ Furthermore, every patient is different from another. Hence, we cannot simply le
 
 
 #| label: fig-mpc-propofol
-%config InlineBackend.figure_format = 'svg'
+%config InlineBackend.figure_format = 'retina'
 import numpy as np
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
@@ -1355,7 +1355,7 @@ The cell below runs the closed-loop simulation and plots the states and input. T
 ```{code-cell} python
 :tags: [hide-input]
 
-%config InlineBackend.figure_format = 'svg'
+%config InlineBackend.figure_format = 'retina'
 import numpy as np
 import do_mpc
 from casadi import *  # noqa: F401 - do-mpc constructs CasADi symbols under the hood
@@ -1542,7 +1542,7 @@ The following cell creates an interactive animation of the batch bioreactor cont
 ```{code-cell} python
 :tags: [hide-input]
 
-%config InlineBackend.figure_format = 'svg'
+%config InlineBackend.figure_format = 'retina'
 import numpy as np
 import do_mpc
 from casadi import *  # noqa: F401 - do-mpc constructs CasADi symbols under the hood

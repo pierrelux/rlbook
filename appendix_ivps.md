@@ -74,7 +74,7 @@ Each step of the algorithm therefore involves approximating the function with a 
 
 #| label: appendix_ivps-cell-01
 
-%config InlineBackend.figure_format = 'svg'
+%config InlineBackend.figure_format = 'retina'
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -168,7 +168,7 @@ We then approximate the integral term with a box of width $h$ and height $f$, an
 
 #| label: appendix_ivps-cell-02
 
-%config InlineBackend.figure_format = 'svg'
+%config InlineBackend.figure_format = 'retina'
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -369,7 +369,7 @@ where $ t_{new} = t + h $. Note that this formula involves $ x_{new} $ on both s
 
 #| label: appendix_ivps-cell-03
 
-%config InlineBackend.figure_format = 'svg'
+%config InlineBackend.figure_format = 'retina'
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -544,7 +544,7 @@ This two-step process is similar to performing one iteration of Newton's method 
 
 #| label: appendix_ivps-cell-04
 
-%config InlineBackend.figure_format = 'svg'
+%config InlineBackend.figure_format = 'retina'
 import numpy as np
 import matplotlib.pyplot as plt
 
