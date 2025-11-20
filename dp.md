@@ -215,6 +215,8 @@ It's worth noting that while this example uses a relatively simple model, the sa
 
 
 #| label: dp-harvest-policy
+#| caption: Dynamic programming harvest example: printed output shows the optimal policy table, resulting population trajectory, and per-period harvests for an initial population of 50 fish.
+
 %config InlineBackend.figure_format = 'retina'
 import numpy as np
 
@@ -304,9 +306,6 @@ print("Total harvest:", sum(harvests))
 
 ```
 
-:::{figure} #dp-harvest-policy
-Dynamic programming harvest example: printed output shows the optimal policy table, resulting population trajectory, and per-period harvests for an initial population of 50 fish.
-:::
 
 ## Handling Continuous Spaces with Interpolation
 
@@ -392,6 +391,7 @@ Here is a demonstration of the backward recursion procedure using linear interpo
 
 
 #| label: dp-harvest-interp
+#| caption: Backward recursion with linear interpolation: console output summarizes the smoothed optimal policy, state trajectory, and harvest totals for the resource management example.
 
 
 import numpy as np
@@ -501,9 +501,6 @@ print("Harvests:", harvests)
 print("Total harvest:", sum(harvests))
 ```
 
-:::{figure} #dp-harvest-interp
-Backward recursion with linear interpolation: console output summarizes the smoothed optimal policy, state trajectory, and harvest totals for the resource management example.
-:::
 
 Due to pedagogical considerations, this example is using our own implementation of the linear interpolation procedure. However, a more general and practical approach would be to use a built-in interpolation procedure in Numpy. Because our state space has a single dimension, we can simply use [scipy.interpolate.interp1d](https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.) which offers various interpolation methods through its `kind` argument, which can take values in 'linear', 'nearest', 'nearest-up', 'zero', 'slinear', 'quadratic', 'cubic', 'previous', or 'next'. 'zero', 'slinear', 'quadratic' and 'cubic'.
 
@@ -514,6 +511,7 @@ Here's a more general implementation which here uses cubic interpolation through
 
 
 #| label: dp-harvest-cubic
+#| caption: Cubic interpolation further smooths the optimal harvest policy—this output prints the leading rows of the policy table along with the resulting trajectory and harvest statistics.
 
 
 import numpy as np
@@ -607,9 +605,6 @@ print("Harvests:", harvests)
 print("Total harvest:", sum(harvests))
 ```
 
-:::{figure} #dp-harvest-cubic
-Cubic interpolation further smooths the optimal harvest policy—this output prints the leading rows of the policy table along with the resulting trajectory and harvest statistics.
-:::
 
 <!-- ## Linear Quadratic Regulator via Dynamic Programming
 
@@ -1019,6 +1014,7 @@ where the expectation is taken over the harvest and growth rate random variables
 
 
 #| label: dp-harvest-stochastic
+#| caption: Stochastic resource management simulation: the cell reports the optimal policy sample, average trajectory, and visualizes ensemble trajectories plus the distribution of total harvest.
 
 import numpy as np
 from scipy.interpolate import interp1d
@@ -1164,9 +1160,6 @@ plt.ylabel('Frequency')
 plt.tight_layout()
 ```
 
-:::{figure} #dp-harvest-stochastic
-Stochastic resource management simulation: the cell reports the optimal policy sample, average trajectory, and visualizes ensemble trajectories plus the distribution of total harvest.
-:::
 
 ## Linear Quadratic Regulator via Dynamic Programming
 
@@ -1523,6 +1516,7 @@ This process can take 10-15 years and cost over $1 billion {cite}`Adams2009`. Th
 
 
 #| label: dp-clinical-trials
+#| caption: Clinical trial phase-sizing via backward induction: the console output lists the phase values, recommended enrollment for each phase, and basic sanity checks on the resulting policy.
 
 import numpy as np
 from scipy.stats import binom
@@ -1591,9 +1585,6 @@ print(f"3. Optimal sample sizes in range: {all(10 <= n <= 1000 for n in optimal_
 
 ```
 
-:::{figure} #dp-clinical-trials
-Clinical trial phase-sizing via backward induction: the console output lists the phase values, recommended enrollment for each phase, and basic sanity checks on the resulting policy.
-:::
 
 # Infinite-Horizon MDPs
 

@@ -416,6 +416,7 @@ where $\mathbf{u}_j$ represents the control value at node $\tau_j$.
 :tags: [hide-input]
 
 #| label: cocp-cell-01
+#| caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 import matplotlib.pyplot as plt
@@ -589,9 +590,6 @@ fig.suptitle('Collocation Methods for Optimal Control\n(Illustration of Node Typ
 plt.tight_layout(rect=[0.04, 0.10, 0.98, 0.93])
 ```
 
-:::{figure} #cocp-cell-01
-Rendered output from the preceding code cell.
-:::
 
 
 The choice of collocation nodes determines how boundary conditions are handled and affects the resulting discretization properties. Three standard families are commonly used: Labatto, Randau and and Gauss. 
@@ -1003,6 +1001,7 @@ In the experiment below, we choose the setpoint $\mathbf{x}^* = [0.40, 0.60]^T$ 
 :tags: [hide-input]
 
 #| label: cocp-cell-02
+#| caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 import numpy as np
@@ -1130,9 +1129,6 @@ plt.legend()
 plt.grid(True)
 ```
 
-:::{figure} #cocp-cell-02
-Rendered output from the preceding code cell.
-:::
 
 ### Solution by Trapezoidal Collocation
 
@@ -1155,6 +1151,7 @@ We then find a control function $u(t)$ and state trajectory $x(t)$ using the tra
 :tags: [hide-input]
 
 #| label: cocp-cell-03
+#| caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 import numpy as np
@@ -1307,9 +1304,6 @@ plt.grid(True)
 plt.tight_layout()
 ```
 
-:::{figure} #cocp-cell-03
-Rendered output from the preceding code cell.
-:::
 
 You can try to vary the number of collocation points in the code and observe how the state trajectory progressively matches the ground truth (the line denoted "integrated solution"). Note that this version of the code also lacks bound constraints on the variable $x_2$ to ensure a minimum pressure, as we did earlier. Consider this a good exercise to try on your own. 
 
@@ -1339,6 +1333,7 @@ where $\boldsymbol{\phi}_k$ denotes the state reached at step $k$ by an RK4 roll
 :tags: [hide-input]
 
 #| label: cocp-cell-04
+#| caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 import numpy as np
@@ -1445,14 +1440,12 @@ for i, x0 in enumerate(initial_conditions):
     print(f"  Trajectory {i+1}: x1 = {x0[0]:.4f}, x2 = {x0[1]:.4f}")
 ```
 
-:::{figure} #cocp-cell-04
-Rendered output from the preceding code cell.
-:::
 
 ```{code-cell} python
 :tags: [hide-input]
 
 #| label: cocp-cell-05
+#| caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 import numpy as np
@@ -1551,9 +1544,6 @@ plt.grid(True)
 plt.tight_layout()
 ```
 
-:::{figure} #cocp-cell-05
-Rendered output from the preceding code cell.
-:::
 
 ## Flight Trajectory Optimization
 
@@ -1591,6 +1581,7 @@ This setup lets us optimize trajectories under realistic conditions by feeding i
 :tags: [hide-input]
 
 #| label: cocp-cell-06
+#| caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 # OpenAP.top demo with optional wind overlay – docs: https://github.com/junzis/openap-top
@@ -1636,9 +1627,6 @@ else:
 
 ```
 
-:::{figure} #cocp-cell-06
-Rendered output from the preceding code cell.
-:::
 
 ## Hydro Cascade Scheduling with Physical Routing and Multiple Shooting
 
@@ -1691,6 +1679,7 @@ Compared to the earlier inflow-outflow model, this richer setup introduces more 
 :tags: [hide-input]
 
 #| label: cocp-cell-07
+#| caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 # Instrumented MSD hydro demo with heterogeneity + diagnostics
@@ -2119,9 +2108,6 @@ run_demo(show=True, save_path=None, verbose=False)
 
 ```
 
-:::{figure} #cocp-cell-07
-Rendered output from the preceding code cell.
-:::
 
 The figure shows the result of a multiple-shooting optimization applied to a three-reach hydroelectric cascade. The time horizon is discretized into 16 intervals, and SciPy's `trust-constr` solver is used to find a feasible control sequence that satisfies mass balance, turbine and spillway limits, and Muskingum-style routing dynamics. Each reach integrates its own local ODE, with continuity constraints linking the flows between reaches.
 

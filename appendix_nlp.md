@@ -44,6 +44,7 @@ In this example, the objective function $f(x_1, x_2)$ is quadratic, the inequali
 :tags: [hide-input]
 
 #| label: appendix_nlp-cell-01
+#| caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 import numpy as np
@@ -145,9 +146,6 @@ plt.grid(True)
 plt.gca().set_aspect('equal', adjustable='box')
 ```
 
-:::{figure} #appendix_nlp-cell-01
-Rendered output from the preceding code cell.
-:::
 
 #### Karush-Kuhn-Tucker (KKT) conditions
 
@@ -190,6 +188,7 @@ Let's now solve our example problem above, this time using [Ipopt](https://coin-
 ```{code-cell} python
 
 #| label: appendix_nlp-cell-02
+#| caption: Rendered output from the preceding code cell.
 
 from pyomo.environ import *
 from pyomo.opt import SolverFactory
@@ -255,9 +254,6 @@ else:
     print(f"Termination Condition: {results.solver.termination_condition}")
 ```
 
-:::{figure} #appendix_nlp-cell-02
-Rendered output from the preceding code cell.
-:::
 
 After running the code above, we can observe the Lagrange multipliers. The Lagrange multiplier associated with the inequality constraint is very small (close to zero), suggesting that the inequality constraint is not active at the optimal solution—meaning that the solution point lies inside the circle defined by this constraint. This can be verified visually in the figure above. As for the equality constraint, its corresponding Lagrange multiplier is non-zero, indicating that this constraint is active at the optimal solution. In general, when we find a Lagrange multiplier close to zero (like the one for the inequality constraint), it means that constraint is not "binding"—the optimal solution does not lie on the boundary defined by this constraint. In contrast, a non-zero Lagrange multiplier, such as the one for the equality constraint, indicates that the constraint is active and that any relaxation would directly affect the objective function's value, as required by the stationarity condition.
 
@@ -413,6 +409,7 @@ We can verify numerically (and visually on the following graph) that the point $
 :tags: [hide-input]
 
 #| label: appendix_nlp-cell-03
+#| caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 import jax
@@ -561,9 +558,6 @@ plt.ylim(-1.5, 2.5)
 plt.tight_layout()
 ```
 
-:::{figure} #appendix_nlp-cell-03
-Rendered output from the preceding code cell.
-:::
 
 ### The SQP Approach: Taylor Expansion and Quadratic Approximation
 
@@ -736,6 +730,7 @@ This example builds on our previous one but adds a parabola-shaped inequality co
 :tags: [hide-input]
 
 #| label: appendix_nlp-cell-04
+#| caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 import jax
@@ -880,9 +875,6 @@ print(f"Inequality constraint violation: {h(x_opt)[0]:.6f}")
 print(f"Objective function value: {f(x_opt):.6f}")
 ```
 
-:::{figure} #appendix_nlp-cell-04
-Rendered output from the preceding code cell.
-:::
 
 ### The Arrow-Hurwicz-Uzawa algorithm
 
@@ -956,6 +948,7 @@ However, as it is widely known from the lessons of GAN (Generative Adversarial N
 :tags: [hide-input]
 
 #| label: appendix_nlp-cell-05
+#| caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 import jax
@@ -1107,9 +1100,6 @@ print(f"Inequality constraint violation: {h(x_opt)[0]:.6f}")
 print(f"Objective function value: {f(x_opt):.6f}")
 ```
 
-:::{figure} #appendix_nlp-cell-05
-Rendered output from the preceding code cell.
-:::
 
 ### Projected Gradient Descent
 

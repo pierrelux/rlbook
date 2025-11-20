@@ -51,6 +51,7 @@ We expect that when no control is applied to the system, the rod should be falli
 :tags: [hide-input]
 
 #| label: appendix_examples-cell-01
+#| caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 import numpy as np
@@ -152,9 +153,6 @@ plt.close(fig)
 display(HTML(js_anim))
 ```
 
-:::{figure} #appendix_examples-cell-01
-Rendered output from the preceding code cell.
-:::
 
 ### Pendulum in the Gym Environment
 

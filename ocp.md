@@ -269,6 +269,7 @@ As an example we cast the problem of optimizing a "HTTP retrier with backoff" as
 
 
 #| label: fig-ocp-http-retrier
+#| caption: Console output comparing the baseline backoff schedule with SPSA-optimized schedules for the HTTP retrier DOCP, including costs, attempts, and success codes.
 
 %config InlineBackend.figure_format = 'retina'
 from dataclasses import dataclass
@@ -498,9 +499,6 @@ axes[1].set_xlabel("Strategy")
 fig.tight_layout()
 ```
 
-:::{figure} #fig-ocp-http-retrier
-Console output comparing the baseline backoff schedule with SPSA-optimized schedules for the HTTP retrier DOCP, including costs, attempts, and success codes.
-:::
 
 
 #### Example: Gradient Descent with Momentum as DOCP
@@ -1138,6 +1136,7 @@ Single shooting is attractive for its simplicity and compatibility with differen
 
 
 #| label: fig-ocp-single-shooting
+#| caption: Single-shooting EV example: the plot shows optimal state trajectories (battery charge and speed) plus the control sequence, while the console reports the optimized control inputs.
 
 %config InlineBackend.figure_format = 'retina'
 import jax
@@ -1265,9 +1264,6 @@ print("Optimal control sequence:", optimal_u)
 plot_results(optimal_u, T=20)
 ```
 
-:::{figure} #fig-ocp-single-shooting
-Single-shooting EV example: the plot shows optimal state trajectories (battery charge and speed) plus the control sequence, while the console reports the optimized control inputs.
-:::
 
 ## In Between Sequential and Simultaneous
 
@@ -1315,6 +1311,7 @@ By adjusting the number of segments $K$, we can interpolate between the two extr
 
 
 #| label: fig-ocp-multiple-shooting
+#| caption: Multiple shooting ballistic BVP: the code produces an animation (and optional static plot) that shows how segment defects shrink while steering the projectile to the target.
 
 %config InlineBackend.figure_format = 'retina'
 """
@@ -1619,9 +1616,6 @@ if __name__ == "__main__":
     main()
 ```
 
-:::{figure} #fig-ocp-multiple-shooting
-Multiple shooting ballistic BVP: the code produces an animation (and optional static plot) that shows how segment defects shrink while steering the projectile to the target.
-:::
 
 
 

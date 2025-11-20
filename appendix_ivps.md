@@ -73,6 +73,7 @@ Each step of the algorithm therefore involves approximating the function with a 
 :tags: [hide-input]
 
 #| label: appendix_ivps-cell-01
+#| caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 import numpy as np
@@ -151,9 +152,6 @@ plt.text(2.5, 15, "Smaller step sizes\nyield better approximations",
 plt.tight_layout()
 ```
 
-:::{figure} #appendix_ivps-cell-01
-Rendered output from the preceding code cell.
-:::
 
 Another way to understand Euler's method is through the fundamental theorem of calculus:
 
@@ -166,6 +164,7 @@ We then approximate the integral term with a box of width $h$ and height $f$, an
 :tags: [hide-input]
 
 #| label: appendix_ivps-cell-02
+#| caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 import numpy as np
@@ -293,9 +292,6 @@ ax1.text(1.845, 15, "Red hashed areas show\nEuler's approximation\nof the area u
 plt.tight_layout()
 ```
 
-:::{figure} #appendix_ivps-cell-02
-Rendered output from the preceding code cell.
-:::
 
 
 ### Implicit Euler's Method
@@ -366,6 +362,7 @@ where $ t_{new} = t + h $. Note that this formula involves $ x_{new} $ on both s
 :tags: [hide-input]
 
 #| label: appendix_ivps-cell-03
+#| caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 import numpy as np
@@ -470,9 +467,6 @@ ax1.text(1.76, 17, "Red hashed areas: Euler's approximation\nGreen dotted areas:
 plt.tight_layout()
 ```
 
-:::{figure} #appendix_ivps-cell-03
-Rendered output from the preceding code cell.
-:::
 
 Algorithmically, the trapezoid method can be described as follows:
 
@@ -540,6 +534,7 @@ This two-step process is similar to performing one iteration of Newton's method 
 :tags: [hide-input]
 
 #| label: appendix_ivps-cell-04
+#| caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 import numpy as np
@@ -641,9 +636,6 @@ plt.grid(True, linestyle=':', alpha=0.7)
 plt.tight_layout()
 ```
 
-:::{figure} #appendix_ivps-cell-04
-Rendered output from the preceding code cell.
-:::
 
 ### Collocation Methods
 
@@ -728,6 +720,7 @@ The first four Legendre polynomials resulting from this recurrence are the follo
 ```{code-cell} python
 :tags: [hide-input]
 #| label: appendix_ivps-cell-05
+#| caption: Rendered output from the preceding code cell.
 
 import numpy as np
 from IPython.display import display, Math
@@ -776,9 +769,6 @@ for n in range(4):
     display(Math(f"P_{n}(x) = {poly_to_latex(poly)}"))
 ```
 
-:::{figure} #appendix_ivps-cell-05
-Rendered output from the preceding code cell.
-:::
 
 ##### Chebyshev Polynomials
 
@@ -817,6 +807,7 @@ Let's now implement it in Python:
 ```{code-cell} python
 :tags: [hide-input]
 #| label: appendix_ivps-cell-06
+#| caption: Rendered output from the preceding code cell.
 
 def chebyshev_polynomial(n, x):
     if n == 0:
@@ -841,9 +832,6 @@ for n in range(4):
     display(Math(f"T_{n}(x) = {poly_to_latex(poly)}"))
 ```
 
-:::{figure} #appendix_ivps-cell-06
-Rendered output from the preceding code cell.
-:::
 
 ##### Hermite Polynomials
 
@@ -874,6 +862,7 @@ The following code computes the coefficients of the first four Hermite polynomia
 ```{code-cell} python
 :tags: [hide-input]
 #| label: appendix_ivps-cell-07
+#| caption: Rendered output from the preceding code cell.
 
 def hermite_polynomial(n, x):
     if n == 0:
@@ -898,9 +887,6 @@ for n in range(4):
     display(Math(f"H_{n}(x) = {poly_to_latex(poly)}"))
 ```
 
-:::{figure} #appendix_ivps-cell-07
-Rendered output from the preceding code cell.
-:::
 
 ### Collocation Conditions
 
@@ -1114,6 +1100,7 @@ We select $N$ equally spaced points $\{t_1, \ldots, t_N\}$ in $[0, 2]$ as colloc
 :tags: [hide-input]
 
 #| label: appendix_ivps-cell-08
+#| caption: Rendered output from the preceding code cell.
 
 
 import numpy as np
@@ -1208,7 +1195,3 @@ for order in orders:
     max_error = np.max(np.abs(y - y_true))
     print(f"Order {order}: {max_error:.6f}")
 ```
-
-:::{figure} #appendix_ivps-cell-08
-Rendered output from the preceding code cell.
-:::

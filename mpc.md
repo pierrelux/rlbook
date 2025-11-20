@@ -1173,6 +1173,8 @@ Furthermore, every patient is different from another. Hence, we cannot simply le
 
 
 #| label: fig-mpc-propofol
+#| caption: Closed-loop MPC for propofol infusion keeps the Bispectral Index near the target (top), regulates infusion rates (middle), and tracks the effect-site concentration (bottom).
+
 %config InlineBackend.figure_format = 'retina'
 import numpy as np
 from scipy.optimize import minimize
@@ -1298,9 +1300,6 @@ print(f"Mean infusion rate: {np.mean(u):.2f} mg/kg/h")
 print(f"Final effect-site concentration: {x[-1, 3]:.2f} µg/mL")
 ```
 
-:::{figure} #fig-mpc-propofol
-Closed-loop MPC for propofol infusion keeps the Bispectral Index near the target (top), regulates infusion rates (middle), and tracks the effect-site concentration (bottom).
-:::
 
 <!-- ### Deployment Patterns
 

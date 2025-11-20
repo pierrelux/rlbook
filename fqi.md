@@ -550,6 +550,8 @@ The Gumbel loss can be understood as the natural likelihood for problems involvi
 
 
 #| label: fig-gumbel-loss
+#| caption: Gumbel regression reshapes the loss landscape (left) and gradient geometry (right), penalizing overestimation exponentially while keeping underestimation gentle.
+
 %config InlineBackend.figure_format = 'retina'
 import numpy as np
 import matplotlib.pyplot as plt
@@ -623,9 +625,6 @@ ax2.text(2, 7, 'Steep gradient\n(penalizes overestimation)',
 plt.tight_layout()
 ```
 
-:::{figure} #fig-gumbel-loss
-Gumbel regression reshapes the loss landscape (left) and gradient geometry (right), penalizing overestimation exponentially while keeping underestimation gentle.
-:::
 
 The left panel shows the Gumbel loss as a function of the error $q - y$. Notice the asymmetry: the loss grows exponentially for positive errors (overestimation) but increases only linearly for negative errors (underestimation). The parameter $\beta$ controls the degree of this asymmetry—smaller $\beta$ values create more aggressive penalization of overestimation.
 
@@ -682,6 +681,8 @@ This is barycentric interpolation: $\sum_k z_k q_k(y_i) = y_i$ recovers the scal
 
 
 #| label: fig-two-hot
+#| caption: Two-hot encoding as barycentric interpolation: the left panel shows a single target spread over two bins, while the right panel compares encodings for multiple targets.
+
 %config InlineBackend.figure_format = 'retina'
 import numpy as np
 import matplotlib.pyplot as plt
@@ -784,9 +785,6 @@ ax2.grid(axis='y', alpha=0.3)
 plt.tight_layout()
 ```
 
-:::{figure} #fig-two-hot
-Two-hot encoding as barycentric interpolation: the left panel shows a single target spread over two bins, while the right panel compares encodings for multiple targets.
-:::
 
 The left panel shows two-hot encoding for $y=0.7$ on a grid of 11 bins. The target value is distributed over exactly two adjacent bins $z_j$ and $z_{j+1}$ with weights that are barycentric coordinates: the weight assigned to each bin is inversely proportional to the distance from the target to that bin. The inset verifies that $\sum_k z_k q_k(y)$ exactly recovers the original target—this is the same linear interpolation formula used throughout the book. The right panel shows that different targets produce different two-hot patterns, each concentrating mass on the two bins surrounding the target value.
 
