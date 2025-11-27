@@ -13,7 +13,7 @@ kernelspec:
 
 # Fitted Q-Iteration Methods
 
-The [previous chapter](simadp.md) established the theoretical foundations of simulation-based approximate dynamic programming: Monte Carlo integration for evaluating expectations, Q-functions for efficient action selection, and techniques for mitigating overestimation bias. Those developments assumed we could sample freely from transition distributions and choose optimization parameters without constraint. This chapter develops a unified framework for fitted Q-iteration algorithms that spans both offline and online settings. We begin with batch algorithms that learn from fixed datasets, then show how the same template generates online methods like DQN through systematic variations in data collection, optimization strategy, and function approximation.
+The [previous chapter](montecarlo.md) established the theoretical foundations of simulation-based approximate dynamic programming: Monte Carlo integration for evaluating expectations, Q-functions for efficient action selection, and techniques for mitigating overestimation bias. Those developments assumed we could sample freely from transition distributions and choose optimization parameters without constraint. This chapter develops a unified framework for fitted Q-iteration algorithms that spans both offline and online settings. We begin with batch algorithms that learn from fixed datasets, then show how the same template generates online methods like DQN through systematic variations in data collection, optimization strategy, and function approximation.
 
 ## Design Choices in FQI Methods
 
@@ -52,7 +52,7 @@ This distinction matters pedagogically: the **buffer distribution** $\hat{P}_{\m
 ```
 
 
-This template provides a blueprint for instantiating concrete algorithms. Six design axes generate algorithmic diversity: the function approximator (trees, neural networks, linear models), the Bellman operator (hard max vs smooth logsumexp, discussed in the [regularized MDP chapter](regmdp.md)), the inner optimization strategy (full convergence, $K$ steps, or single step), the initialization scheme (cold vs warm start), the data collection mechanism (offline, online, replay buffer), and bias mitigation approaches (none, double Q-learning, learned correction). While individual algorithms include additional refinements, these axes capture the primary sources of variation. The table below shows how several well-known methods instantiate this template:
+This template provides a blueprint for instantiating concrete algorithms. Six design axes generate algorithmic diversity: the function approximator (trees, neural networks, linear models), the Bellman operator (hard max vs smooth logsumexp, discussed in the [regularized MDP chapter](smoothing.md)), the inner optimization strategy (full convergence, $K$ steps, or single step), the initialization scheme (cold vs warm start), the data collection mechanism (offline, online, replay buffer), and bias mitigation approaches (none, double Q-learning, learned correction). While individual algorithms include additional refinements, these axes capture the primary sources of variation. The table below shows how several well-known methods instantiate this template:
 
 | **Algorithm** | **Approximator** | **Bellman** | **Inner Loop** | **Initialization** | **Data** | **Bias Fix** |
 |:--------------|:-----------------|:------------|:---------------|:-------------------|:---------|:-------------|
@@ -63,7 +63,7 @@ This template provides a blueprint for instantiating concrete algorithms. Six de
 | Double DQN {cite}`van2016deep` | Deep NN | Hard | K=1 | Warm | Replay | Double Q |
 | Soft Q {cite}`haarnoja2017reinforcement` | Neural Net | Smooth | K steps | Warm | Replay | None |
 
-This table omits continuous action methods (NFQCA, DDPG, SAC), which introduce an additional design dimension. We address those in the [continuous action chapter](cadp.md). The initialization choice becomes particularly important when moving from batch to online algorithms.
+This table omits continuous action methods (NFQCA, DDPG, SAC), which introduce an additional design dimension. We address those in the [continuous action chapter](amortization.md). The initialization choice becomes particularly important when moving from batch to online algorithms.
 
 ### Plug-In Approximation with Empirical Distributions
 
@@ -436,7 +436,7 @@ $$
 
 using noisy samples $Z_t$ without ever computing $F(\boldsymbol{\theta})$ or its Jacobian. This is analogous to Newton's method in the deterministic case, but replaces exact gradients with stochastic estimates and avoids computing or inverting the Jacobian. Under diminishing step sizes ($\alpha_t \to 0$, $\sum_t \alpha_t = \infty$), the iterates converge to solutions of $F(\boldsymbol{\theta}) = 0$.
 
-Q-learning fits this framework by solving the Bellman residual equation. Recall from the [projection methods chapter](projdp.md) that the Bellman equation $q^* = \Bellman q^*$ can be written as a residual equation $\Residual(q) \equiv \Bellman q - q = 0$. For a parameterized Q-function $q(s,a; \boldsymbol{\theta})$, the residual at observed transition $(s,a,r,s')$ is:
+Q-learning fits this framework by solving the Bellman residual equation. Recall from the [projection methods chapter](projection.md) that the Bellman equation $q^* = \Bellman q^*$ can be written as a residual equation $\Residual(q) \equiv \Bellman q - q = 0$. For a parameterized Q-function $q(s,a; \boldsymbol{\theta})$, the residual at observed transition $(s,a,r,s')$ is:
 
 $$
 R(s,a,r,s'; \boldsymbol{\theta}) = r + \gamma \max_{a'} q(s',a'; \boldsymbol{\theta}) - q(s,a; \boldsymbol{\theta})
@@ -501,7 +501,7 @@ This is a deterministic dynamical system. The fixed points satisfy $Q(s,a) = \ma
 
 The interaction between the stationary distribution $\xi$ and the empirical distribution $\hat{P}_{\mathcal{B}_t}$ is subtle. In pure stochastic approximation (Q-learning), we have $\mathcal{B}_t = \{(s_t, a_t, r_t, s'_t)\}$ with a single transition. Over time, as we explore, the sequence of visited state-action pairs $(s_t, a_t)$ follows the behavior policy, and under ergodicity, the empirical frequency with which we update each $(s,a)$ converges to the stationary distribution $\xi(s,a)$. The ODE method formalizes this: the expected update $\bar{h}(Q)$ averages over $P$, which implicitly weights by how often we visit each $(s,a)$ under the stationary distribution.
 
-For linear Q-learning with function approximation, the ODE analysis becomes more complex. The [projection methods chapter](projdp.md) shows that non-monotone projections (like linear least squares) can fail to preserve contraction properties. The max operator in Q-learning creates additional complications that prevent general convergence guarantees, even though the algorithm may work in practice for well-chosen features.
+For linear Q-learning with function approximation, the ODE analysis becomes more complex. The [projection methods chapter](projection.md) shows that non-monotone projections (like linear least squares) can fail to preserve contraction properties. The max operator in Q-learning creates additional complications that prevent general convergence guarantees, even though the algorithm may work in practice for well-chosen features.
 
 ## Regression Losses and Noise Models
 
@@ -635,7 +635,7 @@ The right panel shows the gradient (score function), which determines how strong
 
 XQL (Gumbel loss) and Soft Q-learning both involve Gumbel distributions, but they operate at different levels of the FQI template. Recall our unified framework: buffer $\mathcal{B}_t$, target function $g$, loss $\ell$, optimization budget $K$.
 
-**Soft Q-learning** changes the target function by using the smooth Bellman operator from [regularized MDPs](regmdp.md):
+**Soft Q-learning** changes the target function by using the smooth Bellman operator from [regularized MDPs](smoothing.md):
 
 $$
 g^{\text{soft}}(s,a,r,s'; \boldsymbol{\theta}) = r + \gamma \frac{1}{\beta}\log\sum_{a'} \exp(\beta q(s',a'; \boldsymbol{\theta}))
@@ -810,4 +810,4 @@ The empirical distribution $\hat{P}_{\mathcal{B}_t}$ unifies offline and online 
 
 Target networks and online networks arise from flattening the nested loops. Merging inner gradient steps with outer value iteration creates a single loop where two sets of parameters coexist: the **online network** $\boldsymbol{\theta}_t$ (actively updated at each gradient step, corresponds to $\boldsymbol{\theta}_n^{(k)}$) and the **target network** $\boldsymbol{\theta}_{\text{target}}$ (frozen for computing targets, updated every $K$ steps to mark outer-iteration boundaries, corresponds to $\boldsymbol{\theta}_n$). In online algorithms like DQN, the online network additionally serves as the behavior policy for data collection.
 
-The [next chapter](cadp.md) directly parameterizes and optimizes policies instead of searching over value functions.
+The [next chapter](amortization.md) directly parameterizes and optimizes policies instead of searching over value functions.

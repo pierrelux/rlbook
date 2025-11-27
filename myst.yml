@@ -29,25 +29,25 @@ project:
     - title: Modeling
       children:
         - file: modeling.md
-        - file: ssm.md
+        - file: dynamics.md
         - file: simulation.md
     - title: Numerical Trajectory Optimization
       children:
-        - file: ocp.md
-        - file: cocp.md
+        - file: trajectories.md
+        - file: collocation.md
     - title: From Trajectories to Policies
       children:
         - file: mpc.md
         - file: dp.md
     - title: Approximate Dynamic Programming
       children:
-        - file: regmdp.md
-        - file: projdp.md
+        - file: smoothing.md
+        - file: projection.md
         - title: Simulation-Based Methods
           children:
-            - file: simadp.md
+            - file: montecarlo.md
             - file: fqi.md
-        - file: cadp.md
+        - file: amortization.md
         - file: pg.md
     - title: Appendix
       children:

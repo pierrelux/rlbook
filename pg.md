@@ -331,6 +331,96 @@ for name, estimates in methods.items():
 
 The numerical experiments corroborate our theory. The naive estimator consistently underestimates the true gradient by 2.0, though it maintains a relatively small variance. This systematic bias would make it unsuitable for optimization despite its low variance. The score function estimator corrects this bias but introduces substantial variance. While unbiased, this estimator would require many samples to achieve reliable gradient estimates. Finally, the reparameterization trick achieves a much lower variance while remaining unbiased. While this experiment is for didactic purposes only, it reproduces what is commonly found in practice: that when applicable, the reparameterization estimator tends to perform better than the score function counterpart. 
 
+## Reparameterization in Model-Based Reinforcement Learning
+
+The reparameterization trick requires that we can express our random variable as a deterministic function of noise. In reinforcement learning, this applies naturally when we have a learned model of the dynamics. Consider a stochastic policy $\pi_{\boldsymbol{w}}(a|s)$ that we can reparameterize as $a = \pi_{\boldsymbol{w}}(s,\epsilon)$ where $\epsilon \sim p(\epsilon)$, and a dynamics model $s' = f(s,a,\xi)$ where $\xi \sim p(\xi)$ represents environment stochasticity. Both transformations are deterministic given the noise variables.
+
+With these reparameterizations, we can write an $n$-step return as a differentiable function of the noise:
+
+$$
+R_n(s_0,\{\epsilon_i\},\{\xi_i\}) = \sum_{i=0}^{n-1} \gamma^i r(s_i,a_i)
+$$
+
+where $a_i = \pi_{\boldsymbol{w}}(s_i,\epsilon_i)$ and $s_{i+1} = f(s_i,a_i,\xi_i)$ for $i=0,...,n-1$. The objective becomes:
+
+$$
+J(\boldsymbol{w}) = \mathbb{E}_{\{\epsilon_i\},\{\xi_i\}}[R_n(s_0,\{\epsilon_i\},\{\xi_i\})]
+$$
+
+We can now apply the reparameterization gradient estimator:
+
+$$
+\nabla_{\boldsymbol{w}}J(\boldsymbol{w}) = \mathbb{E}_{\{\epsilon_i\},\{\xi_i\}}\left[\nabla_{\boldsymbol{w}}R_n(s_0,\{\epsilon_i\},\{\xi_i\})\right]
+$$
+
+This gradient can be computed by automatic differentiation through the sequence of policy and model evaluations. The computation requires backpropagating through $n$ steps of model rollouts, which becomes expensive for large $n$ but avoids the high variance of score function estimators.
+
+The Stochastic Value Gradients (SVG) framework {cite:p}`Heess2015` uses this approach while introducing a hybrid objective that combines model rollouts with value function bootstrapping:
+
+$$
+J^{\text{SVG}(n)}(\boldsymbol{w}) = \mathbb{E}_{\{\epsilon_i\},\{\xi_i\}}\left[\sum_{i=0}^{n-1} \gamma^i r(s_i,a_i) + \gamma^n q(s_n,a_n;\theta)\right]
+$$
+
+The terminal value function $q(s_n,a_n;\theta)$ approximates the value beyond horizon $n$, allowing shorter rollouts while still capturing long-term value. This creates a spectrum of algorithms parameterized by $n$:
+
+When $n=0$, the objective becomes $J(\boldsymbol{w}) = \mathbb{E}_{s,\epsilon}[q(s,\pi_{\boldsymbol{w}}(s,\epsilon);\theta)]$, which is pure bootstrapping with no model rollout. This recovers the approach used in DDPG and SAC when the policy is reparameterizable.
+
+For intermediate $n$, we unroll the model for $n$ steps before bootstrapping with the critic. This trades model error for reduced bootstrapping bias. If the model is accurate, this can learn faster by propagating reward information more directly. If the model is poor, the compounding errors through the rollout can harm performance.
+
+As $n \to \infty$, we eliminate the critic entirely and optimize purely through model rollouts. This becomes model-based policy optimization, where the entire trajectory is differentiated through the learned dynamics model.
+
+The choice of $n$ reflects a fundamental tradeoff in approximate dynamic programming. Bootstrapping (small $n$) introduces bias through value function errors but provides a stable target. Model rollouts (large $n$) reduce this bias but accumulate errors through imperfect dynamics predictions. In practice, intermediate values like $n=5$ or $n=10$ often work well when combined with a reasonably accurate learned model.
+
+The computational cost also scales with $n$. Each additional step requires forward and backward passes through the dynamics model during training. For complex dynamics, this can be expensive. However, unlike score function methods that require many trajectory samples to reduce variance, reparameterization through models can achieve lower-variance gradients with fewer samples.
+
+When dynamics are deterministic or can be accurately reparameterized, SVG-style methods offer an efficient alternative to score function estimators. However, many reinforcement learning problems involve unknown dynamics or dynamics that resist accurate modeling. For these settings, we turn to the score function approach, which requires only the ability to sample trajectories under the policy.
+
+## Sampling-Based Model Predictive Control
+
+Both SVG and the policy gradient methods above optimize a parametric policy $\pi_{\boldsymbol{w}}$ that is then deployed. An alternative approach uses the model purely for planning: at each state, optimize an action sequence and execute only the first action. This is **model predictive control** (MPC). This avoids training a policy network and eliminates generalization error from function approximation, but requires solving an optimization problem at every decision.
+
+For continuous action spaces with complex dynamics, gradient-based trajectory optimization (as in the [trajectory optimization chapter](trajectories.md)) can be expensive. Model Predictive Path Integral control (MPPI) {cite:p}`williams2017mppi` replaces gradient-based optimization with **importance sampling**. Given a dynamics model $s_{t+1} = f(s_t, a_t)$ (deterministic) and current state $s_0$, sample $K$ action sequences $\{\boldsymbol{a}^{(i)}\}_{i=1}^K$ and roll them out to get costs $C^{(i)} = \sum_{t=0}^{H-1} c(s_t^{(i)}, a_t^{(i)})$. The optimal action is computed as:
+
+$$
+a_0^* = \sum_{i=1}^K w^{(i)} a_0^{(i)}, \quad w^{(i)} = \frac{\exp(-C^{(i)}/\lambda)}{\sum_j \exp(-C^{(j)}/\lambda)}
+$$
+
+where $\lambda > 0$ is a temperature parameter. Execute $a_0^*$, observe the next state, and repeat.
+
+The weighting $w^{(i)} \propto \exp(-C^{(i)}/\lambda)$ is the Boltzmann distribution from entropy-regularized control. MPPI solves:
+
+$$
+\min_{\boldsymbol{a}} \mathbb{E}_{\boldsymbol{\xi}}\left[\sum_{t=0}^{H-1} c(s_t, a_t) + \lambda H(\pi)\right]
+$$
+
+where $\pi$ is the distribution over action sequences and $H(\pi) = -\mathbb{E}[\log \pi(\boldsymbol{a})]$ is entropy. The importance sampling estimate approximates the optimal action under this entropy-regularized objective. The temperature $\lambda$ controls the trade-off between exploitation (focus on low-cost sequences) and exploration (maintain entropy over sequences).
+
+The Boltzmann weighting connects MPPI to entropy-regularized methods from the [amortization chapter](amortization.md). SAC (Algorithm {prf:ref}`sac`) learns a stochastic policy $\pi_{\boldsymbol{\phi}}$ that approximates the Boltzmann distribution over actions at each state. PCL (Algorithm {prf:ref}`pcl`) minimizes path consistency residuals, exploiting the exact relationship $v^*(s) = q^*(s,a) - \alpha\log\pi^*(a|s)$ under deterministic dynamics. MPPI uses the Boltzmann distribution directly for action sequence selection but performs no learning. At each state, it samples action sequences, weights them by exponentiated costs, and returns the weighted average.
+
+All three use entropy regularization with Boltzmann weighting. SAC and PCL amortize optimization by learning policies that generalize across states. MPPI performs full optimization at every decision, trading computation for avoiding policy approximation error.
+
+MPPI and SVG represent two ways to use learned models. SVG backpropagates through $n$-step model rollouts using the reparameterization trick, requiring differentiable dynamics and policy. MPPI samples many action sequences and aggregates using importance weights, requiring only forward simulation. SVG is more sample-efficient (gradients provide richer signal) but needs differentiable components and backpropagation through long horizons. MPPI is simpler to implement and applies to non-differentiable dynamics, but requires many rollout samples ($K \approx 100-1000$) per action selection.
+
+```{prf:algorithm} Model Predictive Path Integral Control (MPPI)
+:label: mppi
+
+**Input:** Dynamics model $s_{t+1} = f(s_t, a_t)$, cost function $c(s,a)$, horizon $H$, number of samples $K$, temperature $\lambda$, noise distribution $\epsilon \sim \mathcal{N}(0, \Sigma)$
+
+**Output:** Action $a_0^*$
+
+1. Observe current state $s_0$
+2. **for** $i = 1, \ldots, K$ **do**
+    1. Sample action sequence: $a_t^{(i)} \leftarrow \bar{a}_t + \epsilon_t^{(i)}$ for $t = 0, \ldots, H-1$ $\quad$ // Perturb nominal
+    2. Roll out: $s_{t+1}^{(i)} \leftarrow f(s_t^{(i)}, a_t^{(i)})$ for $t = 0, \ldots, H-1$
+    3. Compute cost: $C^{(i)} \leftarrow \sum_{t=0}^{H-1} c(s_t^{(i)}, a_t^{(i)})$
+3. Compute Boltzmann weights: $w^{(i)} \leftarrow \exp(-C^{(i)}/\lambda) / \sum_j \exp(-C^{(j)}/\lambda)$
+4. **return** $a_0^* = \sum_{i=1}^K w^{(i)} a_0^{(i)}$
+```
+
+The algorithm samples perturbed action sequences around a nominal trajectory $\{\bar{a}_t\}$ (often the previous optimal sequence, shifted forward). The Boltzmann weights assign high probability to low-cost sequences. The temperature $\lambda$ balances exploitation (small $\lambda$ focuses on best samples) and exploration (large $\lambda$ gives uniform averaging).
+
+MPPI excels at real-time control for systems with fast, accurate models (robotics, autonomous vehicles). The replanning handles model errors and disturbances. However, the per-step computation scales as $O(KH)$ model evaluations, making it expensive for complex dynamics or long horizons. For problems requiring learning from experience rather than planning with a known model, policy gradient methods (developed in the next section) provide complementary strengths.
+
 # Score Function Gradient Estimation in Reinforcement Learning 
 
 Let $G(\tau) \equiv \sum_{t=0}^T r(s_t, a_t)$ be the sum of undiscounted rewards in a trajectory $\tau$. The stochastic optimization problem we face is to maximize:

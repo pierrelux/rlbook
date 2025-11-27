@@ -8,13 +8,13 @@ parts:
   - caption: Modeling
     chapters:
       - file: modeling
-      - file: ssm
+      - file: dynamics
       - file: simulation
 
   - caption: Numerical Trajectory Optimization
     chapters:
-      - file: ocp
-      - file: cocp
+      - file: trajectories
+      - file: collocation
 
   - caption: From Trajectories to Policies
     chapters:
@@ -23,11 +23,11 @@ parts:
 
   - caption: Approximate Dynamic Programming
     chapters:
-      - file: regmdp
-      - file: projdp
-      - file: simadp
+      - file: smoothing
+      - file: projection
+      - file: montecarlo
       - file: fqi
-      - file: cadp
+      - file: amortization
       - file: pg
 
   - caption: Appendix
