@@ -47,8 +47,8 @@ project:
           children:
             - file: montecarlo.md
             - file: fqi.md
-        - file: amortization.md
-        - file: pg.md
+            - file: amortization.md
+            - file: pg.md
     - title: Appendix
       children:
         - file: appendix_examples.md

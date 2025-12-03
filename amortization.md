@@ -610,7 +610,7 @@ $$
 v^*(s) = \alpha \log \int_{\mathcal{A}} \exp(q^*(s,a)/\alpha) da
 $$
 
-To understand what makes PCL work, we need to contrast two cases: general policies versus the optimal Boltzmann policy.
+Contrast two cases: general policies versus the optimal Boltzmann policy.
 
 **For general policies**, the value equals an expectation:
 
@@ -638,7 +638,7 @@ $$
 v^*(s) = q^*(s,a) - \alpha \log \pi^*(a|s) \quad \text{for all } a
 $$ (eq:v-q-exact-boltzmann)
 
-This holds exactly for **every** action $a$, not just in expectation. There is no sampling error. The advantage $q^*(s,a) - v^*(s)$ is precisely encoded in the log-probability: suboptimal actions have low $q^*(s,a)$ but also large $-\alpha\log\pi^*(a|s)$ (low probability means large negative log-probability), and these terms balance exactly to give $v^*(s)$.
+This holds exactly for every action $a$, not just in expectation. There is no sampling error. The advantage $q^*(s,a) - v^*(s)$ is encoded in the log-probability: suboptimal actions have low $q^*(s,a)$ but also large $-\alpha\log\pi^*(a|s)$ (low probability means large negative log-probability), and these terms balance exactly to give $v^*(s)$.
 
 Now take a trajectory segment $(s_0, a_0, s_1, a_1, \ldots, s_d)$ where each transition follows the deterministic dynamics $s_{t+1} = f(s_t, a_t)$. Start with $q^*(s_0, a_0) = r_0 + \gamma v^*(s_1)$ and use equation {eq}`eq:v-q-exact-boltzmann` to substitute $v^*(s_1) = q^*(s_1,a_1) - \alpha\log\pi^*(a_1|s_1)$ exactly:
 
@@ -670,7 +670,7 @@ $$
 R(s_0:s_d; \pi^*, v^*) = v^*(s_0) - \gamma^d v^*(s_d) - \sum_{t=0}^{d-1} \gamma^t[r_t - \alpha\log\pi^*(a_t|s_t)] = 0
 $$ (eq:path-residual)
 
-This is **exact**, not approximate. The telescoping produces an identity: $R = 0$ for every action sequence, not just in expectation. This is what enables off-policy learning without importance sampling. The behavior policy never appears because the constraint holds as a deterministic identity for any observed $(s_0, a_0, \ldots, s_d)$.
+The telescoping produces an exact identity: $R = 0$ for every action sequence, not just in expectation. The behavior policy never appears because the constraint holds as a deterministic identity for any observed $(s_0, a_0, \ldots, s_d)$. This enables off-policy learning without importance sampling.
 
 ```{prf:remark} Contrasting General Policies and Optimal Boltzmann Policies
 :class: dropdown
@@ -684,9 +684,9 @@ The distinction between equations {eq}`eq:v-general-policy` and {eq}`eq:v-q-exac
 This property is unique to soft-max operators. For hard-max, $v^*(s) = \max_a q^*(s,a)$ holds only when $a$ is optimal. Suboptimal actions satisfy $v^*(s) > q^*(s,a)$, an inequality that cannot be used to construct a residual.
 ```
 
-### Why Deterministic Dynamics and Entropy Regularization Are Both Required
+### Structural Requirements: Deterministic Dynamics and Entropy Regularization
 
-PCL's two structural requirements—deterministic dynamics and entropy regularization—are not arbitrary design choices. Each addresses a fundamental theoretical issue.
+PCL's two structural requirements (deterministic dynamics and entropy regularization) are not arbitrary design choices. Each addresses a fundamental theoretical issue.
 
 #### Deterministic Dynamics: Avoiding the Double Sampling Problem
 
@@ -722,7 +722,7 @@ Under deterministic dynamics, $R$ is deterministic (no transition noise), so $\m
 
 #### Entropy Regularization: Enabling All-Action Consistency
 
-To see why entropy regularization is necessary, attempt the same path consistency derivation with the hard-max Bellman operator. Under deterministic dynamics, the Q-function satisfies:
+Attempt the same path consistency derivation with the hard-max Bellman operator. Under deterministic dynamics, the Q-function satisfies:
 
 $$
 q^*(s,a) = r(s,a) + \gamma v^*(f(s,a))
@@ -742,7 +742,7 @@ $$
 v^*(s) = \max_{a'} q^*(s,a') > q^*(s,a)
 $$
 
-This is an **inequality**, not an equation. There is no formula expressing $v^*(s)$ in terms of $q^*(s,a)$ for suboptimal actions.
+This is an inequality, not an equation. There is no formula expressing $v^*(s)$ in terms of $q^*(s,a)$ for suboptimal actions.
 
 Attempt the multi-step telescoping. Start with $q^*(s_0, a_0) = r_0 + \gamma v^*(s_1)$. To continue, we need to express $v^*(s_1)$ using the observed action $a_1$. But we only have:
 
@@ -752,13 +752,13 @@ $$
 
 with equality only if $a_1$ happens to be optimal at $s_1$. We cannot substitute this into the Q-function equation to get an exact telescoping. The derivation breaks at the first step.
 
-Compare this to the soft-max case. The Boltzmann structure gives equation {eq}`eq:v-q-exact-boltzmann`: $v^*(s) = q^*(s,a) - \alpha\log\pi^*(a|s)$ for **all** actions $a$. The log-probability term compensates exactly for suboptimality: low-probability actions have large $-\alpha\log\pi^*(a|s)$, which adds to the low $q^*(s,a)$ to recover $v^*(s)$. This enables exact substitution at every step:
+Compare this to the soft-max case. The Boltzmann structure gives equation {eq}`eq:v-q-exact-boltzmann`: $v^*(s) = q^*(s,a) - \alpha\log\pi^*(a|s)$ for all actions $a$. The log-probability term compensates exactly for suboptimality: low-probability actions have large $-\alpha\log\pi^*(a|s)$, which adds to the low $q^*(s,a)$ to recover $v^*(s)$. This enables exact substitution at every step:
 
 $$
 v^*(s_1) = q^*(s_1, a_1) - \alpha\log\pi^*(a_1|s_1) \quad \text{(exact for any } a_1\text{)}
 $$
 
-The telescoping proceeds without inequalities or restrictions on which actions were chosen. This is why multi-step hard-max Q-learning lacks theoretical justification for off-policy data. When we observe a trajectory with suboptimal actions, we cannot write an exact path consistency constraint.
+The telescoping proceeds without inequalities or restrictions on which actions were chosen. Multi-step hard-max Q-learning lacks theoretical justification for off-policy data because when we observe a trajectory with suboptimal actions, we cannot write an exact path consistency constraint.
 
 Both requirements are structural:
 
@@ -842,7 +842,7 @@ and the gradient combines both value and policy contributions through the same p
 
 **No entropy ($\alpha \to 0$)**: The residual becomes $R = v(s_i) - \gamma^d v(s_{i+d}) - \sum_t \gamma^t r_t$, the negative $d$-step advantage. But unlike A2C/A3C where $v$ tracks the current policy's value, PCL's value converges to $v^*$ because the residual couples policy and value through the optimality condition.
 
-**Multi-step with hard-max**: No analog exists. The hard-max Bellman operator $\max_a q(s,a)$ does not have an exact pointwise relationship like equation {eq}`eq:v-q-exact-boltzmann`. Multi-step telescoping would accumulate errors from the max operator, making the constraint valid only in expectation under the optimal policy. The soft-max structure is what enables exact off-policy path consistency.
+**Multi-step with hard-max**: No analog exists. The hard-max Bellman operator $\max_a q(s,a)$ does not have an exact pointwise relationship like equation {eq}`eq:v-q-exact-boltzmann`. Multi-step telescoping would accumulate errors from the max operator, making the constraint valid only in expectation under the optimal policy. The soft-max structure enables exact off-policy path consistency.
 
 ### PCL vs SAC: Residual Minimization vs Successive Approximation
 
