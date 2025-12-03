@@ -846,10 +846,10 @@ $$
 \nabla_{\boldsymbol{w}} J(\boldsymbol{w}) = \mathbb{E}_{\tau \sim \pi_q}\left[\sum_{t=0}^T \rho_t \nabla_{\boldsymbol{w}} \log \pi_{\boldsymbol{w}}(a_t|s_t) (G_t - b(s_t))\right]
 $$ (eq:lr-estimator)
 
-This is the gradient of the surrogate objective:
+This is the gradient of the **importance-weighted surrogate objective**:
 
 $$
-L(\boldsymbol{w}) = \mathbb{E}_{\tau \sim \pi_q}\left[\sum_{t=0}^T \rho_t A_t\right]
+L^{\text{IS}}(\boldsymbol{w}) = \mathbb{E}_{\tau \sim \pi_q}\left[\sum_{t=0}^T \rho_t A_t\right]
 $$ (eq:importance-weighted-surrogate)
 
 where $A_t = G_t - b(s_t)$. When $\pi_q = \pi_{\boldsymbol{w}}$, the ratios $\rho_t = 1$ and we recover the score function estimator.
