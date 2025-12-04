@@ -1,0 +1,61 @@
+# Why This Book?
+
+Reinforcement learning offers a powerful framework for decision-making: systems that learn to act through interaction with their environment. From AlphaGo defeating world champions to Uber's ride-matching system optimizing across hundreds of cities {cite:p}`Uber2025`, from chatbots engaging millions to ANYbotics' quadruped robots performing complex industrial inspections with policies trained entirely in simulation {cite:p}`ANYbotics2023`, RL has demonstrated remarkable capabilities.
+
+Yet compared to supervised learning, which has become routine in industry, reinforcement learning has not achieved the same widespread adoption. Supervised learning benefits from standardized tools and well-defined interfaces: inputs, outputs, and objective metrics. Reinforcement learning, by contrast, requires explicit problem formulation: defining objectives, constraints, and how decisions unfold over time. This additional structure is also what makes RL applicable to a broader class of problems.
+
+As {cite:t}`Iskhakov2020` notes, a primary challenge facing any sequential decision-making tool is *"the difficulty of learning about the objective function and environment facing real-world decision-makers."* In reinforcement learning, this difficulty is not incidental; it is central. We cannot sidestep defining the problem, the objective, and the constraints.
+
+That is where this book begins.
+
+Working in industry and consulting taught me what my PhD did not: real problems rarely fit neatly into predefined frameworks. Sensors produce noisy data; constraints are non-negotiable; objectives may shift or conflict. Most effort goes into formulating the decision problem, long before selecting an algorithm.
+
+The chapters that follow address this challenge explicitly. They offer strategies to bridge the gap from theoretical RL formulations to practically useful systems. By carefully structuring decision problems, we can help reinforcement learning achieve broader impact.
+
+## The Decision Problem
+
+The term *reinforcement learning* gets used in many ways. In the formal sense defined by {cite:t}`SuttonBarto2018`, RL is a problem: learning to act through interaction with an environment. But in common usage, it can mean a family of algorithms, a research community, or a long-term scientific agenda.
+
+This book takes a practical view: reinforcement learning as a vocabulary for reasoning about decisions under uncertainty. When optimization, feedback, and data intersect, we are in the territory of reinforcement learning, whether we use temporal-difference learning, model-based planning, or simple policy rules. What unifies these approaches is not a specific algorithm, but a shared structure: decision-making through experience.
+
+If the goal is to improve real-world systems—in energy, logistics, health, or agriculture—then the hard part is not choosing an algorithm. It is defining the task. What are we optimizing? What constraints apply? What information is available, and when? These modeling questions sit upstream of any learning method.
+
+This book begins with the problem, not the solution.
+
+## Modeling Decision Problems
+
+Modeling is not about feeding data into a black box. It is about deciding what matters: defining objectives, specifying constraints, clarifying what is observable, and determining how decisions unfold over time.
+
+Take an HVAC system. The goal might be "maximize comfort while minimizing energy." But what does comfort mean? A fixed temperature? Acceptable humidity? Occupant preferences? Is comfort linearly traded against energy, or are there thresholds? And how do you ensure safety and respect equipment limitations? Even the choice of time horizon—minutes versus seasons—shapes what is learnable and feasible.
+
+Real-world systems come with hard constraints: physical limits, budgets, safety regulations, human expectations. Ignoring them may simplify the math, but makes any solution irrelevant in practice. Good modeling incorporates these constraints from the beginning.
+
+This is what Operations Research has long emphasized: solving concrete decision problems with explicit structure. Through consulting, I came to appreciate this pragmatism. My colleagues built decision-support systems connected to real-time data—in practice, they were doing reinforcement learning, just without the label. They could not rely on massive data streams. Instead, they wrestled directly with business logic, real-world variability, and engineering constraints.
+
+The lesson is simple: start with what the problem demands. If that means choosing a basic model-predictive controller over a trendy RL library, or the reverse, so be it. Do not cram every control task into the discounted MDP format just because it is the default interface.
+
+Reinforcement learning is a framework for learning to make decisions through experience. But experience is only useful if we have posed the right problem. Modeling determines both *how* learning proceeds and *what* we can learn at all.
+
+---
+
+## Learning From Humans
+
+When we cannot write down the right behavior, we often try to learn it from examples. This is the idea behind imitation learning: watch the expert, then generalize. But good demonstrations are hard to collect and rarely cover the full range of relevant situations.
+
+That is why many applications require more than direct imitation. If we cannot show what to do in every case, we must express what we want. Preference elicitation offers one route: rather than specifying the optimal solution directly, we infer it from comparisons, rankings, or feedback. This principle forms the basis of *Reinforcement Learning from Human Feedback* (RLHF), now central to training large models.
+
+But once we have inferred preferences from humans, what comes next? The default answer is often to fit a black-box model and optimize. This can work when data is plentiful and evaluation is controlled. But generalization is fragile when data is limited, feedback is partial, or the stakes are high.
+
+This is where modeling matters again. By structuring the decision process—constraints, objectives, time horizons, information flows—we introduce the right inductive biases. These biases reflect how the world works and what the agent can and cannot do. They make learning tractable even when data is scarce and help ensure that decisions behave reasonably under uncertainty.
+
+The aim of this book is to combine what we can learn from humans and data with modeling discipline, to build systems that act for the right reasons.
+
+## The Path Forward
+
+Reinforcement learning has pushed the boundaries of what is possible in simulation and games. The opportunity now is to extend that reach into real-world systems—energy, healthcare, infrastructure, logistics—where decisions have lasting consequences.
+
+The bottleneck is rarely the algorithm. It is the formulation. What are we optimizing? Under what constraints? With what information? These questions must be answered before any learning method can help.
+
+That is the focus of this book: not just how to solve decision problems, but how to pose them. We treat modeling as a first-class skill—one that complements and enables the learning methods that follow.
+
+This is the modeling mindset. And it is what turns reinforcement learning into a practical tool for solving real problems.
