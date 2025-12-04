@@ -81,7 +81,7 @@ $$
 \frac{\partial \rho}{\partial \theta}(x, q, \theta) = \frac{1}{q(x)}\frac{\partial p(x;\theta)}{\partial \theta} = \rho(x, q, \theta)\frac{\partial \log p(x;\theta)}{\partial \theta}
 $$
 
-Now fix any reference parameter $\theta_0$ and choose the proposal distribution $q(x) = p(x;\theta_0)$. This is a *fixed* distribution that does not change as $\theta$ varies—we simply evaluate the family $p(x;\cdot)$ at the specific point $\theta_0$. With this choice, evaluating the gradient at $\theta = \theta_0$ gives $\rho(x, q, \theta_0) = p(x;\theta_0)/p(x;\theta_0) = 1$. The gradient formula becomes:
+Now fix any reference parameter $\theta_0$ and choose the proposal distribution $q(x) = p(x;\theta_0)$. This is a *fixed* distribution that does not change as $\theta$ varies. We simply evaluate the family $p(x;\cdot)$ at the specific point $\theta_0$. With this choice, evaluating the gradient at $\theta = \theta_0$ gives $\rho(x, q, \theta_0) = p(x;\theta_0)/p(x;\theta_0) = 1$. The gradient formula becomes:
 
 $$
 \frac{d}{d\theta}J(\theta)\Big|_{\theta=\theta_0} = \mathbb{E}_{x \sim p(x;\theta_0)}\left[f(x,\theta_0)\frac{\partial \log p(x;\theta)}{\partial \theta}\Big|_{\theta_0} + \frac{\partial f(x,\theta)}{\partial \theta}\Big|_{\theta_0}\right]
@@ -929,7 +929,7 @@ $$
 \mathbb{E}_{\tau \sim \pi_q}\left[\sum_{t=0}^T \rho_t A_t\right] = (T+1) \cdot \mathbb{E}_{(s,a) \sim \xi_{\pi_q}}\left[\rho(s, a) A(s, a)\right]
 $$
 
-The factor $(T+1)$ is just a constant that does not affect the optimization. This reformulation shows that the importance-weighted surrogate is equivalent to an expectation over state-action pairs drawn from the averaged time-marginal distribution—not from a stationary distribution or a discounted visitation distribution, but from the empirical mixture induced by the finite-horizon rollout procedure.
+The factor $(T+1)$ is just a constant that does not affect the optimization. This reformulation shows that the importance-weighted surrogate is equivalent to an expectation over state-action pairs drawn from the averaged time-marginal distribution. This is not a stationary distribution or a discounted visitation distribution, but the empirical mixture induced by the finite-horizon rollout procedure.
 
 #### The Clipped Surrogate Objective
 
@@ -955,7 +955,7 @@ $$
 \hat{L}^{\text{CLIP}}(\boldsymbol{w}; \mathcal{D}) = \frac{1}{|\mathcal{D}|} \sum_{(s,a,A) \in \mathcal{D}} \ell^{\text{CLIP}}(\boldsymbol{w}; s, a, A)
 $$ (eq:ppo-clip)
 
-This is the same plug-in approximation used in [fitted Q-iteration](fqi.md): replace the unknown population distribution with the empirical distribution $\hat{P}_{\mathcal{D}}$ induced by the collected batch, then compute the sample average. The empirical surrogate $\hat{L}^{\text{CLIP}}$ is simply an expectation under $\hat{P}_{\mathcal{D}}$. No assumptions about stationarity or discounted visitation are needed—we just average over the transitions we collected.
+This is the same plug-in approximation used in [fitted Q-iteration](fqi.md): replace the unknown population distribution with the empirical distribution $\hat{P}_{\mathcal{D}}$ induced by the collected batch, then compute the sample average. The empirical surrogate $\hat{L}^{\text{CLIP}}$ is simply an expectation under $\hat{P}_{\mathcal{D}}$. No assumptions about stationarity or discounted visitation are needed. We just average over the transitions we collected.
 
 #### Intuition for the Clipping Mechanism
 
@@ -998,7 +998,7 @@ PPO has become one of the most widely used policy gradient algorithms due to its
 
 ## The Policy Gradient Theorem
 
-The algorithms developed so far—REINFORCE, actor-critic, GAE, and PPO—all estimate policy gradients from sampled trajectories. We now establish the theoretical foundation for these estimators by deriving the policy gradient theorem in the discounted infinite-horizon setting.
+The algorithms developed so far (REINFORCE, actor-critic, GAE, and PPO) all estimate policy gradients from sampled trajectories. We now establish the theoretical foundation for these estimators by deriving the policy gradient theorem in the discounted infinite-horizon setting.
 
 {cite:t}`sutton1999policy` provided the original derivation. Here we present an alternative approach using the Implicit Function Theorem, which frames policy optimization as a bilevel problem:
 
@@ -1338,7 +1338,7 @@ MPPI excels at real-time control for systems with fast, accurate models (robotic
 
 This chapter developed the mathematical foundations for policy gradient methods. Starting from general derivative estimation techniques in stochastic optimization, we saw two main approaches: the likelihood ratio (score function) method and the reparameterization trick. While the reparameterization trick typically offers lower variance, it requires that the sampling distribution be reparameterizable, making it inapplicable to discrete actions or environments with complex dynamics.
 
-For reinforcement learning, the score function estimator provides a model-free gradient that depends only on the policy parametrization, not the transition dynamics. Through variance reduction techniques—leveraging conditional independence, using control variates, and the Generalized Advantage Estimator—we can make these gradients practical for learning. The likelihood ratio perspective then led to importance-weighted surrogates and PPO's clipped objective for stable off-policy updates.
+For reinforcement learning, the score function estimator provides a model-free gradient that depends only on the policy parametrization, not the transition dynamics. Through variance reduction techniques (leveraging conditional independence, using control variates, and the Generalized Advantage Estimator), we can make these gradients practical for learning. The likelihood ratio perspective then led to importance-weighted surrogates and PPO's clipped objective for stable off-policy updates.
 
 We also established the policy gradient theorem, which provides the theoretical foundation for these estimators in the discounted infinite-horizon setting. The actor-critic architecture emerges from approximating the value function that appears in this theorem, with the two-timescale condition ensuring stable learning.
 
