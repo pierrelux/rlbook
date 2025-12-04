@@ -1172,8 +1172,8 @@ Furthermore, every patient is different from another. Hence, we cannot simply le
 :tags: [hide-input]
 
 
-#| label: fig-mpc-propofol
-#| caption: Closed-loop MPC for propofol infusion keeps the Bispectral Index near the target (top), regulates infusion rates (middle), and tracks the effect-site concentration (bottom).
+#  label: fig-mpc-propofol
+#  caption: Closed-loop MPC for propofol infusion keeps the Bispectral Index near the target (top), regulates infusion rates (middle), and tracks the effect-site concentration (bottom).
 
 %config InlineBackend.figure_format = 'retina'
 import numpy as np

@@ -548,9 +548,8 @@ The Gumbel loss can be understood as the natural likelihood for problems involvi
 ```{code-cell} python
 :tags: [hide-input]
 
-
-#| label: fig-gumbel-loss
-#| caption: Gumbel regression reshapes the loss landscape (left) and gradient geometry (right), penalizing overestimation exponentially while keeping underestimation gentle.
+#  label: fig-gumbel-loss
+#  caption: Gumbel regression reshapes the loss landscape (left) and gradient geometry (right), penalizing overestimation exponentially while keeping underestimation gentle.
 
 %config InlineBackend.figure_format = 'retina'
 import numpy as np
@@ -679,9 +678,8 @@ This is barycentric interpolation: $\sum_k z_k q_k(y_i) = y_i$ recovers the scal
 ```{code-cell} python
 :tags: [hide-input]
 
-
-#| label: fig-two-hot
-#| caption: Two-hot encoding as barycentric interpolation: the left panel shows a single target spread over two bins, while the right panel compares encodings for multiple targets.
+#  label: fig-two-hot
+#  caption: Two-hot encoding as barycentric interpolation: the left panel shows a single target spread over two bins, while the right panel compares encodings for multiple targets.
 
 %config InlineBackend.figure_format = 'retina'
 import numpy as np

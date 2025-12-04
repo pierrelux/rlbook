@@ -415,8 +415,8 @@ where $\mathbf{u}_j$ represents the control value at node $\tau_j$.
 ```{code-cell} python
 :tags: [hide-input]
 
-#| label: cocp-cell-01
-#| caption: Rendered output from the preceding code cell.
+#  label: cocp-cell-01
+#  caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 import matplotlib.pyplot as plt
@@ -1000,8 +1000,8 @@ In the experiment below, we choose the setpoint $\mathbf{x}^* = [0.40, 0.60]^T$ 
 ```{code-cell} python
 :tags: [hide-input]
 
-#| label: cocp-cell-02
-#| caption: Rendered output from the preceding code cell.
+#  label: cocp-cell-02
+#  caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 import numpy as np
@@ -1150,8 +1150,8 @@ We then find a control function $u(t)$ and state trajectory $x(t)$ using the tra
 ```{code-cell} python
 :tags: [hide-input]
 
-#| label: cocp-cell-03
-#| caption: Rendered output from the preceding code cell.
+#  label: cocp-cell-03
+#  caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 import numpy as np
@@ -1332,8 +1332,8 @@ where $\boldsymbol{\phi}_k$ denotes the state reached at step $k$ by an RK4 roll
 ```{code-cell} python
 :tags: [hide-input]
 
-#| label: cocp-cell-04
-#| caption: Rendered output from the preceding code cell.
+#  label: cocp-cell-04
+#  caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 import numpy as np
@@ -1444,8 +1444,8 @@ for i, x0 in enumerate(initial_conditions):
 ```{code-cell} python
 :tags: [hide-input]
 
-#| label: cocp-cell-05
-#| caption: Rendered output from the preceding code cell.
+#  label: cocp-cell-05
+#  caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 import numpy as np
@@ -1580,8 +1580,8 @@ This setup lets us optimize trajectories under realistic conditions by feeding i
 ```{code-cell} python
 :tags: [hide-input]
 
-#| label: cocp-cell-06
-#| caption: Rendered output from the preceding code cell.
+#  label: cocp-cell-06
+#  caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 # OpenAP.top demo with optional wind overlay – docs: https://github.com/junzis/openap-top
@@ -1678,8 +1678,8 @@ Compared to the earlier inflow-outflow model, this richer setup introduces more 
 ```{code-cell} python
 :tags: [hide-input]
 
-#| label: cocp-cell-07
-#| caption: Rendered output from the preceding code cell.
+#  label: cocp-cell-07
+#  caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 # Instrumented MSD hydro demo with heterogeneity + diagnostics

@@ -72,8 +72,8 @@ Each step of the algorithm therefore involves approximating the function with a 
 ```{code-cell} python
 :tags: [hide-input]
 
-#| label: appendix_ivps-cell-01
-#| caption: Rendered output from the preceding code cell.
+#  label: appendix_ivps-cell-01
+#  caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 import numpy as np
@@ -163,8 +163,8 @@ We then approximate the integral term with a box of width $h$ and height $f$, an
 ```{code-cell} python
 :tags: [hide-input]
 
-#| label: appendix_ivps-cell-02
-#| caption: Rendered output from the preceding code cell.
+#  label: appendix_ivps-cell-02
+#  caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 import numpy as np
@@ -361,8 +361,8 @@ where $ t_{new} = t + h $. Note that this formula involves $ x_{new} $ on both s
 ```{code-cell} python
 :tags: [hide-input]
 
-#| label: appendix_ivps-cell-03
-#| caption: Rendered output from the preceding code cell.
+#  label: appendix_ivps-cell-03
+#  caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 import numpy as np
@@ -533,8 +533,8 @@ This two-step process is similar to performing one iteration of Newton's method 
 ```{code-cell} python
 :tags: [hide-input]
 
-#| label: appendix_ivps-cell-04
-#| caption: Rendered output from the preceding code cell.
+#  label: appendix_ivps-cell-04
+#  caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 import numpy as np
@@ -719,8 +719,8 @@ The first four Legendre polynomials resulting from this recurrence are the follo
 
 ```{code-cell} python
 :tags: [hide-input]
-#| label: appendix_ivps-cell-05
-#| caption: Rendered output from the preceding code cell.
+#  label: appendix_ivps-cell-05
+#  caption: Rendered output from the preceding code cell.
 
 import numpy as np
 from IPython.display import display, Math
@@ -806,8 +806,8 @@ Let's now implement it in Python:
 
 ```{code-cell} python
 :tags: [hide-input]
-#| label: appendix_ivps-cell-06
-#| caption: Rendered output from the preceding code cell.
+#  label: appendix_ivps-cell-06
+#  caption: Rendered output from the preceding code cell.
 
 def chebyshev_polynomial(n, x):
     if n == 0:
@@ -861,8 +861,8 @@ The following code computes the coefficients of the first four Hermite polynomia
 
 ```{code-cell} python
 :tags: [hide-input]
-#| label: appendix_ivps-cell-07
-#| caption: Rendered output from the preceding code cell.
+#  label: appendix_ivps-cell-07
+#  caption: Rendered output from the preceding code cell.
 
 def hermite_polynomial(n, x):
     if n == 0:
@@ -1099,8 +1099,8 @@ We select $N$ equally spaced points $\{t_1, \ldots, t_N\}$ in $[0, 2]$ as colloc
 ```{code-cell} python
 :tags: [hide-input]
 
-#| label: appendix_ivps-cell-08
-#| caption: Rendered output from the preceding code cell.
+#  label: appendix_ivps-cell-08
+#  caption: Rendered output from the preceding code cell.
 
 
 import numpy as np

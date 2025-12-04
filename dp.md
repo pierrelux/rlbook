@@ -213,9 +213,8 @@ It's worth noting that while this example uses a relatively simple model, the sa
 ```{code-cell} python
 :tags: [hide-input]
 
-
-#| label: dp-harvest-policy
-#| caption: Dynamic programming harvest example: printed output shows the optimal policy table, resulting population trajectory, and per-period harvests for an initial population of 50 fish.
+#  label: dp-harvest-policy
+#  caption: Dynamic programming harvest example: printed output shows the optimal policy table, resulting population trajectory, and per-period harvests for an initial population of 50 fish.
 
 %config InlineBackend.figure_format = 'retina'
 import numpy as np
@@ -389,9 +388,8 @@ Here is a demonstration of the backward recursion procedure using linear interpo
 ```{code-cell} python
 :tags: [hide-input]
 
-
-#| label: dp-harvest-interp
-#| caption: Backward recursion with linear interpolation: console output summarizes the smoothed optimal policy, state trajectory, and harvest totals for the resource management example.
+#  label: dp-harvest-interp
+#  caption: Backward recursion with linear interpolation: console output summarizes the smoothed optimal policy, state trajectory, and harvest totals for the resource management example.
 
 
 import numpy as np
@@ -509,9 +507,8 @@ Here's a more general implementation which here uses cubic interpolation through
 ```{code-cell} python
 :tags: [hide-input]
 
-
-#| label: dp-harvest-cubic
-#| caption: Cubic interpolation further smooths the optimal harvest policy—this output prints the leading rows of the policy table along with the resulting trajectory and harvest statistics.
+#  label: dp-harvest-cubic
+#  caption: Cubic interpolation further smooths the optimal harvest policy—this output prints the leading rows of the policy table along with the resulting trajectory and harvest statistics.
 
 
 import numpy as np
@@ -1011,10 +1008,8 @@ where the expectation is taken over the harvest and growth rate random variables
 ```{code-cell} python
 :tags: [hide-input]
 
-
-
-#| label: dp-harvest-stochastic
-#| caption: Stochastic resource management simulation: the cell reports the optimal policy sample, average trajectory, and visualizes ensemble trajectories plus the distribution of total harvest.
+#  label: dp-harvest-stochastic
+#  caption: Stochastic resource management simulation: the cell reports the optimal policy sample, average trajectory, and visualizes ensemble trajectories plus the distribution of total harvest.
 
 import numpy as np
 from scipy.interpolate import interp1d
@@ -1514,9 +1509,8 @@ This process can take 10-15 years and cost over $1 billion {cite}`Adams2009`. Th
 ```{code-cell} python
 :tags: [hide-input]
 
-
-#| label: dp-clinical-trials
-#| caption: Clinical trial phase-sizing via backward induction: the console output lists the phase values, recommended enrollment for each phase, and basic sanity checks on the resulting policy.
+#  label: dp-clinical-trials
+#  caption: Clinical trial phase-sizing via backward induction: the console output lists the phase values, recommended enrollment for each phase, and basic sanity checks on the resulting policy.
 
 import numpy as np
 from scipy.stats import binom

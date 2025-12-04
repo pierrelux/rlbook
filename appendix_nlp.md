@@ -43,8 +43,8 @@ In this example, the objective function $f(x_1, x_2)$ is quadratic, the inequali
 ```{code-cell} python
 :tags: [hide-input]
 
-#| label: appendix_nlp-cell-01
-#| caption: Rendered output from the preceding code cell.
+#  label: appendix_nlp-cell-01
+#  caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 import numpy as np
@@ -187,8 +187,8 @@ Let's now solve our example problem above, this time using [Ipopt](https://coin-
 
 ```{code-cell} python
 
-#| label: appendix_nlp-cell-02
-#| caption: Rendered output from the preceding code cell.
+#  label: appendix_nlp-cell-02
+#  caption: Rendered output from the preceding code cell.
 
 from pyomo.environ import *
 from pyomo.opt import SolverFactory
@@ -408,8 +408,8 @@ We can verify numerically (and visually on the following graph) that the point $
 ```{code-cell} python
 :tags: [hide-input]
 
-#| label: appendix_nlp-cell-03
-#| caption: Rendered output from the preceding code cell.
+#  label: appendix_nlp-cell-03
+#  caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 import jax
@@ -729,8 +729,8 @@ This example builds on our previous one but adds a parabola-shaped inequality co
 ```{code-cell} python
 :tags: [hide-input]
 
-#| label: appendix_nlp-cell-04
-#| caption: Rendered output from the preceding code cell.
+#  label: appendix_nlp-cell-04
+#  caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 import jax
@@ -947,8 +947,8 @@ However, as it is widely known from the lessons of GAN (Generative Adversarial N
 ```{code-cell} python
 :tags: [hide-input]
 
-#| label: appendix_nlp-cell-05
-#| caption: Rendered output from the preceding code cell.
+#  label: appendix_nlp-cell-05
+#  caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 import jax

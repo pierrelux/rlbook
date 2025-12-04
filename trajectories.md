@@ -267,9 +267,8 @@ As an example we cast the problem of optimizing a "HTTP retrier with backoff" as
 ```{code-cell} python
 :tags: [hide-input]
 
-
-#| label: fig-ocp-http-retrier
-#| caption: Console output comparing the baseline backoff schedule with SPSA-optimized schedules for the HTTP retrier DOCP, including costs, attempts, and success codes.
+#  label: fig-ocp-http-retrier
+#  caption: Console output comparing the baseline backoff schedule with SPSA-optimized schedules for the HTTP retrier DOCP, including costs, attempts, and success codes.
 
 %config InlineBackend.figure_format = 'retina'
 from dataclasses import dataclass
@@ -1134,9 +1133,8 @@ Single shooting is attractive for its simplicity and compatibility with differen
 ```{code-cell} python
 :tags: [hide-input]
 
-
-#| label: fig-ocp-single-shooting
-#| caption: Single-shooting EV example: the plot shows optimal state trajectories (battery charge and speed) plus the control sequence, while the console reports the optimized control inputs.
+#  label: fig-ocp-single-shooting
+#  caption: Single-shooting EV example: the plot shows optimal state trajectories (battery charge and speed) plus the control sequence, while the console reports the optimized control inputs.
 
 %config InlineBackend.figure_format = 'retina'
 import jax
@@ -1309,9 +1307,8 @@ By adjusting the number of segments $K$, we can interpolate between the two extr
 ```{code-cell} python
 :tags: [hide-input]
 
-
-#| label: fig-ocp-multiple-shooting
-#| caption: Multiple shooting ballistic BVP: the code produces an animation (and optional static plot) that shows how segment defects shrink while steering the projectile to the target.
+#  label: fig-ocp-multiple-shooting
+#  caption: Multiple shooting ballistic BVP: the code produces an animation (and optional static plot) that shows how segment defects shrink while steering the projectile to the target.
 
 %config InlineBackend.figure_format = 'retina'
 """

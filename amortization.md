@@ -27,7 +27,7 @@ The strategies we examine are:
 
 Each approach represents a different point in the computation-accuracy trade-off, and all fit within the FQI template by modifying how targets are computed. 
 
-# Embedded Optimization
+# Explicit Optimization
 
 Recall that in fitted Q methods, the main idea is to compute the Bellman operator only at a subset of all states, relying on function approximation to generalize to the remaining states. At each step of the successive approximation loop, we build a dataset of input state-action pairs mapped to their corresponding optimality operator evaluations: 
 
@@ -249,77 +249,6 @@ $$
 
 computed via the chain rule (backpropagation through the actor into the critic). Modern automatic differentiation libraries handle this composition automatically.
 
-## Euler Equation Methods: Approximating Policies Instead of Values
-
-The weighted residual framework applies to any functional equation arising from an MDP. So far we have applied it to the Bellman equation to approximate the value function. An alternative is to approximate the **optimal policy** directly by enforcing first-order optimality conditions {cite:p}`Judd1992,Rust1996,ndp`.
-
-Consider a control problem with continuous states and actions, deterministic dynamics $s' = f(s,a)$, and reward $r(s,a)$, both continuously differentiable. For each state $s$, the optimal action $\pi^*(s)$ satisfies the first-order condition
-
-$$
-\frac{\partial r(s,a)}{\partial a}\Big|_{a=\pi^*(s)}
-+
-\gamma\, \frac{\partial v^*(s')}{\partial s'}\Big|_{s'=f(s,\pi^*(s))}\,
-\frac{\partial f(s,a)}{\partial a}\Big|_{a=\pi^*(s)}
-=
-0.
-$$ (Euler-raw)
-
-This involves the unknown value gradient $\partial v^*/\partial s'$ evaluated at the next state. In a general MDP, one would need to solve jointly for both the policy and the value-function derivatives.
-
-### The Euler class
-
-Many control problems have additional structure that eliminates $\partial v^*/\partial s$ from the first-order condition. Rust formalizes such problems as an **Euler class** {cite:p}`Rust1996`: the state $s$ can be written as $(s_1, s_2)$ where $s_1$ is controlled (inventory, battery charge, water level) and $s_2$ evolves independently (demand, weather, prices). The transition law factors as
-
-$$
-p(s_1', s_2' \mid s_1, s_2, a)
-=
-\mathbf{1}\{s_1' = f(s_1, a, s_2, s_2')\} \cdot q(s_2' \mid s_2),
-$$
-
-with $f$ continuously differentiable. The **Euler-class condition** requires a function $h(s_1, a, s_2)$ such that
-
-$$
-\frac{\partial f(s_1, a, s_2, s_2')}{\partial s_1}\Big|_{(s_1, a, s_2, s_2')}
-=
-\frac{\partial f(s_1, a, s_2, s_2')}{\partial a}\Big|_{(s_1, a, s_2, s_2')} \cdot h(s_1, a, s_2).
-$$ (EC)
-
-In scalar problems, this means the derivative with respect to the controlled state is proportional to the derivative with respect to the action. For affine dynamics $s_1' = \alpha s_1 + \beta a + \delta$ (where $\alpha, \beta, \delta$ may depend on $s_2, s_2'$), we have $\partial f/\partial s_1 = \alpha$ and $\partial f/\partial a = \beta$, so the condition holds with $h = \alpha/\beta$. This covers inventory ($s_1' = \alpha s_1 + a - D(s_2')$), energy storage ($s_1' = \eta_{\mathrm{ret}} s_1 + \eta_{\mathrm{ch}} a$), reservoir ($s_1' = \alpha s_1 + I(s_2') - a$), and thermal models ($s_1' = \alpha(s_2) s_1 + \beta(s_2) a + \delta(s_2)$).
-
-Under this condition, an envelope formula expresses $\partial v^*(s_1, s_2)/\partial s_1$ purely in terms of $r$, $h$, and $\pi^*$:
-
-$$
-\frac{\partial v^*(s_1, s_2)}{\partial s_1}\Big|_{(s_1, s_2)}
-=
-\frac{\partial r(s_1, s_2, \pi^*(s_1, s_2))}{\partial s_1}\Big|_{(s_1, s_2)}
-+
-\frac{\partial r(s_1, s_2, \pi^*(s_1, s_2))}{\partial a}\Big|_{(s_1, s_2)} \cdot h(s_1, \pi^*(s_1, s_2), s_2).
-$$
-
-Substituting into the first-order condition eliminates $v^*$ entirely, yielding an equation $\mathcal{E}(\pi)(s_1, s_2) = 0$ depending only on primitives $r, f, h, q$ and the policy $\pi$. This transforms a coupled system (policy + value) into a closed functional equation in the policy alone.
-
-
-### Discretization
-
-For a parameterized policy $\pi_{\boldsymbol{\theta}}(s)$, we discretize the Euler equation using weighted residuals. With collocation at points $s_1, \dots, s_N$, we solve
-
-$$
-G(\boldsymbol{\theta}) := \begin{bmatrix}
-\mathcal{E}(\pi_{\boldsymbol{\theta}})(s_1) \\
-\vdots \\
-\mathcal{E}(\pi_{\boldsymbol{\theta}})(s_N)
-\end{bmatrix} = 0.
-$$
-
-With Galerkin projection using test functions $\{\varphi_i\}_{i=1}^M$ and weighting measure $\mu$, we solve
-
-$$
-\int \varphi_i(s) \mathcal{E}(\pi_{\boldsymbol{\theta}})(s) \mu(ds) = 0,
-\quad i = 1,\dots,M.
-$$
-
-The mapping $G$ is nonlinear in $\boldsymbol{\theta}$, requiring Newton-type methods or other root-finding schemes. Unlike the Bellman operator, this operator is not a contraction, so convergence guarantees are problem-dependent.
-
 ## Deep Deterministic Policy Gradient (DDPG)
 
 We now extend NFQCA to the online setting with evolving replay buffers, mirroring how DQN extended NFQI in the [FQI chapter](fqi.md). Just as DQN allowed $\mathcal{B}_t$ and $\hat{P}_{\mathcal{B}_t}$ to evolve during learning instead of using a fixed offline dataset, DDPG {cite:p}`lillicrap2015continuous` collects new transitions during training and stores them in a circular replay buffer.
@@ -477,45 +406,19 @@ This integral is intractable. We face an infinite-dimensional sum over the conti
 
 ## From Intractable Integral to Tractable Expectation
 
-Soft actor-critic (SAC) {cite:p}`haarnoja2018soft,haarnoja2018sacapplications` exploits an equivalence between the intractable integral and an expectation. The optimal policy under entropy regularization is the Boltzmann distribution:
-
-$$
-\pi^*(a|s) = \frac{\exp(\beta \cdot q^*(s,a))}{\int_{\mathcal{A}} \exp(\beta \cdot q^*(s,a')) da'} \propto \exp(\beta \cdot q^*(s,a))
-$$
-
-Under this policy, the soft value function becomes:
+Soft actor-critic (SAC) {cite:p}`haarnoja2018soft,haarnoja2018sacapplications` exploits an equivalence between the intractable integral and an expectation. The optimal policy under entropy regularization is the Boltzmann distribution $\pi^*(a|s) \propto \exp(\beta \cdot q^*(s,a))$. Under this policy, the soft value function becomes:
 
 $$
 v^*(s) = \mathbb{E}_{a \sim \pi^*(\cdot|s)}\left[q^*(s,a) - \alpha \log \pi^*(a|s)\right]
 $$
 
-We have converted an intractable integral into an expectation that we can estimate by sampling. The catch: we need samples from $\pi^*$, which depends on the $q^*$ we are trying to learn.
-
-SAC uses the same policy amortization strategy as DDPG: learn a parametric policy $\pi_{\boldsymbol{\phi}}$ that approximates the optimal stochastic policy (the Boltzmann distribution). The policy enables fast action selection through a single forward pass rather than solving an optimization problem. Exploration comes from the policy's stochasticity rather than from external noise.
-
-## Bootstrap Targets via Single-Sample Estimation
-
-With a learned policy $\pi_{\boldsymbol{\phi}}$, we can compute Q-function bootstrap targets. For a transition $(s,a,r,s')$, we need the soft value at $s'$:
-
-$$
-v(s') = \mathbb{E}_{a' \sim \pi_{\boldsymbol{\phi}}(\cdot|s')}\left[q(s',a') - \alpha \log \pi_{\boldsymbol{\phi}}(a'|s')\right]
-$$
-
-SAC estimates this with a single Monte Carlo sample: draw $\tilde{a}' \sim \pi_{\boldsymbol{\phi}}(\cdot|s')$ and approximate:
+This converts the intractable integral into an expectation we can estimate by sampling. SAC learns a parametric policy $\pi_{\boldsymbol{\phi}}$ that approximates the Boltzmann distribution, enabling fast action selection via a single forward pass. For bootstrap targets, SAC samples $\tilde{a}' \sim \pi_{\boldsymbol{\phi}}(\cdot|s')$ and computes:
 
 $$
 y = r + \gamma \left[\min_{j=1,2} q^j_{\boldsymbol{\theta}_{\text{target}}}(s', \tilde{a}') - \alpha \log \pi_{\boldsymbol{\phi}}(\tilde{a}'|s')\right]
 $$
 
-The minimum over twin Q-networks applies the clipped double-Q trick from TD3. This single-sample approach is computationally efficient: each target requires just one policy sample and two Q-network evaluations.
-
-```{admonition} Historical Note: The V-Network in Original SAC
-:class: dropdown
-
-The original SAC paper {cite:p}`haarnoja2018soft` introduced a separate value network $v_\psi(s)$ trained to predict the entropy-adjusted expectation, amortizing the soft value computation into a single forward pass. Bootstrap targets then used $y = r + \gamma v_{\psi_{\text{target}}}(s')$.
-
-However, the follow-up paper {cite:p}`haarnoja2018sacapplications` showed this V-network is redundant: the single-sample estimate works just as well while simplifying the architecture. All modern implementations (OpenAI Spinning Up, Stable Baselines3, CleanRL) omit the V-network. We present this simplified version throughout.
-```
+The minimum over twin Q-networks applies the clipped double-Q trick from TD3. Exploration comes from the policy's stochasticity rather than external noise.
 
 ## Learning the Policy: Matching the Boltzmann Distribution
 
@@ -920,27 +823,44 @@ MPPI excels at real-time control for systems with fast, accurate models (robotic
 
 The entropy regularization that connects SAC, PCL, and MPPI is not coincidental. All three methods solve variants of the soft Bellman equation. SAC and PCL amortize the solution by learning value functions and policies. MPPI solves it directly through sampling. The Boltzmann weighting emerges in all cases as the optimal policy structure under entropy regularization.
 
+# An Alternative: Euler Equation Methods
+
+The methods developed in this chapter all parameterize policies, but they remain rooted in the Bellman equation. NFQCA, DDPG, TD3, and SAC learn Q-functions through successive approximation, then derive policies by maximizing these Q-functions. PCL minimizes a path residual derived from the soft Bellman equation. The policy serves as an amortized optimizer for a value-based objective.
+
+There is a different approach, developed in computational economics {cite:p}`Judd1992,Rust1996,ndp`, that also parameterizes policies but solves an entirely different functional equation. Consider a control problem with continuous states and actions, deterministic dynamics $s' = f(s,a)$, and differentiable reward $r(s,a)$. The optimal action $\pi^*(s)$ satisfies the first-order condition:
+
+$$
+\frac{\partial r(s,a)}{\partial a}\Big|_{a=\pi^*(s)}
++
+\gamma\, \frac{\partial v^*(s')}{\partial s'}\Big|_{s'=f(s,\pi^*(s))}\,
+\frac{\partial f(s,a)}{\partial a}\Big|_{a=\pi^*(s)}
+=
+0.
+$$
+
+This Euler equation expresses optimality through derivatives rather than through the max operator. For problems with special structure (the Euler class, where dynamics are affine in the controlled state), envelope theorems eliminate $v^*$ entirely, yielding a closed functional equation $\mathcal{E}(\pi)(s) = 0$ in the policy alone.
+
+With a parameterized policy $\pi_{\boldsymbol{\theta}}(s)$, we can discretize via collocation or Galerkin projection:
+
+$$
+G(\boldsymbol{\theta}) := \begin{bmatrix}
+\mathcal{E}(\pi_{\boldsymbol{\theta}})(s_1) \\
+\vdots \\
+\mathcal{E}(\pi_{\boldsymbol{\theta}})(s_N)
+\end{bmatrix} = 0.
+$$
+
+This is root-finding, not fixed-point iteration. Newton-type methods replace the successive approximation of fitted Q-iteration. The Euler operator is not a contraction, so convergence guarantees are problem-dependent.
+
+What does this mean for reinforcement learning? The Euler approach shares the amortization idea: learn a policy network that directly outputs actions. But the training objective comes from first-order optimality conditions rather than from Bellman residuals or Q-function maximization. This raises questions worth considering. Could Euler-style objectives provide useful training signals for actor-critic methods? When dynamics are known or learned, could first-order conditions offer advantages over value-based objectives? The connection between these traditions remains underexplored.
+
 # Summary
 
-This chapter addressed the computational barrier that arises when extending value-based fitted methods to continuous action spaces. The core issue is tractability: computing $\max_{a \in \mathbb{R}^m} q(s,a;\boldsymbol{\theta})$ at each Bellman target evaluation requires solving a nonlinear optimization problem. For replay buffers containing millions of transitions, repeatedly solving these optimization problems becomes prohibitive.
+When actions are continuous, computing $\max_{a} q(s,a;\boldsymbol{\theta})$ at each Bellman target requires solving a nonlinear program. Amortization replaces this runtime optimization with a learned policy network: a single forward pass instead of an optimization loop. The FQI structure from the [previous chapter](fqi.md) remains intact, with the policy network providing actions for target computation.
 
-The solution we developed is **amortization**: invest computational effort during training to learn a policy network that replaces runtime optimization with fast forward passes. This strategy keeps us firmly within the dynamic programming framework. We still compute Bellman operators and maintain Q-functions. The amortization makes these operations tractable by replacing explicit $\arg\max$ operations with learned policy networks.
+NFQCA, DDPG, TD3, and SAC use successive approximation: compute Bellman targets, fit Q-function to targets, update policy to maximize Q-function. Deterministic policies (DDPG, TD3) require external exploration noise; stochastic policies (SAC) explore through their inherent randomness. TD3 and SAC use twin Q-networks with $\min(q^1, q^2)$ to mitigate overestimation. PCL takes a different approach, minimizing the path consistency residual directly rather than iterating the Bellman operator. This requires deterministic dynamics but enables multi-step constraints without importance sampling.
 
-Most methods (NFQCA, DDPG, TD3, SAC) follow the **successive approximation** paradigm: compute Bellman targets, fit to targets, repeat. PCL takes a different approach, directly minimizing a **residual** (the path consistency residual) rather than iterating the Bellman operator. This aligns PCL with least-squares residual methods from the [projection methods chapter](projection.md), rather than function iteration.
+MPPI forgoes learning entirely, performing Boltzmann-weighted optimization at every decision. This avoids policy approximation error but requires $O(KH)$ model rollouts per action. SAC, PCL, and MPPI all solve entropy-regularized objectives; SAC and PCL amortize the solution while MPPI computes it directly.
 
-All methods share the core amortization idea but differ along several dimensions:
-
-**Solution methodology.** NFQCA, DDPG, TD3, and SAC use **successive approximation** (function iteration): compute Bellman targets, fit to targets, repeat. This is the $v_{k+1} = \Proj \Bellman v_k$ paradigm from the [projection methods chapter](projection.md). PCL uses **residual minimization**: directly minimize the squared path residual $\sum_i R_i^2$ via gradient descent. This is the least-squares approach where we solve $\Residual(v) = 0$ by minimizing $\|\Residual(v)\|^2$ rather than iterating the operator.
-
-**Policy class**: Deterministic policies (NFQCA, DDPG, TD3) output a single action $\pi_{\boldsymbol{w}}(s)$ and approximate $\arg\max_a q(s,a;\boldsymbol{\theta})$ by maximizing $q(s,\pi_{\boldsymbol{w}}(s);\boldsymbol{\theta})$. This requires external exploration noise during training. Stochastic policies (SAC, PCL) output a distribution $\pi_{\boldsymbol{w}}(a|s)$ and approximate the Boltzmann distribution under entropy regularization. Exploration comes from sampling the stochastic policy.
-
-**Temporal structure**: Single-step methods (NFQCA, DDPG, TD3, SAC) use one-step Bellman backups with targets $r + \gamma V(s')$. SAC estimates $V(s')$ via single-sample Monte Carlo. PCL exploits deterministic dynamics to chain the Bellman equation over $d$ steps, using observed action sequences and accumulating rewards along entire path segments.
-
-**Target networks**: Methods based on successive approximation (NFQCA, DDPG, TD3, SAC) use target networks that mark outer-iteration boundaries in the flattened FQI structure. PCL has no target networks because it minimizes a residual rather than fitting to computed targets. The twin Q-network trick (TD3, SAC) uses $\min(q^1, q^2)$ to mitigate overestimation; PCL avoids this issue through the residual minimization structure.
-
-All amortized methods remain fundamentally value-based: they maintain Q-functions, compute approximate Bellman operators, and derive policies from learned value estimates. This connection to dynamic programming provides theoretical grounding (we know these methods implement approximate successive approximation of the Bellman equation) but also imposes structure. The policy must track the Q-function's implied greedy policy (in DDPG/TD3) or Boltzmann distribution (in SAC). When the Q-function is inaccurate, which is inevitable with function approximation, the policy inherits these errors.
-
-MPPI provides a counterpoint to amortization. Rather than learning a policy that generalizes across states, it performs full optimization at every decision. This avoids policy approximation error but requires $O(KH)$ model evaluations per action. The Boltzmann weighting that MPPI uses connects it to SAC and PCL: all three solve entropy-regularized objectives, but SAC and PCL amortize the solution while MPPI computes it directly.
-
-The next chapter takes a different perspective. Rather than extending DP-based value methods to continuous actions through amortization, we parameterize the policy directly and optimize it via gradient ascent on expected return. This shifts the fundamental question from "how do we compute $\max_a q(s,a)$ efficiently?" to "how do we estimate $\nabla_{\boldsymbol{\theta}} \mathbb{E}_{\tau \sim p_{\boldsymbol{\theta}}}[R(\tau)]$ accurately?" The resulting policy gradient methods are DP-agnostic: they work without Bellman equations, Q-functions, or value estimates. This removes the scaffolding of dynamic programming while introducing new challenges in gradient estimation and variance reduction.
+The [next chapter](pg.md) takes a different approach: parameterize the policy directly and optimize via gradient ascent on expected return. The starting point is derivative estimation for stochastic optimization rather than Bellman equations, though value functions return as variance reduction tools in actor-critic methods.
 

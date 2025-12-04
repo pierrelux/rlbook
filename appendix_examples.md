@@ -50,8 +50,8 @@ We expect that when no control is applied to the system, the rod should be falli
 ```{code-cell} python
 :tags: [hide-input]
 
-#| label: appendix_examples-cell-01
-#| caption: Rendered output from the preceding code cell.
+#  label: appendix_examples-cell-01
+#  caption: Rendered output from the preceding code cell.
 
 %config InlineBackend.figure_format = 'retina'
 import numpy as np
