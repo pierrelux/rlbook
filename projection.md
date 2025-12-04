@@ -16,7 +16,7 @@ kernelspec:
 
 The Bellman optimality equation $\Bellman v = v$ is a functional equation: an equation where the unknown is an entire function rather than a finite-dimensional vector. When the state space is continuous or very large, we cannot represent the value function exactly on a computer. We must instead work with finite-dimensional approximations. This motivates weighted residual methods (also called minimum residual methods), a general framework for transforming infinite-dimensional problems into tractable finite-dimensional ones {cite}`Chakraverty2019,AtkinsonPotra1987`.
 
-## What Does It Mean for a Residual to Be Zero?
+## Testing Whether a Residual Vanishes
 
 Consider a functional equation $\Residual(f) = 0$, where $\Residual$ is an operator and the unknown $f$ is an entire function (in our case, the Bellman optimality equation $\Bellman v = v$, which we can write as $\Residual(v) \equiv \Bellman v - v = 0$). Suppose we have found a candidate approximate solution $\hat{f}$. To verify it satisfies $\Residual(\hat{f}) = 0$, we compute the **residual function** $R(s) = \Residual(\hat{f})(s)$. For a true solution, this residual should be the **zero function**: $R(s) = 0$ for every state $s$. 
 
@@ -66,7 +66,7 @@ where $\Residual: B_1 \to B_2$ is a continuous operator between complete normed 
 
 Just as we transcribed infinite-dimensional continuous optimal control problems into finite-dimensional discrete optimal control problems in earlier chapters, we seek a finite-dimensional approximation to this infinite-dimensional functional equation. Recall that for continuous optimal control, we adopted control parameterization: we represented the control trajectory using a finite set of basis functions (piecewise constants, polynomials, splines) and searched over the finite-dimensional coefficient space instead of the infinite-dimensional function space. For integrals in the objective and constraints, we used numerical quadrature to approximate them with finite sums.
 
-We follow the same strategy here. We parameterize the value function using a finite set of basis functions $\{\varphi_1, \ldots, \varphi_n\}$—commonly polynomials (Chebyshev, Legendre), though other function classes (splines, radial basis functions, neural networks) are possible—and search for coefficients $\theta = (\theta_1, \ldots, \theta_n)$ in $\mathbb{R}^n$. When integrals appear in the Bellman operator or projection conditions, we approximate them using numerical quadrature. The projection method approach consists of several conceptual steps that accomplish this transcription.
+We follow the same strategy here. We parameterize the value function using a finite set of basis functions $\{\varphi_1, \ldots, \varphi_n\}$, commonly polynomials (Chebyshev, Legendre), though other function classes (splines, radial basis functions, neural networks) are possible, and search for coefficients $\theta = (\theta_1, \ldots, \theta_n)$ in $\mathbb{R}^n$. When integrals appear in the Bellman operator or projection conditions, we approximate them using numerical quadrature. The projection method approach consists of several conceptual steps that accomplish this transcription.
 
 ### Step 1: Choose a Finite-Dimensional Approximation Space
 
@@ -247,11 +247,11 @@ Different weighted residual methods answer this differently. For **collocation**
 
 In matrix form: $\boldsymbol{\Phi} \theta^{(k+1)} = t^{(k)}$, where $\boldsymbol{\Phi}$ is the collocation matrix with entries $\Phi_{ij} = \varphi_j(x_i)$. Solving this system gives $\theta^{(k+1)} = \boldsymbol{\Phi}^{-1} t^{(k)}$.
 
-For **Galerkin**, the projection condition $\langle \hat{f}^{(k+1)} - \Contraction \hat{f}^{(k+1)}, \varphi_i \rangle_w = 0$ directly gives a system for $\theta^{(k+1)}$. When $\Contraction$ is linear in its argument (as in many integral equations), this is a linear system. When $\Contraction$ is nonlinear (as in the Bellman equation), we must solve a nonlinear system at each iteration—though each solution still only involves $n$ unknowns rather than an infinite-dimensional function.
+For **Galerkin**, the projection condition $\langle \hat{f}^{(k+1)} - \Contraction \hat{f}^{(k+1)}, \varphi_i \rangle_w = 0$ directly gives a system for $\theta^{(k+1)}$. When $\Contraction$ is linear in its argument (as in many integral equations), this is a linear system. When $\Contraction$ is nonlinear (as in the Bellman equation), we must solve a nonlinear system at each iteration, though each solution still only involves $n$ unknowns rather than an infinite-dimensional function.
 
-When $\Contraction$ is a contraction in the infinite-dimensional space with constant $\gamma < 1$, iterating it pulls any starting function toward the unique fixed point. The hope is that the finite-dimensional operator—evaluating $\Contraction$ and projecting back onto the span of the basis functions—inherits this contraction property. When it does, function iteration converges globally from any initial guess, with each iteration reducing the error by a factor of roughly $\gamma$. This is computationally attractive: we only evaluate the operator and solve a linear system (for collocation) or a relatively simple system (for other methods).
+When $\Contraction$ is a contraction in the infinite-dimensional space with constant $\gamma < 1$, iterating it pulls any starting function toward the unique fixed point. The hope is that the finite-dimensional operator, evaluating $\Contraction$ and projecting back onto the span of the basis functions, inherits this contraction property. When it does, function iteration converges globally from any initial guess, with each iteration reducing the error by a factor of roughly $\gamma$. This is computationally attractive: we only evaluate the operator and solve a linear system (for collocation) or a relatively simple system (for other methods).
 
-However, the finite-dimensional approximation doesn't always preserve contraction. High-order polynomial bases, in particular, can create oscillations between basis functions that amplify rather than contract errors. Even when contraction is preserved, convergence can be painfully slow when $\gamma$ is close to 1—the "weak contraction" regime common in economic problems with patient agents ($\gamma \approx 0.95$ or higher). Finally, not all operator equations naturally present themselves as contractions; some require reformulation (like $f = f - \alpha \Residual(f)$), and finding a good $\alpha$ can be problem-specific.
+However, the finite-dimensional approximation doesn't always preserve contraction. High-order polynomial bases, in particular, can create oscillations between basis functions that amplify rather than contract errors. Even when contraction is preserved, convergence can be painfully slow when $\gamma$ is close to 1, the "weak contraction" regime common in economic problems with patient agents ($\gamma \approx 0.95$ or higher). Finally, not all operator equations naturally present themselves as contractions; some require reformulation (like $f = f - \alpha \Residual(f)$), and finding a good $\alpha$ can be problem-specific.
 
 ##### Method 2: Newton's Method
 
@@ -337,7 +337,7 @@ $$
 R(s; \theta) = \Bellman\hat{v}(s) - \hat{v}(s) = \max_{a \in \mathcal{A}_s} \left\{ r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) \hat{v}(j) \right\} - \sum_{i=1}^n \theta_i \varphi_i(s).
 $$
 
-We examine how collocation and Galerkin—the two most common weighted residual methods for Bellman equations—specialize the general solution approaches from Step 4.
+We examine how collocation and Galerkin, the two most common weighted residual methods for Bellman equations, specialize the general solution approaches from Step 4.
 
 ### Collocation
 
@@ -590,7 +590,72 @@ This is **LSPI (Least Squares Policy Iteration)**. Each Newton step:
 
 Newton's method for the Galerkin-projected Bellman optimality equation is equivalent to policy iteration in the function approximation setting. Just as Newton's method for collocation corresponded to policy iteration (Step 4), Newton's method for discrete Galerkin gives LSPI.
 
-Galerkin projection with linear function approximation reduces policy iteration to a sequence of linear systems, each solvable in closed form. For discrete MDPs, we can compute the matrices $\boldsymbol{\Phi}^\top \boldsymbol{\Xi} \boldsymbol{\Phi}$ and $\boldsymbol{\Phi}^\top \boldsymbol{\Xi} \mathbf{P}_\pi \boldsymbol{\Phi}$ exactly. In the next section, we examine how these methods extend to the simulation-based setting, where we must estimate these matrices from samples rather than computing them exactly from the model.
+Galerkin projection with linear function approximation reduces policy iteration to a sequence of linear systems, each solvable in closed form. For discrete MDPs, we can compute the matrices $\boldsymbol{\Phi}^\top \boldsymbol{\Xi} \boldsymbol{\Phi}$ and $\boldsymbol{\Phi}^\top \boldsymbol{\Xi} \mathbf{P}_\pi \boldsymbol{\Phi}$ exactly.
+
+## Fitted-Value/Q Iteration (FVI/FQI)
+
+We have developed weighted residual methods through abstract functional equations: choose test functions, impose orthogonality conditions $\langle R, p_i \rangle_w = 0$, solve for coefficients. But what are we actually computing when we solve these equations by successive approximation? The answer is simpler than the formalism suggests: **function iteration with a fitting step**.
+
+Recall that the weighted residual conditions $\langle v - \Bellman v, p_i \rangle_w = 0$ define a fixed-point problem $v = \Proj \Bellman v$, where $\Proj$ is a projection operator onto $\text{span}(\boldsymbol{\Phi})$. We can solve this by iteration: $v_{k+1} = \Proj \Bellman v_k$. Under appropriate conditions (monotonicity of $\Proj$, or matching the weight to the operator for policy evaluation), this converges to a solution.
+
+In parameter space, this iteration becomes a fitting procedure. Consider Galerkin projection with a finite state space of $n$ states. Let $\boldsymbol{\Phi}$ be the $n \times d$ matrix of basis evaluations, $\mathbf{W}$ the diagonal weight matrix, and $\mathbf{y}$ the vector of Bellman operator evaluations: $y_i = (\Bellman v_k)(s_i)$. The projection is:
+
+$$
+\boldsymbol{\theta}_{k+1} = (\boldsymbol{\Phi}^\top \mathbf{W} \boldsymbol{\Phi})^{-1} \boldsymbol{\Phi}^\top \mathbf{W} \mathbf{y}.
+$$
+
+This is weighted least-squares regression: fit $\boldsymbol{\Phi} \boldsymbol{\theta}$ to targets $\mathbf{y}$. For collocation, we require exact interpolation $\boldsymbol{\Phi} \boldsymbol{\theta}_{k+1} = \mathbf{y}$ at chosen collocation points. For continuous state spaces, we approximate the Galerkin integrals using sampled states, reducing to the same finite-dimensional fitting problem. The abstraction remains consistent: function iteration in the abstract becomes **generate targets, fit to targets, repeat** in the implementation.
+
+This extends beyond linear basis functions. Neural networks, decision trees, and kernel methods all implement variants of this procedure. Given data $\{(s_i, y_i)\}$ where $y_i = (\Bellman v_k)(s_i)$, each method produces a function $v_{k+1}: \mathcal{S} \to \mathbb{R}$ by fitting to the targets. The projection operator $\Proj$ is simply one instantiation of a fitting procedure. Galerkin and collocation correspond to specific choices of approximation class and loss function.
+
+```{prf:algorithm} Fitted-Value Iteration
+:label: fitted-value-iteration
+
+**Inputs:** Finite state set $\mathcal{S}$ (or sample $\{s_i\}_{i=1}^n$), discount factor $\gamma$, function class $\mathcal{F}$, fitting procedure $\mathtt{fit}$, convergence tolerance $\epsilon$
+
+**Output:** Approximate value function $\hat{v} \approx v^*$
+
+1. Initialize $v_0 \in \mathcal{F}$ arbitrarily
+2. Set $k \leftarrow 0$
+3. **repeat**
+4. $\quad$ **for** each state $s_i \in \mathcal{S}$ **do**
+5. $\quad\quad$ Compute target: $y_i \leftarrow \displaystyle\max_{a \in \mathcal{A}} \Big\{ r(s_i, a) + \gamma \sum_{s'} p(s' \mid s_i, a) v_k(s') \Big\}$
+6. $\quad$ **end for**
+7. $\quad$ Fit new approximation: $v_{k+1} \leftarrow \mathtt{fit}\big(\{(s_i, y_i)\}_{i=1}^n; \mathcal{F}\big)$
+8. $\quad$ $k \leftarrow k+1$
+9. **until** $\|v_k - v_{k-1}\| < \epsilon$ (or maximum iterations reached)
+10. **return** $v_k$
+```
+
+The abstraction $\mathtt{fit}$ encapsulates all the complexity of function approximation, whether that involves solving a linear system, running gradient descent, or training an ensemble. The projection operator $\Proj$ is one instantiation: when $\mathcal{F}$ is a linear subspace and we minimize weighted squared error, we recover Galerkin or collocation. Neural networks and other non-linear methods extend this framework beyond theoretical tractability.
+
+### Extension to Nonlinear Approximators
+
+The weighted residual methods developed so far have focused on linear function classes: polynomial bases, piecewise linear interpolants, and linear combinations of fixed basis functions. Neural networks, kernel methods, and decision trees do not fit this template. How does the framework extend to nonlinear approximators?
+
+Recall the Galerkin approach for linear approximation $v_{\boldsymbol{\theta}} = \sum_{i=1}^d \theta_i \varphi_i$. The orthogonality conditions $\langle v - \Bellman v, \varphi_i \rangle_w = 0$ for all $i$ define a linear system with a closed-form solution. These equations arise from minimizing $\|v - \Bellman v\|_w^2$ over the subspace, since at the minimum, the gradient with respect to each coefficient must vanish. The connection between norm minimization and orthogonality holds generally. For any norm $\|\cdot\|_w$ induced by an inner product $\langle \cdot, \cdot \rangle_w$, minimizing $\|f(\boldsymbol{\theta})\|_w^2$ with respect to parameters requires $\frac{\partial}{\partial \theta_i} \|f(\boldsymbol{\theta})\|_w^2 = 0$. Since $\|f\|_w^2 = \langle f, f \rangle_w$, the chain rule gives $2\langle f, \frac{\partial f}{\partial \theta_i} \rangle_w = 0$. Minimizing the residual norm is thus equivalent to requiring orthogonality $\langle f, \frac{\partial f}{\partial \theta_i} \rangle_w = 0$ for all $i$. The equivalence holds for any choice of inner product: weighted $L^2$ integrals for Galerkin, sums over collocation points for collocation, or sampled expectations for neural networks.
+
+For nonlinear function classes parameterized by $\boldsymbol{\theta} \in \mathbb{R}^p$ (neural networks, kernel expansions), the same minimization principle applies:
+
+$$
+\boldsymbol{\theta}^* = \arg\min_{\boldsymbol{\theta}} \|v_{\boldsymbol{\theta}} - \Bellman v_{\boldsymbol{\theta}}\|_w^2.
+$$
+
+The first-order stationarity condition yields orthogonality:
+
+$$
+\Big\langle v_{\boldsymbol{\theta}} - \Bellman v_{\boldsymbol{\theta}}, \frac{\partial v_{\boldsymbol{\theta}}}{\partial \theta_i} \Big\rangle_w = 0 \quad \text{for all } i.
+$$
+
+The test functions are now the partial derivatives $\frac{\partial v_{\boldsymbol{\theta}}}{\partial \theta_i}$, which span the tangent space to the manifold $\{v_{\boldsymbol{\theta}} : \boldsymbol{\theta} \in \mathbb{R}^p\}$ at the current parameters. In the linear case $v_{\boldsymbol{\theta}} = \sum_i \theta_i \varphi_i$, the partial derivative $\frac{\partial v_{\boldsymbol{\theta}}}{\partial \theta_i} = \varphi_i$ recovers the fixed basis functions of Galerkin. For nonlinear parameterizations, the test functions change with $\boldsymbol{\theta}$, and the orthogonality conditions define a nonlinear system solved by iterative gradient descent.
+
+The **dual pairing** formulation {cite}`LegrandJunca2025` extends this framework to settings where test objects need not be regular functions. We have been informal about this distinction in our treatment of collocation, but the Dirac deltas $\delta(x - x_i)$ used there are not classical functions. They are distributions, defined rigorously only through their action on test functions via $\langle \Residual(v), \delta(x - x_i) \rangle = (\Residual v)(x_i)$. The simple calculus argument for orthogonality does not apply directly to such objects; the dual pairing framework provides the proper mathematical foundation. The induced dual norm $\|\Residual(v)\|_* = \sup_{\|w\|=1} |\langle \Residual(v), w \rangle|$ measures residuals by their worst-case effect on test functions, a perspective that has inspired adversarial formulations {cite}`Zang2020` where both trial and test functions are learned.
+
+The minimum residual framework thus connects classical projection methods to modern function approximation. The unifying principle is orthogonality of residuals to test functions. Linear methods use fixed test functions and admit closed-form solutions. Nonlinear methods use parameter-dependent test functions and require iterative optimization.
+
+A limitation of FVI/FQI is that it assumes we can evaluate the Bellman operator exactly. Computing $y_i = (\Bellman v_k)(s_i)$ requires knowing transition probabilities and summing over all next states. In practice, we often have only a simulator or observed data. A later chapter shows how to approximate these expectations from samples, connecting the fitted-value iteration framework to simulation-based methods.
+
+We now turn to the question of convergence: when does the iteration $v_{k+1} = \Proj \Bellman v_k$ converge?
 
 ## Monotone Projection and the Preservation of Contraction
 
@@ -621,7 +686,7 @@ But regardless of which projection method we use, iteration takes the form $\hat
 
 ### Monotone Approximators and Stability
 
-The answer turns out to depend on specific properties of the approximation operator $\Proj$. This theory was developed independently across multiple research communities—computational economics {cite}`Judd1992,Judd1996,McGrattan1997,SantosVigoAguiar1998`, economic dynamics {cite}`Stachurski2009`, and reinforcement learning {cite}`Gordon1995,Gordon1999`—arriving at essentially the same mathematical conditions.
+The answer turns out to depend on specific properties of the approximation operator $\Proj$. This theory was developed independently across multiple research communities: computational economics {cite}`Judd1992,Judd1996,McGrattan1997,SantosVigoAguiar1998`, economic dynamics {cite}`Stachurski2009`, and reinforcement learning {cite}`Gordon1995,Gordon1999`. These communities arrived at essentially the same mathematical conditions.
 
 #### Monotonicity Implies Nonexpansiveness
 
@@ -710,15 +775,15 @@ The following table summarizes which common approximation operators satisfy the 
 | Fourier/spectral methods | No | Not monotone-preserving in general |
 | Neural networks | No | Highly flexible but no monotonicity guarantees |
 
-The distinction between "safe" (monotone) and "potentially unstable" (non-monotone) approximators provides rigorous foundation for the folk wisdom that linear interpolation is reliable while high-order polynomials can be dangerous for value iteration. But notice that the table's verdict on "least squares projection" is somewhat abstract—it doesn't specifically address the three weighted residual methods we introduced at the start of this chapter.
+The distinction between "safe" (monotone) and "potentially unstable" (non-monotone) approximators provides rigorous foundation for the folk wisdom that linear interpolation is reliable while high-order polynomials can be dangerous for value iteration. But notice that the table's verdict on "least squares projection" is somewhat abstract. It doesn't specifically address the three weighted residual methods we introduced at the start of this chapter.
 
 The choice of solution method determines which approximation operators are safe to use. Successive approximation (fixed-point iteration) requires monotone approximators to guarantee convergence. Rootfinding methods like Newton's method do not require monotonicity. Stability depends on numerical properties of the Jacobian rather than contraction preservation. These considerations suggest hybrid strategies. One approach runs a few iterations with a monotone method to generate an initial guess, then switches to Newton's method with a smooth approximation for rapid final convergence. 
 
 ### Connecting Back to Collocation, Galerkin, and Least Squares
 
-We have now developed a general stability theory for projected value iteration and surveyed which approximation operators are monotone. But what does this mean for the three specific weighted residual methods we introduced at the start of this chapter—**collocation**, **Galerkin**, and **least squares**? Each method defines a different projection operator $\Proj$, and we now need to determine which satisfy the monotonicity conditions that guarantee convergence.
+We have now developed a general stability theory for projected value iteration and surveyed which approximation operators are monotone. But what does this mean for the three specific weighted residual methods we introduced at the start of this chapter: **collocation**, **Galerkin**, and **least squares**? Each method defines a different projection operator $\Proj$, and we now need to determine which satisfy the monotonicity conditions that guarantee convergence.
 
-**Collocation with piecewise linear interpolation is monotone.** When we use collocation with piecewise linear basis functions on a grid, the projection operator performs linear interpolation between grid points. At any state $s$ between grid points $s_i$ and $s_{i+1}$, the interpolated value is:
+Collocation with piecewise linear interpolation is monotone. When we use collocation with piecewise linear basis functions on a grid, the projection operator performs linear interpolation between grid points. At any state $s$ between grid points $s_i$ and $s_{i+1}$, the interpolated value is:
 
 $$
 (\Proj v)(s) = \frac{s_{i+1} - s}{s_{i+1} - s_i} v(s_i) + \frac{s - s_i}{s_{i+1} - s_i} v(s_{i+1}).
@@ -726,7 +791,7 @@ $$
 
 The interpolation weights (barycentric coordinates) are nonnegative and sum to one, making this an averager in Gordon's sense. Therefore collocation with piecewise linear bases satisfies the monotonicity conditions and the Santos-Vigo-Aguiar stability theorem applies. The folk wisdom that "linear interpolation is safe for value iteration" has rigorous theoretical foundation.
 
-**Galerkin projection is generally not monotone.** The Galerkin projection operator for a general basis $\{\varphi_1, \ldots, \varphi_n\}$ has the form:
+Galerkin projection is generally not monotone. The Galerkin projection operator for a general basis $\{\varphi_1, \ldots, \varphi_n\}$ has the form:
 
 $$
 \Proj = \boldsymbol{\Phi}(\boldsymbol{\Phi}^\top \mathbf{W} \boldsymbol{\Phi})^{-1} \boldsymbol{\Phi}^\top \mathbf{W},
@@ -736,15 +801,15 @@ where $\mathbf{W}$ is a diagonal weight matrix and $\boldsymbol{\Phi}$ contains 
 
 Since Galerkin projection is not monotone, the sup norm contraction theory does not guarantee convergence of projected value iteration $v_{k+1} = \Proj \Bellman v_k$ with Galerkin.
 
-**Least squares methods share the non-monotonicity issue.** The least squares projection operator minimizes $\|\Residual(\hat{f})\|_w^2$ and has the same mathematical form as Galerkin projection. It is a linear projection onto $\text{span}\{\varphi_1, \ldots, \varphi_n\}$ with respect to a weighted inner product. Like Galerkin, the projection matrix typically contains negative entries and violates monotonicity.
+Least squares methods share the non-monotonicity issue. The least squares projection operator minimizes $\|\Residual(\hat{f})\|_w^2$ and has the same mathematical form as Galerkin projection. It is a linear projection onto $\text{span}\{\varphi_1, \ldots, \varphi_n\}$ with respect to a weighted inner product. Like Galerkin, the projection matrix typically contains negative entries and violates monotonicity.
 
-**The gap in our theory.** The monotone approximator framework successfully covers collocation with simple bases, but leaves two important methods—Galerkin and least squares—without convergence guarantees. These methods are used in least-squares temporal difference learning (LSTD) and modern reinforcement learning with linear function approximation. We need a different analytical framework to understand when these non-monotone projections lead to convergent algorithms.
+The monotone approximator framework successfully covers collocation with simple bases, but leaves two important methods, Galerkin and least squares, without convergence guarantees. These methods are used in least-squares temporal difference learning (LSTD) and modern reinforcement learning with linear function approximation. We need a different analytical framework to understand when these non-monotone projections lead to convergent algorithms.
 
 ## Beyond Monotone Approximators
 
 The monotone approximator theory gives us a clean sufficient condition for convergence: if $\Proj$ is monotone (and constant-preserving), then $\Proj$ is non-expansive in the sup norm $\|\cdot\|_\infty$. Since $\Bellman$ is a $\gamma$-contraction in the sup norm, their composition $\Proj \Bellman$ is also a $\gamma$-contraction in the sup norm, guaranteeing convergence of projected value iteration.
 
-But what if $\Proj$ is not monotone? Can we still guarantee convergence? Galerkin and least squares projections typically violate monotonicity, yet they are widely used in practice, particularly in reinforcement learning through least-squares temporal difference learning (LSTD). In general, proving convergence for non-monotone projections is difficult. However, for the special case of **policy evaluation**—computing the value function $v_\pi$ of a fixed policy $\pi$—we can establish convergence by working in a different norm.
+But what if $\Proj$ is not monotone? Can we still guarantee convergence? Galerkin and least squares projections typically violate monotonicity, yet they are widely used in practice, particularly in reinforcement learning through least-squares temporal difference learning (LSTD). In general, proving convergence for non-monotone projections is difficult. However, for the special case of **policy evaluation**, computing the value function $v_\pi$ of a fixed policy $\pi$, we can establish convergence by working in a different norm.
 
 ### The Policy Evaluation Problem and LSTD
 
@@ -877,9 +942,9 @@ The result shows that convergence depends on matching the weighting to the opera
 
 In reinforcement learning, this has a practical interpretation. When we learn by following policy $\pi$ and collecting transitions $(s, a, r, s')$, the states we visit are distributed according to the stationary distribution of $\pi$. This is **on-policy learning**. The LSTD algorithm uses data sampled from this distribution, which means the empirical weighting naturally matches the operator structure. Our analysis shows that the iterative algorithm $v_{k+1} = \Proj \BellmanPi v_k$ converges to the same fixed point that LSTD computes in closed form.
 
-This is fundamentally different from the monotone approximator theory. There, we required structural properties of $\Proj$ itself (monotonicity, constant preservation) to guarantee that $\Proj$ preserves the sup-norm contraction property of $\Bellman$. Here, we place no such restriction on $\Proj$—Galerkin projection is not monotone. Instead, convergence depends on matching the norm to the operator. When $\xi$ does not match the stationary distribution, as in off-policy learning where data comes from a different behavior policy, the Jensen inequality argument breaks down. The operator $\mathbf{P}_\pi$ need not be non-expansive in $\|\cdot\|_\xi$, and $\Proj \BellmanPi$ may fail to contract. This explains divergence phenomena such as Baird's counterexample {cite}`Baird1995`.
+This is fundamentally different from the monotone approximator theory. There, we required structural properties of $\Proj$ itself (monotonicity, constant preservation) to guarantee that $\Proj$ preserves the sup-norm contraction property of $\Bellman$. Here, we place no such restriction on $\Proj$. Galerkin projection is not monotone. Instead, convergence depends on matching the norm to the operator. When $\xi$ does not match the stationary distribution, as in off-policy learning where data comes from a different behavior policy, the Jensen inequality argument breaks down. The operator $\mathbf{P}_\pi$ need not be non-expansive in $\|\cdot\|_\xi$, and $\Proj \BellmanPi$ may fail to contract. This explains divergence phenomena such as Baird's counterexample {cite}`Baird1995`.
 
-### Why Not Bellman Optimality?
+### The Bellman Optimality Case
 
 Can we extend this weighted $L^2$ analysis to the Bellman optimality operator $\Bellman v = \max_a [r_a + \gamma \mathbf{P}_a v]$? The answer is no, at least not with this approach. The obstacle appears at the Jensen inequality step. For policy evaluation, we had:
 
@@ -897,66 +962,10 @@ But the maximum of convex combinations is not itself a convex combination. It is
 
 Is convergence of $\Proj \Bellman$ with Galerkin projection impossible, or merely difficult to prove? The situation is subtle. In practice, fitted Q-iteration and approximate value iteration with neural networks often work well, suggesting that some form of stability exists. But there are also well-documented divergence examples (e.g., Q-learning with linear function approximation can diverge). The theoretical picture remains incomplete. Some results exist for restricted function classes or under strong assumptions on the MDP structure, but no general convergence guarantee like the policy evaluation result is available. The interplay between the max operator, the projection, and the norm geometry is not well understood. This is an active area of research in reinforcement learning theory.
 
-## From Abstract to Practical: Fitted-Value Iteration
+## Summary
 
-We have developed weighted residual methods through abstract functional equations: choose test functions, impose orthogonality conditions $\langle R, p_i \rangle_w = 0$, solve for coefficients. But what are we actually computing when we solve these equations by successive approximation? The answer is simpler than the formalism suggests: **function iteration with a fitting step**.
+This chapter developed weighted residual methods for solving functional equations like the Bellman equation. We approximate the value function using a finite basis, then impose conditions that make the residual orthogonal to chosen test functions. Different choices of test functions yield different methods: Galerkin tests against the basis itself, collocation tests at specific points, and least squares minimizes the residual norm. All reduce to the same computational pattern: generate Bellman targets, fit a function approximator, repeat.
 
-Recall that the weighted residual conditions $\langle v - \Bellman v, p_i \rangle_w = 0$ define a fixed-point problem $v = \Proj \Bellman v$, where $\Proj$ is a projection operator onto $\text{span}(\boldsymbol{\Phi})$. We can solve this by iteration: $v_{k+1} = \Proj \Bellman v_k$. Under appropriate conditions (monotonicity of $\Proj$, or matching the weight to the operator for policy evaluation), this converges to a solution.
+Convergence depends on how the projection interacts with the Bellman operator. For monotone projections (piecewise linear interpolation, state aggregation), the composition $\Proj \Bellman$ inherits the contraction property and iteration converges. For non-monotone projections like Galerkin, convergence requires matching the weighting to the stationary distribution, which holds in on-policy settings. The Bellman optimality case remains theoretically incomplete.
 
-In parameter space, this iteration becomes a fitting procedure. Consider Galerkin projection with a finite state space of $n$ states. Let $\boldsymbol{\Phi}$ be the $n \times d$ matrix of basis evaluations, $\mathbf{W}$ the diagonal weight matrix, and $\mathbf{y}$ the vector of Bellman operator evaluations: $y_i = (\Bellman v_k)(s_i)$. The projection is:
-
-$$
-\boldsymbol{\theta}_{k+1} = (\boldsymbol{\Phi}^\top \mathbf{W} \boldsymbol{\Phi})^{-1} \boldsymbol{\Phi}^\top \mathbf{W} \mathbf{y}.
-$$
-
-This is weighted least-squares regression: fit $\boldsymbol{\Phi} \boldsymbol{\theta}$ to targets $\mathbf{y}$. For collocation, we require exact interpolation $\boldsymbol{\Phi} \boldsymbol{\theta}_{k+1} = \mathbf{y}$ at chosen collocation points. For continuous state spaces, we approximate the Galerkin integrals using sampled states, reducing to the same finite-dimensional fitting problem. The abstraction remains consistent: function iteration in the abstract becomes **generate targets, fit to targets, repeat** in the implementation.
-
-This extends beyond linear basis functions. Neural networks, decision trees, and kernel methods all implement variants of this procedure. Given data $\{(s_i, y_i)\}$ where $y_i = (\Bellman v_k)(s_i)$, each method produces a function $v_{k+1}: \mathcal{S} \to \mathbb{R}$ by fitting to the targets. The projection operator $\Proj$ is simply one instantiation of a fitting procedure—Galerkin and collocation correspond to specific choices of approximation class and loss function.
-
-```{prf:algorithm} Fitted-Value Iteration
-:label: fitted-value-iteration
-
-**Inputs:** Finite state set $\mathcal{S}$ (or sample $\{s_i\}_{i=1}^n$), discount factor $\gamma$, function class $\mathcal{F}$, fitting procedure $\mathtt{fit}$, convergence tolerance $\epsilon$
-
-**Output:** Approximate value function $\hat{v} \approx v^*$
-
-1. Initialize $v_0 \in \mathcal{F}$ arbitrarily
-2. Set $k \leftarrow 0$
-3. **repeat**
-4. $\quad$ **for** each state $s_i \in \mathcal{S}$ **do**
-5. $\quad\quad$ Compute target: $y_i \leftarrow \displaystyle\max_{a \in \mathcal{A}} \Big\{ r(s_i, a) + \gamma \sum_{s'} p(s' \mid s_i, a) v_k(s') \Big\}$
-6. $\quad$ **end for**
-7. $\quad$ Fit new approximation: $v_{k+1} \leftarrow \mathtt{fit}\big(\{(s_i, y_i)\}_{i=1}^n; \mathcal{F}\big)$
-8. $\quad$ $k \leftarrow k+1$
-9. **until** $\|v_k - v_{k-1}\| < \epsilon$ (or maximum iterations reached)
-10. **return** $v_k$
-```
-
-The abstraction $\mathtt{fit}$ encapsulates all the complexity of function approximation, whether that involves solving a linear system, running gradient descent, or training an ensemble. The projection operator $\Proj$ is one instantiation: when $\mathcal{F}$ is a linear subspace and we minimize weighted squared error, we recover Galerkin or collocation. Neural networks and other non-linear methods extend this framework beyond theoretical tractability.
-
-A limitation of this algorithm is that it assumes we can evaluate the Bellman operator exactly. Computing $y_i = (\Bellman v_k)(s_i)$ requires knowing transition probabilities and summing over all next states. In practice, we often have only a simulator or observed data. The next chapter shows how to approximate these expectations from samples, connecting the fitted-value iteration framework developed here to simulation-based methods and reinforcement learning.
-
-## The Minimum Residual Framework for Nonlinear Approximators
-
-The weighted residual methods developed in this chapter have focused on linear function classes: polynomial bases, piecewise linear interpolants, and linear combinations of fixed basis functions. Neural networks, kernel methods, and decision trees do not fit this template. How does the framework extend to nonlinear approximators?
-
-Recall the Galerkin approach for linear approximation $v_{\boldsymbol{\theta}} = \sum_{i=1}^d \theta_i \varphi_i$. The orthogonality conditions $\langle v - \Bellman v, \varphi_i \rangle_w = 0$ for all $i$ define a linear system with a closed-form solution. These equations arise from minimizing $\|v - \Bellman v\|_w^2$ over the subspace, since at the minimum, the gradient with respect to each coefficient must vanish. The connection between norm minimization and orthogonality holds generally. For any norm $\|\cdot\|_w$ induced by an inner product $\langle \cdot, \cdot \rangle_w$, minimizing $\|f(\boldsymbol{\theta})\|_w^2$ with respect to parameters requires $\frac{\partial}{\partial \theta_i} \|f(\boldsymbol{\theta})\|_w^2 = 0$. Since $\|f\|_w^2 = \langle f, f \rangle_w$, the chain rule gives $2\langle f, \frac{\partial f}{\partial \theta_i} \rangle_w = 0$. Minimizing the residual norm is thus equivalent to requiring orthogonality $\langle f, \frac{\partial f}{\partial \theta_i} \rangle_w = 0$ for all $i$. The equivalence holds for any choice of inner product: weighted $L^2$ integrals for Galerkin, sums over collocation points for collocation, or sampled expectations for neural networks.
-
-For nonlinear function classes parameterized by $\boldsymbol{\theta} \in \mathbb{R}^p$ (neural networks, kernel expansions), the same minimization principle applies:
-
-$$
-\boldsymbol{\theta}^* = \arg\min_{\boldsymbol{\theta}} \|v_{\boldsymbol{\theta}} - \Bellman v_{\boldsymbol{\theta}}\|_w^2.
-$$
-
-The first-order stationarity condition yields orthogonality:
-
-$$
-\Big\langle v_{\boldsymbol{\theta}} - \Bellman v_{\boldsymbol{\theta}}, \frac{\partial v_{\boldsymbol{\theta}}}{\partial \theta_i} \Big\rangle_w = 0 \quad \text{for all } i.
-$$
-
-The test functions are now the partial derivatives $\frac{\partial v_{\boldsymbol{\theta}}}{\partial \theta_i}$, which span the tangent space to the manifold $\{v_{\boldsymbol{\theta}} : \boldsymbol{\theta} \in \mathbb{R}^p\}$ at the current parameters. In the linear case $v_{\boldsymbol{\theta}} = \sum_i \theta_i \varphi_i$, the partial derivative $\frac{\partial v_{\boldsymbol{\theta}}}{\partial \theta_i} = \varphi_i$ recovers the fixed basis functions of Galerkin. For nonlinear parameterizations, the test functions change with $\boldsymbol{\theta}$, and the orthogonality conditions define a nonlinear system solved by iterative gradient descent.
-
-
-The **dual pairing** formulation {cite}`LegrandJunca2025` extends this framework to settings where test objects need not be regular functions. We have been informal about this distinction in our treatment of collocation, but the Dirac deltas $\delta(x - x_i)$ used there are not classical functions—they are distributions, defined rigorously only through their action on test functions via $\langle \Residual(v), \delta(x - x_i) \rangle = (\Residual v)(x_i)$. The simple calculus argument for orthogonality does not apply directly to such objects; the dual pairing framework provides the proper mathematical foundation. The induced dual norm $\|\Residual(v)\|_* = \sup_{\|w\|=1} |\langle \Residual(v), w \rangle|$ measures residuals by their worst-case effect on test functions, a perspective that has inspired adversarial formulations {cite}`Zang2020` where both trial and test functions are learned.
-
-The minimum residual framework thus connects classical projection methods to modern function approximation. The unifying principle is orthogonality of residuals to test functions. Linear methods use fixed test functions and admit closed-form solutions. Nonlinear methods use parameter-dependent test functions and require iterative optimization. Convergence guarantees are well understood for linear projections (monotonicity, matched weightings) but remain an active research area for neural networks. The next chapter extends this framework to the simulation-based setting, where the Bellman operator itself must be approximated from samples rather than computed exactly.
+Throughout this chapter, we assumed access to the transition model: computing $\Bellman v(s)$ requires summing over all next states weighted by transition probabilities. In practice, we often have only a simulator or observed trajectories, not an explicit model. The next chapter addresses this gap. Monte Carlo methods estimate expectations from sampled transitions, replacing exact Bellman operator evaluations with sample averages. This connects the projection framework developed here to the simulation-based algorithms used in reinforcement learning.

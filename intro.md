@@ -4,7 +4,7 @@ Reinforcement learning offers a powerful framework for decision-making: systems 
 
 Yet compared to supervised learning, which has become routine in industry, reinforcement learning has not achieved the same widespread adoption. Supervised learning benefits from standardized tools and well-defined interfaces: inputs, outputs, and objective metrics. Reinforcement learning, by contrast, requires explicit problem formulation: defining objectives, constraints, and how decisions unfold over time. This additional structure is also what makes RL applicable to a broader class of problems.
 
-As {cite:t}`Iskhakov2020` notes, a primary challenge facing any sequential decision-making tool is *"the difficulty of learning about the objective function and environment facing real-world decision-makers."* In reinforcement learning, this difficulty is not incidental; it is central. We cannot sidestep defining the problem, the objective, and the constraints.
+As {cite:t}`Iskhakov2020` notes, a primary challenge is *"the difficulty of learning about the objective function and environment facing real-world decision-makers."* We cannot sidestep defining the problem, the objective, and the constraints.
 
 Working in industry and consulting taught me what my PhD did not: real problems rarely fit neatly into predefined frameworks. Sensors produce noisy data; constraints are non-negotiable; objectives may shift or conflict. Most effort goes into formulating the decision problem, long before selecting an algorithm.
 

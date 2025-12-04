@@ -2,15 +2,13 @@
 version: 1
 project:
   id: 3c112bb5-93ac-429f-8216-c0b9947c00d4
-  title: "Reinforcement Learning Beyond the Agent Loop: Models, Control, and Data"
+  title: "Building Up RL: From Dynamics and Control to Learning"
   description: "A graduate-level introduction to reinforcement learning as a framework for modeling, optimization, and control, connecting dynamic models, data, and applications beyond standard benchmarks."
   authors:
     - name: Pierre-Luc Bacon
   github: https://github.com/pierrelux/rlbook
   bibliography:
     - references.bib
-  jupyter:
-    kernel: rlbook
   math:
     '\Proj': '\mathsf{P}'
     '\Residual': '\mathsf{N}'
