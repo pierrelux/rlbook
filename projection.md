@@ -263,7 +263,7 @@ $$
 
 where $J_G(\theta)$ is the Jacobian of $G$ at $\theta$.
 
-**Computing the Jacobian:** We must compute $J_{ij} = \frac{\partial G_i}{\partial \theta_j}$. For collocation, $G_i(\theta) = \hat{f}(x_i; \theta) - (\Contraction \hat{f}(\cdot; \theta))(x_i)$, so:
+To apply this update, we must compute the Jacobian entries $J_{ij} = \frac{\partial G_i}{\partial \theta_j}$. For collocation, $G_i(\theta) = \hat{f}(x_i; \theta) - (\Contraction \hat{f}(\cdot; \theta))(x_i)$, so:
 
 $$
 \frac{\partial G_i}{\partial \theta_j} = \frac{\partial \hat{f}(x_i; \theta)}{\partial \theta_j} - \frac{\partial (\Contraction \hat{f}(\cdot; \theta))(x_i)}{\partial \theta_j}.
@@ -592,44 +592,7 @@ Newton's method for the Galerkin-projected Bellman optimality equation is equiva
 
 Galerkin projection with linear function approximation reduces policy iteration to a sequence of linear systems, each solvable in closed form. For discrete MDPs, we can compute the matrices $\boldsymbol{\Phi}^\top \boldsymbol{\Xi} \boldsymbol{\Phi}$ and $\boldsymbol{\Phi}^\top \boldsymbol{\Xi} \mathbf{P}_\pi \boldsymbol{\Phi}$ exactly.
 
-## Fitted-Value/Q Iteration (FVI/FQI)
-
-We have developed weighted residual methods through abstract functional equations: choose test functions, impose orthogonality conditions $\langle R, p_i \rangle_w = 0$, solve for coefficients. But what are we actually computing when we solve these equations by successive approximation? The answer is simpler than the formalism suggests: **function iteration with a fitting step**.
-
-Recall that the weighted residual conditions $\langle v - \Bellman v, p_i \rangle_w = 0$ define a fixed-point problem $v = \Proj \Bellman v$, where $\Proj$ is a projection operator onto $\text{span}(\boldsymbol{\Phi})$. We can solve this by iteration: $v_{k+1} = \Proj \Bellman v_k$. Under appropriate conditions (monotonicity of $\Proj$, or matching the weight to the operator for policy evaluation), this converges to a solution.
-
-In parameter space, this iteration becomes a fitting procedure. Consider Galerkin projection with a finite state space of $n$ states. Let $\boldsymbol{\Phi}$ be the $n \times d$ matrix of basis evaluations, $\mathbf{W}$ the diagonal weight matrix, and $\mathbf{y}$ the vector of Bellman operator evaluations: $y_i = (\Bellman v_k)(s_i)$. The projection is:
-
-$$
-\boldsymbol{\theta}_{k+1} = (\boldsymbol{\Phi}^\top \mathbf{W} \boldsymbol{\Phi})^{-1} \boldsymbol{\Phi}^\top \mathbf{W} \mathbf{y}.
-$$
-
-This is weighted least-squares regression: fit $\boldsymbol{\Phi} \boldsymbol{\theta}$ to targets $\mathbf{y}$. For collocation, we require exact interpolation $\boldsymbol{\Phi} \boldsymbol{\theta}_{k+1} = \mathbf{y}$ at chosen collocation points. For continuous state spaces, we approximate the Galerkin integrals using sampled states, reducing to the same finite-dimensional fitting problem. The abstraction remains consistent: function iteration in the abstract becomes **generate targets, fit to targets, repeat** in the implementation.
-
-This extends beyond linear basis functions. Neural networks, decision trees, and kernel methods all implement variants of this procedure. Given data $\{(s_i, y_i)\}$ where $y_i = (\Bellman v_k)(s_i)$, each method produces a function $v_{k+1}: \mathcal{S} \to \mathbb{R}$ by fitting to the targets. The projection operator $\Proj$ is simply one instantiation of a fitting procedure. Galerkin and collocation correspond to specific choices of approximation class and loss function.
-
-```{prf:algorithm} Fitted-Value Iteration
-:label: fitted-value-iteration
-
-**Inputs:** Finite state set $\mathcal{S}$ (or sample $\{s_i\}_{i=1}^n$), discount factor $\gamma$, function class $\mathcal{F}$, fitting procedure $\mathtt{fit}$, convergence tolerance $\epsilon$
-
-**Output:** Approximate value function $\hat{v} \approx v^*$
-
-1. Initialize $v_0 \in \mathcal{F}$ arbitrarily
-2. Set $k \leftarrow 0$
-3. **repeat**
-4. $\quad$ **for** each state $s_i \in \mathcal{S}$ **do**
-5. $\quad\quad$ Compute target: $y_i \leftarrow \displaystyle\max_{a \in \mathcal{A}} \Big\{ r(s_i, a) + \gamma \sum_{s'} p(s' \mid s_i, a) v_k(s') \Big\}$
-6. $\quad$ **end for**
-7. $\quad$ Fit new approximation: $v_{k+1} \leftarrow \mathtt{fit}\big(\{(s_i, y_i)\}_{i=1}^n; \mathcal{F}\big)$
-8. $\quad$ $k \leftarrow k+1$
-9. **until** $\|v_k - v_{k-1}\| < \epsilon$ (or maximum iterations reached)
-10. **return** $v_k$
-```
-
-The abstraction $\mathtt{fit}$ encapsulates all the complexity of function approximation, whether that involves solving a linear system, running gradient descent, or training an ensemble. The projection operator $\Proj$ is one instantiation: when $\mathcal{F}$ is a linear subspace and we minimize weighted squared error, we recover Galerkin or collocation. Neural networks and other non-linear methods extend this framework beyond theoretical tractability.
-
-### Extension to Nonlinear Approximators
+## Extension to Nonlinear Approximators
 
 The weighted residual methods developed so far have focused on linear function classes: polynomial bases, piecewise linear interpolants, and linear combinations of fixed basis functions. Neural networks, kernel methods, and decision trees do not fit this template. How does the framework extend to nonlinear approximators?
 
@@ -652,8 +615,6 @@ The test functions are now the partial derivatives $\frac{\partial v_{\boldsymbo
 The **dual pairing** formulation {cite}`LegrandJunca2025` extends this framework to settings where test objects need not be regular functions. We have been informal about this distinction in our treatment of collocation, but the Dirac deltas $\delta(x - x_i)$ used there are not classical functions. They are distributions, defined rigorously only through their action on test functions via $\langle \Residual(v), \delta(x - x_i) \rangle = (\Residual v)(x_i)$. The simple calculus argument for orthogonality does not apply directly to such objects; the dual pairing framework provides the proper mathematical foundation. The induced dual norm $\|\Residual(v)\|_* = \sup_{\|w\|=1} |\langle \Residual(v), w \rangle|$ measures residuals by their worst-case effect on test functions, a perspective that has inspired adversarial formulations {cite}`Zang2020` where both trial and test functions are learned.
 
 The minimum residual framework thus connects classical projection methods to modern function approximation. The unifying principle is orthogonality of residuals to test functions. Linear methods use fixed test functions and admit closed-form solutions. Nonlinear methods use parameter-dependent test functions and require iterative optimization.
-
-A limitation of FVI/FQI is that it assumes we can evaluate the Bellman operator exactly. Computing $y_i = (\Bellman v_k)(s_i)$ requires knowing transition probabilities and summing over all next states. In practice, we often have only a simulator or observed data. A later chapter shows how to approximate these expectations from samples, connecting the fitted-value iteration framework to simulation-based methods.
 
 We now turn to the question of convergence: when does the iteration $v_{k+1} = \Proj \Bellman v_k$ converge?
 
@@ -682,7 +643,7 @@ This $\Proj \Bellman$ structure is not specific to collocation. It is inherent i
 
 But regardless of which projection method we use, iteration takes the form $\hat{v}^{(k+1)} = \Proj \Bellman\hat{v}^{(k)}$.
 
-**Does the composition $\Proj \Bellman$ inherit the contraction property of $\Bellman$?** If not, the iteration may diverge, oscillate, or converge to a spurious fixed point even though the original problem is well-posed.
+The central question is whether the composition $\Proj \Bellman$ inherits the contraction property of $\Bellman$. If not, the iteration may diverge, oscillate, or converge to a spurious fixed point even though the original problem is well-posed.
 
 ### Monotone Approximators and Stability
 
@@ -888,7 +849,7 @@ $$
 
 This holds for all $v$, so $\Proj$ is non-expansive in $\|\cdot\|_\xi$.
 
-### Can $\BellmanPi$ be a Contraction in $\|\cdot\|_\xi$ ?
+### Contraction of $\BellmanPi$ in $\|\cdot\|_\xi$
 
 To show $\BellmanPi = r_\pi + \gamma \mathbf{P}_\pi$ is a $\gamma$-contraction, we need to verify:
 
@@ -896,7 +857,7 @@ $$
 \|\BellmanPi v - \BellmanPi w\|_\xi = \|\gamma \mathbf{P}_\pi (v - w)\|_\xi = \gamma \|\mathbf{P}_\pi (v - w)\|_\xi.
 $$
 
-This will be at most $\gamma \|v - w\|_\xi$ if $\mathbf{P}_\pi$ is non-expansive, meaning $\|\mathbf{P}_\pi z\|_\xi \leq \|z\|_\xi$ for any vector $z$. So the key is to establish that $\mathbf{P}_\pi$ is non-expansive in $\|\cdot\|_\xi$. 
+This will be at most $\gamma \|v - w\|_\xi$ if $\mathbf{P}_\pi$ is non-expansive, meaning $\|\mathbf{P}_\pi z\|_\xi \leq \|z\|_\xi$ for any vector $z$. We therefore need to establish that $\mathbf{P}_\pi$ is non-expansive in $\|\cdot\|_\xi$. 
 
 Consider the squared norm of $\mathbf{P}_\pi z$. By definition of the weighted norm:
 
@@ -961,6 +922,47 @@ $$
 But the maximum of convex combinations is not itself a convex combination. It is a pointwise maximum. Jensen's inequality does not apply. We cannot conclude that $\max_a [\mathbf{P}_a z]$ is non-expansive in any weighted $L^2$ norm.
 
 Is convergence of $\Proj \Bellman$ with Galerkin projection impossible, or merely difficult to prove? The situation is subtle. In practice, fitted Q-iteration and approximate value iteration with neural networks often work well, suggesting that some form of stability exists. But there are also well-documented divergence examples (e.g., Q-learning with linear function approximation can diverge). The theoretical picture remains incomplete. Some results exist for restricted function classes or under strong assumptions on the MDP structure, but no general convergence guarantee like the policy evaluation result is available. The interplay between the max operator, the projection, and the norm geometry is not well understood. This is an active area of research in reinforcement learning theory.
+
+Despite these theoretical gaps, the practical algorithm template is straightforward. We now present fitted-value iteration as a meta-algorithm that combines any supervised learning method with the Bellman operator.
+
+## Fitted-Value/Q Iteration (FVI/FQI)
+
+We have developed weighted residual methods through abstract functional equations: choose test functions, impose orthogonality conditions $\langle R, p_i \rangle_w = 0$, solve for coefficients. What are we actually computing when we solve these equations by successive approximation? The answer is simpler than the formalism suggests: **function iteration with a fitting step**.
+
+Recall that the weighted residual conditions $\langle v - \Bellman v, p_i \rangle_w = 0$ define a fixed-point problem $v = \Proj \Bellman v$, where $\Proj$ is a projection operator onto $\text{span}(\boldsymbol{\Phi})$. We can solve this by iteration: $v_{k+1} = \Proj \Bellman v_k$. Under appropriate conditions (monotonicity of $\Proj$, or matching the weight to the operator for policy evaluation), this converges to a solution.
+
+In parameter space, this iteration becomes a fitting procedure. Consider Galerkin projection with a finite state space of $n$ states. Let $\boldsymbol{\Phi}$ be the $n \times d$ matrix of basis evaluations, $\mathbf{W}$ the diagonal weight matrix, and $\mathbf{y}$ the vector of Bellman operator evaluations: $y_i = (\Bellman v_k)(s_i)$. The projection is:
+
+$$
+\boldsymbol{\theta}_{k+1} = (\boldsymbol{\Phi}^\top \mathbf{W} \boldsymbol{\Phi})^{-1} \boldsymbol{\Phi}^\top \mathbf{W} \mathbf{y}.
+$$
+
+This is weighted least-squares regression: fit $\boldsymbol{\Phi} \boldsymbol{\theta}$ to targets $\mathbf{y}$. For collocation, we require exact interpolation $\boldsymbol{\Phi} \boldsymbol{\theta}_{k+1} = \mathbf{y}$ at chosen collocation points. For continuous state spaces, we approximate the Galerkin integrals using sampled states, reducing to the same finite-dimensional fitting problem. The abstraction remains consistent: function iteration in the abstract becomes **generate targets, fit to targets, repeat** in the implementation.
+
+This extends beyond linear basis functions. Neural networks, decision trees, and kernel methods all implement variants of this procedure. Given data $\{(s_i, y_i)\}$ where $y_i = (\Bellman v_k)(s_i)$, each method produces a function $v_{k+1}: \mathcal{S} \to \mathbb{R}$ by fitting to the targets. The projection operator $\Proj$ is simply one instantiation of a fitting procedure. Galerkin and collocation correspond to specific choices of approximation class and loss function.
+
+```{prf:algorithm} Fitted-Value Iteration
+:label: fitted-value-iteration
+
+**Inputs:** Finite state set $\mathcal{S}$ (or sample $\{s_i\}_{i=1}^n$), discount factor $\gamma$, function class $\mathcal{F}$, fitting procedure $\mathtt{fit}$, convergence tolerance $\epsilon$
+
+**Output:** Approximate value function $\hat{v} \approx v^*$
+
+1. Initialize $v_0 \in \mathcal{F}$ arbitrarily
+2. Set $k \leftarrow 0$
+3. **repeat**
+4. $\quad$ **for** each state $s_i \in \mathcal{S}$ **do**
+5. $\quad\quad$ Compute target: $y_i \leftarrow \displaystyle\max_{a \in \mathcal{A}} \Big\{ r(s_i, a) + \gamma \sum_{s'} p(s' \mid s_i, a) v_k(s') \Big\}$
+6. $\quad$ **end for**
+7. $\quad$ Fit new approximation: $v_{k+1} \leftarrow \mathtt{fit}\big(\{(s_i, y_i)\}_{i=1}^n; \mathcal{F}\big)$
+8. $\quad$ $k \leftarrow k+1$
+9. **until** $\|v_k - v_{k-1}\| < \epsilon$ (or maximum iterations reached)
+10. **return** $v_k$
+```
+
+The abstraction $\mathtt{fit}$ encapsulates all the complexity of function approximation, whether that involves solving a linear system, running gradient descent, or training an ensemble. Any regression model with a `fit(X, y)` interface works: `LinearRegression`, `RandomForestRegressor`, `GradientBoostingRegressor`, `MLPRegressor`, or custom neural networks. The projection operator $\Proj$ is one instantiation: when $\mathcal{F}$ is a linear subspace and we minimize weighted squared error, we recover Galerkin or collocation. The broader view is that FVI reduces dynamic programming to repeated calls to a supervised learning subroutine.
+
+A limitation of FVI/FQI is that it assumes we can evaluate the Bellman operator exactly. Computing $y_i = (\Bellman v_k)(s_i)$ requires knowing transition probabilities and summing over all next states. In practice, we often have only a simulator or observed data. The next chapter shows how to approximate these expectations from samples, connecting the fitted-value iteration framework to simulation-based methods.
 
 ## Summary
 
