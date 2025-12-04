@@ -1288,52 +1288,6 @@ The noise inference perspective connects reparameterization gradients to the bro
 
 When dynamics are deterministic or can be accurately reparameterized, SVG-style methods offer an efficient alternative to the score function methods developed in the previous section. However, many reinforcement learning problems involve unknown dynamics or dynamics that resist accurate modeling. In those settings, score function methods remain the primary tool since they require only the ability to sample trajectories under the policy.
 
-### Sampling-Based Model Predictive Control
-
-Both SVG and the policy gradient methods above optimize a parametric policy $\pi_{\boldsymbol{w}}$ that is then deployed. An alternative approach uses the model purely for planning: at each state, optimize an action sequence and execute only the first action. This is **model predictive control** (MPC). This avoids training a policy network and eliminates generalization error from function approximation, but requires solving an optimization problem at every decision.
-
-For continuous action spaces with complex dynamics, gradient-based trajectory optimization (as in the [trajectory optimization chapter](trajectories.md)) can be expensive. Model Predictive Path Integral control (MPPI) {cite:p}`williams2017mppi` replaces gradient-based optimization with **importance sampling**. Given a dynamics model $s_{t+1} = f(s_t, a_t)$ (deterministic) and current state $s_0$, sample $K$ action sequences $\{\boldsymbol{a}^{(i)}\}_{i=1}^K$ and roll them out to get costs $C^{(i)} = \sum_{t=0}^{H-1} c(s_t^{(i)}, a_t^{(i)})$. The optimal action is computed as:
-
-$$
-a_0^* = \sum_{i=1}^K w^{(i)} a_0^{(i)}, \quad w^{(i)} = \frac{\exp(-C^{(i)}/\lambda)}{\sum_j \exp(-C^{(j)}/\lambda)}
-$$
-
-where $\lambda > 0$ is a temperature parameter. Execute $a_0^*$, observe the next state, and repeat.
-
-The weighting $w^{(i)} \propto \exp(-C^{(i)}/\lambda)$ is the Boltzmann distribution from entropy-regularized control. MPPI solves:
-
-$$
-\min_{\boldsymbol{a}} \mathbb{E}_{\boldsymbol{\xi}}\left[\sum_{t=0}^{H-1} c(s_t, a_t) + \lambda H(\pi)\right]
-$$
-
-where $\pi$ is the distribution over action sequences and $H(\pi) = -\mathbb{E}[\log \pi(\boldsymbol{a})]$ is entropy. The importance sampling estimate approximates the optimal action under this entropy-regularized objective. The temperature $\lambda$ controls the trade-off between exploitation (focus on low-cost sequences) and exploration (maintain entropy over sequences).
-
-The Boltzmann weighting connects MPPI to entropy-regularized methods from the [amortization chapter](amortization.md). SAC (Algorithm {prf:ref}`sac`) learns a stochastic policy $\pi_{\boldsymbol{\phi}}$ that approximates the Boltzmann distribution over actions at each state. PCL (Algorithm {prf:ref}`pcl`) minimizes path consistency residuals, exploiting the exact relationship $v^*(s) = q^*(s,a) - \alpha\log\pi^*(a|s)$ under deterministic dynamics. MPPI uses the Boltzmann distribution directly for action sequence selection but performs no learning. At each state, it samples action sequences, weights them by exponentiated costs, and returns the weighted average.
-
-All three use entropy regularization with Boltzmann weighting. SAC and PCL amortize optimization by learning policies that generalize across states. MPPI performs full optimization at every decision, trading computation for avoiding policy approximation error.
-
-MPPI and SVG represent two ways to use learned models. SVG backpropagates through $n$-step model rollouts using the reparameterization trick, requiring differentiable dynamics and policy. MPPI samples many action sequences and aggregates using importance weights, requiring only forward simulation. SVG is more sample-efficient (gradients provide richer signal) but needs differentiable components and backpropagation through long horizons. MPPI is simpler to implement and applies to non-differentiable dynamics, but requires many rollout samples ($K \approx 100-1000$) per action selection.
-
-```{prf:algorithm} Model Predictive Path Integral Control (MPPI)
-:label: mppi
-
-**Input:** Dynamics model $s_{t+1} = f(s_t, a_t)$, cost function $c(s,a)$, horizon $H$, number of samples $K$, temperature $\lambda$, noise distribution $\epsilon \sim \mathcal{N}(0, \Sigma)$
-
-**Output:** Action $a_0^*$
-
-1. Observe current state $s_0$
-2. **for** $i = 1, \ldots, K$ **do**
-    1. Sample action sequence: $a_t^{(i)} \leftarrow \bar{a}_t + \epsilon_t^{(i)}$ for $t = 0, \ldots, H-1$ $\quad$ // Perturb nominal
-    2. Roll out: $s_{t+1}^{(i)} \leftarrow f(s_t^{(i)}, a_t^{(i)})$ for $t = 0, \ldots, H-1$
-    3. Compute cost: $C^{(i)} \leftarrow \sum_{t=0}^{H-1} c(s_t^{(i)}, a_t^{(i)})$
-3. Compute Boltzmann weights: $w^{(i)} \leftarrow \exp(-C^{(i)}/\lambda) / \sum_j \exp(-C^{(j)}/\lambda)$
-4. **return** $a_0^* = \sum_{i=1}^K w^{(i)} a_0^{(i)}$
-```
-
-The algorithm samples perturbed action sequences around a nominal trajectory $\{\bar{a}_t\}$ (often the previous optimal sequence, shifted forward). The Boltzmann weights assign high probability to low-cost sequences. The temperature $\lambda$ balances exploitation (small $\lambda$ focuses on best samples) and exploration (large $\lambda$ gives uniform averaging).
-
-MPPI excels at real-time control for systems with fast, accurate models (robotics, autonomous vehicles). The replanning handles model errors and disturbances. However, the per-step computation scales as $O(KH)$ model evaluations, making it expensive for complex dynamics or long horizons.
-
 ## Summary
 
 This chapter developed the mathematical foundations for policy gradient methods. Starting from general derivative estimation techniques in stochastic optimization, we saw two main approaches: the likelihood ratio (score function) method and the reparameterization trick. While the reparameterization trick typically offers lower variance, it requires that the sampling distribution be reparameterizable, making it inapplicable to discrete actions or environments with complex dynamics.

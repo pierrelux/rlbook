@@ -514,7 +514,7 @@ The minimum over twin Q-networks applies the clipped double-Q trick from TD3. Th
 
 The original SAC paper {cite:p}`haarnoja2018soft` introduced a separate value network $v_\psi(s)$ trained to predict the entropy-adjusted expectation, amortizing the soft value computation into a single forward pass. Bootstrap targets then used $y = r + \gamma v_{\psi_{\text{target}}}(s')$.
 
-However, the follow-up paper {cite:p}`haarnoja2018sacapplications` showed this V-network is redundant: the single-sample estimate works just as well while simplifying the architecture. All modern implementations — OpenAI Spinning Up, Stable Baselines3, CleanRL — omit the V-network. We present this simplified version throughout.
+However, the follow-up paper {cite:p}`haarnoja2018sacapplications` showed this V-network is redundant: the single-sample estimate works just as well while simplifying the architecture. All modern implementations (OpenAI Spinning Up, Stable Baselines3, CleanRL) omit the V-network. We present this simplified version throughout.
 ```
 
 ## Learning the Policy: Matching the Boltzmann Distribution
@@ -864,6 +864,62 @@ PCL requires deterministic dynamics. It gains multi-step telescoping and off-pol
 
 PCL amortizes at a different level than DDPG/TD3/SAC. Those methods amortize the action maximization: learn a policy network that outputs $\arg\max_a q(s,a)$ directly. PCL amortizes the solution of the Bellman equation itself. Instead of repeatedly applying the Bellman operator (which requires $\int_{\mathcal{A}} \exp(q/\alpha) da$ at every iteration), PCL samples path segments and minimizes their residual. The computational cost of verifying optimality across all states and path lengths is distributed across training through sampled gradient updates.
 
+## Model Predictive Path Integral Control
+
+SAC and PCL both learn policies that approximate the Boltzmann distribution $\pi^*(a|s) \propto \exp(\beta \cdot q^*(s,a))$ induced by entropy regularization. This amortization allows fast action selection at deployment: a single forward pass through the policy network. An alternative approach forgoes learning entirely and instead performs optimization at every decision.
+
+Model Predictive Path Integral control (MPPI) {cite:p}`williams2017mppi` uses the Boltzmann weighting directly for action sequence selection. Given a dynamics model $s_{t+1} = f(s_t, a_t)$ and current state $s_0$, MPPI samples $K$ action sequences $\{\boldsymbol{a}^{(i)}\}_{i=1}^K$, rolls them out to get costs $C^{(i)} = \sum_{t=0}^{H-1} c(s_t^{(i)}, a_t^{(i)})$, and computes the optimal action as a weighted average:
+
+$$
+a_0^* = \sum_{i=1}^K w^{(i)} a_0^{(i)}, \quad w^{(i)} = \frac{\exp(-C^{(i)}/\lambda)}{\sum_j \exp(-C^{(j)}/\lambda)}
+$$
+
+where $\lambda > 0$ is a temperature parameter. The weighting $w^{(i)} \propto \exp(-C^{(i)}/\lambda)$ is exactly the Boltzmann distribution. MPPI solves the entropy-regularized objective:
+
+$$
+\min_{\boldsymbol{a}} \mathbb{E}_{\boldsymbol{\xi}}\left[\sum_{t=0}^{H-1} c(s_t, a_t) + \lambda H(\pi)\right]
+$$
+
+where $\pi$ is the distribution over action sequences and $H(\pi) = -\mathbb{E}[\log \pi(\boldsymbol{a})]$ is entropy. The importance sampling estimate approximates the optimal action under this objective. The temperature $\lambda$ controls the trade-off between exploitation (focus on low-cost sequences) and exploration (maintain entropy).
+
+```{prf:algorithm} Model Predictive Path Integral Control (MPPI)
+:label: mppi
+
+**Input:** Dynamics model $s_{t+1} = f(s_t, a_t)$, cost function $c(s,a)$, horizon $H$, number of samples $K$, temperature $\lambda$, noise distribution $\epsilon \sim \mathcal{N}(0, \Sigma)$
+
+**Output:** Action $a_0^*$
+
+1. Observe current state $s_0$
+2. **for** $i = 1, \ldots, K$ **do**
+    1. Sample action sequence: $a_t^{(i)} \leftarrow \bar{a}_t + \epsilon_t^{(i)}$ for $t = 0, \ldots, H-1$ $\quad$ // Perturb nominal
+    2. Roll out: $s_{t+1}^{(i)} \leftarrow f(s_t^{(i)}, a_t^{(i)})$ for $t = 0, \ldots, H-1$
+    3. Compute cost: $C^{(i)} \leftarrow \sum_{t=0}^{H-1} c(s_t^{(i)}, a_t^{(i)})$
+3. Compute Boltzmann weights: $w^{(i)} \leftarrow \exp(-C^{(i)}/\lambda) / \sum_j \exp(-C^{(j)}/\lambda)$
+4. **return** $a_0^* = \sum_{i=1}^K w^{(i)} a_0^{(i)}$
+```
+
+The algorithm samples perturbed action sequences around a nominal trajectory $\{\bar{a}_t\}$ (often the previous optimal sequence, shifted forward). The Boltzmann weights assign high probability to low-cost sequences. After executing $a_0^*$, the agent observes the next state and replans.
+
+### MPPI as Non-Amortized Optimization
+
+The contrast between MPPI and the methods in this chapter illuminates what amortization provides. SAC learns a policy $\pi_{\boldsymbol{\phi}}$ that approximates the Boltzmann distribution over actions at each state. PCL learns a Q-function from which the Boltzmann policy can be derived. Both invest computational effort during training to enable fast action selection at deployment: a single forward pass.
+
+MPPI performs full optimization at every decision. At each state, it samples action sequences, weights them by exponentiated costs, and returns the weighted average. No learning occurs. The policy is implicitly defined by the optimization procedure itself.
+
+This trade-off has practical consequences:
+
+| **Aspect** | **Amortized (SAC, PCL)** | **Non-Amortized (MPPI)** |
+|:-----------|:-------------------------|:-------------------------|
+| **Action selection** | Single forward pass | $O(KH)$ model evaluations |
+| **Generalization** | Policy generalizes across states | Optimization from scratch at each state |
+| **Model requirement** | None (SAC) or deterministic (PCL) | Accurate dynamics model |
+| **Approximation error** | Policy network approximation | None (exact optimization) |
+| **Adaptability** | Requires retraining for new tasks | Adapts immediately to new cost functions |
+
+MPPI excels at real-time control for systems with fast, accurate models (robotics, autonomous vehicles). The replanning handles model errors and disturbances without retraining. However, the per-step computation ($K \approx 100$-$1000$ rollouts) makes it expensive for complex dynamics or long horizons.
+
+The entropy regularization that connects SAC, PCL, and MPPI is not coincidental. All three methods solve variants of the soft Bellman equation. SAC and PCL amortize the solution by learning value functions and policies. MPPI solves it directly through sampling. The Boltzmann weighting emerges in all cases as the optimal policy structure under entropy regularization.
+
 # Summary
 
 This chapter addressed the computational barrier that arises when extending value-based fitted methods to continuous action spaces. The core issue is tractability: computing $\max_{a \in \mathbb{R}^m} q(s,a;\boldsymbol{\theta})$ at each Bellman target evaluation requires solving a nonlinear optimization problem. For replay buffers containing millions of transitions, repeatedly solving these optimization problems becomes prohibitive.
@@ -882,7 +938,9 @@ All methods share the core amortization idea but differ along several dimensions
 
 **Target networks**: Methods based on successive approximation (NFQCA, DDPG, TD3, SAC) use target networks that mark outer-iteration boundaries in the flattened FQI structure. PCL has no target networks because it minimizes a residual rather than fitting to computed targets. The twin Q-network trick (TD3, SAC) uses $\min(q^1, q^2)$ to mitigate overestimation; PCL avoids this issue through the residual minimization structure.
 
-All methods remain fundamentally value-based: they maintain Q-functions, compute approximate Bellman operators, and derive policies from learned value estimates. This connection to dynamic programming provides theoretical grounding (we know these methods implement approximate successive approximation of the Bellman equation) but also imposes structure. The policy must track the Q-function's implied greedy policy (in DDPG/TD3) or Boltzmann distribution (in SAC). When the Q-function is inaccurate, which is inevitable with function approximation, the policy inherits these errors.
+All amortized methods remain fundamentally value-based: they maintain Q-functions, compute approximate Bellman operators, and derive policies from learned value estimates. This connection to dynamic programming provides theoretical grounding (we know these methods implement approximate successive approximation of the Bellman equation) but also imposes structure. The policy must track the Q-function's implied greedy policy (in DDPG/TD3) or Boltzmann distribution (in SAC). When the Q-function is inaccurate, which is inevitable with function approximation, the policy inherits these errors.
+
+MPPI provides a counterpoint to amortization. Rather than learning a policy that generalizes across states, it performs full optimization at every decision. This avoids policy approximation error but requires $O(KH)$ model evaluations per action. The Boltzmann weighting that MPPI uses connects it to SAC and PCL: all three solve entropy-regularized objectives, but SAC and PCL amortize the solution while MPPI computes it directly.
 
 The next chapter takes a different perspective. Rather than extending DP-based value methods to continuous actions through amortization, we parameterize the policy directly and optimize it via gradient ascent on expected return. This shifts the fundamental question from "how do we compute $\max_a q(s,a)$ efficiently?" to "how do we estimate $\nabla_{\boldsymbol{\theta}} \mathbb{E}_{\tau \sim p_{\boldsymbol{\theta}}}[R(\tau)]$ accurately?" The resulting policy gradient methods are DP-agnostic: they work without Bellman equations, Q-functions, or value estimates. This removes the scaffolding of dynamic programming while introducing new challenges in gradient estimation and variance reduction.
 
