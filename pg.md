@@ -57,29 +57,40 @@ To transform our objective so that the Monte Carlo estimator for the objective c
 
 ### The Likelihood Ratio Method
 
-One solution comes from rewriting our objective using any distribution $q(x)$:
+One solution comes from rewriting our objective using a proposal distribution $q(x)$ that does not depend on $\theta$:
 
 $$
 J(\theta) = \int f(x,\theta)\frac{p(x;\theta)}{q(x)}q(x)dx = \mathbb{E}_{x \sim q(x)}\left[f(x,\theta)\frac{p(x;\theta)}{q(x)}\right]
 $$
 
-Write this more functionally by defining:
+Define the likelihood ratio $\rho(x, q, \theta) \equiv \frac{p(x;\theta)}{q(x)}$, where we treat $q$ as a separate argument. The objective becomes:
 
 $$
-J(\theta) = \mathbb{E}_{x \sim q(x)}[h(x,\theta)]
-, \enspace h(x,\theta) \equiv f(x,\theta)\frac{p(x;\theta)}{q(x)}
+J(\theta) = \mathbb{E}_{x \sim q(x)}[f(x,\theta)\rho(x, q, \theta)]
 $$
 
-When we differentiate $J$, we must take the partial derivative of $h$ with respect to its second argument:
+When we differentiate $J$, we take the partial derivative with respect to $\theta$ while holding $q$ fixed (since $q$ does not depend on $\theta$):
 
 $$
-\frac{d}{d\theta}J(\theta) = \mathbb{E}_{x \sim q(x)}\left[\frac{\partial h}{\partial \theta}(x,\theta)\right] = \mathbb{E}_{x \sim q(x)}\left[f(x,\theta)\frac{\partial}{\partial \theta}\frac{p(x;\theta)}{q(x)} + \frac{p(x;\theta)}{q(x)}\frac{\partial f}{\partial \theta}(x,\theta)\right]
+\frac{d}{d\theta}J(\theta) = \mathbb{E}_{x \sim q(x)}\left[f(x,\theta)\frac{\partial \rho}{\partial \theta}(x, q, \theta) + \rho(x, q, \theta)\frac{\partial f}{\partial \theta}(x,\theta)\right]
 $$
 
-The so-called "score function" derivative estimator is obtained for the choice of $q(x) = p(x;\theta)$, where the ratio simplifies to $1$ and its derivative becomes the score function:
+The partial derivative of $\rho$ with respect to $\theta$ (treating $q$ as fixed) is:
 
 $$
-\frac{d}{d\theta}J(\theta) = \mathbb{E}_{x \sim p(x;\theta)}\left[f(x,\theta)\frac{\partial \log p(x,\theta)}{\partial \theta} + \frac{\partial f(x,\theta)}{\partial \theta}\right]
+\frac{\partial \rho}{\partial \theta}(x, q, \theta) = \frac{1}{q(x)}\frac{\partial p(x;\theta)}{\partial \theta} = \rho(x, q, \theta)\frac{\partial \log p(x;\theta)}{\partial \theta}
+$$
+
+Now fix any reference parameter $\theta_0$ and choose the proposal distribution $q(x) = p(x;\theta_0)$. This is a *fixed* distribution that does not change as $\theta$ varies—we simply evaluate the family $p(x;\cdot)$ at the specific point $\theta_0$. With this choice, evaluating the gradient at $\theta = \theta_0$ gives $\rho(x, q, \theta_0) = p(x;\theta_0)/p(x;\theta_0) = 1$. The gradient formula becomes:
+
+$$
+\frac{d}{d\theta}J(\theta)\Big|_{\theta=\theta_0} = \mathbb{E}_{x \sim p(x;\theta_0)}\left[f(x,\theta_0)\frac{\partial \log p(x;\theta)}{\partial \theta}\Big|_{\theta_0} + \frac{\partial f(x,\theta)}{\partial \theta}\Big|_{\theta_0}\right]
+$$
+
+Since $\theta_0$ is arbitrary, we can drop the subscript and write the **score function estimator** as:
+
+$$
+\frac{d}{d\theta}J(\theta) = \mathbb{E}_{x \sim p(x;\theta)}\left[f(x,\theta)\frac{\partial \log p(x;\theta)}{\partial \theta} + \frac{\partial f(x,\theta)}{\partial \theta}\right]
 $$
 
 
@@ -840,19 +851,39 @@ $$
 \rho(\tau) = \frac{p(\tau;\boldsymbol{w})}{q(\tau)} = \prod_{t=0}^T \frac{\pi_{\boldsymbol{w}}(a_t|s_t)}{\pi_q(a_t|s_t)} = \prod_{t=0}^T \rho_t
 $$
 
-This product of $T+1$ ratios can become extremely large or small as $T$ grows, leading to high variance. The temporal structure helps: since past rewards $r_k$ for $k < t$ do not depend on action $a_t$, we can reduce the full trajectory weight to a per-step weight $\rho_t$. Combined with a baseline $b(s_t)$, the practical estimator is:
+This product of $T+1$ ratios can become extremely large or small as $T$ grows, leading to high variance. The temporal structure provides some relief: since $\mathbb{E}_{a \sim \pi_q}[\rho] = 1$, future ratios $\rho_{k}$ for $k > t$ that do not affect the reward $r_t$ can be marginalized out. However, past ratios $\rho_{0:t-1}$ are still needed to correctly weight the probability of reaching state $s_t$.
+
+In practice, algorithms like PPO and TRPO make an additional approximation: they use only the per-step ratio $\rho_t$ rather than the cumulative product $\rho_{0:t}$. This ignores the mismatch between the state distributions induced by the two policies. Combined with a baseline $b(s_t)$, the approximate estimator is:
 
 $$
-\nabla_{\boldsymbol{w}} J(\boldsymbol{w}) = \mathbb{E}_{\tau \sim \pi_q}\left[\sum_{t=0}^T \rho_t \nabla_{\boldsymbol{w}} \log \pi_{\boldsymbol{w}}(a_t|s_t) (G_t - b(s_t))\right]
+\nabla_{\boldsymbol{w}} J(\boldsymbol{w}) \approx \mathbb{E}_{\tau \sim \pi_q}\left[\sum_{t=0}^T \rho_t \nabla_{\boldsymbol{w}} \log \pi_{\boldsymbol{w}}(a_t|s_t) (G_t - b(s_t))\right]
 $$ (eq:lr-estimator)
 
-This is the gradient of the **importance-weighted surrogate objective**:
+This approximation corresponds to maximizing the **importance-weighted surrogate objective**:
 
 $$
 L^{\text{IS}}(\boldsymbol{w}) = \mathbb{E}_{\tau \sim \pi_q}\left[\sum_{t=0}^T \rho_t A_t\right]
 $$ (eq:importance-weighted-surrogate)
 
-where $A_t = G_t - b(s_t)$. When $\pi_q = \pi_{\boldsymbol{w}}$, the ratios $\rho_t = 1$ and we recover the score function estimator.
+where $A_t = G_t - b(s_t)$. Taking the gradient with respect to $\boldsymbol{w}$, only $\rho_t$ depends on $\boldsymbol{w}$ (since trajectories are sampled from $\pi_q$):
+
+$$
+\nabla_{\boldsymbol{w}} L^{\text{IS}}(\boldsymbol{w}) = \mathbb{E}_{\tau \sim \pi_q}\left[\sum_{t=0}^T A_t \nabla_{\boldsymbol{w}} \rho_t\right]
+$$
+
+The gradient of the ratio is:
+
+$$
+\nabla_{\boldsymbol{w}} \rho_t = \nabla_{\boldsymbol{w}} \frac{\pi_{\boldsymbol{w}}(a_t|s_t)}{\pi_q(a_t|s_t)} = \frac{\nabla_{\boldsymbol{w}} \pi_{\boldsymbol{w}}(a_t|s_t)}{\pi_q(a_t|s_t)} = \rho_t \nabla_{\boldsymbol{w}} \log \pi_{\boldsymbol{w}}(a_t|s_t)
+$$
+
+Substituting back:
+
+$$
+\nabla_{\boldsymbol{w}} L^{\text{IS}}(\boldsymbol{w}) = \mathbb{E}_{\tau \sim \pi_q}\left[\sum_{t=0}^T \rho_t \nabla_{\boldsymbol{w}} \log \pi_{\boldsymbol{w}}(a_t|s_t) A_t\right]
+$$
+
+This matches equation {eq}`eq:lr-estimator`. When $\pi_q = \pi_{\boldsymbol{w}}$, the ratios $\rho_t = 1$ and we recover the score function estimator. The approximation error grows as the policies diverge, which motivates the trust region and clipping mechanisms discussed below.
 
 ### Variance and the Dominance Condition
 
@@ -864,7 +895,9 @@ A common use case is to set $\pi_q = \pi_{\boldsymbol{w}_{\text{old}}}$, a previ
 
 ### Proximal Policy Optimization
 
-The solution is to ensure the ratio $\rho_t$ stays close to 1, keeping the new policy close to the behavior policy. Trust Region Policy Optimization (TRPO) achieves this by constraining the KL divergence:
+The variance issues suggest a natural solution: keep the ratio $\rho_t$ close to 1 by ensuring the new policy stays close to the behavior policy. This keeps the importance-weighted surrogate $L^{\text{IS}}(\boldsymbol{w})$ from {eq}`eq:importance-weighted-surrogate` well-behaved.
+
+Trust Region Policy Optimization (TRPO) formalizes this by adding a constraint on the KL divergence between the old and new policies:
 
 $$
 \max_{\boldsymbol{w}} L^{\text{IS}}(\boldsymbol{w}) \quad \text{subject to} \quad \mathbb{E}_s\left[D_{\text{KL}}(\pi_{\boldsymbol{w}_{\text{old}}}(\cdot|s) \| \pi_{\boldsymbol{w}}(\cdot|s))\right] \leq \delta
@@ -872,19 +905,65 @@ $$
 
 The KL constraint ensures that the two distributions remain similar, which bounds how extreme the importance weights can become. This is a constrained optimization problem, and one could in principle apply standard methods such as projected gradient descent or augmented Lagrangian approaches (as discussed in the [trajectory optimization chapter](trajectories.md)). TRPO takes a different approach: it uses a second-order Taylor approximation of the KL constraint around the current parameters and solves the resulting trust region subproblem using conjugate gradient methods. This involves computing the Fisher information matrix (the Hessian of the KL divergence), which adds computational overhead.
 
-Proximal Policy Optimization (PPO) achieves similar behavior through a simpler mechanism: rather than constraining the distributions to be similar, it directly clips the ratio $\rho_t$ to prevent it from moving too far from 1. This is a construction-level guarantee rather than an optimization-level constraint. The **clipped surrogate objective** is:
+Proximal Policy Optimization (PPO) achieves similar behavior through a simpler mechanism: rather than constraining the distributions to be similar, it directly clips the ratio $\rho_t$ to prevent it from moving too far from 1. This is a construction-level guarantee rather than an optimization-level constraint.
+
+#### From Trajectory Expectations to State-Action Averages
+
+Before defining the PPO objective, we need to clarify the relationship between the trajectory-level surrogate {eq}`eq:importance-weighted-surrogate` and the state-action level objective that PPO actually optimizes. The importance-weighted surrogate is defined as an expectation over trajectories:
 
 $$
-L^{\text{CLIP}}(\boldsymbol{w}) = \mathbb{E}_{s,a \sim \pi_{\boldsymbol{w}_{\text{old}}}}\left[\min\left(\rho_t(\boldsymbol{w}) A_t, \text{clip}(\rho_t(\boldsymbol{w}), 1-\epsilon, 1+\epsilon) A_t\right)\right]
-$$ (eq:ppo-clip)
+L^{\text{IS}}(\boldsymbol{w}) = \mathbb{E}_{\tau \sim \pi_q}\left[\sum_{t=0}^T \rho_t A_t\right]
+$$
+
+We can rewrite this as an expectation over state-action pairs by introducing a sampling distribution. For a finite horizon $T$, define the **averaged time-marginal distribution**:
+
+$$
+\xi_{\pi_q}(s, a) = \frac{1}{T+1} \sum_{t=0}^{T} d_t^{\pi_q}(s) \pi_q(a|s)
+$$ (eq:time-marginal)
+
+where $d_t^{\pi_q}(s)$ is the probability of being in state $s$ at time $t$ when following policy $\pi_q$ from the initial distribution. This is the uniform mixture over the time-indexed state-action distributions: we pick a timestep $t$ uniformly at random from $\{0, 1, \ldots, T\}$, then sample $(s, a)$ from the joint distribution at that timestep.
+
+With this definition, the trajectory expectation becomes:
+
+$$
+\mathbb{E}_{\tau \sim \pi_q}\left[\sum_{t=0}^T \rho_t A_t\right] = (T+1) \cdot \mathbb{E}_{(s,a) \sim \xi_{\pi_q}}\left[\rho(s, a) A(s, a)\right]
+$$
+
+The factor $(T+1)$ is just a constant that does not affect the optimization. This reformulation shows that the importance-weighted surrogate is equivalent to an expectation over state-action pairs drawn from the averaged time-marginal distribution—not from a stationary distribution or a discounted visitation distribution, but from the empirical mixture induced by the finite-horizon rollout procedure.
+
+#### The Clipped Surrogate Objective
+
+PPO replaces the linear importance-weighted term $\rho A$ with a clipped version. For a state-action pair $(s, a)$ with advantage $A$ and importance ratio $\rho(\boldsymbol{w}) = \pi_{\boldsymbol{w}}(a|s) / \pi_{\boldsymbol{w}_{\text{old}}}(a|s)$, define the **per-sample clipped objective**:
+
+$$
+\ell^{\text{CLIP}}(\boldsymbol{w}; s, a, A) = \min\left(\rho(\boldsymbol{w}) A, \, \text{clip}(\rho(\boldsymbol{w}), 1-\epsilon, 1+\epsilon) A\right)
+$$ (eq:ppo-per-sample)
 
 where $\epsilon$ is a hyperparameter (typically 0.1 or 0.2) and $\text{clip}(x, a, b) = \max(a, \min(x, b))$ restricts $x$ to the interval $[a, b]$.
 
-The $\min$ operator selects the more pessimistic estimate. Consider the two cases:
+The **population-level PPO objective** is then:
 
-- **Positive advantage** ($A_t > 0$): The action is better than average, so we want to increase $\pi_{\boldsymbol{w}}(a_t|s_t)$. The unclipped term $\rho_t A_t$ increases with $\rho_t$. The clipped term stops increasing once $\rho_t > 1 + \epsilon$. Taking the minimum means we get the benefit of increasing $\rho_t$ only up to $1 + \epsilon$.
+$$
+L^{\text{CLIP}}(\boldsymbol{w}) = \mathbb{E}_{(s,a,A) \sim \xi_{\pi_{\boldsymbol{w}_{\text{old}}}}}\left[\ell^{\text{CLIP}}(\boldsymbol{w}; s, a, A)\right]
+$$ (eq:ppo-clip-population)
 
-- **Negative advantage** ($A_t < 0$): The action is worse than average, so we want to decrease $\pi_{\boldsymbol{w}}(a_t|s_t)$. The unclipped term $\rho_t A_t$ becomes less negative (improves) as $\rho_t$ decreases. The clipped term stops improving once $\rho_t < 1 - \epsilon$. Taking the minimum means we get the benefit of decreasing $\rho_t$ only down to $1 - \epsilon$.
+where the expectation is taken over the averaged time-marginal distribution {eq}`eq:time-marginal` induced by $\pi_{\boldsymbol{w}_{\text{old}}}$.
+
+In practice, we never compute this expectation exactly. Instead, we collect a batch of transitions $\mathcal{D} = \{(s_t^{(i)}, a_t^{(i)}, A_t^{(i)})\}$ by running $\pi_{\boldsymbol{w}_{\text{old}}}$ and approximate the expectation with an empirical average:
+
+$$
+\hat{L}^{\text{CLIP}}(\boldsymbol{w}; \mathcal{D}) = \frac{1}{|\mathcal{D}|} \sum_{(s,a,A) \in \mathcal{D}} \ell^{\text{CLIP}}(\boldsymbol{w}; s, a, A)
+$$ (eq:ppo-clip)
+
+This is the same plug-in approximation used in [fitted Q-iteration](fqi.md): replace the unknown population distribution with the empirical distribution $\hat{P}_{\mathcal{D}}$ induced by the collected batch, then compute the sample average. The empirical surrogate $\hat{L}^{\text{CLIP}}$ is simply an expectation under $\hat{P}_{\mathcal{D}}$. No assumptions about stationarity or discounted visitation are needed—we just average over the transitions we collected.
+
+#### Intuition for the Clipping Mechanism
+
+The $\min$ operator in {eq}`eq:ppo-per-sample` selects the more pessimistic estimate. Consider the two cases:
+
+- **Positive advantage** ($A > 0$): The action is better than average, so we want to increase $\pi_{\boldsymbol{w}}(a|s)$. The unclipped term $\rho A$ increases with $\rho$. The clipped term stops increasing once $\rho > 1 + \epsilon$. Taking the minimum means we get the benefit of increasing $\rho$ only up to $1 + \epsilon$.
+
+- **Negative advantage** ($A < 0$): The action is worse than average, so we want to decrease $\pi_{\boldsymbol{w}}(a|s)$. The unclipped term $\rho A$ becomes less negative (improves) as $\rho$ decreases. The clipped term stops improving once $\rho < 1 - \epsilon$. Taking the minimum means we get the benefit of decreasing $\rho$ only down to $1 - \epsilon$.
 
 In both cases, the clipping removes the incentive to move the probability ratio beyond the interval $[1-\epsilon, 1+\epsilon]$. This keeps the new policy close to the old policy without explicitly computing or constraining the KL divergence.
 
@@ -898,28 +977,30 @@ In both cases, the clipping removes the incentive to move the probability ratio 
 1. Initialize parameters $\boldsymbol{w}$, $\boldsymbol{\theta}$
 2. For iteration = 1, ..., $N$:
     1. Collect batch $\mathcal{D}$ of $B$ trajectories using policy $\pi_{\boldsymbol{w}}$
-    2. Compute GAE advantages $A_t$ and returns $G_t$ for all timesteps
+    2. Compute GAE advantages $A_t$ and $\lambda$-returns $G_t^{\lambda}$ for all timesteps
     3. Store old log-probabilities: $\log \pi_{\text{old}}(a_t|s_t) = \log \pi_{\boldsymbol{w}}(a_t|s_t)$ for all $(s_t, a_t)$
     4. Normalize advantages: $A \leftarrow \frac{A - \mu_A}{\sigma_A}$
     5. For epoch = 1, ..., $K$:
         1. Shuffle $\mathcal{D}$ and partition into mini-batches of size $M$
         2. For each mini-batch $\mathcal{B}$:
-            1. Compute ratios: $\rho_t = \exp(\log \pi_{\boldsymbol{w}}(a_t|s_t) - \log \pi_{\text{old}}(a_t|s_t))$
-            2. Compute clipped objective:
-               $L^{\text{CLIP}} = \frac{1}{M}\sum_{t \in \mathcal{B}} \min(\rho_t A_t, \text{clip}(\rho_t, 1-\epsilon, 1+\epsilon) A_t)$
-            3. Compute value loss: $L_v = \frac{1}{M}\sum_{t \in \mathcal{B}} (v(s_t;\boldsymbol{\theta}) - G_t)^2$
-            4. Update policy: $\boldsymbol{w} \leftarrow \boldsymbol{w} + \alpha_w \nabla_{\boldsymbol{w}} L^{\text{CLIP}}$
-            5. Update value function: $\boldsymbol{\theta} \leftarrow \boldsymbol{\theta} - \alpha_\theta \nabla_{\boldsymbol{\theta}} L_v$
+            1. Compute ratios: $\rho = \exp(\log \pi_{\boldsymbol{w}}(a|s) - \log \pi_{\text{old}}(a|s))$ for all $(s, a) \in \mathcal{B}$
+            2. Compute per-sample objectives: $\ell^{\text{CLIP}} = \min(\rho A, \text{clip}(\rho, 1-\epsilon, 1+\epsilon) A)$
+            3. Compute empirical surrogate: $\hat{L}^{\text{CLIP}} = \frac{1}{|\mathcal{B}|}\sum_{(s,a,A) \in \mathcal{B}} \ell^{\text{CLIP}}$
+            4. Compute value loss: $L_v = \frac{1}{|\mathcal{B}|}\sum_{(s,G^{\lambda}) \in \mathcal{B}} (v(s;\boldsymbol{\theta}) - G^{\lambda})^2$
+            5. Update policy: $\boldsymbol{w} \leftarrow \boldsymbol{w} + \alpha_w \nabla_{\boldsymbol{w}} \hat{L}^{\text{CLIP}}$
+            6. Update value function: $\boldsymbol{\theta} \leftarrow \boldsymbol{\theta} - \alpha_\theta \nabla_{\boldsymbol{\theta}} L_v$
 3. Return $\boldsymbol{w}$
 ```
 
-The algorithm collects a batch of trajectories, then performs $K$ epochs of mini-batch updates on the same data. The clipped objective ensures that even after multiple updates, the policy does not move too far from the policy that collected the data. The ratio $\rho_t$ is computed in log-space for numerical stability.
+The algorithm collects a batch of trajectories, then performs $K$ epochs of mini-batch updates on the same data. The empirical surrogate $\hat{L}^{\text{CLIP}}$ approximates the population objective {eq}`eq:ppo-clip-population` using samples from the averaged time-marginal distribution. The clipped objective ensures that even after multiple updates, the policy does not move too far from the policy that collected the data. The ratio $\rho$ is computed in log-space for numerical stability.
 
 PPO has become one of the most widely used policy gradient algorithms due to its simplicity and robustness. Compared to TRPO, it avoids the computational overhead of constrained optimization while achieving similar sample efficiency. The clip parameter $\epsilon$ is the main hyperparameter controlling the trust region size: smaller values keep the policy closer to the behavior policy but may slow learning, while larger values allow faster updates but risk instability.
 
 ## The Policy Gradient Theorem
 
-{cite:t}`sutton1999policy` provided an expression for the gradient of the infinite discounted return with respect to the parameters of a parameterized policy. Here is an alternative derivation by considering a bilevel optimization problem:
+The algorithms developed so far—REINFORCE, actor-critic, GAE, and PPO—all estimate policy gradients from sampled trajectories. We now establish the theoretical foundation for these estimators by deriving the policy gradient theorem in the discounted infinite-horizon setting.
+
+{cite:t}`sutton1999policy` provided the original derivation. Here we present an alternative approach using the Implicit Function Theorem, which frames policy optimization as a bilevel problem:
 
 $$
 \max_{\mathbf{w}} \alpha^\top \mathbf{v}_\gamma^{\pi_{\boldsymbol{w}}}
@@ -934,7 +1015,7 @@ $$
 The Implicit Function Theorem states that if there is a solution to the problem $F(\mathbf{v}, \mathbf{w}) = 0$, then we can "reparameterize" our problem as $F(\mathbf{v}(\mathbf{w}), \mathbf{w})$ where $\mathbf{v}(\mathbf{w})$ is an implicit function of $\mathbf{w}$. If the Jacobian $\frac{\partial F}{\partial \mathbf{v}}$ is invertible, then:
 
 $$
-\frac{d\mathbf{v}(\mathbf{w})}{d\mathbf{w}} = -\left(\frac{\partial F(\mathbf{v}(\mathbf{w}), \mathbf{w})}{\partial \mathbf{x}}\right)^{-1}\frac{\partial F(\mathbf{v}(\mathbf{w}), \mathbf{w})}{\partial \mathbf{w}}
+\frac{d\mathbf{v}(\mathbf{w})}{d\mathbf{w}} = -\left(\frac{\partial F(\mathbf{v}(\mathbf{w}), \mathbf{w})}{\partial \mathbf{v}}\right)^{-1}\frac{\partial F(\mathbf{v}(\mathbf{w}), \mathbf{w})}{\partial \mathbf{w}}
 $$
 
 Here we made it clear in our notation that the derivative must be evaluated at root $(\mathbf{v}(\mathbf{w}), \mathbf{w})$ of $F$. For the remaining of this derivation, we will drop this dependence to make notation more compact. 
@@ -960,21 +1041,21 @@ $$
 \mathbf{x}_\alpha^\top \equiv \alpha^\top(\mathbf{I} - \gamma \mathbf{P}_{\pi_{\boldsymbol{w}}})^{-1}.
 $$
 
-Remember the vector notation for MDPs:
+Recall the vector notation for MDPs from the [dynamic programming chapter](dp.md):
 
 $$
 \begin{align*}
-[\mathbf{r}_{\pi}]_s &= \sum_a \pi(a|s)r(s,a) \\
-[\mathbf{P}_{\pi}]_{ss'} &= \sum_a \pi(a|s)P(s'|s,a)
+\mathbf{r}_\pi(s) &\equiv \sum_{a \in \mathcal{A}_s} \pi(a \mid s) \, r(s, a), \\
+[\mathbf{P}_\pi]_{s,s'} &\equiv \sum_{a \in \mathcal{A}_s} \pi(a \mid s) \, p(s' \mid s, a).
 \end{align*}
 $$
 
-Then taking the derivatives gives us: 
+Taking derivatives with respect to $\mathbf{w}$ gives: 
 
 $$
 \begin{align*}
-\left[\frac{\partial \mathbf{r}_{\pi_{\boldsymbol{w}}}}{\partial \mathbf{w}}\right]_s &= \sum_a \nabla_{\mathbf{w}}\pi_{\boldsymbol{w}}(a|s)r(s,a) \\
-\left[\frac{\partial \mathbf{P}_{\pi_{\boldsymbol{w}}}}{\partial \mathbf{w}}\mathbf{v}_\gamma^{\pi_{\boldsymbol{w}}}\right]_s &= \sum_a \nabla_{\mathbf{w}}\pi_{\boldsymbol{w}}(a|s)\sum_{s'} P(s'|s,a)v_\gamma^{\pi_{\boldsymbol{w}}}(s')
+\left[\frac{\partial \mathbf{r}_{\pi_{\boldsymbol{w}}}}{\partial \mathbf{w}}\right]_s &= \sum_{a \in \mathcal{A}_s} \nabla_{\mathbf{w}}\pi_{\boldsymbol{w}}(a \mid s) \, r(s,a), \\
+\left[\frac{\partial \mathbf{P}_{\pi_{\boldsymbol{w}}}}{\partial \mathbf{w}}\mathbf{v}_\gamma^{\pi_{\boldsymbol{w}}}\right]_s &= \sum_{a \in \mathcal{A}_s} \nabla_{\mathbf{w}}\pi_{\boldsymbol{w}}(a \mid s)\sum_{s'} p(s' \mid s,a) \, v_\gamma^{\pi_{\boldsymbol{w}}}(s').
 \end{align*}
 $$
 
@@ -982,8 +1063,8 @@ Substituting back:
 
 $$
 \begin{align*}
-\nabla_{\mathbf{w}}J(\mathbf{w}) &= \sum_s x_\alpha(s)\left(\sum_a \nabla_{\mathbf{w}}\pi_{\boldsymbol{w}}(a|s)r(s,a) + \gamma\sum_a \nabla_{\mathbf{w}}\pi_{\boldsymbol{w}}(a|s)\sum_{s'} P(s'|s,a)v_\gamma^{\pi_{\boldsymbol{w}}}(s')\right) \\
-&= \sum_s x_\alpha(s)\sum_a \nabla_{\mathbf{w}}\pi_{\boldsymbol{w}}(a|s)\left(r(s,a) + \gamma \sum_{s'} P(s'|s,a)v_\gamma^{\pi_{\boldsymbol{w}}}(s')\right)
+\nabla_{\mathbf{w}}J(\mathbf{w}) &= \sum_s x_\alpha(s)\left(\sum_a \nabla_{\mathbf{w}}\pi_{\boldsymbol{w}}(a \mid s) \, r(s,a) + \gamma\sum_a \nabla_{\mathbf{w}}\pi_{\boldsymbol{w}}(a \mid s)\sum_{s'} p(s' \mid s,a) \, v_\gamma^{\pi_{\boldsymbol{w}}}(s')\right) \\
+&= \sum_s x_\alpha(s)\sum_a \nabla_{\mathbf{w}}\pi_{\boldsymbol{w}}(a \mid s)\left(r(s,a) + \gamma \sum_{s'} p(s' \mid s,a) \, v_\gamma^{\pi_{\boldsymbol{w}}}(s')\right)
 \end{align*}
 $$
 
@@ -998,29 +1079,29 @@ $$
 \sum_s x_\alpha(s) = \alpha^\top(\mathbf{I} - \gamma \mathbf{P}_{\pi_{\boldsymbol{w}}})^{-1}\mathbf{1} = \frac{\alpha^\top\mathbf{1}}{1-\gamma} = \frac{1}{1-\gamma}
 $$
 
-Therefore, defining the normalized state distribution $\mu_\alpha(s) = (1-\gamma)x_\alpha(s)$, we can write:
+Therefore, defining the normalized state distribution $\xi_\alpha(s) = (1-\gamma)x_\alpha(s)$, we can write:
 
 $$
 \begin{align*}
-\nabla_{\mathbf{w}}J(\mathbf{w}) &= \frac{1}{1-\gamma}\sum_s \mu_\alpha(s)\sum_a \nabla_{\mathbf{w}}\pi_{\boldsymbol{w}}(a|s)\left(r(s,a) + \gamma \sum_{s'} P(s'|s,a)v_\gamma^{\pi_{\boldsymbol{w}}}(s')\right) \\
-&= \frac{1}{1-\gamma}\mathbb{E}_{s\sim\mu_\alpha}\left[\sum_a \nabla_{\mathbf{w}}\pi_{\boldsymbol{w}}(a|s)q^{\pi_{\boldsymbol{w}}}(s,a)\right]
+\nabla_{\mathbf{w}}J(\mathbf{w}) &= \frac{1}{1-\gamma}\sum_s \xi_\alpha(s)\sum_a \nabla_{\mathbf{w}}\pi_{\boldsymbol{w}}(a \mid s)\left(r(s,a) + \gamma \sum_{s'} p(s' \mid s,a) \, v_\gamma^{\pi_{\boldsymbol{w}}}(s')\right) \\
+&= \frac{1}{1-\gamma}\mathbb{E}_{s\sim\xi_\alpha}\left[\sum_a \nabla_{\mathbf{w}}\pi_{\boldsymbol{w}}(a \mid s) \, q^{\pi_{\boldsymbol{w}}}(s,a)\right]
 \end{align*}
 $$
 
-Now we have expressed the policy gradient theorem in terms of expectations under the normalized discounted state visitation distribution. But what does sampling from $\mu_\alpha$ mean? Recall that $\mathbf{x}_\alpha^\top = \alpha^\top(\mathbf{I} - \gamma \mathbf{P}_{\pi_{\boldsymbol{w}}})^{-1}$. Using the Neumann series expansion (valid when $\|\gamma \mathbf{P}_{\pi_{\boldsymbol{w}}}\| < 1$, which holds for $\gamma < 1$ since $\mathbf{P}_{\pi_{\boldsymbol{w}}}$ is a stochastic matrix) we have:
+Now we have expressed the policy gradient theorem in terms of expectations under the normalized discounted state visitation distribution. But what does sampling from $\xi_\alpha$ mean? Recall that $\mathbf{x}_\alpha^\top = \alpha^\top(\mathbf{I} - \gamma \mathbf{P}_{\pi_{\boldsymbol{w}}})^{-1}$. Using the Neumann series expansion (valid when $\|\gamma \mathbf{P}_{\pi_{\boldsymbol{w}}}\| < 1$, which holds for $\gamma < 1$ since $\mathbf{P}_{\pi_{\boldsymbol{w}}}$ is a stochastic matrix) we have:
 
 $$
-\boldsymbol{\mu}_\alpha^\top = (1-\gamma)\alpha^\top\sum_{k=0}^{\infty} (\gamma \mathbf{P}_{\pi_{\boldsymbol{w}}})^k
+\boldsymbol{\xi}_\alpha^\top = (1-\gamma)\alpha^\top\sum_{k=0}^{\infty} (\gamma \mathbf{P}_{\pi_{\boldsymbol{w}}})^k
 $$
 
 We can then factor out the first term from this summation to obtain:
 
 $$
 \begin{align*}
-\boldsymbol{\mu}_\alpha^\top &= (1-\gamma)\alpha^\top\sum_{k=0}^{\infty} (\gamma \mathbf{P}_{\pi_{\boldsymbol{w}}})^k \\
+\boldsymbol{\xi}_\alpha^\top &= (1-\gamma)\alpha^\top\sum_{k=0}^{\infty} (\gamma \mathbf{P}_{\pi_{\boldsymbol{w}}})^k \\
 &= (1-\gamma)\alpha^\top + (1-\gamma)\alpha^\top\sum_{k=1}^{\infty} (\gamma \mathbf{P}_{\pi_{\boldsymbol{w}}})^k \\
 &= (1-\gamma)\alpha^\top + (1-\gamma)\alpha^\top\gamma\mathbf{P}_{\pi_{\boldsymbol{w}}}\sum_{k=0}^{\infty} (\gamma \mathbf{P}_{\pi_{\boldsymbol{w}}})^k \\
-&= (1-\gamma)\alpha^\top + \gamma\boldsymbol{\mu}_\alpha^\top \mathbf{P}_{\pi_{\boldsymbol{w}}}
+&= (1-\gamma)\alpha^\top + \gamma\boldsymbol{\xi}_\alpha^\top \mathbf{P}_{\pi_{\boldsymbol{w}}}
 \end{align*}
 $$
 
@@ -1028,11 +1109,11 @@ $$
 The balance equation:
 
 $$
-\boldsymbol{\mu}_\alpha^\top = (1-\gamma)\alpha^\top + \gamma\boldsymbol{\mu}_\alpha^\top \mathbf{P}_{\pi_{\boldsymbol{w}}}
+\boldsymbol{\xi}_\alpha^\top = (1-\gamma)\alpha^\top + \gamma\boldsymbol{\xi}_\alpha^\top \mathbf{P}_{\pi_{\boldsymbol{w}}}
 $$
 
 
-shows that $\boldsymbol{\mu}_\alpha$ is a mixture distribution: with probability $1-\gamma$ you draw a state from the initial distribution $\alpha$ (reset), and with probability $\gamma$ you follow the policy dynamics $\mathbf{P}_{\pi_{\boldsymbol{w}}}$ from the current state (continue). This interpretation directly connects to the geometric process: at each step you either terminate and resample from $\alpha$ (with probability $1-\gamma$) or continue following the policy (with probability $\gamma$).
+shows that $\boldsymbol{\xi}_\alpha$ is a mixture distribution: with probability $1-\gamma$ you draw a state from the initial distribution $\alpha$ (reset), and with probability $\gamma$ you follow the policy dynamics $\mathbf{P}_{\pi_{\boldsymbol{w}}}$ from the current state (continue). This interpretation directly connects to the geometric process: at each step you either terminate and resample from $\alpha$ (with probability $1-\gamma$) or continue following the policy (with probability $\gamma$).
 
 ```{code-cell} python
 import numpy as np
@@ -1093,7 +1174,7 @@ print("Empirical state distribution:")
 print(np.bincount(samples) / len(samples))
 ```
 
-While the math shows that sampling from the discounted visitation distribution $\boldsymbol{\mu}_\alpha$ would give us unbiased policy gradient estimates, Thomas (2014) demonstrated that this implementation can be detrimental to performance in practice. The issue arises because terminating trajectories early (with probability $1-\gamma$) reduces the effective amount of data we collect from each trajectory. This early termination weakens the learning signal, as many trajectories don't reach meaningful terminal states or rewards.
+While the math shows that sampling from the discounted visitation distribution $\boldsymbol{\xi}_\alpha$ would give us unbiased policy gradient estimates, Thomas (2014) demonstrated that this implementation can be detrimental to performance in practice. The issue arises because terminating trajectories early (with probability $1-\gamma$) reduces the effective amount of data we collect from each trajectory. This early termination weakens the learning signal, as many trajectories don't reach meaningful terminal states or rewards.
 
 Therefore, in practice, we typically sample complete trajectories from the undiscounted process (running the policy until natural termination or a fixed horizon) while still using $\gamma$ in the advantage estimation. This approach preserves the full learning signal from each trajectory and has been empirically shown to lead to better performance. 
 
@@ -1105,7 +1186,7 @@ The policy gradient theorem shows that the gradient depends on the action-value 
 
 This architecture traces back to Sutton's 1984 thesis, where he proposed the Adaptive Heuristic Critic. The actor uses the critic's value estimates to compute advantage estimates for the policy gradient, while the critic learns from the same trajectories generated by the actor. The algorithms we developed earlier (REINFORCE with baseline, GAE, and the one-step actor-critic) are all instances of this architecture.
 
-The key challenge is that we are simultaneously learning two functions that depend on each other. The actor's gradient uses the critic's estimates, but the critic is trained on data generated by the actor's policy. If both change too quickly, the learning process can become unstable.
+We are simultaneously learning two functions that depend on each other, which creates a stability challenge. The actor's gradient uses the critic's estimates, but the critic is trained on data generated by the actor's policy. If both change too quickly, the learning process can become unstable.
 
 {cite:t}`konda2002thesis` analyzed this coupled learning problem and established convergence guarantees under a **two-timescale** condition: the critic must update faster than the actor. Intuitively, the critic needs to "track" the current policy's value function before the actor uses those estimates to update. If the actor moves too fast, it uses stale or inaccurate value estimates, leading to poor gradient estimates.
 
@@ -1257,6 +1338,8 @@ MPPI excels at real-time control for systems with fast, accurate models (robotic
 
 This chapter developed the mathematical foundations for policy gradient methods. Starting from general derivative estimation techniques in stochastic optimization, we saw two main approaches: the likelihood ratio (score function) method and the reparameterization trick. While the reparameterization trick typically offers lower variance, it requires that the sampling distribution be reparameterizable, making it inapplicable to discrete actions or environments with complex dynamics.
 
-For reinforcement learning, the score function estimator provides a model-free gradient that depends only on the policy parametrization, not the transition dynamics. Through variance reduction techniques (leveraging conditional independence, using control variates, and the Generalized Advantage Estimator), we can make these gradients practical for learning. When models are available, reparameterization through Stochastic Value Gradients offers lower-variance alternatives, with SVG(0) recovering actor-critic methods like DDPG and SAC, and SVG($\infty$) representing pure model-based optimization. The resulting algorithms form the foundation of modern policy optimization methods.
+For reinforcement learning, the score function estimator provides a model-free gradient that depends only on the policy parametrization, not the transition dynamics. Through variance reduction techniques—leveraging conditional independence, using control variates, and the Generalized Advantage Estimator—we can make these gradients practical for learning. The likelihood ratio perspective then led to importance-weighted surrogates and PPO's clipped objective for stable off-policy updates.
 
-The next chapter explores advanced policy optimization techniques including trust region methods, proximal policy optimization, and connections to optimal control theory.
+We also established the policy gradient theorem, which provides the theoretical foundation for these estimators in the discounted infinite-horizon setting. The actor-critic architecture emerges from approximating the value function that appears in this theorem, with the two-timescale condition ensuring stable learning.
+
+When dynamics models are available, reparameterization through Stochastic Value Gradients offers lower-variance alternatives. SVG(0) recovers actor-critic methods like DDPG and SAC, while SVG($\infty$) represents pure model-based optimization through differentiable simulation.
