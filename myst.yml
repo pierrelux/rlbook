@@ -26,9 +26,7 @@ project:
     - file: intro.md
     - title: Modeling
       children:
-        - file: modeling.md
         - file: dynamics.md
-        - file: simulation.md
     - title: Numerical Trajectory Optimization
       children:
         - file: trajectories.md
