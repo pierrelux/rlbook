@@ -14,7 +14,162 @@ kernelspec:
 
 # Weighted Residual Methods for Functional Equations
 
-The Bellman optimality equation $\Bellman v = v$ is a functional equation: an equation where the unknown is an entire function rather than a finite-dimensional vector. When the state space is continuous or very large, we cannot represent the value function exactly on a computer. We must instead work with finite-dimensional approximations. This motivates weighted residual methods (also called minimum residual methods), a general framework for transforming infinite-dimensional problems into tractable finite-dimensional ones {cite}`Chakraverty2019,AtkinsonPotra1987`.
+The Bellman optimality equation $\Bellman v = v$, whose contraction property underlies the convergence of value iteration, is a functional equation: an equation where the unknown is an entire function rather than a finite-dimensional vector. When the state space is continuous or very large, we cannot represent the value function exactly on a computer. We must instead work with finite-dimensional approximations. This motivates weighted residual methods (also called minimum residual methods), a general framework for transforming infinite-dimensional problems into tractable finite-dimensional ones {cite}`Chakraverty2019,AtkinsonPotra1987`.
+
+::::{admonition} Learning Goals
+:class: note
+
+After completing this chapter, you should be able to:
+- Explain why functional equations require finite-dimensional approximation and how weighted residual methods provide a systematic framework
+- Distinguish between Galerkin, collocation, and least-squares methods by their choice of test functions
+- Apply function iteration and Newton's method to solve projected Bellman equations
+- State conditions under which projected value iteration converges (monotonicity for sup-norm, on-policy weighting for weighted $L^2$)
+- Derive the LSTD equations as Galerkin projection with stationary distribution weighting
+
+**Prerequisites:** Bellman operator and contraction property, basic numerical quadrature, linear algebra (matrix inverses, orthogonal projection).
+::::
+
+## A Motivating Example: Optimal Stopping with Continuous States
+
+Before developing the general theory, consider a concrete example that illustrates the core challenge. An agent observes a state $s \in [0, 1]$ and must decide whether to **stop** (receive reward $s$ and end the episode) or **continue** (receive nothing, and the state redraws uniformly on $[0, 1]$). With discount factor $\gamma = 0.9$, the Bellman optimality equation is:
+
+$$
+v^*(s) = \max\left\{ s, \; \gamma \int_0^1 v^*(s') \, ds' \right\}.
+$$
+
+The first term is the immediate payoff from stopping; the second is the discounted expected continuation value. Since the continuation value $\bar{v} = \int_0^1 v^*(s') ds'$ is a constant (it doesn't depend on the current state $s$), the optimal policy has a **threshold structure**: stop if $s \geq s^*$ for some threshold $s^*$, continue otherwise.
+
+At the threshold, the agent is indifferent: $s^* = \gamma \bar{v}$. Computing $\bar{v}$ by integrating $v^*$:
+
+$$
+\bar{v} = \int_0^{s^*} \gamma \bar{v} \, ds' + \int_{s^*}^1 s' \, ds' = s^* \gamma \bar{v} + \frac{1 - (s^*)^2}{2}.
+$$
+
+Substituting $s^* = \gamma \bar{v}$ and solving gives the exact threshold and value.
+
+```{code-cell} python
+:tags: [hide-input]
+
+#  label: fig-optimal-stopping-exact
+#  caption: The exact value function for the optimal stopping problem.
+
+%config InlineBackend.figure_format = 'retina'
+import numpy as np
+import matplotlib.pyplot as plt
+
+gamma = 0.9
+
+# Solve for exact threshold
+v_bar_exact = (1 - np.sqrt(1 - gamma**2)) / gamma**2
+s_star_exact = gamma * v_bar_exact
+
+print(f"Exact solution:")
+print(f"  Threshold s* = {s_star_exact:.6f}")
+print(f"  Continuation value v̄ = {v_bar_exact:.6f}")
+
+# The exact value function
+def v_exact(s):
+    return np.where(s >= s_star_exact, s, gamma * v_bar_exact)
+
+# Plot the exact value function
+s_grid = np.linspace(0, 1, 200)
+plt.figure(figsize=(8, 4))
+plt.plot(s_grid, v_exact(s_grid), 'b-', linewidth=2, label='Exact $v^*(s)$')
+plt.axvline(s_star_exact, color='r', linestyle='--', label=f'Threshold $s^* = {s_star_exact:.3f}$')
+plt.xlabel('State $s$')
+plt.ylabel('Value $v^*(s)$')
+plt.legend()
+plt.title('Optimal Stopping: Exact Value Function')
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
+```
+
+The exact value function is piecewise linear: constant at $\gamma \bar{v}$ below the threshold, equal to $s$ above it. Now suppose we want to approximate $v^*$ using a **polynomial basis** with $n$ terms:
+
+$$
+\hat{v}(s; \theta) = \sum_{j=0}^{n-1} \theta_j s^j = \theta_0 + \theta_1 s + \theta_2 s^2 + \cdots
+$$
+
+The **residual** at state $s$ measures how far our approximation is from satisfying the Bellman equation:
+
+$$
+R(s; \theta) = \max\left\{ s, \; \gamma \int_0^1 \hat{v}(s'; \theta) \, ds' \right\} - \hat{v}(s; \theta).
+$$
+
+For a perfect solution, $R(s; \theta) = 0$ for all $s \in [0, 1]$. But a polynomial cannot exactly represent the kink at $s^*$. We must choose how to make the residual "small" across the state space.
+
+**Collocation** picks $n$ points $\{s_1, \ldots, s_n\}$ and requires the residual to vanish exactly there:
+
+$$
+R(s_i; \theta) = 0, \quad i = 1, \ldots, n.
+$$
+
+**Galerkin** requires the residual to be orthogonal to each basis function:
+
+$$
+\int_0^1 R(s; \theta) s^{j} w(s) \, ds = 0, \quad j = 0, \ldots, n-1.
+$$
+
+```{code-cell} python
+:tags: [hide-input]
+
+#  label: fig-collocation-comparison
+#  caption: Polynomial collocation approximation with 5 Chebyshev nodes.
+
+from scipy.integrate import quad
+
+def chebyshev_nodes(n, a=0, b=1):
+    """Chebyshev nodes on [a, b]."""
+    k = np.arange(1, n + 1)
+    nodes = 0.5 * (a + b) + 0.5 * (b - a) * np.cos((2*k - 1) * np.pi / (2*n))
+    return np.sort(nodes)
+
+def collocation_solve(n, gamma, max_iter=100, tol=1e-8):
+    """Solve optimal stopping via polynomial collocation."""
+    nodes = chebyshev_nodes(n)
+    Phi = np.vander(nodes, n, increasing=True)
+    
+    theta = np.zeros(n)
+    for iteration in range(max_iter):
+        def v_approx(s):
+            return sum(theta[j] * s**j for j in range(n))
+        
+        v_bar, _ = quad(v_approx, 0, 1)
+        targets = np.maximum(nodes, gamma * v_bar)
+        theta_new = np.linalg.solve(Phi, targets)
+        
+        if np.linalg.norm(theta_new - theta) < tol:
+            return theta_new, iteration + 1
+        theta = theta_new
+    return theta, max_iter
+
+# Solve with different numbers of basis functions
+for n in [3, 5, 8]:
+    theta, iters = collocation_solve(n, gamma)
+    def v_approx(s, theta=theta, n=n):
+        return sum(theta[j] * s**j for j in range(n))
+    errors = [abs(v_approx(s) - v_exact(s)) for s in np.linspace(0, 1, 1000)]
+    print(f"n = {n}: converged in {iters} iters, max error = {max(errors):.6f}")
+
+# Plot comparison for n=5
+n = 5
+theta, _ = collocation_solve(n, gamma)
+v_approx_5 = lambda s: sum(theta[j] * s**j for j in range(n))
+
+plt.figure(figsize=(8, 4))
+plt.plot(s_grid, v_exact(s_grid), 'b-', linewidth=2, label='Exact')
+plt.plot(s_grid, [v_approx_5(s) for s in s_grid], 'r--', linewidth=2, label=f'Collocation ($n={n}$)')
+plt.scatter(chebyshev_nodes(n), [v_approx_5(s) for s in chebyshev_nodes(n)], 
+            color='red', s=50, zorder=5, label='Collocation nodes')
+plt.xlabel('State $s$')
+plt.ylabel('Value')
+plt.legend()
+plt.title('Polynomial Collocation Approximation')
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
+```
+
+This example illustrates the fundamental tension in weighted residual methods: with finite parameters, we cannot satisfy the Bellman equation everywhere. We must choose how to allocate our approximation capacity. The rest of this chapter develops the general theory behind these choices.
 
 ## Testing Whether a Residual Vanishes
 
@@ -161,6 +316,8 @@ $$
 
 This is projection against the most localized test functions possible: delta functions that "sample" the residual at specific points, requiring the residual to vanish exactly where we test it. The computational advantage is significant: collocation avoids numerical integration entirely, requiring only pointwise evaluation of $R$.
 
+*Verify for yourself: with $n = 2$ collocation points and $n = 2$ basis functions, the system $\boldsymbol{\Phi}\theta = t$ is a $2 \times 2$ linear system. What must be true about the collocation matrix $\boldsymbol{\Phi}$ for this system to have a unique solution?*
+
 **Orthogonal collocation** combines collocation with spectral basis functions (orthogonal polynomials like Chebyshev, Legendre, or Hermite) for smooth problems. We choose collocation points at the **zeros of the $n$-th polynomial** in the family. For example, with Chebyshev polynomials $T_0, T_1, \ldots, T_{n-1}$, we place collocation points at the zeros of $T_n(x)$.
 
 These zeros are also optimal nodes for **Gauss quadrature** with the associated weight function. This coordination means:
@@ -273,6 +430,8 @@ The first term is straightforward (it's just $\varphi_j(x_i)$ for a linear appro
 
 When $\Contraction$ involves optimization (as in the Bellman operator $\Bellman v = \max_a \{r(s,a) + \gamma \mathbb{E}[v(s')]\}$), computing this derivative appears problematic because the max operator is not differentiable. However, the **Envelope Theorem** resolves this difficulty.
 
+*Before reading the box below, try differentiating $v(\theta) = \max_x f(x, \theta)$ using the chain rule. What term involving $\partial x^*/\partial \theta$ appears? Why might this term vanish at an optimum?*
+
 ```{admonition} The Envelope Theorem
 :class: important
 
@@ -328,6 +487,8 @@ Typical diagnostic checks include:
 - Computing $\|R(\cdot; \theta)\|$ using a more accurate quadrature rule than was used in the optimization
 - Evaluating $R(x; \theta)$ at many points not used in the fitting process
 - If using Galerkin with the first $n$ basis functions, checking orthogonality against higher-order basis functions
+
+In summary, we have established a template: parameterize the unknown function using basis functions, define a residual measuring how far from a solution we are, and impose conditions via inner products with test functions. Different test functions yield different methods: Galerkin uses the basis itself, collocation uses delta functions at chosen points, and least squares uses residual gradients. We now apply this framework to the Bellman equation.
 
 ## Application to the Bellman Equation
 
@@ -397,6 +558,54 @@ When the state space is continuous, we approximate expectations using numerical 
 This converges rapidly near the solution but requires good initialization and more computation per iteration than function iteration. The method is equivalent to policy iteration: each step evaluates the value of the current greedy policy, then improves it.
 
 Why is collocation popular for Bellman equations? Because it avoids integration when testing the residual. We only evaluate the Bellman operator at $n$ discrete points. In contrast, Galerkin requires integrating the residual against each basis function.
+
+#### Worked Example: Collocation on the Optimal Stopping Problem
+
+Returning to our motivating example, let us trace through the collocation algorithm with $n = 4$ polynomial basis functions at Chebyshev nodes:
+
+```{code-cell} python
+:tags: [hide-input]
+import numpy as np
+from scipy.integrate import quad
+
+gamma = 0.9
+n = 4
+
+# Chebyshev nodes on [0, 1]
+k = np.arange(1, n + 1)
+nodes = 0.5 + 0.5 * np.cos((2*k - 1) * np.pi / (2*n))
+nodes = np.sort(nodes)
+
+# Vandermonde matrix
+Phi = np.vander(nodes, n, increasing=True)
+
+# Exact solution
+v_bar_exact = (1 - np.sqrt(1 - gamma**2)) / gamma**2
+s_star_exact = gamma * v_bar_exact
+def v_exact(s):
+    return np.where(s >= s_star_exact, s, gamma * v_bar_exact)
+
+# Collocation iteration
+theta = np.zeros(n)
+print("Collocation iteration trace:")
+print(f"{'Iter':<6} {'||theta||':<12} {'Max error':<12}")
+print("-" * 30)
+
+for iteration in range(15):
+    def v_approx(s, th=theta):
+        return sum(th[j] * s**j for j in range(n))
+    v_bar, _ = quad(v_approx, 0, 1)
+    test_points = np.linspace(0, 1, 100)
+    max_error = max(abs(v_approx(s) - v_exact(s)) for s in test_points)
+    print(f"{iteration:<6} {np.linalg.norm(theta):<12.6f} {max_error:<12.6f}")
+    
+    targets = np.maximum(nodes, gamma * v_bar)
+    theta_new = np.linalg.solve(Phi, targets)
+    if np.linalg.norm(theta_new - theta) < 1e-10:
+        print(f"\nConverged in {iteration + 1} iterations")
+        break
+    theta = theta_new
+```
 
 ### Galerkin
 
@@ -468,6 +677,20 @@ The Envelope Theorem gives $\frac{\partial \Bellman\hat{v}(s; \theta)}{\partial 
 
 The advantage of Galerkin over collocation lies in its theoretical properties: when using orthogonal polynomials, Galerkin provides optimal approximation in the weighted $L^2$ norm. For smooth problems, this can yield better accuracy per degree of freedom than collocation. In practice, collocation's computational simplicity usually outweighs Galerkin's theoretical optimality for Bellman equations, especially in high-dimensional problems where integration becomes prohibitively expensive.
 
+The algorithms above reduce the infinite-dimensional Bellman fixed-point problem to finite-dimensional coefficient computation. Collocation avoids integration entirely by requiring exact satisfaction at discrete points, while Galerkin imposes weighted orthogonality conditions requiring numerical quadrature. Both can be solved via function iteration (when contraction is preserved) or Newton's method (for faster convergence near the solution). The discrete MDP specialization below reveals connections to algorithms widely used in reinforcement learning.
+
+```{admonition} Exercises: Collocation and Galerkin
+:class: hint dropdown
+
+1. **Effect of collocation points.** For the optimal stopping problem, compare collocation with $n=4$ Chebyshev nodes versus $n=4$ equally-spaced nodes. Which choice gives smaller maximum error?
+
+2. **Threshold location.** The optimal stopping policy has a threshold structure. Using your polynomial approximation $\hat{v}(s)$, estimate the threshold by finding where $\hat{v}(s) = s$. Compare to the exact threshold.
+
+3. **Orthogonal polynomials.** For $\mathcal{S} = [-1, 1]$, write out the Galerkin conditions using Chebyshev polynomials $T_i$ and weight $w(x) = 1/\sqrt{1-x^2}$. What makes this choice computationally convenient?
+
+4. **Newton vs. function iteration.** How does the iteration count depend on $\gamma$? Try $\gamma \in \{0.5, 0.9, 0.99\}$.
+```
+
 ### Galerkin for Discrete MDPs: LSTD and LSPI
 
 When the state space is discrete and finite, the Galerkin conditions simplify dramatically. The integrals become sums, and we can write everything in matrix form. This specialization shows the connection to algorithms widely used in reinforcement learning.
@@ -516,7 +739,52 @@ $$ (eq:lstd-galerkin)
 
 This is the **LSTD (Least Squares Temporal Difference)** solution. The matrix $\mathbf{A} = \boldsymbol{\Phi}^\top \boldsymbol{\Xi} (\boldsymbol{\Phi} - \gamma \mathbf{P}_\pi \boldsymbol{\Phi})$ and vector $\mathbf{b} = \boldsymbol{\Phi}^\top \boldsymbol{\Xi} \mathbf{r}_\pi$ give the linear system $\mathbf{A} \theta = \mathbf{b}$.
 
-When $\xi$ is the stationary distribution of policy $\pi$ (so $\xi^\top \mathbf{P}_\pi = \xi^\top$), this system has a unique solution, and the projected Bellman operator $\Proj \BellmanPi$ is a contraction in the weighted $L^2$ norm $\|\cdot\|_\xi$. This is the theoretical foundation for TD learning with linear function approximation.
+When $\xi$ is the stationary distribution of policy $\pi$ (so $\xi^\top \mathbf{P}_\pi = \xi^\top$), this system has a unique solution, and the projected Bellman operator $\Proj \BellmanPi$ is a contraction in the weighted $L^2$ norm $\|\cdot\|_\xi$. This is the theoretical foundation for TD learning with linear function approximation. The fixed point computed here is the same one that TD(0) converges to stochastically; we derive the incremental algorithm in the Monte Carlo chapter.
+
+*Check that the dimensions work out: if we have $m$ states and $n$ basis functions, what are the dimensions of $\boldsymbol{\Phi}$, $\boldsymbol{\Xi}$, $\mathbf{P}_\pi$, and the matrix $\mathbf{A} = \boldsymbol{\Phi}^\top \boldsymbol{\Xi}(\boldsymbol{\Phi} - \gamma \mathbf{P}_\pi \boldsymbol{\Phi})$?*
+
+##### Worked Example: LSTD for Policy Evaluation
+
+To illustrate LSTD concretely, consider a 3-state Markov chain under a fixed policy:
+
+$$
+\mathbf{P}_\pi = \begin{pmatrix} 0.7 & 0.2 & 0.1 \\ 0.3 & 0.4 & 0.3 \\ 0.1 & 0.3 & 0.6 \end{pmatrix}, \quad \mathbf{r}_\pi = \begin{pmatrix} 1 \\ 2 \\ 0 \end{pmatrix}.
+$$
+
+```{code-cell} python
+:tags: [hide-input]
+import numpy as np
+
+P_pi = np.array([[0.7, 0.2, 0.1], [0.3, 0.4, 0.3], [0.1, 0.3, 0.6]])
+r_pi = np.array([1.0, 2.0, 0.0])
+gamma = 0.9
+
+# Feature matrix: phi_1(s) = 1, phi_2(s) = s
+states = np.array([1, 2, 3])
+Phi = np.column_stack([np.ones(3), states])
+
+# Uniform weighting
+xi = np.ones(3) / 3
+Xi = np.diag(xi)
+
+# LSTD matrices
+A = Phi.T @ Xi @ (Phi - gamma * P_pi @ Phi)
+b = Phi.T @ Xi @ r_pi
+
+theta_lstd = np.linalg.solve(A, b)
+v_lstd = Phi @ theta_lstd
+v_exact = np.linalg.solve(np.eye(3) - gamma * P_pi, r_pi)
+
+print(f"LSTD solution: theta = ({theta_lstd[0]:.4f}, {theta_lstd[1]:.4f})")
+print(f"\n{'State':<8} {'Exact':<12} {'LSTD':<12} {'Error':<12}")
+print("-" * 44)
+for s in range(3):
+    print(f"{s+1:<8} {v_exact[s]:<12.4f} {v_lstd[s]:<12.4f} {v_lstd[s] - v_exact[s]:<12.4f}")
+
+# Verify orthogonality
+residual = r_pi + gamma * P_pi @ v_lstd - v_lstd
+print(f"\nGalerkin orthogonality: <residual, phi_1> = {np.sum(xi * residual * Phi[:,0]):.6f}")
+```
 
 #### The Bellman Optimality Equation: Function Iteration and Newton's Method
 
@@ -766,6 +1034,20 @@ Least squares methods share the non-monotonicity issue. The least squares projec
 
 The monotone approximator framework successfully covers collocation with simple bases, but leaves two important methods, Galerkin and least squares, without convergence guarantees. These methods are used in least-squares temporal difference learning (LSTD) and modern reinforcement learning with linear function approximation. We need a different analytical framework to understand when these non-monotone projections lead to convergent algorithms.
 
+Monotone projections (piecewise linear interpolation, state aggregation) automatically preserve the Bellman operator's contraction property, guaranteeing convergence of projected value iteration. Non-monotone projections (Galerkin, high-order polynomials) may destroy contraction in the sup norm, requiring either different solution methods (Newton) or analysis in different norms. The next section develops the latter approach for policy evaluation.
+
+```{admonition} Exercises: Monotonicity and Convergence
+:class: hint dropdown
+
+1. **Verifying monotonicity.** Consider piecewise linear interpolation on a 5-point grid. Write out the interpolation weights for a point between grid points 2 and 3. Verify that all weights are nonnegative and sum to one.
+
+2. **A non-monotone example.** Using Lagrange interpolation with 4 equally spaced nodes on $[0, 1]$, compute the interpolation weights for the point $x = 0.1$. Show that some weights are negative.
+
+3. **State aggregation.** Consider a discrete MDP with states $\{1, 2, 3, 4\}$ aggregated into two groups: $\{1, 2\}$ and $\{3, 4\}$. Write out the aggregation operator as a matrix.
+
+4. **Contraction constant.** For the composed operator $\Proj \Bellman$ with a monotone $\Proj$, prove that the contraction constant is exactly $\gamma$.
+```
+
 ## Beyond Monotone Approximators
 
 The monotone approximator theory gives us a clean sufficient condition for convergence: if $\Proj$ is monotone (and constant-preserving), then $\Proj$ is non-expansive in the sup norm $\|\cdot\|_\infty$. Since $\Bellman$ is a $\gamma$-contraction in the sup norm, their composition $\Proj \Bellman$ is also a $\gamma$-contraction in the sup norm, guaranteeing convergence of projected value iteration.
@@ -859,6 +1141,8 @@ $$
 
 This will be at most $\gamma \|v - w\|_\xi$ if $\mathbf{P}_\pi$ is non-expansive, meaning $\|\mathbf{P}_\pi z\|_\xi \leq \|z\|_\xi$ for any vector $z$. We therefore need to establish that $\mathbf{P}_\pi$ is non-expansive in $\|\cdot\|_\xi$. 
 
+*Before reading the proof below, try to show that $\mathbf{P}_\pi$ is non-expansive in $\|\cdot\|_\xi$. Hint: what property of $\xi$ relates it to $\mathbf{P}_\pi$?*
+
 Consider the squared norm of $\mathbf{P}_\pi z$. By definition of the weighted norm:
 
 $$
@@ -904,6 +1188,18 @@ The result shows that convergence depends on matching the weighting to the opera
 In reinforcement learning, this has a practical interpretation. When we learn by following policy $\pi$ and collecting transitions $(s, a, r, s')$, the states we visit are distributed according to the stationary distribution of $\pi$. This is **on-policy learning**. The LSTD algorithm uses data sampled from this distribution, which means the empirical weighting naturally matches the operator structure. Our analysis shows that the iterative algorithm $v_{k+1} = \Proj \BellmanPi v_k$ converges to the same fixed point that LSTD computes in closed form.
 
 This is fundamentally different from the monotone approximator theory. There, we required structural properties of $\Proj$ itself (monotonicity, constant preservation) to guarantee that $\Proj$ preserves the sup-norm contraction property of $\Bellman$. Here, we place no such restriction on $\Proj$. Galerkin projection is not monotone. Instead, convergence depends on matching the norm to the operator. When $\xi$ does not match the stationary distribution, as in off-policy learning where data comes from a different behavior policy, the Jensen inequality argument breaks down. The operator $\mathbf{P}_\pi$ need not be non-expansive in $\|\cdot\|_\xi$, and $\Proj \BellmanPi$ may fail to contract. This explains divergence phenomena such as Baird's counterexample {cite}`Baird1995`.
+
+```{admonition} Exercises: LSTD and the On-Policy Condition
+:class: hint dropdown
+
+1. **Computing the stationary distribution.** For the 3-state Markov chain in the LSTD example, compute the stationary distribution $\xi$ satisfying $\xi^\top \mathbf{P}_\pi = \xi^\top$.
+
+2. **LSTD with stationary weighting.** Recompute the LSTD solution using the stationary distribution instead of uniform weighting. Compare the approximation error.
+
+3. **Off-policy divergence.** Consider a weighting $\xi' = (0.9, 0.05, 0.05)$ that does not match the stationary distribution. Implement projected value iteration and observe whether it converges.
+
+4. **Proving non-expansiveness fails off-policy.** For $\xi' = (0.9, 0.05, 0.05)$, find a vector $z$ such that $\|\mathbf{P} z\|_{\xi'} > \|z\|_{\xi'}$.
+```
 
 ### The Bellman Optimality Case
 
@@ -962,12 +1258,54 @@ This extends beyond linear basis functions. Neural networks, decision trees, and
 
 The abstraction $\mathtt{fit}$ encapsulates all the complexity of function approximation, whether that involves solving a linear system, running gradient descent, or training an ensemble. Any regression model with a `fit(X, y)` interface works: `LinearRegression`, `RandomForestRegressor`, `GradientBoostingRegressor`, `MLPRegressor`, or custom neural networks. The projection operator $\Proj$ is one instantiation: when $\mathcal{F}$ is a linear subspace and we minimize weighted squared error, we recover Galerkin or collocation. The broader view is that FVI reduces dynamic programming to repeated calls to a supervised learning subroutine.
 
+The following code demonstrates fitted-value iteration on the optimal stopping problem:
+
+```{code-cell} python
+:tags: [hide-input]
+import numpy as np
+from sklearn.linear_model import Ridge
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.pipeline import make_pipeline
+
+gamma = 0.9
+v_bar_exact = (1 - np.sqrt(1 - gamma**2)) / gamma**2
+s_star_exact = gamma * v_bar_exact
+def v_exact(s):
+    return np.where(s >= s_star_exact, s, gamma * v_bar_exact)
+
+def fitted_value_iteration(s_grid, gamma, degree, max_iter=50, tol=1e-6):
+    X = s_grid.reshape(-1, 1)
+    v = np.zeros(len(s_grid))
+    
+    for k in range(max_iter):
+        # Use trapezoidal rule for E[v] under uniform distribution on [0,1]
+        v_bar = np.trapezoid(v, s_grid)
+        targets = np.maximum(s_grid, gamma * v_bar)
+        
+        model = make_pipeline(PolynomialFeatures(degree), Ridge(alpha=1e-6))
+        model.fit(X, targets)
+        v_new = model.predict(X)
+        
+        if np.linalg.norm(v_new - v) < tol:
+            return v_new, k + 1
+        v = v_new
+    return v, max_iter
+
+s_grid = np.linspace(0, 1, 50)
+print(f"{'Degree':<10} {'Iterations':<12} {'Max Error':<12}")
+print("-" * 34)
+for deg in [3, 5, 8]:
+    v, iters = fitted_value_iteration(s_grid, gamma, deg)
+    max_error = np.max(np.abs(v - v_exact(s_grid)))
+    print(f"{deg:<10} {iters:<12} {max_error:<12.6f}")
+```
+
 A limitation of FVI/FQI is that it assumes we can evaluate the Bellman operator exactly. Computing $y_i = (\Bellman v_k)(s_i)$ requires knowing transition probabilities and summing over all next states. In practice, we often have only a simulator or observed data. The next chapter shows how to approximate these expectations from samples, connecting the fitted-value iteration framework to simulation-based methods.
 
 ## Summary
 
 This chapter developed weighted residual methods for solving functional equations like the Bellman equation. We approximate the value function using a finite basis, then impose conditions that make the residual orthogonal to chosen test functions. Different choices of test functions yield different methods: Galerkin tests against the basis itself, collocation tests at specific points, and least squares minimizes the residual norm. All reduce to the same computational pattern: generate Bellman targets, fit a function approximator, repeat.
 
-Convergence depends on how the projection interacts with the Bellman operator. For monotone projections (piecewise linear interpolation, state aggregation), the composition $\Proj \Bellman$ inherits the contraction property and iteration converges. For non-monotone projections like Galerkin, convergence requires matching the weighting to the stationary distribution, which holds in on-policy settings. The Bellman optimality case remains theoretically incomplete.
+Convergence depends on how the projection interacts with the Bellman operator. The contraction property of the Bellman operator reappears here: whether projected iteration converges depends on whether the projection preserves this contraction or whether we work in a norm compatible with the operator. For monotone projections (piecewise linear interpolation, state aggregation), the composition $\Proj \Bellman$ inherits the contraction property in the sup norm and iteration converges. For non-monotone projections like Galerkin, convergence requires matching the weighting to the stationary distribution, which holds in on-policy settings. The Bellman optimality case remains theoretically incomplete.
 
 Throughout this chapter, we assumed access to the transition model: computing $\Bellman v(s)$ requires summing over all next states weighted by transition probabilities. In practice, we often have only a simulator or observed trajectories, not an explicit model. The next chapter addresses this gap. Monte Carlo methods estimate expectations from sampled transitions, replacing exact Bellman operator evaluations with sample averages. This connects the projection framework developed here to the simulation-based algorithms used in reinforcement learning.

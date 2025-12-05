@@ -7,30 +7,28 @@ old Sphinx-based pipeline, the static HTML **does not** automatically embed the
 last outputs that were present in your `.ipynb` / MyST source. A few rules keep
 plots and widgets visible both on `localhost:3000` and on GitHub Pages:
 
-1. Every code cell that should expose a figure needs a label inside the cell:
+1. Every code cell that produces a figure should follow this pattern:
 
    ````
    ```{code-cell} python
    :tags: [hide-input]
 
-   #| label: my-figure-id
+   #  label: fig-my-figure-id
+   #  caption: Short description of the figure.
+
    %config InlineBackend.figure_format = 'retina'
    import matplotlib.pyplot as plt
    ...
-   plt.show()
+   plt.tight_layout()
    ```
    ````
 
-   Immediately after the cell, embed the output with `{figure}` (or `![](#id)`
-   for quick prototypes):
-
-   ````
-   :::{figure} #my-figure-id
-   Short caption explaining what the plot shows.
-   :::
-   ````
-
-   Without the label/embed pair, the static build only shows the console text.
+   **Notes:**
+   - Use regular Python comments (`#  label:`) for metadata, not MyST directives (`#|`)
+   - Do **not** add a `:::{figure}` embed after the cell—the figure displays
+     directly from the cell output
+   - Do **not** call `plt.show()`; end with `plt.tight_layout()` instead
+   - The `%config InlineBackend.figure_format = 'retina'` ensures high-DPI output
 
 2. Always build with notebook execution enabled. The helper script already
    enforces this:

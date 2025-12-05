@@ -1513,14 +1513,14 @@ def reconstruct_and_plot(sol, K, x_init, x_target):
 def create_animation_progress(iter_history, K, x_init, x_target):
     """Return a JS animation (to_jshtml) showing defect shrinkage across segments."""
     import matplotlib.pyplot as plt
-
-# Apply book style
-try:
-    import scienceplots
-    plt.style.use(['science', 'notebook'])
-except (ImportError, OSError):
-    pass  # Use matplotlib defaults
     from matplotlib.animation import FuncAnimation
+
+    # Apply book style
+    try:
+        import scienceplots
+        plt.style.use(['science', 'notebook'])
+    except (ImportError, OSError):
+        pass  # Use matplotlib defaults
 
     n = 4
 
