@@ -31,7 +31,7 @@ After studying this chapter, you should be able to:
 :class: tip
 
 This chapter assumes familiarity with:
-- Discrete-time trajectory optimization, including single and multiple shooting (see {doc}`trajectories`)
+- Discrete-time trajectory optimization, including single and multiple shooting (see [](trajectories.md))
 - Basic numerical integration concepts (quadrature rules, interpolation)
 - Nonlinear programming fundamentals (KKT conditions, constraint handling)
 ```
@@ -118,7 +118,7 @@ With this catalog in place, we now pass from functions to finite representations
 
 ## Direct Transcription Methods
 
-The discrete-time problems developed in {doc}`trajectories` already suggested how to proceed: we convert a continuous problem into one over finitely many numbers by deciding where to look at the trajectories and how to interpolate between those looks. Unlike dynamic programming (see {doc}`dp`), which computes a value function over the entire state space, direct transcription finds a single optimal trajectory from a given initial condition. This makes it computationally tractable for high-dimensional systems but sacrifices the feedback properties that come from knowing the value function everywhere.
+The discrete-time problems developed in [](trajectories.md) already suggested how to proceed: we convert a continuous problem into one over finitely many numbers by deciding where to look at the trajectories and how to interpolate between those looks. Unlike dynamic programming (see [](dp.md)), which computes a value function over the entire state space, direct transcription finds a single optimal trajectory from a given initial condition. This makes it computationally tractable for high-dimensional systems but sacrifices the feedback properties that come from knowing the value function everywhere.
 
 We place a mesh $t_0<t_1<\cdots<t_N=t_f$ and, inside each window $[t_k,t_{k+1}]$, select a small set of interior fractions $\{\tau_j\}$ on the reference interval $[0,1]$. The running cost is additive over windows, so we write it as a sum of local integrals, map each window to $[0,1]$, and approximate each local integral by a quadrature rule with nodes $\tau_j$ and weights $w_j$. This produces
 
@@ -1679,7 +1679,7 @@ else:
 
 ### Hydro Cascade Scheduling with Physical Routing and Multiple Shooting
 
-In {doc}`dp`, we introduced a simplified view of hydro reservoir control, where the water level evolves in discrete time by accounting for inflow and outflow, with precipitation treated as a noisy input. While useful for learning and control design, that model abstracts away much of the physical behavior of actual rivers and dams.
+In [](dp.md), we introduced a simplified view of hydro reservoir control, where the water level evolves in discrete time by accounting for inflow and outflow, with precipitation treated as a noisy input. While useful for learning and control design, that model abstracts away much of the physical behavior of actual rivers and dams.
 
 In this chapter, we move toward a more realistic setup inspired by {cite:p}`Savorgnan2011`. We consider a series of dams arranged in a cascade, where the actions taken upstream influence downstream levels with a delay. The amount of power produced depends not only on how much water flows through the turbines, but also on the head (the vertical distance between the reservoir surface and the turbine outlet). The larger the head, the more potential energy is available for conversion into electricity, and the higher the power output.
 
@@ -2217,7 +2217,7 @@ We derived three transcription schemes of increasing sophistication:
 
 The choice of **node family** (Gauss, Radau, or Lobatto) determines how boundary conditions are handled. Lobatto nodes include both endpoints and enforce slopes there automatically. Radau nodes include one endpoint, and Gauss nodes exclude both, requiring separate continuity constraints.
 
-These methods form the computational core of **model predictive control** ({doc}`mpc`), where the trajectory optimization is solved repeatedly from the current measured state. The sparse structure of the resulting NLP, where each interval contributes only local blocks, enables efficient solution even for long horizons.
+These methods form the computational core of **model predictive control** ([](mpc.md)), where the trajectory optimization is solved repeatedly from the current measured state. The sparse structure of the resulting NLP, where each interval contributes only local blocks, enables efficient solution even for long horizons.
 
 Beyond the methods presented here, several extensions are important in practice:
 - **Mesh refinement** and **hp-adaptive methods** adjust the number and placement of mesh points based on solution accuracy
