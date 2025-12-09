@@ -195,19 +195,19 @@ The principle that "a function equals zero if and only if it has zero inner prod
 While you don't need to know the Hahn-Banach theorem to use weighted residual methods, it provides the rigorous mathematical foundation ensuring that our inner product tests are theoretically sound. The constructive argument we gave above (choosing $p = R$) works in simple cases with well-behaved functions, but the Hahn-Banach theorem extends this guarantee to much more general settings.
 ```
 
-Why is this useful? It transforms the pointwise condition "$R(s) = 0$ for all $s$" (infinitely many conditions, one per state) into an equivalent condition about inner products. We still cannot test against *all* possible test functions, since there are infinitely many of those too. But the inner product perspective suggests a natural computational strategy: choose a finite collection of test functions $\{p_1, \ldots, p_n\}$ and use them to construct $n$ conditions that we can actually compute.
+This transforms the pointwise condition "$R(s) = 0$ for all $s$" (infinitely many conditions, one per state) into an equivalent condition about inner products. We still cannot test against *all* possible test functions, since there are infinitely many of those too. But the inner product perspective suggests a natural computational strategy: choose a finite collection of test functions $\{p_1, \ldots, p_n\}$ and use them to construct $n$ conditions that we can actually compute.
 
-This suggests the **weighted residual** (or **minimum residual**) approach: choose $n$ test functions $\{p_1, \ldots, p_n\}$ and a weight function $w(s)$, then require the residual to have zero weighted inner product with each test function:
+### From Variational Conditions to Optimization
 
-$$
-\langle R, p_i \rangle_w = \int_{\mathcal{S}} R(s; \theta) p_i(s) w(s) ds = 0, \quad i = 1, \ldots, n,
-$$
+Making a residual "small" is an optimization problem. We want to find $\theta$ that minimizes $\lVert R(\cdot; \theta) \rVert$ for some norm. Different methods correspond to different choices of norm:
 
-where the residual is $R(s; \theta) = \Residual(\hat{f}(\cdot; \theta))(s)$ and the approximation is $\hat{f}(s; \theta) = \sum_{j=1}^n \theta_j \varphi_j(s)$. For the Bellman equation, $\Residual(v) = \Bellman v - v$, so $R(s; \theta) = \Bellman\hat{v}(s; \theta) - \hat{v}(s; \theta)$. This transforms the impossible task of verifying "$R(s) = 0$ for all $s$" into a finite-dimensional problem: find $n$ coefficients $\theta = (\theta_1, \ldots, \theta_n)$ satisfying $n$ weighted integral conditions.
+- Minimize the weighted $L^2$ norm $\lVert R \rVert_w^2 = \int R(s)^2 w(s) ds$
+- Minimize a discrete norm $\sum_j \omega_j R(s_j)^2$ at selected points
+- Minimize $\lVert R \rVert$ in a dual norm induced by the approximation space
 
-The weight function $w(s)$ is part of the inner product definition and serves important purposes: it can emphasize certain regions of the state space, or represent a natural probability measure over states. In unweighted problems, we simply take $w(s) = 1$. In reinforcement learning applications, $w(s)$ is often chosen as the stationary distribution $d^\pi(s)$ under a policy $\pi$. This is exactly what happens in methods like LSTD (Least Squares Temporal Difference), which can be viewed as a Galerkin method with $w(s) = d^\pi(s)$.
+The first-order conditions for these optimization problems take the form $\langle R, p_j \rangle_w = 0$ for appropriate "test functions" $p_j$. The variational formulation is useful for analysis, but we are simply minimizing the residual in a chosen norm.
 
-Different choices of test functions give different methods, each with different computational and theoretical properties. When $p_i = \varphi_i$ (test functions equal basis functions), the method is called **Galerkin**, and can be interpreted geometrically as a **projection** of the residual onto the orthogonal complement of the approximation space. The rest of this chapter develops this framework systematically: how to choose basis functions $\{\varphi_j\}$, how to select test functions $\{p_i\}$, and how to solve the resulting systems. 
+The rest of this chapter develops the computational framework: how to parameterize the unknown function, define the residual, choose a norm, and solve the resulting finite-dimensional problem. 
 
 ## The General Framework
 
@@ -249,121 +249,118 @@ $$
 R(x; \theta) = \Residual(\hat{f}(\cdot; \theta))(x).
 $$
 
-This residual measures how far our candidate solution is from satisfying the equation at each point $x$. As we discussed in the introduction, we will assess whether this residual is "close to zero" by testing its inner products against chosen test functions.
+This residual measures how far our candidate solution is from satisfying the equation at each point $x$. As we discussed in the introduction, we want to make this residual small—an optimization problem whose formulation depends on how we measure "small."
 
-### Step 3: Impose Conditions to Determine Coefficients
+### Step 3: Minimize the Residual
 
-Having chosen our basis and defined the residual, we must decide how to make the residual "close to zero." As discussed in the introduction, we test the residual using **weighted integrals**. We select test functions $\{p_1, \ldots, p_n\}$ and a weight function $w(x)$ (often $w(x) = 1$ for unweighted problems), then impose **weighted residual conditions**:
+Having chosen our basis and defined the residual, we must find $\theta$ that makes the residual small. This is an optimization problem: we minimize $\lVert R(\cdot; \theta) \rVert$ for some norm. The choice of norm determines the method:
+
+| **Method** | **Norm being minimized** | **Conditions** ($n$ equations) |
+|:-----------|:------------------------|:-------------------------------|
+| Least squares | $\displaystyle\lVert R \rVert_w^2 = \int R(x; \theta)^2 w(x) dx$ | $\displaystyle\int R \cdot \frac{\partial R}{\partial \theta_j} \, w \, dx = 0$, $j = 1, \ldots, n$ |
+| Galerkin | $\lVert R \rVert_{\mathcal{V}^*}$ (dual norm of approx. space) | $\displaystyle\int R(x; \theta) \varphi_j(x) w(x) dx = 0$, $j = 1, \ldots, n$ |
+| Collocation | $\displaystyle\sum_i \omega_i R(x_i; \theta)^2$ (discrete) | $R(x_i; \theta) = 0$, $i = 1, \ldots, n$ |
+
+The first-order conditions for each optimization problem yield $n$ equations in the $n$ unknowns $\theta_1, \ldots, \theta_n$. We now describe each method, starting with the most computationally attractive.
+
+#### Collocation: Make the Residual Zero at Selected Points
+
+The simplest approach is to choose $n$ points $\{x_1, \ldots, x_n\}$ and require the residual to vanish exactly at each:
 
 $$
-\int_{\mathcal{S}} R(x; \theta) p_i(x) w(x) \, dx = 0, \quad i = 1, \ldots, n.
+R(x_i; \theta) = 0, \quad i = 1, \ldots, n.
 $$
 
-These $n$ integral conditions provide $n$ equations to determine the $n$ unknown coefficients in $\theta$. Different choices of test functions $p_i$ give different methods:
-- **Galerkin**: $p_i = \varphi_i$ (test with the basis functions themselves)
-- **Collocation**: $p_i = \delta(x - x_i)$ (test at specific points)
-- **Method of moments**: $p_i = x^{i-1}$ (test with monomials)
-
-An alternative is the **least squares approach**, which minimizes the weighted norm of the residual:
+This gives $n$ equations for $n$ unknowns. Collocation is computationally attractive because it avoids integration entirely—we only evaluate $R$ at discrete points. The resulting system is:
 
 $$
-\min_\theta \int_{\mathcal{S}} R(x; \theta)^2 w(x) dx.
+\Residual(\hat{f}(\cdot; \theta))(x_i) = 0, \quad i = 1, \ldots, n.
 $$
 
-We focus primarily on methods distinguished by their choice of test functions $p_i$. The Galerkin method, where $p_i = \varphi_i$, can be interpreted geometrically as a **projection** when working in a Hilbert space with a weighted inner product.
+For a linear operator, this is a linear system; for the Bellman equation, it is nonlinear due to the max.
 
-Let us examine the standard choices of test functions and what they tell us about the residual:
+*Verify for yourself: with $n = 2$ collocation points and $n = 2$ basis functions, the system $\boldsymbol{\Phi}\theta = t$ is a $2 \times 2$ linear system. What must be true about the collocation matrix $\boldsymbol{\Phi}$ for this system to have a unique solution?*
 
-#### Galerkin Method: Test Against the Basis
+The choice of collocation points matters. **Orthogonal collocation** (or **spectral collocation**) places points at the zeros of the $n$-th orthogonal polynomial in a family (Chebyshev, Legendre, etc.). For Chebyshev polynomials $T_0, T_1, \ldots, T_{n-1}$, we place collocation points at the zeros of $T_n(x)$. These points are also optimal nodes for Gauss quadrature, so:
 
-The Galerkin method chooses test functions $p_i = \varphi_i$, the same basis functions used to approximate $\hat{f}$:
+- We get the computational simplicity of pointwise evaluation $R(x_i) = 0$
+- When we need integrals (inside the Bellman operator), the collocation points double as quadrature nodes with exactness for polynomials up to degree $2n-1$
+- For smooth problems, spectral approximations achieve **exponential convergence**: the error decreases like $O(e^{-cn})$ as we add basis functions, compared to $O(h^{p+1})$ for piecewise polynomials
+
+The Chebyshev interpolation theorem guarantees that forcing $R(x_i; \theta) = 0$ at these carefully chosen points makes $R(x; \theta)$ small everywhere, with well-conditioned systems and near-optimal interpolation error.
+
+#### Galerkin: Make the Residual Orthogonal to the Approximation Space
+
+The Galerkin method requires the residual to be orthogonal to each basis function:
 
 $$
 \int_{\mathcal{S}} R(x; \theta) \varphi_i(x) w(x) dx = 0, \quad i = 1, \ldots, n.
 $$
 
-To understand what this means, recall that in finite dimensions, two vectors are orthogonal when their inner product is zero. For functions, $\langle R, \varphi_i \rangle_w = \int R(x) \varphi_i(x) w(x) dx = 0$ expresses the same concept: $R$ and $\varphi_i$ are orthogonal as functions with respect to the weighted inner product. But there's more to this than just testing against individual basis functions.
-
-Consider our approximation space $\text{span}\{\varphi_1, \ldots, \varphi_n\}$ as an $n$-dimensional subspace within the infinite-dimensional space of all functions. Any function $g$ in this space can be written as $g = \sum_{i=1}^n c_i \varphi_i$ for some coefficients $c_i$. If the residual $R$ is orthogonal to all basis functions $\varphi_i$, then by linearity of the inner product, for any such function $g$:
+To understand why this is optimal, consider the approximation space $\mathcal{V} = \text{span}\{\varphi_1, \ldots, \varphi_n\}$ as an $n$-dimensional subspace. If the residual $R$ is orthogonal to all basis functions, then by linearity, $R$ is orthogonal to every function in $\mathcal{V}$:
 
 $$
-\langle R, g \rangle = \left\langle R, \sum_{i=1}^n c_i \varphi_i \right\rangle = \sum_{i=1}^n c_i \langle R, \varphi_i \rangle = 0.
+\langle R, g \rangle_w = \left\langle R, \sum_{i=1}^n c_i \varphi_i \right\rangle_w = \sum_{i=1}^n c_i \langle R, \varphi_i \rangle_w = 0 \quad \text{for all } g \in \mathcal{V}.
 $$
 
-This shows that $R$ is orthogonal to every function we can represent with our basis. The residual has "zero overlap" with our approximation space: we cannot express any part of it using our basis functions. In this sense, the residual is as "invisible" to our approximation as possible.
+The residual has "zero overlap" with our approximation space—it is as "invisible" to our basis as possible. This is the defining property of orthogonal projection.
 
-This condition is the defining property of optimality. By choosing our approximation $\hat{f}$ so that the residual $R = \Residual(\hat{f})$ is orthogonal to the entire approximation space, we ensure that $\hat{f}$ is the orthogonal projection of the true solution onto $\text{span}{\varphi_1, \ldots, \varphi_n}$. Within this $n$-dimensional space, no better choice is possible: any other coefficients would yield a residual with a nonzero component inside the space, and therefore a larger norm.
-
-The finite-dimensional analogy makes this concrete. Suppose you want to approximate a vector $\mathbf{v} \in \mathbb{R}^3$ using only the $xy$-plane (a 2D subspace). The best approximation is to project $\mathbf{v}$ onto the plane, giving $\hat{\mathbf{v}} = (v_1, v_2, 0)$. The error is $\mathbf{r} = \mathbf{v} - \hat{\mathbf{v}} = (0, 0, v_3)$, which points purely in the $z$-direction, orthogonal to the entire $xy$-plane. We see the Galerkin condition in action: the error is orthogonal to the approximation space.
-
-#### Method of Moments: Test Against Monomials
-
-The method of moments, for problems on $D \subset \mathbb{R}$, chooses test functions $p_i(x) = x^{i-1}$ for $i = 1, \ldots, n$:
+In what sense is Galerkin minimizing a norm? The **dual norm** of $R$ with respect to $\mathcal{V}$ measures $R$ by its largest inner product with functions in $\mathcal{V}$:
 
 $$
-\langle R(\cdot; \theta), x^{i-1} \rangle = 0, \quad i = 1, \ldots, n.
+\lVert R \rVert_{\mathcal{V}^*} = \sup_{\substack{g \in \mathcal{V} \\ \lVert g \rVert_w = 1}} \lvert \langle R, g \rangle_w \rvert.
 $$
 
-This requires the first $n$ moments of the residual function to vanish, ensuring the residual is "balanced" in the sense that it has no systematic trend captured by low-order polynomials. The moments $\int x^k R(x; \theta) w(x) dx$ measure weighted averages of the residual, with increasing powers of $x$ giving more weight to larger values. Setting these to zero ensures the residual doesn't grow systematically with $x$. This approach is particularly useful when $w(x)$ is chosen as a probability measure, making the conditions natural moment restrictions familiar from statistics and econometrics.
+The Galerkin conditions $\langle R, \varphi_j \rangle_w = 0$ for all $j$ imply $\langle R, g \rangle_w = 0$ for all $g \in \mathcal{V}$, so $\lVert R \rVert_{\mathcal{V}^*} = 0$. Galerkin makes the residual "invisible" when measured against the approximation space—it minimizes the dual norm to zero.
 
-#### Collocation Method: Test Against Delta Functions
+A finite-dimensional analogy: to approximate a vector $\mathbf{v} \in \mathbb{R}^3$ using only the $xy$-plane, the best approximation is $\hat{\mathbf{v}} = (v_1, v_2, 0)$. The error $\mathbf{r} = \mathbf{v} - \hat{\mathbf{v}} = (0, 0, v_3)$ points purely in the $z$-direction, orthogonal to the plane. The Galerkin condition generalizes this: the residual is orthogonal to the approximation space.
 
-The collocation method chooses test functions $p_i(x) = \delta(x - x_i)$, the Dirac delta functions at points $\{x_1, \ldots, x_n\}$:
+Galerkin requires integration to compute the conditions, making it more expensive per iteration than collocation. However, when using orthogonal polynomial bases with matching weight functions, the integrals simplify and the resulting systems are well-conditioned.
 
-$$
-\langle R(\cdot; \theta), \delta(\cdot - x_i) \rangle = R(x_i; \theta) = 0, \quad i = 1, \ldots, n.
-$$
+#### Least Squares: Minimize the $L^2$ Norm of the Residual
 
-This is projection against the most localized test functions possible: delta functions that "sample" the residual at specific points, requiring the residual to vanish exactly where we test it. The computational advantage is significant: collocation avoids numerical integration entirely, requiring only pointwise evaluation of $R$.
-
-*Verify for yourself: with $n = 2$ collocation points and $n = 2$ basis functions, the system $\boldsymbol{\Phi}\theta = t$ is a $2 \times 2$ linear system. What must be true about the collocation matrix $\boldsymbol{\Phi}$ for this system to have a unique solution?*
-
-**Orthogonal collocation** combines collocation with spectral basis functions (orthogonal polynomials like Chebyshev, Legendre, or Hermite) for smooth problems. We choose collocation points at the **zeros of the $n$-th polynomial** in the family. For example, with Chebyshev polynomials $T_0, T_1, \ldots, T_{n-1}$, we place collocation points at the zeros of $T_n(x)$.
-
-These zeros are also optimal nodes for **Gauss quadrature** with the associated weight function. This coordination means:
-- We get the computational simplicity of collocation: just pointwise evaluation $R(x_i) = 0$
-- When we need integrals (inside the Bellman operator), the collocation points double as quadrature nodes with exactness for polynomials up to degree $2n-1$
-- For smooth problems, spectral approximations achieve **exponential convergence**: the error decreases like $O(e^{-cn})$ as we add basis functions, compared to $O(h^{p+1})$ for piecewise polynomials
-
-This approach is often called a **pseudospectral method** or **spectral collocation method**. The Chebyshev interpolation theorem guarantees that forcing $R(x_i; \theta) = 0$ at these carefully chosen points makes $R(x; \theta)$ small everywhere, with well-conditioned systems and near-optimal interpolation error.
-
-#### Subdomain Method: Test Against Indicator Functions
-
-The subdomain method partitions the domain into $n$ subregions $\{D_1, \ldots, D_n\}$ and chooses test functions $p_i = I_{D_i}$, the indicator functions:
+The most direct approach is to minimize the weighted $L^2$ norm of the residual:
 
 $$
-\langle R(\cdot; \theta), I_{D_i} \rangle_w = \int_{D_i} R(x; \theta) w(x) dx = 0, \quad i = 1, \ldots, n.
+\min_\theta \int_{\mathcal{S}} R(x; \theta)^2 w(x) dx.
 $$
 
-This requires the residual to have zero average over each subdomain, ensuring the approximation is good "on average" over each piece of the domain. This approach is particularly natural for finite element methods where the domain is divided into elements, ensuring local balance of the residual within each element.
-
-#### Least Squares
-
-The least squares approach appears different at first glance, but it also fits the test function framework. We minimize:
+The first-order conditions are:
 
 $$
-\min_\theta \int_{\mathcal{S}} R(x; \theta)^2 w(x) dx = \min_\theta \langle R(\cdot; \theta), R(\cdot; \theta) \rangle_w.
+\int_{\mathcal{S}} R(x; \theta) \frac{\partial R(x; \theta)}{\partial \theta_j} w(x) dx = 0, \quad j = 1, \ldots, n.
 $$
 
-The first-order conditions for this minimization problem are:
+This directly minimizes how far our approximation is from satisfying the equation. For the Bellman equation $R = \Bellman\hat{v} - \hat{v}$, this is **Bellman residual minimization**: we minimize $\lVert \Bellman\hat{v} - \hat{v} \rVert_w^2$.
+
+The gradient $\frac{\partial R}{\partial \theta_j}$ involves differentiating the operator $\Residual$. For the Bellman operator with its max, this requires the Envelope Theorem (discussed in Step 4). The need to differentiate through the operator distinguishes least squares from Galerkin and collocation.
+
+#### Fitted Q-Iteration: Project, Then Iterate
+
+For iterative methods, there is a computationally simpler alternative to minimizing the residual directly. **Fitted Q-Iteration (FQI)** uses a two-step iteration:
+
+1. Apply the Bellman operator to get a target: $f_k = \Bellman \hat{v}_k$
+2. Project the target back onto the approximation space: $\hat{v}_{k+1} = \arg\min_\theta \lVert \hat{v}(\cdot; \theta) - f_k \rVert_w^2$
+
+The projection step solves $\min_\theta \lVert \hat{v} - f_k \rVert_w^2$, whose first-order conditions are $\langle \hat{v} - f_k, \varphi_j \rangle_w = 0$. This is a standard least-squares fit of the basis to the target values. Combining these steps gives:
 
 $$
-\left\langle R(\cdot; \theta), \frac{\partial R(\cdot; \theta)}{\partial \theta_i} \right\rangle_w = 0, \quad i = 1, \ldots, n.
+\hat{v}_{k+1} = \Pi_w \, \Bellman \hat{v}_k,
 $$
 
-Thus least squares implicitly uses test functions $p_i = \partial R / \partial \theta_i$, the gradients of the residual with respect to parameters. Unlike other methods where test functions are chosen a priori, here they depend on the current guess for $\theta$ and on the structure of our approximation.
+where $\Pi_w$ denotes orthogonal projection onto $\text{span}\{\varphi_j\}$ with respect to the weighted inner product.
 
-We can now see the unifying structure of **weighted residual methods**: whether we use projection conditions or least squares minimization, all these methods follow the same template of restricting the search to an $n$-dimensional function space and imposing $n$ conditions on the residual. For projection methods specifically, we pick $n$ test functions and require $\langle R, p_i \rangle = 0$. They differ only in their philosophy about which test functions best detect whether the residual is "nearly zero." Galerkin tests against the approximation basis itself (natural for orthogonal bases), the method of moments tests against monomials (ensuring polynomial balance), collocation tests against delta functions (pointwise satisfaction), subdomain tests against indicators (local average satisfaction), and least squares tests against residual gradients (global norm minimization). Each choice reflects different priorities: computational efficiency, theoretical optimality, ease of implementation, or sensitivity to errors in different regions of the domain.
+FQI does **not** minimize the Bellman residual $\lVert \Bellman\hat{v} - \hat{v} \rVert^2$ directly. It projects, then iterates. FQI's projection step uses only the gradient of $\hat{v}$ with respect to $\theta$ (the "semi-gradient"), while Bellman residual minimization requires differentiating through $\Bellman$ (the "full gradient"). We return to this distinction when discussing temporal difference learning.
 
 ### Step 4: Solve the Finite-Dimensional Problem
 
-The projection conditions give us a system to solve for the coefficients $\theta$. For test function methods (Galerkin, collocation, moments, subdomain), we solve:
+The conditions from Step 3 give us a finite-dimensional problem to solve:
 
-$$
-P_i(\theta) \equiv \langle R(\cdot; \theta), p_i \rangle_w = 0, \quad i = 1, \ldots, n.
-$$
+- **Collocation**: $n$ equations $R(x_i; \theta) = 0$
+- **Galerkin**: $n$ equations $\int R(x; \theta) \varphi_i(x) w(x) dx = 0$
+- **Least squares**: minimize $\int R(x; \theta)^2 w(x) dx$
 
-This is a system of $n$ (generally nonlinear) equations in $n$ unknowns. For least squares, we solve the optimization problem $\min_\theta \langle R(\cdot; \theta), R(\cdot; \theta) \rangle_w$.
+In each case, we have $n$ equations (or first-order conditions) in $n$ unknowns $\theta_1, \ldots, \theta_n$. For the Bellman equation, these systems are nonlinear due to the max operator.
 
 #### Computational Cost and Conditioning
 
