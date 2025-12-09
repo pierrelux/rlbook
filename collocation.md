@@ -13,6 +13,43 @@ kernelspec:
 
 # Trajectory Optimization in Continuous Time
 
+The previous chapter developed trajectory optimization for discrete-time systems, where the horizon splits naturally into stages. Many physical systems, however, are described by ordinary differential equations in continuous time. This chapter extends the optimization framework to that setting. The decision variables are now functions of time, not finite sequences, so we must convert the infinite-dimensional problem into a finite-dimensional nonlinear program that a numerical solver can handle. The methods that accomplish this conversion are called **direct transcription** or **collocation** methods, and they form the computational backbone of modern trajectory optimization software.
+
+```{admonition} Learning Goals
+:class: note
+
+After studying this chapter, you should be able to:
+
+1. Formulate a continuous-time optimal control problem in Mayer, Lagrange, or Bolza form, and convert between them.
+2. Explain how quadrature rules and polynomial interpolation convert infinite-dimensional problems into finite-dimensional NLPs.
+3. Derive the Euler, trapezoidal, and Hermite–Simpson collocation schemes from first principles.
+4. Implement a direct collocation method for a nonlinear dynamical system.
+5. Distinguish Gauss, Radau, and Lobatto node families and explain their implications for boundary conditions.
+```
+
+```{admonition} Prerequisites
+:class: tip
+
+This chapter assumes familiarity with:
+- Discrete-time trajectory optimization, including single and multiple shooting (see {doc}`trajectories`)
+- Basic numerical integration concepts (quadrature rules, interpolation)
+- Nonlinear programming fundamentals (KKT conditions, constraint handling)
+```
+
+## A Motivating Example: Minimum-Time Braking
+
+Before presenting the formal problem classes, consider a simple scenario that illustrates the structure of continuous-time optimal control. A car traveling at initial velocity $v_0$ must come to a complete stop at a target position $p_f$. The driver controls the braking force, which we normalize to an acceleration $u(t) \in [-a_{\max}, 0]$. The dynamics are:
+
+$$
+\dot{p}(t) = v(t), \qquad \dot{v}(t) = u(t).
+$$
+
+The objective is to stop in minimum time while respecting the braking limit. This is a **Mayer problem**: the cost depends only on the final time $t_f$, with no running penalty. If instead we penalized control effort $\int_0^{t_f} u(t)^2 \, dt$, it would be a **Lagrange problem**. Combining both yields a **Bolza problem**.
+
+Notice the essential structure: a state trajectory $(p(t), v(t))$ evolves according to an ODE, a control function $u(t)$ influences that evolution, and the objective involves the trajectory endpoints and possibly an integral over time. The constraints $u(t) \in [-a_{\max}, 0]$ and $v(t_f) = 0$ must hold. This is a continuous-time optimal control problem, and the three standard formulations below capture all such problems.
+
+## Problem Formulations
+
 As in the discrete-time setting, we work with three continuous-time variants that differ only in how the objective is written while sharing the same dynamics, path constraints, and bounds. The path constraints $\mathbf{g}(\mathbf{x}(t),\mathbf{u}(t))\le \mathbf{0}$ are pointwise in time, and the bounds $\mathbf{x}_{\min}\le \mathbf{x}(t)\le \mathbf{x}_{\max}$ and $\mathbf{u}_{\min}\le \mathbf{u}(t)\le \mathbf{u}_{\max}$ are understood in the same pointwise sense.
 
 ::::{grid}
@@ -79,9 +116,11 @@ with the original dynamics left unchanged. Mayer is a special case of Bolza with
 
 With this catalog in place, we now pass from functions to finite representations.
 
-# Direct Transcription Methods
+## Direct Transcription Methods
 
-The discrete-time problems of the previous chapter already suggested how to proceed: we convert a continuous problem into one over finitely many numbers by deciding where to look at the trajectories and how to interpolate between those looks. We place a mesh $t_0<t_1<\cdots<t_N=t_f$ and, inside each window $[t_k,t_{k+1}]$, select a small set of interior fractions $\{\tau_j\}$ on the reference interval $[0,1]$. The running cost is additive over windows, so we write it as a sum of local integrals, map each window to $[0,1]$, and approximate each local integral by a quadrature rule with nodes $\tau_j$ and weights $w_j$. This produces
+The discrete-time problems developed in {doc}`trajectories` already suggested how to proceed: we convert a continuous problem into one over finitely many numbers by deciding where to look at the trajectories and how to interpolate between those looks. Unlike dynamic programming (see {doc}`dp`), which computes a value function over the entire state space, direct transcription finds a single optimal trajectory from a given initial condition. This makes it computationally tractable for high-dimensional systems but sacrifices the feedback properties that come from knowing the value function everywhere.
+
+We place a mesh $t_0<t_1<\cdots<t_N=t_f$ and, inside each window $[t_k,t_{k+1}]$, select a small set of interior fractions $\{\tau_j\}$ on the reference interval $[0,1]$. The running cost is additive over windows, so we write it as a sum of local integrals, map each window to $[0,1]$, and approximate each local integral by a quadrature rule with nodes $\tau_j$ and weights $w_j$. This produces
 
 $$
 \int_{t_0}^{t_f} c(\mathbf{x}(t),\mathbf{u}(t))\,dt
@@ -105,7 +144,7 @@ Specific choices recover familiar schemes. If we use the left endpoint as the si
 
 
 
-## Discretizing cost and dynamics together
+### Discretizing cost and dynamics together
 
 In a continuous-time OCP, integrals appear twice: in the objective, which accumulates running cost over time, and implicitly in the dynamics, since state changes over any interval are the integral of the vector field. To compute, we must approximate both the integrals and the unknown functions $\mathbf{x}(t)$ and $\mathbf{u}(t)$ with finitely many numbers that an optimizer can manipulate.
 
@@ -181,13 +220,17 @@ $$
 
 where $\{b_j\}$ are the weights used for the ODE. Path constraints $\mathbf{g}(\mathbf{x}(t),\mathbf{u}(t))\le 0$ are imposed at selected nodes $t_{k,j}$ in the same spirit. Using the same evaluation points for cost and dynamics keeps the representation coherent: we "pay" running cost and "account" for state changes at the same times.
 
+```{admonition} Recap
+:class: tip
 
+We have established the core discretization framework: (1) partition the horizon into mesh intervals, (2) approximate integrals using quadrature rules with nodes and weights, and (3) evaluate both the running cost and the dynamics at the same interior points. This alignment principle ensures that the places where we accumulate cost are the same places where we enforce the ODE, yielding a coherent finite-dimensional representation. What remains is to choose specific nodes and decide how to represent the trajectory between them.
+```
 
-### On the choice of interior points
+#### On the choice of interior points
 
 Once we select a mesh $t_0<\cdots<t_N$ and interior fractions $\{\tau_j\}_{j=1}^q$ per window $[t_k,t_{k+1}]$, we need $\mathbf{x}(t_{k,j})$ and $\mathbf{u}(t_{k,j})$ at the evaluation times $t_{k,j} := t_k + h_k\tau_j$. These values do not preexist. They come from one of two constructions that align with the standard quadrature taxonomy: **step-function based** and **interpolating-function based** rules.
 
-#### Step-function based construction (piecewise constants; rectangle or midpoint)
+##### Step-function based construction (piecewise constants; rectangle or midpoint)
 
 Here we approximate the relevant time functions by step functions on each window. For controls, a common choice is piecewise-constant:
 
@@ -210,7 +253,7 @@ $$
 
 If we prefer the midpoint rectangle rule, we sample at $t_{k+\frac12}=t_k+\tfrac{h_k}{2}$. In practice we then generate $\mathbf{x}_{k+\frac12}$ by a half-step of the chosen integrator, and set $\mathbf{u}_{k+\frac12}=\mathbf{u}_k$ (piecewise-constant) or an average if we allow a short linear segment. Either way, interior values come from **integrating forward** given a step-function model for $\mathbf{u}$ and a rectangle-rule view of the integrals. This is the shooting viewpoint. Single shooting keeps only control parameters as decision variables; multiple shooting adds the window-start states and enforces step consistency.
 
-#### Interpolating-function based construction (low-order polynomials; trapezoid, Simpson, Gauss/Radau/Lobatto)
+##### Interpolating-function based construction (low-order polynomials; trapezoid, Simpson, Gauss/Radau/Lobatto)
 
 Here we approximate time functions by **polynomials** on each window. If we interpolate $\mathbf{x}(t)$ linearly between endpoints, the cost naturally uses the trapezoidal rule
 
@@ -232,7 +275,7 @@ $$
 
 with continuity at endpoints. The interior values $\mathbf{x}(t_{k,j})$ are **evaluations of the decision polynomials**; $\mathbf{u}(t_{k,j})$ follows from the chosen control interpolation (constant, linear, or quadratic). The running cost is evaluated by the same interpolatory quadrature at the same nodes, which keeps "where we pay" aligned with "where we enforce."
 
-# Polynomial Interpolation
+## Polynomial Interpolation
 
 We often want to construct a function that passes through a given set of points. For example, suppose we know a function should satisfy:
 
@@ -745,6 +788,12 @@ These node families derive from orthogonal polynomial theory. Gauss nodes corres
 
 For optimal control applications, Radau-II nodes are often preferred because they provide implicit time-stepping behavior and good stability properties. Lobatto nodes simplify boundary condition handling but may require smaller time steps. Gauss nodes offer highest quadrature accuracy but complicate endpoint treatment.
 
+```{admonition} Recap
+:class: tip
+
+The three standard node families differ in how they treat interval endpoints. **Lobatto** nodes include both endpoints, so the ODE is enforced there and slopes match automatically at mesh boundaries. **Radau** nodes include one endpoint (left for Radau-I, right for Radau-II), leaving the other free for continuity constraints. **Gauss** nodes exclude both endpoints entirely, requiring separate continuity conditions at each mesh point. The choice affects stability, accuracy, and how boundary conditions propagate through the transcription.
+```
+
 #### Control Parameterization and Cost Integration
 
 The control inputs can be handled with similar polynomial approximations. We may use piecewise-constant controls, piecewise-linear controls, or higher-order polynomial parameterizations of the form:
@@ -761,13 +810,13 @@ $$
 
 
 
-# A Compendium of Direct Transcription Methods in Trajectory Optimization
+## A Compendium of Direct Transcription Methods in Trajectory Optimization
 
 The mesh and interior nodes are the common scaffold. What distinguishes one transcription from another is how we obtain values at those nodes and how we approximate the two integrals that appear implicitly and explicitly: the integral of the running cost and the integral that carries the state forward. In other words, we now commit to two design choices that mirror the previous section: a finite representation for $\mathbf{x}(t)$ and $\mathbf{u}(t)$ over each interval $[t_i,t_{i+1}]$, and a quadrature rule whose nodes and weights are used consistently for both cost and dynamics. The result is always a sparse nonlinear program; the differences are in where we sample and how we tie samples together.
 
 Below, each transcription should be read as "same grid, same interior points, same evaluations for cost and physics," with only the local representation changing.
 
-## Euler Collocation
+### Euler Collocation
 
 Work on one interval $[t_k,t_{k+1}]$ of length $h_k$ with the reparametrization $t=t_k+h_k\,\tau$, $\tau\in[0,1]$. Assume a degree 1 polynomial:
 
@@ -875,7 +924,7 @@ $$
 $$
 ```
 
-## Trapezoidal collocation
+### Trapezoidal collocation
 
 In this scheme we take the **two endpoints as the nodes** on each interval:
 
@@ -902,7 +951,7 @@ $$
 
 *Summary:* the **collocation nodes** for trapezoidal are the **two endpoints**; the state is **linear** on each interval; and the dynamics are enforced via the **integrated** ODE with the **trapezoid rule** at those two nodes, yielding the familiar trapezoidal defect.
 
-## Hermite–Simpson (quadratic interpolation; midpoint included)
+### Hermite–Simpson (quadratic interpolation; midpoint included)
 
 On each interval $[t_i,t_{i+1}]$ we pick **three collocation nodes** on the reference domain $\tau\in[0,1]$:
 
@@ -941,9 +990,9 @@ $$
 * The **three nodes together** are used for the **Simpson integral** of $\mathbf{f}$ (state update) and of $c$ (cost), keeping physics and objective synchronized.
 
 
-# Examples
+## Examples
 
-## Compressor Surge Problem 
+### Compressor Surge Problem 
 
 A compressor is a machine that raises the pressure of a gas by squeezing it into a smaller volume. You find them in natural gas pipelines, jet engines, and factories. But compressors can run into trouble if the flow of gas becomes too small. In that case, the machine can "stall" much like an airplane wing at too high an angle. Instead of moving forward, the gas briefly pushes back, creating strong pressure oscillations that can damage the compressor and anything connected to it.
 
@@ -1545,7 +1594,7 @@ plt.tight_layout()
 ```
 
 
-## Flight Trajectory Optimization
+### Flight Trajectory Optimization
 
 We consider a concrete task: computing a fuel-optimal trajectory between Montréal–Trudeau (CYUL) and Toronto Pearson (CYYZ), taking into account both aircraft dynamics and wind conditions along the route. For this demo, we leverage the excellent library [OpenAP.top](https://github.com/junzis/openap-top) which provides direct transcription methods and airplane dynamics models {cite:p}`Sun2022`. Furthermore, it allows us to import a a wind field comes from **ERA5** {cite:p}`ERA52018`, a global atmospheric dataset. It combines historical observations from satellites, aircraft, and surface stations with a weather model to reconstruct the state of the atmosphere across space and time. In climate science, this is called a *reanalysis*.
 
@@ -1628,9 +1677,9 @@ else:
 ```
 
 
-## Hydro Cascade Scheduling with Physical Routing and Multiple Shooting
+### Hydro Cascade Scheduling with Physical Routing and Multiple Shooting
 
-Earlier in the book, we introduced a simplified view of hydro reservoir control, where the water level evolves in discrete time by accounting for inflow and outflow, with precipitation treated as a noisy input. While useful for learning and control design, this model abstracts away much of the physical behavior of actual rivers and dams.
+In {doc}`dp`, we introduced a simplified view of hydro reservoir control, where the water level evolves in discrete time by accounting for inflow and outflow, with precipitation treated as a noisy input. While useful for learning and control design, that model abstracts away much of the physical behavior of actual rivers and dams.
 
 In this chapter, we move toward a more realistic setup inspired by {cite:p}`Savorgnan2011`. We consider a series of dams arranged in a cascade, where the actions taken upstream influence downstream levels with a delay. The amount of power produced depends not only on how much water flows through the turbines, but also on the head (the vertical distance between the reservoir surface and the turbine outlet). The larger the head, the more potential energy is available for conversion into electricity, and the higher the power output.
 
@@ -2112,3 +2161,67 @@ run_demo(show=True, save_path=None, verbose=False)
 The figure shows the result of a multiple-shooting optimization applied to a three-reach hydroelectric cascade. The time horizon is discretized into 16 intervals, and SciPy's `trust-constr` solver is used to find a feasible control sequence that satisfies mass balance, turbine and spillway limits, and Muskingum-style routing dynamics. Each reach integrates its own local ODE, with continuity constraints linking the flows between reaches.
 
 The top-left panel shows the water levels in each reservoir. We observe that upstream reservoirs tend to increase their levels ahead of discharge events, building potential energy before releasing water downstream. The top-right panel shows turbine discharges for each reach. These vary smoothly and are temporally coordinated across the system. The bottom-right panel compares the total generation to a synthetic demand profile, which is generated by a sum of time-shifted sigmoids and normalized to be feasible given turbine capacities. The optimized schedule (orange) tracks this demand closely, while the initial guess (blue) lags behind. The bottom-left panel plots the routed inflows between reaches, which display the expected lag and smoothing effects from Muskingum routing. The interplay between these plots shows how the system anticipates, stores, and routes water to meet time-varying generation targets within physical and operational limits.
+
+
+## Exercises
+
+````{exercise}
+:label: ex-collocation-truncation
+
+Consider the scalar ODE $\dot{x} = ax$ with initial condition $x(0) = x_0$. Show that the trapezoidal collocation defect
+
+$$
+x_{k+1} - x_k - \frac{h}{2}\left[ax_k + ax_{k+1}\right] = 0
+$$
+
+has local truncation error $O(h^3)$, meaning the method is second-order accurate. *Hint:* Expand $x(t_k + h)$ in a Taylor series around $t_k$ and substitute into the defect equation.
+````
+
+````{exercise}
+:label: ex-collocation-gauss-continuity
+
+Explain why Gauss collocation requires separate continuity constraints at mesh endpoints while Lobatto collocation does not. Consider a single mesh interval $[t_k, t_{k+1}]$ and describe what happens when you chain multiple intervals together for each node family.
+````
+
+````{exercise}
+:label: ex-collocation-hermite-simpson
+
+Modify the compressor surge trapezoidal collocation code from this chapter to use Hermite–Simpson collocation instead. You will need to:
+1. Introduce midpoint variables $(\mathbf{x}_{i+1/2}, \mathbf{u}_{i+1/2})$ for each interval
+2. Replace the trapezoidal defect with the Simpson defect (weights $1:4:1$)
+3. Add the midpoint collocation constraint
+
+Compare the trajectory accuracy for $N=10$ and $N=20$ mesh points. Does Hermite–Simpson achieve comparable accuracy with fewer points?
+````
+
+````{exercise}
+:label: ex-collocation-braking
+
+Return to the minimum-time braking example from the beginning of this chapter. Implement implicit Euler collocation for this problem with $v_0 = 30$ m/s, $p_f = 100$ m, and $a_{\max} = 5$ m/s². Use $N = 20$ mesh points. Compare your solution to explicit Euler collocation. Which method produces a smoother control trajectory? Which gives a shorter stopping time?
+````
+
+
+## Summary and Outlook
+
+This chapter developed **direct transcription methods** for continuous-time optimal control problems. The central idea is to convert an infinite-dimensional optimization over functions into a finite-dimensional nonlinear program by:
+
+1. Partitioning the time horizon into mesh intervals
+2. Representing trajectories using polynomials on each interval
+3. Enforcing the dynamics at selected collocation nodes
+4. Approximating integrals using quadrature rules at the same nodes
+
+We derived three transcription schemes of increasing sophistication:
+- **Euler collocation** uses degree-1 polynomials and a single node per interval, recovering implicit or explicit Euler depending on whether the node is at the right or left endpoint.
+- **Trapezoidal collocation** uses degree-1 polynomials with both endpoints as nodes, applying the trapezoid rule for integration.
+- **Hermite–Simpson collocation** uses degree-2 polynomials with left, midpoint, and right nodes, achieving higher accuracy through Simpson's rule.
+
+The choice of **node family** (Gauss, Radau, or Lobatto) determines how boundary conditions are handled. Lobatto nodes include both endpoints and enforce slopes there automatically. Radau nodes include one endpoint, and Gauss nodes exclude both, requiring separate continuity constraints.
+
+These methods form the computational core of **model predictive control** ({doc}`mpc`), where the trajectory optimization is solved repeatedly from the current measured state. The sparse structure of the resulting NLP, where each interval contributes only local blocks, enables efficient solution even for long horizons.
+
+Beyond the methods presented here, several extensions are important in practice:
+- **Mesh refinement** and **hp-adaptive methods** adjust the number and placement of mesh points based on solution accuracy
+- **Higher-order collocation** uses more nodes per interval for increased accuracy
+- **Indirect methods** solve the optimality conditions (Pontryagin's principle) directly rather than discretizing the primal problem
+
+The examples in this chapter (compressor surge control, flight trajectory optimization, and hydro cascade scheduling) illustrate how direct collocation applies to realistic engineering systems with nonlinear dynamics, path constraints, and complex objectives.

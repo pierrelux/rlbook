@@ -17,13 +17,54 @@ In the previous chapter, we examined different ways to represent dynamical syste
 
 In this chapter, we turn to what makes these models useful for **decision-making**. The goal is no longer just to describe how a system behaves, but to leverage that description to **compute actions over time**. This doesn't mean the model prescribes actions on its own. Rather, it provides the scaffolding for optimization: given a model and an objective, we can derive the control inputs that make the modeled system behave well according to a chosen criterion. 
 
-Our entry point will be trajectory optimization. By a **trajectory**, we mean the time-indexed sequence of states and controls that the system follows under a plan: the states $(\mathbf{x}_1, \dots, \mathbf{x}_T)$ together with the controls $(\mathbf{u}_1, \dots, \mathbf{u}_{T-1})$. In this chapter, we focus on an **open-loop** viewpoint: starting from a known initial state, we compute the entire sequence of controls in advance and then apply it as-is. This is appealing because, for discrete-time problems, it yields a finite-dimensional optimization over a vector of decisions and cleanly exposes the structure of the constraints. In continuous time, the base formulation is infinite-dimensional; in this course we will rely on direct methods—time discretization and parameterization—to transform it into a finite-dimensional nonlinear program.
+Our entry point will be trajectory optimization. By a **trajectory**, we mean the time-indexed sequence of states and controls that the system follows under a plan: the states $(\mathbf{x}_1, \dots, \mathbf{x}_T)$ together with the controls $(\mathbf{u}_1, \dots, \mathbf{u}_{T-1})$. In this chapter, we focus on an **open-loop** viewpoint: starting from a known initial state, we compute the entire sequence of controls in advance and then apply it as-is. This is appealing because, for discrete-time problems, it yields a finite-dimensional optimization over a vector of decisions and cleanly exposes the structure of the constraints. In continuous time, the base formulation is infinite-dimensional; in this course we will rely on direct methods (time discretization and parameterization) to transform it into a finite-dimensional nonlinear program.
 
-Open loop also has a clear limitation: if reality deviates from the model—due to disturbances, model mismatch, or unanticipated events—the state you actually reach may differ from the predicted one. The precomputed controls that were optimal for the nominal trajectory can then lead you further off course, and errors can compound over time.
+Open loop also has a clear limitation: if reality deviates from the model, whether due to disturbances, model mismatch, or unanticipated events, the state you actually reach may differ from the predicted one. The precomputed controls that were optimal for the nominal trajectory can then lead you further off course, and errors can compound over time.
 
 Later, we will study **closed-loop (feedback)** strategies, where the choice of action at time $t$ can depend on the state observed at time $t$. Instead of a single sequence, we optimize a policy $\pi_t$ mapping states to controls, $\mathbf{u}_t = \pi_t(\mathbf{x}_t)$. Feedback makes plans resilient to unforeseen situations by adapting on the fly, but it leads to a more challenging problem class. We start with open-loop trajectory optimization to build core concepts and tools before tackling feedback design.
 
+```{admonition} Learning Goals
+:class: note
 
+After studying this chapter, you should be able to:
+
+1. Formulate a discrete-time optimal control problem (DOCP) in Bolza, Lagrange, and Mayer forms, and convert between them.
+2. State the KKT conditions for a constrained NLP and explain the role of constraint qualifications.
+3. Derive the discrete-time Pontryagin principle from the Lagrangian of a DOCP.
+4. Implement single shooting and multiple shooting methods for trajectory optimization.
+5. Explain the trade-offs between simultaneous (direct transcription) and sequential (shooting) methods.
+6. Compute gradients of the objective with respect to controls using the adjoint (costate) recursion.
+```
+
+```{admonition} Prerequisites
+:class: tip
+
+This chapter assumes familiarity with:
+- Multivariable calculus (gradients, Jacobians, chain rule)
+- Basic optimization (unconstrained minimization, gradient descent)
+- Linear algebra (matrix-vector products, linear systems)
+- Dynamical systems from the previous chapter
+```
+
+## A Motivating Example: Inventory Control
+
+Before diving into the general formulation, consider a concrete problem that arises in operations management. A retailer must decide how much inventory to order at the start of each period to meet uncertain demand while balancing holding costs against stockout penalties.
+
+The setup is simple. At the beginning of period $k$, the retailer observes the current inventory level $x_k$ and places an order of size $u_k \ge 0$. Demand $d_k$ then arrives (assume for now it is known in advance), and the inventory evolves according to
+
+$$
+x_{k+1} = x_k + u_k - d_k.
+$$
+
+If inventory is positive at the end of the period, holding costs accrue. If inventory is negative (backorders), penalty costs apply. There may also be a per-unit ordering cost. A typical objective is to minimize total cost over a planning horizon of $T$ periods:
+
+$$
+\min_{u_0,\dots,u_{T-1}} \sum_{k=0}^{T-1} \bigl( h\,[x_k]_+ + p\,[-x_k]_+ + c\,u_k \bigr),
+$$
+
+where $[z]_+ = \max(0,z)$, $h$ is the holding cost rate, $p$ is the backorder penalty rate, and $c$ is the ordering cost per unit. The retailer may also face constraints: orders cannot be negative, and inventory might be bounded above by warehouse capacity.
+
+This problem has a clear structure: a state ($x_k$) that evolves according to a known rule, a control ($u_k$) that influences the next state, a cost that accumulates over time, and constraints on the decisions. These ingredients define a **discrete-time optimal control problem** (DOCP). We now formalize this structure in general terms.
 
 ## Discrete-Time Optimal Control Problems (DOCPs)
 
@@ -41,7 +82,7 @@ $$
 \text{(i) stage cost: } c_t(\mathbf{x}_t,\mathbf{u}_t), \qquad \text{(ii) terminal cost: } c_T(\mathbf{x}_T).
 $$
 
-The stage cost reflects ongoing penalties—energy, delay, risk. The terminal cost measures the value (or cost) of ending in a particular state. **Together, these give a discrete-time Bolza problem with path constraints and bounds**:
+The stage cost reflects ongoing penalties such as energy, delay, or risk. The terminal cost measures the value (or cost) of ending in a particular state. Together, these give a discrete-time Bolza problem with path constraints and bounds:
 
 $$
 \begin{aligned}
@@ -54,11 +95,13 @@ $$
 \end{aligned}
 $$
 
+Returning to the inventory example, the correspondence is direct: the state $\mathbf{x}_t$ is the inventory level $x_k$, the control $\mathbf{u}_t$ is the order quantity $u_k$, and the dynamics $\mathbf{f}_t$ encode the inventory balance equation $x_{k+1} = x_k + u_k - d_k$. The stage cost $c_t$ captures holding, backorder, and ordering costs, while the terminal cost $c_T$ might penalize ending with excess stock. Constraints $\mathbf{g}_t \le \mathbf{0}$ can enforce non-negativity of orders or warehouse capacity limits. This mapping shows how practical problems fit naturally into the abstract framework.
+
 Written this way, it may seem obvious that the decision variables are the controls $\mathbf{u}_t$. After all, in most intuitive descriptions of control, we think of choosing inputs to influence the system. But notice that in the program above, the entire state trajectory also appears as a set of variables, linked to the controls by the dynamics constraints. This is intentional: it reflects one way of writing the problem that makes the constraints explicit.
 
 Why introduce $\mathbf{x}_t$ as decision variables if they can be simulated forward from the controls? Many readers hesitate here, and the question is natural: *If the model is deterministic and $\mathbf{x}_1$ is known, why not pick $\mathbf{u}_{1:T-1}$ and compute $\mathbf{x}_{2:T}$ on the fly?* That instinct leads to **single shooting**, a method we will return to shortly.
 
-Already in this formulation, though, we see an important theme: **the structure of the problem matters**. Ignoring it can make our life much harder. The reason is twofold:
+Already in this formulation, though, **the structure of the problem matters**. Ignoring it can make our life much harder. The reason is twofold:
 
 * **Dimensionality grows with the horizon.** For a horizon of length $T$, the program has roughly $(T-1)(m+n)$ decision variables.
 * **Temporal coupling.** Each control affects all future states and costs. The feasible set is not a simple box but a narrow manifold defined by the dynamics.
@@ -67,10 +110,10 @@ Together, these features explain why specialized methods exist and why the way w
 
 ## Existence of Solutions and Optimality Conditions
 
-Now that we have the optimization problem written down, a natural question arises: **does this program always have a solution?** And if it does, how can we recognize one when we see it? These questions bring us into the territory of feasibility and optimality conditions.
+Now that we have the optimization problem written down, we can ask: does it always have a solution? And if so, how do we recognize one? These questions lead us to feasibility and optimality conditions.
 
 
-### When does a solution exist?
+### Existence of Solutions
 
 Notice first that nothing in the problem statement required the dynamics
 
@@ -80,12 +123,12 @@ $$
 
 to be stable. In fact, many problems of interest involve unstable systems; think of balancing a pole or steering a spacecraft. What matters is that the dynamics are **well defined**: given a state–control pair, the rule $\mathbf{f}_t$ produces a valid next state.
 
-In continuous time, one usually requires $\mathbf{f}$ to be continuous (often Lipschitz continuous) in $\mathbf{x}$ so that the ODE has a unique solution on the horizon of interest. In discrete time, the requirement is lighter—we only need the update map to be well posed.
+In continuous time, one usually requires $\mathbf{f}$ to be continuous (often Lipschitz continuous) in $\mathbf{x}$ so that the ODE has a unique solution on the horizon of interest. In discrete time, the requirement is lighter: we only need the update map to be well posed.
 
 Existence also hinges on **feasibility**. A candidate control sequence must generate a trajectory that respects all constraints: the dynamics, any bounds on state and control, and any terminal requirements. If no such sequence exists, the feasible set is empty and the problem has no solution. This can happen if the constraints are overly strict, or if the system is uncontrollable from the given initial condition.
 
 
-### What does optimality look like?
+### Optimality Conditions
 
 Assume the feasible set is nonempty. To characterize a point that is not only feasible but **locally optimal**, we use the Lagrange multiplier machinery from nonlinear programming. For a smooth problem
 
@@ -118,7 +161,7 @@ $$
 \text{rows of }\big[\nabla G(\mathbf{z}^\star);\ \nabla H_{\mathcal{A}}(\mathbf{z}^\star)\big]\ \text{are linearly independent.}
 $$
 
-This is the **LICQ** (Linear Independence Constraint Qualification). In convex problems, **Slater's condition** (existence of a strictly feasible point) plays a similar role. You can think of these as the assumptions that let the linearized KKT equations be solvable; we do not literally invert that Jacobian, but the full-rank property is the key ingredient that would make such an inversion possible in principle.
+This is the **LICQ** (Linear Independence Constraint Qualification). In convex problems, **Slater's condition** (existence of a strictly feasible point) plays a similar role. You can think of these as the assumptions that let the linearized KKT equations be solvable; we do not literally invert that Jacobian, but the full-rank property is what would make such an inversion possible in principle.
 
 Under such a constraint qualification, any local minimizer $\mathbf{z}^\star$ admits multipliers $(\boldsymbol{\lambda}^\star,\boldsymbol{\mu}^\star)$ that satisfy the **Karush–Kuhn–Tucker (KKT) conditions**:
 
@@ -136,6 +179,8 @@ Only constraints that are **active** at $\mathbf{z}^\star$ can have $\mu_i^\star
 In our trajectory problems, $\mathbf{z}$ stacks state and control trajectories, $G$ enforces the dynamics, and $H$ collects bounds and path constraints. The equalities' multipliers act as **costates** or **shadow prices** for the dynamics. Writing the KKT system stage by stage yields the discrete-time Pontryagin principle, derived next. For convex programs these conditions are also sufficient.
 
 *What fails without a CQ?* If the active gradients are dependent (for example duplicated or nearly parallel), the Jacobian loses rank; multipliers may then be nonunique or fail to exist, and the linearized equations become ill-posed. In transcribed trajectory problems this shows up as dependent dynamic constraints or redundant path constraints, which leads to fragile solver behavior.
+
+**Recap.** The KKT conditions provide necessary conditions for a point to be a local minimizer of a constrained optimization problem. They consist of four parts: stationarity (the gradient of the Lagrangian vanishes), primal feasibility (constraints are satisfied), dual feasibility (inequality multipliers are nonnegative), and complementarity (inactive constraints have zero multipliers). The multipliers have an economic interpretation as marginal costs—they tell us how much the optimal value would change if we relaxed a constraint slightly. For convex problems, the KKT conditions are also sufficient, meaning any point satisfying them is globally optimal. In trajectory optimization, these conditions will reappear in structured form as the Pontryagin principle.
 
 ### From KKT to algorithms
 
@@ -202,16 +247,13 @@ $$
 
 This is exactly the step computed by **Sequential Quadratic Programming (SQP)** in the equality-constrained case: it is Newton's method on the KKT equations. For general problems with inequalities, SQP forms a **quadratic subproblem** by quadratically modeling $F$ with $\nabla_{\mathbf{z}\mathbf{z}}^2\mathcal{L}$ and linearizing the constraints, then solves that QP with line search or trust region. In least-squares-like problems one often uses **Gauss–Newton** (or a Levenberg–Marquardt trust region) as a positive-definite approximation to the Lagrangian Hessian.
 
-**In trajectory optimization.** After transcription, the KKT matrix inherits banded/sparse structure from the dynamics. Newton/SQP steps can be computed efficiently by exploiting this structure; in the special case of quadratic models and linearized dynamics, the QP reduces to an LQR solve along the horizon (this is the backbone of iLQR/DDP-style methods). Primal–dual updates provide simpler iterations and are easy to implement; augmented terms are typically needed to obtain stable progress when constraints couple stages.
+In trajectory optimization, the KKT matrix inherits banded/sparse structure from the dynamics. Newton/SQP steps can be computed efficiently by exploiting this structure; in the special case of quadratic models and linearized dynamics, the QP reduces to an LQR solve along the horizon (this is the backbone of iLQR/DDP-style methods). Primal-dual updates provide simpler iterations and are easy to implement; augmented terms are typically needed to obtain stable progress when constraints couple stages.
 
-**When to use which.** Primal–dual gradients give lightweight iterations and are good for warm starts or as inner loops with penalties. SQP/Newton gives rapid local convergence when you are close to a solution and LICQ holds; use trust regions or line search to globalize.
+The choice between methods depends on the context. Primal-dual gradients give lightweight iterations and are suited for warm starts or as inner loops with penalties. SQP/Newton gives rapid local convergence when close to a solution and LICQ holds; trust regions or line search help globalize convergence.
 
 
 ## Examples of DOCPs
-To make things concrete, here are three problems that are naturally posed as discrete-time OCPs. In each case, we seek an optimal trajectory of states and controls over a finite horizon.
-
-### Periodic Inventory Control
-Decisions are made once per period: choose order quantity $u_k \ge 0$ to meet forecast demand $d_k$. The state $x_k$ is on-hand inventory with dynamics $x_{k+1} = x_k + u_k - d_k$. A typical stage cost is $c_k(x_k,u_k) = h\,[x_k]_+ + p\,[-x_k]_+ + c\,u_k$, trading off holding, backorder, and ordering costs. The horizon objective is $\min \sum_{k=0}^{T-1} c_k(x_k,u_k)$ subject to bounds.
+To make things concrete, here are additional problems that are naturally posed as discrete-time OCPs. We already introduced inventory control at the start of this chapter; below are two more examples from different domains, followed by a discussion of how continuous-time problems give rise to DOCPs through discretization.
 
 ### End-of-Day Portfolio Rebalancing
 At each trading day $k$, choose trades $u_k$ to adjust holdings $h_k$ before next-day returns $r_{k}$ realize. Deterministic planning uses predicted returns $\mu_k$, with dynamics $h_{k+1} = (h_k + u_k) \odot (\mathbf{1} + \mu_k)$ and budget/box constraints. The stage cost can capture transaction costs and risk, e.g., $c_k(h_k,u_k) = \tau\lVert u_k \rVert_1 + \tfrac{\lambda}{2}\,h_k^\top \Sigma_k h_k$, with a terminal utility or wealth objective.
@@ -260,249 +302,98 @@ $$
 
 In differentiable programming (e.g., JAX, PyTorch), the composed map $\Phi_{T-1}\circ\cdots\circ\Phi_0$ is differentiable, enabling reverse-mode automatic differentiation and efficient gradient-based trajectory optimization. When parts of the program are non-differentiable (discrete branches, simulators with events), DOCPs can still be solved using derivative-free or weak-gradient methods (eg. finite differences, SPSA, Nelder–Mead, CMA-ES, or evolutionary strategies) optionally combined with smoothing, relaxations, or stochastic estimators to navigate non-smooth regions.
 
-#### Example: HTTP Retrier Optimization
+#### Example: Retry Loop Optimization
 
-As an example we cast the problem of optimizing a "HTTP retrier with backoff" as a DOCP where the state tracks wall-clock time, attempt index, success, last code, and jitter; the control is the chosen wait time before the next request (the backoff schedule); the transition encapsulates waiting and a probabilistic request outcome; and the objective penalizes latency and failure. We then optimize the schedule either directly (per-step SPSA) or via a two-parameter exponential policy using common random numbers for variance reduction.
+Consider a simple retry loop that attempts an operation up to $K$ times, waiting $u_k$ seconds before the $k$-th attempt. The server has time-varying availability: it is unreliable early on but recovers after a transient outage. The goal is to find a wait schedule that minimizes expected latency while ensuring eventual success.
+
+We cast this as a DOCP. The state $x_k = (t, k, \text{done})$ tracks elapsed time, attempt count, and success status. The control $u_k \in [0, 2]$ is the wait before attempt $k$. The transition applies the wait, then flips a biased coin based on current server availability. The cost penalizes total time and failure.
 
 ```{code-cell} python
 :tags: [hide-input]
 
-#  label: fig-ocp-http-retrier
-#  caption: Console output comparing the baseline backoff schedule with SPSA-optimized schedules for the HTTP retrier DOCP, including costs, attempts, and success codes.
+#  label: fig-ocp-retry-loop
+#  caption: SPSA optimization of a retry schedule. The optimized schedule waits longer initially, allowing the server to recover before retrying.
 
 %config InlineBackend.figure_format = 'retina'
-from dataclasses import dataclass
-import math, random
+import random
 import matplotlib.pyplot as plt
 
-# Apply book style
 try:
     import scienceplots
     plt.style.use(['science', 'notebook'])
 except (ImportError, OSError):
-    pass  # Use matplotlib defaults
+    pass
 
-# ---------------------------
-# PROGRAM = "HTTP retrier with backoff"
-# ---------------------------
+# Server availability: low initially, recovers after t=1.5s
+def success_prob(t):
+    return 0.2 if t < 1.5 else 0.85
 
-@dataclass
-class State:
-    t: float            # wall-clock time (s)
-    k: int              # attempt index
-    done: bool          # success flag
-    code: int | None    # last HTTP code or None
-    jitter: float       # per-run jitter (simulates clock/socket noise)
+# One step of the retry program
+def step(state, u_k):
+    t, k, done = state
+    if done:
+        return (t, k, True)
+    t_new = t + max(0.0, min(2.0, u_k))  # apply wait (clipped)
+    success = random.random() < success_prob(t_new)
+    return (t_new, k + 1, success)
 
-# Controls (decision variables): per-step wait times (backoff schedule)
-# u[k] can be optimized; in a fixed policy you'd set u[k] = base * gamma**k
-# We'll keep them bounded for realism.
-def clamp(x, lo, hi): return max(lo, min(hi, x))
-
-# Simulated environment: availability is time-varying (spiky outage)
-def server_success_prob(t: float) -> float:
-    # Low availability for the first 2 seconds, then rebounds
-    base = 0.15 if t < 2.0 else 0.85
-    # Some diurnal-like wobble (toy)
-    wobble = 0.1 * math.sin(2 * math.pi * (t / 3.0))
-    return clamp(base + wobble, 0.01, 0.99)
-
-def http_request():
-    # Just returns a code; success = 200, failure = 503
-    return 200 if random.random() < 0.5 else 503
-
-# -------- DOCP ingredients --------
-# State x_k = (t, k, done, code, jitter)
-# Control u_k = wait time before next attempt (our backoff schedule entry)
-# Transition Phi_k: one "program step" = (optional wait) + (one request) + (branch)
-def Phi(state: State, u_k: float) -> State:
-    if state.done:
-        # No-ops after success (absorbing state)
-        return State(state.t, state.k, True, state.code, state.jitter)
-
-    # 1) Wait according to control (backoff schedule) + jitter
-    wait = clamp(u_k + 0.02 * state.jitter, 0.0, 3.0)
-    t = state.t + wait
-
-    # 2) Environment: success probability depends on time t
-    p = server_success_prob(t)
-
-    # 3) "Perform request": success with prob p; otherwise 503
-    code = 200 if random.random() < p else 503
-    done = (code == 200)
-
-    # 4) Advance attempt counter and wall clock
-    return State(t=t, k=state.k + 1, done=done, code=code, jitter=state.jitter)
-
-# Stage cost: latency penalty each step; heavy penalty if still failing late
-def stage_cost(state: State, u_k: float) -> float:
-    # Latency/energy per unit wait + small per-step overhead when not done
-    return 0.20 * u_k + (0.00 if state.done else 0.002)
-
-# Terminal cost: if failed after horizon, big penalty; if succeeded, pay total time
-def terminal_cost(state: State, max_attempts: int) -> float:
-    # Pay for elapsed time; fail late incurs extra penalty
-    return 0.3 * state.t + (5.0 if (not state.done and state.k >= max_attempts) else 0.0)
-
-def rollout(u, max_attempts=8, seed=0):
+# Rollout: run the retry loop, return total cost
+def rollout(u, seed=0):
     random.seed(seed)
-    s = State(t=0.0, k=0, done=False, code=None, jitter=random.uniform(-1,1))
-    J = 0.0
-    for k in range(max_attempts):
-        J += stage_cost(s, u[k])
-        s = Phi(s, u[k])
-        if s.done:  # early stop like a real program
+    state = (0.0, 0, False)  # (time, attempts, done)
+    for k in range(len(u)):
+        state = step(state, u[k])
+        if state[2]:  # success
             break
-    J += terminal_cost(s, max_attempts)
-    return J, s  # return final state for debugging if needed
+    t, attempts, done = state
+    return t + (5.0 if not done else 0.0)  # penalize failure
 
-# ---------- helpers for SPSA with common random numbers ----------
-def eval_policy(u, seeds, max_attempts=8):
-    # Average over a fixed set of seeds (CRN helps SPSA a lot)
-    Js = []
-    for sd in seeds:
-        J, _ = rollout(u, max_attempts=max_attempts, seed=sd)
-        Js.append(J)
-    return sum(Js) / len(Js)
-
-def project_waits(u):
-    # Keep waits in [0, 3] for realism
-    return [max(0.0, min(3.0, x)) for x in u]
-
-# ---------- schedule parameterizations ----------
-def schedule_exp(base, gamma, K):
-    # u[k] = base * gamma**k
-    return [base * (gamma ** k) for k in range(K)]
-
-# If you prefer per-step but monotone nonnegative waits, use softplus increments:
-def schedule_softplus(z, K):
-    # z in R^K -> u monotone via cumulative softplus increments
-    def softplus(x):
-        return math.log1p(math.exp(-abs(x))) + max(x, 0.0)
-    inc = [softplus(zi) for zi in z]
-    u = []
-    s_accum = 0.0
-    for i in range(K):
-        s_accum += inc[i]
-        u.append(s_accum)
+# SPSA optimization
+def spsa_optimize(K=6, iters=150, seed=0):
+    random.seed(seed)
+    u = [0.2] * K  # initial schedule: short waits
+    alpha, c0 = 0.15, 0.1
+    for i in range(1, iters + 1):
+        c = c0 / (i ** 0.1)
+        delta = [1 if random.random() < 0.5 else -1 for _ in range(K)]
+        u_plus = [max(0, min(2, u[j] + c * delta[j])) for j in range(K)]
+        u_minus = [max(0, min(2, u[j] - c * delta[j])) for j in range(K)]
+        Jp = sum(rollout(u_plus, seed=seed + 2*i) for _ in range(8)) / 8
+        Jm = sum(rollout(u_minus, seed=seed + 2*i + 1) for _ in range(8)) / 8
+        g = [(Jp - Jm) / (2 * c * delta[j]) for j in range(K)]
+        u = [max(0, min(2, u[j] - alpha * g[j])) for j in range(K)]
     return u
 
-# ---------------------------
-# Black-box optimization (SPSA) of the schedule u[0:K]
-# ---------------------------
-def spsa_optimize(K=8, iters=200, seed=0):
-    random.seed(seed)
-    # Initialize a conservative schedule (small linear backoff)
-    u = [0.05 + 0.1*k for k in range(K)]
-    alpha = 0.2      # learning rate
-    c0 = 0.1         # perturbation scale
-    for t in range(1, iters+1):
-        c = c0 / (t ** 0.101)
-        # Rademacher perturbation
-        delta = [1.0 if random.random() < 0.5 else -1.0 for _ in range(K)]
-        u_plus  = [clamp(u[i] + c * delta[i], 0.0, 3.0) for i in range(K)]
-        u_minus = [clamp(u[i] - c * delta[i], 0.0, 3.0) for i in range(K)]
+K = 6
+u_init = [0.2] * K
+u_opt = spsa_optimize(K=K, iters=150, seed=42)
 
-        Jp, _ = rollout(u_plus, seed=seed + 10*t + 1)
-        Jm, _ = rollout(u_minus, seed=seed + 10*t + 2)
+# Evaluate costs (average over seeds)
+cost_init = sum(rollout(u_init, seed=s) for s in range(50)) / 50
+cost_opt = sum(rollout(u_opt, seed=s) for s in range(50)) / 50
 
-        # SPSA gradient estimate
-        g = [(Jp - Jm) / (2.0 * c * delta[i]) for i in range(K)]
-        # Update (project back to bounds)
-        u = [clamp(u[i] - alpha * g[i], 0.0, 3.0) for i in range(K)]
-    return u
+print(f"Initial schedule: {[round(x, 2) for x in u_init]}  Avg cost: {cost_init:.2f}")
+print(f"Optimized schedule: {[round(x, 2) for x in u_opt]}  Avg cost: {cost_opt:.2f}")
 
-# ---------- SPSA over 2 parameters (base, gamma) with CRN ----------
-def spsa_optimize_exp(K=8, iters=200, seed=0, Nmc=16):
-    random.seed(seed)
-    # fixed seeds reused every iteration (CRN)
-    seeds = [seed + 1000 + i for i in range(Nmc)]
-
-    # init: small base, mild growth
-    base, gamma = 0.05, 1.4
-    alpha0, c0 = 0.15, 0.2  # learning rate and perturbation scales
-
-    for t in range(1, iters + 1):
-        a_t = alpha0 / (t ** 0.602)   # standard SPSA decay
-        c_t = c0 / (t ** 0.101)
-
-        # Rademacher perturbations for 2 params
-        d_base = 1.0 if random.random() < 0.5 else -1.0
-        d_gamma = 1.0 if random.random() < 0.5 else -1.0
-
-        base_plus  = base  + c_t * d_base
-        base_minus = base  - c_t * d_base
-        gamma_plus  = gamma + c_t * d_gamma
-        gamma_minus = gamma - c_t * d_gamma
-
-        u_plus  = project_waits(schedule_exp(base_plus,  gamma_plus,  K))
-        u_minus = project_waits(schedule_exp(base_minus, gamma_minus, K))
-
-        Jp = eval_policy(u_plus, seeds, max_attempts=K)
-        Jm = eval_policy(u_minus, seeds, max_attempts=K)
-
-        # SPSA gradient estimate
-        g_base  = (Jp - Jm) / (2.0 * c_t * d_base)
-        g_gamma = (Jp - Jm) / (2.0 * c_t * d_gamma)
-
-        # Update
-        base  = max(0.0, base  - a_t * g_base)
-        gamma = max(0.5, gamma - a_t * g_gamma)  # keep reasonable
-
-    return base, gamma
-
-K = 8
-# Baseline linear schedule
-u0 = [0.05 + 0.1*k for k in range(K)]
-J0, s0 = rollout(u0, seed=42)
-
-# Optimize per-step waits (K-dim SPSA)
-u_opt = spsa_optimize(K=K, iters=200, seed=123)
-J1, s1 = rollout(u_opt, seed=999)
-
-# Optimize exponential schedule parameters (2-dim SPSA with CRN)
-base_opt, gamma_opt = spsa_optimize_exp(K=K, iters=200, seed=321, Nmc=16)
-u_exp = project_waits(schedule_exp(base_opt, gamma_opt, K))
-J2, s2 = rollout(u_exp, seed=777)
-
-print("Initial schedule:", [round(x,3) for x in u0], "  Cost ≈", round(J0,3))
-print("Optimized (per-step SPSA):", [round(x,3) for x in u_opt], "  Cost ≈", round(J1,3))
-print("Optimized (exp base, gamma): base=", round(base_opt,3), " gamma=", round(gamma_opt,3),
-      "  schedule=", [round(x,3) for x in u_exp], "  Cost ≈", round(J2,3))
-print("Attempts (init → per-step → exp):", s0.k, "→", s1.k, "→", s2.k,
-      "  Success codes:", s0.code, s1.code, s2.code)
-
-strategies = {
-    "Baseline": u0,
-    "Per-step SPSA": u_opt,
-    "Exp SPSA": u_exp,
-}
-costs = {"Baseline": J0, "Per-step SPSA": J1, "Exp SPSA": J2}
-
-fig, axes = plt.subplots(2, 1, figsize=(9, 7), sharex=True)
-
-k = range(1, K + 1)
-for name, waits in strategies.items():
-    axes[0].step(k, waits, where="mid", label=name)
-axes[0].set_ylabel("Wait time (s)")
-axes[0].set_title("Backoff Schedules")
-axes[0].grid(alpha=0.3)
-axes[0].legend()
-
-axes[1].bar(list(costs.keys()), [costs[key] for key in costs], color=["#4a90e2", "#f5a623", "#7ed321"])
-axes[1].set_ylabel("Mean rollout cost")
-axes[1].set_title("Objective Values (lower is better)")
-axes[1].grid(axis="y", alpha=0.3)
-axes[1].set_xlabel("Strategy")
-
+fig, ax = plt.subplots(figsize=(7, 4))
+attempts = range(1, K + 1)
+ax.step(attempts, u_init, where="mid", label=f"Initial (cost={cost_init:.2f})", linestyle="--")
+ax.step(attempts, u_opt, where="mid", label=f"Optimized (cost={cost_opt:.2f})")
+ax.set_xlabel("Attempt")
+ax.set_ylabel("Wait time (s)")
+ax.set_title("Retry Schedule Optimization via SPSA")
+ax.legend()
+ax.grid(alpha=0.3)
 fig.tight_layout()
 ```
+
+The optimized schedule learns to wait longer before early attempts, giving the server time to recover from the outage. This simple example illustrates how viewing a program as a dynamical system enables trajectory optimization even when the transition involves stochastic branching.
 
 
 
 #### Example: Gradient Descent with Momentum as DOCP
 
-To connect this lens to familiar practice—and to hyperparameter optimization—treat the learning rate and momentum (or their schedules) as controls. Rather than fixing them a priori, we can optimize them as part of a trajectory optimization. The optimizer itself becomes the dynamical system whose execution we shape to minimize final loss.
+To connect this lens to familiar practice, including hyperparameter optimization, treat the learning rate and momentum (or their schedules) as controls. Rather than fixing them a priori, we can optimize them as part of a trajectory optimization. The optimizer itself becomes the dynamical system whose execution we shape to minimize final loss.
 
 Program: gradient descent with momentum on a quadratic loss. We fit $\boldsymbol{\theta}\in\mathbb{R}^p$ to data $(\mathbf{A},\mathbf{b})$ by minimizing
 
@@ -574,7 +465,7 @@ which is non-differentiable because of the indicator. The DOCP view still applie
 
 ## Variants: Lagrange and Mayer Problems
 
-The Bolza form is general enough to cover most situations, but two common special cases are worth noting:
+The Bolza form is general enough to cover most situations, but two common special cases deserve mention:
 
 * **Lagrange problem (no terminal cost)**
   If the objective only accumulates stage costs:
@@ -618,14 +509,14 @@ $$
 
 The overall effect is that the explicit sum $\sum_{t=1}^{T-1} c_t(\mathbf{x}_t,\mathbf{u}_t)$ disappears from the objective and is captured implicitly by the augmented state. This lets us write every optimal control problem in Mayer form.
 
-Why do this? Two reasons. First, it often simplifies **mathematical derivations**, as we will see later when deriving necessary conditions. Second, it can **streamline algorithmic implementation**: instead of writing separate code paths for Mayer, Lagrange, and Bolza problems, we can reduce everything to one canonical form. That said, this "one size fits all" approach isn't always best in practice—specialized formulations can sometimes be more efficient computationally, especially when the running cost has simple structure.
+This reduction serves two purposes. First, it often simplifies mathematical derivations, as we will see later when deriving necessary conditions. Second, it can streamline algorithmic implementation: instead of writing separate code paths for Mayer, Lagrange, and Bolza problems, we can reduce everything to one canonical form. That said, this unified approach is not always best in practice. Specialized formulations can sometimes be more efficient computationally, especially when the running cost has simple structure.
 
 
 The unifying theme is that a DOCP may look like a generic NLP on paper, but its structure matters. Ignoring that structure often leads to impractical solutions, whereas formulations that expose sparsity and respect temporal coupling allow modern solvers to scale effectively. In the following sections, we will examine how these choices play out in practice through single shooting, multiple shooting, and collocation methods, and why different formulations strike different trade-offs between robustness and computational effort.
 
 # Numerical Methods for Solving DOCPs
 
-Before we discuss specific algorithms, it is useful to clarify the goal: we want to recast a discrete-time optimal control problem as a standard nonlinear program (NLP). Collect all decision variables—states, controls, and any auxiliary variables—into a single vector $\mathbf{z}\in\mathbb{R}^{n_z}$ and write
+Before we discuss specific algorithms, it is useful to clarify the goal: we want to recast a discrete-time optimal control problem as a standard nonlinear program (NLP). Collect all decision variables (states, controls, and any auxiliary variables) into a single vector $\mathbf{z}\in\mathbb{R}^{n_z}$ and write
 
 $$
 \begin{aligned}
@@ -643,7 +534,7 @@ There are multiple ways to arrive at (and benefit from) this NLP:
 * Sequential (recursive elimination / single shooting): eliminate states by forward propagation from the initial condition, leaving controls as the main decision variables. This reduces dimension and constraints, but can be sensitive to initialization and longer horizons.
 * Multiple shooting: introduce state variables at segment boundaries and enforce continuity between simulated segments. This compromises between size and conditioning and is often more robust than pure single shooting.
 
-The next sections work through these formulations—starting with simultaneous methods, then sequential methods, and finally multiple shooting—before discussing how generic NLP solvers and specialized algorithms leverage the resulting structure in practice.
+The next sections work through these formulations, starting with simultaneous methods, then sequential methods, and finally multiple shooting, before discussing how generic NLP solvers and specialized algorithms leverage the resulting structure in practice.
 
 ## Simultaneous Methods
 
@@ -678,7 +569,7 @@ $$
 
 optionally with simple bounds $\mathbf{x}_{\mathrm{lb}} \le \mathbf{x}_t \le \mathbf{x}_{\mathrm{ub}}$ and $\mathbf{u}_{\mathrm{lb}} \le \mathbf{u}_t \le \mathbf{u}_{\mathrm{ub}}$ folded into $H$ or provided to the solver separately. For notational convenience, some constraints may not depend on $\mathbf{u}_k$ at times in $K_i$; the indexing still helps specify when each condition is active.
 
-This direct transcription is attractive because it is faithful to the model and exposes sparsity. The Jacobian of $G$ has a block bi-diagonal structure induced by the dynamics, and the KKT matrix is sparse and structured—properties exploited by interior-point and SQP methods. The trade-off is size: with state dimension $n$ and control dimension $m$, the decision vector has $(T\!\cdot\!n) + ((T\!-
+This direct transcription is attractive because it is faithful to the model and exposes sparsity. The Jacobian of $G$ has a block bi-diagonal structure induced by the dynamics, and the KKT matrix is sparse and structured. These properties are exploited by interior-point and SQP methods. The trade-off is size: with state dimension $n$ and control dimension $m$, the decision vector has $(T\!\cdot\!n) + ((T\!-
 1)\cdot m)$ entries, and there are roughly $(T\!-
 1)\cdot n$ dynamic equalities plus any path and boundary conditions. Techniques such as partial or full condensing eliminate state variables to reduce the equality set (at the cost of denser matrices), while keeping states explicit preserves sparsity and often improves robustness on long horizons and in the presence of state constraints.
 
@@ -692,7 +583,7 @@ Although the code example uses SLSQP, many alternatives exist. `scipy.optimize.m
 
 * **Derivative-free methods** such as Nelder–Mead avoid gradients altogether. They are attractive when gradients are unavailable or noisy, but they scale poorly with dimension.
 * **Quasi-Newton methods** like BFGS approximate gradients by finite differences. They work well for moderate-scale problems and often outperform derivative-free schemes when the objective is smooth.
-* **Gradient-based constrained solvers** such as interior-point or SQP methods exploit derivatives—exact or automatic—and are typically the most efficient for large structured problems like trajectory optimization.
+* **Gradient-based constrained solvers** such as interior-point or SQP methods exploit derivatives (exact or automatic) and are typically the most efficient for large structured problems like trajectory optimization.
 
 Beyond these, **stochastic optimizers** occasionally appear in practice, especially when gradients are unreliable or the loss landscape is rugged. Random search is the simplest example, while genetic algorithms, simulated annealing, and particle swarm optimization introduce mechanisms for global exploration at the cost of significant computational effort.
 
@@ -1048,7 +939,7 @@ The previous section showed how a discrete-time optimal control problem can be s
 
 It also has a real advantage: by keeping the states explicit and imposing the dynamics through constraints, we anchor the trajectory at multiple points. This extra structure helps stabilize the optimization, especially for long horizons where small deviations in early steps can otherwise propagate and cause the optimizer to drift or diverge. In that sense, this formulation is better conditioned and more robust than approaches that treat the dynamics implicitly.
 
-The drawback is scale. As the horizon grows, the number of variables and constraints grows with it, and all are coupled by the dynamics. Each iteration of a sequential quadratic programming (SQP) or interior-point method requires building and factorizing large Jacobians and Hessians. These methods have been embedded in reinforcement learning and differentiable programming pipelines—through implicit layers or differentiable convex solvers—but the cost is significant. They remain serial, rely on repeated linear algebra factorizations, and are difficult to parallelize efficiently. When thousands of such problems must be solved inside a learning loop, the overhead becomes prohibitive.
+The drawback is scale. As the horizon grows, the number of variables and constraints grows with it, and all are coupled by the dynamics. Each iteration of a sequential quadratic programming (SQP) or interior-point method requires building and factorizing large Jacobians and Hessians. These methods have been embedded in reinforcement learning and differentiable programming pipelines, through implicit layers or differentiable convex solvers, but the cost is significant. They remain serial, rely on repeated linear algebra factorizations, and are difficult to parallelize efficiently. When thousands of such problems must be solved inside a learning loop, the overhead becomes prohibitive.
 
 This motivates an alternative that aligns better with the computational model of machine learning. If the dynamics are deterministic and state constraints are absent (or reducible to simple bounds on controls), we can eliminate the equality constraints altogether by making the states implicit. Instead of solving for both states and controls, we fix the initial state and roll the system forward under a candidate control sequence. This is the essence of **single shooting**.
 
@@ -1126,9 +1017,9 @@ Algorithmically:
 4. Return $\mathbf{u}^*_{1:T-1}$
 ```
 
-In JAX or PyTorch, this loop can be JIT-compiled and differentiated automatically. Any gradient-based optimizer—L-BFGS, Adam, even SGD—can be applied, making the pipeline look very much like training a neural network. In effect, we are "backpropagating through the world model" when computing $\nabla J(\mathbf{u})$.
+In JAX or PyTorch, this loop can be JIT-compiled and differentiated automatically. Any gradient-based optimizer (L-BFGS, Adam, even SGD) can be applied, making the pipeline look very much like training a neural network. In effect, we are "backpropagating through the world model" when computing $\nabla J(\mathbf{u})$.
 
-Single shooting is attractive for its simplicity and compatibility with differentiable programming, but it has limitations. The absence of intermediate constraints makes it sensitive to initialization and prone to numerical instability over long horizons. When state constraints or robustness matter, formulations that keep states explicit—such as multiple shooting or collocation—become preferable. These trade-offs are the focus of the next section.
+Single shooting is attractive for its simplicity and compatibility with differentiable programming, but it has limitations. The absence of intermediate constraints makes it sensitive to initialization and prone to numerical instability over long horizons. When state constraints or robustness matter, formulations that keep states explicit, such as multiple shooting or collocation, become preferable. These trade-offs are the focus of the next section.
 
 ```{code-cell} python
 :tags: [hide-input]
@@ -1265,6 +1156,11 @@ plot_results(optimal_u, T=20)
 
 ## In Between Sequential and Simultaneous
 
+```{admonition} Before reading on
+:class: tip
+Consider what happens to single shooting when the horizon $T$ is very large. What numerical difficulties might arise? Think about how small errors in early controls could propagate through the dynamics.
+```
+
 The two formulations we have seen so far lie at opposite ends. The **full discretization** approach keeps every state explicit and enforces the dynamics through equality constraints, which makes the structure clear but leads to a large optimization problem. At the other end, **single shooting** removes these constraints by simulating forward from the initial state, leaving only the controls as decision variables. That makes the problem smaller, but it also introduces a long and highly nonlinear dependency from the first control to the last state.
 
 **Multiple shooting** sits in between. Instead of simulating the entire horizon in one shot, we divide it into smaller segments. For each segment, we keep its starting state as a decision variable and propagate forward using the dynamics for that segment. At the end, we enforce continuity by requiring that the simulated end state of one segment matches the decision variable for the next.
@@ -1299,7 +1195,7 @@ c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t,\mathbf{u}_t) \\
 \end{aligned}
 $$
 
-Compared to the full NLP, we no longer introduce every intermediate state as a variable—only the anchors at segment boundaries. Inside each segment, states are reconstructed by simulation. Compared to single shooting, these anchors break the long dependency chain that makes optimization unstable: gradients only have to travel across $L$ steps before they hit a decision variable, rather than the entire horizon. This is the same reason why exploding or vanishing gradients appear in deep recurrent networks: when the chain is too long, information either dies out or blows up. Multiple shooting shortens the chain and improves conditioning.
+Compared to the full NLP, we no longer introduce every intermediate state as a variable, only the anchors at segment boundaries. Inside each segment, states are reconstructed by simulation. Compared to single shooting, these anchors break the long dependency chain that makes optimization unstable: gradients only have to travel across $L$ steps before they hit a decision variable, rather than the entire horizon. This is the same reason why exploding or vanishing gradients appear in deep recurrent networks: when the chain is too long, information either dies out or blows up. Multiple shooting shortens the chain and improves conditioning.
 
 By adjusting the number of segments $K$, we can interpolate between the two extremes: $K = 1$ gives single shooting, while $K = T$ recovers the full direct NLP. In practice, a moderate number of segments often strikes a good balance between robustness and complexity.
 
@@ -1651,6 +1547,11 @@ H_t(\mathbf{x}_t,\mathbf{u}_t,\boldsymbol{\lambda}_{t+1},\boldsymbol{\mu}_t)
 + \boldsymbol{\mu}_t^\top \mathbf{g}_t(\mathbf{x}_t,\mathbf{u}_t).
 $$
 
+```{admonition} Check your understanding
+:class: tip
+Verify that the Hamiltonian $H_t$ collects exactly the terms from the Lagrangian that involve stage $t$: the stage cost, the dynamics constraint (weighted by the next costate), and the path constraints (weighted by their multipliers). Why does $\boldsymbol{\lambda}_{t+1}$ appear rather than $\boldsymbol{\lambda}_t$?
+```
+
 Then
 
 $$
@@ -1754,9 +1655,11 @@ there exist multipliers $\{\boldsymbol{\lambda}_{t+1}\}$, $\{\boldsymbol{\mu}_t\
 Here $H_t(\mathbf{x}_t,\mathbf{u}_t,\boldsymbol{\lambda}_{t+1},\boldsymbol{\mu}_t):=c_t(\mathbf{x}_t,\mathbf{u}_t)+\boldsymbol{\lambda}_{t+1}^\top\mathbf{f}_t(\mathbf{x}_t,\mathbf{u}_t)+\boldsymbol{\mu}_t^\top\mathbf{g}_t(\mathbf{x}_t,\mathbf{u}_t)$ is the stage Hamiltonian.
 ```
 
+**Recap.** The discrete-time Pontryagin principle is the KKT system for trajectory optimization, organized to exploit temporal structure. It has a forward-backward decomposition: states propagate forward through the dynamics, while costates propagate backward through the adjoint equation. The Hamiltonian $H_t$ packages together the stage cost, the dynamics (weighted by the next costate), and any path constraints (weighted by their multipliers). Control stationarity says that optimal controls minimize the Hamiltonian at each stage. Complementarity ensures that only binding constraints carry nonzero multipliers. This structure underlies both analytical solution methods (such as LQR) and numerical algorithms (such as the adjoint method for gradient computation).
+
 ## The adjoint equation as reverse accumulation
 
-Optimization needs sensitivities. In trajectory problems we adjust decisions—controls or parameters—to reduce an objective while respecting dynamics and constraints. First‑order methods in the unconstrained case (e.g., gradient descent, L‑BFGS, Adam) require the gradient of the objective with respect to all controls, and constrained methods (SQP, interior‑point) require gradients of the Lagrangian, i.e., of costs and constraints. The discrete‑time adjoint equations provide these derivatives in a way that scales to long horizons and many decision variables.
+Optimization needs sensitivities. In trajectory problems we adjust decisions (controls or parameters) to reduce an objective while respecting dynamics and constraints. First‑order methods in the unconstrained case (e.g., gradient descent, L‑BFGS, Adam) require the gradient of the objective with respect to all controls, and constrained methods (SQP, interior‑point) require gradients of the Lagrangian, i.e., of costs and constraints. The discrete‑time adjoint equations provide these derivatives in a way that scales to long horizons and many decision variables.
 
 Consider
 
@@ -1765,19 +1668,267 @@ J = c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t,\mathbf{u}_t),
 \qquad \mathbf{x}_{t+1}=\mathbf{f}_t(\mathbf{x}_t,\mathbf{u}_t).
 $$
 
-A single forward rollout computes and stores the trajectory $\mathbf{x}_{1:T}$. A single backward sweep then applies the reverse‑mode chain rule stage by stage. Defining the costate by
+A single forward rollout computes and stores the trajectory $\mathbf{x}_{1:T}$. A single backward sweep then applies the reverse‑mode chain rule stage by stage.
+
+```{admonition} Before reading on
+:class: tip
+Try applying the chain rule to compute how a perturbation to the state at time $t$ affects the total cost $J$. Start from $\partial J / \partial \mathbf{x}_T$ and work backward. What pattern emerges?
+```
+
+Defining the costate by
 
 $$
 \boldsymbol{\lambda}_T = \nabla_{\mathbf{x}} c_T(\mathbf{x}_T),\qquad
 \boldsymbol{\lambda}_t = \nabla_{\mathbf{x}} c_t(\mathbf{x}_t,\mathbf{u}_t) + \big[\nabla_{\mathbf{x}} \mathbf{f}_t(\mathbf{x}_t,\mathbf{u}_t)\big]^\top \boldsymbol{\lambda}_{t+1},\quad t=T-1,\dots,1,
 $$
 
-yields exactly the discrete‑time adjoint (PMP) recursion. The gradient with respect to each control follows from the same reverse pass:
+yields exactly the discrete‑time adjoint (PMP) recursion.
+
+```{admonition} Check your understanding
+:class: tip
+What terms would you expect to appear in the gradient $\nabla_{\mathbf{u}_t} J$? The control $\mathbf{u}_t$ affects $J$ in two ways: directly through the stage cost $c_t$, and indirectly by changing the next state $\mathbf{x}_{t+1}$. How should these contributions combine?
+```
+
+The gradient with respect to each control follows from the same reverse pass:
 
 $$
 \nabla_{\mathbf{u}_t} J = \nabla_{\mathbf{u}} c_t(\mathbf{x}_t,\mathbf{u}_t) + \big[\nabla_{\mathbf{u}} \mathbf{f}_t(\mathbf{x}_t,\mathbf{u}_t)\big]^\top \boldsymbol{\lambda}_{t+1}.
 $$
 
-Two points are worth emphasizing. Computationally, this reverse accumulation produces all control gradients with one forward rollout and one backward adjoint pass; its cost is essentially a small constant multiple of simulating the system once. Conceptually, the costate $\boldsymbol{\lambda}_t$ is the marginal effect of perturbing the state at time $t$ on the total objective; the control gradient combines a direct contribution from $c_t$ and an indirect contribution through how $\mathbf{u}_t$ changes the next state. This is the same structure that underlies backpropagation, expressed for dynamical systems.
+Computationally, this reverse accumulation produces all control gradients with one forward rollout and one backward adjoint pass; its cost is essentially a small constant multiple of simulating the system once. Conceptually, the costate $\boldsymbol{\lambda}_t$ is the marginal effect of perturbing the state at time $t$ on the total objective; the control gradient combines a direct contribution from $c_t$ and an indirect contribution through how $\mathbf{u}_t$ changes the next state. This is the same structure that underlies backpropagation, expressed for dynamical systems.
 
-It is instructive to contrast this with alternatives. Black‑box finite differences perturb one decision at a time and re‑roll the system, requiring on the order of $p$ rollouts for $p$ decision variables and suffering from step‑size and noise issues—prohibitive when $p=(T-1)m$ for an $m$‑dimensional control over $T$ steps. Forward‑mode (tangent) sensitivities propagate Jacobian–vector products for each parameter direction; their work also scales with $p$. Reverse‑mode (the adjoint) instead propagates a single vector $\boldsymbol{\lambda}_t$ backward and then reads off all partial derivatives $\nabla_{\mathbf{u}_t} J$ at once. For a scalar objective, its cost is effectively independent of $p$, at the price of storing (or checkpointing) the forward trajectory. This scalability is why the adjoint is the method of choice for gradient‑based trajectory optimization and for constrained transcriptions via the Hamiltonian. 
+It is instructive to contrast this with alternatives. Black-box finite differences perturb one decision at a time and re-roll the system, requiring on the order of $p$ rollouts for $p$ decision variables and suffering from step-size and noise issues. This becomes prohibitive when $p=(T-1)m$ for an $m$-dimensional control over $T$ steps. Forward‑mode (tangent) sensitivities propagate Jacobian–vector products for each parameter direction; their work also scales with $p$. Reverse‑mode (the adjoint) instead propagates a single vector $\boldsymbol{\lambda}_t$ backward and then reads off all partial derivatives $\nabla_{\mathbf{u}_t} J$ at once. For a scalar objective, its cost is effectively independent of $p$, at the price of storing (or checkpointing) the forward trajectory. This scalability is why the adjoint is the method of choice for gradient‑based trajectory optimization and for constrained transcriptions via the Hamiltonian.
+
+**Recap.** The adjoint method computes gradients of the objective with respect to all controls in time proportional to a single forward-backward pass through the dynamics. The forward pass simulates the system and stores the trajectory. The backward pass propagates costates $\boldsymbol{\lambda}_t$ from the terminal condition back to the initial time, accumulating sensitivity information along the way. Each control gradient is then read off locally as the sum of a direct cost contribution and an indirect contribution through the dynamics. This is mathematically equivalent to reverse-mode automatic differentiation (backpropagation) applied to the unrolled dynamical system, and it explains why gradient-based trajectory optimization scales gracefully to long horizons and high-dimensional control spaces.
+
+## Summary and Outlook
+
+This chapter developed the foundations of discrete-time trajectory optimization. We introduced three equivalent formulations of the discrete-time optimal control problem (DOCP)—Bolza, Lagrange, and Mayer—and showed how they reduce to finite-dimensional nonlinear programs once a horizon is fixed.
+
+Three approaches to solving DOCPs were presented, each with distinct trade-offs:
+
+- **Simultaneous methods (direct transcription)** keep all states and controls as decision variables and enforce the dynamics as equality constraints. This produces a large but sparse NLP whose structure can be exploited by specialized solvers. The explicit state variables anchor the trajectory at every time step, improving robustness and making it straightforward to impose state constraints.
+
+- **Sequential methods (single shooting)** eliminate state variables by forward simulation, leaving only the controls as decisions. This yields a smaller, unconstrained (or bound-constrained) problem that integrates naturally with automatic differentiation frameworks. The trade-off is sensitivity to initialization and potential numerical instability over long horizons, since errors compound through the dynamics.
+
+- **Multiple shooting** divides the horizon into segments, treating segment boundaries as decision variables and enforcing continuity between them. This interpolates between the two extremes: it shortens the dependency chains that cause instability in single shooting while avoiding the full size of direct transcription.
+
+The Karush–Kuhn–Tucker (KKT) conditions provide necessary conditions for local optimality in constrained optimization. Applied to the DOCP, they yield the discrete-time Pontryagin principle: a forward-backward system where states propagate forward through the dynamics and costates propagate backward through the adjoint equation. The Hamiltonian packages together the stage cost and dynamics, and control stationarity says that optimal controls minimize the Hamiltonian at each stage.
+
+The adjoint method computes gradients of the objective with respect to all controls in time proportional to one forward pass plus one backward pass, independent of the number of decision variables. This efficiency is what allows gradient-based trajectory optimization to scale to long horizons and high-dimensional control spaces.
+
+The open-loop perspective developed here is foundational but limited: it assumes the model is accurate and that no disturbances will occur. In practice, plans must be adapted as new information arrives. Several directions extend this chapter's material:
+
+- **Collocation methods** use polynomial approximations to represent the trajectory between grid points, enabling higher-order accuracy and implicit handling of stiff dynamics. These are the subject of the next chapter.
+
+- **Model predictive control (MPC)** repeatedly solves trajectory optimization problems in a receding-horizon fashion, using the first control from each solution and re-planning as new state measurements arrive. This creates a feedback policy from open-loop building blocks.
+
+- **Feedback and policy optimization** shift the focus from computing a single trajectory to learning a policy $\pi(\mathbf{x})$ that maps states to controls. Dynamic programming, policy gradient methods, and actor-critic algorithms address this problem from different angles, and will be developed in later chapters.
+
+The tools introduced here—KKT conditions, the Pontryagin principle, shooting methods, and adjoint gradients—will reappear throughout the book as we move from open-loop planning to closed-loop control and learning.
+
+## Exercises
+
+### Exercise 1: KKT conditions for a simple DOCP
+
+Consider a two-stage optimal control problem with scalar state and control:
+
+$$
+\min_{u_1, u_2} \quad x_3^2 + u_1^2 + u_2^2
+$$
+
+subject to:
+
+$$
+x_2 = x_1 + u_1, \quad x_3 = x_2 + u_2, \quad x_1 = 1.
+$$
+
+**(a)** Write out the Lagrangian with multipliers $\lambda_2, \lambda_3$ for the dynamics constraints.
+
+**(b)** Derive the KKT conditions (stationarity with respect to $x_2, x_3, u_1, u_2$).
+
+**(c)** Solve the system to find the optimal controls $u_1^\star, u_2^\star$ and the optimal cost.
+
+```{admonition} Solution sketch
+:class: dropdown
+
+The Lagrangian is $\mathcal{L} = x_3^2 + u_1^2 + u_2^2 + \lambda_2(x_1 + u_1 - x_2) + \lambda_3(x_2 + u_2 - x_3)$.
+
+Stationarity conditions:
+- $\partial \mathcal{L}/\partial x_2 = -\lambda_2 + \lambda_3 = 0 \Rightarrow \lambda_2 = \lambda_3$
+- $\partial \mathcal{L}/\partial x_3 = 2x_3 - \lambda_3 = 0 \Rightarrow \lambda_3 = 2x_3$
+- $\partial \mathcal{L}/\partial u_1 = 2u_1 + \lambda_2 = 0 \Rightarrow u_1 = -\lambda_2/2$
+- $\partial \mathcal{L}/\partial u_2 = 2u_2 + \lambda_3 = 0 \Rightarrow u_2 = -\lambda_3/2$
+
+Substituting and using the dynamics: $x_3 = 1 + u_1 + u_2 = 1 - \lambda_2/2 - \lambda_3/2 = 1 - \lambda_3$. Combined with $\lambda_3 = 2x_3$, we get $x_3 = 1 - 2x_3$, so $x_3^\star = 1/3$, $\lambda_3^\star = 2/3$, $u_1^\star = u_2^\star = -1/3$. The optimal cost is $(1/3)^2 + 2(1/3)^2 = 1/3$.
+```
+
+---
+
+### Exercise 2: Lagrange to Mayer conversion
+
+Consider the Lagrange problem:
+
+$$
+\min_{u_{1:T-1}} \sum_{t=1}^{T-1} c_t(x_t, u_t) \quad \text{s.t.} \quad x_{t+1} = f_t(x_t, u_t), \quad x_1 = x_0.
+$$
+
+**(a)** Introduce an auxiliary state $y_t$ that accumulates the running cost. Write the augmented dynamics and the equivalent Mayer problem.
+
+**(b)** What is the initial condition for $y_1$? What is the terminal cost in Mayer form?
+
+**(c)** Verify that the two formulations have the same optimal control sequence.
+
+```{admonition} Solution sketch
+:class: dropdown
+
+Define the augmented state $\tilde{x}_t = (x_t, y_t)$ with dynamics:
+
+$$
+\tilde{x}_{t+1} = \begin{pmatrix} f_t(x_t, u_t) \\ y_t + c_t(x_t, u_t) \end{pmatrix}.
+$$
+
+Initial condition: $y_1 = 0$. Terminal cost: $\tilde{c}_T(\tilde{x}_T) = y_T$.
+
+The objective $y_T = \sum_{t=1}^{T-1} c_t(x_t, u_t)$ is identical to the Lagrange objective, so the optimal controls are the same.
+```
+
+---
+
+### Exercise 3: When LICQ fails
+
+Consider a DOCP where the state must satisfy $x_T = 0$ and also $x_T \leq 0$ at the terminal time.
+
+**(a)** At a feasible point with $x_T = 0$, which constraints are active?
+
+**(b)** Write the gradients of the active constraints with respect to $x_T$. Are they linearly independent?
+
+**(c)** Explain why this violates LICQ and what consequences this might have for the KKT multipliers.
+
+```{admonition} Solution sketch
+:class: dropdown
+
+Both constraints $h(x_T) = x_T = 0$ and $g(x_T) = -x_T \leq 0$ are active when $x_T = 0$. The gradients are $\nabla h = 1$ and $\nabla g = -1$, which are parallel (linearly dependent). LICQ fails because the constraint gradients do not span independent directions. Consequence: the multipliers $\lambda$ (for equality) and $\mu$ (for inequality) may not be unique—any combination satisfying $\lambda - \mu = c$ for a fixed $c$ could work. This leads to numerical difficulties in optimization algorithms.
+```
+
+---
+
+### Exercise 4: Costate recursion as sensitivity
+
+Consider an unconstrained DOCP with objective $J = c_T(x_T) + \sum_{t=1}^{T-1} c_t(x_t, u_t)$ and dynamics $x_{t+1} = f_t(x_t, u_t)$.
+
+**(a)** Define the value-to-go from time $t$ as $V_t(x_t) = \min_{u_{t:T-1}} \left[ c_T(x_T) + \sum_{s=t}^{T-1} c_s(x_s, u_s) \right]$. Show that at an optimal trajectory, $\nabla_{x_t} V_t(x_t^\star) = \lambda_t^\star$, where $\lambda_t$ is the costate.
+
+**(b)** Interpret the costate economically: what does $\lambda_t$ measure?
+
+```{admonition} Solution sketch
+:class: dropdown
+
+By definition, $V_t(x_t)$ is the minimum future cost starting from $x_t$. At the optimal trajectory, the envelope theorem gives $\nabla_{x_t} V_t = \lambda_t$, the marginal value of the state. Economically, $\lambda_t$ measures how much the optimal cost would decrease if we could perturb the state $x_t$ by a small amount—it is the "shadow price" of the state at time $t$.
+```
+
+---
+
+### Exercise 5: Single shooting implementation
+
+Consider the scalar system $x_{t+1} = x_t + u_t$ with $x_1 = 0$ and objective:
+
+$$
+J = x_T^2 + \sum_{t=1}^{T-1} u_t^2.
+$$
+
+**(a)** Express $x_T$ as a function of the controls $u_1, \ldots, u_{T-1}$.
+
+**(b)** Substitute into $J$ to obtain an unconstrained objective in the controls only.
+
+**(c)** Implement single shooting in Python/JAX to minimize $J$ for $T = 10$. Use gradient descent with a learning rate of 0.1 for 100 iterations. Report the optimal controls and final cost.
+
+````{admonition} Solution sketch
+:class: dropdown
+
+**(a)** $x_T = \sum_{t=1}^{T-1} u_t$.
+
+**(b)** $J(u) = \left(\sum_{t=1}^{T-1} u_t\right)^2 + \sum_{t=1}^{T-1} u_t^2$.
+
+**(c)** Sample code:
+```python
+import jax.numpy as jnp
+from jax import grad
+
+def objective(u):
+    x_T = jnp.sum(u)
+    return x_T**2 + jnp.sum(u**2)
+
+T = 10
+u = jnp.zeros(T - 1)
+for _ in range(100):
+    u = u - 0.1 * grad(objective)(u)
+
+print(f"Optimal u: {u}, Cost: {objective(u):.4f}")
+```
+The optimal controls should be approximately equal and negative, with total cost near $0$.
+````
+
+---
+
+### Exercise 6: Multiple shooting segments
+
+Using the same problem as Exercise 5, implement multiple shooting with $K = 3$ segments.
+
+**(a)** Define the segment boundaries and the continuity defects.
+
+**(b)** Set up the NLP with decision variables $[x_1, x_4, x_7, u_1, \ldots, u_9]$ (for $T=10$, with segments of length 3).
+
+**(c)** Compare the convergence behavior to single shooting. Does multiple shooting require fewer iterations to reach the same tolerance?
+
+```{admonition} Hint
+:class: dropdown
+
+The defects are $d_k = x_{k+1}^{\text{simulated}} - x_{k+1}^{\text{variable}}$ at segment boundaries. You can minimize $J + \rho \sum_k \|d_k\|^2$ for large $\rho$ (penalty method) or use a constrained solver. Multiple shooting typically converges faster for longer horizons because the optimization landscape is better conditioned.
+```
+
+---
+
+### Exercise 7: Adjoint gradient verification
+
+For the system $x_{t+1} = x_t^2 + u_t$ with $x_1 = 0.5$, $T = 4$, and objective $J = x_4$:
+
+**(a)** Compute the gradient $\nabla_{u} J$ using finite differences (perturb each $u_t$ by $\epsilon = 10^{-5}$).
+
+**(b)** Compute the gradient using the adjoint method: first simulate forward to get $x_{1:4}$, then propagate costates backward using $\lambda_4 = 1$ and $\lambda_t = 2x_t \lambda_{t+1}$.
+
+**(c)** Verify that the two methods give the same answer. Which is more efficient for large $T$?
+
+```{admonition} Solution sketch
+:class: dropdown
+
+For controls $u = [0, 0, 0]$: forward simulation gives $x_1 = 0.5$, $x_2 = 0.25$, $x_3 = 0.0625$, $x_4 = 0.00390625$.
+
+Adjoint: $\lambda_4 = 1$, $\lambda_3 = 2(0.0625)(1) = 0.125$, $\lambda_2 = 2(0.25)(0.125) = 0.0625$, $\lambda_1 = 2(0.5)(0.0625) = 0.0625$.
+
+Control gradients: $\nabla_{u_t} J = \lambda_{t+1}$, so $\nabla_u J = [\lambda_2, \lambda_3, \lambda_4] = [0.0625, 0.125, 1.0]$.
+
+Finite differences should match. The adjoint is $O(T)$ work regardless of the number of controls; finite differences require $O(T \cdot m)$ rollouts for $m$-dimensional control.
+```
+
+---
+
+### Exercise 8: Resource allocation as a DOCP
+
+A company allocates budget $u_t \geq 0$ to marketing at each quarter $t = 1, \ldots, 4$. Brand awareness $x_t$ evolves as $x_{t+1} = 0.8 x_t + 0.5 u_t$ (awareness decays but is boosted by spending). Revenue at quarter $t$ is $r_t = 10 \sqrt{x_t}$, and the company maximizes total profit:
+
+$$
+\max_{u_{1:4}} \sum_{t=1}^{4} \left( 10\sqrt{x_t} - u_t \right) \quad \text{s.t.} \quad x_{t+1} = 0.8 x_t + 0.5 u_t, \quad x_1 = 1, \quad u_t \geq 0.
+$$
+
+**(a)** Rewrite this as a minimization problem in standard DOCP form.
+
+**(b)** Solve numerically using single shooting. Report the optimal spending schedule and total profit.
+
+**(c)** Interpret the costates: which quarter has the highest marginal value of awareness?
+
+```{admonition} Hint
+:class: dropdown
+
+Convert to minimization by negating the objective. The costate $\lambda_t$ represents the marginal value of awareness at time $t$. Early quarters typically have higher costates because awareness at $t$ contributes to revenue at $t, t+1, \ldots, T$ (discounted by the decay factor $0.8$).
+```
