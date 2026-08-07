@@ -8,7 +8,8 @@ site:
 
 # Syllabus · Plan de cours
 
-**IFT 6162 — Building Up RL: From Dynamics and Control to Learning**
+**IFT 6162 — Apprentissage par renforcement, commande optimale
+(Reinforcement Learning, Optimal Control)**
 
 :::{note}
 This page is bilingual. Use the tabs below to switch between English and French.
@@ -25,11 +26,11 @@ Cette page est bilingue. Utilisez les onglets ci-dessous pour basculer entre l'a
 | | |
 |---|---|
 | **Course code** | IFT 6162 |
-| **Title** | Building Up RL: From Dynamics and Control to Learning |
+| **Title** | Reinforcement Learning, Optimal Control (official registrar title is in French: *Apprentissage par renforcement, commande optimale*) |
 | **Credits** | *TBD* |
 | **Term** | Fall 2026 |
-| **Schedule** | *TBD* |
-| **Room** | *TBD* |
+| **Schedule** | Mondays 10:30–12:29 and Thursdays 13:30–15:29, Aug 31 – Oct 16 and Oct 26 – Dec 9, 2026 |
+| **Room** | Campus Montréal — room *TBD* |
 | **Instructor** | Pierre-Luc Bacon |
 | **Email** | *TBD* |
 | **Office hours** | *TBD* |
@@ -154,7 +155,10 @@ confirmed at the first lecture and this page will be updated accordingly.
 ## Tentative schedule
 
 The plan below maps the course onto the book. It is indicative: pacing will be
-adjusted as the term goes on.
+adjusted as the term goes on. Week numbers are nominal, not tied one-to-one to
+calendar dates — the class meets Mondays and Thursdays from August 31 to
+December 9, 2026, with no sessions between October 16 and October 26; exact
+dates (including any additional holidays) will be confirmed in class.
 
 | Week | Topic | Reading |
 |---|---|---|
@@ -211,11 +215,11 @@ Changes will be announced in class and reflected on this page.
 | | |
 |---|---|
 | **Sigle** | IFT 6162 |
-| **Titre** | Construire l'apprentissage par renforcement : de la dynamique et de la commande à l'apprentissage |
+| **Titre** | Apprentissage par renforcement, commande optimale |
 | **Crédits** | *À déterminer* |
 | **Trimestre** | Automne 2026 |
-| **Horaire** | *À déterminer* |
-| **Local** | *À déterminer* |
+| **Horaire** | Lundi 10 h 30 – 12 h 29 et jeudi 13 h 30 – 15 h 29, du 31 août au 16 octobre et du 26 octobre au 9 décembre 2026 |
+| **Local** | Campus Montréal — local *à déterminer* |
 | **Enseignant** | Pierre-Luc Bacon |
 | **Courriel** | *À déterminer* |
 | **Disponibilités** | *À déterminer* |
@@ -352,7 +356,11 @@ seront confirmées au premier cours et cette page sera mise à jour en conséque
 ## Calendrier provisoire
 
 Le plan ci-dessous met le cours en correspondance avec le livre. Il est indicatif :
-le rythme sera ajusté au fil du trimestre.
+le rythme sera ajusté au fil du trimestre. La numérotation des semaines est
+nominale et ne correspond pas nécessairement aux dates du calendrier : le cours
+a lieu les lundis et jeudis du 31 août au 9 décembre 2026, sans séance entre le
+16 et le 26 octobre ; les dates exactes (incluant tout congé additionnel) seront
+confirmées en classe.
 
 | Semaine | Sujet | Lecture |
 |---|---|---|
