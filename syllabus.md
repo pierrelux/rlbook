@@ -29,7 +29,7 @@ Cette page est bilingue. Utilisez les onglets ci-dessous pour basculer entre l'a
 | **Title** | Reinforcement Learning, Optimal Control (official registrar title is in French: *Apprentissage par renforcement, commande optimale*) |
 | **Credits** | *TBD* |
 | **Term** | Fall 2026 |
-| **Schedule** | Mondays 10:30–12:29 and Thursdays 13:30–15:29, Aug 31 – Oct 16 and Oct 26 – Dec 9, 2026 |
+| **Schedule** | Mondays 10:30–12:29 and Thursdays 13:30–15:29 — Aug 31 – Oct 16 and Oct 26 – Dec 9, 2026 (14 teaching weeks, ~25 sessions) |
 | **Room** | Campus Montréal — room *TBD* |
 | **Instructor** | Pierre-Luc Bacon |
 | **Email** | *TBD* |
@@ -154,27 +154,42 @@ confirmed at the first lecture and this page will be updated accordingly.
 
 ## Tentative schedule
 
-The plan below maps the course onto the book. It is indicative: pacing will be
-adjusted as the term goes on. Week numbers are nominal, not tied one-to-one to
-calendar dates — the class meets Mondays and Thursdays from August 31 to
-December 9, 2026, with no sessions between October 16 and October 26; exact
-dates (including any additional holidays) will be confirmed in class.
+The course meets **twice a week** — Mondays 10:30–12:29 and Thursdays
+13:30–15:29 — over **14 teaching weeks**, for roughly 25 sessions in total. Each
+row below therefore covers two meetings, except where a holiday intervenes.
+Pacing is indicative and will be adjusted as the term goes on.
 
 | Week | Topic | Reading |
 |---|---|---|
-| 1 | The decision problem; why formulation comes first | [Why This Book?](intro.md) |
-| 2 | Dynamics models and state space; deterministic to stochastic; partial observability | [Dynamics](dynamics.md) |
-| 3 | Discrete-time optimal control problems; existence and optimality conditions | [Trajectory Optimization](trajectories.md) |
-| 4 | Sequential and simultaneous methods; single and multiple shooting; adjoints | [Trajectory Optimization](trajectories.md) |
-| 5 | Direct transcription and collocation; polynomial interpolation | [Collocation](collocation.md) |
-| 6 | Model predictive control: closing the loop by replanning; theoretical guarantees; variants | [MPC](mpc.md) |
-| 7 | MPC in practice: constraint softening, feasibility restoration, backup controllers; parametric optimization | [MPC](mpc.md) |
-| 8 | Dynamic programming: backward recursion, continuous spaces, the linear quadratic regulator | [Dynamic Programming](dp.md) |
-| 9 | Markov decision processes: Bellman operators, infinite horizon, value and policy iteration | [Dynamic Programming](dp.md) |
-| 10 | Smoothing and regularized MDPs; projection and weighted residual methods | [Smoothing](smoothing.md), [Projection](projection.md) |
-| 11 | Monte Carlo methods; overestimation bias and its mitigation | [Monte Carlo](montecarlo.md) |
-| 12 | Fitted Q iteration, NFQ, DQN and its extensions | [FQI](fqi.md) |
-| 13 | Amortized optimization (NFQCA, DDPG, TD3, PCL, MPPI); policy gradient methods | [Amortization](amortization.md), [Policy Gradients](pg.md) |
+| 1 · Aug 31 – Sep 3 | Course overview; the decision problem; why formulation comes first | [Why This Book?](intro.md) |
+| 2 · Sep 7 – 10 | Dynamics models and the state-space perspective | [Dynamics](dynamics.md) |
+| 3 · Sep 14 – 17 | From deterministic to stochastic dynamics; partial observability; programs as models | [Dynamics](dynamics.md) |
+| 4 · Sep 21 – 24 | Discrete-time optimal control problems; existence and optimality conditions | [Trajectory Optimization](trajectories.md) |
+| 5 · Sep 28 – Oct 1 | Sequential and simultaneous methods; single and multiple shooting; adjoints as reverse accumulation | [Trajectory Optimization](trajectories.md) |
+| 6 · Oct 5 – 8 | Direct transcription; polynomial interpolation | [Collocation](collocation.md) |
+| 7 · Oct 12 – 15 | A compendium of direct transcription methods; worked examples | [Collocation](collocation.md) |
+| 8 · Oct 26 – 29 | Model predictive control: closing the loop by replanning; theoretical guarantees; variants | [MPC](mpc.md) |
+| 9 · Nov 2 – 5 | MPC in practice: constraint softening, feasibility restoration, backup controllers; parametric optimization | [MPC](mpc.md) |
+| 10 · Nov 9 – 12 | Dynamic programming: backward recursion, continuous spaces, the linear quadratic regulator | [Dynamic Programming](dp.md) |
+| 11 · Nov 16 – 19 | Markov decision processes: Bellman operators, infinite horizon, value and policy iteration | [Dynamic Programming](dp.md) |
+| 12 · Nov 23 – 26 | Smoothing and regularized MDPs; projection and weighted residual methods | [Smoothing](smoothing.md), [Projection](projection.md) |
+| 13 · Nov 30 – Dec 3 | Monte Carlo methods and overestimation bias; fitted Q iteration, NFQ, DQN | [Monte Carlo](montecarlo.md), [FQI](fqi.md) |
+| 14 · Dec 7 | Amortized optimization (NFQCA, DDPG, TD3, PCL, MPPI); policy gradient methods | [Amortization](amortization.md), [Policy Gradients](pg.md) |
+
+**No class on:**
+
+- Monday **September 7** — Labour Day (*Fête du travail*)
+- Monday **October 12** — Thanksgiving (*Action de grâce*)
+- **October 19–25** — *période d'activités libres* (no meetings; this is the gap
+  between the two blocks in the registrar's listing)
+- Thursday **December 10** falls outside the course's end date of December 9,
+  so week 14 has a Monday session only.
+
+:::{note}
+The registrar lists the course as beginning **Monday, August 31**, while the
+University's academic calendar gives the *rentrée* as **Tuesday, September 1**.
+The date of the first Monday meeting will be confirmed before the term starts.
+:::
 
 The appendices on [worked examples](appendix_examples.md),
 [initial value problems](appendix_ivps.md), and
@@ -218,7 +233,7 @@ Changes will be announced in class and reflected on this page.
 | **Titre** | Apprentissage par renforcement, commande optimale |
 | **Crédits** | *À déterminer* |
 | **Trimestre** | Automne 2026 |
-| **Horaire** | Lundi 10 h 30 – 12 h 29 et jeudi 13 h 30 – 15 h 29, du 31 août au 16 octobre et du 26 octobre au 9 décembre 2026 |
+| **Horaire** | Lundi 10 h 30 – 12 h 29 et jeudi 13 h 30 – 15 h 29 — du 31 août au 16 octobre et du 26 octobre au 9 décembre 2026 (14 semaines de cours, ~25 séances) |
 | **Local** | Campus Montréal — local *à déterminer* |
 | **Enseignant** | Pierre-Luc Bacon |
 | **Courriel** | *À déterminer* |
@@ -355,28 +370,42 @@ seront confirmées au premier cours et cette page sera mise à jour en conséque
 
 ## Calendrier provisoire
 
-Le plan ci-dessous met le cours en correspondance avec le livre. Il est indicatif :
-le rythme sera ajusté au fil du trimestre. La numérotation des semaines est
-nominale et ne correspond pas nécessairement aux dates du calendrier : le cours
-a lieu les lundis et jeudis du 31 août au 9 décembre 2026, sans séance entre le
-16 et le 26 octobre ; les dates exactes (incluant tout congé additionnel) seront
-confirmées en classe.
+Le cours a lieu **deux fois par semaine** — le lundi de 10 h 30 à 12 h 29 et le
+jeudi de 13 h 30 à 15 h 29 — sur **14 semaines de cours**, soit environ 25
+séances au total. Chaque ligne ci-dessous couvre donc deux séances, sauf lorsqu'un
+congé s'intercale. Le rythme est indicatif et sera ajusté au fil du trimestre.
 
 | Semaine | Sujet | Lecture |
 |---|---|---|
-| 1 | Le problème de décision ; pourquoi la formulation vient en premier | [Why This Book?](intro.md) |
-| 2 | Modèles de dynamique et espace d'états ; du déterministe au stochastique ; observabilité partielle | [Dynamics](dynamics.md) |
-| 3 | Problèmes de commande optimale en temps discret ; existence et conditions d'optimalité | [Trajectory Optimization](trajectories.md) |
-| 4 | Méthodes séquentielles et simultanées ; tir simple et tir multiple ; états adjoints | [Trajectory Optimization](trajectories.md) |
-| 5 | Transcription directe et collocation ; interpolation polynomiale | [Collocation](collocation.md) |
-| 6 | Commande prédictive : boucler la boucle par replanification ; garanties théoriques ; variantes | [MPC](mpc.md) |
-| 7 | La commande prédictive en pratique : assouplissement des contraintes, restauration de la faisabilité, contrôleurs de secours ; optimisation paramétrique | [MPC](mpc.md) |
-| 8 | Programmation dynamique : récurrence arrière, espaces continus, régulateur linéaire quadratique | [Dynamic Programming](dp.md) |
-| 9 | Processus décisionnels de Markov : opérateurs de Bellman, horizon infini, itération sur la valeur et sur la politique | [Dynamic Programming](dp.md) |
-| 10 | Lissage et MDP régularisés ; méthodes de projection et de résidus pondérés | [Smoothing](smoothing.md), [Projection](projection.md) |
-| 11 | Méthodes de Monte-Carlo ; biais de surestimation et stratégies d'atténuation | [Monte Carlo](montecarlo.md) |
-| 12 | Itération sur $Q$ ajustée, NFQ, DQN et ses extensions | [FQI](fqi.md) |
-| 13 | Optimisation amortie (NFQCA, DDPG, TD3, PCL, MPPI) ; méthodes de gradient de politique | [Amortization](amortization.md), [Policy Gradients](pg.md) |
+| 1 · 31 août – 3 sept. | Présentation du cours ; le problème de décision ; pourquoi la formulation vient en premier | [Why This Book?](intro.md) |
+| 2 · 7 – 10 sept. | Modèles de dynamique et perspective de l'espace d'états | [Dynamics](dynamics.md) |
+| 3 · 14 – 17 sept. | Du déterministe au stochastique ; observabilité partielle ; les programmes comme modèles | [Dynamics](dynamics.md) |
+| 4 · 21 – 24 sept. | Problèmes de commande optimale en temps discret ; existence et conditions d'optimalité | [Trajectory Optimization](trajectories.md) |
+| 5 · 28 sept. – 1<sup>er</sup> oct. | Méthodes séquentielles et simultanées ; tir simple et tir multiple ; états adjoints et accumulation inverse | [Trajectory Optimization](trajectories.md) |
+| 6 · 5 – 8 oct. | Transcription directe ; interpolation polynomiale | [Collocation](collocation.md) |
+| 7 · 12 – 15 oct. | Panorama des méthodes de transcription directe ; exemples détaillés | [Collocation](collocation.md) |
+| 8 · 26 – 29 oct. | Commande prédictive : boucler la boucle par replanification ; garanties théoriques ; variantes | [MPC](mpc.md) |
+| 9 · 2 – 5 nov. | La commande prédictive en pratique : assouplissement des contraintes, restauration de la faisabilité, contrôleurs de secours ; optimisation paramétrique | [MPC](mpc.md) |
+| 10 · 9 – 12 nov. | Programmation dynamique : récurrence arrière, espaces continus, régulateur linéaire quadratique | [Dynamic Programming](dp.md) |
+| 11 · 16 – 19 nov. | Processus décisionnels de Markov : opérateurs de Bellman, horizon infini, itération sur la valeur et sur la politique | [Dynamic Programming](dp.md) |
+| 12 · 23 – 26 nov. | Lissage et MDP régularisés ; méthodes de projection et de résidus pondérés | [Smoothing](smoothing.md), [Projection](projection.md) |
+| 13 · 30 nov. – 3 déc. | Méthodes de Monte-Carlo et biais de surestimation ; itération sur $Q$ ajustée, NFQ, DQN | [Monte Carlo](montecarlo.md), [FQI](fqi.md) |
+| 14 · 7 déc. | Optimisation amortie (NFQCA, DDPG, TD3, PCL, MPPI) ; méthodes de gradient de politique | [Amortization](amortization.md), [Policy Gradients](pg.md) |
+
+**Aucune séance :**
+
+- Lundi **7 septembre** — congé universitaire, Fête du travail
+- Lundi **12 octobre** — congé universitaire, Action de grâce
+- **19 au 25 octobre** — période d'activités libres (c'est l'intervalle entre les
+  deux blocs de dates au répertoire des cours)
+- Le jeudi **10 décembre** dépasse la date de fin du cours (9 décembre) : la
+  semaine 14 ne comporte donc qu'une séance, le lundi.
+
+:::{note}
+Le répertoire des cours indique un début le **lundi 31 août**, alors que le
+calendrier universitaire fixe la rentrée au **mardi 1<sup>er</sup> septembre**.
+La date de la première séance du lundi sera confirmée avant le début du trimestre.
+:::
 
 Les annexes sur les [exemples détaillés](appendix_examples.md), les
 [problèmes à valeur initiale](appendix_ivps.md) et la
