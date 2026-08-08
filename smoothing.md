@@ -535,12 +535,12 @@ Now that we've seen how the regularized MDP framework leads to smooth Bellman eq
 
 **Key properties of smooth policy iteration:**
 
-1. **Entropy-regularized evaluation**: The policy evaluation step (line 12 of Algorithm {prf:ref}`smooth-policy-evaluation`) accounts for the entropy bonus $\alpha H(\pi(\cdot|s))$ where $\alpha = 1/\beta$
-2. **Stochastic policy improvement**: The policy improvement step (lines 12-14 of Algorithm {prf:ref}`policy-iteration-smooth`) uses softmax instead of deterministic argmax, producing a stochastic policy
+1. **Entropy-regularized evaluation**: The policy evaluation step (line 12 of {prf:ref}`smooth-policy-evaluation`) accounts for the entropy bonus $\alpha H(\pi(\cdot|s))$ where $\alpha = 1/\beta$
+2. **Stochastic policy improvement**: The policy improvement step (lines 12-14 of {prf:ref}`policy-iteration-smooth`) uses softmax instead of deterministic argmax, producing a stochastic policy
 3. **Temperature parameter**: 
-   - Higher $\beta$ → policies closer to deterministic (lower entropy)
-   - Lower $\beta$ → more stochastic policies (higher entropy)
-   - As $\beta \to \infty$ → recovers standard policy iteration
+   - Higher $\beta$ produces policies closer to deterministic (lower entropy)
+   - Lower $\beta$ produces more stochastic policies (higher entropy)
+   - As $\beta \to \infty$, the method recovers standard policy iteration
 4. **Convergence**: Like standard policy iteration, this algorithm converges to the unique optimal regularized value function and policy
 
 ### Equivalence Between Smooth Bellman Equations and Entropy-Regularized MDPs
@@ -742,3 +742,29 @@ While the smooth Bellman equations (using logsumexp) and entropy-regularized for
 - Line 14 shows the vector form: the linear system includes the entropy vector $\mathbf{H}_\pi$
 - The algorithm alternates between evaluating the current stochastic policy and improving it
 - Converges to the unique optimal entropy-regularized policy
+
+## Self-checks
+
+:::{exercise} Temperature limit
+:label: ex-smoothing-check-1
+
+What happens to a softmax policy as the entropy temperature $\alpha$ approaches zero, assuming a unique maximizing action?
+:::
+
+:::{solution} ex-smoothing-check-1
+:class: dropdown
+
+Its probability concentrates on the maximizing action, so the soft policy approaches the ordinary greedy deterministic policy.
+:::
+
+:::{exercise} Smooth maximum
+:label: ex-smoothing-check-2
+
+Why is log-sum-exp often easier to optimize through than a hard maximum?
+:::
+
+:::{solution} ex-smoothing-check-2
+:class: dropdown
+
+Log-sum-exp is differentiable and blends information from all actions. A hard maximum is nondifferentiable at ties and passes local gradient information only through selected maximizers.
+:::

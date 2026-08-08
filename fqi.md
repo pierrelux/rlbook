@@ -237,7 +237,7 @@ $$
 \mathbb{E}_{((s,a),y)\sim \hat{P}_n^{\text{fit}}}[\ell(q(s,a;\boldsymbol{\theta}), y)]
 $$
 
-induced by the fixed buffer $\mathcal{B}_n = \mathcal{D}$ and target function $g(\cdot; \boldsymbol{\theta}_n)$. Starting from the generic batch FQI template (Algorithm {prf:ref}`fitted-q-iteration-batch`), we replace the abstract `fit` call with explicit gradient updates:
+induced by the fixed buffer $\mathcal{B}_n = \mathcal{D}$ and target function $g(\cdot; \boldsymbol{\theta}_n)$. Starting from the generic batch FQI template ({prf:ref}`fitted-q-iteration-batch`), we replace the abstract `fit` call with explicit gradient updates:
 
 ```{prf:algorithm} Neural Fitted Q-Iteration with Explicit Inner Loop
 :label: nfqi-explicit-inner
@@ -330,7 +330,7 @@ An alternative to periodic hard updates is **exponential moving average (EMA)** 
         2. $\mathcal{D}_t^{\text{fit}} \leftarrow \mathcal{D}_t^{\text{fit}} \cup \{((s,a), y_{s,a})\}$
     4. **// Gradient step on online network**
     5. $\boldsymbol{\theta}_{t+1} \leftarrow \boldsymbol{\theta}_t - \alpha \nabla_{\boldsymbol{\theta}} \mathcal{L}(\boldsymbol{\theta}_t; \mathcal{D}_t^{\text{fit}})$
-    6. **// ← CHANGED: Smooth EMA update at every step**
+    6. **// CHANGED: Smooth EMA update at every step**
     7. $\boldsymbol{\theta}_{\text{target}} \leftarrow \tau\boldsymbol{\theta}_{t+1} + (1-\tau)\boldsymbol{\theta}_{\text{target}}$
     8. $t \leftarrow t + 1$
 5. **return** $\boldsymbol{\theta}_t$
@@ -673,7 +673,7 @@ $$
 q_j(y_i) = \frac{z_{j+1} - y_i}{z_{j+1} - z_j}, \quad q_{j+1}(y_i) = \frac{y_i - z_j}{z_{j+1} - z_j}, \quad q_k(y_i) = 0 \text{ for } k \notin \{j, j+1\}
 $$
 
-This is barycentric interpolation: $\sum_k z_k q_k(y_i) = y_i$ recovers the scalar exactly, placing the two-hot encoding within the same framework as linear interpolation in the [dynamic programming chapter](dp.md) (Algorithm {prf:ref}`backward-recursion-interp`).
+This is barycentric interpolation: $\sum_k z_k q_k(y_i) = y_i$ recovers the scalar exactly, placing the two-hot encoding within the same framework as linear interpolation in the [dynamic programming chapter](dp.md) ({prf:ref}`backward-recursion-interp`).
 
 ```{code-cell} python
 :tags: [hide-input]
@@ -796,7 +796,7 @@ which projects the target distribution onto the predicted distribution in KL geo
 
 This provides three sources of implicit robustness. First, gradient influence is bounded: each sample contributes $O(1)$ gradient magnitude per bin, unlike L2 where error magnitude $E$ contributes gradient proportional to $E$. Second, the finite grid $[z_1, z_K]$ clips extreme targets to boundary bins, preventing outliers from dominating the regression scale. Third, the two-hot encoding spreads mass across neighboring bins, providing label smoothing that averages noisy targets at the same $(s,a)$.
 
-The two-hot weights $q_j(y_i), q_{j+1}(y_i)$ are barycentric coordinates, identical to linear interpolation in the [dynamic programming chapter](dp.md) (Algorithm {prf:ref}`backward-recursion-interp`). This places the encoding within Gordon's monotone approximator framework (Definition {prf:ref}`gordon-averager`): targets are convex combinations preserving order and boundedness. The neural network predicting $p_{\boldsymbol{\theta}}(\cdot \mid s,a)$ is non-monotone, making classification-based Q-learning a hybrid: monotone target structure paired with flexible function approximation.
+The two-hot weights $q_j(y_i), q_{j+1}(y_i)$ are barycentric coordinates, identical to linear interpolation in the [dynamic programming chapter](dp.md) ({prf:ref}`backward-recursion-interp`). This places the encoding within Gordon's monotone approximator framework ({prf:ref}`gordon-averager`): targets are convex combinations preserving order and boundedness. The neural network predicting $p_{\boldsymbol{\theta}}(\cdot \mid s,a)$ is non-monotone, making classification-based Q-learning a hybrid: monotone target structure paired with flexible function approximation.
 
 Empirically, cross-entropy loss scales better with network capacity. Farebrother et al. {cite}`farebrother2024stop` found that L2-based DQN and CQL degrade when Q-networks scale to large ResNets, while classification loss (specifically HL-Gauss, which uses Gaussian smoothing instead of two-hot) maintains performance. The combination of KL geometry, quantization, and smoothing prevents overfitting to noisy targets that plagues L2 with high-capacity networks.
 
@@ -809,3 +809,41 @@ The empirical distribution $\hat{P}_{\mathcal{B}_t}$ unifies offline and online 
 Target networks and online networks arise from flattening the nested loops. Merging inner gradient steps with outer value iteration creates a single loop where two sets of parameters coexist: the **online network** $\boldsymbol{\theta}_t$ (actively updated at each gradient step, corresponds to $\boldsymbol{\theta}_n^{(k)}$) and the **target network** $\boldsymbol{\theta}_{\text{target}}$ (frozen for computing targets, updated every $K$ steps to mark outer-iteration boundaries, corresponds to $\boldsymbol{\theta}_n$). In online algorithms like DQN, the online network additionally serves as the behavior policy for data collection.
 
 The [next chapter](amortization.md) directly parameterizes and optimizes policies instead of searching over value functions.
+
+## Self-checks
+
+:::{exercise} Two loops
+:label: ex-fqi-check-1
+
+What happens in the outer loop and the inner loop of fitted Q-iteration?
+:::
+
+:::{solution} ex-fqi-check-1
+:class: dropdown
+
+The outer loop freezes the current Q-function and constructs Bellman targets. The inner loop fits a new function approximator to those targets.
+:::
+
+:::{exercise} Offline support
+:label: ex-fqi-check-2
+
+Why is a highly accurate regression fit still dangerous for actions poorly represented in an offline dataset?
+:::
+
+:::{solution} ex-fqi-check-2
+:class: dropdown
+
+The fit is unconstrained off the data support. Maximization can select extrapolated action values that are numerically large but unsupported by transitions in the dataset.
+:::
+
+:::{exercise} Frozen targets
+:label: ex-fqi-check-3
+
+What instability does a target network reduce?
+:::
+
+:::{solution} ex-fqi-check-3
+:class: dropdown
+
+It slows the movement of regression targets. Without it, each parameter update simultaneously changes the predictions and the targets being fitted, creating a rapidly moving objective.
+:::

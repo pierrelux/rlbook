@@ -1,0 +1,72 @@
+% Adapted from MyST's CC-BY-4.0 plain_latex_book template.
+\documentclass[a4paper,11pt,oneside]{book}
+\usepackage[top=2cm,bottom=2cm,left=2cm,right=2cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{natbib}
+\usepackage{xcolor}
+\usepackage{changepage}
+\usepackage{framed}
+\usepackage{hyperref}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{textcomp}
+\bibliographystyle{abbrvnat}
+
+\usepackage{enumitem}
+\setlist[itemize]{noitemsep,topsep=0pt}
+\newcounter{rlexercise}
+\newcounter{rlalgorithm}
+
+[- IMPORTS -]
+
+\hypersetup{
+  colorlinks,
+  linkcolor={black},
+  citecolor={black},
+  urlcolor={blue}
+}
+
+\definecolor{darkblue}{rgb}{0.0,0.0,0.55}
+\definecolor{quoteshade}{rgb}{0.95,0.95,1}
+\renewenvironment{quote}{%
+  \def\FrameCommand{%
+    \hspace{1pt}%
+    {\color{darkblue}\vrule width 2pt}%
+    {\color{quoteshade}\vrule width 4pt}%
+    \colorbox{quoteshade}%
+  }%
+  \MakeFramed{\advance\hsize-\width\FrameRestore}%
+  \noindent\hspace{-8pt}%
+  \begin{adjustwidth}{0pt}{0pt}%
+  \vspace{4pt}%
+}{%
+  \vspace{2pt}\end{adjustwidth}\endMakeFramed%
+}
+
+\title{\Huge\textbf{[-doc.title-]}[# if doc.subtitle #] \\ \huge [-doc.subtitle-][# endif #]}
+\author{\textsc{
+[#- for author in doc.authors #]
+  [#- if not loop.first #] and [# endif #][-author.name-][# if not loop.last and not loop.first #], [# endif #]
+[#- endfor -#]
+}}
+
+\begin{document}
+\sloppy
+
+\frontmatter
+\maketitle
+\tableofcontents
+
+\mainmatter
+
+[- CONTENT -]
+
+[# if doc.bibliography #]
+\bibliography{[- doc.bibliography | join(", ") -]}
+[# endif #]
+
+\end{document}

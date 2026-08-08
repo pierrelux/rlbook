@@ -29,3 +29,29 @@ Reinforcement learning did not develop in isolation. Its foundations draw from c
 This book aims to give you a broader view of that landscape. Where do RL algorithms come from? What mathematical structures underlie them? How do they connect to classical methods in optimization and control? Understanding these connections helps you see when a method applies, when it does not, and what alternatives exist.
 
 The goal is not to survey every technique superficially. It is to go deep on the mathematical foundations that are shared across methods: dynamic programming, function approximation, optimization, and the interplay between them. These structures recur throughout sequential decision-making, whether in reinforcement learning, control theory, or operations research. Master them once, and you can recognize them in different guises.
+
+## Self-checks
+
+:::{exercise} Problem before algorithm
+:label: ex-intro-check-1
+
+A production controller must respect a hard storage limit. Is selecting a learning algorithm enough to define the reinforcement-learning problem? Name two pieces of structure that must be specified first.
+:::
+
+:::{solution} ex-intro-check-1
+:class: dropdown
+
+No. At minimum, the state and available decisions must be defined, together with the objective and the hard storage constraint. The transition or feedback structure must also say how decisions affect future states.
+:::
+
+:::{exercise} Shared structure
+:label: ex-intro-check-2
+
+What feature makes trajectory optimization, model predictive control, and reinforcement learning members of the same decision-making family?
+:::
+
+:::{solution} ex-intro-check-2
+:class: dropdown
+
+All three choose actions whose consequences unfold through a dynamical system over time, so present decisions must account for future objectives and constraints.
+:::

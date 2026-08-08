@@ -1,47 +1,46 @@
-# rlbook
+# RL & Control
 
-## Notes on executable content
+Source for *Building Up RL: From Dynamics and Control to Learning*, built with Jupyter Book 2 and MyST.
 
-This project is built with the new MyST “book-theme” site generator. Unlike the
-old Sphinx-based pipeline, the static HTML **does not** automatically embed the
-last outputs that were present in your `.ipynb` / MyST source. A few rules keep
-plots and widgets visible both on `localhost:3000` and on GitHub Pages:
+## Set up
 
-1. Every code cell that produces a figure should follow this pattern:
+The Python environment and lockfile are managed by `uv`:
 
-   ````
-   ```{code-cell} python
-   :tags: [hide-input]
+```bash
+uv sync
+```
 
-   #  label: fig-my-figure-id
-   #  caption: Short description of the figure.
+The browser lab uses `jupyterlite-xeus`, which needs `micromamba` while assembling its WebAssembly environment. Install it with your package manager before building the lab (for example, `brew install micromamba` on macOS).
 
-   %config InlineBackend.figure_format = 'retina'
-   import matplotlib.pyplot as plt
-   ...
-   plt.tight_layout()
-   ```
-   ````
+## Build and preview
 
-   **Notes:**
-   - Use regular Python comments (`#  label:`) for metadata, not MyST directives (`#|`)
-   - Do **not** add a `:::{figure}` embed after the cell—the figure displays
-     directly from the cell output
-   - Do **not** call `plt.show()`; end with `plt.tight_layout()` instead
-   - The `%config InlineBackend.figure_format = 'retina'` ensures high-DPI output
+The production-equivalent book build executes every MyST code cell and treats warnings as failures:
 
-2. Always build with notebook execution enabled. The helper script already
-   enforces this:
+```bash
+BASE_URL=/rlbook uv run jupyter-book build --html --execute --strict
+```
 
-   ```bash
-   source publish.sh  # runs BASE_URL=/rlbook uv run jupyter-book build --html --execute
-   ```
+Build the six browser notebooks into the same site:
 
-   Skipping `--execute` will re-use whatever cache happens to exist (or nothing,
-   if you changed the cell), which can lead to empty output. 
-   
-3. When iterating locally, `uv run jupyter-book start --execute --port 3000`
-   reproduces exactly what GitHub Pages will host, including cached PNG outputs.
+```bash
+uv run jupyter lite build --lite-dir lab --contents notebooks --output-dir _build/html/lab
+```
 
-Following those three steps prevents regressions where the site appears correct
-only when a live kernel is attached.
+For local authoring, use `uv run jupyter-book start --execute --port 3000`. The browser lab can be served separately with `uv run jupyter lite serve --lite-dir lab --contents notebooks`.
+
+`publish.sh` performs both strict builds and publishes the assembled `_build/html` directory to `gh-pages` with `ghp-import`.
+
+## Authoring conventions
+
+- `pyproject.toml` is the dependency source of truth; `requirements.txt` is only a pip-compatible entry point.
+- Build-time code cells must be deterministic and must not write generated data back into tracked source files.
+- Short checks use native `{exercise}` and `{solution}` directives. Solutions carry `:class: dropdown` and stable labels such as `ex-dp-check-1`.
+- Altair is the default for compact browser-side analytical interactions. Expensive solver results remain precomputed.
+- Reactive marimo components are deliberately limited to focused conceptual islands and must include a static fallback.
+- `interactive/` contains standalone HTML demonstrations copied verbatim into the site. `lab/` contains the xeus environment and curated JupyterLite notebooks.
+
+To regenerate the checked-in notebook JSON after editing their source definitions, run:
+
+```bash
+uv run python lab/generate_notebooks.py
+```

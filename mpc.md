@@ -1248,6 +1248,7 @@ def mpc_step(x0, patient, dt, N, target_bis):
     return result.x[0]  # Return only the first control input
 
 def run_mpc_simulation(patient, T, dt, N, target_bis):
+    rng = np.random.default_rng(2026)
     steps = int(T / dt)
     x = np.zeros((steps+1, 4))
     bis = np.zeros(steps+1)
@@ -1255,7 +1256,7 @@ def run_mpc_simulation(patient, T, dt, N, target_bis):
     
     for i in range(steps):
         # Add noise to the current state to simulate real-world uncertainty
-        x_noisy = x[i] + np.random.normal(0, 0.01, size=4)
+        x_noisy = x[i] + rng.normal(0, 0.01, size=4)
         
         # Use noisy state for MPC planning
         u[i] = mpc_step(x_noisy, patient, dt, N, target_bis)
@@ -1811,6 +1812,7 @@ def create_animation(results):
     
     def animate(frame):
         """Animation function."""
+        rng = np.random.default_rng(2026 + frame)
         # Update time text
         time_text.set_text(f'Time: {frame:.0f} h')
         
@@ -1847,8 +1849,8 @@ def create_animation(results):
             for i, particle in enumerate(biomass_particles):
                 if i < n_visible:
                     # Random position in liquid
-                    x = np.random.uniform(-0.8, 0.8)
-                    y = np.random.uniform(0.3, 0.25 + liquid_height * 0.9)
+                    x = rng.uniform(-0.8, 0.8)
+                    y = rng.uniform(0.3, 0.25 + liquid_height * 0.9)
                     particle.set_center((x, y))
                     particle.set_alpha(0.7)
                 else:
@@ -1887,3 +1889,41 @@ js_anim = anim.to_jshtml()
 plt.close(fig)
 display(HTML(js_anim))
 ``` -->
+
+## Self-checks
+
+:::{exercise} Receding horizon
+:label: ex-mpc-check-1
+
+An MPC solver returns a sequence $(u_0^*,\ldots,u_{N-1}^*)$. Which controls are normally applied before the problem is solved again?
+:::
+
+:::{solution} ex-mpc-check-1
+:class: dropdown
+
+Only the first control (or first short control block) is applied. The state is measured again and the horizon is shifted before re-optimizing.
+:::
+
+:::{exercise} Terminal ingredients
+:label: ex-mpc-check-2
+
+What roles do a terminal cost and a terminal constraint play in finite-horizon MPC?
+:::
+
+:::{solution} ex-mpc-check-2
+:class: dropdown
+
+The terminal cost approximates value beyond the horizon; the terminal constraint can keep the endpoint in a region from which a known controller remains feasible and stable.
+:::
+
+:::{exercise} Disturbance response
+:label: ex-mpc-check-3
+
+Why does resolving the same finite-horizon optimization after each measurement provide feedback even if the prediction model is deterministic?
+:::
+
+:::{solution} ex-mpc-check-3
+:class: dropdown
+
+The newly measured state contains the accumulated effect of disturbances and model error. Reinitializing the optimization from that state changes the planned controls accordingly.
+:::
