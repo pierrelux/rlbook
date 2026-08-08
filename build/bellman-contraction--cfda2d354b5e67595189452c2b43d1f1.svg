@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 360" role="img" aria-labelledby="title desc">
+  <title id="title">Bellman contraction laboratory static preview</title>
+  <desc id="desc">Two panels show converging state values and geometric decay of error and residual.</desc>
+  <rect width="960" height="360" fill="#ffffff"/>
+  <g font-family="system-ui, sans-serif" fill="#172033">
+    <text x="240" y="30" text-anchor="middle" font-size="20">Value-iteration trace</text>
+    <text x="720" y="30" text-anchor="middle" font-size="20">Error certificate</text>
+  </g>
+  <g stroke="#cbd5e1" stroke-width="1">
+    <path d="M70 55V300H450 M550 55V300H930" fill="none" stroke="#475569" stroke-width="2"/>
+    <path d="M70 115H450 M70 175H450 M70 235H450 M550 115H930 M550 175H930 M550 235H930"/>
+  </g>
+  <polyline points="70,270 105,222 140,188 175,164 210,147 245,135 280,127 315,121 350,117 385,114 420,112 450,111" fill="none" stroke="#2563eb" stroke-width="4"/>
+  <polyline points="70,80 105,115 140,140 175,158 210,171 245,180 280,187 315,192 350,195 385,198 420,200 450,201" fill="none" stroke="#f97316" stroke-width="4"/>
+  <polyline points="550,70 585,93 620,116 655,139 690,162 725,185 760,208 795,231 830,254 865,277 900,295" fill="none" stroke="#2563eb" stroke-width="4"/>
+  <polyline points="550,62 585,86 620,110 655,134 690,158 725,182 760,206 795,230 830,254 865,278 900,300" fill="none" stroke="#0f766e" stroke-width="3" stroke-dasharray="10 7"/>
+  <polyline points="550,98 585,119 620,142 655,164 690,188 725,211 760,235 795,258 830,280 865,295" fill="none" stroke="#9333ea" stroke-width="3" stroke-dasharray="3 7"/>
+  <g font-family="system-ui, sans-serif" font-size="15" fill="#334155">
+    <text x="260" y="338" text-anchor="middle">Iteration</text>
+    <text x="740" y="338" text-anchor="middle">Iteration</text>
+    <text x="18" y="182" transform="rotate(-90 18 182)" text-anchor="middle">Value</text>
+    <text x="500" y="182" transform="rotate(-90 500 182)" text-anchor="middle">Sup norm (log scale)</text>
+  </g>
+</svg>
