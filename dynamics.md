@@ -859,3 +859,40 @@ There is no universally correct way to model a system. The choice depends on wha
 14. Implement a simple hybrid system: a bouncing ball with state $(h, v)$ (height and velocity). The ball follows $\dot{h} = v$, $\dot{v} = -g$ until $h = 0$, at which point $v \leftarrow -e \cdot v$ for some coefficient of restitution $e \in (0, 1)$. Simulate 10 seconds with $g = 9.8$, $e = 0.8$, and initial conditions $h_0 = 1$, $v_0 = 0$. Plot the trajectory and observe the mode switches.
 ```
 
+## Self-checks
+
+:::{exercise} State or observation?
+:label: ex-dynamics-check-1
+
+A thermostat measures indoor temperature but not the wall temperature in a 2R2C model. Is the measured temperature alone a Markov state? Explain briefly.
+:::
+
+:::{solution} ex-dynamics-check-1
+:class: dropdown
+
+Generally no. The hidden wall temperature affects the next indoor temperature, so two systems with the same measured air temperature can evolve differently.
+:::
+
+:::{exercise} Discretization check
+:label: ex-dynamics-check-2
+
+For $\dot{x}=ax+bu$ with a zero-order-held input and step $\Delta t$, write the explicit Euler update.
+:::
+
+:::{solution} ex-dynamics-check-2
+:class: dropdown
+
+$x_{k+1}=x_k+\Delta t(ax_k+bu_k)=(1+a\Delta t)x_k+b\Delta t\,u_k$.
+:::
+
+:::{exercise} Where uncertainty belongs
+:label: ex-dynamics-check-3
+
+When is a transition kernel more natural than writing deterministic dynamics plus additive noise?
+:::
+
+:::{solution} ex-dynamics-check-3
+:class: dropdown
+
+A kernel is more natural when uncertainty is discrete, state dependent, multimodal, or otherwise cannot be represented faithfully as a simple additive disturbance.
+:::

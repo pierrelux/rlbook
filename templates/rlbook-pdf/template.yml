@@ -1,0 +1,33 @@
+myst: v1
+title: RL Book PDF
+description: Print-oriented LaTeX template for the reinforcement learning book
+version: 1.0.0
+license: CC-BY-4.0
+authors:
+  - name: Pierre-Luc Bacon
+doc:
+  - id: title
+    required: true
+  - id: subtitle
+  - id: authors
+    required: true
+  - id: bibliography
+files:
+  - template.tex
+packages:
+  - amssymb
+  - babel
+  - caption
+  - changepage
+  - enumitem
+  - fontenc
+  - framed
+  - geometry
+  - graphicx
+  - hyperref
+  - inputenc
+  - lmodern
+  - mathrsfs
+  - natbib
+  - textcomp
+  - xcolor

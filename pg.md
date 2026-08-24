@@ -250,14 +250,9 @@ For concreteness, we fix $\theta = 1.0$ and analyze samples drawn using Monte Ca
 %config InlineBackend.figure_format = 'retina'
 import jax
 import jax.numpy as jnp
-import matplotlib.pyplot as plt
-
-# Apply book style
-try:
-    import scienceplots
-    plt.style.use(['science', 'notebook'])
-except (ImportError, OSError):
-    pass  # Use matplotlib defaults
+import altair as alt
+import numpy as np
+import pandas as pd
 
 key = jax.random.PRNGKey(0)
 
@@ -300,28 +295,6 @@ naive_estimates = jnp.array([naive_gradient_batch(k, theta) for k in keys])
 score_estimates = jnp.array([score_function_batch(k, theta) for k in keys])
 reparam_estimates = jnp.array([reparam_gradient_batch(k, theta) for k in keys])
 
-# Create violin plots with individual points
-plt.figure(figsize=(12, 6))
-data = [naive_estimates, score_estimates, reparam_estimates]
-colors = ['#ff9999', '#66b3ff', '#99ff99']
-
-parts = plt.violinplot(data, showextrema=False)
-for i, pc in enumerate(parts['bodies']):
-    pc.set_facecolor(colors[i])
-    pc.set_alpha(0.7)
-
-# Add box plots
-plt.boxplot(data, notch=True, showfliers=False)
-
-# Add true gradient line
-plt.axhline(y=true_grad, color='r', linestyle='--', label='True Gradient')
-
-plt.xticks([1, 2, 3], ['Naive', 'Score Function', 'Reparam'])
-plt.ylabel('Gradient Estimate')
-plt.title(f'Gradient Estimators (θ={theta}, true grad={true_grad:.2f})')
-plt.grid(True, alpha=0.3)
-plt.legend()
-
 # Print statistics
 methods = {
     'Naive': naive_estimates,
@@ -337,6 +310,47 @@ for name, estimates in methods.items():
     print(f"Bias: {bias:.6f}")
     print(f"Variance: {variance:.6f}")
     print(f"MSE: {bias**2 + variance:.6f}")
+
+gradient_data = pd.concat(
+    [
+        pd.DataFrame({
+            "Estimator": name,
+            "Gradient estimate": np.asarray(estimates),
+        })
+        for name, estimates in methods.items()
+    ],
+    ignore_index=True,
+)
+estimator_pick = alt.selection_point(fields=["Estimator"], bind="legend")
+
+density = (
+    alt.Chart(gradient_data)
+    .transform_density(
+        "Gradient estimate",
+        as_=["Gradient estimate", "Density"],
+        groupby=["Estimator"],
+    )
+    .mark_area(opacity=0.45, line=True)
+    .encode(
+        x=alt.X("Gradient estimate:Q", title="Gradient estimate"),
+        y=alt.Y("Density:Q", stack=None),
+        color=alt.Color("Estimator:N", legend=alt.Legend(orient="top")),
+        opacity=alt.condition(estimator_pick, alt.value(0.55), alt.value(0.08)),
+        tooltip=["Estimator:N"],
+    )
+    .add_params(estimator_pick)
+)
+
+truth = (
+    alt.Chart(pd.DataFrame({"True gradient": [true_grad]}))
+    .mark_rule(color="#b91c1c", strokeDash=[6, 4], size=2)
+    .encode(x="True gradient:Q")
+)
+
+(density + truth).properties(
+    height=340,
+    title=f"Gradient estimator distributions (θ={theta}, true gradient={true_grad:.2f})",
+)
 
 ```
 
@@ -1139,25 +1153,26 @@ def sample_from_discounted_visitation(
     """
     samples = []
     n_states = len(alpha)
+    rng = np.random.default_rng(2026)
     
     # Initialize state from alpha
-    current_state = np.random.choice(n_states, p=alpha)
+    current_state = rng.choice(n_states, p=alpha)
     
     for _ in range(n_samples):
         samples.append(current_state)
         
         # With probability (1-gamma): reset
-        if np.random.random() > gamma:
-            current_state = np.random.choice(n_states, p=alpha)
+        if rng.random() > gamma:
+            current_state = rng.choice(n_states, p=alpha)
         # With probability gamma: continue
         else:
             # Sample action from policy
             action_probs = policy(current_state)
-            action = np.random.choice(len(action_probs), p=action_probs)
+            action = rng.choice(len(action_probs), p=action_probs)
             
             # Sample next state from transition model
             next_state_probs = transition_model(current_state, action)
-            current_state = np.random.choice(n_states, p=next_state_probs)
+            current_state = rng.choice(n_states, p=next_state_probs)
     
     return np.array(samples)
 
@@ -1297,3 +1312,41 @@ For reinforcement learning, the score function estimator provides a model-free g
 We also established the policy gradient theorem, which provides the theoretical foundation for these estimators in the discounted infinite-horizon setting. The actor-critic architecture emerges from approximating the value function that appears in this theorem, with the two-timescale condition ensuring stable learning.
 
 When dynamics models are available, reparameterization through Stochastic Value Gradients offers lower-variance alternatives. SVG(0) recovers actor-critic methods like DDPG and SAC, while SVG($\infty$) represents pure model-based optimization through differentiable simulation.
+
+## Self-checks
+
+:::{exercise} Score-function requirement
+:label: ex-pg-check-1
+
+Does the likelihood-ratio policy-gradient estimator require differentiating the environment dynamics? Why?
+:::
+
+:::{solution} ex-pg-check-1
+:class: dropdown
+
+No. It differentiates the log probability of sampled actions under the policy and weights that score by sampled returns or advantages; the environment need only generate trajectories.
+:::
+
+:::{exercise} Baseline bias
+:label: ex-pg-check-2
+
+Why can a state-dependent baseline reduce variance without biasing the score-function policy gradient?
+:::
+
+:::{solution} ex-pg-check-2
+:class: dropdown
+
+Conditioned on a state, the expected policy score is zero: $\sum_a\pi(a|s)\nabla\log\pi(a|s)=0$. Multiplying a state-only baseline by that score therefore has zero expectation.
+:::
+
+:::{exercise} Reparameterization boundary
+:label: ex-pg-check-3
+
+Give one setting where the score-function method applies but a pathwise reparameterization gradient is not directly available.
+:::
+
+:::{solution} ex-pg-check-3
+:class: dropdown
+
+A policy with discrete actions is the standard example: its samples are not differentiable functions of continuous noise, while their log probabilities remain differentiable in the policy parameters.
+:::

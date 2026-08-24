@@ -1,0 +1,16 @@
+# MyST and JupyterLite build outputs
+_build/
+exports/
+.jupyter-book-marimo/
+.jupyterlite.doit.db
+
+# Local environments and Python artifacts
+.venv/
+*.egg-info/
+__pycache__/
+*.py[cod]
+
+# Local authoring notes and deployment experiments
+WRITING_GUIDELINES.md
+PEDAGOGICAL_GUIDELINES.md
+.github/

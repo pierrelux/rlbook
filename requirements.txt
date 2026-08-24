@@ -1,24 +1,3 @@
-jupyter-book>=2.0.0
-matplotlib
-numpy
-scipy
-pyenergyplus-lbnl
-# Optimization packages
-pyomo
-casadi
-cvxpy
-ecos
-# Simulation and control
-do-mpc
-openap
-openap-top
-# Additional scientific packages
-jax
-jaxlib
-optax
-pandas
-# Sphinx extensions
-sphinx-proof
-sphinxcontrib-mermaid
-sphinxcontrib-tikz
-sphinxcontrib-bibtex
+# Compatibility entry point for environments that install with pip.
+# pyproject.toml is the dependency source of truth.
+.

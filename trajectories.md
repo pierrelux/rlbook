@@ -890,19 +890,13 @@ Eco-Cruise optimization results showing the comparison between energy-efficient 
 :tags: [full-width]
 
 `````{tab-item} Visualization
-```{raw} html
-<script src="_static/iframe-modal.js"></script>
-<div id="eco-cruise-container"></div>
-<script>
-createIframeModal({
-  containerId: 'eco-cruise-container',
-  iframeSrc: '_static/eco-cruise-demo.html',
-  title: 'Eco-Cruise Optimization Visualization',
-  aspectRatio: '200%',
-  maxWidth: '1400px',
-  maxHeight: '900px'
-});
-</script>
+```{iframe} ../interactive/eco-cruise-demo.html
+:title: Eco-Cruise Optimization Visualization
+:width: 100%
+:height: 720px
+```
+
+<a href="/interactive/eco-cruise-demo.html">Open the Eco-Cruise visualization full-screen</a>.
 `````
 
 `````{tab-item} Code
@@ -931,7 +925,22 @@ Finally, an initial guess is constructed by interpolating a straight line for th
 
 Once these components are in place, the call to `minimize` does the rest. Internally, SLSQP linearizes the constraints, builds a quadratic subproblem, and iterates until both the Karush–Kuhn–Tucker conditions and the stopping tolerances are met. From the user's perspective, the heavy lifting reduces to providing functions that compute costs and residuals—everything else is handled by the solver. -->
 
+### Interactive Eco-Cruise Visualization
 
+The precomputed browser demo below compares an energy-aware trajectory with a naive speed profile. Use its controls to inspect position, velocity, acceleration, stage cost, and cumulative energy without rerunning the optimizer.
+
+```{iframe} ../interactive/eco-cruise-demo.html
+:title: Eco-Cruise Optimization Visualization
+:width: 100%
+```
+
+<a href="/interactive/eco-cruise-demo.html">Open the Eco-Cruise visualization full-screen</a>.
+
+:::{note}
+:class: pdf-fallback
+
+The interactive Eco-Cruise visualization is available in the [web edition](https://pierrelux.github.io/rlbook/interactive/eco-cruise-demo.html).
+:::
 
 ## Sequential Methods
 
@@ -1729,7 +1738,8 @@ The tools introduced here—KKT conditions, the Pontryagin principle, shooting m
 
 ## Exercises
 
-### Exercise 1: KKT conditions for a simple DOCP
+:::{exercise} KKT conditions for a simple DOCP
+:label: ex-trajectories-kkt
 
 Consider a two-stage optimal control problem with scalar state and control:
 
@@ -1749,7 +1759,9 @@ $$
 
 **(c)** Solve the system to find the optimal controls $u_1^\star, u_2^\star$ and the optimal cost.
 
-```{admonition} Solution sketch
+:::
+
+:::{solution} ex-trajectories-kkt
 :class: dropdown
 
 The Lagrangian is $\mathcal{L} = x_3^2 + u_1^2 + u_2^2 + \lambda_2(x_1 + u_1 - x_2) + \lambda_3(x_2 + u_2 - x_3)$.
@@ -1761,11 +1773,12 @@ Stationarity conditions:
 - $\partial \mathcal{L}/\partial u_2 = 2u_2 + \lambda_3 = 0 \Rightarrow u_2 = -\lambda_3/2$
 
 Substituting and using the dynamics: $x_3 = 1 + u_1 + u_2 = 1 - \lambda_2/2 - \lambda_3/2 = 1 - \lambda_3$. Combined with $\lambda_3 = 2x_3$, we get $x_3 = 1 - 2x_3$, so $x_3^\star = 1/3$, $\lambda_3^\star = 2/3$, $u_1^\star = u_2^\star = -1/3$. The optimal cost is $(1/3)^2 + 2(1/3)^2 = 1/3$.
-```
+:::
 
 ---
 
-### Exercise 2: Lagrange to Mayer conversion
+:::{exercise} Lagrange to Mayer conversion
+:label: ex-trajectories-mayer
 
 Consider the Lagrange problem:
 
@@ -1779,7 +1792,9 @@ $$
 
 **(c)** Verify that the two formulations have the same optimal control sequence.
 
-```{admonition} Solution sketch
+:::
+
+:::{solution} ex-trajectories-mayer
 :class: dropdown
 
 Define the augmented state $\tilde{x}_t = (x_t, y_t)$ with dynamics:
@@ -1791,11 +1806,12 @@ $$
 Initial condition: $y_1 = 0$. Terminal cost: $\tilde{c}_T(\tilde{x}_T) = y_T$.
 
 The objective $y_T = \sum_{t=1}^{T-1} c_t(x_t, u_t)$ is identical to the Lagrange objective, so the optimal controls are the same.
-```
+:::
 
 ---
 
-### Exercise 3: When LICQ fails
+:::{exercise} When LICQ fails
+:label: ex-trajectories-licq
 
 Consider a DOCP where the state must satisfy $x_T = 0$ and also $x_T \leq 0$ at the terminal time.
 
@@ -1805,15 +1821,18 @@ Consider a DOCP where the state must satisfy $x_T = 0$ and also $x_T \leq 0$ at 
 
 **(c)** Explain why this violates LICQ and what consequences this might have for the KKT multipliers.
 
-```{admonition} Solution sketch
+:::
+
+:::{solution} ex-trajectories-licq
 :class: dropdown
 
 Both constraints $h(x_T) = x_T = 0$ and $g(x_T) = -x_T \leq 0$ are active when $x_T = 0$. The gradients are $\nabla h = 1$ and $\nabla g = -1$, which are parallel (linearly dependent). LICQ fails because the constraint gradients do not span independent directions. Consequence: the multipliers $\lambda$ (for equality) and $\mu$ (for inequality) may not be unique—any combination satisfying $\lambda - \mu = c$ for a fixed $c$ could work. This leads to numerical difficulties in optimization algorithms.
-```
+:::
 
 ---
 
-### Exercise 4: Costate recursion as sensitivity
+:::{exercise} Costate recursion as sensitivity
+:label: ex-trajectories-costate
 
 Consider an unconstrained DOCP with objective $J = c_T(x_T) + \sum_{t=1}^{T-1} c_t(x_t, u_t)$ and dynamics $x_{t+1} = f_t(x_t, u_t)$.
 
@@ -1821,15 +1840,18 @@ Consider an unconstrained DOCP with objective $J = c_T(x_T) + \sum_{t=1}^{T-1} c
 
 **(b)** Interpret the costate economically: what does $\lambda_t$ measure?
 
-```{admonition} Solution sketch
+:::
+
+:::{solution} ex-trajectories-costate
 :class: dropdown
 
 By definition, $V_t(x_t)$ is the minimum future cost starting from $x_t$. At the optimal trajectory, the envelope theorem gives $\nabla_{x_t} V_t = \lambda_t$, the marginal value of the state. Economically, $\lambda_t$ measures how much the optimal cost would decrease if we could perturb the state $x_t$ by a small amount—it is the "shadow price" of the state at time $t$.
-```
+:::
 
 ---
 
-### Exercise 5: Single shooting implementation
+:::{exercise} Single shooting implementation
+:label: ex-trajectories-single-shooting
 
 Consider the scalar system $x_{t+1} = x_t + u_t$ with $x_1 = 0$ and objective:
 
@@ -1843,7 +1865,9 @@ $$
 
 **(c)** Implement single shooting in Python/JAX to minimize $J$ for $T = 10$. Use gradient descent with a learning rate of 0.1 for 100 iterations. Report the optimal controls and final cost.
 
-````{admonition} Solution sketch
+:::
+
+:::{solution} ex-trajectories-single-shooting
 :class: dropdown
 
 **(a)** $x_T = \sum_{t=1}^{T-1} u_t$.
@@ -1867,11 +1891,12 @@ for _ in range(100):
 print(f"Optimal u: {u}, Cost: {objective(u):.4f}")
 ```
 The optimal controls should be approximately equal and negative, with total cost near $0$.
-````
+:::
 
 ---
 
-### Exercise 6: Multiple shooting segments
+:::{exercise} Multiple shooting segments
+:label: ex-trajectories-multiple-shooting
 
 Using the same problem as Exercise 5, implement multiple shooting with $K = 3$ segments.
 
@@ -1881,15 +1906,18 @@ Using the same problem as Exercise 5, implement multiple shooting with $K = 3$ s
 
 **(c)** Compare the convergence behavior to single shooting. Does multiple shooting require fewer iterations to reach the same tolerance?
 
-```{admonition} Hint
+:::
+
+:::{solution} ex-trajectories-multiple-shooting
 :class: dropdown
 
 The defects are $d_k = x_{k+1}^{\text{simulated}} - x_{k+1}^{\text{variable}}$ at segment boundaries. You can minimize $J + \rho \sum_k \|d_k\|^2$ for large $\rho$ (penalty method) or use a constrained solver. Multiple shooting typically converges faster for longer horizons because the optimization landscape is better conditioned.
-```
+:::
 
 ---
 
-### Exercise 7: Adjoint gradient verification
+:::{exercise} Adjoint gradient verification
+:label: ex-trajectories-adjoint
 
 For the system $x_{t+1} = x_t^2 + u_t$ with $x_1 = 0.5$, $T = 4$, and objective $J = x_4$:
 
@@ -1899,7 +1927,9 @@ For the system $x_{t+1} = x_t^2 + u_t$ with $x_1 = 0.5$, $T = 4$, and objective 
 
 **(c)** Verify that the two methods give the same answer. Which is more efficient for large $T$?
 
-```{admonition} Solution sketch
+:::
+
+:::{solution} ex-trajectories-adjoint
 :class: dropdown
 
 For controls $u = [0, 0, 0]$: forward simulation gives $x_1 = 0.5$, $x_2 = 0.25$, $x_3 = 0.0625$, $x_4 = 0.00390625$.
@@ -1909,11 +1939,12 @@ Adjoint: $\lambda_4 = 1$, $\lambda_3 = 2(0.0625)(1) = 0.125$, $\lambda_2 = 2(0.2
 Control gradients: $\nabla_{u_t} J = \lambda_{t+1}$, so $\nabla_u J = [\lambda_2, \lambda_3, \lambda_4] = [0.0625, 0.125, 1.0]$.
 
 Finite differences should match. The adjoint is $O(T)$ work regardless of the number of controls; finite differences require $O(T \cdot m)$ rollouts for $m$-dimensional control.
-```
+:::
 
 ---
 
-### Exercise 8: Resource allocation as a DOCP
+:::{exercise} Resource allocation as a DOCP
+:label: ex-trajectories-resource-allocation
 
 A company allocates budget $u_t \geq 0$ to marketing at each quarter $t = 1, \ldots, 4$. Brand awareness $x_t$ evolves as $x_{t+1} = 0.8 x_t + 0.5 u_t$ (awareness decays but is boosted by spending). Revenue at quarter $t$ is $r_t = 10 \sqrt{x_t}$, and the company maximizes total profit:
 
@@ -1927,8 +1958,48 @@ $$
 
 **(c)** Interpret the costates: which quarter has the highest marginal value of awareness?
 
-```{admonition} Hint
+:::
+
+:::{solution} ex-trajectories-resource-allocation
 :class: dropdown
 
 Convert to minimization by negating the objective. The costate $\lambda_t$ represents the marginal value of awareness at time $t$. Early quarters typically have higher costates because awareness at $t$ contributes to revenue at $t, t+1, \ldots, T$ (discounted by the decay factor $0.8$).
-```
+:::
+
+## Self-checks
+
+:::{exercise} Count the decisions
+:label: ex-trajectories-check-1
+
+A single-shooting problem has horizon $T$ and scalar controls. How many optimization variables remain after eliminating the states, and what computation couples an early control to the terminal cost?
+:::
+
+:::{solution} ex-trajectories-check-1
+:class: dropdown
+
+There are $T$ control variables. Forward simulation couples every early control to all later states and therefore to the terminal cost.
+:::
+
+:::{exercise} Shooting trade-off
+:label: ex-trajectories-check-2
+
+Why can multiple shooting be easier to optimize than single shooting even though it introduces more decision variables?
+:::
+
+:::{solution} ex-trajectories-check-2
+:class: dropdown
+
+Intermediate states break a long sensitive rollout into shorter segments. The resulting continuity constraints are sparse, and derivatives need not propagate through the full horizon in one chain.
+:::
+
+:::{exercise} Predict the active bound
+:label: ex-trajectories-check-3
+
+In a minimum-time braking problem with bounded deceleration, which control bound do you expect to be active before the vehicle stops?
+:::
+
+:::{solution} ex-trajectories-check-3
+:class: dropdown
+
+The maximum braking bound should be active almost everywhere: delaying or reducing braking cannot shorten the stopping time when the terminal position and zero velocity are fixed.
+:::

@@ -500,7 +500,7 @@ print("Total harvest:", sum(harvests))
 ```
 
 
-Due to pedagogical considerations, this example is using our own implementation of the linear interpolation procedure. However, a more general and practical approach would be to use a built-in interpolation procedure in Numpy. Because our state space has a single dimension, we can simply use [scipy.interpolate.interp1d](https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.) which offers various interpolation methods through its `kind` argument, which can take values in 'linear', 'nearest', 'nearest-up', 'zero', 'slinear', 'quadratic', 'cubic', 'previous', or 'next'. 'zero', 'slinear', 'quadratic' and 'cubic'.
+Due to pedagogical considerations, this example is using our own implementation of the linear interpolation procedure. However, a more general and practical approach would be to use a built-in interpolation procedure in Numpy. Because our state space has a single dimension, we can simply use [scipy.interpolate.interp1d](https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html) which offers various interpolation methods through its `kind` argument, which can take values in 'linear', 'nearest', 'nearest-up', 'zero', 'slinear', 'quadratic', 'cubic', 'previous', or 'next'. 'zero', 'slinear', 'quadratic' and 'cubic'.
 
 Here's a more general implementation which here uses cubic interpolation through the `scipy.interpolate.interp1d` function: 
 
@@ -513,6 +513,8 @@ Here's a more general implementation which here uses cubic interpolation through
 
 import numpy as np
 from scipy.interpolate import interp1d
+
+rng = np.random.default_rng(2026)
 
 # Parameters
 r_max = 0.3
@@ -1099,8 +1101,8 @@ def simulate_optimal_policy(initial_N, T, num_simulations=100):
             intended_h = policy_interpolator(N)
             
             # Apply stochasticity
-            h_factor = np.random.choice(h_outcomes, p=h_probs)
-            r_factor = np.random.choice(r_outcomes, p=r_probs)
+            h_factor = rng.choice(h_outcomes, p=h_probs)
+            r_factor = rng.choice(r_outcomes, p=r_probs)
             
             realized_h = intended_h * h_factor
             harvests.append(N * realized_h)
@@ -2257,6 +2259,110 @@ $$\|v^{\pi_\varepsilon}_\gamma - v^*_\gamma\|_\infty \leq \frac{\varepsilon}{2} 
 This completes the proof, showing that $v_{n+1}$ is within $\varepsilon/2$ of $v^*_\gamma$ (part 4) and $\pi_\varepsilon$ is $\varepsilon$-optimal (part 3).
 ````
 
+### Bellman contraction laboratory
+
+Use the controls below to change the discount factor, transition persistence, reward asymmetry, and starting value. Before moving $\gamma$, predict how it will change the slope of the error envelope. The middle panel compares the observed error and Bellman residual with the contraction bound; the text below reports the final greedy policy.
+
+```{marimo-config}
+:echo: false
+:error: false
+:pyproject:
+
+requires-python = ">=3.12"
+dependencies = ["matplotlib", "numpy"]
+```
+
+```{marimo} python
+import marimo as mo
+import matplotlib.pyplot as plt
+import numpy as np
+
+discount = mo.ui.slider(start=0.10, stop=0.99, step=0.01, value=0.90, label="Discount γ")
+persistence = mo.ui.slider(start=0.50, stop=0.99, step=0.01, value=0.85, label="Transition persistence")
+reward_asymmetry = mo.ui.slider(start=-2.0, stop=2.0, step=0.1, value=0.8, label="Reward asymmetry")
+initial_value = mo.ui.slider(start=-10.0, stop=10.0, step=0.5, value=0.0, label="Initial value scale")
+mo.vstack([discount, persistence, reward_asymmetry, initial_value])
+```
+
+```{marimo} python
+gamma_lab = discount.value
+p_lab = persistence.value
+reward_gap_lab = reward_asymmetry.value
+
+transitions_lab = np.array([
+    [[p_lab, 1 - p_lab], [1 - p_lab, p_lab]],
+    [[1 - p_lab, p_lab], [p_lab, 1 - p_lab]],
+])
+rewards_lab = np.array([
+    [1.0 + reward_gap_lab, 0.0],
+    [0.0, 1.0 - reward_gap_lab],
+])
+
+def bellman_lab(value_lab):
+    q_lab = rewards_lab + gamma_lab * np.einsum("asj,j->sa", transitions_lab, value_lab)
+    return q_lab.max(axis=1), q_lab
+
+v_star_lab = np.zeros(2)
+for _ in range(1000):
+    next_star_lab, _ = bellman_lab(v_star_lab)
+    if np.max(np.abs(next_star_lab - v_star_lab)) < 1e-12:
+        break
+    v_star_lab = next_star_lab
+
+value_lab = np.array([initial_value.value, -initial_value.value], dtype=float)
+trace_lab = [value_lab.copy()]
+residual_lab = []
+error_lab = [np.max(np.abs(value_lab - v_star_lab))]
+for _ in range(30):
+    next_value_lab, _ = bellman_lab(value_lab)
+    residual_lab.append(np.max(np.abs(next_value_lab - value_lab)))
+    value_lab = next_value_lab
+    trace_lab.append(value_lab.copy())
+    error_lab.append(np.max(np.abs(value_lab - v_star_lab)))
+
+trace_lab = np.asarray(trace_lab)
+error_lab = np.asarray(error_lab)
+residual_lab = np.asarray(residual_lab)
+bound_lab = error_lab[0] * gamma_lab ** np.arange(error_lab.size)
+_, final_q_lab = bellman_lab(value_lab)
+policy_lab = final_q_lab.argmax(axis=1)
+```
+
+```{marimo} python
+fig_lab, axes_lab = plt.subplots(1, 2, figsize=(10, 3.6))
+axes_lab[0].plot(trace_lab[:, 0], label="state 0")
+axes_lab[0].plot(trace_lab[:, 1], label="state 1")
+axes_lab[0].axhline(v_star_lab[0], color="C0", linestyle=":", alpha=0.7)
+axes_lab[0].axhline(v_star_lab[1], color="C1", linestyle=":", alpha=0.7)
+axes_lab[0].set(xlabel="Iteration", ylabel="Value", title="Value-iteration trace")
+axes_lab[0].legend()
+
+axes_lab[1].semilogy(error_lab, label="actual error")
+axes_lab[1].semilogy(bound_lab, linestyle="--", label="contraction bound")
+axes_lab[1].semilogy(np.arange(1, residual_lab.size + 1), residual_lab, linestyle=":", label="Bellman residual")
+axes_lab[1].set(xlabel="Iteration", ylabel="Sup norm", title="Error certificate")
+axes_lab[1].legend()
+fig_lab.tight_layout()
+
+mo.vstack([
+    fig_lab,
+    mo.md(
+        f"**Greedy policy:** state 0 → action {policy_lab[0]}, "
+        f"state 1 → action {policy_lab[1]}.  "
+        f"Final residual: **{residual_lab[-1]:.2e}**; "
+        f"final error: **{error_lab[-1]:.2e}**."
+    ),
+])
+```
+
+:::{figure} _static/bellman-contraction-fallback.png
+:label: fig-bellman-contraction-fallback
+:class: pdf-fallback
+:alt: Static Bellman contraction laboratory preview
+
+Static preview of value-iteration traces and a geometric contraction bound. The online book provides controls for $\gamma$, transitions, rewards, and the initial value.
+:::
+
 ### Newton-Kantorovich Applied to Bellman Optimality
 
 We now apply the Newton-Kantorovich framework to the Bellman optimality equation. Let
@@ -2497,4 +2603,42 @@ The policy iteration algorithm for discounted Markov decision problems is as fol
 7. **until** convergence
 ````
 
-As opposed to value iteration, this algorithm produces a sequence of both deterministic Markovian decision rules $\{\pi_n\}$ and value functions $\{\mathbf{v}^n\}$. We recognize in this algorithm the linearization step of the Newton-Kantorovich procedure, which takes place here in the policy evaluation step 3 where we solve the linear system $(\mathbf{I}-\gamma \mathbf{P}_{\pi_n}) \mathbf{v} = \mathbf{r}_{\pi_n}$. In practice, this linear system could be solved either using direct methods (eg. Gaussian elimination), using simple iterative methods such as the successive approximation method for policy evaluation, or more sophisticated methods such as GMRES. 
+As opposed to value iteration, this algorithm produces a sequence of both deterministic Markovian decision rules $\{\pi_n\}$ and value functions $\{\mathbf{v}^n\}$. We recognize in this algorithm the linearization step of the Newton-Kantorovich procedure, which takes place here in the policy evaluation step 3 where we solve the linear system $(\mathbf{I}-\gamma \mathbf{P}_{\pi_n}) \mathbf{v} = \mathbf{r}_{\pi_n}$. In practice, this linear system could be solved either using direct methods (eg. Gaussian elimination), using simple iterative methods such as the successive approximation method for policy evaluation, or more sophisticated methods such as GMRES.
+
+## Self-checks
+
+:::{exercise} Contraction factor
+:label: ex-dp-check-1
+
+If two value functions differ by at most $\varepsilon$ in sup norm, by at most how much can their discounted Bellman updates differ?
+:::
+
+:::{solution} ex-dp-check-1
+:class: dropdown
+
+At most $\gamma\varepsilon$. The discounted Bellman operator is a $\gamma$-contraction in the sup norm.
+:::
+
+:::{exercise} Residual certificate
+:label: ex-dp-check-2
+
+Value iteration produces a Bellman residual $\|Tv-v\|_\infty=0.02$ with $\gamma=0.9$. Give the standard upper bound on $\|v-v^*\|_\infty$.
+:::
+
+:::{solution} ex-dp-check-2
+:class: dropdown
+
+$\|v-v^*\|_\infty\leq \|Tv-v\|_\infty/(1-\gamma)=0.02/0.1=0.2$.
+:::
+
+:::{exercise} Evaluation versus improvement
+:label: ex-dp-check-3
+
+Which step of policy iteration requires solving a linear fixed-policy problem, and which step takes an actionwise maximum?
+:::
+
+:::{solution} ex-dp-check-3
+:class: dropdown
+
+Policy evaluation solves $(I-\gamma P_\pi)v=r_\pi$. Policy improvement computes action values from that $v$ and chooses a greedy action in each state.
+:::

@@ -114,17 +114,7 @@
         const loadDefaultData = async () => {
           try {
             setIsLoading(true);
-            // Determine the correct path based on current location
-            const currentPath = window.location.pathname;
-            let dataPath;
-            
-            if (currentPath.includes('/_static/')) {
-              // If we're in _static directory (embedded in book), use same directory
-              dataPath = 'trajectory_data.json';
-            } else {
-              // If we're at root level (opened directly), use _static
-              dataPath = '_static/trajectory_data.json';
-            }
+            const dataPath = 'trajectory_data.json';
             
             const response = await fetch(dataPath);
             if (!response.ok) {

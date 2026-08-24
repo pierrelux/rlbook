@@ -7,15 +7,32 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
+    "altair==6.2.2",
+    "casadi",
+    "cvxpy",
+    "do-mpc",
     "ecos>=2.0.14",
-    "jupyter-book>=2.0.0",
+    "ipykernel",
+    "ipywidgets",
+    "jax",
+    "jaxlib",
+    "jupyter-book==2.1.6",
+    "jupyter-book-marimo==0.0.3",
+    "jupyterlite-core==0.8.1",
+    "jupyterlite-xeus==5.0.0",
     "matplotlib",
+    "nbclient",
+    "nbformat",
     "numpy",
+    "openap",
+    "openap-top",
+    "optax",
+    "pandas",
+    "pyenergyplus-lbnl",
+    "pyomo",
+    "scikit-learn",
     "scipy",
-    "sphinx-proof",
-    "sphinxcontrib-mermaid",
-    "sphinxcontrib-tikz",
-    "sphinxcontrib-bibtex",
+    "vl-convert-python",
 ]
 
 [build-system]
@@ -25,5 +42,5 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools]
 packages = []
 
-[tool.uv]
-dev-dependencies = [] 
+[dependency-groups]
+dev = []

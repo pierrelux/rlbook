@@ -326,6 +326,66 @@ In the typical reinforcement learning setting, $N=1$: each observed transition $
 
 Unlike deterministic quadrature, which introduces a fixed bias at each iteration, Monte Carlo introduces random error with zero mean but nonzero variance. However, combining Monte Carlo with the maximization in the Bellman operator creates a systematic problem: while the estimate of the expected return for any individual action is unbiased, taking the maximum over these noisy estimates introduces upward bias. This overestimation compounds through value iteration and degrades the resulting policies. We address this challenge in the [next chapter on fitted Q-iteration](fqi.md).
 
+### Interactive sample-size diagnostic
+
+Before moving across the figure, predict what multiplying $N$ by four should do to the root mean squared error. Hover over a point to compare the empirical result with the $1/\sqrt{N}$ prediction.
+
+```{code-cell} python
+:tags: [hide-input]
+
+import altair as alt
+import numpy as np
+import pandas as pd
+
+rng = np.random.default_rng(2026)
+true_mean, sigma, trials = 2.0, 3.0, 4000
+sample_sizes = 2 ** np.arange(0, 11)
+summary = []
+
+for n in sample_sizes:
+    estimates = rng.normal(true_mean, sigma, size=(trials, n)).mean(axis=1)
+    summary.append({
+        "N": int(n),
+        "Mean estimate": estimates.mean(),
+        "Empirical RMSE": np.sqrt(np.mean((estimates - true_mean) ** 2)),
+        "Theory RMSE": sigma / np.sqrt(n),
+    })
+
+mc_summary = pd.DataFrame(summary)
+hover_n = alt.selection_point(fields=["N"], nearest=True, on="pointerover", empty=False)
+
+mean_chart = (
+    alt.Chart(mc_summary)
+    .mark_line(point=True, color="#2563eb")
+    .encode(
+        x=alt.X("N:Q", scale=alt.Scale(type="log", base=2), title="Samples N"),
+        y=alt.Y("Mean estimate:Q", scale=alt.Scale(zero=False)),
+        opacity=alt.condition(hover_n, alt.value(1), alt.value(0.55)),
+        tooltip=["N:Q", alt.Tooltip("Mean estimate:Q", format=".4f")],
+    )
+    .add_params(hover_n)
+    .properties(height=180, title="The sample mean remains unbiased")
+)
+
+rmse_long = mc_summary.melt(
+    id_vars="N", value_vars=["Empirical RMSE", "Theory RMSE"],
+    var_name="Series", value_name="RMSE"
+)
+rmse_chart = (
+    alt.Chart(rmse_long)
+    .mark_line(point=True)
+    .encode(
+        x=alt.X("N:Q", scale=alt.Scale(type="log", base=2), title="Samples N"),
+        y=alt.Y("RMSE:Q", scale=alt.Scale(type="log")),
+        color=alt.Color("Series:N", legend=alt.Legend(orient="top")),
+        tooltip=["Series:N", "N:Q", alt.Tooltip("RMSE:Q", format=".4f")],
+    )
+    .properties(height=180, title="Error falls at the Monte Carlo rate")
+)
+
+alt.vconcat(mean_chart, rmse_chart).resolve_scale(color="independent")
+```
+
 ### Amortizing Action Selection via Q-Functions
 
 Monte Carlo integration enables model-free approximate dynamic programming: we no longer need explicit transition probabilities $p(s'|s,a)$, only the ability to sample next states. However, one computational challenge remains. The standard formulation of an optimal decision rule is
@@ -439,10 +499,59 @@ $$
 
 The inequality is strict whenever multiple actions have nonzero variance. The maximization selects whichever action happens to receive a positive noise realization, and that inflated estimate contributes to the target value. This is Jensen's inequality for the max operator: $\mathbb{E}[\max_a Y_a] \ge \max_a \mathbb{E}[Y_a]$ for random variables $\{Y_a\}$, since the max is convex. Even though we start with unbiased estimators, taking the maximum breaks unbiasedness.
 
+The next diagnostic holds every true action value at zero. Use the legend to isolate an estimator and hover over the points. The maximum estimator becomes increasingly optimistic as the number of actions grows, while independent evaluation removes that effect in expectation.
+
+```{code-cell} python
+:tags: [hide-input]
+
+import altair as alt
+import numpy as np
+import pandas as pd
+
+rng = np.random.default_rng(2026)
+replications, samples_per_action = 6000, 5
+bias_rows = []
+
+for actions in [2, 4, 8, 16, 32]:
+    selection_estimates = rng.normal(
+        size=(replications, actions, samples_per_action)
+    ).mean(axis=2)
+    evaluation_estimates = rng.normal(
+        size=(replications, actions, samples_per_action)
+    ).mean(axis=2)
+    selected = selection_estimates.argmax(axis=1)
+    maximum = selection_estimates.max(axis=1)
+    double = evaluation_estimates[np.arange(replications), selected]
+    for name, values in [("Maximum estimator", maximum), ("Double estimator", double)]:
+        bias_rows.append({
+            "Actions": actions,
+            "Estimator": name,
+            "Bias": values.mean(),
+            "Monte Carlo SE": values.std(ddof=1) / np.sqrt(replications),
+        })
+
+bias_data = pd.DataFrame(bias_rows)
+estimator_pick = alt.selection_point(fields=["Estimator"], bind="legend")
+
+(
+    alt.Chart(bias_data)
+    .mark_line(point=alt.OverlayMarkDef(size=70))
+    .encode(
+        x=alt.X("Actions:Q", scale=alt.Scale(type="log", base=2)),
+        y=alt.Y("Bias:Q", scale=alt.Scale(zero=True)),
+        color=alt.Color("Estimator:N", legend=alt.Legend(orient="top")),
+        opacity=alt.condition(estimator_pick, alt.value(1), alt.value(0.18)),
+        tooltip=["Estimator:N", "Actions:Q", alt.Tooltip("Bias:Q", format=".4f")],
+    )
+    .add_params(estimator_pick)
+    .properties(height=320, title="Selection and evaluation with independent noise")
+)
+```
+
 Operationally, this means that repeatedly sampling fresh states and taking the max will not, on average, converge to the true value but systematically land above it. Unlike noise that averages out, this bias persists no matter how many samples we draw. Worse, it compounds across iterations as overestimates feed into future target computations.
 
 ```{prf:remark} Connection to deterministic policies
-This inequality also underlies why deterministic policies are optimal in MDPs (Theorem {prf:ref}`stoch-policy-reduction`): $\max_a w(a) \ge \sum_a q(a) w(a)$ shows randomization cannot improve expected returns. The same mathematical principle appears in two contexts: (1) deterministic policies suffice, (2) maximization over noisy estimates creates upward bias.
+This inequality also underlies why deterministic policies are optimal in MDPs ({prf:ref}`stoch-policy-reduction`): $\max_a w(a) \ge \sum_a q(a) w(a)$ shows randomization cannot improve expected returns. The same mathematical principle appears in two contexts: (1) deterministic policies suffice, (2) maximization over noisy estimates creates upward bias.
 ```
 
 Monte Carlo value iteration applies $v_{k+1} = \widehat{\Bellman}_N v_k$ repeatedly. The overestimation bias does not stay confined to a single iteration: it accumulates through the recursion. At iteration 2, we compute Monte Carlo estimates $\hat{\mu}_N(s,a) = \frac{1}{N}\sum_{i=1}^N v_1(s'_i)$, but $v_1$ is already biased upward from iteration 1. Averaging an overestimated function and then maximizing over noisy estimates compounds the bias: $\mathbb{E}[v_k] \ge \mathbb{E}[v_{k-1}] \ge \cdots \ge v^*$. Without correction, this feedback loop can produce severely inflated value estimates that yield poor policies.
@@ -580,7 +689,7 @@ Double Q-learning eliminates evaluation bias by using independent noise for eval
 ```{prf:remark} Implementation via different Q-functions
 :class: dropdown
 
-The conceptual framework above assumes we can draw multiple independent samples from $p(\cdot|s,a)$ for each state-action pair. In practice, this would require resetting a simulator to the same state and sampling multiple times, which is often infeasible. The practical implementation achieves the same effect differently: maintain two Q-functions that are trained on different data or updated at different times (e.g., one is a slowly-updating target network). Since the two Q-functions experience different noise realizations during training, their errors remain less correlated than if we used a single Q-function for both selection and evaluation. This is how Double DQN works, as we'll see in the [next chapter on online learning](online_rl.md).
+The conceptual framework above assumes we can draw multiple independent samples from $p(\cdot|s,a)$ for each state-action pair. In practice, this would require resetting a simulator to the same state and sampling multiple times, which is often infeasible. The practical implementation achieves the same effect differently: maintain two Q-functions that are trained on different data or updated at different times (e.g., one is a slowly-updating target network). Since the two Q-functions experience different noise realizations during training, their errors remain less correlated than if we used a single Q-function for both selection and evaluation. This is how Double DQN works, as we'll see in the [next chapter on fitted Q-iteration](fqi.md).
 ```
 
 The following algorithm implements this principle with Monte Carlo integration. We maintain two Q-functions and alternate which one selects actions and which one evaluates them. The bias reduction mechanism applies whether we store Q-values in a table or use function approximation.
@@ -675,3 +784,41 @@ Three foundational components emerged:
 3. **Bias mitigation**: Address the systematic overestimation that arises from maximizing over noisy estimates through four approaches: learning empirical corrections (Keane-Wolpin), analytical adjustment from extreme value theory (Lee-Powell), decoupling selection from evaluation (double Q-learning), and probability-weighted aggregation (weighted estimators)
 
 The algorithms presented (Parametric Q-Value Iteration, Keane-Wolpin, Double Q) remain in the theoretical setting where we can draw multiple samples from each state-action pair and choose optimization parameters freely. The [next chapter](fqi.md) addresses the practical constraints of reinforcement learning: working with fixed offline datasets of single-sample transitions, choosing function approximators and optimization strategies, and understanding the algorithmic design space that yields methods like FQI, NFQI, and DQN.
+
+## Self-checks
+
+:::{exercise} Sample-mean rate
+:label: ex-montecarlo-check-1
+
+If independent samples have standard deviation $\sigma$, what is the standard deviation of their sample mean based on $N$ samples?
+:::
+
+:::{solution} ex-montecarlo-check-1
+:class: dropdown
+
+$\sigma/\sqrt{N}$. Reducing it by a factor of two therefore requires four times as many samples.
+:::
+
+:::{exercise} Sign before simulation
+:label: ex-montecarlo-check-2
+
+Several actions have equal true values and independent noisy estimates. What sign do you expect for the bias of their maximum?
+:::
+
+:::{solution} ex-montecarlo-check-2
+:class: dropdown
+
+Positive. Maximization preferentially selects estimates with favorable noise, so the expected maximum exceeds the common true value.
+:::
+
+:::{exercise} Double estimation
+:label: ex-montecarlo-check-3
+
+Which dependence is broken when one estimate selects the maximizing action and an independent estimate evaluates it?
+:::
+
+:::{solution} ex-montecarlo-check-3
+:class: dropdown
+
+The evaluation noise is made independent of the lucky noise that caused selection. This removes the reuse of the same positive error for both selection and evaluation.
+:::

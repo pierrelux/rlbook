@@ -1389,6 +1389,8 @@ import numpy as np
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 
+rng = np.random.default_rng(2026)
+
 # Apply book style
 try:
     import scienceplots
@@ -1422,7 +1424,7 @@ def system_dynamics(t, x, u):
 
 # "Do nothing" controller with small random noise
 def u_func(t):
-    return np.random.normal(0, 0.01)  # Mean 0, standard deviation 0.01
+    return rng.normal(0, 0.01)  # Mean 0, standard deviation 0.01
 
 # Function to simulate a single trajectory
 def simulate_trajectory(x0):
@@ -1435,7 +1437,7 @@ initial_conditions = []
 
 for i in range(num_trajectories):
     # Randomize initial conditions around [0.5, 0.5]
-    x0 = np.array([0.5, 0.5]) + np.random.normal(0, 0.05, 2)
+    x0 = np.array([0.5, 0.5]) + rng.normal(0, 0.05, 2)
     initial_conditions.append(x0)
     x1, x2 = simulate_trajectory(x0)
     trajectories.append((x1, x2))
@@ -1478,10 +1480,8 @@ plt.grid(True)
 
 plt.tight_layout()
 
-# Save the data
-np.savez('_static/compressor_surge_data_multi.npz', t=t, trajectories=trajectories, u=u, initial_conditions=initial_conditions)
-
-print("Data collection complete. Results saved to 'compressor_surge_data_multi.npz'")
+# Keep generated data in memory so a documentation build never modifies source files.
+print("Data collection complete.")
 print(f"Data shape: {num_trajectories} trajectories, each with {N} time steps")
 print(f"Time range: 0 to {T} seconds")
 print("Initial conditions:")
@@ -1508,12 +1508,7 @@ try:
 except (ImportError, OSError):
     pass  # Use matplotlib defaults
 
-# Load the data
-data = np.load('_static/compressor_surge_data_multi.npz', allow_pickle=True)
-t = data['t']
-trajectories = data['trajectories']
-u = data['u']
-initial_conditions = data['initial_conditions']
+# The preceding cell provides t, trajectories, u, and initial_conditions.
 
 # Known system parameters
 gamma, H, psi_c0, W = 0.5, 0.18, 0.3, 0.25
@@ -1621,7 +1616,7 @@ where $\gamma = \arcsin(v_s / v)$ is the flight path angle and $\mathrm{FF}$ is 
 
 The optimization minimizes fuel burn over the CYUL–CYYZ leg. But the same setup could be used to minimize arrival time, or some weighted combination of time, cost, and emissions.
 
-We use **OpenAP.top**, which solves the problem using direct collocation at **Legendre–Gauss–Lobatto (LGL)** points. Each trajectory segment is mapped to the unit interval, the state is interpolated by Lagrange polynomials at nonuniform LGL nodes, and the dynamics are enforced at those points. Integration is done with matching quadrature weights.
+We use `OpenAP.top`, which solves the problem using direct collocation at **Legendre–Gauss–Lobatto (LGL)** points. Each trajectory segment is mapped to the unit interval, the state is interpolated by Lagrange polynomials at nonuniform LGL nodes, and the dynamics are enforced at those points. Integration is done with matching quadrature weights.
 
 This setup lets us optimize trajectories under realistic conditions by feeding in the appropriate ERA5 GRIB file (e.g., `era5_mtl_20230601_12.grib`). The result accounts for wind patterns (eg. headwinds, tailwinds, shear) along the corridor between Montréal and Toronto.
 
@@ -2177,10 +2172,22 @@ $$
 has local truncation error $O(h^3)$, meaning the method is second-order accurate. *Hint:* Expand $x(t_k + h)$ in a Taylor series around $t_k$ and substitute into the defect equation.
 ````
 
+````{solution} ex-collocation-truncation
+:class: dropdown
+
+Using $x_{k+1}=x_k+hax_k+\tfrac{h^2}{2}a^2x_k+\tfrac{h^3}{6}a^3x_k+O(h^4)$ in the defect cancels the constant, $h$, and $h^2$ terms. The first surviving term is proportional to $h^3a^3x_k$, so the local error is $O(h^3)$ and the accumulated global error is $O(h^2)$.
+````
+
 ````{exercise}
 :label: ex-collocation-gauss-continuity
 
 Explain why Gauss collocation requires separate continuity constraints at mesh endpoints while Lobatto collocation does not. Consider a single mesh interval $[t_k, t_{k+1}]$ and describe what happens when you chain multiple intervals together for each node family.
+````
+
+````{solution} ex-collocation-gauss-continuity
+:class: dropdown
+
+Gauss nodes lie strictly inside each interval, so the polynomial values at a shared endpoint are not themselves collocation variables; adjacent interval polynomials must be tied together explicitly. Lobatto includes both endpoints, so the right endpoint of one interval and left endpoint of the next can be represented by the same state variable.
 ````
 
 ````{exercise}
@@ -2194,10 +2201,22 @@ Modify the compressor surge trapezoidal collocation code from this chapter to us
 Compare the trajectory accuracy for $N=10$ and $N=20$ mesh points. Does Hermite–Simpson achieve comparable accuracy with fewer points?
 ````
 
+````{solution} ex-collocation-hermite-simpson
+:class: dropdown
+
+Use the Simpson defect $x_{k+1}-x_k-\tfrac{h}{6}(f_k+4f_{k+1/2}+f_{k+1})=0$ together with $x_{k+1/2}-\tfrac12(x_k+x_{k+1})-\tfrac{h}{8}(f_k-f_{k+1})=0$. For a smooth solution, the fourth-order Hermite–Simpson transcription should reach an error comparable to trapezoidal collocation with substantially fewer intervals; exact values depend on solver tolerances.
+````
+
 ````{exercise}
 :label: ex-collocation-braking
 
 Return to the minimum-time braking example from the beginning of this chapter. Implement implicit Euler collocation for this problem with $v_0 = 30$ m/s, $p_f = 100$ m, and $a_{\max} = 5$ m/s². Use $N = 20$ mesh points. Compare your solution to explicit Euler collocation. Which method produces a smoother control trajectory? Which gives a shorter stopping time?
+````
+
+````{solution} ex-collocation-braking
+:class: dropdown
+
+Replace each explicit defect by $x_{k+1}-x_k-hf(x_{k+1},u_{k+1})=0$ and keep identical boundary and control bounds. Both transcriptions should drive the deceleration to its active bound; their stopping times converge toward the same value under mesh refinement. At a fixed coarse mesh, any apparent advantage is a discretization effect, so report both the objective and the maximum continuous-time defect rather than declaring one universally superior.
 ````
 
 
@@ -2225,3 +2244,41 @@ Beyond the methods presented here, several extensions are important in practice:
 - **Indirect methods** solve the optimality conditions (Pontryagin's principle) directly rather than discretizing the primal problem
 
 The examples in this chapter (compressor surge control, flight trajectory optimization, and hydro cascade scheduling) illustrate how direct collocation applies to realistic engineering systems with nonlinear dynamics, path constraints, and complex objectives.
+
+## Self-checks
+
+:::{exercise} Euler residual
+:label: ex-collocation-check-1
+
+For $\dot{x}=f(x,u)$, write the explicit Euler defect on interval $k$ using step $h$.
+:::
+
+:::{solution} ex-collocation-check-1
+:class: dropdown
+
+$d_k=x_{k+1}-x_k-hf(x_k,u_k)$. Collocation enforces $d_k=0$.
+:::
+
+:::{exercise} Endpoint choice
+:label: ex-collocation-check-2
+
+Which classical collocation node family includes both endpoints of an interval, and why is that convenient for boundary conditions?
+:::
+
+:::{solution} ex-collocation-check-2
+:class: dropdown
+
+Lobatto nodes include both endpoints, so endpoint states and slopes appear directly in the polynomial representation and can be constrained without extra extrapolation.
+:::
+
+:::{exercise} Refinement diagnosis
+:label: ex-collocation-check-3
+
+A trajectory looks smooth but the dynamics defect is large on two intervals. Should you first increase the polynomial degree everywhere or refine locally near those intervals?
+:::
+
+:::{solution} ex-collocation-check-3
+:class: dropdown
+
+Refine locally first. The residual identifies where the current mesh is inadequate; global refinement spends variables where the approximation is already accurate.
+:::

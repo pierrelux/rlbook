@@ -1306,3 +1306,41 @@ This chapter developed weighted residual methods for solving functional equation
 Convergence depends on how the projection interacts with the Bellman operator. The contraction property of the Bellman operator reappears here: whether projected iteration converges depends on whether the projection preserves this contraction or whether we work in a norm compatible with the operator. For monotone projections (piecewise linear interpolation, state aggregation), the composition $\Proj \Bellman$ inherits the contraction property in the sup norm and iteration converges. For non-monotone projections like Galerkin, convergence requires matching the weighting to the stationary distribution, which holds in on-policy settings. The Bellman optimality case remains theoretically incomplete.
 
 Throughout this chapter, we assumed access to the transition model: computing $\Bellman v(s)$ requires summing over all next states weighted by transition probabilities. In practice, we often have only a simulator or observed trajectories, not an explicit model. The next chapter addresses this gap. Monte Carlo methods estimate expectations from sampled transitions, replacing exact Bellman operator evaluations with sample averages. This connects the projection framework developed here to the simulation-based algorithms used in reinforcement learning.
+
+## Self-checks
+
+:::{exercise} Orthogonality condition
+:label: ex-projection-check-1
+
+In a Galerkin method with basis functions $\phi_i$, against which functions is the Bellman residual required to be orthogonal?
+:::
+
+:::{solution} ex-projection-check-1
+:class: dropdown
+
+Against the same basis functions: $\langle \phi_i,\Bellman v-v\rangle=0$ for every $i$.
+:::
+
+:::{exercise} Collocation versus least squares
+:label: ex-projection-check-2
+
+What is the main distinction between collocation and least-squares residual fitting?
+:::
+
+:::{solution} ex-projection-check-2
+:class: dropdown
+
+Collocation forces the residual to vanish at selected points. Least squares minimizes an aggregate squared residual over a sampling or weighting distribution.
+:::
+
+:::{exercise} Weighting shift
+:label: ex-projection-check-3
+
+If the projection weighting distribution puts almost no mass on an important state region, what failure should you expect?
+:::
+
+:::{solution} ex-projection-check-3
+:class: dropdown
+
+The approximation may be accurate under the weighted norm yet poor in that neglected region, leading to bad values or decisions there.
+:::
