@@ -1,0 +1,75 @@
+{
+  "created_utc": "2026-09-01T15:21:25.037604+00:00",
+  "git_revision": "a52b5bd95ccc406741d92d5aadeb17dc06505cce",
+  "python": "3.12.8",
+  "platform": "macOS-14.6-arm64-arm-64bit",
+  "jax": "0.11.1",
+  "optax": "0.2.8",
+  "jax_devices": [
+    "cpu:0"
+  ],
+  "swing_rl": {
+    "version": "0.1.0",
+    "direct_url": {
+      "url": "https://github.com/pierrelux/swing-rl.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "d579663fc81c044729f4d3ab60bf63bcdbd27b9a",
+        "requested_revision": "d579663fc81c044729f4d3ab60bf63bcdbd27b9a"
+      }
+    }
+  },
+  "config": {
+    "seed": 0,
+    "total_environment_steps": 1000000,
+    "number_of_environments": 8,
+    "rollout_steps": 256,
+    "episode_steps": 1600,
+    "reset_noise": 0.01,
+    "hidden_units": 64,
+    "learning_rate": 0.0003,
+    "discount": 0.995,
+    "gae_lambda": 0.95,
+    "clip_epsilon": 0.2,
+    "value_coefficient": 0.5,
+    "entropy_coefficient": 0.001,
+    "maximum_gradient_norm": 0.5,
+    "update_epochs": 4,
+    "minibatch_size": 256,
+    "checkpoint_interval": 50000,
+    "evaluation_states": 100,
+    "evaluation_seed": 20260901
+  },
+  "requested_environment_steps": 1000000,
+  "actual_environment_steps": 1001472,
+  "checkpoint_policy": "The first complete 2,048-transition update at or beyond each 50,000-transition target is saved; both target and actual counts are logged.",
+  "evaluation_distribution": {
+    "states": 100,
+    "seed": 20260901,
+    "theta_degrees": [
+      -5.0,
+      5.0
+    ],
+    "theta_dot": [
+      -0.1,
+      0.1
+    ],
+    "policy": "deterministic tanh of the Gaussian mean"
+  },
+  "showcase_state": {
+    "theta_degrees": 3.0,
+    "theta_dot": 0.0
+  },
+  "structured_controller_metrics": {
+    "episode_count": 100,
+    "success_rate": 1.0,
+    "return_mean": 191.8971388058864,
+    "return_standard_deviation": 5.4082139849938375,
+    "conditional_time_to_rotation": 25.429599999999542,
+    "integrated_effort_mean": 26.22781693581825,
+    "minimum_tension_mean": -415.74158651182984,
+    "minimum_tension_worst": -626.8944554373304,
+    "negative_tension_rate_mean": 0.07376420031554401
+  },
+  "elapsed_seconds": 131.84823412494734
+}

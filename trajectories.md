@@ -106,7 +106,7 @@ Already in this formulation, though, **the structure of the problem matters**. I
 * **Dimensionality grows with the horizon.** For a horizon of length $T$, the program has roughly $(T-1)(m+n)$ decision variables.
 * **Temporal coupling.** Each control affects all future states and costs. The feasible set is not a simple box but a narrow manifold defined by the dynamics.
 
-Together, these features explain why specialized methods exist and why the way we write the problem influences the algorithms we can use. Whether we keep states explicit or eliminate them through forward simulation determines not just the problem size, but also its conditioning and the trade-offs between robustness and computational effort.
+Together, these features explain why specialized methods exist and why the way we write the problem influences the algorithms we can use. Whether we keep states explicit or eliminate them through forward simulation determines the problem size, its conditioning, and the trade-offs between robustness and computational effort.
 
 ## Existence of Solutions and Optimality Conditions
 
@@ -180,7 +180,7 @@ In our trajectory problems, $\mathbf{z}$ stacks state and control trajectories, 
 
 *What fails without a CQ?* If the active gradients are dependent (for example duplicated or nearly parallel), the Jacobian loses rank; multipliers may then be nonunique or fail to exist, and the linearized equations become ill-posed. In transcribed trajectory problems this shows up as dependent dynamic constraints or redundant path constraints, which leads to fragile solver behavior.
 
-**Recap.** The KKT conditions provide necessary conditions for a point to be a local minimizer of a constrained optimization problem. They consist of four parts: stationarity (the gradient of the Lagrangian vanishes), primal feasibility (constraints are satisfied), dual feasibility (inequality multipliers are nonnegative), and complementarity (inactive constraints have zero multipliers). The multipliers have an economic interpretation as marginal costs—they tell us how much the optimal value would change if we relaxed a constraint slightly. For convex problems, the KKT conditions are also sufficient, meaning any point satisfying them is globally optimal. In trajectory optimization, these conditions will reappear in structured form as the Pontryagin principle.
+The KKT conditions provide necessary conditions for a point to be a local minimizer of a constrained optimization problem. They consist of four parts: stationarity (the gradient of the Lagrangian vanishes), primal feasibility (constraints are satisfied), dual feasibility (inequality multipliers are nonnegative), and complementarity (inactive constraints have zero multipliers). The multipliers have an economic interpretation as marginal costs: they tell us how much the optimal value would change if we relaxed a constraint slightly. For convex problems, the KKT conditions are also sufficient, meaning any point satisfying them is globally optimal. In trajectory optimization, these conditions will reappear in structured form as the Pontryagin principle.
 
 ### From KKT to algorithms
 
@@ -577,370 +577,52 @@ Compared to alternatives, simultaneous methods avoid the long nonlinear dependen
 
 The same logic applies when selecting an optimizer. For small-scale problems, it is common to rely on general-purpose routines such as those in `scipy.optimize.minimize`. Derivative-free methods like Nelder–Mead require no gradients but scale poorly as dimensionality increases. Quasi-Newton schemes such as BFGS work well for moderate dimensions and can approximate gradients by finite differences, while large-scale trajectory optimization often calls for gradient-based constrained solvers such as interior-point or sequential quadratic programming methods that can exploit sparse Jacobians and benefit from automatic differentiation. Stochastic techniques, including genetic algorithms, simulated annealing, or particle swarm optimization, occasionally appear when gradients are unavailable, but their cost grows rapidly with dimension and they are rarely competitive for structured optimal control problems.
 
-<!-- ### On the Choice of Optimizer
+### Example: Nonlinear Cart-Pole Swing-Up
 
-Although the code example uses SLSQP, many alternatives exist. `scipy.optimize.minimize` provides a menu of options, and each has implications for speed, robustness, and scalability:
+A cart carries a rigid pendulum whose angle is measured from the upright vertical. The cart can accelerate horizontally, but no actuator applies torque directly at the pendulum joint. Starting from the stable downward configuration, the task is to move the base so that the pendulum arrives upright while the cart returns near the center of a finite rail.
 
-* **Derivative-free methods** such as Nelder–Mead avoid gradients altogether. They are attractive when gradients are unavailable or noisy, but they scale poorly with dimension.
-* **Quasi-Newton methods** like BFGS approximate gradients by finite differences. They work well for moderate-scale problems and often outperform derivative-free schemes when the objective is smooth.
-* **Gradient-based constrained solvers** such as interior-point or SQP methods exploit derivatives (exact or automatic) and are typically the most efficient for large structured problems like trajectory optimization.
-
-Beyond these, **stochastic optimizers** occasionally appear in practice, especially when gradients are unreliable or the loss landscape is rugged. Random search is the simplest example, while genetic algorithms, simulated annealing, and particle swarm optimization introduce mechanisms for global exploration at the cost of significant computational effort.
-
-Which method to choose depends on the context: problem size, availability of derivatives, and computational resources. When automatic differentiation is accessible, first-order methods like L-BFGS or Adam often dominate, particularly for single-shooting formulations where the objective is smooth and unconstrained except for simple bounds. This is why researchers with a machine learning background tend to gravitate toward these techniques: they integrate seamlessly with existing frameworks and run efficiently on GPUs. -->
-<!-- 
-### Example: Direct Solution to the Eco-cruise Problem
-
-Many modern vehicles include features that aim to improve energy efficiency without requiring extra effort from the driver. One such feature is Eco-Cruise. Unlike traditional cruise control, which keeps the car at a fixed speed regardless of conditions, Eco-Cruise adjusts speed within small margins to reduce energy consumption. The reasoning is straightforward: holding speed up a hill by applying full throttle uses more energy than allowing the car to slow slightly and regain speed later. Some systems go further by using map data, anticipating slopes and curves to plan ahead. These ideas are no longer experimental; several manufacturers already deploy predictive cruise systems based on navigation input.
-
-The setup we will use is slightly idealized, but not unrealistic. It assumes that the driver provides a destination and an acceptable time target, something that most navigation systems already require. With that information, the controller can decide how fast to go and when to accelerate while ensuring the trip remains on schedule. Framing the problem in this way allows us to cast Eco-Cruise as a trajectory optimization exercise and to explore the structure of a discrete-time optimal control problem.
-
-Consider a 1 km segment of road that must be completed in exactly 60 seconds. We divide this horizon into 60 steps of one second each. At step $t$, the state consists of the cumulative distance $s_t$ and the speed $v_t$. The control input is the longitudinal acceleration $u_t$. With a time step of one second, the dynamics are written as
+Let the state be $\mathbf{x}=(p,v,\theta,\omega)$, where $p$ and $v$ are the cart position and velocity, and $\theta$ and $\omega$ are the pendulum angle and angular velocity. A commanded horizontal acceleration $u$ produces the nonlinear dynamics
 
 $$
-s_{t+1} = s_t + v_t, \qquad
-v_{t+1} = v_t + u_t.
+\dot p = v, \qquad
+\dot v = u, \qquad
+\dot\theta = \omega, \qquad
+\dot\omega = \frac{g}{\ell}\sin\theta
+                 - \frac{u}{\ell}\cos\theta
+                 - b\omega.
 $$
 
-The trip starts from rest, so $s_1 = 0$ and $v_1 = 0$, and it must end at $s_{T+1} = 1000$ m with $v_{T+1} = 0$.
+The factor $-u\cos\theta/\ell$ identifies the action channel. Horizontal base motion couples into angular acceleration, and its sign and magnitude depend on the current configuration. A black-box optimizer could evaluate these equations without inspecting that term, but the term explains why the cart must first move away from its eventual resting position to build pendulum energy.
 
-Energy consumption depends on both acceleration and speed. Rather than model the details of rolling resistance, drivetrain losses, and aerodynamics, we adopt a simple quadratic approximation. Each stage incurs a cost
-
-$$
-c_t(v_t, u_t) = \tfrac{1}{2}\beta u_t^2 + \tfrac{1}{2}\gamma v_t^2,
-$$
-
-where the first term penalizes strong accelerations and the second discourages high cruising speed. Reasonable values are $\beta = 1.0$ and $\gamma = 0.1$. The objective is to minimize the sum of these stage costs across the horizon:
-
-$$
-\min \sum_{t=1}^{T} \bigl( \tfrac{\beta}{2}u_t^2 + \tfrac{\gamma}{2}v_t^2 \bigr).
-$$
-
-The optimization must also respect physical limits. Speeds must remain between zero and $20\ \text{m/s}$ (about 72 km/h), and accelerations are bounded by $|u_t| \le 3\ \text{m/s}^2$ for comfort and safety.
-
-
-The complete formulation is
+The numerical experiment uses a $4.5$ s horizon with $N=30$ zero-order-hold controls and a step size $h=0.15$ s. Fourth-order Runge--Kutta integration defines the discrete map $\mathbf{x}_{k+1}=F_h(\mathbf{x}_k,u_k)$. Both numerical formulations solve the same problem:
 
 $$
 \begin{aligned}
-\min_{\{s_t,v_t,u_t\}} \ & \sum_{t=1}^{T} \bigl( \tfrac{\beta}{2}u_t^2 + \tfrac{\gamma}{2}v_t^2 \bigr) \\
-\text{subject to}\ & s_{t+1}-s_t-v_t = 0,\ \ v_{t+1}-v_t-u_t = 0,\ t=1,\dots,T, \\
-& s_1 = 0,\ v_1 = 0,\ s_{T+1} = 1000,\ v_{T+1} = 0, \\
-& 0 \le v_t \le 20,\ \ |u_t|\le 3.
+\min_{\mathbf{x}_{0:N},u_{0:N-1}}\quad
+& h\sum_{k=0}^{N-1}\Bigl[
+0.05p_k^2+0.01v_k^2+0.25(1-\cos\theta_k)
++0.01\omega_k^2+0.004u_k^2\Bigr] \\
+& {}+20p_N^2+5v_N^2+120(1-\cos\theta_N)+12\omega_N^2 \\
+\text{subject to}\quad
+& \mathbf{x}_{k+1}=F_h(\mathbf{x}_k,u_k), \\
+& \mathbf{x}_0=(0,0,\pi,0), \\
+& |p_k|\leq 2.4,\quad |v_k|\leq 4,\quad
+  |\omega_k|\leq 12,\quad |u_k|\leq 8.
 \end{aligned}
 $$
 
-#### Solution
+The periodic penalty $1-\cos\theta$ assigns the same terminal cost to angles that differ by a full revolution. Position and velocity penalties still require the cart to finish near rest, so rotating the pole through the top is not enough by itself.
 
-Once the objective and constraints are expressed as Python functions, the problem can be passed to a generic optimizer with very little extra work. Here is a direct implementation using `scipy.optimize.minimize` with the SLSQP method:
+Direct transcription retains all $31$ states and $30$ controls. It therefore optimizes over $154$ scalar variables and imposes $124$ scalar equalities, including the initial condition and one four-dimensional dynamics equation per step. The equality Jacobian is block banded because the residual at step $k$ depends only on $(\mathbf{x}_k,u_k,\mathbf{x}_{k+1})$.
 
-```{code-cell} python
-:tags: [remove-input, remove-output]
+The small demonstration below passes that Jacobian to SLSQP as a dense array. A large-scale direct solver would instead store and factor the same block-banded pattern sparsely. The formulation exposes sparsity, but exploiting it is a separate implementation choice.
 
-import numpy as np
-import json
-import matplotlib.pyplot as plt
+```{admonition} Prediction before computation
+:class: tip
 
-# Apply book style
-try:
-    import scienceplots
-    plt.style.use(['science', 'notebook'])
-except (ImportError, OSError):
-    pass  # Use matplotlib defaults
-from scipy.optimize import minimize, Bounds
-
-def solve_eco_cruise(beta=1.0, gamma=0.05, T=60, v_max=20.0, a_max=3.0, distance=1000.0):
-    """Solve the eco-cruise optimization problem."""
-    
-    n_state, n_control = T + 1, T
-    
-    def unpack(z):
-        s, v, u = z[:n_state], z[n_state:2*n_state], z[2*n_state:]
-        return s, v, u
-
-    def objective(z):
-        _, v, u = unpack(z)
-        return 0.5 * beta * np.sum(u**2) + 0.5 * gamma * np.sum(v[:-1]**2)
-
-    def dynamics(z):
-        s, v, u = unpack(z)
-        ceq = np.empty(2*T)
-        ceq[0::2] = s[1:] - s[:-1] - v[:-1]  # position dynamics
-        ceq[1::2] = v[1:] - v[:-1] - u        # velocity dynamics
-        return ceq
-
-    def boundary(z):
-        s, v, _ = unpack(z)
-        return np.array([s[0], v[0], s[-1]-distance, v[-1]])  # start/end conditions
-
-    # Optimization setup
-    cons = [{'type':'eq', 'fun': dynamics}, {'type':'eq', 'fun': boundary}]
-    bounds = Bounds(
-        lb=np.concatenate([np.full(n_state,-1e4), np.zeros(n_state), np.full(n_control,-a_max)]),
-        ub=np.concatenate([np.full(n_state,1e4), v_max*np.ones(n_state), np.full(n_control,a_max)])
-    )
-
-    # Initial guess: triangular velocity profile
-    accel_time = int(0.3 * T)
-    decel_time = int(0.3 * T)
-    cruise_time = T - accel_time - decel_time
-    peak_v = min(1.2 * distance/T, 0.8 * v_max)
-    
-    v0 = np.zeros(n_state)
-    v0[:accel_time+1] = np.linspace(0, peak_v, accel_time+1)
-    v0[accel_time:accel_time+cruise_time+1] = peak_v
-    v0[accel_time+cruise_time:] = np.linspace(peak_v, 0, decel_time+1)
-    
-    s0 = np.cumsum(np.concatenate([[0], v0[:-1]]))
-    scale = distance / s0[-1]
-    s0, v0 = s0 * scale, v0 * scale
-    u0 = np.diff(v0)
-    
-    z0 = np.concatenate([s0, v0, u0])
-    
-    # Solve optimization
-    print(f"Solving eco-cruise optimization (β={beta}, γ={gamma})...")
-    res = minimize(objective, z0, method="SLSQP", bounds=bounds, constraints=cons,
-                   options={"maxiter": 1000, "ftol": 1e-9})
-    
-    if not res.success:
-        print(f"Optimization failed: {res.message}")
-        return None
-        
-    s_opt, v_opt, u_opt = unpack(res.x)
-    
-    # Create trajectory data
-    eco_trajectory = []
-    cumulative_energy = 0
-    
-    for t in range(T + 1):
-        if t < T:
-            stage_cost = 0.5 * beta * u_opt[t]**2 + 0.5 * gamma * v_opt[t]**2
-            cumulative_energy += stage_cost
-        else:
-            stage_cost = 0
-            
-        eco_trajectory.append({
-            "time": float(t), "position": float(s_opt[t]), "velocity": float(v_opt[t]),
-            "acceleration": float(u_opt[t]) if t < T else 0.0,
-            "stageCost": float(stage_cost), "cumulativeEnergy": float(cumulative_energy)
-        })
-    
-    return {
-        "eco_trajectory": eco_trajectory,
-        "total_energy": float(cumulative_energy),
-        "optimization_success": True,
-        "parameters": {"beta": beta, "gamma": gamma, "T": T, "v_max": v_max, "a_max": a_max, "distance": distance}
-    }
-
-def generate_naive_trajectory(T=60, distance=1000.0, gamma=0.05):
-    """Generate naive constant-speed trajectory for comparison."""
-    
-    # Simple triangular profile: accelerate, cruise, decelerate
-    accel_time = decel_time = 4
-    cruise_time = T - accel_time - decel_time
-    cruise_speed = distance / (0.5 * accel_time + cruise_time + 0.5 * decel_time)
-    
-    naive_trajectory = []
-    cumulative_energy = 0
-    
-    for t in range(T + 1):
-        if t <= accel_time:
-            velocity = (cruise_speed / accel_time) * t
-            acceleration = cruise_speed / accel_time
-        elif t <= accel_time + cruise_time:
-            velocity = cruise_speed
-            acceleration = 0.0
-        else:
-            remaining_time = T - t
-            velocity = (cruise_speed / decel_time) * remaining_time
-            acceleration = -cruise_speed / decel_time
-        
-        # Calculate position by integration
-        position = 0 if t == 0 else naive_trajectory[t-1]['position'] + naive_trajectory[t-1]['velocity']
-        
-        # Calculate costs
-        if t < T:
-            stage_cost = 0.5 * 1.0 * acceleration**2 + 0.5 * gamma * velocity**2
-            cumulative_energy += stage_cost
-        else:
-            stage_cost = 0.0
-            
-        naive_trajectory.append({
-            "time": float(t), "position": float(position), "velocity": float(velocity),
-            "acceleration": float(acceleration), "stageCost": float(stage_cost),
-            "cumulativeEnergy": float(cumulative_energy)
-        })
-    
-    return {"naive_trajectory": naive_trajectory, "total_energy": float(cumulative_energy)}
-
-def plot_comparison(eco_data, naive_data=None, save_plot=True):
-    """Create visualization plots comparing eco-cruise and naive trajectories."""
-    
-    eco_traj = eco_data['eco_trajectory']
-    times = [p['time'] for p in eco_traj]
-    positions = [p['position'] for p in eco_traj]
-    velocities = [p['velocity'] for p in eco_traj]
-    accelerations = [p['acceleration'] for p in eco_traj]
-    energy_costs = [p['stageCost'] for p in eco_traj]
-    cumulative_energy = [p['cumulativeEnergy'] for p in eco_traj]
-    
-    fig, axes = plt.subplots(2, 3, figsize=(15, 10))
-    fig.suptitle('Eco-Cruise vs Naive Trajectory Comparison', fontsize=16, fontweight='bold')
-    
-    # Plot 1: Position vs Time
-    axes[0, 0].plot(times, positions, 'b-', linewidth=2, label='Eco-Cruise')
-    if naive_data:
-        naive_traj = naive_data['naive_trajectory']
-        naive_times = [p['time'] for p in naive_traj]
-        naive_positions = [p['position'] for p in naive_traj]
-        axes[0, 0].plot(naive_times, naive_positions, 'r--', linewidth=2, label='Naive')
-    axes[0, 0].set_xlabel('Time (s)'); axes[0, 0].set_ylabel('Position (m)')
-    axes[0, 0].set_title('Position vs Time'); axes[0, 0].grid(True, alpha=0.3); axes[0, 0].legend()
-    
-    # Plot 2: Velocity vs Time
-    axes[0, 1].plot(times, velocities, 'b-', linewidth=2, label='Eco-Cruise')
-    if naive_data:
-        naive_velocities = [p['velocity'] for p in naive_traj]
-        axes[0, 1].plot(naive_times, naive_velocities, 'r--', linewidth=2, label='Naive')
-    axes[0, 1].set_xlabel('Time (s)'); axes[0, 1].set_ylabel('Velocity (m/s)')
-    axes[0, 1].set_title('Velocity vs Time'); axes[0, 1].grid(True, alpha=0.3); axes[0, 1].legend()
-    
-    # Plot 3: Acceleration vs Time
-    axes[0, 2].plot(times[:-1], accelerations[:-1], 'b-', linewidth=2, label='Eco-Cruise')
-    axes[0, 2].axhline(y=0, color='k', linestyle='-', alpha=0.3)
-    axes[0, 2].set_xlabel('Time (s)'); axes[0, 2].set_ylabel('Acceleration (m/s²)')
-    axes[0, 2].set_title('Acceleration vs Time'); axes[0, 2].grid(True, alpha=0.3); axes[0, 2].legend()
-    
-    # Plot 4: Stage Cost vs Time
-    axes[1, 0].plot(times[:-1], energy_costs[:-1], 'b-', linewidth=2, label='Eco-Cruise')
-    if naive_data:
-        naive_costs = [p['stageCost'] for p in naive_traj[:-1]]
-        axes[1, 0].plot(naive_times[:-1], naive_costs, 'r--', linewidth=2, label='Naive')
-    axes[1, 0].set_xlabel('Time (s)'); axes[1, 0].set_ylabel('Stage Cost')
-    axes[1, 0].set_title('Stage Cost vs Time'); axes[1, 0].grid(True, alpha=0.3); axes[1, 0].legend()
-    
-    # Plot 5: Cumulative Energy vs Time
-    axes[1, 1].plot(times, cumulative_energy, 'b-', linewidth=2, label='Eco-Cruise')
-    if naive_data:
-        naive_cumulative = [p['cumulativeEnergy'] for p in naive_traj]
-        axes[1, 1].plot(naive_times, naive_cumulative, 'r--', linewidth=2, label='Naive')
-    axes[1, 1].set_xlabel('Time (s)'); axes[1, 1].set_ylabel('Cumulative Energy')
-    axes[1, 1].set_title('Cumulative Energy vs Time'); axes[1, 1].grid(True, alpha=0.3); axes[1, 1].legend()
-    
-    # Plot 6: Phase Space (Velocity vs Position)
-    axes[1, 2].plot(positions, velocities, 'b-', linewidth=2, label='Eco-Cruise')
-    if naive_data:
-        naive_positions = [p['position'] for p in naive_traj]
-        axes[1, 2].plot(naive_positions, naive_velocities, 'r--', linewidth=2, label='Naive')
-    axes[1, 2].set_xlabel('Position (m)'); axes[1, 2].set_ylabel('Velocity (m/s)')
-    axes[1, 2].set_title('Phase Space: Velocity vs Position'); axes[1, 2].grid(True, alpha=0.3); axes[1, 2].legend()
-    
-    plt.tight_layout()
-    
-    if save_plot:
-        plt.savefig('_static/eco_cruise_visualization.png', dpi=300, bbox_inches='tight')
-        print("Plot saved to _static/eco_cruise_visualization.png")
-    
-    plt.show()
-    return fig
-
-def demo():
-    """Run complete eco-cruise demonstration with visualization."""
-    
-    # Solve optimization
-    eco_data = solve_eco_cruise(beta=1.0, gamma=0.05, T=60, distance=1000.0)
-    if eco_data is None:
-        # Use Jupyter Book's gluing feature for error message
-        try:
-            from myst_nb import glue
-            glue("eco_cruise_output", "❌ Optimization failed!", display=False)
-        except ImportError:
-            print("Optimization failed!")
-        return None
-    
-    # Generate naive trajectory
-    naive_data = generate_naive_trajectory(T=60, distance=1000.0, gamma=0.05)
-    
-    # Create visualization
-    fig = plot_comparison(eco_data, naive_data, save_plot=True)
-    
-    # Use Jupyter Book's gluing feature to display the figure
-    try:
-        from myst_nb import glue
-        glue("eco_cruise_figure", fig, display=False)
-    except ImportError:
-        # Fallback for when not running in Jupyter Book context
-        pass
-    
-    return eco_data, naive_data, fig
-
-if __name__ == "__main__":
-    demo()
+Single shooting will reduce the decision vector from $154$ variables to $30$. Before examining the matched runs below, predict whether the smaller program must be easier to optimize. Identify which constraints become less explicit after the states are eliminated.
 ```
 
-```{glue:figure} eco_cruise_figure
-:figwidth: 100%
-:name: "fig-eco-cruise"
-
-Eco-Cruise optimization results showing the comparison between energy-efficient and naive trajectory approaches.
-```
-
-``````{tab-set}
-:tags: [full-width]
-
-`````{tab-item} Visualization
-```{iframe} ../interactive/eco-cruise-demo.html
-:title: Eco-Cruise Optimization Visualization
-:width: 100%
-:height: 720px
-```
-
-<a href="/interactive/eco-cruise-demo.html">Open the Eco-Cruise visualization full-screen</a>.
-`````
-
-`````{tab-item} Code
-```{literalinclude} code/eco-cruise.py
-:language: python
-```
-`````
-``````
-
-The function `scipy.optimize.minimize` expects three things: an objective function that returns a scalar cost, a set of constraints grouped as equality or inequality functions, and bounds on individual variables. Everything else is about bookkeeping.
-
-The first step is to gather all decision variables—positions, speeds, and accelerations—into a single vector $\mathbf{z}$. Helper routines like `unpack` then slice this vector back into its components so that the rest of the code reads naturally. The objective function mirrors the analytical form of the cost: it sums quadratic penalties on speeds and accelerations across the horizon.
-
-Dynamics and boundary conditions appear as equality constraints. Each entry in `dynamics` enforces one of the discrete-time equations
-
-$$
-s_{t+1} - s_t - v_t = 0,\qquad
-v_{t+1} - v_t - u_t = 0,
-$$
-
-while `boundary` pins down the start and end conditions. Together, these ensure that any candidate solution corresponds to a physically consistent trajectory.
-
-Bounds serve two purposes: they impose physical limits on speed and acceleration and keep the otherwise unbounded position variables within a large but finite range. This prevents the optimizer from exploring meaningless regions of the search space during intermediate iterations.
-
-Finally, an initial guess is constructed by interpolating a straight line for the position, assigning a constant speed, and setting accelerations to zero. This is not intended to be optimal; it simply gives the solver a feasible starting point close enough to the constraint manifold to converge quickly.
-
-Once these components are in place, the call to `minimize` does the rest. Internally, SLSQP linearizes the constraints, builds a quadratic subproblem, and iterates until both the Karush–Kuhn–Tucker conditions and the stopping tolerances are met. From the user's perspective, the heavy lifting reduces to providing functions that compute costs and residuals—everything else is handled by the solver. -->
-
-### Interactive Eco-Cruise Visualization
-
-The precomputed browser demo below compares an energy-aware trajectory with a naive speed profile. Use its controls to inspect position, velocity, acceleration, stage cost, and cumulative energy without rerunning the optimizer.
-
-```{iframe} ../interactive/eco-cruise-demo.html
-:title: Eco-Cruise Optimization Visualization
-:width: 100%
-```
-
-<a href="/interactive/eco-cruise-demo.html">Open the Eco-Cruise visualization full-screen</a>.
-
-:::{note}
-:class: pdf-fallback
-
-The interactive Eco-Cruise visualization is available in the [web edition](https://pierrelux.github.io/rlbook/interactive/eco-cruise-demo.html).
-:::
 
 ## Sequential Methods
 
@@ -950,7 +632,7 @@ It also has a real advantage: by keeping the states explicit and imposing the dy
 
 The drawback is scale. As the horizon grows, the number of variables and constraints grows with it, and all are coupled by the dynamics. Each iteration of a sequential quadratic programming (SQP) or interior-point method requires building and factorizing large Jacobians and Hessians. These methods have been embedded in reinforcement learning and differentiable programming pipelines, through implicit layers or differentiable convex solvers, but the cost is significant. They remain serial, rely on repeated linear algebra factorizations, and are difficult to parallelize efficiently. When thousands of such problems must be solved inside a learning loop, the overhead becomes prohibitive.
 
-This motivates an alternative that aligns better with the computational model of machine learning. If the dynamics are deterministic and state constraints are absent (or reducible to simple bounds on controls), we can eliminate the equality constraints altogether by making the states implicit. Instead of solving for both states and controls, we fix the initial state and roll the system forward under a candidate control sequence. This is the essence of **single shooting**.
+This motivates an alternative that aligns with the computational model of machine learning. For deterministic dynamics, the equality constraints can be eliminated by making the states implicit. Instead of solving for both states and controls, we fix the initial state and roll the system forward under a candidate control sequence. State constraints can remain, but they become nonlinear functions of the entire preceding control sequence. This is the essence of **single shooting**.
 
 The term "shooting" comes from the idea of *aiming and firing* a trajectory from the initial state: you pick a control sequence, integrate (or step) the system forward, and see where it lands. If the final state misses the target, you adjust the controls and try again: like adjusting the angle of a shot until it hits the mark. It is called **single** shooting because we compute the entire trajectory in one pass from the starting point, without breaking it into segments. Later, we will contrast this with **multiple shooting**, where the horizon is divided into smaller arcs that are optimized jointly to improve stability and conditioning.
 
@@ -968,7 +650,9 @@ $$
 \min_{\mathbf{u}_{1:T-1}}\;
 c_T\!\bigl(\boldsymbol{\phi}_{T}(\mathbf{u}, \mathbf{x}_1)\bigr)
 +\sum_{t=1}^{T-1} c_t\!\bigl(\boldsymbol{\phi}_{t}(\mathbf{u}, \mathbf{x}_1), \mathbf{u}_t\bigr),
-\qquad
+\quad\text{s.t.}\quad
+\mathbf{h}_t\!\bigl(\boldsymbol{\phi}_{t}(\mathbf{u},\mathbf{x}_1),\mathbf{u}_t\bigr)\geq 0,
+\quad
 \mathbf{u}_{\mathrm{lb}}\le\mathbf{u}_{t}\le\mathbf{u}_{\mathrm{ub}}.
 $$
 
@@ -1022,145 +706,93 @@ Algorithmically:
         - $\mathbf{x} \leftarrow \mathbf{f}_t(\mathbf{x}, \mathbf{u}_t)$
     - $J \leftarrow J + c_T(\mathbf{x})$
     - Return $J$
-3. Solve $\min_{\mathbf{u}} J(\mathbf{u})$ subject to $\mathbf{u}_{\mathrm{lb}} \le \mathbf{u}_t \le \mathbf{u}_{\mathrm{ub}}$
+3. Solve $\min_{\mathbf{u}} J(\mathbf{u})$ subject to the control bounds and any state constraints evaluated along the rollout
 4. Return $\mathbf{u}^*_{1:T-1}$
 ```
 
-In JAX or PyTorch, this loop can be JIT-compiled and differentiated automatically. Any gradient-based optimizer (L-BFGS, Adam, even SGD) can be applied, making the pipeline look very much like training a neural network. In effect, we are "backpropagating through the world model" when computing $\nabla J(\mathbf{u})$.
+In JAX or PyTorch, this loop can be compiled and differentiated automatically. The control sequence plays the role of trainable parameters, while the simulated trajectory is the forward computation. Reverse-mode differentiation of that computation gives $\nabla J(\mathbf{u})$.
 
-Single shooting is attractive for its simplicity and compatibility with differentiable programming, but it has limitations. The absence of intermediate constraints makes it sensitive to initialization and prone to numerical instability over long horizons. When state constraints or robustness matter, formulations that keep states explicit, such as multiple shooting or collocation, become preferable. These trade-offs are the focus of the next section.
+Single shooting is attractive for its simplicity and compatibility with differentiable programming, but it has limitations. Early controls influence every later state through a long product of dynamics Jacobians. This can make gradients poorly conditioned over long horizons. State constraints also lose their local sparse representation because each constrained state depends on all earlier controls. Formulations that keep selected states explicit, such as multiple shooting or collocation, shorten these dependency chains.
+
+### Matched Swing-Up Comparison
+
+The direct-transcription and single-shooting implementations below use the cart-pole problem stated above without changing the model, cost, limits, horizon, initial control guess, or nonlinear-programming solver. Only the decision variables and the representation of the dynamics differ.
 
 ```{code-cell} python
-:tags: [hide-input]
+:tags: [remove-cell]
 
-#  label: fig-ocp-single-shooting
-#  caption: Single-shooting EV example: the plot shows optimal state trajectories (battery charge and speed) plus the control sequence, while the console reports the optimized control inputs.
+from pathlib import Path
+import sys
 
-%config InlineBackend.figure_format = 'retina'
-import jax
-import jax.numpy as jnp
-from jax import grad, jit
-from jax.example_libraries import optimizers
+code_directory = Path.cwd() / "code"
+if str(code_directory) not in sys.path:
+    sys.path.insert(0, str(code_directory))
+
+from cartpole_control import (
+    SwingUpScenario,
+    format_swingup_metrics,
+    make_open_loop_perturbation_figure,
+    make_swingup_animation,
+    make_swingup_figure,
+    replay_open_loop_with_disturbance,
+    solve_swingup_comparison,
+)
+
+swingup_scenario = SwingUpScenario()
+swingup_results = solve_swingup_comparison(swingup_scenario)
+```
+
+```{code-cell} python
+:label: fig-cartpole-formulations
+:caption: Direct transcription and single shooting solve the same nonlinear cart-pole problem from the same initialization. Both reach the upright configuration and respect the matched limits, but they converge to different local solutions. Direct transcription retains 154 scalar variables and 124 local dynamics equalities; single shooting retains only the 30 controls and reconstructs every state by forward simulation.
+:tags: [remove-input]
+
+print(format_swingup_metrics(swingup_results))
+make_swingup_figure(swingup_results, swingup_scenario)
+```
+
+Both solvers produce a successful open-loop swing-up. The direct formulation reaches a lower objective in this fixed run, while single shooting uses a much smaller decision vector. This numerical outcome does not establish that direct transcription always finds better solutions. It exposes a concrete trade-off: eliminating variables shortens the program but lengthens the dependency from an early control to the terminal cost and later constraints.
+
+```{code-cell} python
+:label: anim-cartpole-formulations
+:caption: The two trajectories are generated by the same nonlinear RK4 plant. The pole starts downward and reaches the upright configuration while the cart remains inside the 2.4 m rail limits. Animation frames are computed from the optimized state trajectories; no browser-side simulator is used.
+:tags: [remove-input]
+
+from IPython.display import HTML, display
 import matplotlib.pyplot as plt
 
-# Apply book style
-try:
-    import scienceplots
-    plt.style.use(['science', 'notebook'])
-except (ImportError, OSError):
-    pass  # Use matplotlib defaults
-
-def single_shooting_ev_optimization(T=20, num_iterations=1000, step_size=0.01):
-    """
-    Implements the single shooting method for the electric vehicle energy optimization problem.
-    
-    Args:
-    T: time horizon
-    num_iterations: number of optimization iterations
-    step_size: step size for the optimizer
-    
-    Returns:
-    optimal_u: optimal control sequence
-    """
-    
-    def f(x, u, t):
-        return jnp.array([
-            x[0] + 0.1 * x[1] + 0.05 * u,
-            x[1] + 0.1 * u
-        ])
-    
-    def c(x, u, t):
-        if t == T:
-            return x[0]**2 + x[1]**2
-        else:
-            return 0.1 * (x[0]**2 + x[1]**2 + u**2)
-    
-    def compute_trajectory_and_cost(u, x1):
-        x = x1
-        total_cost = 0
-        for t in range(1, T):
-            total_cost += c(x, u[t-1], t)
-            x = f(x, u[t-1], t)
-        total_cost += c(x, 0.0, T)  # No control at final step
-        return total_cost
-    
-    def objective(u):
-        return compute_trajectory_and_cost(u, x1)
-    
-    def clip_controls(u):
-        return jnp.clip(u, -1.0, 1.0)
-    
-    x1 = jnp.array([1.0, 0.0])  # Initial state: full battery, zero speed
-    
-    # Initialize controls
-    u_init = jnp.zeros(T-1)
-    
-    # Setup optimizer
-    optimizer = optimizers.adam(step_size)
-    opt_init, opt_update, get_params = optimizer
-    opt_state = opt_init(u_init)
-    
-    @jit
-    def step(i, opt_state):
-        u = get_params(opt_state)
-        value, grads = jax.value_and_grad(objective)(u)
-        opt_state = opt_update(i, grads, opt_state)
-        u = get_params(opt_state)
-        u = clip_controls(u)
-        opt_state = opt_init(u)
-        return value, opt_state
-    
-    # Run optimization
-    for i in range(num_iterations):
-        value, opt_state = step(i, opt_state)
-        if i % 100 == 0:
-            print(f"Iteration {i}, Cost: {value}")
-    
-    optimal_u = get_params(opt_state)
-    return optimal_u
-
-def plot_results(optimal_u, T):
-    # Compute state trajectory
-    x1 = jnp.array([1.0, 0.0])
-    x_trajectory = [x1]
-    for t in range(T-1):
-        x_next = jnp.array([
-            x_trajectory[-1][0] + 0.1 * x_trajectory[-1][1] + 0.05 * optimal_u[t],
-            x_trajectory[-1][1] + 0.1 * optimal_u[t]
-        ])
-        x_trajectory.append(x_next)
-    x_trajectory = jnp.array(x_trajectory)
-
-    time = jnp.arange(T)
-    
-    plt.figure(figsize=(12, 8))
-    
-    plt.subplot(2, 1, 1)
-    plt.plot(time, x_trajectory[:, 0], label='Battery State of Charge')
-    plt.plot(time, x_trajectory[:, 1], label='Vehicle Speed')
-    plt.xlabel('Time Step')
-    plt.ylabel('State Value')
-    plt.title('Optimal State Trajectories')
-    plt.legend()
-    plt.grid(True)
-    
-    plt.subplot(2, 1, 2)
-    plt.plot(time[:-1], optimal_u, label='Motor Power Input')
-    plt.xlabel('Time Step')
-    plt.ylabel('Control Input')
-    plt.title('Optimal Control Inputs')
-    plt.legend()
-    plt.grid(True)
-    
-    plt.tight_layout()
-
-# Run the optimization
-optimal_u = single_shooting_ev_optimization()
-print("Optimal control sequence:", optimal_u)
-
-# Plot the results
-plot_results(optimal_u, T=20)
+swingup_animation = make_swingup_animation(swingup_results, swingup_scenario)
+display(HTML(swingup_animation.to_jshtml()))
+plt.close(swingup_animation._fig)
 ```
+
+The comparison also separates optimization from feedback. Each optimizer returns one fixed control sequence for one assumed initial state. To test what that object can and cannot do, the next replay applies the direct-transcription controls twice. One realization follows the nominal model. The other receives an additional cart acceleration of $1\;\mathrm{m\,s^{-2}}$ for one $0.15$ s step at $t=2.1$ s, after which both realizations receive the same remaining commands.
+
+```{code-cell} python
+:label: fig-cartpole-open-loop-perturbation
+:caption: A one-step unmodeled acceleration separates two realizations driven by the same open-loop controls. The nominal trajectory reaches normalized pole height $\cos\theta=1$; the disturbed trajectory finishes below the horizontal. The optimizer has produced a plan, not a rule that reacts to the observed state.
+:tags: [remove-input]
+
+open_loop_replay = replay_open_loop_with_disturbance(
+    swingup_results["direct"],
+    swingup_scenario,
+)
+make_open_loop_perturbation_figure(open_loop_replay)
+```
+
+Feedback changes the object being computed. A feedback controller maps the state observed after the disturbance to a new action. Model predictive control will obtain such a map by repeatedly solving trajectory problems, while dynamic programming will construct state-contingent decisions through the value function.
+
+:::{dropdown} Inspect the shared nonlinear dynamics
+```{literalinclude} code/cartpole_control.py
+:language: python
+:start-at: def cartpole_dynamics
+:end-before: def rk4_step
+:linenos:
+```
+:::
+
+{download}`Download the complete cart-pole trajectory-optimization and control source <code/cartpole_control.py>`.
+
 
 
 ## In Between Sequential and Simultaneous
@@ -1712,7 +1344,7 @@ It is instructive to contrast this with alternatives. Black-box finite differenc
 
 ## Summary and Outlook
 
-This chapter developed the foundations of discrete-time trajectory optimization. We introduced three equivalent formulations of the discrete-time optimal control problem (DOCP)—Bolza, Lagrange, and Mayer—and showed how they reduce to finite-dimensional nonlinear programs once a horizon is fixed.
+This chapter developed the foundations of discrete-time trajectory optimization. We introduced three equivalent formulations of the discrete-time optimal control problem (DOCP), Bolza, Lagrange, and Mayer, and showed how they reduce to finite-dimensional nonlinear programs once a horizon is fixed.
 
 Three approaches to solving DOCPs were presented, each with distinct trade-offs:
 
@@ -1734,7 +1366,7 @@ The open-loop perspective developed here is foundational but limited: it assumes
 
 - **Feedback and policy optimization** shift the focus from computing a single trajectory to learning a policy $\pi(\mathbf{x})$ that maps states to controls. Dynamic programming, policy gradient methods, and actor-critic algorithms address this problem from different angles, and will be developed in later chapters.
 
-The tools introduced here—KKT conditions, the Pontryagin principle, shooting methods, and adjoint gradients—will reappear throughout the book as we move from open-loop planning to closed-loop control and learning.
+The KKT conditions, Pontryagin principle, shooting methods, and adjoint gradients introduced here will reappear throughout the book as we move from open-loop planning to closed-loop control and learning.
 
 ## Exercises
 

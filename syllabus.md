@@ -8,7 +8,7 @@ site:
 
 # Syllabus · Plan de cours
 
-**IFT 6162 — Apprentissage par renforcement, commande optimale
+**IFT 6162: Apprentissage par renforcement, commande optimale
 (Reinforcement Learning, Optimal Control)**
 
 :::{note}
@@ -29,8 +29,8 @@ Cette page est bilingue. Utilisez les onglets ci-dessous pour basculer entre l'a
 | **Title** | Reinforcement Learning, Optimal Control (official registrar title is in French: *Apprentissage par renforcement, commande optimale*) |
 | **Credits** | *TBD* |
 | **Term** | Fall 2026 |
-| **Schedule** | Mondays 10:30–12:29 and Thursdays 13:30–15:29 — Aug 31 – Oct 16 and Oct 26 – Dec 9, 2026 (14 teaching weeks, ~25 sessions) |
-| **Room** | Campus Montréal — room *TBD* |
+| **Schedule** | Mondays 10:30–12:29 and Thursdays 13:30–15:29; Aug 31 – Oct 16 and Oct 26 – Dec 9, 2026 (14 teaching weeks, ~25 sessions) |
+| **Room** | Campus Montréal, room *TBD* |
 | **Instructor** | Pierre-Luc Bacon |
 | **Email** | *TBD* |
 | **Office hours** | *TBD* |
@@ -96,8 +96,8 @@ By the end of the course, you should be able to:
    and fitted Q iteration.
 6. Analyze the Monte Carlo estimators used throughout RL, identifying sources of
    bias and variance, including maximization bias.
-7. Situate deep RL algorithms — DQN and its extensions, DDPG, TD3, path
-   consistency learning, MPPI, and policy gradient methods — within this
+7. Situate deep RL algorithms, including DQN and its extensions, DDPG, TD3, path
+   consistency learning, MPPI, and policy gradient methods, within this
    framework, and explain each design choice as a response to a specific
    difficulty.
 8. Read and critically assess research papers spanning the RL, control, and
@@ -134,34 +134,48 @@ These are recommended for depth on particular topics; none is required.
 
 ## Evaluation
 
-:::{warning}
-The evaluation scheme below is **not final**. Weights and dates will be
-confirmed at the first lecture and this page will be updated accordingly.
-:::
-
 | Component | Weight | Due |
 |---|---|---|
-| Assignments | *TBD* | *TBD* |
-| Paper presentation | *TBD* | *TBD* |
-| Midterm | *TBD* | *TBD* |
-| Final project — proposal | *TBD* | *TBD* |
-| Final project — report and presentation | *TBD* | *TBD* |
+| Applied project | 30% | *TBD* |
+| In-class midterm 1 | 15% | *TBD* |
+| In-class midterm 2 | 15% | *TBD* |
+| In-class final examination | 40% | *TBD* |
 | **Total** | **100%** | |
+
+The three examinations are completed in person on paper, without electronic
+devices or generative-AI tools. Each student may bring one double-sided
+reference sheet that they prepared themselves. Questions may ask students to
+derive or interpret a result, inspect supplied code, identify a flaw in a model
+or algorithm, and justify a diagnosis. Memorizing Python syntax is not an
+examination objective.
+
+Exercises, self-checks, and coding practice are formative and ungraded. They
+prepare students for the analytical and diagnostic work required on the
+examinations and in the project.
+
+The applied project is completed in teams of exactly three. If enrollment makes
+that impossible, exceptions will be arranged privately by the instructor.
+Each team will formulate and investigate a substantive control-and-learning
+problem rather than reproduce a canned benchmark. The deliverables are working
+code, a poster, and an oral defense. A short proposal is an ungraded checkpoint.
+The team artifact establishes the base project grade; an individual's grade may
+be adjusted when the oral defense shows a materially different level of
+understanding.
 
 **Grading scale.** *TBD*
 
-**Late policy.** *TBD*
+**Project checkpoint and late policy.** Dates and late arrangements are *TBD*.
 
 ## Tentative schedule
 
-The course meets **twice a week** — Mondays 10:30–12:29 and Thursdays
-13:30–15:29 — over **14 teaching weeks**, for roughly 25 sessions in total. Each
+The course meets **twice a week**, Mondays 10:30–12:29 and Thursdays
+13:30–15:29, over **14 teaching weeks**, for roughly 25 sessions in total. Each
 row below therefore covers two meetings, except where a holiday intervenes.
 Pacing is indicative and will be adjusted as the term goes on.
 
 | Week | Topic | Reading |
 |---|---|---|
-| 1 · Aug 31 – Sep 3 | Course overview; the decision problem; why formulation comes first | [Why This Book?](intro.md) |
+| 1 · Aug 31 – Sep 3 | Course overview; system boundaries; model interfaces; state and action | [Dynamics](dynamics.md) |
 | 2 · Sep 7 – 10 | Dynamics models and the state-space perspective | [Dynamics](dynamics.md) |
 | 3 · Sep 14 – 17 | From deterministic to stochastic dynamics; partial observability; programs as models | [Dynamics](dynamics.md) |
 | 4 · Sep 21 – 24 | Discrete-time optimal control problems; existence and optimality conditions | [Trajectory Optimization](trajectories.md) |
@@ -178,9 +192,9 @@ Pacing is indicative and will be adjusted as the term goes on.
 
 **No class on:**
 
-- Monday **September 7** — Labour Day (*Fête du travail*)
-- Monday **October 12** — Thanksgiving (*Action de grâce*)
-- **October 19–25** — *période d'activités libres* (no meetings; this is the gap
+- Monday **September 7**: Labour Day (*Fête du travail*)
+- Monday **October 12**: Thanksgiving (*Action de grâce*)
+- **October 19–25**: *période d'activités libres* (no meetings; this is the gap
   between the two blocks in the registrar's listing)
 - Thursday **December 10** falls outside the course's end date of December 9,
   so week 14 has a Monday session only.
@@ -200,13 +214,15 @@ the term rather than assigned to a specific week.
 
 **Attendance.** *TBD*
 
-**Collaboration.** Discussing ideas with classmates is encouraged. Unless an
-assignment states otherwise, the work you submit must be written by you alone,
-and you must name anyone you worked with.
+**Collaboration.** Discussion and collaboration are encouraged on formative
+work. The project is collaborative within the assigned team. Each student must
+be able to explain and defend the team's complete submission.
 
-**Generative AI.** *TBD* — the specific policy will be stated on each assignment.
-Where AI assistance is permitted, you remain fully responsible for the
-correctness of everything you submit and you must disclose how it was used.
+**Generative AI.** Generative AI may be used for formative work and the applied
+project. Disclosure is not required. Each student remains responsible for every
+claim, equation, baseline, experiment, and line of submitted code and must be
+able to defend them during the oral defense. Generative AI and electronic
+devices are prohibited during in-class examinations.
 
 **Academic integrity.** All work is subject to the University's regulations on
 plagiarism and fraud. See
@@ -233,8 +249,8 @@ Changes will be announced in class and reflected on this page.
 | **Titre** | Apprentissage par renforcement, commande optimale |
 | **Crédits** | *À déterminer* |
 | **Trimestre** | Automne 2026 |
-| **Horaire** | Lundi 10 h 30 – 12 h 29 et jeudi 13 h 30 – 15 h 29 — du 31 août au 16 octobre et du 26 octobre au 9 décembre 2026 (14 semaines de cours, ~25 séances) |
-| **Local** | Campus Montréal — local *à déterminer* |
+| **Horaire** | Lundi 10 h 30 – 12 h 29 et jeudi 13 h 30 – 15 h 29; du 31 août au 16 octobre et du 26 octobre au 9 décembre 2026 (14 semaines de cours, ~25 séances) |
+| **Local** | Campus Montréal, local *à déterminer* |
 | **Enseignant** | Pierre-Luc Bacon |
 | **Courriel** | *À déterminer* |
 | **Disponibilités** | *À déterminer* |
@@ -310,9 +326,9 @@ Au terme du cours, vous devriez être en mesure de :
 6. Analyser les estimateurs de Monte-Carlo employés en apprentissage par
    renforcement en identifiant les sources de biais et de variance, dont le biais
    de maximisation.
-7. Situer les algorithmes d'apprentissage profond — DQN et ses extensions, DDPG,
+7. Situer les algorithmes d'apprentissage profond, dont DQN et ses extensions, DDPG,
    TD3, l'apprentissage par cohérence de chemin, MPPI et les méthodes de gradient
-   de politique — dans ce cadre, et expliquer chaque choix de conception comme
+   de politique, dans ce cadre, et expliquer chaque choix de conception comme
    une réponse à une difficulté précise.
 8. Lire et évaluer de façon critique des articles de recherche issus des
    littératures de l'apprentissage par renforcement, de la commande et de la
@@ -350,34 +366,50 @@ Recommandées pour approfondir certains sujets ; aucune n'est obligatoire.
 
 ## Évaluation
 
-:::{warning}
-Le barème ci-dessous **n'est pas définitif**. Les pondérations et les dates
-seront confirmées au premier cours et cette page sera mise à jour en conséquence.
-:::
-
 | Élément | Pondération | Échéance |
 |---|---|---|
-| Travaux pratiques | *À déterminer* | *À déterminer* |
-| Présentation d'un article | *À déterminer* | *À déterminer* |
-| Examen de mi-session | *À déterminer* | *À déterminer* |
-| Projet final — proposition | *À déterminer* | *À déterminer* |
-| Projet final — rapport et présentation | *À déterminer* | *À déterminer* |
+| Projet appliqué | 30 % | *À déterminer* |
+| Premier examen de mi-session en classe | 15 % | *À déterminer* |
+| Deuxième examen de mi-session en classe | 15 % | *À déterminer* |
+| Examen final en classe | 40 % | *À déterminer* |
 | **Total** | **100 %** | |
+
+Les trois examens se font en personne, sur papier, sans appareil électronique
+ni outil d'intelligence artificielle générative. Chaque personne peut apporter
+une feuille de référence recto verso qu'elle a préparée elle-même. Les questions
+peuvent demander d'établir ou d'interpréter un résultat, d'examiner du code
+fourni, de repérer une erreur dans un modèle ou un algorithme et de justifier le
+diagnostic. La mémorisation de la syntaxe Python ne constitue pas un objectif
+d'évaluation.
+
+Les exercices, les autoévaluations et les activités de programmation sont
+formatifs et ne sont pas notés. Ils préparent au travail d'analyse et de
+diagnostic demandé dans les examens et le projet.
+
+Le projet appliqué se réalise en équipes d'exactement trois personnes. Si le
+nombre d'inscriptions rend cette règle impossible, l'enseignant réglera les
+exceptions en privé. Chaque équipe formulera et étudiera un problème substantiel
+de commande et d'apprentissage, plutôt que de reproduire un banc d'essai
+préfabriqué. Les livrables sont du code fonctionnel, une affiche et une défense
+orale. Une courte proposition sert de jalon non noté. La production d'équipe
+établit la note de base du projet; la note individuelle peut être ajustée si la
+défense orale indique un niveau de compréhension sensiblement différent.
 
 **Barème de notation.** *À déterminer*
 
-**Politique sur les retards.** *À déterminer*
+**Jalon du projet et politique sur les retards.** Les dates et les modalités
+sont *à déterminer*.
 
 ## Calendrier provisoire
 
-Le cours a lieu **deux fois par semaine** — le lundi de 10 h 30 à 12 h 29 et le
-jeudi de 13 h 30 à 15 h 29 — sur **14 semaines de cours**, soit environ 25
+Le cours a lieu **deux fois par semaine**, le lundi de 10 h 30 à 12 h 29 et le
+jeudi de 13 h 30 à 15 h 29, sur **14 semaines de cours**, soit environ 25
 séances au total. Chaque ligne ci-dessous couvre donc deux séances, sauf lorsqu'un
 congé s'intercale. Le rythme est indicatif et sera ajusté au fil du trimestre.
 
 | Semaine | Sujet | Lecture |
 |---|---|---|
-| 1 · 31 août – 3 sept. | Présentation du cours ; le problème de décision ; pourquoi la formulation vient en premier | [Why This Book?](intro.md) |
+| 1 · 31 août – 3 sept. | Présentation du cours ; frontière du système ; interfaces de modèle ; état et action | [Dynamics](dynamics.md) |
 | 2 · 7 – 10 sept. | Modèles de dynamique et perspective de l'espace d'états | [Dynamics](dynamics.md) |
 | 3 · 14 – 17 sept. | Du déterministe au stochastique ; observabilité partielle ; les programmes comme modèles | [Dynamics](dynamics.md) |
 | 4 · 21 – 24 sept. | Problèmes de commande optimale en temps discret ; existence et conditions d'optimalité | [Trajectory Optimization](trajectories.md) |
@@ -394,9 +426,9 @@ congé s'intercale. Le rythme est indicatif et sera ajusté au fil du trimestre.
 
 **Aucune séance :**
 
-- Lundi **7 septembre** — congé universitaire, Fête du travail
-- Lundi **12 octobre** — congé universitaire, Action de grâce
-- **19 au 25 octobre** — période d'activités libres (c'est l'intervalle entre les
+- Lundi **7 septembre**: congé universitaire, Fête du travail
+- Lundi **12 octobre**: congé universitaire, Action de grâce
+- **19 au 25 octobre**: période d'activités libres (c'est l'intervalle entre les
   deux blocs de dates au répertoire des cours)
 - Le jeudi **10 décembre** dépasse la date de fin du cours (9 décembre) : la
   semaine 14 ne comporte donc qu'une séance, le lundi.
@@ -416,15 +448,18 @@ tout au long du trimestre plutôt que d'être rattachées à une semaine précis
 
 **Présence.** *À déterminer*
 
-**Collaboration.** Les échanges d'idées entre collègues sont encouragés. Sauf
-indication contraire dans l'énoncé d'un travail, le texte que vous remettez doit
-être rédigé par vous seul, et vous devez nommer les personnes avec qui vous avez
-travaillé.
+**Collaboration.** Les échanges et la collaboration sont encouragés dans les
+activités formatives. Le projet se réalise en collaboration au sein de l'équipe
+assignée. Chaque personne doit pouvoir expliquer et défendre l'ensemble de la
+production de son équipe.
 
-**Intelligence artificielle générative.** *À déterminer* — la politique
-applicable sera précisée dans chaque énoncé de travail. Lorsque l'usage d'une IA
-est permis, vous demeurez entièrement responsable de l'exactitude de ce que vous
-remettez et vous devez déclarer comment elle a été utilisée.
+**Intelligence artificielle générative.** L'intelligence artificielle générative
+peut être utilisée dans les activités formatives et le projet appliqué. Aucune
+déclaration d'utilisation n'est exigée. Chaque personne demeure responsable de
+chaque affirmation, équation, méthode de référence, expérience et ligne de code
+remise, et doit pouvoir les défendre lors de la défense orale. L'intelligence
+artificielle générative et les appareils électroniques sont interdits pendant
+les examens en classe.
 
 **Intégrité intellectuelle.** Tous les travaux sont soumis au règlement
 disciplinaire de l'Université sur le plagiat et la fraude. Voir

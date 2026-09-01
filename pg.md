@@ -13,11 +13,44 @@ kernelspec:
 
 # Policy Gradient Methods
 
-The [previous chapter](amortization.md) showed how to handle continuous action spaces in fitted Q-iteration by amortizing action selection with policy networks. Methods like NFQCA, DDPG, TD3, and SAC all learn both a Q-function and a policy, using the Q-function to guide policy improvement. This chapter explores a different approach: optimizing policies directly without maintaining explicit value functions.
+The [previous chapter](amortization.md) treated a policy as an approximation to
+an optimizer: a network learned to reproduce actions selected through a value
+function. Policy-gradient methods instead differentiate expected return with
+respect to the policy parameters. They require sampled trajectories and a
+differentiable policy, but they do not require derivatives of the transition
+dynamics.
 
-Direct policy optimization offers several advantages. First, it naturally handles stochastic policies, which can be essential for partially observable environments or problems requiring explicit exploration. Second, it avoids the detour through value function approximation, which may introduce errors that compound during policy extraction. Third, for problems with simple policy classes but complex value landscapes, directly searching in policy space can be more efficient than searching in value space.
+The mathematical development begins with derivative estimators for stochastic
+objectives and then introduces score-function estimators, control variates,
+generalized advantage estimation, and PPO. A recorded experiment on the
+SwingRL plant tests what this machinery produces when the algorithm receives
+only observations, actions, rewards, and sampled transitions. The result is a
+useful failure: five prespecified runs improve the shaped return without
+discovering the phase-locked behavior supplied directly by a structured
+controller.
 
-The foundation of policy gradient methods rests on computing gradients of expected returns with respect to policy parameters. This chapter develops the mathematical machinery needed for this computation, starting with general derivative estimation techniques from stochastic optimization, then specializing to reinforcement learning settings, and finally examining variance reduction methods that make these estimators practical.
+## Learning Goals
+
+After reading this chapter, you should be able to:
+
+- derive score-function and reparameterization estimators for a stochastic
+  objective;
+- use conditional independence and a baseline to reduce policy-gradient
+  variance without changing the expected gradient;
+- compute generalized advantage estimates and explain the role of
+  $\lambda$;
+- derive the clipped PPO objective from an importance-weighted surrogate;
+- audit a sampled-control experiment by separating supplied information,
+  interaction cost, task success, and physical feasibility.
+
+## Prerequisites
+
+The chapter assumes familiarity with expectations, conditional probability,
+and multivariate differentiation. [Monte Carlo Integration](montecarlo.md)
+reviews sampling estimators, while [Dynamic Programming](dp.md) introduces
+value functions and advantages. The SwingRL experiment returns to the plant and
+structured controller developed in
+[Internal Actuation in SwingRL](dynamics.md#internal-actuation-in-swingrl).
 
 ## Derivative Estimation for Stochastic Optimization
 
@@ -1006,9 +1039,112 @@ In both cases, the clipping removes the incentive to move the probability ratio 
 3. Return $\boldsymbol{w}$
 ```
 
-The algorithm collects a batch of trajectories, then performs $K$ epochs of mini-batch updates on the same data. The empirical surrogate $\hat{L}^{\text{CLIP}}$ approximates the population objective {eq}`eq:ppo-clip-population` using samples from the averaged time-marginal distribution. The clipped objective ensures that even after multiple updates, the policy does not move too far from the policy that collected the data. The ratio $\rho$ is computed in log-space for numerical stability.
+The algorithm collects a batch of trajectories, then performs $K$ epochs of mini-batch updates on the same data. The empirical surrogate $\hat{L}^{\text{CLIP}}$ approximates the population objective {eq}`eq:ppo-clip-population` using samples from the averaged time-marginal distribution. The ratio $\rho$ is computed in log-space for numerical stability. Clipping removes the local incentive to move a sampled probability ratio beyond the chosen interval. It does not guarantee that the sampled updates will find a successful policy, and it says nothing about physical constraints absent from the reward or environment.
 
-PPO has become one of the most widely used policy gradient algorithms due to its simplicity and robustness. Compared to TRPO, it avoids the computational overhead of constrained optimization while achieving similar sample efficiency. The clip parameter $\epsilon$ is the main hyperparameter controlling the trust region size: smaller values keep the policy closer to the behavior policy but may slow learning, while larger values allow faster updates but risk instability.
+### Experiment: PPO on the SwingRL Plant
+
+The SwingRL model from the [modeling chapter](dynamics.md#internal-actuation-in-swingrl)
+provides a matched comparison between supplied structure and sampled policy
+optimization. Both controllers act on the same articulated standing rider, use
+the same two bounded commands, receive the same observations, and count one
+full unwrapped rotation as success. The structured controller receives a
+phase-locked pumping rule whose phases were selected by a model sweep. PPO
+receives trajectories and the environment reward.
+
+The experiment asks whether the clipped policy-gradient update discovers a
+full rotation under one fixed, reproducible protocol. The protocol was chosen
+before inspecting the five final runs.
+
+| quantity | value |
+|---|---:|
+| policy and value networks | separate $2 \times 64$ tanh networks |
+| requested interactions | 1,000,000 per seed |
+| rollout batch | 8 environments $\times$ 256 steps |
+| PPO epochs and minibatch | 4 epochs, 256 samples |
+| optimizer | Adam, learning rate $3\times10^{-4}$ with linear decay |
+| discount and GAE | $\gamma=0.995$, $\lambda=0.95$ |
+| clipping and entropy coefficients | $0.2$ and $0.001$ |
+| seeds | 0, 1, 2, 3, 4 |
+| evaluation | 100 fixed initial states every 50,000 requested interactions |
+
+Each complete rollout batch contains 2,048 transitions, so the last update is
+recorded at 1,001,472 interactions. A checkpoint is the first complete update
+at or beyond its nominal 50,000-interaction target. Evaluation angles are
+uniform between $-5^\circ$ and $5^\circ$, angular velocities are uniform
+between $-0.1$ and $0.1$ rad/s, and the deterministic policy uses the tanh of
+the Gaussian mean. The environment and the structured baseline use the same
+100 states.
+
+```{code-cell} python
+:tags: [remove-input]
+:label: fig-swing-ppo-replay
+:caption: Recorded training replay for seed 0. Checkpoints occur every 50,000 requested interactions, with complete rollout batches producing the recorded counts shown by the slider. Each checkpoint uses the saved deterministic policy from the same $3^\circ$ initial angle. The curve shows raw completed-episode returns and an eight-point trailing mean. The 21 saved policies are compressed into 63 seconds; the overlay reports the original elapsed training time.
+
+import sys
+from pathlib import Path
+from IPython.display import HTML, display
+
+sys.path.insert(0, "code")
+from swing_ppo import replay_player_html
+
+display(HTML(replay_player_html(Path("_static/swing_ppo"))))
+```
+
+The replay is an illustration from one prespecified run, not the evidential
+comparison. Future observations remain hidden until the movie reaches their
+checkpoint. The five-seed result below carries the comparison across runs.
+
+{download}`Download the recorded seed-0 replay <_static/swing_ppo/training_replay.mp4>`
+
+```{figure} _static/swing_ppo/swing_ppo_learning.png
+:label: fig-swing-ppo-learning
+:alt: Two plots compare five PPO seeds with a structured SwingRL controller. PPO remains at zero success while its mean return improves slightly. The structured controller succeeds from every evaluation state and has a much larger return.
+:width: 100%
+
+Five prespecified PPO seeds evaluated on the same 100 fixed initial states. Thin blue traces show individual seeds; the solid trace and band show the mean and a two-sided 95% $t$ interval with seed as the statistical unit. PPO improves its return early but never completes a rotation. The structured controller succeeds from every state and obtains mean return 191.9; this value is annotated off scale in the return panel so that the smaller PPO change remains visible.
+```
+
+The final policies settle on low-motion behavior. Across the five showcase
+rollouts, the largest angle lies between $5.45^\circ$ and $5.62^\circ$. Return
+improves because the policy changes the rider while keeping effort and time
+penalties modest, but the behavior never approaches the $360^\circ$ success
+condition.
+
+| controller | training transitions | held-out success | mean return | worst suspension tension |
+|---|---:|---:|---:|---:|
+| structured phase controller | 0 | 100% | 191.90 | $-627$ N |
+| PPO, mean over five final policies | 1,001,472 per seed | 0% | $-5.11$ | $+387$ N |
+
+The comparison does not establish a general ranking between control and RL.
+The structured controller receives the oscillation phase and a controller
+family adapted to the mechanism, while PPO must infer useful coordination from
+sampled returns. Conversely, the structured controller's nominal success
+requires negative suspension tension during 7.38 percent of its active steps.
+A rigid rod can supply that outward force; a playground chain cannot. PPO
+avoids the violation by barely moving, which is feasible but does not solve the
+task.
+
+The two failures answer different audit questions. Optimization has not found
+a successful sampled policy under this protocol. The successful structured
+policy exposes an inadequate rigid-link model. More interactions or a revised
+learning objective might address the first failure. A unilateral chain model
+or an explicit tension constraint is required for the second.
+
+:::{admonition} Model audit
+:class: tip
+Suppose the success bonus were increased until PPO learned to rotate the rigid
+link. Which reported metric would still prevent the result from establishing a
+successful playground-swing controller? Identify the missing physical mode and
+describe an evaluation that would expose it.
+:::
+
+The [complete Python implementation](code/swing_ppo.py) includes policy
+sampling, tanh-corrected log probabilities, GAE, PPO updates, batched SwingRL
+evaluation, checkpoint serialization, and replay rendering. The
+[experiment record](artifacts/swing_ppo/README.md) specifies the artifact
+layout and reproduction command. Policy training is deliberately absent from
+the MyST build; the page reads the recorded checkpoints, tables, figures, and
+movie.
 
 ## The Policy Gradient Theorem
 
@@ -1308,6 +1444,14 @@ When dynamics are deterministic or can be accurately reparameterized, SVG-style 
 This chapter developed the mathematical foundations for policy gradient methods. Starting from general derivative estimation techniques in stochastic optimization, we saw two main approaches: the likelihood ratio (score function) method and the reparameterization trick. While the reparameterization trick typically offers lower variance, it requires that the sampling distribution be reparameterizable, making it inapplicable to discrete actions or environments with complex dynamics.
 
 For reinforcement learning, the score function estimator provides a model-free gradient that depends only on the policy parametrization, not the transition dynamics. Through variance reduction techniques (leveraging conditional independence, using control variates, and the Generalized Advantage Estimator), we can make these gradients practical for learning. The likelihood ratio perspective then led to importance-weighted surrogates and PPO's clipped objective for stable off-policy updates.
+
+The SwingRL experiment separated a correct PPO implementation from a
+successful control result. Five million total training interactions improved
+the shaped return but produced no full rotations. The structured controller
+solved the nominal rigid-link problem without policy training, then failed a
+different test because the resulting trajectory required a chain to push.
+Algorithm diagnostics, task success, and model validity therefore remain
+separate parts of the evaluation.
 
 We also established the policy gradient theorem, which provides the theoretical foundation for these estimators in the discounted infinite-horizon setting. The actor-critic architecture emerges from approximating the value function that appears in this theorem, with the two-timescale condition ensuring stable learning.
 

@@ -500,7 +500,7 @@ print("Total harvest:", sum(harvests))
 ```
 
 
-Due to pedagogical considerations, this example is using our own implementation of the linear interpolation procedure. However, a more general and practical approach would be to use a built-in interpolation procedure in Numpy. Because our state space has a single dimension, we can simply use [scipy.interpolate.interp1d](https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html) which offers various interpolation methods through its `kind` argument, which can take values in 'linear', 'nearest', 'nearest-up', 'zero', 'slinear', 'quadratic', 'cubic', 'previous', or 'next'. 'zero', 'slinear', 'quadratic' and 'cubic'.
+Due to pedagogical considerations, this example is using our own implementation of the linear interpolation procedure. However, a more general and practical approach would be to use a built-in interpolation procedure in NumPy. Because our state space has a single dimension, we can simply use [scipy.interpolate.interp1d](https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html) which offers various interpolation methods through its `kind` argument, including 'linear', 'nearest', 'zero', 'slinear', 'quadratic', and 'cubic'.
 
 Here's a more general implementation which here uses cubic interpolation through the `scipy.interpolate.interp1d` function: 
 
@@ -508,7 +508,7 @@ Here's a more general implementation which here uses cubic interpolation through
 :tags: [hide-input]
 
 #  label: dp-harvest-cubic
-#  caption: Cubic interpolation further smooths the optimal harvest policy—this output prints the leading rows of the policy table along with the resulting trajectory and harvest statistics.
+#  caption: Cubic interpolation further smooths the optimal harvest policy. This output prints the leading rows of the policy table along with the resulting trajectory and harvest statistics.
 
 
 import numpy as np
@@ -605,184 +605,216 @@ print("Total harvest:", sum(harvests))
 ```
 
 
-<!-- ## Linear Quadratic Regulator via Dynamic Programming
 
-Let us now consider a special case of our dynamic programming formulation: the discrete-time Linear Quadratic Regulator (LQR) problem. This example will illustrate how the structure of linear dynamics and quadratic costs leads to a particularly clean form of the backward recursion.
+## Linear Quadratic Regulator via Dynamic Programming
 
-Consider a linear time-invariant system with dynamics:
+Linear dynamics and quadratic costs give a backward recursion that can be solved in closed form. The value function remains quadratic at every stage, and the optimal policy is a linear feedback law. No state grid, interpolation scheme, or general function approximator is needed. The recursion tracks a finite sequence of matrices.
+
+Consider a discrete-time linear system:
 
 $$
-\mathbf{x}_{t+1} = A\mathbf{x}_t + B\mathbf{u}_t
+\mathbf{x}_{t+1} = A_t\mathbf{x}_t + B_t\mathbf{u}_t
 $$
 
-where $\mathbf{x}_t \in \mathbb{R}^n$ is the state and $\mathbf{u}_t \in \mathbb{R}^m$ is the control input.  
+where $\mathbf{x}_t \in \mathbb{R}^n$ is the state and $\mathbf{u}_t \in \mathbb{R}^m$ is the control input. The matrices $A_t \in \mathbb{R}^{n \times n}$ and $B_t \in \mathbb{R}^{n \times m}$ describe the system dynamics at time $t$.
+
 The cost function to be minimized is quadratic:
 
 $$
-J = \frac{1}{2}\mathbf{x}_T^\top S_T \mathbf{x}_T + \frac{1}{2}\sum_{t=0}^{T-1} \left(\mathbf{x}_t^\top Q \mathbf{x}_t + \mathbf{u}_t^\top R \mathbf{u}_t\right)
+J = \frac{1}{2}\mathbf{x}_T^\top Q_T \mathbf{x}_T + \frac{1}{2}\sum_{t=0}^{T-1} \left(\mathbf{x}_t^\top Q_t \mathbf{x}_t + \mathbf{u}_t^\top R_t \mathbf{u}_t\right)
 $$
 
-where $S_T \geq 0$, $Q \geq 0$, and $R > 0$ are symmetric matrices of appropriate dimensions.  
-Our goal is to find the optimal control sequence $\mathbf{u}_t^*$ that minimizes $J$ over a fixed time horizon $[0, T]$, given an initial state $\mathbf{x}_0$.
+where $Q_T \succeq 0$ (positive semidefinite), $Q_t \succeq 0$, and $R_t \succ 0$ (positive definite) are symmetric matrices of appropriate dimensions. The positive definiteness of $R_t$ ensures the minimization problem is well-posed.
 
-Let's apply the principle of optimality to derive the backward recursion for this problem. We'll start at the final time step and work our way backward.
-
-At $t = T$, the terminal cost is given by:
+A quadratic terminal cost implies a quadratic value function at every earlier stage. Suppose the optimal cost-to-go at stage $t$ has the form
 
 $$
-J_T^*(\mathbf{x}_T) = \frac{1}{2}\mathbf{x}_T^\top S_T \mathbf{x}_T
+J_t^\star(\mathbf{x}_t) = \frac{1}{2}\mathbf{x}_t^\top P_t \mathbf{x}_t
 $$
 
-At $t = T-1$, the cost-to-go is:
+for some positive semidefinite matrix $P_t$. At the terminal time, this is true by definition: $P_T = Q_T$.
+
+Backward induction verifies the hypothesis. Assume $J_{t+1}^\star(\mathbf{x}_{t+1}) = \frac{1}{2}\mathbf{x}_{t+1}^\top P_{t+1} \mathbf{x}_{t+1}$. Bellman's equation at stage $t$ is
 
 $$
-J_{T-1}(\mathbf{x}_{T-1}, \mathbf{u}_{T-1}) = \frac{1}{2}\mathbf{x}_{T-1}^\top Q \mathbf{x}_{T-1} + \frac{1}{2}\mathbf{u}_{T-1}^\top R \mathbf{u}_{T-1} + J_T^*(\mathbf{x}_T)
+J_t^\star(\mathbf{x}_t) = \min_{\mathbf{u}_t} \left[ \frac{1}{2}\mathbf{x}_t^\top Q_t \mathbf{x}_t + \frac{1}{2}\mathbf{u}_t^\top R_t \mathbf{u}_t + J_{t+1}^\star(\mathbf{x}_{t+1}) \right]
 $$
 
-Substituting the dynamics equation:
+Substituting the dynamics $\mathbf{x}_{t+1} = A_t\mathbf{x}_t + B_t\mathbf{u}_t$ and the quadratic form for $J_{t+1}^\star$:
 
 $$
-J_{T-1} = \frac{1}{2}\mathbf{x}_{T-1}^\top Q \mathbf{x}_{T-1} + \frac{1}{2}\mathbf{u}_{T-1}^\top R \mathbf{u}_{T-1} + \frac{1}{2}(A\mathbf{x}_{T-1} + B\mathbf{u}_{T-1})^\top S_T (A\mathbf{x}_{T-1} + B\mathbf{u}_{T-1})
+J_t^\star(\mathbf{x}_t) = \min_{\mathbf{u}_t} \left[ \frac{1}{2}\mathbf{x}_t^\top Q_t \mathbf{x}_t + \frac{1}{2}\mathbf{u}_t^\top R_t \mathbf{u}_t + \frac{1}{2}(A_t\mathbf{x}_t + B_t\mathbf{u}_t)^\top P_{t+1} (A_t\mathbf{x}_t + B_t\mathbf{u}_t) \right]
 $$
 
-To find the optimal control, we differentiate with respect to $\mathbf{u}_{T-1}$ and set it to zero:
+Expanding the last term:
 
 $$
-\frac{\partial J_{T-1}}{\partial \mathbf{u}_{T-1}} = R\mathbf{u}_{T-1} + B^\top S_T (A\mathbf{x}_{T-1} + B\mathbf{u}_{T-1}) = 0
+(A_t\mathbf{x}_t + B_t\mathbf{u}_t)^\top P_{t+1} (A_t\mathbf{x}_t + B_t\mathbf{u}_t) = \mathbf{x}_t^\top A_t^\top P_{t+1} A_t \mathbf{x}_t + 2\mathbf{x}_t^\top A_t^\top P_{t+1} B_t \mathbf{u}_t + \mathbf{u}_t^\top B_t^\top P_{t+1} B_t \mathbf{u}_t
 $$
 
-Solving for $\mathbf{u}_{T-1}^*$:
+The expression inside the minimization becomes:
 
 $$
-\mathbf{u}_{T-1}^* = -(R + B^\top S_T B)^{-1}B^\top S_T A\mathbf{x}_{T-1}
+\frac{1}{2}\mathbf{x}_t^\top Q_t \mathbf{x}_t + \frac{1}{2}\mathbf{u}_t^\top R_t \mathbf{u}_t + \frac{1}{2}\mathbf{x}_t^\top A_t^\top P_{t+1} A_t \mathbf{x}_t + \mathbf{x}_t^\top A_t^\top P_{t+1} B_t \mathbf{u}_t + \frac{1}{2}\mathbf{u}_t^\top B_t^\top P_{t+1} B_t \mathbf{u}_t
 $$
 
-We can define the gain matrix:
+Collecting terms involving $\mathbf{u}_t$:
 
 $$
-K_{T-1} = (R + B^\top S_T B)^{-1}B^\top S_T A
+= \frac{1}{2}\mathbf{x}_t^\top (Q_t + A_t^\top P_{t+1} A_t) \mathbf{x}_t + \mathbf{x}_t^\top A_t^\top P_{t+1} B_t \mathbf{u}_t + \frac{1}{2}\mathbf{u}_t^\top (R_t + B_t^\top P_{t+1} B_t) \mathbf{u}_t
 $$
 
-So that $\mathbf{u}_{T-1}^* = -K_{T-1}\mathbf{x}_{T-1}$. The optimal cost-to-go at $T-1$ is then:
+This is a quadratic function of $\mathbf{u}_t$. To find the minimizer, we take the gradient with respect to $\mathbf{u}_t$ and set it to zero:
 
 $$
-J_{T-1}^*(\mathbf{x}_{T-1}) = \frac{1}{2}\mathbf{x}_{T-1}^\top S_{T-1} \mathbf{x}_{T-1}
+\frac{\partial}{\partial \mathbf{u}_t} = (R_t + B_t^\top P_{t+1} B_t) \mathbf{u}_t + B_t^\top P_{t+1} A_t \mathbf{x}_t = 0
 $$
 
-Where $S_{T-1}$ is given by:
+Since $R_t + B_t^\top P_{t+1} B_t$ is positive definite (both $R_t$ and $P_{t+1}$ are positive semidefinite with $R_t$ strictly positive), we can solve for the optimal control:
 
 $$
-S_{T-1} = Q + A^\top S_T A - A^\top S_T B(R + B^\top S_T B)^{-1}B^\top S_T A
+\mathbf{u}_t^\star = -(R_t + B_t^\top P_{t+1} B_t)^{-1} B_t^\top P_{t+1} A_t \mathbf{x}_t
 $$
 
-Continuing this process backward in time, we find that for any $t$:
+Define the gain matrix:
 
 $$
-\mathbf{u}_t^* = -K_t\mathbf{x}_t
+K_t = (R_t + B_t^\top P_{t+1} B_t)^{-1} B_t^\top P_{t+1} A_t
 $$
 
-Where:
+so that $\mathbf{u}_t^\star = -K_t\mathbf{x}_t$. This is a **linear feedback policy**: the optimal control is simply a linear function of the current state.
+
+Substituting $\mathbf{u}_t^\star$ back into the cost-to-go expression and simplifying (by completing the square), we obtain:
 
 $$
-K_t = (R + B^\top S_{t+1} B)^{-1}B^\top S_{t+1} A
+J_t^\star(\mathbf{x}_t) = \frac{1}{2}\mathbf{x}_t^\top P_t \mathbf{x}_t
 $$
 
-And the optimal cost-to-go is:
+where $P_t$ satisfies the **discrete-time Riccati equation**:
 
 $$
-J_t^*(\mathbf{x}_t) = \frac{1}{2}\mathbf{x}_t^\top S_t \mathbf{x}_t
+P_t = Q_t + A_t^\top P_{t+1} A_t - A_t^\top P_{t+1} B_t (R_t + B_t^\top P_{t+1} B_t)^{-1} B_t^\top P_{t+1} A_t
 $$
 
-Where $S_t$ satisfies the so-called discrete-time Riccati equation:
+
+The resulting backward recursion is:
+
+
+````{prf:algorithm} Backward Recursion for LQR
+:label: backward-recursion-lqr
+
+**Input:** System matrices $A_t, B_t$, cost matrices $Q_t, R_t, Q_T$, time horizon $T$
+
+**Output:** Cost matrices $P_t$ and gain matrices $K_t$ for $t = 0, \ldots, T-1$
+
+1. **Initialize:** $P_T = Q_T$
+
+2. **For** $t = T-1, T-2, \ldots, 0$:
+   1. Compute the gain matrix:
+
+      $$K_t = (R_t + B_t^\top P_{t+1} B_t)^{-1} B_t^\top P_{t+1} A_t$$
+
+   2. Compute the cost matrix via the Riccati equation:
+
+      $$P_t = Q_t + A_t^\top P_{t+1} A_t - A_t^\top P_{t+1} B_t (R_t + B_t^\top P_{t+1} B_t)^{-1} B_t^\top P_{t+1} A_t$$
+
+3. **End For**
+
+4. **Return:** $\{P_0, \ldots, P_T\}$ and $\{K_0, \ldots, K_{T-1}\}$
+
+**Optimal policy:** $\mathbf{u}_t^\star = -K_t\mathbf{x}_t$
+
+**Optimal cost-to-go:** $J_t^\star(\mathbf{x}_t) = \frac{1}{2}\mathbf{x}_t^\top P_t \mathbf{x}_t$
+````
+
+### Local Stabilization of the Cart-Pole
+
+The cart-pole in the trajectory-optimization chapter started from the downward configuration and required a large nonlinear maneuver to reach the top. Once it is near the upright equilibrium, a smaller problem remains: reject local deviations by moving the cart in response to the measured state. The nonlinear state and input are the same as before,
 
 $$
-S_t = Q + A^\top S_{t+1} A - A^\top S_{t+1} B(R + B^\top S_{t+1} B)^{-1}B^\top S_{t+1} A
-$$ -->
-<!-- 
-### Example: Linear Quadratic Regulation of a Liquid Tank 
-
-We are dealing with a liquid-level control system for a storage tank. This system consists of a reservoir connected to a tank via valves. These valves are controlled by a gear train, which is driven by a DC motor. The motor, in turn, is controlled by an electronic amplifier. The goal is to maintain a constant liquid level in the tank, adjusting only when necessary.
-
-The system is described by a third-order continuous-time model with the following state variables:
-- $x_1(t)$: the height of the liquid in the tank
-- $x_2(t)$: the angular position of the electric motor driving the valves
-- $x_3(t)$: the angular velocity of the motor
-
-The input to the system, $u(t)$, represents the signal sent to the electronic amplifier connected to the motor.
-The system dynamics are described by the following differential equations:
-
-$$
-\begin{aligned}
-& \dot{x}_1(t) = -2x_1(t) \\
-& \dot{x}_2(t) = x_3(t) \\
-& \dot{x}_3(t) = -10x_3(t) + 9000u(t)
-\end{aligned}
+\mathbf{x}=(p,v,\theta,\omega), \qquad
+u=\text{horizontal cart acceleration},
 $$
 
-To pose this as a discrete-time LQR problem, we need to discretize the continuous-time system. Let's assume a sampling time of $T_s$ seconds. We can use the forward Euler method for a simple discretization:
+with $\theta=0$ at upright. Linearizing the discrete RK4 update $F_h$ at $(\mathbf{x}^\star,u^\star)=(0,0)$ gives
 
 $$
-\begin{aligned}
-& x_1(k+1) = x_1(k) + T_s(-2x_1(k)) \\
-& x_2(k+1) = x_2(k) + T_sx_3(k) \\
-& x_3(k+1) = x_3(k) + T_s(-10x_3(k) + 9000u(k))
-\end{aligned}
+\delta\mathbf{x}_{k+1}
+\approx A\,\delta\mathbf{x}_k+B\,\delta u_k,
+\qquad
+A=\left.\frac{\partial F_h}{\partial\mathbf{x}}\right|_{(0,0)},
+\quad
+B=\left.\frac{\partial F_h}{\partial u}\right|_{(0,0)}.
 $$
 
-This can be written in the standard discrete-time state-space form:
+The experiment uses $h=0.02$ s, $Q=\operatorname{diag}(2,0.2,80,3)$, and $R=0.15$. For this time-invariant infinite-horizon case, the Riccati recursion converges to a fixed matrix $P$ that satisfies the discrete algebraic Riccati equation. The corresponding policy is $u_k=-K\delta\mathbf{x}_k$.
 
-$x(k+1) = Ax(k) + Bu(k)$
+The unconstrained linear closed loop is asymptotically stable when every eigenvalue of $A-BK$ lies inside the unit disk. The physical implementation adds two constraints that are absent from that eigenvalue calculation: acceleration is clipped to $|u|\leq 8\;\mathrm{m\,s^{-2}}$, and the cart must remain inside a $2.4$ m rail. Three deterministic nonlinear rollouts distinguish the claims supported by the linearization:
 
-Where:
+1. An uncontrolled pole begins $5^\circ$ from upright.
+2. The LQR controller begins from the same $5^\circ$ displacement.
+3. The same controller begins $45^\circ$ from upright with the same actuator and rail limits.
 
-$x(k) = \begin{bmatrix} x_1(k) \\ x_2(k) \\ x_3(k) \end{bmatrix}$
+```{code-cell} python
+:tags: [remove-cell]
 
-$A = \begin{bmatrix} 
-1-2T_s & 0 & 0 \\
-0 & 1 & T_s \\
-0 & 0 & 1-10T_s
-\end{bmatrix}$
+from pathlib import Path
+import sys
 
-$B = \begin{bmatrix} 
-0 \\
-0 \\
-9000T_s
-\end{bmatrix}$
+code_directory = Path.cwd() / "code"
+if str(code_directory) not in sys.path:
+    sys.path.insert(0, str(code_directory))
 
-The goal of our LQR controller is to maintain the liquid level at a desired reference value while minimizing control effort. We can formulate this as a discrete-time LQR problem with the following cost function:
+from cartpole_control import (
+    CartPoleParameters,
+    design_lqr,
+    format_lqr_metrics,
+    make_lqr_animation,
+    make_lqr_figure,
+    run_lqr_cases,
+)
 
-$J = \sum_{k=0}^{\infty} \left( (x_1(k) - x_{1,ref})^2 + ru^2(k) \right)$
+cartpole_parameters = CartPoleParameters()
+lqr_design = design_lqr(cartpole_parameters)
+lqr_cases = run_lqr_cases(cartpole_parameters)
+```
 
-Where $x_{1,ref}$ is the reference liquid level and $r$ is a positive weight on the control input.
+```{code-cell} python
+:label: fig-cartpole-lqr-limits
+:caption: The discrete linear closed loop is stable, and the nonlinear controller recovers from a 5 degree perturbation. Without control, the same initial displacement grows. From 45 degrees, the commanded acceleration saturates and the cart reaches its rail limit, so the local controller does not complete the recovery. All curves use the same nonlinear plant; only the initial state and controller differ.
+:tags: [remove-input]
 
-To put this in standard discrete-time LQR form, we rewrite the cost function as:
+print(format_lqr_metrics(lqr_cases, lqr_design))
+make_lqr_figure(lqr_cases, cartpole_parameters)
+```
 
-$J = \sum_{k=0}^{\infty} \left( x^\mathrm{T}(k)Qx(k) + ru^2(k) \right)$
+The closed-loop eigenvalues certify asymptotic stability of the unconstrained linearized model, not every trajectory of the nonlinear constrained plant. The $5^\circ$ rollout remains in a region where the linear approximation supplies useful actions. The $45^\circ$ rollout immediately asks for more acceleration than the actuator can provide, then exhausts the available rail. Increasing the entries of $Q$ cannot remove those physical limits.
 
-Where:
+```{code-cell} python
+:label: anim-cartpole-lqr
+:caption: Nonlinear validation of the local LQR controller. The left panel shows the uncontrolled fall from 5 degrees, the center panel shows recovery from the same state, and the right panel shows the 45 degree rollout ending at the rail limit. Python generates each frame from the recorded trajectories.
+:tags: [remove-input]
 
-$Q = \begin{bmatrix}
-1 & 0 & 0 \\
-0 & 0 & 0 \\
-0 & 0 & 0
-\end{bmatrix}$
+from IPython.display import HTML, display
+import matplotlib.pyplot as plt
 
-The discrete-time LQR problem is now to find the optimal control law $u^*(k) = -Kx(k)$ that minimizes this cost function, subject to the discrete-time system dynamics $x(k+1) = Ax(k) + Bu(k)$.
+lqr_animation = make_lqr_animation(lqr_cases, cartpole_parameters)
+display(HTML(lqr_animation.to_jshtml()))
+plt.close(lqr_animation._fig)
+```
 
-The solution involves solving the discrete-time algebraic Riccati equation:
+Balancing a pen on a finger motivates the action channel because the finger stabilizes the object by moving its base. The cart-pole model replaces the contact by a planar frictionless hinge. A real pen can slip, detach, flex, and rotate out of the plane, while sensing and hand motion introduce delays. The calculation establishes local stabilization for the stated rigid-body model; the classroom demonstration shares its instability and feedback mechanism, not all of its equations.
 
-$P = A^TPA - A^TPB(B^TPB + R)^{-1}B^TPA + Q$
+:::{dropdown} Inspect the linearization and LQR design
+```{literalinclude} code/cartpole_control.py
+:language: python
+:start-at: def linearize_upright
+:end-before: def simulate_lqr
+:linenos:
+```
+:::
 
-Where $R = r$ (a scalar in this case), to find the positive definite matrix $P$. Then, the optimal gain matrix $K$ is given by:
-
-$K = (B^TPB + R)^{-1}B^TPA$
-
-This formulation ensures that:
-1. The liquid level ($x_1(k)$) is maintained close to the reference value.
-2. The system acts primarily when there's a change in the liquid level, as only $x_1(k)$ is directly penalized in the cost function.
-3. The control effort is minimized, ensuring smooth operation of the valves.
-
-By tuning the weight $r$ and the sampling time $T_s$, we can balance the trade-off between maintaining the desired liquid level, the amount of control effort used, and the responsiveness of the system. -->
+{download}`Download the shared nonlinear cart-pole and LQR source <code/cartpole_control.py>`.
 
 # Stochastic Dynamic Programming and Markov Decision Processes
 
@@ -1158,128 +1190,6 @@ plt.tight_layout()
 ```
 
 
-## Linear Quadratic Regulator via Dynamic Programming
-
-We now examine a special case where the backward recursion admits a closed-form solution. When the system dynamics are linear and the cost function is quadratic, the optimization at each stage can be solved analytically. Moreover, the value function itself maintains a quadratic structure throughout the recursion, and the optimal policy reduces to a simple linear feedback law. This result eliminates the need for discretization, interpolation, or any function approximation. The infinite-dimensional problem collapses to tracking a finite set of matrices.
-
-Consider a discrete-time linear system:
-
-$$
-\mathbf{x}_{t+1} = A_t\mathbf{x}_t + B_t\mathbf{u}_t
-$$
-
-where $\mathbf{x}_t \in \mathbb{R}^n$ is the state and $\mathbf{u}_t \in \mathbb{R}^m$ is the control input. The matrices $A_t \in \mathbb{R}^{n \times n}$ and $B_t \in \mathbb{R}^{n \times m}$ describe the system dynamics at time $t$.
-
-The cost function to be minimized is quadratic:
-
-$$
-J = \frac{1}{2}\mathbf{x}_T^\top Q_T \mathbf{x}_T + \frac{1}{2}\sum_{t=0}^{T-1} \left(\mathbf{x}_t^\top Q_t \mathbf{x}_t + \mathbf{u}_t^\top R_t \mathbf{u}_t\right)
-$$
-
-where $Q_T \succeq 0$ (positive semidefinite), $Q_t \succeq 0$, and $R_t \succ 0$ (positive definite) are symmetric matrices of appropriate dimensions. The positive definiteness of $R_t$ ensures the minimization problem is well-posed.
-
-What we now have to observe is that if the terminal cost is quadratic, then the value function at every earlier stage remains quadratic. This is not immediately obvious, but it follows from the structure of Bellman's equation combined with the linearity of the dynamics.
-
-We claim that the optimal cost-to-go from any stage $t$ takes the form:
-
-$$
-J_t^\star(\mathbf{x}_t) = \frac{1}{2}\mathbf{x}_t^\top P_t \mathbf{x}_t
-$$
-
-for some positive semidefinite matrix $P_t$. At the terminal time, this is true by definition: $P_T = Q_T$.
-
-Let's verify this structure and derive the recursion for $P_t$ using backward induction. Suppose we've established that $J_{t+1}^\star(\mathbf{x}_{t+1}) = \frac{1}{2}\mathbf{x}_{t+1}^\top P_{t+1} \mathbf{x}_{t+1}$. Bellman's equation at stage $t$ states:
-
-$$
-J_t^\star(\mathbf{x}_t) = \min_{\mathbf{u}_t} \left[ \frac{1}{2}\mathbf{x}_t^\top Q_t \mathbf{x}_t + \frac{1}{2}\mathbf{u}_t^\top R_t \mathbf{u}_t + J_{t+1}^\star(\mathbf{x}_{t+1}) \right]
-$$
-
-Substituting the dynamics $\mathbf{x}_{t+1} = A_t\mathbf{x}_t + B_t\mathbf{u}_t$ and the quadratic form for $J_{t+1}^\star$:
-
-$$
-J_t^\star(\mathbf{x}_t) = \min_{\mathbf{u}_t} \left[ \frac{1}{2}\mathbf{x}_t^\top Q_t \mathbf{x}_t + \frac{1}{2}\mathbf{u}_t^\top R_t \mathbf{u}_t + \frac{1}{2}(A_t\mathbf{x}_t + B_t\mathbf{u}_t)^\top P_{t+1} (A_t\mathbf{x}_t + B_t\mathbf{u}_t) \right]
-$$
-
-Expanding the last term:
-
-$$
-(A_t\mathbf{x}_t + B_t\mathbf{u}_t)^\top P_{t+1} (A_t\mathbf{x}_t + B_t\mathbf{u}_t) = \mathbf{x}_t^\top A_t^\top P_{t+1} A_t \mathbf{x}_t + 2\mathbf{x}_t^\top A_t^\top P_{t+1} B_t \mathbf{u}_t + \mathbf{u}_t^\top B_t^\top P_{t+1} B_t \mathbf{u}_t
-$$
-
-The expression inside the minimization becomes:
-
-$$
-\frac{1}{2}\mathbf{x}_t^\top Q_t \mathbf{x}_t + \frac{1}{2}\mathbf{u}_t^\top R_t \mathbf{u}_t + \frac{1}{2}\mathbf{x}_t^\top A_t^\top P_{t+1} A_t \mathbf{x}_t + \mathbf{x}_t^\top A_t^\top P_{t+1} B_t \mathbf{u}_t + \frac{1}{2}\mathbf{u}_t^\top B_t^\top P_{t+1} B_t \mathbf{u}_t
-$$
-
-Collecting terms involving $\mathbf{u}_t$:
-
-$$
-= \frac{1}{2}\mathbf{x}_t^\top (Q_t + A_t^\top P_{t+1} A_t) \mathbf{x}_t + \mathbf{x}_t^\top A_t^\top P_{t+1} B_t \mathbf{u}_t + \frac{1}{2}\mathbf{u}_t^\top (R_t + B_t^\top P_{t+1} B_t) \mathbf{u}_t
-$$
-
-This is a quadratic function of $\mathbf{u}_t$. To find the minimizer, we take the gradient with respect to $\mathbf{u}_t$ and set it to zero:
-
-$$
-\frac{\partial}{\partial \mathbf{u}_t} = (R_t + B_t^\top P_{t+1} B_t) \mathbf{u}_t + B_t^\top P_{t+1} A_t \mathbf{x}_t = 0
-$$
-
-Since $R_t + B_t^\top P_{t+1} B_t$ is positive definite (both $R_t$ and $P_{t+1}$ are positive semidefinite with $R_t$ strictly positive), we can solve for the optimal control:
-
-$$
-\mathbf{u}_t^\star = -(R_t + B_t^\top P_{t+1} B_t)^{-1} B_t^\top P_{t+1} A_t \mathbf{x}_t
-$$
-
-Define the gain matrix:
-
-$$
-K_t = (R_t + B_t^\top P_{t+1} B_t)^{-1} B_t^\top P_{t+1} A_t
-$$
-
-so that $\mathbf{u}_t^\star = -K_t\mathbf{x}_t$. This is a **linear feedback policy**: the optimal control is simply a linear function of the current state.
-
-Substituting $\mathbf{u}_t^\star$ back into the cost-to-go expression and simplifying (by completing the square), we obtain:
-
-$$
-J_t^\star(\mathbf{x}_t) = \frac{1}{2}\mathbf{x}_t^\top P_t \mathbf{x}_t
-$$
-
-where $P_t$ satisfies the **discrete-time Riccati equation**:
-
-$$
-P_t = Q_t + A_t^\top P_{t+1} A_t - A_t^\top P_{t+1} B_t (R_t + B_t^\top P_{t+1} B_t)^{-1} B_t^\top P_{t+1} A_t
-$$
-
-
-Putting everything together, the backward induction procedure under the LQR setting then becomes: 
-
-
-````{prf:algorithm} Backward Recursion for LQR
-:label: backward-recursion-lqr
-
-**Input:** System matrices $A_t, B_t$, cost matrices $Q_t, R_t, Q_T$, time horizon $T$
-
-**Output:** Cost matrices $P_t$ and gain matrices $K_t$ for $t = 0, \ldots, T-1$
-
-1. **Initialize:** $P_T = Q_T$
-
-2. **For** $t = T-1, T-2, \ldots, 0$:
-   1. Compute the gain matrix:
-
-      $$K_t = (R_t + B_t^\top P_{t+1} B_t)^{-1} B_t^\top P_{t+1} A_t$$
-
-   2. Compute the cost matrix via the Riccati equation:
-
-      $$P_t = Q_t + A_t^\top P_{t+1} A_t - A_t^\top P_{t+1} B_t (R_t + B_t^\top P_{t+1} B_t)^{-1} B_t^\top P_{t+1} A_t$$
-
-3. **End For**
-
-4. **Return:** $\{P_0, \ldots, P_T\}$ and $\{K_0, \ldots, K_{T-1}\}$
-
-**Optimal policy:** $\mathbf{u}_t^\star = -K_t\mathbf{x}_t$
-
-**Optimal cost-to-go:** $J_t^\star(\mathbf{x}_t) = \frac{1}{2}\mathbf{x}_t^\top P_t \mathbf{x}_t$
-````
 
 # Markov Decision Process Formulation
 

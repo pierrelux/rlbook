@@ -32,6 +32,7 @@ dependencies = [
     "pyomo",
     "scikit-learn",
     "scipy",
+    "swing-rl[jax] @ git+https://github.com/pierrelux/swing-rl.git@d579663fc81c044729f4d3ab60bf63bcdbd27b9a",
     "vl-convert-python",
 ]
 
@@ -43,4 +44,4 @@ build-backend = "setuptools.build_meta"
 packages = []
 
 [dependency-groups]
-dev = []
+dev = ["pytest>=8.0"]

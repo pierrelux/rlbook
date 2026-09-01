@@ -1,4 +1,5 @@
 ---
+description: Formulate sequential decision problems by identifying their state, action channel, uncertainty, observations, constraints, and available model interface.
 kernelspec:
   name: python3
   display_name: Python 3
@@ -6,858 +7,671 @@ kernelspec:
 
 # Dynamics and State-Space Models
 
+A controller or learning algorithm acts on a description of a system. The
+description may be an equation, a simulator, a collection of transitions, or an
+interactive environment. Before choosing an algorithm, we need to determine
+what evolves, what can be changed, what can be observed, and which physical and
+operational restrictions must be preserved.
+
 ::::{admonition} Learning Goals
 :class: note
 
 After reading this chapter, you should be able to:
-- Distinguish between predictive models and decision-making models, and explain why the latter require more than correlation
-- Write a dynamical system in state-space form and identify the state, control, disturbance, and output
-- Formulate dynamics in both discrete and continuous time, and explain when each is appropriate
-- Extend a deterministic model to include stochastic uncertainty using either the function-plus-noise view or the transition kernel view
-- Recognize when partial observability matters and write down an observation model
-- Distinguish between analytical models (where $f$ is given) and simulation-based models (where only trajectory queries are possible)
-- Identify when a system is best modeled as discrete-event, hybrid, or agent-based
 
-**Prerequisites:** Basic linear algebra (matrices, vectors, matrix-vector multiplication) and ordinary differential equations (what $\dot{x} = f(x)$ means). The second half uses probability and expectation.
+- define the state, action, disturbance, observation, objective, and constraints of a sequential decision problem;
+- locate the physical channel through which an action changes a system;
+- write deterministic and stochastic dynamics in continuous- and discrete-time state-space form;
+- distinguish an open-loop action sequence from a feedback policy;
+- classify the information supplied by equations, simulators, transition samples, and logged data;
+- represent partial observability with an observation model;
+- separate known structure from components that may be learned, and use trajectory diagnostics to detect a missing physical mode or constraint.
+
+**Prerequisites:** Linear algebra, multivariable calculus, elementary
+probability, and the meaning of an ordinary differential equation. Numerical
+integration is reviewed in [Solving Initial Value Problems](appendix_ivps.md).
 ::::
 
-## Models for Decision Making 
-
-> "The sciences do not try to explain, they hardly even try to interpret, they mainly make models. By a model is meant a mathematical construct which, with the addition of certain verbal interpretations, describes observed phenomena. The justification of such a mathematical construct is solely and precisely that it is expected to work."
-> — John von Neumann
-
-The word *model* means different things depending on who you ask.
-
-In machine learning, it typically refers to a parameterized function (often a neural network) fit to data. When we say "we trained a model," we usually mean adjusting parameters so it makes good predictions. This is a narrow view.
-
-In control, operations research, or structural economics, a model refers more broadly to a formal specification of a decision problem. It includes how a system evolves over time, what parts of the world we choose to represent, what decisions are available, what can be observed or measured, and how outcomes are evaluated. It also encodes assumptions about time (discrete or continuous, finite or infinite horizon), uncertainty, and information structure.
-
-To clarify terminology, we use the term **decision-making model** to refer to this broader object: one that includes system dynamics, state, control, observations, objectives, time structure, and information assumptions. In this sense, the model defines the structure of the decision problem. It is the formal scaffold on which we build optimization or learning procedures.
-
-Depending on the setting, we may ask different things from a decision-making model. Sometimes we want a model that supports counterfactual reasoning or policy evaluation, and are willing to bake in more assumptions to get there. Other times, we just need a model that supports prediction or simulation, even if it remains agnostic about internal mechanisms.
-
-This mirrors a distinction in econometrics between structural and reduced-form approaches. Structural models aim to capture the underlying process that generates behavior, enabling reasoning about what would happen under alternative policies or conditions. Reduced-form models, by contrast, focus on capturing statistical regularities (often to estimate causal effects) without necessarily modeling the mechanisms that generate them. Both are forms of modeling, just with different goals. The same applies in control and RL: some models are built to support simulation and optimization, while others serve more diagnostic or predictive roles, with fewer assumptions about how the system works internally.
-
-This chapter focuses on the modeling side. What kinds of models do we need to support decision-making from data? What are their assumptions? What do they let us express or ignore? And how do they shape what learning and optimization can even mean?
-
-
-## Modeling, Realism, and Control
-
-Realism is only one way to assess a model. When the purpose of modeling is to support control or decision making, accuracy in reproducing every detail of the system is not always necessary. What matters more is whether the model leads to decisions that perform well when applied in practice. A model may simplify the physics, ignore some variables, or group complex interactions into a disturbance term. As long as it retains the core feedback structure relevant to the control task, it can still be effective.
-
-In some cases, high-fidelity models can be counterproductive. Their complexity makes them harder to understand, slower to simulate, and more difficult to tune. Worse, they may include uncertain parameters that do not affect the control decisions but still influence the outcome of optimization. The resulting decisions can become fragile or overfitted to details that are not stable across different operating conditions.
-
-A useful model for control is one that focuses on the variables, dynamics, and constraints that shape the decisions to be made. It should capture the key trade-offs without trying to account for every effect. In traditional control design, this principle appears through model simplification: engineers reduce the system to a manageable form, then use feedback to absorb remaining uncertainty. Reinforcement learning adopts a similar mindset, though often implicitly. It allows for model error and evaluates success based on the quality of the policy when deployed, rather than on the accuracy of the model itself.
-
-### Example: A simple model that supports better decisions
-
-Researchers at the U.S. National Renewable Energy Laboratory investigated how to reduce cooling costs in a typical home in Austin, Texas {cite:p}`COLE201469`. They had access to a detailed EnergyPlus simulation of the building, which included thousands of internal variables: layered wall models, HVAC cycling behavior, occupancy schedules, and detailed weather inputs.
-
-Although this simulator could closely reproduce indoor temperatures, it was too slow and too complex to use as a planning tool. Instead, the researchers constructed a much simpler model using just two parameters: an effective thermal resistance $R$ and an effective thermal capacitance $C$. Treating the building as a single thermal mass, the indoor temperature $T$ evolves according to
-
-$$
-C \frac{dT}{dt} = \frac{T_{\text{out}} - T}{R} - Q_{\text{cool}},
-$$
-
-where $T_{\text{out}}$ is the outdoor temperature and $Q_{\text{cool}}$ is the cooling power applied by the air conditioner. The first term on the right captures heat leaking in through the walls; the second captures heat removed by the cooling system. This is a first-order linear ODE, one of the simplest dynamics models possible.
-
-This reduced model did not capture short-term temperature fluctuations and could be off by as much as two degrees on hot afternoons. Despite these inaccuracies, it proved useful for testing different cooling strategies. One such strategy involved cooling the house early in the morning when electricity prices were low, letting the temperature rise slowly during the expensive late-afternoon period, and resuming cooling only in the evening. When this strategy was simulated in the full EnergyPlus model, it reduced peak compressor power by approximately 70 percent and lowered total cooling cost by about 60 percent compared to a standard thermostat schedule.
-
-The reason this worked is that the simple model captured the most important structural feature of the system: the thermal mass of the building (encoded in $C$) acts as a buffer that allows load shifting over time. The time constant $\tau = RC$ determines how quickly the indoor temperature responds to changes. That single number was enough to discover a control strategy that exploited this property. The many other effects present in the full simulation did not change the main conclusions and could be treated as part of the background variability.
-
-This example shows that a model can be inaccurate in detail but still highly effective in guiding decisions. For control, what matters is not whether the model matches reality in every respect, but whether it helps identify actions that perform well under real-world conditions. We will return to this kind of thermal model, and its richer multi-zone extensions, once we have introduced the formal machinery.
-
-
-## Dynamics Models for Decision Making
-
-The kind of model we need here is a **dynamics model**. It does not just describe correlations. It tells us how a system **evolves in time** and, for control purposes, how that evolution **responds to inputs** we choose.
-
-A dynamics model earns its keep by answering counterfactuals of the form: *given an initial condition and an input schedule, what trajectory should I expect?* That ability to roll a trajectory forward under different candidate inputs is the backbone of planning, policy evaluation, and learning from interaction.
-
-At this level, we can think of the model as a trajectory generator:
-
-$$
-(\mathbf{x}_0,\ \{\mathbf{u}_t\},\ \{\mathbf{d}_t\}) \ \longmapsto\ \{\mathbf{x}_t,\ \mathbf{y}_t\}_{t=0:T},
-$$
-
-where $\mathbf{u}_t$ are **controls** we set, $\mathbf{d}_t$ are **exogenous drivers** we do not control (weather, inflow, demand), $\mathbf{x}_t$ are internal **system variables**, and $\mathbf{y}_t$ are **observations**. The split between $\mathbf{u}$ and $\mathbf{d}$ is practical: it separates what we can act on from what we must accommodate.
-
-Two design pressures shape such models:
-
-1. **Responsiveness to inputs.** The model must expose the levers that matter for the decision problem, even if everything underneath is approximate.
-2. **Memory management.** To simulate step by step, we need a compact summary of the past that is sufficient to predict the next step once an input arrives. That summary is what we will call the **state**.
-
-This brings us to a standard representation. Rather than carry the full history, we look for a variable $\mathbf{x}_t$ that captures "what matters so far" for predicting what comes next under a given input. With that variable in hand, the model advances in small increments and can be composed with estimators and controllers.
-
-With this motivation in place, we can now introduce the formalism.
-
-## The State‑Space Perspective
-
-Most dynamics models, whether derived from physics or learned from data, can be cast into **state‑space form**. The state $\mathbf{x}$ is the compact memory that summarizes the past for prediction and control. Inputs $\mathbf{u}$ perturb that state, exogenous drivers $\mathbf{d}$ push it around, and outputs $\mathbf{y}$ are what we can measure. The equations look the same whether time is treated in discrete steps or as a continuous variable.
-
-### Discrete versus continuous time
-
-How we represent time is dictated by how we sense and actuate: digital controllers sample and apply inputs in steps; the underlying physics evolve continuously.
-
-Time can be represented in two complementary ways, depending on how the system is sensed, actuated, or modelled.
-
-In **discrete time**, we treat time as an integer counter, $t = 0, 1, 2, \dots$, advancing in fixed steps. This matches how digital systems operate: sensors are sampled periodically, decisions are made at regular intervals, and most logged data takes this form.
-
-**Continuous time** treats time as a real variable, $t \in \mathbb{R}_{\ge 0}$. Many physical systems (mechanical, thermal, chemical) are most naturally expressed this way, using differential equations to describe how state changes.
-
-The two views are interchangeable to some extent. A continuous-time model can be discretized through numerical integration, although this involves approximation. The degree of approximation depends on both the step size $\Delta t$ and the integration algorithm used. Conversely, a discrete-time policy can be extended to continuous time by holding inputs constant over time intervals (a zeroth-order hold), or by interpolating between values.
-
-In physical systems, this hybrid setup is almost always present. Control software sends discrete commands to hardware (say, the output of a PID controller) which are then processed by a DAC (digital-to-analog converter) and applied to the plant through analog signals. The hardware might hold a voltage constant, ramp it, or apply some analog shaping. On the sensing side, continuous signals are sampled via ADCs before reaching a digital controller. So in practice, even systems governed by continuous dynamics end up interfacing with the digital world through discrete-time approximations.
-
-This raises a natural question: if everything eventually gets discretized anyway, why not just model everything in discrete time from the start?
-
-In many cases, we do. But continuous-time models can still be useful, sometimes even necessary. They often make physical assumptions more explicit, connect more naturally to domain knowledge (e.g. differential equations in mechanics or thermodynamics), and expose invariances or conserved quantities that get obscured by time discretization. They also make it easier to model systems at different time scales, or to reason about how behaviors change as resolution increases. So while implementation happens in discrete time, thinking in continuous time can clarify the structure of the model.
-
-It is helpful to see how both representations look in mathematical form. The state-space equations are nearly identical with different notations depending on how time is represented.
-
-**Discrete time**
-
-Having defined state as the summary we carry forward, a step of prediction applies the chosen input and advances the state.
-
-$\mathbf{x}_{t+1} = f_t(\mathbf{x}_t, \mathbf{u}_t), \qquad \mathbf{y}_t = h_t(\mathbf{x}_t, \mathbf{u}_t).$
-
-**Continuous time**
-
-$\dot{\mathbf{x}}(t) = f(\mathbf{x}(t), \mathbf{u}(t)), \qquad \mathbf{y}(t) = h(\mathbf{x}(t), \mathbf{u}(t)).$
-
-The dot denotes a derivative with respect to real time; everything else (state, control, observation) remains the same.
-
-When the functions $f$ and $h$ are linear we obtain
-
-Linearity is not a belief about the world, it is a modeling choice that trades fidelity for transparency and speed.
-
-$\dot{\mathbf{x}} = A\mathbf{x} + B\mathbf{u}, \qquad \mathbf{y} = C\mathbf{x} + D\mathbf{u}.$
-
-The matrices $A, B, C, D$ may vary with $t$.  Readers with an ML background will recognise the parallel with recurrent neural networks: the state is the hidden vector, the control the input, and the output the read‑out layer.
-
-Classical control often moves to the frequency domain, using Laplace and Z‑transforms to turn differential and difference equations into algebraic ones. That is invaluable for stability analysis of linear time‑invariant systems, but the time‑domain state‑space view is more flexible for learning and simulation, so we will keep our primary focus there.
-
-
-## Examples of Deterministic Dynamics: HVAC Control
-
-Consider a building in Montréal in the middle of February. Outside it is -20°C, and a thermostat tries to keep the interior comfortable. When the indoor temperature drops below your setpoint, the heating system kicks in. That system (a small building, a heater, the surrounding weather) can be modeled mathematically.
-
-We start with a very simple approximation: treat the entire room as a single "thermal mass," like a big air-filled box that heats up or cools down depending on how much heat flows in or out.
-
-Let $\mathbf{x}(t)$ be the indoor air temperature at time $t$, and $\mathbf{u}(t)$ be the heating power supplied by the HVAC system. The outside air temperature, denoted $\mathbf{d}(t)$, affects the system too, acting as a known disturbance. Then the rate of change of indoor temperature is:
-
-$$
-\dot{\mathbf{x}}(t) = -\frac{1}{RC}\mathbf{x}(t) + \frac{1}{RC}\mathbf{d}(t) + \frac{1}{C}\mathbf{u}(t).
-$$
-
-Here:
-
-* $R$ is a thermal resistance: how well the walls insulate.
-* $C$ is a thermal capacitance: how much energy it takes to heat the air.
-
-This is a **continuous-time linear system**, and we can write it in standard state-space form:
-
-$$
-\dot{\mathbf{x}}(t) = \mathbf{A}\mathbf{x}(t) + \mathbf{B}\mathbf{u}(t) + \mathbf{E}\mathbf{d}(t), \quad \mathbf{y}(t) = \mathbf{C}\mathbf{x}(t),
-$$
-
-with:
-
-* $\mathbf{x}(t)$: indoor air temperature (the state)
-* $\mathbf{u}(t)$: heater input (the control)
-* $\mathbf{d}(t)$: outdoor temperature (disturbance)
-* $\mathbf{y}(t)$: observed indoor temperature (output)
-* $\mathbf{A} = -\frac{1}{RC}$
-* $\mathbf{B} = \frac{1}{C}$
-* $\mathbf{E} = \frac{1}{RC}$
-* $\mathbf{C} = 1$
-
-This model is simple, but too simplistic. It ignores the fact that the walls themselves store heat and release it slowly. This kind of delay is called **thermal inertia**: even if you turn the heater off, the walls might continue to warm the room for a while.
-
-*Before reading on, try to guess: if we want to capture the fact that walls store heat, what new variable should we add to the state? How would heat flow between the air and this new variable?*
-
-To capture this effect, we need to expand our state to include the wall temperature. We now model two coupled thermal masses: one for the air, and one for the wall. Heat can flow from the heater into the air, from the air into the wall, and from the wall out to the environment. This gives a more realistic description of how heat moves through a building envelope.
-
-We write down an energy balance for each mass:
-
-* For the air:
-
-$$
-C_{\text{air}} \frac{dT_{\text{in}}}{dt} = \frac{T_{\text{wall}} - T_{\text{in}}}{R_{\text{ia}}} + u(t),
-$$
-
-* For the wall:
-
-$$
-C_{\text{wall}} \frac{dT_{\text{wall}}}{dt} = \frac{T_{\text{out}} - T_{\text{wall}}}{R_{\text{wo}}} - \frac{T_{\text{wall}} - T_{\text{in}}}{R_{\text{ia}}}.
-$$
-
-Each term on the right-hand side corresponds to a flow of heat: the air gains heat from the wall and the heater, and the wall exchanges heat with both the air and the outside.
-
-Now define the state vector:
-
-$$
-\mathbf{x}(t) = \begin{bmatrix} T_{\text{in}}(t) \\ T_{\text{wall}}(t) \end{bmatrix},
-\quad \mathbf{u}(t) = u(t),
-\quad \mathbf{d}(t) = T_{\text{out}}(t).
-$$
-
-Dividing both equations by their respective capacitances and rearranging terms, we arrive at the coupled system:
-
-$$
-\dot{\mathbf{x}}(t) = \mathbf{A}\mathbf{x}(t) + \mathbf{B}\mathbf{u}(t) + \mathbf{E}\mathbf{d}(t), \quad \mathbf{y}(t) = \mathbf{C}\mathbf{x}(t),
-$$
-
-with:
-
-$$
-\mathbf{A} = \begin{bmatrix}
--\frac{1}{R_{\text{ia}}C_{\text{air}}} & \frac{1}{R_{\text{ia}}C_{\text{air}}} \\
-\frac{1}{R_{\text{ia}}C_{\text{wall}}} & -\left(\frac{1}{R_{\text{ia}}} + \frac{1}{R_{\text{wo}}}\right) \frac{1}{C_{\text{wall}}}
-\end{bmatrix},
-\quad
-\mathbf{B} = \begin{bmatrix} \frac{1}{C_{\text{air}}} \\ 0 \end{bmatrix},
-\quad
-\mathbf{E} = \begin{bmatrix} 0 \\ \frac{1}{R_{\text{wo}}C_{\text{wall}}} \end{bmatrix},
-\quad
-\mathbf{C} = \begin{bmatrix} 1 & 0 \end{bmatrix}.
-$$
-
-Each entry in $\mathbf{A}$ has a physical interpretation:
-
-* $A_{11}$: heat loss from the air to the wall
-* $A_{12}$: heat gain by the air from the wall
-* $A_{21}$: heat gain by the wall from the air
-* $A_{22}$: net loss from the wall to both the air and the outside
-
-The temperatures are now dynamically coupled: any change in one affects the other. The wall acts as a buffer that absorbs and releases heat over time.
-
-This is still a linear system, just with a 2D state. But already it behaves differently. The walls absorb and release heat, smoothing out fluctuations and slowing down the response of the system.
-
-As we add more rooms, walls, or building elements, the system grows. Each new temperature adds a new state. The equations still have the same structure, and their sparsity follows the building layout. Nodes represent temperatures; edges encode how heat flows between them.
-
-### Control Abstraction Levels
-This network of states is what we control. What we mean by "control input" $\mathbf{u}(t)$ depends on both what we want to achieve and what we can implement in practice.
-
-The most direct interpretation is to let $\mathbf{u}(t)$ represent the actual heating power delivered to the system, measured in watts. This makes sense when modeling from physical principles or simulating a system with fine-grained actuation.
-
-In many real buildings, however, thermostats do not issue power commands. They activate a relay, turning the heater on or off based on whether the measured temperature crosses a setpoint. Some systems allow for modulated control—such as varying fan speed or partially opening a valve—but those details are often hidden behind firmware or closed controllers.
-
-A common implementation involves a **PID control loop** that compares the measured temperature to a setpoint and adjusts the control signal accordingly. While the actual logic might be simple, the resulting behavior appears smoothed or delayed from the perspective of the building.
-
-Depending on the abstraction level, we might:
-
-* Treat $\mathbf{u}(t)$ as continuous power input, if designing the full control logic.
-* Use it as a setpoint input, assuming a lower-level controller handles the rest.
-* Or reduce it to a binary signal—heater on or off—when working with logged behavior from a smart thermostat.
-
-Each perspective shapes the kind of model we build and the kind of control problem we pose. If we are designing a controller from scratch, it may be worth modeling the full closed-loop dynamics. If the goal is to tune setpoints or learn policies from data, a coarser abstraction may be both sufficient and more robust.
-
-### Advantages of Physics-Based Models
-
-At this point, one might ask: why build this kind of physics-based model at all? If we can log indoor temperatures, thermostat actions, and weather data, we could instead learn a model directly from data. A neural ODE, for example, would let us define a parameterized function:
-
-$$
-\dot{\mathbf{z}}(t) = f_{\boldsymbol{\theta}}(\mathbf{z}(t), \mathbf{u}(t), \mathbf{d}(t)), \quad \mathbf{y}(t) = g_{\boldsymbol{\theta}}(\mathbf{z}(t)),
-$$
-
-with both $f_{\boldsymbol{\theta}}$ and $g_{\boldsymbol{\theta}}$ learned from data. The internal state $\mathbf{z}(t)$ is not tied to any physical quantity. It just needs to be expressive enough to explain the observations.
-
-That flexibility can be useful, particularly when a large dataset is already available. But in building control and energy modeling, the constraints are usually different.
-
-Often, the engineer or consultant on site is working under tight time and information budgets. A floor plan might be available, along with some basic specs on insulation or window types, and a few days of logged sensor data. The task might be to simulate load under different weather scenarios, tune a controller, or just help understand why a room is slow to heat up. The model has to be built quickly, adapted easily, and remain understandable to others working on the same system.
-
-In that context, RC models are often the default choice: not because they are inherently better, but because they fit the workflow.
-
-The parameters of an RC model correspond to quantities one can reason about: thermal resistance, capacitance, heat transfer between zones. Values can be cross-checked against architectural plans or adjusted manually when something does not line up. It is straightforward to tell which wall or zone is contributing to slow recovery times.
-
-RC models can often be calibrated from short data traces, even when not all state variables are directly observable. The structure already imposes constraints: heat flows from hot to cold, dynamics are passive, responses are smooth. Those properties help narrow the space of valid parameter settings. A neural ODE, in contrast, typically needs more data to settle into stable and plausible dynamics, especially if no additional constraints are enforced during training.
-
-Once built, an RC model is straightforward to modify. If a window is replaced, or a wall gets insulated, only a few numbers need updating. The model is easy to pass along to another engineer or embed in a larger simulation. A model like
-
-$$
-\dot{\mathbf{x}} = \mathbf{A}\mathbf{x} + \mathbf{B}\mathbf{u} + \mathbf{E}\mathbf{d}
-$$
-is linear and low-dimensional. Simulating it is cheap, even if you do it many times. That may not matter now, but it will matter later, when we want to optimize over trajectories or learn from them.
-
-RC models are not always sufficient. They simplify or ignore many effects: solar gains, occupancy, nonlinearities, humidity, equipment switching behavior. If those effects are significant, and you have enough data, a black-box model (neural ODE or otherwise) might achieve lower prediction error. In practice, it is common to combine the two: use the RC structure as a backbone, and learn a residual model to correct for unmodeled dynamics.
-
-*Questions to consider: What changes if the building has multiple zones with different setpoints? How would you model a heat pump that can both heat and cool? If the thermostat only records on/off events, can you still identify the thermal parameters?*
-
-### Simulating the 1R1C Model
-
-Given a dynamics model, the next step is often simulation: computing a trajectory from an initial condition under a given input schedule. For a continuous-time ODE like the 1R1C model, this means numerical integration.
-
-The simplest approach is the **forward Euler method**: approximate the derivative by a finite difference and step forward in time.
+## System Boundaries and Action Channels
+
+A playground swing, an overhead crane, and a wave-energy converter all
+oscillate. Their visual similarity does not make them the same control problem.
+A rider changes body shape, a crane accelerates the suspension point, and a
+wave-energy converter changes a dissipative load while the sea supplies the
+forcing.
+
+:::{admonition} Formulation exercise
+:class: tip
+Before reading the table, predict which system should create oscillation, which
+should suppress it, and which should retain motion to extract energy. Then name
+the physical quantity that each controller can change.
+:::
 
 ```{code-cell} python
-import numpy as np
+:tags: [remove-cell]
+
+from pathlib import Path
+import sys
+
 import matplotlib.pyplot as plt
+import numpy as np
+from IPython.display import HTML, display
 
-# 1R1C building model parameters
-R = 2.0    # thermal resistance (°C/kW)
-C = 10.0   # thermal capacitance (kWh/°C)
-tau = R * C  # time constant (hours)
+code_dir = Path.cwd() / "code"
+if str(code_dir) not in sys.path:
+    sys.path.insert(0, str(code_dir))
 
-# Simulation parameters
-dt = 0.1   # time step (hours)
-T = 24     # total simulation time (hours)
-n_steps = int(T / dt)
+from modeling_interfaces import make_overview_figure
+from swing_control import (
+    make_animation as make_swing_animation,
+    make_summary_figure as make_swing_figure,
+    run_comparison as run_swing_comparison,
+)
 
-# Initial condition and inputs
-T_in = np.zeros(n_steps + 1)
-T_in[0] = 18.0  # initial indoor temperature (°C)
-
-# Outdoor temperature: sinusoidal with daily cycle
-t = np.linspace(0, T, n_steps + 1)
-T_out = -10 + 5 * np.sin(2 * np.pi * t / 24 - np.pi/2)  # cold winter day
-
-# Heating power: constant 2 kW
-Q_heat = 2.0 * np.ones(n_steps)
-
-# Forward Euler integration
-for k in range(n_steps):
-    dT_dt = (1/(R*C)) * (T_out[k] - T_in[k]) + (1/C) * Q_heat[k]
-    T_in[k+1] = T_in[k] + dt * dT_dt
-
-# Plot results
-fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 5), sharex=True)
-ax1.plot(t, T_in, label='Indoor', linewidth=2)
-ax1.plot(t, T_out, '--', label='Outdoor', linewidth=1.5)
-ax1.set_ylabel('Temperature (°C)')
-ax1.legend()
-ax1.set_title(f'1R1C Building Model (τ = {tau:.0f} hours)')
-ax1.grid(True, alpha=0.3)
-
-ax2.step(t[:-1], Q_heat, where='post', linewidth=2)
-ax2.set_xlabel('Time (hours)')
-ax2.set_ylabel('Heating power (kW)')
-ax2.set_ylim(0, 3)
-ax2.grid(True, alpha=0.3)
-plt.tight_layout()
-plt.show()
+swing_runs = run_swing_comparison()
 ```
 
-The time constant $\tau = RC = 20$ hours means the building responds slowly to changes. Even with constant heating, it takes several hours for the indoor temperature to stabilize. This slow response is exactly what enables load-shifting strategies: pre-heat when electricity is cheap, and coast through expensive periods.
+```{code-cell} python
+:tags: [remove-input]
+:label: fig-modeling-action-channels
+:caption: The systems share an oscillatory silhouette but expose different control interfaces. The rider changes internal shape, the crane accelerates its pivot, and the wave device changes a nonnegative dissipative load. Their desired motions and feasible actions therefore differ.
 
-## From Deterministic to Stochastic
+overview_figure = make_overview_figure()
+display(overview_figure)
+plt.close(overview_figure)
+```
 
-The models considered so far were deterministic: given an initial state and input sequence, the system evolves in a fixed, predictable way. But real systems rarely behave so neatly. Sensors are noisy. Parameters drift. The world changes in ways we cannot fully model.
+| system | state must describe | action changes | external influence | objective | hard constraint |
+|---|---|---|---|---|---|
+| playground swing | suspension angle and rider pose | internal body shape | gravity and drag | add mechanical energy | a chain can pull but cannot push |
+| overhead crane | trolley position and load angle | trolley acceleration | gravity and damping | move the load and remove sway | acceleration is bounded |
+| wave-energy converter | flap angle and velocity | power-take-off damping | incident waves | extract energy within motion limits | passive damping is nonnegative |
 
-To account for this uncertainty, we move from deterministic dynamics to **stochastic models**. There are two equivalent but conceptually distinct ways to do this.
-
-### Function plus Noise
-
-The most direct extension adds a noise term to the dynamics:
-
-$$
-\mathbf{x}_{t+1} = f_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w}_t), \quad \mathbf{w}_t \sim p_{\mathbf{w}}.
-$$
-
-If the noise is additive and Gaussian, we recover the standard linear-Gaussian setup used in Kalman filtering:
-
-$$
-\mathbf{x}_{t+1} = A\mathbf{x}_t + B\mathbf{u}_t + \mathbf{w}_t, \quad \mathbf{w}_t \sim \mathcal{N}(0, Q).
-$$
-
-We are not restricted to Gaussian or additive noise. For instance, if the noise distribution is non-Gaussian:
+Many mechanical models can be organized around a generalized position $q$,
+velocity $v$, auxiliary configuration $z$, and input $u$:
 
 $$
-\mathbf{x}_{t+1} = f(\mathbf{x}_t, \mathbf{u}_t) + \mathbf{w}_t, \quad \mathbf{w}_t \sim \text{Laplace}, \ \text{or}\ \text{Student-t},
+\dot q=v,
+\qquad
+M(q,z)\dot v
+=-\nabla V(q,z)-D(q,v,z)+B(q,v,z)u+d(t).
 $$
 
-then $\mathbf{x}_{t+1}$ inherits those properties. This is known as a **convolution model**: the next-state distribution is a shifted version of the noise distribution, centered around the deterministic prediction. More formally, this is a special case of a **pushforward measure**: the randomness from $\mathbf{w}_t$ is "pushed forward" through the function $f$ to yield a distribution over outcomes. 
+The mass matrix $M$, potential $V$, dissipation $D$, actuation map $B$, and
+disturbance $d$ have distinct physical roles. The term $B(q,v,z)u$ cannot be
+specified from the word "action" alone. An unconstrained vector input would
+omit the swing's internal-actuation geometry, the crane's acceleration limit,
+and the wave device's passivity restriction.
 
-Or the noise might enter multiplicatively:
+The system boundary also determines which variables are external. A wave torque
+is a disturbance for the energy converter but would be an action in a wave-tank
+experiment. The boundary should follow the decision maker whose choices the
+model is intended to support.
 
-$$
-\mathbf{x}_{t+1} = f(\mathbf{x}_t, \mathbf{u}_t) + \Gamma(\mathbf{x}_t, \mathbf{u}_t) \mathbf{w}_t,
-$$
+## Decision Models
 
-where $\Gamma$ is a matrix that modulates the effect of the noise, potentially depending on state and control. If $\Gamma$ is invertible, we can even write down an explicit density via a change-of-variables:
+In machine learning, a model often means a parameterized predictor. A
+**decision model** contains more: a state, available actions, dynamics,
+observations, an objective, constraints, and an information pattern. Prediction
+remains one component, but decisions require counterfactual trajectories under
+actions that may not yet have been observed.
 
-$$
-p(\mathbf{x}_{t+1} \mid \mathbf{x}_t, \mathbf{u}_t) = p_{\mathbf{w}}\left(\Gamma^{-1}(\mathbf{x}_t, \mathbf{u}_t)\left[\mathbf{x}_{t+1} - f(\mathbf{x}_t, \mathbf{u}_t)\right] \right)\cdot \left| \det \Gamma^{-1} \right|.
-$$
-
-This kind of structured noise is common in practice, for example, when disturbances are amplified at certain operating points.
-
-The **function-plus-noise** view is natural when we have a physical or simulator-based model and want to account for uncertainty around it. It is **constructive**: we know how the system evolves and how the randomness enters. This means we can **track the source of variability along a trajectory**, which is particularly useful for techniques like **reparameterization** or **infinitesimal perturbation analysis (IPA)**. These methods rely on being able to differentiate through the noise injection mechanism, something that is much easier when the noise is explicit and structured. 
-
-*Consider: if all we can do is sample next states from a simulator—without knowing the internal noise source—can we still write down a dynamics model? What form would it take?*
-
-### Transition Kernel
-
-The second perspective skips over the internal noise and defines the system directly in terms of the probability distribution over next states:
+For a finite horizon, one common formulation is
 
 $$
-p(\mathbf{x}_{t+1} \mid \mathbf{x}_t, \mathbf{u}_t).
+\begin{aligned}
+\underset{u_0,\ldots,u_{T-1}}{\operatorname{minimize}}\quad
+& \mathbb{E}\!\left[\sum_{t=0}^{T-1}
+  \ell_t(x_t,u_t)+\ell_T(x_T)\right] \\
+\text{subject to}\quad
+& x_{t+1}\sim P_t(\cdot\mid x_t,u_t), \\
+& u_t\in\mathcal U_t(x_t),
+\qquad x_t\in\mathcal X_t.
+\end{aligned}
 $$
 
-This **transition kernel** encodes all the uncertainty in the evolution of the system, without reference to any underlying noise source or functional form.
+This expression says what is optimized, how uncertainty propagates, and which
+trajectories are admissible. Omitting one of these pieces changes the problem,
+even if the same environment class and neural network are used afterward.
 
-This view is strictly more general: it includes the function-plus-noise case as a special instance. If we do know the function $f$ and the noise distribution $p_{\mathbf{w}}$ from the generative model, then the transition kernel is obtained by "pushing" the randomness through the function:
-
-$$
-p(\mathbf{x}_{t+1} \mid \mathbf{x}_t, \mathbf{u}_t) = \int \delta(\mathbf{x}_{t+1} - f(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w})) \, p_{\mathbf{w}}(\mathbf{w}) \, d\mathbf{w}.
-$$
-
-This may look abstract, but it is just marginalization: for each possible noise value $\mathbf{w}$, we compute the resulting next state, and then average over all possible $\mathbf{w}$, weighted by how likely each one is.
-
-If the noise were discrete, this becomes a sum:
+An **open-loop plan** selects the whole action sequence from information
+available at the start,
 
 $$
-p(\mathbf{x}_{t+1} \mid \mathbf{x}_t, \mathbf{u}_t) = \sum_{i=1}^k \mathbb{1}\{f(\mathbf{x}_t, \mathbf{u}_t, w_i) = \mathbf{x}_{t+1}\} \cdot p_i
+(u_0,\ldots,u_{T-1})=\mu(x_0).
 $$
 
-This abstraction is especially useful when we do not know (or do not care about) the underlying function or noise distribution. All we need is the ability to sample transitions or estimate their likelihoods. This is the default formulation in reinforcement learning, econometrics, and other settings focused on behavior rather than mechanism.
-
-To summarize: we have two views of stochastic dynamics. The **function-plus-noise** view is constructive; it tells us exactly how randomness enters and allows differentiation through the noise. The **transition kernel** view is more abstract but more general; it only requires that we can sample or evaluate likelihoods. Both describe the same object; the choice depends on what we know and what we need to compute.
-
-### Continuous-Time Analogue
-
-In continuous time, the stochastic dynamics of a system are often described using a **stochastic differential equation (SDE)**:
+A **feedback policy** selects each action from the information available at that
+time,
 
 $$
-d\mathbf{X}_t = f(\mathbf{X}_t, \mathbf{U}_t)\,dt + \sigma(\mathbf{X}_t, \mathbf{U}_t)\,d\mathbf{W}_t,
+u_t=\pi_t(I_t),
 $$
 
-where $\mathbf{W}_t$ is Brownian motion. The first term, called the **drift**, describes the average motion of the system. The second, scaled by $\sigma$, models how random fluctuations (diffusion) enter over time. Just like in discrete time, this is a **function + noise** model: the state evolves through a deterministic path perturbed by stochastic input.
+where $I_t$ may contain the current state, observations, or a history. A planned
+trajectory can perform well under its assumed initial condition and disturbance
+forecast while reacting poorly to a tap, a delayed actuator, or an unexpected
+arrival. Later chapters turn open-loop plans into feedback by replanning and by
+computing state-contingent value functions.
 
-This generative view again induces a probability distribution over future states. At any future time $t + \Delta t$, the system does not land at a single state but is described by a distribution that depends on the initial condition and the noise along the way.
+Several independent choices describe the model itself.
 
-Mathematically, this distribution evolves according to the **Fokker–Planck equation**, a partial differential equation that governs how probability density "flows" through time. It plays the same role here as the transition kernel did in discrete time: describing how likely the system is to be in any given state, without referring to the noise directly.
+| axis | common alternatives | consequence |
+|---|---|---|
+| time | continuous or discrete | differential equations or transition steps |
+| evolution | deterministic or stochastic | one next state or a distribution over next states |
+| state | continuous, discrete, or mixed | geometry of the state space and applicable solvers |
+| action | continuous, discrete, or mixed | control authority and optimization method |
+| observation | full state or partial/noisy measurement | state feedback or estimation from information histories |
+| horizon | finite, infinite, or terminating | terminal conditions and objective definition |
 
-While the mathematical generalization is clean, working with continuous-time stochastic models can be more challenging. Simulating sample paths is often straightforward (eg. nowadays diffusion models in generative AI), but writing down or computing the exact transition distribution usually is not. For this reason, many practical methods still rely on discrete-time approximations, even when the underlying system is continuous.
+Terms such as "continuous control" specify only one row of this table. They do
+not determine the time representation, uncertainty, observation model, or
+information available to the controller.
 
-#### Example: Managing a Québec Hydroelectric Reservoir
+## State-Space Models
 
-On the James Bay plateau, 1 400 km north of Montréal, the Robert-Bourassa reservoir stores roughly 62 km³ of water, more than the volume of Lake Ontario above its minimum operating level. Sixteen giant turbines sit 140 m below the surface, converting that stored head into 5.6 GW of electricity, about a fifth of Hydro-Québec's total capacity. A steady share of that output feeds Québec's aluminium smelters, which depend on stable, uninterrupted power.
+A state is a summary of the past sufficient to predict the next state once the
+current action and disturbance are specified. It is defined relative to a
+model. A simulator may store a large internal state while exposing a smaller
+observation to the controller.
 
-Water managers face competing objectives:
-
-* **Flood safety.** Sudden snowmelt or storms can overfill the basin, forcing emergency spillways to open. These events are spectacular, but carry real downstream risk and economic cost.
-* **Energy reliability.** If the level falls too low, turbines sit idle and contracts go unmet. Voltage dips at the smelters are measured in lost millions.
-
-A basic deterministic model for the mass balance of the reservoir is straightforward bookkeeping:
-
-$$
-\mathbf{x}_{t+1} = \mathbf{x}_t + \mathbf{r}_t - \mathbf{u}_t,
-$$
-
-where $\mathbf{x}_t$ is the current reservoir level, $\mathbf{u}_t$ is the controlled outflow through turbines, and $\mathbf{r}_t$ is the natural inflow from rainfall and upstream runoff.
-
-But inflow is variable, and its statistical structure matters. Two hydrological regimes dominate:
-
-* In spring, melting snow over days can produce a long-tailed inflow distribution, often modeled as log-normal or Gamma.
-* In summer, convective storms yield a skewed mixture: a point mass at zero (no rain), and a thin but heavy tail capturing sudden bursts.
-
-This motivates a simple stochastic extension:
+In discrete time, deterministic state-space dynamics take the form
 
 $$
-\mathbf{x}_{t+1} = \mathbf{x}_t - \mathbf{u}_t + \mathbf{w}_t, \quad
-\mathbf{w}_t \sim
-\begin{cases}
-0 & \text{with prob. } p_0, \\\\
-\text{LogNormal}(\mu, \sigma^2) & \text{with prob. } 1 - p_0.
-\end{cases}
+x_{t+1}=f_t(x_t,u_t,d_t),
+\qquad
+y_t=h_t(x_t,u_t,v_t),
 $$
 
-Here the physics is fixed, and all uncertainty sits in the inflow term $\mathbf{w}_t$. Rather than fitting a full transition model from $(\mathbf{x}_t, \mathbf{u}_t)$ to $\mathbf{x}_{t+1}$, we can isolate the inflow by rearranging the mass balance:
+where $d_t$ denotes a process disturbance and $v_t$ denotes measurement noise.
+In continuous time, the corresponding equations are
 
 $$
-\hat{\mathbf{w}}_t = \mathbf{x}_{t+1} - \mathbf{x}_t + \mathbf{u}_t.
+\dot x(t)=f(x(t),u(t),d(t)),
+\qquad
+y(t)=h(x(t),u(t),v(t)).
 $$
 
-This gives a direct estimate of the realized inflow at each timestep. From there, the problem becomes one of density estimation: fit a probabilistic model to the residuals $\hat{\mathbf{w}}_t$. In spring, this might be a log-normal distribution. In summer, a two-part mixture: a point mass at zero, and an exponential tail. These distributions can be estimated by maximum likelihood, or adjusted using additional features (covariates) such as upstream snowpack or forecasted temperature.
+Physical laws are often most legible in continuous time, while sensors,
+actuators, data sets, and software interfaces operate at discrete times. A
+numerical integrator and a sampling period connect the two descriptions. The
+sampling period is part of the model because changing it changes both the
+transition map and which disturbances can be resolved.
 
-This setup has practical benefits. Fixing the physical part of the model (how levels respond to inflow and outflow) helps focus the statistical modeling effort. Rather than fitting a full system model, we only need to estimate the variability in inflows. This reduces the number of degrees of freedom and makes the estimation problem easier to interpret. It also avoids conflating uncertainty in inflow with uncertainty in the response of the system.
-
-To get a sense of scale: the Robert-Bourassa reservoir has a usable storage range of roughly 20 km³. Weekly inflows during spring freshet might average 1.5 km³ with a standard deviation of 0.4 km³. A manager planning turbine releases might simulate 1000 inflow scenarios over a 52-week horizon to estimate the probability of overflow or shortage under different release policies. Each scenario is just a draw from the fitted inflow distribution, pushed through the deterministic mass balance.
-
-Compare this to a more generic approach, such as linear regression:
+Linear continuous-time dynamics have the form
 
 $$
-\mathbf{x}_{t+1} = a \mathbf{x}_t + b \mathbf{u}_t + \varepsilon_t.
+\dot x=Ax+Bu+Ed,
+\qquad
+y=Cx+Du.
 $$
 
-This is straightforward to fit, but offers no guarantee that the result behaves sensibly. The model might violate conservation of mass, or compensate for inflow variation by adjusting coefficients $a$ and $b$. This can lead to misleading conclusions, especially when extrapolating beyond the training data.
+The matrix $B$ describes how the action enters the dynamics, while $C$
+describes what is measured. These matrices encode different questions. Full
+actuation does not imply full observation, and full observation does not imply
+that every state component can be controlled.
 
-*Questions to consider: How would you incorporate weather forecasts into the inflow model? What if the reservoir is part of a cascade, where releases from one dam become inflows to the next? How would you handle the fact that inflow distributions differ by season?*
+Linearity is a modeling choice rather than a claim that the world is linear at
+all scales. A nonlinear system may be well approximated by a linear model near
+an equilibrium. [Dynamic Programming](dp.md) uses that local approximation to
+stabilize an inverted pendulum, while [Trajectory Optimization](trajectories.md)
+uses the nonlinear equations to move the pendulum into the local region.
 
-<!-- Hydro‑Québec engineers rely on structured models in practice. Over 150 gauging stations across the La Grande basin report real-time flows, levels, and precipitation to Environment Canada's HYDAT database, which is accessible through a public API. These data feed into Hydro‑Québec's SCADA systems, along with snow-course readings and rainfall estimates. From there, engineers build seasonal inflow models and update them daily.
+## Internal Actuation in SwingRL
 
-Synthetic years are then generated by sampling from these models. Each sampled inflow sequence is pushed through the deterministic mass balance, producing a possible reservoir trajectory. These Monte Carlo rollouts are used directly for planning. They help evaluate turbine schedules, size safety margins, and identify periods of elevated risk.
+The [`swing-rl`](https://github.com/pierrelux/swing-rl) environment asks whether
+a rider can pump a playground swing over the top bar without applying a motor
+torque at the pivot. Its articulated standing model exposes two normalized
+commands: squat depth and torso lean. A phase-dependent controller applies the
+squat command twice per swing cycle and the lean command once per cycle.
 
-Structured models are not just a matter of physical fidelity. They shape how data is used, how uncertainty is handled, and how downstream decisions are informed. The separation between known dynamics and unknown inputs gives a cleaner interface between estimation and control. -->
+The first experiment asks whether these structured internal motions can produce
+a full rotation, and whether that conclusion survives a change from a rigid rod
+to a chain that cannot sustain compression. SwingRL supplies the multibody
+dynamics, unilateral chain simulator, rollout recorder, and renderer.
 
+```{code-cell} python
+:tags: [remove-input]
+:label: fig-swing-structured-animation
+:caption: A standing-rider rollout generated by SwingRL's articulated rigid-rod model. The controller changes squat depth twice per cycle and torso lean once per cycle. No torque is applied at the suspension point, and the displayed angle is unwrapped across complete rotations.
+
+swing_animation, swing_view = make_swing_animation(
+    swing_runs["standing"], stride=20, fps=16
+)
+swing_html = swing_animation.to_jshtml(fps=16)
+plt.close(swing_view.fig)
+HTML(swing_html)
+```
+
+Let $\theta$ be the suspension angle, $\rho$ the rider's center-of-mass
+distance from the pivot, $\alpha$ its offset from the suspension line,
+$\psi=\theta+\alpha$, $\beta$ the body orientation relative to the suspension,
+and $J$ the rider's inertia about its center of mass. SwingRL's reduced
+one-degree-of-freedom equation is
+
+$$
+(m\rho^2+J)\ddot\theta
+=-m\rho^2\ddot\alpha
+-2m\rho\dot\rho\dot\psi
+-J\ddot\beta
+-\dot J(\dot\theta+\dot\beta)
+-mg\rho\sin\psi
++\tau_{\mathrm{damp}}.
+$$
+
+Torso lean contributes through the driven terms in $\ddot\alpha$ and
+$\ddot\beta$. Squatting changes $\rho$ and contributes through the parametric
+term $-2m\rho\dot\rho\dot\psi$. During a forward bottom passage,
+$\dot\psi>0$ and $\dot\rho<0$, so this term is positive. During a backward
+passage both signs reverse, and the term again accelerates the current motion.
+The rider restores the longer configuration near a turning point, where
+$|\dot\psi|$ is smaller.
+
+The experiment fixes the following model and evaluation settings.
+
+| quantity | value |
+|---|---:|
+| suspension length | 2.5 m |
+| rider and seat mass | 40 kg |
+| center-of-mass inertia | 2.0 kg m$^2$ |
+| integration interval | 0.02 s |
+| target angle | one complete unwrapped rotation, $2\pi$ rad |
+| random seed | 0 |
+
+The standing and seated bodies use their matching hand-written controllers. The
+standing controller is also evaluated without modification on SwingRL's chain
+model. The chain switches to ballistic motion when the suspension would require
+a negative force.
+
+| mechanism and suspension | outcome | peak angle | minimum suspension force |
+|---|---:|---:|---:|
+| standing, rigid rod | full rotation at 26.04 s | 360.30 degrees | -376 N |
+| standing, chain | no rotation in 32 s | 133.81 degrees | 0 N |
+| seated, rigid rod | no rotation in 60 s | 48.92 degrees | 307 N |
+
+```{code-cell} python
+:tags: [remove-input]
+:label: fig-swing-model-audit
+:caption: The structured standing controller completes a rotation on the rigid-rod plant, but that trajectory eventually requires a negative suspension force. SwingRL's unilateral chain model clips the feasible force at zero, enters a ballistic phase, and does not complete a rotation under the same controller. The seated rigid-rod trajectory remains taut but does not rotate within 60 seconds.
+
+swing_figure = make_swing_figure(swing_runs)
+display(swing_figure)
+plt.close(swing_figure)
+```
+
+The rigid-rod result answers the original question only for a suspension that
+can both pull and push. An ordinary chain has two modes. In the taut mode, the
+constrained pendulum dynamics apply while the tension satisfies $T\geq0$. At a
+release guard where the required tension reaches zero, the system enters a
+slack mode and follows ballistic dynamics. Contact with the chain-length
+boundary triggers a return to the taut mode, together with an impact law. This
+is a hybrid model because changing a parameter in the rod equation cannot
+represent the missing ballistic phase.
+
+A learned approximation fitted only to rigid-rod trajectories would inherit
+the same failure. Data remain useful for estimating rider parameters, damping,
+and contact losses after the unilateral mode structure has been represented.
+[Policy Gradients](pg.md) later compares the structured controller with a PPO
+policy trained on the same SwingRL plant and action limits.
+
+:::{dropdown} SwingRL implementation
+```{literalinclude} code/swing_control.py
+:language: python
+:start-at: def run_episode
+:end-before: def make_summary_figure
+```
+
+{download}`Download the complete SwingRL control example <code/swing_control.py>`
+:::
+
+## A Compact Linear Thermal Model
+
+A single-zone building provides a smaller example of state selection. Let
+$T(t)$ denote indoor temperature, $T_{\mathrm{out}}(t)$ outdoor temperature,
+and $Q(t)$ delivered heating power. Treating the room and its contents as one
+thermal mass gives the energy balance
+
+$$
+C\dot T(t)=\frac{T_{\mathrm{out}}(t)-T(t)}{R}+Q(t).
+$$
+
+The thermal resistance $R$ controls heat exchange with the exterior and the
+thermal capacitance $C$ controls how much energy changes the indoor temperature.
+In state-space notation, $x=T$, $u=Q$, and $d=T_{\mathrm{out}}$, so
+
+$$
+\dot x=-\frac{1}{RC}x+\frac{1}{C}u+\frac{1}{RC}d.
+$$
+
+This two-parameter model omits walls, solar gains, occupancy, humidity, and
+equipment switching. It nevertheless represents the slow thermal storage that
+makes preheating possible. Adding a wall temperature would increase the state
+dimension and represent a second time scale. Whether that extra state is useful
+depends on the decision horizon and the data available to estimate it.
+
+The numerical experiment asks how the time constant appears in a simulated
+trajectory. Forward Euler integration uses a 0.1-hour step over one day, with a
+constant 2 kW heater and a sinusoidal outdoor temperature.
+
+```{code-cell} python
+:tags: [remove-input]
+:label: fig-thermal-time-constant
+:caption: A one-state thermal model simulated with forward Euler. The 20-hour time constant filters the daily outdoor-temperature cycle, so the indoor temperature changes slowly despite the much faster variation outside.
+
+R = 2.0       # degrees C / kW
+C = 10.0      # kWh / degrees C
+dt = 0.1      # hours
+horizon = 24  # hours
+
+times = np.arange(0.0, horizon + dt, dt)
+outdoor = -10.0 + 5.0 * np.sin(2.0 * np.pi * times / 24.0 - np.pi / 2.0)
+heating = np.full(times.size - 1, 2.0)
+indoor = np.empty_like(times)
+indoor[0] = 18.0
+
+for step in range(times.size - 1):
+    temperature_rate = (
+        (outdoor[step] - indoor[step]) / (R * C) + heating[step] / C
+    )
+    indoor[step + 1] = indoor[step] + dt * temperature_rate
+
+figure, axes = plt.subplots(2, 1, figsize=(7.2, 4.6), sharex=True,
+                            constrained_layout=True)
+axes[0].plot(times, indoor, color="#0072B2", label="indoor")
+axes[0].plot(times, outdoor, "--", color="#D55E00", label="outdoor")
+axes[0].set_ylabel("temperature (degrees C)")
+axes[0].legend(frameon=False)
+axes[1].step(times[:-1], heating, where="post", color="#009E73")
+axes[1].set(xlabel="time (h)", ylabel="heating (kW)", ylim=(0.0, 3.0))
+for axis in axes:
+    axis.spines[["top", "right"]].set_visible(False)
+    axis.grid(axis="y", color="0.90", linewidth=0.6)
+figure
+```
+
+The simulation establishes behavior of the chosen model, not accuracy for a
+particular building. Measurements under changing weather and heating commands
+would be needed to estimate $R$ and $C$ and to test whether one thermal state is
+adequate.
+
+## Stochastic Dynamics
+
+Deterministic dynamics assign one next state to each state-action pair. Process
+noise, uncertain inflow, and unmodeled interactions instead produce a
+distribution of possible next states. A constructive representation makes the
+random input explicit:
+
+$$
+x_{t+1}=f_t(x_t,u_t,w_t),
+\qquad
+w_t\sim p_w.
+$$
+
+For additive Gaussian noise, this becomes
+
+$$
+x_{t+1}=Ax_t+Bu_t+w_t,
+\qquad
+w_t\sim\mathcal N(0,Q).
+$$
+
+The same stochastic dynamics can be represented directly by a transition
+kernel,
+
+$$
+P_t(A\mid x,u)
+=\Pr(x_{t+1}\in A\mid x_t=x,u_t=u),
+$$
+
+which assigns a probability to each measurable set of next states. The
+function-plus-noise representation exposes how randomness enters and may permit
+pathwise differentiation. The kernel representation requires only a
+distribution over next states and includes simulators whose internal random
+variables are hidden.
+
+In continuous time, a stochastic differential equation separates drift and
+diffusion:
+
+$$
+dX_t=f(X_t,U_t)\,dt+\sigma(X_t,U_t)\,dW_t.
+$$
+
+The sampling interval again matters. A discrete model obtained from this
+equation must account for how diffusion accumulates over the interval rather
+than reusing the same noise covariance at every resolution.
+
+### Reservoir Conservation and Uncertain Inflow
+
+A hydroelectric reservoir retains a known conservation law even when inflow is
+uncertain. With stored volume $x_t$, turbine release $u_t$, spill $s_t$, and
+inflow $w_t$, a daily balance is
+
+$$
+x_{t+1}=x_t+w_t-u_t-s_t.
+$$
+
+Capacity and operational limits add
+
+$$
+0\leq x_t\leq x_{\max},
+\qquad
+0\leq u_t\leq u_{\max},
+\qquad
+s_t\geq0.
+$$
+
+Historical weather and flow records may supply an inflow distribution or a
+conditional predictor. They do not need to relearn that stored water equals
+previous storage plus inflow minus release and spill. The conservation law
+supports counterfactual release schedules, while the learned component captures
+the uncertain external driver.
 
 ## Partial Observability
 
-So far, we have assumed that the full system state $\mathbf{x}_t$ is available. But in most real-world settings, only a partial or noisy observation is accessible. Sensors have limited coverage, measurements come with noise, and some variables are not observable at all.
-
-To model this, we introduce an **observation equation** alongside the system dynamics:
-
-$$
-\begin{aligned}
-\mathbf{x}_{t+1} &= f_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w}_t), \quad \mathbf{w}_t \sim p_{\mathbf{w}}, \\
-\mathbf{y}_t &= h_t(\mathbf{x}_t, \mathbf{v}_t), \quad \mathbf{v}_t \sim p_{\mathbf{v}}.
-\end{aligned}
-$$
-
-The state $\mathbf{x}_t$ evolves under control inputs $\mathbf{u}_t$ and process noise $\mathbf{w}_t$, but we do not observe $\mathbf{x}_t$ directly. Instead, we observe $\mathbf{y}_t$, which depends on $\mathbf{x}_t$ through some possibly nonlinear, noisy function $h_t$. The noise $\mathbf{v}_t$ captures measurement uncertainty.
-
-This setup defines a partially observed system. Even if the underlying dynamics are known, we still face uncertainty due to limited visibility into the true state. The controller or estimator must rely on the observations $\mathbf{y}_{0\:t}$ to make sense of the hidden trajectory.
-
-In the **deterministic** case, if the output map $h_t$ is full-rank and invertible, we may be able to reconstruct the state directly from the output: no filtering required. But once noise is introduced, that invertibility becomes more subtle: even if $h_t$ is bijective, the presence of $\mathbf{v}_t$ prevents us from recovering $\mathbf{x}_t$ exactly. In this case, we must shift from inversion to estimation, often via probabilistic inference.
-
-In the **linear-Gaussian case**, the model simplifies to:
+The state need not be directly measured. An observation model relates hidden
+state to sensor output:
 
 $$
-\begin{aligned}
-\mathbf{x}_{t+1} &= A\mathbf{x}_t + B\mathbf{u}_t + \mathbf{w}_t, \quad \mathbf{w}_t \sim \mathcal{N}(0, Q), \\
-\mathbf{y}_t &= C\mathbf{x}_t + D\mathbf{u}_t + \mathbf{v}_t, \quad \mathbf{v}_t \sim \mathcal{N}(0, R).
-\end{aligned}
+y_t=h(x_t,u_t,v_t),
+\qquad
+v_t\sim p_v.
 $$
 
-This is the classical state-space model used in signal processing and control. The model is fully specified by the system matrices and the covariances $Q$ and $R$. The state is no longer known, but under these assumptions it can be estimated recursively using the **Kalman filter**, which maintains a Gaussian belief over $\mathbf{x}_t$.
+For a linear Gaussian sensor, $y_t=Cx_t+v_t$ with
+$v_t\sim\mathcal N(0,R)$. A controller based only on $y_t$ may lose information
+needed to predict future transitions. An estimator can instead summarize the
+observation history as a state estimate or a distribution over possible states.
 
-Even when the model is nonlinear or non-Gaussian, the structure remains the same: a dynamic state evolves, and a separate observation process links it to the data we see. Many modern estimation techniques, including extended and unscented Kalman filters, particle filters, and learned neural estimators, build on this core structure.
-
-### Observation Kernel View
-
-Just as we moved from function-based dynamics to transition kernels, we can abstract away the noise source and define the **observation distribution** directly:
-
-$$
-p(\mathbf{y}_t \mid \mathbf{x}_t).
-$$
-
-This kernel summarizes what the sensors tell us about the hidden state. If we know the generative model—say, that $\mathbf{y}_t = h_t(\mathbf{x}_t) + \mathbf{v}_t$ with known $p_{\mathbf{v}}$—then this kernel is induced by marginalizing out $\mathbf{v}_t$:
+Adaptive optics provides a concrete example. Atmospheric turbulence distorts
+the incoming optical wavefront, but a wavefront sensor measures noisy local
+slopes rather than the phase at every point. A deformable mirror applies the
+control input. A simple discrete model is
 
 $$
-p(\mathbf{y}_t \mid \mathbf{x}_t) = \int \delta\bigl(\mathbf{y}_t - h_t(\mathbf{x}_t, \mathbf{v})\bigr)\, p_{\mathbf{v}}(\mathbf{v})\, d\mathbf{v}.
+x_{t+1}=Ax_t+w_t,
+\qquad
+y_t=Hx_t+v_t,
+\qquad
+u_t=-K\hat x_t,
 $$
 
-But we do not have to start from the generative form. In practice, we might define or learn $p(\mathbf{y}_t \mid \mathbf{x}_t)$ directly, especially when dealing with black-box sensors, perception models, or abstract measurement processes.
+where $x_t$ is the latent wavefront, $H$ maps phase to measured slopes, and
+$\hat x_t$ is reconstructed from the measurement history. Treating $y_t$ as the
+state would hide the reconstruction problem and can make the apparent dynamics
+non-Markovian.
 
-### Example – Stabilizing a Telescope's Vision with Adaptive Optics
+## Model Interfaces
 
-On Earth, even the largest telescopes cannot see perfectly. As starlight travels through the atmosphere, tiny air pockets with different temperatures bend the light in slightly different directions. The result is a distorted image: instead of a sharp point, a star looks like a flickering blob. The distortion happens fast, on the order of milliseconds, and changes continuously as wind moves the turbulent layers overhead.
+Two models may generate the same nominal trajectory while exposing different
+operations to an algorithm. Access to equations, derivatives, resets, and new
+interactions determines what can be computed.
 
-**Adaptive optics (AO)** systems cancel out these distortions in real time by measuring how the incoming wavefront of light is distorted and using a flexible mirror to apply a counter-distortion that straightens it back out. The difficulty is that the wavefront cannot be observed directly. The sensor provides only noisy measurements of its **slopes** (the angles of tilt at various points), and the controller must act fast, before the atmosphere changes again.
+| available interface | operations it supports directly | methods developed later |
+|---|---|---|
+| equations and derivatives | evaluate local dynamics, linearize, differentiate constraints | direct transcription, LQR, gradient-based MPC |
+| one-step transition function | reset and advance from chosen state-action pairs | shooting, simulation-based MPC, model-based dynamic programming |
+| generative simulator | sample trajectories without inspecting internal equations | Monte Carlo estimation, derivative-free search, policy learning |
+| logged transitions | fit or evaluate models on the recorded distribution | system identification, fitted value and Q methods, offline evaluation |
+| interactive environment and objective | collect new transitions under chosen actions | online reinforcement learning |
 
-To design a controller here, we need a model of how the distortions evolve. And that means building a decision-making model: one that includes uncertainty, partial observability, and fast feedback.
+The rows are not mutually exclusive. A simulator may be differentiable, an
+explicit model may contain unknown parameters, and logged data can be used to
+fit a new one-step model. The table records the information supplied to the
+algorithm, not the origin or fidelity of the model.
 
-The main object to track is the distortion of the incoming wavefront. This phase field $\phi(\mathbf{r}, t)$ cannot be observed directly, but we can represent it approximately using a finite basis (e.g., Fourier or Zernike). The coefficients of this expansion form our internal state:
+A program is therefore a model when its execution defines state transitions.
+MuJoCo combines rigid-body equations, contact detection, constraint forces,
+sensors, and rendering. A user may have a reset-and-step interface without
+having a practical expression for its complete local transition function.
+Discrete-event simulators instead advance from one asynchronous event to the
+next. Agent-based traffic simulators update many vehicle states from local
+car-following, lane-changing, and routing rules. Both still define transitions,
+although their useful state and time index differ from those of an ODE.
 
-$$
-\mathbf{x}_t \in \mathbb{R}^n \quad \text{(wavefront distortion at time } t).
-$$
+Calling a method **model-free** describes an information restriction. The
+method does not query an explicit transition model during its update. It still
+depends on a specified state or observation, action set, reward, sampling
+process, and assumptions about how experience relates to future deployment.
 
-A typical system might use $n = 100$ to $500$ Zernike modes, sampled at 1–2 kHz. The state dimension is modest, but the control loop must complete in under a millisecond to keep up with the atmosphere.
+### Language Generation as a Sequential System
 
-The atmosphere evolves in time. A simple but effective model assumes the turbulence is "frozen" and just blown across the telescope by the wind. That gives us a discrete-time linear model:
-
-$$
-\mathbf{x}_{t+1} = \mathbf{A} \mathbf{x}_t + \mathbf{w}_t,
-$$
-
-where $\mathbf{A}$ shifts the distortion pattern in space, and $\mathbf{w}_t$ is a small random change from evolving turbulence. This noise is not arbitrary: its statistics follow a power law derived from Kolmogorov's turbulence model. In particular, higher spatial frequencies (small-scale wiggles) have less energy than low ones. This allows us to build a prior on how likely different distortions are.
-
-The full wavefront is not directly observable. Instead, we use a wavefront sensor: a camera that captures how the light bends. What it actually measures are local slopes, the gradients of the wavefront, not the wavefront itself. So our observation model is:
-
-$$
-\mathbf{y}_t = \mathbf{C} \mathbf{x}_t + \boldsymbol{\varepsilon}_t,
-$$
-
-where $\mathbf{C}$ is a known matrix that maps wavefront distortion to measurable slope angles, and $\boldsymbol{\varepsilon}_t$ is measurement noise (e.g., due to photon limits).
-
-The control objective is to flatten the wavefront using a deformable mirror. The mirror can apply a small counter-distortion $\mathbf{u}_t$ that subtracts from the atmospheric one:
-
-$$
-\text{Residual state:} \quad \mathbf{x}_t^{\text{res}} = \mathbf{x}_t - \mathbf{B} \mathbf{u}_t.
-$$
-
-The goal is to choose $\mathbf{u}_t$ to minimize the residual distortion by making the light flat again.
-
-Without a model, we would just react to the current noisy measurements. With a model, we can predict how the wavefront will evolve, filter out noise, and act preemptively. This is essential in AO, where decisions must be made every millisecond. Kalman filters are often used to track the hidden state $\mathbf{x}_t$, combining model predictions with noisy measurements, and linear-quadratic regulators (LQR) or other optimal controllers use those estimates to choose the best correction.
-
-Adaptive optics is a rare case where continuous-time modeling also plays a role. The true evolution of the turbulence is continuous, and we can model it using a stochastic differential equation (SDE):
+Autoregressive language generation fits the same notation with an unusual
+transition. For a fixed prompt $p$, let
 
 $$
-d\mathbf{x}(t) = \mathbf{F} \mathbf{x}(t)\,dt + \mathbf{G}\,d\mathbf{W}(t),
+s_t=(p,y_1,\ldots,y_{t-1}),
+\qquad
+a_t=y_t.
 $$
 
-where $\mathbf{W}(t)$ is Brownian motion and the matrix $\mathbf{G}$ encodes the Kolmogorov spectrum. Discretizing this equation gives us the $\mathbf{A}$ and $\mathbf{Q}$ matrices for the discrete-time model above.
-
-*Questions to consider: What happens if the wind speed changes suddenly—does the frozen-flow assumption break down? How might you adapt the model online as conditions change? If the guide star is faint and photon noise dominates, how does that affect the observation model?*
-
-
-## Programs as Models
-
-Consider again the HVAC example from earlier in this chapter. We wrote down a simple RC model: $\dot{T} = \frac{1}{RC}(T_{\text{out}} - T) + \frac{1}{C}Q$. Given the parameters $R$ and $C$, we can compute the temperature at any future time by solving the differential equation. We have direct access to the dynamics function itself.
-
-Now imagine instead that we are given only a software tool—say, EnergyPlus—that simulates the building. We can feed it an initial temperature and a schedule of heating commands, press "run," and observe the resulting temperature trajectory. But we cannot inspect the internal equations. We cannot take a derivative of the output with respect to a parameter. We can only query the simulator as a black box.
-
-This distinction matters for control. Many algorithms assume we can evaluate $f(\mathbf{x}, \mathbf{u})$ at arbitrary points, or even differentiate through it. When the model is a program rather than an equation, these operations are not always available, and we must adapt our methods accordingly.
-
-Up to this point, we have described models using systems of equations—either differential or difference equations—that express how a system evolves over time. These **analytical models** define the transition structure explicitly. For instance, in discrete time, the evolution of the state is governed by a known function:
+The base transition appends the selected token,
 
 $$
-\mathbf{x}_{k+1} = f(\mathbf{x}_k, \mathbf{u}_k)
+s_{t+1}=\operatorname{concat}(s_t,a_t).
 $$
 
-Given access to $f$, we can construct trajectories, analyze system behavior, and design control policies. The important feature here is not that the model evolves one step at a time, but that we are given the **local dynamics function** $f$ itself.
+This transition is deterministic once the token is chosen; uncertainty comes
+from the token policy $\pi(a_t\mid s_t)$. A language model therefore supplies a
+policy, while the prefix update supplies the transition. A reward or preference
+model is an additional object rather than an inherent property of text
+generation.
 
-In contrast, **simulation-based models** do not expose $f$ directly. Instead, they define a procedure—implemented in code—that takes an initial state and input sequence and returns the resulting trajectory:
+The simplified boundary changes when the model calls tools, receives new user
+messages, or interacts with an external application. Tool outputs and user
+responses then become observations generated by an environment outside the
+prefix concatenation rule. Context truncation also requires the retained
+context or memory state to be specified explicitly.
 
-$$
-\{\mathbf{x}_0, \mathbf{x}_1, \dots, \mathbf{x}_T\} = \mathcal{S}(\mathbf{x}_0, \{\mathbf{u}_t\}_{t=0}^{T-1})
-$$
+## Known Structure and Learned Components
 
-Here, $\mathcal{S}$ represents the full simulator. Internally, it may apply numerical integration, scheduling logic, branching rules, or other computations. But these details are encapsulated. From the outside, we can only query the simulator by running it.
-
-This distinction is subtle but important. Both types of models can generate trajectories. What matters is the **interface**: analytical models provide direct access to $f$; simulation models do not. They offer a trajectory-generation interface, but hide the internal structure that produces it.
-
-*Before reading on, think about which category the examples from earlier in this chapter fall into. Is the RC thermal model analytical or simulation-based? What about the reservoir model? The adaptive optics system?*
-
-### Case Study: Robotics with MuJoCo
-
-MuJoCo simulates the dynamics of articulated rigid bodies under contact constraints. The equations it solves include:
-
-$
-M(\mathbf{q})\ddot{\mathbf{q}} + C(\mathbf{q}, \dot{\mathbf{q}}) = \boldsymbol{\tau} + J^\top \boldsymbol{\lambda}
-$
-
-$
-\phi(\mathbf{q}) = 0, \quad \boldsymbol{\lambda} \geq 0, \quad \boldsymbol{\lambda}^\top \phi = 0
-$
-
-Here $\mathbf{q}$ are joint positions, $M$ is the mass matrix, and $\boldsymbol{\lambda}$ are contact forces enforcing non-penetration. But these physical equations are part of a larger simulator that also includes collision detection, contact force models, sensor and actuator emulation, and visual rendering.
-
-The full behavior of a robot interacting with its environment emerges only when the simulator is executed. While the underlying physics are well-understood, the complexity of contact dynamics, collision detection, and sensor modeling makes it impractical to expose the local dynamics function $f$ directly.
-
-*Questions to consider: If you can only query MuJoCo as a black box, how would you estimate the gradient of a cost function with respect to the control inputs? What changes if you have access to the simulator's source code?*
-
-### Systems with Discrete Events
-
-Many simulation models arise when a system's dynamics are driven not by time-continuous evolution, but by the occurrence of events. These **discrete-event systems** (DES) change state only at specific, often asynchronous points in time. Between events, the state remains fixed.
-
-A discrete-event system can be described by:
-
-* a set of discrete states $\mathcal{X}$,
-* a set of events $\mathcal{E}$,
-* a transition function $f: \mathcal{X} \times \mathcal{E} \rightarrow \mathcal{X}$,
-* and a time-advance function $t_a: \mathcal{X} \rightarrow \mathbb{R}_{\geq 0}$.
-
-At each point, the system checks which events are enabled and advances to the next scheduled one.
-
-Consider a software-defined networking (SDN) controller managing traffic routing in a data center. The system must make real-time decisions about packet forwarding paths based on network conditions and service requirements.
-
-The discrete states $\mathcal{X}$ represent the current network configuration: active routing tables, link utilization levels, and quality-of-service priority queues at each switch.
-
-The events $\mathcal{E}$ include new flow requests arriving (video streaming, database queries, file transfers), link failures or congestion threshold violations, flow completion notifications, load balancing triggers when servers exceed capacity, and network policy updates from administrators.
-
-The transition function $f$ captures how routing decisions change the network state. When a high-priority video conference flow arrives while a link is congested, the controller might transition to a new state where low-priority background traffic is rerouted through alternative paths.
-
-The time-advance function $t_a$ determines when the next routing decision occurs. Flow arrivals follow traffic patterns (bursty during business hours), while link failures are rare but unpredictable events.
-
-Between events, packets follow the established routing rules; the same forwarding tables remain active across all switches. The control problem here is to adapt routing decisions to discrete network events, balancing throughput, latency, and reliability constraints.
-
-*Questions to consider: How would you define a "state" for this system in a way that is Markovian? What information would you need to predict the next event time?*
-
-### Hybrid Systems
-
-Some systems evolve continuously most of the time but undergo discrete jumps in response to certain conditions. These **hybrid systems** are common in control applications.
-
-The system consists of:
-
-* a set of discrete modes $q \in \mathcal{Q}$,
-* continuous dynamics in each mode: $\dot{\mathbf{x}} = f_q(\mathbf{x})$,
-* guards that specify when transitions between modes occur,
-* and reset maps that update the state during such transitions.
-
-An HVAC system can be in one of several modes: `heating`, `cooling`, or `off`. The temperature evolves continuously according to physical laws, but when it crosses certain thresholds, the system switches modes:
-
-```python
-if x < setpoint - delta:
-    mode = "heating"
-elif x > setpoint + delta:
-    mode = "cooling"
-else:
-    mode = "off"
-```
-
-Within each mode, a different differential equation applies. This results in a piecewise-smooth trajectory with mode-dependent dynamics.
-
-### Case Study: Building Energy with EnergyPlus
-
-EnergyPlus provides a detailed example of hybrid systems in building energy simulation. At its core are physical equations describing heat flows:
+Uncertainty in one component does not require replacing the entire model. A
+structured transition can retain known dynamics and add a learned residual:
 
 $$
-C_i \frac{dT_i}{dt} = \sum_j h_{ij} A_{ij}(T_j - T_i) + Q_i
+x_{t+1}=f_{\mathrm{known}}(x_t,u_t)
++r_\theta(x_t,u_t,z_t)+w_t.
 $$
 
-It also solves implicit equations representing HVAC component behavior:
+The feature vector $z_t$ may contain weather, payload information, or other
+measured conditions. The residual $r_\theta$ has a narrower task than a complete
+black-box transition: it predicts the part left unexplained by the known model.
 
-$$
-0 = f(T, \dot{m}, P)
-$$
+| system | retained structure | plausible learned component | model-audit experiment |
+|---|---|---|---|
+| swing | internal actuation and unilateral tension | rider, damping, and contact-loss parameters | measure the first slack event |
+| reservoir | water conservation and capacity limits | conditional inflow distribution | test across seasons and extreme precipitation |
+| traffic simulator | road geometry and interaction rules | demand, dwell time, or forecast residual | change schedule and weather conditions |
 
-But the actual simulator includes hundreds of thousands of lines of code handling interpolated weather data, occupancy schedules, equipment performance curves, and control logic implemented as finite-state machines.
+Generative models can produce plausible simulator and controller code quickly.
+That code does not establish that a chain can sustain the simulated force, that
+an action has the intended physical meaning, or that a scalar reward contains a
+safety requirement. Those claims require inspection of the model and evidence
+from targeted experiments.
 
-The result is a program that emulates how a building behaves over time, given environmental inputs and schedules. The hybrid nature emerges from the interaction between continuous thermal dynamics and discrete control decisions made by thermostats, occupancy sensors, and HVAC equipment.
-
-*Questions to consider: How does EnergyPlus relate to the simple RC models we derived earlier? Could you use an RC model as a surrogate for optimization, then validate in EnergyPlus?*
-
-### Agent-Based Models
-
-Some simulation models do not describe systems via global state transitions, but instead simulate the behavior of many individual components or **agents**, each following local rules. These **agent-based models** (ABMs) are widely used in epidemiology, ecology, and social modeling.
-
-Each agent maintains its own internal state and acts according to probabilistic or rule-based logic. The system's behavior arises from the interactions among agents.
-
-Consider a neighborhood where each household is an agent making energy consumption decisions based on real-time electricity pricing and thermal comfort preferences. Each household agent has internal state (current temperature, HVAC settings, comfort preferences, price sensitivity), local decision rules (MPC algorithms that optimize the trade-off between energy cost and thermal comfort), and unique characteristics (different utility functions, thermal mass, occupancy patterns).
-
-The simulator might execute something like:
-
-```python
-for household in neighborhood:
-    # Each household solves its own MPC optimization
-    current_price = utility.get_current_price()
-    comfort_weight = household.comfort_preference
-    
-    # Optimize over prediction horizon
-    optimal_setpoint = household.mpc_controller.optimize(
-        current_temp=household.temperature,
-        price_forecast=utility.price_forecast,
-        comfort_weight=comfort_weight
-    )
-    
-    household.set_hvac_setpoint(optimal_setpoint)
-    
-    # Update shared grid load
-    neighborhood.total_demand += household.power_consumption
-```
-
-The macro-level demand patterns—peak shifting, load leveling, rebound effects—emerge from individual household optimization decisions. No single equation describes the neighborhood's energy consumption; it arises from the collective behavior of autonomous agents each solving their own control problems.
-
-### Case Study: Traffic Simulation with SUMO
-
-SUMO is an agent-based traffic simulator used in transportation research. Each vehicle is an agent with its own route, driving behavior, and decision-making logic. The Krauss car-following rule shows how individual vehicle agents behave:
-
-```python
-def update_vehicle(v, v_leader, gap, dt):
-    v_safe = v_leader + (gap - min_gap) / tau
-    v_desired = min(v_max, v_safe)
-    ε = random.uniform(0, 1)
-    v_new = max(0, v_desired - ε * a_max * dt)
-    x_new = x + v_new * dt
-    return x_new, v_new
-```
-
-Beyond car-following, each vehicle agent also plans routes through the network based on travel time estimates, responds to traffic signals and road conditions, makes lane-changing decisions based on utility functions, and exhibits individual driving characteristics (aggressiveness, reaction time).
-
-The emergent traffic patterns—congestion formation, traffic waves, bottlenecks—arise from the collective behavior of thousands of individual vehicle agents, each following local rules and making autonomous decisions.
-
-*Questions to consider: In an agent-based model, what plays the role of the "state"? Is it the collection of all agent states? How would you define a policy that controls traffic signals based on this high-dimensional state?*
-
-To summarize the taxonomy so far: we have moved from analytical models (where the dynamics function $f$ is given explicitly) to simulation-based models (where we can only query trajectories). Within simulation-based models, we distinguished three patterns: discrete-event systems, where the state changes only at specific events; hybrid systems, where continuous dynamics interact with discrete mode switches; and agent-based models, where macro-level behavior emerges from local agent interactions.
-
-This distinction will matter throughout the book. When we have access to the dynamics function $f$, we can use gradient-based trajectory optimization (Chapter 3) or derive closed-form solutions like the Riccati equation for LQR. When we only have simulator access, we must rely on sampling-based methods: Monte Carlo estimation, reinforcement learning, and derivative-free optimization. The model interface shapes the algorithms we can apply.
-
-The following case study illustrates how these ideas combine in practice.
-
-### Case Study: Curbside Access at Montréal–Trudeau Airport
-
-Afternoon traffic at Montréal–Trudeau airport regularly backs up along the two-lane ramp leading to the departures curb. As passenger volumes rebound, the mix of private drop-offs, taxis, and shuttles converging in a confined space produces frequent delays. When curb dwell times rise, especially around wide-body departures, queues can spill back onto the access road and interfere with other flows on the airport campus.
-
-To manage the situation, the airport operator relies on a dense sensor network. Cameras and license plate readers track vehicle trajectories across virtual gates, generating a real-time stream of entry points, curb interactions, and exit times. According to public statements, AI-based forecasting solutions have been deployed to anticipate congestion and suggest alternative routing options for passengers and drivers. While no technical details have been disclosed, this is a typical instance of a traffic prediction and control problem that lends itself to agent-based modeling.
-
-In such a model, each vehicle is treated as an individual agent with internal state:
-
-$$
-s_t = \bigl(\text{lane},\;x_t,\;v_t,\;\text{intent}\bigr),
-$$
-
-where $x_t$ and $v_t$ denote longitudinal position and speed, and lane and intent capture higher-level behavioral traits. The simulation proceeds in discrete time. At each step, agents update their acceleration based on local traffic density (e.g., via a car-following model like IDM), evaluate potential lane changes (e.g., using a utility or incentive rule), and advance position accordingly.
-
-The layout of the ramp—its geometry, merges, and constraints—is fixed. What changes are the traffic patterns and driver behaviors. These can be estimated from historical trajectories and updated as new data arrives. In a real-time setting, a filtering step adjusts the simulation so that its predicted flows remain consistent with current observations.
-
-While the behavior of each individual agent is governed by program logic and heuristics—such as car-following rules, desired speeds, or gap acceptance—some parameters are identified offline from historical data, while others are estimated online. This adaptation helps the model track observed conditions. But even with such adjustments, not all effects are easily captured.
-
-Construction activity, weather disturbances, and irregular flight scheduling can introduce sudden shifts in flow that lie outside the scope of the structural model. To account for these, one can overlay a data-driven correction on top of the simulation. Suppose the simulator produces a queue length forecast $q^{\text{sim}}_{t+h}$ over horizon $h$. A statistical model can be trained to predict the residual between this forecast and the observed outcome:
-
-$$
-r_{t+h} = q^{\text{obs}}_{t+h} - q^{\text{sim}}_{t+h},
-$$
-
-as a function of exogenous features $z_t$, such as weather, incident flags, or scheduled arrivals. The final forecast then becomes:
-
-$$
-\widehat{q}_{t+h} = q^{\text{sim}}_{t+h} + \phi(z_t),
-$$
-
-where $\phi$ is a learned mapping from external conditions to the expected correction. The result is a hybrid model: the simulation enforces physical structure and agent-level behavior, while the residual model compensates for aspects of the system that are harder to express analytically.
-
-*Questions to consider: What are the tradeoffs between using a purely data-driven model versus a simulation with residual correction? How would you decide how much structure to build into the simulation versus how much to learn from data?*
-
+A residual cannot repair a missing action channel or a missing physical mode if
+the training data never contains evidence of it. The SwingRL comparison exposed
+the failure by changing the suspension model while holding the controller fixed.
+Comparable interventions are needed to decide which structure should remain and
+which component should be learned.
 
 ## Summary
 
-This chapter introduced the modeling vocabulary we use throughout the book.
+A decision model specifies state, action, dynamics, observations, objective,
+constraints, time, and information. The state-space representation separates
+what evolves from what is observed and what can be controlled. Continuous and
+discrete time, deterministic and stochastic evolution, and full and partial
+observation are independent modeling choices.
 
-A **dynamics model** describes how a system evolves in response to inputs we control and disturbances we cannot. The **state-space representation** provides a common language: the state $\mathbf{x}$ is a compact summary of the past sufficient to predict the future given the current input. This representation works for both discrete-time systems (difference equations) and continuous-time systems (differential equations), and for both linear and nonlinear dynamics.
+The SwingRL experiment showed a structured controller completing a rotation on
+a rigid rod and failing on a unilateral chain. The discrepancy was caused by a
+missing mode, not by an uncertain coefficient. The thermal and reservoir
+examples showed the complementary case, where compact known dynamics can be
+retained while parameters or disturbances are estimated from data.
 
-The transition from **deterministic to stochastic models** adds uncertainty. We saw two equivalent views: the **function-plus-noise** perspective, which is constructive and allows differentiation through the randomness, and the **transition kernel** perspective, which is more abstract but requires only the ability to sample or evaluate likelihoods. The choice depends on what we know about the system and what we need to compute.
-
-**Partial observability** adds another layer: the state is hidden, and we only see noisy projections through an observation model. This structure—hidden state, stochastic dynamics, noisy observations—is the foundation for state estimation (Kalman filtering, particle filtering) and for decision-making under uncertainty.
-
-Beyond analytical models, we also considered **simulation-based models** where the dynamics function is not exposed directly. Instead, a program takes an initial state and input sequence and returns the resulting trajectory. This includes discrete-event systems (where state changes only at specific events), hybrid systems (where continuous dynamics interact with discrete mode switches), and agent-based models (where macro-level behavior emerges from local agent interactions). These simulation-based approaches are common in robotics, building energy, and traffic modeling.
-
-Throughout, we emphasized that models for control need not be accurate in every detail. What matters is whether they capture the structure relevant to the decisions being made. A simple two-parameter thermal model can guide effective load-shifting strategies; a physics-based reservoir model with fitted inflow distributions can support robust planning; a linear model of atmospheric turbulence can enable real-time wavefront correction. The model is a tool for decision-making, not an end in itself.
-
-There is no universally correct way to model a system. The choice depends on what we know, what we can observe, what we care about, and what tools we have. In every case, modeling choices define the structure of the problem and the space of possible solutions. The next chapter turns to numerical trajectory optimization: how to compute optimal trajectories given a dynamics model.
-
+The model interface determines the methods available to the decision maker.
+The next chapter assumes a dynamics model that can generate and constrain
+candidate trajectories, then computes an open-loop plan. Later chapters add
+feedback and learn model components, values, or policies when the corresponding
+objects are unavailable or too costly to compute directly.
 
 ```{admonition} Exercises
 :class: hint dropdown
 
-**Basic**
+1. For an unfamiliar system, write five lines specifying its state, action,
+   disturbance, objective, and one hard constraint. State where the system
+   boundary is drawn.
 
-1. Write the 1R1C thermal model $\dot{T} = \frac{1}{RC}(T_{\text{out}} - T) + \frac{1}{C}Q$ in standard state-space form $\dot{\mathbf{x}} = A\mathbf{x} + B\mathbf{u} + E\mathbf{d}$. Identify the matrices $A$, $B$, $E$, and $C$ (for the output equation $\mathbf{y} = C\mathbf{x}$).
+2. In the action-channel figure, explain why replacing every input by an
+   unconstrained generalized force changes all three physical problems.
 
-2. A robot arm has angular position $\theta$ and angular velocity $\omega = \dot{\theta}$. The motor applies a torque $u$, and friction opposes motion proportionally to velocity. Write down a plausible continuous-time state-space model. What is the state vector? What are the system matrices if the model is linear?
+3. Convert $\dot x=-ax+bu$ to a discrete-time model using forward Euler with
+   step size $\Delta t$. Identify the resulting coefficients.
 
-3. Convert the continuous-time system $\dot{x} = -ax + bu$ to discrete time using forward Euler with step size $\Delta t$. What are the discrete-time system matrices $A_d$ and $B_d$?
+4. Use the sign of $-2m\rho\dot\rho\dot\psi$ to explain why shortening the
+   rider's radius near the bottom can add energy on both half-cycles.
 
-**Conceptual**
+5. Express the swing's taut and slack phases as a hybrid system. Identify the
+   continuous state, discrete mode, release guard, and reattachment event.
 
-4. Give an example of a system where partial observability matters for control. What is the hidden state? What is observed? Why is it not possible to simply ignore the hidden variables?
+6. The structured swing controller succeeds on the rod and fails on the chain.
+   Explain why fitting a larger neural transition model to rod-only data does
+   not, by itself, resolve this discrepancy.
 
-5. Explain the difference between the function-plus-noise view and the transition kernel view of stochastic dynamics. When might you prefer one over the other?
+7. Add a wall temperature to the one-state thermal model. Write the two energy
+   balances and identify the entries of the resulting $A$, $B$, and $E$
+   matrices.
 
-6. The reservoir model assumes that the physics (mass balance) is known exactly, and only the inflows are uncertain. What are the advantages of this structured approach compared to fitting a generic autoregressive model? What are the risks if the physics assumption is wrong?
+8. Write the reservoir transition as a function-plus-noise model when inflow is
+   $w_t=\bar w_t+\epsilon_t$. Describe the corresponding transition kernel.
 
-7. Explain the difference between an analytical model and a simulation-based model. Give an example of a system where you would have access to $f$ directly, and an example where you would only have access to a simulator.
+9. Give an example where the observation is not a Markov state. State which
+   missing variable or history would improve prediction.
 
-8. A thermostat-controlled HVAC system switches between heating, cooling, and off modes based on temperature thresholds. Is this a discrete-event system, a hybrid system, or an agent-based model? Justify your answer.
+10. Classify each of the following interfaces: a differentiable ODE solver, a
+    reset-and-step robotics simulator, and a fixed table of logged transitions.
+    Name one method from the book that each interface supports directly.
 
-**Integrative**
+11. For autoregressive language generation, distinguish the environment
+    transition from the token policy. Explain how the model changes when a tool
+    call returns information from an external database.
 
-9. Extend the 2R2C building model to include a third thermal mass representing furniture and interior objects. Write down the new state vector and the $3 \times 3$ matrix $\mathbf{A}$. Which entries are zero, and why?
-
-10. Consider a drone flying in a plane. Its state includes position $(x, y)$ and velocity $(v_x, v_y)$. The control inputs are accelerations $(a_x, a_y)$. Wind adds a random velocity disturbance. Write down a discrete-time stochastic dynamics model. Is this a function-plus-noise model? What would the transition kernel look like?
-
-11. Consider a simple agent-based traffic model with $N$ vehicles on a single-lane road. Each vehicle $i$ has position $x_i$ and velocity $v_i$, and follows the car in front according to $v_i^{+} = \min(v_{\max}, v_{i-1}, (x_{i-1} - x_i - d_{\min})/\tau)$. What is the state space of this system? If you wanted to control a traffic light at one point on the road, how would you formulate the control problem?
-
-**Computational**
-
-12. Modify the 1R1C simulation code to implement a simple thermostat controller: turn the heater on (2 kW) when $T_{\text{in}} < 20°C$ and off when $T_{\text{in}} > 21°C$. Simulate 48 hours and plot the results. How does the behavior differ from constant heating?
-
-13. Implement the 2R2C model and simulate it with the same outdoor temperature profile. Use parameters $R_{\text{ia}} = 1$, $R_{\text{wo}} = 3$, $C_{\text{air}} = 2$, $C_{\text{wall}} = 20$ (all in consistent units). Compare the response to the 1R1C model. How does the wall temperature lag behind the air temperature?
-
-14. Implement a simple hybrid system: a bouncing ball with state $(h, v)$ (height and velocity). The ball follows $\dot{h} = v$, $\dot{v} = -g$ until $h = 0$, at which point $v \leftarrow -e \cdot v$ for some coefficient of restitution $e \in (0, 1)$. Simulate 10 seconds with $g = 9.8$, $e = 0.8$, and initial conditions $h_0 = 1$, $v_0 = 0$. Plot the trajectory and observe the mode switches.
+12. Run {download}`the SwingRL control example <code/swing_control.py>` and
+    change one rider or damping parameter. Before running it, predict which
+    trajectory diagnostic will change. Report whether the result supports the
+    prediction and which assumption the experiment tests.
 ```
+
+## Computational Sources
+
+The SwingRL dependency is pinned to commit
+[`d579663`](https://github.com/pierrelux/swing-rl/commit/d579663fc81c044729f4d3ab60bf63bcdbd27b9a).
+The chapter executes two downloadable source files:
+
+- {download}`SwingRL controller and model audit <code/swing_control.py>`
+- {download}`Action-channel figure <code/modeling_interfaces.py>`
+
+The animation controls are embedded in the static site and require no live
+Python kernel.
 
 ## Self-checks
 

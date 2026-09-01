@@ -992,691 +992,165 @@ $$
 
 ## Examples
 
-### Compressor Surge Problem 
+### Overhead Crane Point-to-Point Motion
 
-A compressor is a machine that raises the pressure of a gas by squeezing it into a smaller volume. You find them in natural gas pipelines, jet engines, and factories. But compressors can run into trouble if the flow of gas becomes too small. In that case, the machine can "stall" much like an airplane wing at too high an angle. Instead of moving forward, the gas briefly pushes back, creating strong pressure oscillations that can damage the compressor and anything connected to it.
+An overhead crane moves a trolley while a payload hangs from a cable. A direct trolley command can complete the move and still leave the payload swinging. The oscillation is predictable when the cable length is known, so this example lets us compare two uses of that structure: cancel the known mode with an input shaper, or include the mode in a constrained trajectory optimization.
 
-To prevent this, engineers often add a close-coupled valve (CCV) at the outlet. The valve can quickly adjust the flow to keep the compressor away from these unstable conditions. Our goal is to design a control strategy for operating this valve so that the compressor never enters surge.
-
-Following  {cite:p}`Gravdahl1997` and {cite}`Grancharova2012`, we model the compressor using a simplified second-order representation:
+The state is $\mathbf{x}=(p,v,\theta,\omega)$, where $p$ and $v$ are trolley position and velocity, and $\theta$ and $\omega$ are payload angle and angular velocity. The commanded trolley acceleration $a$ enters the nonlinear dynamics as
 
 $$
-\begin{aligned}
-\dot{x}_1 &= B(\Psi_e(x_1) - x_2 - u) \\
-\dot{x}_2 &= \frac{1}{B}(x_1 - \Phi(x_2))
-\end{aligned}
+\dot p=v,\qquad
+\dot v=a,\qquad
+\dot\theta=\omega,\qquad
+\dot\omega=-\frac{g}{\ell}\sin\theta-\frac{a}{\ell}\cos\theta-c\omega.
 $$
 
-Here, $\mathbf{x} = [x_1, x_2]^T$ represents the state variables:
+Positive trolley acceleration makes the load lag behind, which accounts for the minus sign multiplying $a$. The model treats the cable as a rigid, massless link and assumes that the trolley acceleration can be commanded directly.
 
-- $x_1$ is the normalized mass flow through the compressor.
-- $x_2$ is the normalized pressure ratio across the compressor.
+The deterministic task starts from rest and moves the trolley $4$ m. The nominal cable length is $\ell=1.20$ m. Every controller is limited to $|a|\leq 1.60$ m/s$^2$, and every command is replayed on the same nonlinear continuous-time plant with a $0.02$ s sampling interval. A second replay increases the cable length by $10\%$ without redesigning any controller.
 
-The control input $u$ denotes the normalized mass flow through a CCV.
-The functions $\Psi_e(x_1)$ and $\Phi(x_2)$ represent the characteristics of the compressor and valve, respectively:
+#### Two Open-Loop Baselines
 
-$$
-\begin{aligned}
-\Psi_e(x_1) &= \psi_{c0} + H\left(1 + 1.5\left(\frac{x_1}{W} - 1\right) - 0.5\left(\frac{x_1}{W} - 1\right)^3\right) \\
-\Phi(x_2) &= \gamma \operatorname{sign}(x_2) \sqrt{|x_2|}
-\end{aligned}
-$$
+The direct baseline uses a symmetric trapezoidal acceleration profile. Its acceleration and deceleration phases excite the payload mode because their timing ignores the pendulum period.
 
-The system parameters are given as $\gamma = 0.5$, $B = 1$, $H = 0.18$, $\psi_{c0} = 0.3$, and $W = 0.25$.
-
-One possible way to pose the problem {cite}`Grancharova2012` is by penalizing deviations from the setpoints using a quadratic penalty in the instantaneous cost function as well as in the terminal one. Furthermore, we also penalize taking large actions (which are energy hungry and potentially unsafe) within the integral term. The idea of penalizing deviations throughout is a natural way of posing the problem when solving it via single shooting. Another alternative, which we will explore below, is to set the desired setpoint as a hard terminal constraint. 
-
-The control objective is to stabilize the system and prevent surge, formulated as a continuous-time optimal control problem (COCP) in the Bolza form:
+A zero-vibration shaper first linearizes the payload equation around $\theta=0$:
 
 $$
-\begin{aligned}
-\text{minimize} \quad & \left[ \int_0^T \alpha(\mathbf{x}(t) - \mathbf{x}^*)^T(\mathbf{x}(t) - \mathbf{x}^*) + \kappa u(t)^2 \, dt\right] + \beta(\mathbf{x}(T) - \mathbf{x}^*)^T(\mathbf{x}(T) - \mathbf{x}^*) + R v^2  \\
-\text{subject to} \quad & \dot{x}_1(t) = B(\Psi_e(x_1(t)) - x_2(t) - u(t)) \\
-& \dot{x}_2(t) = \frac{1}{B}(x_1(t) - \Phi(x_2(t))) \\
-& u_{\text{min}} \leq u(t) \leq u_{\text{max}} \\
-& -x_2(t) + 0.4 \leq v \\
-& -v \leq 0 \\
-& \mathbf{x}(0) = \mathbf{x}_0
-\end{aligned}
+\ddot\theta+2\zeta\omega_n\dot\theta+\omega_n^2\theta=-\frac{a}{\ell},
+\qquad
+\omega_n=\sqrt{\frac{g}{\ell}},
+\qquad
+\zeta=\frac{c}{2\omega_n}.
 $$
 
-The parameters $\alpha$, $\beta$, $\kappa$, and $R$ are non-negative weights that allow the designer to prioritize different aspects of performance (e.g., tight setpoint tracking vs. smooth control actions). We also constraint the control input to be within $0 \leq u(t) \leq 0.3$ due to the physical limitations of the valve.
+For the nominal parameters, $\omega_n=2.86$ rad/s and $\zeta=0.0061$. The shaper splits the direct command into two copies separated by half a damped period:
 
-The authors in {cite}`Grancharova2012` also add a soft path constraint $x_2(t) \geq 0.4$ to ensure that we maintain a minimum pressure at all time. This is implemented as a soft constraint using slack variables. The reason that we have the term $R v^2$ in the objective is to penalizes violations of the soft constraint: we allow for deviations, but don't want to do it too much.  
+$$
+a_{\mathrm{ZV}}(t)=A_1a_0(t)+A_2a_0(t-T_d),
+\qquad
+T_d=\frac{\pi}{\omega_n\sqrt{1-\zeta^2}},
+$$
 
-In the experiment below, we choose the setpoint $\mathbf{x}^* = [0.40, 0.60]^T$ as it corresponds to an unstable equilibrium point. If we were to run the system without applying any control, we would see that the system starts to oscillate. 
+where $A_1=1/(1+K)$, $A_2=K/(1+K)$, and $K=\exp[-\zeta\pi/\sqrt{1-\zeta^2}]$. Here $T_d=1.10$ s and the two weights are approximately $0.505$ and $0.495$. The two induced oscillations have opposite phase under the linearized model.
+
+#### Constrained Direct Collocation
+
+The third command is computed rather than shaped. On $N=28$ intervals with step $h$, the decision variables are the state and acceleration at every node. The nonlinear vector field above is enforced with the trapezoidal defect
+
+$$
+\mathbf{x}_{k+1}-\mathbf{x}_k-
+\frac{h}{2}\left[
+f(\mathbf{x}_k,a_k)+f(\mathbf{x}_{k+1},a_{k+1})
+\right]=\mathbf{0}.
+$$
+
+The objective penalizes sway, angular velocity, acceleration, and changes in acceleration:
+
+$$
+J=h\sum_{k=0}^{N}\left(
+6\theta_k^2+0.15\omega_k^2+0.035a_k^2
+\right)
++0.002h\sum_{k=0}^{N-1}
+\left(\frac{a_{k+1}-a_k}{h}\right)^2.
+$$
+
+The boundary conditions impose $\mathbf{x}_0=(0,0,0,0)$ and $\mathbf{x}_N=(4,0,0,0)$. The node bounds impose $|a_k|\leq1.60$ m/s$^2$, $|v_k|\leq1.50$ m/s, and $|\theta_k|\leq15^\circ$. These are genuine nonlinear-program constraints, rather than penalties added after simulation.
+
+Before inspecting the result, predict which method should have the smallest nominal residual sway and which should be least affected by the cable-length change. The ZV shaper is tailored to one frequency. The collocation solution uses the full nonlinear nominal model but is also open loop.
 
 ```{code-cell} python
-:tags: [hide-input]
+:tags: [remove-cell]
 
-#  label: cocp-cell-02
-#  caption: Rendered output from the preceding code cell.
+import sys
+sys.path.insert(0, "code")
 
-%config InlineBackend.figure_format = 'retina'
-import numpy as np
-from scipy.optimize import minimize
+import pandas as pd
+from IPython.display import HTML, display
 import matplotlib.pyplot as plt
 
-# Apply book style
-try:
-    import scienceplots
-    plt.style.use(['science', 'notebook'])
-except (ImportError, OSError):
-    pass  # Use matplotlib defaults
+from crane_control import (
+    CraneParameters,
+    create_animation as create_crane_animation,
+    make_summary_figure as make_crane_summary_figure,
+    metrics_table as crane_metrics_table,
+    run_comparison as run_crane_comparison,
+)
 
-# System parameters
-gamma, B, H, psi_c0, W = 0.5, 1, 0.18, 0.3, 0.25
-alpha, beta, kappa, R = 1, 0, 0.08, 0
-T, N = 12, 60
-dt = T / N
-x1_star, x2_star = 0.40, 0.60
-
-def psi_e(x1):
-    return psi_c0 + H * (1 + 1.5 * ((x1 / W) - 1) - 0.5 * ((x1 / W) - 1)**3)
-
-def phi(x2):
-    return gamma * np.sign(x2) * np.sqrt(np.abs(x2))
-
-def system_dynamics(x, u):
-    x1, x2 = x
-    dx1dt = B * (psi_e(x1) - x2 - u)
-    dx2dt = (1 / B) * (x1 - phi(x2))
-    return np.array([dx1dt, dx2dt])
-
-def euler_step(x, u, dt):
-    return x + dt * system_dynamics(x, u)
-
-def instantenous_cost(x, u):
-    return (alpha * np.sum((x - np.array([x1_star, x2_star]))**2) + kappa * u**2)
-
-def terminal_cost(x):
-    return beta * np.sum((x - np.array([x1_star, x2_star]))**2)
-
-def objective_and_constraints(z):
-    u, v = z[:-1], z[-1]
-    x = np.zeros((N+1, 2))
-    x[0] = x0
-    obj = 0
-    cons = []
-    for i in range(N):
-        x[i+1] = euler_step(x[i], u[i], dt)
-        obj += dt * instantenous_cost(x[i], u[i])
-        cons.append(0.4 - x[i+1, 1] - v)
-    obj += terminal_cost(x[-1]) + R * v**2
-    return obj, np.array(cons)
-
-def solve_trajectory_optimization(x0, u_init):
-    z0 = np.zeros(N + 1)
-    z0[:-1] = u_init
-    bounds = [(0, 0.3)] * N + [(0, None)]
-    result = minimize(
-        lambda z: objective_and_constraints(z)[0],
-        z0,
-        method='SLSQP',
-        bounds=bounds,
-        constraints={'type': 'ineq', 'fun': lambda z: -objective_and_constraints(z)[1]},
-        options={'disp': True, 'maxiter': 1000, 'ftol': 1e-6}
-    )
-    return result.x, result
-
-def simulate_trajectory(x0, u):
-    x = np.zeros((N+1, 2))
-    x[0] = x0
-    for i in range(N):
-        x[i+1] = euler_step(x[i], u[i], dt)
-    return x
-
-# Run optimizations and simulations
-x0 = np.array([0.25, 0.25])
-t = np.linspace(0, T, N+1)
-
-# Optimized control starting from zero
-z_single_shooting, _ = solve_trajectory_optimization(x0, np.zeros(N))
-u_opt_shoot, v_opt_shoot = z_single_shooting[:-1], z_single_shooting[-1]
-x_opt_shoot = simulate_trajectory(x0, u_opt_shoot)
-
-# Do-nothing control (u = 0)
-u_nothing = np.zeros(N)
-x_nothing = simulate_trajectory(x0, u_nothing)
-
-# Plotting
-plt.figure(figsize=(15, 20))
-
-# State variables over time
-plt.subplot(3, 1, 1)
-plt.plot(t, x_opt_shoot[:, 0], label='x1 (opt from 0)')
-plt.plot(t, x_opt_shoot[:, 1], label='x2 (opt from 0)')
-plt.plot(t, x_nothing[:, 0], ':', label='x1 (do-nothing)')
-plt.plot(t, x_nothing[:, 1], ':', label='x2 (do-nothing)')
-plt.axhline(y=x1_star, color='r', linestyle='--', label='x1 setpoint')
-plt.axhline(y=x2_star, color='g', linestyle='--', label='x2 setpoint')
-plt.xlabel('Time')
-plt.ylabel('State variables')
-plt.title('State variables over time')
-plt.legend()
-plt.grid(True)
-
-# Phase portrait
-plt.subplot(3, 1, 2)
-plt.plot(x_opt_shoot[:, 0], x_opt_shoot[:, 1], label='Optimized from 0')
-plt.plot(x_nothing[:, 0], x_nothing[:, 1], ':', label='Do-nothing')
-plt.plot(x1_star, x2_star, 'r*', markersize=10, label='Setpoint')
-plt.xlabel('x1 (mass flow)')
-plt.ylabel('x2 (pressure)')
-plt.title('Phase portrait')
-plt.legend()
-plt.grid(True)
-
-# Control inputs
-plt.subplot(3, 1, 3)
-plt.plot(t[:-1], u_opt_shoot, label='Optimized from 0')
-plt.plot(t[:-1], u_nothing, ':', label='Do-nothing')
-plt.xlabel('Time')
-plt.ylabel('Control input (u)')
-plt.title('Control input over time')
-plt.legend()
-plt.grid(True)
+crane_parameters = CraneParameters()
+crane_comparison = run_crane_comparison(
+    crane_parameters,
+    intervals=28,
+    sample_period=0.02,
+)
 ```
-
-
-### Solution by Trapezoidal Collocation
-
-Another way to pose the problem is by imposing a terminal state constraint on the system rather than through a penalty in the integral term. In the following experiment, we use a problem formulation of the form: 
-
-$$
-\begin{aligned}
-\text{minimize} \quad & \left[ \int_0^T \kappa u(t)^2 \, dt\right] \\
-\text{subject to} \quad & \dot{x}_1(t) = B(\Psi_e(x_1(t)) - x_2(t) - u(t)) \\
-& \dot{x}_2(t) = \frac{1}{B}(x_1(t) - \Phi(x_2(t))) \\
-& u_{\text{min}} \leq u(t) \leq u_{\text{max}} \\
-& \mathbf{x}(0) = \mathbf{x}_0 \\
-& \mathbf{x}(T) = \mathbf{x}^\star
-\end{aligned}
-$$
-
-We then find a control function $u(t)$ and state trajectory $x(t)$ using the trapezoidal collocation method. 
 
 ```{code-cell} python
-:tags: [hide-input]
+:tags: [remove-input]
+:label: fig-crane-collocation-comparison
+:caption: All three commands move the trolley through the same four-metre task on the nonlinear plant. The direct command leaves a large oscillation. The ZV shaper nearly cancels the nominal mode, while direct collocation reaches the terminal state with a smoother, lower-effort command. The lower panel replays the unchanged commands after increasing cable length by 10 percent. Hatched bars denote the mismatched plant.
 
-#  label: cocp-cell-03
-#  caption: Rendered output from the preceding code cell.
-
-%config InlineBackend.figure_format = 'retina'
-import numpy as np
-from scipy.optimize import minimize
-from scipy.integrate import solve_ivp
-from scipy.interpolate import interp1d
-import matplotlib.pyplot as plt
-
-# Apply book style
-try:
-    import scienceplots
-    plt.style.use(['science', 'notebook'])
-except (ImportError, OSError):
-    pass  # Use matplotlib defaults
-
-# System parameters
-gamma, B, H, psi_c0, W = 0.5, 1, 0.18, 0.3, 0.25
-kappa = 0.08
-T, N = 12, 20  # Number of collocation points
-t = np.linspace(0, T, N)
-dt = T / (N - 1)
-x1_star, x2_star = 0.40, 0.60
-
-def psi_e(x1):
-    return psi_c0 + H * (1 + 1.5 * ((x1 / W) - 1) - 0.5 * ((x1 / W) - 1)**3)
-
-def phi(x2):
-    return gamma * np.sign(x2) * np.sqrt(np.abs(x2))
-
-def system_dynamics(t, x, u_func):
-    x1, x2 = x
-    u = u_func(t)
-    dx1dt = B * (psi_e(x1) - x2 - u)
-    dx2dt = (1 / B) * (x1 - phi(x2))
-    return [dx1dt, dx2dt]
-
-def objective(z):
-    x = z[:2*N].reshape((N, 2))
-    u = z[2*N:]
-    
-    # Trapezoidal rule for the cost function
-    cost = 0
-    for i in range(N-1):
-        cost += 0.5 * dt * (kappa * u[i]**2 + kappa * u[i+1]**2)
-    
-    return cost
-
-def constraints(z):
-    x = z[:2*N].reshape((N, 2))
-    u = z[2*N:]
-    
-    cons = []
-    
-    # Dynamics constraints (trapezoidal rule)
-    for i in range(N-1):
-        f_i = system_dynamics(t[i], x[i], lambda t: u[i])
-        f_ip1 = system_dynamics(t[i+1], x[i+1], lambda t: u[i+1])
-        cons.extend(x[i+1] - x[i] - 0.5 * dt * (np.array(f_i) + np.array(f_ip1)))
-    
-    # Terminal constraint
-    cons.extend([x[-1, 0] - x1_star, x[-1, 1] - x2_star])
-    
-    # Initial condition constraint
-    cons.extend([x[0, 0] - x0[0], x[0, 1] - x0[1]])
-    
-    return np.array(cons)
-
-def solve_trajectory_optimization(x0):
-    # Initial guess
-    x_init = np.linspace(x0, [x1_star, x2_star], N)
-    u_init = np.zeros(N)
-    z0 = np.concatenate([x_init.flatten(), u_init])
-    
-    # Bounds
-    bounds = [(None, None)] * (2*N)  # State variables
-    bounds += [(0, 0.3)] * N  # Control inputs
-    
-    # Constraints
-    cons = {'type': 'eq', 'fun': constraints}
-    
-    result = minimize(
-        objective,
-        z0,
-        method='SLSQP',
-        bounds=bounds,
-        constraints=cons,
-        options={'disp': True, 'maxiter': 1000, 'ftol': 1e-6}
-    )
-    return result.x, result
-
-# Run optimization
-x0 = np.array([0.5, 0.5])
-z_opt, result = solve_trajectory_optimization(x0)
-x_opt_coll = z_opt[:2*N].reshape((N, 2))
-u_opt_coll = z_opt[2*N:]
-
-print(f"Optimization successful: {result.success}")
-print(f"Final objective value: {result.fun}")
-print(f"Final state: x1 = {x_opt_coll[-1, 0]:.4f}, x2 = {x_opt_coll[-1, 1]:.4f}")
-print(f"Target state: x1 = {x1_star:.4f}, x2 = {x2_star:.4f}")
-
-# Create interpolated control function
-u_func = interp1d(t, u_opt_coll, kind='linear', bounds_error=False, fill_value=(u_opt_coll[0], u_opt_coll[-1]))
-
-# Solve IVP with the optimized control
-sol = solve_ivp(lambda t, x: system_dynamics(t, x, u_func), [0, T], x0, dense_output=True)
-
-# Generate solution points
-t_dense = np.linspace(0, T, 200)
-x_ivp = sol.sol(t_dense).T
-
-# Plotting
-plt.figure(figsize=(15, 20))
-
-# State variables over time
-plt.subplot(3, 1, 1)
-plt.plot(t, x_opt_coll[:, 0], 'bo-', label='x1 (collocation)')
-plt.plot(t, x_opt_coll[:, 1], 'ro-', label='x2 (collocation)')
-plt.plot(t_dense, x_ivp[:, 0], 'b--', label='x1 (integrated)')
-plt.plot(t_dense, x_ivp[:, 1], 'r--', label='x2 (integrated)')
-plt.axhline(y=x1_star, color='b', linestyle=':', label='x1 setpoint')
-plt.axhline(y=x2_star, color='r', linestyle=':', label='x2 setpoint')
-plt.xlabel('Time')
-plt.ylabel('State variables')
-plt.title('State variables over time')
-plt.legend()
-plt.grid(True)
-
-# Phase portrait
-plt.subplot(3, 1, 2)
-plt.plot(x_opt_coll[:, 0], x_opt_coll[:, 1], 'go-', label='Collocation')
-plt.plot(x_ivp[:, 0], x_ivp[:, 1], 'm--', label='Integrated')
-plt.plot(x1_star, x2_star, 'r*', markersize=10, label='Setpoint')
-plt.xlabel('x1 (mass flow)')
-plt.ylabel('x2 (pressure)')
-plt.title('Phase portrait')
-plt.legend()
-plt.grid(True)
-
-# Control inputs
-plt.subplot(3, 1, 3)
-plt.step(t, u_opt_coll, 'g-', where='post', label='Collocation')
-plt.plot(t_dense, u_func(t_dense), 'm--', label='Interpolated')
-plt.xlabel('Time')
-plt.ylabel('Control input (u)')
-plt.title('Control input over time')
-plt.legend()
-plt.grid(True)
-
-plt.tight_layout()
+crane_summary_figure = make_crane_summary_figure(crane_comparison)
+display(crane_summary_figure)
+plt.close(crane_summary_figure)
 ```
 
+The ZV shaper produces the smallest nominal residual sway because the simulated plant closely matches the single mode used to design it. This is a favorable case for a direct structural calculation. The collocation command uses less squared acceleration than either baseline and keeps residual sway below one degree in both replays. The direct command completes the trolley move but leaves several degrees of oscillation. Cable-length mismatch increases the ZV residual substantially, while the collocation command degrades more gradually for this particular perturbation.
 
-You can try to vary the number of collocation points in the code and observe how the state trajectory progressively matches the ground truth (the line denoted "integrated solution"). Note that this version of the code also lacks bound constraints on the variable $x_2$ to ensure a minimum pressure, as we did earlier. Consider this a good exercise to try on your own. 
-
-### System Identification as Trajectory Optimization (Compressor Surge)
-
-We now turn the compressor surge model into a simple system identification task: estimate unknown parameters (here, the scalar $B$) from measured trajectories. This can be viewed as a trajectory optimization problem: choose parameters (and optionally states) to minimize reconstruction error while enforcing the dynamics.
-
-Given time-aligned data $\{(\mathbf{u}_k,\mathbf{y}_k)\}_{k=0}^{N}$, model states $\mathbf{x}_k\in\mathbb{R}^d$, outputs $\mathbf{y}_k\approx \mathbf{h}(\mathbf{x}_k;\boldsymbol{\theta})$, step $\Delta t$, and dynamics $\mathbf{f}(\mathbf{x},\mathbf{u};\boldsymbol{\theta})$, the simultaneous (full-discretization) viewpoint is
-
-$$
-\begin{aligned}
-\min_{\boldsymbol{\theta},\,\{\mathbf{x}_k\}} \quad & \sum_{k\in K}\;\big\|\mathbf{y}_k - \mathbf{h}(\mathbf{x}_k;\boldsymbol{\theta})\big\|_2^2 \\
-\text{s.t.}\quad & \mathbf{x}_{k+1} - \mathbf{x}_k - \Delta t\,\mathbf{f}(\mathbf{x}_k,\mathbf{u}_k;\boldsymbol{\theta}) = \mathbf{0},\quad k=0,\ldots,N-1, \\
-& \mathbf{x}_0 \;\text{given},
-\end{aligned}
-$$
-
-while the single-shooting (recursive elimination) variant eliminates the states by simulating forward from $\mathbf{x}_0$:
-
-$$
-J(\boldsymbol{\theta}) := \sum_{k\in K}\;\big\|\mathbf{y}_k - \mathbf{h}(\boldsymbol{\phi}_k(\boldsymbol{\theta};\mathbf{x}_0,\mathbf{u}_{0:N-1})\big\|_2^2,\quad \min_{\boldsymbol{\theta}} J(\boldsymbol{\theta}),
-$$
-
-where $\boldsymbol{\phi}_k$ denotes the state reached at step $k$ by an RK4 rollout under parameter $\boldsymbol{\theta}$. In our demo the data grid and rollout grid coincide, so $\boldsymbol{\phi}_k = \mathbf{x}_k$ and no interpolation is required. We will identify $B$ by fitting the model to data generated from the ground-truth $B=1$ system under randomized initial conditions and small input perturbations.
+The table reports continuous-plant measurements rather than node values from the nonlinear program. Residual sway is the largest absolute angle after the common command horizon. This validation matters because collocation enforces path constraints only at its nodes.
 
 ```{code-cell} python
-:tags: [hide-input]
+:tags: [remove-input]
 
-#  label: cocp-cell-04
-#  caption: Rendered output from the preceding code cell.
-
-%config InlineBackend.figure_format = 'retina'
-import numpy as np
-from scipy.integrate import solve_ivp
-import matplotlib.pyplot as plt
-
-rng = np.random.default_rng(2026)
-
-# Apply book style
-try:
-    import scienceplots
-    plt.style.use(['science', 'notebook'])
-except (ImportError, OSError):
-    pass  # Use matplotlib defaults
-
-# System parameters
-gamma, B, H, psi_c0, W = 0.5, 1, 0.18, 0.3, 0.25
-
-# Simulation parameters
-T = 50  # Total simulation time
-dt = 0.1  # Time step
-t = np.arange(0, T + dt, dt)
-N = len(t)
-
-# Number of trajectories
-num_trajectories = 10
-
-def psi_e(x1):
-    return psi_c0 + H * (1 + 1.5 * ((x1 / W) - 1) - 0.5 * ((x1 / W) - 1)**3)
-
-def phi(x2):
-    return gamma * np.sign(x2) * np.sqrt(np.abs(x2))
-
-def system_dynamics(t, x, u):
-    x1, x2 = x
-    dx1dt = B * (psi_e(x1) - x2 - u)
-    dx2dt = (1 / B) * (x1 - phi(x2))
-    return [dx1dt, dx2dt]
-
-# "Do nothing" controller with small random noise
-def u_func(t):
-    return rng.normal(0, 0.01)  # Mean 0, standard deviation 0.01
-
-# Function to simulate a single trajectory
-def simulate_trajectory(x0):
-    sol = solve_ivp(lambda t, x: system_dynamics(t, x, u_func(t)), [0, T], x0, t_eval=t, method='RK45')
-    return sol.y[0], sol.y[1]
-
-# Generate multiple trajectories
-trajectories = []
-initial_conditions = []
-
-for i in range(num_trajectories):
-    # Randomize initial conditions around [0.5, 0.5]
-    x0 = np.array([0.5, 0.5]) + rng.normal(0, 0.05, 2)
-    initial_conditions.append(x0)
-    x1, x2 = simulate_trajectory(x0)
-    trajectories.append((x1, x2))
-
-# Calculate control inputs (small random noise)
-u = np.array([u_func(ti) for ti in t])
-
-# Plotting
-plt.figure(figsize=(15, 15))
-
-# State variables over time
-plt.subplot(3, 1, 1)
-for i, (x1, x2) in enumerate(trajectories):
-    plt.plot(t, x1, label=f'x1 (Traj {i+1})' if i == 0 else "_nolegend_")
-    plt.plot(t, x2, label=f'x2 (Traj {i+1})' if i == 0 else "_nolegend_")
-plt.xlabel('Time')
-plt.ylabel('State variables')
-plt.title('State variables over time (Multiple Trajectories)')
-plt.legend()
-plt.grid(True)
-
-# Phase portrait
-plt.subplot(3, 1, 2)
-for x1, x2 in trajectories:
-    plt.plot(x1, x2)
-    plt.plot(x1[0], x2[0], 'bo', markersize=5)
-    plt.plot(x1[-1], x2[-1], 'ro', markersize=5)
-plt.xlabel('x1 (mass flow)')
-plt.ylabel('x2 (pressure)')
-plt.title('Phase portrait (Multiple Trajectories)')
-plt.grid(True)
-
-# Control input (small random noise)
-plt.subplot(3, 1, 3)
-plt.plot(t, u, 'k-')
-plt.xlabel('Time')
-plt.ylabel('Control input (u)')
-plt.title('Control input over time (Small random noise)')
-plt.grid(True)
-
-plt.tight_layout()
-
-# Keep generated data in memory so a documentation build never modifies source files.
-print("Data collection complete.")
-print(f"Data shape: {num_trajectories} trajectories, each with {N} time steps")
-print(f"Time range: 0 to {T} seconds")
-print("Initial conditions:")
-for i, x0 in enumerate(initial_conditions):
-    print(f"  Trajectory {i+1}: x1 = {x0[0]:.4f}, x2 = {x0[1]:.4f}")
+crane_table = pd.DataFrame(crane_metrics_table(crane_comparison))
+crane_table["residual_sway_deg"] = crane_table["residual_sway_deg"].map(lambda x: f"{x:.3f}")
+crane_table["peak_sway_deg"] = crane_table["peak_sway_deg"].map(lambda x: f"{x:.2f}")
+crane_table["position_error_mm"] = crane_table["position_error_mm"].map(lambda x: f"{x:.2f}")
+crane_table["effort"] = crane_table["effort"].map(lambda x: f"{x:.3f}")
+crane_table.rename(
+    columns={
+        "scenario": "plant",
+        "controller": "command",
+        "residual_sway_deg": "residual sway (deg)",
+        "peak_sway_deg": "peak sway (deg)",
+        "position_error_mm": "final position error (mm)",
+        "effort": "integral a^2 dt",
+    }
+)
 ```
 
+The animation uses the same high-accuracy nonlinear validation trajectories as the figure. It does not replay the collocation polynomial itself.
 
 ```{code-cell} python
-:tags: [hide-input]
+:tags: [remove-input]
+:label: fig-crane-collocation-animation
+:caption: Continuous nonlinear replay of the direct, zero-vibration-shaped, and direct-collocation commands. All panels use the same spatial and temporal scales.
 
-#  label: cocp-cell-05
-#  caption: Rendered output from the preceding code cell.
-
-%config InlineBackend.figure_format = 'retina'
-import numpy as np
-from scipy.optimize import minimize
-import matplotlib.pyplot as plt
-
-# Apply book style
-try:
-    import scienceplots
-    plt.style.use(['science', 'notebook'])
-except (ImportError, OSError):
-    pass  # Use matplotlib defaults
-
-# The preceding cell provides t, trajectories, u, and initial_conditions.
-
-# Known system parameters
-gamma, H, psi_c0, W = 0.5, 0.18, 0.3, 0.25
-# B is the parameter we want to identify
-B_true = 1.0  # True value, used for comparison
-
-def psi_e(x1):
-    return psi_c0 + H * (1 + 1.5 * ((x1 / W) - 1) - 0.5 * ((x1 / W) - 1)**3)
-
-def phi(x2):
-    return gamma * np.sign(x2) * np.sqrt(np.abs(x2))
-
-def system_dynamics(t, x, u, B):
-    x1, x2 = x
-    dx1dt = B * (psi_e(x1) - x2 - u)
-    dx2dt = (1 / B) * (x1 - phi(x2))
-    return np.array([dx1dt, dx2dt])
-
-def rk4_step(f, t, x, u, dt, B):
-    k1 = f(t, x, u, B)
-    k2 = f(t + 0.5*dt, x + 0.5*dt*k1, u, B)
-    k3 = f(t + 0.5*dt, x + 0.5*dt*k2, u, B)
-    k4 = f(t + dt, x + dt*k3, u, B)
-    return x + (dt/6) * (k1 + 2*k2 + 2*k3 + k4)
-
-def simulate_trajectory(x0, B):
-    x = np.zeros((len(t), 2))
-    x[0] = x0
-    for i in range(1, len(t)):
-        x[i] = rk4_step(system_dynamics, t[i-1], x[i-1], u[i-1], t[i] - t[i-1], B)
-    return x
-
-def objective(B):
-    error = 0
-    for i, (x1_obs, x2_obs) in enumerate(trajectories):
-        x_sim = simulate_trajectory(initial_conditions[i], B[0])
-        error += np.sum((x_sim[:, 0] - x1_obs)**2 + (x_sim[:, 1] - x2_obs)**2)
-    return error
-
-# Perform optimization
-result = minimize(objective, x0=[1.5], method='Nelder-Mead', options={'disp': True})
-
-B_identified = result.x[0]
-
-print(f"True B: {B_true}")
-print(f"Identified B: {B_identified}")
-print(f"Relative error: {abs(B_identified - B_true) / B_true * 100:.2f}%")
-
-# Plot results
-plt.figure(figsize=(15, 10))
-
-# Plot one trajectory for comparison
-traj_index = 0
-x1_obs, x2_obs = trajectories[traj_index]
-x_sim = simulate_trajectory(initial_conditions[traj_index], B_identified)
-
-plt.subplot(2, 1, 1)
-plt.plot(t, x1_obs, 'b-', label='Observed x1')
-plt.plot(t, x2_obs, 'r-', label='Observed x2')
-plt.plot(t, x_sim[:, 0], 'b--', label='Simulated x1')
-plt.plot(t, x_sim[:, 1], 'r--', label='Simulated x2')
-plt.xlabel('Time')
-plt.ylabel('State variables')
-plt.title('Observed vs Simulated Trajectory')
-plt.legend()
-plt.grid(True)
-
-plt.subplot(2, 1, 2)
-plt.plot(x1_obs, x2_obs, 'g-', label='Observed')
-plt.plot(x_sim[:, 0], x_sim[:, 1], 'm--', label='Simulated')
-plt.xlabel('x1 (mass flow)')
-plt.ylabel('x2 (pressure)')
-plt.title('Phase Portrait: Observed vs Simulated')
-plt.legend()
-plt.grid(True)
-
-plt.tight_layout()
+crane_animation = create_crane_animation(crane_comparison, frame_stride=5)
+crane_html = crane_animation.to_jshtml(fps=25)
+plt.close(crane_animation._fig)
+display(HTML(crane_html))
 ```
 
+:::{dropdown} Inspect the direct-transcription implementation
 
-### Flight Trajectory Optimization
-
-We consider a concrete task: computing a fuel-optimal trajectory between Montréal–Trudeau (CYUL) and Toronto Pearson (CYYZ), taking into account both aircraft dynamics and wind conditions along the route. For this demo, we leverage the excellent library [OpenAP.top](https://github.com/junzis/openap-top) which provides direct transcription methods and airplane dynamics models {cite:p}`Sun2022`. Furthermore, it allows us to import a a wind field comes from **ERA5** {cite:p}`ERA52018`, a global atmospheric dataset. It combines historical observations from satellites, aircraft, and surface stations with a weather model to reconstruct the state of the atmosphere across space and time. In climate science, this is called a *reanalysis*.
-
-ERA5 data is stored in **GRIB files**, a compact format widely used in meteorology. Each file contains a **gridded field**: values of wind and other variables arranged on a regular 4D lattice over longitude, latitude, altitude, and time. Since the aircraft rarely sits exactly on a grid point, we interpolate the wind components it sees as it moves.
-
-The aircraft is modeled as a point mass with state
-
-$$
-\mathbf{x}(t) = (x(t), y(t), h(t), m(t)),
-$$
-
-where $(x, y)$ is horizontal position, $h$ is altitude, and $m$ is remaining mass. Controls are Mach number $M(t)$, vertical speed $v_s(t)$, and heading angle $\psi(t)$. The equations of motion combine airspeed and wind:
-
-$$
-\begin{aligned}
-\dot x &= v(M,h)\cos\psi\cos\gamma + u_w(x,y,h,t), \\
-\dot y &= v(M,h)\sin\psi\cos\gamma + v_w(x,y,h,t), \\
-\dot h &= v_s, \\
-\dot m &= -\,\mathrm{FF}(T(h,M,v_s), h, M, v_s),
-\end{aligned}
-$$
-
-where $\gamma = \arcsin(v_s / v)$ is the flight path angle and $\mathrm{FF}$ is the fuel flow rate based on current conditions. The wind terms $u_w$ and $v_w$ are taken from ERA5 and interpolated in space and time.
-
-The optimization minimizes fuel burn over the CYUL–CYYZ leg. But the same setup could be used to minimize arrival time, or some weighted combination of time, cost, and emissions.
-
-We use `OpenAP.top`, which solves the problem using direct collocation at **Legendre–Gauss–Lobatto (LGL)** points. Each trajectory segment is mapped to the unit interval, the state is interpolated by Lagrange polynomials at nonuniform LGL nodes, and the dynamics are enforced at those points. Integration is done with matching quadrature weights.
-
-This setup lets us optimize trajectories under realistic conditions by feeding in the appropriate ERA5 GRIB file (e.g., `era5_mtl_20230601_12.grib`). The result accounts for wind patterns (eg. headwinds, tailwinds, shear) along the corridor between Montréal and Toronto.
-
-
-```{code-cell} python
-:tags: [hide-input]
-
-#  label: cocp-cell-06
-#  caption: Rendered output from the preceding code cell.
-
-%config InlineBackend.figure_format = 'retina'
-# OpenAP.top demo with optional wind overlay – docs: https://github.com/junzis/openap-top
-from openap import top
-import matplotlib.pyplot as plt
-
-# Apply book style
-try:
-    import scienceplots
-    plt.style.use(['science', 'notebook'])
-except (ImportError, OSError):
-    pass  # Use matplotlib defaults
-import os
-
-# Montreal region route (Canada): CYUL (Montréal–Trudeau) → CYYZ (Toronto)
-opt = top.CompleteFlight("A320", "CYUL", "CYYZ", m0=0.85)
-
-# Optional: point to a local ERA5/GRIB file to enable wind (set env var OPENAP_WIND_GRIB)
-# If not set, look for a default small file produced by `_static/openap_fetch_era5.py`.
-fgrib = os.environ.get("OPENAP_WIND_GRIB", "_static/era5_mtl_20230601_12.grib")
-windfield = None
-if fgrib and os.path.exists(fgrib):
-    try:
-        windfield = top.tools.read_grids(fgrib)
-        opt.enable_wind(windfield)
-    except Exception:
-        windfield = None  # fall back silently if GRIB reading deps are missing
-
-# Solve for a fuel-optimal trajectory (CasADi direct collocation under the hood)
-flight = opt.trajectory(objective="fuel")
-
-# Visualize; overlay wind barbs if windfield available
-if windfield is not None:
-    ax = top.vis.trajectory(flight, windfield=windfield, barb_steps=15)
-else:
-    ax = top.vis.trajectory(flight)
-
-title = "OpenAP.top fuel-optimal trajectory (A320: CYUL → CYYZ)"
-if hasattr(ax, "set_title"):
-    ax.set_title(title)
-else:
-    plt.title(title)
-
+```{literalinclude} code/crane_control.py
+:language: python
+:start-at: def solve_direct_collocation
+:end-before: def _compute_metrics
+:linenos:
 ```
 
+:::
+
+{download}`Download the complete crane experiment <code/crane_control.py>`
+
+The comparison does not establish that collocation always outperforms input shaping. The ZV calculation is direct, inexpensive, and exceptionally effective when a lightly damped mode is accurately known. Direct collocation becomes useful when several state and actuator constraints must be handled together. Both commands remain open loop here. Feedback or receding-horizon replanning would be needed to react to unmeasured disturbances during the move.
 
 ### Hydro Cascade Scheduling with Physical Routing and Multiple Shooting
 
 In [](dp.md), we introduced a simplified view of hydro reservoir control, where the water level evolves in discrete time by accounting for inflow and outflow, with precipitation treated as a noisy input. While useful for learning and control design, that model abstracts away much of the physical behavior of actual rivers and dams.
 
-In this chapter, we move toward a more realistic setup inspired by {cite:p}`Savorgnan2011`. We consider a series of dams arranged in a cascade, where the actions taken upstream influence downstream levels with a delay. The amount of power produced depends not only on how much water flows through the turbines, but also on the head (the vertical distance between the reservoir surface and the turbine outlet). The larger the head, the more potential energy is available for conversion into electricity, and the higher the power output.
+In this chapter, we move toward a more realistic setup inspired by {cite:p}`Savorgnan2011`. We consider a series of dams arranged in a cascade, where the actions taken upstream influence downstream levels with a delay. The amount of power produced depends on the water flow through the turbines and the head (the vertical distance between the reservoir surface and the turbine outlet). The larger the head, the more potential energy is available for conversion into electricity, and the higher the power output.
 
 To capture these effects, we follow a modeling approach inspired by the Saint-Venant equations, which describe how water levels and flows evolve in open channels. Instead of solving the full PDEs, we use a reduced model that approximates each dammed section of river (called a reach) as a lumped system governed by an ordinary differential equation. The main variable of interest is the water level $h_r(t)$, which changes over time depending on how much water enters, how much is discharged through the turbines $q_r(t)$, and how much is spilled $s_r(t)$. The mass balance for reach $r$ is written as:
 
@@ -1717,7 +1191,7 @@ $$
 
 with delays handled by shifting $z_r^k$ according to the appropriate travel time. These constraints are enforced as part of a nonlinear program, alongside the power tracking objective and control bounds.
 
-Compared to the earlier inflow-outflow model, this richer setup introduces more structure, but also more opportunity. The cascade now behaves like a coordinated team: upstream reservoirs can store water in anticipation of future needs, while downstream dams adjust their output to match arrivals and avoid overflows. The optimization produces not just a schedule, but a strategy for how the entire system should act together to meet demand.
+Compared to the earlier inflow-outflow model, this richer setup introduces more structure and more opportunity. The cascade now behaves like a coordinated team: upstream reservoirs can store water in anticipation of future needs, while downstream dams adjust their output to match arrivals and avoid overflows. The optimization produces a coordinated schedule for the entire system to meet demand.
 
 ```{code-cell} python
 :tags: [hide-input]
@@ -2193,12 +1667,15 @@ Gauss nodes lie strictly inside each interval, so the polynomial values at a sha
 ````{exercise}
 :label: ex-collocation-hermite-simpson
 
-Modify the compressor surge trapezoidal collocation code from this chapter to use Hermite–Simpson collocation instead. You will need to:
-1. Introduce midpoint variables $(\mathbf{x}_{i+1/2}, \mathbf{u}_{i+1/2})$ for each interval
-2. Replace the trapezoidal defect with the Simpson defect (weights $1:4:1$)
-3. Add the midpoint collocation constraint
+Modify the overhead-crane trapezoidal transcription to use Hermite–Simpson collocation. Introduce midpoint variables $(\mathbf{x}_{i+1/2}, a_{i+1/2})$, replace each trapezoidal defect with a Simpson defect, and add the midpoint consistency constraint.
 
-Compare the trajectory accuracy for $N=10$ and $N=20$ mesh points. Does Hermite–Simpson achieve comparable accuracy with fewer points?
+Compare the maximum defect and the discrepancy between the node solution and continuous nonlinear replay for $N=10$ and $N=20$ intervals. Does Hermite–Simpson achieve comparable validation accuracy with fewer intervals?
+````
+
+````{exercise}
+:label: ex-collocation-crane-mismatch
+
+Download `code/crane_control.py`. Before running it, predict how a shorter cable will change the residual sway of the ZV and collocation commands. Replay both fixed commands for cable lengths between $0.9\ell$ and $1.1\ell$, then plot residual sway against cable length. Explain the observed curve using the natural frequency $\sqrt{g/\ell}$. Do not redesign either command during the sweep.
 ````
 
 ````{solution} ex-collocation-hermite-simpson
@@ -2243,7 +1720,7 @@ Beyond the methods presented here, several extensions are important in practice:
 - **Higher-order collocation** uses more nodes per interval for increased accuracy
 - **Indirect methods** solve the optimality conditions (Pontryagin's principle) directly rather than discretizing the primal problem
 
-The examples in this chapter (compressor surge control, flight trajectory optimization, and hydro cascade scheduling) illustrate how direct collocation applies to realistic engineering systems with nonlinear dynamics, path constraints, and complex objectives.
+The crane example uses direct collocation to coordinate a nonlinear oscillatory mode under state and actuator constraints, while the hydro cascade uses multiple shooting to coordinate subsystems with routing delays. Both require a continuous replay after optimization: a small transcription defect at the nodes does not by itself certify the trajectory between nodes. The next chapter repeatedly solves problems of this form from the measured state to construct feedback through model predictive control.
 
 ## Self-checks
 

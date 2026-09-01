@@ -75,5 +75,7 @@ site:
     numbered: true
     style: _static/custom.css
   actions:
+    - title: Present
+      url: _static/presenter.html
     - title: View on GitHub
       url: https://github.com/pierrelux/rlbook

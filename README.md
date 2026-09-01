@@ -39,8 +39,42 @@ For local authoring, use `uv run jupyter-book start --execute --port 3000`. The 
 - Reactive marimo components are deliberately limited to focused conceptual islands and must include a static fallback.
 - `interactive/` contains standalone HTML demonstrations copied verbatim into the site. `lab/` contains the xeus environment and curated JupyterLite notebooks.
 
+For prose-first executed examples, put figure metadata on the MyST code-cell
+directive and remove the input from the rendered page:
+
+````markdown
+```{code-cell} python
+:tags: [remove-input]
+:label: fig-example
+:caption: A concise caption that states what the computation shows.
+
+figure = make_figure(results)
+display(figure)
+```
+````
+
+Use `remove-cell` for imports and simulation setup that must execute without
+leaving a notebook block. Use `hide-input` only when a visible **Source**
+disclosure is intentional. After changing an imported Python module, run
+`uv run jupyter-book clean --execute -y`; MyST's execution cache does not track
+changes inside imported files.
+
 To regenerate the checked-in notebook JSON after editing their source definitions, run:
 
 ```bash
 uv run python lab/generate_notebooks.py
 ```
+
+## Semantic presentation chunks
+
+The **Present** action can use an offline map to focus several adjacent rendered
+blocks as one teaching beat. Build the book first, then run:
+
+```bash
+python3 tools/chunk_presentations.py dynamics.md
+```
+
+The script validates full block coverage, writes `_present/<chapter>.json`, and
+embeds the maps in `_static/presenter.html`. Rebuild afterward. If a chapter's
+block structure changes, regenerate its map; the presenter otherwise falls back
+to focusing one rendered block at a time.

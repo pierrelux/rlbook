@@ -151,23 +151,6 @@ The complete MPC procedure implements the receding horizon principle through rep
 
 7. **End While**
 ````
-<!-- 
-### Computational Considerations
-
-The receding horizon principle requires solving optimization problems in real-time, placing stringent demands on the solver. Each problem must be solved within the sampling period $\Delta t$. If the solver requires more time, the system operates without new control updates, potentially degrading performance or stability.
-
-Fortunately, successive MPC problems differ only in their initial conditions and possibly their horizons. This similarity enables warm-starting strategies where the previous solution initializes the current optimization. The standard approach shifts the previous trajectory forward by one time step and appends a nominal control at the end. This initialization typically lies close to the new optimum, dramatically reducing iteration counts.
-
-The computational burden also depends on the horizon length $N$. Longer horizons provide better approximations to infinite-horizon problems and enable more sophisticated maneuvers, but increase problem size. The choice of $N$ balances solution quality against computational resources. For linear systems with quadratic costs, horizons of 10-50 steps often suffice. Nonlinear systems may require longer horizons to capture essential dynamics, though move-blocking and other parameterization techniques can reduce the effective number of decision variables. -->
-
-<!-- ### Connection to Dynamic Programming
-
-The receding horizon principle connects MPC to the dynamic programming framework covered in the next chapter. Each MPC optimization implicitly computes the optimal cost-to-go $V_N(\mathbf{x})$ from the current state over the horizon. This finite-horizon value function approximates the true infinite-horizon value function that dynamic programming seeks globally.
-
-The connection becomes clearer when we consider what MPC actually does: it solves a finite-horizon optimization problem and extracts only the first control action. The remaining $N-1$ steps of the optimal trajectory are discarded, but the terminal cost $V_f$ approximates the value function at the horizon boundary. This suggests hybrid approaches where approximate value functions from dynamic programming provide terminal costs for MPC, combining global optimality properties with local constraint handling capabilities.
-
-This idea is what we would refer to as **bootstrapping** when working with temporal difference learning methods in reinforcement learning. In temporal difference methods like Q-learning or SARSA, bootstrapping occurs when we use our current estimate of the value function to update itself—essentially "pulling ourselves up by our bootstraps." Similarly, MPC bootstraps by using its finite-horizon value function approximation (computed through optimization) to make decisions, even though this approximation may not be perfect. The terminal cost $V_f$ acts as a bootstrap target, providing a value estimate for states beyond the horizon that guides the optimization process. 
- -->
 
 ### Successive Linearization and Quadratic Approximations
 
@@ -271,44 +254,6 @@ Consider the MPC problem with terminal cost $V_f$, terminal set $\mathcal{X}_f$,
 
 Then the MPC controller achieves recursive feasibility (if the problem is feasible at time $k$, it remains feasible at time $k+1$), asymptotic stability to the target equilibrium for regulation problems, and monotonic cost decrease along trajectories until the target is reached.
 ````
-<!-- 
-### Why Terminal Conditions Work
-
-Understanding why the terminal conditions guarantee recursive feasibility and asymptotic stability requires examining what the controller actually does from one step to the next. Suppose at time $k$ the MPC optimizer finds an optimal sequence of controls $(\mathbf{u}_0^*, \ldots, \mathbf{u}_{N-1}^*)$ and states $(\mathbf{x}_0^*, \ldots, \mathbf{x}_N^*)$, where $\mathbf{x}_N^* \in \mathcal{X}_f$. The first control $\mathbf{u}_0^*$ is applied to the system, and the remaining plan is discarded according to the receding horizon principle.
-
-At time $k+1$, we need a new plan starting from the updated state $\mathbf{x}_{\text{new}} = \mathbf{x}_1^*$. A natural fallback strategy is to **shift** the previous plan forward by one step and **append the terminal controller** $\boldsymbol{\kappa}_f$ at the end, yielding controls $(\mathbf{u}_1^*, \ldots, \mathbf{u}_{N-1}^*, \boldsymbol{\kappa}_f(\mathbf{x}_N^*))$ with states recomputed from the dynamics starting from $\mathbf{x}_1^*$.
-
-This shifted plan may no longer be optimal, but the **Lyapunov decrease condition** ensures it remains feasible and leads to progress. The condition
-
-$$
-V_f(\mathbf{f}(\mathbf{x}, \kappa_f(\mathbf{x}))) - V_f(\mathbf{x}) \leq -\ell(\mathbf{x}, \kappa_f(\mathbf{x}))
-\quad \forall\, \mathbf{x} \in \mathcal{X}_f
-$$
-
-requires that the terminal cost $V_f$ decrease faster than the stage cost accumulates when following $\boldsymbol{\kappa}_f$ inside $\mathcal{X}_f$. This means the controller makes progress in both state evolution and predicted cost-to-go.
-
-This "one-step contractiveness" property ensures that applying $\kappa_f$ within the terminal set leads to value decrease. When used at the horizon's tail, this guarantees that even a non-optimal shifted trajectory results in lower overall cost, making $V_N$ behave like a Lyapunov function for regulation and tracking tasks. -->
-
-<!-- ### Computing Terminal Conditions in Practice
-
-For linear systems with quadratic costs, the terminal conditions follow naturally from LQR theory. The process begins by solving the infinite-horizon LQR problem:
-
-$$\mathbf{P} = \mathbf{Q} + \mathbf{A}^T \mathbf{P} \mathbf{A} - \mathbf{A}^T \mathbf{P} \mathbf{B}(\mathbf{R} + \mathbf{B}^T \mathbf{P} \mathbf{B})^{-1} \mathbf{B}^T \mathbf{P} \mathbf{A}$$
-$$\mathbf{K} = -(\mathbf{R} + \mathbf{B}^T \mathbf{P} \mathbf{B})^{-1} \mathbf{B}^T \mathbf{P} \mathbf{A}$$
-
-The terminal cost and controller then follow directly: $V_f(\mathbf{x}) = \mathbf{x}^T \mathbf{P} \mathbf{x}$ and $\kappa_f(\mathbf{x}) = \mathbf{K}\mathbf{x}$. 
-
-Constructing the terminal set $\mathcal{X}_f$ presents more options with varying computational complexity. The most powerful but computationally intensive approach computes the **maximal control-invariant set**: the largest set where $\mathbf{u} = \mathbf{K}\mathbf{x}$ keeps the state feasible indefinitely. This involves fixed-point iterations on polytopes. A more tractable alternative uses **ellipsoidal approximations**, finding the largest $\alpha$ such that $\mathcal{X}_f = \{\mathbf{x} : \mathbf{x}^T \mathbf{P} \mathbf{x} \leq \alpha\}$ satisfies all constraints under $\mathbf{u} = \mathbf{K}\mathbf{x}$. The most conservative but always feasible approach starts with a small safe set where constraints are satisfied and grows it until hitting constraint boundaries.
-
-For nonlinear systems, we linearize around the equilibrium to compute $\mathbf{P}$ and $\mathbf{K}$, then verify the decrease condition holds locally. The terminal set becomes a neighborhood where the linear approximation remains valid. -->
-
-
-<!-- 
-### Performance Implications
-
-The terminal conditions create inherent tradeoffs between conservatism and computational burden. Larger terminal sets $\mathcal{X}_f$ provide greater regions of attraction and impose fewer restrictions on trajectories, but require more intensive computation. Smaller terminal sets may necessitate longer horizons to reach from typical initial conditions. Similarly, more accurate terminal costs $V_f$ provide tighter approximations of infinite-horizon costs, enabling effective control with shorter horizons.
-
-The importance of terminal conditions diminishes as the horizon length increases. With $N \to \infty$, any stabilizing terminal controller suffices for stability. In practice, short horizons (N = 10-20) make terminal conditions crucial for stability, medium horizons (N = 20-50) benefit from but don't critically depend on them, while long horizons (N > 50) often omit them entirely, relying solely on horizon length for stability. -->
 
 ### Suboptimality Bounds
 
@@ -336,103 +281,6 @@ Since $V_N(\mathbf{x})$ is the optimal $N$-horizon cost (which may do better tha
 $$\varepsilon_N \leq \tilde{V}_N(\mathbf{x}) - V_\infty(\mathbf{x}) = V_f(\mathbf{x}_N^*) - \sum_{k=N}^{\infty} \ell(\mathbf{x}_k^*, \mathbf{u}_k^*)$$
 
 This bound shows that the approximation error depends on how well the terminal cost $V_f$ approximates the true tail cost along the infinite-horizon optimal trajectory.
-<!-- 
-#### Exponential Convergence in the Linear-Quadratic Case
-
-For linear systems $\mathbf{x}_{k+1} = \mathbf{A}\mathbf{x}_k + \mathbf{B}\mathbf{u}_k$ with quadratic costs $\ell(\mathbf{x}, \mathbf{u}) = \mathbf{x}^T\mathbf{Q}\mathbf{x} + \mathbf{u}^T\mathbf{R}\mathbf{u}$, we can compute this error exactly. When the terminal cost is the LQR cost-to-go $V_f(\mathbf{x}) = \mathbf{x}^T\mathbf{P}\mathbf{x}$, the infinite-horizon optimal trajectory satisfies $\mathbf{x}_k^* = \mathbf{A}_{cl}^k \mathbf{x}$ where $\mathbf{A}_{cl} = \mathbf{A} + \mathbf{B}\mathbf{K}$ is the closed-loop matrix.
-
-The tail cost from time $N$ onward becomes:
-$\sum_{k=N}^{\infty} \ell(\mathbf{x}_k^*, \mathbf{u}_k^*) = \sum_{k=N}^{\infty} (\mathbf{x}_k^*)^T \mathbf{Q}_{cl} \mathbf{x}_k^* = (\mathbf{x}_N^*)^T \left(\sum_{k=0}^{\infty} (\mathbf{A}_{cl}^T)^k \mathbf{Q}_{cl} \mathbf{A}_{cl}^k\right) \mathbf{x}_N^*$
-
-where $\mathbf{Q}_{cl} = \mathbf{Q} + \mathbf{K}^T\mathbf{R}\mathbf{K}$ captures the quadratic cost under the optimal controller $\mathbf{u} = \mathbf{K}\mathbf{x}$.
-
-The infinite sum equals $\mathbf{P}$ by definition of the LQR solution, so the terminal cost $V_f(\mathbf{x}_N^*) = (\mathbf{x}_N^*)^T \mathbf{P} \mathbf{x}_N^*$ exactly matches the true tail cost when computed along the infinite-horizon optimal trajectory. This gives $\varepsilon_N = 0$ when following the infinite-horizon optimal path exactly!
-
-However, the finite-horizon optimizer typically finds a different trajectory for the first $N$ steps, leading to a different $\mathbf{x}_N$. The approximation error then depends on how much the finite-horizon trajectory deviates from the infinite-horizon one. Since both are optimal for their respective problems and the terminal cost provides the correct tail approximation, this deviation shrinks exponentially with horizon length at a rate determined by the eigenvalues of $\mathbf{A}_{cl}$.
-
-Specifically, if $\rho(\mathbf{A}_{cl})$ denotes the spectral radius of the closed-loop matrix, then:
-
-$\varepsilon_N = O(\rho(\mathbf{A}_{cl})^N)$
-
-For stable systems, $\rho(\mathbf{A}_{cl}) < 1$, yielding exponential convergence. This explains why short horizons (N = 10-30) often achieve near-optimal performance: the approximation error decreases exponentially fast, making even modest horizons highly effective for regulation and constant reference tracking tasks.
-
-#### Implications for Horizon Selection
-
-These bounds provide practical guidance for choosing prediction horizons. The exponential convergence means that beyond a certain horizon length, further increases yield diminishing returns. The optimal horizon balances approximation accuracy against computational cost, with the break-even point typically occurring when $\rho(\mathbf{A}_{cl})^N$ drops below the desired tolerance level.
-
-For systems with slow dynamics (eigenvalues close to one), longer horizons may be necessary, while systems with fast dynamics achieve good approximations with surprisingly short horizons. This analysis also explains why terminal conditions become less critical as horizons increase: the exponential decay ensures that the tail beyond any reasonable horizon contributes negligibly to the total cost. -->
-<!-- 
-### When Terminal Constraints Cause Infeasibility
-
-The terminal constraint $\mathbf{x}_N \in \mathcal{X}_f$ can make the optimization infeasible, especially for:
-- Large disturbances pushing the state far from equilibrium
-- Short horizons that cannot reach $\mathcal{X}_f$ in time
-- Conservative terminal sets that are unnecessarily small
-
-Common remedies:
-
-1. **Soft terminal constraints**: Replace hard constraint with penalty
-   $$\text{minimize} \quad V_f(\mathbf{x}_N) + \rho \cdot d(\mathbf{x}_N, \mathcal{X}_f) + \ldots$$
-   where $d(\cdot, \mathcal{X}_f)$ measures distance to the set
-
-2. **Adaptive horizons**: Extend horizon when far from $\mathcal{X}_f$
-
-3. **Backup strategy**: If infeasible, switch to unconstrained MPC or a fallback controller, then re-enable terminal constraints once feasible
-
-The choice depends on whether theoretical guarantees or practical performance takes priority. Many industrial implementations omit terminal constraints entirely, relying on well-tuned horizons and costs to ensure stability.
- -->
-<!-- 
-# The Landscape of MPC Variants
-
-Once the basic idea of receding horizon control is clear, it is helpful to see how the same backbone accommodates many variations. In every case, we transcribe the continuous problem to a nonlinear program of the form
-
-$$
-\begin{aligned}
-\text{minimize}\quad & c_T(\mathbf{x}_N)+\sum_{k=0}^{N-1} w_k\,c(\mathbf{x}_k,\mathbf{u}_k) \\
-\text{subject to}\quad & \mathbf{x}_{k+1}=\mathbf{F}_k(\mathbf{x}_k,\mathbf{u}_k) \\
-& \mathbf{g}(\mathbf{x}_k,\mathbf{u}_k)\leq \mathbf{0}, \\
-& \mathbf{x}_{\min}\leq \mathbf{x}_k\leq \mathbf{x}_{\max},\quad \mathbf{u}_{\min}\leq \mathbf{u}_k\leq \mathbf{u}_{\max}, \\
-& \mathbf{x}_0=\mathbf{x}_{\text{current}} ,
-\end{aligned}
-$$
-
-with \$\mathbf{F}\_k\$ the chosen discretization of the dynamics and \$w\_k\$ the quadrature weights. From this skeleton, we can construct several families of MPC.
-
-In **tracking MPC**, the stage and terminal costs are quadratic penalties on deviation from a reference trajectory,
-
-$$
-c(\mathbf{x}_k,\mathbf{u}_k)=\|\mathbf{x}_k-\mathbf{x}_k^{\text{ref}}\|_{\mathbf{Q}}^2+\|\mathbf{u}_k-\mathbf{u}_k^{\text{ref}}\|_{\mathbf{R}}^2 , \qquad c_T(\mathbf{x}_N)=\|\mathbf{x}_N-\mathbf{x}_N^{\text{ref}}\|_{\mathbf{P}}^2 .
-$$
-
-This is the industrial workhorse, ensuring that the system follows a desired profile within limits.
-
-In **regulatory MPC**, the reference is fixed at an equilibrium \$(\mathbf{x}^e,\mathbf{u}^e)\$, and the quadratic penalty encourages return to this point. Terminal constraints are often added so that stability can be guaranteed.
-
-In **economic MPC**, the quadratic structure disappears altogether. Instead, the cost encodes economic performance,
-
-$$
-c(\mathbf{x}_k,\mathbf{u}_k)=c_{\text{econ}}(\mathbf{x}_k,\mathbf{u}_k),
-$$
-
-for instance energy cost, profit, or resource efficiency. The optimization then steers the system not toward a setpoint but toward economically optimal regimes.
-
-When uncertainty is represented by bounded sets, one arrives at **robust MPC**, which seeks controls that satisfy the constraints for all admissible disturbances. The resulting NLP has a min–max structure. A tractable alternative is tube MPC, where the nominal optimization is carried out with tightened constraints to guarantee feasibility of the true system under a disturbance feedback law.
-
-If uncertainty is stochastic, the formulation turns into **stochastic MPC**, where the objective is the expected cost and the constraints are imposed with high probability,
-
-$$
-\mathbb{P}\!\left[\mathbf{g}(\mathbf{x}_k,\mathbf{u}_k)\leq \mathbf{0}\right]\geq 1-\varepsilon .
-$$
-
-Scenario-based versions replace expectations by a sampled, deterministic problem.
-
-Some systems require discrete choices, such as switching devices on or off. **Hybrid MPC** introduces integer variables into the transcription, producing a mixed-integer NLP that can handle such logic.
-
-For large networks of subsystems, **distributed MPC** coordinates several local predictive controllers that optimize their own subsystems while communicating through coupling constraints.
-
-Finally, in settings where models are uncertain or slowly drifting, one finds **adaptive or learning-based MPC**, which uses parameter estimation or machine learning to update the model \$\mathbf{F}\_k(\cdot;\theta\_t)\$ and possibly the cost function. The optimization step remains the same, but the model evolves as more data are collected.
-
-These formulations illustrate that MPC is less a single algorithm than a recipe. The scaffolding is always the same: finite horizon prediction, state and input constraints, and receding horizon application of the control. What changes from one variant to another is the cost function, the way uncertainty is treated, the presence of discrete decisions, or the architecture across multiple agents. -->
 
 
 # The Landscape of MPC Variants
@@ -481,14 +329,159 @@ To guarantee stability, it is common to include a terminal constraint $\mathbf{x
 
 ## Economic MPC
 
-Not all systems operate around a reference. Sometimes the goal is to optimize a true economic objective (eg. energy cost, revenue, efficiency) directly. This gives rise to **economic MPC**, where the cost functions reflect real operational performance:
+Tracking and regulatory MPC penalize deviation from a prescribed reference. An economic controller instead optimizes the quantity produced by operating the system. The optimal state may vary continuously because there is no fixed reference trajectory.
+
+### Wave-Energy Capture
+
+A hinged flap extracts energy from oscillating water through a power-take-off (PTO) device. A single rotational mode gives the model
 
 $$
-c(\mathbf{x}_k, \mathbf{u}_k) = c_{\text{op}}(\mathbf{x}_k, \mathbf{u}_k), \qquad
-c(\mathbf{x}_N) = c_{\text{op},T}(\mathbf{x}_N) \enspace .
+I\ddot q+b\dot q+kq=\tau_{\mathrm{wave}}(t)-\rho(t)\dot q,
 $$
 
-There is no reference trajectory here. The cost function determines the optimal behavior. In this setting, standard stability arguments no longer apply automatically, and one must be careful to add terminal penalties or constraints that ensure the closed-loop system remains well-behaved.
+where $q$ is flap angle and $\rho$ is the commanded PTO damping. The PTO torque and captured power are
+
+$$
+\tau_{\mathrm{PTO}}=-\rho\dot q,
+\qquad
+P_{\mathrm{capture}}=-\tau_{\mathrm{PTO}}\dot q=\rho\dot q^2.
+$$
+
+Restricting $\rho\geq0$ keeps the PTO passive because $\tau_{\mathrm{PTO}}\dot q=-\rho\dot q^2\leq0$. The actuator can remove mechanical energy from the flap, but it cannot inject energy into it.
+
+A frozen-state calculation suggests using as much damping as possible. At $\dot q=0.4$ rad/s, damping values of $900$ and $1900$ N m s/rad yield instantaneous capture rates of $144$ and $304$ W. The calculation holds velocity fixed. In the dynamical system, stronger damping reduces future velocity, so captured energy need not increase monotonically with $\rho$. The constant-damping sweep below measures that delayed effect.
+
+The experiment uses a deterministic sum of three wave-torque components for $45$ s. The controller updates every $h=0.12$ s and predicts $18$ steps, or $2.16$ s, into the future. Its finite-horizon problem is
+
+$$
+\begin{aligned}
+\max_{\rho_{0:H-1}}\quad &
+h\sum_{j=0}^{H-1}\rho_j\omega_j^2
+-\lambda\sum_{j=0}^{H-1}
+\left(\frac{\rho_j-\rho_{j-1}}{\rho_{\max}}\right)^2 \\
+\text{subject to}\quad &
+\mathbf{x}_{j+1}=F_h(\mathbf{x}_j,\rho_j,\tau_{\mathrm{wave}}), \\
+&0\leq\rho_j\leq2400\ \mathrm{N\,m\,s/rad},\\
+&|q_j|\leq0.55\ \mathrm{rad},\\
+&|\rho_j\omega_j|\leq2800\ \mathrm{N\,m},\\
+&|\rho_j-\rho_{j-1}|/h\leq5000\ \mathrm{N\,m\,s^{-2}/rad}.
+\end{aligned}
+$$
+
+Here $F_h$ is one Runge-Kutta step of the flap model and $\rho_{-1}$ is the damping applied during the previous control interval. Only $\rho_0$ is applied. The flap state is measured again, the horizon advances, and the nonlinear program is solved from the shifted previous solution.
+
+Two passive controllers provide matched baselines. Constant damping requests $\rho=900$ N m s/rad. A phase-aware heuristic raises damping when the measured product $\tau_{\mathrm{wave}}\dot q$ is positive and lowers it otherwise. All three requests pass through the same damping, torque, and damping-rate projection before reaching the plant. The stroke constraint differs because it depends on predicted state evolution rather than on the current actuator command.
+
+Before inspecting the trajectories, predict whether constant damping should maximize total captured energy. Also predict which controller should use the most actuator variation. The economic objective can favor operation close to the state and torque limits.
+
+```{code-cell} python
+:tags: [remove-cell]
+
+import sys
+sys.path.insert(0, "code")
+
+import pandas as pd
+from IPython.display import HTML, display
+import matplotlib.pyplot as plt
+
+from wave_energy import (
+    WaveParameters,
+    create_animation as create_wave_animation,
+    make_closed_loop_figure,
+    make_tradeoff_figure,
+    metrics_table as wave_metrics_table,
+    run_comparison as run_wave_comparison,
+    run_damping_sweep,
+)
+
+wave_parameters = WaveParameters()
+wave_results = run_wave_comparison(wave_parameters, duration=45.0)
+wave_sweep = run_damping_sweep(wave_parameters, duration=45.0)
+```
+
+```{code-cell} python
+:tags: [remove-input]
+:label: fig-wave-economic-mpc-trajectories
+:caption: Closed-loop response under the same deterministic three-frequency forcing. The economic MPC captures more energy by varying passive damping and operating close to the stroke and PTO-torque limits. Constant damping crosses the shaded stroke-feasible region, while the phase-aware baseline stays farther inside it. Every curve is generated by the nonlinear plant simulation.
+
+wave_summary_figure = make_closed_loop_figure(wave_results, wave_parameters)
+display(wave_summary_figure)
+plt.close(wave_summary_figure)
+```
+
+The economic MPC captures approximately $47.3$ kJ, compared with $39.9$ kJ for phase-aware damping and $39.3$ kJ for constant damping. It reaches the $0.55$ rad stroke limit and the $2.8$ kN m torque limit without exceeding either beyond numerical tolerance. Constant damping exceeds the stroke limit by about $0.084$ rad. The phase-aware law remains feasible and uses less damping variation, but it leaves energy unharvested.
+
+One of the 375 nonlinear programs terminates without satisfying the solver's convergence flag. The implementation then applies the shifted feasible sequence through the common actuator projection. The resulting trajectory remains within the recorded limits, but the fallback is part of the result rather than evidence of recursive feasibility.
+
+```{code-cell} python
+:tags: [remove-input]
+
+wave_table = pd.DataFrame(wave_metrics_table(wave_results))
+for column in (
+    "energy_kj",
+    "peak_stroke_deg",
+    "peak_torque_knm",
+    "damping_variation_per_s",
+    "stroke_violation_deg",
+    "torque_violation_nm",
+):
+    wave_table[column] = wave_table[column].map(lambda x: f"{x:.3f}")
+wave_table.rename(
+    columns={
+        "controller": "controller",
+        "energy_kj": "captured energy (kJ)",
+        "peak_stroke_deg": "peak stroke (deg)",
+        "peak_torque_knm": "peak PTO torque (kN m)",
+        "damping_variation_per_s": "damping variation per second",
+        "stroke_violation_deg": "stroke violation (deg)",
+        "torque_violation_nm": "torque violation (N m)",
+    }
+)
+```
+
+The constant-damping sweep places the three controllers on a common energy-motion diagram. A larger constant damping initially improves capture, then suppresses the motion that produces power. The economic MPC lies above this static tradeoff because it changes damping with the predicted phase while respecting the stroke bound.
+
+```{code-cell} python
+:tags: [remove-input]
+:label: fig-wave-economic-mpc-tradeoff
+:caption: Captured energy against peak flap stroke. Gray circles sweep constant passive damping from 100 to 2800 N m s/rad. The vertical dotted line is the 0.55 rad stroke constraint. Economic MPC obtains more energy than the fixed-damping sweep by scheduling damping over the predicted wave cycle. The phase-aware baseline is feasible but does not attain the MPC energy.
+
+wave_tradeoff_figure = make_tradeoff_figure(
+    wave_results,
+    wave_sweep,
+    wave_parameters,
+)
+display(wave_tradeoff_figure)
+plt.close(wave_tradeoff_figure)
+```
+
+The animation shows the economic-MPC trajectory and accumulated energy from the same executed simulation. The displayed damping is the action applied after the actuator projection.
+
+```{code-cell} python
+:tags: [remove-input]
+:label: fig-wave-economic-mpc-animation
+:caption: Time-compressed replay of the economic-MPC flap motion and captured energy. The controller re-solves an 18-step nonlinear program every 0.12 seconds and applies the first passive damping action.
+
+wave_animation = create_wave_animation(wave_results, wave_parameters, frame_stride=3)
+wave_html = wave_animation.to_jshtml(fps=25)
+plt.close(wave_animation._fig)
+display(HTML(wave_html))
+```
+
+:::{dropdown} Inspect the economic-MPC solve
+
+```{literalinclude} code/wave_energy.py
+:language: python
+:start-at: def solve_economic_mpc
+:end-before: def _metrics
+:linenos:
+```
+
+:::
+
+{download}`Download the complete wave-energy experiment <code/wave_energy.py>`
+
+This model assumes an accurate short-term wave forecast and one rigid flap mode. Real devices include radiation-memory effects, additional structural modes, losses, measurement error, and forecast uncertainty. Those omissions affect both predicted capture and constraint margins. Robust or stochastic MPC can represent some of this uncertainty, while data can be used to estimate the unmodeled residual dynamics.
 
 ## Robust MPC
 
@@ -561,32 +554,11 @@ $$
 The parameters $\boldsymbol{\theta}_t$ and $\boldsymbol{\phi}_t$ are learned in real time. When combined with policy distillation, value approximation, or trajectory imitation, this leads to overlaps with reinforcement learning where the MPC solutions act as supervision for a reactive policy.
 
 
-# Robustness in Real-Time MPC
+## Robustness and Failure Handling
 
-The trajectory optimization methods we have studied assume perfect models and deterministic dynamics. In practice, however, MPC controllers must operate in environments where models are approximate, disturbances are unpredictable, and computational resources are limited. The mathematical elegance of optimal control must always yield to the engineering reality of robust operation as **perfect optimality is less important than reliable operation**. This philosophy permeates industrial MPC applications. A controller that achieves 95% performance 100% of the time is superior to one that achieves 100% performance 95% of the time and fails catastrophically the remaining 5%. Airlines accept suboptimal fuel consumption over missed approaches, power grids tolerate efficiency losses to prevent blackouts, and chemical plants sacrifice yield for safety. By designing for failure, we want to to create MPC systems that degrade gracefully rather than fail catastrophically, maintaining safety and stability even when the impossible is asked of them.
+The wave-energy example assumes that every optimization finishes before the next control update and that its prediction model remains accurate over the horizon. An operational MPC controller must also handle incompatible constraints, modeling errors, and missed computation deadlines.
 
-
-## Example: Wind Farm Yield Optimization
-Consider a wind farm where MPC controllers coordinate individual turbines to maximize overall power production while minimizing wake interference. Each turbine can adjust both its thrust coefficient (through blade pitch) and yaw angle to redirect its wake away from downstream turbines. At time $t_k$, the MPC controller solves the optimization problem:
-
-$$
-\begin{aligned}
-\min_{\mathbf{u}_{0:N-1}} \quad & \sum_{i=0}^{N-1} \|\mathbf{x}_i - \mathbf{x}_i^{\text{ref}}\|_{\mathbf{Q}}^2 + \|\mathbf{u}_i\|_{\mathbf{R}}^2 \\
-\text{s.t.} \quad & \mathbf{x}_{i+1} = \mathbf{f}(\mathbf{x}_i, \mathbf{u}_i) \\
-& \mathbf{x}_i \in \mathcal{X}_{\text{safe}} \\
-& \|\mathbf{u}_i\|_\infty \leq u_{\max} \\
-& \mathbf{x}_0 = \mathbf{x}_{\text{current}}
-\end{aligned}
-$$
-
-Now suppose an unexpected wind direction change occurs, shifting the incoming wind vector by 30 degrees. The current state $\mathbf{x}_{\text{current}}$ reflects wake patterns that no longer align with the new wind direction, and the optimizer discovers that no feasible trajectory exists that can redirect all wakes appropriately within the physical limits of yaw rate and thrust adjustment. The solver reports infeasibility.
-
-This scenario illustrates the fundamental challenge of real-time MPC: **constraint incompatibility**. When disturbances push the system into states from which recovery appears impossible, or when reference trajectories demand physically impossible maneuvers, the intersection of all constraint sets becomes empty. Model mismatch compounds this problem as prediction errors accumulate over the horizon.
-
-Even when feasible solutions exist, **computational constraints** can prevent their discovery. A control loop running at 100 Hz allows only 10 milliseconds per iteration. If the solver requires 15 milliseconds to converge, we face an impossible choice: delay the control action and risk destabilizing the system, or apply an unconverged iterate that may violate critical constraints.
-
-A third failure mode involves **numerical instabilities**: ill-conditioned matrices, rank deficiency, or division by zero in the linear algebra routines. These failures are particularly problematic because they occur sporadically, triggered by specific state configurations that create near-singular conditions in the optimization problem.
-
+A disturbance can move the measured state to a point from which the requested target is unreachable within the horizon. Model mismatch can make a trajectory feasible in prediction and infeasible on the plant. A solver can also stop because of an ill-conditioned local model or a changing active set. These cases require an explicit hierarchy of hard constraints, soft objectives, and fallback actions. The following mechanisms modify the finite-horizon problem or its deployment without changing the receding-horizon principle.
 ## Softening Constraints Through Slack Variables
 
 The first approach to handling infeasibility recognizes that not all constraints carry equal importance. A chemical reactor's temperature must never exceed the runaway threshold: this is a hard constraint that cannot be violated. However, maintaining temperature within an optimal efficiency band is merely desirable. This can be treated as a soft constraint that we prefer to satisfy but can relax when necessary.
@@ -991,87 +963,8 @@ Continuation then becomes:
 1. **Predictor**: $y_{\text{pred}} = y^\star + (\Delta\theta)\,(-K^{-1}G)$.
 2. **Corrector**: a few Newton/SQP steps on the KKT equations at the new $\theta$.
 
-In MPC, this yields efficient **warm starts** across time: as the parameter $\theta_t$ (current state, references) changes slightly, we predict the new primal–dual point and correct with 1–2 iterations—often enough to hit tolerance in real time.
+In MPC, this yields efficient **warm starts** across time. As the parameter $\theta_t$ (current state and references) changes slightly, we predict the new primal-dual point and correct with 1–2 iterations, which is often enough to reach tolerance in real time.
 
-<!-- 
-## Application to MPC
-
-We now specialize this idea to the structure of finite-horizon MPC. Fix a prediction horizon $N$. At each time step, we solve a problem with fixed structure and varying data. Define
-
-$$
-\boldsymbol{\theta} := (\mathbf{x}_0,\, \mathbf{r},\, \mathbf{w}),
-$$
-
-which includes the current state $\mathbf{x}_0$, reference signals $\mathbf{r}$, and exogenous forecasts $\mathbf{w}$.
-
-The finite-horizon problem becomes
-
-$$
-\begin{aligned}
-\min_{z} \quad & J(z;\boldsymbol{\theta}) \\
-\text{s.t.} \quad & c(z;\boldsymbol{\theta}) = 0 \\
-& d(z;\boldsymbol{\theta}) \leq 0,
-\end{aligned}
-$$
-
-with decision variable $z = (\mathbf{x}_{0:N}, \mathbf{u}_{0:N-1})$. The equality constraints enforce dynamics and terminal conditions. The inequalities encode input and state bounds.
-
-Solving $(P_\theta)$ produces an optimal trajectory $z^\star(\boldsymbol{\theta})$. The control law is the first input:
-
-$$
-\pi(\boldsymbol{\theta}) := \mathbf{u}_0^\star(\boldsymbol{\theta}).
-$$
-
-This mapping from parameter to input defines the MPC policy. Parametric programming helps us understand and exploit its structure to speed up evaluation.
-
-## Two Approaches to Efficient MPC
-
-Parametric structure can be used in two main ways: either to construct an explicit control law offline, or to warm-start the optimizer online using sensitivity information.
-
-### Explicit MPC
-
-When the problem is a linear or quadratic program with affine dependence on $\boldsymbol{\theta}$, we can work out the solution symbolically. The parameter space is partitioned into regions $\mathcal{R}_1, \dots, \mathcal{R}_M$, each associated with a fixed active set. On each region:
-
-$$
-z^\star(\boldsymbol{\theta}) = A_r\,\boldsymbol{\theta} + b_r,
-\qquad
-\pi(\boldsymbol{\theta}) = K_r\,\boldsymbol{\theta} + k_r.
-$$
-
-At runtime, we identify which region contains $\boldsymbol{\theta}$, then apply the corresponding affine formula. This approach avoids optimization entirely during deployment.
-
-It requires storing the region definitions and control laws. The number of regions grows with horizon length and constraint count, which limits this approach to systems with low state dimension and short horizons.
-
-### Sensitivity-Based MPC
-
-When symbolic enumeration is intractable, we can still track how the solution varies locally. Suppose we have a solution $\bar{y} = (\bar{z}, \bar{\lambda}, \bar{\nu})$ at parameter $\bar{\boldsymbol{\theta}}$. The KKT system reads:
-
-$$
-F(y; \boldsymbol{\theta}) = 0.
-$$
-
-Differentiating with respect to $\boldsymbol{\theta}$,
-
-$$
-\frac{\partial F}{\partial y}(\bar{y}; \bar{\boldsymbol{\theta}})\, \mathrm{d}y
-= - \frac{\partial F}{\partial \boldsymbol{\theta}}(\bar{y}; \bar{\boldsymbol{\theta}})\, \mathrm{d}\boldsymbol{\theta}.
-$$
-
-Let $K$ be the KKT matrix and $G$ the sensitivity of the residual. Then the sensitivity operator $T$ satisfies
-
-$$
-K T = -G \quad \Rightarrow \quad \mathrm{d}y = T\, \mathrm{d}\boldsymbol{\theta}.
-$$
-
-If $\boldsymbol{\theta}$ changes slightly, we update the primal-dual pair:
-
-$$
-y^{(0)} \leftarrow \bar{y} + T\,\Delta\boldsymbol{\theta},
-$$
-
-and use it as the starting point for Newton or SQP.
-
-This is the basis of real-time iteration schemes. When the active set is stable, the warm start is accurate to first order. When it changes, we refactorize and repeat, still with far less effort than solving from scratch. -->
 
 
 ## Amortized Optimization and Neural Approximation of Controllers
@@ -1302,593 +1195,8 @@ print(f"Final effect-site concentration: {x[-1, 3]:.2f} µg/mL")
 ```
 
 
-<!-- ### Deployment Patterns
 
-There are several ways to use an amortized controller once it has been trained. The simplest option is **direct amortization**, where the control input is taken to be $u = \hat{\pi}_\phi(\boldsymbol{\theta})$. In this case, the neural network provides the control action directly, with no optimization performed during deployment.
 
-A second option is **amortization with projection**, where the network output $\tilde u = \hat{\pi}_\phi(\boldsymbol{\theta})$ is passed through a small optimization step, such as a quadratic program or barrier-function filter, in order to enforce constraints. This adds a negligible computational overhead but restores guarantees of feasibility and safety.
-
-We could for example integrate a convex approximation of the MPC subproblem directly as a differentiable layer inside the network. The network proposes a candidate action $\tilde u$, which is then corrected through a small quadratic program:
-
-$$
-u = \arg\min_v \tfrac12\|v-\tilde u\|^2 \quad \text{s.t. } g(x,v)\le 0.
-$$
-
-Gradients are propagated through this correction using implicit differentiation, allowing the network to be trained end-to-end while retaining constraint satisfaction. This hybrid keeps the fast evaluation of a learned map while preserving the structure of MPC.
-
-A third option is **amortized warm-starting**, where the neural network provides an initialization for one or two Newton or SQP iterations of the underlying NMPC problem. In this setting, the learned map delivers an excellent starting point, so the optimizer converges quickly and the cost of re-solving at each time step is greatly reduced. -->
-
-
-
-<!-- ## Demo: Batch Bioreactor MPC with do-mpc
-
-We illustrate nonlinear MPC on a fed-batch bioreactor. The process has four states: biomass concentration \(X_s\), substrate \(S_s\), product \(P_s\), and liquid volume \(V_s\). The manipulated feed flow \(u_{\text{inp}}\) augments volume and changes concentrations. The dynamics are
-
-$$
-\begin{aligned}
-\dot X_s &= \mu(S_s)X_s - \tfrac{u_{\text{inp}}}{V_s} X_s, \\
-\dot S_s &= -\tfrac{\mu(S_s)X_s}{Y_x} - \tfrac{v X_s}{Y_p} + \tfrac{u_{\text{inp}}}{V_s}(S_{\text{in}} - S_s), \\
-\dot P_s &= v X_s - \tfrac{u_{\text{inp}}}{V_s} P_s, \\
-\dot V_s &= u_{\text{inp}},
-\end{aligned}
-$$
-
-with inhibited Monod kinetics
-
-$$
-\mu(S_s) = \frac{\mu_m S_s}{K_m + S_s + S_s^2/K_i}.
-$$
-
-We impose bounds on states and input, e.g. \(0 \le X_s \le 3.7\), \(0 \le P_s \le 3.0\), and \(0 \le u_{\text{inp}} \le 0.2\). Two parameters are uncertain: yield \(Y_x\) and inlet concentration \(S_{\text{in}}\). We treat them via a small scenario set with non-anticipativity (a single input sequence is shared across scenarios).
-
-At each MPC step, we solve a finite-horizon problem that encourages product formation while regularizing effort:
-
-$$
-\min_{x_{0:N},u_{0:N-1}} \; -\,P_s(N) + \sum_{k=0}^{N-1} \big( -\,P_s(k) + \rho\, u_k^2 \big)
-$$
-
-subject to the discretized dynamics and box constraints for all uncertainty scenarios, sharing the inputs across scenarios. The continuous-time ODEs are discretized by orthogonal collocation on finite elements, producing an NLP [orthogonal collocation](https://www.do-mpc.com/en/latest/theory_orthogonal_collocation.html). The resulting NMPC is re-solved in a receding-horizon loop [MPC basics](https://www.do-mpc.com/en/latest/theory_mpc.html).
-
-The cell below runs the closed-loop simulation and plots the states and input. The script is adapted from the do-mpc Batch Bioreactor example.
-
-```{code-cell} python
-:tags: [hide-input]
-
-%config InlineBackend.figure_format = 'retina'
-import numpy as np
-import do_mpc
-from casadi import *  # noqa: F401 - do-mpc constructs CasADi symbols under the hood
-import matplotlib.pyplot as plt
-
-# Apply book style
-try:
-    import scienceplots
-    plt.style.use(['science', 'notebook'])
-except (ImportError, OSError):
-    pass  # Use matplotlib defaults
-
-
-def build_model():
-    model_type = 'continuous'
-    model = do_mpc.model.Model(model_type)
-
-    # States
-    X_s = model.set_variable('_x', 'X_s')  # biomass
-    S_s = model.set_variable('_x', 'S_s')  # substrate
-    P_s = model.set_variable('_x', 'P_s')  # product
-    V_s = model.set_variable('_x', 'V_s')  # volume
-
-    # Control input (feed flow)
-    inp = model.set_variable('_u', 'inp')
-
-    # Certain parameters
-    mu_m = 0.02
-    K_m = 0.05
-    K_i = 5.0
-    v_par = 0.004
-    Y_p = 1.2
-
-    # Uncertain parameters
-    Y_x = model.set_variable('_p', 'Y_x')
-    S_in = model.set_variable('_p', 'S_in')
-
-    # Specific growth rate
-    mu_S = mu_m * S_s / (K_m + S_s + (S_s**2 / K_i))
-
-    # Dynamics
-    model.set_rhs('X_s', mu_S * X_s - inp / V_s * X_s)
-    model.set_rhs('S_s', -mu_S * X_s / Y_x - v_par * X_s / Y_p + inp / V_s * (S_in - S_s))
-    model.set_rhs('P_s', v_par * X_s - inp / V_s * P_s)
-    model.set_rhs('V_s', inp)
-
-    model.setup()
-    return model
-
-
-def build_mpc(model):
-    mpc = do_mpc.controller.MPC(model)
-    setup_mpc = {
-        'n_horizon': 30,
-        't_step': 1.0,
-        'n_robust': 1,
-        'store_full_solution': True,
-    }
-    mpc.set_param(**setup_mpc)
-
-    # Objective: encourage product formation and small inputs (economic-like MPC)
-    X_s = model.x['X_s']
-    S_s = model.x['S_s']
-    P_s = model.x['P_s']
-    V_s = model.x['V_s']
-    inp = model.u['inp']
-
-    mterm = -P_s  # maximize product at horizon end
-    lterm = -P_s + 1e-4 * inp**2  # small input penalty
-    mpc.set_objective(mterm=mterm, lterm=lterm)
-
-    # Box constraints
-    mpc.bounds['lower', '_x', 'X_s'] = 0.0
-    mpc.bounds['lower', '_x', 'S_s'] = -0.01
-    mpc.bounds['lower', '_x', 'P_s'] = 0.0
-    mpc.bounds['lower', '_x', 'V_s'] = 0.0
-    mpc.bounds['upper', '_x', 'X_s'] = 3.7
-    mpc.bounds['upper', '_x', 'P_s'] = 3.0
-    mpc.bounds['lower', '_u', 'inp'] = 0.0
-    mpc.bounds['upper', '_u', 'inp'] = 0.2
-
-    # Uncertainty scenarios (shared control across scenarios)
-    Y_x_values = np.array([0.5, 0.4, 0.3])
-    S_in_values = np.array([200.0, 220.0, 180.0])
-    mpc.set_uncertainty_values(Y_x=Y_x_values, S_in=S_in_values)
-
-    mpc.setup()
-    return mpc
-
-
-def build_estimator(model):
-    return do_mpc.estimator.StateFeedback(model)
-
-
-def build_simulator(model):
-    simulator = do_mpc.simulator.Simulator(model)
-    params_sim = {
-        'integration_tool': 'cvodes',
-        'abstol': 1e-10,
-        'reltol': 1e-10,
-        't_step': 1.0,
-    }
-    simulator.set_param(**params_sim)
-
-    # Realizations of uncertain parameters used by the simulator
-    p_num = simulator.get_p_template()
-    p_num['Y_x'] = 0.4
-    p_num['S_in'] = 200.0
-
-    def p_fun(t_now):
-        return p_num
-
-    simulator.set_p_fun(p_fun)
-    simulator.setup()
-    return simulator
-
-
-def run_closed_loop():
-    model = build_model()
-    mpc = build_mpc(model)
-    estimator = build_estimator(model)
-    simulator = build_simulator(model)
-
-    # Initial state
-    x0 = np.array([1.0, 0.5, 0.0, 120.0])
-    mpc.x0 = x0
-    estimator.x0 = x0
-    simulator.x0 = x0
-    mpc.set_initial_guess()
-
-    # Closed-loop simulation
-    n_steps = 60
-    for _ in range(n_steps):
-        u0 = mpc.make_step(x0)
-        y_next = simulator.make_step(u0)
-        x0 = estimator.make_step(y_next)
-
-    # Visualization
-    import matplotlib.pyplot as plt
-
-# Apply book style
-try:
-    import scienceplots
-    plt.style.use(['science', 'notebook'])
-except (ImportError, OSError):
-    pass  # Use matplotlib defaults
-
-    mpc_graphics = do_mpc.graphics.Graphics(mpc.data)
-    sim_graphics = do_mpc.graphics.Graphics(simulator.data)
-
-    fig, ax = plt.subplots(5, sharex=True, figsize=(12, 8))
-    fig.align_ylabels()
-
-    for g in [sim_graphics, mpc_graphics]:
-        g.add_line(var_type='_x', var_name='X_s', axis=ax[0], color='#1f77b4')
-        g.add_line(var_type='_x', var_name='S_s', axis=ax[1], color='#1f77b4')
-        g.add_line(var_type='_x', var_name='P_s', axis=ax[2], color='#1f77b4')
-        g.add_line(var_type='_x', var_name='V_s', axis=ax[3], color='#1f77b4')
-        g.add_line(var_type='_u', var_name='inp', axis=ax[4], color='#1f77b4')
-
-    ax[0].set_ylabel('X_s [mol/l]')
-    ax[1].set_ylabel('S_s [mol/l]')
-    ax[2].set_ylabel('P_s [mol/l]')
-    ax[3].set_ylabel('V_s [m^3]')
-    ax[4].set_ylabel('u_inp [m^3/min]')
-    ax[4].set_xlabel('t [min]')
-
-    # Plot full horizon results
-    sim_graphics.plot_results()
-    mpc_graphics.plot_predictions()
-    mpc_graphics.reset_axes()
-    plt.tight_layout()
-    plt.show()
-
-
-# Run the closed-loop simulation
-run_closed_loop()
-```
-
-### Interactive Animation
-
-The following cell creates an interactive animation of the batch bioreactor control process, showing the MPC predictions and the evolution of the system states in real-time. The visualization includes a tank representation with liquid level and biomass particles, along with time-series plots of all states and control inputs.
-
-```{code-cell} python
-:tags: [hide-input]
-
-%config InlineBackend.figure_format = 'retina'
-import numpy as np
-import do_mpc
-from casadi import *  # noqa: F401 - do-mpc constructs CasADi symbols under the hood
-import matplotlib.pyplot as plt
-
-# Apply book style
-try:
-    import scienceplots
-    plt.style.use(['science', 'notebook'])
-except (ImportError, OSError):
-    pass  # Use matplotlib defaults
-from matplotlib.animation import FuncAnimation
-from IPython.display import HTML, display
-import matplotlib.patches as mpatches
-from contextlib import redirect_stdout, redirect_stderr
-import io
-
-
-def build_model():
-    model_type = 'continuous'
-    model = do_mpc.model.Model(model_type)
-
-    # States
-    X_s = model.set_variable('_x', 'X_s')  # biomass
-    S_s = model.set_variable('_x', 'S_s')  # substrate
-    P_s = model.set_variable('_x', 'P_s')  # product
-    V_s = model.set_variable('_x', 'V_s')  # volume
-
-    # Control input (feed flow)
-    inp = model.set_variable('_u', 'inp')
-
-    # Certain parameters
-    mu_m = 0.02
-    K_m = 0.05
-    K_i = 5.0
-    v_par = 0.004
-    Y_p = 1.2
-
-    # Uncertain parameters
-    Y_x = model.set_variable('_p', 'Y_x')
-    S_in = model.set_variable('_p', 'S_in')
-
-    # Auxiliary term for specific growth rate
-    mu = mu_m * S_s / (K_m + S_s + S_s**2 / K_i)
-    model.set_expression('mu', mu)
-
-    # Differential equations
-    model.set_rhs('X_s', mu * X_s - inp / V_s * X_s)
-    model.set_rhs('S_s', -mu * X_s / Y_x - v_par * X_s / Y_p + inp / V_s * (S_in - S_s))
-    model.set_rhs('P_s', v_par * X_s - inp / V_s * P_s)
-    model.set_rhs('V_s', inp)
-
-    model.setup()
-    return model
-
-
-def setup_mpc(model):
-    mpc = do_mpc.controller.MPC(model)
-
-    setup_mpc = {
-        'n_horizon': 20,
-        't_step': 1.0,
-        'n_robust': 1,
-        'store_full_solution': True,
-        # Silence IPOPT/CasADi prints
-        'nlpsol_opts': {
-            'ipopt.print_level': 0,
-            'ipopt.sb': 'yes',
-            'print_time': 0,
-        },
-    }
-    mpc.set_param(**setup_mpc)
-
-    # Objective
-    mterm = model.aux['mu']  # terminal cost on growth
-    lterm = model.aux['mu']  # stage cost on growth
-    mpc.set_objective(mterm=mterm, lterm=lterm)
-
-    # Constraints
-    mpc.bounds['lower', '_u', 'inp'] = 0.0
-    mpc.bounds['upper', '_u', 'inp'] = 0.2
-    
-    mpc.bounds['lower', '_x', 'X_s'] = 0.0
-    mpc.bounds['lower', '_x', 'S_s'] = 0.0
-    mpc.bounds['lower', '_x', 'P_s'] = 0.0
-    mpc.bounds['lower', '_x', 'V_s'] = 0.0
-
-    # Uncertain parameters
-    Y_x_values = np.array([0.5])  # single scenario to avoid prediction dim issues
-    S_in_values = np.array([200.0])
-    mpc.set_uncertainty_values(Y_x=Y_x_values, S_in=S_in_values)
-
-    mpc.setup()
-    return mpc
-
-
-def setup_simulator(model):
-    simulator = do_mpc.simulator.Simulator(model)
-    simulator.set_param(t_step=1.0)
-
-    # Set uncertain parameters for simulation
-    p_template = simulator.get_p_template()
-    p_template['Y_x'] = 0.5
-    p_template['S_in'] = 200.0
-    simulator.set_p_fun(lambda t_now: p_template)
-
-    simulator.setup()
-    return simulator
-
-
-def setup_estimator(model):
-    estimator = do_mpc.estimator.StateFeedback(model)
-    return estimator
-
-
-def run_closed_loop_simulation():
-    """Run the closed-loop simulation and return results (silencing solver output)."""
-    # Build system
-    model = build_model()
-    mpc = setup_mpc(model)
-    simulator = setup_simulator(model)
-    estimator = setup_estimator(model)
-
-    # Initial state
-    x0 = np.array([1.0, 150.0, 0.0, 120.0]).reshape(-1, 1)
-    mpc.x0 = x0
-    simulator.x0 = x0
-    estimator.x0 = x0
-    mpc.set_initial_guess()
-
-    # Storage for results
-    results = {
-        't': [],
-        'x': [],
-        'u': [],
-    }
-
-    # Silence IPOPT/CasADi output during the loop
-    fnull = io.StringIO()
-    with redirect_stdout(fnull), redirect_stderr(fnull):
-        for k in range(60):
-            u0 = mpc.make_step(x0)
-            y_next = simulator.make_step(u0)
-            x0 = estimator.make_step(y_next)
-            
-            # Store results
-            results['t'].append(k)
-            results['x'].append(x0.flatten())
-            results['u'].append(u0.flatten())
-
-    # Convert to arrays
-    results['x'] = np.array(results['x'])
-    results['u'] = np.array(results['u'])
-    
-    return results
-
-
-def create_animation(results):
-    """Create an animated visualization of the batch bioreactor process."""
-    
-    # Create figure with subplots
-    fig = plt.figure(figsize=(14, 10))
-    gs = fig.add_gridspec(3, 3, hspace=0.3, wspace=0.3)
-    
-    # Tank visualization (left side)
-    ax_tank = fig.add_subplot(gs[:, 0])
-    
-    # State plots (middle and right)
-    ax_biomass = fig.add_subplot(gs[0, 1])
-    ax_substrate = fig.add_subplot(gs[0, 2])
-    ax_product = fig.add_subplot(gs[1, 1])
-    ax_volume = fig.add_subplot(gs[1, 2])
-    ax_control = fig.add_subplot(gs[2, 1:])
-    
-    # Setup axes
-    n_steps = len(results['t'])
-    
-    # State axes setup
-    for ax, label, ylim in [
-        (ax_biomass, 'Biomass X_s [g/L]', (0, 6)),
-        (ax_substrate, 'Substrate S_s [g/L]', (0, 250)),
-        (ax_product, 'Product P_s [g/L]', (0, 50)),
-        (ax_volume, 'Volume V_s [L]', (100, 200))
-    ]:
-        ax.set_xlim(0, n_steps)
-        ax.set_ylim(ylim)
-        ax.set_xlabel('Time [h]')
-        ax.set_ylabel(label)
-        ax.grid(True, alpha=0.3)
-    
-    ax_control.set_xlim(0, n_steps)
-    ax_control.set_ylim(-0.01, 0.21)
-    ax_control.set_xlabel('Time [h]')
-    ax_control.set_ylabel('Feed Flow u [L/h]')
-    ax_control.grid(True, alpha=0.3)
-    
-    # Tank setup
-    ax_tank.set_xlim(-1.5, 1.5)
-    ax_tank.set_ylim(0, 3)
-    ax_tank.set_aspect('equal')
-    ax_tank.axis('off')
-    ax_tank.set_title('Batch Bioreactor', fontsize=14, fontweight='bold')
-    
-    # Initialize plot elements
-    lines = {
-        'biomass': ax_biomass.plot([], [], 'g-', lw=2, label='Biomass')[0],
-        'substrate': ax_substrate.plot([], [], 'b-', lw=2, label='Substrate')[0],
-        'product': ax_product.plot([], [], 'r-', lw=2, label='Product')[0],
-        'volume': ax_volume.plot([], [], 'm-', lw=2, label='Volume')[0],
-        'control': ax_control.plot([], [], 'k-', lw=2, label='Control')[0],
-    }
-    
-    # Current point markers
-    markers = {
-        'biomass': ax_biomass.plot([], [], 'go', markersize=8)[0],
-        'substrate': ax_substrate.plot([], [], 'bo', markersize=8)[0],
-        'product': ax_product.plot([], [], 'ro', markersize=8)[0],
-        'volume': ax_volume.plot([], [], 'mo', markersize=8)[0],
-        'control': ax_control.plot([], [], 'ko', markersize=8)[0],
-    }
-    
-    # Tank components
-    tank_outline = mpatches.FancyBboxPatch(
-        (-1, 0.2), 2, 2, boxstyle="round,pad=0.02",
-        linewidth=3, edgecolor='black', facecolor='none'
-    )
-    ax_tank.add_patch(tank_outline)
-    
-    # Liquid in tank (will be updated)
-    liquid = mpatches.Rectangle((-0.95, 0.25), 1.9, 1.0, 
-                                facecolor='lightblue', alpha=0.6)
-    ax_tank.add_patch(liquid)
-    
-    # Biomass particles (circles)
-    biomass_particles = []
-    for _ in range(10):
-        particle = plt.Circle((0, 1), 0.05, color='green', alpha=0.7)
-        ax_tank.add_patch(particle)
-        biomass_particles.append(particle)
-    
-    # Feed pipe and valve
-    feed_pipe = mpatches.Rectangle((0.8, 2.2), 0.1, 0.5, 
-                                   facecolor='gray', edgecolor='black')
-    ax_tank.add_patch(feed_pipe)
-    
-    valve = mpatches.FancyBboxPatch(
-        (0.75, 2.15), 0.2, 0.1, boxstyle="round,pad=0.01",
-        linewidth=2, edgecolor='black', facecolor='red', alpha=0.5
-    )
-    ax_tank.add_patch(valve)
-    
-    # Text displays
-    time_text = fig.text(0.02, 0.98, '', fontsize=12, fontweight='bold',
-                         transform=fig.transFigure)
-    
-    tank_text = ax_tank.text(0, 2.7, '', ha='center', fontsize=10)
-    
-    # Add legend to one subplot
-    ax_biomass.legend(loc='upper right')
-    
-    def init():
-        """Initialize animation."""
-        for line in lines.values():
-            line.set_data([], [])
-        for marker in markers.values():
-            marker.set_data([], [])
-        return list(lines.values()) + list(markers.values())
-    
-    def animate(frame):
-        """Animation function."""
-        rng = np.random.default_rng(2026 + frame)
-        # Update time text
-        time_text.set_text(f'Time: {frame:.0f} h')
-        
-        # Update history lines
-        t_data = results['t'][:frame+1]
-        x_data = results['x'][:frame+1]
-        u_data = results['u'][:frame+1]
-        
-        if frame > 0:
-            lines['biomass'].set_data(t_data, x_data[:, 0])
-            lines['substrate'].set_data(t_data, x_data[:, 1])
-            lines['product'].set_data(t_data, x_data[:, 2])
-            lines['volume'].set_data(t_data, x_data[:, 3])
-            lines['control'].set_data(t_data, u_data[:, 0])
-            
-            # Update current point markers
-            markers['biomass'].set_data([frame], [x_data[frame, 0]])
-            markers['substrate'].set_data([frame], [x_data[frame, 1]])
-            markers['product'].set_data([frame], [x_data[frame, 2]])
-            markers['volume'].set_data([frame], [x_data[frame, 3]])
-            markers['control'].set_data([frame], [u_data[frame, 0]])
-        
-        # Update tank visualization
-        if frame < len(x_data):
-            # Update liquid level based on volume
-            volume = x_data[frame, 3]
-            liquid_height = 1.5 * (volume / 200.0)  # Normalize to tank height
-            liquid.set_height(liquid_height)
-            
-            # Update biomass particles
-            biomass_conc = x_data[frame, 0]
-            n_visible = int(10 * min(biomass_conc / 5.0, 1.0))  # Scale particles
-            
-            for i, particle in enumerate(biomass_particles):
-                if i < n_visible:
-                    # Random position in liquid
-                    x = rng.uniform(-0.8, 0.8)
-                    y = rng.uniform(0.3, 0.25 + liquid_height * 0.9)
-                    particle.set_center((x, y))
-                    particle.set_alpha(0.7)
-                else:
-                    particle.set_alpha(0)
-            
-            # Update valve color based on control input
-            u_val = u_data[frame, 0] if frame < len(u_data) else 0
-            valve_color = plt.cm.RdYlGn_r(u_val / 0.2)  # Red=high flow, Green=low
-            valve.set_facecolor(valve_color)
-            valve.set_alpha(0.8 if u_val > 0.01 else 0.3)
-            
-            # Update tank text
-            tank_text.set_text(
-                f'V={volume:.1f}L, X={biomass_conc:.2f}g/L\n'
-                f'S={x_data[frame, 1]:.1f}g/L, P={x_data[frame, 2]:.1f}g/L'
-            )
-        
-        return (list(lines.values()) + list(markers.values()) + 
-                biomass_particles + [liquid, valve, tank_text, time_text])
-    
-    # Create animation
-    anim = FuncAnimation(fig, animate, init_func=init, 
-                        frames=n_steps, interval=100, blit=False)
-    
-    plt.suptitle('Batch Bioreactor Control with do-mpc', fontsize=16, fontweight='bold')
-    
-    return fig, anim
-
-
-# Run simulation and create animation (no prints)
-results = run_closed_loop_simulation()
-fig, anim = create_animation(results)
-
-# Render like the pendulum example: JS HTML animation and no extra prints
-js_anim = anim.to_jshtml()
-plt.close(fig)
-display(HTML(js_anim))
-``` -->
 
 ## Self-checks
 
