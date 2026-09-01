@@ -27,6 +27,19 @@
       "subdir": "noarch"
     },
     {
+      "name": "kiwisolver",
+      "version": "1.5.1",
+      "build": "py313hb42c9ef_0",
+      "filename_stem": "kiwisolver-1.5.1-py313hb42c9ef_0",
+      "filename": "kiwisolver-1.5.1-py313hb42c9ef_0.tar.gz",
+      "channel": "https://prefix.dev/emscripten-forge-4x",
+      "depends": [
+        "emscripten-abi >=4,<5.0a0",
+        "python_abi 3.13.* *_cp313"
+      ],
+      "subdir": "emscripten-wasm32"
+    },
+    {
       "name": "pure_eval",
       "version": "0.2.3",
       "build": "pyhd8ed1ab_1",
@@ -64,18 +77,6 @@
         "python_abi 3.13.* *_cp313"
       ],
       "subdir": "emscripten-wasm32"
-    },
-    {
-      "name": "wcwidth",
-      "version": "0.8.2",
-      "build": "pyhd8ed1ab_0",
-      "filename_stem": "wcwidth-0.8.2-pyhd8ed1ab_0",
-      "filename": "wcwidth-0.8.2-pyhd8ed1ab_0.tar.gz",
-      "channel": "https://prefix.dev/conda-forge",
-      "depends": [
-        "python >=3.10"
-      ],
-      "subdir": "noarch"
     },
     {
       "name": "cycler",
@@ -145,6 +146,18 @@
       "subdir": "emscripten-wasm32"
     },
     {
+      "name": "openblas",
+      "version": "0.3.34",
+      "build": "h69b678e_3",
+      "filename_stem": "openblas-0.3.34-h69b678e_3",
+      "filename": "openblas-0.3.34-h69b678e_3.tar.gz",
+      "channel": "https://prefix.dev/emscripten-forge-4x",
+      "depends": [
+        "emscripten-abi >=4,<5.0a0"
+      ],
+      "subdir": "emscripten-wasm32"
+    },
+    {
       "name": "ptyprocess",
       "version": "0.7.0",
       "build": "pyhd8ed1ab_1",
@@ -179,19 +192,6 @@
         "python >=3.10"
       ],
       "subdir": "noarch"
-    },
-    {
-      "name": "kiwisolver",
-      "version": "1.5.0",
-      "build": "py313hb42c9ef_1",
-      "filename_stem": "kiwisolver-1.5.0-py313hb42c9ef_1",
-      "filename": "kiwisolver-1.5.0-py313hb42c9ef_1.tar.gz",
-      "channel": "https://prefix.dev/emscripten-forge-4x",
-      "depends": [
-        "emscripten-abi >=4,<5.0a0",
-        "python_abi 3.13.* *_cp313"
-      ],
-      "subdir": "emscripten-wasm32"
     },
     {
       "name": "ipywidgets",
@@ -585,18 +585,6 @@
       "subdir": "noarch"
     },
     {
-      "name": "openblas",
-      "version": "0.3.34",
-      "build": "h69b678e_1",
-      "filename_stem": "openblas-0.3.34-h69b678e_1",
-      "filename": "openblas-0.3.34-h69b678e_1.tar.gz",
-      "channel": "https://prefix.dev/emscripten-forge-4x",
-      "depends": [
-        "emscripten-abi >=4,<5.0a0"
-      ],
-      "subdir": "emscripten-wasm32"
-    },
-    {
       "name": "traitlets",
       "version": "5.16.1",
       "build": "pyhcf101f3_0",
@@ -641,6 +629,19 @@
       "build": "pyhcf101f3_0",
       "filename_stem": "pyparsing-3.3.2-pyhcf101f3_0",
       "filename": "pyparsing-3.3.2-pyhcf101f3_0.tar.gz",
+      "channel": "https://prefix.dev/conda-forge",
+      "depends": [
+        "python >=3.10",
+        "python"
+      ],
+      "subdir": "noarch"
+    },
+    {
+      "name": "wcwidth",
+      "version": "0.8.3",
+      "build": "pyhcf101f3_0",
+      "filename_stem": "wcwidth-0.8.3-pyhcf101f3_0",
+      "filename": "wcwidth-0.8.3-pyhcf101f3_0.tar.gz",
       "channel": "https://prefix.dev/conda-forge",
       "depends": [
         "python >=3.10",
