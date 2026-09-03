@@ -1101,7 +1101,7 @@ checkpoint. The five-seed result below carries the comparison across runs.
 :alt: Two plots compare five PPO seeds with a structured SwingRL controller. PPO remains at zero success while its mean return improves slightly. The structured controller succeeds from every evaluation state and has a much larger return.
 :width: 100%
 
-Five prespecified PPO seeds evaluated on the same 100 fixed initial states. Thin blue traces show individual seeds; the solid trace and band show the mean and a two-sided 95% $t$ interval with seed as the statistical unit. PPO improves its return early but never completes a rotation. The structured controller succeeds from every state and obtains mean return 191.9; this value is annotated off scale in the return panel so that the smaller PPO change remains visible.
+Five prespecified PPO seeds evaluated on the same 100 fixed initial states. Thin blue traces show individual seeds; the solid trace and band show the mean and a two-sided 95% $t$ interval with seed as the statistical unit. PPO improves its return early but never completes a rotation. The structured controller succeeds from every state and obtains mean return 191.8; this value is annotated off scale in the return panel so that the smaller PPO change remains visible.
 ```
 
 The final policies settle on low-motion behavior. Across the five showcase
@@ -1112,14 +1112,14 @@ condition.
 
 | controller | training transitions | held-out success | mean return | worst suspension tension |
 |---|---:|---:|---:|---:|
-| structured phase controller | 0 | 100% | 191.90 | $-627$ N |
+| structured phase controller | 0 | 100% | 191.79 | $-637$ N |
 | PPO, mean over five final policies | 1,001,472 per seed | 0% | $-5.11$ | $+387$ N |
 
 The comparison does not establish a general ranking between control and RL.
 The structured controller receives the oscillation phase and a controller
 family adapted to the mechanism, while PPO must infer useful coordination from
 sampled returns. Conversely, the structured controller's nominal success
-requires negative suspension tension during 7.38 percent of its active steps.
+requires negative suspension tension during 7.37 percent of its active steps.
 A rigid rod can supply that outward force; a playground chain cannot. PPO
 avoids the violation by barely moving, which is feasible but does not solve the
 task.

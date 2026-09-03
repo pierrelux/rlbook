@@ -63,13 +63,30 @@
   "structured_controller_metrics": {
     "episode_count": 100,
     "success_rate": 1.0,
-    "return_mean": 191.8971388058864,
-    "return_standard_deviation": 5.4082139849938375,
-    "conditional_time_to_rotation": 25.429599999999542,
-    "integrated_effort_mean": 26.22781693581825,
-    "minimum_tension_mean": -415.74158651182984,
-    "minimum_tension_worst": -626.8944554373304,
-    "negative_tension_rate_mean": 0.07376420031554401
+    "return_mean": 191.78719947604813,
+    "return_standard_deviation": 5.500724255817449,
+    "conditional_time_to_rotation": 25.497599999999544,
+    "integrated_effort_mean": 26.20986013181091,
+    "minimum_tension_mean": -420.4171475909941,
+    "minimum_tension_worst": -636.5377121609587,
+    "negative_tension_rate_mean": 0.07371360858171523
   },
-  "elapsed_seconds": 131.84823412494734
+  "elapsed_seconds": 131.84823412494734,
+  "structured_controller_definition": {
+    "action_helper": "swing_control.structured_standing_actions",
+    "scenario": {
+      "horizon_seconds": 32.0,
+      "control_interval": 0.02,
+      "integrator_substeps": 8,
+      "success_angle": 6.283185307179586,
+      "success_radius_fraction": 0.9,
+      "initial_angle": 0.0,
+      "initial_angular_velocity": 0.0,
+      "seed": 0,
+      "command_ramp_seconds": 0.25
+    },
+    "startup_envelope": "linear from zero through 0.25 s, then one",
+    "source": "SwingRL ArticulatedPumper.standing channel preset"
+  },
+  "structured_controller_refreshed_utc": "2026-09-02T16:03:04.259347+00:00"
 }

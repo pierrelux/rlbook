@@ -1363,135 +1363,6 @@ This code could also finally be adapted to support randomized policies using:
 $$v^{\boldsymbol{\pi}}(s_t, t) = \sum_{a_t \in \mathcal{A}_{s_t}} \pi_t(a_t \mid s_t) \left( r_t(s_t, a_t) + \sum_{j \in S} p_t(j | s_t, a_t) v^{\boldsymbol{\pi}}(j, t+1) \right)$$
 
 
-## Example: Sample Size Determination in Pharmaceutical Development
-
-Pharmaceutical development is the process of bringing a new drug from initial discovery to market availability. This process is lengthy, expensive, and risky, typically involving several stages:
-
-1. **Drug Discovery**: Identifying a compound that could potentially treat a disease.
-2. **Preclinical Testing**: Laboratory and animal testing to assess safety and efficacy.
-. **Clinical Trials**: Testing the drug in humans, divided into phases:
-   - Phase I: Testing for safety in a small group of healthy volunteers.
-   - Phase II: Testing for efficacy and side effects in a larger group with the target condition.
-   - Phase III: Large-scale testing to confirm efficacy and monitor side effects.
-4. **Regulatory Review**: Submitting a New Drug Application (NDA) for approval.
-5. **Post-Market Safety Monitoring**: Continuing to monitor the drug's effects after market release.
-
-This process can take 10-15 years and cost over $1 billion {cite}`Adams2009`. The high costs and risks involved call for a principled approach to decision making. We'll focus on the clinical trial phases and NDA approval, per the MDP model presented by {cite}`Chang2010`:
-
-1. **States** ($S$): Our state space is $S = \{s_1, s_2, s_3, s_4\}$, where:
-   - $s_1$: Phase I clinical trial
-   - $s_2$: Phase II clinical trial
-   - $s_3$: Phase III clinical trial
-   - $s_4$: NDA approval
-
-2. **Actions** ($A$): At each state, the action is choosing the sample size $n_i$ for the corresponding clinical trial. The action space is $A = \{10, 11, ..., 1000\}$, representing possible sample sizes.
-
-3. **Transition Probabilities** ($P$): The probability of moving from one state to the next depends on the chosen sample size and the inherent properties of the drug.
-      We define:
-
-   - $P(s_2|s_1, n_1) = p_{12}(n_1) = \sum_{i=0}^{\lfloor\eta_1 n_1\rfloor} \binom{n_1}{i} p_0^i (1-p_0)^{n_1-i}$
-     where $p_0$ is the true toxicity rate and $\eta_1$ is the toxicity threshold for Phase I.
-     
-  - Of particular interest is the transition from Phase II to Phase III which we model as:
-
-    $P(s_3|s_2, n_2) = p_{23}(n_2) = \Phi\left(\frac{\sqrt{n_2}}{2}\delta - z_{1-\eta_2}\right)$
-
-    where $\Phi$ is the cumulative distribution function (CDF) of the standard normal distribution:
-
-      $\Phi(x) = \frac{1}{\sqrt{2\pi}} \int_{-\infty}^x e^{-t^2/2} dt$
-
-    This is giving us the probability that we would observe a treatment effect this large or larger if the null hypothesis (no treatment effect) were true. A higher probability indicates stronger evidence of a treatment effect, making it more likely that the drug will progress to Phase III.
-
-    In this expression, $\delta$ is called the "normalized treatment effect". In clinical trials, we're often interested in the difference between the treatment and control groups. The "normalized" part means we've adjusted this difference for the variability in the data. Specifically $\delta = \frac{\mu_t - \mu_c}{\sigma}$ where $\mu_t$ is the mean outcome in the treatment group, $\mu_c$ is the mean outcome in the control group, and $\sigma$ is the standard deviation of the outcome. A larger $\delta$ indicates a stronger treatment effect.
-
-    Furthermore, the term $z_{1-\eta_2}$ is the $(1-\eta_2)$-quantile of the standard normal distribution. In other words, it's the value where the probability of a standard normal random variable being greater than this value is $\eta_2$. For example, if $\eta_2 = 0.05$, then $z_{1-\eta_2} \approx 1.645$. A smaller $\eta_2$ makes the trial more conservative, requiring stronger evidence to proceed to Phase III.
-
-    Finally, $n_2$ is the sample size for Phase II. The $\sqrt{n_2}$ term reflects that the precision of our estimate of the treatment effect improves with the square root of the sample size.
-
-   - $P(s_4|s_3, n_3) = p_{34}(n_3) = \Phi\left(\frac{\sqrt{n_3}}{2}\delta - z_{1-\eta_3}\right)$
-     where $\eta_3$ is the significance level for Phase III.
-
-4. **Rewards** ($R$): The reward function captures the costs of running trials and the potential profit from a successful drug:
-
-   - $r(s_i, n_i) = -c_i(n_i)$ for $i = 1, 2, 3$, where $c_i(n_i)$ is the cost of running a trial with sample size $n_i$.
-   - $r(s_4) = g_4$, where $g_4$ is the expected profit from a successful drug.
-
-5. **Discount Factor** ($\gamma$): We use a discount factor $0 < \gamma \leq 1$ to account for the time value of money and risk preferences.
-
-```{code-cell} python
-:tags: [hide-input]
-
-#  label: dp-clinical-trials
-#  caption: Clinical trial phase-sizing via backward induction: the console output lists the phase values, recommended enrollment for each phase, and basic sanity checks on the resulting policy.
-
-import numpy as np
-from scipy.stats import binom
-from scipy.stats import norm
-
-def binomial_pmf(k, n, p):
-    return binom.pmf(k, n, p)
-
-def transition_prob_phase1(n1, eta1, p0):
-    return np.sum([binomial_pmf(i, n1, p0) for i in range(int(eta1 * n1) + 1)])
-
-def transition_prob_phase2(n2, eta2, delta):
-    return norm.cdf((np.sqrt(n2) / 2) * delta - norm.ppf(1 - eta2))
-
-def transition_prob_phase3(n3, eta3, delta):
-    return norm.cdf((np.sqrt(n3) / 2) * delta - norm.ppf(1 - eta3))
-
-def immediate_reward(n):
-    return -n  # Negative to represent cost
-
-def backward_induction(S, A, gamma, g4, p0, delta, eta1, eta2, eta3):
-    V = np.zeros(len(S))
-    V[3] = g4  # Value for NDA approval state
-    optimal_n = [None] * 3  # Store optimal n for each phase
-
-    # Backward induction
-    for i in range(2, -1, -1):  # Iterate backwards from Phase III to Phase I
-        max_value = -np.inf
-        for n in A:
-            if i == 0:  # Phase I
-                p = transition_prob_phase1(n, eta1, p0)
-            elif i == 1:  # Phase II
-                p = transition_prob_phase2(n, eta2, delta)
-            else:  # Phase III
-                p = transition_prob_phase3(n, eta3, delta)
-            value = immediate_reward(n) + gamma * p * V[i+1]
-            if value > max_value:
-                max_value = value
-                optimal_n[i] = n
-        V[i] = max_value
-
-    return V, optimal_n
-
-# Set up the problem parameters
-S = ['Phase I', 'Phase II', 'Phase III', 'NDA approval']
-A = range(10, 1001)
-gamma = 0.95
-g4 = 10000
-p0 = 0.1  # Example toxicity rate for Phase I
-delta = 0.5  # Example normalized treatment difference
-eta1, eta2, eta3 = 0.2, 0.1, 0.025
-
-# Run the backward induction algorithm
-V, optimal_n = backward_induction(S, A, gamma, g4, p0, delta, eta1, eta2, eta3)
-
-# Print results
-for i, state in enumerate(S):
-    print(f"Value for {state}: {V[i]:.2f}")
-print(f"Optimal sample sizes: Phase I: {optimal_n[0]}, Phase II: {optimal_n[1]}, Phase III: {optimal_n[2]}")
-
-# Sanity checks
-print("\nSanity checks:")
-print(f"1. NDA approval value: {V[3]}")
-print(f"2. All values non-positive and <= NDA value: {all(v <= V[3] for v in V)}")
-print(f"3. Optimal sample sizes in range: {all(10 <= n <= 1000 for n in optimal_n if n is not None)}")
-
-```
-
-
 # Infinite-Horizon MDPs
 
 It often makes sense to model control problems over infinite horizons. We extend the previous setting and define the expected total reward of policy $\boldsymbol{\pi} \in \Pi^{\mathrm{HR}}$, $v^{\boldsymbol{\pi}}$ as:
@@ -2273,6 +2144,184 @@ mo.vstack([
 Static preview of value-iteration traces and a geometric contraction bound. The online book provides controls for $\gamma$, transitions, rewards, and the initial value.
 :::
 
+## Exact Scheduling MDP for Inference Serving
+
+The inference examples have so far treated the scheduling rule as fixed and the
+GPU clock as the action. A different decision interface fixes the clock and
+asks which phase should receive the next unit of service. Prefill admits new
+requests into decode and consumes cache; decode advances requests already
+producing output tokens. Serving either phase delays the other.
+
+An exact request-level Markov state would contain every prompt length, generated
+token count, cache allocation, and waiting time. For computation, these
+quantities are aggregated into the finite state
+
+$$
+s=(p,d,a)\in\{0,\ldots,6\}^2\times\{0,\ldots,4\},
+$$
+
+where $p$ counts waiting prefill jobs, $d$ counts active decode jobs, and $a$
+is the oldest prefill-age bin. The actions are
+
+$$
+\mathcal A=\{\text{prefill},\text{decode},\text{idle}\}.
+$$
+
+An action is masked when its phase is empty. Prefill is also masked at $d=6$,
+which represents the cache limit in this abstraction. A Bernoulli arrival
+probability for each 0.1-second decision period is calibrated from the
+load-normalized version of the same five-minute Azure trace used in the
+modeling chapter.
+
+The phase rates and powers come from one measured NVIDIA L4 run of
+Qwen/Qwen2.5-7B-Instruct served by vLLM 0.28.0. The reduced MDP uses the
+1,125 MHz requested clock level; its batch-balanced median realized graphics
+clock was 939.375 MHz. The measured prefill rate and the trace's mean prompt
+length determine the Bernoulli probability that a prefill action completes one
+aggregate prompt. A successful completion moves that job into decode. The
+measured decode rate and mean output length similarly determine one aggregate
+expected completion budget per decode action. That budget is shared
+symmetrically across the active jobs, so adding jobs does not multiply the
+model's expected completion capacity. Queue counts are capped at six, and
+arrivals beyond that cap are recorded as drops. These choices define a complete
+transition matrix $P_{ss'}^u$ on 245 states.
+
+The one-step cost assigns separate penalties to congestion, old prompt work,
+decode stalls, dropped requests, and energy:
+
+$$
+c(s,u)=p+d+4\mathbf 1\{a=4\}
++2d\mathbf 1\{u\ne\text{decode}\}
++10\mathbb E[N_{\mathrm{drop}}\mid s,u]
++0.1\frac{E(u)}{E_{\max}}.
+$$
+
+For prefill, decode, and idle, respectively, the measured profile gives
+$E(u)=(6.427,6.274,2.339)$ joules per decision period. Each value is the
+measured phase-power summary at the requested 1,125 MHz level multiplied by
+0.1 seconds, rather than a direct request-level energy measurement. Only the
+ratio $E(u)/E_{\max}$ enters the stage cost.
+
+With $\gamma=0.99$, cost-minimizing value iteration applies
+
+$$
+\begin{aligned}
+Q_n(s,u)&=c(s,u)+\gamma\sum_{s'}P_{ss'}^uV_n(s'),\\
+V_{n+1}(s)&=\min_{u\in\mathcal A(s)}Q_n(s,u).
+\end{aligned}
+$$
+
+Iteration stops when $\lVert V_{n+1}-V_n\rVert_\infty<10^{-10}$. The final
+Bellman residual is checked independently and must be below $10^{-8}$.
+
+Policy slices compare the optimal phase decision across the two queue lengths
+and the age of the oldest prompt. A replay applies the resulting policy to
+fixed evaluation episodes and compares it with the decode-priority rule.
+
+```{code-cell} python
+:tags: [remove-input]
+:label: fig-inference-scheduling-dp
+:caption: Exact value iteration on the measured-L4-calibrated inference-scheduling MDP. All five age slices yield the same rule: serve decode when a decode job is active, otherwise serve prefill, and idle only when the system is empty. The replay samples queue transitions from the reduced model at its fixed measured-profile clock; these trajectories are simulated, not direct vLLM observations.
+
+from pathlib import Path
+import sys
+
+from IPython.display import HTML, display
+
+code_dir = Path.cwd() / "code"
+if str(code_dir) not in sys.path:
+    sys.path.insert(0, str(code_dir))
+
+from inference_replay import render_serving_replay
+
+display(HTML(render_serving_replay(
+    Path("artifacts/inference_serving/textbook_results.json"),
+    view="scheduling",
+)))
+```
+
+:::{figure} _static/inference_serving/scheduling.svg
+:label: fig-inference-scheduling-dp-fallback
+:class: pdf-fallback
+:alt: Static policy slices for prefill, decode, and idle actions in the reduced scheduling MDP.
+
+Policy slices at oldest-age bins zero, two, and four. The interactive version
+adds an age selector and controls for playing, stepping through, and scrubbing
+a fixed episode sampled from the reduced transition model. The queue trajectory
+is simulated rather than observed directly from vLLM.
+:::
+
+The reduced scheduling MDP has the following transition parameters and
+value-iteration certificate. The Bellman residual applies only to this finite
+model.
+
+```{code-cell} python
+:tags: [remove-input]
+
+import pandas as pd
+
+dp_row = pd.read_csv("artifacts/inference_serving/metrics_dp.csv").iloc[0]
+pd.DataFrame(
+    {
+        "value": [
+            f"{dp_row['bellman_residual']:.3e}",
+            f"{int(dp_row['iterations']):,}",
+            dp_row["profile_status"],
+            f"{dp_row['arrival_probability']:.6f}",
+            f"{dp_row['prefill_completion_probability']:.6f}",
+            f"{dp_row['decode_completion_probability']:.6f}",
+            f"{dp_row['prefill_energy_j']:.3f}",
+            f"{dp_row['decode_energy_j']:.3f}",
+            f"{dp_row['idle_energy_j']:.3f}",
+        ]
+    },
+    index=[
+        "Bellman residual",
+        "value-iteration sweeps",
+        "profile provenance",
+        "arrival probability",
+        "prefill completion probability",
+        "aggregate decode completion budget",
+        "prefill energy (J)",
+        "decode energy (J)",
+        "idle energy (J)",
+    ],
+).rename_axis("quantity")
+```
+
+{download}`Download the dynamic-programming certificate (CSV) <artifacts/inference_serving/metrics_dp.csv>`
+
+Value iteration required 2,454 sweeps on this high-discount problem. Its
+independently recomputed Bellman residual is $9.823\times10^{-11}$, below both
+the $10^{-8}$ acceptance threshold and the $10^{-10}$ stopping tolerance. The
+certificate concerns the supplied 245-state transition matrix. The optimal
+policy serves decode whenever $d>0$, serves prefill when $d=0$ and $p>0$, and
+idles only in the empty state. The same rule appears in all five age slices.
+For this calibration, the decode-stall penalty and aggregate completion budget
+make the transparent decode-priority heuristic exactly optimal within the
+reduced model. A richer state or a different cost can produce a switching
+boundary instead.
+
+The result is exact for the stated finite MDP, not for vLLM. Aggregating request
+ages and lengths removes distinctions that can affect head-of-line waiting and
+cache release. The calibrated transition kernel is stationary, the clock is
+fixed, temperature is absent from the state, and the action set excludes mixed
+prefill-decode batches. Measurements from one L4 deployment calibrate the phase
+rates and powers; they do not establish scheduling performance across L4
+systems. The request-level replay from the earlier chapters remains a
+model-audit tool, not part of the optimality proof.
+
+:::{dropdown} Inspect the scheduling MDP and value iteration
+```{literalinclude} code/inference_control.py
+:language: python
+:start-at: def solve_scheduling_mdp
+:end-before: def _sample_next_state
+:linenos:
+```
+
+{download}`Download the complete inference-control implementation <code/inference_control.py>`
+:::
+
 ### Newton-Kantorovich Applied to Bellman Optimality
 
 We now apply the Newton-Kantorovich framework to the Bellman optimality equation. Let
@@ -2551,4 +2600,20 @@ Which step of policy iteration requires solving a linear fixed-policy problem, a
 :class: dropdown
 
 Policy evaluation solves $(I-\gamma P_\pi)v=r_\pi$. Policy improvement computes action values from that $v$ and chooses a greedy action in each state.
+:::
+
+:::{exercise} Reduced scheduling state
+:label: ex-dp-check-4
+
+Name one pair of request-level serving states that map to the same reduced
+state $(p,d,a)$ but can have different future completion distributions.
+:::
+
+:::{solution} ex-dp-check-4
+:class: dropdown
+
+Two states can have the same numbers of waiting and decoding requests and the
+same oldest prefill-age bin while their active requests have different
+remaining output lengths. The reduced state discards those lengths, so its
+transition kernel averages over them.
 :::

@@ -1,0 +1,27 @@
+{
+  "actual_duration_s": 376.82113669600005,
+  "block": {
+    "block_id": "training_a_plateau_00",
+    "condition": {
+      "concurrency": 8,
+      "output_tokens": 128,
+      "phase": "decode",
+      "prompt_tokens": 128
+    },
+    "duration_s": 480.0,
+    "requested_power_limit_w": 40.0,
+    "role": "plateau",
+    "sequence": "training_a",
+    "split": "training"
+  },
+  "block_telemetry_rows": 3751,
+  "ended_elapsed_s": 1287.996054828,
+  "maximum_temperature_c": 77.0,
+  "mean_power_w": 47.196043721674215,
+  "median_realized_clock_mhz": 210.0,
+  "minimum_temperature_c": 49.0,
+  "request_rows": 216,
+  "started_elapsed_s": 911.174918132,
+  "status": "failed",
+  "telemetry_rows": 12839
+}

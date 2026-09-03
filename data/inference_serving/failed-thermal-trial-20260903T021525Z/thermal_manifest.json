@@ -1,0 +1,1066 @@
+{
+  "block_checkpoints": [
+    {
+      "actual_duration_s": 376.82113669600005,
+      "block": {
+        "block_id": "training_a_plateau_00",
+        "condition": {
+          "concurrency": 8,
+          "output_tokens": 128,
+          "phase": "decode",
+          "prompt_tokens": 128
+        },
+        "duration_s": 480.0,
+        "requested_power_limit_w": 40.0,
+        "role": "plateau",
+        "sequence": "training_a",
+        "split": "training"
+      },
+      "block_telemetry_rows": 3751,
+      "ended_elapsed_s": 1287.996054828,
+      "maximum_temperature_c": 77.0,
+      "mean_power_w": 47.196043721674215,
+      "median_realized_clock_mhz": 210.0,
+      "minimum_temperature_c": 49.0,
+      "request_rows": 216,
+      "started_elapsed_s": 911.174918132,
+      "status": "failed",
+      "telemetry_rows": 12839
+    }
+  ],
+  "cloud": {
+    "machine_type": "g2-standard-8",
+    "project": "potent-arcade-491015-g7",
+    "provisioning_model": "STANDARD",
+    "zone": "us-central1-a"
+  },
+  "completed_block_ids": [],
+  "cooldown_events": [
+    {
+      "completed_elapsed_s": 910.93194155,
+      "duration_s": 507.37110733500003,
+      "final_temperature_c": 49.0,
+      "phase": "thermal_identification_cooldown_training_a",
+      "sequence": "training_a",
+      "stability_band_c": 1.0,
+      "stability_window_s": 300.0,
+      "started_elapsed_s": 403.62302507100003,
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "timeout_s": 900.0,
+      "window_max_temperature_c": 50.0,
+      "window_min_temperature_c": 49.0
+    }
+  ],
+  "cooldown_graphics_clock_mhz": 210,
+  "cooldown_protocol": {
+    "graphics_clock_mhz": 210,
+    "power_limit_w": 40.0,
+    "stability_band_c": 1.0,
+    "stability_window_s": 300.0,
+    "target_temperature_c": 64.0,
+    "timeout_s": 900.0,
+    "workload": "idle"
+  },
+  "created_utc": "2026-09-03T02:17:09.102201+00:00",
+  "elapsed_s": 1304.715950026,
+  "error": "ProfilingError: Thermal watchdog stopped excitation: temperature reached the 77.0 C safe-down threshold.",
+  "failed_utc": "2026-09-03T02:38:53.818123+00:00",
+  "fit_protocol": {
+    "acquisition_only": true,
+    "fit_input": "measured power rather than requested cap",
+    "temperature_fit": "continuous-time trajectory fit; do not finite-difference the integer-valued temperature samples",
+    "training_sequences": [
+      "training_a",
+      "training_b"
+    ],
+    "untouched_validation_sequence": "validation"
+  },
+  "git_revision": "957609756075e565be879ea6bb7660be8206ad2f",
+  "gpu": {
+    "cuda_version": "13.0",
+    "default_power_limit_w": 72.0,
+    "driver_version": "580.173.02",
+    "maximum_power_limit_w": 72.0,
+    "minimum_power_limit_w": 40.0,
+    "name": "NVIDIA L4",
+    "shutdown_temperature_c": null,
+    "slowdown_temperature_c": null,
+    "uuid": "GPU-d36a4bf2-d85a-5c45-7c20-5e69bb291d0f"
+  },
+  "gpu_controls": {
+    "memory_clock_error": null,
+    "memory_clock_locked": true,
+    "memory_clock_requested_mhz": 6251,
+    "power_limit_w": 64.8
+  },
+  "latest_block_checkpoint": {
+    "actual_duration_s": 376.82113669600005,
+    "block": {
+      "block_id": "training_a_plateau_00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 128
+      },
+      "duration_s": 480.0,
+      "requested_power_limit_w": 40.0,
+      "role": "plateau",
+      "sequence": "training_a",
+      "split": "training"
+    },
+    "block_telemetry_rows": 3751,
+    "ended_elapsed_s": 1287.996054828,
+    "maximum_temperature_c": 77.0,
+    "mean_power_w": 47.196043721674215,
+    "median_realized_clock_mhz": 210.0,
+    "minimum_temperature_c": 49.0,
+    "request_rows": 216,
+    "started_elapsed_s": 911.174918132,
+    "status": "failed",
+    "telemetry_rows": 12839
+  },
+  "launcher_script_sha256": "8461868bdbc1512ed8a42d4448726a88b5d9b2dbb4ad027db4c3287161bbe500",
+  "mode": "thermal-identification",
+  "model": "Qwen/Qwen2.5-7B-Instruct",
+  "model_revision": "acbd96531cda22292a3ceaa67e984955d3965282",
+  "platform": "Linux-6.8.0-1066-gcp-x86_64-with-glibc2.35",
+  "profiler_script_sha256": "255e7844f9937c07cbb7af03e2c0e4dd7e2472cd4991d17fcf05595eaa83aff4",
+  "python": "3.10.12",
+  "request_columns": [
+    "split",
+    "sequence",
+    "block_id",
+    "workload_phase",
+    "prompt_tokens",
+    "output_tokens",
+    "concurrency",
+    "requested_power_limit_w",
+    "requested_clock_mhz",
+    "batch_index",
+    "request_index",
+    "prompt_tokens_observed",
+    "completion_tokens",
+    "ttft_s",
+    "tpot_s",
+    "total_s",
+    "start_elapsed_s",
+    "end_elapsed_s"
+  ],
+  "request_rows_before_failure": 224,
+  "requested_graphics_clock_mhz": 2040,
+  "safety_protocol": {
+    "abort_temperature_c": 79.0,
+    "independent_of_request_loop": true,
+    "safe_down_temperature_c": 77.0,
+    "safe_graphics_clock_mhz": 210,
+    "safe_power_limit_w": 40.0,
+    "stale_telemetry_s": 1.0
+  },
+  "schedule": [
+    {
+      "blocks": [
+        {
+          "block_id": "training_a_plateau_00",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 480.0,
+          "requested_power_limit_w": 40.0,
+          "role": "plateau",
+          "sequence": "training_a",
+          "split": "training"
+        },
+        {
+          "block_id": "training_a_plateau_01",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 480.0,
+          "requested_power_limit_w": 58.0,
+          "role": "plateau",
+          "sequence": "training_a",
+          "split": "training"
+        },
+        {
+          "block_id": "training_a_plateau_02",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 480.0,
+          "requested_power_limit_w": 40.0,
+          "role": "plateau",
+          "sequence": "training_a",
+          "split": "training"
+        },
+        {
+          "block_id": "training_a_multilevel_00",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 2.0,
+          "requested_power_limit_w": 40.0,
+          "role": "multilevel",
+          "sequence": "training_a",
+          "split": "training"
+        },
+        {
+          "block_id": "training_a_multilevel_01",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 5.0,
+          "requested_power_limit_w": 46.0,
+          "role": "multilevel",
+          "sequence": "training_a",
+          "split": "training"
+        },
+        {
+          "block_id": "training_a_multilevel_02",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 10.0,
+          "requested_power_limit_w": 40.0,
+          "role": "multilevel",
+          "sequence": "training_a",
+          "split": "training"
+        },
+        {
+          "block_id": "training_a_multilevel_03",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 2.0,
+          "requested_power_limit_w": 52.0,
+          "role": "multilevel",
+          "sequence": "training_a",
+          "split": "training"
+        },
+        {
+          "block_id": "training_a_multilevel_04",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 60.0,
+          "requested_power_limit_w": 40.0,
+          "role": "multilevel",
+          "sequence": "training_a",
+          "split": "training"
+        },
+        {
+          "block_id": "training_a_multilevel_05",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 5.0,
+          "requested_power_limit_w": 58.0,
+          "role": "multilevel",
+          "sequence": "training_a",
+          "split": "training"
+        },
+        {
+          "block_id": "training_a_multilevel_06",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 240.0,
+          "requested_power_limit_w": 40.0,
+          "role": "multilevel",
+          "sequence": "training_a",
+          "split": "training"
+        },
+        {
+          "block_id": "training_a_multilevel_07",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 2.0,
+          "requested_power_limit_w": 64.0,
+          "role": "multilevel",
+          "sequence": "training_a",
+          "split": "training"
+        },
+        {
+          "block_id": "training_a_multilevel_08",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 20.0,
+          "requested_power_limit_w": 46.0,
+          "role": "multilevel",
+          "sequence": "training_a",
+          "split": "training"
+        },
+        {
+          "block_id": "training_a_multilevel_09",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 10.0,
+          "requested_power_limit_w": 52.0,
+          "role": "multilevel",
+          "sequence": "training_a",
+          "split": "training"
+        },
+        {
+          "block_id": "training_a_multilevel_10",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 90.0,
+          "requested_power_limit_w": 46.0,
+          "role": "multilevel",
+          "sequence": "training_a",
+          "split": "training"
+        },
+        {
+          "block_id": "training_a_multilevel_11",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 20.0,
+          "requested_power_limit_w": 58.0,
+          "role": "multilevel",
+          "sequence": "training_a",
+          "split": "training"
+        },
+        {
+          "block_id": "training_a_multilevel_12",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 180.0,
+          "requested_power_limit_w": 46.0,
+          "role": "multilevel",
+          "sequence": "training_a",
+          "split": "training"
+        },
+        {
+          "block_id": "training_a_multilevel_13",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 5.0,
+          "requested_power_limit_w": 64.0,
+          "role": "multilevel",
+          "sequence": "training_a",
+          "split": "training"
+        },
+        {
+          "block_id": "training_a_multilevel_14",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 60.0,
+          "requested_power_limit_w": 52.0,
+          "role": "multilevel",
+          "sequence": "training_a",
+          "split": "training"
+        },
+        {
+          "block_id": "training_a_multilevel_15",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 60.0,
+          "requested_power_limit_w": 58.0,
+          "role": "multilevel",
+          "sequence": "training_a",
+          "split": "training"
+        },
+        {
+          "block_id": "training_a_multilevel_16",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 120.0,
+          "requested_power_limit_w": 52.0,
+          "role": "multilevel",
+          "sequence": "training_a",
+          "split": "training"
+        },
+        {
+          "block_id": "training_a_multilevel_17",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 10.0,
+          "requested_power_limit_w": 64.0,
+          "role": "multilevel",
+          "sequence": "training_a",
+          "split": "training"
+        },
+        {
+          "block_id": "training_a_multilevel_18",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 120.0,
+          "requested_power_limit_w": 58.0,
+          "role": "multilevel",
+          "sequence": "training_a",
+          "split": "training"
+        },
+        {
+          "block_id": "training_a_multilevel_19",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 30.0,
+          "requested_power_limit_w": 64.0,
+          "role": "multilevel",
+          "sequence": "training_a",
+          "split": "training"
+        }
+      ],
+      "requires_standardized_restart": true,
+      "sequence": "training_a",
+      "split": "training"
+    },
+    {
+      "blocks": [
+        {
+          "block_id": "training_b_multilevel_00",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 2.0,
+          "requested_power_limit_w": 52.0,
+          "role": "multilevel",
+          "sequence": "training_b",
+          "split": "training"
+        },
+        {
+          "block_id": "training_b_multilevel_01",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 2.0,
+          "requested_power_limit_w": 64.0,
+          "role": "multilevel",
+          "sequence": "training_b",
+          "split": "training"
+        },
+        {
+          "block_id": "training_b_multilevel_02",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 10.0,
+          "requested_power_limit_w": 52.0,
+          "role": "multilevel",
+          "sequence": "training_b",
+          "split": "training"
+        },
+        {
+          "block_id": "training_b_multilevel_03",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 5.0,
+          "requested_power_limit_w": 46.0,
+          "role": "multilevel",
+          "sequence": "training_b",
+          "split": "training"
+        },
+        {
+          "block_id": "training_b_multilevel_04",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 60.0,
+          "requested_power_limit_w": 52.0,
+          "role": "multilevel",
+          "sequence": "training_b",
+          "split": "training"
+        },
+        {
+          "block_id": "training_b_multilevel_05",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 5.0,
+          "requested_power_limit_w": 58.0,
+          "role": "multilevel",
+          "sequence": "training_b",
+          "split": "training"
+        },
+        {
+          "block_id": "training_b_multilevel_06",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 120.0,
+          "requested_power_limit_w": 52.0,
+          "role": "multilevel",
+          "sequence": "training_b",
+          "split": "training"
+        },
+        {
+          "block_id": "training_b_multilevel_07",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 2.0,
+          "requested_power_limit_w": 40.0,
+          "role": "multilevel",
+          "sequence": "training_b",
+          "split": "training"
+        },
+        {
+          "block_id": "training_b_multilevel_08",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 5.0,
+          "requested_power_limit_w": 64.0,
+          "role": "multilevel",
+          "sequence": "training_b",
+          "split": "training"
+        },
+        {
+          "block_id": "training_b_multilevel_09",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 20.0,
+          "requested_power_limit_w": 46.0,
+          "role": "multilevel",
+          "sequence": "training_b",
+          "split": "training"
+        },
+        {
+          "block_id": "training_b_multilevel_10",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 10.0,
+          "requested_power_limit_w": 64.0,
+          "role": "multilevel",
+          "sequence": "training_b",
+          "split": "training"
+        },
+        {
+          "block_id": "training_b_multilevel_11",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 20.0,
+          "requested_power_limit_w": 58.0,
+          "role": "multilevel",
+          "sequence": "training_b",
+          "split": "training"
+        },
+        {
+          "block_id": "training_b_multilevel_12",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 30.0,
+          "requested_power_limit_w": 64.0,
+          "role": "multilevel",
+          "sequence": "training_b",
+          "split": "training"
+        },
+        {
+          "block_id": "training_b_multilevel_13",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 10.0,
+          "requested_power_limit_w": 40.0,
+          "role": "multilevel",
+          "sequence": "training_b",
+          "split": "training"
+        },
+        {
+          "block_id": "training_b_multilevel_14",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 90.0,
+          "requested_power_limit_w": 46.0,
+          "role": "multilevel",
+          "sequence": "training_b",
+          "split": "training"
+        },
+        {
+          "block_id": "training_b_multilevel_15",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 60.0,
+          "requested_power_limit_w": 58.0,
+          "role": "multilevel",
+          "sequence": "training_b",
+          "split": "training"
+        },
+        {
+          "block_id": "training_b_multilevel_16",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 180.0,
+          "requested_power_limit_w": 46.0,
+          "role": "multilevel",
+          "sequence": "training_b",
+          "split": "training"
+        },
+        {
+          "block_id": "training_b_multilevel_17",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 60.0,
+          "requested_power_limit_w": 40.0,
+          "role": "multilevel",
+          "sequence": "training_b",
+          "split": "training"
+        },
+        {
+          "block_id": "training_b_multilevel_18",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 120.0,
+          "requested_power_limit_w": 58.0,
+          "role": "multilevel",
+          "sequence": "training_b",
+          "split": "training"
+        },
+        {
+          "block_id": "training_b_multilevel_19",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 240.0,
+          "requested_power_limit_w": 40.0,
+          "role": "multilevel",
+          "sequence": "training_b",
+          "split": "training"
+        }
+      ],
+      "requires_standardized_restart": true,
+      "sequence": "training_b",
+      "split": "training"
+    },
+    {
+      "blocks": [
+        {
+          "block_id": "validation_00",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 180.0,
+          "requested_power_limit_w": 43.0,
+          "role": "intermediate_cap",
+          "sequence": "validation",
+          "split": "validation"
+        },
+        {
+          "block_id": "validation_01",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 45.0,
+          "requested_power_limit_w": 61.0,
+          "role": "intermediate_cap",
+          "sequence": "validation",
+          "split": "validation"
+        },
+        {
+          "block_id": "validation_02",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 75.0,
+          "requested_power_limit_w": 49.0,
+          "role": "intermediate_cap",
+          "sequence": "validation",
+          "split": "validation"
+        },
+        {
+          "block_id": "validation_03",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 120.0,
+          "requested_power_limit_w": 55.0,
+          "role": "intermediate_cap",
+          "sequence": "validation",
+          "split": "validation"
+        },
+        {
+          "block_id": "validation_04",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 45.0,
+          "requested_power_limit_w": 43.0,
+          "role": "intermediate_cap",
+          "sequence": "validation",
+          "split": "validation"
+        },
+        {
+          "block_id": "validation_05",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 75.0,
+          "requested_power_limit_w": 55.0,
+          "role": "intermediate_cap",
+          "sequence": "validation",
+          "split": "validation"
+        },
+        {
+          "block_id": "validation_06",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 180.0,
+          "requested_power_limit_w": 61.0,
+          "role": "intermediate_cap",
+          "sequence": "validation",
+          "split": "validation"
+        },
+        {
+          "block_id": "validation_07",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 120.0,
+          "requested_power_limit_w": 49.0,
+          "role": "intermediate_cap",
+          "sequence": "validation",
+          "split": "validation"
+        },
+        {
+          "block_id": "validation_08",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 75.0,
+          "requested_power_limit_w": 61.0,
+          "role": "intermediate_cap",
+          "sequence": "validation",
+          "split": "validation"
+        },
+        {
+          "block_id": "validation_09",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 120.0,
+          "requested_power_limit_w": 43.0,
+          "role": "intermediate_cap",
+          "sequence": "validation",
+          "split": "validation"
+        },
+        {
+          "block_id": "validation_10",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 1,
+            "phase": "prefill",
+            "prompt_tokens": 4096
+          },
+          "duration_s": 180.0,
+          "requested_power_limit_w": 55.0,
+          "role": "workload_transfer",
+          "sequence": "validation",
+          "split": "validation"
+        },
+        {
+          "block_id": "validation_11",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 45.0,
+          "requested_power_limit_w": 49.0,
+          "role": "intermediate_cap",
+          "sequence": "validation",
+          "split": "validation"
+        },
+        {
+          "block_id": "validation_12",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 45.0,
+          "requested_power_limit_w": 55.0,
+          "role": "intermediate_cap",
+          "sequence": "validation",
+          "split": "validation"
+        },
+        {
+          "block_id": "validation_13",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 75.0,
+          "requested_power_limit_w": 43.0,
+          "role": "intermediate_cap",
+          "sequence": "validation",
+          "split": "validation"
+        },
+        {
+          "block_id": "validation_14",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 180.0,
+          "requested_power_limit_w": 49.0,
+          "role": "intermediate_cap",
+          "sequence": "validation",
+          "split": "validation"
+        },
+        {
+          "block_id": "validation_15",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 120.0,
+          "requested_power_limit_w": 61.0,
+          "role": "intermediate_cap",
+          "sequence": "validation",
+          "split": "validation"
+        },
+        {
+          "block_id": "validation_16",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 128,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 180.0,
+          "requested_power_limit_w": 55.0,
+          "role": "intermediate_cap",
+          "sequence": "validation",
+          "split": "validation"
+        }
+      ],
+      "requires_standardized_restart": true,
+      "sequence": "validation",
+      "split": "validation"
+    }
+  ],
+  "schedule_total_s": 5402.0,
+  "schema_version": 1,
+  "selected_memory_clock_mhz": 6251,
+  "served_model_name": "qwen2.5-7b-instruct",
+  "source_worktree_state": "dirty",
+  "status": "failed",
+  "telemetry_columns": [
+    "elapsed_s",
+    "utc",
+    "phase",
+    "graphics_clock_mhz",
+    "memory_clock_mhz",
+    "power_w",
+    "temperature_c",
+    "utilization_percent",
+    "memory_used_mib",
+    "split",
+    "sequence",
+    "block_id",
+    "block_role",
+    "requested_power_limit_w",
+    "requested_clock_mhz",
+    "workload_phase"
+  ],
+  "telemetry_period_s": 0.1,
+  "training_power_limits_w": [
+    40,
+    46,
+    52,
+    58,
+    64
+  ],
+  "validation_power_limits_w": [
+    43,
+    49,
+    55,
+    61
+  ],
+  "vllm_image": "vllm/vllm-openai:v0.28.0",
+  "vllm_image_digest": "vllm/vllm-openai@sha256:61fc8a896b0a4fbbbdc063bc4b0dbc25ce98e02b5050c24aeb7830ac02039b14",
+  "vllm_prefix_caching_enabled": false,
+  "vllm_server_version": "0.28.0"
+}

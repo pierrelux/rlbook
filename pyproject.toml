@@ -44,4 +44,5 @@ build-backend = "setuptools.build_meta"
 packages = []
 
 [dependency-groups]
+artifacts = ["pybamm==26.6.2.0"]
 dev = ["pytest>=8.0"]

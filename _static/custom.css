@@ -1,20 +1,19 @@
 /* ==========================================================================
    rlbook — editorial theme for the MyST book-theme
    --------------------------------------------------------------------------
-   Typography:  Fraunces (display) · Source Serif 4 (prose)
-                IBM Plex Sans (chrome) · IBM Plex Mono (code)
+   Typography:  Newsreader (headings) · IBM Plex Sans (body and chrome)
+                IBM Plex Mono (code, metrics, and tabular numerics)
    Tune the reading measure with --book-body-width below.
    ========================================================================== */
 
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400;1,8..60,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400;1,600&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap");
 
 /* --------------------------------------------------------------------------
    1. Tokens
    -------------------------------------------------------------------------- */
 
 :root {
-  --font-display: "Fraunces", "Source Serif 4", Georgia, serif;
-  --font-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-display: "Newsreader", Georgia, "Times New Roman", serif;
   --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
@@ -25,24 +24,37 @@
   --book-col: minmax(8ch, calc((var(--book-body-width) - 2rem) / 6));
   --book-col-sm: minmax(2ch, calc((var(--book-body-width) - 2rem) / 6));
 
-  --bg: #f5f7f6;
+  --bg: #f6f7f4;
   --bg-raised: #ffffff;
-  --bg-sunken: #eceff0;
-  --ink: #1c2229;
-  --ink-muted: #5b6570;
-  --rule: #d6dcde;
+  --bg-sunken: #eaeeec;
+  --ink: #1b2430;
+  --ink-muted: #5c6874;
+  --rule: #d2d9d7;
 
-  --link: #1f63b5;
-  --link-soft: #e3edf9;
-  --green: #2f8a57;
-  --green-soft: #e4f2ea;
-  --neutral: #6c757d;
-  --neutral-soft: #e9ecee;
-  --accent: #d9731a;
-  --accent-soft: #fbe9d9;
-  --danger: #b3261e;
-  --danger-soft: #fae3e1;
-  --quote-bg: #f0f2f3;
+  /* Steel teal communicates hierarchy, links, and interaction only. */
+  --structure: #2f6f8f;
+  --structure-soft: #e2edf1;
+
+  /* Verdict colors are independent of the structural accent. */
+  --verdict-stands: #2e7d5b;
+  --verdict-stands-soft: #e4f0e9;
+  --verdict-caveat: #b8860b;
+  --verdict-caveat-soft: #f5ecd2;
+  --verdict-withdrawn: #a83a32;
+  --verdict-withdrawn-soft: #f5e5e3;
+
+  /* Compatibility aliases used by the component rules below. */
+  --link: var(--structure);
+  --link-soft: var(--structure-soft);
+  --green: var(--verdict-stands);
+  --green-soft: var(--verdict-stands-soft);
+  --neutral: #6e7982;
+  --neutral-soft: #e8eceb;
+  --accent: var(--verdict-caveat);
+  --accent-soft: var(--verdict-caveat-soft);
+  --danger: var(--verdict-withdrawn);
+  --danger-soft: var(--verdict-withdrawn-soft);
+  --quote-bg: #edf0ee;
 
   --shadow: 0 1px 2px rgba(20, 30, 40, 0.06);
   --shadow-lg: 0 2px 8px rgba(20, 30, 40, 0.08);
@@ -50,24 +62,33 @@
 }
 
 html.dark {
-  --bg: #14181c;
-  --bg-raised: #1b2026;
-  --bg-sunken: #0f1316;
-  --ink: #e6e9ec;
-  --ink-muted: #9aa5ae;
-  --rule: #2b3238;
+  --bg: #121920;
+  --bg-raised: #1b2430;
+  --bg-sunken: #0d141a;
+  --ink: #edf1f1;
+  --ink-muted: #a8b2b9;
+  --rule: #34434d;
 
-  --link: #6aa3ea;
-  --link-soft: #1a2a3f;
-  --green: #5fbf86;
-  --green-soft: #17301f;
-  --neutral: #9aa3ab;
-  --neutral-soft: #242a30;
-  --accent: #f0954a;
-  --accent-soft: #3a2612;
-  --danger: #f0736a;
-  --danger-soft: #3a1a17;
-  --quote-bg: #1f252b;
+  --structure: #72a8c2;
+  --structure-soft: #1d3440;
+  --verdict-stands: #69b18f;
+  --verdict-stands-soft: #19362a;
+  --verdict-caveat: #d5b452;
+  --verdict-caveat-soft: #3b3013;
+  --verdict-withdrawn: #df786f;
+  --verdict-withdrawn-soft: #3d211f;
+
+  --link: var(--structure);
+  --link-soft: var(--structure-soft);
+  --green: var(--verdict-stands);
+  --green-soft: var(--verdict-stands-soft);
+  --neutral: #9ca7ae;
+  --neutral-soft: #263139;
+  --accent: var(--verdict-caveat);
+  --accent-soft: var(--verdict-caveat-soft);
+  --danger: var(--verdict-withdrawn);
+  --danger-soft: var(--verdict-withdrawn-soft);
+  --quote-bg: #202a33;
 
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 2px 8px rgba(0, 0, 0, 0.5);
@@ -92,6 +113,7 @@ html.dark body.m-0 {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-variant-numeric: tabular-nums;
 }
 
 ::selection {
@@ -353,7 +375,7 @@ html.dark .myst-outline-item:hover {
   --tw-prose-code: var(--ink);
   --tw-prose-th-borders: var(--rule);
   --tw-prose-td-borders: var(--rule);
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: 1.0625rem;
   line-height: 1.62;
   color: var(--ink);
@@ -381,7 +403,7 @@ html.dark .myst-outline-item:hover {
 }
 
 .article.content a:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--structure);
   outline-offset: 2px;
 }
 
@@ -391,7 +413,6 @@ html.dark .myst-outline-item:hover {
 .article.content h3,
 .myst-fm-block-title {
   font-family: var(--font-display);
-  font-variation-settings: "SOFT" 0, "WONK" 0;
   color: var(--ink);
   text-wrap: balance;
 }
@@ -507,11 +528,143 @@ html.dark .myst-outline-item:hover {
 
 /* Captions */
 figcaption,
-.article.content figcaption {
+.article.content figcaption,
+.interaction-lenses-caption {
   font-family: var(--font-sans);
   font-size: 0.82rem;
   line-height: 1.45;
   color: var(--ink-muted);
+}
+
+/* A shared interaction loop, shown in the vocabularies used across the book. */
+.interaction-lenses-figure {
+  margin: 1.5rem 0;
+}
+
+.interaction-lenses {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+  width: 100%;
+  font-family: var(--font-sans);
+}
+
+.interaction-lens {
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  min-width: 0;
+  padding: 0.85rem 0.72rem 0.72rem;
+  background: var(--bg-raised);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.interaction-lens-title {
+  margin-bottom: 0.7rem;
+  color: var(--ink);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.interaction-loop {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 4.5rem minmax(0, 1fr);
+  align-items: center;
+  min-height: 6.8rem;
+}
+
+.interaction-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 4.35rem;
+  padding: 0.45rem 0.3rem;
+  color: var(--ink);
+  text-align: center;
+  background: var(--bg);
+  border: 1.5px solid var(--structure);
+  border-radius: var(--radius);
+}
+
+.interaction-node-world {
+  background: var(--structure-soft);
+}
+
+.interaction-node > span {
+  font-size: 0.76rem;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.interaction-node-subtitle {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--ink-muted);
+  font-size: 0.59rem;
+  line-height: 1.2;
+}
+
+.interaction-arrows {
+  display: grid;
+  grid-template-rows: minmax(1.7rem, auto) 2.25rem minmax(2rem, auto);
+  align-items: center;
+  justify-items: center;
+  color: var(--ink-muted);
+  text-align: center;
+}
+
+.interaction-arrows > span {
+  font-size: 0.61rem;
+  line-height: 1.15;
+}
+
+.interaction-arrow-glyph {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  place-items: center;
+  width: 100%;
+  height: 2.25rem;
+  color: var(--structure);
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 0.72;
+}
+
+.interaction-lens > p {
+  margin: 0.8rem 0 0.55rem;
+  color: var(--ink);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.interaction-context {
+  padding-top: 0.45rem;
+  color: var(--ink-muted);
+  border-top: 1px solid var(--rule);
+  font-size: 0.61rem;
+  line-height: 1.35;
+}
+
+.interaction-lenses-caption {
+  margin-top: 0.75rem;
+}
+
+@media (max-width: 800px) {
+  .interaction-lenses {
+    grid-template-columns: 1fr;
+  }
+
+  .interaction-loop {
+    width: min(100%, 22rem);
+    margin-inline: auto;
+  }
 }
 
 /* --------------------------------------------------------------------------
@@ -651,6 +804,28 @@ html.dark .myst-admonition-header-icon {
 
 .myst-admonition-body {
   padding: 0.9rem 1.1rem 0.15rem;
+}
+
+.course-definition,
+html.dark .course-definition {
+  --adm: var(--structure);
+  --adm-soft: var(--structure-soft);
+}
+
+.course-definition .myst-admonition-header-icon {
+  display: none;
+}
+
+.course-definition .myst-admonition-body > p:first-child {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 1.12rem;
+  line-height: 1.45;
+}
+
+.course-definition .myst-admonition-body > p:last-child {
+  color: var(--ink-muted);
+  font-size: 0.9rem;
 }
 
 /* --------------------------------------------------------------------------
@@ -823,6 +998,36 @@ html.dark .myst-bibliography-header {
   box-shadow: var(--shadow);
   font-size: 0.88rem;
   line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Markdown alignment marks quantitative columns as text-right. These cells,
+   explicit metric values, and opt-in numeric spans use Plex Mono so columns
+   scan vertically without forcing prose-heavy table cells into monospace. */
+.article.content td.text-right,
+.article.content th.text-right,
+.article.content .numeric,
+.article.content .metric-value,
+.article.content [data-numeric],
+.tabular-nums {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* Reusable verdict semantics. Steel teal is deliberately absent here. */
+.verdict-stands,
+[data-verdict="stands"] {
+  color: var(--verdict-stands) !important;
+}
+
+.verdict-caveat,
+[data-verdict="caveat"] {
+  color: var(--verdict-caveat) !important;
+}
+
+.verdict-withdrawn,
+[data-verdict="withdrawn"] {
+  color: var(--verdict-withdrawn) !important;
 }
 
 .article.content thead {
@@ -920,7 +1125,7 @@ iframe {
   max-width: 100%;
 }
 
-/* PDF-only fallbacks are removed from the interactive HTML site. */
-.pdf-fallback {
-  display: none;
+/* Replays hide their matching fallback only after successful initialization. */
+.pdf-fallback[hidden] {
+  display: none !important;
 }

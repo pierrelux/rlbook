@@ -302,92 +302,198 @@ $$
 
 In differentiable programming (e.g., JAX, PyTorch), the composed map $\Phi_{T-1}\circ\cdots\circ\Phi_0$ is differentiable, enabling reverse-mode automatic differentiation and efficient gradient-based trajectory optimization. When parts of the program are non-differentiable (discrete branches, simulators with events), DOCPs can still be solved using derivative-free or weak-gradient methods (eg. finite differences, SPSA, Nelder–Mead, CMA-ES, or evolutionary strategies) optionally combined with smoothing, relaxations, or stochastic estimators to navigate non-smooth regions.
 
-#### Example: Retry Loop Optimization
+#### Example: Offline Frequency Planning for Inference
 
-Consider a simple retry loop that attempts an operation up to $K$ times, waiting $u_k$ seconds before the $k$-th attempt. The server has time-varying availability: it is unreliable early on but recovers after a transient outage. The goal is to find a wait schedule that minimizes expected latency while ensuring eventual success.
+The inference service from the [modeling chapter](dynamics.md#inference-serving-as-a-controlled-system)
+is also a program with a controllable execution rate. Its service-rate and
+phase-power curves come from a measured NVIDIA L4 profile. The request and
+queue trajectories below come from a simulator calibrated with those curves,
+not from running each controller on the GPU. The scheduling rule is held fixed.
+Each 0.1-second simulator step prioritizes decode or begins with a prefill chunk
+capped at 512 tokens. If that chunk finishes early, the remaining service
+budget may return to decode. Active decode receives alternating-step or
+cache-pressure priority. This reduced interleaving model is not a reproduction
+of the vLLM scheduler used for profiling. The control sequence specifies one
+normalized GPU frequency for each second of a 60-second horizon,
 
-We cast this as a DOCP. The state $x_k = (t, k, \text{done})$ tracks elapsed time, attempt count, and success status. The control $u_k \in [0, 2]$ is the wait before attempt $k$. The transition applies the wait, then flips a biased coin based on current server availability. The cost penalizes total time and failure.
+$$
+u_k=\frac{f_k-f_{\min}}{f_{\max}-f_{\min}}\in[0,1].
+$$
+
+An aggregate state collects queued prefill work, active decode work,
+temperature, and the preceding frequency:
+
+$$
+x_k=(p_k,d_k,T_k,f_{k-1}),
+\qquad
+x_{k+1}=F_k(x_k,u_k,w_k).
+$$
+
+The disturbance $w_k$ contains the arrival times and prompt lengths predicted
+for second $k$. Future output lengths remain hidden. The planner substitutes
+the trace distribution's expected output length, while the request-level replay
+uses each realized length only as a disturbance. Service and power in $F_k$
+interpolate the committed profile whose provenance is displayed with the
+result. The request-level simulator remains outside the optimizer and validates
+the resulting schedule after the solve.
+
+The 60-second workload is selected before optimization by a deterministic,
+capacity-screened rule. The rule scans ten-second-aligned windows after load
+normalization, discards any window whose forecast work exceeds the horizon's
+maximum-clock service capacity, and requires an occupied burst that can be
+moved twenty seconds earlier. Among the remaining windows, it chooses the
+shift-eligible burst with the largest forecast work; total window work and then
+earlier source time break ties. The selected source interval is $[890,950)$
+seconds in the normalized trace and is rebased to start at zero. Its 48
+requests require 51.936 seconds of forecast work at maximum clock, or 86.56%
+of the horizon's capacity. The chosen burst occupies $[40,50)$ seconds after
+rebasing and contains 31 requests. The shifted replay moves those requests to
+$[20,30)$ seconds.
+
+The offline problem uses the complete nominal arrival forecast. It introduces a
+normalized service decision $\nu_k\in[\nu_{\min},1]$ and a nonnegative backlog
+variable $B_{k+1}$. If $W_k$ is arriving work in seconds of highest-clock
+service, their fluid balance is relaxed to
+
+$$
+\begin{aligned}
+\underset{\nu_0,\ldots,\nu_{59},B_1,\ldots,B_{60}}
+{\operatorname{minimize}}\quad
+&\sum_{k=0}^{59}\left[\alpha_P\nu_k+20B_{k+1}\right]
++20B_{60}\\
+\text{subject to}\quad
+&B_{k+1}\geq B_k+W_k-\Delta t\,\nu_k,\qquad B_0=0,\\
+&B_{k+1}\geq0,\qquad \nu_{\min}\leq\nu_k\leq1.
+\end{aligned}
+$$
+
+The coefficient $\alpha_P$ is the slope of a linear interpolation between the
+lowest- and highest-clock normalized power values. The backlog term prices
+waiting throughout the horizon, while the additional terminal term discourages
+postponing work beyond second 60. This is a linear program, solved with HiGHS.
+The service decisions are mapped through the profiled service curve to
+continuous frequencies. Execution rounds each frequency downward to the
+nearest profiled requested clock, so the request-level validation includes the
+actuator's finite action set. The replay reports the corresponding measured
+median realized clock separately; a requested level and its realized clock need
+not coincide under the experimental power cap.
+
+This planning model deliberately omits request identities, phase-specific
+queues, clock slew, and the nonlinear thermal state. The detailed replay
+restores those variables and reports power, temperature, latency, and memory
+violations. The optimizer therefore supplies an offline plan from a tractable
+aggregate model, while the replay audits the assumptions used to obtain it.
+
+The experiment asks what a one-shot frequency schedule gains from a perfect
+nominal arrival and prompt-length forecast, and what it loses when that forecast
+is wrong. Future output lengths remain uncertain in both cases. The same plan
+is replayed twice. The nominal replay uses the forecast supplied to the
+optimizer. The shifted replay uses the earlier arrival times defined above. No
+reoptimization occurs after either replay starts.
 
 ```{code-cell} python
-:tags: [hide-input]
+:tags: [remove-input]
+:label: fig-inference-open-loop
+:caption: The optimized clock schedule is computed once from the nominal 60-second request forecast. The shifted replay moves the selected work burst twenty seconds earlier while keeping the planned clocks fixed. Both request-level trajectories are simulations calibrated by measured NVIDIA L4 service-rate and phase-power curves. The playhead reveals only the executed trajectory prefix; the dashed schedule is the plan available at time zero.
 
-#  label: fig-ocp-retry-loop
-#  caption: SPSA optimization of a retry schedule. The optimized schedule waits longer initially, allowing the server to recover before retrying.
+from pathlib import Path
+import sys
 
-%config InlineBackend.figure_format = 'retina'
-import random
-import matplotlib.pyplot as plt
+from IPython.display import HTML, display
 
-try:
-    import scienceplots
-    plt.style.use(['science', 'notebook'])
-except (ImportError, OSError):
-    pass
+code_dir = Path.cwd() / "code"
+if str(code_dir) not in sys.path:
+    sys.path.insert(0, str(code_dir))
 
-# Server availability: low initially, recovers after t=1.5s
-def success_prob(t):
-    return 0.2 if t < 1.5 else 0.85
+from inference_replay import render_serving_replay
 
-# One step of the retry program
-def step(state, u_k):
-    t, k, done = state
-    if done:
-        return (t, k, True)
-    t_new = t + max(0.0, min(2.0, u_k))  # apply wait (clipped)
-    success = random.random() < success_prob(t_new)
-    return (t_new, k + 1, success)
-
-# Rollout: run the retry loop, return total cost
-def rollout(u, seed=0):
-    random.seed(seed)
-    state = (0.0, 0, False)  # (time, attempts, done)
-    for k in range(len(u)):
-        state = step(state, u[k])
-        if state[2]:  # success
-            break
-    t, attempts, done = state
-    return t + (5.0 if not done else 0.0)  # penalize failure
-
-# SPSA optimization
-def spsa_optimize(K=6, iters=150, seed=0):
-    random.seed(seed)
-    u = [0.2] * K  # initial schedule: short waits
-    alpha, c0 = 0.15, 0.1
-    for i in range(1, iters + 1):
-        c = c0 / (i ** 0.1)
-        delta = [1 if random.random() < 0.5 else -1 for _ in range(K)]
-        u_plus = [max(0, min(2, u[j] + c * delta[j])) for j in range(K)]
-        u_minus = [max(0, min(2, u[j] - c * delta[j])) for j in range(K)]
-        Jp = sum(rollout(u_plus, seed=seed + 2*i) for _ in range(8)) / 8
-        Jm = sum(rollout(u_minus, seed=seed + 2*i + 1) for _ in range(8)) / 8
-        g = [(Jp - Jm) / (2 * c * delta[j]) for j in range(K)]
-        u = [max(0, min(2, u[j] - alpha * g[j])) for j in range(K)]
-    return u
-
-K = 6
-u_init = [0.2] * K
-u_opt = spsa_optimize(K=K, iters=150, seed=42)
-
-# Evaluate costs (average over seeds)
-cost_init = sum(rollout(u_init, seed=s) for s in range(50)) / 50
-cost_opt = sum(rollout(u_opt, seed=s) for s in range(50)) / 50
-
-print(f"Initial schedule: {[round(x, 2) for x in u_init]}  Avg cost: {cost_init:.2f}")
-print(f"Optimized schedule: {[round(x, 2) for x in u_opt]}  Avg cost: {cost_opt:.2f}")
-
-fig, ax = plt.subplots(figsize=(7, 4))
-attempts = range(1, K + 1)
-ax.step(attempts, u_init, where="mid", label=f"Initial (cost={cost_init:.2f})", linestyle="--")
-ax.step(attempts, u_opt, where="mid", label=f"Optimized (cost={cost_opt:.2f})")
-ax.set_xlabel("Attempt")
-ax.set_ylabel("Wait time (s)")
-ax.set_title("Retry Schedule Optimization via SPSA")
-ax.legend()
-ax.grid(alpha=0.3)
-fig.tight_layout()
+display(HTML(render_serving_replay(
+    Path("artifacts/inference_serving/textbook_results.json"),
+    view="open_loop",
+)))
 ```
 
-The optimized schedule learns to wait longer before early attempts, giving the server time to recover from the outage. This simple example illustrates how viewing a program as a dynamical system enables trajectory optimization even when the transition involves stochastic branching.
+:::{figure} _static/inference_serving/open-loop.svg
+:label: fig-inference-open-loop-fallback
+:class: pdf-fallback
+:alt: Static comparison of the fixed offline frequency plan under nominal and shifted request arrivals.
+
+Static comparison of the nominal and shifted-burst replays. The online book
+adds playback and a controller selector.
+:::
+
+The table reports request-level results for the fixed offline schedule under
+its nominal forecast and the shifted-burst disturbance. Both columns use the
+same requests, controller parameters, and measured profile calibration.
+
+```{code-cell} python
+:tags: [remove-input]
+
+import pandas as pd
+
+open_loop_metrics = pd.read_csv(
+    "artifacts/inference_serving/metrics_open_loop.csv"
+).set_index("controller")
+open_loop_metrics[
+    [
+        "mean_ttft_s",
+        "p95_ttft_s",
+        "matched_moved_burst_mean_ttft_s",
+        "matched_moved_burst_p95_ttft_s",
+        "energy_j",
+        "peak_queued_requests_at_minimum_clock",
+        "queued_requests_at_30_s",
+        "power_violation_w",
+        "thermal_violation_c",
+    ]
+].T.rename_axis("metric").round(3)
+```
+
+{download}`Download every open-loop metric (CSV) <artifacts/inference_serving/metrics_open_loop.csv>`
+
+HiGHS reports an optimal solution for the stated linear program, with objective
+11,205.68 in its weighted model units. Across all 48 requests, mean time to
+first token rises from 16.35 seconds under the nominal arrival times to 23.23
+seconds after the shift. The 95th percentile rises from 28.09 to 31.28 seconds.
+For the 31 moved requests, the mean rises from 15.22 to 22.73 seconds. Their
+95th percentile rises from 23.74 to 32.04 seconds. These changes are increases
+of 7.52 and 8.30 seconds, respectively.
+
+At 30 seconds, the nominal replay has no queued request, while the shifted
+replay has 29. The peak queue while the clock is at its minimum also rises from
+zero to 29 requests. Energy falls from 3,719.7 to 3,646.8 joules despite the
+larger delays. Moving the burst changes which requests overlap and how long the
+system remains in each phase, so an energy decrease does not imply an improved
+service trajectory.
+
+All requests eventually complete during the post-horizon drain. At the
+60-second reporting horizon, 27 nominal requests and 22 shifted requests remain
+unfinished. Both simulations reach a modeled phase power of 64.852 W and
+exceed the configured 64.800 W power limit by 0.052 W. Neither simulation
+records a thermal or KV-capacity violation.
+
+The displayed table focuses on latency, energy, queueing, and constraint
+violations. The downloadable CSV also reports energy per output token, time per
+output token, unfinished work, and the full set of recorded diagnostics. The
+nominal run tests the optimized trajectory under its own assumptions. The
+shifted run tests sensitivity to one explicit forecast error. It does not establish
+robustness to arbitrary arrivals, model error, or hardware throttling. Closing
+that gap requires new information to alter future controls, which is the role
+of feedback and receding-horizon optimization. The profile calibration is a
+hardware measurement, while the controller comparison is a simulation of the
+calibrated model. The reported latency, energy, and constraint outcomes are not
+direct measurements from replaying this trace through vLLM.
+
+:::{dropdown} Inspect the offline frequency optimization
+```{literalinclude} code/inference_control.py
+:language: python
+:start-at: def optimize_open_loop
+:end-before: def open_loop_clock_controller
+:linenos:
+```
+
+{download}`Download the complete inference-control implementation <code/inference_control.py>`
+:::
 
 
 
@@ -1358,7 +1464,12 @@ The Karush–Kuhn–Tucker (KKT) conditions provide necessary conditions for loc
 
 The adjoint method computes gradients of the objective with respect to all controls in time proportional to one forward pass plus one backward pass, independent of the number of decision variables. This efficiency is what allows gradient-based trajectory optimization to scale to long horizons and high-dimensional control spaces.
 
-The open-loop perspective developed here is foundational but limited: it assumes the model is accurate and that no disturbances will occur. In practice, plans must be adapted as new information arrives. Several directions extend this chapter's material:
+The inference-frequency experiment exposed this limitation directly. One clock
+sequence was optimized for a nominal request trace and then applied unchanged
+after a burst was moved earlier. Open-loop planning assumes that the model,
+initial condition, and disturbance forecast remain accurate enough throughout
+execution. In practice, plans must be adapted as new information arrives.
+Several directions extend this chapter's material:
 
 - **Collocation methods** use polynomial approximations to represent the trajectory between grid points, enabling higher-order accuracy and implicit handling of stiff dynamics. These are the subject of the next chapter.
 
@@ -1634,4 +1745,21 @@ In a minimum-time braking problem with bounded deceleration, which control bound
 :class: dropdown
 
 The maximum braking bound should be active almost everywhere: delaying or reducing braking cannot shorten the stopping time when the terminal position and zero velocity are fixed.
+:::
+
+:::{exercise} Forecast shift
+:label: ex-trajectories-check-4
+
+The offline inference controller receives the exact total work over 60 seconds,
+but the largest burst arrives twenty seconds earlier than planned. Explain why
+matching total work does not preserve the planned queue and temperature
+trajectory.
+:::
+
+:::{solution} ex-trajectories-check-4
+:class: dropdown
+
+The state depends on when work arrives. Earlier work increases the queue and
+power demand before the clocks chosen for that work are scheduled, and the
+thermal state carries this timing difference into later seconds.
 :::

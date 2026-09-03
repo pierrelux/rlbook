@@ -14,7 +14,7 @@ from __future__ import annotations
 import argparse
 import base64
 import csv
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, fields, replace
 from datetime import datetime, timezone
 from importlib.metadata import distribution, version
 import json
@@ -33,11 +33,14 @@ from matplotlib.animation import FFMpegWriter, FuncAnimation
 import numpy as np
 import optax
 
-from swing_rl.envs import SwingEnv
-from swing_rl.jaxsim import rider_for
 from swing_rl.physics import RewardParams, SwingParams
-from swing_rl.physics.models import articulated_standing
 from swing_rl.viz import SwingAnimation, record_episode
+
+from swing_control import (
+    DEFAULT_SWING_SCENARIO,
+    make_environment,
+    structured_standing_actions,
+)
 
 
 ArrayTree = Mapping[str, Any]
@@ -82,7 +85,7 @@ class PPOConfig:
     total_environment_steps: int = 1_000_000
     number_of_environments: int = 8
     rollout_steps: int = 256
-    episode_steps: int = 1_600
+    episode_steps: int = DEFAULT_SWING_SCENARIO.maximum_steps
     reset_noise: float = 0.01
     hidden_units: int = 64
     learning_rate: float = 3e-4
@@ -117,23 +120,24 @@ class PPOConfig:
 
 
 def make_swing_components(
-    *, reset_noise: float = 0.0, episode_steps: int = 1_600
+    *,
+    reset_noise: float = 0.0,
+    episode_steps: int = DEFAULT_SWING_SCENARIO.maximum_steps,
 ) -> tuple[SwingParams, Any, Any, RewardParams]:
     """Create the plant and reward shared by training and both baselines."""
 
-    parameters = SwingParams()
-    model = articulated_standing(parameters)
-    rider = rider_for(model, parameters)
-    reward = RewardParams(success_angle=2.0 * np.pi)
-    environment = SwingEnv(
-        swing=parameters,
-        model=model,
-        rider=rider,
-        reward=reward,
-        max_episode_steps=episode_steps,
+    scenario = replace(
+        DEFAULT_SWING_SCENARIO,
+        horizon_seconds=(
+            episode_steps * DEFAULT_SWING_SCENARIO.control_interval
+        ),
+    )
+    parameters, environment = make_environment(
+        scenario,
+        suspension="rigid_rod",
         reset_noise=reset_noise,
     )
-    return parameters, model, environment, reward
+    return parameters, environment.model, environment, environment.reward_params
 
 
 def _dense_init(
@@ -485,21 +489,12 @@ def held_out_initial_states(config: PPOConfig) -> tuple[np.ndarray, np.ndarray]:
 def _structured_actions(
     observations: jax.Array, time_step: jax.Array, natural_frequency: float
 ) -> jax.Array:
-    psi = jnp.arctan2(observations[:, 4], observations[:, 3])
-    psi_dot = observations[:, 5] * natural_frequency
-    cosine_amplitude = jnp.cos(psi) - jnp.square(psi_dot) / (
-        2.0 * natural_frequency**2
-    )
-    amplitude = jnp.arccos(jnp.clip(cosine_amplitude, -1.0, 1.0))
-    phase = jnp.arctan2(-psi_dot / natural_frequency, psi)
-    clock = natural_frequency * (time_step + 1) * 0.02
-    source = jnp.where(amplitude < 0.03, clock, phase)
-    return jnp.stack(
-        [
-            jnp.sin(2.0 * source + jnp.deg2rad(67.5)),
-            jnp.sin(source + jnp.deg2rad(247.5)),
-        ],
-        axis=-1,
+    return structured_standing_actions(
+        observations,
+        time_step,
+        natural_frequency,
+        DEFAULT_SWING_SCENARIO,
+        array_module=jnp,
     )
 
 
@@ -591,7 +586,12 @@ def evaluate_policy_batch(
             "returns": carry["returns"] + jnp.where(active, rewards, 0.0),
             "success_time": success_time,
             "effort": carry["effort"]
-            + jnp.where(active, 0.02 * summaries[:, effort_index], 0.0),
+            + jnp.where(
+                active,
+                DEFAULT_SWING_SCENARIO.control_interval
+                * summaries[:, effort_index],
+                0.0,
+            ),
             "minimum_tension": jnp.where(
                 active,
                 jnp.minimum(carry["minimum_tension"], summaries[:, tension_index]),
@@ -735,6 +735,19 @@ def _swing_rl_metadata() -> dict[str, Any]:
     return {
         "version": version("swing-rl"),
         "direct_url": json.loads(direct_url) if direct_url else None,
+    }
+
+
+def structured_controller_definition() -> dict[str, Any]:
+    """Describe the centralized controller used for the analytical baseline."""
+
+    return {
+        "action_helper": "swing_control.structured_standing_actions",
+        "scenario": asdict(DEFAULT_SWING_SCENARIO),
+        "startup_envelope": (
+            "linear from zero through 0.25 s, then one"
+        ),
+        "source": "SwingRL ArticulatedPumper.standing channel preset",
     }
 
 
@@ -907,6 +920,7 @@ def train_seed(config: PPOConfig, output_directory: Path) -> dict[str, Any]:
             "policy": "deterministic tanh of the Gaussian mean",
         },
         "showcase_state": {"theta_degrees": 3.0, "theta_dot": 0.0},
+        "structured_controller_definition": structured_controller_definition(),
         "structured_controller_metrics": structured_metrics,
         "elapsed_seconds": time.perf_counter() - start_time,
     }
@@ -1301,10 +1315,94 @@ def render_artifacts(
             "and an 8-point trailing mean"
         ),
         "aggregate_interval": "two-sided 95% t interval with seed as the unit",
+        "structured_controller_definition": structured_controller_definition(),
+        "structured_controller_metrics": json.loads(
+            (artifact_directory / f"seed_{seeds[0]}" / "manifest.json").read_text(
+                encoding="utf-8"
+            )
+        )["structured_controller_metrics"],
     }
     (output_directory / "manifest.json").write_text(
         json.dumps(combined_manifest, indent=2) + "\n", encoding="utf-8"
     )
+
+
+def _config_from_manifest(manifest: Mapping[str, Any]) -> PPOConfig:
+    allowed = {entry.name for entry in fields(PPOConfig)}
+    config = manifest.get("config")
+    if not isinstance(config, Mapping):
+        raise ValueError("PPO seed manifest is missing its config object")
+    return PPOConfig(**{name: config[name] for name in allowed if name in config})
+
+
+def refresh_structured_baseline(
+    artifact_directory: Path,
+    output_directory: Path,
+    seeds: Sequence[int],
+) -> dict[str, Any]:
+    """Re-evaluate only the shared structured controller and derived plots.
+
+    PPO parameter checkpoints, training logs, saved showcase trajectories, and
+    the recorded training replay are neither loaded nor rewritten.
+    """
+
+    if not seeds:
+        raise ValueError("at least one PPO seed is required")
+    manifests: dict[int, dict[str, Any]] = {}
+    for seed in seeds:
+        path = artifact_directory / f"seed_{seed}" / "manifest.json"
+        manifests[seed] = json.loads(path.read_text(encoding="utf-8"))
+
+    reference = _config_from_manifest(manifests[seeds[0]])
+    evaluation_signature = (
+        reference.episode_steps,
+        reference.evaluation_states,
+        reference.evaluation_seed,
+    )
+    for seed in seeds[1:]:
+        candidate = _config_from_manifest(manifests[seed])
+        candidate_signature = (
+            candidate.episode_steps,
+            candidate.evaluation_states,
+            candidate.evaluation_seed,
+        )
+        if candidate_signature != evaluation_signature:
+            raise ValueError("seed manifests do not share one evaluation protocol")
+
+    metrics = evaluate_policy_batch(None, reference, structured=True)
+    definition = structured_controller_definition()
+    refreshed_at = datetime.now(timezone.utc).isoformat()
+    for seed, manifest in manifests.items():
+        manifest["structured_controller_definition"] = definition
+        manifest["structured_controller_metrics"] = metrics
+        manifest["structured_controller_refreshed_utc"] = refreshed_at
+        path = artifact_directory / f"seed_{seed}" / "manifest.json"
+        path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+    output_directory.mkdir(parents=True, exist_ok=True)
+    figure, _ = make_aggregate_figure(artifact_directory, seeds)
+    figure.savefig(output_directory / "swing_ppo_learning.pdf")
+    figure.savefig(output_directory / "swing_ppo_learning.png", dpi=220)
+    plt.close(figure)
+    _write_csv(
+        output_directory / "swing_ppo_structured_metrics.csv",
+        [{"controller": "structured_standing", **metrics}],
+    )
+
+    combined_path = output_directory / "manifest.json"
+    combined = (
+        json.loads(combined_path.read_text(encoding="utf-8"))
+        if combined_path.exists()
+        else {"seeds": list(seeds), "source_artifacts": str(artifact_directory)}
+    )
+    combined["structured_controller_definition"] = definition
+    combined["structured_controller_metrics"] = metrics
+    combined["structured_controller_refreshed_utc"] = refreshed_at
+    combined_path.write_text(
+        json.dumps(combined, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    return metrics
 
 
 def run_protocol(
@@ -1335,6 +1433,23 @@ def _parse_arguments() -> argparse.Namespace:
     render.add_argument("--output", type=Path, default=Path("_static/swing_ppo"))
     render.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2, 3, 4])
 
+    refresh = subparsers.add_parser(
+        "refresh-baseline",
+        help="re-evaluate the structured baseline without training PPO",
+    )
+    refresh.add_argument(
+        "--artifacts",
+        type=Path,
+        default=Path("artifacts/swing_ppo"),
+    )
+    refresh.add_argument("--output", type=Path, default=Path("_static/swing_ppo"))
+    refresh.add_argument(
+        "--seeds",
+        type=int,
+        nargs="+",
+        default=[0, 1, 2, 3, 4],
+    )
+
     complete = subparsers.add_parser("all", help="train, evaluate, and render")
     complete.add_argument("--artifacts", type=Path, default=Path("artifacts/swing_ppo"))
     complete.add_argument("--output", type=Path, default=Path("_static/swing_ppo"))
@@ -1353,6 +1468,13 @@ def main() -> None:
             )
     elif arguments.command == "render":
         render_artifacts(arguments.artifacts, arguments.output, arguments.seeds)
+    elif arguments.command == "refresh-baseline":
+        metrics = refresh_structured_baseline(
+            arguments.artifacts,
+            arguments.output,
+            arguments.seeds,
+        )
+        print(json.dumps(metrics, indent=2))
     else:
         run_protocol(
             arguments.artifacts,

@@ -1,0 +1,27 @@
+{
+  "actual_duration_s": 120.06075889300007,
+  "block": {
+    "block_id": "training_a_pulse_00",
+    "condition": {
+      "concurrency": 8,
+      "output_tokens": 32,
+      "phase": "decode",
+      "prompt_tokens": 128
+    },
+    "duration_s": 120.0,
+    "requested_power_limit_w": 40.0,
+    "role": "training_pulse",
+    "sequence": "training_a",
+    "split": "training"
+  },
+  "block_telemetry_rows": 1198,
+  "ended_elapsed_s": 639.17269403,
+  "maximum_temperature_c": 65.0,
+  "mean_power_w": 44.7278797996661,
+  "median_realized_clock_mhz": 210.0,
+  "minimum_temperature_c": 52.0,
+  "request_rows": 240,
+  "started_elapsed_s": 519.1119351369999,
+  "status": "complete",
+  "telemetry_rows": 6410
+}

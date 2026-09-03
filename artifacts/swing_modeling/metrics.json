@@ -1,0 +1,34 @@
+{
+  "rigid_rod": {
+    "first_release_seconds": null,
+    "integrated_command_motion": 27.43871830633266,
+    "maximum_compression_demand_newtons": 397.0653689328184,
+    "minimum_seat_radius_fraction": 0.9999999999999998,
+    "minimum_tension_newtons": -397.0653689328184,
+    "negative_tension_fraction": 0.06590038314176246,
+    "negative_tension_seconds": 1.72,
+    "peak_absolute_angle_degrees": 361.16265747945556,
+    "release_count": 0,
+    "sample_count": 1305,
+    "slack_time_seconds": 0.0,
+    "snap_energy_loss_joules": 0.0,
+    "success": true,
+    "time_to_rotation_seconds": 26.079999999999533
+  },
+  "unilateral_chain": {
+    "first_release_seconds": 20.839999999999645,
+    "integrated_command_motion": 33.50771822061265,
+    "maximum_compression_demand_newtons": 0.0,
+    "minimum_seat_radius_fraction": 0.39494325184402196,
+    "minimum_tension_newtons": 0.0,
+    "negative_tension_fraction": 0.0,
+    "negative_tension_seconds": 0.0,
+    "peak_absolute_angle_degrees": 130.49073621520327,
+    "release_count": 2,
+    "sample_count": 1601,
+    "slack_time_seconds": 1.6099999999999768,
+    "snap_energy_loss_joules": 1380.6021739516857,
+    "success": false,
+    "time_to_rotation_seconds": null
+  }
+}

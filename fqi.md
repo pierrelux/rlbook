@@ -209,6 +209,153 @@ $$
 where $c(s, a, s')$ is the immediate cost. Goal states have zero future cost (no bootstrapping), forbidden states have high penalty, and regular states use the standard Bellman backup. Additionally, the **hint-to-goal heuristic** adds synthetic transitions $(s, a, s')$ where $s \in S^+$ with target value $c(s,a,s') = 0$ to explicitly clamp the Q-function to zero in the goal region. This stabilizes learning by encoding the boundary condition without requiring additional prior knowledge.
 ```
 
+### Experiment: Scheduling from Fixed Transition Data
+
+The reduced inference-scheduling MDP in [Dynamic Programming](dp.md#exact-scheduling-mdp-for-inference-serving)
+has an exact value-iteration solution because its transition matrix is known.
+Suppose instead that only a fixed table of transitions is retained. Each row
+contains a reduced state $(p,d,a)$, a scheduling action, the cost $c$, and the
+next reduced state. The generic reward-maximizing form above becomes a
+cost-minimizing form after a sign change. FQI can reuse those rows, but it
+receives no direct evidence for a state-action region that the behavior policy
+never visits. Any prediction there comes from the regressor's inductive bias.
+
+Each transition row is sampled from the finite MDP, not logged directly from
+vLLM. Its arrival model comes from the normalized Azure
+trace, while its phase rates and powers come from one NVIDIA L4 measurement run
+of Qwen/Qwen2.5-7B-Instruct served by vLLM 0.28.0. The data sets therefore
+inherit a measured hardware calibration and all of the reduced model's
+aggregation assumptions.
+
+Two sampling procedures produce matched data sets of 50,000 transitions. The
+**broad** data set draws a reduced state uniformly and then draws uniformly
+among its feasible actions. The **narrow** data set follows trajectories from
+the empty system under a decode-priority heuristic and selects a random
+feasible action with probability 0.05. Both use seed 0 and the same MDP. Their
+different state-action sampling distributions are the controlled change.
+
+Each fitted-Q sweep constructs targets
+
+$$
+y_i^{(n)}=c_i+0.99\min_{u'\in\mathcal A(s_i')}
+q_n(s_i',u')
+$$
+
+and fits a joint state-action Extra-Trees regressor. The ensemble contains 200
+trees with maximum depth 12 and minimum leaf size 2. The random seed is 0;
+successive tree fits use the deterministic seeds 0 through 49 across 50
+fitted-Q sweeps. The three scheduling actions enter as a one-hot input,
+matching the joint state-action representation in the generic batch algorithm
+above.
+
+Changing only the sampling distribution tests how coverage affects an
+otherwise identical FQI procedure. The exact dynamic-programming policy and
+both fitted policies are evaluated on the same 2,000 seeded episodes, each 300
+steps long. Return and policy disagreement measure agreement with the reduced
+MDP objective and its exact solution. Mean waiting time, decode stalls, dropped
+arrivals, and observed state-action coverage locate operational differences.
+
+```{code-cell} python
+:tags: [remove-input]
+:label: fig-inference-scheduling-fqi
+:caption: Extra-Trees FQI on two fixed 50,000-transition data sets sampled from the same measured-L4-calibrated scheduling MDP. These are model transitions, not vLLM logs. The broad data set samples states and feasible actions uniformly; the narrow data set follows decode priority with 5 percent random actions. Policy slices compare each fitted policy with the exact value-iteration policy and mark whether the displayed action occurs in its training buffer.
+
+from pathlib import Path
+import sys
+
+from IPython.display import HTML, display
+
+code_dir = Path.cwd() / "code"
+if str(code_dir) not in sys.path:
+    sys.path.insert(0, str(code_dir))
+
+from inference_replay import render_serving_replay
+
+display(HTML(render_serving_replay(
+    Path("artifacts/inference_serving/textbook_results.json"),
+    view="fqi",
+)))
+```
+
+:::{figure} _static/inference_serving/fqi.svg
+:label: fig-inference-scheduling-fqi-fallback
+:class: pdf-fallback
+:alt: Static comparison of exact value iteration with fitted Q policies learned from broad and narrow transition data.
+
+Static policy slices for oldest-age bin four. At each displayed state, a white
+circle marks that the buffer contains visits to the action selected by the
+displayed policy. The interactive version adds age selection, playback,
+stepping, and scrubbing through a queue trajectory sampled from the reduced
+transition model rather than observed directly from vLLM.
+:::
+
+Exact dynamic programming and the two fitted-Q policies use the same 2,000
+seeded episodes of 300 steps. Coverage is computed from the feasible
+state-action pairs present in each fixed transition buffer.
+
+```{code-cell} python
+:tags: [remove-input]
+
+import pandas as pd
+
+fqi_metrics = pd.read_csv(
+    "artifacts/inference_serving/metrics_fqi.csv"
+).set_index("controller")
+fqi_metrics[
+    [
+        "mean_discounted_return",
+        "mean_queue_length",
+        "mean_waiting_time_s",
+        "mean_decode_stalls",
+        "mean_dropped_arrivals",
+        "coverage_fraction",
+        "policy_disagreement_fraction",
+    ]
+].T.rename_axis("metric").round(3)
+```
+
+{download}`Download every fitted-Q metric (CSV) <artifacts/inference_serving/metrics_fqi.csv>`
+
+The broad buffer covers every feasible state-action pair, yet its fitted policy
+disagrees with the exact policy on 13.88 percent of states. Its mean discounted
+return is $-375.20$, compared with $-317.34$ for the exact policy. Mean waiting
+time rises from 3.023 to 3.751 seconds.
+
+The narrow buffer covers 13.86 percent of feasible pairs and disagrees with the
+exact policy on 68.16 percent of states. Its mean discounted return is
+$-1096.71$, and its mean waiting time is 21.200 seconds. Return is the negative
+of discounted cost, so higher values are better.
+
+The exact policy incurs no decode stalls in these finite evaluations. Broad FQI
+averages 79.30 stalls per episode, while narrow FQI averages 216.81. Broad FQI
+has a lower mean expected dropped-arrival count than the exact policy, 0.452
+versus 0.555, because the discounted stage cost also penalizes queue length,
+age, decode stalls, and energy. The narrow policy's mean expected count is
+2.781.
+
+The two data sets have equal size, so the difference between their policies
+cannot be attributed to the number of transition rows. Coverage, finite-sample
+noise, and the piecewise-constant Extra-Trees approximation can all contribute.
+Full coverage is not sufficient to recover the exact policy with finite data
+and this regressor, while the narrow buffer leaves most Bellman targets
+unsupported.
+
+The hardware calibration is measured, while training and evaluation remain
+inside the stated 245-state MDP. These results concern offline coverage under
+that abstraction. They are not a benchmark of vLLM scheduling or of NVIDIA L4
+hardware across deployments.
+
+:::{dropdown} Inspect the fitted-Q experiment
+```{literalinclude} code/inference_control.py
+:language: python
+:start-at: def fit_fqi
+:end-before: def _reduced_policy_trajectory
+:linenos:
+```
+
+{download}`Download the complete inference-control implementation <code/inference_control.py>`
+:::
+
 ## From Nested to Flattened Q-Iteration
 
 Fitted Q-iteration has an inherently nested structure: an outer loop performs approximate value iteration by computing Bellman targets, and an inner loop performs regression by fitting the function approximator to those targets. This nested structure shows that FQI is approximate dynamic programming with function approximation, distinct from supervised learning with changing targets.
@@ -806,6 +953,14 @@ Fitted Q-iteration has a two-level structure: an outer loop applies the Bellman 
 
 The empirical distribution $\hat{P}_{\mathcal{B}_t}$ unifies offline and online methods through plug-in approximation: replace unknown transition law $P$ with $\hat{P}_{\mathcal{B}_t}$ and minimize empirical risk $\mathbb{E}_{((s,a),y)\sim \hat{P}_t^{\text{fit}}} [\ell(q, y)]$. Offline uses fixed $\mathcal{B}_t \equiv \mathcal{D}$ (sample average approximation), online uses circular buffer (Q-learning with $B=1$ is stochastic approximation, DQN with large $B$ is hybrid).
 
+The inference-scheduling experiment held the MDP, regressor, data-set size,
+seeds, and evaluation episodes fixed while changing the behavior distribution.
+The broad buffer covered every feasible state-action pair and stayed closer to
+the exact policy; the narrow buffer omitted most pairs and performed worse
+under the reduced MDP's objective. Coverage is therefore a property of the
+empirical distribution $\hat{P}_{\mathcal B}$ with direct consequences for the
+Bellman targets available to FQI.
+
 Target networks and online networks arise from flattening the nested loops. Merging inner gradient steps with outer value iteration creates a single loop where two sets of parameters coexist: the **online network** $\boldsymbol{\theta}_t$ (actively updated at each gradient step, corresponds to $\boldsymbol{\theta}_n^{(k)}$) and the **target network** $\boldsymbol{\theta}_{\text{target}}$ (frozen for computing targets, updated every $K$ steps to mark outer-iteration boundaries, corresponds to $\boldsymbol{\theta}_n$). In online algorithms like DQN, the online network additionally serves as the behavior policy for data collection.
 
 The [next chapter](amortization.md) directly parameterizes and optimizes policies instead of searching over value functions.
@@ -846,4 +1001,21 @@ What instability does a target network reduce?
 :class: dropdown
 
 It slows the movement of regression targets. Without it, each parameter update simultaneously changes the predictions and the targets being fitted, creating a rapidly moving objective.
+:::
+
+:::{exercise} Matched coverage comparison
+:label: ex-fqi-check-4
+
+The two inference-scheduling buffers contain the same number of transitions.
+Why can the buffer with fewer distinct state-action pairs still attain lower
+training error while producing a worse policy?
+:::
+
+:::{solution} ex-fqi-check-4
+:class: dropdown
+
+Repeated transitions make the empirical regression problem easier on the
+visited region, but they supply no Bellman targets for omitted actions and
+states. Greedy action selection can therefore depend on unsupported
+extrapolation even when the in-buffer fit is accurate.
 :::

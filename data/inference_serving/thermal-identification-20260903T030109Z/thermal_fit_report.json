@@ -1,0 +1,2610 @@
+{
+  "method": "one-second measured-power bins; exact-discrete free-run trajectory fitting to integer-valued temperature observations; no finite differences",
+  "models": {
+    "one_state_rc": {
+      "final_training_fit": {
+        "diagnostics": {
+          "asymptotically_stable": true,
+          "continuous_poles_per_s": [
+            -0.021764028647324393
+          ],
+          "discrete_poles_at_one_second": [
+            0.97847109896028
+          ],
+          "jacobian_condition_number": 368.5368980273934,
+          "jacobian_numerical_rank": 3,
+          "jacobian_singular_values": [
+            529.8772780744429,
+            50.11443240416776,
+            1.4377862322894381
+          ],
+          "locally_identifiable": true,
+          "measured_power_span_w": 32.6396770192892,
+          "minimum_transformed_bound_margin": 2.8233862093825324,
+          "near_optimal_multistarts_within_one_percent": 10,
+          "near_optimal_transformed_parameter_spread": [
+            2.7257296700611278e-05,
+            1.384041955265758e-06,
+            1.6926370847158978e-06
+          ],
+          "optimizer_evaluations": 18,
+          "optimizer_message": "`ftol` termination condition is satisfied.",
+          "optimizer_success": true,
+          "parameter_count": 3,
+          "positive_thermal_parameters": true,
+          "successful_multistarts": 10
+        },
+        "objective_sum_squared_c": 636.2519076388652,
+        "parameters": {
+          "ambient_temperature_c": 37.69341066168086,
+          "thermal_capacitance_j_per_c": 77.34669517254996,
+          "thermal_resistance_c_per_w": 0.594044458542907,
+          "thermal_time_constant_s": 45.94737565386072
+        }
+      },
+      "leave_one_training_repeat_out": [
+        {
+          "fit": {
+            "diagnostics": {
+              "asymptotically_stable": true,
+              "continuous_poles_per_s": [
+                -0.02153150767819844
+              ],
+              "discrete_poles_at_one_second": [
+                0.978698640461532
+              ],
+              "jacobian_condition_number": 370.6900434183543,
+              "jacobian_numerical_rank": 3,
+              "jacobian_singular_values": [
+                415.2770279466271,
+                40.39231781764098,
+                1.1202810415869537
+              ],
+              "locally_identifiable": true,
+              "measured_power_span_w": 32.45205512218238,
+              "minimum_transformed_bound_margin": 2.7989508204722644,
+              "near_optimal_multistarts_within_one_percent": 10,
+              "near_optimal_transformed_parameter_spread": [
+                7.721460548282266e-06,
+                3.325537962228786e-07,
+                4.723270254913814e-07
+              ],
+              "optimizer_evaluations": 15,
+              "optimizer_message": "`ftol` termination condition is satisfied.",
+              "optimizer_success": true,
+              "parameter_count": 3,
+              "positive_thermal_parameters": true,
+              "successful_multistarts": 10
+            },
+            "objective_sum_squared_c": 320.7309547165053,
+            "parameters": {
+              "ambient_temperature_c": 37.13060260577038,
+              "thermal_capacitance_j_per_c": 76.29471506439354,
+              "thermal_resistance_c_per_w": 0.6087389677889267,
+              "thermal_time_constant_s": 46.443566096049196
+            }
+          },
+          "fit_pulse_ids": [
+            "training_a_pulse_00",
+            "training_a_pulse_01",
+            "training_a_pulse_02",
+            "training_a_pulse_03",
+            "training_a_pulse_04"
+          ],
+          "fit_repeat_evaluation": {
+            "aggregate": {
+              "absolute_peak_temperature_error_c": 0.019312539059029632,
+              "mae_c": 0.6382867701296182,
+              "maximum_absolute_error_c": 3.475992427931587,
+              "maximum_absolute_per_pulse_peak_error_c": 1.457127341864961,
+              "mean_absolute_per_pulse_peak_error_c": 0.8927525934980352,
+              "mean_residual_c": -0.1419491610739483,
+              "peak_temperature_error_c": -0.019312539059029632,
+              "pulse_count": 5,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.4387830278836328,
+                "lag_1_s": 0.6698645064944546,
+                "lag_30_s": -0.0860874839981379,
+                "lag_5_s": 0.605218386388445
+              },
+              "rmse_c": 0.8470648820217953,
+              "sample_count": 447
+            },
+            "per_pulse": {
+              "training_a_pulse_00": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 1.457127341864961,
+                  "mae_c": 0.642533614828326,
+                  "maximum_absolute_error_c": 1.6353864901248016,
+                  "mean_residual_c": 0.08319696704225443,
+                  "peak_temperature_error_c": -1.457127341864961,
+                  "residual_autocorrelation": {
+                    "lag_10_s": 0.6330525812758513,
+                    "lag_1_s": 0.8176864107517081,
+                    "lag_30_s": -0.22111786447502754,
+                    "lag_5_s": 0.693742398120985
+                  },
+                  "rmse_c": 0.7637660478415919,
+                  "sample_count": 119
+                },
+                "repeat": "training_a",
+                "requested_power_limit_w": 40.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 120.0,
+                "workload_phase": "decode"
+              },
+              "training_a_pulse_01": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 0.8974761450149487,
+                  "mae_c": 0.563933640560429,
+                  "maximum_absolute_error_c": 1.8996487458092872,
+                  "mean_residual_c": 0.06886966954331718,
+                  "peak_temperature_error_c": -0.8974761450149487,
+                  "residual_autocorrelation": {
+                    "lag_10_s": 0.04849362449739383,
+                    "lag_1_s": 0.5235645087039368,
+                    "lag_30_s": -0.43733229372327237,
+                    "lag_5_s": 0.3404313119221664
+                  },
+                  "rmse_c": 0.700783604673325,
+                  "sample_count": 90
+                },
+                "repeat": "training_a",
+                "requested_power_limit_w": 52.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 90.0,
+                "workload_phase": "decode"
+              },
+              "training_a_pulse_02": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 0.019312539059029632,
+                  "mae_c": 0.9548795298198318,
+                  "maximum_absolute_error_c": 3.475992427931587,
+                  "mean_residual_c": -0.5934061646978069,
+                  "peak_temperature_error_c": -0.019312539059029632,
+                  "residual_autocorrelation": {
+                    "lag_10_s": 0.5801874521119151,
+                    "lag_1_s": 0.7000804725170913,
+                    "lag_30_s": 0.26908264478098165,
+                    "lag_5_s": 0.6756795455952298
+                  },
+                  "rmse_c": 1.3031668324003793,
+                  "sample_count": 60
+                },
+                "repeat": "training_a",
+                "requested_power_limit_w": 64.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 60.0,
+                "workload_phase": "decode"
+              },
+              "training_a_pulse_03": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 1.0980348484125741,
+                  "mae_c": 0.4782715257267156,
+                  "maximum_absolute_error_c": 1.8767547980372754,
+                  "mean_residual_c": -0.26970817038472883,
+                  "peak_temperature_error_c": -1.0980348484125741,
+                  "residual_autocorrelation": {
+                    "lag_10_s": 0.12883651900308646,
+                    "lag_1_s": 0.4603716089121743,
+                    "lag_30_s": -0.0459162651097425,
+                    "lag_5_s": 0.3104021166903408
+                  },
+                  "rmse_c": 0.634084808266022,
+                  "sample_count": 104
+                },
+                "repeat": "training_a",
+                "requested_power_limit_w": 46.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 105.0,
+                "workload_phase": "decode"
+              },
+              "training_a_pulse_04": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 0.9918120931386625,
+                  "mae_c": 0.6900763238940757,
+                  "maximum_absolute_error_c": 3.011597743825007,
+                  "mean_residual_c": -0.2148103342581284,
+                  "peak_temperature_error_c": -0.9918120931386625,
+                  "residual_autocorrelation": {
+                    "lag_10_s": 0.38780803651923884,
+                    "lag_1_s": 0.5481175742359709,
+                    "lag_30_s": -0.03982276389262995,
+                    "lag_5_s": 0.623850534785337
+                  },
+                  "rmse_c": 0.925652717642131,
+                  "sample_count": 74
+                },
+                "repeat": "training_a",
+                "requested_power_limit_w": 58.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 75.0,
+                "workload_phase": "decode"
+              }
+            }
+          },
+          "fit_training_repeats": [
+            "training_a"
+          ],
+          "held_out_pulse_ids": [
+            "training_b_pulse_00",
+            "training_b_pulse_01",
+            "training_b_pulse_02",
+            "training_b_pulse_03",
+            "training_b_pulse_04"
+          ],
+          "held_out_repeat_evaluation": {
+            "aggregate": {
+              "absolute_peak_temperature_error_c": 0.011326658771480425,
+              "mae_c": 0.7169952817150599,
+              "maximum_absolute_error_c": 3.6520744681612882,
+              "maximum_absolute_per_pulse_peak_error_c": 1.8344692168545507,
+              "mean_absolute_per_pulse_peak_error_c": 0.6795684506601589,
+              "mean_residual_c": -0.059407148199245405,
+              "peak_temperature_error_c": -0.011326658771480425,
+              "pulse_count": 5,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.514925449664694,
+                "lag_1_s": 0.6818952938736691,
+                "lag_30_s": -0.051637974671273595,
+                "lag_5_s": 0.6393519874063649
+              },
+              "rmse_c": 0.926471962843872,
+              "sample_count": 371
+            },
+            "per_pulse": {
+              "training_b_pulse_00": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 0.6154360473725689,
+                  "mae_c": 0.962069709550155,
+                  "maximum_absolute_error_c": 2.9233275211736895,
+                  "mean_residual_c": 0.20353472140576825,
+                  "peak_temperature_error_c": 0.6154360473725689,
+                  "residual_autocorrelation": {
+                    "lag_10_s": 0.5288534647778543,
+                    "lag_1_s": 0.6867178961781171,
+                    "lag_30_s": 0.40656201243473794,
+                    "lag_5_s": 0.6829068695495895
+                  },
+                  "rmse_c": 1.1362006570030043,
+                  "sample_count": 59
+                },
+                "repeat": "training_b",
+                "requested_power_limit_w": 58.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 60.0,
+                "workload_phase": "decode"
+              },
+              "training_b_pulse_01": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 0.6620711418280862,
+                  "mae_c": 0.6453467065171874,
+                  "maximum_absolute_error_c": 2.769721632314848,
+                  "mean_residual_c": 0.11254248289232245,
+                  "peak_temperature_error_c": -0.6620711418280862,
+                  "residual_autocorrelation": {
+                    "lag_10_s": 0.4337780548398422,
+                    "lag_1_s": 0.650579430728191,
+                    "lag_30_s": 0.07809271344634183,
+                    "lag_5_s": 0.5387821430885144
+                  },
+                  "rmse_c": 0.8107403050901384,
+                  "sample_count": 89
+                },
+                "repeat": "training_b",
+                "requested_power_limit_w": 46.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 90.0,
+                "workload_phase": "decode"
+              },
+              "training_b_pulse_02": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 1.8344692168545507,
+                  "mae_c": 0.5001127771440201,
+                  "maximum_absolute_error_c": 2.131715604275641,
+                  "mean_residual_c": -0.20680135137910138,
+                  "peak_temperature_error_c": -1.8344692168545507,
+                  "residual_autocorrelation": {
+                    "lag_10_s": 0.5453232927102459,
+                    "lag_1_s": 0.6557830880122725,
+                    "lag_30_s": 0.0467276991227297,
+                    "lag_5_s": 0.599442715657153
+                  },
+                  "rmse_c": 0.6524551008858664,
+                  "sample_count": 104
+                },
+                "repeat": "training_b",
+                "requested_power_limit_w": 40.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 105.0,
+                "workload_phase": "decode"
+              },
+              "training_b_pulse_03": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 0.011326658771480425,
+                  "mae_c": 1.1978650984869135,
+                  "maximum_absolute_error_c": 3.6520744681612882,
+                  "mean_residual_c": -0.9123860669794442,
+                  "peak_temperature_error_c": -0.011326658771480425,
+                  "residual_autocorrelation": {
+                    "lag_10_s": 0.49557537405158797,
+                    "lag_1_s": 0.6192683271705438,
+                    "lag_30_s": -0.018439570007662463,
+                    "lag_5_s": 0.614237833009756
+                  },
+                  "rmse_c": 1.4771338334969848,
+                  "sample_count": 45
+                },
+                "repeat": "training_b",
+                "requested_power_limit_w": 64.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 45.0,
+                "workload_phase": "decode"
+              },
+              "training_b_pulse_04": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 0.2745391884741082,
+                  "mae_c": 0.6201570475393132,
+                  "maximum_absolute_error_c": 1.982577348803666,
+                  "mean_residual_c": 0.249997730205736,
+                  "peak_temperature_error_c": 0.2745391884741082,
+                  "residual_autocorrelation": {
+                    "lag_10_s": 0.1733647922763648,
+                    "lag_1_s": 0.42289208765767156,
+                    "lag_30_s": -0.28052082791227456,
+                    "lag_5_s": 0.3312605284944352
+                  },
+                  "rmse_c": 0.747273944211052,
+                  "sample_count": 74
+                },
+                "repeat": "training_b",
+                "requested_power_limit_w": 52.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 75.0,
+                "workload_phase": "decode"
+              }
+            }
+          },
+          "held_out_training_repeat": "training_b"
+        },
+        {
+          "fit": {
+            "diagnostics": {
+              "asymptotically_stable": true,
+              "continuous_poles_per_s": [
+                -0.022749281358823044
+              ],
+              "discrete_poles_at_one_second": [
+                0.9775075324131293
+              ],
+              "jacobian_condition_number": 357.5250308974808,
+              "jacobian_numerical_rank": 3,
+              "jacobian_singular_values": [
+                323.70131319635937,
+                29.61271017944071,
+                0.9053948261574438
+              ],
+              "locally_identifiable": true,
+              "measured_power_span_w": 25.306839348211078,
+              "minimum_transformed_bound_margin": 2.892528914561522,
+              "near_optimal_multistarts_within_one_percent": 10,
+              "near_optimal_transformed_parameter_spread": [
+                3.108679948837789e-05,
+                1.7693203363533527e-06,
+                2.2505237429193414e-06
+              ],
+              "optimizer_evaluations": 14,
+              "optimizer_message": "`ftol` termination condition is satisfied.",
+              "optimizer_success": true,
+              "parameter_count": 3,
+              "positive_thermal_parameters": true,
+              "successful_multistarts": 10
+            },
+            "objective_sum_squared_c": 309.8083145589601,
+            "parameters": {
+              "ambient_temperature_c": 39.18246308186868,
+              "thermal_capacitance_j_per_c": 79.29424426866247,
+              "thermal_resistance_c_per_w": 0.5543584268472179,
+              "thermal_time_constant_s": 43.95743251081475
+            }
+          },
+          "fit_pulse_ids": [
+            "training_b_pulse_00",
+            "training_b_pulse_01",
+            "training_b_pulse_02",
+            "training_b_pulse_03",
+            "training_b_pulse_04"
+          ],
+          "fit_repeat_evaluation": {
+            "aggregate": {
+              "absolute_peak_temperature_error_c": 0.43906535239689504,
+              "mae_c": 0.6931762977811161,
+              "maximum_absolute_error_c": 3.68547657633178,
+              "maximum_absolute_per_pulse_peak_error_c": 2.029165790929632,
+              "mean_absolute_per_pulse_peak_error_c": 0.7175616573823206,
+              "mean_residual_c": -0.15365934533239778,
+              "peak_temperature_error_c": -0.43906535239689504,
+              "pulse_count": 5,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.49730543928132204,
+                "lag_1_s": 0.665697524258565,
+                "lag_30_s": -0.02424781325806913,
+                "lag_5_s": 0.623292682607161
+              },
+              "rmse_c": 0.9138177293514179,
+              "sample_count": 371
+            },
+            "per_pulse": {
+              "training_b_pulse_00": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 0.2054252435951156,
+                  "mae_c": 0.8334636617757959,
+                  "maximum_absolute_error_c": 2.9301761057665416,
+                  "mean_residual_c": 0.03172778093872136,
+                  "peak_temperature_error_c": 0.2054252435951156,
+                  "residual_autocorrelation": {
+                    "lag_10_s": 0.4382409474410601,
+                    "lag_1_s": 0.628160432078781,
+                    "lag_30_s": 0.31922935721582,
+                    "lag_5_s": 0.6215940861359933
+                  },
+                  "rmse_c": 1.0258910696290167,
+                  "sample_count": 59
+                },
+                "repeat": "training_b",
+                "requested_power_limit_w": 58.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 60.0,
+                "workload_phase": "decode"
+              },
+              "training_b_pulse_01": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 0.856868928205742,
+                  "mae_c": 0.6174742537511227,
+                  "maximum_absolute_error_c": 2.748495258750765,
+                  "mean_residual_c": 0.07847784865125673,
+                  "peak_temperature_error_c": -0.856868928205742,
+                  "residual_autocorrelation": {
+                    "lag_10_s": 0.3753376541067738,
+                    "lag_1_s": 0.6316747254225461,
+                    "lag_30_s": -0.013970929233052883,
+                    "lag_5_s": 0.5061885862783805
+                  },
+                  "rmse_c": 0.7859658938189009,
+                  "sample_count": 89
+                },
+                "repeat": "training_b",
+                "requested_power_limit_w": 46.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 90.0,
+                "workload_phase": "decode"
+              },
+              "training_b_pulse_02": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 2.029165790929632,
+                  "mae_c": 0.5490214353059739,
+                  "maximum_absolute_error_c": 2.3008899219183974,
+                  "mean_residual_c": -0.24620514458482484,
+                  "peak_temperature_error_c": -2.029165790929632,
+                  "residual_autocorrelation": {
+                    "lag_10_s": 0.6140331043428466,
+                    "lag_1_s": 0.712428584771904,
+                    "lag_30_s": 0.12224189212469251,
+                    "lag_5_s": 0.662359437906695
+                  },
+                  "rmse_c": 0.7209140529740187,
+                  "sample_count": 104
+                },
+                "repeat": "training_b",
+                "requested_power_limit_w": 40.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 105.0,
+                "workload_phase": "decode"
+              },
+              "training_b_pulse_03": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 0.43906535239689504,
+                  "mae_c": 1.2275522970316963,
+                  "maximum_absolute_error_c": 3.68547657633178,
+                  "mean_residual_c": -1.0988555678160874,
+                  "peak_temperature_error_c": -0.43906535239689504,
+                  "residual_autocorrelation": {
+                    "lag_10_s": 0.4012768124265839,
+                    "lag_1_s": 0.5389644648017318,
+                    "lag_30_s": -0.07741146935810933,
+                    "lag_5_s": 0.539538964293287
+                  },
+                  "rmse_c": 1.5225208063633875,
+                  "sample_count": 45
+                },
+                "repeat": "training_b",
+                "requested_power_limit_w": 64.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 45.0,
+                "workload_phase": "decode"
+              },
+              "training_b_pulse_04": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 0.05728297178421826,
+                  "mae_c": 0.5500102595935754,
+                  "maximum_absolute_error_c": 1.9735216652414564,
+                  "mean_residual_c": 0.12418582249837459,
+                  "peak_temperature_error_c": -0.05728297178421826,
+                  "residual_autocorrelation": {
+                    "lag_10_s": 0.08175521051402976,
+                    "lag_1_s": 0.3636851259984968,
+                    "lag_30_s": -0.3550232209878114,
+                    "lag_5_s": 0.2599490341714069
+                  },
+                  "rmse_c": 0.6815209316352848,
+                  "sample_count": 74
+                },
+                "repeat": "training_b",
+                "requested_power_limit_w": 52.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 75.0,
+                "workload_phase": "decode"
+              }
+            }
+          },
+          "fit_training_repeats": [
+            "training_b"
+          ],
+          "held_out_pulse_ids": [
+            "training_a_pulse_00",
+            "training_a_pulse_01",
+            "training_a_pulse_02",
+            "training_a_pulse_03",
+            "training_a_pulse_04"
+          ],
+          "held_out_repeat_evaluation": {
+            "aggregate": {
+              "absolute_peak_temperature_error_c": 0.5800201462058681,
+              "mae_c": 0.6479713290674805,
+              "maximum_absolute_error_c": 3.5032051392750745,
+              "maximum_absolute_per_pulse_peak_error_c": 1.6900443317750486,
+              "mean_absolute_per_pulse_peak_error_c": 1.2844724700758718,
+              "mean_residual_c": -0.2692158994435437,
+              "peak_temperature_error_c": -0.5800201462058681,
+              "pulse_count": 5,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.4363200569169352,
+                "lag_1_s": 0.6637623784619217,
+                "lag_30_s": -0.041033957905391966,
+                "lag_5_s": 0.6011367174091256
+              },
+              "rmse_c": 0.8698748132447617,
+              "sample_count": 447
+            },
+            "per_pulse": {
+              "training_a_pulse_00": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 1.6900443317750486,
+                  "mae_c": 0.673594368177206,
+                  "maximum_absolute_error_c": 1.8495290376098197,
+                  "mean_residual_c": 0.02847395939262234,
+                  "peak_temperature_error_c": -1.6900443317750486,
+                  "residual_autocorrelation": {
+                    "lag_10_s": 0.6747261300514806,
+                    "lag_1_s": 0.8397443606034539,
+                    "lag_30_s": -0.16054237615375797,
+                    "lag_5_s": 0.729899323002359
+                  },
+                  "rmse_c": 0.810692128812069,
+                  "sample_count": 119
+                },
+                "repeat": "training_a",
+                "requested_power_limit_w": 40.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 120.0,
+                "workload_phase": "decode"
+              },
+              "training_a_pulse_01": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 1.2995163116519137,
+                  "mae_c": 0.5699592853193032,
+                  "maximum_absolute_error_c": 1.8822143582129058,
+                  "mean_residual_c": -0.08526443920920748,
+                  "peak_temperature_error_c": -1.2995163116519137,
+                  "residual_autocorrelation": {
+                    "lag_10_s": 0.08182730598940909,
+                    "lag_1_s": 0.5390367766387486,
+                    "lag_30_s": -0.4242894437525447,
+                    "lag_5_s": 0.36038901489082376
+                  },
+                  "rmse_c": 0.7140095200263225,
+                  "sample_count": 90
+                },
+                "repeat": "training_a",
+                "requested_power_limit_w": 52.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 90.0,
+                "workload_phase": "decode"
+              },
+              "training_a_pulse_02": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 0.5800201462058681,
+                  "mae_c": 0.9438692761404657,
+                  "maximum_absolute_error_c": 3.5032051392750745,
+                  "mean_residual_c": -0.8324155348125379,
+                  "peak_temperature_error_c": -0.5800201462058681,
+                  "residual_autocorrelation": {
+                    "lag_10_s": 0.45127622412385154,
+                    "lag_1_s": 0.6182207831700821,
+                    "lag_30_s": 0.12771434977850385,
+                    "lag_5_s": 0.5897992795971992
+                  },
+                  "rmse_c": 1.322234341291527,
+                  "sample_count": 60
+                },
+                "repeat": "training_a",
+                "requested_power_limit_w": 64.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 60.0,
+                "workload_phase": "decode"
+              },
+              "training_a_pulse_03": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 1.3425140411257885,
+                  "mae_c": 0.5138538518720226,
+                  "maximum_absolute_error_c": 1.8510797964129608,
+                  "mean_residual_c": -0.3250534869017074,
+                  "peak_temperature_error_c": -1.3425140411257885,
+                  "residual_autocorrelation": {
+                    "lag_10_s": 0.14550136674800626,
+                    "lag_1_s": 0.47450695678755,
+                    "lag_30_s": -0.0781073160323866,
+                    "lag_5_s": 0.32686522198975493
+                  },
+                  "rmse_c": 0.6653567484394852,
+                  "sample_count": 104
+                },
+                "repeat": "training_a",
+                "requested_power_limit_w": 46.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 105.0,
+                "workload_phase": "decode"
+              },
+              "training_a_pulse_04": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 1.51026751962074,
+                  "mae_c": 0.6502183978137928,
+                  "maximum_absolute_error_c": 3.017083679611666,
+                  "mean_residual_c": -0.4365353238328049,
+                  "peak_temperature_error_c": -1.51026751962074,
+                  "residual_autocorrelation": {
+                    "lag_10_s": 0.25053964962986036,
+                    "lag_1_s": 0.4493216707132294,
+                    "lag_30_s": -0.1748818118435078,
+                    "lag_5_s": 0.5456386377246493
+                  },
+                  "rmse_c": 0.9241922130484682,
+                  "sample_count": 74
+                },
+                "repeat": "training_a",
+                "requested_power_limit_w": 58.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 75.0,
+                "workload_phase": "decode"
+              }
+            }
+          },
+          "held_out_training_repeat": "training_a"
+        }
+      ],
+      "training_evaluation": {
+        "aggregate": {
+          "absolute_peak_temperature_error_c": 0.19609939770602125,
+          "mae_c": 0.6668242730877548,
+          "maximum_absolute_error_c": 3.6714032575883238,
+          "maximum_absolute_per_pulse_peak_error_c": 1.8898264481032996,
+          "mean_absolute_per_pulse_peak_error_c": 0.8471247066488843,
+          "mean_residual_c": -0.14799331371408983,
+          "peak_temperature_error_c": -0.19609939770602125,
+          "pulse_count": 10,
+          "residual_autocorrelation": {
+            "lag_10_s": 0.4728821009104899,
+            "lag_1_s": 0.6705759449504411,
+            "lag_30_s": -0.06090981789122903,
+            "lag_5_s": 0.6175374308340934
+          },
+          "rmse_c": 0.8819376780805843,
+          "sample_count": 818
+        },
+        "by_repeat": {
+          "training_a": {
+            "absolute_peak_temperature_error_c": 0.19609939770602125,
+            "mae_c": 0.6347429042535336,
+            "maximum_absolute_error_c": 3.497206698858051,
+            "maximum_absolute_per_pulse_peak_error_c": 1.5205703390678451,
+            "mean_absolute_per_pulse_peak_error_c": 1.0096018646967906,
+            "mean_residual_c": -0.18970153194714504,
+            "peak_temperature_error_c": -0.19609939770602125,
+            "pulse_count": 5,
+            "residual_autocorrelation": {
+              "lag_10_s": 0.4348839031399716,
+              "lag_1_s": 0.6644632346326008,
+              "lag_30_s": -0.07133932536171063,
+              "lag_5_s": 0.6004803930023832
+            },
+            "rmse_c": 0.849577274699716,
+            "sample_count": 447
+          },
+          "training_b": {
+            "absolute_peak_temperature_error_c": 0.15222247769821706,
+            "mae_c": 0.7054775665349163,
+            "maximum_absolute_error_c": 3.6714032575883238,
+            "maximum_absolute_per_pulse_peak_error_c": 1.8898264481032996,
+            "mean_absolute_per_pulse_peak_error_c": 0.684647548600978,
+            "mean_residual_c": -0.09774109390229554,
+            "peak_temperature_error_c": -0.15222247769821706,
+            "pulse_count": 5,
+            "residual_autocorrelation": {
+              "lag_10_s": 0.50850050426839,
+              "lag_1_s": 0.6749374292296638,
+              "lag_30_s": -0.042481980877782315,
+              "lag_5_s": 0.6326747397425523
+            },
+            "rmse_c": 0.9194155484437062,
+            "sample_count": 371
+          }
+        },
+        "per_pulse": {
+          "training_a_pulse_00": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 1.5205703390678451,
+              "mae_c": 0.6466997418660815,
+              "maximum_absolute_error_c": 1.6947109221448358,
+              "mean_residual_c": 0.06098454123931245,
+              "peak_temperature_error_c": -1.5205703390678451,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.642568011500092,
+                "lag_1_s": 0.8223252832868851,
+                "lag_30_s": -0.20776240266228332,
+                "lag_5_s": 0.7015125386147585
+              },
+              "rmse_c": 0.7715594304766812,
+              "sample_count": 119
+            },
+            "repeat": "training_a",
+            "requested_power_limit_w": 40.0,
+            "role": "training_pulse",
+            "scheduled_duration_s": 120.0,
+            "workload_phase": "decode"
+          },
+          "training_a_pulse_01": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 1.015045820757578,
+              "mae_c": 0.5558017946269999,
+              "maximum_absolute_error_c": 1.9043545898171885,
+              "mean_residual_c": 0.013028525421222683,
+              "peak_temperature_error_c": -1.015045820757578,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.04740211329307927,
+                "lag_1_s": 0.5201462285625803,
+                "lag_30_s": -0.4365503565010697,
+                "lag_5_s": 0.33651574826640146
+              },
+              "rmse_c": 0.6949352361019031,
+              "sample_count": 90
+            },
+            "repeat": "training_a",
+            "requested_power_limit_w": 52.0,
+            "role": "training_pulse",
+            "scheduled_duration_s": 90.0,
+            "workload_phase": "decode"
+          },
+          "training_a_pulse_02": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 0.19609939770602125,
+              "mae_c": 0.9444108280303276,
+              "maximum_absolute_error_c": 3.497206698858051,
+              "mean_residual_c": -0.6810072761201568,
+              "peak_temperature_error_c": -0.19609939770602125,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.5457545302265487,
+                "lag_1_s": 0.676840002016692,
+                "lag_30_s": 0.2323691517749254,
+                "lag_5_s": 0.651498965372095
+              },
+              "rmse_c": 1.308441408279907,
+              "sample_count": 60
+            },
+            "repeat": "training_a",
+            "requested_power_limit_w": 64.0,
+            "role": "training_pulse",
+            "scheduled_duration_s": 60.0,
+            "workload_phase": "decode"
+          },
+          "training_a_pulse_03": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 1.1683140522079185,
+              "mae_c": 0.4887954300641999,
+              "maximum_absolute_error_c": 1.8735189963497518,
+              "mean_residual_c": -0.2949785522692029,
+              "peak_temperature_error_c": -1.1683140522079185,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.125476020155838,
+                "lag_1_s": 0.4573494618072974,
+                "lag_30_s": -0.05503265545569357,
+                "lag_5_s": 0.30706091156946397
+              },
+              "rmse_c": 0.6435399642038421,
+              "sample_count": 104
+            },
+            "repeat": "training_a",
+            "requested_power_limit_w": 46.0,
+            "role": "training_pulse",
+            "scheduled_duration_s": 105.0,
+            "workload_phase": "decode"
+          },
+          "training_a_pulse_04": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 1.14797971374459,
+              "mae_c": 0.665557743166749,
+              "maximum_absolute_error_c": 3.022397074264262,
+              "mean_residual_c": -0.2930825198993994,
+              "peak_temperature_error_c": -1.14797971374459,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.34788973333791035,
+                "lag_1_s": 0.5179656748537551,
+                "lag_30_s": -0.07644562748571164,
+                "lag_5_s": 0.6000417957229248
+              },
+              "rmse_c": 0.9193046245616926,
+              "sample_count": 74
+            },
+            "repeat": "training_a",
+            "requested_power_limit_w": 58.0,
+            "role": "training_pulse",
+            "scheduled_duration_s": 75.0,
+            "workload_phase": "decode"
+          },
+          "training_b_pulse_00": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 0.4860928514760161,
+              "mae_c": 0.9169189235938777,
+              "maximum_absolute_error_c": 2.9317439474972034,
+              "mean_residual_c": 0.14000058066710078,
+              "peak_temperature_error_c": 0.4860928514760161,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.503620343685987,
+                "lag_1_s": 0.6694874710560553,
+                "lag_30_s": 0.385659108703519,
+                "lag_5_s": 0.6653891400244069
+              },
+              "rmse_c": 1.0969497529634304,
+              "sample_count": 59
+            },
+            "repeat": "training_b",
+            "requested_power_limit_w": 58.0,
+            "role": "training_pulse",
+            "scheduled_duration_s": 60.0,
+            "workload_phase": "decode"
+          },
+          "training_b_pulse_01": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 0.7216513894898711,
+              "mae_c": 0.6324877345242335,
+              "maximum_absolute_error_c": 2.7680199601213715,
+              "mean_residual_c": 0.09207930855978115,
+              "peak_temperature_error_c": -0.7216513894898711,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.41696957564008,
+                "lag_1_s": 0.6432720397532966,
+                "lag_30_s": 0.05546848455758734,
+                "lag_5_s": 0.5277584840207281
+              },
+              "rmse_c": 0.7998648490352439,
+              "sample_count": 89
+            },
+            "repeat": "training_b",
+            "requested_power_limit_w": 46.0,
+            "role": "training_pulse",
+            "scheduled_duration_s": 90.0,
+            "workload_phase": "decode"
+          },
+          "training_b_pulse_02": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 1.8898264481032996,
+              "mae_c": 0.5122544317305864,
+              "maximum_absolute_error_c": 2.1813711022153583,
+              "mean_residual_c": -0.22583600609294263,
+              "peak_temperature_error_c": -1.8898264481032996,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.5627492355813809,
+                "lag_1_s": 0.6695440968331335,
+                "lag_30_s": 0.06833365530166405,
+                "lag_5_s": 0.6149165985872784
+              },
+              "rmse_c": 0.6708168946796349,
+              "sample_count": 104
+            },
+            "repeat": "training_b",
+            "requested_power_limit_w": 40.0,
+            "role": "training_pulse",
+            "scheduled_duration_s": 105.0,
+            "workload_phase": "decode"
+          },
+          "training_b_pulse_03": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 0.15222247769821706,
+              "mae_c": 1.2098298912557284,
+              "maximum_absolute_error_c": 3.6714032575883238,
+              "mean_residual_c": -0.9822214096479401,
+              "peak_temperature_error_c": -0.15222247769821706,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.46795226516641847,
+                "lag_1_s": 0.5955793951784586,
+                "lag_30_s": -0.03814551261331603,
+                "lag_5_s": 0.5919699141199942
+              },
+              "rmse_c": 1.4946213880780677,
+              "sample_count": 45
+            },
+            "repeat": "training_b",
+            "requested_power_limit_w": 64.0,
+            "role": "training_pulse",
+            "scheduled_duration_s": 45.0,
+            "workload_phase": "decode"
+          },
+          "training_b_pulse_04": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 0.1734445762374861,
+              "mae_c": 0.5895371123414814,
+              "maximum_absolute_error_c": 1.9864206230989438,
+              "mean_residual_c": 0.20229553390394897,
+              "peak_temperature_error_c": 0.1734445762374861,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.1433435581627545,
+                "lag_1_s": 0.4009664908082061,
+                "lag_30_s": -0.30082514317701303,
+                "lag_5_s": 0.30618822246190536
+              },
+              "rmse_c": 0.7199424963689118,
+              "sample_count": 74
+            },
+            "repeat": "training_b",
+            "requested_power_limit_w": 52.0,
+            "role": "training_pulse",
+            "scheduled_duration_s": 75.0,
+            "workload_phase": "decode"
+          }
+        }
+      },
+      "validation_evaluation": {
+        "aggregate": {
+          "absolute_peak_temperature_error_c": 1.2913579887860323,
+          "mae_c": 0.9272740239106693,
+          "maximum_absolute_error_c": 3.661274849141236,
+          "maximum_absolute_per_pulse_peak_error_c": 2.002151844015046,
+          "mean_absolute_per_pulse_peak_error_c": 0.8269793046018007,
+          "mean_residual_c": -0.4608070045647271,
+          "peak_temperature_error_c": -1.2913579887860323,
+          "pulse_count": 6,
+          "residual_autocorrelation": {
+            "lag_10_s": 0.8121370663039928,
+            "lag_1_s": 0.8274095240025868,
+            "lag_30_s": 0.6304633223235813,
+            "lag_5_s": 0.8486745640014464
+          },
+          "rmse_c": 1.264171935311514,
+          "sample_count": 387
+        },
+        "evaluation_passes": 1,
+        "matched_55w_prefill_decode": {
+          "decode": {
+            "block_id": "validation_pulse_05",
+            "metrics": {
+              "absolute_peak_temperature_error_c": 1.045264058779253,
+              "mae_c": 0.9870992482248164,
+              "maximum_absolute_error_c": 2.155436590759898,
+              "mean_residual_c": 0.2869845130659502,
+              "peak_temperature_error_c": 1.045264058779253,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.7181018749812204,
+                "lag_1_s": 0.7337383693248499,
+                "lag_30_s": 0.15439162884910693,
+                "lag_5_s": 0.8649070091474466
+              },
+              "rmse_c": 1.1337012404346292,
+              "sample_count": 59
+            },
+            "observed_peak_temperature_c": 64.0,
+            "observed_temperature_rise_c": 13.0,
+            "predicted_peak_temperature_c": 65.04526405877925,
+            "predicted_temperature_rise_c": 14.045264058779253
+          },
+          "matching_rule": "role=workload_transfer, requested cap=55 W, duration=60 s",
+          "observed_prefill_minus_decode_peak_c": 3.0,
+          "predicted_prefill_minus_decode_peak_c": -0.04741590279429886,
+          "prefill": {
+            "block_id": "validation_pulse_04",
+            "metrics": {
+              "absolute_peak_temperature_error_c": 2.002151844015046,
+              "mae_c": 2.5305940254287735,
+              "maximum_absolute_error_c": 3.661274849141236,
+              "mean_residual_c": -2.5305940254287735,
+              "peak_temperature_error_c": -2.002151844015046,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.5333414812073456,
+                "lag_1_s": 0.7037587740125116,
+                "lag_30_s": 0.13418756901843457,
+                "lag_5_s": 0.6472618409310462
+              },
+              "rmse_c": 2.5843164495615896,
+              "sample_count": 59
+            },
+            "observed_peak_temperature_c": 67.0,
+            "observed_temperature_rise_c": 16.0,
+            "predicted_peak_temperature_c": 64.99784815598495,
+            "predicted_temperature_rise_c": 13.997848155984954
+          }
+        },
+        "per_pulse": {
+          "validation_pulse_00": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 0.11318104386945294,
+              "mae_c": 0.39458797259607264,
+              "maximum_absolute_error_c": 1.3966270873818232,
+              "mean_residual_c": -0.15004125115828443,
+              "peak_temperature_error_c": -0.11318104386945294,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.06717288709254154,
+                "lag_1_s": 0.3008561086416087,
+                "lag_30_s": -0.3424581040027326,
+                "lag_5_s": 0.19766923151591595
+              },
+              "rmse_c": 0.4885897739295626,
+              "sample_count": 90
+            },
+            "repeat": "validation",
+            "requested_power_limit_w": 43.0,
+            "role": "intermediate_cap",
+            "scheduled_duration_s": 90.0,
+            "workload_phase": "decode"
+          },
+          "validation_pulse_01": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 0.30600506528300286,
+              "mae_c": 0.644967621220093,
+              "maximum_absolute_error_c": 2.884369021090002,
+              "mean_residual_c": -0.066369229974066,
+              "peak_temperature_error_c": 0.30600506528300286,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.5575628904930491,
+                "lag_1_s": 0.5310044604235656,
+                "lag_30_s": 0.24866294411577294,
+                "lag_5_s": 0.7990584778839772
+              },
+              "rmse_c": 0.8163070102341112,
+              "sample_count": 60
+            },
+            "repeat": "validation",
+            "requested_power_limit_w": 55.0,
+            "role": "intermediate_cap",
+            "scheduled_duration_s": 60.0,
+            "workload_phase": "decode"
+          },
+          "validation_pulse_02": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 0.20391582687801701,
+              "mae_c": 0.5127598010770438,
+              "maximum_absolute_error_c": 2.1205991607487533,
+              "mean_residual_c": 0.025899390691318205,
+              "peak_temperature_error_c": -0.20391582687801701,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.5430666476617154,
+                "lag_1_s": 0.4631443255868458,
+                "lag_30_s": 0.15387660816527335,
+                "lag_5_s": 0.32195544248493596
+              },
+              "rmse_c": 0.6304408046462742,
+              "sample_count": 74
+            },
+            "repeat": "validation",
+            "requested_power_limit_w": 49.0,
+            "role": "intermediate_cap",
+            "scheduled_duration_s": 75.0,
+            "workload_phase": "decode"
+          },
+          "validation_pulse_03": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 1.2913579887860323,
+              "mae_c": 0.8701320893625286,
+              "maximum_absolute_error_c": 2.9207833190805133,
+              "mean_residual_c": -0.67533417879135,
+              "peak_temperature_error_c": -1.2913579887860323,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.20585943588394887,
+                "lag_1_s": 0.43684990578339844,
+                "lag_30_s": -0.1194673288875563,
+                "lag_5_s": 0.3750756670518401
+              },
+              "rmse_c": 1.132591943470352,
+              "sample_count": 45
+            },
+            "repeat": "validation",
+            "requested_power_limit_w": 61.0,
+            "role": "intermediate_cap",
+            "scheduled_duration_s": 45.0,
+            "workload_phase": "decode"
+          },
+          "validation_pulse_04": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 2.002151844015046,
+              "mae_c": 2.5305940254287735,
+              "maximum_absolute_error_c": 3.661274849141236,
+              "mean_residual_c": -2.5305940254287735,
+              "peak_temperature_error_c": -2.002151844015046,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.5333414812073456,
+                "lag_1_s": 0.7037587740125116,
+                "lag_30_s": 0.13418756901843457,
+                "lag_5_s": 0.6472618409310462
+              },
+              "rmse_c": 2.5843164495615896,
+              "sample_count": 59
+            },
+            "repeat": "validation",
+            "requested_power_limit_w": 55.0,
+            "role": "workload_transfer",
+            "scheduled_duration_s": 60.0,
+            "workload_phase": "prefill"
+          },
+          "validation_pulse_05": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 1.045264058779253,
+              "mae_c": 0.9870992482248164,
+              "maximum_absolute_error_c": 2.155436590759898,
+              "mean_residual_c": 0.2869845130659502,
+              "peak_temperature_error_c": 1.045264058779253,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.7181018749812204,
+                "lag_1_s": 0.7337383693248499,
+                "lag_30_s": 0.15439162884910693,
+                "lag_5_s": 0.8649070091474466
+              },
+              "rmse_c": 1.1337012404346292,
+              "sample_count": 59
+            },
+            "repeat": "validation",
+            "requested_power_limit_w": 55.0,
+            "role": "workload_transfer",
+            "scheduled_duration_s": 60.0,
+            "workload_phase": "decode"
+          }
+        }
+      }
+    },
+    "two_state_junction_sink_rc": {
+      "final_training_fit": {
+        "diagnostics": {
+          "asymptotically_stable": true,
+          "continuous_poles_per_s": [
+            -2.0041018751074575,
+            -0.010703565041167708
+          ],
+          "discrete_poles_at_one_second": [
+            0.13478129178577417,
+            0.98935351427887
+          ],
+          "jacobian_condition_number": 845.0002432064773,
+          "jacobian_numerical_rank": 5,
+          "jacobian_singular_values": [
+            374.8260131476271,
+            52.21788369942946,
+            21.565464448542727,
+            1.9619234762379745,
+            0.4435809529773564
+          ],
+          "locally_identifiable": true,
+          "measured_power_span_w": 32.6396770192892,
+          "minimum_transformed_bound_margin": 3.10407832207586,
+          "modal_time_constant_ratio": 187.23685682287586,
+          "modal_time_constants_s": [
+            0.49897663009091353,
+            93.42681584629347
+          ],
+          "near_optimal_multistarts_within_one_percent": 10,
+          "near_optimal_transformed_parameter_spread": [
+            0.00015650722614068968,
+            9.748576928814146e-05,
+            1.0018727186533738e-05,
+            2.333483493233146e-05,
+            3.953195265624099e-06
+          ],
+          "optimizer_evaluations": 78,
+          "optimizer_message": "`ftol` termination condition is satisfied.",
+          "optimizer_success": true,
+          "parameter_count": 5,
+          "positive_thermal_parameters": true,
+          "successful_multistarts": 10
+        },
+        "objective_sum_squared_c": 344.830382444424,
+        "parameters": {
+          "ambient_temperature_c": 26.142998187823387,
+          "junction_capacitance_j_per_c": 11.90669720018665,
+          "junction_sink_resistance_c_per_w": 0.047355585213458735,
+          "sink_ambient_resistance_c_per_w": 0.8973170274665656,
+          "sink_capacitance_j_per_c": 92.13896448317952
+        }
+      },
+      "leave_one_training_repeat_out": [
+        {
+          "fit": {
+            "diagnostics": {
+              "asymptotically_stable": true,
+              "continuous_poles_per_s": [
+                -2510.9062125832993,
+                -0.011425317070091113
+              ],
+              "discrete_poles_at_one_second": [
+                0.0,
+                0.988639704000612
+              ],
+              "jacobian_condition_number": 1760325.3824935304,
+              "jacobian_numerical_rank": 5,
+              "jacobian_singular_values": [
+                311.07245616421073,
+                48.11337839020689,
+                15.585880329497355,
+                0.39043037768144656,
+                0.00017671304365535613
+              ],
+              "locally_identifiable": false,
+              "measured_power_span_w": 32.45205512218238,
+              "minimum_transformed_bound_margin": 8.79296635503124e-14,
+              "modal_time_constant_ratio": 219766.87361756308,
+              "modal_time_constants_s": [
+                0.0003982625854317229,
+                87.52492327917736
+              ],
+              "near_optimal_multistarts_within_one_percent": 10,
+              "near_optimal_transformed_parameter_spread": [
+                6.597409099384777e-05,
+                7.611292929254887e-09,
+                3.036665647826453e-07,
+                1.3183118889870116e-06,
+                2.0697885238923908e-06
+              ],
+              "optimizer_evaluations": 37,
+              "optimizer_message": "`xtol` termination condition is satisfied.",
+              "optimizer_success": true,
+              "parameter_count": 5,
+              "positive_thermal_parameters": true,
+              "successful_multistarts": 10
+            },
+            "objective_sum_squared_c": 164.6002099299259,
+            "parameters": {
+              "ambient_temperature_c": 26.32230349248487,
+              "junction_capacitance_j_per_c": 0.010000000000000883,
+              "junction_sink_resistance_c_per_w": 0.03983029146639952,
+              "sink_ambient_resistance_c_per_w": 0.8862091565038925,
+              "sink_capacitance_j_per_c": 98.75328019915193
+            }
+          },
+          "fit_pulse_ids": [
+            "training_a_pulse_00",
+            "training_a_pulse_01",
+            "training_a_pulse_02",
+            "training_a_pulse_03",
+            "training_a_pulse_04"
+          ],
+          "fit_repeat_evaluation": {
+            "aggregate": {
+              "absolute_peak_temperature_error_c": 0.013111575100694495,
+              "mae_c": 0.4775076257677391,
+              "maximum_absolute_error_c": 2.2944737897577667,
+              "maximum_absolute_per_pulse_peak_error_c": 0.6831737406754996,
+              "mean_absolute_per_pulse_peak_error_c": 0.4227657708112815,
+              "mean_residual_c": 0.012979210247879867,
+              "peak_temperature_error_c": 0.013111575100694495,
+              "pulse_count": 5,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.2608812014809598,
+                "lag_1_s": 0.37993940345578053,
+                "lag_30_s": 0.17419631459528198,
+                "lag_5_s": 0.3370537385353071
+              },
+              "rmse_c": 0.6068221583250617,
+              "sample_count": 447
+            },
+            "per_pulse": {
+              "training_a_pulse_00": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 0.6474327593188036,
+                  "mae_c": 0.5084102433671192,
+                  "maximum_absolute_error_c": 1.324160860374505,
+                  "mean_residual_c": 0.26336961664734737,
+                  "peak_temperature_error_c": -0.6474327593188036,
+                  "residual_autocorrelation": {
+                    "lag_10_s": 0.39435829222085106,
+                    "lag_1_s": 0.629408468778582,
+                    "lag_30_s": -0.0510624997515602,
+                    "lag_5_s": 0.43485520247361287
+                  },
+                  "rmse_c": 0.6087930840642639,
+                  "sample_count": 119
+                },
+                "repeat": "training_a",
+                "requested_power_limit_w": 40.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 120.0,
+                "workload_phase": "decode"
+              },
+              "training_a_pulse_01": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 0.2966713078360783,
+                  "mae_c": 0.4527154988505382,
+                  "maximum_absolute_error_c": 1.2574725178035564,
+                  "mean_residual_c": 0.23066846544972314,
+                  "peak_temperature_error_c": -0.2966713078360783,
+                  "residual_autocorrelation": {
+                    "lag_10_s": -0.07043268877689644,
+                    "lag_1_s": 0.09615641577054838,
+                    "lag_30_s": -0.2069668905892032,
+                    "lag_5_s": -0.03688201258352348
+                  },
+                  "rmse_c": 0.5471750428781893,
+                  "sample_count": 90
+                },
+                "repeat": "training_a",
+                "requested_power_limit_w": 52.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 90.0,
+                "workload_phase": "decode"
+              },
+              "training_a_pulse_02": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 0.013111575100694495,
+                  "mae_c": 0.583305384390252,
+                  "maximum_absolute_error_c": 2.2944737897577667,
+                  "mean_residual_c": -0.3822950558292655,
+                  "peak_temperature_error_c": 0.013111575100694495,
+                  "residual_autocorrelation": {
+                    "lag_10_s": 0.061924284806850916,
+                    "lag_1_s": 0.15054984455435494,
+                    "lag_30_s": 0.023505889630794977,
+                    "lag_5_s": 0.14054235354968486
+                  },
+                  "rmse_c": 0.7797504195277924,
+                  "sample_count": 60
+                },
+                "repeat": "training_a",
+                "requested_power_limit_w": 64.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 60.0,
+                "workload_phase": "decode"
+              },
+              "training_a_pulse_03": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 0.6831737406754996,
+                  "mae_c": 0.4096702580709885,
+                  "maximum_absolute_error_c": 1.6651877837885465,
+                  "mean_residual_c": -0.26135585618501184,
+                  "peak_temperature_error_c": -0.6831737406754996,
+                  "residual_autocorrelation": {
+                    "lag_10_s": -0.08652424262574149,
+                    "lag_1_s": 0.17674607535799614,
+                    "lag_30_s": 0.16169682942879554,
+                    "lag_5_s": 0.01965699066739753
+                  },
+                  "rmse_c": 0.5310464566673506,
+                  "sample_count": 104
+                },
+                "repeat": "training_a",
+                "requested_power_limit_w": 46.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 105.0,
+                "workload_phase": "decode"
+              },
+              "training_a_pulse_04": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 0.4734394711253316,
+                  "mae_c": 0.467522499434403,
+                  "maximum_absolute_error_c": 1.6502709057559812,
+                  "mean_residual_c": 0.05161179867959514,
+                  "peak_temperature_error_c": -0.4734394711253316,
+                  "residual_autocorrelation": {
+                    "lag_10_s": -0.03932386252644389,
+                    "lag_1_s": 0.011602236572532737,
+                    "lag_30_s": 0.10757540270739123,
+                    "lag_5_s": 0.20949331076160413
+                  },
+                  "rmse_c": 0.6122575735301166,
+                  "sample_count": 74
+                },
+                "repeat": "training_a",
+                "requested_power_limit_w": 58.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 75.0,
+                "workload_phase": "decode"
+              }
+            }
+          },
+          "fit_training_repeats": [
+            "training_a"
+          ],
+          "held_out_pulse_ids": [
+            "training_b_pulse_00",
+            "training_b_pulse_01",
+            "training_b_pulse_02",
+            "training_b_pulse_03",
+            "training_b_pulse_04"
+          ],
+          "held_out_repeat_evaluation": {
+            "aggregate": {
+              "absolute_peak_temperature_error_c": 0.08484648843682407,
+              "mae_c": 0.5817461188638622,
+              "maximum_absolute_error_c": 2.099613203030401,
+              "maximum_absolute_per_pulse_peak_error_c": 1.3837680471024,
+              "mean_absolute_per_pulse_peak_error_c": 0.6978617168675939,
+              "mean_residual_c": 0.17947169159574086,
+              "peak_temperature_error_c": 0.08484648843682407,
+              "pulse_count": 5,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.33888670020986866,
+                "lag_1_s": 0.4322861396525837,
+                "lag_30_s": 0.2600626087085154,
+                "lag_5_s": 0.39940081392656074
+              },
+              "rmse_c": 0.7149498974215487,
+              "sample_count": 371
+            },
+            "per_pulse": {
+              "training_b_pulse_00": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 0.8213390688058411,
+                  "mae_c": 0.8343984413170716,
+                  "maximum_absolute_error_c": 1.842863456690452,
+                  "mean_residual_c": 0.6372571889699178,
+                  "peak_temperature_error_c": 0.8213390688058411,
+                  "residual_autocorrelation": {
+                    "lag_10_s": 0.11647385535035687,
+                    "lag_1_s": 0.2560110402980881,
+                    "lag_30_s": 0.6637746767982818,
+                    "lag_5_s": 0.28223946921382426
+                  },
+                  "rmse_c": 0.955231518644445,
+                  "sample_count": 59
+                },
+                "repeat": "training_b",
+                "requested_power_limit_w": 58.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 60.0,
+                "workload_phase": "decode"
+              },
+              "training_b_pulse_01": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 0.5845536194203476,
+                  "mae_c": 0.40138095903399573,
+                  "maximum_absolute_error_c": 1.402339262101762,
+                  "mean_residual_c": 0.09334285867698802,
+                  "peak_temperature_error_c": -0.5845536194203476,
+                  "residual_autocorrelation": {
+                    "lag_10_s": -0.05596695015150048,
+                    "lag_1_s": 0.05371627568808149,
+                    "lag_30_s": 0.20533905135836833,
+                    "lag_5_s": -0.1012523785188191
+                  },
+                  "rmse_c": 0.4967696002973708,
+                  "sample_count": 89
+                },
+                "repeat": "training_b",
+                "requested_power_limit_w": 46.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 90.0,
+                "workload_phase": "decode"
+              },
+              "training_b_pulse_02": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 1.3837680471024,
+                  "mae_c": 0.5220961219764317,
+                  "maximum_absolute_error_c": 1.9077869445554185,
+                  "mean_residual_c": -0.06932750412392259,
+                  "peak_temperature_error_c": -1.3837680471024,
+                  "residual_autocorrelation": {
+                    "lag_10_s": 0.5392602900138437,
+                    "lag_1_s": 0.6680545618578908,
+                    "lag_30_s": 0.5098056779794311,
+                    "lag_5_s": 0.6213713085474439
+                  },
+                  "rmse_c": 0.647800436750776,
+                  "sample_count": 104
+                },
+                "repeat": "training_b",
+                "requested_power_limit_w": 40.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 105.0,
+                "workload_phase": "decode"
+              },
+              "training_b_pulse_03": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 0.08484648843682407,
+                  "mae_c": 0.6185746063158865,
+                  "maximum_absolute_error_c": 2.099613203030401,
+                  "mean_residual_c": -0.2796802393581103,
+                  "peak_temperature_error_c": 0.08484648843682407,
+                  "residual_autocorrelation": {
+                    "lag_10_s": -0.06270832915735092,
+                    "lag_1_s": 0.07293002725293139,
+                    "lag_30_s": -0.33811633466575575,
+                    "lag_5_s": 0.06228933249962194
+                  },
+                  "rmse_c": 0.7937993047384819,
+                  "sample_count": 45
+                },
+                "repeat": "training_b",
+                "requested_power_limit_w": 64.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 45.0,
+                "workload_phase": "decode"
+              },
+              "training_b_pulse_04": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 0.6148013605725566,
+                  "mae_c": 0.6586694964458952,
+                  "maximum_absolute_error_c": 1.6482080604325233,
+                  "mean_residual_c": 0.5469456785208878,
+                  "peak_temperature_error_c": 0.6148013605725566,
+                  "residual_autocorrelation": {
+                    "lag_10_s": -0.100738611197998,
+                    "lag_1_s": -0.09050542821115416,
+                    "lag_30_s": 0.04020967862938503,
+                    "lag_5_s": -0.2031192106863286
+                  },
+                  "rmse_c": 0.7519389485125152,
+                  "sample_count": 74
+                },
+                "repeat": "training_b",
+                "requested_power_limit_w": 52.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 75.0,
+                "workload_phase": "decode"
+              }
+            }
+          },
+          "held_out_training_repeat": "training_b"
+        },
+        {
+          "fit": {
+            "diagnostics": {
+              "asymptotically_stable": true,
+              "continuous_poles_per_s": [
+                -0.7500264889005568,
+                -0.007006062854859881
+              ],
+              "discrete_poles_at_one_second": [
+                0.47235404043609214,
+                0.9930184223884162
+              ],
+              "jacobian_condition_number": 1530.8413769137762,
+              "jacobian_numerical_rank": 5,
+              "jacobian_singular_values": [
+                206.63363162549928,
+                29.342435835664382,
+                14.889812978527583,
+                3.1281718593206818,
+                0.13498043281406405
+              ],
+              "locally_identifiable": true,
+              "measured_power_span_w": 25.306839348211078,
+              "minimum_transformed_bound_margin": 2.8591852008315204,
+              "modal_time_constant_ratio": 107.0539195034894,
+              "modal_time_constants_s": [
+                1.3332862436177055,
+                142.7335181993596
+              ],
+              "near_optimal_multistarts_within_one_percent": 10,
+              "near_optimal_transformed_parameter_spread": [
+                0.00020628170463155016,
+                4.5455500843338825e-06,
+                3.906975045708805e-07,
+                2.9596312565161043e-06,
+                5.553468947122608e-06
+              ],
+              "optimizer_evaluations": 67,
+              "optimizer_message": "`ftol` termination condition is satisfied.",
+              "optimizer_success": true,
+              "parameter_count": 5,
+              "positive_thermal_parameters": true,
+              "successful_multistarts": 10
+            },
+            "objective_sum_squared_c": 154.99918030229506,
+            "parameters": {
+              "ambient_temperature_c": 19.136554326841384,
+              "junction_capacitance_j_per_c": 25.682877469059086,
+              "junction_sink_resistance_c_per_w": 0.06560740736106023,
+              "sink_ambient_resistance_c_per_w": 1.1463088363834886,
+              "sink_capacitance_j_per_c": 98.52607296341174
+            }
+          },
+          "fit_pulse_ids": [
+            "training_b_pulse_00",
+            "training_b_pulse_01",
+            "training_b_pulse_02",
+            "training_b_pulse_03",
+            "training_b_pulse_04"
+          ],
+          "fit_repeat_evaluation": {
+            "aggregate": {
+              "absolute_peak_temperature_error_c": 0.6447926101353261,
+              "mae_c": 0.5013662917967786,
+              "maximum_absolute_error_c": 2.469932602001954,
+              "maximum_absolute_per_pulse_peak_error_c": 0.8179913810995458,
+              "mean_absolute_per_pulse_peak_error_c": 0.584817451096076,
+              "mean_residual_c": 0.018432614337041332,
+              "peak_temperature_error_c": -0.6447926101353261,
+              "pulse_count": 5,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.30183325680404,
+                "lag_1_s": 0.35039108275093916,
+                "lag_30_s": 0.3041048895098452,
+                "lag_5_s": 0.3493041464707866
+              },
+              "rmse_c": 0.6463648721771804,
+              "sample_count": 371
+            },
+            "per_pulse": {
+              "training_b_pulse_00": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 0.35520738986467393,
+                  "mae_c": 0.5515876492784794,
+                  "maximum_absolute_error_c": 1.6430614863124475,
+                  "mean_residual_c": 0.24925137311458154,
+                  "peak_temperature_error_c": 0.35520738986467393,
+                  "residual_autocorrelation": {
+                    "lag_10_s": -0.07361843490929515,
+                    "lag_1_s": -7.993073790880648e-05,
+                    "lag_30_s": 0.6845471636389469,
+                    "lag_5_s": 0.13077007132669582
+                  },
+                  "rmse_c": 0.6686964026472821,
+                  "sample_count": 59
+                },
+                "repeat": "training_b",
+                "requested_power_limit_w": 58.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 60.0,
+                "workload_phase": "decode"
+              },
+              "training_b_pulse_01": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 0.46149950215265534,
+                  "mae_c": 0.3806595064861651,
+                  "maximum_absolute_error_c": 1.26823524295866,
+                  "mean_residual_c": -0.024192277166426523,
+                  "peak_temperature_error_c": -0.46149950215265534,
+                  "residual_autocorrelation": {
+                    "lag_10_s": -0.015063493920637088,
+                    "lag_1_s": 0.0005570180869505759,
+                    "lag_30_s": 0.23664744927336817,
+                    "lag_5_s": -0.1349116032796605
+                  },
+                  "rmse_c": 0.47643171851870314,
+                  "sample_count": 89
+                },
+                "repeat": "training_b",
+                "requested_power_limit_w": 46.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 90.0,
+                "workload_phase": "decode"
+              },
+              "training_b_pulse_02": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 0.8179913810995458,
+                  "mae_c": 0.43069691273759175,
+                  "maximum_absolute_error_c": 1.5801516037669145,
+                  "mean_residual_c": 0.04201179470353162,
+                  "peak_temperature_error_c": -0.8179913810995458,
+                  "residual_autocorrelation": {
+                    "lag_10_s": 0.45337336698418934,
+                    "lag_1_s": 0.5729458723425541,
+                    "lag_30_s": 0.36439569158483065,
+                    "lag_5_s": 0.5039481163730969
+                  },
+                  "rmse_c": 0.5585832689153805,
+                  "sample_count": 104
+                },
+                "repeat": "training_b",
+                "requested_power_limit_w": 40.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 105.0,
+                "workload_phase": "decode"
+              },
+              "training_b_pulse_03": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 0.736485575831523,
+                  "mae_c": 0.8208869504758752,
+                  "maximum_absolute_error_c": 2.469932602001954,
+                  "mean_residual_c": -0.7903022647265484,
+                  "peak_temperature_error_c": -0.736485575831523,
+                  "residual_autocorrelation": {
+                    "lag_10_s": -0.25919310925505723,
+                    "lag_1_s": -0.21275875576565406,
+                    "lag_30_s": -0.1480879619290765,
+                    "lag_5_s": -0.15769752724972466
+                  },
+                  "rmse_c": 1.024368218678175,
+                  "sample_count": 45
+                },
+                "repeat": "training_b",
+                "requested_power_limit_w": 64.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 45.0,
+                "workload_phase": "decode"
+              },
+              "training_b_pulse_04": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 0.552903406531982,
+                  "mae_c": 0.5115153402132698,
+                  "maximum_absolute_error_c": 1.52147153112832,
+                  "mean_residual_c": 0.3443264437381267,
+                  "peak_temperature_error_c": 0.552903406531982,
+                  "residual_autocorrelation": {
+                    "lag_10_s": -0.04437361393664823,
+                    "lag_1_s": -0.05645291366915032,
+                    "lag_30_s": 0.026505668931375664,
+                    "lag_5_s": -0.09116288779579165
+                  },
+                  "rmse_c": 0.6232622780165405,
+                  "sample_count": 74
+                },
+                "repeat": "training_b",
+                "requested_power_limit_w": 52.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 75.0,
+                "workload_phase": "decode"
+              }
+            }
+          },
+          "fit_training_repeats": [
+            "training_b"
+          ],
+          "held_out_pulse_ids": [
+            "training_a_pulse_00",
+            "training_a_pulse_01",
+            "training_a_pulse_02",
+            "training_a_pulse_03",
+            "training_a_pulse_04"
+          ],
+          "held_out_repeat_evaluation": {
+            "aggregate": {
+              "absolute_peak_temperature_error_c": 0.8982107370902952,
+              "mae_c": 0.5810829357018475,
+              "maximum_absolute_error_c": 2.936173008425783,
+              "maximum_absolute_per_pulse_peak_error_c": 0.9986170786848305,
+              "mean_absolute_per_pulse_peak_error_c": 0.5188900494700703,
+              "mean_residual_c": -0.19360387618229827,
+              "peak_temperature_error_c": -0.8982107370902952,
+              "pulse_count": 5,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.5175730437088382,
+                "lag_1_s": 0.5710662396466881,
+                "lag_30_s": 0.4204805450466118,
+                "lag_5_s": 0.5559404545231522
+              },
+              "rmse_c": 0.7531028311013128,
+              "sample_count": 447
+            },
+            "per_pulse": {
+              "training_a_pulse_00": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 0.13307365832996254,
+                  "mae_c": 0.5146795810754266,
+                  "maximum_absolute_error_c": 1.453656371507428,
+                  "mean_residual_c": 0.4512161474301864,
+                  "peak_temperature_error_c": 0.13307365832996254,
+                  "residual_autocorrelation": {
+                    "lag_10_s": 0.19572715042079325,
+                    "lag_1_s": 0.40915892725509434,
+                    "lag_30_s": -0.2058423879795692,
+                    "lag_5_s": 0.122417877153949
+                  },
+                  "rmse_c": 0.6191798820809792,
+                  "sample_count": 119
+                },
+                "repeat": "training_a",
+                "requested_power_limit_w": 40.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 120.0,
+                "workload_phase": "decode"
+              },
+              "training_a_pulse_01": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 0.24573504117643097,
+                  "mae_c": 0.4187708403681455,
+                  "maximum_absolute_error_c": 1.7216110574762453,
+                  "mean_residual_c": -0.04442103452578231,
+                  "peak_temperature_error_c": -0.24573504117643097,
+                  "residual_autocorrelation": {
+                    "lag_10_s": 0.04340740464736411,
+                    "lag_1_s": 0.2165224258928622,
+                    "lag_30_s": -0.2976756498632112,
+                    "lag_5_s": 0.11371134186427938
+                  },
+                  "rmse_c": 0.5361711206998312,
+                  "sample_count": 90
+                },
+                "repeat": "training_a",
+                "requested_power_limit_w": 52.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 90.0,
+                "workload_phase": "decode"
+              },
+              "training_a_pulse_02": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 0.9986170786848305,
+                  "mae_c": 1.1600404167871288,
+                  "maximum_absolute_error_c": 2.936173008425783,
+                  "mean_residual_c": -1.1600404167871288,
+                  "peak_temperature_error_c": -0.9986170786848305,
+                  "residual_autocorrelation": {
+                    "lag_10_s": -0.16487600449041184,
+                    "lag_1_s": -0.11598557748010382,
+                    "lag_30_s": -0.10931675428524668,
+                    "lag_5_s": -0.10758512118838233
+                  },
+                  "rmse_c": 1.3027112955230122,
+                  "sample_count": 60
+                },
+                "repeat": "training_a",
+                "requested_power_limit_w": 64.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 60.0,
+                "workload_phase": "decode"
+              },
+              "training_a_pulse_03": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 0.3188137320688327,
+                  "mae_c": 0.480466444210222,
+                  "maximum_absolute_error_c": 1.825993274407132,
+                  "mean_residual_c": -0.3204364891065852,
+                  "peak_temperature_error_c": -0.3188137320688327,
+                  "residual_autocorrelation": {
+                    "lag_10_s": 0.0743688575918124,
+                    "lag_1_s": 0.347016254498505,
+                    "lag_30_s": 0.00816726376780359,
+                    "lag_5_s": 0.2008861192955511
+                  },
+                  "rmse_c": 0.6140301236603303,
+                  "sample_count": 104
+                },
+                "repeat": "training_a",
+                "requested_power_limit_w": 46.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 105.0,
+                "workload_phase": "decode"
+              },
+              "training_a_pulse_04": {
+                "metrics": {
+                  "absolute_peak_temperature_error_c": 0.8982107370902952,
+                  "mae_c": 0.55725528746657,
+                  "maximum_absolute_error_c": 2.202220241794656,
+                  "mean_residual_c": -0.4501343407573852,
+                  "peak_temperature_error_c": -0.8982107370902952,
+                  "residual_autocorrelation": {
+                    "lag_10_s": -0.11060375599099877,
+                    "lag_1_s": -0.029944411177787185,
+                    "lag_30_s": -0.03591459341904711,
+                    "lag_5_s": 0.18756537661092246
+                  },
+                  "rmse_c": 0.7442718331311786,
+                  "sample_count": 74
+                },
+                "repeat": "training_a",
+                "requested_power_limit_w": 58.0,
+                "role": "training_pulse",
+                "scheduled_duration_s": 75.0,
+                "workload_phase": "decode"
+              }
+            }
+          },
+          "held_out_training_repeat": "training_a"
+        }
+      ],
+      "training_evaluation": {
+        "aggregate": {
+          "absolute_peak_temperature_error_c": 0.27359722716248314,
+          "mae_c": 0.5121378828115187,
+          "maximum_absolute_error_c": 2.4443639626925844,
+          "maximum_absolute_per_pulse_peak_error_c": 1.27522676502673,
+          "mean_absolute_per_pulse_peak_error_c": 0.5587351521005595,
+          "mean_residual_c": 0.014775617595937506,
+          "peak_temperature_error_c": -0.27359722716248314,
+          "pulse_count": 10,
+          "residual_autocorrelation": {
+            "lag_10_s": 0.3277418621097086,
+            "lag_1_s": 0.41390712934868346,
+            "lag_30_s": 0.2575806131088871,
+            "lag_5_s": 0.38569634559815846
+          },
+          "rmse_c": 0.6492711565849313,
+          "sample_count": 818
+        },
+        "by_repeat": {
+          "training_a": {
+            "absolute_peak_temperature_error_c": 0.27359722716248314,
+            "mae_c": 0.4821069714259062,
+            "maximum_absolute_error_c": 2.4443639626925844,
+            "maximum_absolute_per_pulse_peak_error_c": 0.623067533916128,
+            "mean_absolute_per_pulse_peak_error_c": 0.4696811319693836,
+            "mean_residual_c": -0.06427698659384323,
+            "peak_temperature_error_c": -0.27359722716248314,
+            "pulse_count": 5,
+            "residual_autocorrelation": {
+              "lag_10_s": 0.31264572686879494,
+              "lag_1_s": 0.40794224184983996,
+              "lag_30_s": 0.23971388529983445,
+              "lag_5_s": 0.37466037533866053
+            },
+            "rmse_c": 0.6221053737373624,
+            "sample_count": 447
+          },
+          "training_b": {
+            "absolute_peak_temperature_error_c": 0.17332666763803672,
+            "mae_c": 0.5483206790092784,
+            "maximum_absolute_error_c": 2.2031792385416153,
+            "maximum_absolute_per_pulse_peak_error_c": 1.27522676502673,
+            "mean_absolute_per_pulse_peak_error_c": 0.6477891722317353,
+            "mean_residual_c": 0.11002228625586201,
+            "peak_temperature_error_c": -0.17332666763803672,
+            "pulse_count": 5,
+            "residual_autocorrelation": {
+              "lag_10_s": 0.3179639656120317,
+              "lag_1_s": 0.39932225469113153,
+              "lag_30_s": 0.253942674086449,
+              "lag_5_s": 0.37504870526030387
+            },
+            "rmse_c": 0.6805630983057451,
+            "sample_count": 371
+          }
+        },
+        "per_pulse": {
+          "training_a_pulse_00": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 0.5084597483595559,
+              "mae_c": 0.49284025821574723,
+              "maximum_absolute_error_c": 1.3241399685856265,
+              "mean_residual_c": 0.29178470603423373,
+              "peak_temperature_error_c": -0.5084597483595559,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.3559857715402797,
+                "lag_1_s": 0.5870767578640784,
+                "lag_30_s": -0.10127294411103537,
+                "lag_5_s": 0.3692083096471018
+              },
+              "rmse_c": 0.5905721230455618,
+              "sample_count": 119
+            },
+            "repeat": "training_a",
+            "requested_power_limit_w": 40.0,
+            "role": "training_pulse",
+            "scheduled_duration_s": 120.0,
+            "workload_phase": "decode"
+          },
+          "training_a_pulse_01": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 0.32439317711121873,
+              "mae_c": 0.41498604069307554,
+              "maximum_absolute_error_c": 1.3792150527164537,
+              "mean_residual_c": 0.13659103642948978,
+              "peak_temperature_error_c": -0.32439317711121873,
+              "residual_autocorrelation": {
+                "lag_10_s": -0.06622004089478134,
+                "lag_1_s": 0.0925007107950117,
+                "lag_30_s": -0.22112562212492742,
+                "lag_5_s": -0.02831191841180567
+              },
+              "rmse_c": 0.5134947862905063,
+              "sample_count": 90
+            },
+            "repeat": "training_a",
+            "requested_power_limit_w": 52.0,
+            "role": "training_pulse",
+            "scheduled_duration_s": 90.0,
+            "workload_phase": "decode"
+          },
+          "training_a_pulse_02": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 0.27359722716248314,
+              "mae_c": 0.7092928840335098,
+              "maximum_absolute_error_c": 2.4443639626925844,
+              "mean_residual_c": -0.6266066434048547,
+              "peak_temperature_error_c": -0.27359722716248314,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.003991870639723031,
+                "lag_1_s": 0.08062130509464668,
+                "lag_30_s": 0.00957094639889876,
+                "lag_5_s": 0.07396082579885811
+              },
+              "rmse_c": 0.9044148551668629,
+              "sample_count": 60
+            },
+            "repeat": "training_a",
+            "requested_power_limit_w": 64.0,
+            "role": "training_pulse",
+            "scheduled_duration_s": 60.0,
+            "workload_phase": "decode"
+          },
+          "training_a_pulse_03": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 0.6188879732975323,
+              "mae_c": 0.42167583563666294,
+              "maximum_absolute_error_c": 1.6924699763803375,
+              "mean_residual_c": -0.2851729728766316,
+              "peak_temperature_error_c": -0.6188879732975323,
+              "residual_autocorrelation": {
+                "lag_10_s": -0.07941333048579988,
+                "lag_1_s": 0.18519050325765163,
+                "lag_30_s": 0.13501929211872568,
+                "lag_5_s": 0.02981668937963267
+              },
+              "rmse_c": 0.54561267107366,
+              "sample_count": 104
+            },
+            "repeat": "training_a",
+            "requested_power_limit_w": 46.0,
+            "role": "training_pulse",
+            "scheduled_duration_s": 105.0,
+            "workload_phase": "decode"
+          },
+          "training_a_pulse_04": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 0.623067533916128,
+              "mae_c": 0.4472057012041328,
+              "maximum_absolute_error_c": 1.7425240534149395,
+              "mean_residual_c": -0.11477025027993049,
+              "peak_temperature_error_c": -0.623067533916128,
+              "residual_autocorrelation": {
+                "lag_10_s": -0.06307107052955101,
+                "lag_1_s": -0.006312689934373836,
+                "lag_30_s": 0.08862650032095226,
+                "lag_5_s": 0.1960023403003225
+              },
+              "rmse_c": 0.612068773869093,
+              "sample_count": 74
+            },
+            "repeat": "training_a",
+            "requested_power_limit_w": 58.0,
+            "role": "training_pulse",
+            "scheduled_duration_s": 75.0,
+            "workload_phase": "decode"
+          },
+          "training_b_pulse_00": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 0.6645122098372411,
+              "mae_c": 0.7256827919325267,
+              "maximum_absolute_error_c": 1.6685809355327876,
+              "mean_residual_c": 0.49103006612887734,
+              "peak_temperature_error_c": 0.6645122098372411,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.08509906495169703,
+                "lag_1_s": 0.20982951022698965,
+                "lag_30_s": 0.6758631380845572,
+                "lag_5_s": 0.2602845103970019
+              },
+              "rmse_c": 0.8492855741988288,
+              "sample_count": 59
+            },
+            "repeat": "training_b",
+            "requested_power_limit_w": 58.0,
+            "role": "training_pulse",
+            "scheduled_duration_s": 60.0,
+            "workload_phase": "decode"
+          },
+          "training_b_pulse_01": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 0.5630241450149143,
+              "mae_c": 0.39221582592129745,
+              "maximum_absolute_error_c": 1.4126816721227726,
+              "mean_residual_c": 0.055259600271445414,
+              "peak_temperature_error_c": -0.5630241450149143,
+              "residual_autocorrelation": {
+                "lag_10_s": -0.03686091785007148,
+                "lag_1_s": 0.04968819205753852,
+                "lag_30_s": 0.22570886237150933,
+                "lag_5_s": -0.09614155267583373
+              },
+              "rmse_c": 0.48925676678787877,
+              "sample_count": 89
+            },
+            "repeat": "training_b",
+            "requested_power_limit_w": 46.0,
+            "role": "training_pulse",
+            "scheduled_duration_s": 90.0,
+            "workload_phase": "decode"
+          },
+          "training_b_pulse_02": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 1.27522676502673,
+              "mae_c": 0.4933558064682051,
+              "maximum_absolute_error_c": 1.8046848616463436,
+              "mean_residual_c": -0.057223996282294395,
+              "peak_temperature_error_c": -1.27522676502673,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.5179861391258662,
+                "lag_1_s": 0.640054975607154,
+                "lag_30_s": 0.48628251540216055,
+                "lag_5_s": 0.588142541185662
+              },
+              "rmse_c": 0.6146148557764548,
+              "sample_count": 104
+            },
+            "repeat": "training_b",
+            "requested_power_limit_w": 40.0,
+            "role": "training_pulse",
+            "scheduled_duration_s": 105.0,
+            "workload_phase": "decode"
+          },
+          "training_b_pulse_03": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 0.17332666763803672,
+              "mae_c": 0.6756034607453808,
+              "maximum_absolute_error_c": 2.2031792385416153,
+              "mean_residual_c": -0.47480892142608505,
+              "peak_temperature_error_c": -0.17332666763803672,
+              "residual_autocorrelation": {
+                "lag_10_s": -0.10518036887383923,
+                "lag_1_s": 0.00892046266378059,
+                "lag_30_s": -0.29072966520462823,
+                "lag_5_s": 0.007025030029996866
+              },
+              "rmse_c": 0.8619869592014748,
+              "sample_count": 45
+            },
+            "repeat": "training_b",
+            "requested_power_limit_w": 64.0,
+            "role": "training_pulse",
+            "scheduled_duration_s": 45.0,
+            "workload_phase": "decode"
+          },
+          "training_b_pulse_04": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 0.562856073641754,
+              "mae_c": 0.5945043118269226,
+              "maximum_absolute_error_c": 1.5660203328413687,
+              "mean_residual_c": 0.4627984723337141,
+              "peak_temperature_error_c": 0.562856073641754,
+              "residual_autocorrelation": {
+                "lag_10_s": -0.09544871530253826,
+                "lag_1_s": -0.09954542919120697,
+                "lag_30_s": 0.03708340162952046,
+                "lag_5_s": -0.18621488939878647
+              },
+              "rmse_c": 0.6902067930318163,
+              "sample_count": 74
+            },
+            "repeat": "training_b",
+            "requested_power_limit_w": 52.0,
+            "role": "training_pulse",
+            "scheduled_duration_s": 75.0,
+            "workload_phase": "decode"
+          }
+        }
+      },
+      "validation_evaluation": {
+        "aggregate": {
+          "absolute_peak_temperature_error_c": 1.3620705847460073,
+          "mae_c": 0.7657911763603746,
+          "maximum_absolute_error_c": 3.1079530576716436,
+          "maximum_absolute_per_pulse_peak_error_c": 2.164732589064201,
+          "mean_absolute_per_pulse_peak_error_c": 0.8119318270073445,
+          "mean_residual_c": -0.29130250905490634,
+          "peak_temperature_error_c": -1.3620705847460073,
+          "pulse_count": 6,
+          "residual_autocorrelation": {
+            "lag_10_s": 0.8112026490916535,
+            "lag_1_s": 0.7883600236349487,
+            "lag_30_s": 0.7502761822911085,
+            "lag_5_s": 0.8250130742327132
+          },
+          "rmse_c": 1.100569810651763,
+          "sample_count": 387
+        },
+        "evaluation_passes": 1,
+        "matched_55w_prefill_decode": {
+          "decode": {
+            "block_id": "validation_pulse_05",
+            "metrics": {
+              "absolute_peak_temperature_error_c": 0.892293085970536,
+              "mae_c": 0.6377123479853627,
+              "maximum_absolute_error_c": 1.634247372773686,
+              "mean_residual_c": 0.42222925428778485,
+              "peak_temperature_error_c": 0.892293085970536,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.3935438751912351,
+                "lag_1_s": 0.24203339947610175,
+                "lag_30_s": 0.10772100218181185,
+                "lag_5_s": 0.6743877237259525
+              },
+              "rmse_c": 0.767244120984703,
+              "sample_count": 59
+            },
+            "observed_peak_temperature_c": 64.0,
+            "observed_temperature_rise_c": 13.0,
+            "predicted_peak_temperature_c": 64.89229308597054,
+            "predicted_temperature_rise_c": 13.892293085970536
+          },
+          "matching_rule": "role=workload_transfer, requested cap=55 W, duration=60 s",
+          "observed_prefill_minus_decode_peak_c": 3.0,
+          "predicted_prefill_minus_decode_peak_c": -0.05702567503473688,
+          "prefill": {
+            "block_id": "validation_pulse_04",
+            "metrics": {
+              "absolute_peak_temperature_error_c": 2.164732589064201,
+              "mae_c": 2.399270977561462,
+              "maximum_absolute_error_c": 3.1079530576716436,
+              "mean_residual_c": -2.399270977561462,
+              "peak_temperature_error_c": -2.164732589064201,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.029093473711741116,
+                "lag_1_s": 0.5614722505388362,
+                "lag_30_s": -0.16005588180886787,
+                "lag_5_s": 0.31596591754553416
+              },
+              "rmse_c": 2.440780683715486,
+              "sample_count": 59
+            },
+            "observed_peak_temperature_c": 67.0,
+            "observed_temperature_rise_c": 16.0,
+            "predicted_peak_temperature_c": 64.8352674109358,
+            "predicted_temperature_rise_c": 13.8352674109358
+          }
+        },
+        "per_pulse": {
+          "validation_pulse_00": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 0.04362642836900932,
+              "mae_c": 0.39706627985485815,
+              "maximum_absolute_error_c": 1.3845729331510483,
+              "mean_residual_c": -0.20889131035708333,
+              "peak_temperature_error_c": 0.04362642836900932,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.04583818685227038,
+                "lag_1_s": 0.2650822946624485,
+                "lag_30_s": -0.30141508254628097,
+                "lag_5_s": 0.17743162398223788
+              },
+              "rmse_c": 0.5030028454290494,
+              "sample_count": 90
+            },
+            "repeat": "validation",
+            "requested_power_limit_w": 43.0,
+            "role": "intermediate_cap",
+            "scheduled_duration_s": 90.0,
+            "workload_phase": "decode"
+          },
+          "validation_pulse_01": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 0.40065011389901883,
+              "mae_c": 0.4901286733838552,
+              "maximum_absolute_error_c": 1.1631936891762535,
+              "mean_residual_c": 0.2415511450094865,
+              "peak_temperature_error_c": 0.40065011389901883,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.293311012606266,
+                "lag_1_s": -0.12108153042206468,
+                "lag_30_s": 0.4184318674289656,
+                "lag_5_s": 0.6047538062820605
+              },
+              "rmse_c": 0.5816338942126432,
+              "sample_count": 60
+            },
+            "repeat": "validation",
+            "requested_power_limit_w": 55.0,
+            "role": "intermediate_cap",
+            "scheduled_duration_s": 60.0,
+            "workload_phase": "decode"
+          },
+          "validation_pulse_02": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 0.008218159995294627,
+              "mae_c": 0.42927037974207416,
+              "maximum_absolute_error_c": 1.1877611582299892,
+              "mean_residual_c": 0.23027723248199752,
+              "peak_temperature_error_c": 0.008218159995294627,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.43605282471813983,
+                "lag_1_s": 0.024036851348239636,
+                "lag_30_s": 0.3215503565614782,
+                "lag_5_s": -0.18644910800261422
+              },
+              "rmse_c": 0.5190548421621526,
+              "sample_count": 74
+            },
+            "repeat": "validation",
+            "requested_power_limit_w": 49.0,
+            "role": "intermediate_cap",
+            "scheduled_duration_s": 75.0,
+            "workload_phase": "decode"
+          },
+          "validation_pulse_03": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 1.3620705847460073,
+              "mae_c": 0.4504327856293396,
+              "maximum_absolute_error_c": 1.9738424701530093,
+              "mean_residual_c": -0.19604389562669633,
+              "peak_temperature_error_c": -1.3620705847460073,
+              "residual_autocorrelation": {
+                "lag_10_s": -0.2121563860280272,
+                "lag_1_s": -0.21520123909051614,
+                "lag_30_s": -0.15471971436832369,
+                "lag_5_s": -0.18605073174115544
+              },
+              "rmse_c": 0.658804127009265,
+              "sample_count": 45
+            },
+            "repeat": "validation",
+            "requested_power_limit_w": 61.0,
+            "role": "intermediate_cap",
+            "scheduled_duration_s": 45.0,
+            "workload_phase": "decode"
+          },
+          "validation_pulse_04": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 2.164732589064201,
+              "mae_c": 2.399270977561462,
+              "maximum_absolute_error_c": 3.1079530576716436,
+              "mean_residual_c": -2.399270977561462,
+              "peak_temperature_error_c": -2.164732589064201,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.029093473711741116,
+                "lag_1_s": 0.5614722505388362,
+                "lag_30_s": -0.16005588180886787,
+                "lag_5_s": 0.31596591754553416
+              },
+              "rmse_c": 2.440780683715486,
+              "sample_count": 59
+            },
+            "repeat": "validation",
+            "requested_power_limit_w": 55.0,
+            "role": "workload_transfer",
+            "scheduled_duration_s": 60.0,
+            "workload_phase": "prefill"
+          },
+          "validation_pulse_05": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 0.892293085970536,
+              "mae_c": 0.6377123479853627,
+              "maximum_absolute_error_c": 1.634247372773686,
+              "mean_residual_c": 0.42222925428778485,
+              "peak_temperature_error_c": 0.892293085970536,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.3935438751912351,
+                "lag_1_s": 0.24203339947610175,
+                "lag_30_s": 0.10772100218181185,
+                "lag_5_s": 0.6743877237259525
+              },
+              "rmse_c": 0.767244120984703,
+              "sample_count": 59
+            },
+            "repeat": "validation",
+            "requested_power_limit_w": 55.0,
+            "role": "workload_transfer",
+            "scheduled_duration_s": 60.0,
+            "workload_phase": "decode"
+          }
+        }
+      }
+    }
+  },
+  "preprocessing": {
+    "bin_width_s": 1.0,
+    "finite_differencing": false,
+    "power_statistic": "time-weighted mean of measured power",
+    "pulse_initialization": "each independently cooled pulse starts from its own first observed junction temperature; the two-state sink starts at that same temperature",
+    "pulse_samples": {
+      "training_a_pulse_00": {
+        "binned_temperature_states": 120,
+        "duration_s": 119.0,
+        "measured_power_intervals": 119,
+        "measured_power_max_w": 47.095388128672795,
+        "measured_power_min_w": 32.79755991072398,
+        "raw_rows": 1198,
+        "repeat": "training_a",
+        "requested_power_limit_w": 40.0,
+        "role": "training_pulse",
+        "workload_phase": "decode"
+      },
+      "training_a_pulse_01": {
+        "binned_temperature_states": 91,
+        "duration_s": 90.00000000000011,
+        "measured_power_intervals": 90,
+        "measured_power_max_w": 52.91661564642673,
+        "measured_power_min_w": 50.165691233448676,
+        "raw_rows": 897,
+        "repeat": "training_a",
+        "requested_power_limit_w": 52.0,
+        "role": "training_pulse",
+        "workload_phase": "decode"
+      },
+      "training_a_pulse_02": {
+        "binned_temperature_states": 61,
+        "duration_s": 60.0,
+        "measured_power_intervals": 60,
+        "measured_power_max_w": 65.24961503290636,
+        "measured_power_min_w": 62.00120930563481,
+        "raw_rows": 597,
+        "repeat": "training_a",
+        "requested_power_limit_w": 64.0,
+        "role": "training_pulse",
+        "workload_phase": "decode"
+      },
+      "training_a_pulse_03": {
+        "binned_temperature_states": 105,
+        "duration_s": 104.0,
+        "measured_power_intervals": 104,
+        "measured_power_max_w": 47.29261575603218,
+        "measured_power_min_w": 43.20519731909254,
+        "raw_rows": 1046,
+        "repeat": "training_a",
+        "requested_power_limit_w": 46.0,
+        "role": "training_pulse",
+        "workload_phase": "decode"
+      },
+      "training_a_pulse_04": {
+        "binned_temperature_states": 75,
+        "duration_s": 74.0,
+        "measured_power_intervals": 74,
+        "measured_power_max_w": 60.572421480179884,
+        "measured_power_min_w": 55.152430996589366,
+        "raw_rows": 741,
+        "repeat": "training_a",
+        "requested_power_limit_w": 58.0,
+        "role": "training_pulse",
+        "workload_phase": "decode"
+      },
+      "training_b_pulse_00": {
+        "binned_temperature_states": 60,
+        "duration_s": 59.0,
+        "measured_power_intervals": 59,
+        "measured_power_max_w": 60.52955890400939,
+        "measured_power_min_w": 55.1401164939771,
+        "raw_rows": 594,
+        "repeat": "training_b",
+        "requested_power_limit_w": 58.0,
+        "role": "training_pulse",
+        "workload_phase": "decode"
+      },
+      "training_b_pulse_01": {
+        "binned_temperature_states": 90,
+        "duration_s": 89.0,
+        "measured_power_intervals": 89,
+        "measured_power_max_w": 50.188147960690024,
+        "measured_power_min_w": 44.232873422815324,
+        "raw_rows": 897,
+        "repeat": "training_b",
+        "requested_power_limit_w": 46.0,
+        "role": "training_pulse",
+        "workload_phase": "decode"
+      },
+      "training_b_pulse_02": {
+        "binned_temperature_states": 105,
+        "duration_s": 104.0,
+        "measured_power_intervals": 104,
+        "measured_power_max_w": 46.945164524890274,
+        "measured_power_min_w": 40.13039758180211,
+        "raw_rows": 1021,
+        "repeat": "training_b",
+        "requested_power_limit_w": 40.0,
+        "role": "training_pulse",
+        "workload_phase": "decode"
+      },
+      "training_b_pulse_03": {
+        "binned_temperature_states": 46,
+        "duration_s": 45.0,
+        "measured_power_intervals": 45,
+        "measured_power_max_w": 65.43723693001319,
+        "measured_power_min_w": 60.92404354067307,
+        "raw_rows": 439,
+        "repeat": "training_b",
+        "requested_power_limit_w": 64.0,
+        "role": "training_pulse",
+        "workload_phase": "decode"
+      },
+      "training_b_pulse_04": {
+        "binned_temperature_states": 75,
+        "duration_s": 74.0,
+        "measured_power_intervals": 74,
+        "measured_power_max_w": 53.058560023276456,
+        "measured_power_min_w": 49.77414661307762,
+        "raw_rows": 734,
+        "repeat": "training_b",
+        "requested_power_limit_w": 52.0,
+        "role": "training_pulse",
+        "workload_phase": "decode"
+      },
+      "validation_pulse_00": {
+        "binned_temperature_states": 91,
+        "duration_s": 90.0,
+        "measured_power_intervals": 90,
+        "measured_power_max_w": 46.935265991672246,
+        "measured_power_min_w": 42.658083573691755,
+        "raw_rows": 877,
+        "repeat": "validation",
+        "requested_power_limit_w": 43.0,
+        "role": "intermediate_cap",
+        "workload_phase": "decode"
+      },
+      "validation_pulse_01": {
+        "binned_temperature_states": 61,
+        "duration_s": 60.0,
+        "measured_power_intervals": 60,
+        "measured_power_max_w": 56.42828661107134,
+        "measured_power_min_w": 52.124163418130436,
+        "raw_rows": 582,
+        "repeat": "validation",
+        "requested_power_limit_w": 55.0,
+        "role": "intermediate_cap",
+        "workload_phase": "decode"
+      },
+      "validation_pulse_02": {
+        "binned_temperature_states": 75,
+        "duration_s": 74.0,
+        "measured_power_intervals": 74,
+        "measured_power_max_w": 50.313646049628225,
+        "measured_power_min_w": 45.781260382434745,
+        "raw_rows": 732,
+        "repeat": "validation",
+        "requested_power_limit_w": 49.0,
+        "role": "intermediate_cap",
+        "workload_phase": "decode"
+      },
+      "validation_pulse_03": {
+        "binned_temperature_states": 46,
+        "duration_s": 45.0,
+        "measured_power_intervals": 45,
+        "measured_power_max_w": 63.13181572223706,
+        "measured_power_min_w": 58.52184608267931,
+        "raw_rows": 437,
+        "repeat": "validation",
+        "requested_power_limit_w": 61.0,
+        "role": "intermediate_cap",
+        "workload_phase": "decode"
+      },
+      "validation_pulse_04": {
+        "binned_temperature_states": 60,
+        "duration_s": 59.0,
+        "measured_power_intervals": 59,
+        "measured_power_max_w": 57.77602308073984,
+        "measured_power_min_w": 51.86476522707796,
+        "raw_rows": 590,
+        "repeat": "validation",
+        "requested_power_limit_w": 55.0,
+        "role": "workload_transfer",
+        "workload_phase": "prefill"
+      },
+      "validation_pulse_05": {
+        "binned_temperature_states": 60,
+        "duration_s": 59.0,
+        "measured_power_intervals": 59,
+        "measured_power_max_w": 56.930760096698435,
+        "measured_power_min_w": 53.313294431654526,
+        "raw_rows": 582,
+        "repeat": "validation",
+        "requested_power_limit_w": 55.0,
+        "role": "workload_transfer",
+        "workload_phase": "decode"
+      }
+    },
+    "temperature_statistic": "nearest integer-valued sensor observation at bin boundary"
+  },
+  "schema_version": 2,
+  "source": {
+    "manifest": "thermal_manifest.json",
+    "source_git_revision": "957609756075e565be879ea6bb7660be8206ad2f",
+    "source_manifest_schema_version": 2,
+    "telemetry": "l4_thermal_telemetry.csv",
+    "telemetry_sha256": "8795cf1c8aedab1faa2d4e937671190b958751be03a42a7764f911c64f810ea6"
+  },
+  "split": {
+    "training_repeats": [
+      "training_a",
+      "training_b"
+    ],
+    "untouched_validation_sequence": "validation",
+    "validation_used_for_model_selection": false
+  }
+}

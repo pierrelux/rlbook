@@ -1,0 +1,40 @@
+[
+  {
+    "angle_degrees": -97.16940257999686,
+    "kind": "release",
+    "label": "chain release 1",
+    "seat_radius_fraction": 0.9999932224086898,
+    "time_seconds": 20.839999999999645,
+    "video_seconds": 10.45
+  },
+  {
+    "angle_degrees": -90.64275622005837,
+    "kind": "reattachment",
+    "label": "reattachment / snap 1",
+    "seat_radius_fraction": 1.0,
+    "time_seconds": 21.219999999999636,
+    "video_seconds": 11.25
+  },
+  {
+    "angle_degrees": 114.89705465852441,
+    "kind": "release",
+    "label": "chain release 2",
+    "seat_radius_fraction": 1.0,
+    "time_seconds": 22.45999999999961,
+    "video_seconds": 12.45
+  },
+  {
+    "angle_degrees": 10.900892354075427,
+    "kind": "reattachment",
+    "label": "reattachment / snap 2",
+    "seat_radius_fraction": 1.0,
+    "time_seconds": 23.679999999999584,
+    "video_seconds": 13.65
+  },
+  {
+    "kind": "rod_rotation",
+    "label": "nominal rod rotation",
+    "time_seconds": 26.079999999999533,
+    "video_seconds": 15.45
+  }
+]

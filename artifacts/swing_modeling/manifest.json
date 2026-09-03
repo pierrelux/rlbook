@@ -1,0 +1,150 @@
+{
+  "animation": {
+    "event_hold_seconds": 0.55,
+    "frames_per_second": 20,
+    "renderer": "swing_rl.viz.animate.draw_swing_frame",
+    "simulation_speed": 2.0
+  },
+  "chain_mode_events": [
+    {
+      "angle_degrees": -97.16940257999686,
+      "kind": "release",
+      "seat_radius_fraction": 0.9999932224086898,
+      "time_seconds": 20.839999999999645
+    },
+    {
+      "angle_degrees": -90.64275622005837,
+      "kind": "reattachment",
+      "seat_radius_fraction": 1.0,
+      "time_seconds": 21.219999999999636
+    },
+    {
+      "angle_degrees": 114.89705465852441,
+      "kind": "release",
+      "seat_radius_fraction": 1.0,
+      "time_seconds": 22.45999999999961
+    },
+    {
+      "angle_degrees": 10.900892354075427,
+      "kind": "reattachment",
+      "seat_radius_fraction": 1.0,
+      "time_seconds": 23.679999999999584
+    }
+  ],
+  "files": {
+    "animation_mp4": "/Users/pierre-luc.bacon/Documents/rlbook/_static/swing_modeling/model_audit.mp4",
+    "animation_poster_png": "/Users/pierre-luc.bacon/Documents/rlbook/_static/swing_modeling/model_audit_poster.png",
+    "raw_archives": [
+      "rigid_rod.npz",
+      "unilateral_chain.npz"
+    ],
+    "raw_csv": [
+      "rigid_rod.csv",
+      "unilateral_chain.csv"
+    ],
+    "static_figure_pdf": "/Users/pierre-luc.bacon/Documents/rlbook/_static/swing_modeling/model_audit.pdf",
+    "static_figure_png": "/Users/pierre-luc.bacon/Documents/rlbook/_static/swing_modeling/model_audit.png",
+    "static_figure_svg": "/Users/pierre-luc.bacon/Documents/rlbook/_static/swing_modeling/model_audit.svg"
+  },
+  "generated_at_utc": "2026-09-02T15:53:51.431101+00:00",
+  "generator": "scripts/build_swing_modeling_artifacts.py",
+  "matplotlib_version": "3.10.3",
+  "metrics": {
+    "rigid_rod": {
+      "first_release_seconds": null,
+      "integrated_command_motion": 27.43871830633266,
+      "maximum_compression_demand_newtons": 397.0653689328184,
+      "minimum_seat_radius_fraction": 0.9999999999999998,
+      "minimum_tension_newtons": -397.0653689328184,
+      "negative_tension_fraction": 0.06590038314176246,
+      "negative_tension_seconds": 1.72,
+      "peak_absolute_angle_degrees": 361.16265747945556,
+      "release_count": 0,
+      "sample_count": 1305,
+      "slack_time_seconds": 0.0,
+      "snap_energy_loss_joules": 0.0,
+      "success": true,
+      "time_to_rotation_seconds": 26.079999999999533
+    },
+    "unilateral_chain": {
+      "first_release_seconds": 20.839999999999645,
+      "integrated_command_motion": 33.50771822061265,
+      "maximum_compression_demand_newtons": 0.0,
+      "minimum_seat_radius_fraction": 0.39494325184402196,
+      "minimum_tension_newtons": 0.0,
+      "negative_tension_fraction": 0.0,
+      "negative_tension_seconds": 0.0,
+      "peak_absolute_angle_degrees": 130.49073621520327,
+      "release_count": 2,
+      "sample_count": 1601,
+      "slack_time_seconds": 1.6099999999999768,
+      "snap_energy_loss_joules": 1380.6021739516857,
+      "success": false,
+      "time_to_rotation_seconds": null
+    }
+  },
+  "numpy_version": "2.3.1",
+  "replay_events": [
+    {
+      "angle_degrees": -97.16940257999686,
+      "kind": "release",
+      "label": "chain release 1",
+      "seat_radius_fraction": 0.9999932224086898,
+      "time_seconds": 20.839999999999645,
+      "video_seconds": 10.45
+    },
+    {
+      "angle_degrees": -90.64275622005837,
+      "kind": "reattachment",
+      "label": "reattachment / snap 1",
+      "seat_radius_fraction": 1.0,
+      "time_seconds": 21.219999999999636,
+      "video_seconds": 11.25
+    },
+    {
+      "angle_degrees": 114.89705465852441,
+      "kind": "release",
+      "label": "chain release 2",
+      "seat_radius_fraction": 1.0,
+      "time_seconds": 22.45999999999961,
+      "video_seconds": 12.45
+    },
+    {
+      "angle_degrees": 10.900892354075427,
+      "kind": "reattachment",
+      "label": "reattachment / snap 2",
+      "seat_radius_fraction": 1.0,
+      "time_seconds": 23.679999999999584,
+      "video_seconds": 13.65
+    },
+    {
+      "kind": "rod_rotation",
+      "label": "nominal rod rotation",
+      "time_seconds": 26.079999999999533,
+      "video_seconds": 15.45
+    }
+  ],
+  "repository_revision": "957609756075e565be879ea6bb7660be8206ad2f",
+  "scenario": {
+    "command_ramp_seconds": 0.25,
+    "control_interval": 0.02,
+    "horizon_seconds": 32.0,
+    "initial_angle": 0.0,
+    "initial_angular_velocity": 0.0,
+    "integrator_substeps": 8,
+    "seed": 0,
+    "success_angle": 6.283185307179586,
+    "success_radius_fraction": 0.9
+  },
+  "swing_rl": {
+    "direct_url": {
+      "url": "https://github.com/pierrelux/swing-rl.git",
+      "vcs_info": {
+        "commit_id": "d579663fc81c044729f4d3ab60bf63bcdbd27b9a",
+        "requested_revision": "d579663fc81c044729f4d3ab60bf63bcdbd27b9a",
+        "vcs": "git"
+      }
+    },
+    "version": "0.1.0"
+  }
+}

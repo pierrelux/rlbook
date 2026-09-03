@@ -20,6 +20,12 @@ Real systems face modeling errors, external disturbances, and measurement noise 
 
 Model Predictive Control creates a feedback controller by repeatedly solving trajectory optimization problems. Rather than computing a single trajectory for the entire task duration, MPC solves a finite-horizon problem at each time step, starting from the current measured state. The controller then applies only the first control action from this solution before repeating the entire process. This strategy transforms any trajectory optimization method into a feedback controller.
 
+The battery example in [Modeling](dynamics.md#fast-charging-when-resistance-drifts)
+used a transparent current governor: it tested a local voltage and thermal
+envelope after updating one resistance parameter. MPC retains that structured
+model but optimizes an entire future current sequence and repeats the
+optimization as measurements arrive.
+
 ### The Receding Horizon Principle
 
 The defining characteristic of MPC is its receding horizon strategy. At each time step, the controller solves an optimization problem looking a fixed duration into the future, but this prediction window constantly moves forward in time. The horizon "recedes" because it always starts from the current time and extends forward by the same amount.
@@ -711,28 +717,201 @@ When MPC fails and backup control is applied, the **lift** operation extends the
 
 The **propagate** operation maintains a "virtual" trajectory by continuing to evolve the previous solution as if it were still being executed, even when the actual system follows backup control. This forward simulation keeps the warm-start temporally aligned and relevant for when MPC recovers.
 
-## Example: Chemical Reactor Control Under Failure
+## Inference Serving Under a Latency and Power Budget
 
-Consider a continuous stirred tank reactor (CSTR) where an exothermic reaction must be controlled:
+The offline frequency schedule in [Trajectory Optimization](trajectories.md#example-offline-frequency-planning-for-inference)
+cannot react when a burst arrives earlier than forecast. Receding-horizon
+control uses the same aggregate model but replaces the initial forecast after
+each second. Measured NVIDIA L4 service-rate and phase-power curves calibrate
+the model, while the request and queue trajectories remain simulation outputs.
+The scheduling rule remains fixed at the reduced 512-token interleaved
+chunked-prefill model from the modeling chapter, so the comparison isolates
+feedback through the GPU clock.
+
+At control time $t$, the state
 
 $$
-\begin{aligned}
-\dot{C}_A &= \frac{q}{V}(C_{A,in} - C_A) - k_0 e^{-E/RT} C_A \\
-\dot{T} &= \frac{q}{V}(T_{in} - T) + \frac{\Delta H}{\rho c_p} k_0 e^{-E/RT} C_A - \frac{UA}{\rho c_p V}(T - T_c)
-\end{aligned}
+x_t=(p_t,d_t,T_t,f_{t-1})
 $$
 
-The MPC must maintain temperature below the runaway threshold $T_{\text{runaway}}$ while maximizing conversion. Under normal operation, it solves:
+contains queued prefill work, unfinished decode work, temperature, and the last
+applied clock. The controller forecasts ten one-second transitions. Arrivals
+are predicted from the trailing 30-second rate, while expected output work uses
+the empirical output-length distribution from the trace. The request-level
+plant receives the realized requests and output lengths instead.
+
+The finite-horizon problem uses the normalized objective
 
 $$
-\begin{aligned}
-\min \quad & -C_A(t_f) + \int_0^{t_f} \|T - T_{\text{optimal}}\|^2 dt \\
-\text{s.t.} \quad & T \leq T_{\text{runaway}} - \Delta T_{\text{safety}} \\
-& q_{\min} \leq q \leq q_{\max}
-\end{aligned}
+J_t=\sum_{k=t}^{t+9}\left[
+\frac{E_k}{E_{\max}}
++20\delta_{k,\mathrm{TTFT}}^2
++10\delta_{k,\mathrm{TPOT}}^2
++0.05\Delta f_k^2
++1000(s_{P,k}^2+s_{T,k}^2)
+\right]+20B_{t+10}^2.
 $$
 
-When the cooling system partially fails, $T_c$ suddenly increases. The MPC cannot maintain $T_{\text{optimal}}$ within safety limits. The cascade activates: soft constraints allow $T$ to exceed $T_{\text{optimal}}$ with penalty, the reference governor reduces the production target $C_{A,\text{target}}$, and if still infeasible, the backup controller switches to maximum cooling $q = q_{\max}$. If temperature approaches runaway, emergency shutdown stops the feed with $q = 0$.
+The variables $\delta_{k,\mathrm{TTFT}}$ and
+$\delta_{k,\mathrm{TPOT}}$ are normalized overruns of two aggregate delay
+estimates. The first divides predicted queued prefill tokens by the profiled
+prefill rate. The second divides the predicted number of active decode requests
+by the profiled decode rate. These estimates enter the optimization but do not
+equal realized request-level TTFT and TPOT; the detailed simulation computes
+the latter. The frequency difference $\Delta f_k$ is normalized by the profiled
+clock range.
+The slacks $s_{P,k}$ and $s_{T,k}$ penalize violations of the experimental
+power and thermal limits, and $B_{t+10}$ penalizes unfinished work at the end of
+the horizon. SLSQP receives at most 50 iterations and a tolerance of $10^{-6}$.
+Only the first frequency is applied. The continuous result is rounded downward
+to the nearest profiled requested clock before the next state is observed. The
+replay reports the corresponding measured median realized clock separately,
+since the requested and realized values can differ under the experimental power
+cap.
+
+A solver result is rejected if it is infeasible, non-finite, or arrives after
+the 0.8-second control budget. The fallback is a hysteretic reactive governor:
+it raises the clock by one profile level when weighted queue pressure reaches
+eight or the oldest prompt has waited one second, and lowers it by one level
+when temperature reaches 72 degrees C or pressure falls to one. Every fallback
+appears in the recorded trajectory rather than being removed from the
+aggregate metrics.
+
+The comparison asks whether replanning improves the response to the shifted
+burst without hiding its energy cost. Four controllers receive identical
+requests and initial conditions:
+
+1. maximum clock throughout the experiment;
+2. the reactive governor used as the MPC fallback;
+3. the open-loop schedule optimized for the nominal trace;
+4. receding-horizon MPC.
+
+```{code-cell} python
+:tags: [remove-input]
+:label: fig-inference-mpc
+:caption: Maximum-clock, reactive, open-loop, and MPC frequency control under the same shifted request trace and fixed reduced interleaved chunked-prefill model. Measured NVIDIA L4 curves calibrate each simulated trajectory. At each second, the dashed MPC segment is the current ten-second plan and the solid segment is the action history. Later plans are not revealed before they are computed.
+
+from pathlib import Path
+import sys
+
+from IPython.display import HTML, display
+
+code_dir = Path.cwd() / "code"
+if str(code_dir) not in sys.path:
+    sys.path.insert(0, str(code_dir))
+
+from inference_replay import render_serving_replay
+
+display(HTML(render_serving_replay(
+    Path("artifacts/inference_serving/textbook_results.json"),
+    view="mpc",
+)))
+```
+
+:::{figure} _static/inference_serving/mpc.svg
+:label: fig-inference-mpc-fallback
+:class: pdf-fallback
+:alt: Static comparison of maximum-clock, reactive, open-loop, and receding-horizon frequency control.
+
+Static view of the closed-loop comparison. The online book provides playback
+and exposes the planned MPC horizon available at each control time.
+:::
+
+The table compares the four frequency controllers under identical shifted
+arrivals and the fixed reduced interleaved chunked-prefill model. Fallback count
+records every MPC step that exceeded its feasibility, finiteness, or timing
+requirement.
+
+```{code-cell} python
+:tags: [remove-input]
+
+import pandas as pd
+
+mpc_metrics = pd.read_csv(
+    "artifacts/inference_serving/metrics_mpc.csv"
+).set_index("controller")
+mpc_metrics[
+    [
+        "mean_ttft_s",
+        "p95_ttft_s",
+        "mean_tpot_s",
+        "energy_j",
+        "peak_queued_requests",
+        "ttft_violation_rate",
+        "tpot_violation_rate",
+        "power_violation_w",
+        "thermal_violation_c",
+        "fallback_count",
+    ]
+].T.rename_axis("metric").round(3)
+```
+
+{download}`Download every closed-loop metric (CSV) <artifacts/inference_serving/metrics_mpc.csv>`
+
+On the shifted trace, maximum clock gives the lowest mean time to first token,
+10.93 seconds, at 3,506.0 joules. Its 95th percentile is 18.41 seconds. MPC
+reduces energy to 3,341.8 joules, the lowest of the four controllers, while its
+mean and 95th-percentile times to first token are 11.53 and 19.01 seconds. The
+reactive governor records a mean of 12.51 seconds, a 95th percentile of 20.01
+seconds, and 3,363.3 joules. The unchanged offline plan records 23.23 seconds,
+a 95th percentile of 31.28 seconds, and 3,646.8 joules.
+
+Maximum clock and MPC both have a mean time per output token of 0.0417 seconds.
+The reactive governor records 0.0419 seconds, while the offline plan records
+0.0466 seconds. The peak queue is 21 requests at maximum clock and 22 under
+MPC. It grows to 23 under the reactive governor and 30 under the offline plan.
+At the 60-second reporting horizon, maximum clock and MPC each leave nine
+requests unfinished. The reactive governor leaves 11, and the offline plan
+leaves 22. All 48 requests eventually complete during the post-horizon drain,
+whose energy is included in the reported totals.
+
+Every controller violates the experimental TTFT limit for every request, and
+each has a 12.5% TPOT violation rate. MPC accepts 67 solves over the full
+rollout and invokes no fallback. Every accepted solve meets the 0.8-second
+deadline. On this trace, MPC improves both mean TTFT and energy relative to the
+reactive governor and the offline plan. Maximum clock remains 0.60 seconds
+faster in mean TTFT but consumes 164.2 joules more than MPC.
+
+The displayed table focuses on latency, energy, queueing, constraint
+violations, and fallback count. The downloadable CSV also reports end-to-end
+latency, throughput, energy per output token, peak power and temperature, and
+unfinished work. The comparison therefore separates a faster response from a
+lower-energy response instead of assigning one score to each controller.
+
+The measured profile supplies the service-rate and phase-power calibration;
+the controller trajectories are simulations of a single-GPU serving model.
+All four simulations reach a modeled phase power of 64.852 W at the highest
+requested clock. This value comes from the measured decode-phase mean for that
+profile level and is 0.052 W above the configured 64.800 W cap. The cap was an
+experimental setting rather than a hard sample-wise guarantee. None of the
+four simulations records a thermal or KV-capacity violation.
+
+The one-state thermal RC fit has an $R^2$ of only 0.0020. Its simulated
+temperature trajectories provide a weak basis for thermal conclusions, so the
+absence of a simulated thermal violation is not a hardware safety certificate.
+The arrival forecast is deliberately simple, output length is observed only at
+completion, and the scheduler is held fixed. Network delay, tokenization,
+multi-GPU communication, and model-quality effects are omitted. The shifted
+burst is one controlled disturbance, so relative performance on that trace does
+not establish dominance under other workloads.
+
+:::{dropdown} Inspect the receding-horizon controller
+```{literalinclude} code/inference_control.py
+:language: python
+:start-at: def _solve(
+:end-before: def __call__(
+:linenos:
+```
+
+```{literalinclude} code/inference_control.py
+:language: python
+:start-at: def run_mpc
+:end-before: def shift_largest_burst
+:linenos:
+```
+
+{download}`Download the complete inference-control implementation <code/inference_control.py>`
+:::
 
 
 
@@ -1234,4 +1413,20 @@ Why does resolving the same finite-horizon optimization after each measurement p
 :class: dropdown
 
 The newly measured state contains the accumulated effect of disturbances and model error. Reinitializing the optimization from that state changes the planned controls accordingly.
+:::
+
+:::{exercise} Solver deadline
+:label: ex-mpc-check-4
+
+Why does the inference MPC reject a feasible solution returned after its
+0.8-second deadline?
+:::
+
+:::{solution} ex-mpc-check-4
+:class: dropdown
+
+The decision is computed for the state at the start of a one-second interval.
+After the deadline, little time remains to apply it and the request queue may
+already have changed. The reactive fallback supplies a timely action with known
+bounds.
 :::

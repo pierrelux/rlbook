@@ -1,0 +1,60 @@
+{
+  "attribution": "BIXI Montr\u00e9al",
+  "derivation": {
+    "archive_exclusions": "The source excludes trips shorter than one minute or longer than two hours.",
+    "bin_minutes": 15,
+    "event_semantics": "Starts and ends of completed trips, not attempted demand; operator relocations are absent.",
+    "local_time_window": "07:00:00 inclusive to 10:00:00 exclusive",
+    "showcase_date": "2024-07-04",
+    "showcase_selection": "Chosen after inspection for a legible teaching contrast; not an unbiased evaluation sample.",
+    "stations": [
+      "Berri / Cherrier",
+      "Prince-Arthur / St-Urbain",
+      "de Maisonneuve / Aylmer (ouest)"
+    ],
+    "timezone": "America/Toronto",
+    "training_dates_inclusive": [
+      "2024-05-01",
+      "2024-06-28"
+    ],
+    "training_day_count": 43,
+    "training_day_filter": "Monday-Friday, including statutory holidays"
+  },
+  "derived_files": {
+    "completed_event_profile.csv": "db73e54ca014bb3e5642ec9d71d8c6d41317d7c4e9ff5ae976510273987607de",
+    "showcase_events.csv": "7552ab1908326cbb5fa265e7b0ba6305b2d3f41f4f99d20b6409284713a38690",
+    "stations.json": "90ac4a49e925fabf25247d2571396e222123649b9d0d456489253c97338a80f0"
+  },
+  "license": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "schema_version": 1,
+  "showcase_completed_counts": {
+    "Berri / Cherrier": {
+      "rentals": 79,
+      "returns": 36
+    },
+    "Prince-Arthur / St-Urbain": {
+      "rentals": 48,
+      "returns": 20
+    },
+    "de Maisonneuve / Aylmer (ouest)": {
+      "rentals": 12,
+      "returns": 84
+    }
+  },
+  "source_page_url": "https://bixi.com/en/open-data/",
+  "sources": {
+    "station_information": {
+      "gbfs_version": "2.2",
+      "sha256": "75c4434b4a1e6c32824ecbc9133ab868c4aa098d34e3c426932acdbeca0c522b",
+      "snapshot_last_updated_utc": "2026-09-02T14:20:20+00:00",
+      "url": "https://gbfs.velobixi.com/gbfs/en/station_information.json"
+    },
+    "trip_archive": {
+      "archive_member": "DonneesOuvertes (2).csv",
+      "rows_scanned": 13275326,
+      "sha256": "b186787487149d111b5d1a414a25f5e8430d7424fd4c982d36e33ce282eb7d58",
+      "url": "https://cdn.bixi.com/wp-content/uploads/2025/01/DonneesOuvertes2024_010203040506070809101112.zip"
+    }
+  }
+}

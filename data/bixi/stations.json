@@ -1,0 +1,86 @@
+{
+  "scenario": {
+    "control_period_minutes": 15,
+    "distance_km": [
+      [
+        0.0,
+        0.8280966143690288,
+        1.5705910989793224
+      ],
+      [
+        0.8280966143690288,
+        0.0,
+        0.8533739059724342
+      ],
+      [
+        1.5705910989793224,
+        0.8533739059724342,
+        0.0
+      ]
+    ],
+    "horizon_minutes": 180,
+    "horizon_start_local": "2024-07-04T07:00:00-04:00",
+    "initial_inventory": [
+      30,
+      18,
+      8
+    ],
+    "initial_truck_inventory": 0,
+    "initial_truck_station": 2,
+    "objective": {
+      "bike_moved": 0.05,
+      "service_failure": 1.0,
+      "terminal_imbalance": 0.1,
+      "truck_distance_km": 0.2
+    },
+    "transfer_limit": 8,
+    "travel_steps": [
+      [
+        0,
+        1,
+        1
+      ],
+      [
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        0
+      ]
+    ],
+    "truck_capacity": 16
+  },
+  "schema_version": 1,
+  "stations": [
+    {
+      "capacity": 39,
+      "external_id": "0b11b660-08f3-11e7-a1cb-3863bb33a4e4",
+      "lat": 45.519266156911335,
+      "lon": -73.5692971944809,
+      "name": "Berri / Cherrier",
+      "short_name": "6173",
+      "station_id": "173"
+    },
+    {
+      "capacity": 23,
+      "external_id": "0b1454e7-08f3-11e7-a1cb-3863bb33a4e4",
+      "lat": 45.512522576774245,
+      "lon": -73.57380688201374,
+      "name": "Prince-Arthur / St-Urbain",
+      "short_name": "6218",
+      "station_id": "404"
+    },
+    {
+      "capacity": 37,
+      "external_id": "0b1063c4-08f3-11e7-a1cb-3863bb33a4e4",
+      "lat": 45.505173440423306,
+      "lon": -73.5706517100334,
+      "name": "de Maisonneuve / Aylmer (ouest)",
+      "short_name": "6073",
+      "station_id": "68"
+    }
+  ]
+}

@@ -18,20 +18,64 @@ if str(CODE_DIRECTORY) not in sys.path:
     sys.path.insert(0, str(CODE_DIRECTORY))
 
 from swing_ppo import (  # noqa: E402
+    _structured_actions,
     PPOConfig,
     compute_gae,
     deterministic_policy,
     initialize_parameters,
     load_parameters,
+    make_swing_components,
     ppo_loss,
     replay_player_html,
     save_parameters,
     tanh_log_probability,
     train_seed,
 )
+from swing_control import (  # noqa: E402
+    DEFAULT_SWING_SCENARIO,
+    make_structured_controller,
+)
 
 
 class SwingPPOTests(unittest.TestCase):
+    def test_structured_baseline_uses_shared_scenario_and_controller(self) -> None:
+        parameters, _, environment, reward = make_swing_components()
+        scenario = DEFAULT_SWING_SCENARIO
+        self.assertEqual(environment.max_episode_steps, scenario.maximum_steps)
+        self.assertAlmostEqual(
+            environment.integrator_params.dt,
+            scenario.control_interval,
+        )
+        self.assertEqual(
+            environment.integrator_params.substeps,
+            scenario.integrator_substeps,
+        )
+        self.assertAlmostEqual(reward.success_angle, scenario.success_angle)
+        self.assertAlmostEqual(
+            reward.success_radius_fraction,
+            scenario.success_radius_fraction,
+        )
+
+        observation = np.zeros(11, dtype=np.float64)
+        observation[3] = 1.0
+        controller = make_structured_controller(parameters, scenario)
+        for time_step in range(20):
+            expected = controller(observation)
+            actual = np.asarray(
+                _structured_actions(
+                    jnp.asarray(observation[None, :]),
+                    jnp.asarray(time_step),
+                    parameters.natural_frequency,
+                )
+            )[0]
+            np.testing.assert_allclose(actual, expected, rtol=0.0, atol=2e-7)
+        initial = _structured_actions(
+            jnp.asarray(observation[None, :]),
+            jnp.asarray(0),
+            parameters.natural_frequency,
+        )
+        self.assertLess(np.max(np.abs(np.asarray(initial))), 0.1)
+
     def test_tanh_log_probability_matches_change_of_variables(self) -> None:
         mean = jnp.asarray([[0.1, -0.2]])
         log_standard_deviation = jnp.log(jnp.asarray([0.7, 1.2]))

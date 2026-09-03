@@ -1,0 +1,4590 @@
+{
+  "aggregation": "First compute one throughput and mean-power observation per concurrent batch, then take the median across the fixed prompt, concurrency, and repeat matrix at each requested clock. Prefill throughput counts observed prompt tokens over total request time; decode throughput counts completion tokens over post-first-token time. The modeled CSV keeps the prespecified maximum-cardinality strictly increasing measured subset; the all-requested CSV and raw rows retain every profiled clock.",
+  "baseline_requested_clock_mhz": 2040,
+  "baseline_tpot_s": 0.05705563711023753,
+  "baseline_ttft_s": 0.3144860100001097,
+  "clock_profile_selection": {
+    "excluded_requested_clocks_mhz": [
+      1575
+    ],
+    "minimum_usable_levels": 4,
+    "realized_clock_median_method": "one realized-clock observation per phase/prompt/output/concurrency/repeat batch",
+    "realized_clock_median_mhz_by_requested": {
+      "1125": 939.375,
+      "1575": 940.0,
+      "2040": 969.375,
+      "210": 210.0,
+      "660": 660.0
+    },
+    "rule": "maximum-cardinality subsequence strictly increasing in batch-balanced median realized clock, prefill rate, and decode rate; ties use the lexicographically earliest requested-clock indices"
+  },
+  "cloud": {
+    "machine_type": "g2-standard-8",
+    "project": "potent-arcade-491015-g7",
+    "provisioning_model": "STANDARD",
+    "zone": "us-central1-a"
+  },
+  "completed_utc": "2026-09-02T23:40:08.550285+00:00",
+  "condition_checkpoints": [
+    {
+      "aggregate_complete_clocks_mhz": [],
+      "clock_index": 0,
+      "completed_utc": "2026-09-02T21:52:09.708648+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 128
+      },
+      "condition_index": 0,
+      "profile_rows": 5,
+      "requested_clock_mhz": 210,
+      "telemetry_rows": 86
+    },
+    {
+      "aggregate_complete_clocks_mhz": [],
+      "clock_index": 0,
+      "completed_utc": "2026-09-02T21:52:14.798802+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 128
+      },
+      "condition_index": 1,
+      "profile_rows": 25,
+      "requested_clock_mhz": 210,
+      "telemetry_rows": 137
+    },
+    {
+      "aggregate_complete_clocks_mhz": [],
+      "clock_index": 0,
+      "completed_utc": "2026-09-02T21:52:23.491271+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 128
+      },
+      "condition_index": 2,
+      "profile_rows": 65,
+      "requested_clock_mhz": 210,
+      "telemetry_rows": 224
+    },
+    {
+      "aggregate_complete_clocks_mhz": [],
+      "clock_index": 0,
+      "completed_utc": "2026-09-02T21:52:28.379397+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 512
+      },
+      "condition_index": 3,
+      "profile_rows": 70,
+      "requested_clock_mhz": 210,
+      "telemetry_rows": 272
+    },
+    {
+      "aggregate_complete_clocks_mhz": [],
+      "clock_index": 0,
+      "completed_utc": "2026-09-02T21:52:44.026318+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 512
+      },
+      "condition_index": 4,
+      "profile_rows": 90,
+      "requested_clock_mhz": 210,
+      "telemetry_rows": 429
+    },
+    {
+      "aggregate_complete_clocks_mhz": [],
+      "clock_index": 0,
+      "completed_utc": "2026-09-02T21:53:13.961204+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 512
+      },
+      "condition_index": 5,
+      "profile_rows": 130,
+      "requested_clock_mhz": 210,
+      "telemetry_rows": 728
+    },
+    {
+      "aggregate_complete_clocks_mhz": [],
+      "clock_index": 0,
+      "completed_utc": "2026-09-02T21:53:29.830381+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 2048
+      },
+      "condition_index": 6,
+      "profile_rows": 135,
+      "requested_clock_mhz": 210,
+      "telemetry_rows": 886
+    },
+    {
+      "aggregate_complete_clocks_mhz": [],
+      "clock_index": 0,
+      "completed_utc": "2026-09-02T21:54:29.921157+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 2048
+      },
+      "condition_index": 7,
+      "profile_rows": 155,
+      "requested_clock_mhz": 210,
+      "telemetry_rows": 1486
+    },
+    {
+      "aggregate_complete_clocks_mhz": [],
+      "clock_index": 0,
+      "completed_utc": "2026-09-02T21:56:28.959121+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 2048
+      },
+      "condition_index": 8,
+      "profile_rows": 195,
+      "requested_clock_mhz": 210,
+      "telemetry_rows": 2675
+    },
+    {
+      "aggregate_complete_clocks_mhz": [],
+      "clock_index": 0,
+      "completed_utc": "2026-09-02T21:57:19.816552+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 4096
+      },
+      "condition_index": 9,
+      "profile_rows": 200,
+      "requested_clock_mhz": 210,
+      "telemetry_rows": 3183
+    },
+    {
+      "aggregate_complete_clocks_mhz": [],
+      "clock_index": 0,
+      "completed_utc": "2026-09-02T21:59:40.722639+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 4096
+      },
+      "condition_index": 10,
+      "profile_rows": 220,
+      "requested_clock_mhz": 210,
+      "telemetry_rows": 4591
+    },
+    {
+      "aggregate_complete_clocks_mhz": [],
+      "clock_index": 0,
+      "completed_utc": "2026-09-02T22:04:33.138573+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 4096
+      },
+      "condition_index": 11,
+      "profile_rows": 260,
+      "requested_clock_mhz": 210,
+      "telemetry_rows": 7511
+    },
+    {
+      "aggregate_complete_clocks_mhz": [],
+      "clock_index": 0,
+      "completed_utc": "2026-09-02T22:06:57.477711+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 128
+      },
+      "condition_index": 12,
+      "profile_rows": 265,
+      "requested_clock_mhz": 210,
+      "telemetry_rows": 8953
+    },
+    {
+      "aggregate_complete_clocks_mhz": [],
+      "clock_index": 0,
+      "completed_utc": "2026-09-02T22:10:53.777030+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 128
+      },
+      "condition_index": 13,
+      "profile_rows": 285,
+      "requested_clock_mhz": 210,
+      "telemetry_rows": 11313
+    },
+    {
+      "aggregate_complete_clocks_mhz": [],
+      "clock_index": 0,
+      "completed_utc": "2026-09-02T22:14:23.021519+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 128
+      },
+      "condition_index": 14,
+      "profile_rows": 325,
+      "requested_clock_mhz": 210,
+      "telemetry_rows": 13403
+    },
+    {
+      "aggregate_complete_clocks_mhz": [],
+      "clock_index": 0,
+      "completed_utc": "2026-09-02T22:17:40.800640+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 1024
+      },
+      "condition_index": 15,
+      "profile_rows": 330,
+      "requested_clock_mhz": 210,
+      "telemetry_rows": 15378
+    },
+    {
+      "aggregate_complete_clocks_mhz": [],
+      "clock_index": 0,
+      "completed_utc": "2026-09-02T22:22:34.231155+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 1024
+      },
+      "condition_index": 16,
+      "profile_rows": 350,
+      "requested_clock_mhz": 210,
+      "telemetry_rows": 18308
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210
+      ],
+      "clock_index": 0,
+      "completed_utc": "2026-09-02T22:27:34.115044+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 1024
+      },
+      "condition_index": 17,
+      "profile_rows": 390,
+      "requested_clock_mhz": 210,
+      "telemetry_rows": 21304
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210
+      ],
+      "clock_index": 1,
+      "completed_utc": "2026-09-02T22:30:36.794604+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 128
+      },
+      "condition_index": 0,
+      "profile_rows": 395,
+      "requested_clock_mhz": 660,
+      "telemetry_rows": 23129
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210
+      ],
+      "clock_index": 1,
+      "completed_utc": "2026-09-02T22:30:40.253681+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 128
+      },
+      "condition_index": 1,
+      "profile_rows": 415,
+      "requested_clock_mhz": 660,
+      "telemetry_rows": 23163
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210
+      ],
+      "clock_index": 1,
+      "completed_utc": "2026-09-02T22:30:51.949820+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 128
+      },
+      "condition_index": 2,
+      "profile_rows": 455,
+      "requested_clock_mhz": 660,
+      "telemetry_rows": 23280
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210
+      ],
+      "clock_index": 1,
+      "completed_utc": "2026-09-02T22:31:05.278364+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 512
+      },
+      "condition_index": 3,
+      "profile_rows": 460,
+      "requested_clock_mhz": 660,
+      "telemetry_rows": 23413
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210
+      ],
+      "clock_index": 1,
+      "completed_utc": "2026-09-02T22:31:18.140247+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 512
+      },
+      "condition_index": 4,
+      "profile_rows": 480,
+      "requested_clock_mhz": 660,
+      "telemetry_rows": 23541
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210
+      ],
+      "clock_index": 1,
+      "completed_utc": "2026-09-02T22:31:47.745594+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 512
+      },
+      "condition_index": 5,
+      "profile_rows": 520,
+      "requested_clock_mhz": 660,
+      "telemetry_rows": 23837
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210
+      ],
+      "clock_index": 1,
+      "completed_utc": "2026-09-02T22:32:31.762485+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 2048
+      },
+      "condition_index": 6,
+      "profile_rows": 525,
+      "requested_clock_mhz": 660,
+      "telemetry_rows": 24276
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210
+      ],
+      "clock_index": 1,
+      "completed_utc": "2026-09-02T22:33:13.258053+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 2048
+      },
+      "condition_index": 7,
+      "profile_rows": 545,
+      "requested_clock_mhz": 660,
+      "telemetry_rows": 24691
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210
+      ],
+      "clock_index": 1,
+      "completed_utc": "2026-09-02T22:34:58.996187+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 2048
+      },
+      "condition_index": 8,
+      "profile_rows": 585,
+      "requested_clock_mhz": 660,
+      "telemetry_rows": 25747
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210
+      ],
+      "clock_index": 1,
+      "completed_utc": "2026-09-02T22:37:12.265880+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 4096
+      },
+      "condition_index": 9,
+      "profile_rows": 590,
+      "requested_clock_mhz": 660,
+      "telemetry_rows": 27078
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210
+      ],
+      "clock_index": 1,
+      "completed_utc": "2026-09-02T22:38:37.750315+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 4096
+      },
+      "condition_index": 10,
+      "profile_rows": 610,
+      "requested_clock_mhz": 660,
+      "telemetry_rows": 27932
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210
+      ],
+      "clock_index": 1,
+      "completed_utc": "2026-09-02T22:42:04.232433+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 4096
+      },
+      "condition_index": 11,
+      "profile_rows": 650,
+      "requested_clock_mhz": 660,
+      "telemetry_rows": 29994
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210
+      ],
+      "clock_index": 1,
+      "completed_utc": "2026-09-02T22:44:37.945066+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 128
+      },
+      "condition_index": 12,
+      "profile_rows": 655,
+      "requested_clock_mhz": 660,
+      "telemetry_rows": 31529
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210
+      ],
+      "clock_index": 1,
+      "completed_utc": "2026-09-02T22:48:13.857799+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 128
+      },
+      "condition_index": 13,
+      "profile_rows": 675,
+      "requested_clock_mhz": 660,
+      "telemetry_rows": 33685
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210
+      ],
+      "clock_index": 1,
+      "completed_utc": "2026-09-02T22:50:42.522874+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 128
+      },
+      "condition_index": 14,
+      "profile_rows": 715,
+      "requested_clock_mhz": 660,
+      "telemetry_rows": 35170
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210
+      ],
+      "clock_index": 1,
+      "completed_utc": "2026-09-02T22:51:56.579978+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 1024
+      },
+      "condition_index": 15,
+      "profile_rows": 720,
+      "requested_clock_mhz": 660,
+      "telemetry_rows": 35909
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210
+      ],
+      "clock_index": 1,
+      "completed_utc": "2026-09-02T22:53:16.254087+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 1024
+      },
+      "condition_index": 16,
+      "profile_rows": 740,
+      "requested_clock_mhz": 660,
+      "telemetry_rows": 36705
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660
+      ],
+      "clock_index": 1,
+      "completed_utc": "2026-09-02T22:54:50.488178+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 1024
+      },
+      "condition_index": 17,
+      "profile_rows": 780,
+      "requested_clock_mhz": 660,
+      "telemetry_rows": 37645
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660
+      ],
+      "clock_index": 2,
+      "completed_utc": "2026-09-02T22:55:31.086434+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 128
+      },
+      "condition_index": 0,
+      "profile_rows": 785,
+      "requested_clock_mhz": 1125,
+      "telemetry_rows": 38050
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660
+      ],
+      "clock_index": 2,
+      "completed_utc": "2026-09-02T22:55:33.753323+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 128
+      },
+      "condition_index": 1,
+      "profile_rows": 805,
+      "requested_clock_mhz": 1125,
+      "telemetry_rows": 38077
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660
+      ],
+      "clock_index": 2,
+      "completed_utc": "2026-09-02T22:55:37.237134+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 128
+      },
+      "condition_index": 2,
+      "profile_rows": 845,
+      "requested_clock_mhz": 1125,
+      "telemetry_rows": 38111
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660
+      ],
+      "clock_index": 2,
+      "completed_utc": "2026-09-02T22:55:39.651440+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 512
+      },
+      "condition_index": 3,
+      "profile_rows": 850,
+      "requested_clock_mhz": 1125,
+      "telemetry_rows": 38135
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660
+      ],
+      "clock_index": 2,
+      "completed_utc": "2026-09-02T22:55:44.786723+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 512
+      },
+      "condition_index": 4,
+      "profile_rows": 870,
+      "requested_clock_mhz": 1125,
+      "telemetry_rows": 38186
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660
+      ],
+      "clock_index": 2,
+      "completed_utc": "2026-09-02T22:55:55.239373+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 512
+      },
+      "condition_index": 5,
+      "profile_rows": 910,
+      "requested_clock_mhz": 1125,
+      "telemetry_rows": 38290
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660
+      ],
+      "clock_index": 2,
+      "completed_utc": "2026-09-02T22:56:05.920279+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 2048
+      },
+      "condition_index": 6,
+      "profile_rows": 915,
+      "requested_clock_mhz": 1125,
+      "telemetry_rows": 38397
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660
+      ],
+      "clock_index": 2,
+      "completed_utc": "2026-09-02T22:56:26.403219+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 2048
+      },
+      "condition_index": 7,
+      "profile_rows": 935,
+      "requested_clock_mhz": 1125,
+      "telemetry_rows": 38601
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660
+      ],
+      "clock_index": 2,
+      "completed_utc": "2026-09-02T22:57:14.173299+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 2048
+      },
+      "condition_index": 8,
+      "profile_rows": 975,
+      "requested_clock_mhz": 1125,
+      "telemetry_rows": 39078
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660
+      ],
+      "clock_index": 2,
+      "completed_utc": "2026-09-02T22:57:43.421302+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 4096
+      },
+      "condition_index": 9,
+      "profile_rows": 980,
+      "requested_clock_mhz": 1125,
+      "telemetry_rows": 39370
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660
+      ],
+      "clock_index": 2,
+      "completed_utc": "2026-09-02T22:58:22.786124+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 4096
+      },
+      "condition_index": 10,
+      "profile_rows": 1000,
+      "requested_clock_mhz": 1125,
+      "telemetry_rows": 39763
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660
+      ],
+      "clock_index": 2,
+      "completed_utc": "2026-09-02T22:59:44.111232+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 4096
+      },
+      "condition_index": 11,
+      "profile_rows": 1040,
+      "requested_clock_mhz": 1125,
+      "telemetry_rows": 40575
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660
+      ],
+      "clock_index": 2,
+      "completed_utc": "2026-09-02T23:01:10.051709+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 128
+      },
+      "condition_index": 12,
+      "profile_rows": 1045,
+      "requested_clock_mhz": 1125,
+      "telemetry_rows": 41433
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660
+      ],
+      "clock_index": 2,
+      "completed_utc": "2026-09-02T23:02:22.277162+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 128
+      },
+      "condition_index": 13,
+      "profile_rows": 1065,
+      "requested_clock_mhz": 1125,
+      "telemetry_rows": 42155
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660
+      ],
+      "clock_index": 2,
+      "completed_utc": "2026-09-02T23:03:42.687339+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 128
+      },
+      "condition_index": 14,
+      "profile_rows": 1105,
+      "requested_clock_mhz": 1125,
+      "telemetry_rows": 42957
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660
+      ],
+      "clock_index": 2,
+      "completed_utc": "2026-09-02T23:05:04.128533+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 1024
+      },
+      "condition_index": 15,
+      "profile_rows": 1110,
+      "requested_clock_mhz": 1125,
+      "telemetry_rows": 43771
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660
+      ],
+      "clock_index": 2,
+      "completed_utc": "2026-09-02T23:06:32.078338+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 1024
+      },
+      "condition_index": 16,
+      "profile_rows": 1130,
+      "requested_clock_mhz": 1125,
+      "telemetry_rows": 44649
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125
+      ],
+      "clock_index": 2,
+      "completed_utc": "2026-09-02T23:08:03.315982+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 1024
+      },
+      "condition_index": 17,
+      "profile_rows": 1170,
+      "requested_clock_mhz": 1125,
+      "telemetry_rows": 45561
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125
+      ],
+      "clock_index": 3,
+      "completed_utc": "2026-09-02T23:08:51.895720+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 128
+      },
+      "condition_index": 0,
+      "profile_rows": 1175,
+      "requested_clock_mhz": 1575,
+      "telemetry_rows": 46045
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125
+      ],
+      "clock_index": 3,
+      "completed_utc": "2026-09-02T23:08:54.642089+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 128
+      },
+      "condition_index": 1,
+      "profile_rows": 1195,
+      "requested_clock_mhz": 1575,
+      "telemetry_rows": 46073
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125
+      ],
+      "clock_index": 3,
+      "completed_utc": "2026-09-02T23:08:58.231420+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 128
+      },
+      "condition_index": 2,
+      "profile_rows": 1235,
+      "requested_clock_mhz": 1575,
+      "telemetry_rows": 46108
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125
+      ],
+      "clock_index": 3,
+      "completed_utc": "2026-09-02T23:09:00.988480+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 512
+      },
+      "condition_index": 3,
+      "profile_rows": 1240,
+      "requested_clock_mhz": 1575,
+      "telemetry_rows": 46136
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125
+      ],
+      "clock_index": 3,
+      "completed_utc": "2026-09-02T23:09:06.459937+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 512
+      },
+      "condition_index": 4,
+      "profile_rows": 1260,
+      "requested_clock_mhz": 1575,
+      "telemetry_rows": 46189
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125
+      ],
+      "clock_index": 3,
+      "completed_utc": "2026-09-02T23:09:16.755430+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 512
+      },
+      "condition_index": 5,
+      "profile_rows": 1300,
+      "requested_clock_mhz": 1575,
+      "telemetry_rows": 46291
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125
+      ],
+      "clock_index": 3,
+      "completed_utc": "2026-09-02T23:09:27.247697+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 2048
+      },
+      "condition_index": 6,
+      "profile_rows": 1305,
+      "requested_clock_mhz": 1575,
+      "telemetry_rows": 46396
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125
+      ],
+      "clock_index": 3,
+      "completed_utc": "2026-09-02T23:09:45.544341+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 2048
+      },
+      "condition_index": 7,
+      "profile_rows": 1325,
+      "requested_clock_mhz": 1575,
+      "telemetry_rows": 46577
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125
+      ],
+      "clock_index": 3,
+      "completed_utc": "2026-09-02T23:10:34.384162+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 2048
+      },
+      "condition_index": 8,
+      "profile_rows": 1365,
+      "requested_clock_mhz": 1575,
+      "telemetry_rows": 47065
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125
+      ],
+      "clock_index": 3,
+      "completed_utc": "2026-09-02T23:11:06.748828+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 4096
+      },
+      "condition_index": 9,
+      "profile_rows": 1370,
+      "requested_clock_mhz": 1575,
+      "telemetry_rows": 47388
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125
+      ],
+      "clock_index": 3,
+      "completed_utc": "2026-09-02T23:11:49.308245+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 4096
+      },
+      "condition_index": 10,
+      "profile_rows": 1390,
+      "requested_clock_mhz": 1575,
+      "telemetry_rows": 47812
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125
+      ],
+      "clock_index": 3,
+      "completed_utc": "2026-09-02T23:13:12.121420+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 4096
+      },
+      "condition_index": 11,
+      "profile_rows": 1430,
+      "requested_clock_mhz": 1575,
+      "telemetry_rows": 48639
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125
+      ],
+      "clock_index": 3,
+      "completed_utc": "2026-09-02T23:14:28.232542+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 128
+      },
+      "condition_index": 12,
+      "profile_rows": 1435,
+      "requested_clock_mhz": 1575,
+      "telemetry_rows": 49399
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125
+      ],
+      "clock_index": 3,
+      "completed_utc": "2026-09-02T23:15:51.320041+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 128
+      },
+      "condition_index": 13,
+      "profile_rows": 1455,
+      "requested_clock_mhz": 1575,
+      "telemetry_rows": 50228
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125
+      ],
+      "clock_index": 3,
+      "completed_utc": "2026-09-02T23:17:14.587084+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 128
+      },
+      "condition_index": 14,
+      "profile_rows": 1495,
+      "requested_clock_mhz": 1575,
+      "telemetry_rows": 51060
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125
+      ],
+      "clock_index": 3,
+      "completed_utc": "2026-09-02T23:18:32.112087+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 1024
+      },
+      "condition_index": 15,
+      "profile_rows": 1500,
+      "requested_clock_mhz": 1575,
+      "telemetry_rows": 51834
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125
+      ],
+      "clock_index": 3,
+      "completed_utc": "2026-09-02T23:20:03.624870+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 1024
+      },
+      "condition_index": 16,
+      "profile_rows": 1520,
+      "requested_clock_mhz": 1575,
+      "telemetry_rows": 52749
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125,
+        1575
+      ],
+      "clock_index": 3,
+      "completed_utc": "2026-09-02T23:21:40.714176+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 1024
+      },
+      "condition_index": 17,
+      "profile_rows": 1560,
+      "requested_clock_mhz": 1575,
+      "telemetry_rows": 53718
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125,
+        1575
+      ],
+      "clock_index": 4,
+      "completed_utc": "2026-09-02T23:22:31.235690+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 128
+      },
+      "condition_index": 0,
+      "profile_rows": 1565,
+      "requested_clock_mhz": 2040,
+      "telemetry_rows": 54222
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125,
+        1575
+      ],
+      "clock_index": 4,
+      "completed_utc": "2026-09-02T23:22:34.346687+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 128
+      },
+      "condition_index": 1,
+      "profile_rows": 1585,
+      "requested_clock_mhz": 2040,
+      "telemetry_rows": 54253
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125,
+        1575
+      ],
+      "clock_index": 4,
+      "completed_utc": "2026-09-02T23:22:38.316930+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 128
+      },
+      "condition_index": 2,
+      "profile_rows": 1625,
+      "requested_clock_mhz": 2040,
+      "telemetry_rows": 54292
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125,
+        1575
+      ],
+      "clock_index": 4,
+      "completed_utc": "2026-09-02T23:22:42.422296+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 512
+      },
+      "condition_index": 3,
+      "profile_rows": 1630,
+      "requested_clock_mhz": 2040,
+      "telemetry_rows": 54332
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125,
+        1575
+      ],
+      "clock_index": 4,
+      "completed_utc": "2026-09-02T23:22:49.269492+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 512
+      },
+      "condition_index": 4,
+      "profile_rows": 1650,
+      "requested_clock_mhz": 2040,
+      "telemetry_rows": 54401
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125,
+        1575
+      ],
+      "clock_index": 4,
+      "completed_utc": "2026-09-02T23:23:03.681185+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 512
+      },
+      "condition_index": 5,
+      "profile_rows": 1690,
+      "requested_clock_mhz": 2040,
+      "telemetry_rows": 54544
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125,
+        1575
+      ],
+      "clock_index": 4,
+      "completed_utc": "2026-09-02T23:23:15.304162+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 2048
+      },
+      "condition_index": 6,
+      "profile_rows": 1695,
+      "requested_clock_mhz": 2040,
+      "telemetry_rows": 54660
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125,
+        1575
+      ],
+      "clock_index": 4,
+      "completed_utc": "2026-09-02T23:23:35.672215+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 2048
+      },
+      "condition_index": 7,
+      "profile_rows": 1715,
+      "requested_clock_mhz": 2040,
+      "telemetry_rows": 54863
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125,
+        1575
+      ],
+      "clock_index": 4,
+      "completed_utc": "2026-09-02T23:24:17.462090+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 2048
+      },
+      "condition_index": 8,
+      "profile_rows": 1755,
+      "requested_clock_mhz": 2040,
+      "telemetry_rows": 55280
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125,
+        1575
+      ],
+      "clock_index": 4,
+      "completed_utc": "2026-09-02T23:24:50.684764+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 4096
+      },
+      "condition_index": 9,
+      "profile_rows": 1760,
+      "requested_clock_mhz": 2040,
+      "telemetry_rows": 55612
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125,
+        1575
+      ],
+      "clock_index": 4,
+      "completed_utc": "2026-09-02T23:25:35.409383+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 4096
+      },
+      "condition_index": 10,
+      "profile_rows": 1780,
+      "requested_clock_mhz": 2040,
+      "telemetry_rows": 56058
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125,
+        1575
+      ],
+      "clock_index": 4,
+      "completed_utc": "2026-09-02T23:26:56.894264+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 4096
+      },
+      "condition_index": 11,
+      "profile_rows": 1820,
+      "requested_clock_mhz": 2040,
+      "telemetry_rows": 56872
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125,
+        1575
+      ],
+      "clock_index": 4,
+      "completed_utc": "2026-09-02T23:28:19.787960+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 128
+      },
+      "condition_index": 12,
+      "profile_rows": 1825,
+      "requested_clock_mhz": 2040,
+      "telemetry_rows": 57700
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125,
+        1575
+      ],
+      "clock_index": 4,
+      "completed_utc": "2026-09-02T23:29:40.736256+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 128
+      },
+      "condition_index": 13,
+      "profile_rows": 1845,
+      "requested_clock_mhz": 2040,
+      "telemetry_rows": 58508
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125,
+        1575
+      ],
+      "clock_index": 4,
+      "completed_utc": "2026-09-02T23:30:59.912194+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 128
+      },
+      "condition_index": 14,
+      "profile_rows": 1885,
+      "requested_clock_mhz": 2040,
+      "telemetry_rows": 59299
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125,
+        1575
+      ],
+      "clock_index": 4,
+      "completed_utc": "2026-09-02T23:32:24.363461+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 1024
+      },
+      "condition_index": 15,
+      "profile_rows": 1890,
+      "requested_clock_mhz": 2040,
+      "telemetry_rows": 60142
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125,
+        1575
+      ],
+      "clock_index": 4,
+      "completed_utc": "2026-09-02T23:33:52.024561+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 1024
+      },
+      "condition_index": 16,
+      "profile_rows": 1910,
+      "requested_clock_mhz": 2040,
+      "telemetry_rows": 61017
+    },
+    {
+      "aggregate_complete_clocks_mhz": [
+        210,
+        660,
+        1125,
+        1575,
+        2040
+      ],
+      "clock_index": 4,
+      "completed_utc": "2026-09-02T23:35:32.124146+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 1024
+      },
+      "condition_index": 17,
+      "profile_rows": 1950,
+      "requested_clock_mhz": 2040,
+      "telemetry_rows": 62017
+    }
+  ],
+  "conditions": [
+    {
+      "concurrency": 1,
+      "output_tokens": 1,
+      "phase": "prefill",
+      "prompt_tokens": 128
+    },
+    {
+      "concurrency": 4,
+      "output_tokens": 1,
+      "phase": "prefill",
+      "prompt_tokens": 128
+    },
+    {
+      "concurrency": 8,
+      "output_tokens": 1,
+      "phase": "prefill",
+      "prompt_tokens": 128
+    },
+    {
+      "concurrency": 1,
+      "output_tokens": 1,
+      "phase": "prefill",
+      "prompt_tokens": 512
+    },
+    {
+      "concurrency": 4,
+      "output_tokens": 1,
+      "phase": "prefill",
+      "prompt_tokens": 512
+    },
+    {
+      "concurrency": 8,
+      "output_tokens": 1,
+      "phase": "prefill",
+      "prompt_tokens": 512
+    },
+    {
+      "concurrency": 1,
+      "output_tokens": 1,
+      "phase": "prefill",
+      "prompt_tokens": 2048
+    },
+    {
+      "concurrency": 4,
+      "output_tokens": 1,
+      "phase": "prefill",
+      "prompt_tokens": 2048
+    },
+    {
+      "concurrency": 8,
+      "output_tokens": 1,
+      "phase": "prefill",
+      "prompt_tokens": 2048
+    },
+    {
+      "concurrency": 1,
+      "output_tokens": 1,
+      "phase": "prefill",
+      "prompt_tokens": 4096
+    },
+    {
+      "concurrency": 4,
+      "output_tokens": 1,
+      "phase": "prefill",
+      "prompt_tokens": 4096
+    },
+    {
+      "concurrency": 8,
+      "output_tokens": 1,
+      "phase": "prefill",
+      "prompt_tokens": 4096
+    },
+    {
+      "concurrency": 1,
+      "output_tokens": 128,
+      "phase": "decode",
+      "prompt_tokens": 128
+    },
+    {
+      "concurrency": 4,
+      "output_tokens": 128,
+      "phase": "decode",
+      "prompt_tokens": 128
+    },
+    {
+      "concurrency": 8,
+      "output_tokens": 128,
+      "phase": "decode",
+      "prompt_tokens": 128
+    },
+    {
+      "concurrency": 1,
+      "output_tokens": 128,
+      "phase": "decode",
+      "prompt_tokens": 1024
+    },
+    {
+      "concurrency": 4,
+      "output_tokens": 128,
+      "phase": "decode",
+      "prompt_tokens": 1024
+    },
+    {
+      "concurrency": 8,
+      "output_tokens": 128,
+      "phase": "decode",
+      "prompt_tokens": 1024
+    }
+  ],
+  "container_gpu_smoke_test": "pinned vLLM image: nvidia-smi -L",
+  "created_utc": "2026-09-02T21:45:32.667867+00:00",
+  "default_power_limit_w": 72.0,
+  "elapsed_s": 6875.925014454,
+  "experiment_power_limit_w": 64.8,
+  "fitted_ambient_temperature_c": 57.67662711022483,
+  "git_revision": "957609756075e565be879ea6bb7660be8206ad2f",
+  "gpu": {
+    "cuda_version": "13.0",
+    "default_power_limit_w": 72.0,
+    "driver_version": "580.173.02",
+    "maximum_power_limit_w": 72.0,
+    "minimum_power_limit_w": 40.0,
+    "name": "NVIDIA L4",
+    "shutdown_temperature_c": null,
+    "slowdown_temperature_c": null,
+    "uuid": "GPU-99ba8114-138c-513d-aa70-d45329587a49"
+  },
+  "gpu_controls": {
+    "memory_clock_error": null,
+    "memory_clock_locked": true,
+    "memory_clock_requested_mhz": 6251,
+    "power_limit_w": 64.8
+  },
+  "idle_sample_seconds": 5.0,
+  "latest_condition_checkpoint": {
+    "aggregate_complete_clocks_mhz": [
+      210,
+      660,
+      1125,
+      1575,
+      2040
+    ],
+    "clock_index": 4,
+    "completed_utc": "2026-09-02T23:35:32.124146+00:00",
+    "condition": {
+      "concurrency": 8,
+      "output_tokens": 128,
+      "phase": "decode",
+      "prompt_tokens": 1024
+    },
+    "condition_index": 17,
+    "profile_rows": 1950,
+    "requested_clock_mhz": 2040,
+    "telemetry_rows": 62017
+  },
+  "launcher_script_sha256": "fc685d176d584a54f9962347cbaf2fe976e5376f5f2bf289ff5cfcd5407aaa08",
+  "measured_on": "2026-09-02T23:40:08.550285+00:00",
+  "measured_repeats_per_condition": 5,
+  "method": "one-second finite-difference least squares on two load/cool cycles",
+  "model": "Qwen/Qwen2.5-7B-Instruct",
+  "model_revision": "acbd96531cda22292a3ceaa67e984955d3965282",
+  "modeled_graphics_clocks_mhz": [
+    210,
+    660,
+    1125,
+    2040
+  ],
+  "platform": "Linux-6.8.0-1066-gcp-x86_64-with-glibc2.35",
+  "profile_columns": [
+    "clock_mhz",
+    "prefill_tokens_per_s",
+    "decode_tokens_per_s",
+    "idle_power_w",
+    "prefill_power_w",
+    "decode_power_w"
+  ],
+  "profile_status": "measured_l4",
+  "profiler_script_sha256": "63fd635c41a5c9b916bed056f94ec05e86f422dd73ea3870d75a2205eb5d836d",
+  "python": "3.10.12",
+  "raw_profile_columns": [
+    "phase",
+    "prompt_tokens",
+    "output_tokens",
+    "concurrency",
+    "requested_clock_mhz",
+    "realized_clock_mhz",
+    "repeat",
+    "ttft_s",
+    "tpot_s",
+    "total_s",
+    "energy_j",
+    "mean_power_w",
+    "peak_power_w",
+    "peak_temp_c",
+    "telemetry_sample_count",
+    "telemetry_fallback_used",
+    "request_index",
+    "completion_tokens",
+    "prompt_tokens_observed"
+  ],
+  "row_count": 1950,
+  "schema_version": 2,
+  "selected_graphics_clocks_mhz": [
+    210,
+    660,
+    1125,
+    1575,
+    2040
+  ],
+  "selected_memory_clock_mhz": 6251,
+  "served_model_name": "qwen2.5-7b-instruct",
+  "sha256": {
+    "l4_profile.csv": "218900ff093f474b27a8bb5c2151567c9d505b7f7b81fdd281082e476cf0f12d",
+    "l4_profile_all_requested.csv": "9cf2429716eca9de79e1ae26e97d02eeb189c231f809fce606ab1c8de9efdbff",
+    "l4_profile_raw.csv": "c9c21883bef9dafe9353581b30f3b55a94661b4d00587198be6f6bd9eb5164f3",
+    "l4_telemetry.csv": "3a021f0c74b840114046278397d18d8ecaab040b9aa4bcc27456175a51019937",
+    "vllm.log": "9b242666ce167d29daac29975d3e6027b1268de929724aecc398b303ae086299"
+  },
+  "source_label": "Measured NVIDIA L4 profile for Qwen/Qwen2.5-7B-Instruct served by pinned vLLM",
+  "source_worktree_state": "dirty",
+  "status": "complete",
+  "supported_clocks_mhz": {
+    "405": [
+      210,
+      225,
+      240,
+      255,
+      270,
+      285,
+      300,
+      315,
+      330,
+      345,
+      360,
+      375,
+      390,
+      405,
+      420,
+      435,
+      450,
+      465,
+      480,
+      495,
+      510,
+      525,
+      540,
+      555,
+      570,
+      585,
+      600,
+      615,
+      630,
+      645
+    ],
+    "6251": [
+      210,
+      225,
+      240,
+      255,
+      270,
+      285,
+      300,
+      315,
+      330,
+      345,
+      360,
+      375,
+      390,
+      405,
+      420,
+      435,
+      450,
+      465,
+      480,
+      495,
+      510,
+      525,
+      540,
+      555,
+      570,
+      585,
+      600,
+      615,
+      630,
+      645,
+      660,
+      675,
+      690,
+      705,
+      720,
+      735,
+      750,
+      765,
+      780,
+      795,
+      810,
+      825,
+      840,
+      855,
+      870,
+      885,
+      900,
+      915,
+      930,
+      945,
+      960,
+      975,
+      990,
+      1005,
+      1020,
+      1035,
+      1050,
+      1065,
+      1080,
+      1095,
+      1110,
+      1125,
+      1140,
+      1155,
+      1170,
+      1185,
+      1200,
+      1215,
+      1230,
+      1245,
+      1260,
+      1275,
+      1290,
+      1305,
+      1320,
+      1335,
+      1350,
+      1365,
+      1380,
+      1395,
+      1410,
+      1425,
+      1440,
+      1455,
+      1470,
+      1485,
+      1500,
+      1515,
+      1530,
+      1545,
+      1560,
+      1575,
+      1590,
+      1605,
+      1620,
+      1635,
+      1650,
+      1665,
+      1680,
+      1695,
+      1710,
+      1725,
+      1740,
+      1755,
+      1770,
+      1785,
+      1800,
+      1815,
+      1830,
+      1845,
+      1860,
+      1875,
+      1890,
+      1905,
+      1920,
+      1935,
+      1950,
+      1965,
+      1980,
+      1995,
+      2010,
+      2025,
+      2040
+    ]
+  },
+  "sweep_cooldown_events": [
+    {
+      "completed_utc": "2026-09-02T21:52:02.159277+00:00",
+      "cooldown_clock_mhz": 210,
+      "duration_s": 1.0013360859999807,
+      "final_temperature_c": 59.0,
+      "initial_temperature_c": null,
+      "maximum_temperature_c": 59.0,
+      "minimum_temperature_c": 59.0,
+      "observed_samples": 10,
+      "phase": "cooldown_before_f210",
+      "requested_clock_mhz": 210,
+      "scope": "clock",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T21:52:01.157981+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T21:52:08.221286+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 128
+      },
+      "condition_index": 0,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 1.001191776999974,
+      "final_temperature_c": 58.0,
+      "initial_temperature_c": 58.0,
+      "maximum_temperature_c": 58.0,
+      "minimum_temperature_c": 58.0,
+      "observed_samples": 10,
+      "phase": "cooldown_before_condition_00_prefill_p128_o1_c1_f210",
+      "requested_clock_mhz": 210,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T21:52:07.220120+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T21:52:10.741865+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 128
+      },
+      "condition_index": 1,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 1.0011526190000382,
+      "final_temperature_c": 58.0,
+      "initial_temperature_c": 59.0,
+      "maximum_temperature_c": 59.0,
+      "minimum_temperature_c": 58.0,
+      "observed_samples": 10,
+      "phase": "cooldown_before_condition_01_prefill_p128_o1_c4_f210",
+      "requested_clock_mhz": 210,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T21:52:09.740773+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T21:52:15.831745+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 128
+      },
+      "condition_index": 2,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 1.0013549500000067,
+      "final_temperature_c": 58.0,
+      "initial_temperature_c": 59.0,
+      "maximum_temperature_c": 59.0,
+      "minimum_temperature_c": 58.0,
+      "observed_samples": 10,
+      "phase": "cooldown_before_condition_02_prefill_p128_o1_c8_f210",
+      "requested_clock_mhz": 210,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T21:52:14.830417+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T21:52:24.524198+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 512
+      },
+      "condition_index": 3,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 1.0011979860000224,
+      "final_temperature_c": 59.0,
+      "initial_temperature_c": 60.0,
+      "maximum_temperature_c": 60.0,
+      "minimum_temperature_c": 59.0,
+      "observed_samples": 10,
+      "phase": "cooldown_before_condition_03_prefill_p512_o1_c1_f210",
+      "requested_clock_mhz": 210,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T21:52:23.523025+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T21:52:29.415603+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 512
+      },
+      "condition_index": 4,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 1.0012150119999887,
+      "final_temperature_c": 59.0,
+      "initial_temperature_c": 60.0,
+      "maximum_temperature_c": 60.0,
+      "minimum_temperature_c": 59.0,
+      "observed_samples": 10,
+      "phase": "cooldown_before_condition_04_prefill_p512_o1_c4_f210",
+      "requested_clock_mhz": 210,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T21:52:28.414414+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T21:52:45.060276+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 512
+      },
+      "condition_index": 5,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 1.0014502789999824,
+      "final_temperature_c": 60.0,
+      "initial_temperature_c": 61.0,
+      "maximum_temperature_c": 61.0,
+      "minimum_temperature_c": 60.0,
+      "observed_samples": 10,
+      "phase": "cooldown_before_condition_05_prefill_p512_o1_c8_f210",
+      "requested_clock_mhz": 210,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T21:52:44.058850+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T21:53:14.998871+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 2048
+      },
+      "condition_index": 6,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 1.001351500999931,
+      "final_temperature_c": 61.0,
+      "initial_temperature_c": 62.0,
+      "maximum_temperature_c": 62.0,
+      "minimum_temperature_c": 61.0,
+      "observed_samples": 10,
+      "phase": "cooldown_before_condition_06_prefill_p2048_o1_c1_f210",
+      "requested_clock_mhz": 210,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T21:53:13.997560+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T21:53:30.875777+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 2048
+      },
+      "condition_index": 7,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 1.0013878170000226,
+      "final_temperature_c": 61.0,
+      "initial_temperature_c": 62.0,
+      "maximum_temperature_c": 62.0,
+      "minimum_temperature_c": 61.0,
+      "observed_samples": 10,
+      "phase": "cooldown_before_condition_07_prefill_p2048_o1_c4_f210",
+      "requested_clock_mhz": 210,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T21:53:29.874409+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T21:54:30.955406+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 2048
+      },
+      "condition_index": 8,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 1.0014791869999726,
+      "final_temperature_c": 63.0,
+      "initial_temperature_c": 64.0,
+      "maximum_temperature_c": 64.0,
+      "minimum_temperature_c": 63.0,
+      "observed_samples": 10,
+      "phase": "cooldown_before_condition_08_prefill_p2048_o1_c8_f210",
+      "requested_clock_mhz": 210,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T21:54:29.953944+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T21:56:49.021686+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 4096
+      },
+      "condition_index": 9,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 20.026741944000037,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 67.0,
+      "maximum_temperature_c": 67.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 199,
+      "phase": "cooldown_before_condition_09_prefill_p4096_o1_c1_f210",
+      "requested_clock_mhz": 210,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T21:56:28.994962+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T21:57:37.884981+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 4096
+      },
+      "condition_index": 10,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 18.025340136000068,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 67.0,
+      "maximum_temperature_c": 67.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 179,
+      "phase": "cooldown_before_condition_10_prefill_p4096_o1_c4_f210",
+      "requested_clock_mhz": 210,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T21:57:19.859664+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:00:27.576791+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 4096
+      },
+      "condition_index": 11,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 46.82161810900004,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 69.0,
+      "maximum_temperature_c": 69.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 468,
+      "phase": "cooldown_before_condition_11_prefill_p4096_o1_c8_f210",
+      "requested_clock_mhz": 210,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T21:59:40.755195+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:05:46.054062+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 128
+      },
+      "condition_index": 12,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 72.87395748200015,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 70.0,
+      "maximum_temperature_c": 70.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 728,
+      "phase": "cooldown_before_condition_12_decode_p128_o128_c1_f210",
+      "requested_clock_mhz": 210,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:04:33.180149+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:09:34.542910+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 128
+      },
+      "condition_index": 13,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 157.03026710099994,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 78.0,
+      "maximum_temperature_c": 78.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 1567,
+      "phase": "cooldown_before_condition_13_decode_p128_o128_c4_f210",
+      "requested_clock_mhz": 210,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:06:57.512668+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:12:56.802660+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 128
+      },
+      "condition_index": 14,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 122.98882974200001,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 74.0,
+      "maximum_temperature_c": 74.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 1227,
+      "phase": "cooldown_before_condition_14_decode_p128_o128_c8_f210",
+      "requested_clock_mhz": 210,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:10:53.813856+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:16:23.049834+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 1024
+      },
+      "condition_index": 15,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 119.99544676300002,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 74.0,
+      "maximum_temperature_c": 74.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 1197,
+      "phase": "cooldown_before_condition_15_decode_p1024_o128_c1_f210",
+      "requested_clock_mhz": 210,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:14:23.054410+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:20:47.742287+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 1024
+      },
+      "condition_index": 16,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 186.90650437199997,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 77.0,
+      "maximum_temperature_c": 77.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 1865,
+      "phase": "cooldown_before_condition_16_decode_p1024_o128_c4_f210",
+      "requested_clock_mhz": 210,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:17:40.835801+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:25:14.150566+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 1024
+      },
+      "condition_index": 17,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 159.88072464800007,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 74.0,
+      "maximum_temperature_c": 74.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 1596,
+      "phase": "cooldown_before_condition_17_decode_p1024_o128_c8_f210",
+      "requested_clock_mhz": 210,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:22:34.269868+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:30:29.999910+00:00",
+      "cooldown_clock_mhz": 210,
+      "duration_s": 175.70489221100024,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 75.0,
+      "maximum_temperature_c": 75.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 1754,
+      "phase": "cooldown_before_f660",
+      "requested_clock_mhz": 660,
+      "scope": "clock",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:27:34.295039+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:30:36.076118+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 128
+      },
+      "condition_index": 0,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 1.0030324959998325,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 64.0,
+      "maximum_temperature_c": 64.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 10,
+      "phase": "cooldown_before_condition_00_prefill_p128_o1_c1_f660",
+      "requested_clock_mhz": 660,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:30:35.073105+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:30:38.588110+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 128
+      },
+      "condition_index": 1,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 1.7548502340000596,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 65.0,
+      "maximum_temperature_c": 65.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 16,
+      "phase": "cooldown_before_condition_01_prefill_p128_o1_c4_f660",
+      "requested_clock_mhz": 660,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:30:36.833281+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:30:49.068695+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 128
+      },
+      "condition_index": 2,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 8.775409189999664,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 66.0,
+      "maximum_temperature_c": 66.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 88,
+      "phase": "cooldown_before_condition_02_prefill_p128_o1_c8_f660",
+      "requested_clock_mhz": 660,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:30:40.293317+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:31:03.771838+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 512
+      },
+      "condition_index": 3,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 11.782110962999923,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 66.0,
+      "maximum_temperature_c": 66.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 118,
+      "phase": "cooldown_before_condition_03_prefill_p512_o1_c1_f660",
+      "requested_clock_mhz": 660,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:30:51.989753+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:31:13.084934+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 512
+      },
+      "condition_index": 4,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 7.772140503000173,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 67.0,
+      "maximum_temperature_c": 67.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 78,
+      "phase": "cooldown_before_condition_04_prefill_p512_o1_c4_f660",
+      "requested_clock_mhz": 660,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:31:05.312817+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:31:37.984302+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 512
+      },
+      "condition_index": 5,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 19.802544272999967,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 67.0,
+      "maximum_temperature_c": 67.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 198,
+      "phase": "cooldown_before_condition_05_prefill_p512_o1_c8_f660",
+      "requested_clock_mhz": 660,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:31:18.181789+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:32:26.637158+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 2048
+      },
+      "condition_index": 6,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 38.85707079399981,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 69.0,
+      "maximum_temperature_c": 69.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 387,
+      "phase": "cooldown_before_condition_06_prefill_p2048_o1_c1_f660",
+      "requested_clock_mhz": 660,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:31:47.780114+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:32:53.608426+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 2048
+      },
+      "condition_index": 7,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 21.81141504900006,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 67.0,
+      "maximum_temperature_c": 67.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 217,
+      "phase": "cooldown_before_condition_07_prefill_p2048_o1_c4_f660",
+      "requested_clock_mhz": 660,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:32:31.797038+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:34:19.981728+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 2048
+      },
+      "condition_index": 8,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 66.68912348000003,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 70.0,
+      "maximum_temperature_c": 70.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 666,
+      "phase": "cooldown_before_condition_08_prefill_p2048_o1_c8_f660",
+      "requested_clock_mhz": 660,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:33:13.292631+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:37:01.887875+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 4096
+      },
+      "condition_index": 9,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 122.85743955599992,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 74.0,
+      "maximum_temperature_c": 74.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 1226,
+      "phase": "cooldown_before_condition_09_prefill_p4096_o1_c1_f660",
+      "requested_clock_mhz": 660,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:34:59.030483+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:37:57.189724+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 4096
+      },
+      "condition_index": 10,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 44.88436712800012,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 68.0,
+      "maximum_temperature_c": 68.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 447,
+      "phase": "cooldown_before_condition_10_prefill_p4096_o1_c4_f660",
+      "requested_clock_mhz": 660,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:37:12.305379+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:40:43.419815+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 4096
+      },
+      "condition_index": 11,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 125.6360810770002,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 74.0,
+      "maximum_temperature_c": 74.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 1255,
+      "phase": "cooldown_before_condition_11_prefill_p4096_o1_c8_f660",
+      "requested_clock_mhz": 660,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:38:37.783757+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:43:52.866281+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 128
+      },
+      "condition_index": 12,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 108.59430876299984,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 75.0,
+      "maximum_temperature_c": 75.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 1085,
+      "phase": "cooldown_before_condition_12_decode_p128_o128_c1_f660",
+      "requested_clock_mhz": 660,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:42:04.272001+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:47:25.795217+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 128
+      },
+      "condition_index": 13,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 167.81100499099966,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 76.0,
+      "maximum_temperature_c": 76.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 1674,
+      "phase": "cooldown_before_condition_13_decode_p128_o128_c4_f660",
+      "requested_clock_mhz": 660,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:44:37.984235+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:49:52.742455+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 128
+      },
+      "condition_index": 14,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 98.8457252549997,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 75.0,
+      "maximum_temperature_c": 75.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 986,
+      "phase": "cooldown_before_condition_14_decode_p128_o128_c8_f660",
+      "requested_clock_mhz": 660,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:48:13.896763+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:51:09.408686+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 1024
+      },
+      "condition_index": 15,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 26.845309013000133,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 69.0,
+      "maximum_temperature_c": 69.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 266,
+      "phase": "cooldown_before_condition_15_decode_p1024_o128_c1_f660",
+      "requested_clock_mhz": 660,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:50:42.563405+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:52:19.201516+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 1024
+      },
+      "condition_index": 16,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 22.582226482999886,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 71.0,
+      "maximum_temperature_c": 71.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 226,
+      "phase": "cooldown_before_condition_16_decode_p1024_o128_c4_f660",
+      "requested_clock_mhz": 660,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:51:56.619313+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:53:42.892354+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 1024
+      },
+      "condition_index": 17,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 26.59803060900049,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 71.0,
+      "maximum_temperature_c": 71.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 265,
+      "phase": "cooldown_before_condition_17_decode_p1024_o128_c8_f660",
+      "requested_clock_mhz": 660,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:53:16.294348+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:55:24.186493+00:00",
+      "cooldown_clock_mhz": 210,
+      "duration_s": 33.37415469700045,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 72.0,
+      "maximum_temperature_c": 72.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 334,
+      "phase": "cooldown_before_f1125",
+      "requested_clock_mhz": 1125,
+      "scope": "clock",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:54:50.812365+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:55:30.259566+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 128
+      },
+      "condition_index": 0,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 1.0043854290006493,
+      "final_temperature_c": 63.0,
+      "initial_temperature_c": 63.0,
+      "maximum_temperature_c": 63.0,
+      "minimum_temperature_c": 63.0,
+      "observed_samples": 10,
+      "phase": "cooldown_before_condition_00_prefill_p128_o1_c1_f1125",
+      "requested_clock_mhz": 1125,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:55:29.255202+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:55:32.131423+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 128
+      },
+      "condition_index": 1,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 1.004183990000456,
+      "final_temperature_c": 63.0,
+      "initial_temperature_c": 63.0,
+      "maximum_temperature_c": 63.0,
+      "minimum_temperature_c": 63.0,
+      "observed_samples": 10,
+      "phase": "cooldown_before_condition_01_prefill_p128_o1_c4_f1125",
+      "requested_clock_mhz": 1125,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:55:31.127264+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:55:34.793518+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 128
+      },
+      "condition_index": 2,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 1.0042541070006337,
+      "final_temperature_c": 63.0,
+      "initial_temperature_c": 64.0,
+      "maximum_temperature_c": 64.0,
+      "minimum_temperature_c": 63.0,
+      "observed_samples": 10,
+      "phase": "cooldown_before_condition_02_prefill_p128_o1_c8_f1125",
+      "requested_clock_mhz": 1125,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:55:33.789290+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:55:38.276471+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 512
+      },
+      "condition_index": 3,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 1.0043524740003704,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 64.0,
+      "maximum_temperature_c": 64.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 10,
+      "phase": "cooldown_before_condition_03_prefill_p512_o1_c1_f1125",
+      "requested_clock_mhz": 1125,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:55:37.272141+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:55:40.692411+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 512
+      },
+      "condition_index": 4,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 1.0043148969998583,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 64.0,
+      "maximum_temperature_c": 64.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 10,
+      "phase": "cooldown_before_condition_04_prefill_p512_o1_c4_f1125",
+      "requested_clock_mhz": 1125,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:55:39.688122+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:55:47.587292+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 512
+      },
+      "condition_index": 5,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 2.7608880300003875,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 65.0,
+      "maximum_temperature_c": 65.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 26,
+      "phase": "cooldown_before_condition_05_prefill_p512_o1_c8_f1125",
+      "requested_clock_mhz": 1125,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:55:44.826427+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:56:02.058225+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 2048
+      },
+      "condition_index": 6,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 6.77651740500005,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 66.0,
+      "maximum_temperature_c": 66.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 66,
+      "phase": "cooldown_before_condition_06_prefill_p2048_o1_c1_f1125",
+      "requested_clock_mhz": 1125,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:55:55.281729+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:56:11.731313+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 2048
+      },
+      "condition_index": 7,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 5.772602084000027,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 66.0,
+      "maximum_temperature_c": 66.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 56,
+      "phase": "cooldown_before_condition_07_prefill_p2048_o1_c4_f1125",
+      "requested_clock_mhz": 1125,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:56:05.958747+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:56:45.013358+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 2048
+      },
+      "condition_index": 8,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 18.571037381999304,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 69.0,
+      "maximum_temperature_c": 69.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 185,
+      "phase": "cooldown_before_condition_08_prefill_p2048_o1_c8_f1125",
+      "requested_clock_mhz": 1125,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:56:26.442343+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:57:35.801163+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 4096
+      },
+      "condition_index": 9,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 21.58491459400011,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 70.0,
+      "maximum_temperature_c": 70.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 215,
+      "phase": "cooldown_before_condition_09_prefill_p4096_o1_c1_f1125",
+      "requested_clock_mhz": 1125,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:57:14.216271+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:57:53.003356+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 4096
+      },
+      "condition_index": 10,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 9.537929206999252,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 67.0,
+      "maximum_temperature_c": 67.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 95,
+      "phase": "cooldown_before_condition_10_prefill_p4096_o1_c4_f1125",
+      "requested_clock_mhz": 1125,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:57:43.465449+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T22:58:43.406592+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 4096
+      },
+      "condition_index": 11,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 20.5823114599998,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 70.0,
+      "maximum_temperature_c": 70.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 205,
+      "phase": "cooldown_before_condition_11_prefill_p4096_o1_c8_f1125",
+      "requested_clock_mhz": 1125,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:58:22.824303+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:00:25.815602+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 128
+      },
+      "condition_index": 12,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 41.66831441500017,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 74.0,
+      "maximum_temperature_c": 74.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 416,
+      "phase": "cooldown_before_condition_12_decode_p128_o128_c1_f1125",
+      "requested_clock_mhz": 1125,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T22:59:44.147312+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:01:35.691744+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 128
+      },
+      "condition_index": 13,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 25.602351878000263,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 70.0,
+      "maximum_temperature_c": 70.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 255,
+      "phase": "cooldown_before_condition_13_decode_p128_o128_c4_f1125",
+      "requested_clock_mhz": 1125,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:01:10.089413+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:02:54.948882+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 128
+      },
+      "condition_index": 14,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 32.63237817800018,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 72.0,
+      "maximum_temperature_c": 72.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 326,
+      "phase": "cooldown_before_condition_14_decode_p128_o128_c8_f1125",
+      "requested_clock_mhz": 1125,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:02:22.316560+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:04:18.377695+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 1024
+      },
+      "condition_index": 15,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 35.646173559999625,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 71.0,
+      "maximum_temperature_c": 71.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 356,
+      "phase": "cooldown_before_condition_15_decode_p1024_o128_c1_f1125",
+      "requested_clock_mhz": 1125,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:03:42.731546+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:05:38.817914+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 1024
+      },
+      "condition_index": 16,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 34.64636770500056,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 71.0,
+      "maximum_temperature_c": 71.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 346,
+      "phase": "cooldown_before_condition_16_decode_p1024_o128_c4_f1125",
+      "requested_clock_mhz": 1125,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:05:04.171574+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:07:01.745741+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 1024
+      },
+      "condition_index": 17,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 29.629607222999766,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 71.0,
+      "maximum_temperature_c": 71.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 295,
+      "phase": "cooldown_before_condition_17_decode_p1024_o128_c8_f1125",
+      "requested_clock_mhz": 1125,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:06:32.116156+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:08:44.897868+00:00",
+      "cooldown_clock_mhz": 210,
+      "duration_s": 41.18033443999957,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 73.0,
+      "maximum_temperature_c": 73.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 412,
+      "phase": "cooldown_before_f1575",
+      "requested_clock_mhz": 1575,
+      "scope": "clock",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:08:03.717557+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:08:50.972085+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 128
+      },
+      "condition_index": 0,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 1.0047534610002913,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 64.0,
+      "maximum_temperature_c": 64.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 10,
+      "phase": "cooldown_before_condition_00_prefill_p128_o1_c1_f1575",
+      "requested_clock_mhz": 1575,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:08:49.967352+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:08:52.935019+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 128
+      },
+      "condition_index": 1,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 1.0046843540003465,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 64.0,
+      "maximum_temperature_c": 64.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 10,
+      "phase": "cooldown_before_condition_01_prefill_p128_o1_c4_f1575",
+      "requested_clock_mhz": 1575,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:08:51.930360+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:08:55.681508+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 128
+      },
+      "condition_index": 2,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 1.0051679140005945,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 64.0,
+      "maximum_temperature_c": 64.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 10,
+      "phase": "cooldown_before_condition_02_prefill_p128_o1_c8_f1575",
+      "requested_clock_mhz": 1575,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:08:54.676367+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:08:59.525115+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 512
+      },
+      "condition_index": 3,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 1.2562051610002527,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 65.0,
+      "maximum_temperature_c": 65.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 12,
+      "phase": "cooldown_before_condition_03_prefill_p512_o1_c1_f1575",
+      "requested_clock_mhz": 1575,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:08:58.268933+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:09:02.283793+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 512
+      },
+      "condition_index": 4,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 1.2554112389998409,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 65.0,
+      "maximum_temperature_c": 65.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 11,
+      "phase": "cooldown_before_condition_04_prefill_p512_o1_c4_f1575",
+      "requested_clock_mhz": 1575,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:09:01.028404+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:09:09.006954+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 512
+      },
+      "condition_index": 5,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 2.5116245839999465,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 66.0,
+      "maximum_temperature_c": 66.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 25,
+      "phase": "cooldown_before_condition_05_prefill_p512_o1_c8_f1575",
+      "requested_clock_mhz": 1575,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:09:06.495358+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:09:23.320927+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 2048
+      },
+      "condition_index": 6,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 6.529099682999913,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 67.0,
+      "maximum_temperature_c": 67.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 65,
+      "phase": "cooldown_before_condition_06_prefill_p2048_o1_c1_f1575",
+      "requested_clock_mhz": 1575,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:09:16.791847+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:09:30.801044+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 2048
+      },
+      "condition_index": 7,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 3.516375614000026,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 66.0,
+      "maximum_temperature_c": 66.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 35,
+      "phase": "cooldown_before_condition_07_prefill_p2048_o1_c4_f1575",
+      "requested_clock_mhz": 1575,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:09:27.284693+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:10:05.168106+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 2048
+      },
+      "condition_index": 8,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 19.58719928499977,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 69.0,
+      "maximum_temperature_c": 69.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 195,
+      "phase": "cooldown_before_condition_08_prefill_p2048_o1_c8_f1575",
+      "requested_clock_mhz": 1575,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:09:45.580932+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:10:59.029255+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 4096
+      },
+      "condition_index": 9,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 24.609799044000283,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 71.0,
+      "maximum_temperature_c": 71.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 246,
+      "phase": "cooldown_before_condition_09_prefill_p4096_o1_c1_f1575",
+      "requested_clock_mhz": 1575,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:10:34.419486+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:11:19.343508+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 4096
+      },
+      "condition_index": 10,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 12.557943229000557,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 68.0,
+      "maximum_temperature_c": 68.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 126,
+      "phase": "cooldown_before_condition_10_prefill_p4096_o1_c4_f1575",
+      "requested_clock_mhz": 1575,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:11:06.785588+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:12:10.945780+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 4096
+      },
+      "condition_index": 11,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 21.597691898999983,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 70.0,
+      "maximum_temperature_c": 70.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 215,
+      "phase": "cooldown_before_condition_11_prefill_p4096_o1_c8_f1575",
+      "requested_clock_mhz": 1575,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:11:49.348111+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:13:43.810396+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 128
+      },
+      "condition_index": 12,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 31.645464580000407,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 74.0,
+      "maximum_temperature_c": 74.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 315,
+      "phase": "cooldown_before_condition_12_decode_p128_o128_c1_f1575",
+      "requested_clock_mhz": 1575,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:13:12.164952+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:15:04.939801+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 128
+      },
+      "condition_index": 13,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 36.668364162000216,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 73.0,
+      "maximum_temperature_c": 73.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 365,
+      "phase": "cooldown_before_condition_13_decode_p128_o128_c4_f1575",
+      "requested_clock_mhz": 1575,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:14:28.271463+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:16:27.026813+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 128
+      },
+      "condition_index": 14,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 35.67058119499961,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 72.0,
+      "maximum_temperature_c": 72.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 355,
+      "phase": "cooldown_before_condition_14_decode_p128_o128_c8_f1575",
+      "requested_clock_mhz": 1575,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:15:51.356257+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:17:46.277352+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 1024
+      },
+      "condition_index": 15,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 31.651137404999645,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 71.0,
+      "maximum_temperature_c": 71.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 314,
+      "phase": "cooldown_before_condition_15_decode_p1024_o128_c1_f1575",
+      "requested_clock_mhz": 1575,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:17:14.626238+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:19:10.588228+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 1024
+      },
+      "condition_index": 16,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 38.4401365220001,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 71.0,
+      "maximum_temperature_c": 71.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 384,
+      "phase": "cooldown_before_condition_16_decode_p1024_o128_c4_f1575",
+      "requested_clock_mhz": 1575,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:18:32.148116+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:20:39.340004+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 1024
+      },
+      "condition_index": 17,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 35.678383325999675,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 71.0,
+      "maximum_temperature_c": 71.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 355,
+      "phase": "cooldown_before_condition_17_decode_p1024_o128_c8_f1575",
+      "requested_clock_mhz": 1575,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:20:03.661646+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:22:23.413192+00:00",
+      "cooldown_clock_mhz": 210,
+      "duration_s": 42.21521607399973,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 74.0,
+      "maximum_temperature_c": 74.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 420,
+      "phase": "cooldown_before_f2040",
+      "requested_clock_mhz": 2040,
+      "scope": "clock",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:21:41.197999+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:22:30.244978+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 128
+      },
+      "condition_index": 0,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 1.759678224999334,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 65.0,
+      "maximum_temperature_c": 65.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 17,
+      "phase": "cooldown_before_condition_00_prefill_p128_o1_c1_f2040",
+      "requested_clock_mhz": 2040,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:22:28.485335+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:22:32.531507+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 128
+      },
+      "condition_index": 1,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 1.2571728140001142,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 65.0,
+      "maximum_temperature_c": 65.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 11,
+      "phase": "cooldown_before_condition_01_prefill_p128_o1_c4_f2040",
+      "requested_clock_mhz": 2040,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:22:31.274359+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:22:35.645266+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 128
+      },
+      "condition_index": 2,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 1.2569834460000493,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 65.0,
+      "maximum_temperature_c": 65.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 13,
+      "phase": "cooldown_before_condition_02_prefill_p128_o1_c8_f2040",
+      "requested_clock_mhz": 2040,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:22:34.388314+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:22:40.870811+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 512
+      },
+      "condition_index": 3,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 2.5129790549999598,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 66.0,
+      "maximum_temperature_c": 66.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 25,
+      "phase": "cooldown_before_condition_03_prefill_p512_o1_c1_f2040",
+      "requested_clock_mhz": 2040,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:22:38.357858+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:22:44.974518+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 512
+      },
+      "condition_index": 4,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 2.5150153060003504,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 66.0,
+      "maximum_temperature_c": 66.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 25,
+      "phase": "cooldown_before_condition_04_prefill_p512_o1_c4_f2040",
+      "requested_clock_mhz": 2040,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:22:42.459529+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:22:55.840628+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 512
+      },
+      "condition_index": 5,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 6.535022231999392,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 67.0,
+      "maximum_temperature_c": 67.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 64,
+      "phase": "cooldown_before_condition_05_prefill_p512_o1_c8_f2040",
+      "requested_clock_mhz": 2040,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:22:49.305633+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:23:11.258345+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 2048
+      },
+      "condition_index": 6,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 7.539161513000181,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 67.0,
+      "maximum_temperature_c": 67.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 74,
+      "phase": "cooldown_before_condition_06_prefill_p2048_o1_c1_f2040",
+      "requested_clock_mhz": 2040,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:23:03.719209+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:23:20.868695+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 2048
+      },
+      "condition_index": 7,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 5.5287693299997045,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 67.0,
+      "maximum_temperature_c": 67.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 55,
+      "phase": "cooldown_before_condition_07_prefill_p2048_o1_c4_f2040",
+      "requested_clock_mhz": 2040,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:23:15.339950+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:23:48.029678+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 2048
+      },
+      "condition_index": 8,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 12.315859817999808,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 69.0,
+      "maximum_temperature_c": 69.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 124,
+      "phase": "cooldown_before_condition_08_prefill_p2048_o1_c8_f2040",
+      "requested_clock_mhz": 2040,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:23:35.713841+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:24:42.881737+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 4096
+      },
+      "condition_index": 9,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 25.38362179700016,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 71.0,
+      "maximum_temperature_c": 71.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 253,
+      "phase": "cooldown_before_condition_09_prefill_p4096_o1_c1_f2040",
+      "requested_clock_mhz": 2040,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:24:17.498139+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:25:05.298438+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 4096
+      },
+      "condition_index": 10,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 14.577197276999868,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 68.0,
+      "maximum_temperature_c": 68.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 145,
+      "phase": "cooldown_before_condition_10_prefill_p4096_o1_c4_f2040",
+      "requested_clock_mhz": 2040,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:24:50.721268+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:25:56.055689+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 4096
+      },
+      "condition_index": 11,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 20.609470456000054,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 71.0,
+      "maximum_temperature_c": 71.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 204,
+      "phase": "cooldown_before_condition_11_prefill_p4096_o1_c8_f2040",
+      "requested_clock_mhz": 2040,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:25:35.446244+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:27:35.396474+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 128
+      },
+      "condition_index": 12,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 38.45860969499972,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 75.0,
+      "maximum_temperature_c": 75.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 383,
+      "phase": "cooldown_before_condition_12_decode_p128_o128_c1_f2040",
+      "requested_clock_mhz": 2040,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:26:56.937884+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:28:54.269484+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 128
+      },
+      "condition_index": 13,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 34.43553778000023,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 72.0,
+      "maximum_temperature_c": 72.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 344,
+      "phase": "cooldown_before_condition_13_decode_p128_o128_c4_f2040",
+      "requested_clock_mhz": 2040,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:28:19.833978+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:30:12.198715+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 128
+      },
+      "condition_index": 14,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 31.422315731999333,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 72.0,
+      "maximum_temperature_c": 72.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 313,
+      "phase": "cooldown_before_condition_14_decode_p128_o128_c8_f2040",
+      "requested_clock_mhz": 2040,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:29:40.776421+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:31:38.408856+00:00",
+      "condition": {
+        "concurrency": 1,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 1024
+      },
+      "condition_index": 15,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 38.46044666899979,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 73.0,
+      "maximum_temperature_c": 73.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 384,
+      "phase": "cooldown_before_condition_15_decode_p1024_o128_c1_f2040",
+      "requested_clock_mhz": 2040,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:30:59.948435+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:32:58.843391+00:00",
+      "condition": {
+        "concurrency": 4,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 1024
+      },
+      "condition_index": 16,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 34.44294240599993,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 72.0,
+      "maximum_temperature_c": 72.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 344,
+      "phase": "cooldown_before_condition_16_decode_p1024_o128_c4_f2040",
+      "requested_clock_mhz": 2040,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:32:24.400471+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    },
+    {
+      "completed_utc": "2026-09-02T23:34:30.531177+00:00",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 128,
+        "phase": "decode",
+        "prompt_tokens": 1024
+      },
+      "condition_index": 17,
+      "cooldown_clock_mhz": 210,
+      "duration_s": 38.46862850799971,
+      "final_temperature_c": 64.0,
+      "initial_temperature_c": 73.0,
+      "maximum_temperature_c": 73.0,
+      "minimum_temperature_c": 64.0,
+      "observed_samples": 383,
+      "phase": "cooldown_before_condition_17_decode_p1024_o128_c8_f2040",
+      "requested_clock_mhz": 2040,
+      "scope": "condition",
+      "stable_samples_observed": 10,
+      "stable_samples_required": 10,
+      "started_utc": "2026-09-02T23:33:52.062583+00:00",
+      "status": "complete",
+      "target_temperature_c": 64.0,
+      "thermal_limit_c": 80.0,
+      "timeout_s": 900.0
+    }
+  ],
+  "sweep_cooldown_protocol": {
+    "applies_before_every_clock": true,
+    "applies_before_every_condition": true,
+    "condition_event_metadata": "clock, condition index, phase, prompt tokens, output tokens, and concurrency",
+    "cooldown_clock_mhz": 210,
+    "poll_s": 0.25,
+    "stability_rule": "consecutive fresh telemetry samples at or below the target",
+    "stable_samples_required": 10,
+    "target_margin_below_thermal_limit_c": 16.0,
+    "target_temperature_c": 64.0,
+    "timeout_s": 900.0
+  },
+  "telemetry_fallback_batch_count": 3,
+  "telemetry_period_s": 0.1,
+  "telemetry_row_count": 64737,
+  "thermal_cool_seconds": 60.0,
+  "thermal_cycles": 2,
+  "thermal_fit_observations": 2692.0,
+  "thermal_fit_r_squared": 0.0020106863663904573,
+  "thermal_limit_c": 80.0,
+  "thermal_limit_source": "protocol_absolute_80_c_no_reported_slowdown_threshold",
+  "thermal_load_seconds": 60.0,
+  "thermal_resistance_c_per_w": 0.28791838432217937,
+  "thermal_time_constant_s": 75.79201203836712,
+  "units": {
+    "clock": "MHz",
+    "energy": "J per concurrent request",
+    "power": "W",
+    "temperature": "degrees Celsius",
+    "time": "s"
+  },
+  "vllm_image": "vllm/vllm-openai:v0.28.0",
+  "vllm_image_digest": "vllm/vllm-openai@sha256:61fc8a896b0a4fbbbdc063bc4b0dbc25ce98e02b5050c24aeb7830ac02039b14",
+  "vllm_prefix_caching_enabled": false,
+  "vllm_server_arguments": [
+    "--no-enable-prefix-caching"
+  ],
+  "vllm_server_version": "0.28.0",
+  "warmup_batches_per_condition": 1
+}

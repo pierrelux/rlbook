@@ -13,9 +13,9 @@ each 50,000-interaction target. The checkpoint CSV files record both counts.
 
 None of the five PPO policies completed a rotation on the 100 fixed held-out
 initial states. Their mean final return was -5.11. The structured phase-locked
-controller succeeded from all 100 states with mean return 191.90, but its
+controller succeeded from all 100 states with mean return 191.79, but its
 nominal rigid-link trajectories required negative suspension tension during
-7.38 percent of active steps. A chain cannot supply that force.
+7.37 percent of active steps. A chain cannot supply that force.
 
 Each `seed_*` directory contains:
 
@@ -40,3 +40,13 @@ uv run python code/swing_ppo.py all \
 
 The MyST build reads the committed outputs in `_static/swing_ppo`; it does not
 train a policy.
+
+When only the shared analytical baseline changes, refresh its metrics and the
+derived comparison figure without loading or modifying any PPO checkpoint:
+
+```bash
+uv run python code/swing_ppo.py refresh-baseline \
+  --artifacts artifacts/swing_ppo \
+  --output _static/swing_ppo \
+  --seeds 0 1 2 3 4
+```

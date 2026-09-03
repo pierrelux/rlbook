@@ -28,6 +28,17 @@ uv run jupyter lite build --lite-dir lab --contents notebooks --output-dir _buil
 
 For local authoring, use `uv run jupyter-book start --execute --port 3000`. The browser lab can be served separately with `uv run jupyter lite serve --lite-dir lab --contents notebooks`.
 
+The spotlight presenter must share an origin with the rendered chapter. Preview
+that workflow from a root-based static build rather than MyST's split-port
+development server:
+
+```bash
+BASE_URL='' uv run jupyter-book build --html
+python3 -m http.server 8000 --bind 127.0.0.1 --directory _build/html
+```
+
+Then open `http://127.0.0.1:8000/dynamics/` and use **Present**.
+
 `publish.sh` performs both strict builds and publishes the assembled `_build/html` directory to `gh-pages` with `ghp-import`.
 
 ## Authoring conventions
@@ -65,16 +76,46 @@ To regenerate the checked-in notebook JSON after editing their source definition
 uv run python lab/generate_notebooks.py
 ```
 
-## Semantic presentation chunks
-
-The **Present** action can use an offline map to focus several adjacent rendered
-blocks as one teaching beat. Build the book first, then run:
+The modeling chapter reads committed trajectories and figures so that an
+ordinary book build does not rerun long experiments. Regenerate its domain
+artifacts with:
 
 ```bash
-python3 tools/chunk_presentations.py dynamics.md
+uv run python scripts/build_swing_modeling_artifacts.py
+uv run python scripts/build_bixi_artifacts.py --seeds 512
+uv run python scripts/build_gimbal_artifacts.py
+uv run --group artifacts python scripts/build_battery_artifacts.py
 ```
 
-The script validates full block coverage, writes `_present/<chapter>.json`, and
-embeds the maps in `_static/presenter.html`. Rebuild afterward. If a chapter's
-block structure changes, regenerate its map; the presenter otherwise falls back
-to focusing one rendered block at a time.
+The battery builder uses the optional, lockfile-pinned PyBaMM dependency. A
+normal book build reads its committed trajectories and does not solve the cell
+model.
+
+The BIXI builder consumes the small, checksum-pinned derived data committed in
+`data/bixi/`; it does not download the original archive. Recreating those
+derived inputs from official source files is documented in
+`data/bixi/README.md`.
+
+## Recorded spotlight presentations
+
+The **Present** action opens either a frozen presentation for the chapter or a
+live recorder when no frozen presentation exists. In recording mode, drag a
+rectangle around visible textbook content. The presenter snaps to stable
+document elements, focuses them, and records the interaction as one cue.
+
+Use **Review / Freeze** after the lecture to reorder or delete cues and download
+`<chapter>-presentation.json`. Install that recording as the chapter's
+authoritative presentation with:
+
+```bash
+python3 tools/presentation_cues.py import ~/Downloads/dynamics-presentation.json
+```
+
+The importer validates the recording, writes `_present/<chapter>.json`, and
+embeds all installed decks in `_static/presenter.html`. Rebuild the book after
+importing. To refresh the embedded registry without importing a new file, run
+`python3 tools/presentation_cues.py bundle`.
+
+Unfinished recordings are autosaved in browser storage and can be resumed or
+discarded the next time the same chapter is opened. Frozen cue files remain the
+authoritative, version-controlled representation.
