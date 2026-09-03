@@ -211,16 +211,6 @@
       "subdir": "noarch"
     },
     {
-      "name": "python_abi",
-      "version": "3.13",
-      "build": "8_cp313",
-      "filename_stem": "python_abi-3.13-8_cp313",
-      "filename": "python_abi-3.13-8_cp313.tar.gz",
-      "channel": "https://prefix.dev/conda-forge",
-      "depends": [],
-      "subdir": "noarch"
-    },
-    {
       "name": "numpy",
       "version": "2.5.2",
       "build": "py313hcf5bae3_0",
@@ -459,6 +449,16 @@
         "python >=3.10",
         "traitlets"
       ],
+      "subdir": "noarch"
+    },
+    {
+      "name": "python_abi",
+      "version": "3.13",
+      "build": "9_cp313",
+      "filename_stem": "python_abi-3.13-9_cp313",
+      "filename": "python_abi-3.13-9_cp313.tar.gz",
+      "channel": "https://prefix.dev/conda-forge",
+      "depends": [],
       "subdir": "noarch"
     },
     {

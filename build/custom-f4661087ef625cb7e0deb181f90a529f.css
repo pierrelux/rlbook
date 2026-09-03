@@ -1,0 +1,1140 @@
+/* ==========================================================================
+   rlbook — editorial theme for the MyST book-theme
+   --------------------------------------------------------------------------
+   Typography:  Newsreader (headings) · IBM Plex Sans (body and chrome)
+                IBM Plex Mono (code, metrics, and tabular numerics)
+   Tune the reading measure with --book-body-width below.
+   ========================================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400;1,600&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap");
+
+/* --------------------------------------------------------------------------
+   1. Tokens
+   -------------------------------------------------------------------------- */
+
+:root {
+  --font-display: "Newsreader", Georgia, "Times New Roman", serif;
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Reading measure: the sum of the centre grid tracks. The rendered column is
+     a little wider than this because the theme's grid adds column gaps
+     (roughly +5rem at 1024–1535px, +7rem above that). Tune this one number. */
+  --book-body-width: 43.5rem;
+  --book-col: minmax(8ch, calc((var(--book-body-width) - 2rem) / 6));
+  --book-col-sm: minmax(2ch, calc((var(--book-body-width) - 2rem) / 6));
+
+  --bg: #f6f7f4;
+  --bg-raised: #ffffff;
+  --bg-sunken: #eaeeec;
+  --ink: #1b2430;
+  --ink-muted: #5c6874;
+  --rule: #d2d9d7;
+
+  /* Steel teal communicates hierarchy, links, and interaction only. */
+  --structure: #2f6f8f;
+  --structure-soft: #e2edf1;
+
+  /* Verdict colors are independent of the structural accent. */
+  --verdict-stands: #2e7d5b;
+  --verdict-stands-soft: #e4f0e9;
+  --verdict-caveat: #b8860b;
+  --verdict-caveat-soft: #f5ecd2;
+  --verdict-withdrawn: #a83a32;
+  --verdict-withdrawn-soft: #f5e5e3;
+
+  /* Compatibility aliases used by the component rules below. */
+  --link: var(--structure);
+  --link-soft: var(--structure-soft);
+  --green: var(--verdict-stands);
+  --green-soft: var(--verdict-stands-soft);
+  --neutral: #6e7982;
+  --neutral-soft: #e8eceb;
+  --accent: var(--verdict-caveat);
+  --accent-soft: var(--verdict-caveat-soft);
+  --danger: var(--verdict-withdrawn);
+  --danger-soft: var(--verdict-withdrawn-soft);
+  --quote-bg: #edf0ee;
+
+  --shadow: 0 1px 2px rgba(20, 30, 40, 0.06);
+  --shadow-lg: 0 2px 8px rgba(20, 30, 40, 0.08);
+  --radius: 6px;
+}
+
+html.dark {
+  --bg: #121920;
+  --bg-raised: #1b2430;
+  --bg-sunken: #0d141a;
+  --ink: #edf1f1;
+  --ink-muted: #a8b2b9;
+  --rule: #34434d;
+
+  --structure: #72a8c2;
+  --structure-soft: #1d3440;
+  --verdict-stands: #69b18f;
+  --verdict-stands-soft: #19362a;
+  --verdict-caveat: #d5b452;
+  --verdict-caveat-soft: #3b3013;
+  --verdict-withdrawn: #df786f;
+  --verdict-withdrawn-soft: #3d211f;
+
+  --link: var(--structure);
+  --link-soft: var(--structure-soft);
+  --green: var(--verdict-stands);
+  --green-soft: var(--verdict-stands-soft);
+  --neutral: #9ca7ae;
+  --neutral-soft: #263139;
+  --accent: var(--verdict-caveat);
+  --accent-soft: var(--verdict-caveat-soft);
+  --danger: var(--verdict-withdrawn);
+  --danger-soft: var(--verdict-withdrawn-soft);
+  --quote-bg: #202a33;
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* --------------------------------------------------------------------------
+   2. Page shell
+   -------------------------------------------------------------------------- */
+
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+body.m-0,
+html.dark body.m-0 {
+  background-color: var(--bg) !important;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background: var(--link-soft);
+}
+
+/* Widen the centre column. The theme's grid is rebuilt with the same line
+   names so margin content, gutters and the sidebar stay in register. */
+@media (min-width: 768px) {
+  .article-grid,
+  .xl\:article-grid {
+    grid-template-columns:
+      [screen-start] 0.25rem
+      [screen-inset-start page-start page-inset-start body-outset-start] minmax(1.5rem, 1fr)
+      [body-start gutter-left-start] 1rem
+      [body-inset-start] var(--book-col-sm)
+      [middle-start] var(--book-col-sm)
+      [gutter-left-end] var(--book-col-sm) var(--book-col-sm)
+      [gutter-right-start] var(--book-col-sm)
+      [middle-end] var(--book-col-sm)
+      [body-inset-end] 1rem
+      [body-end gutter-right-end] minmax(1.5rem, 1fr)
+      [body-outset-end page-inset-end page-end screen-inset-end] 0.25rem
+      [screen-end];
+  }
+}
+
+@media (min-width: 1024px) {
+  .article-grid,
+  .xl\:article-grid {
+    grid-template-columns:
+      [screen-start] 0.25rem
+      [screen-inset-start page-start] 1rem
+      [page-inset-start body-outset-start] minmax(1.5rem, 1fr)
+      [body-start gutter-left-start] 1rem
+      [body-inset-start] var(--book-col)
+      [middle-start] var(--book-col)
+      [gutter-left-end] var(--book-col) var(--book-col)
+      [gutter-right-start] var(--book-col)
+      [middle-end] var(--book-col)
+      [body-inset-end] 1rem
+      [body-end gutter-right-end] 3rem
+      [body-outset-end] minmax(5rem, 13rem)
+      [page-inset-end] 3rem
+      [page-end] 1fr
+      [screen-inset-end] 0.25rem
+      [screen-end];
+  }
+}
+
+@media (min-width: 1280px) {
+  .article-grid,
+  .xl\:article-grid {
+    grid-template-columns:
+      [screen-start] 0.25rem
+      [screen-inset-start] 1fr
+      [page-start] 3rem
+      [page-inset-start] minmax(4rem, 10rem)
+      [body-outset-start] 3rem
+      [body-start gutter-left-start] 1rem
+      [body-inset-start] var(--book-col)
+      [middle-start] var(--book-col)
+      [gutter-left-end] var(--book-col) var(--book-col)
+      [gutter-right-start] var(--book-col)
+      [middle-end] var(--book-col)
+      [body-inset-end] 1rem
+      [body-end gutter-right-end] 3rem
+      [body-outset-end] minmax(5rem, 13rem)
+      [page-inset-end] 3rem
+      [page-end] 1fr
+      [screen-inset-end] 0.25rem
+      [screen-end];
+  }
+}
+
+@media (min-width: 1536px) {
+  .article-grid,
+  .xl\:article-grid {
+    grid-template-columns:
+      [screen-start] 0.5rem
+      [screen-inset-start] 1fr
+      [page-start] 3rem
+      [page-inset-start] minmax(4rem, 10rem)
+      [body-outset-start] 3rem
+      [body-start gutter-left-start] 1rem
+      [body-inset-start] var(--book-col)
+      [middle-start] var(--book-col)
+      [gutter-left-end] var(--book-col) var(--book-col)
+      [gutter-right-start] var(--book-col)
+      [middle-end] var(--book-col)
+      [body-inset-end] 1rem
+      [body-end gutter-right-end] 3rem
+      [body-outset-end] minmax(5rem, 13rem)
+      [page-inset-end] 3rem
+      [page-end] 1fr
+      [screen-inset-end] 0.5rem
+      [screen-end];
+  }
+}
+
+/* --------------------------------------------------------------------------
+   3. Top bar
+   -------------------------------------------------------------------------- */
+
+.myst-top-nav,
+html.dark .myst-top-nav {
+  background-color: color-mix(in srgb, var(--bg) 88%, transparent) !important;
+  border-bottom: 1px solid var(--rule);
+  box-shadow: none !important;
+}
+
+.myst-home-link,
+html.dark .myst-home-link {
+  color: var(--ink) !important;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+.myst-search-bar,
+html.dark .myst-search-bar {
+  background-color: var(--bg-raised) !important;
+  border-color: var(--rule) !important;
+  border-radius: var(--radius) !important;
+  color: var(--ink-muted) !important;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+}
+
+.myst-search-shortcut,
+.myst-search-text-placeholder {
+  font-family: var(--font-sans);
+}
+
+.myst-theme-button,
+html.dark .myst-theme-button {
+  border-color: var(--rule) !important;
+  color: var(--ink-muted) !important;
+}
+
+.myst-top-nav a:not(.myst-home-link) {
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+}
+
+/* “View on GitHub” style action buttons in the header. */
+.myst-top-nav-bar a[href^="http"]:not(.myst-home-link) {
+  border-radius: var(--radius);
+}
+
+/* --------------------------------------------------------------------------
+   4. Sidebars
+   -------------------------------------------------------------------------- */
+
+.myst-primary-sidebar,
+.myst-toc,
+.myst-outline {
+  font-family: var(--font-sans);
+}
+
+.myst-primary-sidebar-nav {
+  font-size: 0.855rem;
+  line-height: 1.4;
+}
+
+.myst-toc-item,
+html.dark .myst-toc-item {
+  color: var(--ink-muted) !important;
+  border-radius: var(--radius) !important;
+  font-weight: 400;
+}
+
+.myst-toc-item:hover {
+  background-color: var(--bg-sunken) !important;
+  color: var(--ink) !important;
+}
+
+/* Active page */
+.myst-toc-item[aria-current="page"],
+.myst-toc-item.myst-toc-item-exact,
+html.dark .myst-toc-item.myst-toc-item-exact {
+  background-color: var(--link-soft) !important;
+  color: var(--link) !important;
+  font-weight: 600;
+}
+
+/* Section headings inside the left nav */
+.myst-toc-item.font-bold,
+html.dark .myst-toc-item.font-bold {
+  color: var(--ink) !important;
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+.myst-primary-sidebar-footer,
+.myst-made-with-myst {
+  font-family: var(--font-sans);
+  color: var(--ink-muted) !important;
+  opacity: 0.65;
+}
+
+/* Right-hand document outline */
+.myst-outline,
+html.dark .myst-outline {
+  background-color: transparent !important;
+  backdrop-filter: none !important;
+  font-size: 0.79rem;
+  line-height: 1.45;
+}
+
+.myst-outline-header,
+html.dark .myst-outline-header {
+  font-family: var(--font-sans);
+  font-size: 0.7rem !important;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-muted) !important;
+}
+
+.myst-outline-item,
+html.dark .myst-outline-item {
+  border-left-color: var(--rule) !important;
+}
+
+.myst-outline-item a,
+.myst-outline a {
+  color: var(--ink-muted) !important;
+}
+
+.myst-outline-item:hover,
+html.dark .myst-outline-item:hover {
+  border-left-color: var(--link) !important;
+}
+
+.myst-outline-item:hover a,
+.myst-outline a:hover {
+  color: var(--ink) !important;
+}
+
+/* --------------------------------------------------------------------------
+   5. Prose
+   -------------------------------------------------------------------------- */
+
+.article,
+.article.content {
+  --tw-prose-body: var(--ink);
+  --tw-prose-headings: var(--ink);
+  --tw-prose-lead: var(--ink-muted);
+  --tw-prose-links: var(--link);
+  --tw-prose-bold: var(--ink);
+  --tw-prose-counters: var(--ink-muted);
+  --tw-prose-bullets: var(--rule);
+  --tw-prose-hr: var(--rule);
+  --tw-prose-quotes: var(--ink);
+  --tw-prose-quote-borders: var(--rule);
+  --tw-prose-captions: var(--ink-muted);
+  --tw-prose-code: var(--ink);
+  --tw-prose-th-borders: var(--rule);
+  --tw-prose-td-borders: var(--rule);
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  line-height: 1.62;
+  color: var(--ink);
+}
+
+.article.content p {
+  margin-top: 0;
+  margin-bottom: 1em;
+}
+
+.article.content strong {
+  font-weight: 600;
+}
+
+.article.content a {
+  color: var(--link);
+  font-weight: 400;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 120ms ease;
+}
+
+.article.content a:hover {
+  border-bottom-color: var(--link);
+}
+
+.article.content a:focus-visible {
+  outline: 2px solid var(--structure);
+  outline-offset: 2px;
+}
+
+/* Headings */
+.article.content h1,
+.article.content h2,
+.article.content h3,
+.myst-fm-block-title {
+  font-family: var(--font-display);
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.myst-fm-block-title,
+.article.content h1 {
+  font-weight: 500 !important;
+  font-size: 2.5rem;
+  line-height: 1.12;
+  letter-spacing: -0.012em;
+}
+
+.article.content h2 {
+  font-weight: 500;
+  font-size: 1.72rem;
+  line-height: 1.2;
+  letter-spacing: -0.006em;
+  margin-top: 3rem;
+  margin-bottom: 0.85rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--rule);
+}
+
+.article.content h3 {
+  font-weight: 600;
+  font-size: 1.25rem;
+  line-height: 1.25;
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.article.content h4,
+.article.content h5,
+.article.content h6 {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: 0.01em;
+  margin-top: 1.6rem;
+  margin-bottom: 0.4rem;
+}
+
+.article.content h4 {
+  font-size: 1rem;
+}
+
+.article.content h5,
+.article.content h6 {
+  font-size: 0.9rem;
+  color: var(--ink-muted);
+}
+
+/* Frontmatter block */
+.myst-fm-block-header,
+.myst-fm-authors-affiliations,
+.myst-fm-author-name {
+  font-family: var(--font-sans);
+  color: var(--ink-muted) !important;
+}
+
+.myst-fm-block-header {
+  border-bottom: none;
+}
+
+.myst-fm-github-icon,
+.myst-fm-edit-icon,
+.myst-fm-downloads-icon {
+  color: var(--ink-muted);
+}
+
+/* Lists */
+.article.content ul,
+.article.content ol {
+  margin-top: 0.5em;
+  margin-bottom: 1em;
+}
+
+.article.content li {
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+}
+
+/* Rules and quotes */
+.article.content hr {
+  border-color: var(--rule);
+  margin: 2.5rem 0;
+}
+
+.article.content blockquote {
+  font-style: normal;
+  font-weight: 400;
+  background: var(--quote-bg);
+  border-left: 3px solid var(--neutral);
+  border-radius: 0 4px 4px 0;
+  padding: 0.75rem 1.1rem;
+  margin: 1rem 0 1.35rem;
+  color: var(--ink);
+}
+
+.article.content blockquote p:first-of-type::before,
+.article.content blockquote p:last-of-type::after {
+  content: none;
+}
+
+/* Figures */
+.article.content figure {
+  margin: 1.5rem 0;
+}
+
+.article.content figure img {
+  border-radius: var(--radius);
+}
+
+/* Captions */
+figcaption,
+.article.content figcaption,
+.interaction-lenses-caption {
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--ink-muted);
+}
+
+/* A shared interaction loop, shown in the vocabularies used across the book. */
+.interaction-lenses-figure {
+  margin: 1.5rem 0;
+}
+
+.interaction-lenses {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+  width: 100%;
+  font-family: var(--font-sans);
+}
+
+.interaction-lens {
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  min-width: 0;
+  padding: 0.85rem 0.72rem 0.72rem;
+  background: var(--bg-raised);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.interaction-lens-title {
+  margin-bottom: 0.7rem;
+  color: var(--ink);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.interaction-loop {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 4.5rem minmax(0, 1fr);
+  align-items: center;
+  min-height: 6.8rem;
+}
+
+.interaction-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 4.35rem;
+  padding: 0.45rem 0.3rem;
+  color: var(--ink);
+  text-align: center;
+  background: var(--bg);
+  border: 1.5px solid var(--structure);
+  border-radius: var(--radius);
+}
+
+.interaction-node-world {
+  background: var(--structure-soft);
+}
+
+.interaction-node > span {
+  font-size: 0.76rem;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.interaction-node small {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--ink-muted);
+  font-size: 0.59rem;
+  line-height: 1.2;
+}
+
+.interaction-arrows {
+  display: grid;
+  grid-template-rows: minmax(1.7rem, auto) 2.25rem minmax(2rem, auto);
+  align-items: center;
+  justify-items: center;
+  color: var(--ink-muted);
+  text-align: center;
+}
+
+.interaction-arrows > span {
+  font-size: 0.61rem;
+  line-height: 1.15;
+}
+
+.interaction-arrows svg {
+  display: block;
+  width: 100%;
+  height: 2.25rem;
+  overflow: visible;
+}
+
+.interaction-arrows path {
+  fill: none;
+  stroke: var(--structure);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.interaction-lens > p {
+  margin: 0.8rem 0 0.55rem;
+  color: var(--ink);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.interaction-context {
+  padding-top: 0.45rem;
+  color: var(--ink-muted);
+  border-top: 1px solid var(--rule);
+  font-size: 0.61rem;
+  line-height: 1.35;
+}
+
+.interaction-lenses-caption {
+  margin-top: 0.75rem;
+}
+
+@media (min-width: 1024px) {
+  .article.content .interaction-lenses-figure {
+    grid-column: body-outset-start / body-outset-end;
+  }
+}
+
+@media (max-width: 800px) {
+  .interaction-lenses {
+    grid-template-columns: 1fr;
+  }
+
+  .interaction-loop {
+    width: min(100%, 22rem);
+    margin-inline: auto;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   6. Code
+   -------------------------------------------------------------------------- */
+
+.article.content code,
+.article.content kbd,
+.article.content samp,
+.myst-code,
+.myst-code-body {
+  font-family: var(--font-mono);
+}
+
+/* Inline code — no Tailwind backticks, a quiet chip instead. */
+.article.content :where(code)::before,
+.article.content :where(code)::after {
+  content: none !important;
+}
+
+.article.content :not(pre) > code {
+  font-size: 0.855em;
+  font-weight: 400;
+  color: var(--ink);
+  background: var(--bg-sunken);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.05em 0.32em;
+}
+
+/* Code blocks */
+.myst-code,
+html.dark .myst-code {
+  background-color: var(--bg-raised) !important;
+  border: 1px solid var(--rule) !important;
+  border-left: 3px solid var(--neutral) !important;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow) !important;
+  font-size: 0.82rem;
+}
+
+.myst-code:hover {
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.myst-code-body,
+html.dark .myst-code-body {
+  background-color: transparent !important;
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+.myst-code-copy-icon {
+  color: var(--ink-muted);
+}
+
+/* Notebook output blocks */
+.myst-jp-stream-output,
+.myst-jp-nb-block pre,
+html.dark .myst-jp-stream-output {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  background-color: var(--bg-sunken) !important;
+  color: var(--ink);
+  border-radius: 4px;
+}
+
+/* --------------------------------------------------------------------------
+   7. Admonitions
+   -------------------------------------------------------------------------- */
+
+.myst-admonition {
+  --adm: var(--neutral);
+  --adm-soft: var(--neutral-soft);
+}
+
+.myst-admonition-note,
+.myst-admonition-important {
+  --adm: var(--link);
+  --adm-soft: var(--link-soft);
+}
+
+.myst-admonition-tip,
+.myst-admonition-hint,
+.myst-admonition-seealso {
+  --adm: var(--green);
+  --adm-soft: var(--green-soft);
+}
+
+.myst-admonition-warning,
+.myst-admonition-caution,
+.myst-admonition-attention {
+  --adm: var(--accent);
+  --adm-soft: var(--accent-soft);
+}
+
+.myst-admonition-danger,
+.myst-admonition-error {
+  --adm: var(--danger);
+  --adm-soft: var(--danger-soft);
+}
+
+.myst-admonition,
+html.dark .myst-admonition {
+  background-color: var(--bg-raised) !important;
+  border: 1px solid var(--rule) !important;
+  border-left: 3px solid var(--adm) !important;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  box-shadow: var(--shadow) !important;
+}
+
+.myst-admonition-header,
+html.dark .myst-admonition-header {
+  background-color: var(--adm-soft) !important;
+  color: var(--adm) !important;
+  border-bottom: 1px solid var(--rule);
+  padding-top: 0.4rem;
+  padding-bottom: 0.4rem;
+}
+
+.myst-admonition-header-text {
+  font-family: var(--font-sans);
+  font-size: 0.72rem !important;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  align-self: center;
+}
+
+.myst-admonition-header-icon,
+html.dark .myst-admonition-header-icon {
+  color: var(--adm) !important;
+  width: 1.15rem !important;
+  height: 1.15rem !important;
+}
+
+.myst-admonition-body {
+  padding: 0.9rem 1.1rem 0.15rem;
+}
+
+.course-definition,
+html.dark .course-definition {
+  --adm: var(--structure);
+  --adm-soft: var(--structure-soft);
+}
+
+.course-definition .myst-admonition-header-icon {
+  display: none;
+}
+
+.course-definition .myst-admonition-body > p:first-child {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 1.12rem;
+  line-height: 1.45;
+}
+
+.course-definition .myst-admonition-body > p:last-child {
+  color: var(--ink-muted);
+  font-size: 0.9rem;
+}
+
+/* --------------------------------------------------------------------------
+   8. Proofs, exercises, dropdowns
+   -------------------------------------------------------------------------- */
+
+.myst-proof,
+.myst-exercise,
+html.dark .myst-proof,
+html.dark .myst-exercise {
+  background-color: var(--bg-raised) !important;
+  border: 1px solid var(--rule) !important;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  box-shadow: var(--shadow) !important;
+}
+
+.myst-proof,
+html.dark .myst-proof {
+  border-left: 3px solid var(--neutral) !important;
+}
+
+.myst-exercise,
+html.dark .myst-exercise {
+  border-left: 3px solid var(--link) !important;
+}
+
+.myst-proof-header,
+.myst-exercise-header,
+html.dark .myst-proof-header,
+html.dark .myst-exercise-header {
+  border-top: 0 !important;
+  border-bottom: 1px solid var(--rule) !important;
+  padding-top: 0.45rem;
+  padding-bottom: 0.45rem;
+}
+
+.myst-proof-header,
+html.dark .myst-proof-header {
+  background-color: var(--bg-sunken) !important;
+}
+
+.myst-exercise-header,
+html.dark .myst-exercise-header {
+  background-color: var(--link-soft) !important;
+}
+
+/* The label ("Algorithm 1") reads as an eyebrow; the parenthetical title that
+   follows it stays in sentence case so long names remain readable. */
+.myst-proof-title,
+.myst-exercise-title,
+html.dark .myst-proof-title,
+html.dark .myst-exercise-title {
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.myst-proof-title > a,
+.myst-exercise-title > a {
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  margin-right: 0.15rem;
+}
+
+.myst-proof-title,
+html.dark .myst-proof-title {
+  color: var(--ink-muted) !important;
+}
+
+.myst-exercise-title,
+html.dark .myst-exercise-title {
+  color: var(--link) !important;
+}
+
+.myst-proof-body,
+.myst-exercise-body {
+  padding: 0.9rem 1.1rem 0.15rem;
+}
+
+.myst-dropdown,
+html.dark .myst-dropdown {
+  background-color: var(--bg-raised) !important;
+  border: 1px solid var(--rule) !important;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow) !important;
+}
+
+.myst-dropdown-header,
+html.dark .myst-dropdown-header {
+  background-color: var(--bg-sunken) !important;
+  border-bottom: 1px solid var(--rule);
+}
+
+.myst-dropdown-header-title,
+html.dark .myst-dropdown-header-title {
+  font-family: var(--font-sans);
+  font-size: 0.86rem !important;
+  font-weight: 600;
+  color: var(--ink) !important;
+}
+
+.myst-dropdown-header-icon {
+  color: var(--ink-muted);
+}
+
+.myst-dropdown-body {
+  padding: 0.9rem 1.1rem 0.15rem;
+}
+
+/* Tab sets */
+.myst-tab-set-row,
+html.dark .myst-tab-set-row {
+  border-bottom: 1px solid var(--rule) !important;
+}
+
+.myst-tab-item-header {
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.myst-tab-item-header-inactive,
+html.dark .myst-tab-item-header-inactive {
+  color: var(--ink-muted) !important;
+}
+
+.myst-tab-item-header-inactive:hover {
+  color: var(--ink) !important;
+}
+
+.myst-tab-item-header-active,
+html.dark .myst-tab-item-header-active {
+  color: var(--link) !important;
+  border-bottom-color: var(--link) !important;
+}
+
+/* Bibliography */
+.myst-bibliography-header,
+html.dark .myst-bibliography-header {
+  font-family: var(--font-display);
+  font-weight: 500;
+  color: var(--ink) !important;
+}
+
+.myst-bibliography-item {
+  font-size: 0.92rem;
+  color: var(--ink-muted);
+}
+
+/* --------------------------------------------------------------------------
+   9. Tables
+   -------------------------------------------------------------------------- */
+
+.article.content table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  box-shadow: var(--shadow);
+  font-size: 0.88rem;
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Markdown alignment marks quantitative columns as text-right. These cells,
+   explicit metric values, and opt-in numeric spans use Plex Mono so columns
+   scan vertically without forcing prose-heavy table cells into monospace. */
+.article.content td.text-right,
+.article.content th.text-right,
+.article.content .numeric,
+.article.content .metric-value,
+.article.content [data-numeric],
+.tabular-nums {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* Reusable verdict semantics. Steel teal is deliberately absent here. */
+.verdict-stands,
+[data-verdict="stands"] {
+  color: var(--verdict-stands) !important;
+}
+
+.verdict-caveat,
+[data-verdict="caveat"] {
+  color: var(--verdict-caveat) !important;
+}
+
+.verdict-withdrawn,
+[data-verdict="withdrawn"] {
+  color: var(--verdict-withdrawn) !important;
+}
+
+.article.content thead {
+  background: var(--bg-sunken);
+}
+
+.article.content th {
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  text-align: left;
+  vertical-align: bottom;
+}
+
+.article.content th,
+.article.content td {
+  border-bottom: 1px solid var(--rule);
+  border-top: 0;
+  padding: 0.55rem 0.7rem;
+  vertical-align: top;
+}
+
+.article.content tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* --------------------------------------------------------------------------
+   10. Footer navigation
+   -------------------------------------------------------------------------- */
+
+.myst-footer-link,
+html.dark .myst-footer-link {
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  background-color: var(--bg-raised) !important;
+  border: 1px solid var(--rule) !important;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow) !important;
+  color: var(--ink-muted) !important;
+}
+
+.myst-footer-link:hover,
+html.dark .myst-footer-link:hover {
+  border-color: var(--link) !important;
+  color: var(--link) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+/* --------------------------------------------------------------------------
+   11. Math
+   -------------------------------------------------------------------------- */
+
+.katex {
+  font-size: 1.04em;
+}
+
+.article.content .katex-display {
+  margin: 1.4rem 0;
+}
+
+/* Equation numbers */
+.article.content .katex-display > .katex > .katex-html > .tag {
+  color: var(--ink-muted);
+}
+
+/* --------------------------------------------------------------------------
+   12. Embeds and interactive demos
+   -------------------------------------------------------------------------- */
+
+iframe {
+  max-width: 100%;
+}
+
+.myst-iframe {
+  width: 100%;
+  min-height: 36rem;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+}
+
+@media (max-width: 640px) {
+  .myst-iframe {
+    min-height: 28rem;
+  }
+}
+
+/* Let Vega-Lite and marimo outputs use the available reading width. */
+.vega-embed,
+.marimo-embed,
+.marimo-embed > div {
+  max-width: 100%;
+}
+
+/* PDF-only fallbacks are removed from the interactive HTML site. */
+.pdf-fallback {
+  display: none;
+}
