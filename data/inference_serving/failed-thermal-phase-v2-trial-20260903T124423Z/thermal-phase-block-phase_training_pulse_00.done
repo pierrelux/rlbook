@@ -1,0 +1,27 @@
+{
+  "actual_duration_s": 75.00058008000008,
+  "block": {
+    "block_id": "phase_training_pulse_00",
+    "condition": {
+      "concurrency": 8,
+      "output_tokens": 32,
+      "phase": "decode",
+      "prompt_tokens": 128
+    },
+    "duration_s": 75.0,
+    "requested_power_limit_w": 46.0,
+    "role": "phase_training",
+    "sequence": "phase_training",
+    "split": "training"
+  },
+  "block_telemetry_rows": 749,
+  "ended_elapsed_s": 602.483219229,
+  "maximum_temperature_c": 69.0,
+  "mean_power_w": 47.06939919893197,
+  "median_realized_clock_mhz": 210.0,
+  "minimum_temperature_c": 57.0,
+  "request_rows": 160,
+  "started_elapsed_s": 527.482639149,
+  "status": "complete",
+  "telemetry_rows": 6036
+}

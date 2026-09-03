@@ -106,8 +106,29 @@ RLBOOK_RUN_THERMAL_PHASE_IDENTIFICATION=YES \
   bash scripts/run_inference_thermal_phase_gcp.sh
 ```
 
-It uses six independent cold-start pulses and the same cooldown and watchdog
-rules as the completed thermal-identification run. The four training pulses are
+It uses six independent cold-start pulses. A first confirmatory attempt stopped
+before any pulse because its memory clock remained pinned at 6251 MHz during
+conditioning; on that host, the resulting 21.69 W idle state plateaued at 61
+degrees C and could not meet the old 52 degree C gate. That failed bundle is
+preserved separately and is not confirmatory data.
+
+A second attempt completed one decode pulse, then exposed a different protocol
+error. The one-second memory relock raised the next candidate start from 57 to
+58 degrees C. Both post-relock starts lay inside the intended one-degree band,
+but an extra check compared 58 degrees C against the original 56 degree C
+pre-relock reference. That attempt also failed closed, and its partial bundle
+is preserved separately.
+
+The revised protocol releases the memory-clock lock during every idle cooldown,
+requires a 120-second window no warmer than 58 degrees C with at most 1 degree C
+variation, and checks the resulting temperature and idle power against the
+first accepted conditioning state. It then re-locks memory at 6251 MHz for one
+recorded second and verifies both clock and temperature before starting a
+measured pulse. Pre-relock cooldown states are compared with one another;
+post-relock pulse starts are compared with one another. The 58 degree C ceiling
+is a safety constraint that preserves
+19 degrees C of margin to the unchanged 77 degree C safe-down threshold; it is
+not treated as a universal ambient temperature. The four training pulses are
 ordered as 46 W decode for 75 seconds, 61 W prefill for 45 seconds, 46 W
 prefill for 75 seconds, and 61 W decode for 45 seconds. The untouched
 validation pair is 55 W decode followed by 55 W prefill, each for 60 seconds.
@@ -117,14 +138,16 @@ and one generated token. The counterbalanced training order separates workload
 phase from cap and duration, while the validation pair is evaluated only after
 the model and any phase correction have been fixed.
 
-The six pulses provide 360 seconds of excitation. Based on the completed run's
-cooldowns, the expected end-to-end runtime is about 43 minutes. After the server
-is ready, the conservative acquisition envelope is 66 minutes if every
-cooldown reaches its ten-minute timeout. The provider deletes the VM after two
-hours. The hard cumulative exposure guard is
-USD 0.40 for the failed trial, plus USD 1.60 for the completed run, plus
-USD 1.707248624 for at most two new compute hours, plus USD 0.50 of headroom:
-USD 4.207248624 in total, below the USD 4.80 ceiling.
+The six pulses provide 360 seconds of excitation. After the server is ready,
+the conservative acquisition envelope is 96 minutes if every cooldown nearly
+reaches its fifteen-minute timeout. The provider deletes the VM after 115
+minutes, and local monitoring stops five minutes earlier to leave time for
+cleanup. The hard cumulative exposure guard is USD 0.40 for the first failed
+thermal trial, USD 1.60 for the completed cold-pulse run, USD 0.31 for each of
+the two failed confirmatory attempts, USD 1.636113264666666666666666667 for at
+most 115 new compute minutes, and USD 0.50 of disk and miscellaneous headroom.
+The resulting USD 4.756113264666666666666666667 maximum remains below the USD
+4.80 ceiling.
 
 This workflow writes only `thermal_phase_manifest.json`,
 `l4_thermal_phase_telemetry.csv`, `l4_thermal_phase_requests.csv`, and their
@@ -135,3 +158,26 @@ strictly below the 79 degree C abort threshold before promoting the bundle. The
 workflow is acquisition-only. A later analysis may test a prespecified input
 correction such as `P_eff = P * (1 + beta * I_prefill)`, but the untouched pair
 must decide whether that added structure improves free-run prediction.
+
+The completed confirmatory bundle is
+`thermal-phase-identification-20260903T131518Z`. It contains 29,171 telemetry
+rows, 640 completed requests, six stable cooldowns, and six complete pulses.
+The four training starts and the untouched validation starts span 53 to 54
+degrees C after memory relock. The two validation pulses drew 54.724 W for
+decode and 54.591 W for prefill; their integrated energies differ by 6.66 J,
+or about 0.2 percent.
+
+The phase-gain model reduced validation RMSE from 1.427 to 0.870 degrees C, but
+it failed the fixed acceptance rule. Its largest validation trajectory error
+was 2.731 degrees C, and its error on the one-second aligned phase contrast was
+1.431 degrees C. The fitted model is therefore not used for mixed-serving
+thermal constraints or as a hardware safety certificate.
+
+The launcher's first local promotion check treated the first row labeled with
+the workload as the pulse-start measurement. On some pulses this asynchronous
+sensor row arrived about 0.1 seconds after the verified memory-relock sample
+and differed by up to 2 degrees C. The acquisition manifest already recorded
+the six post-relock samples explicitly. The validator and fitter now use those
+recorded samples for the start-state invariant and retain the first workload
+row as ordinary trajectory data. No measured row or validation outcome was
+changed.

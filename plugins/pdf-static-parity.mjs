@@ -122,6 +122,7 @@ const staticCompanionSvgPatterns = [
   /^_static\/gimbal\/partial-observability\.svg$/,
   /^_static\/swing_modeling\/model_audit\.svg$/,
   /^_static\/battery\/fast-charging\.svg$/,
+  /^_static\/cubesat\/differential-drag\.svg$/,
 ];
 
 // The HTML book keeps the responsive SVG fallbacks. For TeX, point the same

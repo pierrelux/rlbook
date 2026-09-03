@@ -1,0 +1,76 @@
+{
+  "build_elapsed_s": 1.55,
+  "command": "uv run python scripts/build_cubesat_artifacts.py",
+  "hardware": {
+    "machine": "arm64",
+    "platform": "macOS-14.6-arm64-arm-64bit",
+    "processor": "arm"
+  },
+  "inputs": {
+    "_static/battery/fonts/IBM-Plex-LICENSE.txt": "7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da",
+    "_static/battery/fonts/IBMPlexMono-Regular.ttf": "7c6fbddca4b700be918f5f6183d9bd4464fa427fe435f0b480d77fe2bb8c5a43",
+    "_static/battery/fonts/IBMPlexSans-Regular.ttf": "975dcda37d80f038dcd143c22e33ca2d97a0cc5a929aace1c749153b0fe1afa5",
+    "_static/battery/fonts/IBMPlexSans-SemiBold.ttf": "a20caf8286023a6a7a85e40b1d2a4ae9fc3e3b1f9eda8f4c542dd4986af67bb1",
+    "_static/battery/fonts/Newsreader-OFL.txt": "fdfad38143ec470553cae82a1e45320bdd1b9ec70415d37bd0171051d8a4ded8",
+    "_static/battery/fonts/Newsreader.ttf": "8a08d13f8a6c0d51be379a60af84f945f65369a67e509ee3c3bdcc421254d7c1",
+    "_static/battery/fonts/README.md": "bdd24b6296ce80463ce0452ec14389ec8683b9b7cd62393e6e9bd0b8204f16ac",
+    "code/cubesat_differential_drag.py": "3c577059d55fd2e40e9088fd721b7345ded83b0105c736e6d5b2d689793ff91a",
+    "code/cubesat_replay.py": "710d9efb3bdfb33749108114297ccdd8a15904b95054394b8f6a6a597a5110ea",
+    "pyproject.toml": "9c39f7b2e6337d8182a18f7915bde7120d65fac64b9abe157f9a94c2cb060bff",
+    "scripts/build_cubesat_artifacts.py": "b828de68899676be96ef1488cae314da24227980ee32b15850f91f40c11c05d7",
+    "uv.lock": "0934921e192640c3858800a5f4471b48b1e9f37b1afc51dfe6e73d5a36d5b804"
+  },
+  "outputs": {
+    "_static/cubesat/differential-drag.pdf": "362d57b4f334d1d1ead770b74c4e06fd77d6170d48de978a259b1c32d9928541",
+    "_static/cubesat/differential-drag.svg": "21702909fb44d13ce4260a4d167068d20f6307c827dc1d7aa47f0410ba4d8251",
+    "artifacts/cubesat/metrics.csv": "455d56deae1810425e9f4bdae3561ef660be919bac88a1ce7286453dc44b2c2e",
+    "artifacts/cubesat/open_loop_plan.csv": "5f7ce688b78b773ad3a16ad5561df582f28db5cd5fa00c14b1885f3c3cd014d4",
+    "artifacts/cubesat/results.md": "89c7708d3cee4ceb5d0a3edb24574c474248c03aeca70e09a9660f45e77ebf25",
+    "artifacts/cubesat/textbook_results.json": "89c8ad14e65440c67a64f3ce486bd2e2ccd0d132fb4b7530f81022c7700b8438",
+    "artifacts/cubesat/trajectories.npz": "7d38ae5d8dd7d73f67ff5f1a9d0d9a5c98daeafee93df5d91766c05bcb6fcf11"
+  },
+  "protocol": {
+    "json_sampling": "integer days 0 through 180 inclusive",
+    "metrics_sha256": "dcaf36b6e5d8b943d80dcb430db143b3b64134b83eae58d902d76762966c5f8e",
+    "nonlinear_replay": {
+      "immutable_plan": true,
+      "method": "fixed-step classical RK4",
+      "reference_step_hours": 0.5,
+      "step_hours": 1.0
+    },
+    "npz_sampling": "daily views plus complete hourly nonlinear replay",
+    "plan_identity_sha256": "6cf023344145cd131b3aceabf0a51de5fb9907e46851e0aa99ae7edaf08343bb",
+    "planning_model": {
+      "primary_lock_tolerance_km": 1e-09,
+      "primary_objective": "minimize maximum final extra altitude loss",
+      "secondary_objective": "minimize total variation",
+      "step_days": 1.0,
+      "steps": 180
+    },
+    "validation": {
+      "action_bounds": true,
+      "altitude_safe": true,
+      "density_variation": true,
+      "derived_coefficients": true,
+      "extra_loss_nonnegative": true,
+      "nominal_dynamics": true,
+      "nominal_terminal_gaps": true,
+      "nominal_terminal_rates": true,
+      "nonlinear_stress_test_visible": true,
+      "plan_identity": true,
+      "primary_objective_locked": true,
+      "replay_finite": true,
+      "replay_resolution": true,
+      "solver_status": true,
+      "tv_refinement": true
+    }
+  },
+  "schema_version": 1,
+  "software": {
+    "matplotlib": "3.10.3",
+    "numpy": "2.3.1",
+    "python": "3.12.8",
+    "scipy": "1.16.1"
+  },
+  "status": "complete"
+}

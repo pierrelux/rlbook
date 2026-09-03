@@ -174,8 +174,11 @@ def _write_results(results: dict[str, object], fitted: object) -> Path:
     lines.extend(
         [
             (
-                f"The diagnostic pulse estimates a resistance multiplier of "
-                f"{fitted.resistance_scale:.4f}, with a voltage RMSE of "
+                f"The pulse-response fit gives alpha = "
+                f"{fitted.resistance_scale:.4f}. Within the declared one-parameter "
+                "model, this means that R0 and R1 are estimated to be "
+                f"{fitted.resistance_scale:.4f} times their nominal values. The "
+                f"fitted voltage trace has an RMSE of "
                 f"{1000.0 * fitted.voltage_rmse_v:.2f} mV. The fresh plant reaches "
                 f"the target in {fresh.metrics.target_time_s / 60:.2f} minutes. "
                 f"The stale model reaches "

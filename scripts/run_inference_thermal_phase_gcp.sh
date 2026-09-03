@@ -13,17 +13,20 @@ IMAGE_PROJECT="deeplearning-platform-release"
 REMOTE_SCRIPT="/var/tmp/profile_inference_gpu.py"
 REMOTE_OUTPUT="/var/tmp/inference-serving-thermal-phase"
 RUN_STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
+RUN_STARTED_EPOCH="$(date +%s)"
 LOCAL_OUTPUT="${1:-data/inference_serving/thermal-phase-identification-${RUN_STAMP}}"
 STAGING_ROOT="${TMPDIR:-/private/tmp}"
 STAGING_OUTPUT="${STAGING_ROOT%/}/rlbook-inference-thermal-phase-${VM_NAME}-${RUN_STAMP}"
-MAX_RUNTIME_HOURS="2"
-MAX_RUNTIME="2h"
+MAX_RUNTIME_SECONDS="6900"
+MAX_RUNTIME="6900s"
 ON_DEMAND_USD_PER_HOUR="0.853624312"
 DISK_AND_MISC_HEADROOM_USD="0.50"
 PRIOR_FAILED_TRIAL_USD="0.40"
 PRIOR_COMPLETED_RUN_USD="1.60"
-MAX_NEW_COMPUTE_USD="1.707248624"
-EXPECTED_MAX_CUMULATIVE_USD="4.207248624"
+PRIOR_PHASE_V1_FAILED_TRIAL_USD="0.31"
+PRIOR_PHASE_V2_FAILED_TRIAL_USD="0.31"
+MAX_NEW_COMPUTE_USD="1.636113264666666666666666667"
+EXPECTED_MAX_CUMULATIVE_USD="4.756113264666666666666666667"
 MAX_EXPOSURE_USD="4.80"
 SOURCE_GIT_REVISION="$(git rev-parse HEAD 2>/dev/null || true)"
 LAUNCHER_SCRIPT_SHA256="$(shasum -a 256 "$0" | awk '{print $1}')"
@@ -31,6 +34,8 @@ READINESS_ATTEMPTS=90
 READINESS_INTERVAL_S=10
 SSH_READY_ATTEMPTS=30
 SSH_READY_INTERVAL_S=5
+MONITOR_FAILURE_LIMIT=10
+MONITOR_MAX_SECONDS=6600
 STANDARD_ZONES=(
   "us-central1-b"
   "us-central1-c"
@@ -77,25 +82,34 @@ if [[ -n "$(gcloud compute disks list \
 fi
 
 ESTIMATED_MAX_EXPOSURE_USD="$(python3 - \
-  "${MAX_RUNTIME_HOURS}" \
+  "${MAX_RUNTIME_SECONDS}" \
   "${ON_DEMAND_USD_PER_HOUR}" \
   "${DISK_AND_MISC_HEADROOM_USD}" \
   "${PRIOR_FAILED_TRIAL_USD}" \
   "${PRIOR_COMPLETED_RUN_USD}" \
+  "${PRIOR_PHASE_V1_FAILED_TRIAL_USD}" \
+  "${PRIOR_PHASE_V2_FAILED_TRIAL_USD}" \
   "${MAX_NEW_COMPUTE_USD}" <<'PY'
 from decimal import Decimal
 import sys
 
-hours, hourly, headroom, failed, completed, maximum_compute = map(
+seconds, hourly, headroom, failed, completed, phase_v1_failed, phase_v2_failed, maximum_compute = map(
     Decimal, sys.argv[1:]
 )
-computed_maximum = hours * hourly
+computed_maximum = seconds * hourly / Decimal(3600)
 if computed_maximum != maximum_compute:
     raise SystemExit(
-        f"two-hour compute guard ${computed_maximum} does not equal "
+        f"115-minute compute guard ${computed_maximum} does not equal "
         f"the fixed ${maximum_compute}"
     )
-print(failed + completed + computed_maximum + headroom)
+print(
+    failed
+    + completed
+    + phase_v1_failed
+    + phase_v2_failed
+    + computed_maximum
+    + headroom
+)
 PY
 )"
 python3 - \
@@ -139,23 +153,25 @@ cleanup() {
       --zone "${SELECTED_ZONE}" \
       --delete-disks=all \
       --quiet || true
-    if gcloud compute disks describe "${VM_NAME}" \
+    local remaining_instances
+    local remaining_disks
+    if ! remaining_instances="$(gcloud compute instances list \
       --project "${PROJECT}" \
-      --zone "${SELECTED_ZONE}" >/dev/null 2>&1; then
-      gcloud compute disks delete "${VM_NAME}" \
-        --project "${PROJECT}" \
-        --zone "${SELECTED_ZONE}" \
-        --quiet || true
-    fi
-    if gcloud compute instances describe "${VM_NAME}" \
-      --project "${PROJECT}" \
-      --zone "${SELECTED_ZONE}" >/dev/null 2>&1; then
+      --filter="name=${VM_NAME}" \
+      --format='value(name)' 2>/dev/null)"; then
+      echo "Could not verify thermal VM deletion; inspect billing immediately." >&2
+      status=3
+    elif [[ -n "${remaining_instances}" ]]; then
       echo "The thermal VM still exists; inspect it immediately to avoid charges." >&2
       status=3
     fi
-    if gcloud compute disks describe "${VM_NAME}" \
+    if ! remaining_disks="$(gcloud compute disks list \
       --project "${PROJECT}" \
-      --zone "${SELECTED_ZONE}" >/dev/null 2>&1; then
+      --filter="name=${VM_NAME}" \
+      --format='value(name)' 2>/dev/null)"; then
+      echo "Could not verify thermal disk deletion; inspect billing immediately." >&2
+      status=3
+    elif [[ -n "${remaining_disks}" ]]; then
       echo "The thermal disk still exists; inspect it immediately to avoid charges." >&2
       status=3
     fi
@@ -198,6 +214,8 @@ create_thermal_vm() {
     --project "${PROJECT}" \
     --zone "${zone}" >/dev/null 2>&1; then
     echo "Creation failed ambiguously but a VM exists; deleting it." >&2
+    SELECTED_ZONE="${zone}"
+    CLEANUP_ARMED=1
     gcloud compute instances delete "${VM_NAME}" \
       --project "${PROJECT}" \
       --zone "${zone}" \
@@ -209,6 +227,8 @@ create_thermal_vm() {
     --project "${PROJECT}" \
     --zone "${zone}" >/dev/null 2>&1; then
     echo "Creation failed ambiguously but a disk exists; deleting it." >&2
+    SELECTED_ZONE="${zone}"
+    CLEANUP_ARMED=1
     gcloud compute disks delete "${VM_NAME}" \
       --project "${PROJECT}" \
       --zone "${zone}" \
@@ -373,15 +393,28 @@ copy_progress() {
 }
 
 SEEN_BLOCKS=""
+MONITOR_FAILURES=0
 while true; do
+  if (( $(date +%s) - RUN_STARTED_EPOCH > MONITOR_MAX_SECONDS )); then
+    copy_progress || true
+    echo "Local monitoring exceeded its bounded deadline; forcing cleanup." >&2
+    exit 2
+  fi
   if ! VM_STATUS="$(gcloud compute instances describe "${VM_NAME}" \
     --project "${PROJECT}" \
     --zone "${SELECTED_ZONE}" \
     --format='value(status)' 2>/dev/null)"; then
+    MONITOR_FAILURES=$((MONITOR_FAILURES + 1))
+    if [[ "${MONITOR_FAILURES}" -ge "${MONITOR_FAILURE_LIMIT}" ]]; then
+      copy_progress || true
+      echo "Could not verify the thermal VM after ${MONITOR_FAILURES} attempts; forcing cleanup." >&2
+      exit 2
+    fi
     echo "Could not read the thermal VM status; retrying without cleanup." >&2
     sleep 30
     continue
   fi
+  MONITOR_FAILURES=0
   if [[ "${VM_STATUS}" != "RUNNING" ]]; then
     copy_progress || true
     echo "The thermal VM stopped before completion. Partial data remain in ${STAGING_OUTPUT}." >&2
@@ -447,7 +480,7 @@ if (
     raise SystemExit("thermal phase manifest is not a complete phase-identification run")
 if (
     manifest.get("schema_version") != 2
-    or manifest.get("protocol") != "cold-start-phase-pairs-v1"
+    or manifest.get("protocol") != "cold-start-phase-pairs-v3"
 ):
     raise SystemExit("thermal phase manifest is not the fixed phase-pair protocol")
 for required in ("l4_thermal_phase_telemetry.csv", "l4_thermal_phase_requests.csv"):
@@ -500,6 +533,42 @@ if not isinstance(cooldowns, list) or [
     raise SystemExit("thermal cooldown events do not match every scheduled pulse")
 if any(event.get("status") != "complete" for event in cooldowns):
     raise SystemExit("a thermal pulse lacks a completed cold-start cooldown")
+cooldown_protocol = manifest.get("cooldown_protocol", {})
+if not (
+    cooldown_protocol.get("memory_clock_mode") == "unlocked"
+    and float(cooldown_protocol.get("target_temperature_c", float("inf"))) == 58.0
+    and float(cooldown_protocol.get("stability_window_s", 0.0)) == 120.0
+    and float(cooldown_protocol.get("timeout_s", 0.0)) == 900.0
+    and float(cooldown_protocol.get("memory_relock_settle_s", 0.0)) == 1.0
+):
+    raise SystemExit("thermal cooldown memory policy differs from phase protocol v3")
+selected_memory_clock = float(manifest.get("selected_memory_clock_mhz", 0.0))
+conditioning_reference = manifest.get("conditioning_reference", {})
+if not (
+    conditioning_reference.get("source_block_id") == "phase_training_pulse_00"
+    and float(conditioning_reference.get("temperature_c", float("inf"))) <= 58.0
+    and float(conditioning_reference.get("idle_power_w", 0.0)) > 0.0
+    and float(conditioning_reference.get("memory_clock_mhz", 0.0)) > 0.0
+):
+    raise SystemExit("thermal manifest lacks a valid conditioning reference")
+for event in cooldowns:
+    relock = event.get("memory_relock", {})
+    if not (
+        event.get("memory_clock_mode") == "unlocked"
+        and float(event.get("window_max_temperature_c", float("inf"))) <= 58.0
+        and relock.get("status") == "verified"
+        and abs(float(relock.get("realized_memory_clock_mhz", 0.0)) - selected_memory_clock) <= 1.0
+        and float(relock.get("temperature_c", float("inf"))) <= 58.0
+        and abs(
+            float(event.get("final_temperature_c", float("inf")))
+            - float(conditioning_reference["temperature_c"])
+        ) <= 1.0
+        and abs(
+            float(event.get("window_mean_power_w", float("inf")))
+            - float(conditioning_reference["idle_power_w"])
+        ) <= 1.0
+    ):
+        raise SystemExit("a phase cooldown lacks verified unlocked-idle/relock evidence")
 
 checkpoints = manifest.get("block_checkpoints")
 if not isinstance(checkpoints, list) or len(checkpoints) != len(scheduled):
@@ -528,6 +597,34 @@ observed_block_ids = {row.get("block_id") for row in telemetry_data}
 missing_block_ids = [block_id for block_id in scheduled if block_id not in observed_block_ids]
 if missing_block_ids:
     raise SystemExit(f"scheduled thermal blocks lack labeled telemetry: {missing_block_ids}")
+pulse_rows = {
+    block_id: [row for row in telemetry_data if row.get("block_id") == block_id]
+    for block_id in scheduled
+}
+start_temperatures = manifest.get("pulse_start_temperatures_c")
+if not (
+    isinstance(start_temperatures, list)
+    and len(start_temperatures) == len(scheduled)
+    and max(float(value) for value in start_temperatures) <= 58.0
+    and max(float(value) for value in start_temperatures)
+    - min(float(value) for value in start_temperatures)
+    <= 1.0
+    and all(
+        abs(
+            float(value)
+            - float(event.get("memory_relock", {}).get("temperature_c", float("inf")))
+        )
+        <= 1.0e-9
+        for value, event in zip(start_temperatures, cooldowns, strict=True)
+    )
+):
+    raise SystemExit("thermal pulses do not share the required safe start state")
+if any(
+    abs(float(row["memory_clock_mhz"]) - selected_memory_clock) > 1.0
+    for block_id in scheduled
+    for row in pulse_rows[block_id]
+):
+    raise SystemExit("a thermal pulse was not measured at the locked memory clock")
 temperatures = [float(row["temperature_c"]) for row in telemetry_data]
 if not temperatures or any(not math.isfinite(value) for value in temperatures):
     raise SystemExit("thermal telemetry temperatures are absent or non-finite")

@@ -13,15 +13,24 @@ kernelspec:
 
 # Discrete-Time Trajectory Optimization
 
-In the previous chapter, we examined different ways to represent dynamical systems: continuous versus discrete time, deterministic versus stochastic, fully versus partially observable, and even simulation-based views such as agent-based or programmatic models. Our focus was on the **structure of models**: how they capture evolution, uncertainty, and information.
+The models introduced in the previous chapter predict how actions change a
+system's state. Trajectory optimization adds an objective and constraints, then
+selects the actions that produce a desirable state sequence. For a fixed
+discrete horizon, the states and controls form a finite vector, so the planning
+problem can be written as a nonlinear program.
 
-In this chapter, we turn to what makes these models useful for **decision-making**. The goal is no longer just to describe how a system behaves, but to leverage that description to **compute actions over time**. This doesn't mean the model prescribes actions on its own. Rather, it provides the scaffolding for optimization: given a model and an objective, we can derive the control inputs that make the modeled system behave well according to a chosen criterion. 
+A **trajectory** is the time-indexed sequence of states
+$(\mathbf{x}_1,\ldots,\mathbf{x}_T)$ and controls
+$(\mathbf{u}_1,\ldots,\mathbf{u}_{T-1})$. This chapter first computes the
+complete control sequence from a known initial state. The sequence is
+**open loop**: once execution begins, the action at time $t$ does not change in
+response to the measured state.
 
-Our entry point will be trajectory optimization. By a **trajectory**, we mean the time-indexed sequence of states and controls that the system follows under a plan: the states $(\mathbf{x}_1, \dots, \mathbf{x}_T)$ together with the controls $(\mathbf{u}_1, \dots, \mathbf{u}_{T-1})$. In this chapter, we focus on an **open-loop** viewpoint: starting from a known initial state, we compute the entire sequence of controls in advance and then apply it as-is. This is appealing because, for discrete-time problems, it yields a finite-dimensional optimization over a vector of decisions and cleanly exposes the structure of the constraints. In continuous time, the base formulation is infinite-dimensional; in this course we will rely on direct methods (time discretization and parameterization) to transform it into a finite-dimensional nonlinear program.
-
-Open loop also has a clear limitation: if reality deviates from the model, whether due to disturbances, model mismatch, or unanticipated events, the state you actually reach may differ from the predicted one. The precomputed controls that were optimal for the nominal trajectory can then lead you further off course, and errors can compound over time.
-
-Later, we will study **closed-loop (feedback)** strategies, where the choice of action at time $t$ can depend on the state observed at time $t$. Instead of a single sequence, we optimize a policy $\pi_t$ mapping states to controls, $\mathbf{u}_t = \pi_t(\mathbf{x}_t)$. Feedback makes plans resilient to unforeseen situations by adapting on the fly, but it leads to a more challenging problem class. We start with open-loop trajectory optimization to build core concepts and tools before tackling feedback design.
+The three-satellite example below makes both the value and the limitation of
+open-loop planning visible. A linear model produces a sparse, feasible plan,
+but the same immutable plan misses its target when replayed through a nonlinear
+model. Later chapters will replace the fixed sequence by feedback through
+receding-horizon control and policies.
 
 ```{admonition} Learning Goals
 :class: note
@@ -34,37 +43,295 @@ After studying this chapter, you should be able to:
 4. Implement single shooting and multiple shooting methods for trajectory optimization.
 5. Explain the trade-offs between simultaneous (direct transcription) and sequential (shooting) methods.
 6. Compute gradients of the objective with respect to controls using the adjoint (costate) recursion.
+7. Audit an immutable open-loop plan under a specified model mismatch.
 ```
 
 ```{admonition} Prerequisites
 :class: tip
 
-This chapter assumes familiarity with:
-- Multivariable calculus (gradients, Jacobians, chain rule)
-- Basic optimization (unconstrained minimization, gradient descent)
-- Linear algebra (matrix-vector products, linear systems)
-- Dynamical systems from the previous chapter
+This chapter uses gradients, Jacobians, the chain rule, matrix-vector products,
+and linear systems. [](appendix_nlp.md) reviews the nonlinear-programming
+objects used in the KKT derivation. The state and transition models come from
+[](dynamics.md).
 ```
 
-## A Motivating Example: Inventory Control
+## A Motivating Example: Phasing Three Satellites with Differential Drag
 
-Before diving into the general formulation, consider a concrete problem that arises in operations management. A retailer must decide how much inventory to order at the start of each period to meet uncertain demand while balancing holding costs against stockout penalties.
+Three small satellites are released into nearly the same circular orbit, but the
+mission calls for them to occupy slots separated by $120^\circ$. They have no
+propulsion. Each satellite can instead rotate between low- and high-drag
+attitudes. High drag lowers its orbit slightly; the lower satellite then moves
+faster and accumulates phase relative to the others. The control authority is
+weak, slow, and irreversible because every maneuver spends altitude.
 
-The setup is simple. At the beginning of period $k$, the retailer observes the current inventory level $x_k$ and places an order of size $u_k \ge 0$. Demand $d_k$ then arrives (assume for now it is known in advance), and the inventory evolves according to
+Differential drag has been used to phase propulsionless satellite
+constellations in orbit {cite:p}`Foster2018ConstellationPhasing`. Linear
+programs provide a useful planning model for this control mechanism
+{cite:p}`Sin2018DifferentialDrag`. The example below is a teaching-scale
+reconstruction inspired by that literature. It is not a reconstruction of a
+particular flight campaign.
+
+We plan over $N=180$ daily intervals. All three satellites begin at a circular
+altitude of $475$ km, with phase offsets
 
 $$
-x_{k+1} = x_k + u_k - d_k.
+\varphi_{0}
+=
+\begin{bmatrix}-0.5&0&0.5\end{bmatrix}^{\mathsf T}\text{ degrees}
 $$
 
-If inventory is positive at the end of the period, holding costs accrue. If inventory is negative (backorders), penalty costs apply. There may also be a per-unit ordering cost. A typical objective is to minimize total cost over a planning horizon of $T$ periods:
+and zero relative angular rates. The action
 
 $$
-\min_{u_0,\dots,u_{T-1}} \sum_{k=0}^{T-1} \bigl( h\,[x_k]_+ + p\,[-x_k]_+ + c\,u_k \bigr),
+0\leq u_{i,k}\leq1
 $$
 
-where $[z]_+ = \max(0,z)$, $h$ is the holding cost rate, $p$ is the backorder penalty rate, and $c$ is the ordering cost per unit. The retailer may also face constraints: orders cannot be negative, and inventory might be bounded above by warehouse capacity.
+is the fraction of day $k$ that satellite $i$ spends in its high-drag
+attitude. For the nominal daily model, its state is
 
-This problem has a clear structure: a state ($x_k$) that evolves according to a known rule, a control ($u_k$) that influences the next state, a cost that accumulates over time, and constraints on the decisions. These ingredients define a **discrete-time optimal control problem** (DOCP). We now formalize this structure in general terms.
+$$
+x_{i,k}
+=
+\begin{bmatrix}
+\varphi_{i,k}\\
+\omega_{i,k}\\
+\ell_{i,k}
+\end{bmatrix},
+$$
+
+where $\varphi$ is phase in degrees, $\omega$ is relative angular rate in
+degrees per day, and $\ell$ is extra altitude loss in kilometres relative to
+remaining in the low-drag attitude.
+
+### From drag physics to a daily linear model
+
+Use SI units in the derivation. With $h_0=475\text{ km}$, set
+
+$$
+a_0=(R_\mathrm{E}+h_0)\frac{10^3\text{ m}}{1\text{ km}}
+=6{,}853{,}137\text{ m},
+\qquad
+n_0=\sqrt{\mu/a_0^3}.
+$$
+
+At the reference density $\rho_0$, changing the
+ballistic coefficient from $B_\mathrm{low}$ to $B_\mathrm{high}$ changes the
+area-to-mass factor by
+
+$$
+\Delta\sigma
+=\frac{1}{B_\mathrm{high}}-\frac{1}{B_\mathrm{low}}.
+$$
+
+Linearizing the semimajor-axis and mean-motion changes over one day gives
+
+$$
+\begin{aligned}
+d
+&=\rho_0\Delta\sigma\sqrt{\mu a_0}\,\Delta t
+\left(\frac{1\ {\rm km}}{10^3\ {\rm m}}\right),\\
+\alpha
+&=\frac{3n_0}{2a_0}
+\rho_0\Delta\sigma\sqrt{\mu a_0}\,\Delta t^2
+\left(\frac{180^\circ}{\pi\ {\rm rad}}\right),
+\end{aligned}
+$$
+
+where $\Delta t=86400$ s. For
+
+$$
+\begin{gathered}
+\rho_0=3\times10^{-13}\ {\rm kg/m^3},\qquad
+B_\mathrm{low}=60\ {\rm kg/m^2},\qquad
+B_\mathrm{high}=20\ {\rm kg/m^2},\\
+R_\mathrm{E}=6378.137\ {\rm km},\qquad
+\mu=3.986004418\times10^{14}\ {\rm m^3/s^2},
+\end{gathered}
+$$
+
+the coefficients are
+
+$$
+\alpha=0.0544503\ {\rm deg/day^2},
+\qquad
+d=0.0451572\ {\rm km/day}.
+$$
+
+The daily dynamics are therefore
+
+$$
+x_{i,k+1}
+=
+\underbrace{
+\begin{bmatrix}
+1&1&0\\
+0&1&0\\
+0&0&1
+\end{bmatrix}}_{A}
+x_{i,k}
++
+\underbrace{
+\begin{bmatrix}
+\alpha/2\\
+\alpha\\
+d
+\end{bmatrix}}_{B}
+u_{i,k}.
+$$
+
+The phase receives half of the new daily rate during the interval, the rate
+accumulates the drag-induced acceleration, and the extra altitude loss
+accumulates monotonically.
+
+### A finite open-loop plan
+
+Define the cyclic difference matrix
+
+$$
+G=
+\begin{bmatrix}
+-1&1&0\\
+0&-1&1\\
+1&0&-1
+\end{bmatrix}.
+$$
+
+The terminal target is
+
+$$
+G\varphi_N
+\approx
+\begin{bmatrix}120\\120\\-240\end{bmatrix}
+\text{ degrees},
+\qquad
+G\omega_N\approx0,
+$$
+
+with tolerances of $0.1$ degree and $0.002$ degree per day. These are unwrapped
+directed differences. Because the rows of $G$ sum to zero,
+the third target is $-240^\circ$, which represents the same circular separation
+as $+120^\circ$ modulo $360^\circ$ while preserving a consistent unwrapped
+coordinate system.
+
+The primary linear program minimizes the worst final extra altitude loss:
+
+$$
+\begin{aligned}
+\underset{x,u,z}{\operatorname{minimize}}\quad&z\\
+\text{subject to}\quad&
+x_{i,k+1}=Ax_{i,k}+Bu_{i,k},\\
+&\ell_{i,N}\leq z,\qquad 0\leq u_{i,k}\leq1,\\
+&\left\lVert G\varphi_N-
+\begin{bmatrix}120&120&-240\end{bmatrix}^{\mathsf T}
+\right\rVert_\infty\leq0.1,\\
+&\lVert G\omega_N\rVert_\infty\leq0.002.
+\end{aligned}
+$$
+
+A second linear program keeps $z$ at its primary optimum, up to numerical
+tolerance, and minimizes
+
+$$
+\sum_{i=1}^{3}\sum_{k=0}^{N-2}
+\left|u_{i,k+1}-u_{i,k}\right|.
+$$
+
+This lexicographic step selects a low-variation member of the primary optimal
+set without changing the worst-loss objective beyond numerical tolerance.
+
+### Nominal and nonlinear replay
+
+The linear plan is first rolled out through the model used by the optimizer.
+The exact same $u_{i,k}$ is then replayed, without reoptimization, through the
+nonlinear orbital model
+
+$$
+\dot a_i
+=-\rho(a_i,t)\,\sigma(u_i)\sqrt{\mu a_i},
+\qquad
+\dot\theta_i
+=\sqrt{\frac{\mu}{a_i^3}},
+$$
+
+where
+
+$$
+\begin{aligned}
+\sigma(u)
+&=\frac{1-u}{B_\mathrm{low}}+\frac{u}{B_\mathrm{high}},\\
+\rho(a,t)
+&=\rho_0
+\left[
+0.90+0.15\sin\left(\frac{2\pi t}{26\text{ days}}+\frac{\pi}{6}\right)
+\right]
+\exp\left(\frac{h_0-h_i}{60\text{ km}}\right),
+\qquad
+h_i=\frac{a_i-R_\mathrm{E}}{10^3}\text{ km}.
+\end{aligned}
+$$
+
+Here $a_i$ and $R_\mathrm{E}$ are in metres inside the orbital equations, so
+$h_i$ is the corresponding altitude in kilometres. In the display, the nominal
+altitude trace is the planning-model proxy $475-\ell_i$ km and therefore omits
+the common low-drag decay; the nonlinear trace reports absolute orbital
+altitude.
+
+The nonlinear trajectory is integrated by hourly RK4 and checked against a
+30-minute replay. This variable-density model is a deterministic teaching
+stress test, not a flight-dynamics reconstruction. The complete command
+sequence is known from day zero; the state traces below are revealed only up
+to the playhead.
+
+```{code-cell} python
+:tags: [remove-input]
+:label: fig-cubesat-differential-drag
+:caption: A single open-loop differential-drag plan is evaluated by two plant models. The nominal linear rollout reaches the cyclic slot and relative-rate tolerances. The nonlinear variable-density replay uses the unchanged plan and exposes the accumulated phase miss. The orbit diagrams use a fixed radius; altitude differences are reported numerically rather than exaggerated geometrically.
+
+from pathlib import Path
+import sys
+
+from IPython.display import HTML, display
+
+code_dir = Path.cwd() / "code"
+if str(code_dir) not in sys.path:
+    sys.path.insert(0, str(code_dir))
+
+from cubesat_replay import render_cubesat_replay
+
+display(HTML(render_cubesat_replay(
+    Path("artifacts/cubesat/textbook_results.json"),
+    replay_id="cubesat-differential-drag-replay",
+    fallback_id="fig-cubesat-differential-drag-fallback",
+)))
+```
+
+:::{figure} _static/cubesat/differential-drag.svg
+:label: fig-cubesat-differential-drag-fallback
+:class: pdf-fallback
+:alt: Nominal and nonlinear final constellation gaps, altitude loss, phase-error histories, and the common open-loop drag plan for three satellites.
+
+Static audit of the immutable differential-drag plan. The online book adds
+synchronized playback and scrubbing while keeping the full planned command
+heatmap visible from the start.
+:::
+
+```{include} artifacts/cubesat/results.md
+```
+
+{download}`Download the open-loop plan (CSV) <artifacts/cubesat/open_loop_plan.csv>`
+
+{download}`Download the audit metrics (CSV) <artifacts/cubesat/metrics.csv>`
+
+The nominal rollout establishes feasibility for the optimization model. The
+nonlinear replay tests the same plan under the declared model change, and the
+terminal phase constraints fail. [Closing the loop by
+replanning](mpc.md#closing-the-loop-by-replanning) will replace the immutable
+schedule by controls that can change when new state measurements arrive.
+
+The example already contains the ingredients of a **discrete-time optimal
+control problem** (DOCP): a state $x_{i,k}$, a bounded control $u_{i,k}$, a
+transition map, terminal constraints, and an objective accumulated over a
+finite horizon. We now formalize that structure.
 
 ## Discrete-Time Optimal Control Problems (DOCPs)
 
@@ -95,7 +362,13 @@ $$
 \end{aligned}
 $$
 
-Returning to the inventory example, the correspondence is direct: the state $\mathbf{x}_t$ is the inventory level $x_k$, the control $\mathbf{u}_t$ is the order quantity $u_k$, and the dynamics $\mathbf{f}_t$ encode the inventory balance equation $x_{k+1} = x_k + u_k - d_k$. The stage cost $c_t$ captures holding, backorder, and ordering costs, while the terminal cost $c_T$ might penalize ending with excess stock. Constraints $\mathbf{g}_t \le \mathbf{0}$ can enforce non-negativity of orders or warehouse capacity limits. This mapping shows how practical problems fit naturally into the abstract framework.
+In the satellite example, $\mathbf{x}_t$ stacks the three phase, relative-rate,
+and altitude-loss states; $\mathbf{u}_t$ stacks the three daily drag fractions;
+and $\mathbf{f}_t$ applies the block-diagonal copies of the daily map. The
+terminal inequalities impose the cyclic slot and rate tolerances, while the
+epigraph variable $z$ represents the worst altitude loss. This mapping also
+shows why state values can appear explicitly as decision variables even when a
+deterministic rollout could reconstruct them from the controls.
 
 Written this way, it may seem obvious that the decision variables are the controls $\mathbf{u}_t$. After all, in most intuitive descriptions of control, we think of choosing inputs to influence the system. But notice that in the program above, the entire state trajectory also appears as a set of variables, linked to the controls by the dynamics constraints. This is intentional: it reflects one way of writing the problem that makes the constraints explicit.
 
@@ -252,14 +525,13 @@ In trajectory optimization, the KKT matrix inherits banded/sparse structure from
 The choice between methods depends on the context. Primal-dual gradients give lightweight iterations and are suited for warm starts or as inner loops with penalties. SQP/Newton gives rapid local convergence when close to a solution and LICQ holds; trust regions or line search help globalize convergence.
 
 
-## Examples of DOCPs
-To make things concrete, here are additional problems that are naturally posed as discrete-time OCPs. We already introduced inventory control at the start of this chapter; below are two more examples from different domains, followed by a discussion of how continuous-time problems give rise to DOCPs through discretization.
+## Further Sources of Discrete-Time Optimal-Control Problems
 
-### End-of-Day Portfolio Rebalancing
-At each trading day $k$, choose trades $u_k$ to adjust holdings $h_k$ before next-day returns $r_{k}$ realize. Deterministic planning uses predicted returns $\mu_k$, with dynamics $h_{k+1} = (h_k + u_k) \odot (\mathbf{1} + \mu_k)$ and budget/box constraints. The stage cost can capture transaction costs and risk, e.g., $c_k(h_k,u_k) = \tau\lVert u_k \rVert_1 + \tfrac{\lambda}{2}\,h_k^\top \Sigma_k h_k$, with a terminal utility or wealth objective.
-
-### Daily Ad-Budget Allocation with Carryover
-Allocate spend $u_k \in [0, U_{\max}]$ to build awareness $s_k$ with carryover dynamics $s_{k+1} = \alpha s_k + \beta u_k$. Conversions/revenue at day $k$ follow a response curve $g(s_k,u_k)$; the goal is $\max \sum_{k=0}^{T-1} g(s_k,u_k) - c\,u_k$ subject to spend limits. This is naturally discrete because decisions and measurements occur daily.
+The satellite planner begins from a deliberately discretized daily model.
+Other problems are discrete because decisions naturally occur at stages, while
+still others inherit a discrete transition from numerical integration or
+program execution. The next two constructions make those latter connections
+explicit.
 
 ### DOCPs Arising from the Discretization of Continuous-Time OCPs
 
@@ -1260,6 +1532,493 @@ if __name__ == "__main__":
 
 
 
+### Example: Hydro Cascade Scheduling with Physical Routing
+
+The ballistic boundary-value problem couples consecutive segments of one trajectory. A hydroelectric cascade adds a second form of coupling: actions taken upstream alter the inflows seen downstream after a travel delay. Multiple shooting exposes both forms through local ODE integrations, temporal continuity defects, and inter-reach routing constraints.
+
+The hydro-reservoir model in [](dp.md) uses a discrete-time abstraction in which precipitation enters as a noisy inflow. That abstraction is useful for learning and control design, but it omits much of the physical behavior of rivers and dams. Here we use a more detailed setup inspired by {cite:p}`Savorgnan2011`. We consider a series of dams arranged in a cascade, where the actions taken upstream influence downstream levels with a delay. The amount of power produced depends on the water flow through the turbines and the head (the vertical distance between the reservoir surface and the turbine outlet). The larger the head, the more potential energy is available for conversion into electricity, and the higher the power output.
+
+To capture these effects, we follow a modeling approach inspired by the Saint-Venant equations, which describe how water levels and flows evolve in open channels. Instead of solving the full PDEs, we use a reduced model that approximates each dammed section of river (called a reach) as a lumped system governed by an ordinary differential equation. The main variable of interest is the water level $h_r(t)$, which changes over time depending on how much water enters, how much is discharged through the turbines $q_r(t)$, and how much is spilled $s_r(t)$. The mass balance for reach $r$ is written as:
+
+$$
+\frac{d h_r(t)}{dt} = \frac{1}{A_r} \left( z_r(t) - q_r(t) - s_r(t) \right),
+$$
+
+where $A_r$ is the surface area of the reservoir, assumed constant. The inflow $z_r(t)$ to a reach either comes from nature (for the first dam), or from the upstream turbine and spill discharge, delayed by a travel time $\tau_{r-1}$:
+
+$$
+z_1(t) = \text{inflow}(t), \qquad
+z_r(t) = q_{r-1}(t - \tau_{r-1}) + s_{r-1}(t - \tau_{r-1}), \quad \text{for } r > 1.
+$$
+
+Power generation at each reach depends on how much water is discharged and the available head:
+
+$$
+P_r(t) = \rho g \eta \, q_r(t) \, H_r(h_r(t)),
+$$
+
+where $\rho$ is water density, $g$ is gravitational acceleration, $\eta$ is turbine efficiency, and $H_r(h_r(t))$ denotes the head as a function of the water level. In some models, the head is approximated as the difference between the current level and a fixed tailwater height (the water level downstream of the dam, after it has passed through the turbine).
+
+The operator's goal is to meet a target generation profile $P^\text{ref}(t)$, such as one dictated by a market dispatch or load-following constraint. This leads to an objective that minimizes the deviation from the target over the full horizon:
+
+$$
+\min_{\{q_r(t), s_r(t)\}} \int_0^T \left( \sum_{r=1}^R P_r(t) - P^\text{ref}(t) \right)^2 dt.
+$$
+
+In practice, this is combined with operational constraints: turbine capacity $0 \le q_r(t) \le \bar{q}_r$, spillway limits $0 \le s_r(t) \le \bar{s}_r$, and safe level bounds $h_r^{\min} \le h_r(t) \le h_r^{\max}$. Depending on the use case, one may also penalize spill to encourage water conservation, or penalize fast changes in levels for ecological reasons.
+
+The reaches are coupled across space and time. An upstream reach cannot simply act in isolation: if the operator wants reach $r$ to produce power at a specific time, the water must be released by reach $r-1$ sufficiently in advance. This coordination is further complicated by delays, nonlinearities in head-dependent power, and limited storage capacity.
+
+We solve the problem using **multiple shooting**. Each reach is divided into local simulation segments over short time windows. Within each segment, the dynamics are integrated forward using the ODEs, and continuity constraints are added to ensure that the water levels match across segment boundaries. At the same time, the inflows passed from upstream reaches must arrive at the right time and be consistent with previous decisions. In discrete time, this gives rise to a set of state-update equations:
+
+$$
+h_r^{k+1} = h_r^k + \Delta t \cdot \frac{1}{A_r}(z_r^k - q_r^k - s_r^k),
+$$
+
+with delays handled by shifting $z_r^k$ according to the appropriate travel time. These constraints are enforced as part of a nonlinear program, alongside the power tracking objective and control bounds.
+
+Compared with a single-reservoir inflow-outflow model, the cascade adds delayed coupling constraints. Upstream reservoirs can store water in anticipation of future needs, while downstream dams adjust their output to match arrivals and avoid overflows. The resulting schedule coordinates the entire system against the demand profile.
+
+```{code-cell} python
+:tags: [hide-input]
+:label: fig-trajectories-hydro-multiple-shooting
+:caption: Multiple shooting coordinates reservoir levels, turbine discharges, routed inflows, and total generation across a three-reach hydroelectric cascade.
+
+%config InlineBackend.figure_format = 'retina'
+# Instrumented MSD hydro demo with heterogeneity + diagnostics
+# - Breaks symmetry to avoid trivial identical plots
+# - Adds rich diagnostics to explain flat levels and equalities
+#
+# This cell runs end-to-end and shows plots + tables.
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Apply book style
+try:
+    import scienceplots
+    plt.style.use(['science', 'notebook'])
+except (ImportError, OSError):
+    pass  # Use matplotlib defaults
+from dataclasses import dataclass
+from typing import Tuple
+from scipy.optimize import minimize
+from math import sqrt
+import warnings
+
+# ---------- Model ----------
+
+g = 9.81  # m/s^2
+
+@dataclass
+class ReachParams:
+    L: float
+    W: float
+    k_b: float
+    S_b: float
+    k_t: float
+    @property
+    def A_surf(self) -> float:
+        return self.L * self.W
+
+def smooth_relu(x, eps=1e-9):
+    return 0.5*(x + np.sqrt(x*x + eps))
+
+def q_bypass(H, rp: ReachParams):
+    H_eff = smooth_relu(H)
+    return rp.k_b * rp.S_b * np.sqrt(2*g*H_eff)
+
+def muskingum_coeffs(K: float, X: float, dt: float) -> Tuple[float, float, float]:
+    D  = 2.0*K*(1.0 - X) + dt
+    C0 = (dt - 2.0*K*X) / D
+    C1 = (dt + 2.0*K*X) / D
+    C2 = (2.0*K*(1.0 - X) - dt) / D
+    return C0, C1, C2
+
+def integrate_interval(H0, u, z, dt, nsub, rp: ReachParams):
+    """Forward Euler. Returns Hend, avg_qout."""
+    h = dt/nsub
+    H = H0
+    qsum = 0.0
+    for _ in range(nsub):
+        qb = q_bypass(H, rp)
+        qout = u + qb
+        dHdt = (z - qout) / rp.A_surf
+        H += h*dHdt
+        qsum += qout
+    return H, qsum/nsub
+
+def shapes(M,N): return (M*(N+1), M*N, M*N)
+
+def unpack(x, M, N):
+    nH, nu, nz = shapes(M,N)
+    H = x[:nH].reshape(M,N+1)
+    u = x[nH:nH+nu].reshape(M,N)
+    z = x[nH+nu:nH+nu+nz].reshape(M,N)
+    return H,u,z
+
+def pack(H,u,z): return np.concatenate([H.ravel(), u.ravel(), z.ravel()])
+
+# ---------- Problem builder ----------
+
+def make_params_hetero(M):
+    """Heterogeneous reaches to break symmetry."""
+    # Widths, spillway areas, and power coeffs vary by reach
+    W_list = np.linspace(80, 140, M)         # m
+    L_list = np.full(M, 4000.0)              # m
+    S_b_list = np.linspace(14.0, 20.0, M)    # m^2
+    k_t_list = np.linspace(7.5, 8.5, M)      # power coeff
+    k_b_list = np.linspace(0.55, 0.65, M)    # spill coeff
+    return [ReachParams(L=float(L_list[i]), W=float(W_list[i]),
+                        k_b=float(k_b_list[i]), S_b=float(S_b_list[i]),
+                        k_t=float(k_t_list[i])) for i in range(M)]
+
+def build_demo(M=3, N=12, dt=900.0, seed=0, hetero=True):
+    rng = np.random.default_rng(seed)
+    params = make_params_hetero(M) if hetero else [ReachParams(4000.0, 100.0, 0.6, 18.26, 8.0) for _ in range(M)]
+
+    # initial levels (heterogeneous)
+    H0 = np.array([17.0, 16.7, 17.3][:M])
+
+    H_ref = np.array([17.0, 16.9, 17.1][:M]) if hetero else np.full(M, 17.0)
+    H_bounds = (16.0, 18.5)
+    u_bounds = (40.0, 160.0)
+
+    Qin_base = 300.0
+    Qin_ext = Qin_base + 30.0*np.sin(2*np.pi*np.arange(N)/N)  # stronger swing
+
+    Pref_raw = 60.0 + 15.0*np.sin(2*np.pi*(np.arange(N)-2)/N)
+
+    # default Muskingum parameters per link (M-1 links)
+    if M > 1:
+        K_list = list(np.linspace(1800.0, 2700.0, M-1))
+        X_list = [0.2]*(M-1)
+    else:
+        K_list = []
+        X_list = []
+
+    return dict(params=params, H0=H0, H_ref=H_ref, H_bounds=H_bounds,
+                u_bounds=u_bounds, Qin_ext=Qin_ext, Pref_raw=Pref_raw,
+                dt=dt, N=N, M=M, nsub=10,
+                muskingum=dict(K=K_list, X=X_list))
+
+# ---------- Objective / constraints / helpers ----------
+
+def compute_total_power(H,u,params):
+    M,N = u.shape
+    Pn = np.zeros(N)
+    for n in range(N):
+        for i in range(M):
+            Pn[n] += params[i].k_t * u[i,n] * H[i,n]
+    return Pn
+
+def decompose_objective(x, data, Pref, wP, wH, wDu):
+    H,u,z = unpack(x, data["M"], data["N"])
+    params, H_ref = data["params"], data["H_ref"]
+    track = np.sum((compute_total_power(H,u,params)-Pref)**2)
+    lvl   = np.sum((H[:,:-1]-H_ref[:,None])**2)
+    du    = np.sum((u[:,1:]-u[:,:-1])**2)
+    return dict(track=wP*track, lvl=wH*lvl, du=wDu*du, raw=dict(track=track,lvl=lvl,du=du))
+
+def make_objective(data, Pref, wP=8.0, wH=0.02, wDu=1e-4):
+    params, H_ref, N, M = data["params"], data["H_ref"], data["N"], data["M"]
+    def obj(x):
+        H,u,z = unpack(x,M,N)
+        return (
+            wP*np.sum((compute_total_power(H,u,params)-Pref)**2)
+            + wH*np.sum((H[:,:-1]-H_ref[:,None])**2)
+            + wDu*np.sum((u[:,1:]-u[:,:-1])**2)
+        )
+    return obj, dict(wP=wP,wH=wH,wDu=wDu)
+
+def make_constraints(data):
+    params, H0, Qin_ext, dt, N, M, nsub = (
+        data["params"], data["H0"], data["Qin_ext"], data["dt"], data["N"], data["M"], data["nsub"]
+    )
+    cons = []
+    def init_fun(x):
+        H,u,z = unpack(x,M,N); return H[:,0]-H0
+    cons.append({'type':'eq','fun':init_fun})
+    def dyn_fun(x):
+        H,u,z = unpack(x,M,N)
+        res=[]
+        for i in range(M):
+            for n in range(N):
+                Hend, _ = integrate_interval(H[i,n], u[i,n], z[i,n], dt, nsub, params[i])
+                res.append(H[i,n+1]-Hend)
+        return np.array(res)
+    cons.append({'type':'eq','fun':dyn_fun})
+    def coup_fun(x):
+        H,u,z = unpack(x,M,N)
+        res=[]
+        # First reach is exogenous inflow per interval
+        for n in range(N):
+            res.append(z[0,n]-Qin_ext[n])
+        # Downstream links: Muskingum routing
+        K_list = data.get("muskingum", {}).get("K", [])
+        X_list = data.get("muskingum", {}).get("X", [])
+        for i in range(1,M):
+            # Seed condition for z[i,0]
+            _, I0 = integrate_interval(H[i-1,0], u[i-1,0], z[i-1,0], dt, nsub, params[i-1])
+            res.append(z[i,0] - I0)
+            # Coefficients
+            Ki = K_list[i-1] if i-1 < len(K_list) else 1800.0
+            Xi = X_list[i-1] if i-1 < len(X_list) else 0.2
+            C0, C1, C2 = muskingum_coeffs(Ki, Xi, dt)
+            # Recursion over intervals
+            for n in range(N-1):
+                # upstream interval-average outflows for n and n+1
+                _, I_n   = integrate_interval(H[i-1,n],   u[i-1,n],   z[i-1,n],   dt, nsub, params[i-1])
+                _, I_np1 = integrate_interval(H[i-1,n+1], u[i-1,n+1], z[i-1,n+1], dt, nsub, params[i-1])
+                res.append(z[i,n+1] - (C0*I_np1 + C1*I_n + C2*z[i,n]))
+        return np.array(res)
+    cons.append({'type':'eq','fun':coup_fun})
+    return cons
+
+def make_bounds(data):
+    Hmin,Hmax = data["H_bounds"]
+    umin,umax = data["u_bounds"]
+    M,N = data["M"], data["N"]
+    nH,nu,nz = shapes(M,N)
+    lb = np.empty(nH+nu+nz); ub = np.empty_like(lb)
+    lb[:nH]=Hmin; ub[:nH]=Hmax
+    lb[nH:nH+nu]=umin; ub[nH:nH+nu]=umax
+    lb[nH+nu:]=0.0; ub[nH+nu:]=2000.0
+    return list(zip(lb,ub))
+
+def residuals(x, data):
+    params, H0, Qin_ext, dt, N, M, nsub = (
+        data["params"], data["H0"], data["Qin_ext"], data["dt"], data["N"], data["M"], data["nsub"]
+    )
+    H,u,z = unpack(x, M, N)
+    dyn = np.zeros((M,N)); coup = np.zeros((M,N))
+    for i in range(M):
+        for n in range(N):
+            Hend, qavg = integrate_interval(H[i,n], u[i,n], z[i,n], dt, nsub, params[i])
+            dyn[i,n] = H[i,n+1] - Hend
+            if i == 0:
+                coup[i,n] = z[i,n] - Qin_ext[n]
+            else:
+                # Muskingum residual, align on current index using n and n-1
+                Ki = data.get("muskingum", {}).get("K", [1800.0]*(M-1))[i-1]
+                Xi = data.get("muskingum", {}).get("X", [0.2]*(M-1))[i-1]
+                C0, C1, C2 = muskingum_coeffs(Ki, Xi, dt)
+                if n == 0:
+                    coup[i,n] = 0.0
+                else:
+                    _, I_nm1 = integrate_interval(H[i-1,n-1], u[i-1,n-1], z[i-1,n-1], dt, nsub, params[i-1])
+                    _, I_n   = integrate_interval(H[i-1,n],   u[i-1,n],   z[i-1,n],   dt, nsub, params[i-1])
+                    coup[i,n] = z[i,n] - (C0*I_n + C1*I_nm1 + C2*z[i,n-1])
+    return dyn, coup
+
+# ---------- Feasible initial guess with hetero controls ----------
+
+def feasible_initial_guess(data):
+    """Feasible x0 with nontrivial u by setting u at mid + per-reach pattern, then integrating to define H,z."""
+    M,N,dt,nsub = data["M"], data["N"], data["dt"], data["nsub"]
+    params = data["params"]
+    umin,umax = data["u_bounds"]
+    Qin_ext = data["Qin_ext"]
+
+    # pattern to break symmetry
+    base = 0.5*(umin+umax)
+    phase = np.linspace(0, np.pi/2, M)
+    tgrid = np.arange(N)
+    u_pattern = np.array([base + 25*np.sin(2*np.pi*(tgrid/N) + ph) for ph in phase])
+    u_pattern = np.clip(u_pattern, umin, umax)
+
+    H = np.zeros((M, N+1)); u = np.zeros((M, N)); z = np.zeros((M, N))
+    H[:,0] = data["H0"]
+    # Set controls from pattern first
+    for i in range(M):
+        u[i,:] = u_pattern[i,:]
+
+    # First reach: exogenous inflow, integrate forward and record outflow averages
+    qavg_up = np.zeros((M, N))
+    for n in range(N):
+        z[0,n] = Qin_ext[n]
+        Hend, qavg = integrate_interval(H[0,n], u[0,n], z[0,n], dt, nsub, params[0])
+        H[0,n+1] = Hend
+        qavg_up[0,n] = qavg
+
+    # Downstream reaches with Muskingum routing
+    K_list = data.get("muskingum", {}).get("K", [1800.0]*(M-1))
+    X_list = data.get("muskingum", {}).get("X", [0.2]*(M-1))
+    for i in range(1,M):
+        Ki = K_list[i-1] if i-1 < len(K_list) else 1800.0
+        Xi = X_list[i-1] if i-1 < len(X_list) else 0.2
+        C0, C1, C2 = muskingum_coeffs(Ki, Xi, dt)
+        I = qavg_up[i-1,:]
+        # seed
+        z[i,0] = I[0]
+        # propagate recursively over time
+        for n in range(N-1):
+            z[i,n+1] = C0*I[n+1] + C1*I[n] + C2*z[i,n]
+        # integrate levels for reach i using routed inflow
+        for n in range(N):
+            Hend, qavg = integrate_interval(H[i,n], u[i,n], z[i,n], dt, nsub, params[i])
+            H[i,n+1] = Hend
+            qavg_up[i,n] = qavg
+    return pack(H,u,z)
+
+def scale_pref(Pref_raw, x0, data):
+    H,u,z = unpack(x0, data["M"], data["N"])
+    P0 = compute_total_power(H,u,data["params"])
+    s = max(np.mean(P0),1e-6)/max(np.mean(Pref_raw),1e-6)
+    return Pref_raw*s, P0
+
+def run_demo(show: bool = True, save_path: str | None = 'hydro.png', verbose: bool = False):
+    """Build, solve, and render the hydro demo.
+
+    Parameters
+    ----------
+    show : bool
+        If True, displays the matplotlib figure via plt.show().
+    save_path : str | None
+        If provided, saves the figure to this path.
+    verbose : bool
+        If True, prints diagnostic information.
+
+    Returns
+    -------
+    matplotlib.figure.Figure | None
+        Returns the Figure when show is False; otherwise returns None.
+    """
+    # ---------- Solve ----------
+    data = build_demo(M=3, N=16, dt=900.0, hetero=True)
+    x0 = feasible_initial_guess(data)
+    Pref, P0 = scale_pref(data["Pref_raw"], x0, data)
+
+    objective, weights = make_objective(data, Pref, wP=8.0, wH=0.02, wDu=5e-4)
+    # Suppress noisy SciPy warning about delta_grad during quasi-Newton updates
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            message=r"delta_grad == 0.0",
+            category=UserWarning,
+            module=r"scipy\.optimize\.\_differentiable_functions",
+        )
+        res = minimize(
+            fun=objective,
+            x0=x0,
+            method='trust-constr',
+            bounds=make_bounds(data),
+            constraints=make_constraints(data),
+            options=dict(maxiter=1000, disp=verbose),
+        )
+
+    H,u,z = unpack(res.x, data["M"], data["N"])
+    P = compute_total_power(H,u,data["params"])
+    dyn_res, coup_res = residuals(res.x, data)
+
+    # ---------- Diagnostics ----------
+    if verbose:
+        terms = decompose_objective(res.x, data, Pref, **weights)
+        print("\n=== Objective decomposition ===")
+        print({k: float(v) if not isinstance(v, dict) else {kk: float(vv) for kk,vv in v.items()} for k,v in terms.items()})
+
+        print("\n=== Constraint residuals (max |.|) ===")
+        print("dyn:", float(np.max(np.abs(dyn_res)))), print("coup:", float(np.max(np.abs(coup_res))))
+
+        # Muskingum coefficient sanity and residuals
+        if data.get("M", 1) > 1:
+            K_list = data.get("muskingum", {}).get("K", [])
+            X_list = data.get("muskingum", {}).get("X", [])
+            coef_checks = []
+            mean_abs_res = []
+            for i in range(1, data["M"]):
+                Ki = K_list[i-1] if i-1 < len(K_list) else 1800.0
+                Xi = X_list[i-1] if i-1 < len(X_list) else 0.2
+                C0, C1, C2 = muskingum_coeffs(Ki, Xi, data["dt"])
+                coef_checks.append(dict(link=i, sum=float(C0+C1+C2), min_coef=float(min(C0,C1,C2))))
+                # compute mean abs residual for this link
+                res_vals = []
+                for n in range(data["N"]-1):
+                    _, I_n   = integrate_interval(H[i-1,n],   u[i-1,n],   z[i-1,n],   data["dt"], data["nsub"], data["params"][i-1])
+                    _, I_np1 = integrate_interval(H[i-1,n+1], u[i-1,n+1], z[i-1,n+1], data["dt"], data["nsub"], data["params"][i-1])
+                    res_vals.append(float(abs(z[i,n+1] - (C0*I_np1 + C1*I_n + C2*z[i,n]))))
+                mean_abs_res.append(dict(link=i, mean_abs=float(np.mean(res_vals))))
+            print("\n=== Muskingum coeff checks (sum, min_coef) ===")
+            print(coef_checks)
+            print("=== Muskingum mean |residual| per link ===")
+            print(mean_abs_res)
+
+    # Per-interval diagnostic table for each reach (kept for debugging but unused here)
+    def interval_table(i):
+        rp = data["params"][i]
+        rows = []
+        for n in range(data["N"]):
+            qb = q_bypass(H[i,n], rp)
+            net = z[i,n] - (u[i,n] + qb)
+            dH = data["dt"]*net/rp.A_surf
+            rows.append(dict(interval=n, Hn=H[i,n], Hn1=H[i,n+1], u=u[i,n], z=z[i,n], qb=qb, net_flow=net, dH_pred=dH))
+        return pd.DataFrame(rows)
+
+    # summary and tables available to callers if needed
+    tables = [interval_table(i) for i in range(data["M"])]
+    summary = pd.DataFrame([
+        dict(reach=i+1,
+             H_mean=float(np.mean(H[i])), H_std=float(np.std(H[i])),
+             u_mean=float(np.mean(u[i])), u_std=float(np.std(u[i])),
+             z_mean=float(np.mean(z[i])), z_std=float(np.std(z[i])))
+        for i in range(data["M"])
+    ])
+
+    # ---------- Plots ----------
+    M,N = data["M"], data["N"]
+    t_nodes = np.arange(N+1)
+    t = np.arange(N)
+
+    fig, axes = plt.subplots(2, 2, figsize=(15, 10))
+    fig.suptitle('Hydroelectric System Optimization Results', fontsize=16)
+
+    ax1 = axes[0, 0]
+    for i in range(M):
+        ax1.plot(t_nodes, H[i], marker='o', label=f'Reach {i+1}')
+    ax1.set_xlabel("Node n"); ax1.set_ylabel("H [m]"); ax1.set_title("Water Levels")
+    ax1.grid(True); ax1.legend()
+
+    ax2 = axes[0, 1]
+    for i in range(M):
+        ax2.step(t, u[i], where='post', label=f'Reach {i+1}')
+    ax2.set_xlabel("Interval n"); ax2.set_ylabel("u [m³/s]"); ax2.set_title("Turbine Discharge")
+    ax2.grid(True); ax2.legend()
+
+    ax3 = axes[1, 0]
+    for i in range(M):
+        ax3.step(t, z[i], where='post', label=f'Reach {i+1}')
+    ax3.set_xlabel("Interval n"); ax3.set_ylabel("z [m³/s]"); ax3.set_title("Inflow (Coupling)")
+    ax3.grid(True); ax3.legend()
+
+    ax4 = axes[1, 1]
+    ax4.plot(t, P0, marker='s', label="Power @ x0")
+    ax4.plot(t, P, marker='o', label="Power @ optimum")
+    ax4.plot(t, Pref, marker='x', label="Scaled Pref")
+    ax4.set_xlabel("Interval n"); ax4.set_ylabel("Power units"); ax4.set_title("Power Tracking")
+    ax4.legend(); ax4.grid(True)
+
+    plt.tight_layout()
+    if save_path:
+        fig.savefig(save_path, bbox_inches='tight')
+    if show:
+        return None
+    return fig
+
+
+# Run the demo directly when loaded in a notebook cell
+run_demo(show=True, save_path=None, verbose=False)
+
+```
+
+
+The figure shows the result of a multiple-shooting optimization applied to a three-reach hydroelectric cascade. The time horizon is discretized into 16 intervals, and SciPy's `trust-constr` solver is used to find a feasible control sequence that satisfies mass balance, turbine and spillway limits, and Muskingum-style routing dynamics. Each reach integrates its own local ODE. Shooting defects link reservoir levels across time, while separate Muskingum constraints link routed flows between reaches.
+
+The top-left panel shows the water levels in each reservoir. We observe that upstream reservoirs tend to increase their levels ahead of discharge events, building potential energy before releasing water downstream. The top-right panel shows turbine discharges for each reach. These vary smoothly and are temporally coordinated across the system. The bottom-right panel compares the total generation to a synthetic demand profile, which is generated by a sum of time-shifted sigmoids and normalized to be feasible given turbine capacities. The optimized schedule (orange) tracks this demand closely, while the initial guess (blue) lags behind. The bottom-left panel plots the routed inflows between reaches, which display the expected lag and smoothing effects from Muskingum routing. The interplay between these plots shows how the system anticipates, stores, and routes water to meet time-varying generation targets within physical and operational limits.
+
+The ballistic and hydro examples use the same numerical structure at different scales: integrate locally, expose states at segment boundaries, and drive every continuity defect to zero. We now return to the first-order optimality conditions of the underlying discrete-time program.
+
+
 # The Discrete-Time Pontryagin Principle
 
 If we take the Bolza formulation of the DOCP and apply the KKT conditions directly, we obtain an optimization system with many multipliers and constraints. Written in raw form, it looks like any other nonlinear program. But in control, this structure has a long history and a name of its own: the **Pontryagin principle**. In fact, the discrete-time version can be seen as the structured KKT system that results from introducing multipliers for the dynamics and collecting terms stage by stage.
@@ -1442,42 +2201,66 @@ $$
 \nabla_{\mathbf{u}_t} J = \nabla_{\mathbf{u}} c_t(\mathbf{x}_t,\mathbf{u}_t) + \big[\nabla_{\mathbf{u}} \mathbf{f}_t(\mathbf{x}_t,\mathbf{u}_t)\big]^\top \boldsymbol{\lambda}_{t+1}.
 $$
 
-Computationally, this reverse accumulation produces all control gradients with one forward rollout and one backward adjoint pass; its cost is essentially a small constant multiple of simulating the system once. Conceptually, the costate $\boldsymbol{\lambda}_t$ is the marginal effect of perturbing the state at time $t$ on the total objective; the control gradient combines a direct contribution from $c_t$ and an indirect contribution through how $\mathbf{u}_t$ changes the next state. This is the same structure that underlies backpropagation, expressed for dynamical systems.
+This reverse accumulation produces every control gradient with one forward
+rollout and one backward adjoint pass. The costate
+$\boldsymbol{\lambda}_t$ measures the marginal effect of perturbing the state
+at time $t$ on the total objective. Each control gradient combines a direct
+contribution from $c_t$ with an indirect contribution through the next state.
+Backpropagation through an unrolled dynamical system performs the same
+calculation.
 
-It is instructive to contrast this with alternatives. Black-box finite differences perturb one decision at a time and re-roll the system, requiring on the order of $p$ rollouts for $p$ decision variables and suffering from step-size and noise issues. This becomes prohibitive when $p=(T-1)m$ for an $m$-dimensional control over $T$ steps. Forward‑mode (tangent) sensitivities propagate Jacobian–vector products for each parameter direction; their work also scales with $p$. Reverse‑mode (the adjoint) instead propagates a single vector $\boldsymbol{\lambda}_t$ backward and then reads off all partial derivatives $\nabla_{\mathbf{u}_t} J$ at once. For a scalar objective, its cost is effectively independent of $p$, at the price of storing (or checkpointing) the forward trajectory. This scalability is why the adjoint is the method of choice for gradient‑based trajectory optimization and for constrained transcriptions via the Hamiltonian.
+Finite differences instead perturb one decision at a time and rerun the
+system. They require on the order of $p$ rollouts for $p=(T-1)m$ control
+variables and introduce a finite-difference step size. Forward-mode
+sensitivities propagate a separate Jacobian-vector product for each parameter
+direction, so their work also scales with $p$. Reverse mode propagates one
+costate vector backward and reads all partial derivatives from that sweep. For
+a scalar objective, this replaces one rollout per parameter by one
+forward-backward pass, at the cost of storing or checkpointing the state
+trajectory.
 
-**Recap.** The adjoint method computes gradients of the objective with respect to all controls in time proportional to a single forward-backward pass through the dynamics. The forward pass simulates the system and stores the trajectory. The backward pass propagates costates $\boldsymbol{\lambda}_t$ from the terminal condition back to the initial time, accumulating sensitivity information along the way. Each control gradient is then read off locally as the sum of a direct cost contribution and an indirect contribution through the dynamics. This is mathematically equivalent to reverse-mode automatic differentiation (backpropagation) applied to the unrolled dynamical system, and it explains why gradient-based trajectory optimization scales gracefully to long horizons and high-dimensional control spaces.
+The adjoint recursion is therefore the reverse-mode derivative of the
+trajectory objective. States carry the nominal trajectory forward, costates
+carry its sensitivity backward, and the local control derivatives combine the
+two at each stage.
 
 ## Summary and Outlook
 
-This chapter developed the foundations of discrete-time trajectory optimization. We introduced three equivalent formulations of the discrete-time optimal control problem (DOCP), Bolza, Lagrange, and Mayer, and showed how they reduce to finite-dimensional nonlinear programs once a horizon is fixed.
+Fixing a finite horizon turns a discrete-time optimal control problem into a
+finite-dimensional nonlinear program. Bolza, Lagrange, and Mayer formulations
+differ only in where they place running and terminal costs; state augmentation
+converts one form into another.
 
-Three approaches to solving DOCPs were presented, each with distinct trade-offs:
+The CubeSat planner used a linear transition model, terminal phasing
+constraints, and an altitude-loss objective. Its nominal feasibility
+certificate did not transfer to the nonlinear variable-density replay. The
+inference-frequency example produced the same distinction in a different
+domain: a clock schedule feasible for one arrival forecast accumulated more
+backlog when the same requests arrived earlier. A solver certificate applies to
+the stated model, initial condition, and disturbance sequence.
 
-- **Simultaneous methods (direct transcription)** keep all states and controls as decision variables and enforce the dynamics as equality constraints. This produces a large but sparse NLP whose structure can be exploited by specialized solvers. The explicit state variables anchor the trajectory at every time step, improving robustness and making it straightforward to impose state constraints.
+Direct transcription keeps the states and controls as decision variables and
+enforces every transition as an equality. The resulting NLP is large but
+sparse, and state constraints are explicit. Single shooting keeps only the
+controls and obtains the states by forward simulation. This reduces the number
+of decision variables but creates a long dependency chain. Multiple shooting
+introduces selected segment-boundary states, shortening those chains while
+retaining sequential integration within each segment.
 
-- **Sequential methods (single shooting)** eliminate state variables by forward simulation, leaving only the controls as decisions. This yields a smaller, unconstrained (or bound-constrained) problem that integrates naturally with automatic differentiation frameworks. The trade-off is sensitivity to initialization and potential numerical instability over long horizons, since errors compound through the dynamics.
+The ballistic boundary-value problem and the hydroelectric cascade apply this same construction at different scales. In the hydro application, reservoir levels are segment-boundary states, each interval contains a short local simulation, and Muskingum constraints coordinate routed flows between reaches.
 
-- **Multiple shooting** divides the horizon into segments, treating segment boundaries as decision variables and enforcing continuity between them. This interpolates between the two extremes: it shortens the dependency chains that cause instability in single shooting while avoiding the full size of direct transcription.
+The KKT conditions organize local optimality into primal feasibility,
+stationarity, dual feasibility, and complementarity. Applied along a trajectory,
+they give the discrete-time Pontryagin principle. States propagate forward,
+costates propagate backward, and the Hamiltonian supplies the local control
+stationarity condition. The same backward recursion computes all control
+gradients with one reverse pass.
 
-The Karush–Kuhn–Tucker (KKT) conditions provide necessary conditions for local optimality in constrained optimization. Applied to the DOCP, they yield the discrete-time Pontryagin principle: a forward-backward system where states propagate forward through the dynamics and costates propagate backward through the adjoint equation. The Hamiltonian packages together the stage cost and dynamics, and control stationarity says that optimal controls minimize the Hamiltonian at each stage.
-
-The adjoint method computes gradients of the objective with respect to all controls in time proportional to one forward pass plus one backward pass, independent of the number of decision variables. This efficiency is what allows gradient-based trajectory optimization to scale to long horizons and high-dimensional control spaces.
-
-The inference-frequency experiment exposed this limitation directly. One clock
-sequence was optimized for a nominal request trace and then applied unchanged
-after a burst was moved earlier. Open-loop planning assumes that the model,
-initial condition, and disturbance forecast remain accurate enough throughout
-execution. In practice, plans must be adapted as new information arrives.
-Several directions extend this chapter's material:
-
-- **Collocation methods** use polynomial approximations to represent the trajectory between grid points, enabling higher-order accuracy and implicit handling of stiff dynamics. These are the subject of the next chapter.
-
-- **Model predictive control (MPC)** repeatedly solves trajectory optimization problems in a receding-horizon fashion, using the first control from each solution and re-planning as new state measurements arrive. This creates a feedback policy from open-loop building blocks.
-
-- **Feedback and policy optimization** shift the focus from computing a single trajectory to learning a policy $\pi(\mathbf{x})$ that maps states to controls. Dynamic programming, policy gradient methods, and actor-critic algorithms address this problem from different angles, and will be developed in later chapters.
-
-The KKT conditions, Pontryagin principle, shooting methods, and adjoint gradients introduced here will reappear throughout the book as we move from open-loop planning to closed-loop control and learning.
+The next chapter replaces the continuous functions in a continuous-time
+control problem by nodal polynomial values and collocation constraints.
+[](mpc.md) then solves finite-horizon trajectory problems repeatedly as new
+measurements arrive. Dynamic programming and policy optimization will replace
+one planned trajectory by decisions defined over many possible states.
 
 ## Exercises
 
@@ -1686,27 +2469,84 @@ Finite differences should match. The adjoint is $O(T)$ work regardless of the nu
 
 ---
 
-:::{exercise} Resource allocation as a DOCP
-:label: ex-trajectories-resource-allocation
+:::{exercise} Differential-drag derivation and model audit
+:label: ex-trajectories-differential-drag
 
-A company allocates budget $u_t \geq 0$ to marketing at each quarter $t = 1, \ldots, 4$. Brand awareness $x_t$ evolves as $x_{t+1} = 0.8 x_t + 0.5 u_t$ (awareness decays but is boosted by spending). Revenue at quarter $t$ is $r_t = 10 \sqrt{x_t}$, and the company maximizes total profit:
+Return to the three-satellite planner. Let
+$\Delta\sigma=1/B_\mathrm{high}-1/B_\mathrm{low}$ and
+$a_0=R_\mathrm{E}+h_0$, with all quantities converted to consistent SI units
+before substitution.
+
+**(a)** Starting from
 
 $$
-\max_{u_{1:4}} \sum_{t=1}^{4} \left( 10\sqrt{x_t} - u_t \right) \quad \text{s.t.} \quad x_{t+1} = 0.8 x_t + 0.5 u_t, \quad x_1 = 1, \quad u_t \geq 0.
+\dot a=-\rho_0\sigma\sqrt{\mu a},
+\qquad
+n(a)=\sqrt{\frac{\mu}{a^3}},
 $$
 
-**(a)** Rewrite this as a minimization problem in standard DOCP form.
+derive the extra daily altitude loss $d$ and angular acceleration $\alpha$
+caused by full-time high drag after linearization at $a_0$.
 
-**(b)** Solve numerically using single shooting. Report the optimal spending schedule and total profit.
+**(b)** Unroll the daily model and show that
 
-**(c)** Interpret the costates: which quarter has the highest marginal value of awareness?
+$$
+\omega_{i,N}=\alpha\sum_{k=0}^{N-1}u_{i,k},
+\qquad
+\varphi_{i,N}
+=\varphi_{i,0}
++\alpha\sum_{k=0}^{N-1}
+\left(N-k-\frac12\right)u_{i,k}.
+$$
+
+Explain why equal total high-drag exposure can produce equal terminal rates
+while different command timing still produces different terminal phases.
+
+**(c)** The nominal LP residual is below $10^{-10}$, but the nonlinear replay
+misses a cyclic gap by more than $10^\circ$. Identify which claim each number
+supports. Why would tightening the LP tolerance not repair the nonlinear miss?
+
+**(d)** Propose a validation or feedback experiment that distinguishes
+integration error from model mismatch without changing the already executed
+part of the command.
 
 :::
 
-:::{solution} ex-trajectories-resource-allocation
+:::{solution} ex-trajectories-differential-drag
 :class: dropdown
 
-Convert to minimization by negating the objective. The costate $\lambda_t$ represents the marginal value of awareness at time $t$. Early quarters typically have higher costates because awareness at $t$ contributes to revenue at $t, t+1, \ldots, T$ (discounted by the decay factor $0.8$).
+The extra semimajor-axis rate is
+
+$$
+\Delta\dot a
+=-\rho_0\Delta\sigma\sqrt{\mu a_0}.
+$$
+
+Thus $d=-\Delta\dot a\,\Delta t$, with a metre-to-kilometre conversion. Since
+$dn/da=-3n/(2a)$,
+
+$$
+\dot n
+=\frac{3n_0}{2a_0}
+\rho_0\Delta\sigma\sqrt{\mu a_0},
+$$
+
+and $\alpha=\dot n\,\Delta t^2$ after converting radians to degrees. Repeated
+substitution in the rate equation gives the first expression in part (b).
+Each input contributes half of its new rate on its own day and its full rate
+on every later day, which gives the phase weight $N-k-\tfrac12$.
+
+Equal sums $\sum_k u_{i,k}$ give equal final rate changes and equal nominal
+extra altitude losses. Moving an equal amount of high drag earlier gives it a
+larger phase weight, so timing can separate the satellites without leaving a
+large terminal rate difference.
+
+The small LP residual certifies that the numerical solution satisfies the
+linear program. The cyclic-gap miss measures predictive failure under the
+declared nonlinear plant. Solver tolerance cannot remove omitted density and
+altitude dependence. First halve the RK4 step to audit integration error. To
+address model mismatch during operation, observe the current orbital state and
+replan only the remaining command, as in receding-horizon control.
 :::
 
 ## Self-checks

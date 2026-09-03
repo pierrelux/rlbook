@@ -33,3 +33,18 @@ uv run python scripts/build_inference_artifacts.py --quick
 Quick artifacts must not be published. The `metadata.artifact_protocol` field
 distinguishes them from the fixed 50,000-transition, 50-sweep, 200-tree FQI
 protocol used by the textbook.
+
+The dedicated L4 phase-confirmation experiment is kept separate from the
+serving simulator because its candidate thermal model failed the prespecified
+validation rule. Its textbook figure, held-out trajectories, generated result,
+and provenance manifest are reproduced without fitting or network access by:
+
+```bash
+uv run python scripts/build_inference_thermal_validation_artifacts.py
+```
+
+The builder reads the immutable acquisition and training-only fit in
+`data/inference_serving/thermal-phase-identification-20260903T131518Z`. It
+reconstructs the two fixed model predictions on the untouched validation pair
+and checks them against the stored metrics. It does not modify the inference
+plant or promote the rejected fit into MPC constraints.

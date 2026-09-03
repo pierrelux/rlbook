@@ -254,6 +254,25 @@ def _unpack(vector: np.ndarray, intervals: int) -> tuple[np.ndarray, np.ndarray]
     return vector[:split].reshape(nodes, 4), vector[split:]
 
 
+def _transcription_objective(
+    state: np.ndarray,
+    acceleration: np.ndarray,
+    step: float,
+) -> float:
+    """Integrate nodal running costs and piecewise-linear slew costs."""
+
+    sway_cost = 6.0 * state[:, 2] ** 2 + 0.15 * state[:, 3] ** 2
+    effort_cost = 0.035 * acceleration**2
+    node_cost = sway_cost + effort_cost
+    smooth_integral = step * (
+        0.5 * node_cost[0] + np.sum(node_cost[1:-1]) + 0.5 * node_cost[-1]
+    )
+
+    slew_rate = np.diff(acceleration) / step
+    slew_integral = step * np.sum(0.002 * slew_rate**2)
+    return float(smooth_integral + slew_integral)
+
+
 def transcription_defects(
     solution: CollocationSolution,
     params: CraneParameters,
@@ -334,10 +353,7 @@ def solve_direct_collocation(
 
     def objective(vector: np.ndarray) -> float:
         state, acceleration = _unpack(vector, intervals)
-        sway_cost = 6.0 * state[:, 2] ** 2 + 0.15 * state[:, 3] ** 2
-        effort_cost = 0.035 * acceleration**2
-        slew_cost = 0.002 * np.diff(acceleration) ** 2 / step**2
-        return float(step * np.sum(sway_cost + effort_cost) + step * np.sum(slew_cost))
+        return _transcription_objective(state, acceleration, step)
 
     def equality(vector: np.ndarray) -> np.ndarray:
         state, acceleration = _unpack(vector, intervals)

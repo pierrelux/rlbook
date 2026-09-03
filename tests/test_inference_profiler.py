@@ -31,9 +31,13 @@ from profile_inference_gpu import (  # noqa: E402
     THERMAL_COOLDOWN_STABILITY_S,
     THERMAL_COOLDOWN_TARGET_C,
     THERMAL_COOLDOWN_TIMEOUT_S,
+    THERMAL_PHASE_COOLDOWN_STABILITY_S,
+    THERMAL_PHASE_COOLDOWN_TARGET_C,
+    THERMAL_PHASE_COOLDOWN_TIMEOUT_S,
     THERMAL_SAFE_DOWN_C,
     ThermalSafetyWatchdog,
     VLLM_PREFIX_CACHING_ENABLED,
+    _validated_pulse_start_temperatures,
     _telemetry_summary,
     apply_verified_thermal_power_limit,
     aggregate_profile,
@@ -54,6 +58,7 @@ from profile_inference_gpu import (  # noqa: E402
     thermal_identification_sequences,
     thermal_phase_identification_sequences,
     wait_for_thermal_cooldown,
+    wait_for_thermal_identification_cooldown,
 )
 
 
@@ -485,6 +490,68 @@ class InferenceProfilerTests(unittest.TestCase):
                 controls.lock_graphics(900)
         self.assertTrue(any("-lgc" in command for command in runner.commands))
 
+    def test_phase_controls_release_idle_memory_and_relock_for_measurement(self) -> None:
+        runner = RecordingRunner()
+        with patch("profile_inference_gpu.os.geteuid", return_value=0):
+            with managed_gpu_controls(
+                metadata(),
+                5001,
+                runner=runner,
+                lock_memory_on_enter=False,
+            ) as (controls, applied):
+                self.assertFalse(applied["memory_clock_locked"])
+                self.assertFalse(applied["memory_clock_locked_on_enter"])
+                controls.reset_memory()
+                controls.lock_memory(5001)
+        commands = [" ".join(command) for command in runner.commands]
+        reset_index = next(
+            index for index, command in enumerate(commands) if " -rmc" in command
+        )
+        lock_index = next(
+            index for index, command in enumerate(commands) if " -lmc 5001,5001" in command
+        )
+        self.assertLess(reset_index, lock_index)
+
+    def test_phase_start_band_compares_post_relock_states(self) -> None:
+        starts = _validated_pulse_start_temperatures(
+            [57.0],
+            58.0,
+            maximum_temperature_c=58.0,
+        )
+        self.assertEqual(starts, [57.0, 58.0])
+        with self.assertRaisesRegex(ProfilingError, "ceiling"):
+            _validated_pulse_start_temperatures(
+                [57.0],
+                59.0,
+                maximum_temperature_c=58.0,
+            )
+        with self.assertRaisesRegex(ProfilingError, "pulse-start band"):
+            _validated_pulse_start_temperatures(
+                [56.0],
+                58.0,
+                maximum_temperature_c=58.0,
+            )
+
+    def test_emergency_safe_down_releases_memory_clock(self) -> None:
+        runner = RecordingRunner()
+        controls = GpuControls(
+            0,
+            runner,
+            minimum_power_limit_w=40.0,
+            maximum_power_limit_w=72.0,
+        )
+        self.assertEqual(
+            controls.emergency_safe_down(
+                power_limit_w=40.0,
+                graphics_clock_mhz=210,
+            ),
+            (),
+        )
+        commands = [" ".join(command) for command in runner.commands]
+        self.assertTrue(any(" -pl 40.0" in command for command in commands))
+        self.assertTrue(any(" -lgc 210,210" in command for command in commands))
+        self.assertTrue(any(" -rmc" in command for command in commands))
+
     def test_profile_matrix_and_csv_contract_are_fixed(self) -> None:
         self.assertEqual(PROFILE_SCHEMA_VERSION, 2)
         self.assertFalse(VLLM_PREFIX_CACHING_ENABLED)
@@ -749,6 +816,9 @@ class InferenceProfilerTests(unittest.TestCase):
         self.assertEqual(THERMAL_COOLDOWN_TARGET_C, 52.0)
         self.assertEqual(THERMAL_COOLDOWN_STABILITY_S, 60.0)
         self.assertEqual(THERMAL_COOLDOWN_TIMEOUT_S, 600.0)
+        self.assertEqual(THERMAL_PHASE_COOLDOWN_TARGET_C, 58.0)
+        self.assertEqual(THERMAL_PHASE_COOLDOWN_STABILITY_S, 120.0)
+        self.assertEqual(THERMAL_PHASE_COOLDOWN_TIMEOUT_S, 900.0)
 
     def test_thermal_phase_schedule_is_fixed_counterbalanced_and_held_out(self) -> None:
         sequences = thermal_phase_identification_sequences()
@@ -787,6 +857,92 @@ class InferenceProfilerTests(unittest.TestCase):
         self.assertFalse(
             any(block.split == "validation" for block in sequences[0][1])
         )
+
+    def test_phase_cooldown_uses_fresh_unlocked_memory_idle_state(self) -> None:
+        lifecycle: list[str] = []
+
+        class Controls:
+            def lock_graphics(self, frequency_mhz: int) -> None:
+                lifecycle.append(f"graphics:{frequency_mhz}")
+
+            def set_power_limit(self, power_limit_w: float, *, verify: bool) -> float:
+                lifecycle.append(f"power:{power_limit_w:.0f}")
+                return power_limit_w
+
+            def reset_memory(self) -> None:
+                lifecycle.append("memory:reset")
+
+        class Watchdog:
+            def raise_if_stopped(self) -> None:
+                return None
+
+            def abort_for_control_failure(self, reason: str) -> None:
+                raise AssertionError(reason)
+
+        class Sampler:
+            period_s = 0.1
+
+            def __init__(self) -> None:
+                self.phase = "initialization"
+                self.rows: list[dict[str, float | str]] = []
+
+            def set_context(self, phase: str, **context) -> None:
+                self.phase = phase
+
+            def ensure_healthy(self) -> None:
+                return None
+
+            def snapshot(self):
+                return [dict(row) for row in self.rows]
+
+        sampler = Sampler()
+
+        class Clock:
+            elapsed_s = 0.0
+
+            def monotonic(self) -> float:
+                return self.elapsed_s
+
+            def sleep(self, duration_s: float) -> None:
+                self.elapsed_s += duration_s
+                sampler.rows.append(
+                    {
+                        "phase": sampler.phase,
+                        "elapsed_s": self.elapsed_s,
+                        "temperature_c": 57.0,
+                        "power_w": 16.0,
+                        "memory_clock_mhz": 405.0,
+                    }
+                )
+
+        clock = Clock()
+        events: list[dict[str, object]] = []
+        block = thermal_phase_identification_sequences()[0][1][0]
+        event = wait_for_thermal_identification_cooldown(
+            sampler,  # type: ignore[arg-type]
+            Controls(),  # type: ignore[arg-type]
+            Watchdog(),  # type: ignore[arg-type]
+            block=block,
+            profile_start=0.0,
+            cooldown_clock_mhz=210,
+            events=events,  # type: ignore[arg-type]
+            target_temperature_c=58.0,
+            release_memory_clock=True,
+            reference_temperature_c=57.0,
+            reference_power_w=16.0,
+            stability_window_s=1.0,
+            timeout_s=3.0,
+            poll_s=0.25,
+            monotonic=clock.monotonic,
+            sleep=clock.sleep,
+        )
+        self.assertEqual(
+            lifecycle[:3], ["graphics:210", "power:40", "memory:reset"]
+        )
+        self.assertEqual(event["status"], "complete")
+        self.assertEqual(event["memory_clock_mode"], "unlocked")
+        self.assertEqual(event["window_mean_power_w"], 16.0)
+        self.assertEqual(event["window_median_memory_clock_mhz"], 405.0)
 
     def test_thermal_mode_bypasses_the_full_profile_and_its_repeat_constraint(self) -> None:
         arguments = parse_arguments(
@@ -1055,6 +1211,10 @@ class InferenceProfilerTests(unittest.TestCase):
             lifecycle.index(f"cooldown:{second.block_id}"),
         )
         self.assertLess(
+            lifecycle.index(f"stop:{first.block_id}"),
+            lifecycle.index("clock:210"),
+        )
+        self.assertLess(
             lifecycle.index(f"cooldown:{second.block_id}"),
             lifecycle.index(f"start:{second.block_id}"),
         )
@@ -1168,11 +1328,15 @@ class InferenceProfilerTests(unittest.TestCase):
             'VM_NAME="pierreluc-l4-rlbook-thermal-phase"',
             'MACHINE_TYPE="g2-standard-8"',
             'IMAGE_FAMILY="pytorch-2-9-cu129-ubuntu-2204-nvidia-580"',
-            'MAX_RUNTIME="2h"',
+            'MAX_RUNTIME_SECONDS="6900"',
+            'MAX_RUNTIME="6900s"',
+            "MONITOR_MAX_SECONDS=6600",
             'PRIOR_FAILED_TRIAL_USD="0.40"',
             'PRIOR_COMPLETED_RUN_USD="1.60"',
-            'MAX_NEW_COMPUTE_USD="1.707248624"',
-            'EXPECTED_MAX_CUMULATIVE_USD="4.207248624"',
+            'PRIOR_PHASE_V1_FAILED_TRIAL_USD="0.31"',
+            'PRIOR_PHASE_V2_FAILED_TRIAL_USD="0.31"',
+            'MAX_NEW_COMPUTE_USD="1.636113264666666666666666667"',
+            'EXPECTED_MAX_CUMULATIVE_USD="4.756113264666666666666666667"',
             'MAX_EXPOSURE_USD="4.80"',
             "RLBOOK_RUN_THERMAL_PHASE_IDENTIFICATION=YES",
             "--mode thermal-phase-identification",
@@ -1190,7 +1354,7 @@ class InferenceProfilerTests(unittest.TestCase):
             "thermal-phase-block-*.done",
             "thermal_phase.complete",
             "thermal_phase.failed",
-            'manifest.get("protocol") != "cold-start-phase-pairs-v1"',
+            'manifest.get("protocol") != "cold-start-phase-pairs-v3"',
             "phase_training_pulse_00",
             "phase_training_pulse_03",
             "phase_validation_pulse_00",
@@ -1201,6 +1365,11 @@ class InferenceProfilerTests(unittest.TestCase):
             "thermal telemetry reached the abort temperature",
             "The thermal VM still exists",
             "The thermal disk still exists",
+            "Could not verify thermal VM deletion",
+            "Could not verify thermal disk deletion",
+            "Local monitoring exceeded its bounded deadline",
+            'cooldown_protocol.get("memory_clock_mode") == "unlocked"',
+            "thermal pulses do not share the required safe start state",
         ):
             self.assertIn(required, launcher)
         self.assertNotIn("l4_profile.csv", launcher)

@@ -50,11 +50,15 @@ THERMAL_SAFE_DOWN_C = 77.0
 THERMAL_ABORT_C = 79.0
 THERMAL_STALE_TELEMETRY_S = 1.0
 THERMAL_COOLDOWN_TARGET_C = 52.0
+THERMAL_PHASE_COOLDOWN_TARGET_C = 58.0
 THERMAL_COOLDOWN_STABILITY_C = 1.0
 THERMAL_COOLDOWN_STABILITY_S = 60.0
 THERMAL_COOLDOWN_TIMEOUT_S = 10.0 * 60.0
+THERMAL_PHASE_COOLDOWN_STABILITY_S = 120.0
+THERMAL_PHASE_COOLDOWN_TIMEOUT_S = 15.0 * 60.0
 THERMAL_MINIMUM_POWER_W = 40.0
 THERMAL_REQUESTED_CLOCK_MHZ = 2040
+THERMAL_MEMORY_RELOCK_SETTLE_S = 1.0
 
 RAW_PROFILE_COLUMNS = [
     "phase",
@@ -395,6 +399,38 @@ class GpuControls:
                 "The protocol will not substitute an unlocked measurement."
             ) from error
 
+    def lock_memory(self, frequency_mhz: int) -> None:
+        """Lock the memory clock for a measured pulse."""
+
+        try:
+            with self._control_lock:
+                self.runner(
+                    [
+                        "nvidia-smi",
+                        "-i",
+                        str(self.gpu_index),
+                        "-lmc",
+                        f"{frequency_mhz},{frequency_mhz}",
+                    ],
+                    timeout=20,
+                )
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
+            raise ProfilingError(
+                f"Could not lock memory clock at {frequency_mhz} MHz."
+            ) from error
+
+    def reset_memory(self) -> None:
+        """Release the memory-clock lock during thermal conditioning."""
+
+        try:
+            with self._control_lock:
+                self.runner(
+                    ["nvidia-smi", "-i", str(self.gpu_index), "-rmc"],
+                    timeout=20,
+                )
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
+            raise ProfilingError("Could not release the memory-clock lock.") from error
+
     def set_power_limit(self, power_limit_w: float, *, verify: bool = True) -> float:
         """Set a power cap and return its hardware readback."""
 
@@ -476,6 +512,7 @@ class GpuControls:
                     "-lgc",
                     f"{graphics_clock_mhz},{graphics_clock_mhz}",
                 ],
+                ["nvidia-smi", "-i", str(self.gpu_index), "-rmc"],
             ):
                 try:
                     self.runner(arguments, timeout=20)
@@ -491,6 +528,7 @@ def managed_gpu_controls(
     *,
     gpu_index: int = 0,
     runner: CommandRunner = run_command,
+    lock_memory_on_enter: bool = True,
 ) -> Iterator[tuple[GpuControls, dict[str, Any]]]:
     """Apply the fixed power/memory settings and always restore defaults."""
 
@@ -516,25 +554,18 @@ def managed_gpu_controls(
             ["nvidia-smi", "-i", str(gpu_index), "-pl", f"{target_power:.1f}"],
             timeout=20,
         )
-        try:
-            runner(
-                [
-                    "nvidia-smi",
-                    "-i",
-                    str(gpu_index),
-                    "-lmc",
-                    f"{memory_clock_mhz},{memory_clock_mhz}",
-                ],
-                timeout=20,
-            )
-            memory_locked = True
-        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
-            memory_error = str(error)
+        if lock_memory_on_enter:
+            try:
+                controls.lock_memory(memory_clock_mhz)
+                memory_locked = True
+            except ProfilingError as error:
+                memory_error = str(error)
         yield controls, {
             "power_limit_w": target_power,
             "memory_clock_requested_mhz": memory_clock_mhz,
             "memory_clock_locked": memory_locked,
             "memory_clock_error": memory_error,
+            "memory_clock_locked_on_enter": lock_memory_on_enter,
         }
     finally:
         reset_errors: list[str] = []
@@ -816,6 +847,11 @@ def wait_for_thermal_identification_cooldown(
     cooldown_clock_mhz: int,
     events: list[dict[str, Any]],
     target_temperature_c: float = THERMAL_COOLDOWN_TARGET_C,
+    release_memory_clock: bool = False,
+    reference_temperature_c: float | None = None,
+    reference_power_w: float | None = None,
+    reference_temperature_tolerance_c: float = 1.0,
+    reference_power_tolerance_w: float = 1.0,
     stability_band_c: float = THERMAL_COOLDOWN_STABILITY_C,
     stability_window_s: float = THERMAL_COOLDOWN_STABILITY_S,
     timeout_s: float = THERMAL_COOLDOWN_TIMEOUT_S,
@@ -827,10 +863,18 @@ def wait_for_thermal_identification_cooldown(
 
     if stability_window_s <= 0.0 or timeout_s <= stability_window_s:
         raise ValueError("Cooldown timeout must exceed its positive stability window.")
-    controls.lock_graphics(cooldown_clock_mhz)
-    apply_verified_thermal_power_limit(
-        controls, watchdog, THERMAL_MINIMUM_POWER_W
-    )
+    try:
+        controls.lock_graphics(cooldown_clock_mhz)
+        apply_verified_thermal_power_limit(
+            controls, watchdog, THERMAL_MINIMUM_POWER_W
+        )
+        if release_memory_clock:
+            controls.reset_memory()
+    except Exception as error:
+        watchdog.abort_for_control_failure(
+            f"cooldown controls failed before {block.block_id}: {error}"
+        )
+        raise
     phase = f"thermal_identification_cooldown_before_{block.block_id}"
     sampler.set_context(
         phase,
@@ -852,6 +896,9 @@ def wait_for_thermal_identification_cooldown(
         "stability_band_c": stability_band_c,
         "stability_window_s": stability_window_s,
         "timeout_s": timeout_s,
+        "memory_clock_mode": "unlocked" if release_memory_clock else "locked",
+        "reference_temperature_c": reference_temperature_c,
+        "reference_power_w": reference_power_w,
         "status": "running",
     }
     events.append(event)
@@ -869,6 +916,17 @@ def wait_for_thermal_identification_cooldown(
                 if float(row["elapsed_s"]) >= latest_elapsed - stability_window_s
             ]
             temperatures = [float(row["temperature_c"]) for row in window]
+            powers = [
+                float(row["power_w"])
+                for row in window
+                if row.get("power_w") is not None
+            ]
+            memory_clocks = [
+                float(row["memory_clock_mhz"])
+                for row in window
+                if row.get("memory_clock_mhz") is not None
+            ]
+            window_mean_power = sum(powers) / len(powers) if powers else None
             spans_window = (
                 float(window[-1]["elapsed_s"]) - float(window[0]["elapsed_s"])
                 >= stability_window_s - max(0.2, 2.0 * sampler.period_s)
@@ -877,6 +935,19 @@ def wait_for_thermal_identification_cooldown(
                 spans_window
                 and max(temperatures) <= target_temperature_c
                 and max(temperatures) - min(temperatures) <= stability_band_c
+                and (
+                    reference_temperature_c is None
+                    or abs(temperatures[-1] - reference_temperature_c)
+                    <= reference_temperature_tolerance_c
+                )
+                and (
+                    reference_power_w is None
+                    or (
+                        window_mean_power is not None
+                        and abs(window_mean_power - reference_power_w)
+                        <= reference_power_tolerance_w
+                    )
+                )
             ):
                 event.update(
                     {
@@ -886,12 +957,28 @@ def wait_for_thermal_identification_cooldown(
                         "final_temperature_c": temperatures[-1],
                         "window_min_temperature_c": min(temperatures),
                         "window_max_temperature_c": max(temperatures),
+                        "window_mean_power_w": window_mean_power,
+                        "window_median_memory_clock_mhz": (
+                            _median(memory_clocks) if memory_clocks else None
+                        ),
                     }
                 )
                 return event
         elapsed = monotonic() - started
         if elapsed >= timeout_s:
             event.update({"status": "failed_timeout", "duration_s": elapsed})
+            if phase_rows:
+                event.update(
+                    {
+                        "final_temperature_c": float(phase_rows[-1]["temperature_c"]),
+                        "minimum_temperature_c": min(
+                            float(row["temperature_c"]) for row in phase_rows
+                        ),
+                        "maximum_temperature_c": max(
+                            float(row["temperature_c"]) for row in phase_rows
+                        ),
+                    }
+                )
             watchdog.abort_for_control_failure(
                 f"standardized cooldown before {block.block_id} timed out"
             )
@@ -1667,6 +1754,32 @@ def checkpoint_thermal_block(
     return checkpoint
 
 
+def _validated_pulse_start_temperatures(
+    previous_temperatures_c: Sequence[float],
+    candidate_temperature_c: float,
+    *,
+    maximum_temperature_c: float,
+    maximum_band_c: float = 1.0,
+) -> list[float]:
+    """Validate post-relock pulse starts against other post-relock starts."""
+
+    if candidate_temperature_c > maximum_temperature_c:
+        raise ProfilingError(
+            f"Pulse-start temperature {candidate_temperature_c:.0f} C exceeds "
+            f"the {maximum_temperature_c:.0f} C ceiling."
+        )
+    candidates = [
+        *(float(value) for value in previous_temperatures_c),
+        float(candidate_temperature_c),
+    ]
+    if max(candidates) - min(candidates) > maximum_band_c:
+        raise ProfilingError(
+            f"Pulse-start temperature {candidate_temperature_c:.0f} C would "
+            f"exceed the {maximum_band_c:.0f}-degree pulse-start band."
+        )
+    return candidates
+
+
 def run_thermal_identification_sequence(
     blocks: Sequence[ThermalIdentificationBlock],
     *,
@@ -1686,6 +1799,12 @@ def run_thermal_identification_sequence(
     manifest: dict[str, Any],
     cooldown_clock_mhz: int,
     cooldown_events: list[dict[str, Any]],
+    memory_clock_mhz: int | None = None,
+    release_memory_during_cooldown: bool = False,
+    cooldown_target_temperature_c: float = THERMAL_COOLDOWN_TARGET_C,
+    cooldown_stability_window_s: float = THERMAL_COOLDOWN_STABILITY_S,
+    cooldown_timeout_s: float = THERMAL_COOLDOWN_TIMEOUT_S,
+    memory_relock_settle_s: float = THERMAL_MEMORY_RELOCK_SETTLE_S,
     marker_prefix: str = "thermal-block",
     monotonic: Callable[[], float] = time.monotonic,
     sleep: Callable[[float], None] = time.sleep,
@@ -1693,7 +1812,23 @@ def run_thermal_identification_sequence(
     """Run cold-start pulses, stopping each workload before the next cooldown."""
 
     for block in blocks:
-        wait_for_thermal_identification_cooldown(
+        conditioning_reference = (
+            manifest.get("conditioning_reference")
+            if release_memory_during_cooldown
+            else None
+        )
+        reference_temperature_c = (
+            float(conditioning_reference["temperature_c"])
+            if isinstance(conditioning_reference, Mapping)
+            else None
+        )
+        reference_power_w = (
+            float(conditioning_reference["idle_power_w"])
+            if isinstance(conditioning_reference, Mapping)
+            and conditioning_reference.get("idle_power_w") is not None
+            else None
+        )
+        cooldown_event = wait_for_thermal_identification_cooldown(
             sampler,
             controls,
             watchdog,
@@ -1701,18 +1836,134 @@ def run_thermal_identification_sequence(
             profile_start=profile_start,
             cooldown_clock_mhz=cooldown_clock_mhz,
             events=cooldown_events,
+            target_temperature_c=cooldown_target_temperature_c,
+            release_memory_clock=release_memory_during_cooldown,
+            reference_temperature_c=reference_temperature_c,
+            reference_power_w=reference_power_w,
+            stability_window_s=cooldown_stability_window_s,
+            timeout_s=cooldown_timeout_s,
             monotonic=monotonic,
             sleep=sleep,
         )
+        if release_memory_during_cooldown and conditioning_reference is None:
+            manifest["conditioning_reference"] = {
+                "temperature_c": cooldown_event["final_temperature_c"],
+                "idle_power_w": cooldown_event.get("window_mean_power_w"),
+                "memory_clock_mhz": cooldown_event.get(
+                    "window_median_memory_clock_mhz"
+                ),
+                "temperature_tolerance_c": 1.0,
+                "idle_power_tolerance_w": 1.0,
+                "source_block_id": block.block_id,
+            }
         _write_csv(telemetry_path, sampler.snapshot(), THERMAL_TELEMETRY_COLUMNS)
         _write_json(manifest_path, manifest)
         try:
-            controls.lock_graphics(THERMAL_REQUESTED_CLOCK_MHZ)
+            if release_memory_during_cooldown:
+                if memory_clock_mhz is None:
+                    raise ProfilingError(
+                        "A pulse memory clock is required after unlocked cooldown."
+                    )
+                sampler.set_context(
+                    f"thermal_identification_memory_relock_before_{block.block_id}",
+                    split="conditioning",
+                    sequence=block.sequence,
+                    block_id=f"memory_relock_before_{block.block_id}",
+                    block_role="memory_relock",
+                    requested_power_limit_w=block.requested_power_limit_w,
+                    requested_clock_mhz=THERMAL_REQUESTED_CLOCK_MHZ,
+                    workload_phase="idle",
+                )
+                relock_started = monotonic()
+                controls.lock_memory(memory_clock_mhz)
+                controls.lock_graphics(THERMAL_REQUESTED_CLOCK_MHZ)
+                applied_power = apply_verified_thermal_power_limit(
+                    controls, watchdog, block.requested_power_limit_w
+                )
+                sleep(memory_relock_settle_s)
+                sampler.ensure_healthy()
+                watchdog.raise_if_stopped()
+                relock_phase = (
+                    f"thermal_identification_memory_relock_before_{block.block_id}"
+                )
+                relock_rows = [
+                    row
+                    for row in sampler.snapshot()
+                    if str(row.get("phase")) == relock_phase
+                ]
+                if not relock_rows:
+                    raise ProfilingError(
+                        f"No fresh memory-relock telemetry before {block.block_id}."
+                    )
+                latest_relock = relock_rows[-1]
+                realized_memory_clock = float(latest_relock["memory_clock_mhz"])
+                relock_temperature = float(latest_relock["temperature_c"])
+                if not math.isclose(
+                    realized_memory_clock,
+                    float(memory_clock_mhz),
+                    rel_tol=0.0,
+                    abs_tol=1.0,
+                ):
+                    raise ProfilingError(
+                        f"Memory-clock readback {realized_memory_clock:.0f} MHz "
+                        f"does not match {memory_clock_mhz} MHz before {block.block_id}."
+                    )
+                previous_start_temperatures = [
+                    float(value)
+                    for value in manifest.get("pulse_start_temperatures_c", [])
+                ]
+                candidate_start_temperatures = _validated_pulse_start_temperatures(
+                    previous_start_temperatures,
+                    relock_temperature,
+                    maximum_temperature_c=cooldown_target_temperature_c,
+                )
+                manifest["pulse_start_temperatures_c"] = (
+                    candidate_start_temperatures
+                )
+                cooldown_event["memory_relock"] = {
+                    "duration_s": monotonic() - relock_started,
+                    "requested_memory_clock_mhz": memory_clock_mhz,
+                    "realized_memory_clock_mhz": realized_memory_clock,
+                    "temperature_c": relock_temperature,
+                    "cooldown_reference_temperature_c": (
+                        reference_temperature_c
+                        if reference_temperature_c is not None
+                        else float(cooldown_event["final_temperature_c"])
+                    ),
+                    "pulse_start_band_reference_c": (
+                        previous_start_temperatures[0]
+                        if previous_start_temperatures
+                        else relock_temperature
+                    ),
+                    "settle_s": memory_relock_settle_s,
+                    "status": "verified",
+                }
+            else:
+                controls.lock_graphics(THERMAL_REQUESTED_CLOCK_MHZ)
+                applied_power = apply_verified_thermal_power_limit(
+                    controls, watchdog, block.requested_power_limit_w
+                )
         except Exception as error:
+            if release_memory_during_cooldown:
+                cooldown_event["memory_relock"] = {
+                    **dict(cooldown_event.get("memory_relock", {})),
+                    "status": "failed",
+                    "error": f"{type(error).__name__}: {error}",
+                }
             watchdog.abort_for_control_failure(
-                f"graphics-clock command failed before {block.block_id}: {error}"
+                f"pulse-control preparation failed before {block.block_id}: {error}"
             )
             raise
+        if not math.isclose(
+            applied_power,
+            block.requested_power_limit_w,
+            rel_tol=0.0,
+            abs_tol=0.51,
+        ):
+            watchdog.abort_for_control_failure(
+                "verified power limit changed unexpectedly"
+            )
+            watchdog.raise_if_stopped()
         sampler.set_context(
             f"thermal_identification_{block.block_id}",
             split=block.split,
@@ -1728,19 +1979,6 @@ def run_thermal_identification_sequence(
         pulse_error: Exception | None = None
         active_load: ContinuousThermalLoad | None = None
         try:
-            applied_power = apply_verified_thermal_power_limit(
-                controls, watchdog, block.requested_power_limit_w
-            )
-            if not math.isclose(
-                applied_power,
-                block.requested_power_limit_w,
-                rel_tol=0.0,
-                abs_tol=0.51,
-            ):
-                watchdog.abort_for_control_failure(
-                    "verified power limit changed unexpectedly"
-                )
-                watchdog.raise_if_stopped()
             active_load = ContinuousThermalLoad(
                 block.condition,
                 block,
@@ -1773,6 +2011,13 @@ def run_thermal_identification_sequence(
                 requested_clock_mhz=cooldown_clock_mhz,
                 workload_phase="transition_idle",
             )
+            if active_load is not None:
+                try:
+                    active_load.stop()
+                except Exception as error:
+                    if pulse_error is None:
+                        pulse_error = error
+                    status = "failed"
             try:
                 apply_verified_thermal_power_limit(
                     controls, watchdog, THERMAL_MINIMUM_POWER_W
@@ -1785,10 +2030,13 @@ def run_thermal_identification_sequence(
                 if pulse_error is None:
                     pulse_error = error
                 status = "failed"
-            if active_load is not None:
+            if release_memory_during_cooldown:
                 try:
-                    active_load.stop()
+                    controls.reset_memory()
                 except Exception as error:
+                    watchdog.abort_for_control_failure(
+                        f"memory-clock reset failed after {block.block_id}: {error}"
+                    )
                     if pulse_error is None:
                         pulse_error = error
                     status = "failed"
@@ -2520,11 +2768,15 @@ def run_thermal_identification(arguments: argparse.Namespace) -> dict[str, Any]:
         complete_path = output_directory / "thermal_phase.complete"
         failed_path = output_directory / "thermal_phase.failed"
         marker_prefix = "thermal-phase-block"
-        protocol = "cold-start-phase-pairs-v1"
+        protocol = "cold-start-phase-pairs-v3"
         required_maximum_power_w = 61.0
         training_power_limits_w = [46, 61]
         training_duration_ceilings_s = {46: 75.0, 61: 45.0}
         validation_power_limits_w = [55]
+        cooldown_target_temperature_c = THERMAL_PHASE_COOLDOWN_TARGET_C
+        cooldown_stability_window_s = THERMAL_PHASE_COOLDOWN_STABILITY_S
+        cooldown_timeout_s = THERMAL_PHASE_COOLDOWN_TIMEOUT_S
+        release_memory_during_cooldown = True
         protocol_rationale = {
             "discovery_bundle_is_not_confirmatory_data": True,
             "discovery_observation": (
@@ -2536,6 +2788,26 @@ def run_thermal_identification(arguments: argparse.Namespace) -> dict[str, Any]:
             "design_response": (
                 "Counterbalance matched prefill/decode cold-start pulses at "
                 "46 W and 61 W for fitting, then evaluate one untouched 55 W pair."
+            ),
+            "preserved_phase_v1_failure_is_not_confirmatory_data": True,
+            "phase_v1_failure": (
+                "The first phase-pair attempt kept the 6251 MHz memory clock "
+                "locked during cooldown and reached a stable 61 C idle state, "
+                "so it stopped before any pulse at the fixed 52 C gate."
+            ),
+            "preserved_phase_v2_failure_is_not_confirmatory_data": True,
+            "phase_v2_failure": (
+                "The second phase-pair attempt compared a post-relock pulse-start "
+                "temperature against the pre-relock conditioning reference and "
+                "stopped before pulse two, despite the two candidate pulse starts "
+                "remaining inside the intended one-degree band."
+            ),
+            "phase_v3_conditioning": (
+                "Release the memory-clock lock during each idle cooldown, require "
+                "a 120 s stable window no warmer than 58 C, then re-lock and "
+                "verify 6251 MHz without exceeding 58 C before every pulse. Compare "
+                "idle windows before relock and pulse-start temperatures after "
+                "relock; require the latter to span no more than one degree."
             ),
         }
         fit_protocol = {
@@ -2568,6 +2840,10 @@ def run_thermal_identification(arguments: argparse.Namespace) -> dict[str, Any]:
         training_power_limits_w = [40, 46, 52, 58, 64]
         training_duration_ceilings_s = _THERMAL_TRAINING_DURATION_CEILINGS_S
         validation_power_limits_w = [43, 49, 55, 61]
+        cooldown_target_temperature_c = THERMAL_COOLDOWN_TARGET_C
+        cooldown_stability_window_s = THERMAL_COOLDOWN_STABILITY_S
+        cooldown_timeout_s = THERMAL_COOLDOWN_TIMEOUT_S
+        release_memory_during_cooldown = False
         protocol_rationale = {
             "preserved_prior_trial_is_not_part_of_this_dataset": True,
             "prior_trial_observation": (
@@ -2686,10 +2962,19 @@ def run_thermal_identification(arguments: argparse.Namespace) -> dict[str, Any]:
             "power_limit_w": THERMAL_MINIMUM_POWER_W,
             "graphics_clock_mhz": cooldown_clock,
             "workload": "idle",
-            "target_temperature_c": THERMAL_COOLDOWN_TARGET_C,
+            "target_temperature_c": cooldown_target_temperature_c,
             "stability_band_c": THERMAL_COOLDOWN_STABILITY_C,
-            "stability_window_s": THERMAL_COOLDOWN_STABILITY_S,
-            "timeout_s": THERMAL_COOLDOWN_TIMEOUT_S,
+            "stability_window_s": cooldown_stability_window_s,
+            "timeout_s": cooldown_timeout_s,
+            "memory_clock_mode": (
+                "unlocked" if release_memory_during_cooldown else "locked"
+            ),
+            "pulse_memory_clock_mhz": memory_clock,
+            "memory_relock_settle_s": (
+                THERMAL_MEMORY_RELOCK_SETTLE_S
+                if release_memory_during_cooldown
+                else 0.0
+            ),
         },
         "protocol_rationale": protocol_rationale,
         "safety_protocol": {
@@ -2712,6 +2997,7 @@ def run_thermal_identification(arguments: argparse.Namespace) -> dict[str, Any]:
             metadata,
             memory_clock,
             gpu_index=arguments.gpu_index,
+            lock_memory_on_enter=not release_memory_during_cooldown,
         ) as (controls, applied):
             manifest["gpu_controls"] = applied
             with TelemetrySampler(
@@ -2759,6 +3045,17 @@ def run_thermal_identification(arguments: argparse.Namespace) -> dict[str, Any]:
                                 manifest=manifest,
                                 cooldown_clock_mhz=cooldown_clock,
                                 cooldown_events=manifest["cooldown_events"],
+                                memory_clock_mhz=memory_clock,
+                                release_memory_during_cooldown=(
+                                    release_memory_during_cooldown
+                                ),
+                                cooldown_target_temperature_c=(
+                                    cooldown_target_temperature_c
+                                ),
+                                cooldown_stability_window_s=(
+                                    cooldown_stability_window_s
+                                ),
+                                cooldown_timeout_s=cooldown_timeout_s,
                                 marker_prefix=marker_prefix,
                             )
                         final_context_prefix = (

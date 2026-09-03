@@ -1,0 +1,74 @@
+{
+  "acceptance": {
+    "accepted_for_mixed_serving_thermal_constraints": false,
+    "held_out_rmse_c": 0.8696553321716621,
+    "phase_contrast_error_c": 1.431289590989124,
+    "threshold_c": 1.0,
+    "verdict": "rejected",
+    "worst_error_c": 2.7310039794374816
+  },
+  "command": "uv run python scripts/build_inference_thermal_validation_artifacts.py",
+  "fixed_training_only_parameters": {
+    "phase_gain_one_state_rc": {
+      "ambient_temperature_c": 39.565264405145506,
+      "beta": 0.14716746489653754,
+      "prefill_power_gain": 1.1471674648965375,
+      "thermal_capacitance_j_per_c": 60.7439434241958,
+      "thermal_resistance_c_per_w": 0.5162782940900783,
+      "thermal_time_constant_s": 31.360779487348037
+    },
+    "power_only_one_state_rc": {
+      "ambient_temperature_c": 37.34514311778845,
+      "thermal_capacitance_j_per_c": 58.839490021295305,
+      "thermal_resistance_c_per_w": 0.6209134889138616,
+      "thermal_time_constant_s": 36.53423303503481
+    }
+  },
+  "inputs": {
+    "_static/battery/fonts/IBMPlexMono-Regular.ttf": "7c6fbddca4b700be918f5f6183d9bd4464fa427fe435f0b480d77fe2bb8c5a43",
+    "_static/battery/fonts/IBMPlexSans-Regular.ttf": "975dcda37d80f038dcd143c22e33ca2d97a0cc5a929aace1c749153b0fe1afa5",
+    "_static/battery/fonts/IBMPlexSans-SemiBold.ttf": "a20caf8286023a6a7a85e40b1d2a4ae9fc3e3b1f9eda8f4c542dd4986af67bb1",
+    "_static/battery/fonts/Newsreader.ttf": "8a08d13f8a6c0d51be379a60af84f945f65369a67e509ee3c3bdcc421254d7c1",
+    "data/inference_serving/thermal-phase-identification-20260903T131518Z/l4_thermal_phase_requests.csv": "8f0c8628bebff01c6264428b7ae6ae668ca8bdcbbd3e010048f83e1179460be0",
+    "data/inference_serving/thermal-phase-identification-20260903T131518Z/l4_thermal_phase_telemetry.csv": "cb896ac8d06dc1ed8b0e4abea826a802b3cb9df9a35bce602c61284030be09f5",
+    "data/inference_serving/thermal-phase-identification-20260903T131518Z/thermal_phase_fit_report.json": "890809a2c764711b30d0e74b5db9c060abbe9e8d0a0cc2fdee0e4170407eec8f",
+    "data/inference_serving/thermal-phase-identification-20260903T131518Z/thermal_phase_manifest.json": "435fca60d7c3dbac2221d7ea2b3ab5562def47254a08ad6dda45880fbf85f668",
+    "scripts/build_inference_thermal_validation_artifacts.py": "958bc6d2136aacf115c682671c564f62fd4a4bae631153f59f950ca566cb28ae",
+    "scripts/fit_inference_thermal.py": "1861b6e4f580b65333e763a1fc2bde73a23cae1d2c3149d77a39e06755cb9d2b",
+    "scripts/fit_inference_thermal_phase.py": "715b9bb05e6e6746c25974cbfbc510a5a9e09a9e2a1c849a4a83e5afd1b8e7aa"
+  },
+  "limitations": [
+    "This is one confirmatory experiment on one NVIDIA L4.",
+    "The phase-gain model failed the fixed validation rule.",
+    "The fit is not a hardware-safety model."
+  ],
+  "matched_electrical_input": {
+    "prefill_minus_decode_energy_j": -6.664176432056593,
+    "prefill_minus_decode_mean_power_w": -0.13225922291921677,
+    "prefill_to_decode_energy_ratio": 0.9979678296957712
+  },
+  "outputs": {
+    "_static/inference_serving/thermal-phase-validation.pdf": "8fa4a735a1618e8b01c4b4d37ff6107070bb29b6d5f68b8838cb038e0a008b69",
+    "_static/inference_serving/thermal-phase-validation.svg": "c0afc7f7e4863f2a786ed96804e813e27c808f038de2ce37310672ff999562ce",
+    "artifacts/inference_serving/thermal_phase_result.md": "2e5ba0c52d1228a0a2283e926023a7ce359cf7faaf6f65ff933dd307a0105d9f",
+    "artifacts/inference_serving/thermal_phase_validation.csv": "19533dccc9c30e6f153ebcbc4ceadc51c9eccdd5a93ad4094ea75d57478e9679"
+  },
+  "schema_version": 1,
+  "software": {
+    "matplotlib": "3.10.3",
+    "numpy": "2.3.1",
+    "python": "3.12.8"
+  },
+  "source_experiment": "thermal-phase-identification-20260903T131518Z",
+  "source_scope": {
+    "gpu": "NVIDIA L4",
+    "model": "Qwen/Qwen2.5-7B-Instruct",
+    "model_revision": "acbd96531cda22292a3ceaa67e984955d3965282",
+    "validation_pulse_ids": [
+      "phase_validation_pulse_00",
+      "phase_validation_pulse_01"
+    ],
+    "validation_used_for_fit_or_model_selection": false,
+    "vllm_version": "0.28.0"
+  }
+}

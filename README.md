@@ -85,6 +85,7 @@ uv run python scripts/build_swing_modeling_artifacts.py
 uv run python scripts/build_bixi_artifacts.py --seeds 512
 uv run python scripts/build_gimbal_artifacts.py
 uv run --group artifacts python scripts/build_battery_artifacts.py
+uv run python scripts/build_cubesat_artifacts.py
 ```
 
 The battery builder uses the optional, lockfile-pinned PyBaMM dependency. A

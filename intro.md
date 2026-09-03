@@ -1,42 +1,52 @@
 # From Models to Learning
 
-Reinforcement learning provides a precise language for decisions whose
-consequences unfold over time. Once a state, a set of actions, a reward, and a
-transition interface have been specified, it asks how models or experience can
-be used to evaluate and improve a policy. This abstraction is one of the field's
-strengths: the same mathematical ideas can describe games, robots, treatment
-policies, and resource allocation.
+On the TCV tokamak, a learned policy controlled plasma by issuing voltage
+commands to 19 magnetic coils at 10 kHz {cite:p}`Degrave2022`. The policy did
+not form the plasma, choose the sensors, define a safe operating region, or
+decide what a voltage command meant. Conventional control first formed and
+stabilized the plasma, and a simulator specified the physical and operational
+conditions under which the policy was trained.
 
-:::{admonition} Definition used in this course
+The learning algorithm therefore operated inside a decision problem that had
+already been formulated. The system boundary, state and observations, available
+actions, objective, and termination conditions were fixed before training.
+These choices determine what a learned policy can observe, cause, and optimize.
+
+:::{admonition} Working definition
 :class: course-definition
 
-**Reinforcement learning** is the study of systems that learn from data how to
-make good decisions in a dynamical system: a system whose future evolution can
-be affected by present actions.
+**Reinforcement learning** studies how data from interaction or recorded
+experience can be used to evaluate and improve decisions whose consequences
+unfold through a dynamical system. Present actions affect future states and
+therefore future opportunities and outcomes.
 
-This names a problem class. Temporal-difference learning, policy-gradient
-methods, and value-based methods are important algorithm families within it.
-What counts as a good decision is determined by the objective and constraints in
-the formulation.
+This is a problem class rather than a single algorithm. Temporal-difference,
+value-based, and policy-gradient methods are solution families. The state,
+action set, objective, constraints, and transition interface define the problem
+they are asked to solve.
 :::
 
-An application does not arrive with that interface attached. Someone must decide
-where the system ends, which information is available when an action is chosen,
-which interventions are physically possible, how success is measured, and which
-requirements cannot be traded for reward. Each choice is a claim about the
-system. An optimizer can act only on the variables, objectives, and constraints
-supplied by the formulation. An omitted requirement cannot affect the computed
-solution.
+Sequential decision-making is the broader subject. Trajectory optimization,
+feedback control, and exact dynamic programming can solve some sequential
+problems without learning from data. Reinforcement learning enters when a model,
+value function, or policy must be estimated from samples or interaction. The
+book develops the common mathematical structure before introducing the places
+where models, values, or policies must be estimated from data.
+
+An application does not arrive with this interface attached. Its formulation
+must specify where the system ends, what is known when an action is chosen,
+which interventions are physically possible, how outcomes are valued, and
+which requirements cannot be traded against reward. An optimizer can use only
+the variables, objectives, and constraints in that formulation. An omitted
+requirement cannot affect its solution.
 
 ## The Agent-Environment Interface
 
-{cite:t}`SuttonBarto2018` are explicit about the scope of their abstraction. The
-agent-environment boundary is determined after particular states, actions, and
-rewards have been selected. They also take the state signal as the output of a
-preprocessing system and largely set aside the problem of constructing it so
-that they can focus on decision making. This is a deliberate and productive
-division of labor, not a claim that representation or formulation is
-unimportant.
+The standard agent-environment loop begins after a state signal, actions, and
+rewards have been selected. {cite:t}`SuttonBarto2018` treat the state signal as
+the output of a preprocessing system and set aside much of its construction in
+order to study decision making. Their abstraction isolates the learning
+problem; it does not make the preceding formulation choices disappear.
 
 The familiar agent-environment loop also appears in other fields. Control
 theory, operations research, and econometrics use different names for related
@@ -118,91 +128,63 @@ counterfactuals require identification assumptions. The reinforcement-learning
 panel follows the interaction convention of Sutton and Barto (2018).</div>
 </div>
 
-This book studies both sides of that division. It develops the standard theory
-for choosing actions after a sequential decision problem has been specified. It
-also studies how that problem is obtained from a system whose dynamics may be
-partly known, whose observations may be incomplete, and whose actions and
-outcomes are constrained. Its distinctive emphasis is the reasoning that
-constructs and audits the decision problem, selects a solution method, and
-evaluates the resulting policy.
+The three panels describe related causal exchanges, but their terms are not
+interchangeable. A sensor measurement may not reveal the system state, a reward
+or cost must be chosen, and causal claims from observational data require
+identification assumptions. Moving between the vocabularies is useful only when
+these differences remain explicit.
 
-The distinction matters outside benchmark environments. A study of real-world
-reinforcement learning identifies limited samples, delays, high-dimensional
-state and action spaces, safety constraints, partial observability,
-stochasticity and nonstationarity, multi-objective or poorly specified rewards,
-real-time action selection, offline logs, and explainability to system operators
-as recurring challenges {cite:p}`DulacArnold2021`. These are not independent
-details added after an algorithm has been selected. They determine the state,
-action, model, objective, data, and evaluation protocol on which the algorithm
-operates.
+## The TCV Formulation
 
-## Magnetic Control on the TCV Tokamak
+TCV's simulator combined conductor-circuit dynamics, a free-boundary plasma
+model, and lumped plasma-current dynamics. Data-identified sensor and
+power-supply models
+represented filtering, delays, measurement noise, and voltage offsets.
+Experimentally informed parameter ranges represented uncertainty, while the
+objective and termination rules represented operating requirements. After
+handover, the learned policy acted as the feedback controller within this
+specified system.
 
-TCV is a fusion-research device that confines plasma using magnetic fields. In
-the controller developed by {cite:t}`Degrave2022`, conventional control first
-formed and stabilized the plasma. A learned policy then issued voltage commands
-to its 19 control coils at 10 kHz and controlled several plasma configurations
-on the physical machine.
+Reinforcement learning used the physical model and the conventional
+plasma-formation controller rather than replacing them. A detailed physical
+simulator is not required in every application, but available structure remains
+useful when it determines feasible actions, conserved quantities, or safety
+constraints. The same division appears in safe robot control, where nominal
+dynamics, costs, and constraints encode prior knowledge and uncertain
+components are learned from data {cite:p}`Brunke2022`.
 
-The simulator combined conductor-circuit dynamics, a free-boundary plasma model,
-and lumped plasma-current dynamics. Data-identified sensor and power-supply
-models represented filtering, delays, measurement noise, and voltage offsets.
-Uncertain physical parameters were varied over experimentally informed ranges,
-and objectives and termination conditions encoded operating requirements.
+Real systems also impose limited samples, delays, safety constraints, partial
+observability, stochasticity, nonstationarity, multiple objectives, real-time
+action selection, and distribution shift {cite:p}`DulacArnold2021`. These
+conditions affect the formulation itself. They determine which state is
+predictive, which action is feasible, which data support evaluation, and which
+claim a successful experiment can justify.
 
-The learned policy became the feedback controller after handover. The surrounding
-system fixed the simulator, observations, action interface, objectives,
-termination rules, randomized physical parameters, and handover state. In this
-experiment, reinforcement learning used physical models and conventional
-plasma-formation control rather than replacing them. The example does not imply
-that every application needs a detailed physical simulator. It shows that using
-learning does not remove the need to identify and exploit available structure.
+## Relation to Reinforcement-Learning Theory
 
-{cite:t}`Brunke2022` formalize the same division for safe robot control by
-decomposing dynamics, cost, and constraints into nominal components that encode
-prior knowledge and uncertain components learned from data. Their review treats
-model-driven and data-driven approaches as endpoints and studies methods that
-combine them.
+Bellman equations, dynamic programming, Monte Carlo and temporal-difference
+methods, value-function approximation, and policy gradients all begin from a
+specified sequential decision interface. These foundations occupy the second
+half of the book. The earlier chapters study the modeling and control steps
+that construct and test that interface.
 
-## Relation to Standard Reinforcement Learning
+Known dynamics and constraints permit trajectory optimization from a particular
+initial condition. Repeated optimization converts such plans into feedback.
+Dynamic programming computes state-contingent decisions across possible future
+states, and approximation becomes necessary when the required model, value
+function, or policy is unknown or too expensive to represent exactly.
 
-A reinforcement-learning course centered on {cite:t}`SuttonBarto2018` develops
-general solution methods once the sequential decision interface has been chosen:
-Bellman equations, dynamic programming and planning, Monte Carlo and
-temporal-difference methods, value-function approximation, and policy gradients.
-These foundations are also central to this book. The distinction is therefore
-not between model-free and model-based reinforcement learning; the standard
-theory contains both.
-
-The difference is one of starting point and emphasis. This course also studies
-the modeling and control steps that construct and surround the standard
-reinforcement-learning interface. When dynamics and constraints are known,
-trajectory optimization may produce a useful plan directly. Replanning can turn
-that plan into feedback, and a local linear model may be sufficient for
-stabilization. Dynamic programming becomes useful when computation must produce
-state-contingent decisions across many states or stochastic future branches.
-Learning becomes useful when a required model component, value function, or
-policy must be inferred from data, or when an exact computation must be replaced
-by an approximation.
-
-When only transition samples and rewards are available, sample-based
-reinforcement-learning methods can operate directly on that interface. When
-equations, geometry, conservation laws, or hard constraints are also available,
-replacing them all with samples discards directly usable information. Partial
-models lead to a third case: known structure remains explicit while data are used
-for uncertain parameters, residual dynamics, value functions, or policies.
-
-The course therefore prepares students to move between formulations. They
-should be able to inspect a new sequential decision problem, identify what is
-known, choose a computation that uses that information, state what must be
-learned, and design evidence that could reveal a modeling failure. This scope
-complements a standard RL curriculum. It does not replace the algorithms or
-theory developed there.
+Both model-free and model-based reinforcement learning begin from a specified
+interface. If only transitions and rewards are available, sample-based methods
+can operate on that interface. If equations, geometry, conservation laws, or
+hard constraints are also available, they can remain explicit. With a partial
+model, data can estimate uncertain parameters, residual dynamics, value
+functions, or policies without replacing the known structure.
 
 ## Formulating the Decision Problem
 
-The problem is rarely handed to us in finished form. A useful formulation must
-answer five questions:
+A sequential decision problem must answer five questions before an algorithm
+can solve it:
 
 1. Which variables summarize the information needed for future decisions?
 2. Which actions can the decision maker actually apply?
@@ -210,13 +192,14 @@ answer five questions:
 4. Which outcomes should the objective reward or penalize?
 5. Which physical, operational, or safety constraints must always hold?
 
-The answers determine which computations are available. An explicit
-differential equation can expose derivatives and conservation laws. A simulator
-may provide only trajectory samples. Logged data cannot answer arbitrary
-counterfactual queries without additional assumptions. Interaction provides new
-data, but it also consumes time and can damage the system.
+The answers determine which computations and claims are available. An explicit
+differential equation exposes derivatives and conservation laws. A simulator
+may expose only reset and transition operations. Logged data cannot answer
+arbitrary counterfactual questions without additional assumptions. Live
+interaction supplies new data, but collecting it consumes time and may damage
+the system.
 
-## Course Progression
+## Book Structure
 
 The technical development follows the information available about the decision
 problem. Every later method depends on some account of how actions lead to future
@@ -231,19 +214,37 @@ live interaction.
 | Dynamic programming | How can decisions be optimized for many possible future states? | A value function and state-contingent policy |
 | Approximation and learning | Which required object is unavailable or too expensive to compute exactly? | An approximation learned from models, samples, or interaction |
 
-This order does not assume that a complete mechanistic model is always
-available. It makes the information restriction explicit. Known conservation
-laws, geometry, and constraints remain in the formulation; uncertain
-parameters, residual dynamics, value functions, or policies become learning
-targets. Flexible function approximators are used when an uncertain or
-computationally intractable component must be estimated from data.
+This order does not assume a complete mechanistic model. It keeps the available
+information explicit: known conservation laws, geometry, and constraints stay
+in the formulation, while uncertain parameters, residual dynamics, value
+functions, or policies become learning targets.
 
 Dynamic programming, function approximation, and optimization provide a shared
-mathematical foundation for these methods. The same structures recur in
-reinforcement learning, control theory, operations research, and other areas of
-sequential decision-making. Their common form makes it possible to transfer an
-argument or algorithm from one setting to another while preserving the
-assumptions that make it valid.
+mathematical foundation. Their structures recur in reinforcement learning,
+control theory, and operations research, which permits methods to move between
+fields when the assumptions attached to them are preserved.
+
+## How to Use This Book
+
+The chapters are cumulative, but each begins with its prerequisites and points
+to the relevant review material. Readers with a reinforcement-learning
+background may find the modeling and trajectory-optimization chapters less
+familiar. Readers from control may need more time with Bellman operators,
+sampling, and function approximation. The appendices provide concise reviews of
+initial-value problems and nonlinear programming when those tools first become
+necessary.
+
+Derivations are part of the argument rather than decorative verification.
+Pause before a nontrivial step, attempt it on paper, and then compare the result
+with the text. Work through the short self-checks while the notation is still
+active. The longer exercises are intended for a second pass and often connect
+several chapters.
+
+The computational examples answer specific modeling or algorithmic questions.
+Their source, parameters, and recorded artifacts are provided so that the
+result can be inspected and modified. Running every example is optional, but a
+numerical result should be read together with the assumptions and diagnostic
+that support it.
 
 ## Self-checks
 
@@ -271,7 +272,7 @@ What feature makes trajectory optimization, model predictive control, and reinfo
 All three choose actions whose consequences unfold through a dynamical system over time, so present decisions must account for future objectives and constraints.
 :::
 
-:::{exercise} Course scope
+:::{exercise} Available information
 :label: ex-intro-check-3
 
 Suppose an environment already supplies a Markov state, an action set, a reward,

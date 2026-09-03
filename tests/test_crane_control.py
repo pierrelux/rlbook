@@ -13,6 +13,7 @@ sys.path.insert(0, str(CODE_DIRECTORY))
 from crane_control import (  # noqa: E402
     CraneParameters,
     ZeroVibrationShaper,
+    _transcription_objective,
     run_comparison,
     transcription_defects,
 )
@@ -32,6 +33,28 @@ def test_zero_vibration_shaper_is_a_convex_delayed_pair() -> None:
     assert shaper.second_weight > 0.0
     assert shaper.first_weight + shaper.second_weight == pytest.approx(1.0)
     assert shaper.delay == pytest.approx(expected_half_period, rel=2e-4)
+
+
+def test_transcription_objective_uses_matching_node_and_interval_weights() -> None:
+    step = 0.25
+    state = np.zeros((3, 4))
+    state[:, 2] = np.array([1.0, 2.0, 3.0])
+    state[:, 3] = np.array([2.0, 1.0, 4.0])
+    acceleration = np.array([2.0, 5.0, 11.0])
+
+    node_cost = (
+        6.0 * state[:, 2] ** 2
+        + 0.15 * state[:, 3] ** 2
+        + 0.035 * acceleration**2
+    )
+    smooth_integral = step * (
+        0.5 * node_cost[0] + node_cost[1] + 0.5 * node_cost[2]
+    )
+    slew_integral = step * np.sum(0.002 * (np.diff(acceleration) / step) ** 2)
+
+    assert _transcription_objective(state, acceleration, step) == pytest.approx(
+        smooth_integral + slew_integral
+    )
 
 
 def test_direct_collocation_satisfies_defects_bounds_and_endpoints(comparison) -> None:

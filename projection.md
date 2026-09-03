@@ -251,17 +251,19 @@ $$
 
 This residual measures how far our candidate solution is from satisfying the equation at each point $x$. As we discussed in the introduction, we want to make this residual small—an optimization problem whose formulation depends on how we measure "small."
 
-### Step 3: Minimize the Residual
+### Step 3: Impose Conditions on the Residual
 
-Having chosen our basis and defined the residual, we must find $\theta$ that makes the residual small. This is an optimization problem: we minimize $\lVert R(\cdot; \theta) \rVert$ for some norm. The choice of norm determines the method:
+The basis and residual reduce the functional equation to $n$ scalar conditions
+on $\theta$. The choice of conditions determines the method:
 
-| **Method** | **Norm being minimized** | **Conditions** ($n$ equations) |
+| **Method** | **Residual criterion** | **Conditions** ($n$ equations) |
 |:-----------|:------------------------|:-------------------------------|
 | Least squares | $\displaystyle\lVert R \rVert_w^2 = \int R(x; \theta)^2 w(x) dx$ | $\displaystyle\int R \cdot \frac{\partial R}{\partial \theta_j} \, w \, dx = 0$, $j = 1, \ldots, n$ |
 | Galerkin | $\lVert R \rVert_{\mathcal{V}^*}$ (dual norm of approx. space) | $\displaystyle\int R(x; \theta) \varphi_j(x) w(x) dx = 0$, $j = 1, \ldots, n$ |
-| Collocation | $\displaystyle\sum_i \omega_i R(x_i; \theta)^2$ (discrete) | $R(x_i; \theta) = 0$, $i = 1, \ldots, n$ |
+| Collocation | Exact pointwise satisfaction | $R(x_i; \theta) = 0$, $i = 1, \ldots, n$ |
 
-The first-order conditions for each optimization problem yield $n$ equations in the $n$ unknowns $\theta_1, \ldots, \theta_n$. We now describe each method, starting with the most computationally attractive.
+Each criterion yields $n$ equations in the $n$ unknowns
+$\theta_1,\ldots,\theta_n$.
 
 #### Collocation: Make the Residual Zero at Selected Points
 
@@ -507,7 +509,13 @@ $$
 
 It helps to define the **parametric Bellman operator** $\mathrm{L}_\varphi: \mathbb{R}^n \to \mathbb{R}^n$ by $[\mathrm{L}_\varphi(\theta)]_i = [\Bellman\hat{v}(\cdot; \theta)](s_i)$, the Bellman operator evaluated at collocation point $s_i$. Let $\boldsymbol{\Phi}$ be the $n \times n$ matrix with entries $\Phi_{ij} = \varphi_j(s_i)$. Then the collocation equations become $\boldsymbol{\Phi} \theta = \mathrm{L}_\varphi(\theta)$.
 
-**Function iteration** for collocation proceeds as follows. Given current coefficients $\theta^{(k)}$, we evaluate the Bellman operator at each collocation point to get target values $t_i^{(k)} = [\mathrm{L}_\varphi(\theta^{(k)})]_i$. We then find new coefficients by solving the linear system $\boldsymbol{\Phi} \theta^{(k+1)} = t^{(k)}$. This is parametric value iteration: apply the Bellman operator, fit the result.
+Under function iteration, the current coefficients $\theta^{(k)}$ produce the
+target values
+$t_i^{(k)}=[\mathrm{L}_\varphi(\theta^{(k)})]_i$ at the collocation points.
+The linear system
+$\boldsymbol{\Phi}\theta^{(k+1)}=t^{(k)}$ then interpolates those values. Each
+iteration therefore applies the Bellman operator and constructs its polynomial
+interpolant at the selected points.
 
 ```{prf:algorithm} Collocation with Function Iteration
 :label: collocation-function-iteration
@@ -1230,9 +1238,14 @@ $$
 \boldsymbol{\theta}_{k+1} = (\boldsymbol{\Phi}^\top \mathbf{W} \boldsymbol{\Phi})^{-1} \boldsymbol{\Phi}^\top \mathbf{W} \mathbf{y}.
 $$
 
-This is weighted least-squares regression: fit $\boldsymbol{\Phi} \boldsymbol{\theta}$ to targets $\mathbf{y}$. For collocation, we require exact interpolation $\boldsymbol{\Phi} \boldsymbol{\theta}_{k+1} = \mathbf{y}$ at chosen collocation points. For continuous state spaces, we approximate the Galerkin integrals using sampled states, reducing to the same finite-dimensional fitting problem. The abstraction remains consistent: function iteration in the abstract becomes **generate targets, fit to targets, repeat** in the implementation.
+This is weighted least-squares regression of
+$\boldsymbol{\Phi}\boldsymbol{\theta}$ on the targets $\mathbf{y}$.
+Collocation instead requires the exact interpolation
+$\boldsymbol{\Phi}\boldsymbol{\theta}_{k+1}=\mathbf{y}$ at the selected
+points. In continuous state spaces, sampled states can approximate the
+Galerkin integrals and produce a finite-dimensional regression problem.
 
-This extends beyond linear basis functions. Neural networks, decision trees, and kernel methods all implement variants of this procedure. Given data $\{(s_i, y_i)\}$ where $y_i = (\Bellman v_k)(s_i)$, each method produces a function $v_{k+1}: \mathcal{S} \to \mathbb{R}$ by fitting to the targets. The projection operator $\Proj$ is simply one instantiation of a fitting procedure. Galerkin and collocation correspond to specific choices of approximation class and loss function.
+This extends beyond linear basis functions. Neural networks, decision trees, and kernel methods all implement variants of this procedure. Given data $\{(s_i, y_i)\}$ where $y_i = (\Bellman v_k)(s_i)$, each method produces a function $v_{k+1}: \mathcal{S} \to \mathbb{R}$ from the targets. The projection operator $\Proj$ is one such approximation rule. Galerkin uses weighted projection, while square collocation uses exact interpolation at the selected points.
 
 ```{prf:algorithm} Fitted-Value Iteration
 :label: fitted-value-iteration
@@ -1253,7 +1266,12 @@ This extends beyond linear basis functions. Neural networks, decision trees, and
 10. **return** $v_k$
 ```
 
-The abstraction $\mathtt{fit}$ encapsulates all the complexity of function approximation, whether that involves solving a linear system, running gradient descent, or training an ensemble. Any regression model with a `fit(X, y)` interface works: `LinearRegression`, `RandomForestRegressor`, `GradientBoostingRegressor`, `MLPRegressor`, or custom neural networks. The projection operator $\Proj$ is one instantiation: when $\mathcal{F}$ is a linear subspace and we minimize weighted squared error, we recover Galerkin or collocation. The broader view is that FVI reduces dynamic programming to repeated calls to a supervised learning subroutine.
+The operation $\mathtt{fit}$ may solve a linear system, run gradient descent,
+or train an ensemble. For a linear space $\mathcal{F}$, weighted squared-error
+fitting gives the Galerkin projection. A square collocation system gives exact
+interpolation when its evaluation matrix is nonsingular. Fitted-value iteration
+alternates between generating Bellman targets and constructing a new function
+from them.
 
 The following code demonstrates fitted-value iteration on the optimal stopping problem:
 

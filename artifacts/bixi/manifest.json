@@ -2,7 +2,7 @@
   "command": "uv run python scripts/build_bixi_artifacts.py --seeds 512",
   "inputs": {
     "code/bixi_control.py": "538bdb426b3c6b02af0ad23d63122193b03752f1b9a9fa20d5dff356137cb7c8",
-    "code/bixi_replay.py": "35e81f75554c201ec2dc78b5731c692b96ff0f1bb434e56e82ae44988233a700",
+    "code/bixi_replay.py": "a5f0f22bba62a72c9e2d64b3ed90dafbaa27b1781b4d75b78c0d768ce0dc7de1",
     "data/bixi/completed_event_profile.csv": "db73e54ca014bb3e5642ec9d71d8c6d41317d7c4e9ff5ae976510273987607de",
     "data/bixi/manifest.json": "a8d693e6d68cfe5ca41d8b5dc3394c2def9a4047901b6f3bf6381a15975e8f96",
     "data/bixi/showcase_events.csv": "7552ab1908326cbb5fa265e7b0ba6305b2d3f41f4f99d20b6409284713a38690",
@@ -15,10 +15,10 @@
     "_static/bixi/bixi-feedback-evidence.pdf": "713d5c6f5e0cf447e2bca4dc9090d9d19deb16d32e565856e33634b96fcaf610",
     "_static/bixi/bixi-feedback-evidence.svg": "8b920874687ab5ee069ed9b0a687d09173c2b55ca9f03abfd41c045dc5c778a2",
     "_static/bixi/bixi-model-interface.pdf": "54307529b68135a46da7d5395a77951fc2c02e57515f171d3b4f5736da16e321",
-    "_static/bixi/bixi-model-interface.svg": "ffd41678c1b2a3a74af9bcfae6892d78158cc3baec4ffd3edd68252d5a6da8c1",
+    "_static/bixi/bixi-model-interface.svg": "debb8181808b543d45099d593cb73bea42554f3b7da0a56273cbbc7f3379369c",
     "artifacts/bixi/controller_metrics.csv": "46f1b37cb2bad80924852e51fad75cc996b3fc6429938b676fdac5237b253936",
     "artifacts/bixi/results.md": "63982c3ea97625e129dbd3e10790a52df38099cfe8bd272e4e5802e0b9cd627c",
-    "artifacts/bixi/textbook_results.json": "108e7959eb824a44db97ad4dcea8f35ae62e0c5076b0e44c620be2ce4b554439"
+    "artifacts/bixi/textbook_results.json": "1c8624cca77c1219aa8aada425398b6436fd9c3e35dda6ce60e98b4ef00eebbb"
   },
   "protocol": {
     "common_random_numbers": true,

@@ -147,12 +147,14 @@ _EXPECTED_BY_ID = {block["block_id"]: block for block in _EXPECTED_BLOCKS}
 # The gain is optimized as log(1 + beta), so effective power stays positive.
 _MINIMUM_PREFILL_POWER_GAIN = 0.25
 _MAXIMUM_PREFILL_POWER_GAIN = 3.0
+_ACCEPTANCE_ERROR_THRESHOLD_C = 1.0
+_MINIMUM_ACCEPTANCE_MULTISTARTS = 2
 _AUTHORIZED_CLOUD = {
     "project": "potent-arcade-491015-g7",
-    "zone": "us-central1-a",
     "provisioning_model": "STANDARD",
     "machine_type": "g2-standard-8",
 }
+_AUTHORIZED_ZONES = {"us-central1-b", "us-central1-c"}
 
 
 @dataclass(frozen=True)
@@ -216,7 +218,7 @@ def _validate_manifest(
         "Manifest is not a thermal-phase-identification run.",
     )
     _require(
-        manifest.get("protocol") == "cold-start-phase-pairs-v1",
+        manifest.get("protocol") == "cold-start-phase-pairs-v3",
         "Manifest is not the pre-registered cold-start phase-pair protocol.",
     )
     _require(manifest.get("status") == "complete", "Phase acquisition is not complete.")
@@ -231,7 +233,8 @@ def _validate_manifest(
     cloud = manifest.get("cloud")
     _require(isinstance(cloud, Mapping), "Phase manifest has no cloud provenance.")
     _require(
-        all(cloud.get(field) == value for field, value in _AUTHORIZED_CLOUD.items()),
+        all(cloud.get(field) == value for field, value in _AUTHORIZED_CLOUD.items())
+        and cloud.get("zone") in _AUTHORIZED_ZONES,
         "Phase acquisition cloud provenance differs from the authorized run.",
     )
     gpu = manifest.get("gpu")
@@ -340,10 +343,16 @@ def _validate_manifest(
         and cooldown_protocol.get("before_every_pulse") is True
         and _same_number(cooldown_protocol.get("power_limit_w"), 40.0)
         and cooldown_protocol.get("workload") == "idle"
-        and _same_number(cooldown_protocol.get("target_temperature_c"), 52.0)
+        and cooldown_protocol.get("memory_clock_mode") == "unlocked"
+        and _same_number(cooldown_protocol.get("target_temperature_c"), 58.0)
         and _same_number(cooldown_protocol.get("stability_band_c"), 1.0)
-        and _same_number(cooldown_protocol.get("stability_window_s"), 60.0)
-        and _same_number(cooldown_protocol.get("timeout_s"), 600.0),
+        and _same_number(cooldown_protocol.get("stability_window_s"), 120.0)
+        and _same_number(cooldown_protocol.get("timeout_s"), 900.0)
+        and _same_number(cooldown_protocol.get("memory_relock_settle_s"), 1.0)
+        and _same_number(
+            cooldown_protocol.get("pulse_memory_clock_mhz"),
+            manifest.get("selected_memory_clock_mhz"),
+        ),
         "Manifest cooldown protocol differs from the pre-registration.",
     )
     cooldown_events = manifest.get("cooldown_events")
@@ -356,18 +365,53 @@ def _validate_manifest(
         all(event.get("status") == "complete" for event in cooldown_events),
         "At least one phase-pulse cooldown is incomplete.",
     )
+    conditioning_reference = manifest.get("conditioning_reference")
+    _require(
+        isinstance(conditioning_reference, Mapping)
+        and conditioning_reference.get("source_block_id") == _EXPECTED_BLOCKS[0]["block_id"]
+        and float(conditioning_reference.get("temperature_c", math.inf)) <= 58.0
+        and float(conditioning_reference.get("idle_power_w", 0.0)) > 0.0
+        and float(conditioning_reference.get("memory_clock_mhz", 0.0)) > 0.0
+        and _same_number(
+            conditioning_reference.get("temperature_tolerance_c"), 1.0
+        )
+        and _same_number(
+            conditioning_reference.get("idle_power_tolerance_w"), 1.0
+        ),
+        "Manifest lacks the fixed per-run conditioning reference.",
+    )
+    reference_temperature = float(conditioning_reference["temperature_c"])
+    reference_power = float(conditioning_reference["idle_power_w"])
     for event in cooldown_events:
         _require(
-            _same_number(event.get("target_temperature_c"), 52.0)
+            _same_number(event.get("target_temperature_c"), 58.0)
             and _same_number(event.get("stability_band_c"), 1.0)
-            and _same_number(event.get("stability_window_s"), 60.0)
-            and float(event.get("window_max_temperature_c", math.inf)) <= 52.0
+            and _same_number(event.get("stability_window_s"), 120.0)
+            and _same_number(event.get("timeout_s"), 900.0)
+            and event.get("memory_clock_mode") == "unlocked"
+            and float(event.get("window_max_temperature_c", math.inf)) <= 58.0
             and (
                 float(event.get("window_max_temperature_c", math.inf))
                 - float(event.get("window_min_temperature_c", -math.inf))
                 <= 1.0
             )
-            and float(event.get("final_temperature_c", math.inf)) <= 52.0,
+            and float(event.get("final_temperature_c", math.inf)) <= 58.0
+            and isinstance(event.get("memory_relock"), Mapping)
+            and event["memory_relock"].get("status") == "verified"
+            and _same_number(
+                event["memory_relock"].get("requested_memory_clock_mhz"),
+                manifest.get("selected_memory_clock_mhz"),
+            )
+            and _same_number(
+                event["memory_relock"].get("realized_memory_clock_mhz"),
+                manifest.get("selected_memory_clock_mhz"),
+            )
+            and float(event["memory_relock"].get("temperature_c", math.inf))
+            <= 58.0
+            and abs(float(event.get("final_temperature_c", math.inf)) - reference_temperature)
+            <= 1.0
+            and abs(float(event.get("window_mean_power_w", math.inf)) - reference_power)
+            <= 1.0,
             f"Cooldown before {event.get('before_block_id')} lacks stable cold-start evidence.",
         )
 
@@ -652,6 +696,27 @@ def load_phase_thermal_bundle(
         for checkpoint in manifest["block_checkpoints"]
     }
     requested_clock = float(manifest["requested_graphics_clock_mhz"])
+    pulse_memory_clock = float(manifest["selected_memory_clock_mhz"])
+    recorded_start_temperatures = manifest.get("pulse_start_temperatures_c")
+    _require(
+        isinstance(recorded_start_temperatures, list)
+        and len(recorded_start_temperatures) == len(expected_order),
+        "Manifest lacks one post-relock temperature per pulse.",
+    )
+    start_temperature_by_block = {
+        block_id: float(value)
+        for block_id, value in zip(
+            expected_order, recorded_start_temperatures, strict=True
+        )
+    }
+    _require(
+        all(math.isfinite(value) for value in start_temperature_by_block.values())
+        and max(start_temperature_by_block.values()) <= 58.0
+        and max(start_temperature_by_block.values())
+        - min(start_temperature_by_block.values())
+        <= 1.0,
+        "Phase pulses do not share the required safe, repeatable start state.",
+    )
     for block_id in expected_order:
         pulse = scheduled_pulses[block_id]
         checkpoint = checkpoints[block_id]
@@ -674,6 +739,12 @@ def load_phase_thermal_bundle(
                     row["requested_power_limit_w"], pulse.requested_power_limit_w
                 )
                 and _same_number(row["requested_clock_mhz"], requested_clock)
+                and math.isclose(
+                    float(row["memory_clock_mhz"]),
+                    pulse_memory_clock,
+                    rel_tol=0.0,
+                    abs_tol=1.0,
+                )
                 for row in selected
             ),
             f"Telemetry metadata differs from block {block_id}.",
@@ -732,8 +803,18 @@ def load_phase_thermal_bundle(
             pulse,
             selected,
             telemetry_period_s=float(telemetry_period),
+            initial_temperature_c=start_temperature_by_block[block_id],
         )
         raw_pulse_rows[block_id] = tuple(selected)
+
+    first_pulse_telemetry_temperatures = {
+        block_id: float(rows_for_pulse[0]["temperature_c"])
+        for block_id, rows_for_pulse in raw_pulse_rows.items()
+    }
+    _require(
+        max(first_pulse_telemetry_temperatures.values()) <= 58.0,
+        "The first under-load telemetry sample exceeds the pulse-start ceiling.",
+    )
 
     validation_pulses = [
         pulses[block_id] for block_id in pulse_ids_by_sequence[VALIDATION_SEQUENCE]
@@ -805,6 +886,35 @@ def load_phase_thermal_bundle(
             ),
             f"Cooldown before {block_id} does not contain the required cold stable window.",
         )
+        relock_id = f"memory_relock_before_{block_id}"
+        relock_rows = [
+            row
+            for row in rows
+            if row["split"] == "conditioning"
+            and row["sequence"] == pulse.repeat
+            and row["block_id"] == relock_id
+            and row["block_role"] == "memory_relock"
+        ]
+        _require(
+            relock_rows
+            and completed <= float(relock_rows[0]["elapsed_s"])
+            and float(relock_rows[-1]["elapsed_s"])
+            <= float(raw_pulse_rows[block_id][0]["elapsed_s"])
+            and math.isclose(
+                float(relock_rows[-1]["memory_clock_mhz"]),
+                pulse_memory_clock,
+                rel_tol=0.0,
+                abs_tol=1.0,
+            )
+            and float(relock_rows[-1]["temperature_c"]) <= 58.0
+            and math.isclose(
+                float(relock_rows[-1]["temperature_c"]),
+                start_temperature_by_block[block_id],
+                rel_tol=0.0,
+                abs_tol=1.0e-9,
+            ),
+            f"Memory-clock relock before {block_id} is absent or unverified.",
+        )
     return PhaseThermalBundle(
         manifest_path=path,
         telemetry_path=telemetry_path,
@@ -824,6 +934,7 @@ def _bin_pulse(
     rows: Sequence[Mapping[str, Any]],
     *,
     telemetry_period_s: float,
+    initial_temperature_c: float | None = None,
 ) -> SequenceData:
     """Apply the pre-registered one-second level-based reduction."""
 
@@ -844,6 +955,12 @@ def _bin_pulse(
             f"Block {pulse.block_id} has no temperature sample near a bin boundary.",
         )
         binned_temperature.append(float(temperatures[nearest]))
+    if initial_temperature_c is not None:
+        _require(
+            math.isfinite(initial_temperature_c),
+            f"Block {pulse.block_id} has a non-finite relock temperature.",
+        )
+        binned_temperature[0] = float(initial_temperature_c)
     binned_power = np.asarray(
         [
             _time_weighted_power(times, powers, grid[index], grid[index + 1])
@@ -1129,6 +1246,136 @@ def _prediction_pair_summary(
     }
 
 
+def _acceptance_assessment(
+    fit: ModelFit,
+    validation_evaluation: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Apply the fixed mixed-serving acceptance rule to one fitted model."""
+
+    aggregate = validation_evaluation["aggregate"]
+    pair = validation_evaluation["matched_55w_decode_prefill"]
+    diagnostics = fit.diagnostics
+
+    validation_rmse_c = float(aggregate["rmse_c"])
+    maximum_absolute_error_c = float(aggregate["maximum_absolute_error_c"])
+    maximum_peak_error_c = float(
+        aggregate["maximum_absolute_per_pulse_peak_error_c"]
+    )
+    maximum_absolute_or_peak_error_c = max(
+        maximum_absolute_error_c, maximum_peak_error_c
+    )
+    observed_contrast_c = float(
+        pair["observed_prefill_minus_decode_peak_rise_c"]
+    )
+    predicted_contrast_c = float(
+        pair["predicted_prefill_minus_decode_peak_rise_c"]
+    )
+    signed_contrast_error_c = predicted_contrast_c - observed_contrast_c
+    absolute_contrast_error_c = abs(signed_contrast_error_c)
+
+    parameter_values = [float(value) for value in fit.parameters.values()]
+    physical_parameters = bool(
+        diagnostics.get("positive_thermal_parameters") is True
+        and all(math.isfinite(value) for value in parameter_values)
+        and (
+            "positive_effective_power_gain" not in diagnostics
+            or diagnostics.get("positive_effective_power_gain") is True
+        )
+    )
+    asymptotically_stable = diagnostics.get("asymptotically_stable") is True
+    parameter_count = int(diagnostics.get("parameter_count", -1))
+    jacobian_rank = int(diagnostics.get("jacobian_numerical_rank", -2))
+    full_jacobian_rank = parameter_count > 0 and jacobian_rank == parameter_count
+    locally_identifiable = diagnostics.get("locally_identifiable") is True
+    optimizer_success = diagnostics.get("optimizer_success") is True
+    successful_multistarts = int(diagnostics.get("successful_multistarts", 0))
+    near_optimal_multistarts = int(
+        diagnostics.get("near_optimal_multistarts_within_one_percent", 0)
+    )
+    replicated_multistart_solution = (
+        successful_multistarts >= _MINIMUM_ACCEPTANCE_MULTISTARTS
+        and near_optimal_multistarts >= _MINIMUM_ACCEPTANCE_MULTISTARTS
+    )
+
+    criteria = {
+        "validation_rmse": {
+            "value_c": validation_rmse_c,
+            "operator": "<",
+            "threshold_c": _ACCEPTANCE_ERROR_THRESHOLD_C,
+            "passed": validation_rmse_c < _ACCEPTANCE_ERROR_THRESHOLD_C,
+        },
+        "validation_maximum_absolute_or_peak_error": {
+            "value_c": maximum_absolute_or_peak_error_c,
+            "maximum_absolute_trajectory_error_c": maximum_absolute_error_c,
+            "maximum_absolute_per_pulse_peak_error_c": maximum_peak_error_c,
+            "operator": "<",
+            "threshold_c": _ACCEPTANCE_ERROR_THRESHOLD_C,
+            "passed": (
+                maximum_absolute_or_peak_error_c < _ACCEPTANCE_ERROR_THRESHOLD_C
+            ),
+        },
+        "validation_phase_contrast_error": {
+            "contrast_definition": (
+                "prefill minus decode peak temperature rise on the separate "
+                "one-second validation grids"
+            ),
+            "observed_contrast_c": observed_contrast_c,
+            "predicted_contrast_c": predicted_contrast_c,
+            "signed_error_c": signed_contrast_error_c,
+            "absolute_error_c": absolute_contrast_error_c,
+            "operator": "<",
+            "threshold_c": _ACCEPTANCE_ERROR_THRESHOLD_C,
+            "passed": absolute_contrast_error_c < _ACCEPTANCE_ERROR_THRESHOLD_C,
+        },
+        "physical_parameters": {
+            "value": physical_parameters,
+            "required": True,
+            "passed": physical_parameters,
+        },
+        "asymptotically_stable": {
+            "value": asymptotically_stable,
+            "required": True,
+            "passed": asymptotically_stable,
+        },
+        "optimizer_success": {
+            "value": optimizer_success,
+            "required": True,
+            "passed": optimizer_success,
+        },
+        "full_jacobian_rank": {
+            "jacobian_numerical_rank": jacobian_rank,
+            "parameter_count": parameter_count,
+            "required": True,
+            "passed": full_jacobian_rank,
+        },
+        "locally_identifiable": {
+            "value": locally_identifiable,
+            "condition_number_limit": 1.0e8,
+            "required": True,
+            "passed": locally_identifiable,
+        },
+        "replicated_multistart_solution": {
+            "successful_multistarts": successful_multistarts,
+            "near_optimal_multistarts_within_one_percent": near_optimal_multistarts,
+            "minimum_required_for_each": _MINIMUM_ACCEPTANCE_MULTISTARTS,
+            "required": True,
+            "passed": replicated_multistart_solution,
+        },
+    }
+    accepted = all(bool(criterion["passed"]) for criterion in criteria.values())
+    return {
+        "rule": (
+            "all validation errors are strictly below 1 C and the fitted "
+            "parameters are physical, stable, locally identified, full-rank, "
+            "and reproduced by at least two successful near-optimal starts"
+        ),
+        "all_criteria_passed": accepted,
+        "accepted_for_mixed_serving_thermal_constraints": accepted,
+        "verdict": "accepted" if accepted else "rejected",
+        "criteria": criteria,
+    }
+
+
 def _raw_pulse_summary(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     times = np.asarray([row["elapsed_s"] for row in rows], dtype=float)
     powers = np.asarray([row["power_w"] for row in rows], dtype=float)
@@ -1347,10 +1594,12 @@ def build_phase_fit_report(
                 validation, validation_evaluation, validation_predictions
             )
         )
+        acceptance = _acceptance_assessment(fit, validation_evaluation)
         models[model_name] = {
             "final_training_fit": _fit_to_json(fit),
             "training_evaluation": training_evaluation,
             "validation_evaluation": validation_evaluation,
+            "acceptance": acceptance,
         }
 
     power_training_rmse = models["power_only_one_state_rc"]["training_evaluation"][
@@ -1408,7 +1657,10 @@ def build_phase_fit_report(
             "power_statistic": "time-weighted mean of measured board power",
             "temperature_statistic": "nearest integer sensor reading at each bin boundary",
             "finite_differencing": False,
-            "pulse_initialization": "each cold pulse starts at its first observed junction temperature",
+            "pulse_initialization": (
+                "verified post-relock junction temperature recorded immediately "
+                "before each pulse"
+            ),
             "pulse_samples": {
                 pulse.name: {
                     "split": pulse.split,
@@ -1427,6 +1679,10 @@ def build_phase_fit_report(
             bundle, validation
         ),
         "models": models,
+        "acceptance": {
+            "target_model": "phase_gain_one_state_rc",
+            **models["phase_gain_one_state_rc"]["acceptance"],
+        },
         "model_comparison": {
             "phase_gain_minus_power_only_training_rmse_c": (
                 gain_training_rmse - power_training_rmse

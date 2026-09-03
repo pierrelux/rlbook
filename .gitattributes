@@ -1,0 +1,6 @@
+# Preserve raw measurement exports byte-for-byte. Their acquisition tools emit
+# CRLF records, so Git should not normalize or whitespace-check these sources.
+data/inference_serving/thermal-phase-identification-*/*.csv -text
+data/inference_serving/thermal-phase-identification-*/*.log -text
+data/inference_serving/failed-thermal-phase-*/*.csv -text
+data/inference_serving/failed-thermal-phase-*/*.log -text

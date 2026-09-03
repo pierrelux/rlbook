@@ -1,0 +1,656 @@
+{
+  "block_checkpoints": [
+    {
+      "actual_duration_s": 75.00051487300004,
+      "block": {
+        "block_id": "phase_training_pulse_00",
+        "condition": {
+          "concurrency": 8,
+          "output_tokens": 32,
+          "phase": "decode",
+          "prompt_tokens": 128
+        },
+        "duration_s": 75.0,
+        "requested_power_limit_w": 46.0,
+        "role": "phase_training",
+        "sequence": "phase_training",
+        "split": "training"
+      },
+      "block_telemetry_rows": 749,
+      "ended_elapsed_s": 614.624003416,
+      "maximum_temperature_c": 65.0,
+      "mean_power_w": 46.440574098798386,
+      "median_realized_clock_mhz": 210.0,
+      "minimum_temperature_c": 53.0,
+      "request_rows": 160,
+      "started_elapsed_s": 539.623488543,
+      "status": "complete",
+      "telemetry_rows": 6151
+    },
+    {
+      "actual_duration_s": 45.00053057399998,
+      "block": {
+        "block_id": "phase_training_pulse_01",
+        "condition": {
+          "concurrency": 8,
+          "output_tokens": 1,
+          "phase": "prefill",
+          "prompt_tokens": 4096
+        },
+        "duration_s": 45.0,
+        "requested_power_limit_w": 61.0,
+        "role": "phase_training",
+        "sequence": "phase_training",
+        "split": "training"
+      },
+      "block_telemetry_rows": 449,
+      "ended_elapsed_s": 1039.262333271,
+      "maximum_temperature_c": 70.0,
+      "mean_power_w": 60.711648106904256,
+      "median_realized_clock_mhz": 855.0,
+      "minimum_temperature_c": 54.0,
+      "request_rows": 200,
+      "started_elapsed_s": 994.261802697,
+      "status": "complete",
+      "telemetry_rows": 10446
+    },
+    {
+      "actual_duration_s": 75.00044126800003,
+      "block": {
+        "block_id": "phase_training_pulse_02",
+        "condition": {
+          "concurrency": 8,
+          "output_tokens": 1,
+          "phase": "prefill",
+          "prompt_tokens": 4096
+        },
+        "duration_s": 75.0,
+        "requested_power_limit_w": 46.0,
+        "role": "phase_training",
+        "sequence": "phase_training",
+        "split": "training"
+      },
+      "block_telemetry_rows": 747,
+      "ended_elapsed_s": 1554.013362782,
+      "maximum_temperature_c": 67.0,
+      "mean_power_w": 46.03862115127177,
+      "median_realized_clock_mhz": 480.0,
+      "minimum_temperature_c": 55.0,
+      "request_rows": 240,
+      "started_elapsed_s": 1479.012921514,
+      "status": "complete",
+      "telemetry_rows": 15642
+    },
+    {
+      "actual_duration_s": 45.00047157800009,
+      "block": {
+        "block_id": "phase_training_pulse_03",
+        "condition": {
+          "concurrency": 8,
+          "output_tokens": 32,
+          "phase": "decode",
+          "prompt_tokens": 128
+        },
+        "duration_s": 45.0,
+        "requested_power_limit_w": 61.0,
+        "role": "phase_training",
+        "sequence": "phase_training",
+        "split": "training"
+      },
+      "block_telemetry_rows": 448,
+      "ended_elapsed_s": 2026.2601127479998,
+      "maximum_temperature_c": 69.0,
+      "mean_power_w": 60.493549107142776,
+      "median_realized_clock_mhz": 1140.0,
+      "minimum_temperature_c": 56.0,
+      "request_rows": 408,
+      "started_elapsed_s": 1981.2596411699997,
+      "status": "complete",
+      "telemetry_rows": 20195
+    },
+    {
+      "actual_duration_s": 60.005583861000105,
+      "block": {
+        "block_id": "phase_validation_pulse_00",
+        "condition": {
+          "concurrency": 8,
+          "output_tokens": 32,
+          "phase": "decode",
+          "prompt_tokens": 128
+        },
+        "duration_s": 60.0,
+        "requested_power_limit_w": 55.0,
+        "role": "phase_validation",
+        "sequence": "phase_validation",
+        "split": "validation"
+      },
+      "block_telemetry_rows": 593,
+      "ended_elapsed_s": 2479.503103864,
+      "maximum_temperature_c": 68.0,
+      "mean_power_w": 54.69470489038785,
+      "median_realized_clock_mhz": 345.0,
+      "minimum_temperature_c": 55.0,
+      "request_rows": 600,
+      "started_elapsed_s": 2419.497520003,
+      "status": "complete",
+      "telemetry_rows": 24684
+    },
+    {
+      "actual_duration_s": 60.00709316499979,
+      "block": {
+        "block_id": "phase_validation_pulse_01",
+        "condition": {
+          "concurrency": 8,
+          "output_tokens": 1,
+          "phase": "prefill",
+          "prompt_tokens": 4096
+        },
+        "duration_s": 60.0,
+        "requested_power_limit_w": 55.0,
+        "role": "phase_validation",
+        "sequence": "phase_validation",
+        "split": "validation"
+      },
+      "block_telemetry_rows": 594,
+      "ended_elapsed_s": 2930.249396286,
+      "maximum_temperature_c": 70.0,
+      "mean_power_w": 54.56865319865318,
+      "median_realized_clock_mhz": 705.0,
+      "minimum_temperature_c": 54.0,
+      "request_rows": 640,
+      "started_elapsed_s": 2870.242303121,
+      "status": "complete",
+      "telemetry_rows": 29134
+    }
+  ],
+  "cloud": {
+    "machine_type": "g2-standard-8",
+    "project": "potent-arcade-491015-g7",
+    "provisioning_model": "STANDARD",
+    "zone": "us-central1-b"
+  },
+  "completed_block_ids": [
+    "phase_training_pulse_00",
+    "phase_training_pulse_01",
+    "phase_training_pulse_02",
+    "phase_training_pulse_03",
+    "phase_validation_pulse_00",
+    "phase_validation_pulse_01"
+  ],
+  "completed_utc": "2026-09-03T14:07:09.858929+00:00",
+  "conditioning_reference": {
+    "idle_power_tolerance_w": 1.0,
+    "idle_power_w": 21.242627189324654,
+    "memory_clock_mhz": 6251.0,
+    "source_block_id": "phase_training_pulse_00",
+    "temperature_c": 52.0,
+    "temperature_tolerance_c": 1.0
+  },
+  "cooldown_events": [
+    {
+      "before_block_id": "phase_training_pulse_00",
+      "completed_elapsed_s": 538.3773971,
+      "duration_s": 135.00361711200003,
+      "final_temperature_c": 52.0,
+      "memory_clock_mode": "unlocked",
+      "memory_relock": {
+        "cooldown_reference_temperature_c": 52.0,
+        "duration_s": 1.1333160299999463,
+        "pulse_start_band_reference_c": 53.0,
+        "realized_memory_clock_mhz": 6251.0,
+        "requested_memory_clock_mhz": 6251,
+        "settle_s": 1.0,
+        "status": "verified",
+        "temperature_c": 53.0
+      },
+      "phase": "thermal_identification_cooldown_before_phase_training_pulse_00",
+      "reference_power_w": null,
+      "reference_temperature_c": null,
+      "sequence": "phase_training",
+      "stability_band_c": 1.0,
+      "stability_window_s": 120.0,
+      "started_elapsed_s": 403.44082576799997,
+      "status": "complete",
+      "target_temperature_c": 58.0,
+      "timeout_s": 900.0,
+      "window_max_temperature_c": 53.0,
+      "window_mean_power_w": 21.242627189324654,
+      "window_median_memory_clock_mhz": 6251.0,
+      "window_min_temperature_c": 52.0
+    },
+    {
+      "before_block_id": "phase_training_pulse_01",
+      "completed_elapsed_s": 993.0031674810001,
+      "duration_s": 376.53268158000014,
+      "final_temperature_c": 53.0,
+      "memory_clock_mode": "unlocked",
+      "memory_relock": {
+        "cooldown_reference_temperature_c": 52.0,
+        "duration_s": 1.1450415899998916,
+        "pulse_start_band_reference_c": 53.0,
+        "realized_memory_clock_mhz": 6251.0,
+        "requested_memory_clock_mhz": 6251,
+        "settle_s": 1.0,
+        "status": "verified",
+        "temperature_c": 54.0
+      },
+      "phase": "thermal_identification_cooldown_before_phase_training_pulse_01",
+      "reference_power_w": 21.242627189324654,
+      "reference_temperature_c": 52.0,
+      "sequence": "phase_training",
+      "stability_band_c": 1.0,
+      "stability_window_s": 120.0,
+      "started_elapsed_s": 616.48329136,
+      "status": "complete",
+      "target_temperature_c": 58.0,
+      "timeout_s": 900.0,
+      "window_max_temperature_c": 54.0,
+      "window_mean_power_w": 21.364088628762598,
+      "window_median_memory_clock_mhz": 6251.0,
+      "window_min_temperature_c": 53.0
+    },
+    {
+      "before_block_id": "phase_training_pulse_02",
+      "completed_elapsed_s": 1477.6560035329999,
+      "duration_s": 430.54320594599994,
+      "final_temperature_c": 53.0,
+      "memory_clock_mode": "unlocked",
+      "memory_relock": {
+        "cooldown_reference_temperature_c": 52.0,
+        "duration_s": 1.1482267459998639,
+        "pulse_start_band_reference_c": 53.0,
+        "realized_memory_clock_mhz": 6251.0,
+        "requested_memory_clock_mhz": 6251,
+        "settle_s": 1.0,
+        "status": "verified",
+        "temperature_c": 54.0
+      },
+      "phase": "thermal_identification_cooldown_before_phase_training_pulse_02",
+      "reference_power_w": 21.242627189324654,
+      "reference_temperature_c": 52.0,
+      "sequence": "phase_training",
+      "stability_band_c": 1.0,
+      "stability_window_s": 120.0,
+      "started_elapsed_s": 1047.1621139140002,
+      "status": "complete",
+      "target_temperature_c": 58.0,
+      "timeout_s": 900.0,
+      "window_max_temperature_c": 54.0,
+      "window_mean_power_w": 21.448507963118114,
+      "window_median_memory_clock_mhz": 6251.0,
+      "window_min_temperature_c": 53.0
+    },
+    {
+      "before_block_id": "phase_training_pulse_03",
+      "completed_elapsed_s": 1979.780064817,
+      "duration_s": 410.51140986099995,
+      "final_temperature_c": 53.0,
+      "memory_clock_mode": "unlocked",
+      "memory_relock": {
+        "cooldown_reference_temperature_c": 52.0,
+        "duration_s": 1.1476596949996747,
+        "pulse_start_band_reference_c": 53.0,
+        "realized_memory_clock_mhz": 6251.0,
+        "requested_memory_clock_mhz": 6251,
+        "settle_s": 1.0,
+        "status": "verified",
+        "temperature_c": 54.0
+      },
+      "phase": "thermal_identification_cooldown_before_phase_training_pulse_03",
+      "reference_power_w": 21.242627189324654,
+      "reference_temperature_c": 52.0,
+      "sequence": "phase_training",
+      "stability_band_c": 1.0,
+      "stability_window_s": 120.0,
+      "started_elapsed_s": 1569.3671179980001,
+      "status": "complete",
+      "target_temperature_c": 58.0,
+      "timeout_s": 900.0,
+      "window_max_temperature_c": 54.0,
+      "window_mean_power_w": 21.435210084033468,
+      "window_median_memory_clock_mhz": 6251.0,
+      "window_min_temperature_c": 53.0
+    },
+    {
+      "before_block_id": "phase_validation_pulse_00",
+      "completed_elapsed_s": 2417.933384079,
+      "duration_s": 389.36730043100033,
+      "final_temperature_c": 53.0,
+      "memory_clock_mode": "unlocked",
+      "memory_relock": {
+        "cooldown_reference_temperature_c": 52.0,
+        "duration_s": 1.1678676890001043,
+        "pulse_start_band_reference_c": 53.0,
+        "realized_memory_clock_mhz": 6251.0,
+        "requested_memory_clock_mhz": 6251,
+        "settle_s": 1.0,
+        "status": "verified",
+        "temperature_c": 54.0
+      },
+      "phase": "thermal_identification_cooldown_before_phase_validation_pulse_00",
+      "reference_power_w": 21.242627189324654,
+      "reference_temperature_c": 52.0,
+      "sequence": "phase_validation",
+      "stability_band_c": 1.0,
+      "stability_window_s": 120.0,
+      "started_elapsed_s": 2028.6622911579998,
+      "status": "complete",
+      "target_temperature_c": 58.0,
+      "timeout_s": 900.0,
+      "window_max_temperature_c": 54.0,
+      "window_mean_power_w": 21.354249578414787,
+      "window_median_memory_clock_mhz": 6251.0,
+      "window_min_temperature_c": 53.0
+    },
+    {
+      "before_block_id": "phase_validation_pulse_01",
+      "completed_elapsed_s": 2868.639826749,
+      "duration_s": 386.416449887,
+      "final_temperature_c": 53.0,
+      "memory_clock_mode": "unlocked",
+      "memory_relock": {
+        "cooldown_reference_temperature_c": 52.0,
+        "duration_s": 1.1820906830002968,
+        "pulse_start_band_reference_c": 53.0,
+        "realized_memory_clock_mhz": 6251.0,
+        "requested_memory_clock_mhz": 6251,
+        "settle_s": 1.0,
+        "status": "verified",
+        "temperature_c": 54.0
+      },
+      "phase": "thermal_identification_cooldown_before_phase_validation_pulse_01",
+      "reference_power_w": 21.242627189324654,
+      "reference_temperature_c": 52.0,
+      "sequence": "phase_validation",
+      "stability_band_c": 1.0,
+      "stability_window_s": 120.0,
+      "started_elapsed_s": 2482.270368361,
+      "status": "complete",
+      "target_temperature_c": 58.0,
+      "timeout_s": 900.0,
+      "window_max_temperature_c": 54.0,
+      "window_mean_power_w": 21.426463620981405,
+      "window_median_memory_clock_mhz": 6251.0,
+      "window_min_temperature_c": 53.0
+    }
+  ],
+  "cooldown_graphics_clock_mhz": 210,
+  "cooldown_protocol": {
+    "before_every_pulse": true,
+    "graphics_clock_mhz": 210,
+    "memory_clock_mode": "unlocked",
+    "memory_relock_settle_s": 1.0,
+    "power_limit_w": 40.0,
+    "pulse_memory_clock_mhz": 6251,
+    "stability_band_c": 1.0,
+    "stability_window_s": 120.0,
+    "target_temperature_c": 58.0,
+    "timeout_s": 900.0,
+    "workload": "idle"
+  },
+  "created_utc": "2026-09-03T13:18:12.170059+00:00",
+  "elapsed_s": 2937.688900919,
+  "fit_protocol": {
+    "acquisition_only": true,
+    "fit_input": "measured power rather than requested cap",
+    "prespecified_phase_model": "P_eff = P * (1 + beta * I_prefill)",
+    "primary_validation_metrics": [
+      "free_run_rmse_c",
+      "prefill_minus_decode_peak_temperature_rise_c"
+    ],
+    "temperature_fit": "continuous-time trajectory fit; include pre-pulse cooldown telemetry when initializing hidden thermal state",
+    "training_sequences": [
+      "phase_training"
+    ],
+    "untouched_validation_sequence": "phase_validation",
+    "validation_evaluation_passes": 1
+  },
+  "git_revision": "0fdb4284ee509c4696968630c2b7b54eac3dd52e",
+  "gpu": {
+    "cuda_version": "13.0",
+    "default_power_limit_w": 72.0,
+    "driver_version": "580.173.02",
+    "maximum_power_limit_w": 72.0,
+    "minimum_power_limit_w": 40.0,
+    "name": "NVIDIA L4",
+    "shutdown_temperature_c": null,
+    "slowdown_temperature_c": null,
+    "uuid": "GPU-814c5d93-c7bb-1184-a37f-4ab5cc652298"
+  },
+  "gpu_controls": {
+    "memory_clock_error": null,
+    "memory_clock_locked": false,
+    "memory_clock_locked_on_enter": false,
+    "memory_clock_requested_mhz": 6251,
+    "power_limit_w": 64.8
+  },
+  "latest_block_checkpoint": {
+    "actual_duration_s": 60.00709316499979,
+    "block": {
+      "block_id": "phase_validation_pulse_01",
+      "condition": {
+        "concurrency": 8,
+        "output_tokens": 1,
+        "phase": "prefill",
+        "prompt_tokens": 4096
+      },
+      "duration_s": 60.0,
+      "requested_power_limit_w": 55.0,
+      "role": "phase_validation",
+      "sequence": "phase_validation",
+      "split": "validation"
+    },
+    "block_telemetry_rows": 594,
+    "ended_elapsed_s": 2930.249396286,
+    "maximum_temperature_c": 70.0,
+    "mean_power_w": 54.56865319865318,
+    "median_realized_clock_mhz": 705.0,
+    "minimum_temperature_c": 54.0,
+    "request_rows": 640,
+    "started_elapsed_s": 2870.242303121,
+    "status": "complete",
+    "telemetry_rows": 29134
+  },
+  "launcher_script_sha256": "975281ca685802af57158444a8f14fd8d1194c91721268bfd73b7fd392f5a9af",
+  "mode": "thermal-phase-identification",
+  "model": "Qwen/Qwen2.5-7B-Instruct",
+  "model_revision": "acbd96531cda22292a3ceaa67e984955d3965282",
+  "platform": "Linux-6.8.0-1066-gcp-x86_64-with-glibc2.35",
+  "profiler_script_sha256": "d6c28fc4ef355ee1d72018c4d1c19afc86197cdd4d67c332a556df09edd587a8",
+  "protocol": "cold-start-phase-pairs-v3",
+  "protocol_rationale": {
+    "design_response": "Counterbalance matched prefill/decode cold-start pulses at 46 W and 61 W for fitting, then evaluate one untouched 55 W pair.",
+    "discovery_bundle_is_not_confirmatory_data": true,
+    "discovery_observation": "At matched 55 W and 60 s, prefill and decode measured 54.979 W and 55.186 W time-weighted mean power, but the sustained temperature gap averaged 2.61 C and the raw peak rises were 16 C and 14 C.",
+    "phase_v1_failure": "The first phase-pair attempt kept the 6251 MHz memory clock locked during cooldown and reached a stable 61 C idle state, so it stopped before any pulse at the fixed 52 C gate.",
+    "phase_v2_failure": "The second phase-pair attempt compared a post-relock pulse-start temperature against the pre-relock conditioning reference and stopped before pulse two, despite the two candidate pulse starts remaining inside the intended one-degree band.",
+    "phase_v3_conditioning": "Release the memory-clock lock during each idle cooldown, require a 120 s stable window no warmer than 58 C, then re-lock and verify 6251 MHz without exceeding 58 C before every pulse. Compare idle windows before relock and pulse-start temperatures after relock; require the latter to span no more than one degree.",
+    "preserved_phase_v1_failure_is_not_confirmatory_data": true,
+    "preserved_phase_v2_failure_is_not_confirmatory_data": true
+  },
+  "pulse_start_temperatures_c": [
+    53.0,
+    54.0,
+    54.0,
+    54.0,
+    54.0,
+    54.0
+  ],
+  "python": "3.10.12",
+  "request_columns": [
+    "split",
+    "sequence",
+    "block_id",
+    "workload_phase",
+    "prompt_tokens",
+    "output_tokens",
+    "concurrency",
+    "requested_power_limit_w",
+    "requested_clock_mhz",
+    "batch_index",
+    "request_index",
+    "prompt_tokens_observed",
+    "completion_tokens",
+    "ttft_s",
+    "tpot_s",
+    "total_s",
+    "start_elapsed_s",
+    "end_elapsed_s"
+  ],
+  "request_row_count": 640,
+  "requested_graphics_clock_mhz": 2040,
+  "safety_protocol": {
+    "abort_temperature_c": 79.0,
+    "independent_of_request_loop": true,
+    "safe_down_temperature_c": 77.0,
+    "safe_graphics_clock_mhz": 210,
+    "safe_power_limit_w": 40.0,
+    "stale_telemetry_s": 1.0
+  },
+  "schedule": [
+    {
+      "blocks": [
+        {
+          "block_id": "phase_training_pulse_00",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 32,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 75.0,
+          "requested_power_limit_w": 46.0,
+          "role": "phase_training",
+          "sequence": "phase_training",
+          "split": "training"
+        },
+        {
+          "block_id": "phase_training_pulse_01",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 1,
+            "phase": "prefill",
+            "prompt_tokens": 4096
+          },
+          "duration_s": 45.0,
+          "requested_power_limit_w": 61.0,
+          "role": "phase_training",
+          "sequence": "phase_training",
+          "split": "training"
+        },
+        {
+          "block_id": "phase_training_pulse_02",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 1,
+            "phase": "prefill",
+            "prompt_tokens": 4096
+          },
+          "duration_s": 75.0,
+          "requested_power_limit_w": 46.0,
+          "role": "phase_training",
+          "sequence": "phase_training",
+          "split": "training"
+        },
+        {
+          "block_id": "phase_training_pulse_03",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 32,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 45.0,
+          "requested_power_limit_w": 61.0,
+          "role": "phase_training",
+          "sequence": "phase_training",
+          "split": "training"
+        }
+      ],
+      "requires_cooldown_before_every_pulse": true,
+      "sequence": "phase_training",
+      "split": "training"
+    },
+    {
+      "blocks": [
+        {
+          "block_id": "phase_validation_pulse_00",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 32,
+            "phase": "decode",
+            "prompt_tokens": 128
+          },
+          "duration_s": 60.0,
+          "requested_power_limit_w": 55.0,
+          "role": "phase_validation",
+          "sequence": "phase_validation",
+          "split": "validation"
+        },
+        {
+          "block_id": "phase_validation_pulse_01",
+          "condition": {
+            "concurrency": 8,
+            "output_tokens": 1,
+            "phase": "prefill",
+            "prompt_tokens": 4096
+          },
+          "duration_s": 60.0,
+          "requested_power_limit_w": 55.0,
+          "role": "phase_validation",
+          "sequence": "phase_validation",
+          "split": "validation"
+        }
+      ],
+      "requires_cooldown_before_every_pulse": true,
+      "sequence": "phase_validation",
+      "split": "validation"
+    }
+  ],
+  "schedule_total_s": 360.0,
+  "schema_version": 2,
+  "selected_memory_clock_mhz": 6251,
+  "served_model_name": "qwen2.5-7b-instruct",
+  "sha256": {
+    "l4_thermal_phase_requests.csv": "8f0c8628bebff01c6264428b7ae6ae668ca8bdcbbd3e010048f83e1179460be0",
+    "l4_thermal_phase_telemetry.csv": "cb896ac8d06dc1ed8b0e4abea826a802b3cb9df9a35bce602c61284030be09f5",
+    "thermal_phase_vllm.log": "0f4a872542844467ef2836863201af37b1e2dfe0bbb8cafcc9ec9390d544518e"
+  },
+  "source_worktree_state": "dirty",
+  "status": "complete",
+  "telemetry_columns": [
+    "elapsed_s",
+    "utc",
+    "phase",
+    "graphics_clock_mhz",
+    "memory_clock_mhz",
+    "power_w",
+    "temperature_c",
+    "utilization_percent",
+    "memory_used_mib",
+    "split",
+    "sequence",
+    "block_id",
+    "block_role",
+    "requested_power_limit_w",
+    "requested_clock_mhz",
+    "workload_phase"
+  ],
+  "telemetry_period_s": 0.1,
+  "telemetry_row_count": 29171,
+  "training_duration_ceilings_s": {
+    "46": 75.0,
+    "61": 45.0
+  },
+  "training_power_limits_w": [
+    46,
+    61
+  ],
+  "validation_power_limits_w": [
+    55
+  ],
+  "vllm_image": "vllm/vllm-openai:v0.28.0",
+  "vllm_image_digest": "vllm/vllm-openai@sha256:61fc8a896b0a4fbbbdc063bc4b0dbc25ce98e02b5050c24aeb7830ac02039b14",
+  "vllm_prefix_caching_enabled": false,
+  "vllm_server_version": "0.28.0"
+}

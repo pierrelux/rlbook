@@ -17,7 +17,7 @@ SCRIPTS_DIRECTORY = Path(__file__).resolve().parents[1] / "scripts"
 if str(SCRIPTS_DIRECTORY) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIRECTORY))
 
-from fit_inference_thermal import FitConfig, SequenceData  # noqa: E402
+from fit_inference_thermal import FitConfig, ModelFit, SequenceData  # noqa: E402
 from fit_inference_thermal_phase import (  # noqa: E402
     MANIFEST_FILENAME,
     REQUIRED_REQUEST_COLUMNS,
@@ -26,6 +26,7 @@ from fit_inference_thermal_phase import (  # noqa: E402
     TELEMETRY_FILENAME,
     ThermalFitError,
     _EXPECTED_BLOCKS,
+    _acceptance_assessment,
     build_phase_fit_report,
     load_phase_thermal_bundle,
     simulate_one_state_phase_gain,
@@ -44,13 +45,14 @@ def _telemetry_row(
     block_role: str,
     requested_power_w: float | str,
     workload_phase: str,
+    memory_clock_mhz: float = 6251,
 ) -> dict[str, object]:
     return {
         "elapsed_s": elapsed_s,
         "utc": "2026-09-03T00:00:00+00:00",
         "phase": f"thermal_phase_{block_id}" if block_id else "initialization",
         "graphics_clock_mhz": 210 if split == "conditioning" else 2040,
-        "memory_clock_mhz": 6251,
+        "memory_clock_mhz": memory_clock_mhz,
         "power_w": power_w,
         "temperature_c": temperature_c,
         "utilization_percent": 0 if split in ("", "conditioning") else 100,
@@ -113,7 +115,12 @@ def _schedule() -> list[dict]:
     return schedule
 
 
-def _write_bundle(root: Path, *, validation_offset_c: float = 0.0) -> Path:
+def _write_bundle(
+    root: Path,
+    *,
+    validation_offset_c: float = 0.0,
+    prefill_validation_offset_c: float = 0.0,
+) -> Path:
     truth = {
         "ambient_temperature_c": 27.0,
         "thermal_resistance_c_per_w": 0.48,
@@ -144,7 +151,7 @@ def _write_bundle(root: Path, *, validation_offset_c: float = 0.0) -> Path:
         initial_temperature = 45.0 + (pulse_index % 2)
         elapsed += 1.0
         cooldown_started = elapsed
-        for cooldown_second in range(61):
+        for cooldown_second in range(121):
             rows.append(
                 _telemetry_row(
                     cooldown_started + cooldown_second,
@@ -156,27 +163,54 @@ def _write_bundle(root: Path, *, validation_offset_c: float = 0.0) -> Path:
                     block_role="cooldown",
                     requested_power_w=40.0,
                     workload_phase="idle",
+                    memory_clock_mhz=405,
                 )
             )
-        cooldown_completed = cooldown_started + 60.0
+        cooldown_completed = cooldown_started + 120.0
+        relock_elapsed = cooldown_completed + 1.0
         cooldown_events.append(
             {
                 "before_block_id": block_id,
                 "sequence": block["sequence"],
                 "started_elapsed_s": cooldown_started,
                 "completed_elapsed_s": cooldown_completed,
-                "duration_s": 60.0,
-                "target_temperature_c": 52.0,
+                "duration_s": 120.0,
+                "target_temperature_c": 58.0,
                 "stability_band_c": 1.0,
-                "stability_window_s": 60.0,
-                "timeout_s": 600.0,
+                "stability_window_s": 120.0,
+                "timeout_s": 900.0,
+                "memory_clock_mode": "unlocked",
                 "final_temperature_c": initial_temperature,
                 "window_min_temperature_c": initial_temperature,
                 "window_max_temperature_c": initial_temperature,
+                "window_mean_power_w": 25.0,
+                "window_median_memory_clock_mhz": 405.0,
+                "memory_relock": {
+                    "duration_s": 1.0,
+                    "requested_memory_clock_mhz": 6251,
+                    "realized_memory_clock_mhz": 6251,
+                    "temperature_c": initial_temperature,
+                    "settle_s": 1.0,
+                    "status": "verified",
+                },
                 "status": "complete",
             }
         )
-        elapsed = cooldown_completed + 1.0
+        rows.append(
+            _telemetry_row(
+                relock_elapsed,
+                initial_temperature,
+                25.0,
+                split="conditioning",
+                sequence=block["sequence"],
+                block_id=f"memory_relock_before_{block_id}",
+                block_role="memory_relock",
+                requested_power_w=40.0,
+                workload_phase="idle",
+                memory_clock_mhz=6251,
+            )
+        )
+        elapsed = relock_elapsed + 1.0
         pulse_started = elapsed
         local_time = np.arange(duration + 1, dtype=float)
         measured_power = (
@@ -199,7 +233,9 @@ def _write_bundle(root: Path, *, validation_offset_c: float = 0.0) -> Path:
         )
         temperature = np.round(simulate_one_state_phase_gain(truth, placeholder))
         if block["split"] == "validation":
-            temperature += validation_offset_c
+            temperature[1:] += validation_offset_c
+            if block["condition"]["phase"] == "prefill":
+                temperature[1:] += prefill_validation_offset_c
         for index, time_s in enumerate(local_time):
             rows.append(
                 _telemetry_row(
@@ -247,12 +283,12 @@ def _write_bundle(root: Path, *, validation_offset_c: float = 0.0) -> Path:
     manifest = {
         "schema_version": 2,
         "mode": "thermal-phase-identification",
-        "protocol": "cold-start-phase-pairs-v1",
+        "protocol": "cold-start-phase-pairs-v3",
         "status": "complete",
         "git_revision": "synthetic-phase-test",
         "cloud": {
             "project": "potent-arcade-491015-g7",
-            "zone": "us-central1-a",
+            "zone": "us-central1-b",
             "provisioning_model": "STANDARD",
             "machine_type": "g2-standard-8",
         },
@@ -267,15 +303,27 @@ def _write_bundle(root: Path, *, validation_offset_c: float = 0.0) -> Path:
         "request_row_count": len(requests),
         "schedule": _schedule(),
         "completed_block_ids": [block["block_id"] for block in _EXPECTED_BLOCKS],
+        "conditioning_reference": {
+            "temperature_c": 45.0,
+            "idle_power_w": 25.0,
+            "memory_clock_mhz": 405.0,
+            "temperature_tolerance_c": 1.0,
+            "idle_power_tolerance_w": 1.0,
+            "source_block_id": "phase_training_pulse_00",
+        },
+        "pulse_start_temperatures_c": [45.0, 46.0, 45.0, 46.0, 45.0, 46.0],
         "cooldown_protocol": {
             "before_every_pulse": True,
             "power_limit_w": 40.0,
             "graphics_clock_mhz": 210,
             "workload": "idle",
-            "target_temperature_c": 52.0,
+            "target_temperature_c": 58.0,
             "stability_band_c": 1.0,
-            "stability_window_s": 60.0,
-            "timeout_s": 600.0,
+            "stability_window_s": 120.0,
+            "timeout_s": 900.0,
+            "memory_clock_mode": "unlocked",
+            "pulse_memory_clock_mhz": 6251,
+            "memory_relock_settle_s": 1.0,
         },
         "safety_protocol": {
             "independent_of_request_loop": True,
@@ -304,6 +352,31 @@ def _write_bundle(root: Path, *, validation_offset_c: float = 0.0) -> Path:
 
 
 class InferenceThermalPhaseFitTests(unittest.TestCase):
+    def test_relock_temperature_defines_pulse_start_not_first_load_sample(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            manifest_path = _write_bundle(root)
+            telemetry_path = root / TELEMETRY_FILENAME
+            with telemetry_path.open(newline="", encoding="utf-8") as stream:
+                rows = list(csv.DictReader(stream))
+                fieldnames = list(rows[0])
+            target = "phase_training_pulse_03"
+            first = next(row for row in rows if row["block_id"] == target)
+            first["temperature_c"] = str(float(first["temperature_c"]) + 2.0)
+            with telemetry_path.open("w", newline="", encoding="utf-8") as stream:
+                writer = csv.DictWriter(stream, fieldnames=fieldnames)
+                writer.writeheader()
+                writer.writerows(rows)
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["sha256"][TELEMETRY_FILENAME] = sha256(
+                telemetry_path.read_bytes()
+            ).hexdigest()
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+            bundle = load_phase_thermal_bundle(manifest_path)
+
+        self.assertEqual(bundle.pulses[target].temperature_c[0], 46.0)
+
     def test_fit_is_training_only_and_reports_phase_pair_diagnostics(self) -> None:
         config = FitConfig(multistart_count=6, max_nfev=1_200)
         with tempfile.TemporaryDirectory() as first, tempfile.TemporaryDirectory() as second:
@@ -360,6 +433,100 @@ class InferenceThermalPhaseFitTests(unittest.TestCase):
         balance = exported["measured_power_and_energy"]["matched_phase_pairs"]
         self.assertEqual(set(balance["phase_training"]), {"46", "61"})
         self.assertEqual(set(balance["phase_validation"]), {"55"})
+        acceptance = exported["acceptance"]
+        self.assertEqual(acceptance["target_model"], "phase_gain_one_state_rc")
+        self.assertEqual(acceptance["verdict"], "accepted")
+        self.assertTrue(acceptance["all_criteria_passed"])
+        self.assertTrue(acceptance["accepted_for_mixed_serving_thermal_constraints"])
+        self.assertTrue(all(item["passed"] for item in acceptance["criteria"].values()))
+        self.assertEqual(
+            exported["models"]["power_only_one_state_rc"]["acceptance"]["verdict"],
+            "rejected",
+        )
+
+    def test_acceptance_rejects_validation_error_and_phase_contrast_failure(self) -> None:
+        config = FitConfig(multistart_count=6, max_nfev=1_200)
+        with tempfile.TemporaryDirectory() as shifted, tempfile.TemporaryDirectory() as contrast:
+            shifted_report = build_phase_fit_report(
+                load_phase_thermal_bundle(
+                    _write_bundle(Path(shifted), validation_offset_c=8.0),
+                    config=config,
+                ),
+                config=config,
+            )
+            contrast_report = build_phase_fit_report(
+                load_phase_thermal_bundle(
+                    _write_bundle(
+                        Path(contrast), prefill_validation_offset_c=2.0
+                    ),
+                    config=config,
+                ),
+                config=config,
+            )
+
+        shifted_acceptance = shifted_report["acceptance"]
+        self.assertEqual(shifted_acceptance["verdict"], "rejected")
+        self.assertFalse(
+            shifted_acceptance["criteria"]["validation_rmse"]["passed"]
+        )
+        self.assertFalse(
+            shifted_acceptance["criteria"][
+                "validation_maximum_absolute_or_peak_error"
+            ]["passed"]
+        )
+        contrast_acceptance = contrast_report["acceptance"]
+        self.assertEqual(contrast_acceptance["verdict"], "rejected")
+        self.assertFalse(
+            contrast_acceptance["criteria"]["validation_phase_contrast_error"][
+                "passed"
+            ]
+        )
+
+    def test_acceptance_rejects_rank_and_multistart_failures(self) -> None:
+        fit = ModelFit(
+            model="one_state_phase_gain_rc",
+            parameters={
+                "ambient_temperature_c": 27.0,
+                "thermal_resistance_c_per_w": 0.48,
+                "thermal_time_constant_s": 24.0,
+                "thermal_capacitance_j_per_c": 50.0,
+                "beta": 0.2,
+                "prefill_power_gain": 1.2,
+            },
+            transformed_parameters=np.zeros(4),
+            objective_sum_squared_c=0.0,
+            diagnostics={
+                "positive_thermal_parameters": True,
+                "positive_effective_power_gain": True,
+                "asymptotically_stable": True,
+                "optimizer_success": True,
+                "parameter_count": 4,
+                "jacobian_numerical_rank": 3,
+                "locally_identifiable": False,
+                "successful_multistarts": 1,
+                "near_optimal_multistarts_within_one_percent": 1,
+            },
+        )
+        evaluation = {
+            "aggregate": {
+                "rmse_c": 0.2,
+                "maximum_absolute_error_c": 0.4,
+                "maximum_absolute_per_pulse_peak_error_c": 0.3,
+            },
+            "matched_55w_decode_prefill": {
+                "observed_prefill_minus_decode_peak_rise_c": 2.0,
+                "predicted_prefill_minus_decode_peak_rise_c": 2.2,
+            },
+        }
+
+        acceptance = _acceptance_assessment(fit, evaluation)
+
+        self.assertEqual(acceptance["verdict"], "rejected")
+        self.assertFalse(acceptance["criteria"]["full_jacobian_rank"]["passed"])
+        self.assertFalse(acceptance["criteria"]["locally_identifiable"]["passed"])
+        self.assertFalse(
+            acceptance["criteria"]["replicated_multistart_solution"]["passed"]
+        )
 
     def test_loader_fails_closed_on_schedule_and_checksums(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -386,7 +553,7 @@ class InferenceThermalPhaseFitTests(unittest.TestCase):
             root = Path(directory)
             manifest_path = _write_bundle(root)
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-            manifest["cooldown_events"][0]["window_max_temperature_c"] = 53.0
+            manifest["cooldown_events"][0]["window_max_temperature_c"] = 59.0
             manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
             with self.assertRaisesRegex(ThermalFitError, "stable cold-start evidence"):
                 load_phase_thermal_bundle(manifest_path)

@@ -307,11 +307,29 @@ def make_model_interface_figure(source: Path | str | Mapping[str, Any]) -> plt.F
         for i in range(3):
             for j in range(i + 1, 3):
                 map_axis.plot(xy[[i, j], 0], xy[[i, j], 1], color="#c8d0d2", lw=2, zorder=0)
+        label_offsets = ((30, 7), (-31, 0), (30, -7))
+        label_alignments = ("left", "right", "left")
         for index, station in enumerate(stations):
             map_axis.scatter(*xy[index], s=950, facecolor="white", edgecolor=TEAL, lw=2.2, zorder=2)
             map_axis.text(*xy[index], f"{station['capacity']}\ndocks", ha="center", va="center", fontsize=8, weight="bold")
-            offset = (0, 34) if index != 2 else (0, -43)
-            map_axis.annotate(station["name"].split(" / ")[0], xy[index], xytext=offset, textcoords="offset points", ha="center", fontsize=8)
+            map_axis.annotate(
+                station["name"].split(" / ")[0],
+                xy[index],
+                xytext=label_offsets[index],
+                textcoords="offset points",
+                ha=label_alignments[index],
+                va="center",
+                fontsize=8,
+                annotation_clip=False,
+            )
+
+        # Scatter-marker sizes and annotation offsets do not contribute to
+        # Matplotlib's data limits.  Explicit padding keeps every station ring
+        # and label inside the map panel when the SVG is scaled to book width.
+        x_min, y_min = np.min(xy, axis=0)
+        x_max, y_max = np.max(xy, axis=0)
+        map_axis.set_xlim(x_min - 0.43, x_max + 0.43)
+        map_axis.set_ylim(y_min - 0.25, y_max + 0.25)
         map_axis.set_title("A deliberately small control boundary", loc="left", weight="bold")
         map_axis.text(0.0, -0.04, "One truck · 15-minute decisions · one travel step", transform=map_axis.transAxes, color=MUTED, fontsize=8)
         map_axis.set_aspect("equal")

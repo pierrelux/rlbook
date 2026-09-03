@@ -886,14 +886,104 @@ profile level and is 0.052 W above the configured 64.800 W cap. The cap was an
 experimental setting rather than a hard sample-wise guarantee. None of the
 four simulations records a thermal or KV-capacity violation.
 
-The one-state thermal RC fit has an $R^2$ of only 0.0020. Its simulated
-temperature trajectories provide a weak basis for thermal conclusions, so the
-absence of a simulated thermal violation is not a hardware safety certificate.
-The arrival forecast is deliberately simple, output length is observed only at
-completion, and the scheduler is held fixed. Network delay, tokenization,
-multi-GPU communication, and model-quality effects are omitted. The shifted
-burst is one controlled disturbance, so relative performance on that trace does
-not establish dominance under other workloads.
+### Validation of the Thermal Constraint
+
+The controller above constrains a junction temperature predicted by a
+one-state thermal model. None of the simulated controllers violates that
+constraint, but this establishes feasibility only for the model used inside
+the optimizer.
+
+A power-matched pair of workloads exposes the modeling problem. During the
+held-out experiment, a 55 W decode pulse and a 55 W prefill pulse consumed
+nearly the same electrical energy, with a difference of 0.2 percent. The
+measured peak temperature rise during prefill was nevertheless 2.00 degrees C
+larger than during decode. A model driven only by board power receives nearly
+the same input for both pulses and has no variable with which to represent
+this difference.
+
+The clock sweep used to calibrate the serving model was designed to measure
+service rate and power. Its one-state thermal fit had $R^2=0.0020$, so a
+separate experiment tested whether workload phase was needed in the thermal
+input. Both candidate models used
+
+$$
+\dot T(t)
+=
+-\frac{T(t)-T_{\mathrm{amb}}}{\tau}
++\frac{R}{\tau}P_{\mathrm{eff}}(t).
+$$
+
+Here $T_{\mathrm{amb}}$ is an effective ambient temperature, $\tau$ is the
+thermal time constant, and $R$ is the steady-state thermal resistance. The two
+input models differ by one term:
+
+$$
+P_{\mathrm{eff}}(t)
+=
+\begin{cases}
+P(t), & \text{power-only model},\\
+P(t)\bigl(1+\beta I_{\mathrm{prefill}}(t)\bigr),
+& \text{phase-gain model}.
+\end{cases}
+$$
+
+The indicator $I_{\mathrm{prefill}}$ equals one during prefill and zero during
+decode. The phase-gain model can therefore assign different effective thermal
+inputs to two workloads with the same measured board power. Its state
+dimension and measured input remain unchanged.
+
+The training and validation pulses were independent cold starts:
+
+| Data split | Workloads and duration | Use |
+|---|---|---|
+| Training | Decode and prefill at 46 W for 75 s and at 61 W for 45 s | Fit both candidate models |
+| Validation | Decode and prefill at 55 W for 60 s | Evaluate the fixed models once |
+
+The order of the four training pulses was counterbalanced. Every pulse began
+from a verified post-relock temperature within a one-degree-Celsius band. The
+acquisition retained a 77 degree C safe-down threshold and a 79 degree C abort
+threshold.
+
+:::{figure} _static/inference_serving/thermal-phase-validation.svg
+:label: fig-inference-thermal-validation
+:alt: Measured decode and prefill temperature rises on an NVIDIA L4 compared with fixed power-only and phase-gain one-state thermal models, followed by three validation errors against a one degree C acceptance boundary.
+
+The power-only model predicts similar responses for the power-matched pulses.
+The phase-gain model separates them and lowers held-out RMSE, but its largest
+trajectory and phase-contrast errors remain above the fixed one-degree-Celsius
+acceptance boundary. The validation data were not used to fit either model.
+:::
+
+:::{include} artifacts/inference_serving/thermal_phase_result.md
+:::
+
+The fitted gain gives prefill 1.147 times the effective thermal input of decode.
+This parameter is reproducible across the ten optimization starts. The training
+Jacobian also has full numerical rank, with condition number 384. These checks
+reduce concern about an ambiguous parameter fit, but they do not establish that
+one thermal state is sufficient. The validation residuals miss the rapid
+initial temperature rise and later reverse sign, which is evidence of missing
+dynamics in this experiment.
+
+A second thermal state could represent package or heat-sink temperature through
+the cooldown, memory-relock, and workload segments. Repeating the same six
+pulses would estimate run-to-run variability but would not add this missing
+state. Any enlarged model would require another held-out validation test before
+its predictions could support a hardware constraint.
+
+For the present MPC comparison, the temperature state and inequality remain a
+teaching model. The absence of a simulated thermal violation is not a hardware
+safety certificate. The arrival forecast is deliberately simple, output length
+is observed only at completion, and the scheduler is held fixed. Network delay,
+tokenization, multi-GPU communication, and model-quality effects are omitted.
+The shifted burst is one controlled disturbance, so relative performance on
+that trace does not establish dominance under other workloads.
+
+{download}`Download the one-second held-out trajectories and fixed-model predictions (CSV) <artifacts/inference_serving/thermal_phase_validation.csv>`
+
+{download}`Download the complete thermal fit and acceptance report (JSON) <data/inference_serving/thermal-phase-identification-20260903T131518Z/thermal_phase_fit_report.json>`
+
+{download}`Download the measured validation telemetry (CSV) <data/inference_serving/thermal-phase-identification-20260903T131518Z/l4_thermal_phase_telemetry.csv>`
 
 :::{dropdown} Inspect the receding-horizon controller
 ```{literalinclude} code/inference_control.py
@@ -1429,4 +1519,25 @@ The decision is computed for the state at the start of a one-second interval.
 After the deadline, little time remains to apply it and the request queue may
 already have changed. The reactive fallback supplies a timely action with known
 bounds.
+:::
+
+:::{exercise} Thermal-model validation
+:label: ex-mpc-check-5
+
+The phase-gain thermal model fits its four training pulses reproducibly and
+predicts the held-out trajectories better than the power-only model. It still
+fails one of three prespecified validation criteria. May its predicted
+temperature be used as a hard hardware-safety constraint? What remains useful
+about the experiment?
+:::
+
+:::{solution} ex-mpc-check-5
+:class: dropdown
+
+No. A reproducible parameter estimate does not establish that the model class
+captures the relevant plant dynamics. The failed held-out criterion prevents
+the constraint from serving as a safety certificate. The experiment remains
+useful because it rejects the power-only assumption, quantifies the improvement
+from a phase-dependent input, and points to missing thermal state as the next
+modeling hypothesis.
 :::

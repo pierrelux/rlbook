@@ -7,36 +7,61 @@ kernelspec:
 
 # Dynamics and State-Space Models
 
-A controller or learning algorithm acts on a description of a system. The
-description may be an equation, a simulator, a collection of transitions, or an
-interactive environment. Before choosing an algorithm, we need to determine
-what evolves, what can be changed, what can be observed, and which physical and
-operational restrictions must be preserved.
+A simulated playground swing can be made easy to control by placing a motor at
+the suspension pivot. A rider on a real swing has no such motor. The rider can
+change body shape, and the chain can pull but cannot push. An optimizer may
+produce a successful trajectory for the first model even though neither its
+action nor its suspension exists in the target system.
 
-The worked systems isolate different parts of that formulation. SwingRL tests
-whether a successful trajectory survives a change in suspension physics. A
-three-station BIXI corridor separates mean flows from stochastic events and a
-fixed schedule from inventory feedback. A camera gimbal separates sensor
-readings from the hidden state needed for stabilization. The inference-serving
-case then distinguishes equations, executable simulators, logged transitions,
-and a live process without changing the system boundary. A battery-charging
-experiment closes the chapter by retaining an electro-thermal model and
-estimating only the resistance change that alters its safe action.
+This failure occurs before the choice of control or learning algorithm. A
+**decision model** must say what evolves, what can be observed, which
+interventions are possible, how uncertainty enters, and which constraints must
+hold. Its **information pattern** specifies what the decision maker knows when
+each action is selected. These choices lead from physical systems to
+state-space equations and then to simulators, logged transitions, and
+interactive environments. Each case study tests one part of the resulting
+model.
 
-::::{admonition} Learning Goals
+Trajectory optimization, model predictive control, dynamic programming, and
+reinforcement learning all reason about the consequences of actions. They can
+only compare consequences that the model makes possible, including the predicted
+outcome of an action that has not yet been tried. Such an unobserved alternative
+is called a **counterfactual**. A fictitious actuator creates infeasible plans,
+an incomplete state destroys predictive information, and a logged dataset
+cannot answer counterfactual questions about actions it does not cover.
+Modeling therefore determines which later computations and claims are
+meaningful.
+
+The modeling choices have a useful dependency order. The system boundary first
+separates internal variables from external influences. That boundary determines
+the state, observation, action, and disturbance. Dynamics then describe how
+these quantities interact, while the objective and constraints define the
+decision problem. Finally, the available model interface determines whether an
+algorithm can differentiate equations, run new simulations, or only analyze a
+fixed log. The chapter follows this order.
+
+::::{admonition} Learning goals
 :class: note
 
 After reading this chapter, you should be able to:
 
-- define the state, action, disturbance, observation, objective, and constraints of a sequential decision problem;
-- locate the physical channel through which an action changes a system;
-- write deterministic and stochastic dynamics in continuous- and discrete-time state-space form;
-- distinguish an open-loop action sequence from a feedback policy;
-- classify the information supplied by equations, simulators, transition samples, and logged data;
-- represent partial observability with an observation model;
-- separate known structure from components that may be learned, and use controlled model audits to detect a missing mode or parameter change.
+- formulate a sequential decision problem by specifying its boundary, state,
+  action, disturbance, observation, objective, and constraints;
+- locate the physical channel through which an action changes the system;
+- write deterministic and stochastic state-space models in continuous and
+  discrete time;
+- distinguish state from observation and an open-loop action sequence from a
+  feedback policy;
+- determine which operations are supplied by equations, simulators, logged
+  transitions, and interactive environments;
+- separate known structure from learned components and design a controlled
+  experiment that can expose a modeling error.
+::::
 
-**Prerequisites:** Linear algebra, multivariable calculus, elementary
+::::{admonition} Prerequisites
+:class: tip
+
+The chapter assumes linear algebra, multivariable calculus, elementary
 probability, and the meaning of an ordinary differential equation. Numerical
 integration is reviewed in [Solving Initial Value Problems](appendix_ivps.md).
 ::::
@@ -49,8 +74,15 @@ A rider changes body shape, a crane accelerates the suspension point, and a
 wave-energy converter changes a dissipative load while the sea supplies the
 forcing.
 
-:::{admonition} Formulation exercise
-:class: tip
+The boundary identifies which physical components belong to the system being
+modeled and which influences arrive from outside it. The action channel then
+identifies the intervention available to the decision maker within that
+boundary. These two choices must precede the equations because they determine
+which input terms the equations are allowed to contain.
+
+:::{exercise} Locate the action channel
+:label: ex-dynamics-opening-action-channel
+
 Before reading the table, predict which system should create oscillation, which
 should suppress it, and which should retain motion to extract energy. Then name
 the physical quantity that each controller can change.
@@ -89,28 +121,209 @@ plt.close(overview_figure)
 | overhead crane | trolley position and load angle | trolley acceleration | gravity and damping | move the load and remove sway | acceleration is bounded |
 | wave-energy converter | flap angle and velocity | power-take-off damping | incident waves | extract energy within motion limits | passive damping is nonnegative |
 
-Many mechanical models can be organized around a generalized position $q$,
-velocity $v$, auxiliary configuration $z$, and input $u$:
+:::{solution} ex-dynamics-opening-action-channel
+:class: dropdown
+
+The rider creates oscillation by changing body shape. The crane suppresses load
+sway by changing trolley acceleration. The wave-energy converter retains motion
+while extracting energy by changing nonnegative power-take-off damping. The
+systems look similar, but none exposes an arbitrary force at the oscillating
+coordinate.
+:::
+
+The three systems need different inputs, but their mechanical equations can be
+organized by the same bookkeeping template. Let $q$ collect the independent
+coordinates needed to describe configuration, such as an angle or a trolley
+position. Such coordinates are called **generalized positions**. Their
+velocities are $v=\dot q$; $z$ collects additional actuator or environment
+states; and $u$ is the commanded input. A broad finite-dimensional model is
 
 $$
 \dot q=v,
 \qquad
-M(q,z)\dot v
-=-\nabla V(q,z)-D(q,v,z)+B(q,v,z)u+d(t).
+M(q,z)\dot v+c(q,v,z,\dot z)+\nabla_q V(q,z)+r(q,v,z)
+=B(q,v,z)u+G(q,v,z)\xi_v(t),
+\qquad
+\dot z=g(q,v,z,u,\xi_z(t)).
 $$
 
-The mass matrix $M$, potential $V$, dissipation $D$, actuation map $B$, and
-disturbance $d$ have distinct physical roles. The term $B(q,v,z)u$ cannot be
-specified from the word "action" alone. An unconstrained vector input would
-omit the swing's internal-actuation geometry, the crane's acceleration limit,
-and the wave device's passivity restriction.
+The mass matrix $M$ maps coordinate accelerations to their corresponding forces
+or torques, collectively called **generalized forces**. It is positive definite,
+which ensures that every nonzero velocity has positive kinetic energy.
+The term $c$ collects velocity- and configuration-dependent inertial forces,
+including Coriolis and centrifugal effects. The gradient $\nabla_q V$ appears
+on the left side, so the corresponding conservative force is
+$-\nabla_q V$. The term $r$ represents dissipative resistance. The columns of
+$B$ and $G$ specify the physical directions through which actions $u$ and
+external inputs $\xi=(\xi_v,\xi_z)$ enter. Dissipation requires
+$v^\top r(q,v,z)\geq0$, so resistance cannot add mechanical energy.
+An action can enter directly through $Bu$ or indirectly by changing $z$. A
+moving coordinate whose inertia is modeled belongs in $q$; a fixed parameter
+or prescribed signal does not need its own state equation.
 
-The system boundary also determines which variables are external. A wave torque
-is a disturbance for the energy converter but would be an action in a wave-tank
-experiment. The boundary should follow the decision maker whose choices the
-model is intended to support.
+The term $B(q,v,z)u$ cannot be inferred from the word "action" alone. An
+unconstrained vector input would omit the swing's internal-actuation geometry,
+the crane's acceleration limit, and the wave device's passivity restriction.
 
-## Decision Models
+:::{sidebar} Optional connection: port-Hamiltonian models
+The mechanical template above is one coordinate-level instance of a broader
+energy-based description. A port-Hamiltonian model writes
+
+$$
+\dot x=[J(x)-R(x)]\nabla H(x)+G(x)u,
+\qquad y=G(x)^\top\nabla H(x),
+$$
+
+where $H$ stores energy, the skew-symmetric matrix $J$ routes energy, $R$
+dissipates it, and $(u,y)$ form an external power port. The same structure can
+connect mechanical, electrical, fluid, and thermal components. When $H$ has no
+explicit time dependence, its energy balance is
+
+$$
+\dot H=-\nabla H(x)^\top R(x)\nabla H(x)+y^\top u.
+$$
+
+The first term dissipates stored energy, while $y^\top u$ is power supplied
+through the port {cite}`vanDerSchaftJeltsema2014`. This chapter uses the more
+concrete coordinate form.
+:::
+
+The system boundary also determines which variables are external. At sea, the
+incident wave torque is an uncommanded disturbance to the energy converter. In
+a laboratory wave tank, an experimenter can command a motorized paddle that
+generates the waves. The paddle command is then an action, while the resulting
+hydrodynamic torque remains a force on the flap. The converter has not changed;
+the modeled boundary, decision maker, and physical actuator have.
+
+Once the boundary and action channel are fixed, the remaining internal
+variables must be summarized in a form that predicts what happens next. That
+predictive summary is the state.
+
+## State-Space Models
+
+A state summarizes the past information needed to predict future evolution
+under a chosen action. The word "needed" depends on the model. For example,
+indoor air temperature alone may fail to predict the next temperature if heat
+stored in the walls is omitted. Two rooms with the same air temperature but
+different wall temperatures respond differently after the heater is turned
+off. Adding wall temperature to the state removes that ambiguity in a simple
+thermal model.
+
+Once the state has been chosen, it should make earlier history unnecessary for
+one-step prediction. For a stochastic discrete-time model, this requirement is
+the Markov property:
+
+$$
+\Pr(x_{t+1}\in A\mid x_{0:t},u_{0:t})
+=\Pr(x_{t+1}\in A\mid x_t,u_t),
+$$
+
+for every set $A$ of possible next states. The left side conditions on the
+entire state-action history, while the right side retains only the current
+state and action. Their equality means that the older history supplies no
+additional information about the next state. The definition is relative to the
+declared model and time scale. A simulator may store a large internal state
+while exposing a smaller observation to the controller, and that observation
+need not itself be Markov.
+
+A state-space model can keep disturbances and sensor errors as explicit inputs.
+In discrete time, such a model has the form
+
+$$
+x_{t+1}=f_t(x_t,u_t,\xi_t),
+\qquad
+y_t=h_t(x_t,u_t,\nu_t).
+$$
+
+Here $f_t$ advances the state, while $h_t$ maps the state and action to the
+sensor output $y_t$. The variable $\xi_t$ is a process disturbance that changes
+the physical evolution, whereas $\nu_t$ is measurement noise that changes only
+the reported observation. For fixed values of these inputs, both equations are
+deterministic maps. The stochastic section later assigns probability laws to
+them.
+
+In continuous time, the corresponding equations are
+
+$$
+\dot x(t)=f(x(t),u(t),\xi(t)),
+\qquad
+y(t)=h(x(t),u(t),\nu(t)).
+$$
+
+The first equation specifies a rate of change rather than a one-step update.
+Many physical laws are most compact in continuous time because mechanics,
+circuit theory, fluid dynamics, heat transfer, and chemical kinetics describe
+rates, flows, and conservation balances. Those fields provide reusable
+structure: geometry, conservation laws, units, and admissible energy flows need
+not be relearned from trajectories. Unknown parameters or empirical
+relationships, such as drag or heat-transfer laws, can instead be estimated
+inside that structure.
+
+Continuous equations still need a sampling convention before a digital
+controller can use them. Sensors and command interfaces operate at discrete
+times even though the physical plant continues to evolve between updates.
+Under a chosen hold rule, which specifies how an action is maintained between
+updates, and a sampling period $\Delta t$, integrating the ODE defines a discrete transition
+$x_{k+1}=F_{\Delta t}(x_k,u_k)$. The map $F_{\Delta t}$ is called the exact
+flow over one sample interval. A numerical integrator approximates this map.
+Changing $\Delta t$ or the hold changes the sampled transition, not the
+underlying physical law. It can also change the disturbance model because a
+short event may be visible on one sampling grid and absent from another.
+
+:::{figure} _static/sampling-and-integration.svg
+:label: fig-sampling-and-integration
+:alt: A continuous scalar velocity model is sampled at fine and coarse periods. The fine zero-order-hold disturbance representation captures a short pulse, while the coarse left-endpoint representation misses it and predicts the wrong endpoint.
+
+A sampling period and an interval integrator jointly define the discrete
+transition. The action is held at $0.6\ \mathrm{m/s^2}$, and the true disturbance
+acts only from $0.4$ to $0.6$ seconds. At $\Delta t=0.1$ seconds, its two sampled
+intervals reproduce the $0.182\ \mathrm{m/s}$ endpoint contribution. At
+$\Delta t=1$ second, the left-endpoint disturbance sample is zero, so the held
+coarse model predicts $0.379\ \mathrm{m/s}$ instead of $0.562\ \mathrm{m/s}$.
+The ODE and interval integrator are unchanged; the sampling period changes both
+$F_{\Delta t}$ and what the sampled disturbance representation can express.
+:::
+
+Coarse output sampling alone does not erase a known event. An integrator given
+the true event time and $\xi(t)$ can still resolve the pulse with internal
+substeps. The miss in {numref}`fig-sampling-and-integration` occurs because the
+coarse model replaces $\xi(t)$ by left-endpoint, zero-order-held samples.
+Here zero-order hold means that each sampled value is kept constant until the
+next sample.
+
+The general nonlinear maps above can be difficult to analyze or optimize.
+Linear state-space models provide a tractable local or exact special case:
+
+$$
+\dot x=Ax+Bu+E\xi,
+\qquad
+y=Cx+Du.
+$$
+
+The matrix $A$ describes autonomous state evolution, $B$ describes how the
+action changes that evolution, and $E$ describes how disturbances enter. The
+matrix $C$ selects or combines state components into measurements, while $D$
+captures any immediate effect of the action on the measurement. Thus $B$ and
+$C$ encode different questions. An actuator may be able to influence every
+state direction without sensors measuring every state component. Conversely,
+measuring the full state does not imply that the available actuators can move
+it in every direction.
+
+Linearity is a modeling choice rather than a claim that the world is linear at
+all scales. A nonlinear system may be well approximated by a linear model near
+an equilibrium. Dynamic programming itself is not restricted to linear models
+or stabilization: its Bellman recursion also applies to nonlinear and
+stochastic transitions. In the later inverted-pendulum example, a local linear
+approximation supplies one stabilizing controller, while
+[Trajectory Optimization](trajectories.md) uses the nonlinear equations to move
+the pendulum into that controller's local region.
+
+Dynamics answer the counterfactual question "what happens after this action?"
+A decision problem must additionally specify which consequences are preferred,
+which are forbidden, and what information may be used when each action is
+chosen.
+
+## Decision Problems and Policy Classes
 
 In machine learning, a model often means a parameterized predictor. A
 **decision model** contains more: a state, available actions, dynamics,
@@ -118,45 +331,71 @@ observations, an objective, constraints, and an information pattern. Prediction
 remains one component, but decisions require counterfactual trajectories under
 actions that may not yet have been observed.
 
-For a finite horizon, one common formulation is
+For a finite horizon of $T$ actions, let $P_t(\cdot\mid x,u)$ be the
+distribution of the next state after applying action $u$ in state $x$. The set
+$\mathcal U_t(x)$ contains the feasible actions, and $\mathcal X_t$ contains
+the admissible states. A stage cost $\ell_t(x,u)$ evaluates one decision, while
+$\ell_T(x)$ evaluates the terminal state. A feedback policy $\pi_t$ maps the
+available information $I_t$ to an action. These objects define the problem
 
 $$
 \begin{aligned}
-\underset{u_0,\ldots,u_{T-1}}{\operatorname{minimize}}\quad
-& \mathbb{E}\!\left[\sum_{t=0}^{T-1}
+\underset{\pi_0,\ldots,\pi_{T-1}}{\operatorname{minimize}}\quad
+& \mathbb{E}^{\pi}\!\left[\sum_{t=0}^{T-1}
   \ell_t(x_t,u_t)+\ell_T(x_T)\right] \\
 \text{subject to}\quad
 & x_{t+1}\sim P_t(\cdot\mid x_t,u_t), \\
-& u_t\in\mathcal U_t(x_t),
-\qquad x_t\in\mathcal X_t.
+& u_t=\pi_t(I_t)\in\mathcal U_t(x_t), \\
+& x_t\in\mathcal X_t \quad \text{almost surely}.
 \end{aligned}
 $$
 
-This expression says what is optimized, how uncertainty propagates, and which
-trajectories are admissible. Omitting one of these pieces changes the problem,
-even if the same environment class and neural network are used afterward.
+The expectation averages the accumulated cost over trajectories generated by
+the policy and stochastic dynamics. The state constraint holds **almost
+surely**, meaning with probability one under that trajectory distribution.
+Replacing it by a constraint on the average value, or by a **chance constraint**
+that permits a stated probability of violation, would define a different
+feasible set. Thus the formulation specifies what is optimized, how uncertainty
+propagates, which information a policy may use, and which trajectories are
+admissible. Omitting one of these pieces changes the problem even if the same
+environment class and neural network are used afterward.
 
 An **open-loop plan** selects the whole action sequence from information
 available at the start,
 
 $$
-(u_0,\ldots,u_{T-1})=\mu(x_0).
+(u_0,\ldots,u_{T-1})=\mu(I_0).
 $$
 
-A **feedback policy** selects each action from the information available at that
-time,
+The sequence remains fixed after planning. A **feedback policy** instead
+selects each action from the information available at that time,
 
 $$
-u_t=\pi_t(I_t),
+u_t=\pi_t(I_t).
 $$
 
-where $I_t$ may contain the current state, observations, or a history. A planned
-trajectory can perform well under its assumed initial condition and disturbance
-forecast while reacting poorly to a tap, a delayed actuator, or an unexpected
-arrival. Later chapters turn open-loop plans into feedback by replanning and by
-computing state-contingent value functions.
+:::{figure} _static/open-loop-vs-feedback.svg
+:label: fig-open-loop-vs-feedback
+:alt: Two controllers face the same unexpected disturbance. The open-loop controller keeps its precomputed actions, while the feedback controller changes later actions after observing the displaced state.
 
-Several independent choices describe the model itself.
+An open-loop plan commits to future actions before the trajectory begins. A
+feedback policy reevaluates its decision rule after each new observation. The
+rule may be an optimizer, a learned policy, or a hand-written heuristic; the
+word *feedback* describes what information reaches the action, not how the rule
+was obtained. In this illustration,
+$x_{k+1}=0.8x_k+u_k+\xi_k$: the open-loop schedule contains zeros, while the
+feedback rule $u_k=-0.6x_k$ responds after the disturbance becomes visible at
+$x_2$. The example shows information flow, not a guarantee that every feedback
+rule performs well.
+:::
+
+A planned trajectory can perform well under its assumed initial condition and
+disturbance forecast while reacting poorly to a tap, a delayed actuator, or an
+unexpected arrival. Later chapters construct open-loop plans, turn them into
+feedback by replanning, and compute state-contingent value functions.
+
+The policy class and the model are separate choices. Several independent axes
+describe the model itself.
 
 | axis | common alternatives | consequence |
 |---|---|---|
@@ -171,70 +410,46 @@ Terms such as "continuous control" specify only one row of this table. They do
 not determine the time representation, uncertainty, observation model, or
 information available to the controller.
 
-## State-Space Models
-
-A state is a summary of the past sufficient to predict the next state once the
-current action and disturbance are specified. It is defined relative to a
-model. A simulator may store a large internal state while exposing a smaller
-observation to the controller.
-
-In discrete time, deterministic state-space dynamics take the form
-
-$$
-x_{t+1}=f_t(x_t,u_t,d_t),
-\qquad
-y_t=h_t(x_t,u_t,v_t),
-$$
-
-where $d_t$ denotes a process disturbance and $v_t$ denotes measurement noise.
-In continuous time, the corresponding equations are
-
-$$
-\dot x(t)=f(x(t),u(t),d(t)),
-\qquad
-y(t)=h(x(t),u(t),v(t)).
-$$
-
-Physical laws are often most legible in continuous time, while sensors,
-actuators, data sets, and software interfaces operate at discrete times. A
-numerical integrator and a sampling period connect the two descriptions. The
-sampling period is part of the model because changing it changes both the
-transition map and which disturbances can be resolved.
-
-Linear continuous-time dynamics have the form
-
-$$
-\dot x=Ax+Bu+Ed,
-\qquad
-y=Cx+Du.
-$$
-
-The matrix $B$ describes how the action enters the dynamics, while $C$
-describes what is measured. These matrices encode different questions. Full
-actuation does not imply full observation, and full observation does not imply
-that every state component can be controlled.
-
-Linearity is a modeling choice rather than a claim that the world is linear at
-all scales. A nonlinear system may be well approximated by a linear model near
-an equilibrium. [Dynamic Programming](dp.md) uses that local approximation to
-stabilize an inverted pendulum, while [Trajectory Optimization](trajectories.md)
-uses the nonlinear equations to move the pendulum into the local region.
+The swing example now combines these modeling choices. Its action is
+continuous, its plant is simulated in continuous time, its feedback rule uses
+observations at discrete times, and its suspension constraint changes the
+equations when the chain becomes slack. The comparison isolates what goes
+wrong when the action channel or constraint is modeled incorrectly.
 
 (internal-actuation-in-swingrl)=
 ## Internal Actuation and Unilateral Constraints in SwingRL
 
-The [`swing-rl`](https://github.com/pierrelux/swing-rl) environment asks whether
-a rider can pump a playground swing over the top bar without applying a motor
-torque at the pivot. Its articulated standing model exposes two normalized
-actions in $[-1,1]^2$: a squat target and a torso-lean target. The action
-therefore changes body geometry. It is not a disguised generalized torque on
-the suspension angle.
+A rider who wants to swing higher cannot command a torque at the suspension
+pivot. The available interventions are changes in body shape, and the chain can
+transmit tension but not compression. A complete revolution provides a strict
+test of both assumptions: the controller must inject enough energy through
+internal motion while remaining feasible for a unilateral suspension.
 
-Let $\theta$ be the suspension angle, $\rho$ the rider's center-of-mass
-distance from the pivot, $\alpha$ its offset from the suspension line,
-$\psi=\theta+\alpha$, $\beta$ the body orientation relative to the
-suspension, and $J$ the rider's inertia about its center of mass. SwingRL's
-reduced equation is
+The [`swing-rl`](https://github.com/pierrelux/swing-rl) environment turns those
+requirements into a control problem. Its articulated standing model exposes two
+normalized actions in $[-1,1]^2$: a squat target and a torso-lean target. The
+action changes body geometry rather than applying a hidden torque at the
+suspension pivot.
+
+:::{figure} _static/swing-reduced-coordinates.svg
+:label: fig-swing-reduced-coordinates
+:alt: Geometry of the reduced swing model, showing the suspension angle theta, pivot-to-center-of-mass distance rho, center-of-mass offset alpha, absolute center-of-mass angle psi, and body angle beta.
+
+The reduced coordinates describe the rider in aggregate rather than tracking
+every joint. The suspension angle is $\theta$. The center of mass lies a
+distance $\rho$ from the pivot and is offset by $\alpha$ from the suspension,
+so its absolute angle is $\psi=\theta+\alpha$. The angle $\beta$ describes the
+body's orientation relative to the suspension. Squatting mainly changes
+$\rho$; leaning changes $\alpha$ and $\beta$.
+:::
+
+The reduced model makes the internal action channel visible in one equation.
+Let $m$ be the rider's mass, $g$ gravitational acceleration, $\theta$ the
+suspension angle, $\rho$ the center-of-mass distance from the pivot, $\alpha$
+its offset from the suspension line, $\psi=\theta+\alpha$, $\beta$ the body
+orientation relative to the suspension, and $J$ the rider's inertia about its
+center of mass. With $\tau_{\mathrm{damp}}$ denoting the modeled damping torque,
+the suspension-coordinate balance is
 
 $$
 (m\rho^2+J)\ddot\theta
@@ -246,33 +461,64 @@ $$
 +\tau_{\mathrm{damp}}.
 $$
 
-Torso lean contributes through the driven terms in $\ddot\alpha$ and
-$\ddot\beta$. Squatting changes $\rho$ and contributes through the
-parametric term $-2m\rho\dot\rho\dot\psi$. Shortening near a bottom
-passage adds energy in either direction because $\dot\rho$ changes sign
-with the phase of the swing.
+There is no commanded pivot torque on the right side. Torso lean instead
+contributes through the acceleration terms in $\ddot\alpha$ and
+$\ddot\beta$, while squatting changes $\rho$ and contributes through
+$-2m\rho\dot\rho\dot\psi$. Multiplying this generalized force by the angular
+velocity $\dot\theta$ gives its mechanical power. Near a bottom passage,
+$\dot\psi\approx\dot\theta$, so the squat contribution is approximately
 
-The experiment audits a more basic assumption. It applies one phase-feedback
-law to the standing body under two suspension models supplied by SwingRL. A
+$$
+\left(-2m\rho\dot\rho\dot\psi\right)\dot\theta
+\approx -2m\rho\dot\rho\dot\theta^2.
+$$
+
+Shortening means $\dot\rho<0$. Since $m>0$, $\rho>0$, and
+$\dot\theta^2\geq0$, the contribution is positive in either direction of
+travel. The model therefore explains how a rider can add energy without a
+fictitious pivot actuator.
+
+The action channel is only half of the audit; the suspension must also obey the
+correct force constraint. The matched comparison applies one
+**phase-feedback law**, a rule that times squat and lean targets from the
+observed oscillation phase, to the standing body under two suspension models
+supplied by SwingRL. A
 rigid rod can carry tension or compression. A chain can pull but cannot push.
-The body parameters, initial state, squat and lean limits, controller mapping,
-32-second horizon, and 0.02-second sampling interval remain fixed. A common
-startup envelope
+The body parameters, initial state, squat and lean limits, feedback rule,
+32-second horizon, and 0.02-second sampling interval remain fixed. During the
+first 0.25 seconds, both runs multiply their requested squat and lean targets by
 
 $$
 r(t)=\min(t/0.25,1)
 $$
 
-ramps both action targets from neutral and removes an artificial release at the
-first time step. Success requires a full $2\pi$ crossing while the seat is
-extended to at least $0.9L$. Because this is feedback, the two action
-sequences may diverge after the plant states diverge even though the controller
-mapping is unchanged.
+so both commands rise linearly from zero to their full requested values instead
+of jumping at the first step. This shared startup ramp prevents an initial
+command discontinuity from being counted as a chain-release event.
 
-*Recorded SwingRL model audit.* The left plant permits bidirectional axial force;
-the right plant enforces a unilateral chain. Prefix-only traces show unwrapped
-angle, the rod's compression demand, and chain extension. Event buttons seek to
-Python-recorded release, reattachment, snap, and rod-rotation times.
+Success requires the unwrapped suspension angle to change by at least $2\pi$,
+one complete revolution. At that crossing, the pivot-to-seat distance must also
+be at least $0.9L$, where $L$ is the fully extended suspension length. The
+second test prevents a rotation from being credited while the seat is bunched
+close to the pivot.
+
+Both simulations use the same function from the current observation to squat
+and lean commands. Once the chain releases, however, the rod and chain follow
+different trajectories and produce different observations. Applying the same
+feedback function to those different observations can produce different later
+commands. The comparison therefore holds the feedback rule fixed, not the
+entire open-loop command sequence.
+
+The recorded comparison below applies that feedback rule to both suspension
+models. The left plant permits axial force in either direction, while the right
+plant enforces a chain that can only pull. Each plot displays the trajectory only
+up to the selected playback time. The unwrapped angle keeps accumulating past
+$\pm\pi$, so a full revolution remains visible. The compression-demand trace
+shows how much pushing force the rod trajectory would require, a force the chain
+cannot supply. The extension trace shows the pivot-to-seat distance relative to
+$L$. Event buttons jump to times already located in the Python trajectory:
+chain release, impact on reattachment (the snap), and the rod run's first
+completed revolution.
 
 ```{code-cell} python
 :tags: [remove-input]
@@ -307,24 +553,33 @@ The online book adds the recorded 16:9 animation and event seeking.
 ```{include} artifacts/swing_modeling/results.md
 ```
 
-The rod completes a rotation, but part of that trajectory asks the suspension
-to push. The chain instead enters a slack ballistic mode when its required
-tension reaches zero. Reattachment at the chain-length boundary applies an
-impact law and dissipates energy. This is a hybrid system because a parameter
-change inside the rod equation cannot create the missing ballistic phase.
+The rod completes a rotation, but part of that motion requires the suspension
+to push the seat away from the pivot. A real chain cannot supply that push. It
+goes slack when the pulling force would otherwise become negative, and the seat
+and rider then move freely under gravity until the chain becomes fully extended
+again. At that instant the chain snaps taut, the velocity changes abruptly,
+and some mechanical energy is lost. In modeling language, this is a **hybrid
+system**: it switches between taut and slack equations and includes a reset at
+reattachment. Changing a coefficient in the always-taut rod equation cannot
+create the missing free-flight mode or the snap.
 
-The conclusion is deliberately narrow: this controller passes the
-bidirectional-rod model and does not solve the unilateral-chain plant. The
-comparison neither ranks control against reinforcement learning nor shows that
-no controller can rotate a chain swing. It shows why success on one executable
-model does not validate the physical assumption that distinguished it from the
-target plant.
+This controller completes the task on the bidirectional-rod model and fails on
+the unilateral-chain plant. The comparison does not rank control against
+reinforcement learning, nor does it establish that a chain swing cannot be
+rotated. It isolates a physical assumption: success on the rod model provides
+no evidence that the same trajectory remains feasible when the suspension
+cannot push.
 
 A learned approximation fitted only to rod trajectories would inherit the same
 blind spot. Data remain useful for estimating rider parameters, damping, and
 contact losses after the unilateral mode structure is represented.
 [Policy Gradients](pg.md) later evaluates PPO and the structured controller
 against the same SwingRL action semantics and success criterion.
+
+The swing audit changed a structural constraint while keeping the decision
+rule fixed. The next modeling question concerns outcomes that vary even when
+the state and action are fixed, such as demand arrivals or environmental
+disturbances.
 
 :::{dropdown} Inspect the shared SwingRL scenario and model audit
 ```{literalinclude} code/swing_control.py
@@ -343,56 +598,93 @@ against the same SwingRL action semantics and success criterion.
 
 Deterministic dynamics assign one next state to each state-action pair. Process
 noise, uncertain inflow, and unmodeled interactions instead produce a
-distribution of possible next states. A constructive representation makes the
-random input explicit:
+distribution of possible next states. This distinction changes the decision
+problem: a controller may need to compare expected cost, failure probability,
+or risk across those possible outcomes rather than optimize one nominal
+trajectory.
+
+One representation makes the source of randomness explicit:
 
 $$
-x_{t+1}=f_t(x_t,u_t,w_t),
+x_{t+1}=f_t(x_t,u_t,\xi_t),
 \qquad
-w_t\sim p_w.
+\xi_t\mid x_t,u_t\sim p_t(\cdot\mid x_t,u_t).
 $$
 
-For additive Gaussian noise, this becomes
+For a realized disturbance $\xi_t$, the function $f_t$ still returns one next
+state. The conditional law of $\xi_t$ determines how likely the different
+realizations are and therefore induces a distribution over $x_{t+1}$. The
+familiar additive Gaussian model assumes an independent noise sequence with a
+fixed covariance:
 
 $$
-x_{t+1}=Ax_t+Bu_t+w_t,
+x_{t+1}=Ax_t+Bu_t+\xi_t,
 \qquad
-w_t\sim\mathcal N(0,Q).
+\xi_t\sim\mathcal N(0,Q).
 $$
 
-The same stochastic dynamics can be represented directly by a transition
-kernel,
+The induced dynamics can also be represented directly by a transition kernel,
 
 $$
 P_t(A\mid x,u)
-=\Pr(x_{t+1}\in A\mid x_t=x,u_t=u),
+=\Pr(x_{t+1}\in A\mid x_t=x,u_t=u).
 $$
 
-which assigns a probability to each measurable set of next states. The
+For any set $A$ of possible next states, $P_t(A\mid x,u)$ is the probability
+that the next state lies in $A$ after action $u$ is applied in state $x$. This
+object is called a **transition kernel**. The
 function-plus-noise representation exposes how randomness enters and may permit
-pathwise differentiation. The kernel representation requires only a
-distribution over next states and includes simulators whose internal random
-variables are hidden.
+pathwise differentiation, in which a sampled transition is differentiated while
+holding its random draw fixed. The kernel requires only the conditional distribution
+of the next state, so it also covers simulators whose internal random variables
+are hidden.
 
-In continuous time, a stochastic differential equation separates drift and
-diffusion:
+Continuous-time noise must be scaled consistently with the duration of a time
+interval. A stochastic differential equation separates the deterministic rate
+of change, called the drift, from rapidly fluctuating random increments, called
+the diffusion:
 
 $$
 dX_t=f(X_t,U_t)\,dt+\sigma(X_t,U_t)\,dW_t.
 $$
 
-The sampling interval again matters. A discrete model obtained from this
-equation must account for how diffusion accumulates over the interval rather
-than reusing the same noise covariance at every resolution.
+Here $f$ is the drift, $W_t$ is standard Brownian motion, and $\sigma$ maps its
+increments into the state. Over an interval of length $\Delta t$, Brownian
+motion satisfies
+
+$$
+W_{t+\Delta t}-W_t\sim\mathcal N(0,\Delta t I).
+$$
+
+The increment variance is proportional to elapsed time. The stochastic analogue
+of a forward Euler step, called Euler--Maruyama, therefore has the form
+
+$$
+X_{k+1}\approx X_k+f(X_k,U_k)\Delta t
++\sigma(X_k,U_k)\sqrt{\Delta t}\,\varepsilon_k,
+\qquad \varepsilon_k\sim\mathcal N(0,I).
+$$
+
+The random increment's standard deviation therefore scales as
+$\sqrt{\Delta t}$ and its covariance as $\Delta t$. Halving the sampling
+interval does not mean adding the same covariance twice as often. A full
+treatment of stochastic differential equations lies outside this book; these
+relations record the scaling needed to construct a consistent sampled model.
 
 ### Bicycle Inventory and Stochastic Demand
+
+Inventory provides a concrete transition model in which random events and hard
+constraints interact. A rental can occur only when a bicycle is present, and a
+return can occur only when a dock is open. Relocation decisions change those
+conditions before the next random arrivals are realized.
 
 Between 07:00 and 10:00 on 4 July 2024, the BIXI stations at
 Berri--Cherrier and Prince-Arthur--St-Urbain recorded many more completed
 rentals than returns. The station at de Maisonneuve--Aylmer recorded the
 opposite flow. The three stations are less than 1.6 km apart, so a small
-relocation truck has a meaningful action without requiring a city-scale routing
-model.
+relocation truck can move bicycles among them within one 15-minute interval.
+This deliberately local boundary lets us study inventory feedback without also
+having to choose routes across the full Montreal network.
 
 :::{figure} _static/bixi/bixi-model-interface.svg
 :label: fig-bixi-model-interface
@@ -404,6 +696,10 @@ recorded 12 and 84. The events come from the 2024 BIXI trip archive; capacities
 come from a station-information snapshot retrieved on 2 September 2026.
 :::
 
+The simulation uses the station capacities recorded in a 2 September 2026
+station-information snapshot for every run. Those values make the example
+reproducible, but they need not equal the capacities in service on 4 July 2024.
+
 | station | ID | capacity |
 |---|---:|---:|
 | Berri / Cherrier | 173 | 39 |
@@ -411,39 +707,54 @@ come from a station-information snapshot retrieved on 2 September 2026.
 | de Maisonneuve / Aylmer (ouest) | 68 | 37 |
 
 Let $s_{i,k}$ be the number of bicycles at station $i$, $c_i$ its
-capacity, and $b_k$ the truck inventory. Attempted rentals $d_{i,k}$ and
-returns $a_{i,k}$ are disturbances. The numbers actually served are
+capacity, and $b_k$ the truck inventory. A transfer $\rho_{i,k}$ is positive
+when the truck unloads bicycles at its current station and negative when it
+loads them. The post-transfer stock at the start of an interval is
+$q_{i,0}=s_{i,k}+\rho_{i,k}$.
+
+Attempted rentals and returns then arrive as a chronological event sequence.
+For event $e$, let $R_{i,e}$ indicate a served rental and $A_{i,e}$ an accepted
+return. Their values depend on the stock immediately before the event:
 
 $$
-r_{i,k}=\min(d_{i,k},s_{i,k}),
-\qquad
-v_{i,k}=\min(a_{i,k},c_i-s_{i,k}).
+\begin{aligned}
+R_{i,e}
+&=\mathbf 1\{\text{event $e$ is a rental at $i$}\}
+  \mathbf 1\{q_{i,e-1}\geq 1\},\\
+A_{i,e}
+&=\mathbf 1\{\text{event $e$ is a return at $i$}\}
+  \mathbf 1\{q_{i,e-1}<c_i\},\\
+q_{i,e}&=q_{i,e-1}-R_{i,e}+A_{i,e}.
+\end{aligned}
 $$
 
-A transfer $\rho_{i,k}$ is positive when the truck unloads bicycles at its
-current station and negative when it loads them. The inventory balance is
+If interval $k$ contains $N_k$ events, its inventory balance is
 
 $$
-s_{i,k+1}=s_{i,k}-r_{i,k}+v_{i,k}+\rho_{i,k},
+s_{i,k+1}=q_{i,N_k},
 \qquad
 b_{k+1}=b_k-\sum_i\rho_{i,k}.
 $$
 
 Relocation cancels when station and truck inventories are added. Customer trips
-can still change the total inside this deliberately small boundary because
+can still change the total inside this three-station boundary because
 their other endpoint may lie elsewhere in the network.
 
 The teaching plant begins with station inventories $(30,18,8)$ and an empty
 16-bike truck at de Maisonneuve. Decisions occur every 15 minutes. A stop may
 transfer at most eight bicycles, and travel between any two of the three
-stations consumes one decision interval. The simulator processes returns before
-rentals when timestamps coincide and records lost rentals and rejected returns
-instead of silently clipping the requested flow.
+stations consumes one decision interval. At a common station and timestamp,
+the simulator processes returns before rentals. It records lost rentals and
+rejected returns instead of silently clipping attempted events.
 
 Three controllers receive the same event trace. The first never relocates a
 bike. The second freezes a schedule computed before 07:00 from mean completed
-trip counts. The third applies the same routing rule every 15 minutes to the
-observed inventories. Both active controllers use the remaining-horizon target
+trip counts. The third reevaluates a deterministic, hand-written rule every 15
+minutes using the observed inventories. It does not solve an optimization
+problem at each decision time. Here *feedback* means that the current
+observation enters the rule; it does not imply optimization or learning.
+
+Both active controllers use the remaining-horizon target
 
 $$
 g_{i,n}=
@@ -454,17 +765,80 @@ g_{i,n}=
 \right).
 $$
 
-The truck loads only when its current station has a surplus of at least two
-bicycles and another station has a deficit of at least two. It unloads under
-the symmetric deficit condition, then routes toward the largest normalized
-deficit or surplus. The frozen mean-flow schedule waits at de Maisonneuve,
-loads three bicycles at 07:45, travels to Prince-Arthur, and unloads them at
-08:00. Feedback may change that route after observing new events.
+The function $\operatorname{clip}(q,l,r)$ limits $q$ to the interval $[l,r]$.
+Thus the target begins at half capacity, shifts upward when future departures
+are expected to exceed arrivals, and remains between 20 and 80 percent of
+station capacity. Here $\hat d_{i,h}$ and $\hat a_{i,h}$ are the mean numbers of completed
+departures and arrivals at station $i$ during 15-minute interval $h$ across the
+43 calibration dates. Define the current deficit and surplus relative to the
+target by
 
-*Recorded BIXI controller comparison.* The map, station fills, truck motion,
-inventory traces, and service failures come from committed Python trajectories.
-Controller selection and the playhead only seek through those records; they do
-not recompute the plant in the browser.
+$$
+\delta^-_{i,n}=[g_{i,n}-s_{i,n}]_+,
+\qquad
+\delta^+_{i,n}=[s_{i,n}-g_{i,n}]_+.
+$$
+
+The positive-part operator $[q]_+=\max(q,0)$ makes deficit and surplus
+nonnegative. At most one is positive for a given station. The rule first
+decides what to transfer at the truck's current station. If the
+truck carries bicycles and the local deficit is at least two, it unloads. If
+the local surplus is at least two and the other stations have a combined
+deficit of at least two, it loads. Transfer size is capped by the eight-bike
+stop limit, truck capacity, available bicycles, open docks, and the relevant
+surplus or deficit. If the truck still carries bicycles after the transfer, it
+drives toward the other station with the largest ratio
+$\delta^-_{i,n}/c_i$. If it is empty, and both a deficit and a surplus of at
+least two remain, it drives toward the other station with the largest ratio
+$\delta^+_{i,n}/c_i$. Distance breaks ties. Finally, when the
+truck carries leftover bicycles but the total modeled deficit is below two, it
+returns as many as possible at its current station rather than keeping them
+unavailable to customers.
+
+The frozen schedule is produced before 07:00 by applying this same heuristic to
+one deterministic mean-flow trajectory. It then keeps those actions unchanged.
+That calculation makes it an open-loop plan, not a second online optimizer. In
+the resulting schedule, the truck waits at de Maisonneuve, loads three bicycles
+at 07:45, travels to Prince-Arthur, and unloads them at 08:00. The feedback
+controller instead recomputes the rule from each newly observed inventory.
+
+For the stochastic comparison, let $C^z_{i,k,d}$ be the number of completed
+events of type $z\in\{\mathrm{rental},\mathrm{return}\}$ at station $i$ in
+interval $k$ on calibration date $d$. The empirical rate and simulated count
+are
+
+$$
+\widehat\lambda^z_{i,k}
+=\frac{1}{43}\sum_{d=1}^{43}C^z_{i,k,d},
+\qquad
+N^z_{i,k}\sim
+\operatorname{Poisson}\!\left(\widehat\lambda^z_{i,k}\right).
+$$
+
+The Poisson distribution is a count model whose mean here is
+$\widehat\lambda^z_{i,k}$. The count draws are independent across stations,
+intervals, and event types.
+Conditional on $N^z_{i,k}=m$, the simulator places the $m$ event times
+independently and uniformly inside interval $k$. It treats these events as
+potential attempts and accepts or rejects each one using the inventory
+equations above. Thus the model turns rates estimated from *completed* trips
+into attempted-event rates. This is a declared modeling assumption: the public
+archive does not identify demand that was censored by an empty or full station.
+
+For each seed from 0 through 511, all three controllers receive the same
+sampled event trace. This common-random-number design compares their decisions
+under the same demand realization. A separate paired-pulse condition appends
+eight rental attempts at Prince-Arthur at 07:47 and eight return attempts at de
+Maisonneuve at 07:57 to every trace. These additions are fixed, not extra
+Poisson draws, and each succeeds only when inventory or dock space permits. The
+feedback rule first uses their inventory consequences at the 08:00 decision.
+The frozen controller receives the new observation but ignores it and executes
+the action selected before 07:00.
+
+The recorded comparison below uses the same event trace for every controller.
+The map, station fills, truck motion, and service failures come from committed
+Python trajectories. Controller selection and the playhead only seek through
+those records; they do not recompute the plant in the browser.
 
 ```{code-cell} python
 :tags: [remove-input]
@@ -497,23 +871,16 @@ experiment. The online book adds controller selection, playback, stepping, and
 scrubbing.
 :::
 
-Completed-trip means from 43 earlier weekdays parameterize independent Poisson
-event counts. Seeds 0 through 511 use common random numbers across controllers.
-A second, declared disturbance adds eight unexpected rental attempts at
-Prince-Arthur at 07:47 and eight independent return attempts at de Maisonneuve
-at 07:57. The feedback controller first observes their effect at 08:00; the
-frozen schedule does not.
-
 ```{include} artifacts/bixi/results.md
 ```
 
 Feedback reduces service failures in this model, but it does more relocation
-work. These numbers do not estimate the causal effect of BIXI's operations.
-The public archive contains completed trips, not unsuccessful attempts,
-historical inventories, or operator truck movements. The Poisson model is a
-transparent distribution calibrated to completed events rather than a claim
-about latent demand. The selected morning was chosen because its imbalance is
-visually legible {cite}`bixiOpenData2024,montrealBixiTrips,hulot2018bixi`.
+work. These are outcomes of the stated simulator, not measurements of service
+failures or estimates of a causal effect in BIXI operations. The public archive
+omits unsuccessful attempts, historical inventories, and operator truck
+movements. The selected morning was chosen after inspection because its
+imbalance is easy to see; it is not an unbiased evaluation sample
+{cite}`bixiOpenData2024,montrealBixiTrips,hulot2018bixi`.
 
 :::{dropdown} Inspect the BIXI transition and feedback rule
 ```{literalinclude} code/bixi_control.py
@@ -533,55 +900,120 @@ visually legible {cite}`bixiOpenData2024,montrealBixiTrips,hulot2018bixi`.
 {download}`Download the complete BIXI experiment <code/bixi_control.py>`
 :::
 
-A hydroelectric reservoir has the same accounting pattern at a larger scale.
-With storage $x_t$, release $u_t$, spill $s_t$, and uncertain inflow
-$w_t$, its balance is $x_{t+1}=x_t+w_t-u_t-s_t$. Historical data may supply
-an inflow distribution without replacing water conservation or the reservoir's
-capacity limits.
+The BIXI simulator supplies station and truck inventories directly to the
+feedback controller. Physical sensors often provide only indirect, noisy
+measurements of the state.
 
 ## Partial Observability
 
-The state need not be directly measured. An observation model relates hidden
-state to sensor output:
+The BIXI controller receives the modeled inventories directly. Many controllers
+instead receive sensor readings that contain only partial or noisy information
+about the predictive state. An observation model relates the hidden state to
+the available measurement:
 
 $$
-y_t=h(x_t,u_t,v_t),
+y_t=h(x_t,u_t,\nu_t),
 \qquad
-v_t\sim p_v.
+\nu_t\sim p_\nu.
 $$
 
-For a linear Gaussian sensor, $y_t=Cx_t+v_t$ with
-$v_t\sim\mathcal N(0,R)$. A controller based only on $y_t$ may lose information
-needed to predict future transitions. An estimator can instead summarize the
-observation history as a state estimate or a distribution over possible states.
+Here $p_\nu$ is the distribution assigned to measurement noise. For a linear
+Gaussian sensor, $y_t=Cx_t+\nu_t$ with
+$\nu_t\sim\mathcal N(0,R)$. A controller based only on $y_t$ may lose information
+needed to predict future transitions. Under a known model, the posterior belief
 
-### Camera Stabilization: A Measurement Is Not a State
+$$
+b_t(A)=\Pr(x_t\in A\mid y_{0:t},u_{0:t-1})
+$$
 
-Consider a balanced camera mounted on a one-axis gimbal. Its hidden state
+assigns a probability to each set $A$ of possible hidden states. This belief is
+an **information state**: it retains the predictive content of the observation
+history in a form that can be updated after each action and measurement. A
+point estimate is often cheaper to use, but it may discard uncertainty that
+affects future decisions.
+
+### Camera Stabilization under Partial Observation
+
+Picture a camera on a one-axis gimbal attached to a moving vehicle. The motor
+tries to keep the horizon level. A tap can rotate the camera, and a sideways
+acceleration of the vehicle can disturb its sensors even when the camera itself
+does not rotate. The controller must infer what happened from an inertial
+measurement unit rather than from the true angle.
+
+The simulated hidden state is
 
 $$
 x=(\theta,\omega,b)
 $$
 
-contains the camera angle, angular velocity, and gyroscope bias. The mechanical
-plant is
+where $\theta$ is the camera angle in radians, $\omega$ is its angular velocity
+in radians per second, and $b$ is an offset in the gyroscope reading, also in
+radians per second. The camera is balanced about the gimbal axis, so gravity
+does not create a rotational torque in this model. Its one-axis torque balance
+is
 
 $$
 \dot\theta=\omega,
 \qquad
-J\dot\omega=u-c\omega+d_\tau(t),
+J\dot\omega=u-c\omega+\tau_{\mathrm{ext}}(t),
 \qquad |u|\leq u_{\max}.
 $$
 
-The motor does not receive this state directly. A gyroscope measures angular
-velocity plus a slowly varying bias,
+Here $J$ is the camera's moment of inertia about the gimbal axis, measured in
+$\mathrm{kg\,m^2}$. A larger $J$ means that the same torque produces less angular
+acceleration. The motor torque $u$ and external torque $\tau_{\mathrm{ext}}$ are
+measured in $\mathrm{N\,m}$, and $c$ is a viscous rotational-damping coefficient
+measured in $\mathrm{N\,m\,s/rad}$. The bound $u_{\max}$ represents the motor's
+torque limit.
+
+The bias $b$ belongs to the sensor, not to the mechanical plant. If the camera
+is motionless but $b=0.8$ degrees per second, the gyroscope reading remains
+centered near $0.8$ degrees per second instead of zero. This persistent offset
+is different from the small, rapid fluctuations that vary independently from
+one measurement to the next.
+
+Real sensor errors depend on temperature, calibration, and hardware. For this
+ten-second simulation, a random walk provides a simple model of an offset that
+persists but can drift {cite}`elSheimy2008allan`:
+
+$$
+b_{k+1}=b_k+\sigma_b\sqrt{\Delta t}\,\epsilon_k,
+\qquad \epsilon_k\sim\mathcal N(0,1).
+$$
+
+Conditional on $b_k$, the next bias has mean $b_k$ and its change has standard
+deviation $\sigma_b\sqrt{\Delta t}$. Nothing in the model pulls the bias back to
+zero. Here $b_0=0.8$ degrees per second and
+$\sigma_b=0.02\ (\mathrm{degrees/s})/\sqrt{\mathrm{s}}$, so the standard deviation
+of one bias change is only $0.002$ degrees per second at the
+$\Delta t=0.01$-second sensor period. The chosen random walk therefore changes
+slowly relative to the sample-to-sample measurement noise. It is a reproducible
+teaching model, not a claim that every gyroscope drifts in exactly this way.
+
+The gyroscope measures angular velocity with both the persistent bias and
+sample-to-sample measurement noise:
 
 $$
 y_k^\omega=\omega_k+b_k+\nu_k^\omega.
 $$
 
-An accelerometer supplies a gravity reference only when translational
-acceleration is negligible. In the simulated plane,
+Integrating these readings turns a rate estimate into an angle estimate. Over
+$T$ seconds, an approximately constant bias $b$ contributes roughly $Tb$ to
+that estimated angle. A camera that is actually motionless therefore acquires
+about eight degrees of estimated rotation after ten seconds when an uncorrected
+$0.8$-degree-per-second bias is integrated. Zero-mean measurement noise tends
+to fluctuate in both directions; the persistent offset accumulates in one
+direction.
+
+The accelerometer creates a different ambiguity. It measures *specific force*,
+the force per unit mass sensed by its internal proof mass, rather than reporting
+a camera angle directly. When the vehicle is stationary or moves at constant
+velocity, the support force opposing gravity supplies a vertical reference. A
+sideways vehicle acceleration changes the same sensor reading and can therefore
+look like camera tilt {cite}`androidMotionSensors2026`.
+
+The simulation keeps only the two axes in the plane of rotation. Its
+accelerometer model is
 
 $$
 \begin{bmatrix}y_k^x\\y_k^y\end{bmatrix}
@@ -589,19 +1021,37 @@ $$
 \begin{bmatrix}a_{x,k}^{w}\\g\end{bmatrix}+\nu_k^a.
 $$
 
-Without measurement noise, the apparent tilt is
+The vector $[a_{x,k}^{w},g]^\top$ contains the vehicle's sideways acceleration
+and the gravity reference in world coordinates. The rotation $R(-\theta_k)$
+expresses that vector along the camera-mounted sensor axes, and $\nu_k^a$ adds
+instantaneous measurement noise. If sideways acceleration and measurement
+noise are both zero, the direction of this vector determines $\theta_k$. With
+sideways acceleration, the angle inferred from the same two components becomes
 
 $$
 \operatorname{atan2}(y_k^x,y_k^y)
 =\theta_k+\operatorname{atan2}(a_{x,k}^{w},g).
 $$
 
-The same sensor output can therefore result from camera tilt, base
-acceleration, or a combination of both. Integrating the gyroscope avoids that
-short-term ambiguity, but an unknown bias then accumulates as angle error.
+For example, $a_x^w=3\ \mathrm{m/s^2}$ adds an apparent tilt of about $17$ degrees.
+A level camera on a vehicle accelerating sideways can then produce the same
+accelerometer direction as a tilted camera on a stationary base. This is the
+partial-observation problem: the sensor reading alone does not identify which
+hidden situation occurred.
 
-The experiment changes only the estimator. Every run receives the same plant,
-noise realization, disturbances, torque limit, and saturated feedback law
+The two sensors fail on different time scales. The accelerometer gives a stable
+long-run reference when vehicle translation is mild, but a lateral acceleration
+corrupts it immediately. The gyroscope tracks rapid rotations without confusing
+them with translation, but integrating an unknown bias produces long-run drift.
+A **complementary observer** is a recursive state estimator that combines these
+two time scales. It uses the gyroscope for rapid changes, the accelerometer for
+slow angle correction, and the persistent disagreement between them to estimate
+gyroscope bias {cite}`mahony2008complementary`.
+
+The comparison below changes only the estimator. One controller uses the
+accelerometer direction as its angle estimate, one integrates the raw gyroscope,
+and one uses the complementary observer. Every run receives the same mechanical
+plant, noise realization, disturbances, torque limit, and feedback law:
 
 $$
 u_k=\operatorname{clip}
@@ -609,21 +1059,24 @@ u_k=\operatorname{clip}
 -0.18,0.18\right).
 $$
 
-The teaching plant uses $J=0.018\ \mathrm{kg\,m^2}$,
-$c=0.025\ \mathrm{N\,m\,s/rad}$, one-millisecond integration, and
-ten-millisecond sensing and control. The ten-second sensor trace is generated
-once with seed 11 and then supplied unchanged to every estimator.
+The function $\operatorname{clip}$ limits the requested motor torque to the
+interval $[-0.18,0.18]\ \mathrm{N\,m}$. The simulated plant uses
+$J=0.018\ \mathrm{kg\,m^2}$, $c=0.025\ \mathrm{N\,m\,s/rad}$,
+one-millisecond mechanical integration, and ten-millisecond sensing and
+control. The ten-second sensor trace is generated once with seed 11 and then
+supplied unchanged to every estimator.
 
-All three controllers first recover from an eight-degree tilt and reject a
-$0.14\ \mathrm{N\,m}$ mechanical tap from 1.50 to 1.62 seconds. A
-$3\ \mathrm{m/s^2}$ base-translation pulse from 4.0 to 4.6 seconds then tests whether the
-estimated state confuses translation with rotation. The final interval exposes
-the drift caused by integrating a biased gyroscope.
+All three runs start with the camera tilted by eight degrees. A
+$0.14\ \mathrm{N\,m}$ tap from 1.50 to 1.62 seconds physically rotates the camera,
+so both inertial sensors should help the controller respond. From 4.0 to 4.6
+seconds, the base instead accelerates sideways at up to $3\ \mathrm{m/s^2}$. That
+event changes the accelerometer reading without directly rotating the balanced
+camera. The final quiet interval exposes the angle error produced by integrating
+the biased gyroscope.
 
-*Recorded gimbal comparison.* The plant, feedback law, disturbance sequence,
-torque limit, and sensor-noise realization remain fixed. Curves reveal only
-samples reached by the playhead, and the metrics use the hidden simulated
-state.
+The replay displays curves only up to the current playhead. Its metrics use the
+hidden simulated angle, which is available to the experiment but not to the
+controllers.
 
 ```{code-cell} python
 :tags: [remove-input]
@@ -658,14 +1111,13 @@ The online book adds playback, stepping, and scrubbing.
 ```{include} artifacts/gimbal/results.md
 ```
 
-No sensor is declared useless by this comparison. The accelerometer supplies a
-long-run reference but responds to specific force, while the gyroscope supplies
-short-run angular-rate information but carries an unknown bias. A complementary
-observer combines these signals and estimates the bias
-{cite}`androidMotionSensors2026,mahony2008complementary`. It reduces both tested
-failure modes, but sustained unknown translation remains confounded with
-gravity. These are results from a transparent teaching simulation, not measured
-performance of a commercial gimbal.
+The results follow the two failure mechanisms. The accelerometer-only estimate
+reacts strongly to the translation pulse. The integrated-gyroscope estimate
+largely ignores that pulse but drifts during the quiet interval. The
+complementary observer reduces both errors by using the accelerometer as a slow
+correction to the gyroscope-based angle. Sustained unknown translation can still
+be mistaken for tilt. These are results from a transparent teaching simulation,
+not measured performance of a commercial gimbal.
 
 The same distinction appears in adaptive optics: local wavefront slopes are
 sensor observations, while the reconstructed phase is the state used for
@@ -682,11 +1134,20 @@ control.
 {download}`Download the complete gimbal experiment <code/gimbal_control.py>`
 :::
 
+State, action, disturbance, and observation equations describe the model's
+semantics. An algorithm still needs a computational way to use that model. The
+next distinction concerns which operations the model exposes: formulas and
+derivatives, reset-and-step simulation, fixed logged transitions, or new online
+interaction.
+
 ## Model Interfaces
 
 Two models may generate the same nominal trajectory while exposing different
 operations to an algorithm. Access to equations, derivatives, resets, and new
-interactions determines what can be computed.
+interactions determines what can be computed. The interface therefore matters
+independently of the model's physical fidelity: knowing that a transition
+exists is different from being able to differentiate it, resample it, or query
+it under a new action.
 
 | available interface | operations it supports directly | methods developed later |
 |---|---|---|
@@ -701,16 +1162,31 @@ explicit model may contain unknown parameters, and logged data can be used to
 fit a new one-step model. The table records the information supplied to the
 algorithm, not the origin or fidelity of the model.
 
-The inference case can be accessed through four of these interfaces without
-changing the system boundary. Token, cache, and thermal balances supply
-equations. The profile-based event simulator permits resets and counterfactual
-clock or scheduling actions. The trace and profiled transitions support only
-inferences on their recorded distribution. A live Qwen/vLLM process permits
-new requests under chosen clock settings. Moving down this list removes
-operations from the algorithm; it does not turn the underlying serving process
-into a different system.
+A program is a model when its execution defines state transitions. MuJoCo, for
+example, combines rigid-body equations, contact detection, constraint forces,
+sensors, and rendering behind a reset-and-step interface. A user can query that
+interface without possessing a practical expression for its complete local
+transition function. A discrete-event simulator also defines a transition
+model, although its clock advances from one asynchronous event to the next.
+
+Calling a method **model-free** specifies which transition information its
+updates can use. In this book, a model-free update receives sampled experience
+rather than direct access to the transition function, transition probabilities,
+or their derivatives. An online method may choose an action and observe the
+resulting transition. An offline method is restricted to the transitions in its
+log. Neither can directly request the exact outcome distribution for an
+untried action at the same state. Both still require a declared observation,
+action set, reward, sampling process, and assumptions connecting the available
+samples to deployment.
 
 ### Inference Serving as a Controlled System
+
+Inference serving contains several modeling choices within one boundary. It
+combines conserved work and cache balances with profiled performance maps, has
+both request-level and aggregate states, and can be accessed through equations,
+simulation, logged traces, or a live process. The control objective is to
+schedule work and choose hardware settings while respecting latency, memory,
+power, and thermal limits.
 
 An inference server receives prompts at irregular times and generates one
 response for each request. A decoder-only language model processes a request in
@@ -722,18 +1198,53 @@ are production approaches to controlling this interaction
 {cite}`yu2022orca,agrawal2024sarathi`. The teaching simulator below uses a
 reduced interleaving rule rather than reproducing either serving system.
 
+#### Boundary, State, and Action
+
 The system boundary surrounds one GPU and its serving process. The language
-model and inference engine lie inside the boundary; arriving requests and the
-ambient thermal conditions lie outside it. At a one-second control interval, a
-useful aggregate state is
+model and inference engine lie inside the boundary. Request arrivals and
+ambient thermal conditions enter from outside it.
+
+:::{figure} _static/inference-serving-boundary.svg
+:label: fig-inference-serving-boundary
+:alt: A system-boundary diagram containing one serving process and one GPU. Requests and ambient conditions enter from outside; responses and observations leave; clock and scheduling actions enter from a controller.
+
+The boundary contains the request queue, scheduler, language-model execution,
+key-value cache, and GPU hardware state. The controller observes queue and
+cache state, completed work, power, temperature, and realized clock; it chooses
+a requested clock and scheduling rule. Arrivals are disturbances, and a
+request's eventual output length remains hidden until that request completes.
+Other GPUs, network routing, and downstream applications remain outside this
+model.
+:::
+
+This fixed serving boundary is available through four of the interfaces above.
+Token, cache, and thermal balances provide equations. The profile-based event
+simulator can be reset and run under chosen clock and scheduling actions. Logged
+traces and profile records contain only the states and actions that were
+recorded, so they cannot directly answer counterfactual questions outside that
+coverage. A live Qwen/vLLM process accepts new requests and chosen clock
+settings, producing new transition samples. Several interfaces may coexist;
+their available operations differ even though the serving process does not.
+
+The full request-level simulator state records each request's phase, age,
+remaining prompt work, generated tokens, eventual output length, and cache
+allocation. The eventual output length is part of the simulator's hidden state
+but is not revealed to the controller. At a one-second control interval, the
+reduced control model uses
+the aggregate state
 
 $$
 x_t=(p_t,d_t,m_t,T_t,f_t),
 $$
 
-where $p_t$ is queued prefill work, $d_t$ is unfinished decode work, $m_t$ is
-key-value-cache occupancy, $T_t$ is GPU temperature, and $f_t$ is the realized
-graphics clock. The control
+where $p_t$ is queued prefill work and $d_t$ is unfinished decode work. The
+quantity $m_t$ is key-value-cache occupancy; this cache stores intermediate
+attention representations so that previously processed tokens need not be
+recomputed at each decode step. The remaining variables are GPU temperature
+$T_t$ and realized graphics clock $f_t$, the hardware frequency that determines
+how quickly GPU work can proceed. This vector is a state of the reduced model,
+but it is not a Markov description of every request-level trajectory. The
+control
 
 $$
 u_t=(f_t^{\mathrm{req}},\sigma_t)
@@ -754,6 +1265,8 @@ completed prompt and output tokens, cache use, power, temperature, and realized
 clock. This information pattern prevents a controller from scheduling with the
 future length recorded in an evaluation trace.
 
+#### Conservation and Calibrated Maps
+
 The aggregate balances expose structure that does not have to be learned. If
 $A_t^p$ prompt tokens arrive, $C_t^p$ prompt tokens are processed, $N_t^p$
 requests finish prefill, and $C_t^d$ decode tokens are produced, then
@@ -766,8 +1279,8 @@ d_{t+1} &= d_t+W_t^d(N_t^p)-C_t^d.
 $$
 
 The term $W_t^d(N_t^p)$ denotes the still-unknown output work associated with
-newly admitted decode requests. The request-level simulator reveals this work
-only as tokens complete. It tracks continuous prompt and generated-token
+newly admitted decode requests. The request-level simulator makes this work
+available only as tokens complete. It tracks continuous prompt and generated-token
 occupancy, including partial prefills, together with a fixed per-request
 reserve. That occupancy is released when a request completes. This aggregate
 accounting preserves the modeled cache balance, but it does not reproduce a
@@ -778,29 +1291,44 @@ T_{t+1}=T_t+\frac{\Delta t}{C_\theta}
 \left(P(x_t,u_t)-\frac{T_t-T_{\mathrm{amb}}}{R_\theta}\right).
 $$
 
+Here $T_{\mathrm{amb}}$ is ambient temperature, $C_\theta$ is effective thermal
+capacitance, and $R_\theta$ is thermal resistance to the surroundings. The
+power map $P(x_t,u_t)$ adds heat, while
+$(T_t-T_{\mathrm{amb}})/R_\theta$ removes heat when the GPU is warmer than its
+environment.
+
 Token and cache conservation determine the form of the transition. Measurements
 are still needed for the service-rate map, the power map $P$, and the thermal
 parameters. The profiling protocol targets Qwen2.5-7B-Instruct served by vLLM
 on an NVIDIA L4 {cite}`qwen25report,kwon2023vllm`. Its intended hardware profile
 spans five requested clock levels, several prompt lengths, and three concurrency
-levels.
+levels, meaning three different numbers of requests served at the same time.
 The book build reads a committed profile and never starts a model server. Its
 manifest states whether the maps come from completed L4 measurements or a
 pre-measurement engineering surrogate, and every rendered result displays that
 provenance.
 
+#### Workload and Scheduling Rule
+
+The conservation equations specify how work moves through the server, but an
+experiment also needs a reproducible arrival process and a declared scheduler.
 The workload is a five-minute excerpt from the Azure 2023 code-generation
 trace, which records request times and input and output token counts
 {cite}`azureLLMTrace2023,patel2024splitwise`. Arrival times are dilated once to
-place maximum-clock utilization near 80 percent. If $\rho_{\max}$ is the
+place maximum-clock utilization near 80 percent. This time dilation preserves
+request sizes and ordering while spreading arrivals over a longer interval. If
+$\rho_{\max}$ is the
 isolated service time of all requests at the highest profiled clock divided by
 the original window length, the dilation and normalized arrivals are
 
 $$
-d=\max\!\left(1,\frac{\rho_{\max}}{0.8}\right),
+\kappa=\max\!\left(1,\frac{\rho_{\max}}{0.8}\right),
 \qquad
-t_i'=d(t_i-t_0).
+t_i'=\kappa(t_i-t_0).
 $$
+
+The factor $\kappa$ is at least one, so it can leave the trace unchanged or
+slow its arrivals; it never compresses them into a shorter interval.
 
 All controllers receive the same immutable requests after this transformation.
 The experimental time-to-first-token limit is twice the median baseline value
@@ -824,18 +1352,19 @@ Within each one-second clock-control period, the scheduler gives each 0.1-second
 simulator step to decode or begins it with one prefill chunk. If that chunk
 finishes before the step's service budget is exhausted, the remaining capacity
 returns to decode. When both phases have work, active decode receives
-alternating-step priority and strict priority under high cache pressure. This
-**512-token interleaved chunked-prefill** rule keeps the action channel visible
-without claiming to reproduce vLLM's mixed-batch scheduler or Sarathi-Serve.
+alternating-step priority and strict priority under high cache pressure. The
+**512-token interleaved chunked-prefill** rule specifies the teaching model's
+action channel; it does not reproduce vLLM's mixed-batch scheduler or
+Sarathi-Serve.
 
-The first 20 requests form the animation below.
+#### Recorded Replay and Scope
 
-*Recorded inference-serving model.* Twenty requests from the Azure
-code-generation trace move through arrival, interleaved 512-token prefill
-chunks, autoregressive decode, and completion. The plots report only the
-trajectory prefix reached by the playhead, and output length is hidden from the
-controller until each request completes. A provenance badge distinguishes a
-verified measured profile from a pre-measurement engineering surrogate.
+The first 20 requests form the recorded replay below. They move through
+arrival, interleaved 512-token prefill chunks, autoregressive decode, and
+completion. The plots report only the trajectory prefix reached by the
+playhead, and output length is hidden from the controller until each request
+completes. A provenance badge distinguishes a verified measured profile from a
+pre-measurement engineering surrogate.
 
 ```{code-cell} python
 :tags: [remove-input]
@@ -867,14 +1396,12 @@ request-level simulation. The online book provides playback, stepping,
 scrubbing, phase detail, and controller selection.
 :::
 
-The experiment asks whether this state is sufficient to reproduce the service
-phenomena that matter for control. Conservation checks account for every
-request, processed token, and cache allocation.
-A concrete accounting check is visible at the end of the committed replay: all
-20 requests have completed, the prefill and decode queues are empty, and all
-modeled cache occupancy has been released. This establishes closure of the modeled
-flows. It does not establish that the service-rate, power, or thermal maps are
-accurate.
+Conservation checks account for every request, processed token, and cache
+allocation. At the end of the committed replay, all 20 requests have completed,
+the prefill and decode queues are empty, and all modeled cache occupancy has
+been released. This establishes closure of the modeled flows. It does not show
+that the aggregate variables are Markov for the request-level plant, nor that
+the service-rate, power, or thermal maps are accurate.
 A provisional profile permits tests of the simulation and control software but
 does not supply empirical latency or energy evidence. In either case, the model
 does not cover every inference engine or GPU. Network transfer, host-side
@@ -892,9 +1419,12 @@ outside the serving process remain outside the boundary.
 {download}`Download the complete inference-serving model <code/inference_serving.py>`
 :::
 
-### Completed Trips Are Not Attempted Demand
+### Censoring in Completed-Trip Logs
 
-The BIXI archive supplies a different interface: a log of completed trips. A
+The inference example can generate new trajectories from a simulator or live
+process. The BIXI archive supplies a more restrictive interface: a fixed log of
+completed trips. The distinction matters because a completed-event log records
+what the system served, not every request that users attempted. A
 completed rental proves that a bicycle was available, but an empty station
 leaves no trip record for a customer who could not depart. A completed return
 similarly proves that a dock was available without counting customers who found
@@ -909,7 +1439,7 @@ additional customers attempt to rent while the station is empty. The log
 cannot identify those censored attempts.
 :::
 
-The public station-status feed can reveal current inventories while it is
+The public station-status feed can report current inventories while it is
 running, but it does not provide an action channel for relocating bicycles.
 Historical completed trips omit unsuccessful demand, past station inventories,
 and operator movements. A fitted arrival model can be useful, but evaluating a
@@ -927,25 +1457,12 @@ model and recording every rejected event.
 :::
 
 
-A program is therefore a model when its execution defines state transitions.
-MuJoCo combines rigid-body equations, contact detection, constraint forces,
-sensors, and rendering. A user may have a reset-and-step interface without
-having a practical expression for its complete local transition function.
-Discrete-event simulators instead advance from one asynchronous event to the
-next. The inference-serving simulator advances through arrivals, completed
-prefill chunks, decode iterations, and request departures. It still defines a
-transition model, although its event clock and variable population of active
-requests differ from the fixed-step state-space models above.
-
-Calling a method **model-free** describes an information restriction. The
-method does not query an explicit transition model during its update. It still
-depends on a specified state or observation, action set, reward, sampling
-process, and assumptions about how experience relates to future deployment.
-
 ### Language Generation as a Sequential System
 
-Autoregressive language generation fits the same notation with an unusual
-transition. For a fixed prompt $p$, let
+The distinction between a transition model and a policy can also be obscured
+when one software object appears to generate an entire trajectory.
+Autoregressive language generation separates the two. For a fixed prompt $p$,
+let
 
 $$
 s_t=(p,y_1,\ldots,y_{t-1}),
@@ -971,19 +1488,26 @@ responses then become observations generated by an environment outside the
 prefix concatenation rule. Context truncation also requires the retained
 context or memory state to be specified explicitly.
 
+The interface determines which data and counterfactual queries are available.
+The remaining modeling decision is which transition structure should be fixed
+and which components should be estimated from those data.
+
 ## Known Structure and Learned Components
 
-Uncertainty in one component does not require replacing the entire model. A
-structured transition can retain known dynamics and add a learned residual:
+Uncertainty in one component does not require replacing the entire model. One
+can retain the known transition and learn only the discrepancy between its
+prediction and the observed next state:
 
 $$
 x_{t+1}=f_{\mathrm{known}}(x_t,u_t)
-+r_\theta(x_t,u_t,z_t)+w_t.
++r_\theta(x_t,u_t,\eta_t)+\xi_t.
 $$
 
-The feature vector $z_t$ may contain weather, payload information, or other
-measured conditions. The residual $r_\theta$ has a narrower task than a complete
-black-box transition: it predicts the part left unexplained by the known model.
+The correction $r_\theta$ is called a **learned residual** because it accounts
+for what remains after the known model has made its prediction. The context
+vector $\eta_t$ may contain weather, payload information, or other measured
+conditions. This residual has a narrower task than a complete black-box
+transition.
 
 | system | retained structure | plausible learned component | model-audit experiment |
 |---|---|---|---|
@@ -995,6 +1519,12 @@ black-box transition: it predicts the part left unexplained by the known model.
 
 ### Fast Charging When Resistance Drifts
 
+The battery case separates a known model structure from one changed parameter.
+Charge balance, circuit topology, and thermal conservation remain fixed, while
+a short current pulse estimates a resistance scale that affects safe charging.
+This separation makes it possible to ask whether a targeted calibration can
+correct a specific prediction error without relearning the entire transition.
+
 Charge balance determines how current changes the state of charge. With the
 book's charge-positive sign convention,
 
@@ -1004,17 +1534,34 @@ $$
 
 where $z$ is the state of charge, $I$ is charging current in amperes, and $Q$
 is cell capacity in ampere-hours. A 5 Ah cell charged at 10 A would move from
-20 to 80 percent in 18 minutes if this were the only relevant equation.
+20 to 80 percent in
+
+$$
+\frac{0.6(5\ \mathrm{Ah})}{10\ \mathrm A}
+=0.3\ \mathrm h
+=18\ \mathrm{min},
+$$
+
+if this were the only relevant equation.
 Terminal voltage and temperature can restrict the current before that charge
 target is reached.
 
-The reference process is PyBaMM's documented
+Terminal voltage cannot be predicted from charge balance alone because current
+also produces an immediate resistive rise and a slower polarization response.
+The reference process represents those two responses with PyBaMM's documented
 [one-RC Thévenin model](https://docs.pybamm.org/en/v26.6.2.0/source/api/models/equivalent_circuit/thevenin.html)
-with two lumped thermal states
-{cite}`sulzer2021pybamm,barletta2022thevenin`. Its state contains
+{cite}`sulzer2021pybamm,barletta2022thevenin`. It also uses two lumped thermal
+states, treating the cell and its fixture as objects with one uniform
+temperature each. Its state contains
 $x=(z,v_p,T_c,T_j)$: state of charge, polarization voltage, cell temperature,
-and jig temperature. The electrical part can be written in the charge-positive
-convention as
+and jig temperature. The jig is the surrounding fixture with which the cell
+exchanges heat. The electrical model uses an open-circuit voltage
+$U_{\mathrm{oc}}(z)$, the cell voltage when no current flows, a series
+resistance $R_0$, and an $R_1$--$C_1$ branch
+containing one resistor and one capacitor. Its voltage $v_p$ changes on the
+time scale $R_1C_1$, so it represents slower polarization behavior. With $V$
+denoting terminal voltage,
+the charge-positive equations are
 
 $$
 \dot v_p=-\frac{v_p}{R_1C_1}+\frac{I}{C_1},
@@ -1022,9 +1569,90 @@ $$
 V=U_{\mathrm{oc}}(z)+v_p+IR_0.
 $$
 
-PyBaMM maps positive charging current in the text to its negative-current
-software convention. At each state, the local governor requests the largest
-current inside three transparent envelopes:
+PyBaMM treats positive current as discharge, so the implementation changes the
+sign of the positive charging current used in these equations.
+
+The calibration begins with a controlled experiment rather than a full charge.
+The cell rests at $I=0$ for 20 seconds, receives a commanded 5 A charge current
+for 10 seconds, and then rests for another 40 seconds. Samples are recorded
+every 0.5 seconds. Switching the current on produces an immediate voltage jump
+through $R_0$, followed by the slower voltage response $v_p$ of the RC branch.
+Switching it off exposes the decay of that slower response. The pulse is
+therefore a deliberately chosen input that makes the resistive part of the
+model visible in the voltage trace.
+
+The committed diagnostic record contains the commanded current, simulated
+state of charge, and terminal voltage. Independent Gaussian sensor noise with
+a standard deviation of 1 mV and seed 11 is added to the voltage. This fit does
+not use temperature measurements. Cell and jig temperatures are monitored in
+the subsequent full-charge runs, while their model parameters remain fixed.
+
+The nominal circuit uses $R_0=15$ m$\Omega$, $R_1=10$ m$\Omega$, and
+$C_1=2400$ F. The calibration allows only the following one-parameter change:
+
+$$
+R_0(\alpha)=\alpha R_0,
+\qquad
+R_1(\alpha)=\alpha R_1,
+\qquad
+C_1(\alpha)=\frac{C_1}{\alpha}.
+$$
+
+The dimensionless multiplier $\alpha$ measures resistance relative to the
+nominal circuit. Thus $\alpha=1$ is the nominal cell, and $\alpha=1.8$ makes
+both resistances 80 percent larger. The inverse change in $C_1$ keeps the RC
+time constant $R_1C_1$ at 24 seconds. It is a controlled way to isolate the
+amplitude of the resistive response, not a claim that all aging changes these
+three components in this proportion.
+
+Under this restriction, the pulse voltage is linear in $\alpha$. Let
+$\bar v_{p,k}$ denote the polarization voltage predicted at sample $k$ by the
+nominal RC branch, driven by the known current $I_k$. Define the measured
+voltage above open circuit and the nominal model's prediction for that excess
+voltage as
+
+$$
+y_k=V_k^{\mathrm{meas}}-U_{\mathrm{oc}}(z_k),
+\qquad
+\phi_k=I_kR_0+\bar v_{p,k}.
+$$
+
+Thus $y_k$ is the excess voltage observed at sample $k$, while $\phi_k$ is the
+excess voltage predicted when the resistance scale is one.
+
+Because the scaled branch has the same time constant and starts from rest,
+$v_{p,k}=\alpha\bar v_{p,k}$. With $\epsilon_k$ denoting voltage-measurement
+noise, the measured samples therefore satisfy
+
+$$
+y_k=\alpha\phi_k+\epsilon_k.
+$$
+
+The estimate chooses the value of $\alpha$ that makes the sum of squared voltage
+prediction errors as small as possible, while restricting the value to a
+plausible interval:
+
+$$
+\hat\alpha
+=\underset{0.7\leq a\leq2.5}{\arg\min}
+\sum_{k:\,|\phi_k|>10^{-8}\,\mathrm V}
+\left(y_k-a\phi_k\right)^2.
+$$
+
+Before the pulse, both $I_k$ and $\bar v_{p,k}$ are zero, so those resting
+samples contain no information about $\alpha$. The current step makes
+$\phi_k$ nonzero, and the relaxation after the step supplies additional
+samples. This experiment can identify the common multiplier because it is the
+only unknown in the fit: the ratio $R_0/R_1$ and the time constant are fixed.
+It cannot separately estimate $R_0$, $R_1$, and $C_1$.
+
+The fitted value enters the charging rule as the controller's resistance
+estimate $\hat\alpha$. A **current governor** is a local safety rule that maps
+the present estimated state to an allowable current request. At each one-second
+control update, the governor receives
+the simulated values of $z$, $v_p$, and $T_c$ and requests the largest current
+inside three limits. Let $[q]_+=\max(q,0)$ and let $h_{cj}=0.55$ W/K denote the
+modeled cell-to-jig heat-transfer coefficient. The rule is
 
 $$
 I=\min\left\{
@@ -1033,35 +1661,28 @@ I=\min\left\{
 \sqrt{\left[
 \frac{h_{cj}(34.5-T_c)}{\hat\alpha(R_0+R_1)}
 \right]_+}
-\right\},
+\right\}.
 $$
 
-where $[q]_+=\max(q,0)$ and $\hat\alpha$ is the resistance scale in the
-controller model. The first ceiling is the 10 A action limit; the others use an
-immediate voltage margin and a local thermal-headroom rule. Their guard levels
-are 4.17 V and 34.5 degrees Celsius, while the simulated plant bounds are 4.20
-V and 35 degrees Celsius. This is a transparent current governor rather than
-the trajectory optimization developed later in the book; constrained fast
-charging is a natural setting for richer predictive control
-{cite}`gonzalezSaenz2024fastCharging`.
+The first entry is the 10 A hardware limit. The second prevents the model's
+instantaneous terminal-voltage prediction from exceeding its 4.17 V guard. The
+third starts from the remaining temperature margin, $34.5-T_c$. Multiplying
+that margin by $h_{cj}$ gives a simple allowance for resistive heating, modeled
+here as $I^2\hat\alpha(R_0+R_1)$. Solving this inequality for $I$ gives the
+square-root ceiling in the rule. This ceiling is conservative; it does not
+forecast the future temperature trajectory. The simulated plant itself is
+checked against the bounds of 4.20 V and 35 degrees Celsius. A larger fitted
+resistance lowers both the voltage-based and temperature-based current
+ceilings.
 
-The nominal model uses $R_0=15$ m$\Omega$, $R_1=10$ m$\Omega$, and
-$C_1=2400$ F. The changed plant multiplies both resistances by
-$\alpha=1.8$ and divides $C_1$ by the same factor, which preserves the
-24-second RC time constant. This high-resistance plant represents one possible
-effect of aging; it is not a general degradation model. To isolate parameter
-mismatch from state estimation, every run supplies the governor with the same
-simulated state variables.
+This governor is a fixed local rule, not an optimization over a future current
+sequence. Constrained fast charging also motivates richer predictive-control
+methods {cite}`gonzalezSaenz2024fastCharging`.
 
-A separate diagnostic record contains 20 seconds of rest, a 10-second 5 A
-charge pulse, and 40 seconds of rest. The recorded voltage includes 1 mV
-Gaussian noise with seed 11. A bounded scalar least-squares fit changes only
-$\alpha$; charge balance, circuit topology, thermal equations, controller,
-limits, and target remain fixed.
-
-The three matched runs ask whether the governor passes on its reference plant,
-whether the old model preserves the voltage margin after resistance changes,
-and whether updating one parameter restores that margin.
+The three matched runs ask whether the governor reaches the charge target while
+respecting its bounds on the reference plant, whether the stale model preserves
+the voltage margin after resistance changes, and whether updating one parameter
+restores that margin.
 
 | run | plant scale $\alpha$ | governor scale $\hat\alpha$ |
 |---|---:|---:|
@@ -1069,11 +1690,11 @@ and whether updating one parameter restores that margin.
 | high resistance, stale | 1.8 | 1.0 |
 | high resistance, calibrated | 1.8 | fitted from the pulse |
 
-*Recorded battery model audit.* Select a run and follow charge, terminal
-voltage, cell temperature, and requested current. Each trace displays only the
-prefix reached by the playhead. Event controls seek to the first current taper,
-the first plant-bound violation, and the 80 percent target when those events
-exist.
+The recorded battery audit compares the three matched runs through charge,
+terminal voltage, cell temperature, and requested current. Each trace displays
+only the prefix reached by the playhead. Event controls seek to the first
+current taper, the first plant-bound violation, and the 80 percent target when
+those events exist.
 
 ```{code-cell} python
 :tags: [remove-input]
@@ -1109,11 +1730,19 @@ charge. The online book adds synchronized playback and event seeking.
 ```{include} artifacts/battery/results.md
 ```
 
-The comparison gives the learned component a narrow job: update the voltage
-drop and resistive heat predicted for a candidate current without replacing
-charge conservation or the circuit and thermal states. A single fitted scale
-does not represent capacity fade, lithium plating, spatial temperature
-gradients, or other electrochemical degradation mechanisms.
+Within this declared simulation, the comparison supports a narrow conclusion:
+when the plant differs from the controller model by exactly the common
+resistance scale above, the pulse estimates that scale well enough for the same
+governor to remain inside the tested voltage and temperature bounds. The fit
+changes the predicted voltage drop and resistive heat for a candidate current;
+it does not replace charge conservation, the circuit topology, or the thermal
+states.
+
+The comparison does not establish a safe charging rule for a physical product.
+Every run gives the governor the exact simulated state, so it does not test
+state estimation. One fitted scale also cannot represent capacity fade,
+lithium plating, an incorrect open-circuit-voltage curve, sensor bias, spatial
+temperature gradients, or other electrochemical degradation mechanisms.
 
 [Model Predictive Control](mpc.md) will optimize an entire future input
 sequence under state and input constraints. The governor here evaluates a
@@ -1140,11 +1769,11 @@ parameter remains visible.
 {download}`Download the recorded replay renderer <code/battery_replay.py>`
 :::
 
-Generative models can produce plausible simulator and controller code quickly.
-That code does not establish that a chain can sustain the simulated force, that
-an action has the intended physical meaning, or that a scalar reward contains a
-safety requirement. Those claims require inspection of the model and evidence
-from targeted experiments.
+Generated simulator or controller code may execute while representing the wrong
+action, omitting a physical mode, or leaving a safety requirement outside the
+objective and constraints. Execution tests software behavior. Claims about the
+target system require inspection of the model and evidence from interventions
+that expose the disputed assumption.
 
 A residual cannot repair a missing action channel or a missing physical mode if
 the training data never contains evidence of it. The SwingRL comparison exposed
@@ -1152,100 +1781,577 @@ the failure by changing the suspension model while holding the controller fixed.
 Comparable interventions are needed to decide which structure should remain and
 which component should be learned.
 
-## Summary
+## Exercises
 
-A decision model specifies state, action, dynamics, observations, objective,
-constraints, time, and information. The state-space representation separates
-what evolves from what is observed and what can be controlled. Continuous and
-discrete time, deterministic and stochastic evolution, and full and partial
-observation are independent modeling choices.
+The exercises follow the chapter's modeling sequence. They begin by checking
+boundaries, state choices, action channels, and sampling; then revisit the case
+studies and model interfaces. The final two exercises ask you to assemble a
+complete decision model from a prose description without inventing missing
+application assumptions.
 
-The SwingRL experiment asks whether success survives a change in physical
-assumptions. The BIXI experiment separates stochastic customer events from the
-truck's constrained action and compares a frozen schedule with inventory
-feedback. The gimbal experiment separates noisy measurements from a predictive
-state estimate. Inference serving then shows how the same system boundary can
-be exposed through equations, a simulator, logs, or a live process. The battery
-experiment retains charge, circuit, and thermal structure while fitting one
-changed resistance parameter, then audits the resulting controller on the
-changed plant.
+:::{exercise} A complete decision model
+:label: ex-dynamics-model-checklist
 
-The model interface determines the methods available to the decision maker.
+Choose a familiar sequential system and specify its boundary, state,
+observation, action, disturbance, objective, information pattern, and one hard
+constraint. Every item must refer to the same decision maker and time scale.
+:::
+
+:::{solution} ex-dynamics-model-checklist
+:class: dropdown
+
+Many answers are possible. For a room thermostat, one consistent model is:
+the boundary contains the room, walls, and heater; the state contains indoor
+air and wall temperatures; the observation is a noisy air-temperature reading;
+the action is heater power; outdoor temperature and occupancy are disturbances;
+the objective trades temperature error against energy; the information at time
+$t$ is the observation and action history; and
+$0\leq u_t\leq P_{\max}$ is a hard constraint. A different answer is valid when
+all eight objects use one boundary and one sampling period.
+:::
+
+:::{exercise} Action channels are physical
+:label: ex-dynamics-action-channels
+
+In {numref}`fig-modeling-action-channels`, explain why replacing every input by
+an unconstrained generalized force changes all three decision problems.
+:::
+
+:::{solution} ex-dynamics-action-channels
+:class: dropdown
+
+The replacement gives the swing a fictitious pivot actuator instead of
+body-shape control and may bypass the chain's inability to push. It replaces
+bounded trolley acceleration in the crane with direct forcing of the load. It
+also lets the wave device inject signed force instead of choosing nonnegative
+power-take-off damping. Each substitution changes the feasible trajectories,
+rather than only the symbols used to describe them.
+:::
+
+:::{exercise} Sampling changes the transition
+:label: ex-dynamics-euler-sampling
+
+For $\dot x=-ax+bu$ with a zero-order-held input, derive the forward Euler
+updates at step sizes $\Delta t$ and $\Delta t/2$. Which discrete coefficients
+change with the sampling period?
+:::
+
+:::{solution} ex-dynamics-euler-sampling
+:class: dropdown
+
+At step size $\Delta t$,
+
+$$
+x_{k+1}=(1-a\Delta t)x_k+b\Delta t\,u_k.
+$$
+
+At step size $\Delta t/2$,
+
+$$
+x_{k+1}=\left(1-\frac{a\Delta t}{2}\right)x_k
+{}+\frac{b\Delta t}{2}u_k.
+$$
+
+Both the state coefficient and the input coefficient change. Two half-steps
+also compose a different finite-step approximation than one full Euler step,
+although both converge to the same continuous flow as $\Delta t\to0$.
+:::
+
+:::{exercise} When shortening adds energy
+:label: ex-dynamics-swing-power
+
+Multiply $-2m\rho\dot\rho\dot\psi$ by $\dot\theta$ and use
+$\dot\psi\approx\dot\theta$ near the bottom of the swing. Why can shortening
+the rider's radius add energy in either direction of travel?
+:::
+
+:::{solution} ex-dynamics-swing-power
+:class: dropdown
+
+The approximate power contributed to the suspension coordinate is
+
+$$
+\left(-2m\rho\dot\rho\dot\psi\right)\dot\theta
+\approx-2m\rho\dot\rho\dot\theta^2.
+$$
+
+Because $m,\rho>0$ and shortening gives $\dot\rho<0$, this term is positive.
+The square removes the sign of $\dot\theta$, so the conclusion holds for
+clockwise and counterclockwise passages.
+:::
+
+:::{exercise} A taut-slack hybrid model
+:label: ex-dynamics-hybrid-swing
+
+Describe the swing's taut and slack phases as a hybrid model. Identify the
+continuous state, discrete mode, release guard, reattachment guard, and impact
+reset; a complete equation of motion is not required.
+:::
+
+:::{solution} ex-dynamics-hybrid-swing
+:class: dropdown
+
+Use a continuous mechanical state containing positions, velocities, and rider
+configuration, together with a mode
+$m\in\{\text{taut},\text{slack}\}$. The taut mode enforces the chain-length
+constraint and requires nonnegative tension. Release occurs when the tension
+needed to maintain that constraint reaches zero and would become negative. The
+slack mode follows unconstrained ballistic dynamics. Reattachment occurs when
+the pivot-to-seat distance reaches the chain length with outward radial
+velocity. The impact reset removes the inadmissible radial velocity and
+dissipates its associated energy.
+:::
+
+:::{exercise} What rod-only data cannot identify
+:label: ex-dynamics-rod-data
+
+The structured controller completes a revolution on the rod model and fails on
+the chain model. Why can a larger neural transition model fitted only to rod
+trajectories fail to resolve this discrepancy?
+:::
+
+:::{solution} ex-dynamics-rod-data
+:class: dropdown
+
+Rod trajectories contain no release, slack flight, reattachment, or impact.
+Additional function capacity cannot identify a mode absent from the data.
+Chain interventions or an explicit unilateral hybrid structure must first
+supply that missing behavior; data can then estimate parameters within it.
+:::
+
+:::{exercise} Conservation and feedback in bicycle relocation
+:label: ex-dynamics-bixi-conservation
+
+Before customer events occur, verify that relocation preserves the sum of
+station and truck inventories. Then compare the frozen schedule with inventory
+feedback after the declared demand pulse. Which new observation can change the
+feedback action, and why can the frozen action not change?
+:::
+
+:::{solution} ex-dynamics-bixi-conservation
+:class: dropdown
+
+Since $q_{i,0}=s_{i,k}+\rho_{i,k}$ and
+$b_{k+1}=b_k-\sum_i\rho_{i,k}$,
+
+$$
+\sum_i q_{i,0}+b_{k+1}=\sum_i s_{i,k}+b_k.
+$$
+
+Customer trips may later cross the three-station boundary and change that
+total. At 08:00, feedback observes the inventories produced by the unexpected
+Prince-Arthur rentals and de Maisonneuve returns, so it can alter its transfer
+or route. The frozen schedule was fixed from information available before
+07:00 and has no rule for using the new observation.
+:::
+
+:::{exercise} Tilt or translation?
+:label: ex-dynamics-gimbal-ambiguity
+
+Construct two pairs $(\theta,a_x^w)$ that produce the same noiseless
+accelerometer-derived tilt. What additional information does the gyroscope
+supply, and which ambiguity remains?
+:::
+
+:::{solution} ex-dynamics-gimbal-ambiguity
+:class: dropdown
+
+Both
+
+$$
+(\theta,a_x^w)=(10^\circ,0)
+\quad\text{and}\quad
+(\theta,a_x^w)=\left(0,g\tan 10^\circ\right)
+$$
+
+produce an apparent tilt of $10^\circ$. The gyroscope measures angular rate
+plus bias, which helps distinguish a rapid rotation from a translational pulse.
+An unknown gyro bias still accumulates as angle error, and sustained unknown
+translation remains confounded with gravity in the accelerometer.
+:::
+
+:::{exercise} Aggregate cache state
+:label: ex-dynamics-cache-balance
+
+For the inference service, write an aggregate cache balance that distinguishes
+occupancy added while prompt and output tokens are processed, reserve added
+when a request enters decode, and occupancy released at request completion.
+Give one reason why the aggregate total may be insufficient for prediction.
+:::
+
+:::{solution} ex-dynamics-cache-balance
+:class: dropdown
+
+One balance consistent with the teaching abstraction is
+
+$$
+m_{t+1}=m_t+C_t^p+C_t^d+rN_t^p
+-\sum_{j\in\mathcal C_t}L_{j,t},
+$$
+
+where $C_t^p$ and $C_t^d$ are processed prompt and decode tokens, $rN_t^p$ is
+the fixed reserve for requests entering decode, $\mathcal C_t$ is the set that
+completes, and $L_{j,t}$ is all occupancy released by completed request $j$.
+Equal totals can hide different per-request remaining output lengths, so future
+completion and cache-release times can differ.
+:::
+
+:::{exercise} Function-plus-noise and transition kernels
+:label: ex-dynamics-reservoir-kernel
+
+Suppose a reservoir with no spill or evaporation obeys
+$s_{t+1}=s_t-u_t+w_t$, where
+$w_t=\bar w_t+\epsilon_t$. Write a function-plus-noise model and the induced
+transition kernel.
+:::
+
+:::{solution} ex-dynamics-reservoir-kernel
+:class: dropdown
+
+The explicit-noise form is
+
+$$
+s_{t+1}=s_t-u_t+\bar w_t+\epsilon_t.
+$$
+
+If $\epsilon_t$ has conditional distribution $p_t$, then the induced kernel is
+
+$$
+P_t(A\mid s,u)
+=\Pr\!\left(s-u+\bar w_t+\epsilon_t\in A\right).
+$$
+
+This kernel is the pushforward of the noise distribution through the balance
+equation. Adding bounds or spill would change the map and could create
+probability mass at a boundary.
+:::
+
+:::{exercise} A non-Markov observation
+:label: ex-dynamics-nonmarkov-observation
+
+An inference controller observes queue counts and total cache occupancy but not
+the remaining output length of each active request. Why are those measurements
+not generally a Markov state? What additional state or history would improve
+prediction?
+:::
+
+:::{solution} ex-dynamics-nonmarkov-observation
+:class: dropdown
+
+Two request sets can have equal queue counts and cache occupancy but different
+remaining output lengths. Their completion times and cache releases therefore
+have different conditional distributions. A full state can retain every
+request's remaining work. When that work is hidden, the complete observation
+history is sufficient in principle, and a posterior distribution over the
+request-level state is a compact information state under a known model.
+:::
+
+:::{exercise} Capabilities of three model interfaces
+:label: ex-dynamics-interface-capabilities
+
+For a differentiable ODE solver, a reset-and-step robotics simulator, and a
+fixed table of logged transitions, list the operations each exposes. Name one
+method from the book that each interface directly supports.
+:::
+
+:::{solution} ex-dynamics-interface-capabilities
+:class: dropdown
+
+The differentiable ODE solver supports chosen-input rollouts and derivatives of
+those rollouts, which can support shooting or gradient-based MPC. The
+reset-and-step simulator supports counterfactual sampled rollouts from chosen
+states and actions, which can support simulation-based MPC, Monte Carlo
+evaluation, or policy learning. Logged transitions support fitting and
+evaluation on their recorded distribution, including system identification or
+fitted Q iteration, but do not by themselves answer arbitrary counterfactual
+queries.
+:::
+
+:::{exercise} Text generation: transition or policy?
+:label: ex-dynamics-language-transition
+
+For autoregressive language generation, distinguish the environment transition
+from the token policy. How does the model change when a tool call returns
+information from an external database?
+:::
+
+:::{solution} ex-dynamics-language-transition
+:class: dropdown
+
+For a closed text prefix, the transition is deterministic concatenation,
+$s_{t+1}=\operatorname{concat}(s_t,a_t)$, while the language model supplies the
+token distribution $\pi(a_t\mid s_t)$. A tool call crosses that boundary. The
+returned value is an external observation, and the state must retain whatever
+tool result or interaction history is needed to predict subsequent
+transitions.
+:::
+
+:::{exercise} A one-factor SwingRL audit
+:label: ex-dynamics-swing-intervention
+
+Extend the SwingRL comparison with the seated controller, or disable either
+squat or lean in the standing controller. Before running it, predict one
+diagnostic that should change. Then explain which modeling assumption the
+intervention tests.
+:::
+
+:::{solution} ex-dynamics-swing-intervention
+:class: dropdown
+
+A valid audit changes only one factor, records a prediction first, and compares
+the result with the baseline. The seated controller changes rider morphology
+and available actuation. Disabling squat removes the
+$-2m\rho\dot\rho\dot\theta^2$ power channel; disabling lean removes the driven
+angular terms. Peak unwrapped angle, revolution success, action-channel work,
+and the timing of release or reattachment are suitable diagnostics. A result
+supports only the changed modeling assumption, not a general ranking of
+controllers.
+:::
+
+:::{exercise} Censoring at an empty station
+:label: ex-dynamics-bixi-censoring
+
+Starting from the completed-trip counterexample, add one rental attempt while
+the station is empty. Why does latent demand change while the completed-trip
+log remains unchanged?
+:::
+
+:::{solution} ex-dynamics-bixi-censoring
+:class: dropdown
+
+The additional customer cannot depart because no bicycle is available. The
+attempt therefore raises demand by one but generates no completed rental
+record. Both worlds produce the same observed trip log even though their
+attempted-demand histories differ.
+:::
+
+:::{exercise} Offered-load sensitivity
+:label: ex-dynamics-inference-dilation
+
+Use `data/inference_serving/azure_code_evaluation.csv` and
+`normalize_offered_load` from `code/inference_serving.py`. Recompute the
+offered-load dilation after omitting the ten requests with the longest prompts.
+Which model quantities change, and which conservation equations remain
+unchanged?
+:::
+
+:::{solution} ex-dynamics-inference-dilation
+:class: dropdown
+
+The ten removed prompts each contain 7,436 tokens. For the committed profile,
+the dilation changes from
+
+$$
+3.5538284803\quad\text{to}\quad3.4524186516.
+$$
+
+The isolated-service total, normalized arrival times, and exogenous request
+sequence change. The algebraic form of the request, token, cache, and thermal
+balances does not.
+:::
+
+:::{exercise} Battery calibration
+:label: ex-dynamics-battery-calibration
+
+Ignoring voltage and temperature, derive the ideal time needed to move a
+$5\ \mathrm{Ah}$ cell from 20 to 80 percent state of charge at $10\ \mathrm A$.
+Then use the Thévenin output equation to explain why a governor with a stale
+resistance estimate can violate the voltage bound even though charge
+conservation is correct. Which structure should remain fixed, and which
+quantity can be estimated from the known current pulse and measured voltage?
+:::
+
+:::{solution} ex-dynamics-battery-calibration
+:class: dropdown
+
+The required charge is $0.6(5\ \mathrm{Ah})=3\ \mathrm{Ah}$, so
+
+$$
+\Delta t=\frac{3\ \mathrm{Ah}}{10\ \mathrm A}
+=0.3\ \mathrm h=18\ \mathrm{min}.
+$$
+
+Because $V=U_{\mathrm{oc}}+v_p+IR_0$, underestimated resistance makes the
+governor underpredict terminal voltage and request too much current. Charge
+conservation, the circuit topology, and the thermal equations remain fixed.
+During the known 5 A pulse, the immediate voltage jump and slower relaxation
+make the resistive response visible. Fitting that response estimates the one
+allowed unknown, $\alpha$, where $R_0$ and $R_1$ are $\alpha$ times their
+nominal values and $C_1$ is divided by $\alpha$. The experiment updates this
+single controller parameter; it does not relearn the balance equations or
+separately identify all three circuit elements.
+:::
+
+### Modeling from Problem Descriptions
+
+The following descriptions supply all the application-specific facts needed for
+the exercise. Do not add a queueing model or a theory of human learning. Map the
+stated relationships to the modeling objects developed in this chapter, and
+identify any information that the decision maker does not observe.
+
+:::{exercise} Dispatch under hidden service times
+:label: ex-dynamics-modeling-dispatch
+
+A computing service reviews its operation once per minute. Four workers can
+process jobs from either of two queues. At each review, the dispatcher sees the
+number of waiting jobs in each queue, the number of busy workers, the current
+worker modes, and a power measurement. It chooses how many workers will be
+active and which queue receives priority during the next minute. New jobs
+arrive at random times. Each busy job has an unobserved remaining processing
+time, and this quantity affects whether the job finishes during the next
+minute. The objective penalizes waiting time and energy use. A hard power limit
+must hold at every step.
+
+(a) Draw the system boundary and classify the state, observation, action,
+disturbance, objective, constraint, time representation, and horizon. Use a
+finite horizon of 60 decisions.
+
+(b) Explain why the observed queue counts and number of busy workers are not
+generally a Markov state. Give one full-state description for the system and
+one information state available to the dispatcher.
+
+(c) Choose between deterministic dynamics and a stochastic transition kernel.
+State which sentence in the description determines your choice.
+
+(d) Distinguish a fixed 60-minute staffing schedule from a feedback policy.
+Which observations can affect the feedback action after the first minute?
+
+(e) Suppose the only available data are transitions logged under one fixed
+staffing schedule. Which model interface does this provide, and what can it not
+answer directly about a new feedback policy?
+:::
+
+:::{solution} ex-dynamics-modeling-dispatch
+:class: dropdown
+
+(a) The boundary contains the two queues, four workers, and their power-relevant
+operation. A full state contains the queued jobs, every active job's worker and
+remaining processing time, the worker modes, and any variable needed to predict
+power. The stated observation contains the two queue counts, busy-worker count,
+worker modes, and measured power. The action is the active-worker count and
+queue priority. Arrivals and unobserved job requirements are disturbances. The
+stage cost combines waiting and energy, and the power cap is a hard constraint.
+Time is discrete in one-minute steps over 60 decisions.
+
+(b) Equal counts can hide different remaining workloads and therefore different
+completion distributions. The full state just described is Markov under the
+declared job model. The complete observation-action history is available to the
+dispatcher; under a known stochastic model, its posterior over hidden job
+states is a more compact information state.
+
+(c) A stochastic transition kernel is the natural representation because jobs
+arrive at random times and hidden processing requirements make completions
+uncertain. A deterministic function remains possible only after the relevant
+noise realizations are supplied as additional inputs.
+
+(d) The fixed schedule selects all 60 actions from initial information. A
+feedback policy may change the active-worker count or priority after observing
+new queue counts, busy-worker status, modes, or power.
+
+(e) Those data supply a logged-transition interface under one behavior
+schedule. It cannot directly answer how actions absent from that log would
+change queues or power, so evaluating a new feedback policy requires coverage
+and identification assumptions or a separate transition model.
+:::
+
+:::{exercise} Practice under latent mastery
+:label: ex-dynamics-modeling-practice
+
+An online practice system presents one problem at each of 20 rounds. Before
+round $t$, a learner's unobserved mastery $M_t$ is one of three ordered
+categories. The system chooses an easy, medium, or hard problem $A_t$, then
+observes correctness and response time $Y_t$. The observation distribution
+depends only on $M_t$ and $A_t$. Mastery then changes randomly according to a
+distribution that depends only on $M_t$ and $A_t$, producing $M_{t+1}$. The
+objective is to maximize the probability that $M_{20}$, after the twentieth
+transition, is the highest category, subject to presenting at most five hard
+problems. A resettable simulator can sample a transition and observation from
+any supplied mastery level and difficulty, but it exposes no equations or
+derivatives.
+
+(a) Classify the latent state, observation, action, stochastic dynamics,
+objective, constraint, horizon, and model interface. Include any bookkeeping
+variable needed to enforce the five-hard-problem limit.
+
+(b) Compare three possible inputs to the decision rule: the most recent answer,
+the complete observation history, and the posterior distribution over mastery
+levels. Which is an information state under the stated conditional
+relationships? Explain why.
+
+(c) Write the structural form of the state transition, observation model, and
+feedback policy without inventing numerical probabilities.
+
+(d) Describe an open-loop problem sequence and a feedback problem sequence.
+Which part of the available information can change the latter?
+
+(e) Name one computation that the resettable simulator supports directly and
+one operation that would require an additional interface.
+:::
+
+:::{solution} ex-dynamics-modeling-practice
+:class: dropdown
+
+(a) The augmented latent state is $(M_t,c_t,t)$, where $c_t$ counts hard
+problems already used. The observation is correctness and response time, and
+the action is difficulty. The model has a stochastic mastery transition and a
+stochastic observation map. The terminal objective is
+$\Pr(M_{20}=\text{highest})$, with $c_t\leq5$ as a hard constraint. The horizon
+contains 20 actions. The available model is a generative reset-and-sample
+simulator.
+
+(b) The latest answer alone generally loses information from earlier rounds.
+The complete history is sufficient but grows with time. Under the stated
+conditional relationships, the posterior
+$b_t(m)=\Pr(M_t=m\mid Y_{0:t-1},A_{0:t-1})$, augmented by $c_t$ and $t$, is a
+Markov information state.
+
+(c) Without assigning numbers, the structure is
+
+$$
+Y_t\sim O(\,\cdot\mid M_t,A_t),\qquad
+M_{t+1}\sim P(\,\cdot\mid M_t,A_t),\qquad
+c_{t+1}=c_t+\mathbf 1\{A_t=\mathrm{hard}\},
+$$
+
+with a feasible feedback policy
+$A_t=\pi_t(b_t,c_t)$ that excludes the hard action once $c_t=5$.
+
+(d) An open-loop sequence fixes all 20 difficulties before any answers are
+seen. A feedback sequence selects the next difficulty after updating the
+mastery posterior from correctness and response time, while retaining the
+remaining hard-problem budget.
+
+(e) The simulator directly supports arbitrary one-step samples and Monte Carlo
+rollouts from chosen latent states and actions. Exact probabilities, analytic
+derivatives, or symbolic local equations require an additional interface.
+:::
+
+## Summary and Outlook
+
+A decision model specifies a system boundary, state, action, dynamics,
+observation, objective, constraints, time scale, and information pattern. These
+choices are independent. Continuous actions can be applied to discrete-time
+dynamics, a deterministic plant can be partially observed, and a stochastic
+model can be used by either an open-loop planner or a feedback policy.
+
+A state supports prediction under the declared model, while an observation is
+the information supplied by a sensor or interface. A transition kernel
+represents stochastic evolution without requiring access to the random
+variables inside it. Equations, reset-and-step simulators, logged transitions,
+and live environments expose different operations, so they support different
+computations and different empirical claims.
+
+Model audits must target the assumption that could invalidate a decision. The
+SwingRL comparison changes a missing physical mode and shows that a successful
+rod trajectory need not exist for a chain. The battery comparison retains the
+model structure and updates one changed resistance parameter. Between these
+cases, the BIXI, gimbal, and inference examples separate disturbances from
+actions, observations from states, and conserved flows from calibrated maps.
+
 The next chapter assumes a dynamics model that can generate and constrain
-candidate trajectories, then computes an open-loop plan. Later chapters add
-feedback and learn model components, values, or policies when the corresponding
-objects are unavailable or too costly to compute directly.
-
-```{admonition} Exercises
-:class: hint dropdown
-
-1. For an unfamiliar system, write five lines specifying its state, action,
-   disturbance, objective, and one hard constraint. State where the system
-   boundary is drawn.
-
-2. In the action-channel figure, explain why replacing every input by an
-   unconstrained generalized force changes all three physical problems.
-
-3. Convert $\dot x=-ax+bu$ to a discrete-time model using forward Euler with
-   step size $\Delta t$. Identify the resulting coefficients.
-
-4. Use the sign of $-2m\rho\dot\rho\dot\psi$ to explain why shortening the
-   rider's radius near the bottom can add energy on both half-cycles.
-
-5. Express the swing's taut and slack phases as a hybrid system. Identify the
-   continuous state, discrete mode, release guard, and reattachment event.
-
-6. The structured swing controller succeeds on the rod and fails on the chain.
-   Explain why fitting a larger neural transition model to rod-only data does
-   not, by itself, resolve this discrepancy.
-
-7. For the BIXI corridor, verify that relocation preserves the sum of station
-   and truck inventories. Explain why customer trips need not preserve that sum
-   inside the three-station boundary.
-
-8. Construct two pairs $(\theta,a_x^w)$ that yield the same noiseless
-   accelerometer-derived tilt. Explain which additional information the
-   gyroscope supplies and which ambiguity remains.
-
-9. For the inference service, write a cache-balance equation that distinguishes
-   blocks allocated at prefill completion from blocks released at request
-   completion. State one condition that makes the aggregate cache state
-   insufficient for prediction.
-
-10. Write the reservoir transition as a function-plus-noise model when inflow
-    is $w_t=\bar w_t+\epsilon_t$. Describe the corresponding transition kernel.
-
-11. Give an example where the observation is not a Markov state. State which
-   missing variable or history would improve prediction.
-
-12. Classify each of the following interfaces: a differentiable ODE solver, a
-    reset-and-step robotics simulator, and a fixed table of logged transitions.
-    Name one method from the book that each interface supports directly.
-
-13. For autoregressive language generation, distinguish the environment
-    transition from the token policy. Explain how the model changes when a tool
-    call returns information from an external database.
-
-14. Extend the SwingRL experiment with the seated controller, or disable either
-    squat or lean in the standing controller. Predict the diagnostic that will
-    change before running the code. Explain which modeling assumption the
-    intervention tests.
-
-15. Starting from the completed-trip censoring counterexample, add one failed
-    rental attempt while the station is empty. Explain why this changes latent
-    demand without changing the completed-trip log.
-
-16. Load the Azure trace subset used by the inference experiment. Recompute the
-    offered-load dilation after omitting the ten longest prompts. Explain which
-    model quantity changes and which conservation equations remain unchanged.
-
-17. Ignoring voltage and temperature, derive the ideal time needed to move a
-    5 Ah cell from 20 to 80 percent state of charge at 10 A. Then use the
-    Thevenin output equation to explain why a governor with a stale resistance
-    estimate can violate the voltage bound even though charge conservation is
-    still correct. Which part of the model should be retained, and which single
-    parameter does the diagnostic pulse update?
-```
+candidate trajectories and computes an open-loop plan. Subsequent chapters add
+feedback and learn models, values, or policies when the corresponding objects
+are unavailable or too expensive to compute exactly.
 
 ## Computational Sources
 
@@ -1263,51 +2369,13 @@ The chapter executes domain code and reads committed experiment artifacts:
 - {download}`Battery diagnostic pulse <artifacts/battery/diagnostic_pulse.csv>`
 - {download}`Battery recorded trajectories <artifacts/battery/trajectories.npz>` and {download}`browser replay data <artifacts/battery/textbook_results.json>`
 - {download}`Battery artifact manifest <artifacts/battery/manifest.json>`
-- {download}`Action-channel figure <code/modeling_interfaces.py>`
+- {download}`Conceptual-figure generator <code/modeling_interfaces.py>`
+- {download}`Sampling-and-integration SVG <_static/sampling-and-integration.svg>`
+- {download}`Open-loop and feedback SVG <_static/open-loop-vs-feedback.svg>`
+- {download}`Swing-coordinate SVG <_static/swing-reduced-coordinates.svg>`
+- {download}`Inference-serving boundary SVG <_static/inference-serving-boundary.svg>`
 - {download}`Inference-serving model <code/inference_serving.py>`
 - {download}`Inference replay renderer <code/inference_replay.py>`
 
 The animation controls are embedded in the static site and require no live
 Python kernel.
-
-## Self-checks
-
-:::{exercise} State or observation?
-:label: ex-dynamics-check-1
-
-An inference controller observes queue counts and cache occupancy but not the
-remaining output length of each active request. Are those measurements alone a
-Markov state for the request-level process? Explain briefly.
-:::
-
-:::{solution} ex-dynamics-check-1
-:class: dropdown
-
-Generally no. Two systems can have the same counts and cache occupancy while
-their active requests have different remaining output lengths, which changes
-their future completion times and cache release.
-:::
-
-:::{exercise} Discretization check
-:label: ex-dynamics-check-2
-
-For $\dot{x}=ax+bu$ with a zero-order-held input and step $\Delta t$, write the explicit Euler update.
-:::
-
-:::{solution} ex-dynamics-check-2
-:class: dropdown
-
-$x_{k+1}=x_k+\Delta t(ax_k+bu_k)=(1+a\Delta t)x_k+b\Delta t\,u_k$.
-:::
-
-:::{exercise} Where uncertainty belongs
-:label: ex-dynamics-check-3
-
-When is a transition kernel more natural than writing deterministic dynamics plus additive noise?
-:::
-
-:::{solution} ex-dynamics-check-3
-:class: dropdown
-
-A kernel is more natural when uncertainty is discrete, state dependent, multimodal, or otherwise cannot be represented faithfully as a simple additive disturbance.
-:::

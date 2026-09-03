@@ -18,6 +18,7 @@ if str(CODE_DIRECTORY) not in sys.path:
 
 from swing_control import (  # noqa: E402
     DEFAULT_SWING_SCENARIO,
+    _results_markdown,
     audit_metrics,
     make_environment,
     make_model_audit_animation,
@@ -106,6 +107,20 @@ class SwingModelAuditTests(unittest.TestCase):
             min(event["seat_radius_fraction"] for event in events),
             0.999,
         )
+
+    def test_results_markdown_has_a_safe_six_column_header(self) -> None:
+        markdown = _results_markdown(
+            self.metrics,
+            mode_events(self.traces["unilateral_chain"]),
+        )
+        header = next(
+            line
+            for line in markdown.splitlines()
+            if line.startswith("| Suspension model |")
+        )
+
+        self.assertIn(r"Peak $\lvert\theta\rvert$", header)
+        self.assertEqual(header.count("|"), 7)
 
     def test_traces_are_finite_and_aligned_with_recorded_frames(self) -> None:
         for trace in self.traces.values():
