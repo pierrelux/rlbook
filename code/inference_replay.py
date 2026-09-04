@@ -737,12 +737,14 @@ def _safe_json(value: Any) -> str:
     )
 
 
-def _dom_id(prefix: str | None) -> str:
+def _dom_id(prefix: str | None, *, stable: bool = False) -> str:
     stem = re.sub(r"[^a-zA-Z0-9_-]+", "-", prefix or "inference-replay").strip("-")
     if not stem:
         stem = "inference-replay"
     if stem[0].isdigit():
         stem = f"replay-{stem}"
+    if stable:
+        return stem
     return f"{stem}-{secrets.token_hex(4)}"
 
 
@@ -752,6 +754,7 @@ def render_serving_replay(
     view: str = "modeling",
     replay_id: str | None = None,
     maximum_frames: int = 600,
+    stable_id: bool = False,
 ) -> str:
     """Return an accessible HTML/SVG player for recorded Python trajectories.
 
@@ -769,10 +772,13 @@ def render_serving_replay(
     maximum_frames:
         Upper bound on embedded frames.  Long recordings are evenly sampled by
         Python before they enter the page.
+    stable_id:
+        Use ``replay_id`` without a random suffix.  This is intended for static
+        page generators that guarantee a unique prefix for every replay.
     """
 
     data = _normalise_replay(source, view=view, maximum_frames=maximum_frames)
-    root_id = _dom_id(replay_id)
+    root_id = _dom_id(replay_id, stable=stable_id)
     data_id = f"{root_id}-data"
     title_id = f"{root_id}-title"
     description_id = f"{root_id}-description"

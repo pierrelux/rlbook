@@ -41,6 +41,12 @@ Then open `http://127.0.0.1:8000/modeling-controlled-systems/` and use **Present
 
 `publish.sh` performs both strict builds and publishes the assembled `_build/html` directory to `gh-pages` with `ghp-import`.
 
+Rebuild the single-file GPU inference demo gallery with:
+
+```bash
+uv run python scripts/build_gpu_demo_gallery.py
+```
+
 ## Authoring conventions
 
 - `pyproject.toml` is the dependency source of truth; `requirements.txt` is only a pip-compatible entry point.
