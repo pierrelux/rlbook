@@ -10,388 +10,18 @@ kernelspec:
   language: python
   name: python3
 ---
-
-# Policy Gradient Methods
-
-The [previous chapter](amortization.md) treated a policy as an approximation to
-an optimizer: a network learned to reproduce actions selected through a value
-function. Policy-gradient methods instead differentiate expected return with
-respect to the policy parameters. They require sampled trajectories and a
-differentiable policy, but they do not require derivatives of the transition
-dynamics.
-
-The mathematical development begins with derivative estimators for stochastic
-objectives and then introduces score-function estimators, control variates,
-generalized advantage estimation, and PPO. A recorded experiment on the
-SwingRL plant tests what this machinery produces when the algorithm receives
-only observations, actions, rewards, and sampled transitions. The result is a
-useful failure: five prespecified runs improve the shaped return without
-discovering the phase-locked behavior supplied directly by a structured
-controller.
-
-## Learning Goals
-
-After reading this chapter, you should be able to:
-
-- derive score-function and reparameterization estimators for a stochastic
-  objective;
-- use conditional independence and a baseline to reduce policy-gradient
-  variance without changing the expected gradient;
-- compute generalized advantage estimates and explain the role of
-  $\lambda$;
-- derive the clipped PPO objective from an importance-weighted surrogate;
-- audit a sampled-control experiment by separating supplied information,
-  interaction cost, task success, and physical feasibility.
-
-## Prerequisites
-
-The chapter assumes familiarity with expectations, conditional probability,
-and multivariate differentiation. [Monte Carlo Integration](montecarlo.md)
-reviews sampling estimators, while [Dynamic Programming](dp.md) introduces
-value functions and advantages. The SwingRL experiment returns to the plant and
-structured controller developed in
-[Internal Actuation in SwingRL](dynamics.md#internal-actuation-in-swingrl).
-
-## Derivative Estimation for Stochastic Optimization
-
-Consider optimizing an objective that involves an expectation:
-
-$$
-J(\theta) = \mathbb{E}_{x \sim p(x;\theta)}[f(x,\theta)]
-$$
-
-For concreteness, consider a simple example where $x \sim \mathcal{N}(\theta,1)$ and $f(x,\theta) = x^2\theta$. The derivative we seek is:
-
-$$
-\frac{d}{d\theta}J(\theta) = \frac{d}{d\theta}\int x^2\theta p(x;\theta)dx
-$$
-
-While we can compute this exactly for the Gaussian example, this is often impossible for more general problems. We might then be tempted to approximate our objective using samples:
-
-$$
-J(\theta) \approx \frac{1}{N}\sum_{i=1}^N f(x_i,\theta), \quad x_i \sim p(x;\theta)
-$$
-
-Then differentiate this approximation:
-
-$$
-\frac{d}{d\theta}J(\theta) \approx \frac{1}{N}\sum_{i=1}^N \frac{\partial}{\partial \theta}f(x_i,\theta)
-$$
-
-However, this naive approach ignores that the samples themselves depend on $\theta$. The correct derivative requires the product rule:
-
-$$
-\frac{d}{d\theta}J(\theta) = \int \frac{\partial}{\partial \theta}[f(x,\theta)p(x;\theta)]dx = \int \left[\frac{\partial f}{\partial \theta}p(x;\theta) + f(x,\theta)\frac{\partial p(x;\theta)}{\partial \theta}\right]dx
-$$
-
-While the first term could be numerically integrated using Monte Carlo, the second one cannot as it is not in the form of an expectation. 
-
-To transform our objective so that the Monte Carlo estimator for the objective could be differentiated directly while ensuring that the resulting derivative is unbiased, there are two main solutions: a change of measure, or a change of variables. 
-
-### The Likelihood Ratio Method
-
-One solution comes from rewriting our objective using a proposal distribution $q(x)$ that does not depend on $\theta$:
-
-$$
-J(\theta) = \int f(x,\theta)\frac{p(x;\theta)}{q(x)}q(x)dx = \mathbb{E}_{x \sim q(x)}\left[f(x,\theta)\frac{p(x;\theta)}{q(x)}\right]
-$$
-
-Define the likelihood ratio $\rho(x, q, \theta) \equiv \frac{p(x;\theta)}{q(x)}$, where we treat $q$ as a separate argument. The objective becomes:
-
-$$
-J(\theta) = \mathbb{E}_{x \sim q(x)}[f(x,\theta)\rho(x, q, \theta)]
-$$
-
-When we differentiate $J$, we take the partial derivative with respect to $\theta$ while holding $q$ fixed (since $q$ does not depend on $\theta$):
-
-$$
-\frac{d}{d\theta}J(\theta) = \mathbb{E}_{x \sim q(x)}\left[f(x,\theta)\frac{\partial \rho}{\partial \theta}(x, q, \theta) + \rho(x, q, \theta)\frac{\partial f}{\partial \theta}(x,\theta)\right]
-$$
-
-The partial derivative of $\rho$ with respect to $\theta$ (treating $q$ as fixed) is:
-
-$$
-\frac{\partial \rho}{\partial \theta}(x, q, \theta) = \frac{1}{q(x)}\frac{\partial p(x;\theta)}{\partial \theta} = \rho(x, q, \theta)\frac{\partial \log p(x;\theta)}{\partial \theta}
-$$
-
-Now fix any reference parameter $\theta_0$ and choose the proposal distribution $q(x) = p(x;\theta_0)$. This is a *fixed* distribution that does not change as $\theta$ varies. We simply evaluate the family $p(x;\cdot)$ at the specific point $\theta_0$. With this choice, evaluating the gradient at $\theta = \theta_0$ gives $\rho(x, q, \theta_0) = p(x;\theta_0)/p(x;\theta_0) = 1$. The gradient formula becomes:
-
-$$
-\frac{d}{d\theta}J(\theta)\Big|_{\theta=\theta_0} = \mathbb{E}_{x \sim p(x;\theta_0)}\left[f(x,\theta_0)\frac{\partial \log p(x;\theta)}{\partial \theta}\Big|_{\theta_0} + \frac{\partial f(x,\theta)}{\partial \theta}\Big|_{\theta_0}\right]
-$$
-
-Since $\theta_0$ is arbitrary, we can drop the subscript and write the **score function estimator** as:
-
-$$
-\frac{d}{d\theta}J(\theta) = \mathbb{E}_{x \sim p(x;\theta)}\left[f(x,\theta)\frac{\partial \log p(x;\theta)}{\partial \theta} + \frac{\partial f(x,\theta)}{\partial \theta}\right]
-$$
-
-
-### The Reparameterization Trick
-
-An alternative approach eliminates the $\theta$-dependence in the sampling distribution by expressing $x$ through a deterministic transformation of the noise:
-
-$$
-x = g(\epsilon,\theta), \quad \epsilon \sim q(\epsilon)
-$$
-
-Therefore if we want to sample from some target distribution $p(x;\theta)$, we can do so by first sampling from a simple base distribution $q(\epsilon)$ (like a standard normal) and then transforming those samples through a carefully chosen function $g$. If $g(\cdot,\theta)$ is invertible, the change of variables formula tells us how these distributions relate:
-
-$$
-p(x;\theta) = q(g^{-1}(x,\theta))\left|\det\frac{\partial g^{-1}(x,\theta)}{\partial x}\right| = q(\epsilon)\left|\det\frac{\partial g(\epsilon,\theta)}{\partial \epsilon}\right|^{-1}
-$$
-
-
-For example, if we want to sample from any multivariate Gaussian distributions with covariance matrix $\Sigma$ and mean $\mu$, it suffices to be able to sample from a standard normal noise and compute the linear transformation:
-
-$$
-x = \mu + \Sigma^{1/2}\epsilon, \quad \epsilon \sim \mathcal{N}(0,I)
-$$
-
-where $\Sigma^{1/2}$ is the matrix square root obtained via Cholesky decomposition. In the univariate case, this transformation is simply: 
-
-$$
-x = \mu + \sigma \epsilon, \quad \epsilon \sim \mathcal{N}(0,1)
-$$
-
-where $\sigma = \sqrt{\sigma^2}$ is the standard deviation (square root of the variance).
-
-
-
-#### Common Examples of Reparameterization
-
-##### The Truncated Normal Distribution
-When we need samples constrained to an interval $[a,b]$, we can use the truncated normal distribution. To sample from it, we transform uniform noise through the inverse cumulative distribution function (CDF) of the standard normal:
-
-$$
-x = \Phi^{-1}(u\Phi(b) + (1-u)\Phi(a)), \quad u \sim \text{Uniform}(0,1)
-$$
-
-Here:
-- $\Phi(z) = \frac{1}{2}\left[1 + \text{erf}\left(\frac{z}{\sqrt{2}}\right)\right]$ is the CDF of the standard normal distribution
-- $\Phi^{-1}$ is its inverse (the quantile function)
-- $\text{erf}(z) = \frac{2}{\sqrt{\pi}}\int_0^z e^{-t^2}dt$ is the error function
-
-The resulting samples follow a normal distribution restricted to $[a,b]$, with the density properly normalized over this interval.
-
-##### The Kumaraswamy Distribution
-When we need samples in the unit interval [0,1], a natural choice might be the Beta distribution. However, its inverse CDF doesn't have a closed form. Instead, we can use the Kumaraswamy distribution as a convenient approximation, which allows for a simple reparameterization:
-
-$$
-x = (1-(1-u^{\alpha})^{1/\beta}), \quad u \sim \text{Uniform}(0,1)
-$$
-
-where:
-- $\alpha, \beta > 0$ are shape parameters that control the distribution
-- $\alpha$ determines the concentration around 0 
-- $\beta$ determines the concentration around 1
-- The distribution is similar to Beta(α,β) but with analytically tractable CDF and inverse CDF
-
-The Kumaraswamy distribution has density:
-
-$$
-f(x; \alpha, \beta) = \alpha\beta x^{\alpha-1}(1-x^{\alpha})^{\beta-1}, \quad x \in [0,1]
-$$
-
-##### The Gumbel-Softmax Distribution 
-
-When sampling from a categorical distribution with probabilities $\{\pi_i\}$, one approach uses $\text{Gumbel}(0,1)$ noise combined with the argmax of log-perturbed probabilities:
-
-$$
-\text{argmax}_i(\log \pi_i + g_i), \quad g_i \sim \text{Gumbel}(0,1)
-$$
-
-This approach, known in machine learning as the Gumbel-Max trick, relies on sampling Gumbel noise from uniform random variables through the transformation $g_i = -\log(-\log(u_i))$ where $u_i \sim \text{Uniform}(0,1)$. To see why this gives us samples from the categorical distribution, consider the probability of selecting category $i$:
-
-$$
-\begin{align*}
-P(\text{argmax}_j(\log \pi_j + g_j) = i) &= P(\log \pi_i + g_i > \log \pi_j + g_j \text{ for all } j \neq i) \\
-&= P(g_i - g_j > \log \pi_j - \log \pi_i \text{ for all } j \neq i)
-\end{align*}
-$$
-
-Since the difference of two Gumbel random variables follows a logistic distribution, $g_i - g_j \sim \text{Logistic}(0,1)$, and these differences are independent for different $j$ (due to the independence of the original Gumbel variables), we can write:
-
-$$
-\begin{align*}
-P(\text{argmax}_j(\log \pi_j + g_j) = i) &= \prod_{j \neq i} P(g_i - g_j > \log \pi_j - \log \pi_i) \\
-&= \prod_{j \neq i} \frac{\pi_i}{\pi_i + \pi_j} = \pi_i
-\end{align*}
-$$
-
-The last equality requires some additional algebra to show, but follows from the fact that these probabilities must sum to 1 over all $i$.
-
-While we have shown that the Gumbel-Max trick gives us exact samples from a categorical distribution, the argmax operation isn't differentiable. For stochastic optimization problems of the form:
-
-$$
-\mathbb{E}_{x \sim p(x;\theta)}[f(x)] = \mathbb{E}_{\epsilon \sim \text{Gumbel}(0,1)}[f(g(\epsilon,\theta))]
-$$
-
-we need $g$ to be differentiable with respect to $\theta$. This leads us to consider a continuous relaxation where we replace the hard argmax with a temperature-controlled softmax:
-
-$$
-z_i = \frac{\exp((\log \pi_i + g_i)/\tau)}{\sum_j \exp((\log \pi_j + g_j)/\tau)}
-$$
-
-As $\tau \to 0$, this approximation approaches the argmax:
-
-$$
-\lim_{\tau \to 0} \frac{\exp(x_i/\tau)}{\sum_j \exp(x_j/\tau)} = \begin{cases} 1 & \text{if } x_i = \max_j x_j \\ 0 & \text{otherwise} \end{cases}
-$$
-
-The resulting distribution over the probability simplex is called the Gumbel-Softmax (or Concrete) distribution. The temperature parameter $\tau$ controls the discreteness of our samples: smaller values give samples closer to one-hot vectors but with less stable gradients, while larger values give smoother gradients but more diffuse samples.
-
-
-### Numerical Analysis of Gradient Estimators
-
-Let us examine the behavior of our three gradient estimators for the stochastic optimization objective: 
-
-$$J(\theta) = \mathbb{E}_{x \sim \mathcal{N}(\theta,1)}[x^2\theta]$$ 
-
-To get an analytical expression for the derivative, first note that we can factor out $\theta$ to obtain $J(\theta) = \theta\mathbb{E}[x^2]$ where $x \sim \mathcal{N}(\theta,1)$. By definition of the variance, we know that $\text{Var}(x) = \mathbb{E}[x^2] - (\mathbb{E}[x])^2$, which we can rearrange to $\mathbb{E}[x^2] = \text{Var}(x) + (\mathbb{E}[x])^2$. Since $x \sim \mathcal{N}(\theta,1)$, we have $\text{Var}(x) = 1$ and $\mathbb{E}[x] = \theta$, therefore $\mathbb{E}[x^2] = 1 + \theta^2$. This gives us:
-
-$$J(\theta) = \theta(1 + \theta^2)$$
-
-Now differentiating with respect to $\theta$ using the product rule yields:
-
-$$\frac{d}{d\theta}J(\theta) = 1 + 3\theta^2$$ 
-
-For concreteness, we fix $\theta = 1.0$ and analyze samples drawn using Monte Carlo estimation with batch size 1000 and 1000 independent trials. Evaluating at $\theta = 1$ gives us $\frac{d}{d\theta}J(\theta)\big|_{\theta=1} = 1 + 3(1)^2 = 4$, which serves as our ground truth against which we compare our estimators:
-
-1.  First, we consider the naive estimator that incorrectly differentiates the Monte Carlo approximation:
-
-    $$\hat{g}_{\text{naive}}(\theta) = \frac{1}{N}\sum_{i=1}^N x_i^2$$
-
-    For $x \sim \mathcal{N}(1,1)$, we have $\mathbb{E}[x^2] = \theta^2 + 1 = 2.0$ and $\mathbb{E}[\hat{g}_{\text{naive}}] = 2.0$. We should therefore expect a bias of about $-2$ in our experiment. 
-
-2. Then we compute the score function estimator:
-
-    $$\hat{g}_{\text{SF}}(\theta) = \frac{1}{N}\sum_{i=1}^N \left[x_i^2\theta(x_i - \theta) + x_i^2\right]$$
-
-    This estimator is unbiased with $\mathbb{E}[\hat{g}_{\text{SF}}] = 4$
-
-3. Finally, through the reparameterization $x = \theta + \epsilon$ where $\epsilon \sim \mathcal{N}(0,1)$, we obtain:
-
-    $$\hat{g}_{\text{RT}}(\theta) = \frac{1}{N}\sum_{i=1}^N \left[2\theta(\theta + \epsilon_i) + (\theta + \epsilon_i)^2\right]$$
-
-    This estimator is also unbiased with $\mathbb{E}[\hat{g}_{\text{RT}}] = 4$.
-
-
-```{code-cell} python
-:tags: [hide-input]
-
-%config InlineBackend.figure_format = 'retina'
-import jax
-import jax.numpy as jnp
-import altair as alt
-import numpy as np
-import pandas as pd
-
-key = jax.random.PRNGKey(0)
-
-# Define the objective function f(x,θ) = x²θ where x ~ N(θ, 1)
-def objective(x, theta):
-    return x**2 * theta
-
-# Naive Monte Carlo gradient estimation
-@jax.jit
-def naive_gradient_batch(key, theta):
-    samples = jax.random.normal(key, (1000,)) + theta
-    # Use jax.grad on the objective with respect to theta
-    grad_fn = jax.grad(lambda t: jnp.mean(objective(samples, t)))
-    return grad_fn(theta)
-
-# Score function estimator (REINFORCE)
-@jax.jit
-def score_function_batch(key, theta):
-    samples = jax.random.normal(key, (1000,)) + theta
-    # f(x,θ) * ∂logp(x|θ)/∂θ + ∂f(x,θ)/∂θ
-    # score function for N(θ,1) is (x-θ)
-    score = samples - theta
-    return jnp.mean(objective(samples, theta) * score + samples**2)
-
-# Reparameterization gradient
-@jax.jit
-def reparam_gradient_batch(key, theta):
-    eps = jax.random.normal(key, (1000,))
-    # Use reparameterization x = θ + ε, ε ~ N(0,1)
-    grad_fn = jax.grad(lambda t: jnp.mean(objective(t + eps, t)))
-    return grad_fn(theta)
-
-# Run trials
-n_trials = 1000
-theta = 1.0
-true_grad = 1 + 3 * theta**2
-
-keys = jax.random.split(key, n_trials)
-naive_estimates = jnp.array([naive_gradient_batch(k, theta) for k in keys])
-score_estimates = jnp.array([score_function_batch(k, theta) for k in keys])
-reparam_estimates = jnp.array([reparam_gradient_batch(k, theta) for k in keys])
-
-# Print statistics
-methods = {
-    'Naive': naive_estimates,
-    'Score Function': score_estimates, 
-    'Reparameterization': reparam_estimates
-}
-
-for name, estimates in methods.items():
-    bias = jnp.mean(estimates) - true_grad
-    variance = jnp.var(estimates)
-    print(f"\n{name}:")
-    print(f"Mean: {jnp.mean(estimates):.6f}")
-    print(f"Bias: {bias:.6f}")
-    print(f"Variance: {variance:.6f}")
-    print(f"MSE: {bias**2 + variance:.6f}")
-
-gradient_data = pd.concat(
-    [
-        pd.DataFrame({
-            "Estimator": name,
-            "Gradient estimate": np.asarray(estimates),
-        })
-        for name, estimates in methods.items()
-    ],
-    ignore_index=True,
-)
-estimator_pick = alt.selection_point(fields=["Estimator"], bind="legend")
-
-density = (
-    alt.Chart(gradient_data)
-    .transform_density(
-        "Gradient estimate",
-        as_=["Gradient estimate", "Density"],
-        groupby=["Estimator"],
-    )
-    .mark_area(opacity=0.45, line=True)
-    .encode(
-        x=alt.X("Gradient estimate:Q", title="Gradient estimate"),
-        y=alt.Y("Density:Q", stack=None),
-        color=alt.Color("Estimator:N", legend=alt.Legend(orient="top")),
-        opacity=alt.condition(estimator_pick, alt.value(0.55), alt.value(0.08)),
-        tooltip=["Estimator:N"],
-    )
-    .add_params(estimator_pick)
-)
-
-truth = (
-    alt.Chart(pd.DataFrame({"True gradient": [true_grad]}))
-    .mark_rule(color="#b91c1c", strokeDash=[6, 4], size=2)
-    .encode(x="True gradient:Q")
-)
-
-(density + truth).properties(
-    height=340,
-    title=f"Gradient estimator distributions (θ={theta}, true gradient={true_grad:.2f})",
-)
-
-```
-
-The numerical experiments corroborate our theory. The naive estimator consistently underestimates the true gradient by 2.0, though it maintains a relatively small variance. This systematic bias would make it unsuitable for optimization despite its low variance. The score function estimator corrects this bias but introduces substantial variance. While unbiased, this estimator would require many samples to achieve reliable gradient estimates. Finally, the reparameterization trick achieves a much lower variance while remaining unbiased. While this experiment is for didactic purposes only, it reproduces what is commonly found in practice: that when applicable, the reparameterization estimator tends to perform better than the score function counterpart. 
-
-## Score Function Methods in Reinforcement Learning 
-
-The score function estimator from the previous section applies directly to reinforcement learning. Since it requires only the ability to evaluate and differentiate $\log \pi_{\boldsymbol{w}}(a|s)$, it works with any differentiable policy, including discrete action spaces where reparameterization is unavailable. It requires no model of the environment dynamics.
+# Policy Gradients and Actor-Critic
+
+The previous chapters optimized policies through Q-functions, soft Bellman
+relations, or path-consistency equations. Can expected return itself supply the
+policy objective without differentiating the environment dynamics? The score
+function estimator applies directly to trajectories because the policy terms
+are the only factors in their probability law that depend on the policy
+parameters.
+
+The estimator requires only the ability to evaluate and differentiate $\log
+\pi_{\boldsymbol{w}}(a|s)$, so it also works with discrete actions where
+reparameterization is unavailable.
 
 Let $G(\tau) \equiv \sum_{t=0}^T r(s_t, a_t)$ be the sum of undiscounted rewards in a trajectory $\tau$. The stochastic optimization problem we face is to maximize:
 
@@ -635,7 +265,7 @@ $$
 $$
 
 
-In practice, we do not have access to the true value function and must learn it. Unlike the methods in the [amortization chapter](amortization.md), where we learned value functions to approximate the *optimal* Q-function, here our goal is **policy evaluation**: estimating the value of the *current* policy $\pi_{\boldsymbol{w}}$. The same function approximation techniques apply, but we target $v^{\pi_{\boldsymbol{w}}}$ rather than $v^*$. The simplest approach is to regress from states to Monte Carlo returns, learning what {cite:t}`williams1992reinforce` called a "baseline": 
+In practice, we do not have access to the true value function and must learn it. Unlike the methods in the [amortization chapter](amortized-action-optimization.md), where we learned value functions to approximate the *optimal* Q-function, here our goal is **policy evaluation**: estimating the value of the *current* policy $\pi_{\boldsymbol{w}}$. The same function approximation techniques apply, but we target $v^{\pi_{\boldsymbol{w}}}$ rather than $v^*$. The simplest approach is to regress from states to Monte Carlo returns, learning what {cite:t}`williams1992reinforce` called a "baseline": 
 
 ```{prf:algorithm} Policy Gradient with Simple Baseline
 :label: policy-grad-baseline
@@ -876,6 +506,9 @@ This algorithm was derived by Sutton in his 1984 thesis as an "adaptive heuristi
 
 ## Likelihood Ratio Methods in Reinforcement Learning
 
+How do importance ratios and constrained or clipped surrogates reuse
+trajectories collected under an earlier policy?
+
 The score function estimator from the previous section is a special case of the likelihood ratio method where the proposal distribution equals the target distribution. We now consider the general case where they differ.
 
 Recall the likelihood ratio gradient estimator from the beginning of this chapter. For objective $J(\theta) = \mathbb{E}_{x \sim p(x;\theta)}[f(x)]$ and any proposal distribution $q(x)$:
@@ -950,7 +583,7 @@ $$
 \max_{\boldsymbol{w}} L^{\text{IS}}(\boldsymbol{w}) \quad \text{subject to} \quad \mathbb{E}_s\left[D_{\text{KL}}(\pi_{\boldsymbol{w}_{\text{old}}}(\cdot|s) \| \pi_{\boldsymbol{w}}(\cdot|s))\right] \leq \delta
 $$
 
-The KL constraint ensures that the two distributions remain similar, which bounds how extreme the importance weights can become. This is a constrained optimization problem, and one could in principle apply standard methods such as projected gradient descent or augmented Lagrangian approaches (as discussed in the [trajectory optimization chapter](trajectories.md)). TRPO takes a different approach: it uses a second-order Taylor approximation of the KL constraint around the current parameters and solves the resulting trust region subproblem using conjugate gradient methods. This involves computing the Fisher information matrix (the Hessian of the KL divergence), which adds computational overhead.
+The KL constraint ensures that the two distributions remain similar, which bounds how extreme the importance weights can become. This is a constrained optimization problem, and one could in principle apply standard methods such as projected gradient descent or augmented Lagrangian approaches (as discussed in the [trajectory optimization chapter](discrete-time-optimal-control.md)). TRPO takes a different approach: it uses a second-order Taylor approximation of the KL constraint around the current parameters and solves the resulting trust region subproblem using conjugate gradient methods. This involves computing the Fisher information matrix (the Hessian of the KL divergence), which adds computational overhead.
 
 Proximal Policy Optimization (PPO) achieves similar behavior through a simpler mechanism: rather than constraining the distributions to be similar, it directly clips the ratio $\rho_t$ to prevent it from moving too far from 1. This is a construction-level guarantee rather than an optimization-level constraint.
 
@@ -1002,7 +635,7 @@ $$
 \hat{L}^{\text{CLIP}}(\boldsymbol{w}; \mathcal{D}) = \frac{1}{|\mathcal{D}|} \sum_{(s,a,A) \in \mathcal{D}} \ell^{\text{CLIP}}(\boldsymbol{w}; s, a, A)
 $$ (eq:ppo-clip)
 
-This is the same plug-in approximation used in [fitted Q-iteration](fqi.md): replace the unknown population distribution with the empirical distribution $\hat{P}_{\mathcal{D}}$ induced by the collected batch, then compute the sample average. The empirical surrogate $\hat{L}^{\text{CLIP}}$ is simply an expectation under $\hat{P}_{\mathcal{D}}$. No assumptions about stationarity or discounted visitation are needed. We just average over the transitions we collected.
+This is the same plug-in approximation used in [fitted Q-iteration](fitted-q-iteration.md): replace the unknown population distribution with the empirical distribution $\hat{P}_{\mathcal{D}}$ induced by the collected batch, then compute the sample average. The empirical surrogate $\hat{L}^{\text{CLIP}}$ is simply an expectation under $\hat{P}_{\mathcal{D}}$. No assumptions about stationarity or discounted visitation are needed. We just average over the transitions we collected.
 
 #### Intuition for the Clipping Mechanism
 
@@ -1043,7 +676,7 @@ The algorithm collects a batch of trajectories, then performs $K$ epochs of mini
 
 ### Experiment: PPO on the SwingRL Plant
 
-The SwingRL model from the [modeling chapter](dynamics.md#internal-actuation-in-swingrl)
+The SwingRL model from the [modeling chapter](modeling-controlled-systems.md#internal-actuation-in-swingrl)
 provides a matched comparison between supplied structure and sampled policy
 optimization. Both controllers act on the same articulated standing rider, use
 the same two bounded commands, receive the same observations, and count one
@@ -1148,6 +781,9 @@ movie.
 
 ## The Policy Gradient Theorem
 
+How can the trajectory-level score estimator be rewritten as an expectation
+over discounted state visitation and action values?
+
 The algorithms developed so far (REINFORCE, actor-critic, GAE, and PPO) all estimate policy gradients from sampled trajectories. We now establish the theoretical foundation for these estimators by deriving the policy gradient theorem in the discounted infinite-horizon setting.
 
 {cite:t}`sutton1999policy` provided the original derivation. Here we present an alternative approach using the Implicit Function Theorem, which frames policy optimization as a bilevel problem:
@@ -1191,7 +827,7 @@ $$
 \mathbf{x}_\alpha^\top \equiv \alpha^\top(\mathbf{I} - \gamma \mathbf{P}_{\pi_{\boldsymbol{w}}})^{-1}.
 $$
 
-Recall the vector notation for MDPs from the [dynamic programming chapter](dp.md):
+Recall the vector notation for MDPs from the [infinite-horizon MDP chapter](infinite-horizon-mdps.md):
 
 $$
 \begin{align*}
@@ -1341,11 +977,15 @@ We are simultaneously learning two functions that depend on each other, which cr
 
 {cite:t}`konda2002thesis` analyzed this coupled learning problem and established convergence guarantees under a **two-timescale** condition: the critic must update faster than the actor. Intuitively, the critic needs to "track" the current policy's value function before the actor uses those estimates to update. If the actor moves too fast, it uses stale or inaccurate value estimates, leading to poor gradient estimates.
 
-In practice, this is implemented by using different learning rates: a larger learning rate $\alpha_\theta$ for the critic and a smaller learning rate $\alpha_w$ for the actor, with $\alpha_\theta > \alpha_w$. Alternatively, one can perform multiple critic updates per actor update. The soft actor-critic algorithm discussed earlier in the [amortization chapter](amortization.md) follows this same principle, inheriting the actor-critic structure while incorporating entropy regularization and learning Q-functions directly.
+In practice, this is implemented by using different learning rates: a larger learning rate $\alpha_\theta$ for the critic and a smaller learning rate $\alpha_w$ for the actor, with $\alpha_\theta > \alpha_w$. Alternatively, one can perform multiple critic updates per actor update. The soft actor-critic algorithm discussed earlier in the [amortization chapter](amortized-action-optimization.md) follows this same principle, inheriting the actor-critic structure while incorporating entropy regularization and learning Q-functions directly.
 
 The actor-critic architecture also connects to the bilevel optimization perspective of the policy gradient theorem: the outer problem optimizes the policy, while the inner problem solves for the value function given that policy. The two-timescale condition ensures that the inner problem is approximately solved before taking a step on the outer problem.
 
 ## Reparameterization Methods in Reinforcement Learning
+
+When actions and dynamics admit differentiable sampling paths, how does
+pathwise differentiation change the variance and model requirements of policy
+optimization?
 
 When dynamics are known or can be learned, reparameterization provides an alternative to score function methods. By expressing actions and state transitions as deterministic functions of noise, we can backpropagate through trajectories to compute policy gradients with lower variance than score function estimators.
 
@@ -1441,9 +1081,11 @@ When dynamics are deterministic or can be accurately reparameterized, SVG-style 
 
 ## Summary
 
-This chapter developed the mathematical foundations for policy gradient methods. Starting from general derivative estimation techniques in stochastic optimization, we saw two main approaches: the likelihood ratio (score function) method and the reparameterization trick. While the reparameterization trick typically offers lower variance, it requires that the sampling distribution be reparameterizable, making it inapplicable to discrete actions or environments with complex dynamics.
-
-For reinforcement learning, the score function estimator provides a model-free gradient that depends only on the policy parametrization, not the transition dynamics. Through variance reduction techniques (leveraging conditional independence, using control variates, and the Generalized Advantage Estimator), we can make these gradients practical for learning. The likelihood ratio perspective then led to importance-weighted surrogates and PPO's clipped objective for stable off-policy updates.
+The trajectory score supplies a model-free policy gradient because the
+transition terms do not depend on the policy parameters. Conditional returns,
+state-dependent baselines, generalized advantage estimates, and learned
+critics reduce its variance. Importance ratios then compare data from an older
+policy with the current one, while PPO clips those ratios to limit the update.
 
 The SwingRL experiment separated a correct PPO implementation from a
 successful control result. Five million total training interactions improved
@@ -1453,9 +1095,18 @@ different test because the resulting trajectory required a chain to push.
 Algorithm diagnostics, task success, and model validity therefore remain
 separate parts of the evaluation.
 
-We also established the policy gradient theorem, which provides the theoretical foundation for these estimators in the discounted infinite-horizon setting. The actor-critic architecture emerges from approximating the value function that appears in this theorem, with the two-timescale condition ensuring stable learning.
+The policy-gradient theorem expresses the same derivative through discounted
+state visitation and action values. Approximating those values produces the
+actor-critic architecture, with a faster critic update supplying the signal
+used by the actor.
 
-When dynamics models are available, reparameterization through Stochastic Value Gradients offers lower-variance alternatives. SVG(0) recovers actor-critic methods like DDPG and SAC, while SVG($\infty$) represents pure model-based optimization through differentiable simulation.
+When dynamics models are available, reparameterization through stochastic
+value gradients supplies a lower-variance alternative. SVG(0) recovers
+actor-critic methods such as DDPG and SAC, while SVG($\infty$) differentiates
+through a complete simulated trajectory. The resulting choice is now explicit:
+score methods trade variance for minimal model assumptions; pathwise methods
+trade stronger differentiability assumptions for lower-variance credit
+assignment.
 
 ## Self-checks
 
@@ -1481,16 +1132,4 @@ Why can a state-dependent baseline reduce variance without biasing the score-fun
 :class: dropdown
 
 Conditioned on a state, the expected policy score is zero: $\sum_a\pi(a|s)\nabla\log\pi(a|s)=0$. Multiplying a state-only baseline by that score therefore has zero expectation.
-:::
-
-:::{exercise} Reparameterization boundary
-:label: ex-pg-check-3
-
-Give one setting where the score-function method applies but a pathwise reparameterization gradient is not directly available.
-:::
-
-:::{solution} ex-pg-check-3
-:class: dropdown
-
-A policy with discrete actions is the standard example: its samples are not differentiable functions of continuous noise, while their log probabilities remain differentiable in the policy parameters.
 :::

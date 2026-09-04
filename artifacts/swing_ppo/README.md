@@ -1,6 +1,6 @@
 # SwingRL PPO experiment
 
-These files record the PPO experiment discussed in `pg.md`. The experiment
+These files record the PPO experiment discussed in `policy-gradients.md`. The experiment
 uses the articulated standing model from SwingRL commit
 `d579663fc81c044729f4d3ab60bf63bcdbd27b9a` and defines success as one full
 unwrapped rotation.

@@ -102,7 +102,7 @@
         @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.rl-candidate{transition:none}}
       `;
 
-      const sourceUrl=()=>{const requested=new URLSearchParams(location.search).get('page');const fallback=new URL('../dynamics',location.href);try{const candidate=new URL(requested||document.referrer||fallback,location.href);if(candidate.origin!==location.origin||candidate.pathname===location.pathname)return fallback.href;return candidate.href}catch{return fallback.href}};
+      const sourceUrl=()=>{const requested=new URLSearchParams(location.search).get('page');const fallback=new URL('../modeling-controlled-systems',location.href);try{const candidate=new URL(requested||document.referrer||fallback,location.href);if(candidate.origin!==location.origin||candidate.pathname===location.pathname)return fallback.href;return candidate.href}catch{return fallback.href}};
       const doc=()=>frame.contentDocument;
       const win=()=>frame.contentWindow;
       const showHint=(message,duration=2800)=>{hint.textContent=message;hint.classList.add('visible');clearTimeout(state.hintTimer);state.hintTimer=setTimeout(()=>hint.classList.remove('visible'),duration)};

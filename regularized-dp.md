@@ -11,10 +11,12 @@ kernelspec:
   name: python3
 ---
 
-Dynamic programming methods suffer from the curse of dimensionality and can quickly become difficult to apply in practice. We may also be dealing with large or continuous state or action spaces. We have seen so far that we could address this problem using discretization, or interpolation. These were already examples of approximate dynamic programming. In this chapter, we will see other forms of approximations meant to facilitate the optimization problem, either by approximating the optimality equations, the value function, or the policy itself.
-Approximation theory is at the heart of learning methods, and fundamentally, this chapter will be about the application of learning ideas to solve complex decision-making problems.
+# Smooth and Regularized Dynamic Programming
 
-# Smooth Bellman Optimality Equations
+Infinite-horizon dynamic programming selects actions with a hard maximum. That
+operator is nondifferentiable at ties and produces a deterministic greedy
+choice. Can a modified control objective produce both a smooth Bellman operator
+and a stochastic optimal policy? Convex regularization supplies the link.
 
 While the standard Bellman optimality equations use the max operator to determine the best action, an alternative formulation known as the smooth or soft Bellman optimality equations replaces this with a softmax operator. This approach originated from {cite}`rust1987optimal` and was later rediscovered in the context of maximum entropy inverse reinforcement learning {cite}`ziebart2008maximum`, which then led to soft Q-learning {cite}`haarnoja2017reinforcement` and soft actor-critic {cite}`haarnoja2018soft`, a state-of-the-art deep reinforcement learning algorithm.
 
@@ -78,6 +80,9 @@ Finally, it's worth noting that we can also derive this form by considering an e
 
 ## Alternative Soft Maximum: Gaussian Uncertainty-Weighted Aggregation
 
+Can uncertainty-dependent action weights smooth selection differently from a
+single global softmax temperature?
+
 The logsumexp operator provides one way to soften the hard maximum, but alternative approaches exist. When Q-value estimates have heterogeneous uncertainty (some actions estimated more precisely than others), we can weight actions by the probability they are optimal under a Gaussian uncertainty model. {cite}`deramo2016estimating` proposed computing weights as:
 
 $$
@@ -86,9 +91,12 @@ $$
 
 where $\hat{\mu}_{a'}$ and $\hat{\sigma}_{a'}$ are the sample mean and standard deviation of Q-value estimates, $n$ is the sample size, and $\phi$, $\Phi$ are the standard normal PDF and CDF. The soft Bellman target becomes $v(s') = \sum_{a'} w_{a'} q(s', a')$, a probability-weighted expectation rather than a hard maximum.
 
-This differs from logsumexp in that it adapts to state-action-specific uncertainty (actions with tighter confidence intervals receive more weight), whereas logsumexp applies uniform smoothing via temperature $\beta$. The Gaussian-weighted approach requires maintaining variance estimates and computing integrals, making it more expensive than logsumexp. However, it provides a principled way to reduce overestimation bias in Q-learning while avoiding the pessimism of double Q-learning. We return to this estimator in the [simulation-based methods chapter](montecarlo.md) when discussing overestimation bias mitigation strategies.
+This differs from logsumexp in that it adapts to state-action-specific uncertainty (actions with tighter confidence intervals receive more weight), whereas logsumexp applies uniform smoothing via temperature $\beta$. The Gaussian-weighted approach requires maintaining variance estimates and computing integrals, making it more expensive than logsumexp. However, it provides a principled way to reduce overestimation bias in Q-learning while avoiding the pessimism of double Q-learning. We return to this estimator in the [simulation-based methods chapter](monte-carlo-bellman-estimation.md) when discussing overestimation bias mitigation strategies.
 
 ## Gumbel Noise on the Rewards
+
+Why does adding independent Gumbel perturbations to action rewards produce a
+log-sum-exp value before the perturbation is observed?
 
 We can obtain the smooth Bellman equation by considering a setting in which we have Gumbel noise added to the reward function. This derivation provides both theoretical insight and connects to practical modeling scenarios where rewards have random perturbations.
 
@@ -371,6 +379,9 @@ $$ d(a_t | s_t) = \frac{\exp(\beta (r(s_t, a_t) + \gamma \sum_{s_{t+1}} p(s_{t+1
 
 ## Regularized Markov Decision Processes
 
+Which convex penalty on action distributions generates a desired smooth
+maximum through conjugate duality?
+
 Regularized MDPs {cite}`geist2019` provide another perspective on how the smooth Bellman equations come to be. This framework offers a more general approach in which we seek to find optimal policies under the infinite horizon criterion while also accounting for a regularizer that influences the kind of policies we try to obtain.
 
 Let's set up some necessary notation. First, recall that the policy evaluation operator for a stationary policy with decision rule $\pi$ is defined as:
@@ -401,6 +412,9 @@ $$ \nabla \Omega^*(q(s, \cdot)) = \arg\max_\pi \langle \pi(\cdot | s), q(s, \cdo
 An important example of a regularizer is the negative entropy, which gives rise to the smooth Bellman equations as we are about to see. 
 
 ## Regularized Bellman Operators
+
+How do the regularizer and its convex conjugate alter Bellman evaluation,
+policy improvement, and their contraction properties?
 
 With these concepts in place, we can now define the regularized Bellman operators:
 
@@ -742,6 +756,19 @@ While the smooth Bellman equations (using logsumexp) and entropy-regularized for
 - Line 14 shows the vector form: the linear system includes the entropy vector $\mathbf{H}_\pi$
 - The algorithm alternates between evaluating the current stochastic policy and improving it
 - Converges to the unique optimal entropy-regularized policy
+
+## Summary and Outlook
+
+Entropy regularization replaces hard action selection with a smooth conjugate
+operator and produces a stochastic optimal policy. Gumbel perturbations,
+log-sum-exp Bellman updates, and regularized policy iteration describe the same
+construction from probabilistic, variational, and algorithmic viewpoints.
+
+Smoothness changes the operator but does not remove the need to represent its
+unknown value function. How can an infinite-dimensional functional equation be
+reduced to finitely many coefficients and test conditions? [Weighted-residual
+methods](weighted-residual-methods.md) provide the general approximation
+machinery.
 
 ## Self-checks
 

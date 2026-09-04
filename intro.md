@@ -208,21 +208,28 @@ live interaction.
 
 | Part | Question | Result |
 |---|---|---|
-| Modeling | What evolves, what can be observed, and where does an action enter? | A state, action, disturbance, objective, constraint set, and model interface |
-| Trajectory optimization | What action sequence performs well from one initial condition? | An open-loop plan |
-| Model predictive control | How can the plan react to new measurements? | Feedback through repeated replanning |
-| Dynamic programming | How can decisions be optimized for many possible future states? | A value function and state-contingent policy |
-| Approximation and learning | Which required object is unavailable or too expensive to compute exactly? | An approximation learned from models, samples, or interaction |
+| Modeling sequential decisions | What evolves, what can be observed, and where does an action enter? | A state, action, disturbance, objective, constraint set, and model interface |
+| Open-loop optimal control | What action sequence performs well from one initial condition? | A finite-horizon plan and the conditions and numerical methods used to compute it |
+| Feedback control | How can the plan respond when measurements reveal a different state? | Closed-loop behavior through repeated replanning |
+| Dynamic programming | Can state-contingent decisions be computed before the state is observed? | Value functions and policies defined over many possible states |
+| Approximate value methods | How can Bellman equations be solved when their functions or expectations cannot be represented exactly? | Projected, sampled, and fitted value functions |
+| Parameterized policy optimization | How can a restricted policy class be optimized when action selection or return evaluation is intractable? | Amortized action selectors, actor-critic methods, and direct policy gradients |
 
 This order does not assume a complete mechanistic model. It keeps the available
 information explicit: known conservation laws, geometry, and constraints stay
 in the formulation, while uncertain parameters, residual dynamics, value
 functions, or policies become learning targets.
 
-Dynamic programming, function approximation, and optimization provide a shared
-mathematical foundation. Their structures recur in reinforcement learning,
-control theory, and operations research, which permits methods to move between
-fields when the assumptions attached to them are preserved.
+Model predictive control is the book's first closed-loop construction: a new
+finite-horizon plan is computed from each measured state. Dynamic programming
+builds feedback differently by solving for decisions across a family of states.
+Function approximation and stochastic optimization then make those closed-loop
+objects computable when exact value functions, expectations, or action searches
+are unavailable.
+
+These structures recur in reinforcement learning, control theory, and
+operations research, which permits methods to move between fields when the
+assumptions attached to them are preserved.
 
 ## How to Use This Book
 

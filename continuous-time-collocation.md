@@ -11,7 +11,7 @@ kernelspec:
   name: python3
 ---
 
-# Trajectory Optimization in Continuous Time
+# Continuous-Time Transcription and Collocation
 
 The preceding chapter formulated trajectory optimization for systems that are
 already discrete in time. Physical models are often given instead by ordinary
@@ -20,6 +20,9 @@ A finite-dimensional optimizer cannot choose an entire function directly.
 Continuous-time trajectory optimization therefore begins by replacing those
 functions and their differential equations with finitely many variables and
 algebraic constraints.
+
+How can that replacement preserve enough of the differential equation to make
+the resulting trajectory meaningful between the stored time points?
 
 This replacement is called **transcription**, and the resulting finite
 optimization problem is a nonlinear program (NLP).
@@ -49,12 +52,15 @@ After studying this chapter, you should be able to:
 
 The chapter uses ordinary differential equations, definite integrals, and the
 basic form of an equality-constrained nonlinear program. The preceding
-trajectory-optimization chapter, [](trajectories.md), supplies additional
+trajectory-optimization chapter, [](discrete-time-optimal-control.md), supplies additional
 context on shooting and sparse simultaneous formulations. [](appendix_ivps.md)
 reviews the sequential integrators used inside shooting.
 :::
 
 ## A One-Interval Example
+
+What is the smallest transcription that turns one differential equation on one
+interval into a finite algebraic defect?
 
 Consider a point that must move from $x(0)=0$ to $x(1)=1$. Its velocity is the
 control, so
@@ -72,8 +78,41 @@ $$
 
 Both $x$ and $u$ are unknown functions. As a first finite approximation, retain
 only their endpoint values $X_0,X_1,U_0,U_1$ and let the control vary linearly
-between $U_0$ and $U_1$. The area under this linear control is the area of a
-trapezoid. Integrating $\dot x=u$ over the interval therefore gives
+between $U_0$ and $U_1$. Integrating $\dot x=u$ means that the change in state
+equals the area under this control. The shaded region below is a unit-width
+trapezoid. Its area is the average of its two endpoint heights, $U_0$ and
+$U_1$, multiplied by the width.
+
+```{code-cell} python
+:tags: [remove-input]
+:label: fig-linear-control-trapezoid
+:caption: Drag the endpoint controls or play the accumulation from left to right. The shaded rectangle and triangle sum to the state change implied by $\dot x=u$. Setting the interval width to $h=1$ recovers the chapter's defect $X_1-X_0=(U_0+U_1)/2$.
+
+from pathlib import Path
+import sys
+
+from IPython.display import HTML, display
+
+code_dir = Path.cwd() / "code"
+if str(code_dir) not in sys.path:
+    sys.path.insert(0, str(code_dir))
+
+from collocation_widgets import render_linear_control_area
+
+display(HTML(render_linear_control_area()))
+```
+
+:::{figure} _static/collocation/linear-control-area.svg
+:label: fig-linear-control-trapezoid-fallback
+:class: pdf-fallback
+:alt: A linear control between two endpoint values forms a trapezoid whose rectangle and triangle areas sum to the state change.
+
+A linear control connects $U_0$ and $U_1$ across an interval of width $h$.
+The rectangle $hU_0$ and triangle $h(U_1-U_0)/2$ sum to
+$h(U_0+U_1)/2$. Because $\dot x=u$, this area equals $X_1-X_0$.
+:::
+
+The resulting equality becomes the defect constraint
 
 $$
 X_1-X_0-\frac{1}{2}(U_0+U_1)=0.
@@ -111,6 +150,9 @@ remaining sections construct these operations systematically for nonlinear
 vector dynamics and higher-degree polynomials.
 
 ## From a Continuous Problem to a Finite NLP
+
+How do nodal state and control values, quadrature weights, and defect equations
+assemble into one nonlinear program?
 
 A continuous-time optimal-control problem can be written in Bolza form:
 
@@ -170,6 +212,9 @@ variables or fixed fractions of the variable horizon; the reference-interval
 operators remain unchanged.
 
 ## One Polynomial, Two Coordinate Systems
+
+Should a polynomial trajectory be stored by its coefficients or by its values
+at support nodes, and how are the two descriptions related?
 
 The opening example represented a line by its two endpoint values. Higher-order
 collocation uses the same idea with more values. The polynomials of degree at
@@ -289,125 +334,156 @@ calculations remain outside the NLP.
 ```{code-cell} python
 :tags: [remove-input]
 :label: fig-polynomial-coordinate-operators
-:caption: The same quadratic can be described by monomial coefficients or by its values at three support nodes. Direct collocation keeps the nodal coordinates. Fixed linear operators map those values to nodal derivatives and an integral; they are precomputed rather than optimized.
+:caption: One quadratic, two coordinate systems. Evaluating the monomial coefficients $a$ at the support nodes gives $y=Va$. Direct collocation stores the nodal vector $y$; the fixed operators $D$ and $w$ then return its nodal derivatives and exact integral without adding optimization variables.
 
+import numpy as np
 import matplotlib.pyplot as plt
 from IPython.display import display
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 
-with plt.rc_context({"font.size": 8.5, "axes.titlesize": 9}):
-    figure, axis = plt.subplots(figsize=(7.0, 2.55))
-    axis.set_xlim(0, 1)
-    axis.set_ylim(0, 1)
-    axis.axis("off")
+with plt.rc_context({
+    "font.family": "serif",
+    "font.serif": ["STIX Two Text", "Times New Roman", "DejaVu Serif"],
+    "mathtext.fontset": "stix",
+    "font.size": 9,
+    "axes.titlesize": 10,
+    "axes.labelsize": 8,
+    "xtick.labelsize": 8,
+    "ytick.labelsize": 8,
+}):
+    figure = plt.figure(figsize=(7.4, 3.7), facecolor="white")
+    canvas = figure.add_axes([0, 0, 1, 1])
+    canvas.set_xlim(0, 1)
+    canvas.set_ylim(0, 1)
+    canvas.axis("off")
 
-    def add_box(x, y, width, height, text, facecolor, edgecolor):
+    ink = "#20242A"
+    muted = "#5B6470"
+    line = "#CAD1D8"
+    pale = "#F5F7F9"
+    blue = "#0072B2"
+    pale_blue = "#E8F3F9"
+    orange = "#E69F00"
+    pale_orange = "#FFF6DD"
+
+    def add_card(x, y, width, height, facecolor=pale, edgecolor=line, linewidth=0.9):
         patch = FancyBboxPatch(
-            (x, y),
-            width,
-            height,
-            boxstyle="round,pad=0.012",
-            linewidth=1.2,
+            (x, y), width, height,
+            boxstyle="round,pad=0.012,rounding_size=0.012",
+            linewidth=linewidth,
             facecolor=facecolor,
             edgecolor=edgecolor,
+            transform=canvas.transAxes,
+            clip_on=False,
         )
-        axis.add_patch(patch)
-        axis.text(
-            x + width / 2,
-            y + height / 2,
-            text,
-            ha="center",
-            va="center",
-            linespacing=1.35,
+        canvas.add_patch(patch)
+        return patch
+
+    def add_arrow(start, end, color=muted, linewidth=1.1):
+        canvas.add_patch(FancyArrowPatch(
+            start, end,
+            arrowstyle="-|>",
+            mutation_scale=10,
+            linewidth=linewidth,
+            color=color,
+            transform=canvas.transAxes,
+            clip_on=False,
+        ))
+
+    # Monomial coordinates: useful for algebra, but not stored by the NLP.
+    add_card(0.02, 0.43, 0.23, 0.48)
+    canvas.text(0.045, 0.865, "COEFFICIENT VIEW", color=muted,
+                fontsize=7.5, fontweight="bold", transform=canvas.transAxes)
+    canvas.text(0.045, 0.80, "monomial basis", color=ink,
+                fontsize=10, fontweight="bold", transform=canvas.transAxes)
+    canvas.text(0.135, 0.69,
+                r"$p(\tau)=a_0+a_1\tau+a_2\tau^2$",
+                color=ink, fontsize=10, ha="center", transform=canvas.transAxes)
+    canvas.text(0.135, 0.565,
+                r"$a=(1,\;2,\;-1)^{\mathsf{T}}$",
+                color=ink, fontsize=13, ha="center", transform=canvas.transAxes)
+    canvas.text(0.135, 0.485, "three coefficients", color=muted,
+                fontsize=8, ha="center", transform=canvas.transAxes)
+
+    # The concrete polynomial makes the coordinate change visible.
+    plot_axis = figure.add_axes([0.31, 0.49, 0.34, 0.34])
+    tau = np.linspace(0.0, 1.0, 301)
+    values = 1.0 + 2.0 * tau - tau**2
+    support_nodes = np.array([0.0, 0.5, 1.0])
+    nodal_values = 1.0 + 2.0 * support_nodes - support_nodes**2
+    plot_axis.plot(tau, values, color=ink, linewidth=1.8, zorder=2)
+    plot_axis.scatter(support_nodes, nodal_values, s=38, color=blue,
+                      edgecolor="white", linewidth=1.0, zorder=3)
+    plot_axis.set_xlim(-0.04, 1.04)
+    plot_axis.set_ylim(0.82, 2.12)
+    plot_axis.set_xticks(support_nodes, [r"$0$", r"$\frac{1}{2}$", r"$1$"])
+    plot_axis.set_yticks([])
+    plot_axis.set_xlabel(r"support node $\sigma_i$", color=muted, labelpad=1)
+    plot_axis.set_title(r"one polynomial $p\in\mathcal{P}_2$", color=ink, pad=5)
+    plot_axis.spines[["top", "right", "left"]].set_visible(False)
+    plot_axis.spines["bottom"].set_color(line)
+    plot_axis.tick_params(axis="x", colors=muted, length=3)
+    plot_axis.grid(axis="x", color=line, linewidth=0.6, linestyle=(0, (2, 3)))
+    for x_value, y_value, label, offset in zip(
+        support_nodes,
+        nodal_values,
+        [r"$y_0=1$", r"$y_m=\frac{7}{4}$", r"$y_1=2$"],
+        [(6, 8), (0, -19), (-7, 8)],
+    ):
+        plot_axis.annotate(
+            label, (x_value, y_value), xytext=offset,
+            textcoords="offset points", color=blue, fontsize=8.5,
+            ha="left" if x_value == 0 else ("right" if x_value == 1 else "center"),
+            va="bottom",
         )
 
-    blue = "#0072B2"
-    orange = "#D55E00"
-    gray = "#4D4D4D"
-    pale_blue = "#E8F2F8"
-    pale_orange = "#FBEDE8"
-    pale_gray = "#F2F2F2"
+    add_arrow((0.255, 0.68), (0.30, 0.68))
+    add_arrow((0.66, 0.68), (0.705, 0.68), color=blue)
+    canvas.text(0.682, 0.715, r"$y=Va$", color=blue,
+                fontsize=9, ha="center", transform=canvas.transAxes)
 
-    add_box(
-        0.02,
-        0.52,
-        0.34,
-        0.36,
-        "monomial coordinates\n"
-        r"$a=(1,\,2,\,-1)^\mathsf{T}$" "\n"
-        r"$p(\tau)=1+2\tau-\tau^2$",
-        pale_blue,
-        blue,
-    )
-    add_box(
-        0.56,
-        0.52,
-        0.42,
-        0.36,
-        "nodal coordinates at "
-        r"$0,\frac{1}{2},1$" "\n"
-        r"$y=(1,\,\frac{7}{4},\,2)^\mathsf{T}$" "\n"
-        r"$p(\tau)=\sum_j y_j\ell_j(\tau)$",
-        pale_orange,
-        orange,
-    )
+    # Nodal coordinates are the representation exposed to direct collocation.
+    add_card(0.72, 0.43, 0.26, 0.48,
+             facecolor=pale_blue, edgecolor=blue, linewidth=1.25)
+    canvas.text(0.745, 0.865, "NODAL VIEW", color=blue,
+                fontsize=7.5, fontweight="bold", transform=canvas.transAxes)
+    canvas.text(0.745, 0.80, "values at support nodes", color=ink,
+                fontsize=10, fontweight="bold", transform=canvas.transAxes)
+    canvas.text(0.85, 0.705,
+                r"$\sigma=(0,\;\frac{1}{2},\;1)$",
+                color=ink, fontsize=10.5, ha="center", transform=canvas.transAxes)
+    canvas.text(0.85, 0.61,
+                r"$y=(1,\;\frac{7}{4},\;2)^{\mathsf{T}}$",
+                color=blue, fontsize=13, ha="center", transform=canvas.transAxes)
+    canvas.text(0.85, 0.515,
+                r"$p(\tau)=\sum_j y_j\ell_j(\tau)$",
+                color=ink, fontsize=10, ha="center", transform=canvas.transAxes)
+    canvas.text(0.85, 0.455, "variables stored by the NLP", color=blue,
+                fontsize=8, fontweight="bold", ha="center",
+                transform=canvas.transAxes)
 
-    axis.add_patch(
-        FancyArrowPatch(
-            (0.37, 0.70),
-            (0.55, 0.70),
-            arrowstyle="<->",
-            mutation_scale=12,
-            linewidth=1.2,
-            color=gray,
-        )
-    )
-    axis.text(0.46, 0.77, r"$y=Va$", ha="center", va="center", color=gray)
-    axis.text(0.46, 0.62, r"same $p\in\mathcal{P}_2$", ha="center", va="center", color=gray)
-
-    add_box(
-        0.48,
-        0.08,
-        0.23,
-        0.25,
-        "nodal slopes\n"
-        r"$p'(\sigma)=Dy$" "\n"
-        r"$D_{ij}=\ell_j'(\sigma_i)$",
-        pale_gray,
-        gray,
-    )
-    add_box(
-        0.75,
-        0.08,
-        0.23,
-        0.25,
-        "integral\n"
-        r"$\int_0^1p=w^\mathsf{T}y$" "\n"
-        r"$w=\frac{1}{6}(1,4,1)$",
-        pale_gray,
-        gray,
-    )
-    axis.add_patch(
-        FancyArrowPatch(
-            (0.70, 0.51),
-            (0.60, 0.34),
-            arrowstyle="->",
-            mutation_scale=11,
-            linewidth=1.1,
-            color=orange,
-        )
-    )
-    axis.add_patch(
-        FancyArrowPatch(
-            (0.83, 0.51),
-            (0.86, 0.34),
-            arrowstyle="->",
-            mutation_scale=11,
-            linewidth=1.1,
-            color=orange,
-        )
-    )
-    figure.tight_layout(pad=0.25)
+    # Once the nodes are chosen, fixed linear maps reuse the same y.
+    add_arrow((0.79, 0.42), (0.475, 0.315), color=blue)
+    add_arrow((0.91, 0.42), (0.81, 0.315), color=blue)
+    add_card(0.31, 0.09, 0.31, 0.22,
+             facecolor=pale_orange, edgecolor=orange)
+    add_card(0.66, 0.09, 0.32, 0.22,
+             facecolor=pale_orange, edgecolor=orange)
+    canvas.text(0.465, 0.255, "DIFFERENTIATE AT THE NODES", color=muted,
+                fontsize=7.2, fontweight="bold", ha="center",
+                transform=canvas.transAxes)
+    canvas.text(0.465, 0.17,
+                r"$p'(\sigma_i)=(Dy)_i,\qquad Dy=(2,\;1,\;0)^{\mathsf{T}}$",
+                color=ink, fontsize=10, ha="center", transform=canvas.transAxes)
+    canvas.text(0.82, 0.255, "INTEGRATE THE QUADRATIC", color=muted,
+                fontsize=7.2, fontweight="bold", ha="center",
+                transform=canvas.transAxes)
+    canvas.text(0.82, 0.17,
+                r"$w^{\mathsf{T}}y=\int_0^1 p(\tau)\,d\tau=\frac{5}{3}$",
+                color=ink, fontsize=10.5, ha="center", transform=canvas.transAxes)
+    canvas.text(0.65, 0.025,
+                r"$D$ and $w$ are fixed by the nodes; the optimizer changes only $y$.",
+                color=muted, fontsize=8.2, ha="center", transform=canvas.transAxes)
 
 display(figure)
 plt.close(figure)
@@ -428,6 +504,9 @@ later can still use Lagrange nodal coordinates in the NLP; choosing those nodes
 does not require optimizing orthogonal-polynomial coefficients.
 
 ## Polynomial Interpolation and Least-Squares Regression
+
+When nodal values do not determine an exact interpolant, which projection
+recovers a polynomial that best matches the available samples?
 
 Interpolation and polynomial regression both produce polynomials, but they
 answer different questions. Four exact values at four distinct nodes determine
@@ -551,6 +630,9 @@ loss.
 
 ## Fixed Operators from Nodal Values
 
+Once the nodes and basis are fixed, can differentiation and integration be
+reduced to precomputed linear maps on nodal values?
+
 The ODE and the running cost require more than values of an interpolating
 polynomial. The ODE uses derivatives, and the cost and state update use
 integrals. Since
@@ -652,6 +734,9 @@ section begins with slope values at collocation nodes and uses integration to
 recover state values.
 
 ## From Nodal Slopes to Collocation Constraints
+
+How do those fixed maps convert differential equations into algebraic
+constraints at the chosen collocation nodes?
 
 The previous section constructed differentiation and integration operators for
 an arbitrary polynomial. To impose an ODE, first choose $s$ collocation nodes
@@ -815,6 +900,9 @@ the represented collocation method.
 
 ## Low-Order Transcriptions
 
+Which familiar integration rules appear when the polynomial and node sets are
+reduced to their lowest-order choices?
+
 The general construction becomes concrete when only one or two slope values
 are retained on each interval. These cases recover familiar integration
 formulas, but the formulas now appear as constraints inside an NLP.
@@ -920,6 +1008,9 @@ emphasized in the direct-collocation derivation of
 
 ## Hermite--Simpson Transcription
 
+Can midpoint state and slope information raise the transcription order without
+requiring a high-degree polynomial over the whole horizon?
+
 Hermite--Simpson extends the trapezoidal construction by adding the midpoint
 state $X_{k+\frac12}$, control $U_{k+\frac12}$, and ODE slope
 
@@ -1019,6 +1110,9 @@ the same way: its nodes define Lagrange functions, which in turn define fixed
 differentiation and quadrature operators.
 
 ## Worked Example: Moving an Overhead Crane While Limiting Residual Sway
+
+How do the nodal variables and trapezoidal defects behave in a constrained
+motion problem whose terminal state must suppress residual oscillation?
 
 An overhead crane moves a trolley while a payload hangs from a cable. A
 precomputed trolley command can complete the move and still leave the payload
@@ -1452,6 +1546,7 @@ local stage values. Most entries in the constraint Jacobian are therefore zero,
 which allows an NLP solver to exploit a sparse, block-banded structure. The
 overhead-crane example also shows why solving the NLP is not the final check:
 constraints that hold at the nodes may still be violated between them. A dense,
-independent simulation should therefore follow the optimization. The next
-chapter, [](mpc.md), turns the same finite-horizon problem into feedback by
-repeatedly replanning from the measured state.
+independent simulation should therefore follow the optimization. Can the same
+finite-horizon problem respond when that replay reveals a state different from
+the prediction? [Receding-horizon control](receding-horizon-control.md) turns
+the open-loop transcription into feedback by replanning from each measurement.

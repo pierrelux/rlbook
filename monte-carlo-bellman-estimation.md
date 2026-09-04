@@ -11,11 +11,14 @@ kernelspec:
   name: python3
 ---
 
-# Monte Carlo Integration in Approximate Dynamic Programming 
+# Monte Carlo Bellman Estimation
 
 The projection methods from the previous chapter showed how to transform the infinite-dimensional fixed-point problem $\Bellman v = v$ into a finite-dimensional one by choosing basis functions $\{\varphi_i\}$ and imposing conditions that make the residual $R(s) = \Bellman v(s) - v(s)$ small. Different projection conditions (Galerkin orthogonality, collocation at points, least squares minimization) yield different finite-dimensional systems to solve.
 
 However, we left unresolved the question of how to evaluate the Bellman operator itself. Applying $\Bellman$ at any state requires computing an expectation:
+
+Can that expectation and the outer projection integrals be estimated when the
+model supplies samples rather than an explicit transition density?
 
 $$
 (\Bellman v)(s) = \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \int v(s')p(ds'|s,a)\right\}
@@ -28,6 +31,9 @@ This chapter addresses the **integration subproblem** that arises at two levels 
 We begin by examining deterministic numerical integration methods: quadrature rules that approximate integrals by evaluating integrands at carefully chosen points with associated weights. We discuss how to coordinate the choice of quadrature with the choice of basis functions to balance approximation accuracy and computational cost. Then we turn to **Monte Carlo integration**, which approximates expectations using random samples rather than deterministic quadrature points. This shift from deterministic to stochastic integration is what brings us into machine learning territory. When we replace exact transition probabilities with samples drawn from simulations or real interactions, projection methods combined with Monte Carlo integration become what the operations research community calls **simulation-based approximate dynamic programming** and what the machine learning community calls **reinforcement learning**. By relying on samples rather than explicit probability functions, we move from model-based planning to data-driven learning.
 
 ## Evaluating the Bellman Operator with Numerical Quadrature
+
+Before introducing random samples, which deterministic nodes and weights can
+approximate the transition expectation?
 
 Before turning to Monte Carlo methods, we examine the structure of the numerical integration problem. When we apply the Bellman operator to an approximate value function $\hat{v}(s; \theta) = \sum_i \theta_i \varphi_i(s)$, we must evaluate integrals of the form:
 
@@ -152,7 +158,10 @@ In both cases, the basis-quadrature pairing ensures that:
 2. The quadrature accuracy matches the polynomial approximation order
 3. Precomputed matrices capture the dynamics, making iterations efficient
 
-## Monte Carlo Integration 
+## Monte Carlo Integration
+
+How do independent random samples trade deterministic quadrature bias for
+sampling variance and dimension-independent convergence?
 
 Deterministic quadrature rules work well when the state space has low dimension, the transition density is smooth, and we can evaluate it cheaply at arbitrary points. In many stochastic control problems none of these conditions truly hold. The state may be high dimensional, the dynamics may be given by a simulator rather than an explicit density, and the cost of each call to the model may be large. In that regime, deterministic quadrature becomes brittle. Monte Carlo methods offer a different way to approximate expectations, one that relies only on the ability to **sample** from the relevant distributions.
 
@@ -324,7 +333,7 @@ $$
 
 In the typical reinforcement learning setting, $N=1$: each observed transition $(s_i, a_i, r_i, s'_i)$ provides exactly one sample of the next state. This means we work with high-variance single-sample estimates $r_i + \gamma v(s'_i)$ rather than averaged returns. Variance reduction comes from aggregating information across different transitions through the function approximator and from collecting long trajectories with many transitions. We examine this single-sample constraint in detail after introducing Q-functions below.
 
-Unlike deterministic quadrature, which introduces a fixed bias at each iteration, Monte Carlo introduces random error with zero mean but nonzero variance. However, combining Monte Carlo with the maximization in the Bellman operator creates a systematic problem: while the estimate of the expected return for any individual action is unbiased, taking the maximum over these noisy estimates introduces upward bias. This overestimation compounds through value iteration and degrades the resulting policies. We address this challenge in the [next chapter on fitted Q-iteration](fqi.md).
+Unlike deterministic quadrature, which introduces a fixed bias at each iteration, Monte Carlo introduces random error with zero mean but nonzero variance. However, combining Monte Carlo with the maximization in the Bellman operator creates a systematic problem: while the estimate of the expected return for any individual action is unbiased, taking the maximum over these noisy estimates introduces upward bias. This overestimation compounds through value iteration and degrades the resulting policies. We address this challenge in the [next chapter on fitted Q-iteration](fitted-q-iteration.md).
 
 ### Interactive sample-size diagnostic
 
@@ -468,6 +477,9 @@ The single-sample paradigm shapes three aspects of algorithm design:
 The algorithms that follow in the next chapters all adopt this single-sample structure. Understanding its origins clarifies when the design choice might be revisited: in domains with cheap, resettable simulators and high target variance, averaging multiple next-state samples per $(s,a)$ pair offers a direct variance reduction mechanism that is rarely exploited in current practice.
 
 ## Overestimation Bias and Mitigation Strategies
+
+What systematic bias appears when the same noisy action estimates are used for
+both selection and evaluation?
 
 Monte Carlo integration provides unbiased estimates of individual expectations, but when we apply the Bellman operator's maximization to these noisy estimates, a systematic problem arises: taking the maximum over noisy values creates upward bias. This overestimation compounds through iterative algorithms and can severely degrade the quality of learned policies. This section examines the sources of this bias and presents two approaches for mitigating it.
 
@@ -618,7 +630,7 @@ This approach is exact for single-state MDPs where Q-values equal expected rewar
 
 Lee-Powell's analytical formula can be viewed as deriving what Keane-Wolpin learned empirically, replacing the regression model with a closed-form expression from extreme value theory. The trade-off is generality versus computational cost: Keane-Wolpin adapts to any noise structure but requires expensive high-fidelity simulations at training states; Lee-Powell assumes Gaussian noise but evaluates instantly once $\hat{\sigma}$ is estimated. Both subtract a correction term from targets while preserving squared error loss.
 
-An alternative to explicit bias correction is to replace the hard max operator with a soft maximum. The [regularized MDP chapter](smoothing.md) discusses smooth Bellman operators that use logsumexp or Gaussian uncertainty-weighted aggregation to avoid the discontinuity and overestimation inherent in taking a hard maximum. These approaches modify the Bellman operator itself rather than correcting its bias after the fact, preserving squared error loss while constructing smoother targets. Another approach, examined in the [next chapter](fqi.md), changes the loss function itself to match the noise structure in TD targets.
+An alternative to explicit bias correction is to replace the hard max operator with a soft maximum. The [regularized MDP chapter](regularized-dp.md) discusses smooth Bellman operators that use logsumexp or Gaussian uncertainty-weighted aggregation to avoid the discontinuity and overestimation inherent in taking a hard maximum. These approaches modify the Bellman operator itself rather than correcting its bias after the fact, preserving squared error loss while constructing smoother targets. Another approach, examined in the [next chapter](fitted-q-iteration.md), changes the loss function itself to match the noise structure in TD targets.
 
 ### Decoupling Selection and Evaluation
 
@@ -689,7 +701,7 @@ Double Q-learning eliminates evaluation bias by using independent noise for eval
 ```{prf:remark} Implementation via different Q-functions
 :class: dropdown
 
-The conceptual framework above assumes we can draw multiple independent samples from $p(\cdot|s,a)$ for each state-action pair. In practice, this would require resetting a simulator to the same state and sampling multiple times, which is often infeasible. The practical implementation achieves the same effect differently: maintain two Q-functions that are trained on different data or updated at different times (e.g., one is a slowly-updating target network). Since the two Q-functions experience different noise realizations during training, their errors remain less correlated than if we used a single Q-function for both selection and evaluation. This is how Double DQN works, as developed in the [FQI chapter](fqi.md#double-deep-q-network-double-dqn).
+The conceptual framework above assumes we can draw multiple independent samples from $p(\cdot|s,a)$ for each state-action pair. In practice, this would require resetting a simulator to the same state and sampling multiple times, which is often infeasible. The practical implementation achieves the same effect differently: maintain two Q-functions that are trained on different data or updated at different times (e.g., one is a slowly-updating target network). Since the two Q-functions experience different noise realizations during training, their errors remain less correlated than if we used a single Q-function for both selection and evaluation. This is how Double DQN works, as developed in the [FQI chapter](fitted-q-iteration.md#double-deep-q-network-double-dqn).
 ```
 
 The following algorithm implements this principle with Monte Carlo integration. We maintain two Q-functions and alternate which one selects actions and which one evaluates them. The bias reduction mechanism applies whether we store Q-values in a table or use function approximation.
@@ -771,7 +783,7 @@ The relative performance depends on the problem structure. When one action is cl
 
 The weighted estimator can be incorporated into Q-learning by maintaining variance estimates alongside Q-values and computing the weighted target at each step. The weights $w_a$ themselves can serve as an exploration policy that naturally adapts to estimation uncertainty. This approach adapts automatically to heterogeneous uncertainty across actions and provides balanced bias, but requires maintaining variance estimates (adding memory overhead) and computing integrals (expensive for large action spaces). The method assumes Gaussian sampling distributions, though it proves robust in practice even when this assumption is violated.
 
-The weighted estimator relates to the smooth Bellman operators discussed in the [regularized MDP chapter](smoothing.md). Both replace the discontinuous hard maximum with smooth aggregation, but weighted estimation adapts to state-action-specific uncertainty while logsumexp applies uniform smoothing via temperature. The choice among ME, DE, and WE depends on computational constraints and problem characteristics. When variance estimates are available and action spaces are small, WE offers a principled approach that balances the extremes of overestimation and underestimation. When maintaining variance is expensive or action spaces are large, double Q-learning provides a simpler alternative that eliminates evaluation bias without explicit probability weighting.
+The weighted estimator relates to the smooth Bellman operators discussed in the [regularized MDP chapter](regularized-dp.md). Both replace the discontinuous hard maximum with smooth aggregation, but weighted estimation adapts to state-action-specific uncertainty while logsumexp applies uniform smoothing via temperature. The choice among ME, DE, and WE depends on computational constraints and problem characteristics. When variance estimates are available and action spaces are small, WE offers a principled approach that balances the extremes of overestimation and underestimation. When maintaining variance is expensive or action spaces are large, double Q-learning provides a simpler alternative that eliminates evaluation bias without explicit probability weighting.
 
 ## Summary and Forward Look
 
@@ -783,7 +795,12 @@ Three foundational components emerged:
 2. **Q-functions**: Cache state-action values to amortize the cost of action selection, eliminating the need for repeated sampling at decision time
 3. **Bias mitigation**: Address the systematic overestimation that arises from maximizing over noisy estimates through four approaches: learning empirical corrections (Keane-Wolpin), analytical adjustment from extreme value theory (Lee-Powell), decoupling selection from evaluation (double Q-learning), and probability-weighted aggregation (weighted estimators)
 
-The algorithms presented (Parametric Q-Value Iteration, Keane-Wolpin, Double Q) remain in the theoretical setting where we can draw multiple samples from each state-action pair and choose optimization parameters freely. The [next chapter](fqi.md) addresses the practical constraints of reinforcement learning: working with fixed offline datasets of single-sample transitions, choosing function approximators and optimization strategies, and understanding the algorithmic design space that yields methods like FQI, NFQI, and DQN.
+The algorithms presented here still assume that repeated samples can be drawn
+from each state-action pair and that optimization budgets are unconstrained.
+What changes when each stored transition contains one realized successor and a
+function approximator must be fitted from a finite buffer? [Fitted Q-iteration
+and DQN](fitted-q-iteration.md) make those data and optimization choices
+explicit.
 
 ## Self-checks
 

@@ -419,7 +419,7 @@ validation rollout indicates that the integration mesh was inadequate.
 ## From shooting to collocation
 
 Shooting advances a state sequentially through a one-step or segment map.
-[Trajectory Optimization in Continuous Time](collocation.md) develops the
+[Trajectory Optimization in Continuous Time](continuous-time-collocation.md) develops the
 simultaneous alternative: state values across an interval become optimization
 variables, a polynomial interpolates those values, and the ODE is imposed at
 selected nodes. That chapter treats polynomial representations, differentiation

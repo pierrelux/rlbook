@@ -37,7 +37,7 @@ BASE_URL='' uv run jupyter-book build --html
 python3 -m http.server 8000 --bind 127.0.0.1 --directory _build/html
 ```
 
-Then open `http://127.0.0.1:8000/dynamics/` and use **Present**.
+Then open `http://127.0.0.1:8000/modeling-controlled-systems/` and use **Present**.
 
 `publish.sh` performs both strict builds and publishes the assembled `_build/html` directory to `gh-pages` with `ghp-import`.
 
@@ -109,7 +109,7 @@ Use **Review / Freeze** after the lecture to reorder or delete cues and download
 authoritative presentation with:
 
 ```bash
-python3 tools/presentation_cues.py import ~/Downloads/dynamics-presentation.json
+python3 tools/presentation_cues.py import ~/Downloads/modeling-controlled-systems-presentation.json
 ```
 
 The importer validates the recording, writes `_present/<chapter>.json`, and

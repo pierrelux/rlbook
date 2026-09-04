@@ -175,20 +175,20 @@ Pacing is indicative and will be adjusted as the term goes on.
 
 | Week | Topic | Reading |
 |---|---|---|
-| 1 · Aug 31 – Sep 3 | Course overview; system boundaries; model interfaces; state and action | [Dynamics](dynamics.md) |
-| 2 · Sep 7 – 10 | Dynamics models and the state-space perspective | [Dynamics](dynamics.md) |
-| 3 · Sep 14 – 17 | From deterministic to stochastic dynamics; partial observability; programs as models | [Dynamics](dynamics.md) |
-| 4 · Sep 21 – 24 | Discrete-time optimal control problems; existence and optimality conditions | [Trajectory Optimization](trajectories.md) |
-| 5 · Sep 28 – Oct 1 | Sequential and simultaneous methods; single and multiple shooting; adjoints as reverse accumulation | [Trajectory Optimization](trajectories.md) |
-| 6 · Oct 5 – 8 | Direct transcription; polynomial interpolation | [Collocation](collocation.md) |
-| 7 · Oct 12 – 15 | A compendium of direct transcription methods; worked examples | [Collocation](collocation.md) |
-| 8 · Oct 26 – 29 | Model predictive control: closing the loop by replanning; theoretical guarantees; variants | [MPC](mpc.md) |
-| 9 · Nov 2 – 5 | MPC in practice: constraint softening, feasibility restoration, backup controllers; parametric optimization | [MPC](mpc.md) |
-| 10 · Nov 9 – 12 | Dynamic programming: backward recursion, continuous spaces, the linear quadratic regulator | [Dynamic Programming](dp.md) |
-| 11 · Nov 16 – 19 | Markov decision processes: Bellman operators, infinite horizon, value and policy iteration | [Dynamic Programming](dp.md) |
-| 12 · Nov 23 – 26 | Smoothing and regularized MDPs; projection and weighted residual methods | [Smoothing](smoothing.md), [Projection](projection.md) |
-| 13 · Nov 30 – Dec 3 | Monte Carlo methods and overestimation bias; fitted Q iteration, NFQ, DQN | [Monte Carlo](montecarlo.md), [FQI](fqi.md) |
-| 14 · Dec 7 | Amortized optimization (NFQCA, DDPG, TD3, PCL, MPPI); policy gradient methods | [Amortization](amortization.md), [Policy Gradients](pg.md) |
+| 1 · Aug 31 – Sep 3 | Course overview; system boundaries; state and action | [Controlled Systems](modeling-controlled-systems.md) |
+| 2 · Sep 7 – 10 | Dynamics models and the state-space perspective | [Controlled Systems](modeling-controlled-systems.md) |
+| 3 · Sep 14 – 17 | Stochastic dynamics; partial observation; programs and data as model interfaces | [Stochastic Dynamics](stochastic-dynamics-observation.md), [Model Interfaces](model-interfaces.md) |
+| 4 · Sep 21 – 24 | Discrete-time optimal control problems; existence and optimality conditions | [Finite-Horizon Optimal Control](discrete-time-optimal-control.md) |
+| 5 · Sep 28 – Oct 1 | Adjoints and the Pontryagin principle; single and multiple shooting | [Discrete-Time PMP](discrete-time-pmp.md), [Numerical Trajectory Optimization](numerical-trajectory-optimization.md) |
+| 6 · Oct 5 – 8 | Direct transcription; polynomial interpolation | [Continuous-Time Collocation](continuous-time-collocation.md) |
+| 7 · Oct 12 – 15 | A compendium of direct transcription methods; worked examples | [Continuous-Time Collocation](continuous-time-collocation.md) |
+| 8 · Oct 26 – 29 | Closing the loop by replanning; theoretical guarantees; MPC variants | [Receding-Horizon Control](receding-horizon-control.md), [MPC Variants](mpc-variants-reliability.md) |
+| 9 · Nov 2 – 5 | MPC failure handling; parametric optimization and approximate controllers | [Reliable MPC](mpc-variants-reliability.md), [Parametric Controllers](parametric-controllers.md) |
+| 10 · Nov 9 – 12 | Backward recursion, continuous spaces, and the linear quadratic regulator | [Finite-Horizon Dynamic Programming](finite-horizon-dp.md) |
+| 11 · Nov 16 – 19 | Stochastic and infinite-horizon MDPs; Bellman operators; value and policy iteration | [Stochastic DP](stochastic-dp.md), [Infinite-Horizon MDPs](infinite-horizon-mdps.md) |
+| 12 · Nov 23 – 26 | Regularized MDPs; weighted residuals; approximate Bellman equations | [Regularized DP](regularized-dp.md), [Weighted Residuals](weighted-residual-methods.md), [Approximate Bellman Equations](approximate-bellman-equations.md) |
+| 13 · Nov 30 – Dec 3 | Monte Carlo methods and overestimation bias; fitted Q iteration, NFQ, DQN | [Monte Carlo](monte-carlo-bellman-estimation.md), [FQI](fitted-q-iteration.md) |
+| 14 · Dec 7 | Amortized action optimization; stochastic gradient estimators; regularized and direct policy optimization | [Amortized Action Optimization](amortized-action-optimization.md), [Gradient Estimation](gradient-estimation.md), [Regularized Policy Learning](regularized-policy-learning.md), [Policy Gradients](policy-gradients.md) |
 
 **No class on:**
 
@@ -409,20 +409,20 @@ congé s'intercale. Le rythme est indicatif et sera ajusté au fil du trimestre.
 
 | Semaine | Sujet | Lecture |
 |---|---|---|
-| 1 · 31 août – 3 sept. | Présentation du cours ; frontière du système ; interfaces de modèle ; état et action | [Dynamics](dynamics.md) |
-| 2 · 7 – 10 sept. | Modèles de dynamique et perspective de l'espace d'états | [Dynamics](dynamics.md) |
-| 3 · 14 – 17 sept. | Du déterministe au stochastique ; observabilité partielle ; les programmes comme modèles | [Dynamics](dynamics.md) |
-| 4 · 21 – 24 sept. | Problèmes de commande optimale en temps discret ; existence et conditions d'optimalité | [Trajectory Optimization](trajectories.md) |
-| 5 · 28 sept. – 1<sup>er</sup> oct. | Méthodes séquentielles et simultanées ; tir simple et tir multiple ; états adjoints et accumulation inverse | [Trajectory Optimization](trajectories.md) |
-| 6 · 5 – 8 oct. | Transcription directe ; interpolation polynomiale | [Collocation](collocation.md) |
-| 7 · 12 – 15 oct. | Panorama des méthodes de transcription directe ; exemples détaillés | [Collocation](collocation.md) |
-| 8 · 26 – 29 oct. | Commande prédictive : boucler la boucle par replanification ; garanties théoriques ; variantes | [MPC](mpc.md) |
-| 9 · 2 – 5 nov. | La commande prédictive en pratique : assouplissement des contraintes, restauration de la faisabilité, contrôleurs de secours ; optimisation paramétrique | [MPC](mpc.md) |
-| 10 · 9 – 12 nov. | Programmation dynamique : récurrence arrière, espaces continus, régulateur linéaire quadratique | [Dynamic Programming](dp.md) |
-| 11 · 16 – 19 nov. | Processus décisionnels de Markov : opérateurs de Bellman, horizon infini, itération sur la valeur et sur la politique | [Dynamic Programming](dp.md) |
-| 12 · 23 – 26 nov. | Lissage et MDP régularisés ; méthodes de projection et de résidus pondérés | [Smoothing](smoothing.md), [Projection](projection.md) |
-| 13 · 30 nov. – 3 déc. | Méthodes de Monte-Carlo et biais de surestimation ; itération sur $Q$ ajustée, NFQ, DQN | [Monte Carlo](montecarlo.md), [FQI](fqi.md) |
-| 14 · 7 déc. | Optimisation amortie (NFQCA, DDPG, TD3, PCL, MPPI) ; méthodes de gradient de politique | [Amortization](amortization.md), [Policy Gradients](pg.md) |
+| 1 · 31 août – 3 sept. | Présentation du cours ; frontière du système ; état et action | [Controlled Systems](modeling-controlled-systems.md) |
+| 2 · 7 – 10 sept. | Modèles de dynamique et perspective de l'espace d'états | [Controlled Systems](modeling-controlled-systems.md) |
+| 3 · 14 – 17 sept. | Dynamique stochastique ; observation partielle ; programmes et données comme interfaces de modèle | [Stochastic Dynamics](stochastic-dynamics-observation.md), [Model Interfaces](model-interfaces.md) |
+| 4 · 21 – 24 sept. | Problèmes de commande optimale en temps discret ; existence et conditions d'optimalité | [Finite-Horizon Optimal Control](discrete-time-optimal-control.md) |
+| 5 · 28 sept. – 1<sup>er</sup> oct. | États adjoints et principe de Pontryagin ; tir simple et tir multiple | [Discrete-Time PMP](discrete-time-pmp.md), [Numerical Trajectory Optimization](numerical-trajectory-optimization.md) |
+| 6 · 5 – 8 oct. | Transcription directe ; interpolation polynomiale | [Continuous-Time Collocation](continuous-time-collocation.md) |
+| 7 · 12 – 15 oct. | Panorama des méthodes de transcription directe ; exemples détaillés | [Continuous-Time Collocation](continuous-time-collocation.md) |
+| 8 · 26 – 29 oct. | Boucler la boucle par replanification ; garanties théoriques ; variantes de commande prédictive | [Receding-Horizon Control](receding-horizon-control.md), [MPC Variants](mpc-variants-reliability.md) |
+| 9 · 2 – 5 nov. | Gestion des défaillances en commande prédictive ; optimisation paramétrique et contrôleurs approchés | [Reliable MPC](mpc-variants-reliability.md), [Parametric Controllers](parametric-controllers.md) |
+| 10 · 9 – 12 nov. | Récurrence arrière, espaces continus et régulateur linéaire quadratique | [Finite-Horizon Dynamic Programming](finite-horizon-dp.md) |
+| 11 · 16 – 19 nov. | MDP stochastiques et à horizon infini ; opérateurs de Bellman ; itérations sur la valeur et la politique | [Stochastic DP](stochastic-dp.md), [Infinite-Horizon MDPs](infinite-horizon-mdps.md) |
+| 12 · 23 – 26 nov. | MDP régularisés ; résidus pondérés ; équations de Bellman approchées | [Regularized DP](regularized-dp.md), [Weighted Residuals](weighted-residual-methods.md), [Approximate Bellman Equations](approximate-bellman-equations.md) |
+| 13 · 30 nov. – 3 déc. | Méthodes de Monte-Carlo et biais de surestimation ; itération sur $Q$ ajustée, NFQ, DQN | [Monte Carlo](monte-carlo-bellman-estimation.md), [FQI](fitted-q-iteration.md) |
+| 14 · 7 déc. | Optimisation amortie des actions ; estimateurs de gradient stochastique ; optimisation régularisée et directe des politiques | [Amortized Action Optimization](amortized-action-optimization.md), [Gradient Estimation](gradient-estimation.md), [Regularized Policy Learning](regularized-policy-learning.md), [Policy Gradients](policy-gradients.md) |
 
 **Aucune séance :**
 

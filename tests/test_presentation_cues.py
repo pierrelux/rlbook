@@ -10,8 +10,8 @@ def sample_deck():
     return {
         "version": 2,
         "kind": "recorded-spotlight-deck",
-        "slug": "dynamics",
-        "source": "/dynamics/",
+        "slug": "modeling-controlled-systems",
+        "source": "/modeling-controlled-systems/",
         "source_sha256": "a" * 64,
         "recorded_at": "2026-09-01T12:00:00Z",
         "cues": [
@@ -39,7 +39,9 @@ def sample_deck():
 
 class PresentationCueTests(unittest.TestCase):
     def test_valid_deck(self):
-        self.assertEqual(validate_deck(sample_deck())["slug"], "dynamics")
+        self.assertEqual(
+            validate_deck(sample_deck())["slug"], "modeling-controlled-systems"
+        )
 
     def test_rejects_duplicate_cue_ids(self):
         deck = sample_deck()
@@ -57,7 +59,7 @@ class PresentationCueTests(unittest.TestCase):
         presenter = "before\n<!-- RL_RECORDED_DECKS_START -->old<!-- RL_RECORDED_DECKS_END -->\nafter"
         deck = sample_deck()
         deck["cues"][0]["title"] = "</script>"
-        result = embed_maps(presenter, {"dynamics": deck})
+        result = embed_maps(presenter, {"modeling-controlled-systems": deck})
         self.assertIn("\\u003c/script>", result)
         self.assertEqual(result.count("RL_RECORDED_DECKS_START"), 1)
 
@@ -72,10 +74,15 @@ class PresentationCueTests(unittest.TestCase):
             source = root / "download.json"
             source.write_text(json.dumps(sample_deck()), encoding="utf-8")
             destination = import_deck(source, root)
-            self.assertEqual(destination, root / "_present" / "dynamics.json")
-            self.assertEqual(json.loads(destination.read_text(encoding="utf-8"))["slug"], "dynamics")
+            self.assertEqual(
+                destination, root / "_present" / "modeling-controlled-systems.json"
+            )
+            self.assertEqual(
+                json.loads(destination.read_text(encoding="utf-8"))["slug"],
+                "modeling-controlled-systems",
+            )
             bundled = (root / "_static" / "presenter.html").read_text(encoding="utf-8")
-            self.assertIn('"dynamics"', bundled)
+            self.assertIn('"modeling-controlled-systems"', bundled)
 
 
 if __name__ == "__main__":

@@ -11,11 +11,18 @@ kernelspec:
   name: python3
 ---
 
-# Fitted Q-Iteration Methods
+# Fitted Q-Iteration and DQN
 
-The [previous chapter](montecarlo.md) established the theoretical foundations of simulation-based approximate dynamic programming: Monte Carlo integration for evaluating expectations, Q-functions for efficient action selection, and techniques for mitigating overestimation bias. Those developments assumed we could sample freely from transition distributions and choose optimization parameters without constraint. This chapter develops a unified framework for fitted Q-iteration algorithms that spans both offline and online settings. We begin with batch algorithms that learn from fixed datasets, then show how the same template generates online methods like DQN through systematic variations in data collection, optimization strategy, and function approximation.
+The [previous chapter](monte-carlo-bellman-estimation.md) established the theoretical foundations of simulation-based approximate dynamic programming: Monte Carlo integration for evaluating expectations, Q-functions for efficient action selection, and techniques for mitigating overestimation bias. Those developments assumed we could sample freely from transition distributions and choose optimization parameters without constraint. This chapter develops a unified framework for fitted Q-iteration algorithms that spans both offline and online settings. We begin with batch algorithms that learn from fixed datasets, then show how the same template generates online methods like DQN through systematic variations in data collection, optimization strategy, and function approximation.
+
+How do the buffer, Bellman target, function approximator, and optimization
+budget combine when only one observed successor is available for each stored
+transition?
 
 ## Design Choices in FQI Methods
+
+Which algorithmic variants arise from changing the buffer, target operator,
+approximator, initialization, and number of fitting steps?
 
 All FQI methods share the same two-level structure built on three core ingredients: a buffer $\mathcal{B}_t$ of transitions inducing an empirical distribution $\hat{P}_{\mathcal{B}_t}$, a target function $g$ that computes regression targets from the current Q-function, and an optimization procedure to fit the Q-function to the resulting targets. At iteration $n$, the outer loop constructs targets from individual transitions using the target function: for each transition $(s_i, a_i, r_i, s'_i)$, we compute $y_i^{(n)} = g(s_i, a_i, r_i, s'_i; \boldsymbol{\theta}_n)$ where typically $g(s,a,r,s'; \boldsymbol{\theta}) = r + \gamma \max_{a'} q(s',a'; \boldsymbol{\theta})$. The inner loop solves the regression problem $\min_{\boldsymbol{\theta}} \mathbb{E}_{((s,a),y) \sim \hat{P}_n^{\text{fit}}}[\ell(q(s, a; \boldsymbol{\theta}), y)]$ to find parameters that match these targets. We can write this abstractly as:
 
@@ -52,7 +59,7 @@ This distinction matters pedagogically: the **buffer distribution** $\hat{P}_{\m
 ```
 
 
-This template provides a blueprint for instantiating concrete algorithms. Six design axes generate algorithmic diversity: the function approximator (trees, neural networks, linear models), the Bellman operator (hard max vs smooth logsumexp, discussed in the [regularized MDP chapter](smoothing.md)), the inner optimization strategy (full convergence, $K$ steps, or single step), the initialization scheme (cold vs warm start), the data collection mechanism (offline, online, replay buffer), and bias mitigation approaches (none, double Q-learning, learned correction). While individual algorithms include additional refinements, these axes capture the primary sources of variation. The table below shows how several well-known methods instantiate this template:
+This template provides a blueprint for instantiating concrete algorithms. Six design axes generate algorithmic diversity: the function approximator (trees, neural networks, linear models), the Bellman operator (hard max vs smooth logsumexp, discussed in the [regularized MDP chapter](regularized-dp.md)), the inner optimization strategy (full convergence, $K$ steps, or single step), the initialization scheme (cold vs warm start), the data collection mechanism (offline, online, replay buffer), and bias mitigation approaches (none, double Q-learning, learned correction). While individual algorithms include additional refinements, these axes capture the primary sources of variation. The table below shows how several well-known methods instantiate this template:
 
 | **Algorithm** | **Approximator** | **Bellman** | **Inner Loop** | **Initialization** | **Data** | **Bias Fix** |
 |:--------------|:-----------------|:------------|:---------------|:-------------------|:---------|:-------------|
@@ -63,7 +70,7 @@ This template provides a blueprint for instantiating concrete algorithms. Six de
 | Double DQN {cite}`van2016deep` | Deep NN | Hard | K=1 | Warm | Replay | Double Q |
 | Soft Q {cite}`haarnoja2017reinforcement` | Neural Net | Smooth | K steps | Warm | Replay | None |
 
-This table omits continuous action methods (NFQCA, DDPG, SAC), which introduce an additional design dimension. We address those in the [continuous action chapter](amortization.md). The initialization choice becomes particularly important when moving from batch to online algorithms.
+This table omits continuous action methods (NFQCA, DDPG, SAC), which introduce an additional design dimension. We address those in the [continuous action chapter](amortized-action-optimization.md). The initialization choice becomes particularly important when moving from batch to online algorithms.
 
 ### Plug-In Approximation with Empirical Distributions
 
@@ -153,6 +160,9 @@ Every algorithm in this chapter minimizes an empirical risk of the form $\mathbb
 
 ## Batch Algorithms: Ernst's FQI and NFQI
 
+How does fitted Q iteration operate when the transition dataset is fixed before
+learning begins?
+
 We begin with the simplest case from the buffer perspective. We are given a fixed transition dataset $\mathcal{D} = \{(s_i,a_i,r_i,s'_i)\}_{i=1}^N$ and never collect new data. The replay buffer is frozen:
 
 $$
@@ -211,7 +221,7 @@ where $c(s, a, s')$ is the immediate cost. Goal states have zero future cost (no
 
 ### Experiment: Scheduling from Fixed Transition Data
 
-The reduced inference-scheduling MDP in [Dynamic Programming](dp.md#exact-scheduling-mdp-for-inference-serving)
+The reduced inference-scheduling MDP in [Infinite-Horizon MDPs](infinite-horizon-mdps.md#exact-scheduling-mdp-for-inference-serving)
 has an exact value-iteration solution because its transition matrix is known.
 Suppose instead that only a fixed table of transitions is retained. Each row
 contains a reduced state $(p,d,a)$, a scheduling action, the cost $c$, and the
@@ -358,6 +368,9 @@ hardware across deployments.
 
 ## From Nested to Flattened Q-Iteration
 
+Can the outer Bellman loop and inner regression loop be interleaved without
+losing track of which parameters generate and fit each target?
+
 Fitted Q-iteration has an inherently nested structure: an outer loop performs approximate value iteration by computing Bellman targets, and an inner loop performs regression by fitting the function approximator to those targets. This nested structure shows that FQI is approximate dynamic programming with function approximation, distinct from supervised learning with changing targets.
 
 When the inner loop uses gradient descent for $K$ steps, we have:
@@ -487,6 +500,9 @@ With EMA updates, the target network slowly tracks the online network instead of
 
 ## Online Algorithms: DQN and Extensions
 
+What changes when the buffer evolves during learning and a neural Q-function is
+updated from replayed transitions?
+
 We now keep the same fitted Q-iteration template but allow the buffer $\mathcal{B}_t$ and its empirical distribution $\hat{P}_{\mathcal{B}_t}$ to evolve while we learn. Instead of repeatedly sampling from a fixed $\hat{P}_{\mathcal{D}}$, we collect new transitions during learning and store them in a circular replay buffer. 
 
 Note that "online" here takes on a second meaning: we collect data online (interacting with the environment) while also maintaining the online network (actively-updated parameters $\boldsymbol{\theta}_t$) and target network (frozen parameters $\boldsymbol{\theta}_{\text{target}}$) distinction from the flattened FQI structure. The online network now plays a dual role: it is both the parameters being trained and the policy used to collect new data for the buffer. 
@@ -583,7 +599,7 @@ $$
 
 using noisy samples $Z_t$ without ever computing $F(\boldsymbol{\theta})$ or its Jacobian. This is analogous to Newton's method in the deterministic case, but replaces exact gradients with stochastic estimates and avoids computing or inverting the Jacobian. Under diminishing step sizes ($\alpha_t \to 0$, $\sum_t \alpha_t = \infty$), the iterates converge to solutions of $F(\boldsymbol{\theta}) = 0$.
 
-Q-learning fits this framework by solving the Bellman residual equation. Recall from the [projection methods chapter](projection.md) that the Bellman equation $q^* = \Bellman q^*$ can be written as a residual equation $\Residual(q) \equiv \Bellman q - q = 0$. For a parameterized Q-function $q(s,a; \boldsymbol{\theta})$, the residual at observed transition $(s,a,r,s')$ is:
+Q-learning fits this framework by solving the Bellman residual equation. Recall from the [projection methods chapter](approximate-bellman-equations.md) that the Bellman equation $q^* = \Bellman q^*$ can be written as a residual equation $\Residual(q) \equiv \Bellman q - q = 0$. For a parameterized Q-function $q(s,a; \boldsymbol{\theta})$, the residual at observed transition $(s,a,r,s')$ is:
 
 $$
 R(s,a,r,s'; \boldsymbol{\theta}) = r + \gamma \max_{a'} q(s',a'; \boldsymbol{\theta}) - q(s,a; \boldsymbol{\theta})
@@ -648,9 +664,12 @@ This is a deterministic dynamical system. The fixed points satisfy $Q(s,a) = \ma
 
 The interaction between the stationary distribution $\xi$ and the empirical distribution $\hat{P}_{\mathcal{B}_t}$ is subtle. In pure stochastic approximation (Q-learning), we have $\mathcal{B}_t = \{(s_t, a_t, r_t, s'_t)\}$ with a single transition. Over time, as we explore, the sequence of visited state-action pairs $(s_t, a_t)$ follows the behavior policy, and under ergodicity, the empirical frequency with which we update each $(s,a)$ converges to the stationary distribution $\xi(s,a)$. The ODE method formalizes this: the expected update $\bar{h}(Q)$ averages over $P$, which implicitly weights by how often we visit each $(s,a)$ under the stationary distribution.
 
-For linear Q-learning with function approximation, the ODE analysis becomes more complex. The [projection methods chapter](projection.md) shows that non-monotone projections (like linear least squares) can fail to preserve contraction properties. The max operator in Q-learning creates additional complications that prevent general convergence guarantees, even though the algorithm may work in practice for well-chosen features.
+For linear Q-learning with function approximation, the ODE analysis becomes more complex. The [projection methods chapter](approximate-bellman-equations.md) shows that non-monotone projections (like linear least squares) can fail to preserve contraction properties. The max operator in Q-learning creates additional complications that prevent general convergence guarantees, even though the algorithm may work in practice for well-chosen features.
 
 ## Regression Losses and Noise Models
+
+How should the fitting loss change when Bellman targets have asymmetric or
+distributional noise rather than Gaussian residuals?
 
 Fix a particular time $t$ and buffer contents $\mathcal{B}_t$. Sampling from $\mathcal{B}_t$ and pushing transitions through the target function $g(\cdot; \boldsymbol{\theta}_t)$ gives a regression distribution $\hat{P}_t^{\text{fit}}$ over pairs $((s,a), y)$. The `fit` operation in the inner loop is then a standard statistical estimation problem: given empirical samples from $\hat{P}_t^{\text{fit}}$, choose parameters $\boldsymbol{\theta}$ to minimize a loss:
 
@@ -781,7 +800,7 @@ The right panel shows the gradient (score function), which determines how strong
 
 XQL (Gumbel loss) and Soft Q-learning both involve Gumbel distributions, but they operate at different levels of the FQI template. Recall our unified framework: buffer $\mathcal{B}_t$, target function $g$, loss $\ell$, optimization budget $K$.
 
-**Soft Q-learning** changes the target function by using the smooth Bellman operator from [regularized MDPs](smoothing.md):
+**Soft Q-learning** changes the target function by using the smooth Bellman operator from [regularized MDPs](regularized-dp.md):
 
 $$
 g^{\text{soft}}(s,a,r,s'; \boldsymbol{\theta}) = r + \gamma \frac{1}{\beta}\log\sum_{a'} \exp(\beta q(s',a'; \boldsymbol{\theta}))
@@ -820,7 +839,7 @@ $$
 q_j(y_i) = \frac{z_{j+1} - y_i}{z_{j+1} - z_j}, \quad q_{j+1}(y_i) = \frac{y_i - z_j}{z_{j+1} - z_j}, \quad q_k(y_i) = 0 \text{ for } k \notin \{j, j+1\}
 $$
 
-This is barycentric interpolation: $\sum_k z_k q_k(y_i) = y_i$ recovers the scalar exactly, placing the two-hot encoding within the same framework as linear interpolation in the [dynamic programming chapter](dp.md) ({prf:ref}`backward-recursion-interp`).
+This is barycentric interpolation: $\sum_k z_k q_k(y_i) = y_i$ recovers the scalar exactly, placing the two-hot encoding within the same framework as linear interpolation in the [dynamic programming chapter](finite-horizon-dp.md) ({prf:ref}`backward-recursion-interp`).
 
 ```{code-cell} python
 :tags: [hide-input]
@@ -943,7 +962,7 @@ which projects the target distribution onto the predicted distribution in KL geo
 
 This provides three sources of implicit robustness. First, gradient influence is bounded: each sample contributes $O(1)$ gradient magnitude per bin, unlike L2 where error magnitude $E$ contributes gradient proportional to $E$. Second, the finite grid $[z_1, z_K]$ clips extreme targets to boundary bins, preventing outliers from dominating the regression scale. Third, the two-hot encoding spreads mass across neighboring bins, providing label smoothing that averages noisy targets at the same $(s,a)$.
 
-The two-hot weights $q_j(y_i), q_{j+1}(y_i)$ are barycentric coordinates, identical to linear interpolation in the [dynamic programming chapter](dp.md) ({prf:ref}`backward-recursion-interp`). This places the encoding within Gordon's monotone approximator framework ({prf:ref}`gordon-averager`): targets are convex combinations preserving order and boundedness. The neural network predicting $p_{\boldsymbol{\theta}}(\cdot \mid s,a)$ is non-monotone, making classification-based Q-learning a hybrid: monotone target structure paired with flexible function approximation.
+The two-hot weights $q_j(y_i), q_{j+1}(y_i)$ are barycentric coordinates, identical to linear interpolation in the [dynamic programming chapter](finite-horizon-dp.md) ({prf:ref}`backward-recursion-interp`). This places the encoding within Gordon's monotone approximator framework ({prf:ref}`gordon-averager`): targets are convex combinations preserving order and boundedness. The neural network predicting $p_{\boldsymbol{\theta}}(\cdot \mid s,a)$ is non-monotone, making classification-based Q-learning a hybrid: monotone target structure paired with flexible function approximation.
 
 Empirically, cross-entropy loss scales better with network capacity. Farebrother et al. {cite}`farebrother2024stop` found that L2-based DQN and CQL degrade when Q-networks scale to large ResNets, while classification loss (specifically HL-Gauss, which uses Gaussian smoothing instead of two-hot) maintains performance. The combination of KL geometry, quantization, and smoothing prevents overfitting to noisy targets that plagues L2 with high-capacity networks.
 
@@ -963,7 +982,11 @@ Bellman targets available to FQI.
 
 Target networks and online networks arise from flattening the nested loops. Merging inner gradient steps with outer value iteration creates a single loop where two sets of parameters coexist: the **online network** $\boldsymbol{\theta}_t$ (actively updated at each gradient step, corresponds to $\boldsymbol{\theta}_n^{(k)}$) and the **target network** $\boldsymbol{\theta}_{\text{target}}$ (frozen for computing targets, updated every $K$ steps to mark outer-iteration boundaries, corresponds to $\boldsymbol{\theta}_n$). In online algorithms like DQN, the online network additionally serves as the behavior policy for data collection.
 
-The [next chapter](amortization.md) directly parameterizes and optimizes policies instead of searching over value functions.
+Fitted Q-iteration can now learn action values from fixed or evolving buffers,
+but every target still requires $\max_a q(s,a)$. What happens when that action
+search is itself a nonlinear program? [Amortized action
+optimization](amortized-action-optimization.md) learns an actor to replace the
+repeated search while retaining the fitted-Q critic.
 
 ## Self-checks
 
