@@ -8,37 +8,70 @@
     <loc>http://localhost:3000/syllabus</loc>
   </url>
   <url>
-    <loc>http://localhost:3000/dynamics</loc>
+    <loc>http://localhost:3000/modeling-controlled-systems</loc>
   </url>
   <url>
-    <loc>http://localhost:3000/trajectories</loc>
+    <loc>http://localhost:3000/stochastic-dynamics-observation</loc>
   </url>
   <url>
-    <loc>http://localhost:3000/collocation</loc>
+    <loc>http://localhost:3000/model-interfaces</loc>
   </url>
   <url>
-    <loc>http://localhost:3000/mpc</loc>
+    <loc>http://localhost:3000/discrete-time-optimal-control</loc>
   </url>
   <url>
-    <loc>http://localhost:3000/dp</loc>
+    <loc>http://localhost:3000/discrete-time-pmp</loc>
   </url>
   <url>
-    <loc>http://localhost:3000/smoothing</loc>
+    <loc>http://localhost:3000/numerical-trajectory-optimization</loc>
   </url>
   <url>
-    <loc>http://localhost:3000/projection</loc>
+    <loc>http://localhost:3000/continuous-time-collocation</loc>
   </url>
   <url>
-    <loc>http://localhost:3000/montecarlo</loc>
+    <loc>http://localhost:3000/receding-horizon-control</loc>
   </url>
   <url>
-    <loc>http://localhost:3000/fqi</loc>
+    <loc>http://localhost:3000/mpc-variants-reliability</loc>
   </url>
   <url>
-    <loc>http://localhost:3000/amortization</loc>
+    <loc>http://localhost:3000/parametric-controllers</loc>
   </url>
   <url>
-    <loc>http://localhost:3000/pg</loc>
+    <loc>http://localhost:3000/finite-horizon-dp</loc>
+  </url>
+  <url>
+    <loc>http://localhost:3000/stochastic-dp</loc>
+  </url>
+  <url>
+    <loc>http://localhost:3000/infinite-horizon-mdps</loc>
+  </url>
+  <url>
+    <loc>http://localhost:3000/regularized-dp</loc>
+  </url>
+  <url>
+    <loc>http://localhost:3000/weighted-residual-methods</loc>
+  </url>
+  <url>
+    <loc>http://localhost:3000/approximate-bellman-equations</loc>
+  </url>
+  <url>
+    <loc>http://localhost:3000/monte-carlo-bellman-estimation</loc>
+  </url>
+  <url>
+    <loc>http://localhost:3000/fitted-q-iteration</loc>
+  </url>
+  <url>
+    <loc>http://localhost:3000/amortized-action-optimization</loc>
+  </url>
+  <url>
+    <loc>http://localhost:3000/gradient-estimation</loc>
+  </url>
+  <url>
+    <loc>http://localhost:3000/regularized-policy-learning</loc>
+  </url>
+  <url>
+    <loc>http://localhost:3000/policy-gradients</loc>
   </url>
   <url>
     <loc>http://localhost:3000/appendix-examples</loc>
