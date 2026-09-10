@@ -23,6 +23,11 @@ $$
 \end{aligned}
 $$
 
+Here $\mathbf x$ denotes a generic decision vector. When applying this
+appendix to a trajectory problem, it is the stacked vector $\mathbf z$,
+not just one physical state. The objective $f$ and constraint maps
+$\mathbf g,\mathbf h$ then correspond to $F,G,H$ in the control chapters.
+
 Where:
 - $f: \mathbb{R}^n \to \mathbb{R}$ is the objective function
 - $\mathbf{g}: \mathbb{R}^n \to \mathbb{R}^m$ represents inequality constraints
@@ -33,7 +38,7 @@ Unlike unconstrained optimization commonly used in deep learning, the optimality
 $$
 \begin{align*}
 \text{Minimize} \quad & f(x_1, x_2) = (x_1 - 1)^2 + (x_2 - 2.5)^2 \\
-\text{subject to} \quad & g(x_1, x_2) = (x_1 - 1)^2 + (x_2 - 1)^2 \leq 1.5, \\
+\text{subject to} \quad & g(x_1, x_2) = (x_1 - 1)^2 + (x_2 - 1)^2 - 1.5 \leq 0, \\
 & h(x_1, x_2) = x_2 - \left(0.5 \sin(2 \pi x_1) + 1.5\right) = 0.
 \end{align*}
 $$
@@ -62,7 +67,7 @@ from scipy.optimize import minimize
 def objective(x):
     return (x[0] - 1)**2 + (x[1] - 2.5)**2
 
-# Define the inequality constraint function
+# SciPy SLSQP expects a nonnegative inequality function: return -g(x).
 def constraint(x):
     return -(x[0] - 1)**2 - (x[1] - 1)**2 + 1.5
 
@@ -147,41 +152,246 @@ plt.gca().set_aspect('equal', adjustable='box')
 ```
 
 
-#### Karush-Kuhn-Tucker (KKT) conditions
+## The Lagrangian, Duality, and Optimality Conditions
 
-While this example is simple enough to convince ourselves visually of the solution to this particular problem, it falls short of providing us with actionable chracterization of what constitutes and optimal solution in general. 
-The Karush-Kuhn-Tucker (KKT) conditions provide us with an answer to this problem by generalizing the first-order optimality conditions in unconstrained optimization to problems involving both equality and inequality constraints.
-This result relies on the construction of an auxiliary function called the Lagrangian, defined as: 
+A constrained optimizer must reduce the objective while respecting the
+constraints. The Lagrangian combines these two requirements in one function:
 
-$$\mathcal{L}(\mathbf{x}, \boldsymbol{\mu}, \boldsymbol{\lambda})=f(\mathbf{x})+\boldsymbol{\mu}^{\top} \mathbf{g}(\mathbf{x})+\boldsymbol{\lambda}^{\top} \mathbf{h}(\mathbf{x})$$
+$$
+\mathcal L(\mathbf x,\boldsymbol\lambda,\boldsymbol\mu)
+=f(\mathbf x)+\sum_{i=1}^m\mu_i g_i(\mathbf x)
++\sum_{j=1}^\ell\lambda_j h_j(\mathbf x),
+\qquad \boldsymbol\mu\ge\mathbf0,
+\quad \boldsymbol\lambda\in\mathbb R^\ell.
+$$
 
-where $\boldsymbol{\mu} \in \mathbb{R}^m$ and $\boldsymbol{\lambda} \in \mathbb{R}^\ell$ are known as Lagrange multipliers. The first-order optimality conditions then state that if $\mathbf{x}^*$, then there must exist corresponding Lagrange multipliers $\boldsymbol{\mu}^*$ and $\boldsymbol{\lambda}^*$ such that: 
+The **Lagrange multipliers** assign weights to the constraint residuals.
+Inequality multipliers $\mu_i$ are nonnegative because a positive residual
+$g_i(\mathbf x)>0$ is a violation that should increase the quantity being
+minimized. Equality multipliers $\lambda_j$ can have either sign because
+$h_j(\mathbf x)$ can violate its constraint in either direction. These signs
+follow the convention $\mathbf g(\mathbf x)\le\mathbf0$ used here.
 
-````{prf:definition}
+### The primal problem as a min–max problem
+
+Suppose one player chooses $\mathbf x$ to minimize the Lagrangian and a second
+player chooses the multipliers to maximize it. If the multiplier player can
+respond after seeing $\mathbf x$, every infeasible choice can be ruled out.
+For a violated inequality $g_i(\mathbf x)>0$, sending $\mu_i$ to infinity
+makes the Lagrangian arbitrarily large. For a violated equality, choosing
+$\lambda_j$ with the same sign as $h_j(\mathbf x)$ and increasing its magnitude
+has the same effect.
+
+For a feasible $\mathbf x$, all equality terms vanish and every inequality
+term is nonpositive. The multiplier player can attain $f(\mathbf x)$ by
+setting $\boldsymbol\mu=\mathbf0$, and cannot obtain a larger value. Thus
+
+$$
+\sup_{\boldsymbol\mu\ge\mathbf0,\,\boldsymbol\lambda\in\mathbb R^\ell}
+\mathcal L(\mathbf x,\boldsymbol\lambda,\boldsymbol\mu)
+=
+\begin{cases}
+f(\mathbf x),&\mathbf x\text{ is feasible},\\
++\infty,&\mathbf x\text{ is infeasible}.
+\end{cases}
+$$
+
+Minimizing this function gives exactly the original constrained problem:
+
+$$
+p^\star
+:=\inf_{\mathbf x:\,\mathbf g(\mathbf x)\le\mathbf0,\,\mathbf h(\mathbf x)=\mathbf0}
+f(\mathbf x)
+=\inf_{\mathbf x}\sup_{\boldsymbol\mu\ge\mathbf0,\,\boldsymbol\lambda\in\mathbb R^\ell}
+\mathcal L(\mathbf x,\boldsymbol\lambda,\boldsymbol\mu).
+$$
+
+This representation requires no convexity or differentiability. The notation
+$\inf$ and $\sup$ allows values that are approached without being attained;
+in particular, no finite multiplier attains $+\infty$ at an infeasible point.
+The representation also uses unbounded multiplier sets. Capping the
+multipliers would instead give a finite penalty for constraint violations.
+
+### The dual problem and lower bounds
+
+Reversing the order changes what the multiplier player can enforce. It must
+now choose one set of weights before the minimizing player chooses
+$\mathbf x$. For fixed multipliers, define the **dual function**
+
+$$
+q(\boldsymbol\lambda,\boldsymbol\mu)
+=\inf_{\mathbf x}\mathcal L(\mathbf x,\boldsymbol\lambda,\boldsymbol\mu).
+$$
+
+The inner infimum ranges over all $\mathbf x$, including infeasible choices.
+For any feasible $\bar{\mathbf x}$ and any $\boldsymbol\mu\ge\mathbf0$,
+
+$$
+q(\boldsymbol\lambda,\boldsymbol\mu)
+\le\mathcal L(\bar{\mathbf x},\boldsymbol\lambda,\boldsymbol\mu)
+\le f(\bar{\mathbf x}).
+$$
+
+Consequently, each multiplier choice supplies a lower bound on the constrained
+optimal value. The **dual problem** searches for the largest such bound:
+
+$$
+d^\star
+:=\sup_{\boldsymbol\mu\ge\mathbf0,\,\boldsymbol\lambda\in\mathbb R^\ell}
+q(\boldsymbol\lambda,\boldsymbol\mu)
+\le p^\star.
+$$
+
+This inequality is **weak duality**. It holds for nonconvex problems as well.
+When $d^\star=p^\star$, **strong duality** holds: choosing the multipliers
+first yields the same value as letting them respond to $\mathbf x$. Equality
+of these values does not by itself say that either optimum is attained.
+
+### Saddle points and fixed multipliers
+
+A **Lagrangian saddle point** is one feasible point $\mathbf x^\star$ and one
+multiplier pair $(\boldsymbol\mu^\star,\boldsymbol\lambda^\star)$, with
+$\boldsymbol\mu^\star\ge\mathbf0$, satisfying
+
+$$
+\mathcal L(\mathbf x^\star,\boldsymbol\lambda,\boldsymbol\mu)
+\le
+\mathcal L(\mathbf x^\star,\boldsymbol\lambda^\star,\boldsymbol\mu^\star)
+\le
+\mathcal L(\mathbf x,\boldsymbol\lambda^\star,\boldsymbol\mu^\star)
+$$
+
+for every $\mathbf x$, $\boldsymbol\mu\ge\mathbf0$, and
+$\boldsymbol\lambda\in\mathbb R^\ell$. The left inequality says that the
+multiplier player cannot increase the value with $\mathbf x^\star$ held fixed.
+The right inequality says that the minimizing player cannot decrease it with
+these multipliers held fixed. This is an equilibrium of the two-player game.
+
+The right inequality is stronger than solving the primal min–max problem.
+It requires $\mathbf x^\star$ to minimize the Lagrangian over all
+$\mathbf x$ against one fixed multiplier pair, even when the competing
+$\mathbf x$ is infeasible. A saddle point therefore certifies global primal
+and dual optimality with equal values. Conversely, if the primal and dual
+optima are both attained and their finite values agree, their optimizers form
+a saddle point. Convexity is one route to these properties, but is not part
+of the saddle-point definition.
+
+### Karush-Kuhn-Tucker conditions
+
+For a smooth problem, a global minimum of the Lagrangian in $\mathbf x$ must
+have zero gradient. The multiplier side of the saddle inequalities also
+requires feasibility and complementary slackness. These requirements give
+the **Karush-Kuhn-Tucker (KKT) conditions**:
+
+````{prf:definition} KKT conditions
 :label: kkt-conditions
-1. The gradient of the Lagrangian with respect to $\mathbf{x}$ must be zero at the optimal point (**stationarity**):
 
-   $$\nabla_x \mathcal{L}(\mathbf{x}^*, \boldsymbol{\mu}^*, \boldsymbol{\lambda}^*) = \nabla f(\mathbf{x}^*) + \sum_{i=1}^m \mu_i^* \nabla g_i(\mathbf{x}^*) + \sum_{j=1}^\ell \lambda_j^* \nabla h_j(\mathbf{x}^*) = \mathbf{0}$$
+A point $(\mathbf x^\star,\boldsymbol\lambda^\star,\boldsymbol\mu^\star)$
+satisfies the KKT conditions when
 
-   In the case where we only have equality constraints, this means that the gradient of the objective and that of constraint are parallel to each other at the optimum but point in opposite directions. 
-
-2. A valid solution of a NLP is one which satisfies all the constraints (**primal feasibility**)
-
-   $$\begin{aligned}
-   \mathbf{g}(\mathbf{x}^*) &\leq \mathbf{0}, \enspace \text{and} \enspace \mathbf{h}(\mathbf{x}^*) &= \mathbf{0}
-   \end{aligned}$$
-
-3. Furthermore, the Lagrange multipliers for **inequality** constraints must be non-negative (**dual feasibility**)
-
-   $$\boldsymbol{\mu}^* \geq \mathbf{0}$$
-
-   This condition stems from the fact that the inequality constraints can only push the solution in one direction.
-
-4. Finally, for each inequality constraint, either the constraint is active (equality holds) or its corresponding Lagrange multiplier is zero at an optimal solution (**complementary slackness**)
-
-   $$\mu_i^* g_i(\mathbf{x}^*) = 0, \quad \forall i = 1,\ldots,m$$
+$$
+\begin{aligned}
+\nabla_{\mathbf x}\mathcal L(\mathbf x^\star,\boldsymbol\lambda^\star,\boldsymbol\mu^\star)
+&=\mathbf0 &&\text{(stationarity)},\\
+\mathbf g(\mathbf x^\star)\le\mathbf0,\qquad
+\mathbf h(\mathbf x^\star)&=\mathbf0 &&\text{(primal feasibility)},\\
+\boldsymbol\mu^\star&\ge\mathbf0 &&\text{(dual feasibility)},\\
+\mu_i^\star g_i(\mathbf x^\star)&=0\quad\text{for every }i
+&&\text{(complementary slackness)}.
+\end{aligned}
+$$
 ````
 
+Complementary slackness describes the multiplier player's response to a
+feasible point. If $g_i(\mathbf x^\star)<0$, a positive multiplier would
+reduce the Lagrangian, so maximizing requires $\mu_i^\star=0$. If
+$g_i(\mathbf x^\star)=0$, any nonnegative multiplier gives the same
+contribution at that point. A tight constraint can therefore carry a positive
+weight, although tightness does not require its weight to be positive.
+
+KKT conditions also arise at local constrained minima even when no saddle
+point exists. If the objective and constraints are continuously
+differentiable and a **constraint qualification** holds at a local minimizer,
+then multipliers satisfying KKT exist. One sufficient qualification is
+**LICQ**, the linear independence of the equality-constraint gradients and
+the gradients of inequalities active at that point. It ensures that the
+linearized constraints have enough regularity for the multiplier theorem to
+apply.
+
+Here, **first-order** means that the conditions use function values and first
+derivatives at the candidate point. Stationarity requires
+
+$$
+\nabla f(\mathbf x^\star)
++\sum_i\mu_i^\star\nabla g_i(\mathbf x^\star)
++\sum_j\lambda_j^\star\nabla h_j(\mathbf x^\star)=\mathbf0.
+$$
+
+This balances the objective gradient against a weighted sum of constraint
+gradients. It does not compare Lagrangian values at other points or determine
+its curvature. Thus KKT alone need not imply that $\mathbf x^\star$ minimizes
+the Lagrangian, even locally. Describing KKT as equations and inequalities at
+one point should not be confused with the global comparisons in the saddle
+inequalities.
+
+For example, consider
+
+$$
+\min_{x\in\mathbb R}-x^2\qquad\text{subject to }x=0,
+\qquad \mathcal L(x,\lambda)=-x^2+\lambda x.
+$$
+
+The unique feasible point is $x^\star=0$, so $p^\star=0$. The exact primal
+representation still works: at $x=0$ the inner supremum is zero, and at any
+$x\ne0$ it is $+\infty$. The equality gradient is $1$, so LICQ holds, and
+stationarity gives $-2x^\star+\lambda^\star=0$. Thus $(0,0)$ satisfies KKT.
+Yet $\mathcal L(x,0)=-x^2$ has a strict maximum at zero. For every fixed
+$\lambda$, it is also unbounded below as $|x|$ grows. Hence $q(\lambda)=-\infty$
+for every $\lambda$, $d^\star=-\infty$, and no saddle point exists. Even a
+global constrained optimizer satisfying KKT need not minimize the Lagrangian.
+
+### Convexity and sufficient conditions
+
+Suppose $f$ and each $g_i$ are differentiable convex functions on
+$\mathbb R^n$, and the equality functions $h_j$ are affine. For any
+$\boldsymbol\mu\ge\mathbf0$, the Lagrangian is then convex in $\mathbf x$.
+Stationarity becomes sufficient for a global minimum because the convexity
+inequality gives
+
+$$
+\begin{aligned}
+\mathcal L(\mathbf x,\boldsymbol\lambda^\star,\boldsymbol\mu^\star)
+&\ge \mathcal L(\mathbf x^\star,\boldsymbol\lambda^\star,\boldsymbol\mu^\star)\\
+&\quad+\nabla_{\mathbf x}\mathcal L(\mathbf x^\star,\boldsymbol\lambda^\star,\boldsymbol\mu^\star)^\top
+(\mathbf x-\mathbf x^\star)\\
+&=\mathcal L(\mathbf x^\star,\boldsymbol\lambda^\star,\boldsymbol\mu^\star).
+\end{aligned}
+$$
+
+This supplies the right saddle inequality. Primal feasibility and
+nonnegative multipliers give
+$\mathcal L(\mathbf x^\star,\boldsymbol\lambda,\boldsymbol\mu)\le f(\mathbf x^\star)$,
+while complementary slackness gives
+$\mathcal L(\mathbf x^\star,\boldsymbol\lambda^\star,\boldsymbol\mu^\star)=f(\mathbf x^\star)$.
+Together they supply the left saddle inequality. Thus any KKT point of this
+convex problem is a global saddle point; no additional constraint
+qualification is needed for this sufficiency direction.
+
+A constraint qualification is needed to guarantee the existence of KKT
+multipliers at an optimizer. For the convex problem just specified,
+**Slater's condition** requires a point satisfying all equalities and every
+inequality strictly. If Slater's condition holds and the primal optimal value
+is finite, strong duality holds and the dual optimum is attained. If the
+primal optimum is attained as well, an optimizer and suitable multipliers
+satisfy KKT and form a saddle point. These convex duality results are developed
+in [Chapter 5 of Boyd and Vandenberghe's *Convex Optimization*](https://web.stanford.edu/~boyd/cvxbook/bv_cvxbook.pdf).
+
+For nonconvex trajectory problems, KKT supplies necessary conditions under
+regularity, and numerical methods seek points satisfying those conditions.
+Global saddle inequalities require a separate argument. The exact primal
+min–max representation remains valid in either case.
+
+### Multipliers in the constrained example
 
 Let's now solve our example problem above, this time using [Ipopt](https://coin-or.github.io/Ipopt/) via the [Pyomo](http://www.pyomo.org/) interface so that we can access the Lagrange multipliers found by the solver.
 
@@ -255,43 +465,61 @@ else:
 ```
 
 
-After running the code above, we can observe the Lagrange multipliers. The Lagrange multiplier associated with the inequality constraint is very small (close to zero), suggesting that the inequality constraint is not active at the optimal solution—meaning that the solution point lies inside the circle defined by this constraint. This can be verified visually in the figure above. As for the equality constraint, its corresponding Lagrange multiplier is non-zero, indicating that this constraint is active at the optimal solution. In general, when we find a Lagrange multiplier close to zero (like the one for the inequality constraint), it means that constraint is not "binding"—the optimal solution does not lie on the boundary defined by this constraint. In contrast, a non-zero Lagrange multiplier, such as the one for the equality constraint, indicates that the constraint is active and that any relaxation would directly affect the objective function's value, as required by the stationarity condition.
+The computed point lies strictly inside the circle, so complementary
+slackness requires its inequality multiplier to be zero, up to numerical
+tolerance. The converse inference would be invalid: a zero multiplier does
+not by itself show that a constraint is inactive. Every equality must hold
+at a feasible point regardless of its multiplier's value. Under suitable
+sensitivity assumptions, the multipliers also describe how the optimal value
+changes when the constraint right-hand sides are perturbed; the sign depends
+on the convention used to write those perturbations.
+
+For a vector constraint map, write $J_h(\mathbf x)$ for its Jacobian, whose
+$j$th row is $\nabla h_j(\mathbf x)^\top$; define $J_g$ similarly.
+Gradients of scalar functions are column vectors.
 
 #### Lagrange Multiplier Theorem
 
-The KKT conditions introduced above characterize the solution structure of constrained optimization problems with equality constraints. In this particular context, these conditions are referred to as the first-order optimality conditions, as part of the Lagrange multiplier theorem. Let's just re-state them in that simpler setting:
+For equality constraints alone, the KKT necessary conditions reduce to the
+Lagrange multiplier theorem. They identify stationary candidates; further
+conditions are needed to establish that a candidate is a local minimum.
 
-````{prf:definition} Lagrange Multiplier Theorem
+````{prf:theorem} Lagrange Multiplier Theorem
 Consider the constrained optimization problem:
 
 $$
 \begin{aligned}
 \min_{\mathbf{x}} \quad & f(\mathbf{x}) \\
-\text{subject to} \quad & h_i(\mathbf{x}) = 0, \quad i = 1, \ldots, m
+\text{subject to} \quad & h_i(\mathbf{x}) = 0, \quad i = 1, \ldots, \ell
 \end{aligned}
 $$
 
-where $\mathbf{x} \in \mathbb{R}^n$, $f: \mathbb{R}^n \to \mathbb{R}$, and $h_i: \mathbb{R}^n \to \mathbb{R}$ for $i = 1, \ldots, m$.
+where $\mathbf{x} \in \mathbb{R}^n$, $f: \mathbb{R}^n \to \mathbb{R}$, and $h_i: \mathbb{R}^n \to \mathbb{R}$ for $i = 1, \ldots, \ell$.
 
 Assume that:
 1. $f$ and $h_i$ are continuously differentiable functions.
-2. The gradients $\nabla h_i(\mathbf{x}^*)$ are linearly independent at the optimal point $\mathbf{x}^*$.
+2. The gradients $\nabla h_i(\mathbf{x}^*)$ are linearly independent at a local minimizer $\mathbf{x}^*$.
 
-Then, there exist unique Lagrange multipliers $\lambda_i^* \in \mathbb{R}$, $i = 1, \ldots, m$, such that the following first-order optimality conditions hold:
+Then, there exist unique Lagrange multipliers $\lambda_i^* \in \mathbb{R}$, $i = 1, \ldots, \ell$, such that the following first-order optimality conditions hold:
 
-1. Stationarity: $\nabla f(\mathbf{x}^*) + \sum_{i=1}^m \lambda_i^* \nabla h_i(\mathbf{x}^*) = \mathbf{0}$
-2. Primal feasibility: $h_i(\mathbf{x}^*) = 0$, for $i = 1, \ldots, m$
+1. Stationarity: $\nabla f(\mathbf{x}^*) + \sum_{i=1}^\ell \lambda_i^* \nabla h_i(\mathbf{x}^*) = \mathbf{0}$
+2. Primal feasibility: $h_i(\mathbf{x}^*) = 0$, for $i = 1, \ldots, \ell$
 ````
 
 Note that both the stationarity and primal feasibility statements are simply saying that the derivative of the Lagrangian in either the primal or dual variables must be zero at an optimal constrained solution. In other words:
 
 $$
-\nabla_{\mathbf{x}, \boldsymbol{\lambda}} L(\mathbf{x}^*, \boldsymbol{\lambda}^*) = \mathbf{0}
+\nabla_{\mathbf{x}, \boldsymbol{\lambda}} \mathcal L(\mathbf{x}^*, \boldsymbol{\lambda}^*) = \mathbf{0}
 $$
 
-Letting $\mathbf{F}(\mathbf{x}, \boldsymbol{\lambda})$ stand for $\nabla_{\mathbf{x}, \boldsymbol{\lambda}} L(\mathbf{x}, \boldsymbol{\lambda})$, the Lagrange multipliers theorem tells us that an optimal primal-dual pair is actually a zero of that function $\mathbf{F}$: the derivative of the Lagrangian. Therefore, we can use this observation to craft a solution method for solving equality constrained optimization using Newton's method, which is a numerical procedure for finding zeros of a nonlinear function.
+Let $\mathbf F(\mathbf x,\boldsymbol\lambda)$ denote this combined gradient.
+Under the theorem's assumptions, a local minimizer and its multipliers give
+a zero of $\mathbf F$. Newton's method can seek such zeros, but reaching one
+alone does not certify a minimum or a Lagrangian saddle point.
 
 #### Newton's Method
+
+For a vector residual $\mathbf F$, write $J_F$ for its Jacobian, with component gradients as rows. This vector residual is distinct from the scalar objective $F$ used in trajectory optimization.
 
 Newton's method is a numerical procedure for solving root-finding problems. These are nonlinear systems of equations of the form:
 
@@ -300,25 +528,25 @@ Find $\mathbf{z}^* \in \mathbb{R}^n$ such that $\mathbf{F}(\mathbf{z}^*) = \math
 where $\mathbf{F}: \mathbb{R}^n \to \mathbb{R}^n$ is a continuously differentiable function. Newton's method then consists in applying the following sequence of iterates:
 
 $$
-\mathbf{z}^{k+1} = \mathbf{z}^k - [\nabla \mathbf{F}(\mathbf{z}^k)]^{-1} \mathbf{F}(\mathbf{z}^k)
+\mathbf{z}^{k+1} = \mathbf{z}^k - [J_F(\mathbf{z}^k)]^{-1} \mathbf{F}(\mathbf{z}^k)
 $$
 
-where $\mathbf{z}^k$ is the k-th iterate, and $\nabla \mathbf{F}(\mathbf{z}^k)$ is the Jacobian matrix of $\mathbf{F}$ evaluated at $\mathbf{z}^k$.
+where $\mathbf{z}^k$ is the k-th iterate, and $J_F(\mathbf{z}^k)$ is the Jacobian matrix of $\mathbf{F}$ evaluated at $\mathbf{z}^k$.
 
-Newton's method exhibits local quadratic convergence: if the initial guess $\mathbf{z}^0$ is sufficiently close to the true solution $\mathbf{z}^*$, and $\nabla \mathbf{F}(\mathbf{z}^*)$ is nonsingular, the method converges quadratically to $\mathbf{z}^*$ {cite}`ortega_rheinboldt_1970`. However, the method is sensitive to the initial guess; if it's too far from the desired solution, Newton's method might fail to converge or converge to a different root. To mitigate this problem, a set of techniques known as numerical continuation methods {cite}`allgower_georg_1990` have been developed. These methods effectively enlarge the basin of attraction of Newton's method by solving a sequence of related problems, progressing from an easy one to the target problem. This approach is reminiscent of several concepts in machine learning and statistical inference: curriculum learning in machine learning, where models are trained on increasingly complex data; tempering in Markov Chain Monte Carlo (MCMC) samplers, which gradually adjusts the target distribution to improve mixing; and modern diffusion models, which use a similar concept of gradually transforming noise into structured data.
+Newton's method exhibits local quadratic convergence: if the initial guess $\mathbf{z}^0$ is sufficiently close to the true solution $\mathbf{z}^*$, and $J_F(\mathbf{z}^*)$ is nonsingular, the method converges quadratically to $\mathbf{z}^*$ {cite}`ortega_rheinboldt_1970`. However, the method is sensitive to the initial guess; if it's too far from the desired solution, Newton's method might fail to converge or converge to a different root. To mitigate this problem, a set of techniques known as numerical continuation methods {cite}`allgower_georg_1990` have been developed. These methods effectively enlarge the basin of attraction of Newton's method by solving a sequence of related problems, progressing from an easy one to the target problem. This approach is reminiscent of several concepts in machine learning and statistical inference: curriculum learning in machine learning, where models are trained on increasingly complex data; tempering in Markov Chain Monte Carlo (MCMC) samplers, which gradually adjusts the target distribution to improve mixing; and modern diffusion models, which use a similar concept of gradually transforming noise into structured data.
 
 ##### Efficient Implementation of Newton's Method
 
-Note that each step of Newton's method involves computing the inverse of a Jacobian matrix. However, a cardinal rule in numerical linear algebra is to avoid computing matrix inverses explicitly: rarely, if ever, should there be a `np.lindex.inv` in your code. Instead, the numerically stable and computationally efficient approach is to solve a linear system of equations at each step.
+Note that each step of Newton's method involves computing the inverse of a Jacobian matrix. However, a cardinal rule in numerical linear algebra is to avoid computing matrix inverses explicitly: rarely, if ever, should there be a `np.linalg.inv` in your code. Instead, the numerically stable and computationally efficient approach is to solve a linear system of equations at each step.
 Given the Newton's method iterate:
 
 $$
-\mathbf{z}^{k+1} = \mathbf{z}^k - [\nabla \mathbf{F}(\mathbf{z}^k)]^{-1} \mathbf{F}(\mathbf{z}^k)
+\mathbf{z}^{k+1} = \mathbf{z}^k - [J_F(\mathbf{z}^k)]^{-1} \mathbf{F}(\mathbf{z}^k)
 $$
 
 We can reformulate this as a two-step procedure:
 
-1. Solve the linear system: $\underbrace{[\nabla \mathbf{F}(\mathbf{z}^k)]}_{\mathbf{A}} \Delta \mathbf{z}^k = -\mathbf{F}(\mathbf{z}^k)$
+1. Solve the linear system: $\underbrace{[J_F(\mathbf{z}^k)]}_{\mathbf{A}} \Delta \mathbf{z}^k = -\mathbf{F}(\mathbf{z}^k)$
 2. Update: $\mathbf{z}^{k+1} = \mathbf{z}^k + \Delta \mathbf{z}^k$
 
 The structure of the linear system in step 1 often allows for specialized solution methods. In the context of automatic differentiation, matrix-free linear solvers are particularly useful. These solvers can find a solution without explicitly forming the matrix A, requiring only the ability to evaluate matrix-vector or vector-matrix products. Typical examples of such methods include classical matrix-splitting methods (e.g., Richardson iteration) or conjugate gradient methods through [`sparse.linalg.cg`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.cg.html) for example. Another useful method is the Generalized Minimal Residual method (GMRES) implemented in SciPy via [`sparse.linalg.gmres`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.gmres.html), which is useful when facing non-symmetric and indefinite systems.
@@ -327,30 +555,31 @@ By inspecting the structure of matrix $\mathbf{A}$ in the specific application w
 
 #### Solving Equality Constrained Programs with Newton's Method
 
-To solve equality-constrained optimization problems using Newton's method, we begin by recognizing that the problem reduces to finding a zero of the function $\mathbf{F}(\mathbf{z}) = \nabla_{\mathbf{x}, \boldsymbol{\lambda}} L(\mathbf{x}, \boldsymbol{\lambda})$. Here, $\mathbf{F}$ represents the derivative of the Lagrangian function, and $\mathbf{z} = (\mathbf{x}, \boldsymbol{\lambda})$ combines both the primal variables $\mathbf{x}$ and the dual variables (Lagrange multipliers) $\boldsymbol{\lambda}$. Explicitly, we have:
+To seek stationary candidates for equality-constrained optimization, Newton's
+method searches for a zero of the function $\mathbf{F}(\mathbf{z}) = \nabla_{\mathbf{x}, \boldsymbol{\lambda}} \mathcal L(\mathbf{x}, \boldsymbol{\lambda})$. Here, $\mathbf{F}$ represents the derivative of the Lagrangian function, and $\mathbf{z} = (\mathbf{x}, \boldsymbol{\lambda})$ combines both the primal variables $\mathbf{x}$ and the dual variables (Lagrange multipliers) $\boldsymbol{\lambda}$. Explicitly, we have:
 
 $$
-\mathbf{F}(\mathbf{z}) = \begin{bmatrix} \nabla_{\mathbf{x}} L(\mathbf{x}, \boldsymbol{\lambda}) \\ \mathbf{h}(\mathbf{x}) \end{bmatrix} = \begin{bmatrix} \nabla f(\mathbf{x}) + \sum_{i=1}^m \lambda_i \nabla h_i(\mathbf{x}) \\ \mathbf{h}(\mathbf{x}) \end{bmatrix}.
+\mathbf{F}(\mathbf{z}) = \begin{bmatrix} \nabla_{\mathbf{x}} \mathcal L(\mathbf{x}, \boldsymbol{\lambda}) \\ \mathbf{h}(\mathbf{x}) \end{bmatrix} = \begin{bmatrix} \nabla f(\mathbf{x}) + \sum_{i=1}^\ell \lambda_i \nabla h_i(\mathbf{x}) \\ \mathbf{h}(\mathbf{x}) \end{bmatrix}.
 $$
 
 Newton's method involves linearizing $\mathbf{F}(\mathbf{z})$ around the current iterate $\mathbf{z}^k = (\mathbf{x}^k, \boldsymbol{\lambda}^k)$ and then solving the resulting linear system. At each iteration $k$, Newton's method updates the current estimate by solving the linear system:
 
 $$
-\mathbf{z}^{k+1} = \mathbf{z}^k - [\nabla \mathbf{F}(\mathbf{z}^k)]^{-1} \mathbf{F}(\mathbf{z}^k).
+\mathbf{z}^{k+1} = \mathbf{z}^k - [J_F(\mathbf{z}^k)]^{-1} \mathbf{F}(\mathbf{z}^k).
 $$
 
-However, instead of explicitly inverting the Jacobian matrix $\nabla \mathbf{F}(\mathbf{z}^k)$, we solve the linear system:
+However, instead of explicitly inverting the Jacobian matrix $J_F(\mathbf{z}^k)$, we solve the linear system:
 
 $$
-\underbrace{\nabla \mathbf{F}(\mathbf{z}^k)}_{\mathbf{A}} \Delta \mathbf{z}^k = -\mathbf{F}(\mathbf{z}^k),
+\underbrace{J_F(\mathbf{z}^k)}_{\mathbf{A}} \Delta \mathbf{z}^k = -\mathbf{F}(\mathbf{z}^k),
 $$
 
 where $\Delta \mathbf{z}^k = (\Delta \mathbf{x}^k, \Delta \boldsymbol{\lambda}^k)$ represents the Newton step for the primal and dual variables. Substituting the expression for $\mathbf{F}(\mathbf{z})$ and its Jacobian, the system becomes:
 
 $$
 \begin{bmatrix}
-\nabla^2_{\mathbf{x}\mathbf{x}} L(\mathbf{x}^k, \boldsymbol{\lambda}^k) & \nabla \mathbf{h}(\mathbf{x}^k)^T \\
-\nabla \mathbf{h}(\mathbf{x}^k) & \mathbf{0}
+\nabla^2_{\mathbf{x}\mathbf{x}} \mathcal L(\mathbf{x}^k, \boldsymbol{\lambda}^k) & J_h(\mathbf{x}^k)^T \\
+J_h(\mathbf{x}^k) & \mathbf{0}
 \end{bmatrix}
 \begin{bmatrix}
 \Delta \mathbf{x}^k \\
@@ -359,7 +588,7 @@ $$
 =
 -
 \begin{bmatrix}
-\nabla f(\mathbf{x}^k) + \nabla \mathbf{h}(\mathbf{x}^k)^T \boldsymbol{\lambda}^k \\
+\nabla f(\mathbf{x}^k) + J_h(\mathbf{x}^k)^T \boldsymbol{\lambda}^k \\
 \mathbf{h}(\mathbf{x}^k)
 \end{bmatrix}.
 $$
@@ -384,7 +613,7 @@ $$
 Geometrically speaking, the constraint $h(x)$ describes a unit circle centered at the origin. To solve this problem using the method of Lagrange multipliers, we form the Lagrangian:
 
 $$
-L(x, \lambda) = f(x) + \lambda h(x) = (x_1 - 2)^2 + (x_2 - 1)^2 + \lambda(x_1^2 + x_2^2 - 1)
+\mathcal L(x, \lambda) = f(x) + \lambda h(x) = (x_1 - 2)^2 + (x_2 - 1)^2 + \lambda(x_1^2 + x_2^2 - 1)
 $$
 
 For this particular problem, it happens so that we can also find an analytical without even having to use Newton's method. From the first-order optimality conditions, we obtain the following linear system of equations: 
@@ -428,12 +657,12 @@ except (ImportError, OSError):
 def f(x):
     return (x[0] - 2)**2 + (x[1] - 1)**2
 
-def g(x):
+def h(x):
     return x[0]**2 + x[1]**2 - 1
 
 # Lagrangian
 def L(x, lambda_):
-    return f(x) + lambda_ * g(x)
+    return f(x) + lambda_ * h(x)
 
 # Gradient and Hessian of Lagrangian
 grad_L_x = jit(grad(L, argnums=0))
@@ -491,11 +720,11 @@ x_opt_ana, lambda_opt_ana = analytical_solution()
 
 # Verify the result
 print("\nNumerical Solution:")
-print(f"Constraint violation: {g(x_opt_num):.6f}")
+print(f"Constraint violation: {h(x_opt_num):.6f}")
 print(f"Objective function value: {f(x_opt_num):.6f}")
 
 print("\nAnalytical Solution:")
-print(f"Constraint violation: {g(x_opt_ana):.6f}")
+print(f"Constraint violation: {h(x_opt_ana):.6f}")
 print(f"Objective function value: {f(x_opt_ana):.6f}")
 
 print("\nComparison:")
@@ -576,24 +805,24 @@ At each iteration $k$, we approximate the objective function $f(\mathbf{x})$ usi
 f(\mathbf{x}) \approx f(\mathbf{x}^k) + \nabla f(\mathbf{x}^k)^T (\mathbf{x} - \mathbf{x}^k) + \frac{1}{2} (\mathbf{x} - \mathbf{x}^k)^T \nabla^2 f(\mathbf{x}^k) (\mathbf{x} - \mathbf{x}^k).
 \end{align*}
 
-This expansion uses the **Hessian of the objective function** $\nabla^2 f(\mathbf{x}^k)$ to capture the curvature of $f$. However, in the context of constrained optimization, we also need to account for the effect of the constraints on the local behavior of the solution. If we were to use only $\nabla^2 f(\mathbf{x}^k)$, we would not capture the influence of the constraints on the curvature of the feasible region. The resulting subproblem might then lead to steps that violate the constraints or are less effective in achieving convergence. The choice that we make instead is to use the Hessian of the Lagrangian, $\nabla^2_{\mathbf{x}\mathbf{x}} L(\mathbf{x}^k, \boldsymbol{\lambda}^k)$, leading to the following quadratic model:
+This expansion uses the **Hessian of the objective function** $\nabla^2 f(\mathbf{x}^k)$ to capture the curvature of $f$. However, in the context of constrained optimization, we also need to account for the effect of the constraints on the local behavior of the solution. If we were to use only $\nabla^2 f(\mathbf{x}^k)$, we would not capture the influence of the constraints on the curvature of the feasible region. The resulting subproblem might then lead to steps that violate the constraints or are less effective in achieving convergence. The choice that we make instead is to use the Hessian of the Lagrangian, $\nabla^2_{\mathbf{x}\mathbf{x}} \mathcal L(\mathbf{x}^k, \boldsymbol{\lambda}^k)$, leading to the following quadratic model:
 
 $$
-f(\mathbf{x}) \approx f(\mathbf{x}^k) + \nabla f(\mathbf{x}^k)^T (\mathbf{x} - \mathbf{x}^k) + \frac{1}{2} (\mathbf{x} - \mathbf{x}^k)^T \nabla^2_{\mathbf{x}\mathbf{x}} L(\mathbf{x}^k, \boldsymbol{\lambda}^k) (\mathbf{x} - \mathbf{x}^k).
+f(\mathbf{x}) \approx f(\mathbf{x}^k) + \nabla f(\mathbf{x}^k)^T (\mathbf{x} - \mathbf{x}^k) + \frac{1}{2} (\mathbf{x} - \mathbf{x}^k)^T \nabla^2_{\mathbf{x}\mathbf{x}} \mathcal L(\mathbf{x}^k, \boldsymbol{\lambda}^k) (\mathbf{x} - \mathbf{x}^k).
 $$
 
 Similarly, the equality constraints $\mathbf{h}(\mathbf{x})$ are linearized around $\mathbf{x}^k$:
 
 $$
-\mathbf{h}(\mathbf{x}) \approx \mathbf{h}(\mathbf{x}^k) + \nabla \mathbf{h}(\mathbf{x}^k) (\mathbf{x} - \mathbf{x}^k).
+\mathbf{h}(\mathbf{x}) \approx \mathbf{h}(\mathbf{x}^k) + J_h(\mathbf{x}^k) (\mathbf{x} - \mathbf{x}^k).
 $$
 
 Combining these approximations, we obtain a Quadratic Programming (QP) subproblem, which approximates our original problem locally at $\mathbf{x}^k$ but is easier to solve:
 
 $$
 \begin{aligned}
-\text{Minimize} \quad & \nabla f(\mathbf{x}^k)^T \Delta \mathbf{x} + \frac{1}{2} \Delta \mathbf{x}^T \nabla^2_{\mathbf{x}\mathbf{x}} L(\mathbf{x}^k, \boldsymbol{\lambda}^k) \Delta \mathbf{x} \\
-\text{subject to} \quad & \nabla \mathbf{h}(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{h}(\mathbf{x}^k) = \mathbf{0},
+\text{Minimize} \quad & \nabla f(\mathbf{x}^k)^T \Delta \mathbf{x} + \frac{1}{2} \Delta \mathbf{x}^T \nabla^2_{\mathbf{x}\mathbf{x}} \mathcal L(\mathbf{x}^k, \boldsymbol{\lambda}^k) \Delta \mathbf{x} \\
+\text{subject to} \quad & J_h(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{h}(\mathbf{x}^k) = \mathbf{0},
 \end{aligned}
 $$
 
@@ -633,8 +862,8 @@ The QP subproblem in SQP is directly related to applying Newton's method for equ
 
 \begin{align*}
 \begin{bmatrix}
-\nabla^2_{\mathbf{x}\mathbf{x}} L(\mathbf{x}^k, \boldsymbol{\lambda}^k) & \nabla \mathbf{h}(\mathbf{x}^k)^T \\
-\nabla \mathbf{h}(\mathbf{x}^k) & \mathbf{0}
+\nabla^2_{\mathbf{x}\mathbf{x}} \mathcal L(\mathbf{x}^k, \boldsymbol{\lambda}^k) & J_h(\mathbf{x}^k)^T \\
+J_h(\mathbf{x}^k) & \mathbf{0}
 \end{bmatrix}
 \begin{bmatrix}
 \Delta \mathbf{x}^k \\
@@ -643,7 +872,7 @@ The QP subproblem in SQP is directly related to applying Newton's method for equ
 =
 -
 \begin{bmatrix}
-\nabla f(\mathbf{x}^k) + \nabla \mathbf{h}(\mathbf{x}^k)^T \boldsymbol{\lambda}^k \\
+\nabla f(\mathbf{x}^k) + J_h(\mathbf{x}^k)^T \boldsymbol{\lambda}^k \\
 \mathbf{h}(\mathbf{x}^k)
 \end{bmatrix}
 \end{align*}
@@ -665,9 +894,9 @@ Consider a general nonlinear optimization problem that includes both equality an
 As we did earlier, we approximate this problem by constructing a quadratic approximation to the objective and a linearization of the constraints. QP subproblem at each iteration is then formulated as:
 
 \begin{align*}
-\text{Minimize} \quad & \nabla f(\mathbf{x}^k)^T \Delta \mathbf{x} + \frac{1}{2} \Delta \mathbf{x}^T \nabla^2_{\mathbf{x}\mathbf{x}} L(\mathbf{x}^k, \boldsymbol{\lambda}^k, \boldsymbol{\nu}^k) \Delta \mathbf{x} \\
-\text{subject to} \quad & \nabla \mathbf{g}(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{g}(\mathbf{x}^k) \leq \mathbf{0}, \\
-& \nabla \mathbf{h}(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{h}(\mathbf{x}^k) = \mathbf{0},
+\text{Minimize} \quad & \nabla f(\mathbf{x}^k)^T \Delta \mathbf{x} + \frac{1}{2} \Delta \mathbf{x}^T \nabla^2_{\mathbf{x}\mathbf{x}} \mathcal L(\mathbf{x}^k, \boldsymbol{\lambda}^k, \boldsymbol{\mu}^k) \Delta \mathbf{x} \\
+\text{subject to} \quad & J_g(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{g}(\mathbf{x}^k) \leq \mathbf{0}, \\
+& J_h(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{h}(\mathbf{x}^k) = \mathbf{0},
 \end{align*}
 
 where $\Delta \mathbf{x} = \mathbf{x} - \mathbf{x}^k$ represents the step direction for the primal variables. The following pseudocode outlines the steps involved in applying SQP to a problem with both equality and inequality constraints:
@@ -675,9 +904,9 @@ where $\Delta \mathbf{x} = \mathbf{x} - \mathbf{x}^k$ represents the step direct
 ````{prf:algorithm} Sequential Quadratic Programming (SQP) with Inequality Constraints
 :label: alg-sqp-ineq
 
-**Input:** Initial estimate $\mathbf{x}^0$, initial multipliers $\boldsymbol{\lambda}^0, \boldsymbol{\nu}^0$, tolerance $\epsilon > 0$.
+**Input:** Initial estimate $\mathbf{x}^0$, initial multipliers $\boldsymbol{\lambda}^0, \boldsymbol{\mu}^0$, tolerance $\epsilon > 0$.
 
-**Output:** Solution $\mathbf{x}^*$, Lagrange multipliers $\boldsymbol{\lambda}^*, \boldsymbol{\nu}^*$.
+**Output:** Solution $\mathbf{x}^*$, Lagrange multipliers $\boldsymbol{\lambda}^*, \boldsymbol{\mu}^*$.
 
 **Procedure:**
 
@@ -687,18 +916,18 @@ where $\Delta \mathbf{x} = \mathbf{x} - \mathbf{x}^k$ represents the step direct
 2. **Repeat:**
 
    a. **Construct the QP Subproblem:**
-   Formulate the QP subproblem using the current iterate $\mathbf{x}^k$, $\boldsymbol{\lambda}^k$, and $\boldsymbol{\nu}^k$:
+   Formulate the QP subproblem using the current iterate $\mathbf{x}^k$, $\boldsymbol{\lambda}^k$, and $\boldsymbol{\mu}^k$:
 
    $$
    \begin{aligned}
-   \text{Minimize} \quad & \nabla f(\mathbf{x}^k)^T \Delta \mathbf{x} + \frac{1}{2} \Delta \mathbf{x}^T \nabla^2_{\mathbf{x}\mathbf{x}} L(\mathbf{x}^k, \boldsymbol{\lambda}^k, \boldsymbol{\nu}^k) \Delta \mathbf{x} \\
-   \text{subject to} \quad & \nabla \mathbf{g}(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{g}(\mathbf{x}^k) \leq \mathbf{0}, \\
-   & \nabla \mathbf{h}(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{h}(\mathbf{x}^k) = \mathbf{0}.
+   \text{Minimize} \quad & \nabla f(\mathbf{x}^k)^T \Delta \mathbf{x} + \frac{1}{2} \Delta \mathbf{x}^T \nabla^2_{\mathbf{x}\mathbf{x}} \mathcal L(\mathbf{x}^k, \boldsymbol{\lambda}^k, \boldsymbol{\mu}^k) \Delta \mathbf{x} \\
+   \text{subject to} \quad & J_g(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{g}(\mathbf{x}^k) \leq \mathbf{0}, \\
+   & J_h(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{h}(\mathbf{x}^k) = \mathbf{0}.
    \end{aligned}
    $$
 
    b. **Solve the QP Subproblem:**
-   Solve for $\Delta \mathbf{x}^k$ and obtain the updated Lagrange multipliers $\boldsymbol{\lambda}^{k+1}$ and $\boldsymbol{\nu}^{k+1}$.
+   Solve for $\Delta \mathbf{x}^k$ and obtain the updated Lagrange multipliers $\boldsymbol{\lambda}^{k+1}$ and $\boldsymbol{\mu}^{k+1}$.
 
    c. **Update the Estimates:**
    Update the primal variables and multipliers:
@@ -711,7 +940,7 @@ where $\Delta \mathbf{x} = \mathbf{x} - \mathbf{x}^k$ represents the step direct
    If $\|\Delta \mathbf{x}^k\| < \epsilon$ and the KKT conditions are satisfied, stop. Otherwise, set $k = k + 1$ and repeat.
 
 3. **Return:**
-   $\mathbf{x}^* = \mathbf{x}^{k+1}, \boldsymbol{\lambda}^* = \boldsymbol{\lambda}^{k+1}, \boldsymbol{\nu}^* = \boldsymbol{\nu}^{k+1}$.
+   $\mathbf{x}^* = \mathbf{x}^{k+1}, \boldsymbol{\lambda}^* = \boldsymbol{\lambda}^{k+1}, \boldsymbol{\mu}^* = \boldsymbol{\mu}^{k+1}$.
 ````
 
 #### Demonstration with JAX and CVXPy
@@ -724,7 +953,7 @@ Consider the following equality and inequality-constrained problem:
 & h(x) = x_1^2 + x_2^2 - 1 = 0
 \end{align*}
 
-This example builds on our previous one but adds a parabola-shaped inequality constraint. We require our solution to lie not only on the circle defining our equality constraint but also below the parabola. To solve the QP subproblem, we will be using the [CVXPY](https://www.cvxpy.org/) package. While the Lagrangian and derivatives could be computed easily by hand, we use [JAX](https://jax.readthedocs.io/) for generality:
+This example builds on our previous one but adds a parabola-shaped inequality constraint. We require our solution to lie not only on the circle defining our equality constraint but also on or above the parabola. To solve the QP subproblem, we will be using the [CVXPY](https://www.cvxpy.org/) package. While the Lagrangian and derivatives could be computed easily by hand, we use [JAX](https://jax.readthedocs.io/) for generality:
 
 ```{code-cell} python
 :tags: [hide-input]
@@ -753,42 +982,42 @@ def f(x):
     return (x[0] - 2)**2 + (x[1] - 1)**2
 
 @jit
-def g(x):
+def h(x):
     return jnp.array([x[0]**2 + x[1]**2 - 1])
 
 @jit
-def h(x):
-    return jnp.array([x[0]**2 - x[1]])  # Corrected inequality constraint: x[1] <= x[0]^2
+def g(x):
+    return jnp.array([x[0]**2 - x[1]])  # Corrected inequality constraint: x[1] >= x[0]^2
 
 # Compute gradients and Jacobians using JAX
 grad_f = jit(grad(f))
 hess_f = jit(hessian(f))
-jac_g = jit(jacfwd(g))
 jac_h = jit(jacfwd(h))
+jac_g = jit(jacfwd(g))
 
 @jit
-def lagrangian(x, lambda_, nu):
-    return f(x) + jnp.dot(lambda_, g(x)) + jnp.dot(nu, h(x))
+def lagrangian(x, lambda_, mu):
+    return f(x) + jnp.dot(lambda_, h(x)) + jnp.dot(mu, g(x))
 
 hess_L = jit(hessian(lagrangian, argnums=0))
 
-def solve_qp_subproblem(x, lambda_, nu):
+def solve_qp_subproblem(x, lambda_, mu):
     n = len(x)
     delta_x = cp.Variable(n)
     
     # Convert JAX arrays to numpy for cvxpy
     grad_f_np = np.array(grad_f(x))
-    hess_L_np = np.array(hess_L(x, lambda_, nu))
-    jac_g_np = np.array(jac_g(x))
+    hess_L_np = np.array(hess_L(x, lambda_, mu))
     jac_h_np = np.array(jac_h(x))
-    g_np = np.array(g(x))
+    jac_g_np = np.array(jac_g(x))
     h_np = np.array(h(x))
+    g_np = np.array(g(x))
     
     obj = cp.Minimize(grad_f_np.T @ delta_x + 0.5 * cp.quad_form(delta_x, hess_L_np))
     
     constraints = [
-        jac_g_np @ delta_x + g_np == 0,
-        jac_h_np @ delta_x + h_np <= 0
+        jac_h_np @ delta_x + h_np == 0,
+        jac_g_np @ delta_x + g_np <= 0
     ]
     
     prob = cp.Problem(obj, constraints)
@@ -799,29 +1028,29 @@ def solve_qp_subproblem(x, lambda_, nu):
 def sqp(x0, max_iter=100, tol=1e-6):
     x = x0
     lambda_ = jnp.zeros(1)
-    nu = jnp.zeros(1)
+    mu = jnp.zeros(1)
     
     for i in range(max_iter):
-        delta_x, new_lambda, new_nu = solve_qp_subproblem(x, lambda_, nu)
+        delta_x, new_lambda, new_mu = solve_qp_subproblem(x, lambda_, mu)
         
         if jnp.linalg.norm(delta_x) < tol:
             break
         
         x = x + delta_x
         lambda_ = new_lambda
-        nu = new_nu
+        mu = new_mu
         
-    return x, lambda_, nu, i+1
+    return x, lambda_, mu, i+1
 
 # Initial point
 x0 = jnp.array([0.5, 0.5])
 
 # Solve using SQP
-x_opt, lambda_opt, nu_opt, iterations = sqp(x0)
+x_opt, lambda_opt, mu_opt, iterations = sqp(x0)
 
 print(f"Optimal x: {x_opt}")
 print(f"Optimal lambda: {lambda_opt}")
-print(f"Optimal nu: {nu_opt}")
+print(f"Optimal mu: {mu_opt}")
 print(f"Iterations: {iterations}")
 
 # Visualize the result
@@ -850,7 +1079,7 @@ plt.plot(x1_ineq, x2_ineq, color='orange', linewidth=2, label='Inequality Constr
 
 # Shade the feasible region for the inequality constraint
 x2_lower = jnp.minimum(x2_ineq, 2.5)
-plt.fill_between(x1_ineq, -1.5, x2_lower, color='gray', alpha=0.2, hatch='\\/...', label='Feasible Region')
+plt.fill_between(x1_ineq, x2_lower, 2.5, color='gray', alpha=0.2, hatch='\\/...', label='Inequality-feasible region')
 
 # Plot the optimal and initial points
 plt.scatter(x_opt[0], x_opt[1], color='red', s=100, edgecolor='white', linewidth=2, label='Optimal Point')
@@ -870,49 +1099,40 @@ plt.ylim(-1.5, 2.5)
 plt.tight_layout()
 
 # Verify the result
-print(f"\nEquality constraint violation: {g(x_opt)[0]:.6f}")
-print(f"Inequality constraint violation: {h(x_opt)[0]:.6f}")
+print(f"\nEquality constraint violation: {h(x_opt)[0]:.6f}")
+print(f"Inequality constraint violation: {g(x_opt)[0]:.6f}")
 print(f"Objective function value: {f(x_opt):.6f}")
 ```
 
 
 ### The Arrow-Hurwicz-Uzawa algorithm
 
-While the SQP method addresses constrained optimization problems by sequentially solving quadratic subproblems, an alternative approach follows from viewing constrained optimization as a min-max problem. This perspective leads to a simpler algorithm, originally introduced by the Arrow-Hurwicz-Uzawa {cite}`arrow1958studies`. Consider the following general constrained optimization problem encompassing both equality and inequality constraints:
+The primal min–max representation motivates updates that descend in the
+primal variables and ascend in the multipliers. The Arrow-Hurwicz-Uzawa method
+{cite}`arrow1958studies` uses these first derivatives instead of the quadratic
+subproblems used by SQP. With the notation of the preceding duality discussion,
+$\mathcal L(\mathbf x,\boldsymbol\lambda,\boldsymbol\mu)
+=f(\mathbf x)+\boldsymbol\mu^\top\mathbf g(\mathbf x)
++\boldsymbol\lambda^\top\mathbf h(\mathbf x)$, where equality multipliers
+are unrestricted and inequality multipliers are nonnegative.
 
-$$
-\begin{aligned}
-\min_{\mathbf{x}} \quad & f(\mathbf{x}) \\
-\text{subject to} \quad & \mathbf{g}(\mathbf{x}) \leq \mathbf{0} \\
-& \mathbf{h}(\mathbf{x}) = \mathbf{0}
-\end{aligned}
-$$
-
-Using the Lagrangian function $L(\mathbf{x}, \boldsymbol{\lambda}, \boldsymbol{\mu}) = f(\mathbf{x}) + \boldsymbol{\mu}^T \mathbf{g}(\mathbf{x}) + \boldsymbol{\lambda}^T \mathbf{h}(\mathbf{x})$, we can reformulate this problem as the following min-max problem:
-
-$$
-\min_{\mathbf{x}} \max_{\boldsymbol{\lambda}, \boldsymbol{\mu} \geq 0} L(\mathbf{x}, \boldsymbol{\lambda}, \boldsymbol{\mu})
-$$
-
-The role of each component in this min-max structure can be understood as follows:
-
-1. The outer minimization over $\mathbf{x}$ finds the feasible point that minimizes the objective function $f(\mathbf{x})$.
-2. The maximization over $\boldsymbol{\mu} \geq 0$ ensures that inequality constraints $\mathbf{g}(\mathbf{x}) \leq \mathbf{0}$ are satisfied. If any inequality constraint is violated, the corresponding term in $\boldsymbol{\mu}^T \mathbf{g}(\mathbf{x})$ can be made arbitrarily large by choosing a large enough $\mu_i$.
-3. The maximization over $\boldsymbol{\lambda}$ ensures that equality constraints $\mathbf{h}(\mathbf{x}) = \mathbf{0}$ are satisfied. 
-
-Using this observation, we can devise an algorithm which, like SQP, will update both the primal and dual variables at every step. But rather than using second-order optimization, we will simply use a first-order gradient update step: a descent step in the primal variable, and an ascent step in the dual one. The corresponding procedure, when implemented by gradient descent, is called Gradient Ascent Descent in the learning and optimization communities. In the case of equality constraints only, the algorithm looks like the following:
+These updates do not compute the inner supremum of the primal formulation.
+Each iteration takes a finite step in both players' variables. The resulting
+method is called gradient descent-ascent. Its convergence requires a separate
+analysis, even when the problem has a saddle point. For equality constraints,
+the alternating updates take the following form:
 
 ````{prf:algorithm} Arrow-Hurwicz-Uzawa for equality constraints only
 :label: ahuz-eq
 
 **Input:** Initial guess $\mathbf{x}^0$, $\boldsymbol{\lambda}^0$, step sizes $\alpha$, $\beta$
-**Output:** Optimal $\mathbf{x}^*$, $\boldsymbol{\lambda}^*$
+**Output:** Final primal and multiplier iterates $\mathbf{x}^k$, $\boldsymbol{\lambda}^k$
 
 1: **for** $k = 0, 1, 2, \ldots$ until convergence **do**
 
-2:     $\mathbf{x}^{k+1} = \mathbf{x}^k - \alpha \nabla_{\mathbf{x}} L(\mathbf{x}^k, \boldsymbol{\lambda}^k)$  **(Primal update)**
+2:     $\mathbf{x}^{k+1} = \mathbf{x}^k - \alpha \nabla_{\mathbf{x}} \mathcal L(\mathbf{x}^k, \boldsymbol{\lambda}^k)$  **(Primal update)**
 
-3:     $\boldsymbol{\lambda}^{k+1} = \boldsymbol{\lambda}^k + \beta \nabla_{\boldsymbol{\lambda}} L(\mathbf{x}^{k+1}, \boldsymbol{\lambda}^k)$  **(Dual update)**
+3:     $\boldsymbol{\lambda}^{k+1} = \boldsymbol{\lambda}^k + \beta \nabla_{\boldsymbol{\lambda}} \mathcal L(\mathbf{x}^{k+1}, \boldsymbol{\lambda}^k)$  **(Dual update)**
 
 4: **end for**
 
@@ -925,15 +1145,15 @@ Now to account for the fact that the Lagrange multiplier needs to be non-negativ
 :label: ahuz-full
 
 **Input:** Initial guess $\mathbf{x}^0$, $\boldsymbol{\lambda}^0$, $\boldsymbol{\mu}^0 \geq 0$, step sizes $\alpha$, $\beta$, $\gamma$
-**Output:** Optimal $\mathbf{x}^*$, $\boldsymbol{\lambda}^*$, $\boldsymbol{\mu}^*$
+**Output:** Final iterates $\mathbf{x}^k$, $\boldsymbol{\lambda}^k$, $\boldsymbol{\mu}^k$
 
 1: **for** $k = 0, 1, 2, \ldots$ until convergence **do**
 
-2:     $\mathbf{x}^{k+1} = \mathbf{x}^k - \alpha \nabla_{\mathbf{x}} L(\mathbf{x}^k, \boldsymbol{\lambda}^k, \boldsymbol{\mu}^k)$  **(Primal update)**
+2:     $\mathbf{x}^{k+1} = \mathbf{x}^k - \alpha \nabla_{\mathbf{x}} \mathcal L(\mathbf{x}^k, \boldsymbol{\lambda}^k, \boldsymbol{\mu}^k)$  **(Primal update)**
 
-3:     $\boldsymbol{\lambda}^{k+1} = \boldsymbol{\lambda}^k + \beta \, \nabla_{\boldsymbol{\lambda}} L(\mathbf{x}^{k+1}, \boldsymbol{\lambda}^k, \boldsymbol{\mu}^k)$  **(Dual update for equality constraints)**
+3:     $\boldsymbol{\lambda}^{k+1} = \boldsymbol{\lambda}^k + \beta \, \nabla_{\boldsymbol{\lambda}} \mathcal L(\mathbf{x}^{k+1}, \boldsymbol{\lambda}^k, \boldsymbol{\mu}^k)$  **(Dual update for equality constraints)**
 
-4:     $\boldsymbol{\mu}^{k+1} = [\boldsymbol{\mu}^k + \gamma \nabla_{\boldsymbol{\mu}} L(\mathbf{x}^{k+1}, \boldsymbol{\lambda}^k, \boldsymbol{\mu}^k)]_+$  **(Dual update with clipping for inequality constraints)**
+4:     $\boldsymbol{\mu}^{k+1} = [\boldsymbol{\mu}^k + \gamma \nabla_{\boldsymbol{\mu}} \mathcal L(\mathbf{x}^{k+1}, \boldsymbol{\lambda}^k, \boldsymbol{\mu}^k)]_+$  **(Dual update with clipping for inequality constraints)**
 
 5: **end for**
 
@@ -942,7 +1162,14 @@ Now to account for the fact that the Lagrange multiplier needs to be non-negativ
 
 Here, $[\cdot]_+$ denotes the projection onto the non-negative orthant, ensuring that $\boldsymbol{\mu}$ remains non-negative.
 
-However, as it is widely known from the lessons of GAN (Generative Adversarial Network) training {cite}`goodfellow2014generative`, Gradient Descent Ascent (GDA) can fail to converge or suffer from instability. The Arrow-Hurwicz-Uzawa algorithm, also known as the first-order Lagrangian method, is known to converge only locally, in the vicinity of an optimal primal-dual pair.
+A saddle point need not attract these iterates. For the bilinear Lagrangian
+$\mathcal L(x,\lambda)=\lambda x$, the equality-only updates give
+$x^{k+1}=x^k-\alpha\lambda^k$ and
+$\lambda^{k+1}=\lambda^k+\beta x^{k+1}$. Their update matrix has determinant
+one, so it cannot contract in all directions. Convexity and saddle-point
+existence alone therefore do not guarantee convergence of this iteration.
+Additional assumptions or modifications, such as augmented terms or
+extragradient steps, are needed for an applicable convergence guarantee.
 
 ```{code-cell} python
 :tags: [hide-input]
@@ -970,17 +1197,17 @@ def f(x):
     return (x[0] - 2)**2 + (x[1] - 1)**2
 
 @jit
-def g(x):
+def h(x):
     return jnp.array([x[0]**2 + x[1]**2 - 1])
 
 @jit
-def h(x):
-    return jnp.array([x[0]**2 - x[1]])  # Inequality constraint: x[1] <= x[0]^2
+def g(x):
+    return jnp.array([x[0]**2 - x[1]])  # Inequality constraint: x[1] >= x[0]^2
 
 # Define the Lagrangian
 @jit
 def lagrangian(x, lambda_, mu):
-    return f(x) + jnp.dot(lambda_, g(x)) + jnp.dot(mu, h(x))
+    return f(x) + jnp.dot(lambda_, h(x)) + jnp.dot(mu, g(x))
 
 # Compute gradients of the Lagrangian
 grad_L_x = jit(grad(lagrangian, argnums=0))
@@ -1069,7 +1296,7 @@ plt.plot(x1_ineq, x2_ineq, color='orange', linewidth=2, label='Inequality Constr
 
 # Shade the feasible region for the inequality constraint
 x2_lower = jnp.minimum(x2_ineq, 2.5)
-plt.fill_between(x1_ineq, -1.5, x2_lower, color='gray', alpha=0.2, hatch='\\/...', label='Feasible Region')
+plt.fill_between(x1_ineq, x2_lower, 2.5, color='gray', alpha=0.2, hatch='\\/...', label='Inequality-feasible region')
 
 # Plot the optimal and initial points
 plt.scatter(x_opt[0], x_opt[1], color='red', s=100, edgecolor='white', linewidth=2, label='Final Point')
@@ -1095,8 +1322,8 @@ plt.tight_layout()
 
 
 # Verify the result
-print(f"\nEquality constraint violation: {g(x_opt)[0]:.6f}")
-print(f"Inequality constraint violation: {h(x_opt)[0]:.6f}")
+print(f"\nEquality constraint violation: {h(x_opt)[0]:.6f}")
+print(f"Inequality constraint violation: {g(x_opt)[0]:.6f}")
 print(f"Objective function value: {f(x_opt):.6f}")
 ```
 

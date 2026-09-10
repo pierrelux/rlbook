@@ -58,7 +58,7 @@ def test_linear_control_widget_exposes_the_geometry_and_live_identity() -> None:
     assert "const rectangle=h*u0" in rendered
     assert "triangle=0.5*h*(u1-u0)" in rendered
     assert "finalArea=rectangle+triangle" in rendered
-    assert "X<sub>1</sub> − X<sub>0</sub> = ½h(U<sub>0</sub>+U<sub>1</sub>)" in rendered
+    assert "x<sub>1</sub> − x<sub>0</sub> = ½h(u<sub>0</sub>+u<sub>1</sub>)" in rendered
 
 
 def test_linear_control_widget_ids_are_unique_and_fallback_is_linked() -> None:
@@ -83,6 +83,6 @@ def test_static_linear_control_fallback_is_present_and_described() -> None:
     assert 'role="img"' in source
     assert '<title id="title">' in source
     assert '<desc id="description">' in source
-    assert "rectangle: hU₀" in source
-    assert "triangle: ½h(U₁−U₀)" in source
-    assert "= ½h(U₀ + U₁)" in source
+    assert "rectangle: hu₀" in source
+    assert "triangle: ½h(u₁−u₀)" in source
+    assert "= ½h(u₀ + u₁)" in source

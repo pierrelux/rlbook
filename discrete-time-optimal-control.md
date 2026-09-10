@@ -415,109 +415,196 @@ Existence also hinges on **feasibility**. A candidate control sequence must gene
 
 ### Optimality Conditions
 
-Assume the feasible set is nonempty. To characterize a point that is not only feasible but **locally optimal**, we use the Lagrange multiplier machinery from nonlinear programming. For a smooth problem
+Assume the feasible set is nonempty. Necessary conditions for a local minimum
+follow from the Lagrange multiplier theorem. They supply equations for candidate
+solutions, although satisfying them alone need not establish a minimum. For a
+smooth problem
 
 $$
 \begin{aligned}
 \min_{\mathbf{z}}\quad & F(\mathbf{z})\\
-\text{s.t.}\quad & G(\mathbf{z})=\mathbf{0},\\
-& H(\mathbf{z})\ge \mathbf{0},
+\text{s.t.}\quad & H(\mathbf{z})=\mathbf{0},\\
+& G(\mathbf{z})\le \mathbf{0},
 \end{aligned}
 $$
 
-define the **Lagrangian**
+Here $G$ stacks inequalities of the form $g_i\leq0$, and $H$ stacks
+equalities of the form $h_i=0$. Define the **Lagrangian**
 
 $$
 \mathcal{L}(\mathbf{z},\boldsymbol{\lambda},\boldsymbol{\mu})
-= F(\mathbf{z})+\boldsymbol{\lambda}^{\top}G(\mathbf{z})+\boldsymbol{\mu}^{\top}H(\mathbf{z}),\qquad \boldsymbol{\mu}\ge \mathbf{0}.
+= F(\mathbf{z})+\boldsymbol{\lambda}^{\top}H(\mathbf{z})+\boldsymbol{\mu}^{\top}G(\mathbf{z}),\qquad \boldsymbol{\mu}\ge \mathbf{0}.
 $$
 
-For an inequality system $H(\mathbf{z})\ge \mathbf{0}$ and a candidate point $\mathbf{z}$, the **active set** is
+The positive sign before the inequality term follows from the convention
+$G(\mathbf z)\le \mathbf0$: a violation $G_i(\mathbf z)>0$ increases the
+Lagrangian when $\mu_i>0$. Equality multipliers remain unrestricted.
+For a candidate point $\mathbf z$, the **active set** is
 
 $$
-\mathcal{A}(\mathbf{z}) \;=\; \{\, i \;:\; H_i(\mathbf{z})=0 \,\},
+\mathcal{A}(\mathbf{z}) \;=\; \{\, i \;:\; G_i(\mathbf{z})=0 \,\},
 $$
 
-while indices with $H_i(\mathbf{z})>0$ are **inactive**. Only active inequalities can carry positive multipliers.
+while indices with $G_i(\mathbf{z})<0$ are **inactive**. Only active inequalities can carry positive multipliers.
 
-We now make a **constraint qualification** assumption. In plain language, it says the constraints near the solution intersect in a regular way so that the feasible set has a well-defined tangent space and the multipliers exist. Algebraically, this amounts to a **full row rank** condition on the Jacobian of the equalities together with the active inequalities:
+A **constraint qualification** is a regularity assumption under which a local
+minimum admits Lagrange multipliers. One sufficient choice is the **Linear
+Independence Constraint Qualification (LICQ)**: the equality gradients and
+active inequality gradients at the candidate are linearly independent. If
+$J_H$ and $J_{G_{\mathcal A}}$ have those gradients as rows, LICQ requires
 
 $$
-\text{rows of }\big[\nabla G(\mathbf{z}^\star);\ \nabla H_{\mathcal{A}}(\mathbf{z}^\star)\big]\ \text{are linearly independent.}
+\begin{bmatrix}J_H(\mathbf z^\star)\\J_{G_{\mathcal A}}(\mathbf z^\star)\end{bmatrix}
+\quad\text{to have full row rank.}
 $$
 
-This is the **LICQ** (Linear Independence Constraint Qualification). In convex problems, **Slater's condition** (existence of a strictly feasible point) plays a similar role. You can think of these as the assumptions that let the linearized KKT equations be solvable; we do not literally invert that Jacobian, but the full-rank property is what would make such an inversion possible in principle.
+This assumption guarantees multiplier existence at a local minimum. It does
+not by itself make the Newton system for the optimality conditions invertible;
+that also depends on the objective and constraint curvature.
 
 Under such a constraint qualification, any local minimizer $\mathbf{z}^\star$ admits multipliers $(\boldsymbol{\lambda}^\star,\boldsymbol{\mu}^\star)$ that satisfy the **Karush–Kuhn–Tucker (KKT) conditions**:
 
 $$
 \begin{aligned}
 &\text{stationarity:} && \nabla_{\mathbf{z}}\mathcal{L}(\mathbf{z}^\star,\boldsymbol{\lambda}^\star,\boldsymbol{\mu}^\star)=\mathbf{0},\\
-&\text{primal feasibility:} && G(\mathbf{z}^\star)=\mathbf{0},\quad H(\mathbf{z}^\star)\ge \mathbf{0},\\
+&\text{primal feasibility:} && H(\mathbf{z}^\star)=\mathbf{0},\quad G(\mathbf{z}^\star)\le \mathbf{0},\\
 &\text{dual feasibility:} && \boldsymbol{\mu}^\star\ge \mathbf{0},\\
-&\text{complementarity:} && \mu_i^\star\,H_i(\mathbf{z}^\star)=0\quad \text{for all } i.
+&\text{complementarity:} && \mu_i^\star\,G_i(\mathbf{z}^\star)=0\quad \text{for all } i.
 \end{aligned}
 $$
 
-Only constraints that are **active** at $\mathbf{z}^\star$ can have $\mu_i^\star>0$; inactive ones have $\mu_i^\star=0$. The multipliers quantify marginal costs: $\lambda_j^\star$ measures how the optimal value changes if the $j$-th equality is relaxed, and $\mu_i^\star$ does the same for the $i$-th inequality. (If you prefer $h(\mathbf{z})\le 0$, signs flip accordingly.)
+Complementarity requires $\mu_i^\star=0$ when $G_i(\mathbf z^\star)<0$.
+At a tight constraint, the multiplier may be positive or zero. Under suitable
+sensitivity assumptions, multipliers quantify changes in the optimal value
+when constraint right-hand sides change, with signs determined by the chosen
+perturbation convention.
 
-In our trajectory problems, $\mathbf{z}$ stacks state and control trajectories, $G$ enforces the dynamics, and $H$ collects bounds and path constraints. The equalities' multipliers act as **costates** or **shadow prices** for the dynamics. Writing the KKT system stage by stage yields the discrete-time Pontryagin principle, derived next. For convex programs these conditions are also sufficient.
+In trajectory problems, $\mathbf z$ stacks states and controls, $H$ enforces
+the dynamics, and $G$ collects bounds and path constraints. The equality
+multipliers associated with dynamics become Pontryagin costates when the
+residual is written $\mathbf f_t-\mathbf x_{t+1}$. Writing the residual
+in the opposite order reverses the multiplier sign. Terminal-equality
+multipliers are denoted separately by $\boldsymbol\nu$ in that derivation. Since
+nonlinear dynamics generally make these programs nonconvex, KKT is a necessary
+first-order test under regularity. It does not generally imply a local minimum
+of the Lagrangian or a global saddle point.
 
-*What fails without a CQ?* If the active gradients are dependent (for example duplicated or nearly parallel), the Jacobian loses rank; multipliers may then be nonunique or fail to exist, and the linearized equations become ill-posed. In transcribed trajectory problems this shows up as dependent dynamic constraints or redundant path constraints, which leads to fragile solver behavior.
-
-The KKT conditions provide necessary conditions for a point to be a local minimizer of a constrained optimization problem. They consist of four parts: stationarity (the gradient of the Lagrangian vanishes), primal feasibility (constraints are satisfied), dual feasibility (inequality multipliers are nonnegative), and complementarity (inactive constraints have zero multipliers). The multipliers have an economic interpretation as marginal costs: they tell us how much the optimal value would change if we relaxed a constraint slightly. For convex problems, the KKT conditions are also sufficient, meaning any point satisfying them is globally optimal. In trajectory optimization, these conditions will reappear in structured form as the Pontryagin principle.
+If LICQ fails, a different constraint qualification may still apply. Without
+an applicable qualification, multipliers can fail to exist or be nonunique.
+Redundant dynamic or path constraints can also make numerical systems singular
+or poorly conditioned.
 
 ### From KKT to algorithms
 
-The KKT system can be read as the first-order optimality conditions of a **saddle-point** problem. With equalities $G(\mathbf{z})=\mathbf{0}$ and inequalities $H(\mathbf{z})\ge \mathbf{0}$, define the Lagrangian
+The Lagrangian gives an exact min–max representation of the constrained
+problem, whether or not the problem is convex:
 
 $$
-\mathcal{L}(\mathbf{z},\boldsymbol{\lambda},\boldsymbol{\mu})
-= F(\mathbf{z})+\boldsymbol{\lambda}^{\top}G(\mathbf{z})+\boldsymbol{\mu}^{\top}H(\mathbf{z}),\quad \boldsymbol{\mu}\ge \mathbf{0}.
+p^\star=\inf_{\mathbf z}
+\sup_{\boldsymbol\lambda,\,\boldsymbol\mu\ge\mathbf0}
+\mathcal L(\mathbf z,\boldsymbol\lambda,\boldsymbol\mu),
+\qquad
+\mathcal L=F+\boldsymbol\lambda^\top H+\boldsymbol\mu^\top G.
 $$
 
-Optimality corresponds to a saddle: minimize in $\mathbf{z}$, maximize in $(\boldsymbol{\lambda},\boldsymbol{\mu})$ (with $\boldsymbol{\mu}$ constrained to the nonnegative orthant).
+Here $\boldsymbol\lambda$ is unrestricted. For a feasible $\mathbf z$, the
+inner supremum equals $F(\mathbf z)$. If an equality is violated, its
+multiplier can choose a sign and magnitude that makes the Lagrangian
+arbitrarily large. If $G_i(\mathbf z)>0$, sending $\mu_i$ to infinity does
+the same. Thus the multiplier player's response assigns $+\infty$ to every
+infeasible choice.
+
+Reversing the order gives the dual value, a lower bound on the primal value:
+
+$$
+d^\star=\sup_{\boldsymbol\lambda,\,\boldsymbol\mu\ge\mathbf0}
+\inf_{\mathbf z}\mathcal L(\mathbf z,\boldsymbol\lambda,\boldsymbol\mu)
+\le p^\star.
+$$
+
+The distinction is whether the multipliers can respond to each candidate or
+must be fixed before the candidate is chosen. A **saddle point** requires one
+fixed multiplier pair for which $\mathbf z^\star$ globally minimizes the
+Lagrangian, together with optimal multipliers against that fixed
+$\mathbf z^\star$. Such a pair satisfies
+
+$$
+\mathcal L(\mathbf z^\star,\boldsymbol\lambda,\boldsymbol\mu)
+\le\mathcal L(\mathbf z^\star,\boldsymbol\lambda^\star,\boldsymbol\mu^\star)
+\le\mathcal L(\mathbf z,\boldsymbol\lambda^\star,\boldsymbol\mu^\star)
+$$
+
+for all $\mathbf z$, unrestricted $\boldsymbol\lambda$, and
+$\boldsymbol\mu\ge\mathbf0$. Solving the primal min–max problem alone does
+not guarantee this property. For example, minimizing $-z^2$ subject to $z=0$
+has the unique feasible optimizer $z^\star=0$ and KKT multiplier
+$\lambda^\star=0$, yet $\mathcal L(z,0)=-z^2$ is maximized at zero.
+
+When $F$ is convex, each $G_i$ is convex, and $H$ is affine, the Lagrangian
+is convex in $\mathbf z$. KKT stationarity then guarantees its global
+minimum; feasibility and complementarity give the other saddle inequality.
+An existing KKT point is therefore sufficient for a global saddle point.
+Slater's condition, the existence of a point with $H=0$ and $G_i<0$ for every
+inequality, guarantees suitable multipliers at an attained finite optimizer
+in this convex setting. The [nonlinear-programming appendix](appendix_nlp.md#the-lagrangian-duality-and-optimality-conditions)
+derives these statements and distinguishes them from the necessary conditions
+used in nonconvex trajectory optimization.
 
 #### Primal–dual gradient dynamics (Arrow–Hurwicz)
 
-The simplest algorithm mirrors this saddle structure by descending in the primal variables and ascending in the dual variables, with a projection for the inequalities:
+A first-order method takes a descent step in the primal variables and an
+ascent step in the multipliers, projecting the inequality multipliers back
+onto their allowed set:
 
 $$
 \begin{aligned}
-\mathbf{z}^{k+1} &= \mathbf{z}^{k}-\alpha_k\big(\nabla F(\mathbf{z}^{k})+\nabla G(\mathbf{z}^{k})^{\top}\boldsymbol{\lambda}^{k}+\nabla H(\mathbf{z}^{k})^{\top}\boldsymbol{\mu}^{k}\big),\\[2mm]
-\boldsymbol{\lambda}^{k+1} &= \boldsymbol{\lambda}^{k}+\beta_k\,G(\mathbf{z}^{k}),\\[1mm]
-\boldsymbol{\mu}^{k+1} &= \Pi_{\ge 0}\!\big(\boldsymbol{\mu}^{k}+\beta_k\,H(\mathbf{z}^{k})\big).
+\mathbf{z}^{k+1} &= \mathbf{z}^{k}-\alpha_k\big(\nabla F(\mathbf{z}^{k})+J_H(\mathbf{z}^{k})^{\top}\boldsymbol{\lambda}^{k}+J_G(\mathbf{z}^{k})^{\top}\boldsymbol{\mu}^{k}\big),\\[2mm]
+\boldsymbol{\lambda}^{k+1} &= \boldsymbol{\lambda}^{k}+\beta_k\,H(\mathbf{z}^{k}),\\[1mm]
+\boldsymbol{\mu}^{k+1} &= \Pi_{\ge 0}\!\big(\boldsymbol{\mu}^{k}+\beta_k\,G(\mathbf{z}^{k})\big).
 \end{aligned}
 $$
 
-Here $\Pi_{\ge 0}$ is the projection onto $\{\boldsymbol{\mu}\ge 0\}$. In convex settings and with suitable step sizes, these iterates converge to a saddle point. In nonconvex problems (our trajectory optimizations after transcription), these updates are often used inside **augmented Lagrangian** or **penalty** frameworks to improve robustness, for example by replacing $\mathcal{L}$ with
+Here $\Pi_{\ge0}$ clips each negative component to zero. With the convention
+$G\le0$, a violated inequality increases its multiplier. These finite updates
+do not perform the inner supremum in the exact primal representation, and
+saddle-point existence alone does not guarantee their convergence. Even the
+convex bilinear case $\mathcal L(z,\lambda)=\lambda z$ has simultaneous
+updates with eigenvalues $1\pm i\sqrt{\alpha\beta}$ for fixed positive
+steps, whose magnitudes exceed one.
+
+Additional curvature assumptions or algorithmic modifications are needed for
+convergence. Penalty and augmented-Lagrangian methods add terms that discourage
+violations. For example, one can use the penalized Lagrangian
 
 $$
 \mathcal{L}_\rho(\mathbf{z},\boldsymbol{\lambda},\boldsymbol{\mu})
 = \mathcal{L}(\mathbf{z},\boldsymbol{\lambda},\boldsymbol{\mu})
-+\tfrac{\rho}{2}\|G(\mathbf{z})\|^2
-+\tfrac{\rho}{2}\|\min\{0,H(\mathbf{z})\}\|^2,
++\tfrac{\rho}{2}\|H(\mathbf{z})\|^2
++\tfrac{\rho}{2}\|\max\{0,G(\mathbf{z})\}\|^2,
 $$
 
-which stabilizes the dual ascent when constraints are not yet well satisfied.
+where $\rho>0$ weights squared equality residuals and inequality violations.
+These terms change the curvature away from feasibility. Their use still
+requires a suitable step-selection or subproblem strategy; adding them alone
+is not a convergence guarantee.
 
 #### SQP as Newton on the KKT system (equality case)
 
-With **only equality constraints** $G(\mathbf{z})=\mathbf{0}$, write first-order conditions
+With **only equality constraints** $H(\mathbf{z})=\mathbf{0}$, write first-order conditions
 
 $$
 \nabla_{\mathbf{z}}\mathcal{L}(\mathbf{z},\boldsymbol{\lambda})=\mathbf{0},
 \qquad
-G(\mathbf{z})=\mathbf{0},
-\quad \text{where }\mathcal{L}=F+\boldsymbol{\lambda}^{\top}G.
+H(\mathbf{z})=\mathbf{0},
+\quad \text{where }\mathcal{L}=F+\boldsymbol{\lambda}^{\top}H.
 $$
 
 Applying Newton's method to this system gives the linear KKT solve
 
 $$
 \begin{bmatrix}
-\nabla_{\mathbf{z}\mathbf{z}}^2\mathcal{L}(\mathbf{z}^k,\boldsymbol{\lambda}^k) & \nabla G(\mathbf{z}^k)^{\top}\\
-\nabla G(\mathbf{z}^k) & 0
+\nabla_{\mathbf{z}\mathbf{z}}^2\mathcal{L}(\mathbf{z}^k,\boldsymbol{\lambda}^k) & J_H(\mathbf{z}^k)^{\top}\\
+J_H(\mathbf{z}^k) & 0
 \end{bmatrix}
 \begin{bmatrix}
 \Delta \mathbf{z}\\ \Delta \boldsymbol{\lambda}
@@ -526,7 +613,7 @@ $$
 -
 \begin{bmatrix}
 \nabla_{\mathbf{z}}\mathcal{L}(\mathbf{z}^k,\boldsymbol{\lambda}^k)\\
-G(\mathbf{z}^k)
+H(\mathbf{z}^k)
 \end{bmatrix}.
 $$
 
@@ -534,7 +621,9 @@ This is exactly the step computed by **Sequential Quadratic Programming (SQP)** 
 
 In trajectory optimization, the KKT matrix inherits banded/sparse structure from the dynamics. Newton/SQP steps can be computed efficiently by exploiting this structure; in the special case of quadratic models and linearized dynamics, the QP reduces to an LQR solve along the horizon (this is the backbone of iLQR/DDP-style methods). Primal-dual updates provide simpler iterations and are easy to implement; augmented terms are typically needed to obtain stable progress when constraints couple stages.
 
-The choice between methods depends on the context. Primal-dual gradients give lightweight iterations and are suited for warm starts or as inner loops with penalties. SQP/Newton gives rapid local convergence when close to a solution and LICQ holds; trust regions or line search help globalize convergence.
+The choice between methods depends on the context. Primal-dual gradients give lightweight iterations and are suited for warm starts or as inner loops with penalties. SQP/Newton can give rapid local convergence near a regular solution when the
+relevant second-order conditions also hold; trust regions or line search
+control steps farther from a solution.
 
 
 ## Further Sources of Discrete-Time Optimal-Control Problems
@@ -553,7 +642,7 @@ explicit.
 Although many applications are natively discrete-time, it is also common to obtain a DOCP by discretizing a continuous-time formulation. Consider a system on $[0, T_c]$ given by
 
 $$
-\dot{\mathbf{x}}(t) = \mathbf{f}(t, \mathbf{x}(t), \mathbf{u}(t)), \qquad \mathbf{x}(0) = \mathbf{x}_0.
+\dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), \mathbf{u}(t),t), \qquad \mathbf{x}(0) = \mathbf{x}_0.
 $$
 
 Choose a step size $\Delta > 0$ and grid $t_k = k\,\Delta$. A one-step integration scheme induces a discrete map $\mathbf{F}_\Delta$ so that
@@ -562,7 +651,7 @@ $$
 \mathbf{x}_{k+1} = \mathbf{F}_\Delta(\mathbf{x}_k, \mathbf{u}_k, t_k),\qquad k=0,\dots, T-1,
 $$
 
-where, for example, explicit Euler gives $\mathbf{F}_\Delta(\mathbf{x},\mathbf{u},t) = \mathbf{x} + \Delta\,\mathbf{f}(t,\mathbf{x},\mathbf{u})$. The resulting discrete-time optimal control problem takes the Bolza form with these induced dynamics:
+where, for example, explicit Euler gives $\mathbf{F}_\Delta(\mathbf{x},\mathbf{u},t) = \mathbf{x} + \Delta\,\mathbf{f}(\mathbf{x},\mathbf{u},t)$. The resulting discrete-time optimal control problem takes the Bolza form with these induced dynamics:
 
 $$
 \begin{aligned}
@@ -919,8 +1008,9 @@ initial condition, dynamics, and disturbance forecast. Bolza, Lagrange, and
 Mayer forms change the bookkeeping without changing the admissible action
 sequences.
 
-The KKT conditions characterize a local solution of the resulting nonlinear
-program, but their raw form hides the direction of time. Can the multipliers be
+Under a constraint qualification, the KKT conditions are necessary at a local
+solution of the resulting nonlinear program, but their raw form hides the
+direction of time. Can the multipliers be
 organized into a backward recursion that matches the forward state dynamics?
 [Adjoints and the discrete-time Pontryagin principle](discrete-time-pmp.md)
 provide that organization.

@@ -122,12 +122,12 @@ def render_linear_control_area(
     <button type="button" data-action="play" aria-keyshortcuts="Space">Play accumulation</button>
     <button type="button" data-action="reset" aria-keyshortcuts="Home">Reset</button>
     <div class="slider-group">
-      <label for="__ROOT__-u0">U<sub>0</sub></label>
+      <label for="__ROOT__-u0">u<sub>0</sub></label>
       <input id="__ROOT__-u0" data-input="u0" type="range" min="0.10" max="2.40" step="0.05" value="0.75">
       <output data-output="u0" for="__ROOT__-u0">0.75</output>
     </div>
     <div class="slider-group">
-      <label for="__ROOT__-u1">U<sub>1</sub></label>
+      <label for="__ROOT__-u1">u<sub>1</sub></label>
       <input id="__ROOT__-u1" data-input="u1" type="range" min="0.10" max="2.40" step="0.05" value="1.65">
       <output data-output="u1" for="__ROOT__-u1">1.65</output>
     </div>
@@ -169,18 +169,18 @@ def render_linear_control_area(
     </div>
     <aside class="equation-card" aria-label="Live area calculation">
       <div class="eyebrow">At the playhead</div>
-      <div class="equation">x(t) − X<sub>0</sub> = ∫<sub>0</sub><sup>t</sup> u(s) ds</div>
-      <div class="equation">= U<sub>0</sub>t + <span>½(U<sub>1</sub>−U<sub>0</sub>)t²/h</span></div>
+      <div class="equation">x(t) − x<sub>0</sub> = ∫<sub>0</sub><sup>t</sup> u(s) ds</div>
+      <div class="equation">= u<sub>0</sub>t + <span>½(u<sub>1</sub>−u<sub>0</sub>)t²/h</span></div>
       <div class="equation">= <span class="value" data-partial-value>0.00</span></div>
       <div class="breakdown">
-        <div><span class="swatch rectangle-swatch"></span><span>rectangle hU<sub>0</sub></span><output data-rectangle-value>0.75</output></div>
-        <div><span class="swatch triangle-swatch"></span><span>triangle ½h(U<sub>1</sub>−U<sub>0</sub>)</span><output data-triangle-value>0.45</output></div>
+        <div><span class="swatch rectangle-swatch"></span><span>rectangle hu<sub>0</sub></span><output data-rectangle-value>0.75</output></div>
+        <div><span class="swatch triangle-swatch"></span><span>triangle ½h(u<sub>1</sub>−u<sub>0</sub>)</span><output data-triangle-value>0.45</output></div>
       </div>
       <div class="eyebrow">At the right endpoint</div>
-      <div class="equation">X<sub>1</sub> − X<sub>0</sub> = ½h(U<sub>0</sub>+U<sub>1</sub>)</div>
+      <div class="equation">x<sub>1</sub> − x<sub>0</sub> = ½h(u<sub>0</sub>+u<sub>1</sub>)</div>
       <div class="equation">= <span class="value" data-final-value>1.20</span></div>
       <div class="state-card">
-        <div class="state-head"><span>X<sub>0</sub></span><span data-state-label>X<sub>1</sub> = X<sub>0</sub> + 1.20</span></div>
+        <div class="state-head"><span>x<sub>0</sub></span><span data-state-label>x<sub>1</sub> = x<sub>0</sub> + 1.20</span></div>
         <div class="state-track"><span class="state-progress" data-state-progress></span><span class="state-dot" data-state-dot></span></div>
       </div>
       <p class="status" data-status>The full trapezoid is shown. Press Play accumulation to integrate from left to right.</p>
@@ -225,8 +225,8 @@ def render_linear_control_area(
       const endpoint0=root.querySelector('[data-endpoint="u0"]'), endpoint1=root.querySelector('[data-endpoint="u1"]');
       endpoint0.setAttribute("cx",x0); endpoint0.setAttribute("cy",y0); endpoint1.setAttribute("cx",x1); endpoint1.setAttribute("cy",y1);
       const label0=root.querySelector('[data-label="u0"]'), label1=root.querySelector('[data-label="u1"]');
-      label0.setAttribute("x",x0+12); label0.setAttribute("y",Math.max(top+14,y0-10)); label0.textContent=`U₀ = ${u0.toFixed(2)}`;
-      label1.setAttribute("x",x1-10); label1.setAttribute("y",Math.max(top+14,y1-10)); label1.textContent=`U₁ = ${u1.toFixed(2)}`;
+      label0.setAttribute("x",x0+12); label0.setAttribute("y",Math.max(top+14,y0-10)); label0.textContent=`u₀ = ${u0.toFixed(2)}`;
+      label1.setAttribute("x",x1-10); label1.setAttribute("y",Math.max(top+14,y1-10)); label1.textContent=`u₁ = ${u1.toFixed(2)}`;
       const rectangleLabel=root.querySelector('[data-area-label="rectangle"]');
       rectangleLabel.setAttribute("x",xScale(.29)); rectangleLabel.setAttribute("y",base-.46*(base-y0));
       const triangleLabel=root.querySelector('[data-area-label="triangle"]');
@@ -242,7 +242,7 @@ def render_linear_control_area(
       const fraction=finalArea>0?Math.max(0,Math.min(1,partial/finalArea)):0;
       root.querySelector("[data-state-progress]").style.width=`${100*fraction}%`;
       root.querySelector("[data-state-dot]").style.left=`${100*fraction}%`;
-      root.querySelector("[data-state-label]").innerHTML=`X<sub>1</sub> = X<sub>0</sub> + ${finalArea.toFixed(3)}`;
+      root.querySelector("[data-state-label]").innerHTML=`x<sub>1</sub> = x<sub>0</sub> + ${finalArea.toFixed(3)}`;
       const description=progress>=.999
         ? `The full trapezoid has area ${finalArea.toFixed(3)}, so X1 minus X0 equals ${finalArea.toFixed(3)}.`
         : `At time ${t.toFixed(2)}, the accumulated area and state change are ${partial.toFixed(3)}.`;

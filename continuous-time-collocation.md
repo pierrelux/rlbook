@@ -19,7 +19,7 @@ differential equations, so their states and controls are functions of time.
 A finite-dimensional optimizer cannot choose an entire function directly.
 Continuous-time trajectory optimization therefore begins by replacing those
 functions and their differential equations with finitely many variables and
-algebraic constraints.
+constraints on those variables.
 
 How can that replacement preserve enough of the differential equation to make
 the resulting trajectory meaningful between the stored time points?
@@ -43,8 +43,9 @@ After studying this chapter, you should be able to:
 2. Represent one polynomial either by basis coefficients or by values at distinct nodes.
 3. Distinguish exact polynomial interpolation from least-squares regression.
 4. Construct differentiation and quadrature operators from Lagrange cardinal functions.
-5. Derive explicit Euler, implicit Euler, trapezoidal, and Hermite--Simpson defects from nodal slope values.
-6. Identify the actual decision variables and the sparse constraint structure in a direct-collocation implementation.
+5. Assemble the complete Euler, trapezoidal, and Hermite--Simpson optimization problems.
+6. Choose state and control representations separately and identify their decision variables.
+7. Generate collocation coefficients from nodes and use them to assemble a sparse NLP.
 :::
 
 :::{admonition} Prerequisites
@@ -59,8 +60,8 @@ reviews the sequential integrators used inside shooting.
 
 ## A One-Interval Example
 
-What is the smallest transcription that turns one differential equation on one
-interval into a finite algebraic defect?
+How can a constraint on four endpoint values ensure that the chosen control
+produces the required displacement?
 
 Consider a point that must move from $x(0)=0$ to $x(1)=1$. Its velocity is the
 control, so
@@ -77,16 +78,16 @@ $$
 $$
 
 Both $x$ and $u$ are unknown functions. As a first finite approximation, retain
-only their endpoint values $X_0,X_1,U_0,U_1$ and let the control vary linearly
-between $U_0$ and $U_1$. Integrating $\dot x=u$ means that the change in state
+only their endpoint values $x_0,x_1,u_0,u_1$ and let the control vary linearly
+between $u_0$ and $u_1$. Integrating $\dot x=u$ means that the change in state
 equals the area under this control. The shaded region below is a unit-width
-trapezoid. Its area is the average of its two endpoint heights, $U_0$ and
-$U_1$, multiplied by the width.
+trapezoid. Its area is the average of its two endpoint heights, $u_0$ and
+$u_1$, multiplied by the width.
 
 ```{code-cell} python
 :tags: [remove-input]
 :label: fig-linear-control-trapezoid
-:caption: Drag the endpoint controls or play the accumulation from left to right. The shaded rectangle and triangle sum to the state change implied by $\dot x=u$. Setting the interval width to $h=1$ recovers the chapter's defect $X_1-X_0=(U_0+U_1)/2$.
+:caption: Drag the endpoint controls or play the accumulation from left to right. The shaded rectangle and triangle sum to the state change implied by $\dot x=u$. Setting the interval width to $h=1$ gives the state-change relation $x_1-x_0=(u_0+u_1)/2$.
 
 from pathlib import Path
 import sys
@@ -107,40 +108,51 @@ display(HTML(render_linear_control_area()))
 :class: pdf-fallback
 :alt: A linear control between two endpoint values forms a trapezoid whose rectangle and triangle areas sum to the state change.
 
-A linear control connects $U_0$ and $U_1$ across an interval of width $h$.
-The rectangle $hU_0$ and triangle $h(U_1-U_0)/2$ sum to
-$h(U_0+U_1)/2$. Because $\dot x=u$, this area equals $X_1-X_0$.
+A linear control connects $u_0$ and $u_1$ across an interval of width $h$.
+The rectangle $hu_0$ and triangle $h(u_1-u_0)/2$ sum to
+$h(u_0+u_1)/2$. Because $\dot x=u$, this area equals $x_1-x_0$.
 :::
 
-The resulting equality becomes the defect constraint
+The optimizer must choose endpoint states and controls that agree with this
+area calculation. Otherwise, it could choose $x_0=0$ and $x_1=1$ while setting
+both controls to zero: the endpoint conditions would hold, but zero velocity
+could not produce the displacement. To exclude such choices, the stored state
+change $x_1-x_0$ must equal the change $(u_0+u_1)/2$ predicted by integrating
+the control. Moving both quantities to the left gives the constraint
 
 $$
-X_1-X_0-\frac{1}{2}(U_0+U_1)=0.
+x_1-x_0-\frac{1}{2}(u_0+u_1)=0.
 $$
 
-This algebraic equation is called a **defect constraint**: its left-hand side
-measures the mismatch between the endpoint change and the change predicted by
-the approximated dynamics. Applying the same endpoint approximation to the
-running cost gives the finite nonlinear program
+The left-hand side measures the mismatch between these two changes and is
+called the **defect**. Requiring that mismatch to vanish gives a **defect
+constraint**, which enforces the dynamics within the chosen approximation.
+The equation is **algebraic** because it relates the four numbers
+$x_0,x_1,u_0,u_1$ through arithmetic operations; there is no unknown function
+to differentiate or integrate when evaluating it. An optimizer can therefore
+check the constraint directly for each candidate set of endpoint values.
+
+Approximating the running-cost integral by the average of its endpoint values
+gives the finite nonlinear program
 
 $$
 \begin{aligned}
-\underset{X_0,X_1,U_0,U_1}{\operatorname{minimize}}
-\quad&\frac{1}{2}(U_0^2+U_1^2)\\
-\text{subject to}\quad&X_0=0,\qquad X_1=1,\\
-&X_1-X_0-\frac{1}{2}(U_0+U_1)=0.
+\underset{x_0,x_1,u_0,u_1}{\operatorname{minimize}}
+\quad&\frac{1}{2}(u_0^2+u_1^2)\\
+\text{subject to}\quad&x_0=0,\qquad x_1=1,\\
+&x_1-x_0-\frac{1}{2}(u_0+u_1)=0.
 \end{aligned}
 $$
 
-The boundary conditions reduce the defect to $U_0+U_1=2$. Substituting
-$U_1=2-U_0$ into the objective gives
+The boundary conditions reduce the defect to $u_0+u_1=2$. Substituting
+$u_1=2-u_0$ into the objective gives
 
 $$
-\frac12\left(U_0^2+(2-U_0)^2\right)
-=(U_0-1)^2+1.
+\frac12\left(u_0^2+(2-u_0)^2\right)
+=(u_0-1)^2+1.
 $$
 
-The squared term is minimized at $U_0=1$, which also gives $U_1=1$. The
+The squared term is minimized at $u_0=1$, which also gives $u_1=1$. The
 resulting interpolation is the exact solution $u(t)=1$ and $x(t)=t$.
 
 This example already contains the main ingredients of direct collocation. The
@@ -154,26 +166,35 @@ vector dynamics and higher-degree polynomials.
 How do nodal state and control values, quadrature weights, and defect equations
 assemble into one nonlinear program?
 
-A continuous-time optimal-control problem can be written in Bolza form:
+We retain the earlier notation $\mathbf x\in\mathbb R^n$ for the state,
+$\mathbf u\in\mathbb R^m$ for the control, and $c$ for cost. Here $t$ is
+continuous physical time, while $k$ will index mesh intervals. The running
+cost $c(\mathbf x,\mathbf u,t)$ is a cost per unit time; integrating it over
+an interval produces the counterpart of the discrete stage cost $c_k$.
+The terminal cost is written $c_f$ because the final physical time is $t_f$.
+Scalar examples omit boldface.
+
+With inequalities $\mathbf g\leq\mathbf0$ and equalities
+$\mathbf h=\mathbf0$, the continuous-time Bolza problem is
 
 $$
 \begin{aligned}
-\underset{x(\cdot),u(\cdot),t_f}{\operatorname{minimize}}
+\underset{\mathbf{x}(\cdot),\mathbf{u}(\cdot),t_f}{\operatorname{minimize}}
 \quad&
-\Phi(x(t_f),t_f)
-+\int_{t_0}^{t_f} L(x(t),u(t),t)\,dt\\
+c_f(\mathbf{x}(t_f),t_f)
++\int_{t_0}^{t_f} c(\mathbf{x}(t),\mathbf{u}(t),t)\,dt\\
 \text{subject to}\quad&
-\dot x(t)=f(x(t),u(t),t),\\
-&r(x(t_0),x(t_f),t_f)=0,\\
-&g(x(t),u(t),t)\leq 0.
+\dot{\mathbf{x}}(t)=\mathbf{f}(\mathbf{x}(t),\mathbf{u}(t),t),\\
+&\mathbf{h}(\mathbf{x}(t_0),\mathbf{x}(t_f),t_f)=\mathbf0,\\
+&\mathbf{g}(\mathbf{x}(t),\mathbf{u}(t),t)\leq\mathbf0.
 \end{aligned}
 $$
 
-Here $x(t)\in\mathbb R^{n_x}$ is the state, $u(t)\in\mathbb R^{n_u}$ is the
-control, $\Phi$ is a terminal cost, and $L$ is a running cost. The equality
-$r=0$ imposes endpoint conditions, while $g\leq 0$ represents constraints that
-must hold along the path. Setting $L=0$ gives the Mayer special case, while
-setting $\Phi=0$ gives the Lagrange special case. All three forms use the same
+Here $\mathbf{x}(t)\in\mathbb R^{n}$ is the state, $\mathbf{u}(t)\in\mathbb R^{m}$ is the
+control, $c_f$ is a terminal cost, and $c$ is a running cost. The equality
+$\mathbf{h}=\mathbf0$ imposes endpoint conditions, while $\mathbf{g}\leq\mathbf0$ represents constraints that
+must hold along the path. Setting $c=0$ gives the Mayer special case, while
+setting $c_f=0$ gives the Lagrange special case. All three forms use the same
 transcription machinery.
 
 Two transcription strategies differ in which values become decision variables
@@ -197,7 +218,10 @@ $$
 t_0<t_1<\cdots<t_N=t_f,\qquad h_k=t_{k+1}-t_k,
 $$
 
-be a mesh. On each interval, the normalized coordinate is
+be a mesh with $k=0,\ldots,N-1$. We write $\mathbf x_k$ and
+$\mathbf u_k$ for values at mesh time $t_k$, as in the earlier discrete-time
+chapters; the subscript is an index, not a physical time. On each interval,
+the normalized coordinate is
 $\tau=(t-t_k)/h_k$, or equivalently
 
 $$
@@ -248,19 +272,37 @@ $$
 y_i=p(\sigma_i).
 $$
 
-These points are called **support nodes** because the stored values at the nodes
-determine the polynomial between them. For degree one with support nodes $0$
-and $1$, the construction is already familiar:
+These points are called **support nodes**: once the degree is restricted to at
+most $r$, the $r+1$ stored values determine the whole polynomial. Storing values
+is useful for trajectory optimization because a bound on the state at a node
+then becomes a bound on a decision variable. To evaluate the dynamics between
+nodes, however, we need a formula that reconstructs the polynomial from those
+values.
+
+For degree one, take the support nodes $0$ and $1$. A line has the form
+$p(\tau)=a+b\tau$. The first endpoint condition gives $a=y_0$, and the second
+gives $a+b=y_1$, so $b=y_1-y_0$. Substitution and regrouping give
 
 $$
 p(\tau)=y_0(1-\tau)+y_1\tau.
 $$
 
-The multiplier $1-\tau$ equals one at the first node and zero at the second;
-$\tau$ does the reverse. For any set of distinct support nodes, the
-**Lagrange cardinal function** $\ell_j$ is the degree-$r$ polynomial with this
-same selection property: it equals one at node $j$ and zero at every other
-support node. Its formula is
+The weights $1-\tau$ and $\tau$ enforce the two endpoint conditions: at $0$,
+the formula returns $y_0$, and at $1$, it returns $y_1$. Between the endpoints,
+the weights vary continuously; at $\tau=1/4$, for example, the value is
+$3y_0/4+y_1/4$. This is the unique line through the two prescribed values.
+Without the degree restriction, other curves could pass through them. Even
+for this same line, $y_0+(y_1-y_0)\tau$ is an equivalent representation. The
+weighted form is convenient because each stored value has its own function
+that determines its contribution throughout the interval.
+
+With more nodes, the same construction needs one weight function $\ell_j$
+per stored value $y_j$. To recover $y_j$ at its own node without altering the
+values at the other nodes, $\ell_j$ must equal one at $\sigma_j$ and zero at
+every other support node. A polynomial with those zeros contains the factors
+$(\tau-\sigma_m)$ for all $m\ne j$. Dividing their product by its value at
+$\sigma_j$ makes the value there equal to one. This constructs the
+**Lagrange cardinal function**
 
 $$
 \ell_j(\tau)
@@ -276,9 +318,13 @@ $$
 \ell_j(\sigma_i)=\delta_{ij},
 $$
 
-where the Kronecker delta $\delta_{ij}$ equals one when $i=j$ and zero
-otherwise. The cardinal functions therefore reconstruct the polynomial from
-its nodal values:
+where the Kronecker delta $\delta_{ij}$ is shorthand for one when $i=j$ and
+zero otherwise. This identity specifies the values at the nodes only. At any
+other $\tau$, the product formula gives a smoothly varying polynomial weight,
+which can be negative or exceed one for higher degrees. Thus, unlike a line
+between two endpoint values, a higher-degree interpolant can take values
+outside the range of its stored values. The cardinal functions reconstruct
+the polynomial throughout the interval by
 
 $$
 \boxed{
@@ -287,27 +333,35 @@ p(\tau)=\sum_{j=0}^{r}y_j\ell_j(\tau),
 }
 $$
 
+At a node $\sigma_i$, all terms except $y_i\ell_i(\sigma_i)=y_i$ vanish.
+Between nodes, the weighted sum supplies the intervening values. Changing one
+stored value $y_j$ by $\Delta y_j$ changes the curve by
+$\Delta y_j\ell_j(\tau)$, so the same function describes how that variable
+affects the entire polynomial.
+
 The uniqueness of this reconstruction follows from a basic root-counting
 argument. If two polynomials in $\mathcal P_r$ have the same $r+1$ nodal values,
 their difference has $r+1$ distinct roots. A nonzero polynomial of degree at
 most $r$ cannot have that many roots, so the two polynomials must be identical.
 
+For a scalar polynomial, collect the coefficients and values into column vectors
+$\mathbf a=(a_0,\ldots,a_r)^\top$ and $\mathbf y=(y_0,\ldots,y_r)^\top$.
 The coefficient and nodal descriptions are related by the evaluation matrix
 
 $$
 V_{ij}=\phi_j(\sigma_i),
-\qquad y=Va.
+\qquad \mathbf{y}=V\mathbf{a}.
 $$
 
 Distinct support nodes make $V$ invertible by the same root-counting argument.
-Thus $a$ and $y$ are two coordinate vectors for one polynomial, rather than
+Thus $\mathbf{a}$ and $\mathbf{y}$ are two coordinate vectors for one polynomial, rather than
 two different approximations.
 
 For example, take $p(\tau)=1+2\tau-\tau^2$ and the nodes
 $0,\tfrac12,1$. In monomial coordinates,
 
 $$
-a=
+\mathbf{a}=
 \begin{bmatrix}1\\2\\-1\end{bmatrix},
 \qquad
 V=
@@ -321,12 +375,12 @@ $$
 whereas the nodal coordinates are
 
 $$
-y=Va=
+\mathbf{y}=V\mathbf{a}=
 \begin{bmatrix}1\\\tfrac74\\2\end{bmatrix}.
 $$
 
 Both vectors describe exactly the same quadratic. Direct collocation uses
-coordinates like $y$: state values and control values at meaningful points. It
+coordinates like $\mathbf{y}$: state values and control values at meaningful points. It
 does not ask the NLP solver to choose monomial coefficients. Software may use
 coefficient calculations when it constructs fixed operators, but those
 calculations remain outside the NLP.
@@ -334,7 +388,7 @@ calculations remain outside the NLP.
 ```{code-cell} python
 :tags: [remove-input]
 :label: fig-polynomial-coordinate-operators
-:caption: One quadratic, two coordinate systems. Evaluating the monomial coefficients $a$ at the support nodes gives $y=Va$. Direct collocation stores the nodal vector $y$; the fixed operators $D$ and $w$ then return its nodal derivatives and exact integral without adding optimization variables.
+:caption: One quadratic, two coordinate systems. Evaluating the monomial coefficients $\mathbf{a}$ at the support nodes gives $\mathbf{y}=V\mathbf{a}$. Direct collocation stores the nodal vector $\mathbf{y}$; the fixed operators $D$ and $w$ then return its nodal derivatives and exact integral without adding optimization variables.
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -400,7 +454,7 @@ with plt.rc_context({
                 r"$p(\tau)=a_0+a_1\tau+a_2\tau^2$",
                 color=ink, fontsize=10, ha="center", transform=canvas.transAxes)
     canvas.text(0.135, 0.565,
-                r"$a=(1,\;2,\;-1)^{\mathsf{T}}$",
+                r"$\mathbf{a}=(1,\;2,\;-1)^{\mathsf{T}}$",
                 color=ink, fontsize=13, ha="center", transform=canvas.transAxes)
     canvas.text(0.135, 0.485, "three coefficients", color=muted,
                 fontsize=8, ha="center", transform=canvas.transAxes)
@@ -439,7 +493,7 @@ with plt.rc_context({
 
     add_arrow((0.255, 0.68), (0.30, 0.68))
     add_arrow((0.66, 0.68), (0.705, 0.68), color=blue)
-    canvas.text(0.682, 0.715, r"$y=Va$", color=blue,
+    canvas.text(0.682, 0.715, r"$\mathbf{y}=V\mathbf{a}$", color=blue,
                 fontsize=9, ha="center", transform=canvas.transAxes)
 
     # Nodal coordinates are the representation exposed to direct collocation.
@@ -453,7 +507,7 @@ with plt.rc_context({
                 r"$\sigma=(0,\;\frac{1}{2},\;1)$",
                 color=ink, fontsize=10.5, ha="center", transform=canvas.transAxes)
     canvas.text(0.85, 0.61,
-                r"$y=(1,\;\frac{7}{4},\;2)^{\mathsf{T}}$",
+                r"$\mathbf{y}=(1,\;\frac{7}{4},\;2)^{\mathsf{T}}$",
                 color=blue, fontsize=13, ha="center", transform=canvas.transAxes)
     canvas.text(0.85, 0.515,
                 r"$p(\tau)=\sum_j y_j\ell_j(\tau)$",
@@ -473,16 +527,16 @@ with plt.rc_context({
                 fontsize=7.2, fontweight="bold", ha="center",
                 transform=canvas.transAxes)
     canvas.text(0.465, 0.17,
-                r"$p'(\sigma_i)=(Dy)_i,\qquad Dy=(2,\;1,\;0)^{\mathsf{T}}$",
+                r"$p'(\sigma_i)=(D\mathbf{y})_i,\qquad D\mathbf{y}=(2,\;1,\;0)^{\mathsf{T}}$",
                 color=ink, fontsize=10, ha="center", transform=canvas.transAxes)
     canvas.text(0.82, 0.255, "INTEGRATE THE QUADRATIC", color=muted,
                 fontsize=7.2, fontweight="bold", ha="center",
                 transform=canvas.transAxes)
     canvas.text(0.82, 0.17,
-                r"$w^{\mathsf{T}}y=\int_0^1 p(\tau)\,d\tau=\frac{5}{3}$",
+                r"$w^{\mathsf{T}}\mathbf{y}=\int_0^1 p(\tau)\,d\tau=\frac{5}{3}$",
                 color=ink, fontsize=10.5, ha="center", transform=canvas.transAxes)
     canvas.text(0.65, 0.025,
-                r"$D$ and $w$ are fixed by the nodes; the optimizer changes only $y$.",
+                r"$D$ and $w$ are fixed by the nodes; the optimizer changes only $\mathbf{y}$.",
                 color=muted, fontsize=8.2, ha="center", transform=canvas.transAxes)
 
 display(figure)
@@ -508,18 +562,21 @@ does not require optimizing orthogonal-polynomial coefficients.
 When nodal values do not determine an exact interpolant, which projection
 recovers a polynomial that best matches the available samples?
 
-Interpolation and polynomial regression both produce polynomials, but they
-answer different questions. Four exact values at four distinct nodes determine
-one cubic interpolant. Twenty noisy measurements do not generally lie on one
-cubic, so cubic regression instead chooses the coefficients that minimize the
-aggregate squared residual. Write $A$ for the matrix obtained by evaluating the
-chosen polynomial basis at the supplied input points. The two algebraic
+Interpolation and polynomial regression impose different requirements on the
+same data. Six values at six distinct nodes determine one polynomial of degree
+at most five that passes through every point. If the values are noisy
+observations and the aim is to estimate a quadratic trend, a quadratic will
+generally be unable to pass through all six. Least-squares regression then
+chooses its three coefficients to minimize the sum of squared discrepancies.
+The figure below applies both choices to the same six points. Write $A$ for
+the matrix obtained by evaluating the chosen polynomial basis at the supplied
+input points. The two algebraic
 problems are then compared below.
 
 | | Polynomial interpolation | Least-squares regression |
 |---|---|---|
 | Input | Exact value conditions | Usually noisy or overdetermined observations |
-| Algebraic problem | Satisfy $Aa=y$ exactly | Minimize $\lVert Aa-y\rVert_2^2$ |
+| Algebraic problem | Satisfy $A\mathbf{a}=\mathbf{y}$ exactly | Minimize $\lVert A\mathbf{a}-\mathbf{y}\rVert_2^2$ |
 | Residual | Zero when the value conditions uniquely determine a polynomial | Generally nonzero |
 | Typical purpose | Represent a function from exact nodal data | Estimate a trend or conditional mean |
 
@@ -530,7 +587,7 @@ conceptual distinction.
 ```{code-cell} python
 :tags: [remove-input]
 :label: fig-interpolation-versus-regression
-:caption: The panels use the same six values. On the left they are treated as six exact conditions for a degree-five interpolant, so every residual is zero. On the right they are treated as six observations for a three-parameter quadratic regression, so the fit trades errors across observations.
+:caption: Two polynomials fitted to the same six points (black dots). The solid blue degree-five interpolant passes through every point. The dashed orange quadratic regression minimizes the sum of squared residuals, shown as gray vertical segments. The polynomial degrees differ because a quadratic generally cannot satisfy all six value conditions exactly.
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -564,57 +621,36 @@ regression_coefficients, *_ = np.linalg.lstsq(
 regression_curve = np.vander(plot_nodes, 3, increasing=True) @ regression_coefficients
 regression_at_nodes = regression_matrix @ regression_coefficients
 
-with plt.rc_context({"font.size": 8.5, "axes.titlesize": 9}):
-    figure, axes = plt.subplots(
-        1,
-        2,
-        figsize=(7.0, 2.45),
-        sharex=True,
-        sharey=True,
-        constrained_layout=True,
-    )
+with plt.rc_context({
+    "font.family": "serif",
+    "font.serif": ["STIX Two Text", "Times New Roman", "DejaVu Serif"],
+    "mathtext.fontset": "stix",
+    "font.size": 9,
+    "axes.labelsize": 9,
+    "xtick.labelsize": 8,
+    "ytick.labelsize": 8,
+}):
+    figure, axis = plt.subplots(figsize=(5.5, 2.8), constrained_layout=True)
     blue = "#0072B2"
     orange = "#D55E00"
     gray = "#4D4D4D"
 
-    axes[0].plot(plot_nodes, interpolated_values, color=blue, linewidth=2)
-    axes[0].scatter(
-        observation_nodes,
-        observation_values,
-        color=gray,
-        edgecolor="white",
-        linewidth=0.6,
-        zorder=3,
-    )
-    axes[0].set_title("Interpolation: exact conditions")
-    axes[0].text(0.04, 0.94, "6 conditions, 6 coefficients\nzero residual", transform=axes[0].transAxes, va="top")
-
-    axes[1].plot(plot_nodes, regression_curve, color=orange, linewidth=2)
-    axes[1].vlines(
-        observation_nodes,
-        regression_at_nodes,
-        observation_values,
-        color="#999999",
-        linewidth=1,
-    )
-    axes[1].scatter(
-        observation_nodes,
-        observation_values,
-        color=gray,
-        edgecolor="white",
-        linewidth=0.6,
-        zorder=3,
-    )
-    axes[1].set_title("Regression: aggregate error")
-    axes[1].text(0.04, 0.94, "6 observations, 3 coefficients\nnonzero residuals", transform=axes[1].transAxes, va="top")
-
-    for axis in axes:
-        axis.set_xlabel(r"$\tau$")
-        axis.spines[["top", "right"]].set_visible(False)
-        axis.grid(alpha=0.18, linewidth=0.6)
-    axes[0].set_ylabel("value")
-    axes[0].set_xlim(0.0, 1.0)
-    axes[0].set_ylim(0.1, 1.25)
+    axis.plot(plot_nodes, interpolated_values, color=blue, linewidth=1.8,
+              label="Degree-five interpolation")
+    axis.plot(plot_nodes, regression_curve, color=orange, linewidth=1.8,
+              linestyle="--", label="Quadratic least squares")
+    axis.vlines(observation_nodes, regression_at_nodes, observation_values,
+                color="#777777", linewidth=1.2, zorder=2)
+    axis.scatter(observation_nodes, observation_values, color=gray,
+                 edgecolor="white", linewidth=0.6, s=30, zorder=3,
+                 label="Same six points")
+    axis.set_xlabel(r"$\tau$")
+    axis.set_ylabel("value")
+    axis.spines[["top", "right"]].set_visible(False)
+    axis.grid(alpha=0.18, linewidth=0.6)
+    axis.set_xlim(-0.025, 1.025)
+    axis.set_ylim(0.15, 1.25)
+    axis.legend(loc="upper left", frameon=False, fontsize=8)
 
 display(figure)
 plt.close(figure)
@@ -630,19 +666,26 @@ loss.
 
 ## Fixed Operators from Nodal Values
 
-Once the nodes and basis are fixed, can differentiation and integration be
-reduced to precomputed linear maps on nodal values?
+How can the stored values give us both the slopes and the integral of every
+candidate polynomial?
 
-The ODE and the running cost require more than values of an interpolating
-polynomial. The ODE uses derivatives, and the cost and state update use
-integrals. Since
+The nodal representation also turns differentiation and integration into
+matrix and vector products. Once the nodes are chosen, the required arrays
+can be computed once and reused for every candidate trajectory. The optimizer
+can then evaluate slopes and integrals as it changes the nodal values, without
+repeating symbolic differentiation or numerical integration. These operations
+are exact for the represented polynomial.
+
+This is possible because the cardinal functions stay fixed while only their
+coefficients $y_j$ change. In the representation
 
 $$
 p(\tau)=\sum_{j=0}^r y_j\ell_j(\tau),
 $$
 
-both operations are linear functions of the nodal vector $y$. Differentiating
-and then evaluating at a node $\sigma_i$ gives
+each $y_j$ is constant with respect to $\tau$, so differentiation acts only
+on $\ell_j$. To obtain the slopes needed by the ODE, differentiate and then
+evaluate at a node $\sigma_i$:
 
 $$
 p'(\sigma_i)=\sum_{j=0}^r
@@ -658,9 +701,17 @@ $$
 $$
 
 The resulting differentiation matrix $D$ and integration weights $w$ depend
-only on the chosen nodes. They can be computed before the optimization begins.
+only on the chosen nodes. Their entries record the derivatives and areas of
+the fixed cardinal functions. Multiplication by the current nodal values
+combines these contributions into the derivative or integral of the current
+polynomial. This is how the transcription supplies the calculus needed by the
+dynamics and cost through arithmetic on the decision variables.
 
-For the three support nodes $0,\tfrac12,1$, the cardinal functions are
+For a concrete construction, suppose a quadratic is stored by its values
+$y_0,y_m,y_1$ at $0,\tfrac12,1$, where $m$ denotes the midpoint. The desired
+outputs are its slope at each of these nodes and its integral over $[0,1]$.
+To build the arrays that return those outputs for any choice of the three
+values, first construct the three cardinal functions multiplying them:
 
 $$
 \begin{aligned}
@@ -676,9 +727,12 @@ $$
 \end{aligned}
 $$
 
-The factored forms come directly from the general product formula. Each
-function takes the value one at the node named by its subscript and zero at the
-other two nodes. Differentiating them at all three nodes gives
+These are the three contributions in
+$p(\tau)=y_0\ell_0(\tau)+y_m\ell_m(\tau)+y_1\ell_1(\tau)$.
+Their derivatives are $4\tau-3$, $4-8\tau$, and $4\tau-1$. At the left
+endpoint they give the weights $-3,4,-1$, so
+$p'(0)=-3y_0+4y_m-y_1$. Evaluation at the midpoint and right endpoint supplies
+the other two rows of the differentiation matrix:
 
 $$
 \begin{bmatrix}
@@ -738,92 +792,306 @@ recover state values.
 How do those fixed maps convert differential equations into algebraic
 constraints at the chosen collocation nodes?
 
-The previous section constructed differentiation and integration operators for
-an arbitrary polynomial. To impose an ODE, first choose $s$ collocation nodes
-$c_1,\ldots,c_s$ on $[0,1]$. At each node, the differential equation prescribes
-the state slope. Denote that slope on interval $k$ by
+A single polynomial can represent a trajectory over the entire horizon; the
+opening example's solution $x(t)=t$ already does so. Why introduce several
+pieces? Consider the same scalar dynamics $\dot x=u$, starting from $x(0)=0$,
+but now moving right at unit speed until $t=1/2$ and then left at unit speed:
 
 $$
-F_{k,j}
-=f(X_{k,j},U_{k,j},t_k+h_kc_j)
-$$
-
-for $j=1,\ldots,s$. Here $X_{k,j}$ and $U_{k,j}$ are the state and control at
-the node. Let $\ell_j$ be the Lagrange cardinal function associated with the
-collocation nodes $c_1,\ldots,c_s$. The nodal slopes then define the derivative
-interpolant
-
-$$
-\dot x_h(t_k+h_k\tau)
-=\sum_{j=1}^{s}F_{k,j}\ell_j(\tau).
-$$
-
-This polynomial agrees with the ODE slope $F_{k,j}$ at every collocation node.
-Integrating it from the left endpoint to node $c_i$ gives the state value there:
-
-$$
-X_{k,i}
-=X_k+h_k\sum_{j=1}^{s}A_{ij}F_{k,j},
+u(t)=\begin{cases}
+1,&0\leq t<\tfrac12,\\
+-1,&\tfrac12<t\leq1,
+\end{cases}
 \qquad
-A_{ij}=\int_0^{c_i}\ell_j(\tau)\,d\tau.
+x(t)=\begin{cases}
+t,&0\leq t\leq\tfrac12,\\
+1-t,&\tfrac12\leq t\leq1.
+\end{cases}
 $$
 
-The factor $h_k$ appears because $dt=h_k\,d\tau$. These equalities are called
-**stage equations**; a stage is an interval-local state and control evaluation
-used by the transcription. Integrating the same derivative polynomial across
-the full reference interval gives the right endpoint:
+The state is continuous, but its slope changes abruptly at the switching
+time. Two line segments represent it exactly. A single polynomial has a
+continuous derivative, so it cannot reproduce this corner exactly, although
+it can approximate the trajectory. The ODE here holds on either side of the
+switch; the control's value at that one instant does not affect its integral.
+
+Even when the trajectory is smooth, some portions may change much faster than
+others. Separate polynomial pieces let us shorten the mesh intervals near a
+rapid change while retaining longer intervals elsewhere. Increasing the
+degree of one global polynomial adds flexibility across the whole horizon.
+The local representation also gives the optimizer useful structure: each
+interval's dynamics constraints involve only its own stage values and
+neighboring endpoint states. A global polynomial couples values across the
+horizon through its differentiation matrix.
+
+For a trajectory that is smooth throughout the horizon, a single polynomial
+of sufficiently high degree can be an efficient choice. Piecewise polynomials
+give us local control over resolution, allow changes in slope at joins, and
+keep the constraint derivatives sparse. They require us to connect adjacent
+pieces explicitly so that the state remains continuous.
+
+We therefore represent the trajectory by a separate polynomial on each mesh
+interval $[t_k,t_{k+1}]$. The full approximation $\mathbf{x}_h$ is **piecewise
+polynomial**. To construct the piece on interval $k$, use its local coordinate
+$\tau=(t-t_k)/h_k$, where $h_k=t_{k+1}-t_k$, and write
+
+$$
+\mathbf{p}_k(\tau):=\mathbf{x}_h(t_k+h_k\tau),\qquad 0\le\tau\le1.
+$$
+
+Thus $\mathbf{p}_k(0)$ is the state at the start of this interval and $\mathbf{p}_k(1)$ is the
+state at its end. On the next interval, the local coordinate starts again at
+zero, and a different polynomial $\mathbf{p}_{k+1}$ describes the trajectory. The
+reference interval and its integration weights can be reused even when the
+physical intervals have different lengths.
+
+Choose $s$ collocation nodes $\tau_1,\ldots,\tau_s$ on $[0,1]$. On interval $k$,
+node $\tau_j$ corresponds to the physical time $t_k+h_k\tau_j$. The state and
+control values there are $\mathbf{x}_{k,j}$ and $\mathbf{u}_{k,j}$. This local evaluation point,
+together with its state and control values, is called a **stage**. At each
+stage, the differential equation prescribes the physical-time slope
+
+$$
+\mathbf{f}_{k,j}
+=\mathbf{f}(\mathbf{x}_{k,j},\mathbf{u}_{k,j},t_k+h_k\tau_j)
+$$
+
+for $j=1,\ldots,s$. Let $\ell_j$ be the Lagrange cardinal function associated
+with the nodes $\tau_1,\ldots,\tau_s$. Interpolating these slopes gives the
+physical-time derivative on this one interval:
+
+$$
+\dot{\mathbf{x}}_h(t_k+h_k\tau)
+=\sum_{j=1}^{s}\mathbf{f}_{k,j}\ell_j(\tau).
+$$
+
+This polynomial agrees with the ODE slope $\mathbf{f}_{k,j}$ at every collocation node
+of interval $k$. Integrating from its left endpoint, whose stored state is
+$\mathbf{x}_k$, constructs the entire state piece:
+
+$$
+\mathbf{p}_k(\tau)
+=\mathbf{x}_k+h_k\sum_{j=1}^{s}
+\left(\int_0^\tau\ell_j(\eta)\,d\eta\right)\mathbf{f}_{k,j}.
+$$
+
+The factor $h_k$ converts integration in normalized time into integration in
+physical time: $dt=h_k\,d\tau$. For example, a constant physical slope $\mathbf{f}$
+acting from $\tau=0$ to $\tau=\tau_i$ acts for $h_k\tau_i$ units of time and
+changes the state by $h_k\tau_i\mathbf{f}$. Without $h_k$, the formula would treat every
+physical interval as having unit duration. Equivalently, the chain rule gives
+$\mathbf{p}_k'(\tau)=h_k\dot{\mathbf{x}}_h(t_k+h_k\tau)$.
+
+The stored stage state $\mathbf{x}_{k,i}$ must lie on this polynomial at $\tau_i$.
+Imposing $\mathbf{x}_{k,i}=\mathbf{p}_k(\tau_i)$ gives the **stage equations**
+
+$$
+\mathbf{x}_{k,i}
+=\mathbf{x}_k+h_k\sum_{j=1}^{s}A_{ij}\mathbf{f}_{k,j},
+\qquad
+A_{ij}=\int_0^{\tau_i}\ell_j(\tau)\,d\tau.
+$$
+
+Each row of $A$ integrates only as far as one stage within interval $k$.
+These are simultaneous constraints on the stage values: the slopes on the
+right depend on the state and control variables being chosen. To reach the
+end of the interval instead, set $\tau=1$ and require the resulting value
+$\mathbf{p}_k(1)$ to equal the stored right endpoint $\mathbf{x}_{k+1}$:
 
 $$
 \boxed{
-X_{k+1}
-=X_k+h_k\sum_{j=1}^{s}b_jF_{k,j},
+\mathbf{x}_{k+1}
+=\mathbf{x}_k+h_k\sum_{j=1}^{s}b_j\mathbf{f}_{k,j},
 \qquad
 b_j=\int_0^1\ell_j(\tau)\,d\tau.
 }
 $$
 
-The coefficients $b_j$ are the areas under the cardinal functions. The endpoint
-equation is both an integration formula and a defect constraint: its residual
-compares the stored endpoint $X_{k+1}$ with the endpoint predicted from $X_k$
-and the nodal slopes. If $X_{k+1}$ is shared with the next interval, it also
-enforces state continuity. Otherwise an explicit equality must connect the two
-interval representations. Merely including an endpoint among the collocation
-nodes does not create continuity by itself.
-
-A **quadrature rule** approximates an integral by a weighted sum of function
-values. Reusing the collocation nodes and their full-interval weights gives the
-interval running-cost approximation
+The coefficients $b_j$ integrate the cardinal functions over the full
+reference interval. The endpoint equation is a defect constraint: it requires
+the stored endpoint to match the endpoint obtained by integrating the slopes
+of piece $k$. The next piece starts from that same stored value, so the two
+pieces meet:
 
 $$
-J_k
-\approx
-h_k\sum_{j=1}^{s}
-b_jL(X_{k,j},U_{k,j},t_k+h_kc_j).
+\mathbf{p}_k(1)=\mathbf{x}_{k+1}=\mathbf{p}_{k+1}(0).
 $$
 
-Thus the running cost is evaluated at the same local stages as the vector
-field. Different quadrature nodes could be used instead; the state and control
-polynomials would simply be evaluated there.
+This shared variable enforces state continuity across the join. If an
+implementation stores separate endpoint variables for the two pieces, it
+must impose an equality between them. Choosing an endpoint as a collocation
+node does not by itself join the pieces. Continuity of the state also does
+not require continuity of its derivative; neighboring pieces can meet with
+different slopes.
+
+:::{figure} _static/collocation/piecewise-trajectory.svg
+:label: fig-piecewise-collocation-trajectory
+:alt: Three quadratic state segments meet at shared endpoint states in physical time. The middle segment is repeated on a normalized time axis from zero to one, with two interior stage values and their slopes marked.
+
+A scalar trajectory consists of polynomial pieces joined at shared endpoint
+states (squares). The middle piece $p_k$ is shown in blue in both panels; only
+its time coordinate changes. The stage values (orange dots) lie at
+$\tau_1=1/3$ and $\tau_2=2/3$. Tangent marks in the lower panel have slopes
+$p_k'(\tau_j)=h_kf_{k,j}$ because that axis uses normalized time. The stage
+equations place the dots on the piece, and the endpoint defect makes it reach
+$x_{k+1}$, where the next piece begins. This schematic uses quadratic state
+pieces and linear slope interpolants.
+:::
+
+The running-cost integral can be treated by exactly the same construction.
+As in the earlier Bolza-to-Mayer reduction, introduce a scalar state $y(t)$
+that records the cost accumulated since
+$t_0$:
+
+$$
+y(t)=\int_{t_0}^{t}c(\mathbf{x}(s),\mathbf{u}(s),s)\,ds,
+\qquad
+\dot y(t)=c(\mathbf{x}(t),\mathbf{u}(t),t),\qquad y(t_0)=0.
+$$
+
+The original objective is now $c_f(\mathbf{x}(t_f),t_f)+y(t_f)$. The augmented state
+$(\mathbf{x}^{\top},y)^{\top}$ has two rates of change: $\mathbf{f}$ supplies the physical state rate and $c$
+supplies the cost rate. Applying the same collocation method to this augmented
+ODE evaluates both rates at each stage's state, control, and time. In
+particular, the cost rate at stage $j$ of interval $k$ is
+
+$$
+c_{k,j}:=c(\mathbf{x}_{k,j},\mathbf{u}_{k,j},t_k+h_k\tau_j).
+$$
+
+Let $y_k$ and $y_{k,i}$ denote the accumulated-cost values at the interval's
+left endpoint and at stage $i$. Integrating the cost-rate interpolant to a
+stage and to the right endpoint gives
+
+$$
+y_{k,i}=y_k+h_k\sum_{j=1}^{s}A_{ij}c_{k,j},
+\qquad
+y_{k+1}=y_k+h_k\sum_{j=1}^{s}b_jc_{k,j}.
+$$
+
+These are the same stage and endpoint equations as for $\mathbf{x}$, with $c_{k,j}$
+in place of $\mathbf{f}_{k,j}$. The increase in accumulated cost across interval $k$
+therefore supplies its contribution to the discrete objective:
+
+$$
+c_k:=y_{k+1}-y_k
+=h_k\sum_{j=1}^{s}b_jc_{k,j}
+\approx\int_{t_k}^{t_{k+1}}c(\mathbf{x}_h(t),\mathbf{u}_h(t),t)\,dt.
+$$
+
+Here $\mathbf{u}_h$ is the piecewise control approximation. The single-index
+$c_k$ is an interval cost, whereas $c_{k,j}$ is a sampled cost rate; the factor
+$h_k$ gives them different units. The weighted sum integrates
+the polynomial interpolating the sampled cost rates exactly. It approximates
+the running-cost integral because the composed function
+$c(\mathbf{x}_h(t),\mathbf{u}_h(t),t)$ need not itself be that polynomial. Such a weighted-sum
+approximation is called a **quadrature rule**.
+
+Since $y_0=0$, summing the interval increments gives
+$y_N=\sum_{k=0}^{N-1}c_k$. The accumulated-cost variables can therefore be
+eliminated and the sum used directly in the objective. Introducing $y$ explains
+why applying one collocation scheme to both rates uses the same nodes and
+weights; it does not require adding cost variables to the implementation.
+A different quadrature rule is also possible, with the state and control
+polynomials evaluated at that rule's nodes.
+
+### Choosing a polynomial for the control
+
+The state and control play different roles. The ODE constrains the state's
+derivative, so integrating an interpolant of $s$ slopes gives a state
+polynomial of degree at most $s$. There is no corresponding ODE for the
+control in this problem. Its representation is a separate choice: a
+constant command on each interval, a line between endpoint commands, or a
+higher-degree polynomial.
+
+For example, with two endpoint slopes the state polynomial is quadratic.
+The control can still be the line
+
+$$
+\mathbf u_h(t_k+h_k\tau)
+=(1-\tau)\mathbf u_k+\tau\mathbf u_{k+1}.
+$$
+
+These degrees need not match. Also, substituting polynomial state and control
+curves into a nonlinear $\mathbf f$ need not produce a polynomial. Collocation
+matches the state derivative to $\mathbf f$ at the chosen nodes, rather than
+requiring the ODE to hold identically between them.
+
+To make the control choice explicit, select distinct control support nodes
+$\rho_0,\ldots,\rho_{d_u}\in[0,1]$ and construct their cardinal functions
+$\psi_0,\ldots,\psi_{d_u}$. The decision variables
+$\widehat{\mathbf u}_{k,r}$ are control values at these support nodes:
+
+$$
+\mathbf u_h(t_k+h_k\tau)
+=\sum_{r=0}^{d_u}\widehat{\mathbf u}_{k,r}\psi_r(\tau),
+\qquad
+\mathbf u_{k,j}
+=\sum_{r=0}^{d_u}B_{jr}\widehat{\mathbf u}_{k,r},
+\quad B_{jr}:=\psi_r(\tau_j).
+$$
+
+Thus the stage controls $\mathbf u_{k,j}$ are computed from the control
+variables; they are independent variables only when the representation
+allows independent values at all those stages. For a constant control,
+$d_u=0$ and every entry of $B$ is one. For a linear control supported at
+$0,1$, row $j$ of $B$ is $(1-\tau_j,\tau_j)$.
+
+Using more control support values than collocation stages leaves some control
+variations invisible to those stage samples. The examples below use
+$d_u+1\leq s$; a richer control representation needs additional sampling or
+other constraints to account for those variations.
+
+The ODE requires continuous states, but it can admit controls that jump
+between intervals. Independent control polynomials therefore need no
+continuity constraint unless the model or chosen parameterization requires
+one. Sharing endpoint controls between neighboring linear pieces enforces
+continuity. With separate local variables, the equivalent equality is
+
+$$
+\sum_{r=0}^{d_u}\psi_r(1)\widehat{\mathbf u}_{k,r}
+=\sum_{r=0}^{d_u}\psi_r(0)\widehat{\mathbf u}_{k+1,r}.
+$$
+
+At a jump, endpoint stages use the control belonging to their own interval.
+Finally, bounds on support values guarantee bounds throughout a constant or
+linear control segment, because its values are convex combinations of its
+endpoints. A higher-degree polynomial can overshoot those values, so support
+bounds alone no longer give that guarantee.
 
 After all intervals are assembled, collect the nodal states and controls into
 the decision vector
 
 $$
-z=\left(X_0,\{X_{k,j},U_{k,j}\}_{k,j},X_N\right)\,.
+\mathbf z=\operatorname{col}\!\left(
+\{\mathbf x_k\}_{k=0}^{N},
+\{\mathbf x_{k,j}\}_{k=0,\,j=1}^{N-1,\,s},
+\{\widehat{\mathbf u}_{k,r}\}_{k=0,\,r=0}^{N-1,\,d_u}
+\right).
 $$
 
-The resulting finite optimization problem has the form
+Here $\operatorname{col}$ stacks the listed vectors into one column, omitting
+duplicate variables when a stage shares a mesh endpoint. Stage controls are
+evaluated using $B$, and any chosen control-continuity equalities are added
+to the constraints. If $t_f$ is optimized,
+it is included in $\mathbf z$ as well. The resulting finite optimization
+problem has the form
 
 $$
 \begin{aligned}
-\underset{z}{\operatorname{minimize}}\quad&
-\Phi(X_N,t_f)+\sum_{k=0}^{N-1}J_k\\
+\underset{\mathbf{z}}{\operatorname{minimize}}\quad&
+c_f(\mathbf{x}_N,t_f)+\sum_{k=0}^{N-1}c_k\\
 \text{subject to}\quad&
 \text{stage equations},\\
 &\text{endpoint defects and continuity},\\
 &\text{boundary, path, and bound constraints}.
 \end{aligned}
 $$
+
+In the preceding chapter's NLP notation, $F(\mathbf z)$ is this scalar
+objective, $H(\mathbf z)=\mathbf0$ stacks the stage, endpoint, and boundary
+equalities, and $G(\mathbf z)\leq\mathbf0$ stacks the sampled path and bound
+inequalities. The slope $\mathbf f_{k,j}$ is a vector, distinct from $F$.
 
 The original path and bound constraints apply at every continuous time. The
 finite NLP can impose them only at selected points, usually its support or
@@ -841,48 +1109,57 @@ optimization.
 
 ### Equivalent differentiation form
 
-The slope-value construction starts from $F_{k,j}$ and integrates. Many
+The slope-value construction starts from $\mathbf{f}_{k,j}$ and integrates. Many
 implementations take the equivalent route of starting from nodal state values
-and differentiating. Let $\sigma_0,\ldots,\sigma_d$ be support nodes for a
-state polynomial, and denote their cardinal functions by $\lambda_r$ to avoid
-confusing them with the running cost $L$:
+and differentiating. The integral of the degree-$(s-1)$ slope polynomial has
+degree at most $s$, so take $d=s$ and choose $d+1$ support nodes
+$\sigma_0,\ldots,\sigma_d$ for the state polynomial.
+Write $\ell_r^{\mathrm{state}}$ for their cardinal
+functions to distinguish this support-node basis from the slope-node basis
+$\ell_j$. Denote the support values by $\widehat{\mathbf x}_{k,r}$;
+these need not be the stage values $\mathbf x_{k,j}$ at $\tau_j$:
 
 $$
-x_h(t_k+h_k\tau)
-=\sum_{r=0}^{d}X_{k,r}\lambda_r(\tau).
+\mathbf{x}_h(t_k+h_k\tau)
+=\sum_{r=0}^{d}\widehat{\mathbf x}_{k,r}\ell_r^{\mathrm{state}}(\tau).
 $$
 
-At a collocation node $c_i$, the state is a weighted sum of its support values,
+At a collocation node $\tau_i$, the state is a weighted sum of its support values,
 and its derivative with respect to $\tau$ is another weighted sum. The fixed
 arrays containing these weights are
 
 $$
-E_{ir}=\lambda_r(c_i),
+E_{ir}=\ell_r^{\mathrm{state}}(\tau_i),
 \qquad
-D_{ir}=\lambda_r'(c_i).
+D_{ir}=(\ell_r^{\mathrm{state}})'(\tau_i).
 $$
 
 Thus $E$ evaluates the state polynomial and $D$ differentiates it. Because
-$d/dt=(1/h_k)d/d\tau$, enforcing the ODE at node $c_i$ gives
+$d/dt=(1/h_k)d/d\tau$, enforcing the ODE at node $\tau_i$ gives
 
 $$
 \boxed{
-\sum_{r=0}^{d}D_{ir}X_{k,r}
-=h_k f\left(
-\sum_{r=0}^{d}E_{ir}X_{k,r},
-U_{k,i},
-t_k+h_kc_i
+\sum_{r=0}^{d}D_{ir}\widehat{\mathbf x}_{k,r}
+=h_k \mathbf{f}\left(
+\sum_{r=0}^{d}E_{ir}\widehat{\mathbf x}_{k,r},
+\mathbf{u}_{k,i},
+t_k+h_k\tau_i
 \right).
 }
 $$
 
 The left side is the derivative with respect to normalized time, and the factor
 $h_k$ on the right converts the physical-time derivative accordingly. In
-matrix shorthand, all nodal constraints are $DX_k=h_kF_k$. The right endpoint
-is evaluated with another fixed row:
+matrix shorthand, all nodal constraints are $D\mathsf X_k=h_k\mathsf F_k$.
+Here $\mathsf X_k\in\mathbb R^{(d+1)\times n}$
+has support states as rows, and $\mathsf F_k\in\mathbb R^{s\times n}$ has
+stage slopes as rows; neither is a single state vector. Evaluation at the two
+ends connects this polynomial to the shared mesh states:
 
 $$
-X_{k+1}=\sum_{r=0}^{d}\lambda_r(1)X_{k,r}.
+\mathbf{x}_{k}=\sum_{r=0}^{d}\ell_r^{\mathrm{state}}(0)\widehat{\mathbf x}_{k,r},
+\qquad
+\mathbf{x}_{k+1}=\sum_{r=0}^{d}\ell_r^{\mathrm{state}}(1)\widehat{\mathbf x}_{k,r}.
 $$
 
 When support and collocation nodes coincide, the cardinal property makes $E$
@@ -906,46 +1183,157 @@ reduced to their lowest-order choices?
 The general construction becomes concrete when only one or two slope values
 are retained on each interval. These cases recover familiar integration
 formulas, but the formulas now appear as constraints inside an NLP.
+For the concrete problems below, fix the mesh and final time. The boundary
+map $\mathbf h(\mathbf x_0,\mathbf x_N,t_N)=\mathbf0$ includes the
+prescribed initial state and any terminal conditions; $\mathbf g\leq\mathbf0$
+includes path constraints and state/control bounds. Each displayed program
+specifies the points where those inequalities are imposed. Additional check
+points can be included, and a continuous replay still checks the result
+between nodes.
 
 ### One slope value: explicit and implicit Euler
 
-With the single left collocation node $c_1=0$, the only cardinal function is
-$\ell_1(\tau)=1$. The derivative interpolant is therefore the constant slope
-$f(X_k,U_k,t_k)$. Its integration weight is $b_1=1$, so the endpoint defect is
+A single slope value determines a constant derivative on each interval.
+Choose a constant control $\mathbf u_{k,1}$ on that interval as well:
+$\mathbf u_h(t_k+h_k\tau)=\mathbf u_{k,1}$. Different intervals may use
+different constants. The state is linear even though the control is constant.
+The following exercise applies the preceding construction to recover the two
+Euler methods. The solution gives a recipe that also extends to multiple
+slope nodes.
+
+````{exercise} Derive a transcription from one slope
+:label: ex-collocation-one-slope-recipe
+
+Consider $\dot{\mathbf x}=\mathbf{f}(\mathbf x,\mathbf u,t)$ on $[t_k,t_{k+1}]$, with duration $h_k$ and
+normalized time $\tau=(t-t_k)/h_k$. Approximate the physical-time derivative
+by a constant that matches the ODE at a single collocation node $\tau_1$.
+
+Carry out the construction for $\tau_1=0$ and then for $\tau_1=1$. For each choice:
+
+1. Construct the cardinal function and identify the ODE slope it multiplies.
+2. Integrate from $\mathbf{x}_k$ to obtain the state polynomial $\mathbf{p}_k(\tau)$, then
+   impose its agreement with the stored right endpoint $\mathbf{x}_{k+1}$.
+3. Derive the interval cost contribution by applying the same construction
+   to $\dot y=c(\mathbf x,\mathbf u,t)$.
+4. Identify the method, state the degree of its state polynomial, and explain
+   whether its endpoint equation can be evaluated directly in a forward
+   simulation with prescribed controls.
+````
+
+````{solution} ex-collocation-one-slope-recipe
+:class: dropdown
+
+The derivation follows five steps: choose where the ODE is evaluated,
+interpolate its slope, integrate that interpolant, match the stored endpoint,
+and integrate the cost rate with the same weights.
+
+1. **Choose the stage and evaluate its slope.** The left node uses the
+   state, control, and time at the start of the interval; the right node uses
+   those at its end:
+
+   $$
+   \mathbf{f}_{k,1}=\begin{cases}
+   \mathbf{f}(\mathbf{x}_k,\mathbf u_{k,1},t_k),&\tau_1=0,\\
+   \mathbf{f}(\mathbf{x}_{k+1},\mathbf u_{k,1},t_{k+1}),&\tau_1=1.
+   \end{cases}
+   $$
+
+2. **Interpolate the physical-time derivative.** With one node, the cardinal
+   function is the constant $\ell_1(\tau)=1$, since it must equal one at
+   that node. Hence $\dot{\mathbf{x}}_h(t_k+h_k\tau)=\mathbf{f}_{k,1}$ throughout the interval.
+   Its full-interval integration weight is
+   $b_1=\int_0^1\ell_1(\tau)\,d\tau=1$.
+
+3. **Integrate from the left state.** The reference-time derivative is
+   $\mathbf{p}_k'(\tau)=h_k\mathbf{f}_{k,1}$. Integrating and imposing $\mathbf{p}_k(0)=\mathbf{x}_k$ gives
+
+   $$
+   \mathbf{p}_k(\tau)=\mathbf{x}_k+h_k\tau \mathbf{f}_{k,1}.
+   $$
+
+   Thus the state polynomial has degree at most one. The factor $h_k$
+   accounts for the physical duration of the interval.
+
+4. **Match the stored right endpoint.** Setting $\mathbf{p}_k(1)=\mathbf{x}_{k+1}$ gives the
+   defect $\mathbf{x}_{k+1}-\mathbf{x}_k-h_k\mathbf{f}_{k,1}=\mathbf0$. Substituting the two slope choices yields
+
+   $$
+   \begin{aligned}
+   \mathbf{x}_{k+1}-\mathbf{x}_k-h_k\mathbf{f}(\mathbf{x}_k,\mathbf u_{k,1},t_k)&=\mathbf0
+   &&\text{(explicit Euler)},\\
+   \mathbf{x}_{k+1}-\mathbf{x}_k-h_k\mathbf{f}(\mathbf{x}_{k+1},\mathbf u_{k,1},t_{k+1})&=\mathbf0
+   &&\text{(implicit Euler)}.
+   \end{aligned}
+   $$
+
+   In forward simulation, explicit Euler computes the next state from known
+   left-endpoint data. Implicit Euler places the unknown next state inside
+   $\mathbf{f}$, so it generally requires solving an equation, which is nonlinear
+   when the dynamics depend nonlinearly on that state. In direct
+   transcription, both endpoints are optimization variables and either
+   defect is imposed as an equality constraint.
+
+5. **Apply the same integration rule to the cost rate.** The single sampled
+   cost rate is constant in the approximation, so its integral is that rate
+   multiplied by $h_k$:
+
+   $$
+   c_k=\begin{cases}
+   h_kc(\mathbf{x}_k,\mathbf u_{k,1},t_k),&\tau_1=0,\\
+   h_kc(\mathbf{x}_{k+1},\mathbf u_{k,1},t_{k+1}),&\tau_1=1.
+   \end{cases}
+   $$
+
+   These are the left- and right-endpoint approximations to the interval
+   running-cost integral. They use the same stage as the corresponding
+   dynamics constraint.
+
+With additional slope nodes, the sequence stays the same. The constant
+cardinal function is replaced by several cardinal polynomials, and their
+integrals supply the weights in the stage equations, endpoint defect, and
+cost contribution.
+````
+
+### The complete Euler NLP
+
+Let $\theta=0$ for explicit Euler and $\theta=1$ for implicit Euler. Both
+methods optimize the mesh states $\mathbf x_0,\ldots,\mathbf x_N$ and the
+$N$ interval controls $\mathbf u_{k,1}$. There are no additional stage-state
+variables after identifying the sole stage with its endpoint:
 
 $$
-X_{k+1}-X_k-h_k f(X_k,U_k,t_k)=0.
+\begin{aligned}
+\min_{\{\mathbf x_k\}_{k=0}^N,\,\{\mathbf u_{k,1}\}_{k=0}^{N-1}}
+\quad &c_f(\mathbf x_N,t_N)
++\sum_{k=0}^{N-1}h_kc(\mathbf x_{k+\theta},\mathbf u_{k,1},t_{k+\theta})\\
+\text{subject to}\quad
+&\mathbf x_{k+1}-\mathbf x_k
+-h_k\mathbf f(\mathbf x_{k+\theta},\mathbf u_{k,1},t_{k+\theta})=\mathbf0,\\
+&\mathbf g(\mathbf x_{k+\theta},\mathbf u_{k,1},t_{k+\theta})\leq\mathbf0,
+\quad k=0,\ldots,N-1,\\
+&\mathbf h(\mathbf x_0,\mathbf x_N,t_N)=\mathbf0.
+\end{aligned}
 $$
 
-This is explicit Euler. The stored right endpoint is constrained to equal the
-result of advancing from the left endpoint with its local slope. Because the
-derivative approximation is constant, its integral is a linear state
-approximation on the interval.
-
-With the single right collocation node $c_1=1$, the constant slope is evaluated
-at the unknown right endpoint. The same integration weight gives
-
-$$
-X_{k+1}-X_k-h_k
-f(X_{k+1},U_{k+1},t_{k+1})=0,
-$$
-
-This is implicit Euler. In sequential simulation, the occurrence of
-$X_{k+1}$ inside $f$ requires a nonlinear solve at each step. In direct
-transcription, $X_{k+1}$ is already an optimization variable, so the relation
-is imposed as one of the simultaneous equality constraints.
+Here $k+\theta$ selects an endpoint, not an intermediate time. The path
+constraints use the same endpoint as the dynamics; bounds required at the
+other endpoint can be imposed there too. The two NLPs differ only in where
+the slope and cost rate are evaluated. Both are solved for the entire
+trajectory simultaneously.
 
 ### Endpoint slope values: trapezoidal transcription
 
-Choose the endpoint collocation nodes $c_0=0$ and $c_1=1$, and abbreviate the
+Use continuous piecewise-linear controls, with shared endpoint variables
+$\mathbf u_0,\ldots,\mathbf u_N$. Choose the endpoint collocation nodes
+$\tau_1=0$ and $\tau_2=1$, and abbreviate the
 two ODE slopes by
 
 $$
-F_k=f(X_k,U_k,t_k),\qquad
-F_{k+1}=f(X_{k+1},U_{k+1},t_{k+1}).
+\mathbf{f}_k=\mathbf{f}(\mathbf{x}_k,\mathbf{u}_k,t_k),\qquad
+\mathbf{f}_{k+1}=\mathbf{f}(\mathbf{x}_{k+1},\mathbf{u}_{k+1},t_{k+1}).
 $$
 
-The cardinal functions used to interpolate these derivative values are
+For this endpoint formula, label the cardinal functions by their locations, $0$ and $1$, rather than by the stage numbers $1$ and $2$:
 
 $$
 \ell_0(\tau)=1-\tau,\qquad
@@ -955,18 +1343,18 @@ $$
 The derivative interpolant is the line joining the two slopes:
 
 $$
-\dot x_h(t_k+h_k\tau)
-=(1-\tau)F_k+\tau F_{k+1}.
+\dot{\mathbf{x}}_h(t_k+h_k\tau)
+=(1-\tau)\mathbf{f}_k+\tau \mathbf{f}_{k+1}.
 $$
 
-It equals $F_k$ at $\tau=0$ and $F_{k+1}$ at $\tau=1$. Integrating from the
+It equals $\mathbf{f}_k$ at $\tau=0$ and $\mathbf{f}_{k+1}$ at $\tau=1$. Integrating from the
 known left state gives the continuous state approximation
 
 $$
-x_h(t_k+h_k\tau)
-=X_k+h_k\left[
-\left(\tau-\frac{\tau^2}{2}\right)F_k
-+\frac{\tau^2}{2}F_{k+1}
+\mathbf{x}_h(t_k+h_k\tau)
+=\mathbf{x}_k+h_k\left[
+\left(\tau-\frac{\tau^2}{2}\right)\mathbf{f}_k
++\frac{\tau^2}{2}\mathbf{f}_{k+1}
 \right].
 $$
 
@@ -976,13 +1364,13 @@ and equating it to the stored endpoint produces
 
 $$
 \boxed{
-X_{k+1}-X_k
+\mathbf{x}_{k+1}-\mathbf{x}_k
 -\frac{h_k}{2}
 \left[
-f(X_k,U_k,t_k)
-+f(X_{k+1},U_{k+1},t_{k+1})
+\mathbf{f}(\mathbf{x}_k,\mathbf{u}_k,t_k)
++\mathbf{f}(\mathbf{x}_{k+1},\mathbf{u}_{k+1},t_{k+1})
 \right]
-=0.
+=\mathbf0.
 }
 $$
 
@@ -991,12 +1379,12 @@ This is the trapezoidal defect derived in the opening example. Applying the
 same endpoint weights to the running cost gives
 
 $$
-J_k
-\approx
+c_k
+=
 \frac{h_k}{2}
 \left[
-L(X_k,U_k,t_k)
-+L(X_{k+1},U_{k+1},t_{k+1})
+c(\mathbf{x}_k,\mathbf{u}_k,t_k)
++c(\mathbf{x}_{k+1},\mathbf{u}_{k+1},t_{k+1})
 \right].
 $$
 
@@ -1006,21 +1394,58 @@ interpolant produces a quadratic state interpolant. This distinction is
 emphasized in the direct-collocation derivation of
 {cite:t}`Kelly2017DirectCollocation`.
 
+### The complete trapezoidal NLP
+
+The decision variables are the mesh states and controls. Write
+$\mathbf f_k=\mathbf f(\mathbf x_k,\mathbf u_k,t_k)$ and
+$c_k^{\mathrm{rate}}=c(\mathbf x_k,\mathbf u_k,t_k)$ for evaluated quantities,
+not additional optimization variables. Then the transcribed problem is
+
+$$
+\begin{aligned}
+\min_{\{\mathbf x_k,\mathbf u_k\}_{k=0}^{N}}\quad
+&c_f(\mathbf x_N,t_N)
++\sum_{k=0}^{N-1}\frac{h_k}{2}
+\left(c_k^{\mathrm{rate}}+c_{k+1}^{\mathrm{rate}}\right)\\
+\text{subject to}\quad
+&\mathbf x_{k+1}-\mathbf x_k
+-\frac{h_k}{2}(\mathbf f_k+\mathbf f_{k+1})=\mathbf0,
+\quad k=0,\ldots,N-1,\\
+&\mathbf g(\mathbf x_k,\mathbf u_k,t_k)\leq\mathbf0,
+\quad k=0,\ldots,N,\\
+&\mathbf h(\mathbf x_0,\mathbf x_N,t_N)=\mathbf0.
+\end{aligned}
+$$
+
+The state between endpoints is the quadratic obtained above, while the
+control is linear. Shared mesh states and controls connect adjacent pieces;
+no separate continuity equations are needed in this representation.
+
 ## Hermite--Simpson Transcription
 
 Can midpoint state and slope information raise the transcription order without
 requiring a high-degree polynomial over the whole horizon?
 
 Hermite--Simpson extends the trapezoidal construction by adding the midpoint
-state $X_{k+\frac12}$, control $U_{k+\frac12}$, and ODE slope
+state $\mathbf{x}_{k+\frac12}$. Retain the same piecewise-linear control, so
+its midpoint value is already determined:
 
 $$
-F_{k+\frac12}=f\left(
-X_{k+\frac12},U_{k+\frac12},t_k+\frac{h_k}{2}
+\mathbf u_{k+\frac12}=\frac{\mathbf u_k+\mathbf u_{k+1}}{2}.
+$$
+
+Evaluate the midpoint ODE slope using that control:
+
+$$
+\mathbf{f}_{k+\frac12}=\mathbf{f}\left(
+\mathbf{x}_{k+\frac12},\mathbf{u}_{k+\frac12},t_k+\frac{h_k}{2}
 \right).
 $$
 
-The derivative is now specified at $0,\tfrac12,1$, so its interpolant is the
+The notation $\mathbf x_{k+\frac12}$ and $\mathbf u_{k+\frac12}$ denotes
+values at physical time $t_k+h_k/2$, not another mesh endpoint.
+
+The three stage nodes are $\tau_1=0$, $\tau_2=\tfrac12$, and $\tau_3=1$. We label their cardinal functions $0,m,1$ for left endpoint, midpoint, and right endpoint. The derivative interpolant is the
 quadratic built from the following three cardinal functions:
 
 $$
@@ -1042,10 +1467,10 @@ general endpoint equation produces the Simpson defect:
 
 $$
 \boxed{
-X_{k+1}-X_k
+\mathbf{x}_{k+1}-\mathbf{x}_k
 -\frac{h_k}{6}
-\left(F_k+4F_{k+\frac12}+F_{k+1}\right)
-=0.
+\left(\mathbf{f}_k+4\mathbf{f}_{k+\frac12}+\mathbf{f}_{k+1}\right)
+=\mathbf0.
 }
 $$
 
@@ -1053,16 +1478,16 @@ The midpoint state must also lie on the cubic obtained by integrating the
 quadratic derivative. Integration only to $\tau=\tfrac12$ gives
 
 $$
-X_{k+\frac12}
-=X_k+\frac{h_k}{24}
-\left(5F_k+8F_{k+\frac12}-F_{k+1}\right).
+\mathbf{x}_{k+\frac12}
+=\mathbf{x}_k+\frac{h_k}{24}
+\left(5\mathbf{f}_k+8\mathbf{f}_{k+\frac12}-\mathbf{f}_{k+1}\right).
 $$
 
 This form still contains the midpoint slope. The endpoint defect gives
 
 $$
-4F_{k+\frac12}
-=\frac{6}{h_k}(X_{k+1}-X_k)-F_k-F_{k+1}.
+4\mathbf{f}_{k+\frac12}
+=\frac{6}{h_k}(\mathbf{x}_{k+1}-\mathbf{x}_k)-\mathbf{f}_k-\mathbf{f}_{k+1}.
 $$
 
 Substituting this expression into the midpoint equation and collecting the
@@ -1070,18 +1495,209 @@ endpoint states and slopes yields
 
 $$
 \boxed{
-X_{k+\frac12}
-=\frac{X_k+X_{k+1}}{2}
-+\frac{h_k}{8}\left(F_k-F_{k+1}\right).
+\mathbf{x}_{k+\frac12}
+=\frac{\mathbf{x}_k+\mathbf{x}_{k+1}}{2}
++\frac{h_k}{8}\left(\mathbf{f}_k-\mathbf{f}_{k+1}\right).
 }
 $$
 
-The midpoint state relation and the definition of $F_{k+\frac12}$ together
+The midpoint state relation and the definition of $\mathbf{f}_{k+\frac12}$ together
 enforce the ODE at the midpoint. A quadratic derivative interpolant integrates
 to a **cubic state interpolant**, so Hermite--Simpson is not based on a
 quadratic state approximation. The name reflects its two ingredients: the
 state is a cubic Hermite interpolant determined by state and slope information,
 and its endpoint defect uses Simpson weights.
+
+### The complete Hermite--Simpson NLP
+
+With linear controls, optimize mesh states, mesh controls, and midpoint
+states. For $q=k$ or $k+\tfrac12$, abbreviate
+$\mathbf f_q=\mathbf f(\mathbf x_q,\mathbf u_q,t_q)$ and
+$c_q^{\mathrm{rate}}=c(\mathbf x_q,\mathbf u_q,t_q)$, with
+$t_{k+\frac12}=t_k+h_k/2$ and the midpoint control given by the endpoint
+average. The complete program is
+
+$$
+\begin{aligned}
+\min_{\{\mathbf x_k,\mathbf u_k\}_{k=0}^{N},\,
+\{\mathbf x_{k+\frac12}\}_{k=0}^{N-1}}\quad
+&c_f(\mathbf x_N,t_N)
++\sum_{k=0}^{N-1}\frac{h_k}{6}
+\left(c_k^{\mathrm{rate}}+4c_{k+\frac12}^{\mathrm{rate}}+c_{k+1}^{\mathrm{rate}}\right)\\
+\text{subject to}\quad
+&\mathbf x_{k+1}-\mathbf x_k
+-\frac{h_k}{6}(\mathbf f_k+4\mathbf f_{k+\frac12}+\mathbf f_{k+1})=\mathbf0,\\
+&\mathbf x_{k+\frac12}-\frac{\mathbf x_k+\mathbf x_{k+1}}{2}
+-\frac{h_k}{8}(\mathbf f_k-\mathbf f_{k+1})=\mathbf0,
+\quad k=0,\ldots,N-1,\\
+&\mathbf g(\mathbf x_q,\mathbf u_q,t_q)\leq\mathbf0,
+\quad q\in\{0,\tfrac12,1,\tfrac32,\ldots,N\},\\
+&\mathbf h(\mathbf x_0,\mathbf x_N,t_N)=\mathbf0.
+\end{aligned}
+$$
+
+An alternative is to optimize the midpoint control independently. The three
+control values then define a quadratic on each interval; the midpoint-average
+relation is removed, and $\mathbf u_{k+\frac12}$ joins the decision vector.
+The two state equations and Simpson cost weights remain the same. This
+changes the admissible controls, so it can change the optimizer's solution.
+
+The resulting representations can be compared directly. All degrees are
+upper bounds on each interval; they are not claims about convergence order.
+
+| Scheme used here | State degree | Control degree | Independent values beyond mesh states |
+|---|---:|---:|---|
+| Explicit or implicit Euler | 1 | 0 | One control per interval |
+| Trapezoidal | 2 | 1 | Shared endpoint controls |
+| Hermite--Simpson, linear control | 3 | 1 | Shared endpoint controls and midpoint states |
+| Hermite--Simpson, quadratic control | 3 | 2 | Shared endpoint controls, midpoint states, and midpoint controls |
+
+## Constructing a Scheme from Its Nodes
+
+How can a program generate these transcriptions from node choices without
+hand-deriving a new set of defect equations each time?
+
+The same construction generates every scheme in the preceding table. Its
+inputs are the collocation nodes, the control support nodes, and a choice
+about control continuity. The number of collocation nodes determines the
+degree of the slope interpolant and hence the state polynomial. The control
+support nodes determine the control polynomial independently.
+
+This recipe covers polynomial collocation obtained by interpolating slopes
+at distinct nodes and integrating them. It includes Gauss, Radau, and Lobatto
+collocation as well as the low-order examples. An arbitrary Runge--Kutta
+tableau need not come from such nodes, so specifying nodes does not generate
+every possible integration method.
+
+````{prf:algorithm} Assemble a polynomial collocation NLP
+:label: alg-collocation-from-nodes
+
+**Input:** A mesh $t_0<\cdots<t_N$; dynamics $\mathbf f$, running cost $c$,
+terminal cost $c_f$, boundary equalities $\mathbf h$, and path inequalities
+$\mathbf g$; distinct collocation nodes $\tau_1,\ldots,\tau_s$ and control
+support nodes $\rho_0,\ldots,\rho_{d_u}$ in $[0,1]$.
+
+**Output:** A finite decision vector $\mathbf z$, objective $F(\mathbf z)$,
+inequalities $G(\mathbf z)\leq\mathbf0$, and equalities $H(\mathbf z)=\mathbf0$.
+
+1. **Compute the rule once.** Construct the cardinal polynomials $\ell_j$
+   for the collocation nodes and $\psi_r$ for the control support nodes.
+   Integrate and evaluate them to obtain
+
+   $$
+   A_{ij}=\int_0^{\tau_i}\ell_j(\tau)\,d\tau,\qquad
+   b_j=\int_0^1\ell_j(\tau)\,d\tau,\qquad
+   B_{jr}=\psi_r(\tau_j).
+   $$
+
+2. **Allocate variables.** Create mesh states $\mathbf x_k$, stage states
+   $\mathbf x_{k,j}$, and control support values $\widehat{\mathbf u}_{k,r}$.
+   Initialize $F=c_f(\mathbf x_N,t_N)$, append the boundary residual
+   $\mathbf h(\mathbf x_0,\mathbf x_N,t_N)$ to $H$, and initialize $G$ empty.
+
+3. **Assemble each interval.** For $k=0,\ldots,N-1$, set
+   $h_k=t_{k+1}-t_k$ and compute the expressions
+
+   $$
+   \begin{aligned}
+   \mathbf u_{k,j}&=\sum_rB_{jr}\widehat{\mathbf u}_{k,r},\\
+   \mathbf f_{k,j}&=\mathbf f(\mathbf x_{k,j},\mathbf u_{k,j},t_k+h_k\tau_j),\\
+   c_{k,j}&=c(\mathbf x_{k,j},\mathbf u_{k,j},t_k+h_k\tau_j).
+   \end{aligned}
+   $$
+
+   Add $h_k\sum_jb_jc_{k,j}$ to $F$. Append to $H$ the stage and endpoint
+   residuals
+
+   $$
+   \mathbf x_{k,i}-\mathbf x_k-h_k\sum_jA_{ij}\mathbf f_{k,j},
+   \qquad
+   \mathbf x_{k+1}-\mathbf x_k-h_k\sum_jb_j\mathbf f_{k,j}.
+   $$
+
+   Append $\mathbf g(\mathbf x_{k,j},\mathbf u_{k,j},t_k+h_k\tau_j)$ to $G$
+   at every stage. Append any additional sampled constraints or variable
+   bounds required by the model.
+
+4. **Connect controls if required.** Either share endpoint control variables
+   or append the equality between the right control value of piece $k$ and
+   the left control value of piece $k+1$. Mesh states are already shared.
+
+5. **Solve and reconstruct.** Pass $F,G,H$ and their derivatives to an NLP
+   solver. Recover each state piece by integrating its slope interpolant
+   from $\mathbf x_k$, and recover each control piece from its support values.
+   Check the ODE residual and constraints between nodes; refine the mesh or
+   degree where needed and solve again.
+````
+
+The stage controls, slopes, and cost rates in step 3 are expressions in the
+decision variables. They are recomputed as the optimizer changes those
+variables; $A,b,B$ remain fixed. Automatic differentiation can supply the
+derivatives of the assembled expressions. If endpoint stages are retained
+as separate variables, the stage and endpoint equations connect them to
+the mesh states. Eliminating those copies produces the smaller low-order
+programs above; keeping both the copies and their defining equations is also
+valid. Identifying a copy with its endpoint requires removing the resulting
+duplicate or identically zero equation.
+
+### A reusable coefficient generator and residual evaluator
+
+The following function computes $A,b,B$ by polynomial arithmetic. The same
+function accepts any distinct collocation and control support nodes:
+
+```{literalinclude} code/collocation_transcription.py
+:language: python
+:start-at: def make_rule
+:end-before: def transcribed_problem
+```
+
+For example, the choices below recover the four low-order constructions:
+
+```python
+from collocation_transcription import make_rule
+
+explicit_euler = make_rule([0.0], [0.0])
+implicit_euler = make_rule([1.0], [0.0])
+trapezoidal = make_rule([0.0, 1.0], [0.0, 1.0])
+hermite_simpson = make_rule([0.0, 0.5, 1.0], [0.0, 1.0])
+# An independent midpoint control changes B, not A or b:
+hermite_simpson_quadratic_u = make_rule([0.0, 0.5, 1.0], [0.0, 0.5, 1.0])
+```
+
+The implicit-Euler control support node can be $0$ even though its
+collocation node is $1$: a constant polynomial has the same value at both.
+For Hermite--Simpson with linear controls, the generated arrays are
+
+$$
+A=\begin{bmatrix}
+0&0&0\\
+5/24&1/3&-1/24\\
+1/6&2/3&1/6
+\end{bmatrix},\qquad
+b=\begin{bmatrix}1/6\\2/3\\1/6\end{bmatrix},\qquad
+B=\begin{bmatrix}1&0\\1/2&1/2\\0&1\end{bmatrix}.
+$$
+
+The middle row of $A$ gives the midpoint stage equation before elimination;
+the middle row of $B$ gives the endpoint-average control. Supplying three
+control support nodes instead makes $B$ the identity, allowing an independent
+midpoint control while leaving the state construction unchanged.
+
+The complete file also supplies `transcribed_problem`, which evaluates
+$F,G,H$ from arrays of mesh states, stage states, and control support values.
+Its default allows control jumps; `continuous_control=True` adds the
+endpoint-matching equations used by the linear-control examples. A solver
+wrapper flattens these arrays into $\mathbf z$ and reshapes each candidate
+before evaluation. The NumPy evaluator can be used with finite differences;
+an automatic-differentiation implementation uses the same array operations
+in its chosen backend. The returned inequality residuals use $G\leq0$;
+negate them for a solver interface that expects nonnegative residuals.
+
+{download}`Download the coefficient generator and NLP evaluator <code/collocation_transcription.py>`
+
+Explicit polynomial coefficients keep this implementation readable at modest
+degrees. At high degrees, use numerically stable basis evaluation and
+integration routines; the NLP assembly remains the same.
 
 ### Optional orientation: Gauss, Radau, and Lobatto nodes
 
@@ -1124,19 +1740,19 @@ payload dynamics and the motion constraints. All three commands are open loop:
 they are fixed before the move and do not respond to measurements during
 execution.
 
-The state is $\mathbf{x}=(p,v,\theta,\omega)$, where $p$ and $v$ are trolley
+The state is $\mathbf{x}=(p,v,\theta,\omega)^\top$, where $p$ and $v$ are trolley
 position and velocity, and $\theta$ and $\omega$ are payload angle and angular
-velocity. The commanded trolley acceleration $a$ enters the nonlinear dynamics
+velocity. The scalar control is the commanded trolley acceleration $u=a$. It enters the nonlinear dynamics
 as
 
 $$
 \dot p=v,\qquad
 \dot v=a,\qquad
 \dot\theta=\omega,\qquad
-\dot\omega=-\frac{g}{\ell}\sin\theta-\frac{a}{\ell}\cos\theta-c\omega.
+\dot\omega=-\frac{g}{\ell}\sin\theta-\frac{a}{\ell}\cos\theta-\gamma\omega.
 $$
 
-The first two equations describe trolley motion, while the last two describe a
+Here $g$ is gravitational acceleration, $\ell$ is cable length, and $\gamma$ is the damping coefficient. The first two equations describe trolley motion, while the last two describe a
 damped pendulum driven at its suspension point. Positive trolley acceleration
 makes the load lag behind, which accounts for the minus sign multiplying $a$.
 The model treats the cable as a rigid, massless link and assumes that the
@@ -1168,7 +1784,7 @@ $$
 \qquad
 \omega_n=\sqrt{\frac{g}{\ell}},
 \qquad
-\zeta=\frac{c}{2\omega_n}.
+\zeta=\frac{\gamma}{2\omega_n}.
 $$
 
 Here $\omega_n$ is the undamped natural frequency and $\zeta$ is the damping
@@ -1194,25 +1810,25 @@ The third command is found by solving the trajectory-optimization problem. On
 $N=28$ intervals with step $h$, the NLP decision vector contains the state
 
 $$
-X_k=(p_k,v_k,\theta_k,\omega_k)
+\mathbf{x}_k=(p_k,v_k,\theta_k,\omega_k)^\top
 $$
 
 and acceleration $a_k$ at every mesh node. These are polynomial values, not
 monomial coefficients. Each interval contributes the trapezoidal defect
 
 $$
-X_{k+1}-X_k
+\mathbf{x}_{k+1}-\mathbf{x}_k
 -\frac{h}{2}\left[
-f(X_k,a_k)+f(X_{k+1},a_{k+1})
-\right]=0.
+\mathbf{f}(\mathbf{x}_k,a_k)+\mathbf{f}(\mathbf{x}_{k+1},a_{k+1})
+\right]=\mathbf0.
 $$
 
 The objective trades payload motion against acceleration magnitude and rapid
-changes in acceleration. The first two terms are collected in the nodal
+changes in acceleration. The state and acceleration penalties are collected in the nodal
 quantity
 
 $$
-q_k=6\theta_k^2+0.15\omega_k^2+0.035a_k^2.
+c_k^{\mathrm{rate}}=6\theta_k^2+0.15\omega_k^2+0.035a_k^2.
 $$
 
 The coefficient on $\theta_k^2$ penalizes sway most strongly, while the smaller
@@ -1223,13 +1839,13 @@ changes. Because the control is piecewise linear, this rate is constant on
 each interval, giving
 
 $$
-J
-=h\left(\frac12q_0+\sum_{k=1}^{N-1}q_k+\frac12q_N\right)
+\mathcal J
+=h\left(\frac12c_0^{\mathrm{rate}}+\sum_{k=1}^{N-1}c_k^{\mathrm{rate}}+\frac12c_N^{\mathrm{rate}}\right)
 +0.002h\sum_{k=0}^{N-1}
 \left(\frac{a_{k+1}-a_k}{h}\right)^2.
 $$
 
-The boundary conditions impose $X_0=(0,0,0,0)$ and $X_N=(4,0,0,0)$, so both
+The boundary conditions impose $\mathbf{x}_0=(0,0,0,0)^\top$ and $\mathbf{x}_N=(4,0,0,0)^\top$, so both
 the trolley and payload finish at rest. The nodal bounds impose
 $|a_k|\leq1.60$ m/s$^2$, $|v_k|\leq1.50$ m/s, and
 $|\theta_k|\leq15^\circ$. Because these bounds are imposed only at nodes, a
@@ -1357,9 +1973,9 @@ replanning would be needed to react to unmeasured disturbances during the move.
 
 Let $p(\tau)=2-\tau+2\tau^2$ and choose the support nodes $0,\tfrac12,1$.
 
-1. Compute its nodal coordinate vector $y$.
+1. Compute its nodal coordinate vector $\mathbf{y}$.
 2. Write the evaluation matrix $V$ for the monomial basis.
-3. Recover the monomial coefficient vector from $Va=y$.
+3. Recover the monomial coefficient vector from $V\mathbf{a}=\mathbf{y}$.
 ````
 
 ````{solution} ex-collocation-coordinates
@@ -1368,7 +1984,7 @@ Let $p(\tau)=2-\tau+2\tau^2$ and choose the support nodes $0,\tfrac12,1$.
 The nodal values are
 
 $$
-y=
+\mathbf{y}=
 \begin{bmatrix}
 p(0)\\p(\tfrac12)\\p(1)
 \end{bmatrix}
@@ -1389,7 +2005,7 @@ V=
 \end{bmatrix}.
 $$
 
-Solving $Va=y$ returns $a=(2,-1,2)^\mathsf T$. The solve changes coordinates; it does not construct a different polynomial.
+Solving $V\mathbf{a}=\mathbf{y}$ returns $\mathbf{a}=(2,-1,2)^\mathsf T$. The solve changes coordinates; it does not construct a different polynomial.
 ````
 
 ````{exercise}
@@ -1445,7 +2061,7 @@ w=\frac16
 \begin{bmatrix}1\\4\\1\end{bmatrix}.
 $$
 
-For $y=(1,\tfrac74,2)^\mathsf T$, $Dy=(2,1,0)^\mathsf T$, which equals $p'(\tau)=2-2\tau$ at the three nodes.
+For $\mathbf{y}=(1,\tfrac74,2)^\mathsf T$, $D\mathbf{y}=(2,1,0)^\mathsf T$, which equals $p'(\tau)=2-2\tau$ at the three nodes.
 ````
 
 ````{exercise}
@@ -1454,14 +2070,14 @@ For $y=(1,\tfrac74,2)^\mathsf T$, $Dy=(2,1,0)^\mathsf T$, which equals $p'(\tau)
 Starting from
 
 $$
-\dot x_h(t_k+h_k\tau)=\sum_jF_{k,j}\ell_j(\tau),
+\dot{\mathbf{x}}_h(t_k+h_k\tau)=\sum_j\mathbf{f}_{k,j}\ell_j(\tau),
 $$
 
 derive:
 
-1. explicit Euler from the single slope node $c=0$;
-2. implicit Euler from the single slope node $c=1$;
-3. the trapezoidal defect from the slope nodes $c=0,1$.
+1. explicit Euler from the single slope node $\tau_1=0$;
+2. implicit Euler from the single slope node $\tau_1=1$;
+3. the trapezoidal defect from the slope nodes $\tau_1=0$ and $\tau_2=1$.
 
 State the degree of the resulting state approximation in each case.
 ````
@@ -1469,7 +2085,7 @@ State the degree of the resulting state approximation in each case.
 ````{solution} ex-collocation-euler-trapezoid
 :class: dropdown
 
-One node gives the constant derivative interpolant $F_k$ or $F_{k+1}$. Integration yields the explicit or implicit Euler defect and a degree-one state. With endpoint nodes, $\dot x_h=(1-\tau)F_k+\tau F_{k+1}$. Its integral at $\tau=1$ is $\tfrac12(F_k+F_{k+1})$, which gives the trapezoidal defect. The linear derivative integrates to a degree-two state.
+One node gives the constant derivative interpolant $\mathbf{f}_k$ or $\mathbf{f}_{k+1}$. Integration yields the explicit or implicit Euler defect and a degree-one state. With endpoint nodes, $\dot{\mathbf{x}}_h=(1-\tau)\mathbf{f}_k+\tau \mathbf{f}_{k+1}$. Its integral at $\tau=1$ is $\tfrac12(\mathbf{f}_k+\mathbf{f}_{k+1})$, which gives the trapezoidal defect. The linear derivative integrates to a degree-two state.
 ````
 
 ````{exercise}
@@ -1484,9 +2100,9 @@ Explain why Hermite--Simpson has a cubic state interpolant even though its deriv
 Three distinct slope values define a quadratic derivative interpolant. Integrating that quadratic adds one degree, so the state is cubic. Integrating the cardinal functions over $[0,1]$ gives $(1,4,1)/6$ and hence the Simpson defect. Integrating to $\tau=\tfrac12$ gives $(5,8,-1)/24$; eliminating the midpoint slope with the endpoint defect gives
 
 $$
-X_{k+\frac12}
-=\frac12(X_k+X_{k+1})
-+\frac{h_k}{8}(F_k-F_{k+1}).
+\mathbf{x}_{k+\frac12}
+=\frac12(\mathbf{x}_k+\mathbf{x}_{k+1})
++\frac{h_k}{8}(\mathbf{f}_k-\mathbf{f}_{k+1}).
 $$
 ````
 
@@ -1525,7 +2141,7 @@ at nodes,
 $$
 p(\tau)=\sum_j a_j\phi_j(\tau)
 =\sum_j y_j\ell_j(\tau),
-\qquad y=Va.
+\qquad \mathbf y=V\mathbf a.
 $$
 
 Direct collocation uses the nodal description because the stored values have an

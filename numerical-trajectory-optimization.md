@@ -25,12 +25,14 @@ and write
 $$
 \begin{aligned}
 \min_{\mathbf{z}\in\mathbb{R}^{n_z}} \quad & F(\mathbf{z}) \\
-\text{s.t.} \quad & G(\mathbf{z}) = 0, \\
-& H(\mathbf{z}) \ge 0,
+\text{s.t.} \quad & H(\mathbf{z}) = 0, \\
+& G(\mathbf{z}) \le 0,
 \end{aligned}
 $$
 
-with maps $F:\mathbb{R}^{n_z}\to\mathbb{R}$, $G:\mathbb{R}^{n_z}\to\mathbb{R}^{r_e}$, and $H:\mathbb{R}^{n_z}\to\mathbb{R}^{r_h}$. In optimal control, $G$ typically encodes dynamics and boundary conditions, while $H$ captures path and box constraints. 
+with maps $F:\mathbb{R}^{n_z}\to\mathbb{R}$, $H:\mathbb{R}^{n_z}\to\mathbb{R}^{r_e}$, and $G:\mathbb{R}^{n_z}\to\mathbb{R}^{r_i}$. In optimal control, $H$ typically encodes dynamics and boundary conditions, while $G$ captures path and box constraints.
+
+Thus uppercase $G$ stacks the inequalities $g_i\leq0$, and uppercase $H$ stacks the equalities $h_i=0$, following the conventions of the optimal-control formulation and the nonlinear-programming appendix.
 
 There are multiple ways to arrive at (and benefit from) this NLP:
 
@@ -60,23 +62,25 @@ $$
 \end{bmatrix}^\top \in \mathbb{R}^{n_z}.
 $$
 
-Path constraints typically apply only at selected times. Let $\mathscr{E}$ index additional equality constraints $g_i$ and $\mathscr{I}$ index inequality constraints $h_i$. For each constraint $i$, define the set of time indices $K_i \subseteq \{1,\dots,T\}$ where it is enforced (e.g., terminal constraints use $K_i = \{T\}$). The simultaneous transcription is the NLP
+The dynamics residual is written here as $\mathbf{x}_{t+1}-\mathbf f_t$. Its multiplier is the negative of the Pontryagin costate, which multiplies $\mathbf f_t-\mathbf{x}_{t+1}$; reversing an equality residual changes its multiplier sign but leaves the feasible trajectories unchanged.
+
+Path constraints typically apply only at selected times. Let $\mathscr{E}$ index additional equality constraints $h_i$ and $\mathscr{I}$ index inequality constraints $g_i$. For each constraint $i$, define the set of time indices $K_i \subseteq \{1,\dots,T\}$ where it is enforced (e.g., terminal constraints use $K_i = \{T\}$). The simultaneous transcription is the NLP
 
 $$
 \begin{aligned}
 \min_{\mathbf{z}}\quad & F(\mathbf{z}) := c_T(\mathbf{x}_T) + \sum_{t=1}^{T-1} c_t(\mathbf{x}_t,\mathbf{u}_t) \\
-\text{s.t.}\quad & G(\mathbf{z}) = \begin{bmatrix}
-\big[\, g_i(\mathbf{x}_k,\mathbf{u}_k) \big]_{i\in\mathscr{E},\, k\in K_i} \\
+\text{s.t.}\quad & H(\mathbf{z}) = \begin{bmatrix}
+\big[\, h_i(\mathbf{x}_k,\mathbf{u}_k) \big]_{i\in\mathscr{E},\, k\in K_i} \\
 \big[\, \mathbf{x}_{t+1} - \mathbf{f}_t(\mathbf{x}_t,\mathbf{u}_t) \big]_{t=1: T-1} \\
 \mathbf{x}_1 - \mathbf{x}_\mathrm{init}
 \end{bmatrix} = \mathbf{0}, \\
-& H(\mathbf{z}) = \big[\, h_i(\mathbf{x}_k,\mathbf{u}_k) \big]_{i\in\mathscr{I},\, k\in K_i} \; \ge \; \mathbf{0},
+& G(\mathbf{z}) = \big[\, g_i(\mathbf{x}_k,\mathbf{u}_k) \big]_{i\in\mathscr{I},\, k\in K_i} \; \le \; \mathbf{0},
 \end{aligned}
 $$
 
-optionally with simple bounds $\mathbf{x}_{\mathrm{lb}} \le \mathbf{x}_t \le \mathbf{x}_{\mathrm{ub}}$ and $\mathbf{u}_{\mathrm{lb}} \le \mathbf{u}_t \le \mathbf{u}_{\mathrm{ub}}$ folded into $H$ or provided to the solver separately. For notational convenience, some constraints may not depend on $\mathbf{u}_k$ at times in $K_i$; the indexing still helps specify when each condition is active.
+optionally with simple bounds $\mathbf{x}_{\mathrm{lb}} \le \mathbf{x}_t \le \mathbf{x}_{\mathrm{ub}}$ and $\mathbf{u}_{\mathrm{lb}} \le \mathbf{u}_t \le \mathbf{u}_{\mathrm{ub}}$ folded into $G$ or provided to the solver separately. For notational convenience, some constraints may not depend on $\mathbf{u}_k$ at times in $K_i$; the indexing still helps specify when each condition is active.
 
-This direct transcription is attractive because it is faithful to the model and exposes sparsity. The Jacobian of $G$ has a block bi-diagonal structure induced by the dynamics, and the KKT matrix is sparse and structured. These properties are exploited by interior-point and SQP methods. The trade-off is size: with state dimension $n$ and control dimension $m$, the decision vector has $(T\!\cdot\!n) + ((T\!-
+This direct transcription is attractive because it is faithful to the model and exposes sparsity. The Jacobian of $H$ has a block bi-diagonal structure induced by the dynamics, and the KKT matrix is sparse and structured. These properties are exploited by interior-point and SQP methods. The trade-off is size: with state dimension $n$ and control dimension $m$, the decision vector has $(T\!\cdot\!n) + ((T\!-
 1)\cdot m)$ entries, and there are roughly $(T\!-
 1)\cdot n$ dynamic equalities plus any path and boundary conditions. Techniques such as partial or full condensing eliminate state variables to reduce the equality set (at the cost of denser matrices), while keeping states explicit preserves sparsity and often improves robustness on long horizons and in the presence of state constraints.
 
@@ -150,7 +154,7 @@ The analogy with deep learning is also immediate: the control sequence plays the
 
 $$
 \min_{\mathbf{x}_{1:T},\,\mathbf{u}_{1:T-1}} J(\mathbf{x}_{1:T},\mathbf{u}_{1:T-1})
-\quad\text{s.t.}\quad 
+\quad\text{s.t.}\quad
 \mathbf{x}_{t+1}=\mathbf{f}_t(\mathbf{x}_t,\mathbf{u}_t)
 $$
 
@@ -161,7 +165,7 @@ $$
 c_T\!\bigl(\boldsymbol{\phi}_{T}(\mathbf{u}, \mathbf{x}_1)\bigr)
 +\sum_{t=1}^{T-1} c_t\!\bigl(\boldsymbol{\phi}_{t}(\mathbf{u}, \mathbf{x}_1), \mathbf{u}_t\bigr),
 \quad\text{s.t.}\quad
-\mathbf{h}_t\!\bigl(\boldsymbol{\phi}_{t}(\mathbf{u},\mathbf{x}_1),\mathbf{u}_t\bigr)\geq 0,
+\mathbf{g}_t\!\bigl(\boldsymbol{\phi}_{t}(\mathbf{u},\mathbf{x}_1),\mathbf{u}_t\bigr)\leq 0,
 \quad
 \mathbf{u}_{\mathrm{lb}}\le\mathbf{u}_{t}\le\mathbf{u}_{\mathrm{ub}}.
 $$
@@ -208,7 +212,7 @@ Algorithmically:
 
 **Output**: Optimal control sequence $\mathbf{u}^*_{1:T-1}$
 
-1. Initialize $\mathbf{u}_{1:T-1}$ within bounds  
+1. Initialize $\mathbf{u}_{1:T-1}$ within bounds
 2. Define `ComputeTrajectoryAndCost`($\mathbf{u}, \mathbf{x}_1$):
     - $\mathbf{x} \leftarrow \mathbf{x}_1$, $J \leftarrow 0$
     - For $t = 1$ to $T-1$:
