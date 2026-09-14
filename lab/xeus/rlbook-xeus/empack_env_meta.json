@@ -40,18 +40,6 @@
       "subdir": "emscripten-wasm32"
     },
     {
-      "name": "pure_eval",
-      "version": "0.2.3",
-      "build": "pyhd8ed1ab_1",
-      "filename_stem": "pure_eval-0.2.3-pyhd8ed1ab_1",
-      "filename": "pure_eval-0.2.3-pyhd8ed1ab_1.tar.gz",
-      "channel": "https://prefix.dev/conda-forge",
-      "depends": [
-        "python >=3.9"
-      ],
-      "subdir": "noarch"
-    },
-    {
       "name": "pexpect",
       "version": "4.9.0",
       "build": "pyhd8ed1ab_1",
@@ -65,14 +53,15 @@
       "subdir": "noarch"
     },
     {
-      "name": "contourpy",
-      "version": "1.3.3",
-      "build": "py313hffb8c6e_4",
-      "filename_stem": "contourpy-1.3.3-py313hffb8c6e_4",
-      "filename": "contourpy-1.3.3-py313hffb8c6e_4.tar.gz",
+      "name": "numpy",
+      "version": "2.5.3",
+      "build": "py313h9242c33_3",
+      "filename_stem": "numpy-2.5.3-py313h9242c33_3",
+      "filename": "numpy-2.5.3-py313h9242c33_3.tar.gz",
       "channel": "https://prefix.dev/emscripten-forge-4x",
       "depends": [
-        "numpy",
+        "openblas",
+        "python",
         "emscripten-abi >=4,<5.0a0",
         "python_abi 3.13.* *_cp313"
       ],
@@ -146,18 +135,6 @@
       "subdir": "emscripten-wasm32"
     },
     {
-      "name": "openblas",
-      "version": "0.3.34",
-      "build": "h69b678e_3",
-      "filename_stem": "openblas-0.3.34-h69b678e_3",
-      "filename": "openblas-0.3.34-h69b678e_3.tar.gz",
-      "channel": "https://prefix.dev/emscripten-forge-4x",
-      "depends": [
-        "emscripten-abi >=4,<5.0a0"
-      ],
-      "subdir": "emscripten-wasm32"
-    },
-    {
       "name": "ptyprocess",
       "version": "0.7.0",
       "build": "pyhd8ed1ab_1",
@@ -168,6 +145,18 @@
         "python >=3.9"
       ],
       "subdir": "noarch"
+    },
+    {
+      "name": "openblas",
+      "version": "0.3.34",
+      "build": "h69b678e_4",
+      "filename_stem": "openblas-0.3.34-h69b678e_4",
+      "filename": "openblas-0.3.34-h69b678e_4.tar.gz",
+      "channel": "https://prefix.dev/emscripten-forge-4x",
+      "depends": [
+        "emscripten-abi >=4,<5.0a0"
+      ],
+      "subdir": "emscripten-wasm32"
     },
     {
       "name": "asttokens",
@@ -211,6 +200,18 @@
       "subdir": "noarch"
     },
     {
+      "name": "pure_eval",
+      "version": "0.2.4",
+      "build": "pyhd8ed1ab_0",
+      "filename_stem": "pure_eval-0.2.4-pyhd8ed1ab_0",
+      "filename": "pure_eval-0.2.4-pyhd8ed1ab_0.tar.gz",
+      "channel": "https://prefix.dev/conda-forge",
+      "depends": [
+        "python >=3.11"
+      ],
+      "subdir": "noarch"
+    },
+    {
       "name": "qhull",
       "version": "2020.2",
       "build": "h0b0027f_1",
@@ -219,19 +220,6 @@
       "channel": "https://prefix.dev/emscripten-forge-4x",
       "depends": [
         "emscripten-abi >=4,<5.0a0"
-      ],
-      "subdir": "emscripten-wasm32"
-    },
-    {
-      "name": "numpy",
-      "version": "2.5.3",
-      "build": "py313hdc57be9_2",
-      "filename_stem": "numpy-2.5.3-py313hdc57be9_2",
-      "filename": "numpy-2.5.3-py313hdc57be9_2.tar.gz",
-      "channel": "https://prefix.dev/emscripten-forge-4x",
-      "depends": [
-        "emscripten-abi >=4,<5.0a0",
-        "python_abi 3.13.* *_cp313"
       ],
       "subdir": "emscripten-wasm32"
     },
@@ -279,6 +267,20 @@
       "filename": "pyjs-rt-4.0.6-py313h06ab7c0_0.tar.gz",
       "channel": "https://prefix.dev/emscripten-forge-4x",
       "depends": [
+        "emscripten-abi >=4,<5.0a0",
+        "python_abi 3.13.* *_cp313"
+      ],
+      "subdir": "emscripten-wasm32"
+    },
+    {
+      "name": "contourpy",
+      "version": "1.4.0",
+      "build": "py313hb0228bc_0",
+      "filename_stem": "contourpy-1.4.0-py313hb0228bc_0",
+      "filename": "contourpy-1.4.0-py313hb0228bc_0.tar.gz",
+      "channel": "https://prefix.dev/emscripten-forge-4x",
+      "depends": [
+        "numpy",
         "emscripten-abi >=4,<5.0a0",
         "python_abi 3.13.* *_cp313"
       ],
@@ -345,6 +347,23 @@
       "subdir": "noarch"
     },
     {
+      "name": "scipy",
+      "version": "1.18.0",
+      "build": "np23py313h8db5e5d_3",
+      "filename_stem": "scipy-1.18.0-np23py313h8db5e5d_3",
+      "filename": "scipy-1.18.0-np23py313h8db5e5d_3.tar.gz",
+      "channel": "https://prefix.dev/emscripten-forge-4x",
+      "depends": [
+        "python",
+        "numpy",
+        "openblas",
+        "emscripten-abi >=4,<5.0a0",
+        "numpy >=2.2,<3",
+        "python_abi 3.13.* *_cp313"
+      ],
+      "subdir": "emscripten-wasm32"
+    },
+    {
       "name": "pytz",
       "version": "2026.3.post1",
       "build": "pyhcf101f3_0",
@@ -369,23 +388,6 @@
         "python"
       ],
       "subdir": "noarch"
-    },
-    {
-      "name": "scipy",
-      "version": "1.18.0",
-      "build": "np23py313h1a2f9be_2",
-      "filename_stem": "scipy-1.18.0-np23py313h1a2f9be_2",
-      "filename": "scipy-1.18.0-np23py313h1a2f9be_2.tar.gz",
-      "channel": "https://prefix.dev/emscripten-forge-4x",
-      "depends": [
-        "python",
-        "numpy",
-        "openblas",
-        "emscripten-abi >=4,<5.0a0",
-        "numpy >=2.2,<3",
-        "python_abi 3.13.* *_cp313"
-      ],
-      "subdir": "emscripten-wasm32"
     },
     {
       "name": "decorator",

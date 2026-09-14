@@ -1131,3 +1131,13 @@ iframe {
 .pdf-fallback[hidden] {
   display: none !important;
 }
+
+/* These recorded experiments include controls and diagnostics below the plot. */
+.mppi-replay > div > div {
+  height: 760px;
+  padding-bottom: 0 !important;
+  width: 100% !important;
+}
+@media (max-width: 640px) {
+  .mppi-replay > div > div { height: 860px; }
+}
