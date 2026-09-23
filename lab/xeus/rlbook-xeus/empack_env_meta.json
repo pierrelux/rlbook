@@ -107,6 +107,19 @@
       "subdir": "emscripten-wasm32"
     },
     {
+      "name": "xeus",
+      "version": "6.0.6",
+      "build": "hc780342_0",
+      "filename_stem": "xeus-6.0.6-hc780342_0",
+      "filename": "xeus-6.0.6-hc780342_0.tar.gz",
+      "channel": "https://prefix.dev/emscripten-forge-4x",
+      "depends": [
+        "emscripten-abi >=4,<5.0a0",
+        "nlohmann_json-abi 3.12.0"
+      ],
+      "subdir": "emscripten-wasm32"
+    },
+    {
       "name": "stack_data",
       "version": "0.6.3",
       "build": "pyhd8ed1ab_1",
@@ -220,19 +233,6 @@
       "channel": "https://prefix.dev/emscripten-forge-4x",
       "depends": [
         "emscripten-abi >=4,<5.0a0"
-      ],
-      "subdir": "emscripten-wasm32"
-    },
-    {
-      "name": "xeus",
-      "version": "6.0.5",
-      "build": "h0b0027f_0",
-      "filename_stem": "xeus-6.0.5-h0b0027f_0",
-      "filename": "xeus-6.0.5-h0b0027f_0.tar.gz",
-      "channel": "https://prefix.dev/emscripten-forge-4x",
-      "depends": [
-        "emscripten-abi >=4,<5.0a0",
-        "nlohmann_json-abi 3.12.0"
       ],
       "subdir": "emscripten-wasm32"
     },

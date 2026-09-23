@@ -1,11 +1,13 @@
 {
   "jupyter-config-data": {
-    "appName": "JupyterLite",
+    "appName": "RL & Control Browser Labs",
     "appUrl": "./lab",
     "appVersion": "0.8.1",
     "baseUrl": "./",
+    "collaborative": false,
     "contentsAllJsonFile": "all.json",
     "defaultKernelName": "python",
+    "disabledExtensions": [],
     "faviconUrl": "./lab/favicon.ico",
     "federated_extensions": [
       {
