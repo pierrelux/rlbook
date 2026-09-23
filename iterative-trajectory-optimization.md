@@ -51,10 +51,9 @@ of LQR is required.
 (sec-boat-docking)=
 ## A Docking Problem
 
-What distinguishes arriving at a berth from merely passing through it?
-Position alone does not specify a successful docking maneuver. The boat's
-heading must agree with the quay, and its translational and angular velocities
-must be small enough that it remains near the berth after arrival.
+Docking requires the boat to reach the berth, align with the quay, and shed
+its momentum. A trajectory that reaches the right position with appreciable
+translational or angular velocity will carry the boat away again.
 
 Consider a two-metre boat moving in the horizontal plane. Its state and control
 are
@@ -105,10 +104,12 @@ The quay occupies $p_y\leq0$, and the desired arrival state is
 $\mathbf x_\star=(0,1,0,0,0,0)$. The boat should lie parallel to the quay with
 its center one metre from the edge. The angled approach starts from
 $(-8,5,-0.5,0.2,-0.1,0)$. The sideways-drift case changes only $v_y$ to
-$-0.5\ \mathrm{m/s}$. Angles are in radians. Both experiments use $N=200$
+$-0.5\ \mathrm{m/s}$. Angles are in radians. Both experiments use $T-1=200$
 piecewise-constant controls, each held for $h=0.1\ \mathrm s$, for a total
-of 20 seconds. One fourth-order Runge--Kutta step gives the discrete transition
-$\mathbf x_{t+1}=\mathbf f_t(\mathbf x_t,\mathbf u_t)$.
+of 20 seconds. Thus $\mathbf x_1$ is the initial state and $\mathbf x_T$ is the
+arrival state, as in the preceding chapters. One fourth-order Runge--Kutta
+step gives $\mathbf x_{t+1}=\mathbf f_t(\mathbf x_t,\mathbf u_t)$ for
+$t=1,\ldots,T-1$.
 
 To discourage the hull from approaching the quay, let $y_j(\mathbf x)$ be the
 world-coordinate height of rectangular corner $j$. With a desired buffer
@@ -132,7 +133,7 @@ c_t(\mathbf x,\mathbf u)
 &=h\big[0.03\|\mathbf e_p\|^2+0.1(1-\cos\psi)
        +0.1\|\mathbf v\|^2+0.1\omega^2
        +0.2\|\mathbf u\|^2+\mathcal P(\mathbf x)\big],\\
-\phi(\mathbf x)
+c_T(\mathbf x)
 &=300\|\mathbf e_p\|^2+100(1-\cos\psi)
        +200\|\mathbf v\|^2+100\omega^2+\mathcal P(\mathbf x).
 \end{aligned}
@@ -159,102 +160,140 @@ while later updates refine the turn and stopping maneuver.
 :::
 
 (sec-local-quadratic-trajectory)=
-## Local Linear Dynamics and Quadratic Costs
+## Taylor Models of Dynamics and Cost
 
-How can one improve a complete thrust sequence without optimizing the nonlinear
-simulation from scratch at every trial? Begin with the finite-horizon problem
+The local model describes the change in cost caused by a small change in the
+thrust sequence. Start from the finite-horizon problem
 
 $$
-\min_{\mathbf u_0,\ldots,\mathbf u_{N-1}}
-J(\mathbf U)=\phi(\mathbf x_N)+\sum_{t=0}^{N-1}c_t(\mathbf x_t,\mathbf u_t),
-\qquad
-\mathbf x_{t+1}=\mathbf f_t(\mathbf x_t,\mathbf u_t),\quad
-\mathbf x_0=\mathbf x_{\mathrm{init}}.
+\begin{aligned}
+\min_{\mathbf U}\quad &J(\mathbf U)
+ :=c_T(\mathbf x_T)+\sum_{t=1}^{T-1}c_t(\mathbf x_t,\mathbf u_t),\\
+\text{s.t.}\quad &\mathbf x_{t+1}=\mathbf f_t(\mathbf x_t,\mathbf u_t),
+\quad t=1,\ldots,T-1,\\
+&\mathbf x_1=\mathbf x_{\mathrm{init}}.
+\end{aligned}
 $$
 
-First set aside the control bounds to derive the unconstrained correction.
-Roll out a nominal sequence $\bar{\mathbf U}$ to obtain
+Here $\mathbf U=(\mathbf u_1,\ldots,\mathbf u_{T-1})$ is the complete control
+sequence. Its rollout determines every later state.
+
+Set aside the control bounds while deriving the local correction. Roll out a
+nominal control sequence $\bar{\mathbf U}$ to obtain states satisfying
 $\bar{\mathbf x}_{t+1}=\mathbf f_t(\bar{\mathbf x}_t,\bar{\mathbf u}_t)$.
-Write changes from this trajectory as $\delta\mathbf x_t$ and
-$\delta\mathbf u_t$. The first-order dynamics are
+For a nearby trajectory, write
+$\delta\mathbf x_t=\mathbf x_t-\bar{\mathbf x}_t$ and
+$\delta\mathbf u_t=\mathbf u_t-\bar{\mathbf u}_t$, and stack them as
+$\delta\mathbf z_t=(\delta\mathbf x_t,\delta\mathbf u_t)$.
+Taylor expansion of the discrete transition at the nominal state and control
+gives
 
 $$
-\delta\mathbf x_{t+1}=A_t\delta\mathbf x_t+B_t\delta\mathbf u_t,
-\qquad
-A_t=\mathbf f_{x,t},\quad B_t=\mathbf f_{u,t},\quad
-\delta\mathbf x_0=\mathbf0.
+\begin{aligned}
+\mathbf f_t(\bar{\mathbf x}_t+\delta\mathbf x_t,
+             \bar{\mathbf u}_t+\delta\mathbf u_t)
+&=\bar{\mathbf x}_{t+1}
+  +A_t\delta\mathbf x_t+B_t\delta\mathbf u_t
+  +O(\|\delta\mathbf z_t\|^2),\\
+A_t&=\left.\frac{\partial\mathbf f_t}{\partial\mathbf x}
+      \right|_{(\bar{\mathbf x}_t,\bar{\mathbf u}_t)},\\
+B_t&=\left.\frac{\partial\mathbf f_t}{\partial\mathbf u}
+      \right|_{(\bar{\mathbf x}_t,\bar{\mathbf u}_t)}.
+\end{aligned}
 $$
 
-All derivatives are evaluated on the nominal trajectory. No constant defect
-appears because that trajectory satisfies the discrete dynamics. A collection
-of independently chosen state guesses would generally require such a defect.
+Subtracting $\bar{\mathbf x}_{t+1}$ and dropping the quadratic remainder
+gives the linearized dynamics
+$\delta\mathbf x_{t+1}=A_t\delta\mathbf x_t+B_t\delta\mathbf u_t$.
+Both rollouts start from the same state, so $\delta\mathbf x_1=\mathbf0$.
+There is no constant defect because the nominal trajectory satisfies the
+discrete dynamics. Independently chosen state guesses would generally leave
+such a defect. We write $F_t=[A_t\ B_t]$ for the combined Jacobian.
 
-Let $\delta\mathbf z_t=(\delta\mathbf x_t,\delta\mathbf u_t)$ stack the
-local changes. The second-order expansion of the running cost is
+Taylor expansion of the running cost to second order gives
 
 $$
 c_t(\bar{\mathbf x}_t+\delta\mathbf x_t,
     \bar{\mathbf u}_t+\delta\mathbf u_t)
-\approx \bar c_t+
+ = \bar c_t+
 \begin{bmatrix}c_{x,t}\\c_{u,t}\end{bmatrix}^{\!\top}\delta\mathbf z_t
 +\frac12\delta\mathbf z_t^\top
 \begin{bmatrix}c_{xx,t}&c_{xu,t}\\c_{ux,t}&c_{uu,t}\end{bmatrix}
-\delta\mathbf z_t.
+\delta\mathbf z_t+o(\|\delta\mathbf z_t\|^2).
 $$
 
-The linear terms measure the remaining incentive to move away from the nominal
-trajectory. They do not vanish merely because the costs are quadratic. The
-cross term describes how the marginal cost of a control changes with the
-state. Even if the original running cost has no cross term, eliminating later
-states will generally create one.
+Here $\bar c_t=c_t(\bar{\mathbf x}_t,\bar{\mathbf u}_t)$ and
+$c_{x,t}=\nabla_{\mathbf x}c_t(\bar{\mathbf x}_t,\bar{\mathbf u}_t)$;
+the other gradient and Hessian blocks are evaluated at the same nominal pair.
+We denote the stacked gradient by $c_{z,t}$ and the displayed block Hessian by
+$c_{zz,t}$. Gradients are column vectors, matching the convention of the
+preceding chapters. We retain the linear terms: individual stage gradients
+need not vanish even at an optimal trajectory because the dynamics couple
+stages, and at a non-optimal nominal trajectory they also drive its correction.
+The $c_{xu,t}$ block measures how the marginal cost of a control changes with
+the state.
+Even if the running cost has no such cross term, eliminating later controls
+can create one in the quadratic tail.
 
-Expand the terminal cost in the same way, with linear coefficient
-$p_N=\phi_x(\bar{\mathbf x}_N)$ and quadratic coefficient
-$P_N=\phi_{xx}(\bar{\mathbf x}_N)$. Minimizing the sum of these quadratic
-expressions subject to the linearized transitions gives a local quadratic
-program. Its state variables couple only neighboring time steps. The
-[general SQP construction](numerical-trajectory-optimization.md#sequential-methods)
-gives a useful comparison: here we begin
-with cost curvature and linearized dynamics, omitting the second derivatives
-of the dynamics that enter an exact Lagrangian Hessian.
+The terminal cost has the same expansion, with no control coordinate:
+
+$$
+\begin{aligned}
+c_T(\bar{\mathbf x}_T+\delta\mathbf x_T)
+&=c_T(\bar{\mathbf x}_T)+p_T^\top\delta\mathbf x_T\\
+&\quad+\frac12\delta\mathbf x_T^\top P_T\delta\mathbf x_T
+ +o(\|\delta\mathbf x_T\|^2),\\
+p_T&=\nabla_{\mathbf x}c_T(\bar{\mathbf x}_T),\qquad
+P_T=\nabla^2_{\mathbf x\mathbf x}c_T(\bar{\mathbf x}_T).
+\end{aligned}
+$$
+
+Dropping the remainders in these Taylor expansions yields a quadratic cost
+subject to linearized transitions. The state at one step couples only to its
+neighbors. This is the local problem solved by backward elimination. A
+general SQP method also forms local quadratic subproblems, but its exact
+Lagrangian Hessian includes terms from dynamics curvature. Those terms enter
+below when we develop DDP.
 
 ## Backward Elimination
 
-Why eliminate the last control first? Once its starting state is fixed, that
-control affects only its own stage and the terminal cost. Solving for it leaves
-a smaller problem of the same form.
+The last control affects only its own stage and the terminal state when its
+starting state is fixed. Eliminating it first leaves a shorter quadratic
+problem of the same form. Repeating that step works backward through the
+horizon.
 
 ### A two-step calculation
 
-Consider a scalar example with $x_0=0$, dynamics $x_{t+1}=x_t+u_t$, and cost
+Consider a scalar example with $T=3$, initial state $x_1=0$, dynamics
+$x_{t+1}=x_t+u_t$, and cost
 
 $$
-J=\frac12u_0^2+\frac12u_1^2+\frac12(x_2-1)^2.
+J=\frac12u_1^2+\frac12u_2^2+\frac12(x_3-1)^2.
 $$
 
-Treat $x_1$ as given while eliminating $u_1$. Substitution of $x_2=x_1+u_1$
+Treat $x_2$ as given while eliminating $u_2$. Substitution of $x_3=x_2+u_2$
 gives
 
 $$
-\frac12u_1^2+\frac12(x_1+u_1-1)^2
-=u_1^2+(x_1-1)u_1+\frac12(x_1-1)^2.
+\frac12u_2^2+\frac12(x_2+u_2-1)^2
+=u_2^2+(x_2-1)u_2+\frac12(x_2-1)^2.
 $$
 
-Differentiating with respect to $u_1$ gives
-$2u_1+x_1-1=0$, so $u_1=(1-x_1)/2$. Substituting this expression back into
-the last two terms of the cost leaves $(x_1-1)^2/4$. The remaining problem is
-therefore
+Differentiating with respect to $u_2$ gives
+$2u_2+x_2-1=0$, so $u_2=(1-x_2)/2$. Substituting this expression back into
+the last two terms of the cost leaves $(x_2-1)^2/4$. Since $x_2=u_1$, the
+remaining problem is
 
 $$
-\min_{u_0}\ \frac12u_0^2+\frac14(u_0-1)^2.
+\min_{u_1}\ \frac12u_1^2+\frac14(u_1-1)^2.
 $$
 
-Its derivative is $u_0+(u_0-1)/2$, giving $u_0=1/3$. Forward substitution then
-gives $x_1=1/3$, $u_1=1/3$, $x_2=2/3$, and $J=1/6$. The final position is short
+Its derivative is $u_1+(u_1-1)/2$, giving $u_1=1/3$. Forward substitution then
+gives $x_2=1/3$, $u_2=1/3$, $x_3=2/3$, and $J=1/6$. The final position is short
 of one because the objective trades terminal error against effort; arrival
 was penalized, not imposed as an equality.
 
-The expression $u_1=(1-x_1)/2$ also carries information that a single number
+The expression $u_2=(1-x_2)/2$ also carries information that a single number
 would discard: if the state reaching the last step changes, the minimizing
 last control changes with it. This dependence becomes the matrix feedback
 correction in the general calculation.
@@ -265,14 +304,16 @@ Suppose all controls after time $t$ have already been eliminated from the
 local problem. Write the remaining quadratic tail as
 
 $$
-S_{t+1}(\delta\mathbf x)
-=s_{t+1}+p_{t+1}^\top\delta\mathbf x
-+\frac12\delta\mathbf x^\top P_{t+1}\delta\mathbf x.
+S_{t+1}(\delta\mathbf x_{t+1})
+=s_{t+1}+p_{t+1}^\top\delta\mathbf x_{t+1}
++\frac12\delta\mathbf x_{t+1}^\top P_{t+1}\delta\mathbf x_{t+1}.
 $$
 
-This is a quadratic expression in the current trajectory's perturbations.
-It is obtained by elimination from a finite optimization problem, without
-constructing a function over all states of the nonlinear system.
+At the terminal step, $S_T$ is the quadratic Taylor polynomial of $c_T$, so
+$s_T=c_T(\bar{\mathbf x}_T)$ and its other coefficients are the $p_T,P_T$
+defined above. At earlier steps, $S_{t+1}$ is obtained by elimination from a
+finite optimization problem. This construction does not require a function
+over all states of the nonlinear system.
 
 Substitute $\delta\mathbf x_{t+1}=A_t\delta\mathbf x_t+B_t\delta\mathbf u_t$
 into this tail and add the stage cost. With $F_t=[A_t\ B_t]$, the new linear
@@ -280,24 +321,26 @@ and quadratic coefficients are
 
 $$
 q_t=c_{z,t}+F_t^\top p_{t+1},\qquad
-H_t=c_{zz,t}+F_t^\top P_{t+1}F_t.
+M_t=c_{zz,t}+F_t^\top P_{t+1}F_t.
 $$
 
-Partition these coefficients according to the state and control coordinates.
+We use $M_t$ for the local Hessian because $H_t$ denoted the Hamiltonian in
+the Pontryagin chapter. Partition $q_t$ and $M_t$ according to the state and
+control coordinates.
 Apart from a constant, the expression to minimize is
 
 $$
 q_x^\top\delta\mathbf x+q_u^\top\delta\mathbf u
-+\frac12\delta\mathbf x^\top H_{xx}\delta\mathbf x
-+\delta\mathbf u^\top H_{ux}\delta\mathbf x
-+\frac12\delta\mathbf u^\top H_{uu}\delta\mathbf u.
++\frac12\delta\mathbf x^\top M_{xx}\delta\mathbf x
++\delta\mathbf u^\top M_{ux}\delta\mathbf x
++\frac12\delta\mathbf u^\top M_{uu}\delta\mathbf u.
 $$
 
-The time index is suppressed within this one-step calculation. When $H_{uu}$
+The time index is suppressed within this one-step calculation. When $M_{uu}$
 is positive definite, setting the control derivative to zero gives
 
 $$
-H_{uu}\delta\mathbf u+q_u+H_{ux}\delta\mathbf x=0,
+M_{uu}\delta\mathbf u+q_u+M_{ux}\delta\mathbf x=0,
 \qquad
 \delta\mathbf u=k+K\delta\mathbf x,
 $$
@@ -305,12 +348,14 @@ $$
 where
 
 $$
-k=-H_{uu}^{-1}q_u,\qquad K=-H_{uu}^{-1}H_{ux}.
+k=-M_{uu}^{-1}q_u,\qquad K=-M_{uu}^{-1}M_{ux}.
 $$
 
+Restoring the time index gives the affine correction
+$\delta\mathbf u_t=k_t+K_t\delta\mathbf x_t$.
 The vector $k$ changes the nominal command even at zero state deviation. The
 matrix $K$ adjusts that change for a different state arriving from the earlier
-steps. In code, these formulas are linear solves with $H_{uu}$; an explicit
+steps. In code, these formulas are linear solves with $M_{uu}$; an explicit
 matrix inverse is unnecessary.
 
 Substituting the minimizing control back into the quadratic expression gives
@@ -318,13 +363,13 @@ the coefficients needed by the preceding step:
 
 $$
 \begin{aligned}
-p_t&=q_x-H_{ux}^\top H_{uu}^{-1}q_u,\\
-P_t&=H_{xx}-H_{ux}^\top H_{uu}^{-1}H_{ux}.
+p_t&=q_x-M_{ux}^\top M_{uu}^{-1}q_u,\\
+P_t&=M_{xx}-M_{ux}^\top M_{uu}^{-1}M_{ux}.
 \end{aligned}
 $$
 
 The subtracted term in $P_t$ is the Schur complement associated with
-eliminating the control block. Repeat this operation from $N-1$ to zero,
+eliminating the control block. Repeat this operation from $T-1$ to one,
 starting with the terminal coefficients. A subsequent forward substitution
 recovers the state and control changes. For fixed state and control dimensions,
 the number of these elimination steps grows linearly with the horizon.
@@ -339,16 +384,16 @@ approximation. They must be recomputed after the trajectory changes.
 (sec-ilqr-rollout)=
 ## Nonlinear Rollouts and iLQR
 
-What happens when the quadratic problem proposes a large change? Its predicted
-states satisfy the linearized dynamics, which can differ substantially from
-the nonlinear dynamics over a large displacement. Evaluate the proposed
-controls through the original discrete simulator before accepting them.
+The backward pass minimizes a quadratic approximation. A large correction
+can make its linearized state prediction inaccurate, so a proposed control
+sequence must be evaluated through the original discrete simulator before it
+is accepted.
 
 Starting from the same initial state, form a nonlinear trial trajectory using
 
 $$
 \begin{aligned}
-\mathbf x_0^+&=\mathbf x_{\mathrm{init}},\\
+\mathbf x_1^+&=\mathbf x_{\mathrm{init}},\\
 \mathbf u_t^+&=\bar{\mathbf u}_t+\alpha k_t
                   +K_t(\mathbf x_t^+-\bar{\mathbf x}_t),\\
 \mathbf x_{t+1}^+&=\mathbf f_t(\mathbf x_t^+,\mathbf u_t^+).
@@ -368,8 +413,8 @@ $1,1/2,\ldots,2^{-11}$ and accepts a strictly lower finite cost with a small
 sufficient-decrease check. If
 
 $$
-d_1=\sum_t q_{u,t}^\top k_t,\qquad
-d_2=\frac12\sum_t k_t^\top H_{uu,t}k_t,
+d_1=\sum_{t=1}^{T-1}q_{u,t}^\top k_t,\qquad
+d_2=\frac12\sum_{t=1}^{T-1}k_t^\top M_{uu,t}k_t,
 $$
 
 the backward pass estimates a reduction
@@ -380,7 +425,7 @@ as well as a strict decrease. This estimate guides acceptance; it does not
 replace evaluation of the original objective.
 
 The control curvature may be indefinite or nearly singular. Replace the
-matrix used in the control solve by $H_{uu}+\mu I$, where $\mu>0$. Increasing
+matrix used in the control solve by $M_{uu}+\mu I$, where $\mu>0$. Increasing
 $\mu$ makes the correction more conservative and can make the solve positive
 definite. The code checks a Cholesky factorization, increases $\mu$ after a
 failed backward pass or line search, and decreases it after an accepted step.
@@ -393,12 +438,12 @@ model. The implementation therefore uses the full expressions
 
 $$
 \begin{aligned}
-p_t&=q_x+H_{ux}^\top k+K^\top q_u+K^\top H_{uu}k,\\
-P_t&=H_{xx}+H_{ux}^\top K+K^\top H_{ux}+K^\top H_{uu}K.
+p_t&=q_x+M_{ux}^\top k+K^\top q_u+K^\top M_{uu}k,\\
+P_t&=M_{xx}+M_{ux}^\top K+K^\top M_{ux}+K^\top M_{uu}K.
 \end{aligned}
 $$
 
-Here $H_{uu}$ is the original curvature block; regularization was used to
+Here $M_{uu}$ is the original curvature block; regularization was used to
 choose the correction. These expressions also remain applicable when some
 controls are fixed at their bounds.
 
@@ -433,19 +478,22 @@ the optimizer do not imply that the animation replans as the boat moves.
 (sec-ddp-curvature)=
 ## Dynamics Curvature and DDP
 
-Which second-order effects are lost when the transition is linearized?
-A turning command changes the direction in which a later thrust acts.
-Products of state and control changes can therefore contribute to the next
-state, even if they are absent from a first-order approximation.
+iLQR drops the quadratic remainder in the transition's first-order Taylor
+expansion. For a turning boat, a change in heading changes the direction of
+thrust, so products of state and control changes can affect the next state.
+DDP retains these second-order terms in the backward calculation.
 
-For component $i$ of the transition, retain its second-order expansion:
+For component $i$ of the transition, Taylor expansion one order further gives
 
 $$
 \delta x_{t+1,i}
-\approx (F_t\delta\mathbf z_t)_i
-+\frac12\delta\mathbf z_t^\top f^i_{zz,t}\delta\mathbf z_t.
+=(F_t\delta\mathbf z_t)_i
++\frac12\delta\mathbf z_t^\top f^i_{zz,t}\delta\mathbf z_t
++o(\|\delta\mathbf z_t\|^2).
 $$
 
+Here $f^i_{zz,t}$ is the Hessian of the $i$th component of $\mathbf f_t$ with
+respect to the stacked state and control, evaluated at the nominal pair.
 Substitute this expression into the same quadratic tail $S_{t+1}$. Its
 linear term $p_{t+1}^\top\delta\mathbf x_{t+1}$ now contributes an additional
 quadratic term. Its quadratic term contributes
@@ -456,7 +504,7 @@ three or higher and are discarded. Consequently,
 $$
 \begin{aligned}
 q_t^{\mathrm{DDP}}&=c_{z,t}+F_t^\top p_{t+1},\\
-H_t^{\mathrm{DDP}}&=c_{zz,t}+F_t^\top P_{t+1}F_t
+M_t^{\mathrm{DDP}}&=c_{zz,t}+F_t^\top P_{t+1}F_t
                   +\sum_{i=1}^{n_x}p_{t+1,i}f^i_{zz,t}.
 \end{aligned}
 $$
@@ -468,12 +516,12 @@ In block form, the differences from iLQR are
 
 $$
 \begin{aligned}
-H_{xx}^{\mathrm{DDP}}&=c_{xx}+A^\top P_{t+1}A
-                    +\sum_i p_{t+1,i} f^i_{xx},\\
-H_{ux}^{\mathrm{DDP}}&=c_{ux}+B^\top P_{t+1}A
-                    +\sum_i p_{t+1,i} f^i_{ux},\\
-H_{uu}^{\mathrm{DDP}}&=c_{uu}+B^\top P_{t+1}B
-                    +\sum_i p_{t+1,i} f^i_{uu}.
+M_{xx,t}^{\mathrm{DDP}}&=c_{xx,t}+A_t^\top P_{t+1}A_t
+                    +\sum_i p_{t+1,i} f^i_{xx,t},\\
+M_{ux,t}^{\mathrm{DDP}}&=c_{ux,t}+B_t^\top P_{t+1}A_t
+                    +\sum_i p_{t+1,i} f^i_{ux,t},\\
+M_{uu,t}^{\mathrm{DDP}}&=c_{uu,t}+B_t^\top P_{t+1}B_t
+                    +\sum_i p_{t+1,i} f^i_{uu,t}.
 \end{aligned}
 $$
 
@@ -502,12 +550,12 @@ when all other choices agree.
 
 ## Thruster Limits and Stopping Criteria
 
-How should the local solve account for a thruster that is already at maximum
-force? The boat's controls must remain in $[-1,1]^2$. At zero state deviation,
-the feedforward step is the solution of the box-constrained quadratic problem
+The boat's controls must remain in $[-1,1]^2$, even when the unconstrained
+correction asks for more thrust. At zero state deviation, the feedforward step
+is the solution of the box-constrained quadratic problem
 
 $$
-\min_k\ q_u^\top k+\frac12k^\top(H_{uu}+\mu I)k,
+\min_k\ q_u^\top k+\frac12k^\top(M_{uu}+\mu I)k,
 \qquad -\mathbf1-\bar{\mathbf u}_t\leq k\leq\mathbf1-\bar{\mathbf u}_t.
 $$
 
@@ -519,8 +567,9 @@ can use an active-set solver rather than enumerate all combinations
 {cite:p}`tassa2014control`.
 
 The feedback rows of saturated controls are zero while their active set stays
-fixed. For the free coordinates $F$, solve
-$(H_{uu}+\mu I)_{FF}K_F=-(H_{ux})_F$.
+fixed. For the free coordinates $\mathcal F$, solve
+$(M_{uu}+\mu I)_{\mathcal F\mathcal F}K_{\mathcal F}
+=-(M_{ux})_{\mathcal F}$.
 Use the full substitution formulas to update the quadratic tail. With bounds,
 this tail describes a neighborhood with the selected active sets; across
 active-set changes the minimized expression is generally piecewise quadratic.
@@ -641,17 +690,17 @@ step introduced in [receding-horizon control](receding-horizon-control.md).
 :label: ex-ilqr-two-step
 
 In the two-step scalar example, replace the terminal cost by
-$\tfrac\beta2(x_2-r)^2$, with $\beta>0$. Eliminate $u_1$ and then $u_0$.
+$\tfrac\beta2(x_3-r)^2$, with $\beta>0$. Eliminate $u_2$ and then $u_1$.
 Find both controls and the terminal state. What happens as $\beta\to\infty$?
 :::
 
 :::{solution} ex-ilqr-two-step
 :class: dropdown
 
-The last control is $u_1=\beta(r-x_1)/(1+\beta)$, and its minimized tail
-is $\beta(x_1-r)^2/[2(1+\beta)]$. With $x_0=0$, minimizing the remaining
-expression gives $u_0=\beta r/(1+2\beta)$, followed by the same value for
-$u_1$. Thus $x_2=2\beta r/(1+2\beta)$. As the terminal weight grows, the
+The last control is $u_2=\beta(r-x_2)/(1+\beta)$, and its minimized tail
+is $\beta(x_2-r)^2/[2(1+\beta)]$. With $x_1=0$, minimizing the remaining
+expression gives $u_1=\beta r/(1+2\beta)$, followed by the same value for
+$u_2$. Thus $x_3=2\beta r/(1+2\beta)$. As the terminal weight grows, the
 two controls tend to $r/2$ and the terminal state tends to $r$.
 :::
 
@@ -722,8 +771,8 @@ a successful stationary arrival.
 :::{exercise} Saturation and a rejected step
 :label: ex-ilqr-saturation
 
-For a positive-definite $2\times2$ matrix $H$ with nonzero off-diagonal entries,
-compare the exact box-QP solution with clipping $-H^{-1}q$ componentwise.
+For a positive-definite $2\times2$ matrix $M$ with nonzero off-diagonal entries,
+compare the exact box-QP solution with clipping $-M^{-1}q$ componentwise.
 Explain why they can differ. What should the trajectory optimizer retain if
 every nonlinear trial is rejected?
 :::
@@ -732,7 +781,7 @@ every nonlinear trial is rejected?
 :class: dropdown
 
 Fixing one coordinate at a bound changes the stationarity equation for the
-other coordinate through the off-diagonal entry of $H$. Componentwise
+other coordinate through the off-diagonal entry of $M$. Componentwise
 clipping does not solve that new equation. The face minimization does.
 If no nonlinear trial is accepted, the solver retains its previous controls
 and states and reports that it could not make progress; it must not replace
