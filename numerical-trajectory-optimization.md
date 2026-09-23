@@ -1165,11 +1165,13 @@ actions to every later quantity through one rollout. Multiple shooting keeps
 selected boundary states, trading additional variables for shorter sensitivity
 paths and sparse continuity defects.
 
-All three formulations assume a discrete transition map. How can a
-continuous-time trajectory and its differential equations be represented by a
-finite set of decision variables and algebraic constraints? [Continuous-time
-transcription and collocation](continuous-time-collocation.md) answer that
-question with nodal polynomial representations.
+The next chapter, [iLQR and differential dynamic programming](iterative-trajectory-optimization.md),
+uses this temporal structure to solve successive local quadratic problems by
+backward elimination. Its boat-docking example follows both the optimizer's
+iterations and the vessel's predicted motion along a selected plan.
+
+[Continuous-time transcription and collocation](continuous-time-collocation.md)
+develops nodal polynomial representations directly from differential equations.
 
 ## Exercises
 

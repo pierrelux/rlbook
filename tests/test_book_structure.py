@@ -12,6 +12,7 @@ CORE_CHAPTERS = [
     "discrete-time-optimal-control.md",
     "discrete-time-pmp.md",
     "numerical-trajectory-optimization.md",
+    "iterative-trajectory-optimization.md",
     "continuous-time-collocation.md",
     "receding-horizon-control.md",
     "mpc-variants-reliability.md",

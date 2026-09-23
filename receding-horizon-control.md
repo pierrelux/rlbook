@@ -166,6 +166,12 @@ The complete MPC procedure implements the receding horizon principle through rep
 
 ### Successive Linearization and Quadratic Approximations
 
+The [iLQR and DDP chapter](iterative-trajectory-optimization.md) develops
+successive approximation as a way to improve one finite-horizon plan. Such a
+solver can also be used inside MPC: solve from the newly observed state,
+execute the first action, and repeat. Its backward-pass feedback gains and
+the outer decision to replan are distinct operations.
+
 For many regulation and tracking problems, the nonlinear dynamics and costs we encounter can be approximated locally by linear and quadratic functions. The basic idea is to linearize the system around the current operating point and approximate the cost with a quadratic form. This reduces each MPC subproblem to a **quadratic program (QP)**, which can be solved reliably and very quickly using standard solvers.
 
 Suppose the true dynamics are nonlinear,

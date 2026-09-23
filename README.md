@@ -103,6 +103,23 @@ The BIXI builder consumes the small, checksum-pinned derived data committed in
 derived inputs from official source files is documented in
 `data/bixi/README.md`.
 
+## Boat docking with iLQR and DDP
+
+The [iLQR and DDP chapter](iterative-trajectory-optimization.md) follows
+numerical trajectory optimization and derives the methods through successive
+approximation and backward elimination. Rebuild its two docking scenarios,
+four optimizer runs, static figures, and interactive replay data with:
+
+```bash
+uv run python scripts/build_boat_docking_artifacts.py
+```
+
+The browser replay separates optimizer iteration from simulation time. It
+shows a fixed plan's remaining trajectory and future boat poses. Ordinary
+book builds read the saved artifacts and do not run the optimizers. The
+experiment's [artifact notes](artifacts/boat_docking/README.md) document the
+model, data format, and finer-integration arrival and hull-clearance checks.
+
 ## Recorded spotlight presentations
 
 The **Present** action opens either a frozen presentation for the chapter or a

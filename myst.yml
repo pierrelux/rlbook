@@ -48,6 +48,7 @@ project:
         - file: discrete-time-optimal-control.md
         - file: discrete-time-pmp.md
         - file: numerical-trajectory-optimization.md
+        - file: iterative-trajectory-optimization.md
         - file: continuous-time-collocation.md
     - title: Feedback Control
       children:

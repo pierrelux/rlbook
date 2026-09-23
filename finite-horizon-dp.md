@@ -619,6 +619,11 @@ print("Total harvest:", sum(harvests))
 What form do the value function and feedback law take when the dynamics are
 linear and every cost is quadratic?
 
+The [successive-approximation chapter](iterative-trajectory-optimization.md)
+obtained a quadratic tail by eliminating controls backward. In the
+linear-quadratic case, that tail is the optimal cost-to-go. Bellman's equation
+therefore gives another derivation of the same Riccati recursion.
+
 Linear dynamics and quadratic costs give a backward recursion that can be solved in closed form. The value function remains quadratic at every stage, and the optimal policy is a linear feedback law. No state grid, interpolation scheme, or general function approximator is needed. The recursion tracks a finite sequence of matrices.
 
 Consider a discrete-time linear system:

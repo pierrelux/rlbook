@@ -13,8 +13,8 @@ kernelspec:
 
 # Continuous-Time Transcription and Collocation
 
-The preceding chapter formulated trajectory optimization for systems that are
-already discrete in time. Physical models are often given instead by ordinary
+The preceding chapters formulated and optimized trajectories through discrete
+transition maps. Physical models are often given instead by ordinary
 differential equations, so their states and controls are functions of time.
 A finite-dimensional optimizer cannot choose an entire function directly.
 Continuous-time trajectory optimization therefore begins by replacing those
@@ -52,10 +52,10 @@ After studying this chapter, you should be able to:
 :class: tip
 
 The chapter uses ordinary differential equations, definite integrals, and the
-basic form of an equality-constrained nonlinear program. The preceding
-trajectory-optimization chapter, [](discrete-time-optimal-control.md), supplies additional
-context on shooting and sparse simultaneous formulations. [](appendix_ivps.md)
-reviews the sequential integrators used inside shooting.
+basic form of a nonlinear program with equality and inequality constraints.
+[](discrete-time-optimal-control.md) introduces that optimization problem,
+and [](numerical-trajectory-optimization.md) develops shooting and simultaneous
+formulations. [](appendix_ivps.md) reviews the sequential integrators used inside shooting.
 :::
 
 ## A One-Interval Example

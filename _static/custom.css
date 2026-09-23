@@ -1129,3 +1129,13 @@ iframe {
 .pdf-fallback[hidden] {
   display: none !important;
 }
+
+/* Docking replay keeps optimizer iteration and simulation time separate. */
+.boat-docking-replay > div > div {
+  height: 1040px;
+  padding-bottom: 0 !important;
+  width: 100% !important;
+}
+@media (max-width: 640px) {
+  .boat-docking-replay > div > div { height: 1340px; }
+}
