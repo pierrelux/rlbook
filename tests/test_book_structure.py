@@ -98,7 +98,7 @@ class BookStructureTests(unittest.TestCase):
         for file in files:
             self.assertTrue((ROOT / file).is_file(), f"missing TOC file: {file}")
 
-    def test_each_core_chapter_has_one_h1_and_question_bridges(self):
+    def test_each_core_chapter_has_one_h1_and_explanatory_openings(self):
         for file in CORE_CHAPTERS:
             with self.subTest(file=file):
                 text = (ROOT / file).read_text(encoding="utf-8")
@@ -108,7 +108,10 @@ class BookStructureTests(unittest.TestCase):
 
                 first_h2 = next((heading for heading in headings if heading[0] == 2), None)
                 chapter_end = first_h2[2] if first_h2 else len(text)
-                self.assertIn("?", text[h1s[0][2]:chapter_end], f"{file} needs an opening question")
+                introduction = text[h1s[0][2]:chapter_end]
+                self.assertGreater(
+                    len(re.findall(r"[A-Za-z]{2,}", introduction)), 35,
+                    f"{file} needs an explanatory introduction")
 
                 h2s = [heading for heading in headings if heading[0] == 2]
                 for index, heading in enumerate(h2s):
@@ -116,8 +119,10 @@ class BookStructureTests(unittest.TestCase):
                     if title in BRIDGE_EXEMPT_HEADINGS:
                         continue
                     end = h2s[index + 1][2] if index + 1 < len(h2s) else len(text)
-                    opening = text[heading[2]:end][:700]
-                    self.assertIn("?", opening, f"{file}: {title} needs an opening question")
+                    opening = text[heading[2]:end].split("\n", 1)[1][:700]
+                    self.assertGreater(
+                        len(re.findall(r"[A-Za-z]{2,}", opening)), 20,
+                        f"{file}: {title} needs an explanatory opening")
 
     def test_removed_routes_are_not_referenced(self):
         route_pattern = re.compile(

@@ -31,13 +31,14 @@ backward recursions follow from substitution and quadratic minimization.
 
 ## Learning Goals
 
-After working through the derivations and docking example, you should be able to:
+After working through the derivations and examples, you should be able to:
 
 - Construct a local quadratic optimal-control problem around a feasible rollout.
 - Eliminate its controls backward and recover an affine correction at each step.
 - Implement nonlinear trial rollouts with line search and regularization.
 - Identify the dynamics-curvature terms that distinguish DDP from iLQR.
 - Assess a docking plan using its cost, arrival velocity, and hull clearance.
+- Explain how thermal load and nonlinear power loss shape a bounded cooling schedule.
 
 ## Prerequisites
 
@@ -684,6 +685,151 @@ The replay reads recorded simulations, so exploring it does not rerun an
 optimizer. Recomputing a plan from newly observed states is the additional
 step introduced in [receding-horizon control](receding-horizon-control.md).
 
+(sec-thermoacoustic-pulldown)=
+## Pulling Down a Thermoacoustic Refrigerator
+
+A standing-wave thermoacoustic refrigerator has a loudspeaker at one end of a
+sealed tube and a stack of thin plates inside it. Oscillating gas parcels
+exchange heat with the plates as they compress and expand, carrying heat from
+the cold end of the stack toward the hot end. Heat exchangers connect those
+ends to a payload and to ambient air. How should the loudspeaker amplitude
+vary when acoustic energy and the payload temperature at a fixed deadline
+both matter?
+
+We represent the cold payload and hot exchanger by two lumped temperatures,
+$\mathbf x_t=(T_{c,t},T_{h,t})$, and control the normalized driver amplitude
+$u_t\in[0,1]$. Let $\Delta T=T_h-T_c$ and
+$\eta(\Delta T)=1-\Delta T/\Delta T_0$. The continuous model is
+
+$$
+\begin{aligned}
+\dot Q_c &= k_q u^2\eta(\Delta T),&
+\dot W &= k_w u^2\eta(\Delta T)+k_vu^2+k_3u^3,\\
+C_c\dot T_c &= -\dot Q_c+Q_{\mathrm{load}},&
+C_h\dot T_h &= \dot Q_c+\dot W-UA(T_h-T_{\mathrm{amb}}).
+\end{aligned}
+$$
+
+Here $\dot Q_c$ is heat removed from the cold side, $\dot W$ is work supplied
+by the driver, and $UA$ is the hot exchanger's conductance to ambient. At
+positive work, the cooling coefficient of performance (COP) is
+$\dot Q_c/\dot W$. The short-stack approximation motivates the $u^2$ terms
+and their dependence on the temperature span
+{cite:p}`swift1988thermoacoustic,swift2017thermoacoustics`. The cubic term
+represents an additional loss at high amplitude. These coefficients are
+synthetic teaching values, not measurements of a particular device.
+
+| Quantity | Value |
+| :--- | ---: |
+| Cold and hot heat capacities $C_c,C_h$ | $20,50\ \mathrm{J/K}$ |
+| Hot conductance $UA$ | $0.5\ \mathrm{W/K}$ |
+| Ambient temperature $T_{\mathrm{amb}}$ | $20\ ^\circ\mathrm C$ |
+| Parasitic cold-side load $Q_{\mathrm{load}}$ | $1\ \mathrm W$ |
+| Pumping coefficient $k_q$ | $5\ \mathrm W$ |
+| Work and viscous coefficients $k_w,k_v$ | $4,1\ \mathrm W$ |
+| Cubic-loss coefficient $k_3$ | $2\ \mathrm W$ |
+| Critical temperature span $\Delta T_0$ | $40\ \mathrm K$ |
+| Target temperature $T^\star$ | $5\ ^\circ\mathrm C$ |
+
+Both temperatures begin at $20\ ^\circ\mathrm C$. A fourth-order
+Runge--Kutta step of length $h=1\ \mathrm s$ defines the discrete transition
+$\mathbf x_{t+1}=\mathbf f_t(\mathbf x_t,u_t)$ for $T-1=300$ control
+intervals. The cost uses the same running-plus-terminal form as the docking
+problem:
+
+$$
+c_t(\mathbf x_t,u_t)=h\,w_E\dot W(\mathbf x_t,u_t),\qquad
+c_T(\mathbf x_T)=w_T(T_{c,T}-T^\star)^2,
+\qquad w_E=0.05,\quad w_T=10.
+$$
+
+There is no running temperature-tracking term: the target applies at the
+end of the five-minute pull-down, while the running cost measures energy use.
+The terminal penalty is soft, so a plan can trade some arrival error for lower
+energy. Both methods start from the constant sequence $u_t=0.5$ and use the
+same control box and stopping settings.
+
+:::{include} artifacts/thermoacoustic_pulldown/results.md
+:::
+
+:::{figure} _static/thermoacoustic_pulldown/pulldown.svg
+:label: fig-thermoacoustic-pulldown
+:width: 100%
+
+Cold and hot temperatures under the baseline plan, with a constant
+full-amplitude rollout for comparison. The lower panel shows their driver
+amplitudes. The target line and temperature traces show the tradeoff between
+energy use and final cold temperature.
+:::
+
+The baseline plan drives relatively hard at first, eases off, then ramps to
+full amplitude near the deadline. Early driving uses the initially small
+temperature span, but it also warms the hot side and weakens later pumping.
+The fixed load adds the same total heat over every 300-second plan. Control
+timing still changes the temperature span and therefore the final cold
+temperature. Running at full amplitude throughout uses about
+$1426\ \mathrm J$ and reaches
+$2.20\ ^\circ\mathrm C$; its nonlinear cost is $149.886$, versus $51.224$ for
+the baseline local plan. The soft terminal cost need not favor the coldest
+possible final state.
+
+:::{figure} _static/thermoacoustic_pulldown/variants.svg
+:label: fig-thermoacoustic-variants
+:width: 100%
+
+Final computed amplitude schedules for the baseline, no-load,
+sluggish-hot-side, and no-cubic-loss cases. The first three are iLQR plans;
+the no-cubic-loss plan is from DDP. Removing the cold-side load flattens the
+schedule, while changing the hot-side dynamics produces a long ramp.
+:::
+
+Without the parasitic load, a nearly constant amplitude is economical. To
+see the tendency, temporarily hold the temperature span fixed and write
+$v=u^2$. Heat pumped is then proportional to $v$, while the cubic loss is
+proportional to $v^{3/2}$, a convex function for $v\geq0$. For a fixed total
+amount of pumping, Jensen's inequality favors spreading $v$ through time.
+The actual schedule is not exactly constant because the span and hot-side
+temperature still respond to the controls. With $C_h=200\ \mathrm{J/K}$ and
+$UA=0.2\ \mathrm{W/K}$, the amplitude rises through most of the horizon, then
+turns off for the final two intervals. Both thermal storage and heat rejection
+changed in that experiment, so it does not isolate the effect of either
+parameter.
+
+The [DDP curvature term](#sec-ddp-curvature) also has a direct physical
+interpretation here. For the continuous cold-side equation,
+
+$$
+\frac{\partial^2\dot T_c}{\partial u\,\partial\Delta T}
+=\frac{2k_qu}{C_c\Delta T_0}.
+$$
+
+Increasing the temperature span weakens pumping, and this mixed derivative
+measures how that effect changes with amplitude. The solver differentiates
+the complete RK4 transition, whose Hessian also contains effects from the
+intermediate integration stages.
+
+:::{figure} _static/thermoacoustic_pulldown/convergence.svg
+:label: fig-thermoacoustic-convergence
+:width: 100%
+
+Actual nonlinear cost after each accepted update for iLQR and DDP in the
+baseline and no-cubic-loss cases. The vertical axis is logarithmic. The
+curves compare these local solves from the same initial control sequence,
+not a general ranking of the methods.
+:::
+
+When $k_3=0$, both pumping and work are quadratic in amplitude at a fixed
+temperature span. Their instantaneous ratio then no longer depends on
+amplitude, leaving weaker preferences among some schedules. In the recorded
+run, iLQR reaches its iteration limit while DDP satisfies the stopping test;
+both reach nearly the same final cost. For the sluggish hot side, DDP reaches
+a different, slightly lower-cost local plan than iLQR. Lowering the target to
+$0\ ^\circ\mathrm C$ produces a plan saturated at $u_t=1$ throughout the
+fixed horizon, exercising the box-constrained backward step. These outcomes
+depend on the initial sequence. Starting the baseline from constant
+amplitudes $0.1$ and $0.9$ leads to other local plans, so neither result
+certifies a global minimum.
+
 ## Exercises
 
 :::{exercise} Change the terminal weight
@@ -788,21 +934,52 @@ and states and reports that it could not make progress; it must not replace
 them with an unaccepted trial or report convergence from rejection alone.
 :::
 
+:::{exercise} Thermal load and amplitude scheduling
+:label: ex-ilqr-pulldown-load
+
+Set the parasitic cold-side load to zero and rerun the baseline refrigerator
+problem. Explain why the optimized amplitude becomes nearly constant, using
+the convexity of the cubic loss. Then restore the load and double the horizon
+to $600\ \mathrm s$. Predict how the amplitude schedule and energy use change.
+:::
+
+:::{solution} ex-ilqr-pulldown-load
+:class: dropdown
+
+With no load, cooling obtained early is not directly undone by a constant
+heat leak. If the temperature span were fixed, a given amount of cooling
+would fix the sum of $v_t=u_t^2$. The cubic loss is proportional to
+$v_t^{3/2}$, so Jensen's inequality favors equal $v_t$ across time. The
+temperature span still evolves, which explains the modest variation in the
+computed schedule. With the load restored, the longer horizon admits lower
+amplitude over more intervals, but the leak adds heat throughout that extra
+time. In this model, the $600\ \mathrm s$ local solution starts near $0.59$,
+reaches $0.89$ by $550\ \mathrm s$, and uses full amplitude in the final
+intervals. Its approximately $1392\ \mathrm J$ of energy exceeds the shorter
+baseline's use.
+:::
+
 ## Computational Sources
 
-The implementation separates the generic backward recursion from the boat
-model and the artifact builder:
+The implementation separates the generic backward recursion from the physical
+models and artifact builders:
 
 - {download}`Shared iLQR and DDP solver <code/trajectory_optimization.py>`
 - {download}`Boat dynamics, costs, and validation <code/boat_docking.py>`
 - {download}`Experiment and figure builder <scripts/build_boat_docking_artifacts.py>`
 - {download}`Numerical diagnostics and source hashes <artifacts/boat_docking/metrics.json>`
+- {download}`Thermoacoustic model and costs <code/thermoacoustic_pulldown.py>`
+- {download}`Thermoacoustic experiment builder <scripts/build_thermoacoustic_pulldown_artifacts.py>`
+- {download}`Thermoacoustic diagnostics <artifacts/thermoacoustic_pulldown/metrics.json>`
 
 Run `uv run python scripts/build_boat_docking_artifacts.py` from the repository
 root to reproduce the solves, figures, results table, and browser data. Normal
 book builds read those artifacts. Tests independently check the derivatives,
 the composed DDP curvature, the scalar calculation, and agreement between
 backward elimination and a dense quadratic solve.
+
+Run `uv run python scripts/build_thermoacoustic_pulldown_artifacts.py` to
+regenerate the refrigerator results table, figures, and diagnostics.
 
 ## Summary and Outlook
 
@@ -813,11 +990,14 @@ iLQR repeats that calculation with linearized dynamics; DDP includes the
 second-order chain-rule terms from the transition. Nonlinear rollouts,
 regularization, and acceptance tests connect these local calculations to a
 decreasing sequence of actual trajectory costs.
+The refrigerator applies the same calculation to a bounded driver amplitude,
+with energy use and terminal temperature competing in the objective.
 
-The docking experiments use a discrete transition obtained by integrating
-an ordinary differential equation. [Continuous-time transcription and
-collocation](continuous-time-collocation.md) develops other ways to represent
-continuous trajectories inside a finite optimization problem. Later,
+The docking and refrigerator experiments both use discrete transitions
+obtained by integrating ordinary differential equations. [Continuous-time
+transcription and collocation](continuous-time-collocation.md) develops other
+ways to represent continuous trajectories inside a finite optimization
+problem. Later,
 [finite-horizon dynamic programming](finite-horizon-dp.md) gives a broader
 interpretation of the quadratic tail: in the linear-quadratic case, the
 function produced by elimination is the optimal cost-to-go.

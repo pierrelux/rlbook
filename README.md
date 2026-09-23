@@ -114,11 +114,20 @@ four optimizer runs, static figures, and interactive replay data with:
 uv run python scripts/build_boat_docking_artifacts.py
 ```
 
+Regenerate the same chapter's thermoacoustic pull-down results and figures with:
+
+```bash
+uv run python scripts/build_thermoacoustic_pulldown_artifacts.py
+```
+
 The browser replay separates optimizer iteration from simulation time. It
 shows a fixed plan's remaining trajectory and future boat poses. Ordinary
 book builds read the saved artifacts and do not run the optimizers. The
 experiment's [artifact notes](artifacts/boat_docking/README.md) document the
 model, data format, and finer-integration arrival and hull-clearance checks.
+The second builder records the thermoacoustic refrigerator's pull-down solves
+and static figures; its [artifact notes](artifacts/thermoacoustic_pulldown/README.md)
+describe the synthetic model and checks.
 
 ## Recorded spotlight presentations
 
