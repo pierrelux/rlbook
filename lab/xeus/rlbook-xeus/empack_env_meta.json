@@ -415,6 +415,19 @@
       "subdir": "noarch"
     },
     {
+      "name": "pyparsing",
+      "version": "3.3.3",
+      "build": "pyh5ded981_0",
+      "filename_stem": "pyparsing-3.3.3-pyh5ded981_0",
+      "filename": "pyparsing-3.3.3-pyh5ded981_0.tar.gz",
+      "channel": "https://prefix.dev/conda-forge",
+      "depends": [
+        "python >=3.11",
+        "python"
+      ],
+      "subdir": "noarch"
+    },
+    {
       "name": "xeus-python-shell-lite",
       "version": "0.8.1",
       "build": "pyhd8ed1ab_0",
@@ -634,19 +647,6 @@
       "depends": [
         "python >=3.9",
         "six >=1.5",
-        "python"
-      ],
-      "subdir": "noarch"
-    },
-    {
-      "name": "pyparsing",
-      "version": "3.3.2",
-      "build": "pyhcf101f3_0",
-      "filename_stem": "pyparsing-3.3.2-pyhcf101f3_0",
-      "filename": "pyparsing-3.3.2-pyhcf101f3_0.tar.gz",
-      "channel": "https://prefix.dev/conda-forge",
-      "depends": [
-        "python >=3.10",
         "python"
       ],
       "subdir": "noarch"
