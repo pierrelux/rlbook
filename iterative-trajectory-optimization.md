@@ -43,8 +43,8 @@ After working through the derivations and docking example, you should be able to
 
 The chapter uses the [finite-horizon optimal-control formulation](discrete-time-optimal-control.md),
 [single shooting](numerical-trajectory-optimization.md), and first and second
-derivatives. The [SQP discussion](#sec-sqp-newton) explains successive quadratic
-subproblems, and the [initial-value-problem appendix](appendix_ivps.md) reviews
+derivatives. The [sequential-methods discussion](numerical-trajectory-optimization.md#sequential-methods)
+introduces general SQP subproblems, and the [initial-value-problem appendix](appendix_ivps.md) reviews
 numerical integration. Neither dynamic programming nor a previous derivation
 of LQR is required.
 
@@ -213,7 +213,8 @@ $p_N=\phi_x(\bar{\mathbf x}_N)$ and quadratic coefficient
 $P_N=\phi_{xx}(\bar{\mathbf x}_N)$. Minimizing the sum of these quadratic
 expressions subject to the linearized transitions gives a local quadratic
 program. Its state variables couple only neighboring time steps. The
-[SQP construction](#sec-sqp-newton) gives a useful comparison: here we begin
+[general SQP construction](numerical-trajectory-optimization.md#sequential-methods)
+gives a useful comparison: here we begin
 with cost curvature and linearized dynamics, omitting the second derivatives
 of the dynamics that enter an exact Lagrangian Hessian.
 
