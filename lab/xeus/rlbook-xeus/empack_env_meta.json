@@ -287,6 +287,19 @@
       "subdir": "emscripten-wasm32"
     },
     {
+      "name": "wcwidth",
+      "version": "0.9.1",
+      "build": "pyh5ded981_0",
+      "filename_stem": "wcwidth-0.9.1-pyh5ded981_0",
+      "filename": "wcwidth-0.9.1-pyh5ded981_0.tar.gz",
+      "channel": "https://prefix.dev/conda-forge",
+      "depends": [
+        "python >=3.11",
+        "python"
+      ],
+      "subdir": "noarch"
+    },
+    {
       "name": "nlohmann_json-abi",
       "version": "3.12.0",
       "build": "h0f90c79_2",
@@ -385,19 +398,6 @@
       "channel": "https://prefix.dev/conda-forge",
       "depends": [
         "python >=3.9",
-        "python"
-      ],
-      "subdir": "noarch"
-    },
-    {
-      "name": "wcwidth",
-      "version": "0.8.4",
-      "build": "pyh5ded981_0",
-      "filename_stem": "wcwidth-0.8.4-pyh5ded981_0",
-      "filename": "wcwidth-0.8.4-pyh5ded981_0.tar.gz",
-      "channel": "https://prefix.dev/conda-forge",
-      "depends": [
-        "python >=3.11",
         "python"
       ],
       "subdir": "noarch"

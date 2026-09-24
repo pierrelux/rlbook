@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RL &amp; Control — Presentation Mode</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --accent: #356ae6;
+      --surface: rgba(255, 255, 255, 0.94);
+      --border: rgba(15, 23, 42, 0.14);
+      --text: #172033;
+      --muted: #657087;
+      --shadow: 0 18px 55px rgba(15, 23, 42, 0.2);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #fff;
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    #notes {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #fff;
+    }
+
+    .controls {
+      position: fixed;
+      left: 50%;
+      bottom: 1rem;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.35rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      transform: translateX(-50%);
+    }
+
+    button {
+      min-width: 2.45rem;
+      min-height: 2.45rem;
+      padding: 0.55rem 0.75rem;
+      border: 0;
+      border-radius: 999px;
+      color: inherit;
+      background: transparent;
+      font: 650 0.8rem/1 system-ui, sans-serif;
+      cursor: pointer;
+    }
+
+    button:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+    button:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 42%, transparent); outline-offset: 2px; }
+
+    .progress {
+      min-width: 5.2rem;
+      padding: 0 0.55rem;
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 650;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .hint, .loading {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      z-index: 20;
+      padding: 0.55rem 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--muted);
+      background: var(--surface);
+      box-shadow: 0 7px 24px rgba(15, 23, 42, 0.12);
+      font-size: 0.76rem;
+      font-weight: 550;
+      pointer-events: none;
+      transform: translateX(-50%);
+      transition: opacity 180ms ease, translate 180ms ease;
+    }
+
+    .hint { opacity: 0; translate: 0 -0.5rem; }
+    .hint.visible { opacity: 1; translate: 0 0; }
+    .loading.hidden { opacity: 0; }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --accent: #82a7ff;
+        --surface: rgba(28, 25, 23, 0.94);
+        --border: rgba(255, 255, 255, 0.16);
+        --text: #f5f5f4;
+        --muted: #b6b1aa;
+        --shadow: 0 18px 55px rgba(0, 0, 0, 0.55);
+      }
+      html, body, #notes { background: #1c1917; }
+    }
+
+    @media (max-width: 650px) {
+      .controls button { min-width: 2.2rem; padding-inline: 0.56rem; }
+      .progress { min-width: 4.3rem; }
+    }
+  </style>
+</head>
+<body>
+  <iframe id="notes" title="Course notes in presentation mode"></iframe>
+  <div class="loading" role="status">Preparing presentation…</div>
+  <div class="hint" role="status"></div>
+  <div class="controls" role="toolbar" aria-label="Presentation controls">
+    <button type="button" data-action="previous" title="Previous block (←)" aria-label="Previous block">←</button>
+    <span class="progress" aria-live="polite">0 / 0</span>
+    <button type="button" data-action="next" title="Next block (→ or Space)" aria-label="Next block">→</button>
+    <button type="button" data-action="stage" title="Enlarge current block (Enter)" aria-label="Enlarge current block">Enlarge</button>
+    <button type="button" data-action="exit" title="Return to the notes (Esc)" aria-label="Return to the notes">Exit</button>
+  </div>
+
+  <!-- RL_CHUNK_MAPS_START -->
+<script id="rl-presentation-chunks" type="application/json">{"dynamics":{"version":1,"slug":"dynamics","source":"dynamics.md","source_sha256":"8f8344747cb0e16cb411ee36fbfb36d98e5f73da6a22cbd48a6c82a55083c2fa","provider":"codex","block_count":294,"block_tags":["h1","aside","h2","blockquote","p","p","p","p","p","p","p","h2","p","p","p","h3","p","p","div","p","p","p","p","h2","p","p","p","div","p","p","ol","p","p","h2","p","h3","p","p","p","p","p","p","p","p","p","p","p","p","p","p","p","p","p","p","p","p","h2","p","p","p","div","p","ul","p","div","p","ul","p","p","p","p","ul","div","ul","div","p","p","div","p","div","p","div","p","ul","p","p","p","h3","p","p","p","p","p","ul","p","h3","p","div","p","p","p","p","p","p","p","div","p","p","p","h3","p","p","div","p","h2","p","p","h3","p","div","p","div","p","div","p","p","div","p","div","p","p","p","h3","p","div","p","p","div","p","p","div","p","p","h3","p","div","p","p","p","p","h4","p","p","ul","p","div","p","p","ul","p","div","p","div","p","p","p","p","div","p","p","h2","p","p","div","p","p","p","p","div","p","p","h3","p","div","p","div","p","h3","p","p","p","p","div","p","p","div","p","p","div","p","p","div","p","p","p","div","p","p","h2","p","p","p","p","div","p","p","div","p","p","p","h3","p","p","p","p","p","p","h3","p","p","ul","p","p","p","p","p","p","p","p","h3","p","p","ul","p","div","p","h3","p","div","p","div","p","p","p","h3","p","p","p","p","div","p","h3","p","div","p","p","p","p","p","p","h3","p","p","p","div","p","p","p","p","div","p","div","p","p","h2","p","p","p","p","p","p","p","details","section"],"chunks":[{"start":0,"end":0,"title":"Dynamics and State Space"},{"start":1,"end":1,"title":"Learning Goals"},{"start":2,"end":3,"title":"Why Models Work"},{"start":4,"end":5,"title":"Narrow Predictive Models"},{"start":6,"end":7,"title":"Decision-Making Models"},{"start":8,"end":10,"title":"Structural and Reduced Forms"},{"start":11,"end":14,"title":"Realism for Control"},{"start":15,"end":16,"title":"Reduced Thermal Case"},{"start":17,"end":19,"title":"Two-Parameter Thermal Model"},{"start":20,"end":22,"title":"Useful Despite Inaccuracy"},{"start":23,"end":25,"title":"Counterfactual Dynamics"},{"start":26,"end":28,"title":"Trajectory Generator"},{"start":29,"end":32,"title":"Inputs, Memory, and State"},{"start":33,"end":34,"title":"State-Space Memory"},{"start":35,"end":37,"title":"Two Views of Time"},{"start":38,"end":40,"title":"Discrete and Continuous Time"},{"start":41,"end":43,"title":"Digital–Physical Interface"},{"start":44,"end":47,"title":"Discrete State Space"},{"start":48,"end":50,"title":"Continuous State Space"},{"start":51,"end":54,"title":"Linear State Space"},{"start":55,"end":55,"title":"Why Stay Time-Domain"},{"start":56,"end":58,"title":"HVAC Thermal Mass"},{"start":59,"end":60,"title":"One-Zone Temperature Dynamics"},{"start":61,"end":62,"title":"Thermal Parameters"},{"start":63,"end":64,"title":"Standard HVAC Form"},{"start":65,"end":66,"title":"States, Inputs, and Matrices"},{"start":67,"end":69,"title":"Adding Wall Inertia"},{"start":70,"end":72,"title":"Air Energy Balance"},{"start":73,"end":75,"title":"Wall Energy Balance"},{"start":76,"end":77,"title":"Expanded Thermal State"},{"start":78,"end":79,"title":"Coupled State-Space Form"},{"start":80,"end":81,"title":"Coupled System Matrices"},{"start":82,"end":85,"title":"Matrix Physics and Coupling"},{"start":86,"end":86,"title":"Scaling to Buildings"},{"start":87,"end":89,"title":"What Counts as Control"},{"start":90,"end":91,"title":"Thermostats and PID"},{"start":92,"end":94,"title":"Choosing Control Abstraction"},{"start":95,"end":98,"title":"Physics Versus Neural ODEs"},{"start":99,"end":101,"title":"Practical Modeling Constraints"},{"start":102,"end":103,"title":"Interpretable, Data-Efficient Structure"},{"start":104,"end":106,"title":"Cheap Adaptable Simulation"},{"start":107,"end":108,"title":"Limits and Hybrid Models"},{"start":109,"end":111,"title":"Euler Simulation Setup"},{"start":112,"end":112,"title":"1R1C Simulation Code"},{"start":113,"end":113,"title":"Thermal Time Constant"},{"start":114,"end":116,"title":"Introducing Stochastic Dynamics"},{"start":117,"end":119,"title":"Function Plus Noise"},{"start":120,"end":121,"title":"Linear-Gaussian Dynamics"},{"start":122,"end":124,"title":"Non-Gaussian Additive Noise"},{"start":125,"end":127,"title":"Multiplicative Noise"},{"start":128,"end":128,"title":"Induced Transition Density"},{"start":129,"end":131,"title":"Why Explicit Noise Helps"},{"start":132,"end":135,"title":"Transition Kernel View"},{"start":136,"end":138,"title":"Pushing Noise Forward"},{"start":139,"end":141,"title":"Discrete Noise and Sampling"},{"start":142,"end":142,"title":"Two Stochastic Views"},{"start":143,"end":146,"title":"Continuous-Time Stochastic Dynamics"},{"start":147,"end":149,"title":"Distributions Through Time"},{"start":150,"end":153,"title":"Reservoir Management Tradeoffs"},{"start":154,"end":156,"title":"Reservoir Mass Balance"},{"start":157,"end":158,"title":"Seasonal Inflow Regimes"},{"start":159,"end":159,"title":"Stochastic Extension"},{"start":160,"end":160,"title":"Mixture Inflow Model"},{"start":161,"end":163,"title":"Estimating Realized Inflows"},{"start":164,"end":165,"title":"Structured Uncertainty Benefits"},{"start":166,"end":168,"title":"Why Physics Constrains Regression"},{"start":169,"end":169,"title":"Reservoir Modeling Questions"},{"start":170,"end":174,"title":"Hidden States and Observations"},{"start":175,"end":176,"title":"From Inversion to Estimation"},{"start":177,"end":180,"title":"Linear-Gaussian Observation Model"},{"start":181,"end":183,"title":"Observation Kernel View"},{"start":184,"end":186,"title":"Inducing Observation Distributions"},{"start":187,"end":190,"title":"Adaptive Optics Challenge"},{"start":191,"end":193,"title":"Wavefront as Hidden State"},{"start":194,"end":196,"title":"Turbulence Dynamics Model"},{"start":197,"end":199,"title":"Wavefront Observation Model"},{"start":200,"end":202,"title":"Mirror Control Objective"},{"start":203,"end":203,"title":"Predict, Filter, and Correct"},{"start":204,"end":206,"title":"Continuous Turbulence Model"},{"start":207,"end":207,"title":"Adaptive Optics Questions"},{"start":208,"end":211,"title":"Equations Versus Programs"},{"start":212,"end":214,"title":"Analytical Model Interface"},{"start":215,"end":218,"title":"Trajectory Simulator Interface"},{"start":219,"end":219,"title":"Classifying Earlier Models"},{"start":220,"end":221,"title":"MuJoCo Dynamics"},{"start":222,"end":224,"title":"Contact Equations and Constraints"},{"start":225,"end":226,"title":"Black-Box Robotics Simulation"},{"start":227,"end":230,"title":"Discrete-Event Systems"},{"start":231,"end":234,"title":"Network Events and State"},{"start":235,"end":238,"title":"Routing Transitions and Timing"},{"start":239,"end":242,"title":"Hybrid System Structure"},{"start":243,"end":245,"title":"Mode-Switching HVAC"},{"start":246,"end":248,"title":"EnergyPlus Thermal Core"},{"start":249,"end":250,"title":"Implicit Equipment Equations"},{"start":251,"end":253,"title":"EnergyPlus as Hybrid Program"},{"start":254,"end":258,"title":"Agent-Based Energy Models"},{"start":259,"end":259,"title":"Household MPC Loop"},{"start":260,"end":260,"title":"Emergent Neighborhood Demand"},{"start":261,"end":262,"title":"SUMO Vehicle Agents"},{"start":263,"end":263,"title":"Car-Following Code"},{"start":264,"end":266,"title":"Emergent Traffic Patterns"},{"start":267,"end":269,"title":"Simulation Model Taxonomy"},{"start":270,"end":272,"title":"Airport Curbside Challenge"},{"start":273,"end":275,"title":"Vehicle Agent State"},{"start":276,"end":277,"title":"Calibrating Traffic Behavior"},{"start":278,"end":279,"title":"Learning Forecast Residuals"},{"start":280,"end":282,"title":"Corrected Hybrid Forecast"},{"start":283,"end":283,"title":"Structure Versus Learning"},{"start":284,"end":286,"title":"Dynamics Vocabulary Recap"},{"start":287,"end":288,"title":"Uncertainty and Hidden State"},{"start":289,"end":291,"title":"Model Interfaces and Choices"},{"start":292,"end":292,"title":"Exercises"},{"start":293,"end":293,"title":"References"}]}}</script>
+<!-- RL_CHUNK_MAPS_END -->
+
+  <script>
+    (() => {
+      const frame = document.querySelector('#notes');
+      const progress = document.querySelector('.progress');
+      const stageButton = document.querySelector('[data-action="stage"]');
+      const hint = document.querySelector('.hint');
+      const loading = document.querySelector('.loading');
+      const chunkMaps = JSON.parse(document.querySelector('#rl-presentation-chunks').textContent || '{}');
+      const state = { beats: [], index: 0, staged: false, scrollFrame: 0, hintTimer: 0, semantic: false };
+
+      const frameStyles = `
+        :root { --rl-accent: #356ae6; --rl-surface: rgba(255,255,255,.97); --rl-border: rgba(15,23,42,.14); --rl-shadow: 0 18px 60px rgba(15,23,42,.2); }
+        .dark { --rl-accent: #82a7ff; --rl-surface: rgba(28,25,23,.97); --rl-border: rgba(255,255,255,.16); --rl-shadow: 0 18px 60px rgba(0,0,0,.55); }
+        html { scroll-behavior: smooth; }
+        body { overscroll-behavior-y: contain; }
+        .myst-top-nav, .myst-primary-sidebar-topnav, .myst-primary-sidebar-toc, .myst-outline,
+        article > .block.my-10.lg\\:sticky,
+        article > .myst-fm-block .myst-fm-authors-affiliations,
+        article > .myst-fm-block a[href*="github.com"],
+        article > .myst-fm-block button { display: none !important; }
+        body > main.article-grid, article.article-grid { display: block !important; width: 100% !important; max-width: none !important; }
+        article.content { width: min(88vw, 1120px) !important; max-width: none !important; margin: 0 auto !important; padding: 7vh 0 18vh !important; font-size: clamp(1.08rem, 1.45vw, 1.55rem) !important; line-height: 1.58 !important; }
+        article > .myst-fm-block { margin-bottom: 8vh !important; padding-top: 0 !important; }
+        article > .myst-fm-block h1 { font-size: clamp(2.5rem, 5vw, 5.4rem) !important; line-height: 1.03 !important; letter-spacing: -.035em !important; }
+        .rl-beat { position: relative; border-radius: .8rem; cursor: pointer; opacity: .14; filter: blur(.7px); transform: scale(.992); transform-origin: center left; transition: opacity 220ms ease, filter 220ms ease, transform 220ms ease; }
+        .rl-beat:hover { opacity: .46; filter: none; }
+        .rl-beat.rl-current { z-index: 1; opacity: 1; filter: none; transform: scale(1.018); }
+        .rl-beat.rl-current::before { position: absolute; top: .1em; bottom: .1em; left: -1.3rem; width: 4px; border-radius: 999px; background: var(--rl-accent); content: ""; }
+        h2.rl-beat, h3.rl-beat, .rl-beat > :is(h2, h3):first-child { margin-top: 2.3em !important; }
+        .rl-semantic-beat { position: relative; }
+        .rl-beat img, .rl-beat svg, .rl-beat canvas { max-height: 72vh !important; object-fit: contain; }
+        body.rl-stage { overflow: hidden; }
+        body.rl-stage article.content::after { position: fixed; inset: 0; z-index: 80; background: rgba(15,23,42,.78); content: ""; backdrop-filter: blur(5px); }
+        body.rl-stage .rl-beat.rl-current { position: fixed; inset: 6vh 5vw 8vh; z-index: 85; display: flex; flex-direction: column; justify-content: center; width: auto; max-height: 86vh; margin: 0 !important; padding: clamp(1.4rem,4vw,4rem); overflow: auto; border: 1px solid var(--rl-border); border-radius: 1.25rem; color: inherit; background: var(--rl-surface); box-shadow: var(--rl-shadow); cursor: default; transform: none; }
+        body.rl-stage .rl-beat.rl-current::before { display: none; }
+        @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .rl-beat { transition: none; } }
+      `;
+
+      const sourceUrl = () => {
+        const requested = new URLSearchParams(location.search).get('page');
+        const fallback = new URL('../dynamics', location.href);
+        try {
+          const candidate = new URL(requested || document.referrer || fallback, location.href);
+          if (candidate.origin !== location.origin || candidate.pathname === location.pathname) return fallback.href;
+          return candidate.href;
+        } catch {
+          return fallback.href;
+        }
+      };
+
+      const doc = () => frame.contentDocument;
+      const win = () => frame.contentWindow;
+
+      const validBeat = (element) => {
+        if (!(element instanceof win().HTMLElement)) return false;
+        if (element.matches('script, style, link, .hidden, #skip-to-article')) return false;
+        if (element.classList.contains('myst-fm-block')) return false;
+        if (element.classList.contains('myst-footer-links')) return false;
+        if (element.matches('.block.my-10.lg\\:sticky')) return false;
+        return Boolean(element.innerText.trim() || element.querySelector('img, svg, canvas, iframe, pre, table'));
+      };
+
+      const pageSlug = () => {
+        const parts = frame.contentWindow.location.pathname.split('/').filter(Boolean);
+        return decodeURIComponent(parts.at(-1) || 'index');
+      };
+
+      const semanticBeats = (rawBeats) => {
+        const map = chunkMaps[pageSlug()];
+        const tags = rawBeats.map((beat) => beat.tagName.toLowerCase());
+        const validMap = map
+          && map.block_count === rawBeats.length
+          && Array.isArray(map.block_tags)
+          && map.block_tags.join('|') === tags.join('|')
+          && Array.isArray(map.chunks)
+          && map.chunks.length;
+        if (!validMap) return rawBeats;
+
+        let expected = 0;
+        const rangesAreValid = map.chunks.every((chunk) => {
+          const valid = Number.isInteger(chunk.start) && Number.isInteger(chunk.end)
+            && chunk.start === expected && chunk.end >= chunk.start && chunk.end < rawBeats.length;
+          expected = valid ? chunk.end + 1 : expected;
+          return valid;
+        }) && expected === rawBeats.length && map.chunks[0].end === 0;
+        if (!rangesAreValid) return rawBeats;
+
+        state.semantic = true;
+        return map.chunks.map((chunk) => {
+          const elements = rawBeats.slice(chunk.start, chunk.end + 1);
+          if (elements.length === 1) {
+            elements[0].dataset.rlChunkTitle = chunk.title;
+            return elements[0];
+          }
+          const wrapper = frame.contentDocument.createElement('div');
+          wrapper.className = 'rl-semantic-beat';
+          wrapper.dataset.rlChunkTitle = chunk.title;
+          elements[0].before(wrapper);
+          elements.forEach((element) => wrapper.append(element));
+          return wrapper;
+        });
+      };
+
+      const updateControls = () => {
+        progress.textContent = state.beats.length ? `${state.index + 1} / ${state.beats.length}` : 'No content';
+        stageButton.textContent = state.staged ? 'Restore' : 'Enlarge';
+        stageButton.setAttribute('aria-pressed', String(state.staged));
+      };
+
+      const setCurrent = (index, shouldScroll = true) => {
+        if (!state.beats.length) return;
+        state.index = Math.max(0, Math.min(index, state.beats.length - 1));
+        state.beats.forEach((beat, beatIndex) => {
+          const current = beatIndex === state.index;
+          beat.classList.toggle('rl-current', current);
+          beat.setAttribute('aria-current', current ? 'step' : 'false');
+        });
+        updateControls();
+        if (shouldScroll && !state.staged) state.beats[state.index].scrollIntoView({ behavior: 'smooth', block: 'center' });
+      };
+
+      const nearestBeat = () => {
+        if (state.staged || !state.beats.length) return;
+        const center = win().innerHeight * .47;
+        let nearest = state.index;
+        let distance = Infinity;
+        state.beats.forEach((beat, index) => {
+          const rect = beat.getBoundingClientRect();
+          const point = Math.max(rect.top, Math.min(center, rect.bottom));
+          const nextDistance = Math.abs(point - center);
+          if (nextDistance < distance) { distance = nextDistance; nearest = index; }
+        });
+        if (nearest !== state.index) setCurrent(nearest, false);
+      };
+
+      const toggleStage = (force) => {
+        state.staged = typeof force === 'boolean' ? force : !state.staged;
+        doc().body.classList.toggle('rl-stage', state.staged);
+        updateControls();
+      };
+
+      const showHint = (message) => {
+        hint.textContent = message;
+        hint.classList.add('visible');
+        clearTimeout(state.hintTimer);
+        state.hintTimer = setTimeout(() => hint.classList.remove('visible'), 2500);
+      };
+
+      const exit = () => {
+        if (history.length > 1) history.back();
+        else location.href = frame.src;
+      };
+
+      const onKey = (event) => {
+        const target = event.target;
+        if (target instanceof win().HTMLElement && (target.matches('input, textarea, select') || target.isContentEditable)) return;
+        if (event.metaKey || event.ctrlKey || event.altKey) return;
+        if (event.key === 'Escape') { event.preventDefault(); state.staged ? toggleStage(false) : exit(); }
+        else if (event.key === 'Enter') { event.preventDefault(); toggleStage(); }
+        else if (event.key === 'ArrowRight' || event.key === 'ArrowDown' || event.key === ' ') { event.preventDefault(); setCurrent(state.index + 1); }
+        else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') { event.preventDefault(); setCurrent(state.index - 1); }
+        else if (event.key.toLowerCase() === 'p') { event.preventDefault(); exit(); }
+      };
+
+      const initializeFrame = () => {
+        const frameDoc = doc();
+        const frameArticle = frameDoc.querySelector('article.content');
+        if (!frameArticle) {
+          loading.textContent = 'This page has no article content.';
+          return;
+        }
+
+        const style = frameDoc.createElement('style');
+        style.id = 'rl-presenter-style';
+        style.textContent = frameStyles;
+        frameDoc.head.append(style);
+
+        const title = frameArticle.querySelector(':scope > .myst-fm-block h1');
+        const content = [...frameArticle.children].filter(validBeat);
+        const rawBeats = [title, ...content].filter((beat, index, beats) => beat && beats.indexOf(beat) === index);
+        state.semantic = false;
+        state.beats = semanticBeats(rawBeats);
+        state.beats.forEach((beat) => beat.classList.add('rl-beat'));
+        state.index = 0;
+        state.staged = false;
+        nearestBeat();
+        setCurrent(state.index, false);
+
+        frameDoc.addEventListener('keydown', onKey);
+        frameDoc.addEventListener('click', (event) => {
+          if (state.staged) return;
+          const beat = event.target.closest('.rl-beat');
+          const index = state.beats.indexOf(beat);
+          if (index >= 0) setCurrent(index, false);
+        });
+        frameDoc.addEventListener('dblclick', (event) => {
+          if (state.staged) return;
+          const beat = event.target.closest('.rl-beat');
+          const index = state.beats.indexOf(beat);
+          if (index >= 0) { setCurrent(index, false); toggleStage(true); }
+        });
+        win().addEventListener('scroll', () => {
+          if (state.scrollFrame) return;
+          state.scrollFrame = win().requestAnimationFrame(() => { state.scrollFrame = 0; nearestBeat(); });
+        }, { passive: true });
+
+        loading.classList.add('hidden');
+        showHint(`${state.semantic ? 'Semantic chunks' : 'Fine-grained blocks'} · arrows move · Enter enlarges · Esc exits`);
+      };
+
+      document.querySelector('.controls').addEventListener('click', (event) => {
+        const action = event.target.closest('button')?.dataset.action;
+        if (action === 'previous') setCurrent(state.index - 1);
+        if (action === 'next') setCurrent(state.index + 1);
+        if (action === 'stage') toggleStage();
+        if (action === 'exit') exit();
+      });
+      document.addEventListener('keydown', onKey);
+      // MyST hydrates the server-rendered article just after the iframe load
+      // event. Waiting briefly keeps React from replacing our wrappers/styles.
+      frame.addEventListener('load', () => setTimeout(initializeFrame, 700));
+      frame.src = sourceUrl();
+    })();
+  </script>
+</body>
+</html>
