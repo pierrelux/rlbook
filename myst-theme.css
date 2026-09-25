@@ -1132,13 +1132,6 @@ iframe {
   display: none !important;
 }
 
-/* These recorded experiments include controls and diagnostics below the plot. */
-.mppi-replay > div > div {
-  height: 760px;
-  padding-bottom: 0 !important;
-  width: 100% !important;
-}
-
 /* Docking replay keeps optimizer iteration and simulation time separate. */
 .boat-docking-replay > div > div {
   height: 1040px;
@@ -1147,56 +1140,4 @@ iframe {
 }
 @media (max-width: 640px) {
   .boat-docking-replay > div > div { height: 1340px; }
-}
-
-/* Truck alley-dock replay: same layout as the docking replay, with a taller
-   map. Content heights measured in the page (viewport width -> height):
-   808 -> 1153, 760 -> 1153, 680 -> 1171, 600 -> 1467, 375 -> 1675; the
-   page stacks its charts and tiles below 620px. Each bucket adds slack. */
-.truck-parking-replay > div > div {
-  height: 1230px;
-  padding-bottom: 0 !important;
-  width: 100% !important;
-}
-@media (max-width: 644px) { .truck-parking-replay > div > div { height: 1540px; } }
-@media (max-width: 480px) { .truck-parking-replay > div > div { height: 1700px; } }
-@media (max-width: 400px) { .truck-parking-replay > div > div { height: 1760px; } }
-
-/* Thermoacoustic replay: two-panel SVG, tiles, and three charts. The
-   :placeholder: image is the PDF fallback only; online the iframe replaces
-   it. The figure stays in the text column: the theme's fixed sidebars (the
-   navigation on the left, the outline on the right) occupy the grid's
-   margin columns at every window width, so a page-inset or body-outset
-   span would slide under them. Legibility comes from the page's own type
-   sizes instead. From 768px the iframe gets the text column (680px at a
-   768px window, 763px at 1280px, 808px from about 1600px); below 768px it
-   gets the window width minus 24px. Heights are fixed per window-width
-   bucket because the theme exposes no hook for a resize handshake.
-   Content height of the page, measured in the built book
-   (window -> iframe -> content): 1920 -> 808 -> 1382, 1280 -> 763 -> 1423,
-   1024 -> 713 -> 1473, 900 -> 752 -> 1416, 800 -> 712 -> 1472,
-   768 -> 680 -> 1471, 767 -> 743 -> 1473, 700 -> 676 -> 1468,
-   640 -> 616 -> 1917 (the page stacks its charts below a 620px iframe),
-   600 -> 576 -> 1952, 560 -> 536 -> 2006, 520 -> 496 -> 2006,
-   480 -> 456 -> 2128, 430 -> 406 -> 2181, 400 -> 376 -> 2318,
-   375 -> 351 -> 2387, 340 -> 316 -> 2500. Each bucket is the largest
-   content height in its range plus at least 50px of slack, because the
-   note paragraph at the bottom wraps differently across system fonts.
-   Re-measure after changing the page's layout. */
-.thermoacoustic-replay > div > div {
-  height: 1540px;
-  padding-bottom: 0 !important;
-  width: 100% !important;
-}
-@media (min-width: 1280px) { .thermoacoustic-replay > div > div { height: 1480px; } }
-@media (max-width: 644px) { .thermoacoustic-replay > div > div { height: 2010px; } }
-@media (max-width: 600px) { .thermoacoustic-replay > div > div { height: 2060px; } }
-@media (max-width: 520px) { .thermoacoustic-replay > div > div { height: 2180px; } }
-@media (max-width: 480px) { .thermoacoustic-replay > div > div { height: 2240px; } }
-@media (max-width: 430px) { .thermoacoustic-replay > div > div { height: 2370px; } }
-@media (max-width: 400px) { .thermoacoustic-replay > div > div { height: 2440px; } }
-@media (max-width: 375px) { .thermoacoustic-replay > div > div { height: 2550px; } }
-@media (max-width: 340px) { .thermoacoustic-replay > div > div { height: 2620px; } }
-@media (max-width: 640px) {
-  .mppi-replay > div > div { height: 860px; }
 }
