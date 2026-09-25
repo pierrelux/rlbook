@@ -28,15 +28,18 @@ Cette page est bilingue. Utilisez les onglets ci-dessous pour basculer entre l'a
 | **Course code** | IFT 6162 |
 | **Title** | Reinforcement Learning, Optimal Control (official registrar title is in French: *Apprentissage par renforcement, commande optimale*) |
 | **Credits** | *TBD* |
-| **Term** | Fall 2026 |
+| **Term** | Fall 2026 (A26) |
 | **Schedule** | Mondays 10:30–12:29 and Thursdays 13:30–15:29; Aug 31 – Oct 16 and Oct 26 – Dec 9, 2026 (14 teaching weeks, ~25 sessions) |
-| **Room** | Campus Montréal, room *TBD* |
+| **Room** | Mila, Auditorium 1, 6650 rue Saint-Urbain, 2e étage, Montréal |
 | **Instructor** | Pierre-Luc Bacon |
-| **Email** | *TBD* |
+| **Email** | <pierre-luc.bacon@mila.quebec> |
 | **Office hours** | *TBD* |
 | **Teaching assistants** | *TBD* |
 | **Language of instruction** | *TBD* (course materials are in English) |
 | **Course website** | <https://pierrelucbacon.com/rlbook/> |
+
+**Building access.** The Mila doors are unlocked Mondays 10:15–10:45 and
+Thursdays 13:15–13:45.
 
 ## Description
 
@@ -136,10 +139,10 @@ These are recommended for depth on particular topics; none is required.
 
 | Component | Weight | Due |
 |---|---|---|
-| Applied project | 30% | *TBD* |
-| In-class midterm 1 | 15% | *TBD* |
-| In-class midterm 2 | 15% | *TBD* |
-| In-class final examination | 40% | *TBD* |
+| In-class midterm 1 | 15% | Thursday, October 8, 2026, 13:30–15:30 |
+| In-class midterm 2 | 15% | Thursday, November 19, 2026, 13:30–15:30 |
+| Final project poster session | 30% | Thursday, December 3, 2026, 13:30–15:30 at Mila |
+| Final examination | 40% | December 11–22, 2026 examination period; date and room assigned by the registrar |
 | **Total** | **100%** | |
 
 The three examinations are completed in person on paper, without electronic
@@ -170,7 +173,8 @@ understanding.
 
 The course meets **twice a week**, Mondays 10:30–12:29 and Thursdays
 13:30–15:29, over **14 teaching weeks**, for roughly 25 sessions in total. Each
-row below therefore covers two meetings, except where a holiday intervenes.
+row below therefore covers two meetings, except where a holiday or assessment
+intervenes.
 Pacing is indicative and will be adjusted as the term goes on.
 
 | Week | Topic | Reading |
@@ -180,15 +184,19 @@ Pacing is indicative and will be adjusted as the term goes on.
 | 3 · Sep 14 – 17 | Stochastic dynamics; partial observation; programs and data as model interfaces | [Stochastic Dynamics](stochastic-dynamics-observation.md), [Model Interfaces](model-interfaces.md) |
 | 4 · Sep 21 – 24 | Discrete-time optimal control problems; existence and optimality conditions | [Finite-Horizon Optimal Control](discrete-time-optimal-control.md) |
 | 5 · Sep 28 – Oct 1 | Adjoints and the Pontryagin principle; single and multiple shooting | [Discrete-Time PMP](discrete-time-pmp.md), [Numerical Trajectory Optimization](numerical-trajectory-optimization.md) |
-| 6 · Oct 5 – 8 | Direct transcription; polynomial interpolation | [Continuous-Time Collocation](continuous-time-collocation.md) |
+| 6 · Oct 5 – 8 | Direct transcription; polynomial interpolation (Monday). Midterm 1: Thursday, October 8, 13:30–15:30 | [Continuous-Time Collocation](continuous-time-collocation.md) |
 | 7 · Oct 12 – 15 | A compendium of direct transcription methods; worked examples | [Continuous-Time Collocation](continuous-time-collocation.md) |
 | 8 · Oct 26 – 29 | Closing the loop by replanning; theoretical guarantees; MPC variants | [Receding-Horizon Control](receding-horizon-control.md), [MPC Variants](mpc-variants-reliability.md) |
 | 9 · Nov 2 – 5 | MPC failure handling; parametric optimization and approximate controllers | [Reliable MPC](mpc-variants-reliability.md), [Parametric Controllers](parametric-controllers.md) |
 | 10 · Nov 9 – 12 | Backward recursion, continuous spaces, and the linear quadratic regulator | [Finite-Horizon Dynamic Programming](finite-horizon-dp.md) |
-| 11 · Nov 16 – 19 | Stochastic and infinite-horizon MDPs; Bellman operators; value and policy iteration | [Stochastic DP](stochastic-dp.md), [Infinite-Horizon MDPs](infinite-horizon-mdps.md) |
+| 11 · Nov 16 – 19 | Stochastic and infinite-horizon MDPs; Bellman operators; value and policy iteration (Monday). Midterm 2: Thursday, November 19, 13:30–15:30 | [Stochastic DP](stochastic-dp.md), [Infinite-Horizon MDPs](infinite-horizon-mdps.md) |
 | 12 · Nov 23 – 26 | Regularized MDPs; weighted residuals; approximate Bellman equations | [Regularized DP](regularized-dp.md), [Weighted Residuals](weighted-residual-methods.md), [Approximate Bellman Equations](approximate-bellman-equations.md) |
-| 13 · Nov 30 – Dec 3 | Monte Carlo methods and overestimation bias; fitted Q iteration, NFQ, DQN | [Monte Carlo](monte-carlo-bellman-estimation.md), [FQI](fitted-q-iteration.md) |
+| 13 · Nov 30 – Dec 3 | Monte Carlo methods and overestimation bias; fitted Q iteration, NFQ, DQN (Monday). Final project poster session: Thursday, December 3, 13:30–15:30 at Mila | [Monte Carlo](monte-carlo-bellman-estimation.md), [FQI](fitted-q-iteration.md) |
 | 14 · Dec 7 | Amortized action optimization; stochastic gradient estimators; regularized and direct policy optimization | [Amortized Action Optimization](amortized-action-optimization.md), [Gradient Estimation](gradient-estimation.md), [Regularized Policy Learning](regularized-policy-learning.md), [Policy Gradients](policy-gradients.md) |
+
+The poster session is on December 3, before [NeurIPS 2026](https://neurips.cc/Conferences/2026/Dates)
+runs December 6–13 across its sites. The final examination is during the
+December 11–22 examination period; the registrar will announce its date and room.
 
 **No class on:**
 
@@ -248,15 +256,18 @@ Changes will be announced in class and reflected on this page.
 | **Sigle** | IFT 6162 |
 | **Titre** | Apprentissage par renforcement, commande optimale |
 | **Crédits** | *À déterminer* |
-| **Trimestre** | Automne 2026 |
+| **Trimestre** | Automne 2026 (A26) |
 | **Horaire** | Lundi 10 h 30 – 12 h 29 et jeudi 13 h 30 – 15 h 29; du 31 août au 16 octobre et du 26 octobre au 9 décembre 2026 (14 semaines de cours, ~25 séances) |
-| **Local** | Campus Montréal, local *à déterminer* |
+| **Local** | Mila, Auditorium 1, 6650 rue Saint-Urbain, 2e étage, Montréal |
 | **Enseignant** | Pierre-Luc Bacon |
-| **Courriel** | *À déterminer* |
+| **Courriel** | <pierre-luc.bacon@mila.quebec> |
 | **Disponibilités** | *À déterminer* |
 | **Auxiliaires d'enseignement** | *À déterminer* |
 | **Langue d'enseignement** | *À déterminer* (le matériel du cours est en anglais) |
 | **Site du cours** | <https://pierrelucbacon.com/rlbook/> |
+
+**Accès à Mila.** Les portes sont déverrouillées le lundi de 10 h 15 à 10 h 45
+et le jeudi de 13 h 15 à 13 h 45.
 
 ## Description
 
@@ -368,10 +379,10 @@ Recommandées pour approfondir certains sujets ; aucune n'est obligatoire.
 
 | Élément | Pondération | Échéance |
 |---|---|---|
-| Projet appliqué | 30 % | *À déterminer* |
-| Premier examen de mi-session en classe | 15 % | *À déterminer* |
-| Deuxième examen de mi-session en classe | 15 % | *À déterminer* |
-| Examen final en classe | 40 % | *À déterminer* |
+| Premier examen de mi-session en classe | 15 % | Jeudi 8 octobre 2026, de 13 h 30 à 15 h 30 |
+| Deuxième examen de mi-session en classe | 15 % | Jeudi 19 novembre 2026, de 13 h 30 à 15 h 30 |
+| Séance de présentation des affiches du projet final | 30 % | Jeudi 3 décembre 2026, de 13 h 30 à 15 h 30, à Mila |
+| Examen final | 40 % | Période d'examens du 11 au 22 décembre 2026 ; date et local fixés par le registrariat |
 | **Total** | **100 %** | |
 
 Les trois examens se font en personne, sur papier, sans appareil électronique
@@ -405,7 +416,8 @@ sont *à déterminer*.
 Le cours a lieu **deux fois par semaine**, le lundi de 10 h 30 à 12 h 29 et le
 jeudi de 13 h 30 à 15 h 29, sur **14 semaines de cours**, soit environ 25
 séances au total. Chaque ligne ci-dessous couvre donc deux séances, sauf lorsqu'un
-congé s'intercale. Le rythme est indicatif et sera ajusté au fil du trimestre.
+congé ou une évaluation s'intercale. Le rythme est indicatif et sera ajusté au fil
+du trimestre.
 
 | Semaine | Sujet | Lecture |
 |---|---|---|
@@ -414,15 +426,21 @@ congé s'intercale. Le rythme est indicatif et sera ajusté au fil du trimestre.
 | 3 · 14 – 17 sept. | Dynamique stochastique ; observation partielle ; programmes et données comme interfaces de modèle | [Stochastic Dynamics](stochastic-dynamics-observation.md), [Model Interfaces](model-interfaces.md) |
 | 4 · 21 – 24 sept. | Problèmes de commande optimale en temps discret ; existence et conditions d'optimalité | [Finite-Horizon Optimal Control](discrete-time-optimal-control.md) |
 | 5 · 28 sept. – 1<sup>er</sup> oct. | États adjoints et principe de Pontryagin ; tir simple et tir multiple | [Discrete-Time PMP](discrete-time-pmp.md), [Numerical Trajectory Optimization](numerical-trajectory-optimization.md) |
-| 6 · 5 – 8 oct. | Transcription directe ; interpolation polynomiale | [Continuous-Time Collocation](continuous-time-collocation.md) |
+| 6 · 5 – 8 oct. | Transcription directe ; interpolation polynomiale (lundi). Premier examen de mi-session : jeudi 8 octobre, de 13 h 30 à 15 h 30 | [Continuous-Time Collocation](continuous-time-collocation.md) |
 | 7 · 12 – 15 oct. | Panorama des méthodes de transcription directe ; exemples détaillés | [Continuous-Time Collocation](continuous-time-collocation.md) |
 | 8 · 26 – 29 oct. | Boucler la boucle par replanification ; garanties théoriques ; variantes de commande prédictive | [Receding-Horizon Control](receding-horizon-control.md), [MPC Variants](mpc-variants-reliability.md) |
 | 9 · 2 – 5 nov. | Gestion des défaillances en commande prédictive ; optimisation paramétrique et contrôleurs approchés | [Reliable MPC](mpc-variants-reliability.md), [Parametric Controllers](parametric-controllers.md) |
 | 10 · 9 – 12 nov. | Récurrence arrière, espaces continus et régulateur linéaire quadratique | [Finite-Horizon Dynamic Programming](finite-horizon-dp.md) |
-| 11 · 16 – 19 nov. | MDP stochastiques et à horizon infini ; opérateurs de Bellman ; itérations sur la valeur et la politique | [Stochastic DP](stochastic-dp.md), [Infinite-Horizon MDPs](infinite-horizon-mdps.md) |
+| 11 · 16 – 19 nov. | MDP stochastiques et à horizon infini ; opérateurs de Bellman ; itérations sur la valeur et la politique (lundi). Deuxième examen de mi-session : jeudi 19 novembre, de 13 h 30 à 15 h 30 | [Stochastic DP](stochastic-dp.md), [Infinite-Horizon MDPs](infinite-horizon-mdps.md) |
 | 12 · 23 – 26 nov. | MDP régularisés ; résidus pondérés ; équations de Bellman approchées | [Regularized DP](regularized-dp.md), [Weighted Residuals](weighted-residual-methods.md), [Approximate Bellman Equations](approximate-bellman-equations.md) |
-| 13 · 30 nov. – 3 déc. | Méthodes de Monte-Carlo et biais de surestimation ; itération sur $Q$ ajustée, NFQ, DQN | [Monte Carlo](monte-carlo-bellman-estimation.md), [FQI](fitted-q-iteration.md) |
+| 13 · 30 nov. – 3 déc. | Méthodes de Monte-Carlo et biais de surestimation ; itération sur $Q$ ajustée, NFQ, DQN (lundi). Séance de présentation des affiches du projet final : jeudi 3 décembre, de 13 h 30 à 15 h 30, à Mila | [Monte Carlo](monte-carlo-bellman-estimation.md), [FQI](fitted-q-iteration.md) |
 | 14 · 7 déc. | Optimisation amortie des actions ; estimateurs de gradient stochastique ; optimisation régularisée et directe des politiques | [Amortized Action Optimization](amortized-action-optimization.md), [Gradient Estimation](gradient-estimation.md), [Regularized Policy Learning](regularized-policy-learning.md), [Policy Gradients](policy-gradients.md) |
+
+La séance de présentation des affiches a lieu le 3 décembre, avant
+[NeurIPS 2026](https://neurips.cc/Conferences/2026/Dates), qui se déroule du 6 au
+13 décembre sur ses différents sites. L'examen final aura lieu pendant la
+période d'examens du 11 au 22 décembre ; le registrariat annoncera sa date et
+son local.
 
 **Aucune séance :**
 
