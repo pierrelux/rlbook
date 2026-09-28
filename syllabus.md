@@ -142,7 +142,7 @@ These are recommended for depth on particular topics; none is required.
 | In-class midterm 1 | 15% | Thursday, October 8, 2026, 13:30–15:30 |
 | In-class midterm 2 | 15% | Thursday, November 19, 2026, 13:30–15:30 |
 | Final project poster session | 30% | Thursday, December 3, 2026, 13:30–15:30 at Mila |
-| Final examination | 40% | December 10–23, 2026 examination period; date and room assigned by the registrar |
+| Final examination | 40% | Monday, December 14, 2026, 10:30–12:30, Mila, Auditorium 1 |
 | **Total** | **100%** | |
 
 The three examinations are completed in person on paper, without electronic
@@ -195,8 +195,8 @@ Pacing is indicative and will be adjusted as the term goes on.
 | 14 · Dec 7 | Amortized action optimization; stochastic gradient estimators; regularized and direct policy optimization | [Amortized Action Optimization](amortized-action-optimization.md), [Gradient Estimation](gradient-estimation.md), [Regularized Policy Learning](regularized-policy-learning.md), [Policy Gradients](policy-gradients.md) |
 
 The poster session is on December 3, before [NeurIPS 2026](https://neurips.cc/Conferences/2026/Dates)
-runs December 6–13 across its sites. The final examination is during the
-December 10–23 examination period; the registrar will announce its date and room.
+runs December 6–13 across its sites. The final examination is on Monday,
+December 14, 10:30–12:30, in Auditorium 1 at Mila.
 
 **No class on:**
 
@@ -382,7 +382,7 @@ Recommandées pour approfondir certains sujets ; aucune n'est obligatoire.
 | Premier examen de mi-session en classe | 15 % | Jeudi 8 octobre 2026, de 13 h 30 à 15 h 30 |
 | Deuxième examen de mi-session en classe | 15 % | Jeudi 19 novembre 2026, de 13 h 30 à 15 h 30 |
 | Séance de présentation des affiches du projet final | 30 % | Jeudi 3 décembre 2026, de 13 h 30 à 15 h 30, à Mila |
-| Examen final | 40 % | Période d'examens du 11 au 22 décembre 2026 ; date et local fixés par le registrariat |
+| Examen final | 40 % | Lundi 14 décembre 2026, de 10 h 30 à 12 h 30, à Mila (Auditorium 1) |
 | **Total** | **100 %** | |
 
 Les trois examens se font en personne, sur papier, sans appareil électronique
@@ -438,9 +438,8 @@ du trimestre.
 
 La séance de présentation des affiches a lieu le 3 décembre, avant
 [NeurIPS 2026](https://neurips.cc/Conferences/2026/Dates), qui se déroule du 6 au
-13 décembre sur ses différents sites. L'examen final aura lieu pendant la
-période d'examens du 11 au 22 décembre ; le registrariat annoncera sa date et
-son local.
+13 décembre sur ses différents sites. L'examen final aura lieu le
+lundi 14 décembre, de 10 h 30 à 12 h 30, à l'Auditorium 1 de Mila.
 
 **Aucune séance :**
 
