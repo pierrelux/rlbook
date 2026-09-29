@@ -1,0 +1,1106 @@
+{
+  "acceptance": {
+    "accepted_for_mixed_serving_thermal_constraints": false,
+    "all_criteria_passed": false,
+    "criteria": {
+      "asymptotically_stable": {
+        "passed": true,
+        "required": true,
+        "value": true
+      },
+      "full_jacobian_rank": {
+        "jacobian_numerical_rank": 4,
+        "parameter_count": 4,
+        "passed": true,
+        "required": true
+      },
+      "locally_identifiable": {
+        "condition_number_limit": 100000000.0,
+        "passed": true,
+        "required": true,
+        "value": true
+      },
+      "optimizer_success": {
+        "passed": true,
+        "required": true,
+        "value": true
+      },
+      "physical_parameters": {
+        "passed": true,
+        "required": true,
+        "value": true
+      },
+      "replicated_multistart_solution": {
+        "minimum_required_for_each": 2,
+        "near_optimal_multistarts_within_one_percent": 10,
+        "passed": true,
+        "required": true,
+        "successful_multistarts": 10
+      },
+      "validation_maximum_absolute_or_peak_error": {
+        "maximum_absolute_per_pulse_peak_error_c": 1.1894546061778755,
+        "maximum_absolute_trajectory_error_c": 2.7310039794374816,
+        "operator": "<",
+        "passed": false,
+        "threshold_c": 1.0,
+        "value_c": 2.7310039794374816
+      },
+      "validation_phase_contrast_error": {
+        "absolute_error_c": 1.431289590989124,
+        "contrast_definition": "prefill minus decode peak temperature rise on the separate one-second validation grids",
+        "observed_contrast_c": 2.0,
+        "operator": "<",
+        "passed": false,
+        "predicted_contrast_c": 3.431289590989124,
+        "signed_error_c": 1.431289590989124,
+        "threshold_c": 1.0
+      },
+      "validation_rmse": {
+        "operator": "<",
+        "passed": true,
+        "threshold_c": 1.0,
+        "value_c": 0.8696553321716621
+      }
+    },
+    "rule": "all validation errors are strictly below 1 C and the fitted parameters are physical, stable, locally identified, full-rank, and reproduced by at least two successful near-optimal starts",
+    "target_model": "phase_gain_one_state_rc",
+    "verdict": "rejected"
+  },
+  "measured_power_and_energy": {
+    "matched_phase_pairs": {
+      "phase_training": {
+        "46": {
+          "decode_block_id": "phase_training_pulse_00",
+          "prefill_block_id": "phase_training_pulse_02",
+          "prefill_minus_decode_energy_j": -32.1978992984109,
+          "prefill_minus_decode_mean_power_w": -0.4001689470273746,
+          "prefill_to_decode_energy_ratio": 0.9907484796043877
+        },
+        "61": {
+          "decode_block_id": "phase_training_pulse_03",
+          "prefill_block_id": "phase_training_pulse_01",
+          "prefill_minus_decode_energy_j": 12.085332144686163,
+          "prefill_minus_decode_mean_power_w": 0.21912438525099986,
+          "prefill_to_decode_energy_ratio": 1.0044500143189368
+        }
+      },
+      "phase_validation": {
+        "55": {
+          "decode_block_id": "phase_validation_pulse_00",
+          "prefill_block_id": "phase_validation_pulse_01",
+          "prefill_minus_decode_energy_j": -6.664176432056593,
+          "prefill_minus_decode_mean_power_w": -0.13225922291921677,
+          "prefill_to_decode_energy_ratio": 0.9979678296957712
+        }
+      }
+    },
+    "per_pulse": {
+      "phase_training_pulse_00": {
+        "completed_batch_count": 20,
+        "completed_request_rows": 160,
+        "duration_s": 74.92543761399997,
+        "end_temperature_c": 64.0,
+        "first_peak_time_s": 69.52500172099997,
+        "first_request_start_offset_s": -0.051125045000048885,
+        "integrated_energy_j": 3480.2819343814344,
+        "last_peak_time_s": 73.42413511799998,
+        "last_request_end_offset_s": 1.5581068950000372,
+        "maximum_realized_graphics_clock_mhz": 2040.0,
+        "maximum_sampling_gap_s": 0.11039053500007867,
+        "mean_utilization_percent": 98.90921228304406,
+        "median_memory_clock_mhz": 6251.0,
+        "median_realized_graphics_clock_mhz": 210.0,
+        "minimum_realized_graphics_clock_mhz": 210.0,
+        "peak_rise_c": 12.0,
+        "peak_sample_count": 6,
+        "peak_temperature_c": 65.0,
+        "raw_rows": 749,
+        "request_coverage_fraction": 0.9995598104722484,
+        "requested_power_limit_w": 46.0,
+        "start_temperature_c": 53.0,
+        "terminal_rise_c": 11.0,
+        "time_weighted_mean_power_w": 46.44993803454458,
+        "workload_phase": "decode"
+      },
+      "phase_training_pulse_01": {
+        "completed_batch_count": 5,
+        "completed_request_rows": 40,
+        "duration_s": 44.906093021000174,
+        "end_temperature_c": 70.0,
+        "first_peak_time_s": 41.59651763299996,
+        "first_request_start_offset_s": -0.05691981199993279,
+        "integrated_energy_j": 2727.8815697562095,
+        "last_peak_time_s": 44.906093021000174,
+        "last_request_end_offset_s": 7.550731947999793,
+        "maximum_realized_graphics_clock_mhz": 2040.0,
+        "maximum_sampling_gap_s": 0.1082954940000036,
+        "mean_utilization_percent": 99.47884187082406,
+        "median_memory_clock_mhz": 6251.0,
+        "median_realized_graphics_clock_mhz": 855.0,
+        "minimum_realized_graphics_clock_mhz": 705.0,
+        "peak_rise_c": 16.0,
+        "peak_sample_count": 30,
+        "peak_temperature_c": 70.0,
+        "raw_rows": 449,
+        "request_coverage_fraction": 0.9998008011519526,
+        "requested_power_limit_w": 61.0,
+        "start_temperature_c": 54.0,
+        "terminal_rise_c": 16.0,
+        "time_weighted_mean_power_w": 60.746357258925315,
+        "workload_phase": "prefill"
+      },
+      "phase_training_pulse_02": {
+        "completed_batch_count": 5,
+        "completed_request_rows": 40,
+        "duration_s": 74.87733605199992,
+        "end_temperature_c": 66.0,
+        "first_peak_time_s": 73.16419886999984,
+        "first_request_start_offset_s": -0.07496849100016334,
+        "integrated_energy_j": 3448.0840350830235,
+        "last_peak_time_s": 74.67715177399987,
+        "last_request_end_offset_s": 14.953618433999964,
+        "maximum_realized_graphics_clock_mhz": 780.0,
+        "maximum_sampling_gap_s": 0.11270664300036515,
+        "mean_utilization_percent": 99.68005354752343,
+        "median_memory_clock_mhz": 6251.0,
+        "median_realized_graphics_clock_mhz": 480.0,
+        "minimum_realized_graphics_clock_mhz": 360.0,
+        "peak_rise_c": 10.0,
+        "peak_sample_count": 6,
+        "peak_temperature_c": 67.0,
+        "raw_rows": 747,
+        "request_coverage_fraction": 0.9997704880554521,
+        "requested_power_limit_w": 46.0,
+        "start_temperature_c": 57.0,
+        "terminal_rise_c": 9.0,
+        "time_weighted_mean_power_w": 46.049769087517205,
+        "workload_phase": "prefill"
+      },
+      "phase_training_pulse_03": {
+        "completed_batch_count": 21,
+        "completed_request_rows": 168,
+        "duration_s": 44.86899712200011,
+        "end_temperature_c": 69.0,
+        "first_peak_time_s": 44.86899712200011,
+        "first_request_start_offset_s": -0.06943937899995944,
+        "integrated_energy_j": 2715.7962376115233,
+        "last_peak_time_s": 44.86899712200011,
+        "last_request_end_offset_s": 1.9331424859997242,
+        "maximum_realized_graphics_clock_mhz": 1725.0,
+        "maximum_sampling_gap_s": 0.11982493300001806,
+        "mean_utilization_percent": 98.71651785714286,
+        "median_memory_clock_mhz": 6251.0,
+        "median_realized_graphics_clock_mhz": 1140.0,
+        "minimum_realized_graphics_clock_mhz": 615.0,
+        "peak_rise_c": 13.0,
+        "peak_sample_count": 1,
+        "peak_temperature_c": 69.0,
+        "raw_rows": 448,
+        "request_coverage_fraction": 0.9991974290421181,
+        "requested_power_limit_w": 61.0,
+        "start_temperature_c": 56.0,
+        "terminal_rise_c": 13.0,
+        "time_weighted_mean_power_w": 60.527232873674315,
+        "workload_phase": "decode"
+      },
+      "phase_validation_pulse_00": {
+        "completed_batch_count": 24,
+        "completed_request_rows": 192,
+        "duration_s": 59.92533942399996,
+        "end_temperature_c": 68.0,
+        "first_peak_time_s": 57.09476940700006,
+        "first_request_start_offset_s": -0.06804972999998427,
+        "integrated_energy_j": 3279.3395406816717,
+        "last_peak_time_s": 59.92533942399996,
+        "last_request_end_offset_s": 2.1620938320002097,
+        "maximum_realized_graphics_clock_mhz": 1320.0,
+        "maximum_sampling_gap_s": 0.1218580810000276,
+        "mean_utilization_percent": 98.90050590219224,
+        "median_memory_clock_mhz": 6251.0,
+        "median_realized_graphics_clock_mhz": 345.0,
+        "minimum_realized_graphics_clock_mhz": 270.0,
+        "peak_rise_c": 12.0,
+        "peak_sample_count": 5,
+        "peak_temperature_c": 68.0,
+        "raw_rows": 593,
+        "request_coverage_fraction": 0.999321809965709,
+        "requested_power_limit_w": 55.0,
+        "start_temperature_c": 56.0,
+        "terminal_rise_c": 12.0,
+        "time_weighted_mean_power_w": 54.723754128096,
+        "workload_phase": "decode"
+      },
+      "phase_validation_pulse_01": {
+        "completed_batch_count": 5,
+        "completed_request_rows": 40,
+        "duration_s": 59.948447462999866,
+        "end_temperature_c": 69.0,
+        "first_peak_time_s": 59.84963847100016,
+        "first_request_start_offset_s": -0.026281500000095548,
+        "integrated_energy_j": 3272.675364249615,
+        "last_peak_time_s": 59.84963847100016,
+        "last_request_end_offset_s": 3.1734457980001025,
+        "maximum_realized_graphics_clock_mhz": 2040.0,
+        "maximum_sampling_gap_s": 0.11724501000026066,
+        "mean_utilization_percent": 99.41750841750842,
+        "median_memory_clock_mhz": 6251.0,
+        "median_realized_graphics_clock_mhz": 705.0,
+        "minimum_realized_graphics_clock_mhz": 585.0,
+        "peak_rise_c": 16.0,
+        "peak_sample_count": 1,
+        "peak_temperature_c": 70.0,
+        "raw_rows": 594,
+        "request_coverage_fraction": 0.9998456175699073,
+        "requested_power_limit_w": 55.0,
+        "start_temperature_c": 54.0,
+        "terminal_rise_c": 15.0,
+        "time_weighted_mean_power_w": 54.59149490517678,
+        "workload_phase": "prefill"
+      }
+    }
+  },
+  "method": "pre-registered one-second level fits using measured power; exact-discrete free-run trajectories; no temperature finite differences",
+  "model_comparison": {
+    "phase_gain_minus_power_only_training_rmse_c": -0.5699168839735372,
+    "phase_gain_minus_power_only_validation_rmse_c": -0.5576435879437723,
+    "validation_was_not_used_to_choose_or_refit_a_model": true
+  },
+  "models": {
+    "phase_gain_one_state_rc": {
+      "acceptance": {
+        "accepted_for_mixed_serving_thermal_constraints": false,
+        "all_criteria_passed": false,
+        "criteria": {
+          "asymptotically_stable": {
+            "passed": true,
+            "required": true,
+            "value": true
+          },
+          "full_jacobian_rank": {
+            "jacobian_numerical_rank": 4,
+            "parameter_count": 4,
+            "passed": true,
+            "required": true
+          },
+          "locally_identifiable": {
+            "condition_number_limit": 100000000.0,
+            "passed": true,
+            "required": true,
+            "value": true
+          },
+          "optimizer_success": {
+            "passed": true,
+            "required": true,
+            "value": true
+          },
+          "physical_parameters": {
+            "passed": true,
+            "required": true,
+            "value": true
+          },
+          "replicated_multistart_solution": {
+            "minimum_required_for_each": 2,
+            "near_optimal_multistarts_within_one_percent": 10,
+            "passed": true,
+            "required": true,
+            "successful_multistarts": 10
+          },
+          "validation_maximum_absolute_or_peak_error": {
+            "maximum_absolute_per_pulse_peak_error_c": 1.1894546061778755,
+            "maximum_absolute_trajectory_error_c": 2.7310039794374816,
+            "operator": "<",
+            "passed": false,
+            "threshold_c": 1.0,
+            "value_c": 2.7310039794374816
+          },
+          "validation_phase_contrast_error": {
+            "absolute_error_c": 1.431289590989124,
+            "contrast_definition": "prefill minus decode peak temperature rise on the separate one-second validation grids",
+            "observed_contrast_c": 2.0,
+            "operator": "<",
+            "passed": false,
+            "predicted_contrast_c": 3.431289590989124,
+            "signed_error_c": 1.431289590989124,
+            "threshold_c": 1.0
+          },
+          "validation_rmse": {
+            "operator": "<",
+            "passed": true,
+            "threshold_c": 1.0,
+            "value_c": 0.8696553321716621
+          }
+        },
+        "rule": "all validation errors are strictly below 1 C and the fitted parameters are physical, stable, locally identified, full-rank, and reproduced by at least two successful near-optimal starts",
+        "verdict": "rejected"
+      },
+      "final_training_fit": {
+        "diagnostics": {
+          "asymptotically_stable": true,
+          "continuous_poles_per_s": [
+            -0.0318869625164589
+          ],
+          "discrete_poles_at_one_second": [
+            0.9686160658137951
+          ],
+          "jacobian_condition_number": 383.71782775965926,
+          "jacobian_numerical_rank": 4,
+          "jacobian_singular_values": [
+            319.45296852419114,
+            112.22875911445492,
+            24.48138974043549,
+            0.8325205278819616
+          ],
+          "locally_identifiable": true,
+          "measured_power_span_w": 28.239967611099537,
+          "minimum_transformed_bound_margin": 0.9613164586528914,
+          "near_optimal_multistarts_within_one_percent": 10,
+          "near_optimal_transformed_parameter_spread": [
+            2.938227671478444e-05,
+            1.7511905670009043e-06,
+            2.5330167012782567e-06,
+            1.5659321020433659e-07
+          ],
+          "optimizer_evaluations": 15,
+          "optimizer_message": "`ftol` termination condition is satisfied.",
+          "optimizer_success": true,
+          "parameter_count": 4,
+          "positive_effective_power_gain": true,
+          "positive_thermal_parameters": true,
+          "prefill_power_gain_bounds": [
+            0.25,
+            3.0
+          ],
+          "successful_multistarts": 10,
+          "training_phase_counts": {
+            "decode": 2,
+            "prefill": 2
+          }
+        },
+        "objective_sum_squared_c": 199.08673431958547,
+        "parameters": {
+          "ambient_temperature_c": 39.565264405145506,
+          "beta": 0.14716746489653754,
+          "prefill_power_gain": 1.1471674648965375,
+          "thermal_capacitance_j_per_c": 60.7439434241958,
+          "thermal_resistance_c_per_w": 0.5162782940900783,
+          "thermal_time_constant_s": 31.360779487348037
+        }
+      },
+      "training_evaluation": {
+        "aggregate": {
+          "absolute_peak_temperature_error_c": 0.3300028569910154,
+          "mae_c": 0.6777106268982217,
+          "maximum_absolute_error_c": 3.57323569770346,
+          "maximum_absolute_per_pulse_peak_error_c": 2.327178649671488,
+          "mean_absolute_per_pulse_peak_error_c": 0.8148697090716244,
+          "mean_residual_c": -0.1528676043324373,
+          "peak_temperature_error_c": 0.3300028569910154,
+          "pulse_count": 4,
+          "residual_autocorrelation": {
+            "lag_10_s": 0.3851586565082845,
+            "lag_1_s": 0.7594482568295176,
+            "lag_30_s": -0.4326594954692055,
+            "lag_5_s": 0.64678780121846
+          },
+          "rmse_c": 0.9184703899889092,
+          "sample_count": 236
+        },
+        "per_pulse": {
+          "phase_training_pulse_00": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 2.327178649671488,
+              "mae_c": 0.6929539993478689,
+              "maximum_absolute_error_c": 2.345832273171773,
+              "mean_residual_c": 0.04799837746819383,
+              "peak_temperature_error_c": -2.327178649671488,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.3749162732875332,
+                "lag_1_s": 0.7056586133971943,
+                "lag_30_s": -0.39224085262559893,
+                "lag_5_s": 0.5462359771759685
+              },
+              "rmse_c": 0.8271660765912097,
+              "sample_count": 74
+            },
+            "requested_power_limit_w": 46.0,
+            "scheduled_duration_s": 75.0,
+            "workload_phase": "decode"
+          },
+          "phase_training_pulse_01": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 0.3300028569910154,
+              "mae_c": 1.049238070642173,
+              "maximum_absolute_error_c": 3.57323569770346,
+              "mean_residual_c": -0.63912230818908,
+              "peak_temperature_error_c": 0.3300028569910154,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.8120475744826366,
+                "lag_1_s": 0.9265849932638685,
+                "lag_30_s": -0.37949759276269873,
+                "lag_5_s": 0.899126946591525
+              },
+              "rmse_c": 1.4616833245958438,
+              "sample_count": 44
+            },
+            "requested_power_limit_w": 61.0,
+            "scheduled_duration_s": 45.0,
+            "workload_phase": "prefill"
+          },
+          "phase_training_pulse_02": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 0.3303383582480848,
+              "mae_c": 0.4762794154895177,
+              "maximum_absolute_error_c": 1.75643032393031,
+              "mean_residual_c": -0.06953399437356861,
+              "peak_temperature_error_c": -0.3303383582480848,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.3130616739386235,
+                "lag_1_s": 0.7909492103160034,
+                "lag_30_s": -0.46860084369339644,
+                "lag_5_s": 0.6176094187232081
+              },
+              "rmse_c": 0.6047083099792162,
+              "sample_count": 74
+            },
+            "requested_power_limit_w": 46.0,
+            "scheduled_duration_s": 75.0,
+            "workload_phase": "prefill"
+          },
+          "phase_training_pulse_03": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 0.2719589713759092,
+              "mae_c": 0.6193172759490477,
+              "maximum_absolute_error_c": 1.9376835659166645,
+              "mean_residual_c": -0.144584941162226,
+              "peak_temperature_error_c": -0.2719589713759092,
+              "residual_autocorrelation": {
+                "lag_10_s": -0.12167334327159088,
+                "lag_1_s": 0.23784798901716292,
+                "lag_30_s": -0.3914826593779827,
+                "lag_5_s": 0.2356125951206043
+              },
+              "rmse_c": 0.7889740544003814,
+              "sample_count": 44
+            },
+            "requested_power_limit_w": 61.0,
+            "scheduled_duration_s": 45.0,
+            "workload_phase": "decode"
+          }
+        }
+      },
+      "validation_evaluation": {
+        "aggregate": {
+          "absolute_peak_temperature_error_c": 0.24183498481124843,
+          "mae_c": 0.6356571688854492,
+          "maximum_absolute_error_c": 2.7310039794374816,
+          "maximum_absolute_per_pulse_peak_error_c": 1.1894546061778755,
+          "mean_absolute_per_pulse_peak_error_c": 0.715644795494562,
+          "mean_residual_c": -0.23968855826985025,
+          "peak_temperature_error_c": 0.24183498481124843,
+          "pulse_count": 2,
+          "residual_autocorrelation": {
+            "lag_10_s": 0.44935952489567843,
+            "lag_1_s": 0.6334436806775302,
+            "lag_30_s": -0.42030937068661134,
+            "lag_5_s": 0.7460526617993001
+          },
+          "rmse_c": 0.8696553321716621,
+          "sample_count": 118
+        },
+        "evaluation_passes": 1,
+        "matched_55w_decode_prefill": {
+          "decode": {
+            "block_id": "phase_validation_pulse_00",
+            "metrics": {
+              "absolute_peak_temperature_error_c": 1.1894546061778755,
+              "mae_c": 0.520557114109162,
+              "maximum_absolute_error_c": 2.114305337687881,
+              "mean_residual_c": -0.26757864468056614,
+              "peak_temperature_error_c": -1.1894546061778755,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.14917326346868182,
+                "lag_1_s": 0.17954036890943426,
+                "lag_30_s": -0.4380451894208547,
+                "lag_5_s": 0.5854017732608131
+              },
+              "rmse_c": 0.6869514834100526,
+              "sample_count": 59
+            },
+            "observed_peak_rise_c": 13.0,
+            "observed_peak_temperature_c": 67.0,
+            "predicted_peak_rise_c": 11.810545393822125,
+            "predicted_peak_temperature_c": 65.81054539382212
+          },
+          "matching_rule": "55 W requested cap, 60 s duration, cold start",
+          "observed_prefill_minus_decode_peak_c": 2.0,
+          "observed_prefill_minus_decode_peak_rise_c": 2.0,
+          "predicted_prefill_minus_decode_peak_c": 3.431289590989124,
+          "predicted_prefill_minus_decode_peak_rise_c": 3.431289590989124,
+          "prefill": {
+            "block_id": "phase_validation_pulse_01",
+            "metrics": {
+              "absolute_peak_temperature_error_c": 0.24183498481124843,
+              "mae_c": 0.7507572236617366,
+              "maximum_absolute_error_c": 2.7310039794374816,
+              "mean_residual_c": -0.21179847185913436,
+              "peak_temperature_error_c": 0.24183498481124843,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.6801954658119723,
+                "lag_1_s": 0.825644728155473,
+                "lag_30_s": -0.23021727891780228,
+                "lag_5_s": 0.8344780018210952
+              },
+              "rmse_c": 1.0201462899946931,
+              "sample_count": 59
+            },
+            "observed_peak_rise_c": 15.0,
+            "observed_peak_temperature_c": 69.0,
+            "predicted_peak_rise_c": 15.241834984811248,
+            "predicted_peak_temperature_c": 69.24183498481125
+          }
+        },
+        "per_pulse": {
+          "phase_validation_pulse_00": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 1.1894546061778755,
+              "mae_c": 0.520557114109162,
+              "maximum_absolute_error_c": 2.114305337687881,
+              "mean_residual_c": -0.26757864468056614,
+              "peak_temperature_error_c": -1.1894546061778755,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.14917326346868182,
+                "lag_1_s": 0.17954036890943426,
+                "lag_30_s": -0.4380451894208547,
+                "lag_5_s": 0.5854017732608131
+              },
+              "rmse_c": 0.6869514834100526,
+              "sample_count": 59
+            },
+            "requested_power_limit_w": 55.0,
+            "scheduled_duration_s": 60.0,
+            "workload_phase": "decode"
+          },
+          "phase_validation_pulse_01": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 0.24183498481124843,
+              "mae_c": 0.7507572236617366,
+              "maximum_absolute_error_c": 2.7310039794374816,
+              "mean_residual_c": -0.21179847185913436,
+              "peak_temperature_error_c": 0.24183498481124843,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.6801954658119723,
+                "lag_1_s": 0.825644728155473,
+                "lag_30_s": -0.23021727891780228,
+                "lag_5_s": 0.8344780018210952
+              },
+              "rmse_c": 1.0201462899946931,
+              "sample_count": 59
+            },
+            "requested_power_limit_w": 55.0,
+            "scheduled_duration_s": 60.0,
+            "workload_phase": "prefill"
+          }
+        }
+      }
+    },
+    "power_only_one_state_rc": {
+      "acceptance": {
+        "accepted_for_mixed_serving_thermal_constraints": false,
+        "all_criteria_passed": false,
+        "criteria": {
+          "asymptotically_stable": {
+            "passed": true,
+            "required": true,
+            "value": true
+          },
+          "full_jacobian_rank": {
+            "jacobian_numerical_rank": 3,
+            "parameter_count": 3,
+            "passed": true,
+            "required": true
+          },
+          "locally_identifiable": {
+            "condition_number_limit": 100000000.0,
+            "passed": true,
+            "required": true,
+            "value": true
+          },
+          "optimizer_success": {
+            "passed": true,
+            "required": true,
+            "value": true
+          },
+          "physical_parameters": {
+            "passed": true,
+            "required": true,
+            "value": true
+          },
+          "replicated_multistart_solution": {
+            "minimum_required_for_each": 2,
+            "near_optimal_multistarts_within_one_percent": 10,
+            "passed": true,
+            "required": true,
+            "successful_multistarts": 10
+          },
+          "validation_maximum_absolute_or_peak_error": {
+            "maximum_absolute_per_pulse_peak_error_c": 1.1228406146562264,
+            "maximum_absolute_trajectory_error_c": 2.8851109832398976,
+            "operator": "<",
+            "passed": false,
+            "threshold_c": 1.0,
+            "value_c": 2.8851109832398976
+          },
+          "validation_phase_contrast_error": {
+            "absolute_error_c": 2.103189848480042,
+            "contrast_definition": "prefill minus decode peak temperature rise on the separate one-second validation grids",
+            "observed_contrast_c": 2.0,
+            "operator": "<",
+            "passed": false,
+            "predicted_contrast_c": -0.1031898484800422,
+            "signed_error_c": -2.103189848480042,
+            "threshold_c": 1.0
+          },
+          "validation_rmse": {
+            "operator": "<",
+            "passed": false,
+            "threshold_c": 1.0,
+            "value_c": 1.4272989201154345
+          }
+        },
+        "rule": "all validation errors are strictly below 1 C and the fitted parameters are physical, stable, locally identified, full-rank, and reproduced by at least two successful near-optimal starts",
+        "verdict": "rejected"
+      },
+      "final_training_fit": {
+        "diagnostics": {
+          "asymptotically_stable": true,
+          "continuous_poles_per_s": [
+            -0.027371588697128024
+          ],
+          "discrete_poles_at_one_second": [
+            0.9729996186804056
+          ],
+          "jacobian_condition_number": 402.6688924636258,
+          "jacobian_numerical_rank": 3,
+          "jacobian_singular_values": [
+            283.6011917611884,
+            23.946932552621675,
+            0.7043037022950732
+          ],
+          "locally_identifiable": true,
+          "measured_power_span_w": 28.239967611099537,
+          "minimum_transformed_bound_margin": 2.7791486090646016,
+          "near_optimal_multistarts_within_one_percent": 10,
+          "near_optimal_transformed_parameter_spread": [
+            7.673399359475752e-05,
+            3.555262910015511e-06,
+            4.250347563239387e-06
+          ],
+          "optimizer_evaluations": 19,
+          "optimizer_message": "`ftol` termination condition is satisfied.",
+          "optimizer_success": true,
+          "parameter_count": 3,
+          "positive_thermal_parameters": true,
+          "successful_multistarts": 10
+        },
+        "objective_sum_squared_c": 522.8100158412334,
+        "parameters": {
+          "ambient_temperature_c": 37.34514311778845,
+          "thermal_capacitance_j_per_c": 58.839490021295305,
+          "thermal_resistance_c_per_w": 0.6209134889138616,
+          "thermal_time_constant_s": 36.53423303503481
+        }
+      },
+      "training_evaluation": {
+        "aggregate": {
+          "absolute_peak_temperature_error_c": 1.180777033656753,
+          "mae_c": 1.3096144338046691,
+          "maximum_absolute_error_c": 3.656166289255978,
+          "maximum_absolute_per_pulse_peak_error_c": 1.6994142857170118,
+          "mean_absolute_per_pulse_peak_error_c": 1.226040289093472,
+          "mean_residual_c": -0.2023489851680041,
+          "peak_temperature_error_c": -1.180777033656753,
+          "pulse_count": 4,
+          "residual_autocorrelation": {
+            "lag_10_s": 0.8282221981983825,
+            "lag_1_s": 0.9117619226894861,
+            "lag_30_s": 0.5589980012360515,
+            "lag_5_s": 0.8849936892817001
+          },
+          "rmse_c": 1.4883872739624464,
+          "sample_count": 236
+        },
+        "per_pulse": {
+          "phase_training_pulse_00": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 0.42764190858825657,
+              "mae_c": 1.1980967775237823,
+              "maximum_absolute_error_c": 2.3035293505014423,
+              "mean_residual_c": 1.086009365632016,
+              "peak_temperature_error_c": -0.42764190858825657,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.28678750209871096,
+                "lag_1_s": 0.6813785260919679,
+                "lag_30_s": -0.44832880955526017,
+                "lag_5_s": 0.49986683039607566
+              },
+              "rmse_c": 1.3487155351661482,
+              "sample_count": 74
+            },
+            "requested_power_limit_w": 46.0,
+            "scheduled_duration_s": 75.0,
+            "workload_phase": "decode"
+          },
+          "phase_training_pulse_01": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 1.180777033656753,
+              "mae_c": 1.8010806228301723,
+              "maximum_absolute_error_c": 3.656166289255978,
+              "mean_residual_c": -1.8010806228301723,
+              "peak_temperature_error_c": -1.180777033656753,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.6844914940053667,
+                "lag_1_s": 0.8516456835734085,
+                "lag_30_s": -0.5222860814243605,
+                "lag_5_s": 0.8133141279117726
+              },
+              "rmse_c": 2.021755294975409,
+              "sample_count": 44
+            },
+            "requested_power_limit_w": 61.0,
+            "scheduled_duration_s": 45.0,
+            "workload_phase": "prefill"
+          },
+          "phase_training_pulse_02": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 1.596327928411867,
+              "mae_c": 1.169357410699736,
+              "maximum_absolute_error_c": 2.0932794809161663,
+              "mean_residual_c": -1.169357410699736,
+              "peak_temperature_error_c": -1.596327928411867,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.25351031303147364,
+                "lag_1_s": 0.6267444670353877,
+                "lag_30_s": -0.2929529878727606,
+                "lag_5_s": 0.4485096330816267
+              },
+              "rmse_c": 1.2494454511224107,
+              "sample_count": 74
+            },
+            "requested_power_limit_w": 46.0,
+            "scheduled_duration_s": 75.0,
+            "workload_phase": "prefill"
+          },
+          "phase_training_pulse_03": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 1.6994142857170118,
+              "mae_c": 1.241587478291682,
+              "maximum_absolute_error_c": 2.45915189802092,
+              "mean_residual_c": 0.8559305054520432,
+              "peak_temperature_error_c": 1.6994142857170118,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.4656651895085471,
+                "lag_1_s": 0.6636161939394328,
+                "lag_30_s": -0.23146731135143495,
+                "lag_5_s": 0.6286183507441672
+              },
+              "rmse_c": 1.452500522689621,
+              "sample_count": 44
+            },
+            "requested_power_limit_w": 61.0,
+            "scheduled_duration_s": 45.0,
+            "workload_phase": "decode"
+          }
+        }
+      },
+      "validation_evaluation": {
+        "aggregate": {
+          "absolute_peak_temperature_error_c": 1.0196507661761842,
+          "mae_c": 1.2816417144849135,
+          "maximum_absolute_error_c": 2.8851109832398976,
+          "maximum_absolute_per_pulse_peak_error_c": 1.1228406146562264,
+          "mean_absolute_per_pulse_peak_error_c": 1.051594924240021,
+          "mean_residual_c": -0.24567039879188549,
+          "peak_temperature_error_c": -1.0196507661761842,
+          "pulse_count": 2,
+          "residual_autocorrelation": {
+            "lag_10_s": 0.8513328487489752,
+            "lag_1_s": 0.8725839470045729,
+            "lag_30_s": 0.7119608658323165,
+            "lag_5_s": 0.919598936454576
+          },
+          "rmse_c": 1.4272989201154345,
+          "sample_count": 118
+        },
+        "evaluation_passes": 1,
+        "matched_55w_decode_prefill": {
+          "decode": {
+            "block_id": "phase_validation_pulse_00",
+            "metrics": {
+              "absolute_peak_temperature_error_c": 0.9803492338238158,
+              "mae_c": 1.1928360303412524,
+              "maximum_absolute_error_c": 2.2446786843485995,
+              "mean_residual_c": 0.8791066010448036,
+              "peak_temperature_error_c": 0.9803492338238158,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.5966036338616748,
+                "lag_1_s": 0.6555331748377423,
+                "lag_30_s": -0.05054771976139612,
+                "lag_5_s": 0.8185730176499005
+              },
+              "rmse_c": 1.3245540317756705,
+              "sample_count": 59
+            },
+            "observed_peak_rise_c": 13.0,
+            "observed_peak_temperature_c": 67.0,
+            "predicted_peak_rise_c": 13.980349233823816,
+            "predicted_peak_temperature_c": 67.98034923382382
+          },
+          "matching_rule": "55 W requested cap, 60 s duration, cold start",
+          "observed_prefill_minus_decode_peak_c": 2.0,
+          "observed_prefill_minus_decode_peak_rise_c": 2.0,
+          "predicted_prefill_minus_decode_peak_c": -0.1031898484800422,
+          "predicted_prefill_minus_decode_peak_rise_c": -0.1031898484800422,
+          "prefill": {
+            "block_id": "phase_validation_pulse_01",
+            "metrics": {
+              "absolute_peak_temperature_error_c": 1.1228406146562264,
+              "mae_c": 1.3704473986285746,
+              "maximum_absolute_error_c": 2.8851109832398976,
+              "mean_residual_c": -1.3704473986285746,
+              "peak_temperature_error_c": -1.1228406146562264,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.46522441347782295,
+                "lag_1_s": 0.6142897059579316,
+                "lag_30_s": -0.21615376803282396,
+                "lag_5_s": 0.6770376221182488
+              },
+              "rmse_c": 1.523128698315473,
+              "sample_count": 59
+            },
+            "observed_peak_rise_c": 15.0,
+            "observed_peak_temperature_c": 69.0,
+            "predicted_peak_rise_c": 13.877159385343774,
+            "predicted_peak_temperature_c": 67.87715938534377
+          }
+        },
+        "per_pulse": {
+          "phase_validation_pulse_00": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 0.9803492338238158,
+              "mae_c": 1.1928360303412524,
+              "maximum_absolute_error_c": 2.2446786843485995,
+              "mean_residual_c": 0.8791066010448036,
+              "peak_temperature_error_c": 0.9803492338238158,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.5966036338616748,
+                "lag_1_s": 0.6555331748377423,
+                "lag_30_s": -0.05054771976139612,
+                "lag_5_s": 0.8185730176499005
+              },
+              "rmse_c": 1.3245540317756705,
+              "sample_count": 59
+            },
+            "requested_power_limit_w": 55.0,
+            "scheduled_duration_s": 60.0,
+            "workload_phase": "decode"
+          },
+          "phase_validation_pulse_01": {
+            "metrics": {
+              "absolute_peak_temperature_error_c": 1.1228406146562264,
+              "mae_c": 1.3704473986285746,
+              "maximum_absolute_error_c": 2.8851109832398976,
+              "mean_residual_c": -1.3704473986285746,
+              "peak_temperature_error_c": -1.1228406146562264,
+              "residual_autocorrelation": {
+                "lag_10_s": 0.46522441347782295,
+                "lag_1_s": 0.6142897059579316,
+                "lag_30_s": -0.21615376803282396,
+                "lag_5_s": 0.6770376221182488
+              },
+              "rmse_c": 1.523128698315473,
+              "sample_count": 59
+            },
+            "requested_power_limit_w": 55.0,
+            "scheduled_duration_s": 60.0,
+            "workload_phase": "prefill"
+          }
+        }
+      }
+    }
+  },
+  "observed_validation_contrast": {
+    "one_second_aligned": {
+      "alignment_rule": "separate grids anchored at each pulse's first telemetry row",
+      "decode": {
+        "duration_s": 59.0,
+        "end_temperature_c": 66.0,
+        "peak_rise_c": 13.0,
+        "peak_temperature_c": 67.0,
+        "start_temperature_c": 54.0,
+        "temperature_states": 60,
+        "terminal_rise_c": 12.0
+      },
+      "prefill": {
+        "duration_s": 59.0,
+        "end_temperature_c": 69.0,
+        "peak_rise_c": 15.0,
+        "peak_temperature_c": 69.0,
+        "start_temperature_c": 54.0,
+        "temperature_states": 60,
+        "terminal_rise_c": 15.0
+      },
+      "prefill_minus_decode_peak_c": 2.0,
+      "prefill_minus_decode_peak_rise_c": 2.0,
+      "prefill_minus_decode_terminal_rise_c": 3.0
+    },
+    "raw_telemetry": {
+      "decode": {
+        "duration_s": 59.92533942399996,
+        "end_temperature_c": 68.0,
+        "first_peak_time_s": 57.09476940700006,
+        "integrated_energy_j": 3279.3395406816717,
+        "last_peak_time_s": 59.92533942399996,
+        "maximum_realized_graphics_clock_mhz": 1320.0,
+        "maximum_sampling_gap_s": 0.1218580810000276,
+        "mean_utilization_percent": 98.90050590219224,
+        "median_memory_clock_mhz": 6251.0,
+        "median_realized_graphics_clock_mhz": 345.0,
+        "minimum_realized_graphics_clock_mhz": 270.0,
+        "peak_rise_c": 12.0,
+        "peak_sample_count": 5,
+        "peak_temperature_c": 68.0,
+        "raw_rows": 593,
+        "start_temperature_c": 56.0,
+        "terminal_rise_c": 12.0,
+        "time_weighted_mean_power_w": 54.723754128096
+      },
+      "prefill": {
+        "duration_s": 59.948447462999866,
+        "end_temperature_c": 69.0,
+        "first_peak_time_s": 59.84963847100016,
+        "integrated_energy_j": 3272.675364249615,
+        "last_peak_time_s": 59.84963847100016,
+        "maximum_realized_graphics_clock_mhz": 2040.0,
+        "maximum_sampling_gap_s": 0.11724501000026066,
+        "mean_utilization_percent": 99.41750841750842,
+        "median_memory_clock_mhz": 6251.0,
+        "median_realized_graphics_clock_mhz": 705.0,
+        "minimum_realized_graphics_clock_mhz": 585.0,
+        "peak_rise_c": 16.0,
+        "peak_sample_count": 1,
+        "peak_temperature_c": 70.0,
+        "raw_rows": 594,
+        "start_temperature_c": 54.0,
+        "terminal_rise_c": 15.0,
+        "time_weighted_mean_power_w": 54.59149490517678
+      },
+      "prefill_minus_decode_peak_c": 2.0,
+      "prefill_minus_decode_peak_rise_c": 4.0,
+      "prefill_minus_decode_terminal_rise_c": 3.0
+    }
+  },
+  "pre_registration": {
+    "candidate_models": [
+      "power_only_one_state_rc",
+      "phase_gain_one_state_rc"
+    ],
+    "maximum_optimizer_evaluations": 2500,
+    "multistart_count": 10,
+    "phase_gain_equation": "P_eff = P * (1 + beta * I_prefill)",
+    "prefill_power_gain_bounds": [
+      0.25,
+      3.0
+    ],
+    "random_seed": 20260902,
+    "training_pulse_count": 4,
+    "training_pulse_ids": [
+      "phase_training_pulse_00",
+      "phase_training_pulse_01",
+      "phase_training_pulse_02",
+      "phase_training_pulse_03"
+    ],
+    "training_sequence": "phase_training",
+    "untouched_validation_sequence": "phase_validation",
+    "validation_pulse_count": 2,
+    "validation_pulse_ids": [
+      "phase_validation_pulse_00",
+      "phase_validation_pulse_01"
+    ],
+    "validation_used_for_fit_or_model_selection": false
+  },
+  "preprocessing": {
+    "bin_width_s": 1.0,
+    "finite_differencing": false,
+    "power_statistic": "time-weighted mean of measured board power",
+    "pulse_initialization": "verified post-relock junction temperature recorded immediately before each pulse",
+    "pulse_samples": {
+      "phase_training_pulse_00": {
+        "binned_duration_s": 74.0,
+        "binned_temperature_states": 75,
+        "measured_power_intervals": 74,
+        "raw_rows": 749,
+        "requested_power_limit_w": 46.0,
+        "split": "training",
+        "workload_phase": "decode"
+      },
+      "phase_training_pulse_01": {
+        "binned_duration_s": 43.999999999999886,
+        "binned_temperature_states": 45,
+        "measured_power_intervals": 44,
+        "raw_rows": 449,
+        "requested_power_limit_w": 61.0,
+        "split": "training",
+        "workload_phase": "prefill"
+      },
+      "phase_training_pulse_02": {
+        "binned_duration_s": 74.0,
+        "binned_temperature_states": 75,
+        "measured_power_intervals": 74,
+        "raw_rows": 747,
+        "requested_power_limit_w": 46.0,
+        "split": "training",
+        "workload_phase": "prefill"
+      },
+      "phase_training_pulse_03": {
+        "binned_duration_s": 44.0,
+        "binned_temperature_states": 45,
+        "measured_power_intervals": 44,
+        "raw_rows": 448,
+        "requested_power_limit_w": 61.0,
+        "split": "training",
+        "workload_phase": "decode"
+      },
+      "phase_validation_pulse_00": {
+        "binned_duration_s": 59.0,
+        "binned_temperature_states": 60,
+        "measured_power_intervals": 59,
+        "raw_rows": 593,
+        "requested_power_limit_w": 55.0,
+        "split": "validation",
+        "workload_phase": "decode"
+      },
+      "phase_validation_pulse_01": {
+        "binned_duration_s": 59.0,
+        "binned_temperature_states": 60,
+        "measured_power_intervals": 59,
+        "raw_rows": 594,
+        "requested_power_limit_w": 55.0,
+        "split": "validation",
+        "workload_phase": "prefill"
+      }
+    },
+    "temperature_statistic": "nearest integer sensor reading at each bin boundary"
+  },
+  "schema_version": 1,
+  "source": {
+    "manifest": "thermal_phase_manifest.json",
+    "request_row_count": 640,
+    "requests": "l4_thermal_phase_requests.csv",
+    "requests_sha256": "8f0c8628bebff01c6264428b7ae6ae668ca8bdcbbd3e010048f83e1179460be0",
+    "source_git_revision": "0fdb4284ee509c4696968630c2b7b54eac3dd52e",
+    "source_manifest_schema_version": 2,
+    "telemetry": "l4_thermal_phase_telemetry.csv",
+    "telemetry_row_count": 29171,
+    "telemetry_sha256": "cb896ac8d06dc1ed8b0e4abea826a802b3cb9df9a35bce602c61284030be09f5"
+  }
+}

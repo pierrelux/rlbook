@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 410" role="img" aria-labelledby="title description">
+  <title id="title">A linear control integrates to the area of a trapezoid</title>
+  <desc id="description">The trapezoid below a line from U zero to U one is split into a blue rectangle and an orange triangle. Their areas sum to one half h times U zero plus U one, which equals X one minus X zero.</desc>
+  <defs>
+    <style>
+      .ink{fill:#1B2430}.muted{fill:#66727D}.axis{stroke:#1B2430;stroke-width:2}.guide{stroke:#66727D;stroke-width:1.5;stroke-dasharray:6 6}.control{fill:none;stroke:#1B2430;stroke-width:4;stroke-linecap:round}.label{font:18px 'IBM Plex Sans',Arial,sans-serif}.small{font:16px 'IBM Plex Mono',monospace}.math{font:25px Georgia,serif}.result{fill:#0072B2;font:700 30px Georgia,serif}.outline{paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+    </style>
+  </defs>
+  <rect width="1000" height="410" fill="#FFFFFF"/>
+  <g transform="translate(24 18)">
+    <line class="axis" x1="62" y1="310" x2="558" y2="310"/>
+    <line class="axis" x1="62" y1="326" x2="62" y2="28"/>
+    <rect x="62" y="205" width="460" height="105" fill="#56B4E9" fill-opacity=".42" stroke="#0072B2" stroke-width="1.5"/>
+    <path d="M62 205 L522 205 L522 78 Z" fill="#E69F00" fill-opacity=".48" stroke="#815800" stroke-width="1.5"/>
+    <line class="guide" x1="62" y1="205" x2="555" y2="205"/>
+    <path class="control" d="M62 205 L522 78"/>
+    <circle cx="62" cy="205" r="7" fill="#1B2430"/>
+    <circle cx="522" cy="78" r="7" fill="#1B2430"/>
+    <text class="small ink outline" x="77" y="186">U₀</text>
+    <text class="small ink outline" x="506" y="61">U₁</text>
+    <text class="label outline" x="195" y="271" fill="#0072B2">rectangle: hU₀</text>
+    <text class="label outline" x="318" y="166" fill="#815800">triangle: ½h(U₁−U₀)</text>
+    <text class="small muted" x="62" y="338" text-anchor="middle">0</text>
+    <text class="small muted" x="522" y="338" text-anchor="middle">h</text>
+    <text class="label muted" x="292" y="372" text-anchor="middle">time t</text>
+    <text class="label muted" x="16" y="172" text-anchor="middle" transform="rotate(-90 16 172)">control u(t)</text>
+  </g>
+  <g transform="translate(640 62)">
+    <text class="small muted" x="0" y="0">DYNAMICS</text>
+    <text class="math ink" x="0" y="50">X₁ − X₀ = ∫₀ʰ u(t) dt</text>
+    <text class="math ink" x="0" y="112">= hU₀ + ½h(U₁−U₀)</text>
+    <line x1="0" y1="147" x2="320" y2="147" stroke="#CDD5D5" stroke-width="1.5"/>
+    <text class="small muted" x="0" y="183">TRAPEZOID AREA</text>
+    <text class="result" x="0" y="233">= ½h(U₀ + U₁)</text>
+    <text class="label muted" x="0" y="282">For the chapter example, h = 1.</text>
+  </g>
+</svg>

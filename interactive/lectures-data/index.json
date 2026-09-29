@@ -1,0 +1,505 @@
+{
+ "course": "IFT6162",
+ "term": {
+  "en": "Fall 2026",
+  "fr": "Automne 2026"
+ },
+ "folder_url": "https://drive.google.com/drive/folders/1iwN-j6IJP9l8EOkXrcxy4DpWRNcTixr8",
+ "updated": "2026-09-29",
+ "lectures": [
+  {
+   "date": "2026-09-24",
+   "week": 4,
+   "title": {
+    "en": "Adjoints and the discrete-time Pontryagin principle; single and multiple shooting; MPC",
+    "fr": "États adjoints et principe de Pontryagin en temps discret; tir simple et multiple; commande prédictive"
+   },
+   "chapters": [
+    {
+     "slug": "discrete-time-pmp",
+     "title": "Adjoints and the Discrete-Time Pontryagin Principle"
+    },
+    {
+     "slug": "numerical-trajectory-optimization",
+     "title": "Numerical Trajectory Optimization"
+    },
+    {
+     "slug": "receding-horizon-control",
+     "title": "Receding-Horizon Control"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/1W1GYRmQ1b1qPSLzA7ox5wGvlsrIm39sh/view",
+   "duration_ms": 6500400,
+   "thumb": "2026-09-24.jpg",
+   "paragraphs": 126,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "Discrete-time Pontryagin principle",
+      "fr": "Principe de Pontryagin en temps discret"
+     },
+     "p": 29,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Adjoint recursion is backprop",
+      "fr": "La récurrence adjointe, c'est la rétropropagation"
+     },
+     "p": 35,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Single shooting eliminates the states",
+      "fr": "Le tir simple élimine les états"
+     },
+     "p": 47,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "What single shooting cannot do",
+      "fr": "Ce que le tir simple ne peut pas faire"
+     },
+     "p": 69,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Multiple shooting",
+      "fr": "Tir multiple"
+     },
+     "p": 84,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "MPC as receding-horizon replanning",
+      "fr": "La MPC comme replanification à horizon glissant"
+     },
+     "p": 102,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "First exam coverage",
+      "fr": "Matière du premier examen"
+     },
+     "p": 122,
+     "exam": true
+    }
+   ]
+  },
+  {
+   "date": "2026-09-21",
+   "week": 4,
+   "title": {
+    "en": "Collocation recap; model predictive path integral control (MPPI)",
+    "fr": "Retour sur la collocation; commande prédictive par intégrale de chemin (MPPI)"
+   },
+   "chapters": [
+    {
+     "slug": "continuous-time-collocation",
+     "title": "Continuous-Time Transcription and Collocation"
+    },
+    {
+     "slug": "model-predictive-path-integral-control",
+     "title": "Model Predictive Path Integral Control"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/1y35tkX4f1aRKA_t8wkxRpCcI93Q5Y8IP/view",
+   "duration_ms": 6393400,
+   "thumb": "2026-09-21.jpg",
+   "paragraphs": 139,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "Collocation recap",
+      "fr": "Rappel sur la collocation"
+     },
+     "p": 2,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Sampling-based plan improvement",
+      "fr": "Amélioration d'un plan par échantillonnage"
+     },
+     "p": 8,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Softmax weights and temperature",
+      "fr": "Poids softmax et température"
+     },
+     "p": 15,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "KL-regularized objective, Gibbs solution",
+      "fr": "Objectif régularisé par la KL, solution de Gibbs"
+     },
+     "p": 36,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Update as mean under P*",
+      "fr": "La mise à jour comme moyenne sous P*"
+     },
+     "p": 52,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Importance sampling and corrected costs",
+      "fr": "Échantillonnage préférentiel et coûts corrigés"
+     },
+     "p": 61,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "MPPI inside receding-horizon MPC",
+      "fr": "MPPI dans une MPC à horizon glissant"
+     },
+     "p": 111,
+     "exam": false
+    }
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "week": 3,
+   "title": {
+    "en": "Collocation with Lagrange bases",
+    "fr": "Collocation avec des bases de Lagrange"
+   },
+   "chapters": [
+    {
+     "slug": "continuous-time-collocation",
+     "title": "Continuous-Time Transcription and Collocation"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/1_ed_y3MdzsgRGEF73zNFaE_H3zTHB-d6/view",
+   "duration_ms": 6686920,
+   "thumb": "2026-09-14.jpg",
+   "paragraphs": 139,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "Lagrange (nodal) polynomial basis",
+      "fr": "Base polynomiale de Lagrange (nodale)"
+     },
+     "p": 3,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Exact derivative and integral operators",
+      "fr": "Opérateurs exacts de dérivation et d'intégration"
+     },
+     "p": 11,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Three-step collocation recipe",
+      "fr": "Recette de collocation en trois étapes"
+     },
+     "p": 32,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Euler, trapezoidal, Hermite-Simpson transcriptions",
+      "fr": "Transcriptions d'Euler, trapézoïdale et d'Hermite-Simpson"
+     },
+     "p": 42,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Why collocation keeps states",
+      "fr": "Pourquoi la collocation conserve les états"
+     },
+     "p": 95,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Augmented state for integral costs",
+      "fr": "État augmenté pour les coûts intégraux"
+     },
+     "p": 101,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Single shooting and long horizons",
+      "fr": "Tir simple et longs horizons"
+     },
+     "p": 121,
+     "exam": true
+    }
+   ]
+  },
+  {
+   "date": "2026-09-10",
+   "week": 2,
+   "title": {
+    "en": "Constrained optimization: Lagrangian, Newton and SQP; toward collocation",
+    "fr": "Optimisation sous contraintes : lagrangien, Newton et SQP; vers la collocation"
+   },
+   "chapters": [
+    {
+     "slug": "numerical-trajectory-optimization",
+     "title": "Numerical Trajectory Optimization"
+    },
+    {
+     "slug": "appendix_nlp",
+     "title": "Nonlinear Programming"
+    },
+    {
+     "slug": "continuous-time-collocation",
+     "title": "Continuous-Time Transcription and Collocation"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/1XVh8OdP_u_lZM-G0dAqQpNSEWmW_xQWY/view",
+   "duration_ms": 6674360,
+   "thumb": "2026-09-10.jpg",
+   "paragraphs": 136,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "MPC turns expert models into controllers",
+      "fr": "La MPC transforme les modèles d'experts en contrôleurs"
+     },
+     "p": 1,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "States as decision variables",
+      "fr": "Les états comme variables de décision"
+     },
+     "p": 15,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Lagrangian as a two-player game",
+      "fr": "Le lagrangien comme jeu à deux joueurs"
+     },
+     "p": 22,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Arrow-Hurwicz gradient descent-ascent",
+      "fr": "La descente-ascension de gradient d'Arrow-Hurwicz"
+     },
+     "p": 29,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Newton's method on first-order conditions",
+      "fr": "La méthode de Newton sur les conditions du premier ordre"
+     },
+     "p": 43,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "SQP: quadratize, linearize, repeat",
+      "fr": "SQP : quadratiser, linéariser, recommencer"
+     },
+     "p": 68,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Transcription with nodal polynomials",
+      "fr": "La transcription avec des polynômes nodaux"
+     },
+     "p": 104,
+     "exam": false
+    }
+   ]
+  },
+  {
+   "date": "2026-09-03",
+   "week": 1,
+   "title": {
+    "en": "Finite-horizon optimal control; single shooting; KKT conditions and primal-dual methods",
+    "fr": "Commande optimale à horizon fini; tir simple; conditions KKT et méthodes primales-duales"
+   },
+   "chapters": [
+    {
+     "slug": "discrete-time-optimal-control",
+     "title": "Finite-Horizon Optimal Control Problems"
+    },
+    {
+     "slug": "numerical-trajectory-optimization",
+     "title": "Numerical Trajectory Optimization"
+    },
+    {
+     "slug": "appendix_nlp",
+     "title": "Nonlinear Programming"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/1dsSJgm1B_Qt78OoJ7Rg6DJ9zl1i9LYG7/view",
+   "duration_ms": 6576520,
+   "thumb": "2026-09-03.jpg",
+   "paragraphs": 137,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "Evaluation dates and course logistics",
+      "fr": "Dates d'évaluation et logistique du cours"
+     },
+     "p": 6,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Discrete-time optimal control program",
+      "fr": "Programme de commande optimale en temps discret"
+     },
+     "p": 44,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Simultaneous versus sequential methods",
+      "fr": "Méthodes simultanées et méthodes séquentielles"
+     },
+     "p": 56,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Single shooting as RNN unrolling",
+      "fr": "Le tir simple comme déroulement d'un RNN"
+     },
+     "p": 64,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Path constraints require simultaneous methods",
+      "fr": "Les contraintes de trajectoire exigent des méthodes simultanées"
+     },
+     "p": 79,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "KKT conditions and the Lagrangian",
+      "fr": "Conditions KKT et lagrangien"
+     },
+     "p": 113,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Primal-dual (Arrow-Hurwicz-Uzawa) methods",
+      "fr": "Méthodes primales-duales (Arrow-Hurwicz-Uzawa)"
+     },
+     "p": 116,
+     "exam": false
+    }
+   ]
+  },
+  {
+   "date": "2026-08-31",
+   "week": 1,
+   "title": {
+    "en": "Course overview; trajectory optimization and dynamics models",
+    "fr": "Présentation du cours; optimisation de trajectoire et modèles de dynamique"
+   },
+   "chapters": [
+    {
+     "slug": "intro",
+     "title": "From Models to Learning"
+    },
+    {
+     "slug": "modeling-controlled-systems",
+     "title": "Controlled Systems: Boundaries, States, and Actions"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/1bixK6wiSe4ZpKOS9bytDsRotLH9ZC8Qe/view",
+   "duration_ms": 6806800,
+   "thumb": "2026-08-31.jpg",
+   "paragraphs": 151,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "Evaluation scheme and project",
+      "fr": "Barème d'évaluation et projet"
+     },
+     "p": 11,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Axes of modeling",
+      "fr": "Axes de modélisation"
+     },
+     "p": 37,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Open loop vs. MPC",
+      "fr": "Boucle ouverte ou MPC"
+     },
+     "p": 46,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "ODE dynamics and IVPs",
+      "fr": "Dynamique par ODE et IVP"
+     },
+     "p": 57,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "OCPs and transcription",
+      "fr": "OCP et transcription"
+     },
+     "p": 72,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Formulation is the bottleneck",
+      "fr": "La formulation est le goulot d'étranglement"
+     },
+     "p": 115,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Stochastic dynamics; LLMs as MDPs",
+      "fr": "Dynamique stochastique ; les LLM comme MDP"
+     },
+     "p": 140,
+     "exam": false
+    }
+   ]
+  }
+ ]
+}
