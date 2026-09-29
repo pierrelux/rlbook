@@ -27,15 +27,15 @@ Cette page est bilingue. Utilisez les onglets ci-dessous pour basculer entre l'a
 |---|---|
 | **Course code** | IFT 6162 |
 | **Title** | Reinforcement Learning, Optimal Control (official registrar title is in French: *Apprentissage par renforcement, commande optimale*) |
-| **Credits** | *TBD* |
+| **Credits** | 4 |
 | **Term** | Fall 2026 (A26) |
 | **Schedule** | Mondays 10:30–12:29 and Thursdays 13:30–15:29; Aug 31 – Oct 16 and Oct 26 – Dec 9, 2026 (14 teaching weeks, ~25 sessions) |
 | **Room** | Mila, Auditorium 1, 6650 rue Saint-Urbain, 2e étage, Montréal |
 | **Instructor** | Pierre-Luc Bacon |
 | **Email** | <pierre-luc.bacon@mila.quebec> |
-| **Office hours** | *TBD* |
-| **Teaching assistants** | *TBD* |
-| **Language of instruction** | *TBD* (course materials are in English) |
+| **Office hours** | By appointment, by email |
+| **Teaching assistants** | Gabriel Sasseville, gabriel.sasseville@umontreal.ca (availability by email) |
+| **Language of instruction** | English |
 | **Course website** | <https://pierrelucbacon.com/rlbook/> |
 
 **Building access.** The Mila doors are unlocked Mondays 10:15–10:45 and
@@ -165,9 +165,14 @@ The team artifact establishes the base project grade; an individual's grade may
 be adjusted when the oral defense shows a materially different level of
 understanding.
 
-**Grading scale.** *TBD*
+**Grading scale.** Final grades are reported as UdeM letter grades. The
+instructor converts the weighted total (out of 100%) into a letter grade.
 
-**Project checkpoint and late policy.** Dates and late arrangements are *TBD*.
+**Project checkpoint and late policy.** The short proposal is an ungraded
+checkpoint: a team may send it to the instructor by email at any point before
+the poster session to get feedback, and earlier is better. The poster session
+and the examinations take place on fixed dates and cannot be completed late.
+An absence from any of them must be justified under the University's rules.
 
 ## Tentative schedule
 
@@ -220,7 +225,9 @@ the term rather than assigned to a specific week.
 
 ## Course policies
 
-**Attendance.** *TBD*
+**Attendance.** Attendance at lectures is not graded. Sessions are recorded
+and the recordings are posted in the course Google Drive folder. The midterms,
+the poster session, and the final examination are in person.
 
 **Collaboration.** Discussion and collaboration are encouraged on formative
 work. The project is collaborative within the assigned team. Each student must
@@ -255,15 +262,15 @@ Changes will be announced in class and reflected on this page.
 |---|---|
 | **Sigle** | IFT 6162 |
 | **Titre** | Apprentissage par renforcement, commande optimale |
-| **Crédits** | *À déterminer* |
+| **Crédits** | 4 |
 | **Trimestre** | Automne 2026 (A26) |
 | **Horaire** | Lundi 10 h 30 – 12 h 29 et jeudi 13 h 30 – 15 h 29; du 31 août au 16 octobre et du 26 octobre au 9 décembre 2026 (14 semaines de cours, ~25 séances) |
 | **Local** | Mila, Auditorium 1, 6650 rue Saint-Urbain, 2e étage, Montréal |
 | **Enseignant** | Pierre-Luc Bacon |
 | **Courriel** | <pierre-luc.bacon@mila.quebec> |
-| **Disponibilités** | *À déterminer* |
-| **Auxiliaires d'enseignement** | *À déterminer* |
-| **Langue d'enseignement** | *À déterminer* (le matériel du cours est en anglais) |
+| **Disponibilités** | Sur rendez-vous, par courriel |
+| **Auxiliaires d'enseignement** | Gabriel Sasseville, gabriel.sasseville@umontreal.ca (disponibilités par courriel) |
+| **Langue d'enseignement** | Anglais |
 | **Site du cours** | <https://pierrelucbacon.com/rlbook/> |
 
 **Accès à Mila.** Les portes sont déverrouillées le lundi de 10 h 15 à 10 h 45
@@ -406,10 +413,15 @@ orale. Une courte proposition sert de jalon non noté. La production d'équipe
 établit la note de base du projet; la note individuelle peut être ajustée si la
 défense orale indique un niveau de compréhension sensiblement différent.
 
-**Barème de notation.** *À déterminer*
+**Barème de notation.** La note finale est exprimée en notation littérale de
+l'UdeM. L'enseignant convertit le total pondéré (sur 100 %) en note littérale.
 
-**Jalon du projet et politique sur les retards.** Les dates et les modalités
-sont *à déterminer*.
+**Jalon du projet et politique sur les retards.** La courte proposition est un
+jalon non noté : une équipe peut l'envoyer par courriel à l'enseignant à tout
+moment avant la séance d'affiches pour obtenir une rétroaction, le plus tôt
+étant le mieux. La séance d'affiches et les examens ont lieu à des dates fixes
+et ne peuvent pas être faits en retard. Toute absence doit être justifiée selon
+les règlements de l'Université.
 
 ## Calendrier provisoire
 
@@ -463,7 +475,10 @@ tout au long du trimestre plutôt que d'être rattachées à une semaine précis
 
 ## Règlements du cours
 
-**Présence.** *À déterminer*
+**Présence.** La présence aux cours n'est pas notée. Les séances sont
+enregistrées et les enregistrements sont déposés dans le dossier Google Drive
+du cours. Les examens de mi-session, la séance d'affiches et l'examen final se
+font en personne.
 
 **Collaboration.** Les échanges et la collaboration sont encouragés dans les
 activités formatives. Le projet se réalise en collaboration au sein de l'équipe
