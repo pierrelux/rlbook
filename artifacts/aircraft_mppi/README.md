@@ -1,0 +1,9 @@
+# Stochastic A320 flight experiment
+
+Regenerate with `MPLCONFIGDIR=/private/tmp/mppi-mpl .venv/bin/python scripts/build_aircraft_mppi_artifacts.py`. The script uses installed OpenAP, NumPy, SciPy, and Matplotlib; it makes no network requests. `--quick` is a development smoke test and overwrites the default artifacts with one smaller run.
+
+`metrics.json` records configuration, plant seeds, source hashes, per-flight audits, runtimes, and separate candidate-count and wind-ensemble sweeps. Each sweep scores plans on an independent common set of 128 wind futures. The four named trajectory JSON files preserve states, held controls, gust observations, time steps, and planning diagnostics for the first paired trial. `results.md` supplies the chapter's table. Static SVG/PDF/PNG figures are in `_static/aircraft_mppi/`. The standalone replay embeds the same representative data and runs without a Python kernel or network connection.
+
+The ERA5 grid in `data/aircraft/` is a frozen mean field. Gust parameters are declared illustrative OU assumptions, not weather estimates. Prediction averages scenario costs before exponential weighting and applies the Gaussian proposal correction in latent control-knot coordinates. This is a stochastic shooting example outside the classical matched-noise path-integral theorem. Feasibility checks concern the conditional mean at finite resolution; physical failures are retained in the reports. The flight starts and ends 100 feet above the modeled reference surface, so taxi, takeoff, and landing dynamics are omitted.
+
+Optimization retains a validated incumbent if a weighted update fails. At replanning times, it also revalidates the remaining previous plan and checks the jump from the last executed command. Fine replay uses 5-second integration of the same held realized gusts. This isolates integration error from changing the physical disturbance realization.

@@ -50,6 +50,7 @@ project:
         - file: numerical-trajectory-optimization.md
         - file: iterative-trajectory-optimization.md
         - file: continuous-time-collocation.md
+        - file: model-predictive-path-integral-control.md
     - title: Feedback Control
       children:
         - file: receding-horizon-control.md
@@ -59,6 +60,7 @@ project:
       children:
         - file: finite-horizon-dp.md
         - file: stochastic-dp.md
+        - file: path-integral-stochastic-control.md
         - file: infinite-horizon-mdps.md
         - file: regularized-dp.md
     - title: Approximate Value Methods
