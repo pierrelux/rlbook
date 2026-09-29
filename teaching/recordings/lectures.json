@@ -1,0 +1,165 @@
+{
+  "course": "IFT6162",
+  "term": {
+    "en": "Fall 2026",
+    "fr": "Automne 2026"
+  },
+  "folder_url": "https://drive.google.com/drive/folders/1iwN-j6IJP9l8EOkXrcxy4DpWRNcTixr8",
+  "term_start": "2026-08-31",
+  "break_weeks": [
+    "2026-10-19"
+  ],
+  "lectures": {
+    "2026-08-31": {
+      "title": {
+        "en": "Course overview; trajectory optimization and dynamics models",
+        "fr": "Présentation du cours; optimisation de trajectoire et modèles de dynamique"
+      },
+      "chapters": [
+        "intro",
+        "modeling-controlled-systems"
+      ],
+      "redact": [
+        "Van",
+        "Banana",
+        "Danielle",
+        "Amir"
+      ]
+    },
+    "2026-09-03": {
+      "title": {
+        "en": "Finite-horizon optimal control; single shooting; KKT conditions and primal-dual methods",
+        "fr": "Commande optimale à horizon fini; tir simple; conditions KKT et méthodes primales-duales"
+      },
+      "chapters": [
+        "discrete-time-optimal-control",
+        "numerical-trajectory-optimization",
+        "appendix_nlp"
+      ]
+    },
+    "2026-09-10": {
+      "title": {
+        "en": "Constrained optimization: Lagrangian, Newton and SQP; toward collocation",
+        "fr": "Optimisation sous contraintes : lagrangien, Newton et SQP; vers la collocation"
+      },
+      "chapters": [
+        "numerical-trajectory-optimization",
+        "appendix_nlp",
+        "continuous-time-collocation"
+      ]
+    },
+    "2026-09-14": {
+      "title": {
+        "en": "Collocation with Lagrange bases",
+        "fr": "Collocation avec des bases de Lagrange"
+      },
+      "chapters": [
+        "continuous-time-collocation"
+      ]
+    },
+    "2026-09-17": {
+      "title": {
+        "en": "Collocation: nodal polynomials and the collocation recipe; introduction to MPPI",
+        "fr": "Collocation : polynômes nodaux et recette de collocation; introduction à MPPI"
+      },
+      "chapters": [
+        "continuous-time-collocation",
+        "model-predictive-path-integral-control"
+      ],
+      "redact": [
+        "Nadin"
+      ]
+    },
+    "2026-09-21": {
+      "title": {
+        "en": "Collocation recap; model predictive path integral control (MPPI)",
+        "fr": "Retour sur la collocation; commande prédictive par intégrale de chemin (MPPI)"
+      },
+      "chapters": [
+        "continuous-time-collocation",
+        "model-predictive-path-integral-control"
+      ]
+    },
+    "2026-09-24": {
+      "title": {
+        "en": "Adjoints and the discrete-time Pontryagin principle; single and multiple shooting; MPC",
+        "fr": "États adjoints et principe de Pontryagin en temps discret; tir simple et multiple; commande prédictive"
+      },
+      "chapters": [
+        "discrete-time-pmp",
+        "numerical-trajectory-optimization",
+        "receding-horizon-control"
+      ],
+      "redact": [
+        "Maria",
+        "Aneri",
+        "Aner Money",
+        "Aner",
+        "an area",
+        "Marian"
+      ]
+    },
+    "2026-09-28": {
+      "title": {
+        "en": "Model predictive control: feedback, value function and warm starts; parametric programming and continuation",
+        "fr": "Commande prédictive : rétroaction, fonction de valeur et démarrage à chaud; programmation paramétrique et continuation"
+      },
+      "chapters": [
+        "receding-horizon-control",
+        "mpc-variants-reliability",
+        "parametric-controllers"
+      ],
+      "redact": [
+        "Jean",
+        "Aaron",
+        "Goautier",
+        "Marian",
+        "Clema",
+        "Lama",
+        "Gom"
+      ]
+    }
+  },
+  "corrections": {
+    "en": {
+      "polomial": "polynomial",
+      "polomials": "polynomials",
+      "lrangeian": "Lagrangian",
+      "lrangian": "Lagrangian",
+      "lranian": "Lagrangian",
+      "logian": "Lagrangian",
+      "lrange": "Lagrange",
+      "Pontrain": "Pontryagin",
+      "Pontraian": "Pontryagin",
+      "Pontrian": "Pontryagin",
+      "eer": "Euler",
+      "neural ODS": "neural ODEs",
+      "RHF": "RLHF",
+      "SDS": "SDEs",
+      "sqp": "SQP",
+      "adjint": "adjoint",
+      "OCPS": "OCPs"
+    },
+    "fr": {
+      "polomial": "polynomial",
+      "polomiaux": "polynomiaux",
+      "polomiale": "polynomiale",
+      "polomale": "polynomiale",
+      "polomals": "polynômes",
+      "lrangeienne": "lagrangienne",
+      "lrangienne": "lagrangienne",
+      "lrangeien": "lagrangien",
+      "lrange": "Lagrange",
+      "Lrange": "Lagrange",
+      "Pontrain": "Pontryagin",
+      "Pontraan": "Pontryagin",
+      "Pontra": "Pontryagin",
+      "eer": "Euler",
+      "ODS": "EDO",
+      "RHF": "RLHF",
+      "SDS": "EDS",
+      "adjint": "adjoint"
+    }
+  },
+  "_notes": "Titles and chapters per lecture are hand-written; lectures without an entry still appear, titled by date. corrections: exact-word replacements applied to the raw auto-captions (en) and their auto-translation (fr). clean/<date>.json: cleaned English transcript (one entry per caption paragraph, keyed by t in ms), plus tldr and outline. redact: words replaced by [name] in the raw captions and their machine translation (people named in class whom the edited text also leaves unnamed)."
+}

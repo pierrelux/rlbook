@@ -1,0 +1,880 @@
+{
+ "date": "2026-08-31",
+ "tldr": [
+  {
+   "notion": "Evaluation scheme and project",
+   "detail": "Assignments are no longer graded. The grade is a 30% team project (teams of three, a real applied control-plus-learning problem, code plus a poster defended orally, no paper), two in-class midterms at 15% each, and a 40% in-class final, all on paper, which may ask you to read and critique code.",
+   "t": 530720,
+   "exam": false,
+   "notion_fr": "Barème d'évaluation et projet",
+   "detail_fr": "Les devoirs ne sont plus notés. La note se compose d'un projet d'équipe à 30 % (équipes de trois, un vrai problème appliqué de commande et d'apprentissage, du code et une affiche défendue à l'oral, sans article), de deux examens de mi-session en classe à 15 % chacun et d'un examen final en classe à 40 %, tous sur papier, qui peuvent vous demander de lire et de critiquer du code."
+  },
+  {
+   "notion": "Axes of modeling",
+   "detail": "A model is an often imperfect description of a system, usually a set of equations, from which we derive solutions and algorithms. Models differ along axes such as continuous vs. discrete time, deterministic vs. stochastic, continuous vs. discrete states and actions, and perfect vs. imperfect observation; the course starts with continuous-time, deterministic, fully observed systems with continuous states and actions.",
+   "t": 1660159,
+   "exam": false,
+   "notion_fr": "Axes de modélisation",
+   "detail_fr": "Un modèle est une description, souvent imparfaite, d'un système, habituellement un ensemble d'équations, dont on tire des solutions et des algorithmes. Les modèles se distinguent selon des axes comme temps continu ou discret, déterministe ou stochastique, états et actions continus ou discrets, et observation parfaite ou imparfaite ; le cours commence avec des systèmes en temps continu, déterministes et entièrement observés, avec des états et des actions continus."
+  },
+  {
+   "notion": "Open loop vs. MPC",
+   "detail": "Trajectory optimization takes a system model and a cost and returns a sequence of controls that is then applied blindly, in open loop. Re-solving the problem on the fly as the system evolves, model predictive control (MPC), closes the loop and makes the system robust to disturbances and model misspecification, provided the solver is efficient.",
+   "t": 2085679,
+   "exam": false,
+   "notion_fr": "Boucle ouverte ou MPC",
+   "detail_fr": "L'optimisation de trajectoire prend un modèle du système et un coût, et retourne une séquence de commandes qui est ensuite appliquée à l'aveugle, en boucle ouverte. Résoudre de nouveau le problème à la volée à mesure que le système évolue, c'est-à-dire la commande prédictive (MPC), ferme la boucle et rend le système robuste aux perturbations et aux erreurs de spécification du modèle, à condition que le solveur soit efficace."
+  },
+  {
+   "notion": "ODE dynamics and IVPs",
+   "detail": "The dynamics \\(\\dot{x}(t) = f(x(t), u(t))\\) give the rate of change of the state \\(x(t)\\) under the control \\(u(t)\\). This description is implicit: finding the state at a given time means solving an initial value problem (IVP) by numerical integration, for example explicit Euler, which turns the ODE into a discrete-time recursion with step \\(h\\).",
+   "t": 2591200,
+   "exam": false,
+   "notion_fr": "Dynamique par ODE et IVP",
+   "detail_fr": "La dynamique \\(\\dot{x}(t) = f(x(t), u(t))\\) donne le taux de variation de l'état \\(x(t)\\) sous la commande \\(u(t)\\). Cette description est implicite : trouver l'état à un instant donné exige de résoudre un problème à valeur initiale (IVP) par intégration numérique, par exemple Euler explicite, qui transforme l'ODE en une récurrence en temps discret de pas \\(h\\)."
+  },
+  {
+   "notion": "OCPs and transcription",
+   "detail": "A continuous-time OCP minimizes the integral of \\(c(x(t), u(t))\\) plus a terminal cost, subject to \\(\\dot{x}(t) = f(x(t), u(t))\\) and \\(x(t_0) = x_0\\); its output is an optimal control function \\(u^\\star(t)\\) together with the corresponding optimal trajectory. Because these are infinite-dimensional, a transcription approximates the OCP by a finite-dimensional NLP, for example by representing \\(u(t)\\) through polynomial coefficients.",
+   "t": 3256480,
+   "exam": false,
+   "notion_fr": "OCP et transcription",
+   "detail_fr": "Un OCP en temps continu minimise l'intégrale de \\(c(x(t), u(t))\\) plus un coût terminal, sous les contraintes \\(\\dot{x}(t) = f(x(t), u(t))\\) et \\(x(t_0) = x_0\\) ; sa sortie est une fonction de commande optimale \\(u^\\star(t)\\) accompagnée de la trajectoire optimale correspondante. Comme ce sont des objets de dimension infinie, une transcription approche l'OCP par un NLP de dimension finie, par exemple en représentant \\(u(t)\\) par des coefficients polynomiaux."
+  },
+  {
+   "notion": "Formulation is the bottleneck",
+   "detail": "In real applications, learning a policy is rarely the hard part; the bottleneck is formulating the problem: the model, a cost or reward that only hints at the desired behavior, and hard constraints. Model-free RL only sees a stream of states, actions and rewards, whereas keeping known structure (thermodynamics, conservation laws, constraints) and learning only the unknown parts, e.g. with MPC and neural networks, is far more data-efficient.",
+   "t": 5194080,
+   "exam": false,
+   "notion_fr": "La formulation est le goulot d'étranglement",
+   "detail_fr": "Dans les applications réelles, apprendre une politique est rarement la partie difficile ; le goulot d'étranglement, c'est la formulation du problème : le modèle, un coût ou une récompense qui ne fait que suggérer le comportement voulu, et les contraintes strictes. Le RL sans modèle ne voit qu'un flux d'états, d'actions et de récompenses, alors que conserver la structure connue (thermodynamique, lois de conservation, contraintes) et n'apprendre que les parties inconnues, par exemple avec la MPC et des réseaux de neurones, est beaucoup plus efficace en données."
+  },
+  {
+   "notion": "Stochastic dynamics; LLMs as MDPs",
+   "detail": "Noise can enter as an exogenous random input \\(w\\) to a deterministic dynamics function \\(f(x, u, w)\\); integrating out \\(w\\) gives the equivalent transition (Markov) kernel used in MDPs. An LLM is a deterministic, discrete MDP whose state \\(x_t\\) is the token sequence so far, whose action \\(u_t\\) is the next token and whose transition is concatenation, so the part that is not known is the reward.",
+   "t": 6284639,
+   "exam": false,
+   "notion_fr": "Dynamique stochastique ; les LLM comme MDP",
+   "detail_fr": "Le bruit peut entrer comme une entrée aléatoire exogène \\(w\\) dans une fonction de dynamique déterministe \\(f(x, u, w)\\) ; en marginalisant \\(w\\), on obtient le noyau de transition (de Markov) équivalent utilisé dans les MDP. Un LLM est un MDP déterministe et discret dont l'état \\(x_t\\) est la séquence de jetons jusqu'ici, dont l'action \\(u_t\\) est le jeton suivant et dont la transition est la concaténation ; la partie qui n'est pas connue est donc la récompense."
+  }
+ ],
+ "outline": [
+  {
+   "t": 1600,
+   "title": "Course notes and prerequisites",
+   "title_fr": "Notes de cours et préalables"
+  },
+  {
+   "t": 226159,
+   "title": "Evaluation, grading breakdown and final project",
+   "title_fr": "Évaluation, répartition des notes et projet final"
+  },
+  {
+   "t": 904959,
+   "title": "Logistics Q&A: TA, exams, resources",
+   "title_fr": "Questions sur la logistique : auxiliaire, examens, ressources"
+  },
+  {
+   "t": 1451679,
+   "title": "A broader view of reinforcement learning",
+   "title_fr": "Une vision élargie de l'apprentissage par renforcement"
+  },
+  {
+   "t": 1603120,
+   "title": "Modeling and its axes",
+   "title_fr": "La modélisation et ses axes"
+  },
+  {
+   "t": 2085679,
+   "title": "Trajectory optimization, open loop and MPC",
+   "title_fr": "Optimisation de trajectoire, boucle ouverte et MPC"
+  },
+  {
+   "t": 2591200,
+   "title": "ODEs, IVPs and linear dynamics",
+   "title_fr": "ODE, IVP et dynamique linéaire"
+  },
+  {
+   "t": 3256480,
+   "title": "Optimal control problems and transcription",
+   "title_fr": "Problèmes de commande optimale et transcription"
+  },
+  {
+   "t": 3937839,
+   "title": "Break",
+   "title_fr": "Pause"
+  },
+  {
+   "t": 4809600,
+   "title": "Why this course: from RL to control",
+   "title_fr": "Pourquoi ce cours : du RL à la commande"
+  },
+  {
+   "t": 5194080,
+   "title": "Problem formulation and real applications",
+   "title_fr": "Formulation du problème et applications réelles"
+  },
+  {
+   "t": 6284639,
+   "title": "Stochastic dynamics, LLMs as MDPs, POMDPs",
+   "title_fr": "Dynamique stochastique, les LLM comme MDP, POMDP"
+  }
+ ],
+ "paras": [
+  {
+   "t": 1600,
+   "text": "Okay. So, it looks like this. I've been maintaining this set of notes for a couple of years now, always trying to improve it. So the content is going to change. I think there's a PDF that gets generated automatically whenever I push, because it's on GitHub, but really I use the HTML version. The reason is that I have interactive content, and it's way more interesting to see it like this rather than as a PDF. So if you see issues with the rendering of the PDF, it's possible, because I don't really pay attention to it. But otherwise we'll be using this. There's no single mandatory textbook for that course. The reason is that this course is a bit at the intersection of many different fields, and I think the offering here is a bit unique. So there's nothing out there that I could find that would cover all the topics I wanted to cover. It's actually the reason why I created that course.",
+   "fr": "Bon. Alors, ça ressemble à ceci. Je maintiens ces notes depuis quelques années maintenant, en essayant toujours de les améliorer. Donc le contenu va changer. Je pense qu'il y a un PDF qui est généré automatiquement chaque fois que je pousse une mise à jour, parce que c'est sur GitHub, mais en réalité j'utilise la version HTML. La raison, c'est que j'ai du contenu interactif, et c'est beaucoup plus intéressant de le voir comme ça plutôt qu'en PDF. Donc si vous voyez des problèmes dans le rendu du PDF, c'est possible, parce que je n'y fais pas vraiment attention. Mais sinon, c'est ce qu'on va utiliser. Il n'y a pas de manuel obligatoire unique pour ce cours. La raison, c'est que ce cours se trouve un peu à l'intersection de plusieurs domaines différents, et je pense que ce qu'on offre ici est un peu unique. Donc je n'ai rien trouvé qui couvrait tous les sujets que je voulais couvrir. C'est d'ailleurs la raison pour laquelle j'ai créé ce cours."
+  },
+  {
+   "t": 63680,
+   "text": "So you can pretty much use the course notes as the textbook itself. But of course there are other references I might give you if you want to look into them. Otherwise it should be pretty much self-contained. The course has an important reinforcement learning component, but it's broader than this. I really like to teach a lot of material about optimal control, and in optimal control, at least when I begin, there's no actual learning component. It's more like mathematical optimization, but I think it's still a very useful tool for you to have. And then later on in the semester we start bringing in more learning aspects per se. Speaking of which, as you probably know, it's expected that you're familiar with machine learning.",
+   "fr": "Donc vous pouvez pratiquement utiliser les notes de cours comme manuel. Mais bien sûr, il y a d'autres références que je pourrais vous donner si vous voulez les consulter. Sinon, ça devrait être à peu près autosuffisant. Le cours a une composante importante d'apprentissage par renforcement, mais il est plus large que ça. J'aime beaucoup enseigner de la matière sur la commande optimale, et en commande optimale, du moins au début, il n'y a pas vraiment de composante d'apprentissage. C'est plutôt de l'optimisation mathématique, mais je pense que c'est quand même un outil très utile à avoir. Et puis plus tard dans la session, on commence à introduire davantage d'aspects d'apprentissage à proprement parler. D'ailleurs, comme vous le savez probablement, on s'attend à ce que vous connaissiez l'apprentissage automatique."
+  },
+  {
+   "t": 118560,
+   "text": "If you've never done machine learning, that would be a problem. So talk to me. I know that you can catch up, but I think to really appreciate our course, I expect you to have taken something at least equivalent to the Fundamentals of ML that some of you have taken with me, actually, last semester. And even better if you took deep learning as well. Not mandatory, but it would really make things better. I think there are places where I say I want you to take PGM. It's a lie.",
+   "fr": "Si vous n'avez jamais fait d'apprentissage automatique, ce serait un problème. Donc venez m'en parler. Je sais que vous pouvez rattraper votre retard, mais je pense que pour vraiment apprécier notre cours, je m'attends à ce que vous ayez suivi quelque chose d'au moins équivalent au cours Fundamentals of ML que certains d'entre vous ont suivi avec moi, d'ailleurs, la session dernière. Et encore mieux si vous avez aussi suivi le cours d'apprentissage profond. Ce n'est pas obligatoire, mais ça rendrait vraiment les choses plus faciles. Je pense qu'il y a des endroits où je dis que je veux que vous ayez suivi PGM. C'est un mensonge."
+  },
+  {
+   "t": 151840,
+   "text": "It's good if you took PGM. I've never taken PGM. That would be useful, but it's not a strict requirement. Other thing is that this is a DIRO course. So it's offered as part of the computer science department, which means that there are expectations that you come with the background of someone in CS. So just to say, that's fair game. If I ask you, I don't know, a question as basic as writing down an algorithm for X and Y, you should know what it is to write pseudocode.",
+   "fr": "C'est bien si vous avez suivi PGM. Moi, je n'ai jamais suivi PGM. Ce serait utile, mais ce n'est pas une exigence stricte. Autre chose : c'est un cours du DIRO. Il est donc offert par le département d'informatique, ce qui veut dire qu'on s'attend à ce que vous arriviez avec la formation de quelqu'un en informatique. Donc je vous le dis, c'est de bonne guerre. Si je vous pose, je ne sais pas, une question aussi élémentaire que d'écrire un algorithme pour X et Y, vous devriez savoir ce que c'est, écrire du pseudocode."
+  },
+  {
+   "t": 192800,
+   "text": "Nothing fancy. You probably know what it is already. But I've had instances in the past where people would come from, let's say, pure math, and then they would get shocked just with basic things like this, which of course they probably knew, but just terminology-wise, there's a bit of an expectation that you would know these things. Now, are we going to use red-black trees and fancy hashing methods? Not at all. So you don't need that stuff, but some basic knowledge, and some basic knowledge of Python.",
+   "fr": "Rien de sophistiqué. Vous savez probablement déjà ce que c'est. Mais j'ai eu des cas, dans le passé, où des gens venaient, disons, des mathématiques pures, et ils étaient déstabilisés juste par des choses de base comme ça, qu'ils connaissaient probablement, bien sûr, mais simplement sur le plan de la terminologie, on s'attend un peu à ce que vous connaissiez ces choses-là. Maintenant, est-ce qu'on va utiliser des arbres rouge-noir et des méthodes de hachage sophistiquées ? Pas du tout. Donc vous n'avez pas besoin de ça, mais de quelques connaissances de base, et de connaissances de base en Python."
+  },
+  {
+   "t": 226159,
+   "text": "That being said, our field is going through quite a transformation right now. So I'd like to say that Python is very important. Reality is that I spend most of my time prompting these days, so I rarely[?] get exposed to code. But it's not to say it's useless. It's always an important skill to have. Speaking of which, I was just in the process of pushing changes, but this is sort of a binding contract between you and me. You can give me a lot of trouble and go complain to the faculty if I decide to change the way that you're getting graded after this course. It is written TBD right now, but I'm going to write it on the whiteboard, so it's written somewhere. And I have to say that",
+   "fr": "Cela dit, notre domaine traverse toute une transformation en ce moment. Donc j'aimerais dire que Python est très important. La réalité, c'est que je passe la majeure partie de mon temps à rédiger des invites (des prompts) ces temps-ci, donc je suis rarement[?] exposé au code. Mais ça ne veut pas dire que c'est inutile. C'est toujours une compétence importante à avoir. Justement, j'étais en train de pousser des modifications, mais ceci est une sorte de contrat qui nous lie, vous et moi. Vous pouvez me causer bien des ennuis et aller vous plaindre à la faculté si je décide de changer la façon dont vous êtes évalués après ce cours. C'est écrit « TBD » en ce moment, mais je vais l'écrire au tableau, pour que ce soit écrit quelque part. Et je dois dire que"
+  },
+  {
+   "t": 288479,
+   "text": "I have not yet decided what's going to be the actual breakdown of the grades. Why? The reason is I'm really wondering how it is that we should evaluate these days, and I don't think any profs have the answer. You're being the guinea pigs, unfortunately, [inaudible]. So you tell me what works best in other classes. But I think a thing I can say now for sure, for maybe 3 years now, and the trend is going up: using assignments as an evaluation tool. Because there are two main roles in evaluations. Okay, one of them is purely from a pedagogical standpoint, helping you to learn stuff, and that's undeniable. There's value in homeworks just for the sake of learning.",
+   "fr": "je n'ai pas encore décidé quelle sera la répartition réelle des notes. Pourquoi ? La raison, c'est que je me demande vraiment comment on devrait évaluer de nos jours, et je ne pense pas qu'un seul prof ait la réponse. Vous êtes les cobayes, malheureusement, [inaudible]. Alors dites-moi ce qui fonctionne le mieux dans d'autres cours. Mais je pense qu'une chose que je peux dire maintenant avec certitude, depuis peut-être 3 ans maintenant, et la tendance est à la hausse : l'utilisation des devoirs comme outil d'évaluation. Parce que les évaluations ont deux rôles principaux. Bon, l'un d'eux est purement pédagogique, vous aider à apprendre des choses, et ça, c'est indéniable. Les devoirs ont une valeur, ne serait-ce que pour apprendre."
+  },
+  {
+   "t": 348240,
+   "text": "The second aspect, unfortunately: the reason why you pay tuition and so on and you go to school is that somehow you want a seal of approval that you possess some skills and that it's been measured in a way. So the second role, unfortunately, that I have to provide as a teacher is that I need to somehow do some gatekeeping and evaluate you in some way, so that it means something if you get an A+ at the end of the semester. Now, for maybe three years, I've seen the grades going up and up for assignments, to the point now that pretty much everybody has A+ in assignments.",
+   "fr": "Le deuxième aspect, malheureusement : la raison pour laquelle vous payez des droits de scolarité et tout ça, et que vous allez à l'école, c'est que d'une certaine façon vous voulez un sceau d'approbation attestant que vous possédez certaines compétences et qu'elles ont été mesurées d'une manière ou d'une autre. Donc le deuxième rôle, malheureusement, que je dois assumer comme enseignant, c'est que je dois en quelque sorte jouer un rôle de filtre et vous évaluer d'une façon ou d'une autre, pour que ça veuille dire quelque chose si vous obtenez un A+ à la fin de la session. Or, depuis peut-être trois ans, j'ai vu les notes des devoirs monter, monter, au point où maintenant à peu près tout le monde a A+ dans les devoirs."
+  },
+  {
+   "t": 385120,
+   "text": "And so, from a gatekeeping perspective, it no longer makes sense to use assignments as a tool to grade and rank people. So I'm conflicted here. As a student, I really used to like assignments. I would do really well. I'd get very anxious in exams. But from an evaluation standpoint, assignments are worthless now. Could be worthless. So I've tried different things. Last year I tried to do individual one-to-one interviews with everybody after their assignments in the ML course.",
+   "fr": "Et donc, du point de vue du filtrage, ça n'a plus de sens d'utiliser les devoirs comme outil pour noter et classer les gens. Donc je suis partagé. Comme étudiant, j'aimais vraiment les devoirs. Je réussissais très bien. J'étais très anxieux aux examens. Mais du point de vue de l'évaluation, les devoirs ne valent plus rien maintenant. Ou pourraient ne plus rien valoir. Donc j'ai essayé différentes choses. L'an dernier, j'ai essayé de faire des entrevues individuelles avec tout le monde après leurs devoirs dans le cours d'apprentissage automatique."
+  },
+  {
+   "t": 424080,
+   "text": "But it's not scalable. I mean, that would work if I were teaching in front of 10 students, but not for a class of this size. So I'm thinking that we might still want to have a final project. This has been really nice. Last year we did it. We had a poster session. You had to prepare a poster, and if you completely vibe coded the thing without understanding what's going on, it was pretty clear to me who had vibe coded without understanding. And to be clear, I'm not telling you you're not allowed to vibe code. It's impossible to enforce. And I vibe code my way out of life all the time.",
+   "fr": "Mais ça ne passe pas à l'échelle. Je veux dire, ça fonctionnerait si j'enseignais devant 10 étudiants, mais pas pour un groupe de cette taille. Donc je pense qu'on pourrait quand même vouloir un projet final. Ça a vraiment bien fonctionné. L'an dernier, on l'a fait. On a eu une séance d'affiches. Vous deviez préparer une affiche, et si vous aviez entièrement « vibe codé » le truc sans comprendre ce qui se passait, c'était assez clair pour moi qui avait vibe codé sans comprendre. Et pour être clair, je ne vous dis pas que vous n'avez pas le droit de vibe coder. C'est impossible à faire respecter. Et moi, je me sors de tout dans la vie en vibe codant, tout le temps."
+  },
+  {
+   "t": 468960,
+   "text": "Now, okay. The thing, though, is that you have a responsibility to understand whatever you present. And professionally, it's going to be the same thing. If you're a software engineer, you vibe code all the time. Look, everybody vibe codes. Engineers at Google vibe code. Everybody vibe codes. But you need to be able to put your seal of approval and say, \"I'm responsible.\" If that thing breaks, well, I'm not going to say, \"My agent was just stupid.\" It's your fault. So it's the same thing. If you present an idea, a poster, and you're not able to explain to me what's going on, what your baselines are, that's a problem. And this oral poster session has been quite revealing. Had I just asked students to write a paper, everybody would have gotten A's, because the topics were amazing, or at least what was claimed in the posters was amazing. But I've had instances of students who would have baselines on their posters and wouldn't be able to explain to me what their baseline was, which is a big problem, or explain to me",
+   "fr": "Bon, d'accord. Le truc, par contre, c'est que vous avez la responsabilité de comprendre tout ce que vous présentez. Et professionnellement, ce sera la même chose. Si vous êtes ingénieur logiciel, vous vibe codez tout le temps. Écoutez, tout le monde vibe code. Les ingénieurs chez Google vibe codent. Tout le monde vibe code. Mais vous devez être capables d'apposer votre sceau d'approbation et de dire : « J'en suis responsable. » Si ce truc-là plante, eh bien, je ne vais pas dire : « Mon agent était juste stupide. » C'est votre faute. Donc c'est la même chose. Si vous présentez une idée, une affiche, et que vous n'êtes pas capables de m'expliquer ce qui se passe, quelles sont vos méthodes de référence, c'est un problème. Et cette séance d'affiches à l'oral a été assez révélatrice. Si j'avais simplement demandé aux étudiants d'écrire un article, tout le monde aurait eu des A, parce que les sujets étaient extraordinaires, ou du moins ce qui était affirmé sur les affiches était extraordinaire. Mais j'ai eu des cas d'étudiants qui avaient des méthodes de référence sur leur affiche et qui n'étaient pas capables de m'expliquer ce qu'était leur méthode de référence, ce qui est un gros problème, ou de m'expliquer"
+  },
+  {
+   "t": 530720,
+   "text": "simply what their algorithm is doing. So I think the final project was pretty good, and I'm going to keep it. And I think it's going to look like... what is it going to be? Look, we can still decide together a little bit, but I think it's going to be a 30% final project. That's good, I think. Okay. And then we need to have 70% of purely gatekeeping stuff. So the project here is going to involve a poster and code, but no paper.",
+   "fr": "tout simplement ce que fait leur algorithme. Donc je pense que le projet final était assez réussi, et je vais le garder. Et je pense que ça va ressembler à... qu'est-ce que ça va être ? Écoutez, on peut encore en décider un peu ensemble, mais je pense que ce sera un projet final à 30 %. C'est bien, je pense. Bon. Et ensuite, il nous faut 70 % de pur filtrage. Donc le projet, ici, va comporter une affiche et du code, mais pas d'article."
+  },
+  {
+   "t": 580480,
+   "text": "Papers are useless. Then we need to have around 70% of other stuff. And this is where typically you would have something like a midterm and a final. So what I was thinking, actually, was more like this: midterm one, midterm two, and a final.",
+   "fr": "Les articles, ça ne sert à rien. Ensuite, il nous faut environ 70 % d'autres choses. Et c'est là qu'on aurait typiquement quelque chose comme un examen de mi-session et un examen final. Donc ce à quoi je pensais, en fait, c'était plutôt ceci : mi-session un, mi-session deux, et un final."
+  },
+  {
+   "t": 617279,
+   "text": "And the reason why two midterms: they would be a bit smaller, but also there's a lot of material that you'll see from, let's say, mid-October to the end of the semester. The topics will change quite a bit, so it does make sense to verify your knowledge with other checkpoints in between. So usually we want our final to weigh a little bit more.",
+   "fr": "Et la raison pour laquelle il y a deux examens de mi-session : ils seraient un peu plus courts, mais aussi, il y a beaucoup de matière que vous allez voir, disons, de la mi-octobre à la fin de la session. Les sujets vont pas mal changer, donc il est logique de vérifier vos connaissances avec d'autres points de contrôle entre les deux. Et habituellement, on veut que notre examen final pèse un peu plus lourd."
+  },
+  {
+   "t": 651600,
+   "text": "So what could that be? Let me just see what I had in my notes. So I think what I had decided was the following. We have 70%. How about we have 40% final, and then we have two 15%, that would work here: 15% here, 15% here. So that's 30%, plus 40% is 70, and then 70 plus 30 is 100%.",
+   "fr": "Alors, qu'est-ce que ça pourrait être ? Laissez-moi juste regarder ce que j'avais dans mes notes. Donc je pense que ce que j'avais décidé, c'était ceci. On a 70 %. Que diriez-vous de 40 % pour le final, et ensuite deux fois 15 %, ça fonctionnerait ici : 15 % ici, 15 % ici. Donc ça fait 30 %, plus 40 %, ça fait 70, et ensuite 70 plus 30, ça fait 100 %."
+  },
+  {
+   "t": 708000,
+   "text": "That will look like that. Yeah.\nStudent: Are they going to be paper exams, or more like...\nPaper. So sometimes in my ML course, intro to ML course, I like to have actual code written, and you read the code and you answer questions about it. I'm not going to ask you to write code, because that's silly. First of all, somehow we write code, but I need you to be able to inspect code, understand what's going on, and find flaws. Because look, if our job is not to write code anymore, what is our job? Our job is to validate, and I need to be helping you build that skill. So this is how I'm trying to shape up my course.",
+   "fr": "Ça va ressembler à ça. Oui.\nStudent: Est-ce que ce seront des examens sur papier, ou plutôt...\nSur papier. Parfois, dans mon cours d'apprentissage automatique, le cours d'introduction à l'apprentissage automatique, j'aime mettre du vrai code, et vous lisez le code et vous répondez à des questions à son sujet. Je ne vais pas vous demander d'écrire du code, parce que ce serait ridicule. Tout d'abord, d'une certaine façon, on écrit du code, mais j'ai besoin que vous soyez capables d'inspecter du code, de comprendre ce qui se passe et d'y trouver des failles. Parce qu'écoutez, si notre travail n'est plus d'écrire du code, c'est quoi, notre travail ? Notre travail, c'est de valider, et je dois vous aider à développer cette compétence. Donc c'est comme ça que j'essaie de façonner mon cours."
+  },
+  {
+   "t": 758320,
+   "text": "Now, I want you to have the right instincts, to ask the right questions, to either verify yourself or ask the right questions to your agent, at least. So I'll try to reflect this somehow in the written exam. The project can be in teams of how many? You want three? Three, four? Three is enough. Three is a good number. Three. And the project is on a real, applied control-plus-learning problem.",
+   "fr": "Maintenant, je veux que vous ayez les bons réflexes, que vous posiez les bonnes questions, soit pour vérifier par vous-mêmes, soit au moins pour poser les bonnes questions à votre agent. Donc je vais essayer de refléter ça d'une certaine façon dans l'examen écrit. Le projet peut se faire en équipes de combien ? Vous voulez trois ? Trois, quatre ? Trois, c'est assez. Trois, c'est un bon nombre. Trois. Et le projet porte sur un vrai problème appliqué de commande et d'apprentissage."
+  },
+  {
+   "t": 813920,
+   "text": "So that means I don't want to see MuJoCo simulated robotics toy problems. So you're going to look into the literature. I've had lots of interesting stuff last year. Look, I had people who looked at the control problem of sewer systems. That was pretty cool. Two teams worked on optimal control for ship navigation. One team was ship navigation in ice, and in fact that became, let's say, maybe a new passion for one of my students now, Gabriel, who's about to create a startup around this. So, ship navigation in ice. It was a pretty cool demo. The guys were really motivated. They took satellite imagery, real satellite imagery, mapped it",
+   "fr": "Ça veut donc dire que je ne veux pas voir de problèmes jouets de robotique simulée dans MuJoCo. Vous allez donc fouiller la littérature. J'ai eu plein de choses intéressantes l'an dernier. Écoutez, j'ai eu des gens qui se sont penchés sur le problème de commande des réseaux d'égouts. C'était vraiment intéressant. Deux équipes ont travaillé sur la commande optimale pour la navigation des navires. Une des équipes, c'était la navigation des navires dans les glaces, et en fait c'est devenu, disons, peut-être une nouvelle passion pour un de mes étudiants, Gabriel, qui est sur le point de fonder une jeune entreprise autour de ça. Donc, la navigation des navires dans les glaces. C'était une démo vraiment impressionnante. Les gars étaient vraiment motivés. Ils ont pris de l'imagerie satellite, de la vraie imagerie satellite, ils l'ont convertie"
+  },
+  {
+   "t": 874399,
+   "text": "to ice floes, which are basically like ice blocks in the Arctic, came up with a physical model for how the ice would evolve in actual currents, then simulated how it would collide with the ship hull, and then came up with a trajectory optimization algorithm to find the best route that would minimize collision and that would be feasible. So it was a pretty cool thing, and there's a real need and market for these kinds of things.",
+   "fr": "en floes, qui sont en gros des blocs de glace dans l'Arctique, ont élaboré un modèle physique de l'évolution de la glace dans des courants réels, puis ont simulé comment elle entrerait en collision avec la coque du navire, et ensuite ont conçu un algorithme d'optimisation de trajectoire pour trouver le meilleur itinéraire, qui minimiserait les collisions et qui serait réalisable. Donc c'était vraiment intéressant, et il y a un réel besoin et un réel marché pour ce genre de choses."
+  },
+  {
+   "t": 904959,
+   "text": "So anyway, we'll get back to this. We'll start working on the project around mid-October, so at least you could have some good idea of what domain you want to work on, and I can for sure help you find more. And I'll try to be presenting also a vast array of different methods on actual concrete problems in this course. Any question regarding the proposed plan here, of how it works? There are a few more details not here. One of them is the choice of TA. Nobody has applied, actually, to the job offering, which is not a problem, because I have a very good TA in mind. It's just that there's a union at UdeM, so I can't right away tell that person it's going to be my TA. But I think it's going to work out since nobody has applied, and you'll have a",
+   "fr": "Bref, on va y revenir. On va commencer à travailler sur le projet vers la mi-octobre, donc au moins vous pourriez avoir une bonne idée du domaine sur lequel vous voulez travailler, et je peux certainement vous aider à en trouver d'autres. Et je vais aussi essayer de présenter dans ce cours un vaste éventail de méthodes différentes sur des problèmes réels et concrets. Des questions sur le plan proposé ici, sur la façon dont ça fonctionne ? Il y a quelques détails de plus qui ne sont pas ici. L'un d'eux, c'est le choix de l'auxiliaire d'enseignement. Personne n'a postulé, en fait, à l'offre d'emploi, ce qui n'est pas un problème, parce que j'ai un très bon auxiliaire en tête. C'est juste qu'il y a un syndicat à l'UdeM, donc je ne peux pas dire tout de suite à cette personne que ce sera mon auxiliaire. Mais je pense que ça va s'arranger, puisque personne n'a postulé, et vous allez avoir un"
+  },
+  {
+   "t": 965440,
+   "text": "very good TA just as soon as we go through the formal process of hiring that person. Any other question? Maybe if you want to hear what's the difference between this course and some other course, that could be a good idea. Maybe you're not sure if you should sit here. So please ask me questions, clarifications. Yeah.\nStudent: Will the exams be in class?\nYeah.\nStudent: All three of them?\nYeah. All three of them.",
+   "fr": "très bon auxiliaire d'enseignement dès qu'on aura suivi le processus officiel d'embauche de cette personne. D'autres questions ? Peut-être que si vous voulez savoir quelle est la différence entre ce cours et un autre cours, ce serait une bonne idée. Peut-être que vous n'êtes pas sûrs d'être à votre place ici. Alors s'il vous plaît, posez-moi des questions, demandez des précisions. Oui.\nStudent: Est-ce que les examens vont avoir lieu en classe ?\nOui.\nStudent: Les trois ?\nOui. Les trois."
+  },
+  {
+   "t": 996959,
+   "text": "Sometimes they schedule final exams in some location on campus. I don't ask for these things, and I think it's just easier if we do it in class. So please just disregard it if the faculty has chosen anything officially. I didn't choose any of this. I apologize for not putting the dates, but that should be out, let's say, by the end of today's lecture. I'll be posting the exact dates. So if you're traveling or anything like this, just let me know. Okay.",
+   "fr": "Parfois, on planifie les examens finaux dans un local quelque part sur le campus. Je ne demande pas ce genre de choses, et je pense que c'est simplement plus facile si on le fait en classe. Donc s'il vous plaît, ne tenez pas compte de ce que la faculté aurait choisi officiellement. Je n'ai rien choisi de tout ça. Je m'excuse de ne pas avoir mis les dates, mais ça devrait être publié, disons, d'ici la fin du cours d'aujourd'hui. Je vais afficher les dates exactes. Donc si vous voyagez ou quelque chose du genre, faites-le-moi savoir. D'accord."
+  },
+  {
+   "t": 1033439,
+   "text": "Student: For the assignments, do we have access to the past assignments?\nYeah. I can give you all the content for the past five years. There's one year I skipped; I was on paternity leave. It's all available on Google Drive. The content has changed quite a bit. I'm trying to evolve the content to reflect what I think is relevant, as I myself grew up as a researcher and professional in the field. So there's a common thread between all this, but let's say the 2020 edition, COVID time, versus this year's edition is going to be a bit different.",
+   "fr": "Student: Pour les devoirs, est-ce qu'on a accès aux devoirs des années passées ?\nOui. Je peux vous donner tout le contenu des cinq dernières années. Il y a une année que j'ai sautée ; j'étais en congé de paternité. Tout est disponible sur Google Drive. Le contenu a pas mal changé. J'essaie de faire évoluer le contenu pour refléter ce que je juge pertinent, à mesure que j'ai moi-même grandi comme chercheur et comme professionnel dans le domaine. Donc il y a un fil conducteur dans tout ça, mais disons que l'édition de 2020, à l'époque de la COVID, et l'édition de cette année vont être un peu différentes."
+  },
+  {
+   "t": 1077919,
+   "text": "Yeah. Any other question? Yeah.\nStudent: Will there be time in class for working on the project?\nNo, I don't think so. I don't think we have time, but feel free to meet with your colleagues here in this space. If you're from Mila[?], of course you can meet here, but if you're not, usually students would hang out around here. I don't know what they're going to say now with the new security rules, but otherwise please feel free to hang out.",
+   "fr": "Oui. D'autres questions ? Oui.\nStudent: Est-ce qu'il y aura du temps en classe pour travailler sur le projet ?\nNon, je ne pense pas. Je ne pense pas qu'on ait le temps, mais n'hésitez pas à rencontrer vos collègues ici, dans cet espace. Si vous êtes de Mila[?], bien sûr, vous pouvez vous rencontrer ici, mais si vous ne l'êtes pas, d'habitude les étudiants traînent quand même dans le coin. Je ne sais pas ce qu'ils vont dire maintenant avec les nouvelles règles de sécurité, mais sinon, n'hésitez pas à venir passer du temps ici."
+  },
+  {
+   "t": 1111760,
+   "text": "Student: Will we have some exercises we can do at home to practice?\nIt's all in the textbook, actually. At the end of each chapter, usually you have a bunch of self-checks, sort of, so a few of these things here, and I'll be adding more. So you can look at those things. The answers are present in the notes.\nStudent: And are there some code exercises?",
+   "fr": "Student: Est-ce qu'on aura des exercices à faire à la maison pour s'exercer ?\nTout est dans le manuel, en fait. À la fin de chaque chapitre, habituellement, vous avez une série d'autoévaluations, en quelque sorte, donc quelques trucs comme ceux-ci, et je vais en ajouter d'autres. Donc vous pouvez regarder ça. Les réponses se trouvent dans les notes.\nStudent: Et est-ce qu'il y a des exercices de code ?"
+  },
+  {
+   "t": 1146880,
+   "text": "Yeah, absolutely. I really like to write code demos, so there are a bunch of them here. I tried this new feature. I'm not sure I'm going to like it, but it's quite funky. It uses WebAssembly to run the Python code in your browser. So it's not running in Jupyter. Not sure if it's going to work well; we'll give it a try. Otherwise, I really like to use Colab and things like this. So you can try it out yourself too.",
+   "fr": "Oui, absolument. J'aime beaucoup écrire des démos de code, donc il y en a plusieurs ici. J'ai essayé cette nouvelle fonctionnalité. Je ne suis pas sûr que je vais l'aimer, mais c'est plutôt original. Elle utilise WebAssembly pour exécuter le code Python dans votre navigateur. Donc ça ne tourne pas dans Jupyter. Je ne suis pas sûr que ça va bien fonctionner ; on va l'essayer. Sinon, j'aime beaucoup utiliser Colab et ce genre de choses. Donc vous pouvez l'essayer vous-mêmes aussi."
+  },
+  {
+   "t": 1185840,
+   "text": "Any other question? Yeah. We're going to be taking also a 10, 15 minute break after 50 minutes, where you can go to the cafe downstairs. Although now with the card access it might be tricky, but I'm sure you can make it work. Yeah.\nStudent: I saw in the syllabus that there's some section to read before each class. Is it like reading the whole section of the textbook?\nNo. I mean, now the content is going to be more or less stable, so you can read it ahead of time. But I'm usually not disciplined enough to be able to tell you to read this thing ahead of time. So feel free to click through and see what's coming.",
+   "fr": "D'autres questions ? Oui. On va aussi prendre une pause de 10, 15 minutes après 50 minutes, pendant laquelle vous pourrez aller au café en bas. Quoique maintenant, avec l'accès par carte, ça pourrait être compliqué, mais je suis sûr que vous allez trouver le moyen. Oui.\nStudent: J'ai vu dans le plan de cours qu'il y a une section à lire avant chaque cours. Est-ce qu'il faut lire toute la section du manuel ?\nNon. Je veux dire, maintenant le contenu va être plus ou moins stable, donc vous pouvez le lire à l'avance. Mais d'habitude, je ne suis pas assez discipliné pour être capable de vous dire de lire telle chose à l'avance. Alors n'hésitez pas à parcourir les pages et à voir ce qui s'en vient."
+  },
+  {
+   "t": 1229840,
+   "text": "Usually I'm going to be following the order that is present here, because I wrote these notes, but I don't think it's necessary, honestly. It's good if you do it, but I don't think it's necessary. Question?\nStudent: Office hours?\nYeah. So the first point of contact will be my TA. It's going to be literally their job to be there for you, especially since, if they don't have to grade any homeworks, then I need to do something with them. So for sure I'll ask them to post their office hours, and then if you need to escalate something, I'll be the sort of after-TA, that's going to be me. But typically I'll ask my TA to do the bulk of it. And please feel free to make use of that resource. What?\nStudent: For the project, in terms of compute resources, are we going to be...\nI don't have compute to give you, but",
+   "fr": "Habituellement, je vais suivre l'ordre présenté ici, parce que c'est moi qui ai écrit ces notes, mais je ne pense pas que ce soit nécessaire, honnêtement. C'est bien si vous le faites, mais je ne pense pas que ce soit nécessaire. Une question ?\nStudent: Des heures de disponibilité ?\nOui. Donc le premier point de contact, ce sera mon auxiliaire d'enseignement. Ce sera littéralement son travail d'être là pour vous, surtout que, s'il n'a pas de devoirs à corriger, il faut bien que je lui donne quelque chose à faire. Donc c'est sûr que je vais lui demander d'afficher ses heures de disponibilité, et ensuite, si vous devez faire remonter quelque chose, je serai en quelque sorte l'après-auxiliaire, ce sera moi. Mais typiquement, je vais demander à mon auxiliaire de s'occuper de l'essentiel. Et n'hésitez surtout pas à utiliser cette ressource. Quoi ?\nStudent: Pour le projet, en termes de ressources de calcul, est-ce qu'on va être...\nJe n'ai pas de ressources de calcul à vous donner, mais"
+  },
+  {
+   "t": 1292159,
+   "text": "here's a good thing: as opposed to, let's say, a deep learning class, the compute required for the methods I'm teaching here is not that big. So you should be able to run everything on your laptop, or even use Google Colab if you want to run it. Now, if you have access to compute, then feel free, but it's not like you're going to have to use fancy GPUs for, let's say, 3 days to get an answer.",
+   "fr": "voici une bonne nouvelle : contrairement à, disons, un cours d'apprentissage profond, le calcul requis pour les méthodes que j'enseigne ici n'est pas si important. Donc vous devriez pouvoir tout exécuter sur votre ordinateur portable, ou même utiliser Google Colab si vous voulez l'exécuter là. Maintenant, si vous avez accès à des ressources de calcul, libre à vous, mais ce n'est pas comme si vous alliez devoir utiliser des GPU sophistiqués pendant, disons, 3 jours pour obtenir une réponse."
+  },
+  {
+   "t": 1327280,
+   "text": "Student: Are there old exam materials available?\nYeah. For sure I'll be sharing the material. Every year I have a Google Drive for each year, so I'll be sharing the links with you. I'm not putting it publicly on my course, but I'll be sharing it with you privately on StudiUM.\nStudent: [inaudible question]\nProbably at 1:30 today, roughly.",
+   "fr": "Student: Est-ce qu'il y a d'anciens examens disponibles ?\nOui. C'est sûr que je vais partager le matériel. Chaque année, j'ai un Google Drive pour l'année, donc je vais partager les liens avec vous. Je ne le mets pas publiquement sur le site de mon cours, mais je vais le partager avec vous en privé sur StudiUM.\nStudent: [inaudible question]\nProbablement à 13 h 30 aujourd'hui, à peu près."
+  },
+  {
+   "t": 1361600,
+   "text": "So, oh yeah, sometimes some of you will travel to NeurIPS in December. I'll try to make sure it doesn't clash too much, but it's a bit of an issue, because at some point there's just so much I can do: either I push the final evaluation closer to the Christmas break, or I do it really, really early. And honestly, doing remote evaluation is a big headache, and also, for fairness reasons, I would really prefer that it doesn't happen at all.",
+   "fr": "Donc, ah oui, parfois certains d'entre vous vont aller à NeurIPS en décembre. Je vais essayer de faire en sorte qu'il n'y ait pas trop de conflit, mais c'est un peu problématique, parce qu'à un moment donné, il y a une limite à ce que je peux faire : soit je repousse l'évaluation finale plus près du congé de Noël, soit je la fais vraiment, vraiment tôt. Et honnêtement, faire une évaluation à distance, c'est un gros casse-tête, et aussi, pour des raisons d'équité, je préférerais vraiment que ça n'arrive pas du tout."
+  },
+  {
+   "t": 1400880,
+   "text": "So we'll try to make sure that everybody can take all the exams in person. Yeah, you're pretty much all grown-ups, but I've got to say, at the undergrad level, there are lots of cases of plagiarism and stuff like this. It's really not pretty. So I don't want to become paranoid, and I trust you because you're grown-ups. But at the same time, it is a phenomenon that we're observing. So it's my duty to at least make an effort so that it's fair for everyone. For example, making sure that everybody gets graded the same way. And especially, a remote exam is very tricky to make fair.",
+   "fr": "Donc on va essayer de faire en sorte que tout le monde puisse faire tous les examens en personne. Oui, vous êtes à peu près tous des adultes, mais je dois dire qu'au premier cycle, il y a beaucoup de cas de plagiat et de choses du genre. Ce n'est vraiment pas joli. Donc je ne veux pas devenir paranoïaque, et je vous fais confiance parce que vous êtes des adultes. Mais en même temps, c'est un phénomène qu'on observe. C'est donc mon devoir de faire au moins un effort pour que ce soit équitable pour tout le monde. Par exemple, m'assurer que tout le monde est évalué de la même façon. Et surtout, un examen à distance, c'est très difficile à rendre équitable."
+  },
+  {
+   "t": 1451679,
+   "text": "Okay. So I think we can get started. I just want to talk... Yeah, actually, does anyone want to ask me what's the difference between this course and another course? Otherwise I'll tell you, I guess.\nStudent: [inaudible question]\nWhat's that? What's the difference between your course and Doina's[?] course? What's the difference between your course and [name]'s course? Okay. Well, if you ask me, I'm going to take a broader perspective on reinforcement learning.",
+   "fr": "Bon. Je pense qu'on peut commencer. Je veux juste parler... Oui, en fait, est-ce que quelqu'un veut me demander quelle est la différence entre ce cours et un autre cours ? Sinon, je vais vous le dire, j'imagine.\nStudent: [inaudible question]\nPardon ? Quelle est la différence entre votre cours et le cours de Doina[?] ? Quelle est la différence entre votre cours et le cours de [name] ? D'accord. Eh bien, si vous me le demandez, je vais adopter une perspective plus large sur l'apprentissage par renforcement."
+  },
+  {
+   "t": 1482799,
+   "text": "Typically, when we teach reinforcement learning, when we learn about reinforcement learning... I learned these things from Sutton and Barto, the foundational textbook in reinforcement learning, and I've learned tremendously. But I've also discovered through my academic journey that there's way more beyond the set of tools presented in reinforcement learning, and this is what I want to share with you. So when I use the expression reinforcement learning here, I tend to use it in a broader setting, to refer to a set of algorithms to do control. So, what it means to take decisions in a dynamic system.",
+   "fr": "Typiquement, quand on enseigne l'apprentissage par renforcement, quand on apprend l'apprentissage par renforcement... Moi, j'ai appris ces choses-là dans Sutton et Barto, le manuel fondateur de l'apprentissage par renforcement, et j'ai énormément appris. Mais j'ai aussi découvert au fil de mon parcours universitaire qu'il y a bien plus, au-delà de l'ensemble d'outils présentés en apprentissage par renforcement, et c'est ce que je veux partager avec vous. Donc quand j'utilise l'expression apprentissage par renforcement ici, j'ai tendance à l'employer dans un sens plus large, pour désigner un ensemble d'algorithmes pour faire de la commande. Donc, ce que ça veut dire, prendre des décisions dans un système dynamique."
+  },
+  {
+   "t": 1530880,
+   "text": "What does that mean? A dynamic system is a system that changes through time, right? And it wouldn't be called learning if there was no learning. So if you've got a system that learns to take good decisions from data, to me that's going to be what I call reinforcement learning. That's not quite what people would think of, though, when, let's say, you do LLM post-training. There's also reinforcement learning, which stands for the set of algorithms that we like to refer to as reinforcement learning.",
+   "fr": "Qu'est-ce que ça veut dire ? Un système dynamique, c'est un système qui change dans le temps, n'est-ce pas ? Et on ne parlerait pas d'apprentissage s'il n'y avait pas d'apprentissage. Donc si vous avez un système qui apprend à prendre de bonnes décisions à partir de données, pour moi, c'est ce que j'appellerai de l'apprentissage par renforcement. Ce n'est pas tout à fait ce à quoi les gens penseraient, par contre, quand, disons, on fait du post-entraînement de LLM. Il y a aussi l'apprentissage par renforcement au sens de l'ensemble des algorithmes qu'on a l'habitude d'appeler apprentissage par renforcement."
+  },
+  {
+   "t": 1572000,
+   "text": "So that's stuff like policy gradient methods, temporal difference learning, and so on. And these are really the core RL methods that Sutton and Barto developed and presented in their textbook. And I will go through these things, but I will try to position them, let's say, logically within a bigger picture.",
+   "fr": "Donc ce sont des choses comme les méthodes de gradient de politique, l'apprentissage par différence temporelle, et ainsi de suite. Et ce sont vraiment les méthodes centrales du RL que Sutton et Barto ont développées et présentées dans leur manuel. Et je vais couvrir ces choses-là, mais je vais essayer de les situer, disons, logiquement dans un cadre plus large."
+  },
+  {
+   "t": 1603120,
+   "text": "And in order to get there, I need to tell you about what exists out there when you want to solve a control or decision-making problem. And the first thing is to talk about modeling. For us in machine learning, we use it almost all the time. Now, if I say model, well, you're going to think, say, of an MoE architecture, a transformer. You're going to think of a neural network, and that's not wrong to call that a model. But there's a whole tradition of modeling in other fields. What does it mean to model? It means to come up with a description of our system, and this description is often imperfect, and we're fine with that.",
+   "fr": "Et pour y arriver, je dois vous parler de ce qui existe quand on veut résoudre un problème de commande ou de prise de décision. Et la première chose, c'est de parler de modélisation. Nous, en apprentissage automatique, on l'utilise presque tout le temps. Maintenant, si je dis modèle, eh bien, vous allez penser, disons, à une architecture MoE, à un transformeur. Vous allez penser à un réseau de neurones, et ce n'est pas faux d'appeler ça un modèle. Mais il y a toute une tradition de modélisation dans d'autres domaines. Qu'est-ce que ça veut dire, modéliser ? Ça veut dire proposer une description de notre système, et cette description est souvent imparfaite, et ça nous convient."
+  },
+  {
+   "t": 1660159,
+   "text": "But it's a description that allows us to then derive solutions, to prove things, to write algorithms. So it's a representation of the world, which oftentimes takes the form of a set of equations. So this is the starting point I want to take with you. So what kind of equations could you have? There are actually lots of different axes to modeling.",
+   "fr": "Mais c'est une description qui nous permet ensuite d'en tirer des solutions, de prouver des choses, d'écrire des algorithmes. C'est donc une représentation du monde, qui prend souvent la forme d'un ensemble d'équations. C'est le point de départ que je veux adopter avec vous. Alors, quel genre d'équations pourrait-on avoir ? Il y a en fait beaucoup d'axes différents en modélisation."
+  },
+  {
+   "t": 1700480,
+   "text": "Oh yeah, another thing that is different from other classes is that I'm going to be teaching you to embrace continuous-time systems. Usually reinforcement learning algorithms are presented in a discrete-time setting. Here I want to show you that we can also model and control systems in continuous time. So one axis is discrete versus continuous time.",
+   "fr": "Ah oui, une autre chose qui est différente des autres cours, c'est que je vais vous apprendre à apprivoiser les systèmes en temps continu. Habituellement, les algorithmes d'apprentissage par renforcement sont présentés dans un cadre en temps discret. Ici, je veux vous montrer qu'on peut aussi modéliser et commander des systèmes en temps continu. Donc un des axes, c'est le temps discret par opposition au temps continu."
+  },
+  {
+   "t": 1752399,
+   "text": "It's one of the major differences. What could be another axis? Trying to get you to guess. Yeah.\nStudent: Well, maybe if there's something discrete or continuous in the... like, if it's the distance, you have a discrete system, or maybe distance or things like that.\nSo I think maybe where you want to go is at which level we mean discrete and continuous: also the actions and states. And we're going to talk about that in a second. But here this is really about the clock ticking: is it ticking continuously or discretely? What could be other axes? Let's say, if I tell you that it's good to have a background in PGM, what could be another...\nStudent: Deterministic or...",
+   "fr": "C'est une des différences majeures. Quel pourrait être un autre axe ? J'essaie de vous le faire deviner. Oui.\nStudent: Bien, peut-être s'il y a quelque chose de discret ou de continu dans le... genre, si c'est la distance, on a un système discret, ou peut-être la distance ou des choses comme ça.\nJe pense que là où vous voulez peut-être en venir, c'est à quel niveau on entend discret et continu : aussi pour les actions et les états. Et on va en parler dans une seconde. Mais ici, il s'agit vraiment du tic-tac de l'horloge : est-ce qu'elle avance de façon continue ou discrète ? Quels pourraient être d'autres axes ? Disons, si je vous dis que c'est bien d'avoir une formation en PGM, quel pourrait être un autre...\nStudent: Déterministe ou..."
+  },
+  {
+   "t": 1813360,
+   "text": "Very good. So let's say stochastic versus deterministic. Okay, that's pretty good. Let's bring in what your colleagues have said here, but we're missing a few things to really embrace it. Continuous or discrete: we're going to have notions of states and actions.",
+   "fr": "Très bien. Donc disons stochastique ou déterministe. D'accord, c'est plutôt bien. Intégrons ce que vos collègues ont dit ici, mais il nous manque quelques éléments pour vraiment en faire le tour. Continu ou discret : on va avoir des notions d'états et d'actions."
+  },
+  {
+   "t": 1859600,
+   "text": "Yeah.\nStudent: You have to do the same for rewards?\nFor the rewards. It's a good point. Mathematically, we don't really model them differently, but it is true that, let's say, people these days... There's a field that my colleague started, basically. It's called distributional RL. And in distributional RL, oftentimes what people do is bin[?] the reward as discrete objects. Why do they do this? Because they want to maintain an empirical distribution and model their reward function. But at the moment, I'm going to keep that distinction aside for a second. There's going to be another distinction, but at the moment it's a bit",
+   "fr": "Oui.\nStudent: Il faut faire la même chose pour les récompenses ?\nPour les récompenses. Bonne remarque. Mathématiquement, on ne les modélise pas vraiment différemment, mais c'est vrai que, disons, les gens ces temps-ci... Il y a un domaine que mon collègue a lancé, essentiellement. Ça s'appelle le RL distributionnel. Et en RL distributionnel, souvent, ce que les gens font, c'est de regrouper[?] la récompense en intervalles, comme des objets discrets. Pourquoi font-ils ça ? Parce qu'ils veulent maintenir une distribution empirique et modéliser leur fonction de récompense. Mais pour le moment, je vais mettre cette distinction de côté un instant. Il va y avoir une autre distinction, mais pour le moment, c'est un peu"
+  },
+  {
+   "t": 1919760,
+   "text": "hard to appreciate what it is without looking at the math. Sometimes this is written as perfect versus imperfect observation.",
+   "fr": "difficile de saisir de quoi il s'agit sans regarder les mathématiques. Parfois, on l'écrit comme observation parfaite ou imparfaite."
+  },
+  {
+   "t": 1951200,
+   "text": "What could that mean? It means that there are systems that sometimes we model as having a latent, unobservable state, and then we model the system as providing us with some observables, but observables that are not necessarily in one-to-one correspondence with the underlying latent state. All right, so let's say a textbook like Sutton and Barto would typically be the combination discrete time plus stochastic.",
+   "fr": "Qu'est-ce que ça pourrait vouloir dire ? Ça veut dire qu'il y a des systèmes qu'on modélise parfois comme ayant un état latent, non observable, et ensuite on modélise le système comme nous fournissant certaines grandeurs observables, mais des grandeurs observables qui ne sont pas nécessairement en correspondance bijective avec l'état latent sous-jacent. Bon, alors disons qu'un manuel comme Sutton et Barto correspondrait typiquement à la combinaison temps discret plus stochastique."
+  },
+  {
+   "t": 2003519,
+   "text": "Although the framework is general; it allows for continuous and discrete state spaces. Oftentimes there's a lot of focus on discrete states and actions. That being said, the continuous case is fully covered in Sutton and Barto. I just want to say that in the simplest instantiation, it would look like this. So at the beginning of the class, we're going to look at one particular instantiation, which will be continuous and deterministic systems, with perfect observation and continuous states and actions.",
+   "fr": "Bien que le cadre soit général ; il permet des espaces d'états continus et discrets. Souvent, on met beaucoup l'accent sur les états et les actions discrets. Cela dit, le cas continu est entièrement couvert dans Sutton et Barto. Je veux juste dire que dans l'instanciation la plus simple, ça ressemblerait à ceci. Donc au début du cours, on va regarder une instanciation particulière, soit les systèmes continus et déterministes, avec observation parfaite et des états et actions continus."
+  },
+  {
+   "t": 2051599,
+   "text": "And the nice thing is when your system is deterministic... Of course, the world is not deterministic. Okay, some people like to do philosophy around that question, but for all practical purposes, the world is probably stochastic. But when things are deterministic, it really simplifies the math. The math, whenever you go to the stochastic case, tends to be much more complicated.",
+   "fr": "Et ce qui est bien quand votre système est déterministe... Bien sûr, le monde n'est pas déterministe. Bon, certaines personnes aiment philosopher autour de cette question, mais à toutes fins pratiques, le monde est probablement stochastique. Mais quand les choses sont déterministes, ça simplifie vraiment les mathématiques. Les mathématiques, dès qu'on passe au cas stochastique, ont tendance à être beaucoup plus compliquées."
+  },
+  {
+   "t": 2085679,
+   "text": "And continuous time, deterministic: this is going to allow us to do what we call trajectory optimization. So what is trajectory optimization? You give me a system, and we'll get into the specifics of how we model them. You give me a system, you give me a cost or an objective, and then I'm going to give you a sequence of controls or actions, set points, let's say, on the machine, or torque on the motor, to minimize a cost.",
+   "fr": "Et le temps continu, déterministe : ça va nous permettre de faire ce qu'on appelle de l'optimisation de trajectoire. Alors, qu'est-ce que l'optimisation de trajectoire ? Vous me donnez un système, et on va entrer dans les détails de la façon dont on les modélise. Vous me donnez un système, vous me donnez un coût ou un objectif, et ensuite je vais vous donner une séquence de commandes ou d'actions, des consignes, disons, sur la machine, ou un couple sur le moteur, pour minimiser un coût."
+  },
+  {
+   "t": 2135359,
+   "text": "And then your system is going to apply this thing no matter what happens in the real world. It's going to apply it, in a way, blindly. It's going to do it in what we call an open-loop fashion. Why open loop? Because open loop means we don't take into account the feedback, or what might truly happen in the world.",
+   "fr": "Et ensuite, votre système va appliquer ça peu importe ce qui se passe dans le monde réel. Il va l'appliquer, d'une certaine façon, à l'aveugle. Il va le faire de manière dite en boucle ouverte. Pourquoi boucle ouverte ? Parce que boucle ouverte veut dire qu'on ne tient pas compte de la rétroaction, ou de ce qui pourrait vraiment se passer dans le monde."
+  },
+  {
+   "t": 2166480,
+   "text": "Let's pretend I'm a system. Okay. And I have a map of the room, and in my mind I'm a program, and I plan to get to the microphone. Okay. And when I planned it in my head, well, that chair wasn't there. Easy. I could figure out in advance that, let's say, if I do one, two, three, four, five, six steps ahead, I'm going to get to the microphone. That's fine. So that's an open-loop sequence that was precomputed ahead of time and then applied.",
+   "fr": "Faisons comme si j'étais un système. D'accord. Et j'ai une carte de la salle, et dans ma tête je suis un programme, et je planifie de me rendre au micro. D'accord. Et quand je l'ai planifié dans ma tête, eh bien, cette chaise-là n'était pas là. Facile. Je pourrais déterminer à l'avance que, disons, si je fais un, deux, trois, quatre, cinq, six pas en avant, je vais arriver au micro. Très bien. Donc c'est une séquence en boucle ouverte qui a été précalculée à l'avance, puis appliquée."
+  },
+  {
+   "t": 2215520,
+   "text": "But these closed-loop, open-loop, pardon me, algorithms, they're blind. They model their world in their head ahead of time, and then it's as if they close their eyes. So let's say I walk like this, and I'm the system: I'm going to bump into the chair. It wasn't there before. It's a disturbance that was not modeled in my world. So there are kind of two things you could do there. What do you think it could be?",
+   "fr": "Mais ces algorithmes en boucle fermée, en boucle ouverte, pardon, sont aveugles. Ils modélisent leur monde dans leur tête à l'avance, et ensuite c'est comme s'ils fermaient les yeux. Donc disons que je marche comme ça, et je suis le système : je vais foncer dans la chaise. Elle n'était pas là avant. C'est une perturbation qui n'était pas modélisée dans mon monde. Il y a donc en quelque sorte deux choses qu'on pourrait faire à ce moment-là. Qu'est-ce que ça pourrait être, selon vous ?"
+  },
+  {
+   "t": 2249599,
+   "text": "How could I account for the fact that, actually, let's say at three... How could I account for the fact that now there's a chair? How can I make my system robust? Yeah.\nStudent: Maybe add some kind of sensor to your algorithm, adding maybe [inaudible] vision that you can...\nThat's a very pragmatic way of seeing things, and I don't disagree with you. For sure that would help. But, say, algorithmically speaking, how could we do things differently?\nStudent: Recompute your trajectory every certain number of steps.\nRecompute. Very good, very good answer. So recomputing your trajectory every couple of steps is in fact a fundamental idea, and one that is very natural.",
+   "fr": "Comment pourrais-je tenir compte du fait que, en fait, disons à trois... Comment pourrais-je tenir compte du fait que maintenant il y a une chaise ? Comment rendre mon système robuste ? Oui.\nStudent: Peut-être ajouter une sorte de capteur à votre algorithme, ajouter peut-être de la vision [inaudible] qui vous permettrait de...\nC'est une façon très pragmatique de voir les choses, et je ne suis pas en désaccord avec vous. C'est sûr que ça aiderait. Mais, disons, sur le plan algorithmique, comment pourrait-on faire les choses différemment ?\nStudent: Recalculer votre trajectoire après un certain nombre de pas.\nRecalculer. Très bien, très bonne réponse. Donc recalculer votre trajectoire tous les quelques pas, c'est en fait une idée fondamentale, et une idée très naturelle."
+  },
+  {
+   "t": 2294320,
+   "text": "Once you've got a trajectory optimization algorithm, you can then make it more robust by doing what your colleague has just said here, which is to recompute on the fly. Now, of course, you need your solver to be efficient, because you're really doing optimization on the fly, but that's going to make your system more robust. So what does it mean? It means that, let's say, the chair is there. My system plans ahead of time. It doesn't know that the chair is there, and then I start applying the plan, and then my system wakes up and looks at the world.",
+   "fr": "Une fois que vous avez un algorithme d'optimisation de trajectoire, vous pouvez ensuite le rendre plus robuste en faisant ce que votre collègue vient de dire, c'est-à-dire recalculer à la volée. Maintenant, bien sûr, il faut que votre solveur soit efficace, parce que vous faites vraiment de l'optimisation à la volée, mais ça va rendre votre système plus robuste. Alors, qu'est-ce que ça veut dire ? Ça veut dire que, disons, la chaise est là. Mon système planifie à l'avance. Il ne sait pas que la chaise est là, et ensuite je commence à appliquer le plan, et puis mon système se réveille et regarde le monde."
+  },
+  {
+   "t": 2331359,
+   "text": "Oh, there's a chair. So I need to now replan my solution to the microphone. So now you take a new trajectory that goes around. So, recomputing it. There's a technical term for that that sounds very fancy, but it's really just what your colleague said: recomputing on the fly. I'm sorry, it's very low here. Does anyone know what this is? If you're an engineer, you've probably seen these things. The acronym here is MPC. Not NPC as in video games, but MPC as in model predictive control.",
+   "fr": "Oh, il y a une chaise. Donc je dois maintenant replanifier ma solution pour me rendre au micro. Alors maintenant on prend une nouvelle trajectoire qui la contourne. Donc, on la recalcule. Il y a un terme technique pour ça qui a l'air très savant, mais c'est vraiment juste ce que votre collègue a dit : recalculer à la volée. Désolé, c'est très bas ici. Est-ce que quelqu'un sait ce que c'est ? Si vous êtes ingénieur, vous avez probablement vu ces choses-là. L'acronyme ici, c'est MPC. Pas NPC comme dans les jeux vidéo, mais MPC comme dans model predictive control, la commande prédictive."
+  },
+  {
+   "t": 2371680,
+   "text": "So the nice thing is that if you've got in your tool set ways to do trajectory optimization, there are always easy ways to make your system more robust by recomputing on the fly and doing something that we call MPC. And when you do MPC, now you have a feedback loop that gets created. So that brings us to the world of closed loop. We're closing the loop.",
+   "fr": "Donc ce qui est bien, c'est que si vous avez dans votre coffre à outils des façons de faire de l'optimisation de trajectoire, il y a toujours des moyens faciles de rendre votre système plus robuste en recalculant à la volée et en faisant ce qu'on appelle de la MPC. Et quand vous faites de la MPC, vous avez maintenant une boucle de rétroaction qui se crée. Ça nous amène donc dans le monde de la boucle fermée. On ferme la boucle."
+  },
+  {
+   "t": 2402880,
+   "text": "Closed-loop control. Yeah?\nStudent: For the moment here, we model the environment. But if the environment changes...\nIf the environment changes, well, we're going to talk about system identification later on, which is the learning per se. You could learn your model on the fly, but there are dangers to that. But the beauty of MPC is also that your system doesn't need to be perfectly modeled, right? If it's not quite the way you've envisioned it, sometimes, by sheer virtue of replanning often, you can account for these discrepancies, these model misspecifications. So it's quite robust in that sense, because we do online optimization.",
+   "fr": "La commande en boucle fermée. Oui ?\nStudent: Pour le moment, ici, on modélise l'environnement. Mais si l'environnement change...\nSi l'environnement change, eh bien, on va parler d'identification de systèmes plus tard, ce qui est l'apprentissage à proprement parler. Vous pourriez apprendre votre modèle à la volée, mais ça comporte des dangers. Mais la beauté de la MPC, c'est aussi que votre système n'a pas besoin d'être parfaitement modélisé, n'est-ce pas ? Si ce n'est pas tout à fait comme vous l'aviez imaginé, parfois, du seul fait de replanifier souvent, vous pouvez tenir compte de ces écarts, de ces erreurs de spécification du modèle. Donc c'est assez robuste en ce sens, parce qu'on fait de l'optimisation en ligne."
+  },
+  {
+   "t": 2460000,
+   "text": "So, traditionally, in a textbook like Sutton's, what we're going to be doing for the bulk of the course is what would be called model-based reinforcement learning. But instead of assuming one particular modeling framework, which is that of Markov decision processes, and one specific set of solvers, which is dynamic programming, we're going to embrace the language of ordinary differential equations, and then treat these problems as specific types of NLP. Not as in natural language processing, but as in nonlinear programs.",
+   "fr": "Donc, traditionnellement, dans un manuel comme celui de Sutton, ce qu'on va faire pendant la majeure partie du cours, c'est ce qu'on appellerait de l'apprentissage par renforcement fondé sur un modèle. Mais au lieu de supposer un cadre de modélisation particulier, celui des processus décisionnels de Markov, et un ensemble précis de solveurs, la programmation dynamique, on va adopter le langage des équations différentielles ordinaires, et ensuite traiter ces problèmes comme des types particuliers de NLP. Pas au sens de natural language processing, mais au sens de nonlinear programs, les programmes non linéaires."
+  },
+  {
+   "t": 2529359,
+   "text": "Okay. So, first step, we're going to model the world as ODEs, and then solve the corresponding optimal control problem as an NLP, a nonlinear program. And the tools here for NLP, in a way, are pretty generic. You can find these tools in any toolbox, in MATLAB, although I hope nobody has to work with MATLAB anymore. But let's say MATLAB, or, who knows, you could use IPOPT, which is a good package for doing NLPs, or you could go with SciPy's minimize, which implements a bunch of algorithms. We'll talk about them",
+   "fr": "D'accord. Donc, première étape, on va modéliser le monde avec des ODE, et ensuite résoudre le problème de commande optimale correspondant comme un NLP, un programme non linéaire. Et les outils pour les NLP sont, d'une certaine façon, assez génériques. Vous pouvez trouver ces outils dans n'importe quelle boîte à outils, dans MATLAB, même si j'espère que plus personne n'a à travailler avec MATLAB. Mais disons MATLAB, ou, qui sait, vous pourriez utiliser IPOPT, qui est un bon logiciel pour résoudre des NLP, ou vous pourriez prendre le minimize de SciPy, qui implémente plusieurs algorithmes. On va en parler"
+  },
+  {
+   "t": 2591200,
+   "text": "briefly, but things like SQP, sequential quadratic programming. And then there's specific structure that sometimes you can have in your NLP that allows us to use fast solvers, faster than generic methods like this. So there will be two types of structure that are very rich from an efficiency standpoint, but you're also losing in expressivity. I'll get to this in a second, but let's talk about these ODEs here. So the ODEs we're going to work with at the beginning will be of that form. In fact, we're not even going to talk about the \\(y(t)\\) part, but it's x dot of t. I hope you can all see the board: \\(\\dot{x}(t) = f(x(t), u(t))\\). What is that?",
+   "fr": "brièvement, mais des choses comme SQP, la programmation quadratique séquentielle. Et puis il y a une structure particulière que votre NLP peut parfois avoir et qui nous permet d'utiliser des solveurs rapides, plus rapides que des méthodes génériques comme celles-ci. Il va donc y avoir deux types de structure qui sont très riches du point de vue de l'efficacité, mais on perd aussi en expressivité. J'y reviens dans une seconde, mais parlons de ces ODE ici. Donc les ODE avec lesquelles on va travailler au début seront de cette forme. En fait, on ne va même pas parler de la partie \\(y(t)\\), mais c'est x point de t. J'espère que vous voyez tous le tableau : \\(\\dot{x}(t) = f(x(t), u(t))\\). Qu'est-ce que c'est ?"
+  },
+  {
+   "t": 2641760,
+   "text": "First off, can anyone tell us what it means when I put a dot here? I guess it's our friends from physics who invented this notation. It's a time derivative. So when I write something like this, what do I mean? What I'm saying here is that I describe my system not by where it is at any point in time.",
+   "fr": "Tout d'abord, est-ce que quelqu'un peut nous dire ce que ça veut dire quand je mets un point ici ? J'imagine que ce sont nos amis physiciens qui ont inventé cette notation. C'est une dérivée par rapport au temps. Donc quand j'écris quelque chose comme ça, qu'est-ce que je veux dire ? Ce que je dis ici, c'est que je décris mon système non pas par l'endroit où il se trouve à chaque instant."
+  },
+  {
+   "t": 2676400,
+   "text": "\\(x(t)\\) is the state at time \\(t\\), and \\(u(t)\\) is the control, or the action, specified at time \\(t\\). So the state and the control enter \\(f\\), the dynamics function, and what \\(f\\) outputs is a number. It's a number that tells us how the state changes in response to that control you've applied at time \\(t\\).",
+   "fr": "\\(x(t)\\) est l'état au temps \\(t\\), et \\(u(t)\\) est la commande, ou l'action, spécifiée au temps \\(t\\). Donc l'état et la commande entrent dans \\(f\\), la fonction de dynamique, et ce que \\(f\\) produit, c'est un nombre. C'est un nombre qui nous dit comment l'état change en réponse à la commande que vous avez appliquée au temps \\(t\\)."
+  },
+  {
+   "t": 2725599,
+   "text": "This is an implicit description of a system, because again, if you want to know where the system is at any point in time, you will have to solve a so-called IVP, and an IVP is an initial value problem.",
+   "fr": "C'est une description implicite d'un système, parce que, encore une fois, si vous voulez savoir où se trouve le système à un instant donné, vous allez devoir résoudre ce qu'on appelle un IVP, et un IVP, c'est un problème à valeur initiale."
+  },
+  {
+   "t": 2758240,
+   "text": "Does anyone know, can anyone explain to us what an IVP is? Yep.\nStudent: You basically give the starting point and the end of the system. So when it starts, when it ends.\nYeah.\nStudent: And that means that we've got a finite solution and it's unique. And it always exists if the function is actually \\(C^1\\).",
+   "fr": "Est-ce que quelqu'un sait, est-ce que quelqu'un peut nous expliquer ce qu'est un IVP ? Oui.\nStudent: En gros, on donne le point de départ et la fin du système. Donc quand il commence, quand il finit.\nOui.\nStudent: Et ça veut dire qu'on a une solution finie et qu'elle est unique. Et elle existe toujours si la fonction est effectivement \\(C^1\\)."
+  },
+  {
+   "t": 2791280,
+   "text": "Yeah, let's say just smooth. So if I try to put in words what you said: find \\(x\\) at some given time index, who knows, \\(t_k\\), given that I know that my system varies in time like that. And this is the weird part, because it's a chicken-and-egg problem: you have \\(x(t)\\) in there.",
+   "fr": "Oui, disons simplement lisse. Donc si j'essaie de mettre en mots ce que vous avez dit : trouver \\(x\\) à un certain indice de temps donné, qui sait, \\(t_k\\), sachant que mon système varie dans le temps comme ça. Et c'est ça, la partie bizarre, parce que c'est un problème de l'œuf et de la poule : vous avez \\(x(t)\\) là-dedans."
+  },
+  {
+   "t": 2823599,
+   "text": "Now, for the moment, I'm not telling you how we're going to get \\(u(t)\\), or if \\(u(t)\\) is optimal at all. I'm just saying, imagine that this is given to you. This on its own requires us to do something special, to solve an IVP. Now, what is it going to mean, concretely speaking? We're going to be doing what we call numerical integration. And one solution to that is very simple. You probably know that solution already, or have a sense for what it is.",
+   "fr": "Maintenant, pour le moment, je ne vous dis pas comment on va obtenir \\(u(t)\\), ni si \\(u(t)\\) est optimal ou non. Je dis simplement : imaginez que ça vous est donné. Ça, en soi, nous oblige à faire quelque chose de particulier, à résoudre un IVP. Maintenant, qu'est-ce que ça va vouloir dire, concrètement ? On va faire ce qu'on appelle de l'intégration numérique. Et une des solutions est très simple. Vous connaissez probablement déjà cette solution, ou vous avez une idée de ce que c'est."
+  },
+  {
+   "t": 2855119,
+   "text": "What you're going to do is simulate, or run your system forward in time, and take small steps. It's basically like when you first learn about integrals, right? You slice up the area under the curve into small little trapezoids or rectangles. It's the same thing, and in fact I will show you mathematically how these things coincide. But one solution, which is an approximation, and there are a whole bunch of them, would be to do, for example, explicit Euler, and then approximate that continuous-time system by a discrete-time one, where we'll be computing a sequence of iterates that is of that form.",
+   "fr": "Ce que vous allez faire, c'est simuler, ou faire évoluer votre système vers l'avant dans le temps, en faisant de petits pas. C'est essentiellement comme quand vous apprenez les intégrales pour la première fois, n'est-ce pas ? Vous découpez l'aire sous la courbe en petits trapèzes ou en petits rectangles. C'est la même chose, et en fait je vais vous montrer mathématiquement comment ces choses coïncident. Mais une solution, qui est une approximation, et il y en a toute une panoplie, serait d'utiliser, par exemple, Euler explicite, puis d'approcher ce système en temps continu par un système en temps discret, où on va calculer une suite d'itérés de cette forme."
+  },
+  {
+   "t": 2918400,
+   "text": "Now I have a step \\(h\\) that can vary in time also, by the way; it can be adaptive. And now I have a discrete observation \\(x_k\\) and the control at time \\(k\\), and I'll do this in a for loop. Yeah, whatever, pretty simple. Looks like gradient descent, right? In fact, you can derive gradient descent in continuous time; it's called a gradient flow. This is how Polyak in 1964 derived the momentum algorithm. It's derived in continuous time as the solution to a so-called damped harmonic oscillator.",
+   "fr": "Maintenant, j'ai un pas \\(h\\) qui peut aussi varier dans le temps, soit dit en passant ; il peut être adaptatif. Et maintenant j'ai une observation discrète \\(x_k\\) et la commande au temps \\(k\\), et je vais faire ça dans une boucle for. Bon, peu importe, c'est assez simple. Ça ressemble à la descente de gradient, n'est-ce pas ? En fait, on peut établir la descente de gradient en temps continu ; ça s'appelle un flot de gradient. C'est comme ça que Polyak, en 1964, a établi l'algorithme du moment (momentum). Il est établi en temps continu comme la solution de ce qu'on appelle un oscillateur harmonique amorti."
+  },
+  {
+   "t": 2962559,
+   "text": "All right. So you might look at this and think, what's the point of doing continuous-time modeling if anyway we're going to translate it to a discrete-time one? So we'll see there are different ways to solve these systems. It doesn't have to be like this. There will be ways where we keep the implicit nature and don't have to do time marching forward explicitly like this in a loop. If I were to use the language of LLMs these days, I would say, oh, this is like an autoregressive solution. But I'll be talking about two big families of solution methods:",
+   "fr": "Bon. Vous pourriez regarder ça et vous dire : à quoi bon faire de la modélisation en temps continu si, de toute façon, on va la traduire en une modélisation en temps discret ? On va voir qu'il y a différentes façons de résoudre ces systèmes. Ça n'a pas à être comme ça. Il y aura des façons de garder la nature implicite et de ne pas avoir à avancer explicitement dans le temps comme ça, dans une boucle. Si j'utilisais le langage des LLM d'aujourd'hui, je dirais : ah, c'est comme une solution autorégressive. Mais je vais parler de deux grandes familles de méthodes de résolution :"
+  },
+  {
+   "t": 3002880,
+   "text": "the methods that we could call sequential versus simultaneous. And what's interesting with simultaneous methods is that we are going to be able to obtain solutions to our control problem without ever explicitly unrolling that recurrence in time, which has some advantages and disadvantages too. Okay, I was about to say, this is an ODE. All right, it's a general one. But then we oftentimes have structure, and that structure helps us have better, more efficient algorithms. One of the most common assumptions that is made is that of linearity, and it gives us an equation that looks like the one below, where we have a system that is \\(\\dot{x} = Ax + Bu\\). This type of structure is now very popular in",
+   "fr": "les méthodes qu'on pourrait appeler séquentielles par opposition aux méthodes simultanées. Et ce qui est intéressant avec les méthodes simultanées, c'est qu'on va pouvoir obtenir des solutions à notre problème de commande sans jamais dérouler explicitement cette récurrence dans le temps, ce qui a des avantages et aussi des inconvénients. Bon, j'allais dire, ceci est une ODE. Bon, c'est une ODE générale. Mais souvent on a de la structure, et cette structure nous aide à avoir de meilleurs algorithmes, plus efficaces. Une des hypothèses les plus courantes, c'est la linéarité, et ça nous donne une équation qui ressemble à celle ci-dessous, où on a un système qui est \\(\\dot{x} = Ax + Bu\\). Ce type de structure est maintenant très populaire dans"
+  },
+  {
+   "t": 3066400,
+   "text": "in LLMs. Does anyone know where we find these things now? Where you might find a use for that?\nStudent: State space.\nWell, yeah. State space models. State space models are exactly systems of that form. So if you make that assumption... Those models start from this, by the way, in continuous time, and then they consider special discretizations. The IVP solution for a linear ODE like this has a structure: you can find a solution in closed form using matrix exponentials. Not that it's the best way algorithmically, but it exists. But there are two ingredients that are actually quite rich. One is when you get linear dynamics like that, and the second one is when your cost structure, and we'll talk about that in a sec, is quadratic. And it gives you the class of systems that we call linear quadratic. The problems that we solve with this would be regulation problems, so linear",
+   "fr": "dans les LLM. Est-ce que quelqu'un sait où on trouve ces choses-là maintenant ? Où on pourrait leur trouver une utilité ?\nStudent: Espace d'états.\nEh bien, oui. Les modèles d'espace d'états. Les modèles d'espace d'états sont exactement des systèmes de cette forme. Donc si vous faites cette hypothèse... Ces modèles partent de ça, d'ailleurs, en temps continu, et ensuite ils considèrent des discrétisations particulières. La solution de l'IVP pour une ODE linéaire comme celle-ci a une structure : on peut trouver une solution sous forme close à l'aide d'exponentielles de matrices. Pas que ce soit la meilleure façon sur le plan algorithmique, mais elle existe. Mais il y a deux ingrédients qui sont en fait assez riches. Le premier, c'est quand on a une dynamique linéaire comme ça, et le deuxième, c'est quand la structure de votre coût, et on va en parler dans une seconde, est quadratique. Et ça vous donne la classe de systèmes qu'on appelle linéaires quadratiques. Les problèmes qu'on résout avec ça seraient des problèmes de régulation, donc des régulateurs"
+  },
+  {
+   "t": 3126640,
+   "text": "quadratic regulators. And these systems can be solved very, very efficiently. Has anyone tried to solve the pendulum problem in RL? If anyone has taken RL in the past, you know it's that problem where there's a pivot point and a rod, and you want to have the rod stand upward, and then once it's upward, you need to keep it in balance. And the thing is, it's a bit tricky, but the physics is intuitive, I think, if you do it with a pen. You want your system, I guess, to go the other direction to keep your object upwards.",
+   "fr": "linéaires quadratiques. Et ces systèmes peuvent être résolus de façon très, très efficace. Est-ce que quelqu'un a essayé de résoudre le problème du pendule en RL ? Si vous avez suivi un cours de RL dans le passé, vous savez que c'est le problème où il y a un point de pivot et une tige, et on veut que la tige se tienne vers le haut, et une fois qu'elle est en haut, il faut la garder en équilibre. Et le truc, c'est que c'est un peu délicat, mais la physique est intuitive, je pense, si vous le faites avec un crayon. Vous voulez que votre système, j'imagine, aille dans l'autre direction pour garder votre objet vers le haut."
+  },
+  {
+   "t": 3177920,
+   "text": "So it's a solution to keep it upwards. It's a regulation problem. Regulation means you keep around a set point that is provided. And a regulation problem, mathematically, locally, when the rod is upright, can be modeled as an LQR problem. Now, the full problem of taking the rod from that position all the way up is not linear. You can't solve the full thing with an LQR, but you can do hybrid stuff, where you're going to swing your rod all the way to the top position and then trigger an LQR to keep you there. Yeah?\nStudent: I'm confused. [inaudible]",
+   "fr": "C'est donc une solution pour la garder vers le haut. C'est un problème de régulation. Régulation veut dire qu'on se maintient autour d'une consigne qui est fournie. Et un problème de régulation, mathématiquement, localement, quand la tige est à la verticale, peut être modélisé comme un problème LQR. Maintenant, le problème complet qui consiste à amener la tige de cette position-là jusqu'en haut n'est pas linéaire. On ne peut pas résoudre le tout avec un LQR, mais on peut faire des choses hybrides, où on va balancer la tige jusqu'à la position du haut et ensuite déclencher un LQR pour la maintenir là. Oui ?\nStudent: Je suis un peu perdu. [inaudible]"
+  },
+  {
+   "t": 3224559,
+   "text": "No, actually, \\(u\\) is what we would call the action in reinforcement learning. Okay. So \\(u\\), and this is an important thing too: \\(u\\) will be the output of my controller. And please pay attention to the notation. It's \\(u(t)\\). It's a control function. \\(t\\) here is continuous. This is a function.",
+   "fr": "Non, en fait, \\(u\\) est ce qu'on appellerait l'action en apprentissage par renforcement. D'accord. Donc \\(u\\), et c'est une chose importante aussi : \\(u\\) va être la sortie de mon contrôleur. Et s'il vous plaît, faites attention à la notation. C'est \\(u(t)\\). C'est une fonction de commande. \\(t\\) ici est continu. C'est une fonction."
+  },
+  {
+   "t": 3256480,
+   "text": "It's not a vector of snapshots of actions ahead of time. Why is that important? Because... look, let me write what we're supposed to see in the next chapter, because it's important to bring it up now. So OCPs would typically look like: minimize the integral of \\(c(x(t), u(t))\\), and then sometimes we like to add another cost term, like a terminal cost, \\(c_T(x(T))\\), that does not depend on",
+   "fr": "Ce n'est pas un vecteur d'instantanés d'actions déterminés à l'avance. Pourquoi est-ce important ? Parce que... écoutez, laissez-moi écrire ce qu'on est censés voir au prochain chapitre, parce que c'est important d'en parler maintenant. Donc les OCP ressembleraient typiquement à ceci : minimiser l'intégrale de \\(c(x(t), u(t))\\), et ensuite, parfois, on aime ajouter un autre terme de coût, comme un coût terminal, \\(c_T(x(T))\\), qui ne dépend pas de"
+  },
+  {
+   "t": 3319200,
+   "text": "the control. You'll see in a second, that doesn't matter. So there's a cost function, and then there's another part, which, in the tradition of writing things as a mathematical program, would say: subject to \\(\\dot{x}(t) = f(x(t), u(t))\\). And typically we would also say, given that \\(x\\) at time \\(t_0\\) is some designated state, call it \\(x_0\\). From \\(t_0\\) all the way to... So that would be a typical OCP.",
+   "fr": "la commande. Vous allez voir dans une seconde, ça n'a pas d'importance. Donc il y a une fonction de coût, et ensuite il y a une autre partie, qui, dans la tradition de l'écriture sous forme de programme mathématique, dirait : sous la contrainte \\(\\dot{x}(t) = f(x(t), u(t))\\). Et typiquement, on dirait aussi : étant donné que \\(x\\) au temps \\(t_0\\) est un certain état désigné, appelons-le \\(x_0\\). De \\(t_0\\) jusqu'à... Donc ce serait un OCP typique."
+  },
+  {
+   "t": 3374799,
+   "text": "Let me ask you a question. I've written it in a way that is a bit ambiguous, just to make a point. What are the optimization variables, if we were to call it this way, in this mathematical program? In other words, think of this as a procedure that returns something. What's the return? Once I solve that thing, I code it up into my favorite solver: what do I get as an output?",
+   "fr": "Laissez-moi vous poser une question. Je l'ai écrit d'une façon un peu ambiguë, juste pour illustrer quelque chose. Quelles sont les variables d'optimisation, si on les appelait comme ça, dans ce programme mathématique ? Autrement dit, voyez ça comme une procédure qui retourne quelque chose. Qu'est-ce qu'elle retourne ? Une fois que j'ai résolu ce truc-là, que je l'ai codé dans mon solveur préféré : qu'est-ce que j'obtiens en sortie ?"
+  },
+  {
+   "t": 3405520,
+   "text": "What's the output of this thing? Yeah? Can you say it a bit louder?\nStudent: I think it depends [inaudible].\nI think that's pretty good. It's pretty much where I want to go. And what is it that we're going to be outputting at the end, at least the way it's suggested here? I guess, if the control is given... No, the control here is not given. That's actually the whole point of it. We know the dynamics; they're given to you. The initial state is given to you. But all the rest is not given to you.",
+   "fr": "Quelle est la sortie de ce truc ? Oui ? Pouvez-vous le dire un peu plus fort ?\nStudent: Je pense que ça dépend [inaudible].\nJe pense que c'est plutôt bien. C'est à peu près là où je veux en venir. Et qu'est-ce qu'on va produire en sortie à la fin, du moins de la façon dont c'est suggéré ici ? J'imagine, si la commande est donnée... Non, la commande ici n'est pas donnée. C'est justement tout l'intérêt. On connaît la dynamique ; elle vous est donnée. L'état initial vous est donné. Mais tout le reste ne vous est pas donné."
+  },
+  {
+   "t": 3452720,
+   "text": "So, written this way, this thing outputs two things. First of all, let's write it as u star, \\(u^\\star(t)\\). That's an optimal control function that minimizes this cost. But written this way, and your colleague said it already, that's where I wanted to go with that, you would also get a second object, which is implicit: the trajectory, the optimal trajectory consistent with \\(u^\\star(t)\\) that minimizes the cost. You get a tuple; you get both. Okay. And the other thing I need to say is that these are functions. Very important.",
+   "fr": "Donc, écrit de cette façon, ce truc produit deux choses. Premièrement, écrivons-la u étoile, \\(u^\\star(t)\\). C'est une fonction de commande optimale qui minimise ce coût. Mais écrit de cette façon, et votre collègue l'a déjà dit, c'est là que je voulais en venir, vous obtiendriez aussi un deuxième objet, qui est implicite : la trajectoire, la trajectoire optimale cohérente avec \\(u^\\star(t)\\) qui minimise le coût. Vous obtenez un couple ; vous obtenez les deux. D'accord. Et l'autre chose que je dois dire, c'est que ce sont des fonctions. Très important."
+  },
+  {
+   "t": 3502559,
+   "text": "Is there any issue with this, you think? Yeah?\nStudent: What form will the function have?\nThat could be one. Yeah. One problem is that mathematically, it's all fine to write this thing down, but a function is an infinite-dimensional object. A computer doesn't know how to manipulate infinite-dimensional objects. So we'll need to come up with finite representations of those infinite-dimensional objects.",
+   "fr": "Voyez-vous un problème avec ça ? Oui ?\nStudent: Quelle forme la fonction va-t-elle avoir ?\nÇa pourrait en être un. Oui. Un problème, c'est que mathématiquement, c'est bien beau d'écrire ce truc-là, mais une fonction est un objet de dimension infinie. Un ordinateur ne sait pas manipuler des objets de dimension infinie. Donc on va devoir proposer des représentations finies de ces objets de dimension infinie."
+  },
+  {
+   "t": 3536160,
+   "text": "There are ways to analyze and do the math over the space of functions with calculus, but a special type of calculus. Does anyone know what that special type of calculus is? If I were to look at my colleagues from physics... Yeah. The calculus of variations is a specific tool to talk about these problems, but we're not really going to do much of that. I've done it in the past, but it's too technical.",
+   "fr": "Il y a des façons d'analyser et de faire les mathématiques sur l'espace des fonctions avec du calcul différentiel, mais un type particulier de calcul. Est-ce que quelqu'un sait ce qu'est ce type particulier de calcul ? Si je regardais mes collègues de physique... Oui. Le calcul des variations est un outil particulier pour parler de ces problèmes, mais on ne va pas vraiment en faire beaucoup. Je l'ai fait dans le passé, mais c'est trop technique."
+  },
+  {
+   "t": 3579599,
+   "text": "So you can analyze problems like this, and sometimes come up with analytical, exact solutions to some of these problems using the calculus of variations. What is the calculus of variations? It's just a type of calculus that allows you to talk about... let's say, if we go back to the intuitive idea of calculus: you have a function, and you want to capture how that function is going to change as a result of wiggling the inputs.",
+   "fr": "Donc on peut analyser des problèmes comme celui-ci, et parfois trouver des solutions analytiques, exactes, à certains de ces problèmes en utilisant le calcul des variations. Qu'est-ce que le calcul des variations ? C'est juste un type de calcul qui permet de parler de... disons, si on revient à l'idée intuitive du calcul différentiel : vous avez une fonction, et vous voulez saisir comment cette fonction va changer quand on fait bouger un peu les entrées."
+  },
+  {
+   "t": 3614880,
+   "text": "For finite-dimensional objects, wiggling the inputs is easy to define. But here, that language, that intuition, does not carry over naturally to functions. What does it mean to perturb a function slightly? Right? So the calculus of variations gives you the language to talk about these things. But it's a bit weird, it's a bit awkward, and I'm not going to spend much time on this. But there are people who like to do this. Let's say people in economics, or other fields like this, who like to do optimal control and have theorems proving that the optimal, let's say, investment strategy has a particular form. And usually they're going to work it out manually, usually with the calculus of variations. But we're not going to do this. Instead, we'll take this problem here and come up with a representation. We're going to turn it into an",
+   "fr": "Pour des objets de dimension finie, faire bouger un peu les entrées, c'est facile à définir. Mais ici, ce langage, cette intuition, ne se transpose pas naturellement aux fonctions. Qu'est-ce que ça veut dire, perturber légèrement une fonction ? N'est-ce pas ? Donc le calcul des variations vous donne le langage pour parler de ces choses-là. Mais c'est un peu bizarre, c'est un peu malcommode, et je ne vais pas y consacrer beaucoup de temps. Mais il y a des gens qui aiment faire ça. Disons des gens en économie, ou dans d'autres domaines du genre, qui aiment faire de la commande optimale et avoir des théorèmes prouvant que la stratégie, disons, d'investissement optimale a une forme particulière. Et habituellement, ils vont faire les calculs à la main, habituellement avec le calcul des variations. Mais on ne va pas faire ça. On va plutôt prendre ce problème-ci et proposer une représentation. On va le transformer en une"
+  },
+  {
+   "t": 3675040,
+   "text": "approximation. This approximation is called a transcription. We're going to transcribe the OCP, which is an infinite-dimensional problem, into an approximate, finite-dimensional NLP, which I can code up on my computer.",
+   "fr": "approximation. Cette approximation s'appelle une transcription. On va transcrire l'OCP, qui est un problème de dimension infinie, en un NLP approché, de dimension finie, que je peux coder sur mon ordinateur."
+  },
+  {
+   "t": 3705760,
+   "text": "And then there'll be different ways of doing that transcription, depending on how we discretize the dynamics, but also how we represent the control function as a finite-dimensional object. Does anyone have any idea how we could represent \\(u(t)\\), let's say, as a finite-dimensional object? You already know the answer, somehow. But the favorite tool of control people is to use [inaudible].",
+   "fr": "Et ensuite, il y aura différentes façons de faire cette transcription, selon la façon dont on discrétise la dynamique, mais aussi la façon dont on représente la fonction de commande comme un objet de dimension finie. Est-ce que quelqu'un a une idée de la façon dont on pourrait représenter \\(u(t)\\), disons, comme un objet de dimension finie ? Vous connaissez déjà la réponse, d'une certaine façon. Mais l'outil préféré des gens de la commande, c'est d'utiliser [inaudible]."
+  },
+  {
+   "t": 3748240,
+   "text": "They do like [inaudible] a lot, but that's not going to be the answer here. We're going to use the coefficients of a polynomial, just the same way that when we train a neural network, we're searching in the space of functions, but we're doing it implicitly in the space of parameters. Parameter vectors are finite. They're really big, but they're finite. A 30-billion Qwen model, it's big, but it's finite. So we never search directly in the space of functions; we always search in the space of parameters. And then the typical setup here is to use a polynomial, and there's a whole bunch of polynomials that you can use. To go really, really deep into polynomial approximation... I'm going to do a little bit of it, but we could spend an entire semester just on that.",
+   "fr": "Ils aiment beaucoup [inaudible], mais ce ne sera pas la réponse ici. On va utiliser les coefficients d'un polynôme, exactement de la même façon que, quand on entraîne un réseau de neurones, on cherche dans l'espace des fonctions, mais on le fait implicitement dans l'espace des paramètres. Les vecteurs de paramètres sont finis. Ils sont vraiment grands, mais ils sont finis. Un modèle Qwen de 30 milliards, c'est gros, mais c'est fini. Donc on ne cherche jamais directement dans l'espace des fonctions ; on cherche toujours dans l'espace des paramètres. Et ensuite, la configuration typique ici, c'est d'utiliser un polynôme, et il y a toute une panoplie de polynômes que vous pouvez utiliser. Pour aller vraiment, vraiment en profondeur dans l'approximation polynomiale... Je vais en faire un peu, mais on pourrait passer une session entière juste là-dessus."
+  },
+  {
+   "t": 3811119,
+   "text": "Okay. So I don't want to spend too much time on this right away. I think we should take a break, too. But I just want to contrast this with, excuse me, okay, discrete time, which we've done here, and with the stochastic ways of doing it. By the way, does anyone know what's the stochastic analog of an ODE?",
+   "fr": "D'accord. Donc je ne veux pas passer trop de temps là-dessus tout de suite. Je pense qu'on devrait prendre une pause, aussi. Mais je veux juste comparer ça avec, excusez-moi, bon, le temps discret, qu'on a fait ici, et avec les façons stochastiques de le faire. D'ailleurs, est-ce que quelqu'un sait quel est l'analogue stochastique d'une ODE ?"
+  },
+  {
+   "t": 3842960,
+   "text": "It's not an ordinary differential equation. It's something else... equation. It's a stochastic differential equation, an SDE. Okay. So we could work with SDEs, and there is a field of optimal control with SDEs. It's very complicated. Very complicated. I don't want to teach it because, first of all, I don't understand these things very well. And I think, for the amount of work you need to put in, there's very little benefit you can squeeze out of it practically. At least... maybe I'll change my mind later on, but for the moment I'm not doing it. SDEs are quite popular these days for diffusions, but it's one of those things, again, where people started with SDEs, but there was a lot of [inaudible] around it, and then what people do in practice now is, okay, maybe the SDE interpretation is still there, but you need to work quite hard to recover it. So I don't know, maybe I'm just too judgmental with SDEs, but I just think they're too",
+   "fr": "Ce n'est pas une équation différentielle ordinaire. C'est une équation... d'un autre type. C'est une équation différentielle stochastique, une SDE. D'accord. Donc on pourrait travailler avec des SDE, et il existe un domaine de la commande optimale avec des SDE. C'est très compliqué. Très compliqué. Je ne veux pas l'enseigner parce que, d'abord, je ne comprends pas très bien ces choses-là. Et je pense que, pour la quantité de travail qu'il faut y mettre, on en tire très peu de bénéfices en pratique. Du moins... peut-être que je changerai d'avis plus tard, mais pour le moment, je ne le fais pas. Les SDE sont assez populaires ces temps-ci pour les modèles de diffusion, mais c'est encore une de ces choses où les gens ont commencé avec des SDE, mais il y avait beaucoup de [inaudible] autour, et ce que les gens font en pratique maintenant, c'est, bon, peut-être que l'interprétation SDE est encore là, mais il faut travailler assez fort pour la retrouver. Donc je ne sais pas, peut-être que je suis juste trop sévère avec les SDE, mais je pense simplement qu'elles sont trop"
+  },
+  {
+   "t": 3904319,
+   "text": "complicated for what they bring us practically. Yeah. Okay. Let's take a break, and we'll continue with other modeling frameworks.",
+   "fr": "compliquées pour ce qu'elles nous apportent en pratique. Oui. D'accord. Prenons une pause, et on va continuer avec d'autres cadres de modélisation."
+  },
+  {
+   "t": 3937839,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 3984960,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4016880,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4049119,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4081599,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4113279,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4146159,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4180080,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4212640,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4252960,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4309360,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4341199,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4398960,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4431600,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4484320,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4538960,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4572560,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4611600,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4667280,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4711120,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4749199,
+   "text": "Right. [inaudible] So if you have something in mind... but this is not necessarily meant to be just an excuse to try out [inaudible].",
+   "fr": "Oui. [inaudible] Donc si vous avez quelque chose en tête... mais ce n'est pas nécessairement censé être juste un prétexte pour essayer [inaudible]."
+  },
+  {
+   "t": 4809600,
+   "text": "Yeah. Okay. So, let's... I had good questions during the very fast break. Next time, when I have my card, you might see me just exiting real quick, because I have the habit usually of grabbing coffee during that time. But yeah, why do I teach this stuff? I had that question. And also, going back, why do I want you to do an applied project? It's not really a rhetorical question; I'm going to tell you. So, I am a trained, hardcore reinforcement learning person.",
+   "fr": "Oui. D'accord. Alors, allons-y... J'ai eu de bonnes questions pendant la pause très rapide. La prochaine fois, quand j'aurai ma carte, vous pourriez me voir sortir très vite, parce que j'ai l'habitude d'aller chercher un café pendant ce temps-là. Mais oui, pourquoi est-ce que j'enseigne ces choses-là ? On m'a posé cette question. Et aussi, pour revenir en arrière, pourquoi est-ce que je veux que vous fassiez un projet appliqué ? Ce n'est pas vraiment une question rhétorique ; je vais vous le dire. Donc, je suis quelqu'un de formé en apprentissage par renforcement, pur et dur."
+  },
+  {
+   "t": 4849360,
+   "text": "My adviser was Doina Precup at McGill, and Doina's... my academic grandfather is Sutton himself. So I grew up as a scientist with Doina and Rich and the whole team around, the whole gang, doing hardcore reinforcement learning. It's a community I still very much enjoy interacting with. I was helping out with the organization of RLC. I have a lot of friends that I made who are now profs; I see them at the conference and so on. But there are two things that happened.",
+   "fr": "Ma directrice de thèse était Doina Precup, à McGill, et Doina... mon grand-père académique, c'est Sutton lui-même. Donc j'ai grandi comme scientifique avec Doina et Rich et toute l'équipe autour, toute la bande, à faire de l'apprentissage par renforcement pur et dur. C'est une communauté avec laquelle j'aime encore beaucoup interagir. J'ai aidé à l'organisation de RLC. Je me suis fait beaucoup d'amis qui sont maintenant profs ; je les vois à la conférence et ainsi de suite. Mais il s'est passé deux choses."
+  },
+  {
+   "t": 4887440,
+   "text": "First off, I finished my PhD and I went to do a postdoc, and the postdoc was also with an RL person, but somebody who was also a bit of an outsider to the community, in a way: Emma Brunskill. And Emma really had a passion for two things: applying RL to real or meaningful problems, and she was very much interested in tutoring systems. I didn't work on those things with her, but it was one of her application domains she really liked, and also applications of RL in clinical settings. And it's been an eye-opener for me that maybe I could allow myself to do things differently when I did my postdoc. And this is where I started teaching myself material around ODEs and optimal control, for which",
+   "fr": "Premièrement, j'ai terminé mon doctorat et je suis allé faire un postdoc, et le postdoc était aussi avec une personne du RL, mais quelqu'un qui était aussi un peu en marge de la communauté, d'une certaine façon : Emma Brunskill. Et Emma avait vraiment une passion pour deux choses : appliquer le RL à des problèmes réels ou significatifs, et elle s'intéressait beaucoup aux systèmes de tutorat. Je n'ai pas travaillé sur ces choses-là avec elle, mais c'était un de ses domaines d'application qu'elle aimait vraiment, tout comme les applications du RL en milieu clinique. Et ça a été une révélation pour moi : peut-être que je pouvais me permettre de faire les choses différemment pendant mon postdoc. Et c'est là que j'ai commencé à apprendre par moi-même la matière sur les ODE et la commande optimale, dont"
+  },
+  {
+   "t": 4950800,
+   "text": "I had known nothing before. I had never worked with any of these; that was very scary to me. I have a basic background in calculus and so on, so I said, yeah, I was equipped for this, but I had never really worked with those tools. But I just allowed myself to expand my horizon a little bit beyond RL. And I still remember... it was all self-taught. I still remember being in my office and trying to solve the pendulum problem, which is a classical problem we always solve when we do RL, and coding it up, pressing enter, and then I had a visualization for the pendulum, and just seeing the solution right away, in my face. And I'm like, did I make a mistake? Am I replaying a successful trajectory? But no, there's no sampling involved. It was bam, solution, one shot.",
+   "fr": "je ne connaissais rien auparavant. Je n'avais jamais travaillé avec aucun de ces outils ; ça me faisait très peur. J'ai une formation de base en calcul différentiel et ainsi de suite, donc je me suis dit : oui, j'étais outillé pour ça, mais je n'avais jamais vraiment travaillé avec ces outils. Mais je me suis simplement permis d'élargir un peu mes horizons au-delà du RL. Et je me souviens encore... j'ai tout appris par moi-même. Je me souviens encore d'être dans mon bureau en train d'essayer de résoudre le problème du pendule, qui est un problème classique qu'on résout toujours quand on fait du RL, de le coder, d'appuyer sur Entrée, et ensuite j'avais une visualisation du pendule, et de voir la solution tout de suite, en pleine face. Et je me dis : est-ce que j'ai fait une erreur ? Est-ce que je suis en train de rejouer une trajectoire réussie ? Mais non, il n'y a aucun échantillonnage. C'était bang, la solution, du premier coup."
+  },
+  {
+   "t": 5011040,
+   "text": "Whereas coming from RL, it's the kind of thing where you set up your system, if you want to use neural networks[?] for fun you do it, and then you let it train. A couple of minutes, it's not the end of the world, it's not very long, but it takes a little while, and then you get a solution. But here it was instantaneous, and I'm like, hmm, maybe that's a useful tool. Now, of course, it was immediate. Why? Because I was giving a description of the system beforehand. But this is where we need to step back a little bit. Afterwards, what happened also is I became scientific adviser at IVADO Labs, and I'm still scientific adviser there. IVADO Labs is a nonprofit consulting company specializing in supply chain, logistics and so on, and a lot of my colleagues are also in the OR department. They're hardcore OR people. And that was so useful for me, in my career trajectory, to have that balance",
+   "fr": "Alors qu'en venant du RL, c'est le genre de chose où vous configurez votre système, si vous voulez utiliser des réseaux de neurones[?] pour le plaisir, vous le faites, et ensuite vous le laissez s'entraîner. Quelques minutes, ce n'est pas la fin du monde, ce n'est pas très long, mais ça prend un petit moment, et ensuite vous obtenez une solution. Mais ici, c'était instantané, et je me dis : hmm, c'est peut-être un outil utile. Maintenant, bien sûr, c'était immédiat. Pourquoi ? Parce que je donnais une description du système au préalable. Mais c'est là qu'il faut prendre un peu de recul. Ensuite, ce qui s'est aussi passé, c'est que je suis devenu conseiller scientifique chez IVADO Labs, et je suis encore conseiller scientifique là-bas. IVADO Labs est une société de conseil sans but lucratif spécialisée en chaîne d'approvisionnement, en logistique et ainsi de suite, et beaucoup de mes collègues sont aussi au département de recherche opérationnelle. Ce sont des gens de recherche opérationnelle purs et durs. Et ça m'a été tellement utile, dans mon parcours de carrière, d'avoir cet équilibre"
+  },
+  {
+   "t": 5071280,
+   "text": "now, of pragmatism. Coming from a lot of idealistic ideas in reinforcement learning, of how things should be because we think that it's elegant, to: what is it that actually works for real? Like, now, not hypothetically, now. And this is where I started appreciating even more, beyond these tools, what exists out there, and that pragmatism of: you've got a problem, you want to solve it, what is it that you've got available? And this is where, let's say, why would you want to do these things? Because if you truly want to solve a real problem, and I don't mean a toy problem, there's an actual business problem you want to solve, there are few instances where I see a direct fit for reinforcement learning. That sounds like a terrible thing to say, coming from an RL prof, for you sitting in an RL class.",
+   "fr": "maintenant, de pragmatisme. En venant de beaucoup d'idées idéalistes en apprentissage par renforcement, sur la façon dont les choses devraient être parce qu'on trouve ça élégant, à : qu'est-ce qui fonctionne réellement, dans la vraie vie ? Je veux dire maintenant, pas hypothétiquement, maintenant. Et c'est là que j'ai commencé à apprécier encore davantage, au-delà de ces outils, ce qui existe, et ce pragmatisme : vous avez un problème, vous voulez le résoudre, qu'est-ce que vous avez à votre disposition ? Et c'est là, disons, pourquoi voudriez-vous faire ces choses-là ? Parce que si vous voulez vraiment résoudre un problème réel, et je ne parle pas d'un problème jouet, il y a un véritable problème d'affaires que vous voulez résoudre, il y a peu de cas où je vois une adéquation directe avec l'apprentissage par renforcement. Ça a l'air d'une chose terrible à dire, venant d'un prof de RL, à vous qui êtes assis dans un cours de RL."
+  },
+  {
+   "t": 5132719,
+   "text": "But what I mean here by RL... there are few instances where it makes sense, in my opinion, to do... we'll go back to this... the most hardcore version of reinforcement learning, which is model-free. Sorry, model-free, say, value-based. Value-based, maybe we don't even need value-based. Model-free RL: what's the problem with this? Okay, the problem with this is that in real life,",
+   "fr": "Mais ce que je veux dire ici par RL... il y a peu de cas où il est logique, à mon avis, de faire... on va y revenir... la version la plus pure et dure de l'apprentissage par renforcement, qui est sans modèle. Désolé, sans modèle, disons, fondée sur la valeur. Fondée sur la valeur, peut-être qu'on n'a même pas besoin de fondée sur la valeur. Le RL sans modèle : quel est le problème avec ça ? Bon, le problème avec ça, c'est que dans la vraie vie,"
+  },
+  {
+   "t": 5194080,
+   "text": "at least in my experience, the hard problem is never to learn a policy. That step from a problem to this policy is never the hard problem. The fact that your algorithm might not converge: who cares? You're just going to rerun it again, and it's going to converge. You'll get a solution. That's never been the problem, in my opinion. Where's the bottleneck? The bottleneck is upstream. The bottleneck is in formulating the problem. What does that mean? If you've seen, if you've taken a course at McGill with Doina, or anywhere else, about RL, this famous, annoying... I mean, annoying, but it's correct... agent interaction loop. Okay. So the agent interaction loop also explains what we do with optimal control, by the way. It's not specific to RL. There's an agent.",
+   "fr": "du moins d'après mon expérience, le problème difficile n'est jamais d'apprendre une politique. Cette étape, d'un problème à cette politique, n'est jamais le problème difficile. Le fait que votre algorithme pourrait ne pas converger : qui s'en soucie ? Vous allez simplement le relancer, et il va converger. Vous allez obtenir une solution. Ça n'a jamais été le problème, à mon avis. Où est le goulot d'étranglement ? Le goulot d'étranglement est en amont. Le goulot d'étranglement, c'est la formulation du problème. Qu'est-ce que ça veut dire ? Si vous avez vu, si vous avez suivi un cours à McGill avec Doina, ou n'importe où ailleurs, sur le RL, cette fameuse, agaçante... je dis agaçante, mais elle est juste... boucle d'interaction de l'agent. D'accord. Donc la boucle d'interaction de l'agent explique aussi ce qu'on fait en commande optimale, d'ailleurs. Ce n'est pas propre au RL. Il y a un agent."
+  },
+  {
+   "t": 5246080,
+   "text": "The agent takes actions. We write it \\(a\\), but depending on which tradition you're from, you might write it as \\(u\\). It outputs an action. That thing gets applied to an environment, and the environment, as an output, gives you a new state.",
+   "fr": "L'agent choisit des actions. On l'écrit \\(a\\), mais selon la tradition d'où vous venez, vous pourriez l'écrire \\(u\\). Il produit une action. Ce truc-là est appliqué à un environnement, et l'environnement, en sortie, vous donne un nouvel état."
+  },
+  {
+   "t": 5280400,
+   "text": "This guy receives a state, outputs an action, applies it to the environment. The environment also returns a reward. Now, the composition of the agent and the world: there's nothing RL-specific, by the way. In control, they would call that the system. The environment, they call it the plant. Doesn't matter; it's the same thing. You've got a system that affects another one. It's a causal interaction; there's an influence that happens. But what I want to say here is, if you do model-free RL, what your RL problem is going to be...",
+   "fr": "Ce gars-là reçoit un état, produit une action, l'applique à l'environnement. L'environnement retourne aussi une récompense. Maintenant, la composition de l'agent et du monde : il n'y a rien de propre au RL là-dedans, d'ailleurs. En commande, on appellerait ça le système. L'environnement, on l'appelle le procédé (plant). Peu importe ; c'est la même chose. Vous avez un système qui agit sur un autre. C'est une interaction causale ; il y a une influence qui s'exerce. Mais ce que je veux dire ici, c'est que si vous faites du RL sans modèle, ce que sera votre problème de RL..."
+  },
+  {
+   "t": 5318639,
+   "text": "It's going to live entirely here. It's going to live just abstracting away the environment and never venturing into the inner workings of that environment. So all your agent sees is a stream of state, action, reward, next state, action, reward. That's all it sees.",
+   "fr": "Il va vivre entièrement ici. Il va vivre en faisant simplement abstraction de l'environnement, sans jamais s'aventurer dans le fonctionnement interne de cet environnement. Donc tout ce que votre agent voit, c'est un flux d'état, action, récompense, état suivant, action, récompense. C'est tout ce qu'il voit."
+  },
+  {
+   "t": 5350080,
+   "text": "In a way, it's remarkable that we can even learn something from that. But it's also a restriction we put on ourselves if we're just pragmatically trying to solve a problem. Why is that? Because Sutton's research vision is to come up with general-purpose intelligence, general-purpose algorithms that mimic human intelligence, intelligence in general. And from some perspective, that's a perfectly fine thing to do, and in fact it's the only thing that one should allow themselves to do. Why? Because the environment is not your particular problem you're solving. The environment, in that philosophy, is the world, and the world is plentiful; it provides you all of that.",
+   "fr": "D'une certaine façon, c'est remarquable qu'on puisse même apprendre quelque chose à partir de ça. Mais c'est aussi une restriction qu'on s'impose si on essaie simplement, de façon pragmatique, de résoudre un problème. Pourquoi ? Parce que la vision de recherche de Sutton, c'est de concevoir une intelligence générale, des algorithmes généraux qui imitent l'intelligence humaine, l'intelligence en général. Et d'un certain point de vue, c'est parfaitement légitime, et en fait c'est la seule chose qu'on devrait se permettre de faire. Pourquoi ? Parce que l'environnement n'est pas le problème particulier que vous résolvez. L'environnement, dans cette philosophie, c'est le monde, et le monde est abondant ; il vous fournit tout ça."
+  },
+  {
+   "t": 5410960,
+   "text": "So there's often the expression that these guys use, which is to use the fire hose of experience. So in RL, the challenge your agent has to face is how to process as much information as it can, and all of that is given to you for free. It just arrives in your face.",
+   "fr": "Il y a donc souvent cette expression qu'utilisent ces gens-là, qui est d'utiliser le « boyau d'incendie de l'expérience ». Donc en RL, le défi auquel votre agent doit faire face, c'est de traiter autant d'information qu'il le peut, et tout ça vous est donné gratuitement. Ça vous arrive en pleine face."
+  },
+  {
+   "t": 5443520,
+   "text": "You're facing the fire hose of experience. The rewards are there, the states are there, and that's your problem. But in real life, if you solve a problem, if you want to apply PPO or whatever algorithm you want, and that problem is not a toy problem, it's not pendulum, it's not CartPole, and you want to use these packages, what are you going to have to do? You're going to have to write, probably ask your agent now, but ask your agent to write a custom Gym wrapper. Gym is a library that was created by OpenAI before they were cool and working on LLMs.",
+   "fr": "Vous faites face au boyau d'incendie de l'expérience. Les récompenses sont là, les états sont là, et c'est ça, votre problème. Mais dans la vraie vie, si vous résolvez un problème, si vous voulez appliquer PPO ou n'importe quel algorithme, et que ce problème n'est pas un problème jouet, ce n'est pas le pendule, ce n'est pas CartPole, et que vous voulez utiliser ces bibliothèques, qu'est-ce que vous allez devoir faire ? Vous allez devoir écrire, probablement demander à votre agent maintenant, mais demander à votre agent d'écrire une enveloppe (wrapper) Gym sur mesure. Gym est une bibliothèque qui a été créée par OpenAI avant qu'ils deviennent à la mode et se mettent à travailler sur les LLM."
+  },
+  {
+   "t": 5491600,
+   "text": "It was a library to basically expose different RL problems like that and be able to test different algorithms without having to expose any of the inner workings. So you're going to have to write your own Gym wrapper. But my experience, and the eye-opening part for me, has been when I tried to apply RL to a real use case. We were working on, basically, pricing systems, systems that price goods dynamically, dynamic pricing in real time.",
+   "fr": "C'était une bibliothèque pour exposer essentiellement différents problèmes de RL comme ça et pouvoir tester différents algorithmes sans avoir à exposer le fonctionnement interne. Donc vous allez devoir écrire votre propre enveloppe Gym. Mais mon expérience, et ce qui m'a ouvert les yeux, ça a été quand j'ai essayé d'appliquer le RL à un vrai cas d'usage. On travaillait, essentiellement, sur des systèmes de tarification, des systèmes qui fixent le prix de biens de façon dynamique, de la tarification dynamique en temps réel."
+  },
+  {
+   "t": 5532639,
+   "text": "In that case, there's really no easy Gym wrapper that you can think of naturally. And then you might say, well, okay, maybe you don't know the system, but then I'm going to do what we would call model-based RL, and I'm going to learn it from data, just fine. But even then, learning a black-box generic model might not be the right thing to do. Why is that? For sample efficiency. What is a generic model like? It means the environment would become a neural network, and then you assume you've got access to a stream of state, action, reward, state, and you can fit your neural network. We're very good at this, because the model is very expressive, but you need to have the data. And not only this: the reward function itself is very tricky to define, because the reward function does not encode the solution. It hints at what are the properties that a system should exhibit.",
+   "fr": "Dans ce cas-là, il n'y a vraiment pas d'enveloppe Gym facile qui vous vient naturellement à l'esprit. Et là, vous pourriez dire : bon, d'accord, peut-être que vous ne connaissez pas le système, mais alors je vais faire ce qu'on appellerait du RL fondé sur un modèle, et je vais l'apprendre à partir de données, pas de problème. Mais même là, apprendre un modèle générique de type boîte noire pourrait ne pas être la bonne chose à faire. Pourquoi ? Pour l'efficacité en échantillons. À quoi ressemble un modèle générique ? Ça veut dire que l'environnement deviendrait un réseau de neurones, et ensuite vous supposez que vous avez accès à un flux d'état, action, récompense, état, et vous pouvez ajuster votre réseau de neurones. On est très bons là-dedans, parce que le modèle est très expressif, mais il faut avoir les données. Et pas seulement ça : la fonction de récompense elle-même est très délicate à définir, parce que la fonction de récompense n'encode pas la solution. Elle donne des indices sur les propriétés qu'un système devrait présenter."
+  },
+  {
+   "t": 5592159,
+   "text": "And this is now the familiar problem of alignment, which we've basically always had in those systems. There's a high-level goal, a task you want to achieve, and you need to encode what you have in your mind as a cost function or reward function. Cost, reward: I use them interchangeably. Either you minimize a cost or you maximize. It's just a matter of doing maximize or minimize and putting a minus in front.",
+   "fr": "Et c'est maintenant le problème familier de l'alignement, qu'on a essentiellement toujours eu dans ces systèmes. Il y a un objectif de haut niveau, une tâche que vous voulez accomplir, et vous devez encoder ce que vous avez en tête sous forme de fonction de coût ou de fonction de récompense. Coût, récompense : je les utilise de façon interchangeable. Soit vous minimisez un coût, soit vous maximisez. C'est juste une question de maximiser ou de minimiser et de mettre un moins devant."
+  },
+  {
+   "t": 5623199,
+   "text": "So specifying that cost function or reward function is really tricky. So again, why am I teaching this material? Because, in my experience, this is actually valuable stuff if you were to ever solve a real problem today. I have a hard time thinking of instances where you would just apply vanilla PPO[?] and call it a day. This has never been the problem. Never been the problem. And then afterwards, I've been working in other fields. I accidentally started nerding out and doing research on heating and ventilation systems.",
+   "fr": "Donc spécifier cette fonction de coût ou de récompense, c'est vraiment délicat. Alors encore une fois, pourquoi est-ce que j'enseigne cette matière ? Parce que, d'après mon expérience, c'est en fait quelque chose de précieux si vous deviez un jour résoudre un vrai problème aujourd'hui. J'ai du mal à penser à des cas où vous appliqueriez simplement PPO[?] de base et considéreriez l'affaire réglée. Ça n'a jamais été le problème. Jamais été le problème. Et ensuite, j'ai travaillé dans d'autres domaines. Un peu par accident, je me suis passionné en vrai geek et je me suis mis à faire de la recherche sur les systèmes de chauffage et de ventilation."
+  },
+  {
+   "t": 5668560,
+   "text": "A bunch of things happened renovating my house. Contractors messed up. I had to learn about HVAC systems. Found it terribly interesting. Then I had a student who was a building expert, and that made me really appreciate the complexity of these systems. And then we had a wonderful collaboration with a local company, BrainBox AI, that then got acquired by a multinational just recently.",
+   "fr": "Il s'est passé plein de choses pendant la rénovation de ma maison. Des entrepreneurs ont fait des gaffes. J'ai dû m'informer sur les systèmes CVCA (HVAC). J'ai trouvé ça terriblement intéressant. Ensuite, j'ai eu un étudiant qui était un expert du bâtiment, et ça m'a fait vraiment apprécier la complexité de ces systèmes. Et ensuite, on a eu une merveilleuse collaboration avec une entreprise d'ici, BrainBox AI, qui a été acquise par une multinationale tout récemment."
+  },
+  {
+   "t": 5709040,
+   "text": "And with BrainBox AI... So [name] came to me because he wanted to do RL. In fact, he took my course, maybe in 2021, and he told me... he had already been doing quite a bit of research in that field, and he's like, all right, I think now we want to use RL because it's better. And okay, maybe it's better, but why? What would be the reason, the use case for that? And the thing is, we quickly found out that if you truly want to do these things, like now, not hypothetically in 20 years, it's just not the right tool.",
+   "fr": "Et avec BrainBox AI... Donc [name] est venu me voir parce qu'il voulait faire du RL. En fait, il a suivi mon cours, peut-être en 2021, et il m'a dit... il avait déjà fait pas mal de recherche dans ce domaine, et il me dit : bon, je pense que maintenant on veut utiliser le RL parce que c'est mieux. Et d'accord, c'est peut-être mieux, mais pourquoi ? Quelle serait la raison, le cas d'usage pour ça ? Et le truc, c'est qu'on s'est vite rendu compte que si on veut vraiment faire ces choses-là, c'est-à-dire maintenant, pas hypothétiquement dans 20 ans, ce n'est tout simplement pas le bon outil."
+  },
+  {
+   "t": 5745360,
+   "text": "So with BrainBox, we had real data, although we didn't work with the real data. But there also, when you start and deploy a smart controller for a new building, you're not going to have a gazillion... you're not going to have a fire hose of experience. If you're lucky, you're going to have a couple of spreadsheets, maybe, that somebody has updated imperfectly over the last five years, if you're lucky. There's no such thing. So you need to be very smart about what you do with your data.",
+   "fr": "Donc avec BrainBox, on avait de vraies données, même si on n'a pas travaillé avec les vraies données. Mais là aussi, quand vous démarrez et déployez un contrôleur intelligent pour un nouveau bâtiment, vous n'allez pas avoir des tonnes de... vous n'allez pas avoir un boyau d'incendie d'expérience. Si vous êtes chanceux, vous allez avoir quelques feuilles de calcul, peut-être, que quelqu'un a mises à jour de façon imparfaite au cours des cinq dernières années, si vous êtes chanceux. Ça n'existe pas. Donc il faut être très astucieux dans ce qu'on fait avec ses données."
+  },
+  {
+   "t": 5779679,
+   "text": "And what we ended up building is actually embracing the fact that control in buildings is not just any kind of problem. We could have just said, let's use our couple of spreadsheets and five years of data and fit a black-box model, and it would probably be easy to overfit that data also. But then we said: thermodynamics, the laws of thermodynamics, they're not arbitrary.",
+   "fr": "Et ce qu'on a fini par construire, en fait, tire pleinement parti du fait que la commande dans les bâtiments n'est pas n'importe quel type de problème. On aurait pu simplement dire : utilisons nos quelques feuilles de calcul et nos cinq ans de données et ajustons un modèle boîte noire, et ce serait probablement facile de surajuster ces données, en plus. Mais ensuite on s'est dit : la thermodynamique, les lois de la thermodynamique, elles ne sont pas arbitraires."
+  },
+  {
+   "t": 5813760,
+   "text": "Even if there's noise in the sensors and so on, we can still describe what's going on within the building using these laws of thermodynamics, which you can express in the form of ODEs. You can also go to PDEs, but we didn't go there. And this is what we did. We built, in fact, a physics-informed model that had two parts: a part that was encoding the general relationships that the system should obey according to thermodynamics, and a part that was more black-box, for the stuff that is hard to predict ahead of time, like occupants. The fact that there's a random person who comes, who knows, every day at this time of the day, and opens a window, that sort of thing. You can't model that with thermodynamics. It's just exogenous. It's out there; it's weird. So you might as well fit it with a neural network.",
+   "fr": "Même s'il y a du bruit dans les capteurs et ainsi de suite, on peut quand même décrire ce qui se passe dans le bâtiment à l'aide de ces lois de la thermodynamique, qu'on peut exprimer sous forme d'ODE. On peut aussi passer aux PDE, mais on n'est pas allés jusque-là. Et c'est ce qu'on a fait. On a construit, en fait, un modèle informé par la physique qui avait deux parties : une partie qui encodait les relations générales auxquelles le système devrait obéir selon la thermodynamique, et une partie plus boîte noire, pour ce qui est difficile à prédire à l'avance, comme les occupants. Le fait qu'il y a une personne au hasard qui vient, qui sait, tous les jours à telle heure de la journée, et qui ouvre une fenêtre, ce genre de chose. On ne peut pas modéliser ça avec la thermodynamique. C'est tout simplement exogène. Ça vient de l'extérieur ; c'est bizarre. Donc autant l'ajuster avec un réseau de neurones."
+  },
+  {
+   "t": 5868800,
+   "text": "So with [inaudible] we built the system, a hybrid physics-informed system using MPC, optimization and neural networks. And that thing was deployable. It would use way less data, it was way more efficient, and not only this, the model would also behave in a consistent manner. If you take a causality class with [name], you might appreciate the importance of having systems that are causally consistent.",
+   "fr": "Donc avec [inaudible], on a construit le système, un système hybride informé par la physique qui utilise la MPC, l'optimisation et des réseaux de neurones. Et ce truc-là était déployable. Il utilisait beaucoup moins de données, il était beaucoup plus efficace, et pas seulement ça, le modèle se comportait aussi de manière cohérente. Si vous suivez un cours de causalité avec [name], vous pourriez apprécier l'importance d'avoir des systèmes qui sont cohérents sur le plan causal."
+  },
+  {
+   "t": 5902239,
+   "text": "And the thing with a black-box neural network is that you might not be able to guarantee that ahead of time. Basic relationships, like, if I crank up the heat in a room, I sort of expect the heat to go up, right? These kinds of basic relationships might not be guaranteed otherwise. So from a causal perspective, there's a lot of value in doing this. What else? There's another really cool use case. I'm super proud of that, and really it's thanks to the fact that I'm an adviser at IVADO Labs; otherwise I would never have had the chance to do this. But I can say that we're probably one of the only systems that I know of that runs live, that helps a very large company that cannot be named, but that you can probably infer, who's not Hydro-Quebec.",
+   "fr": "Et le problème avec un réseau de neurones boîte noire, c'est que vous pourriez ne pas être en mesure de garantir ça à l'avance. Des relations de base, comme, si je monte le chauffage dans une pièce, je m'attends en quelque sorte à ce que la chaleur augmente, n'est-ce pas ? Ce genre de relations de base pourrait ne pas être garanti autrement. Donc d'un point de vue causal, il y a beaucoup de valeur à faire ça. Quoi d'autre ? Il y a un autre cas d'usage vraiment intéressant. J'en suis super fier, et c'est vraiment grâce au fait que je suis conseiller chez IVADO Labs ; sinon, je n'aurais jamais eu la chance de faire ça. Mais je peux dire qu'on est probablement un des seuls systèmes à ma connaissance qui tourne en production, qui aide une très grande entreprise qu'on ne peut pas nommer, mais que vous pouvez probablement deviner, et qui n'est pas Hydro-Québec."
+  },
+  {
+   "t": 5960480,
+   "text": "Help that company come up with the right way of deciding how much water it needs to turbine in its network of hydro dams. And this, we solve it using RL. But the solution we've got has nothing to do with textbook RL. There's no PPO in there. There's no TD. Yet I think of this as an RL solution.",
+   "fr": "Aider cette entreprise à trouver la bonne façon de décider combien d'eau elle doit turbiner dans son réseau de barrages hydroélectriques. Et ça, on le résout avec du RL. Mais la solution qu'on a n'a rien à voir avec le RL des manuels. Il n'y a pas de PPO là-dedans. Il n'y a pas de TD. Pourtant, je considère ça comme une solution de RL."
+  },
+  {
+   "t": 5991920,
+   "text": "It uses neural networks. It uses ideas from optimization and so on, model-based RL, and most importantly, it also uses structure. Okay, what is the structure here? If you have a network of lakes, of rivers: flow in is equal to flow out. So, basic laws of conservation, which you can write mathematically as just a plus term, minus term. You want to encode that. It's a structure that is present there; why would you want to relearn that from scratch? So there's this, of course, but then there are exogenous inputs, like the rain and so on, that are not modeled by this, and we have external inputs that come in from fancier systems that we don't model, but that they have access to. And that stuff works. But had we chosen to just apply a vanilla recipe,",
+   "fr": "Elle utilise des réseaux de neurones. Elle utilise des idées d'optimisation et ainsi de suite, du RL fondé sur un modèle, et surtout, elle utilise aussi de la structure. Bon, quelle est la structure ici ? Si vous avez un réseau de lacs, de rivières : le débit entrant est égal au débit sortant. Donc, des lois de conservation de base, qu'on peut écrire mathématiquement comme simplement un terme plus, un terme moins. On veut encoder ça. C'est une structure qui est présente ; pourquoi voudriez-vous réapprendre ça à partir de zéro ? Donc il y a ça, bien sûr, mais ensuite il y a des entrées exogènes, comme la pluie et ainsi de suite, qui ne sont pas modélisées par ça, et on a des entrées externes qui viennent de systèmes plus sophistiqués qu'on ne modélise pas, mais auxquels ils ont accès. Et ce truc-là fonctionne. Mais si on avait choisi d'appliquer simplement une recette de base,"
+  },
+  {
+   "t": 6054000,
+   "text": "there's no way that we could have come up with a system that works. Maybe I'll tell you about this a bit later. But yeah, so in real life, we don't know how to write the cost function. And not only this, now that I think about it, we also oftentimes have constraints. That problem with electricity production: they have a lot of constraints. I cannot go into the details of all of them, but basic constraints: let's say you don't want to flood people downstream. There's just so much you can turbine. You want to make sure that you have enough capacity in case you need to fulfill a contract, that sort of thing. These are hard constraints, by the way. I know that there's a lot of constrained RL these days, but constrained RL, the field of constrained RL, is a very specific instance, and it won't allow you to deal",
+   "fr": "on n'aurait jamais pu arriver à un système qui fonctionne. Peut-être que je vous en parlerai un peu plus tard. Mais oui, donc dans la vraie vie, on ne sait pas comment écrire la fonction de coût. Et pas seulement ça, maintenant que j'y pense, on a aussi souvent des contraintes. Ce problème de production d'électricité : ils ont beaucoup de contraintes. Je ne peux pas entrer dans le détail de chacune, mais des contraintes de base : disons qu'on ne veut pas inonder les gens en aval. Il y a une limite à ce qu'on peut turbiner. On veut s'assurer d'avoir assez de capacité au cas où on doit honorer un contrat, ce genre de chose. Ce sont des contraintes strictes, d'ailleurs. Je sais qu'il y a beaucoup de RL avec contraintes ces temps-ci, mais le RL avec contraintes, le domaine du RL avec contraintes, c'est un cas très particulier, et il ne vous permettra pas de gérer"
+  },
+  {
+   "t": 6115920,
+   "text": "with these things. So we've had ways to also incorporate constraints, because of our creative use, or broader definition, of RL, let's say. And with historical data, we've also been smart in how we use it. We've taken lessons from RL, as in machine learning RL, and we've also done imitation learning as a first step, which people do a lot in robotics these days, or even in large language models. You can think of a lot of the SFT part as imitation learning, right? We've also done imitation learning. So all that to say that I'm pretty convinced that there are very few concrete problems where you're just going to apply a vanilla RL algorithm, call it a day, and say, there you go.",
+   "fr": "ces choses-là. Donc on a aussi trouvé des façons d'incorporer des contraintes, grâce à notre usage créatif, ou notre définition plus large, du RL, disons. Et avec les données historiques, on a aussi été astucieux dans la façon de les utiliser. On a tiré des leçons du RL, au sens du RL en apprentissage automatique, et on a aussi fait de l'apprentissage par imitation comme première étape, ce que les gens font beaucoup en robotique ces temps-ci, ou même dans les grands modèles de langage. On peut voir une bonne partie de la phase SFT comme de l'apprentissage par imitation, n'est-ce pas ? On a aussi fait de l'apprentissage par imitation. Tout ça pour dire que je suis assez convaincu qu'il y a très peu de problèmes concrets où vous allez simplement appliquer un algorithme de RL de base, considérer l'affaire réglée, et dire : voilà."
+  },
+  {
+   "t": 6174239,
+   "text": "It's not... I don't think that's how it is. Now, I don't want to sound... I don't discourage you from these things, not at all. I just want you to have a bigger tool set and use the right tool when it's necessary. And to be clear, policy gradient methods and these ideas are absolutely the reason why large language models work these days. Okay? So there are places where that makes a lot of sense. But why would it make a lot of sense to do policy gradient, model-free type stuff in large language models?",
+   "fr": "Ce n'est pas... Je ne pense pas que ce soit comme ça que ça se passe. Maintenant, je ne veux pas avoir l'air... Je ne vous décourage pas de ces choses-là, pas du tout. Je veux juste que vous ayez un coffre à outils plus large et que vous utilisiez le bon outil quand c'est nécessaire. Et pour être clair, les méthodes de gradient de politique et ces idées-là sont absolument la raison pour laquelle les grands modèles de langage fonctionnent aujourd'hui. D'accord ? Donc il y a des endroits où ça a tout son sens. Mais pourquoi serait-il tout à fait logique de faire du gradient de politique, des choses sans modèle, dans les grands modèles de langage ?"
+  },
+  {
+   "t": 6210480,
+   "text": "A couple of reasons. One of them is: what's a simulator in a large language model? This is weird for an LLM, because the LLM is both the agent and the environment. But the simulator, the thing that gives us a fire hose of experience, is the model itself, which can generate tokens and so on. So let's say when you do on-policy methods, GRPO, you take rollouts, you unroll your model autoregressively, and you can have an infinite stream of experience. That's not a problem. Of course, it's going to be costly, but it's there.",
+   "fr": "Pour deux ou trois raisons. L'une d'elles : qu'est-ce qu'un simulateur dans un grand modèle de langage ? C'est bizarre pour un LLM, parce que le LLM est à la fois l'agent et l'environnement. Mais le simulateur, ce qui nous donne un boyau d'incendie d'expérience, c'est le modèle lui-même, qui peut générer des jetons et ainsi de suite. Donc disons que quand vous faites des méthodes sur politique (on-policy), GRPO, vous faites des déroulements (rollouts), vous déroulez votre modèle de façon autorégressive, et vous pouvez avoir un flux infini d'expérience. Ce n'est pas un problème. Bien sûr, ça va être coûteux, mais c'est là."
+  },
+  {
+   "t": 6248239,
+   "text": "You can generate as much information as you want. And the second thing is that, because of this weird structure in LLMs, where the system is both the agent and the environment, the environment has a very, very trivial, almost degenerate form. It's a deterministic environment, and that's going to bring you actually to the other point, where the transition function is essentially concatenation in time. So let me talk about this. Actually, only three minutes. Maybe I'll go back to it on September 7 when we meet.",
+   "fr": "Vous pouvez générer autant d'information que vous voulez. Et la deuxième chose, c'est qu'à cause de cette structure bizarre des LLM, où le système est à la fois l'agent et l'environnement, l'environnement a une forme très, très triviale, presque dégénérée. C'est un environnement déterministe, et ça va en fait vous amener à l'autre point, où la fonction de transition est essentiellement une concaténation dans le temps. Alors laissez-moi en parler. En fait, il reste seulement trois minutes. Peut-être que j'y reviendrai le 7 septembre quand on se verra."
+  },
+  {
+   "t": 6284639,
+   "text": "So we talked about continuous-time systems, but then... oops. So when we have noise, a formalism we often use is to extend the dynamics function such that it has an exogenous input \\(w\\), which is noise. So you can either write it in as [inaudible], or, in some cases, when you have an additive noise structure, you could also write it this way. Let's say when it's Gaussian, say if it's Gaussian(0, 1)... actually, if \\(w\\) is Gaussian(0, 1), you can transform Gaussian(0, 1) into a Gaussian with any given mean and any given standard deviation, with a transformation like that. But the point is, you can have an",
+   "fr": "Donc on a parlé de systèmes en temps continu, mais ensuite... oups. Donc quand on a du bruit, un formalisme qu'on utilise souvent, c'est d'étendre la fonction de dynamique pour qu'elle ait une entrée exogène \\(w\\), qui est du bruit. Donc on peut soit l'écrire comme [inaudible], soit, dans certains cas, quand on a une structure de bruit additif, on pourrait aussi l'écrire de cette façon. Disons quand c'est gaussien, disons si c'est une gaussienne (0, 1)... en fait, si \\(w\\) est une gaussienne (0, 1), on peut transformer une gaussienne (0, 1) en une gaussienne de moyenne quelconque et d'écart type quelconque, avec une transformation comme celle-là. Mais l'idée, c'est qu'on peut avoir une"
+  },
+  {
+   "t": 6344639,
+   "text": "exogenous input like this into \\(f\\), which is a deterministic function. But because \\(f\\) is deterministic and \\(w\\) is random, the output of \\(f\\) is a random variable, because a deterministic transformation of a random variable gives us a random variable as an output. And this form here, you can actually turn it into another form, which is more common in, let's say, reinforcement learning, Markov decision processes, and LLMs, or machine learning. You can basically integrate out the noise variable, so that it's described by what we call a transition kernel, or a Markov kernel.",
+   "fr": "entrée exogène comme celle-ci dans \\(f\\), qui est une fonction déterministe. Mais comme \\(f\\) est déterministe et \\(w\\) est aléatoire, la sortie de \\(f\\) est une variable aléatoire, parce qu'une transformation déterministe d'une variable aléatoire nous donne une variable aléatoire en sortie. Et cette forme-ci, on peut en fait la transformer en une autre forme, qui est plus courante en, disons, apprentissage par renforcement, dans les processus décisionnels de Markov, et dans les LLM, ou en apprentissage automatique. On peut essentiellement marginaliser la variable de bruit, de sorte que le système soit décrit par ce qu'on appelle un noyau de transition, ou un noyau de Markov."
+  },
+  {
+   "t": 6389119,
+   "text": "And these two views are equivalent. Either you've got the deterministic function that takes the exogenous noise, or you represent your system probabilistically in this way. By the way, this is a Markov system. So it has this form because we have an \\(f(x, u, w)\\). And the Markov assumption gives rise to a PGM that has the conditional independence assumption that gives rise to this form, where the next state is a function of the current state and the action that you're taking. And you can go back and forth between them. Now, for RL as in Sutton, model-free, typically we work with that in the framework of Markov decision processes, with oftentimes discrete states, discrete actions. And to go back to LLMs, you know what would be",
+   "fr": "Et ces deux points de vue sont équivalents. Soit vous avez la fonction déterministe qui prend le bruit exogène, soit vous représentez votre système de façon probabiliste de cette manière. D'ailleurs, c'est un système markovien. Il a donc cette forme parce qu'on a un \\(f(x, u, w)\\). Et l'hypothèse de Markov donne lieu à un PGM qui a l'hypothèse d'indépendance conditionnelle qui donne lieu à cette forme, où l'état suivant est une fonction de l'état courant et de l'action que vous choisissez. Et on peut passer de l'un à l'autre. Maintenant, pour le RL au sens de Sutton, sans modèle, typiquement on travaille avec ça dans le cadre des processus décisionnels de Markov, souvent avec des états discrets, des actions discrètes. Et pour revenir aux LLM, savez-vous quel serait"
+  },
+  {
+   "t": 6449679,
+   "text": "the corresponding MDP for an LLM? One of your colleagues has an LLM background. I want that person to stay in the course. So we're going to take a little LLM detour now. Honestly, I work with LLMs a lot in my group, to do research with LLMs, so it's something I think about a lot. So, an LLM: what would this thing be?",
+   "fr": "le MDP correspondant pour un LLM ? Un de vos collègues a une formation en LLM. Je veux que cette personne reste dans le cours. Donc on va faire un petit détour par les LLM maintenant. Honnêtement, je travaille beaucoup avec les LLM dans mon groupe, pour faire de la recherche avec les LLM, donc c'est quelque chose à quoi je pense beaucoup. Alors, un LLM : qu'est-ce que ce truc-là serait ?"
+  },
+  {
+   "t": 6489840,
+   "text": "So it would be a deterministic system, first of all. What would \\(x_t\\) be? It would be the accumulation of tokens so far. What would \\(u_t\\) be? It would be a choice of token. And then how is \\(x_{t+1}\\) produced?",
+   "fr": "Ce serait un système déterministe, tout d'abord. Que serait \\(x_t\\) ? Ce serait l'accumulation des jetons jusqu'ici. Que serait \\(u_t\\) ? Ce serait un choix de jeton. Et ensuite, comment \\(x_{t+1}\\) est-il produit ?"
+  },
+  {
+   "t": 6525440,
+   "text": "Well, \\(x_{t+1}\\) is given by concat of \\(x_t\\) and \\(u_t\\). And this concat is basically a deterministic, degenerate subcase of the transition matrix, where it's the indicator function that is one. All the probability mass goes into the only case where \\(x_{t+1}\\) is indeed the concatenation of \\(x_t\\).",
+   "fr": "Eh bien, \\(x_{t+1}\\) est donné par concat de \\(x_t\\) et \\(u_t\\). Et ce concat est essentiellement un sous-cas déterministe, dégénéré, de la matrice de transition, où c'est la fonction indicatrice qui vaut un. Toute la masse de probabilité va dans le seul cas où \\(x_{t+1}\\) est bel et bien la concaténation de \\(x_t\\)."
+  },
+  {
+   "t": 6571760,
+   "text": "Okay. So why am I saying this? Well, you can think of LLMs as specific dynamic systems: discrete time, discrete states and discrete actions, the actions being tokens, with a bit of a degenerate dynamics function that is fully known. But there's still a part that is not known, and that's also the part where people struggle the most: the reward function. It's the whole reason why people do RLHF and these other things, and why there's reward hacking and alignment problems. It's the same reason that we've always been struggling with that in RL and optimal control. So the reward function would not be known a priori, but it would be identified from samples, typically. Or if it's RLVR, where you've got a verifiable task, let's say a math problem, the reward function is going to be known, because it will be the",
+   "fr": "D'accord. Alors pourquoi est-ce que je dis ça ? Eh bien, on peut voir les LLM comme des systèmes dynamiques particuliers : temps discret, états discrets et actions discrètes, les actions étant des jetons, avec une fonction de dynamique un peu dégénérée qui est entièrement connue. Mais il y a quand même une partie qui n'est pas connue, et c'est aussi la partie où les gens ont le plus de difficulté : la fonction de récompense. C'est toute la raison pour laquelle les gens font du RLHF et ces autres choses, et pour laquelle il y a du détournement de récompense (reward hacking) et des problèmes d'alignement. C'est la même raison pour laquelle on a toujours eu de la difficulté avec ça en RL et en commande optimale. Donc la fonction de récompense ne serait pas connue a priori, mais elle serait identifiée à partir d'échantillons, typiquement. Ou si c'est du RLVR, où on a une tâche vérifiable, disons un problème de mathématiques, la fonction de récompense va être connue, parce que ce sera la"
+  },
+  {
+   "t": 6633280,
+   "text": "output of a program or a formula or some other thing. Okay. So that was pretty much it, I think, in terms of modeling. We talked about ODEs, SDEs, discrete systems, Markovian systems with noise. There's one more instance, which we don't really talk much about, where we'd be having observations. So that'd be the framework of POMDPs, partially observable MDPs. We don't quite talk about these things, but we have ways to address them, let's say in RL, when we do learning and we learn representations. We also have research in my group about this. Currently, I don't think I've got anything in my notes about POMDPs, because at some point I've got to choose what I talk about. But POMDPs would be an instance of",
+   "fr": "sortie d'un programme ou d'une formule ou d'autre chose. D'accord. Donc c'était à peu près tout, je pense, en ce qui concerne la modélisation. On a parlé d'ODE, de SDE, de systèmes discrets, de systèmes markoviens avec du bruit. Il y a encore un cas, dont on ne parle pas vraiment beaucoup, où on aurait des observations. Ce serait le cadre des POMDP, les MDP partiellement observables. On ne parle pas vraiment de ces choses-là, mais on a des façons de les aborder, disons en RL, quand on fait de l'apprentissage et qu'on apprend des représentations. On a aussi de la recherche dans mon groupe là-dessus. Actuellement, je ne pense pas avoir quoi que ce soit dans mes notes sur les POMDP, parce qu'à un moment donné, il faut que je choisisse de quoi je parle. Mais les POMDP seraient un cas de"
+  },
+  {
+   "t": 6696880,
+   "text": "discrete-time Markovian systems, Markovian in the state, but with some observations, just like in an HMM. It's a controlled HMM; a POMDP is a controlled HMM, basically. That's it. And there are simulators as well, where it's not going to be described by math or probabilistic systems, but it would be described by a program. So, let's say, these are discrete event systems. An example of that would be traffic simulators. Oftentimes people like to code these things up as programs. That could be an example, though, where RL would pay off, because it's a program.",
+   "fr": "systèmes markoviens en temps discret, markoviens dans l'état, mais avec certaines observations, exactement comme dans un HMM. C'est un HMM commandé ; un POMDP est un HMM commandé, essentiellement. C'est tout. Et il y a aussi des simulateurs, où le système ne va pas être décrit par des mathématiques ou des systèmes probabilistes, mais plutôt par un programme. Donc, disons, ce sont des systèmes à événements discrets. Un exemple de ça, ce serait les simulateurs de circulation. Souvent, les gens aiment coder ces choses-là sous forme de programmes. Ça pourrait être un exemple, par contre, où le RL vaudrait la peine, parce que c'est un programme."
+  },
+  {
+   "t": 6737199,
+   "text": "You can generate as many samples as you want, and it's code, right? So we can somehow differentiate through code, but it could be a bit more awkward. So that'd be a case where it's useful. Okay. So that's it. We're just going to be meeting next time, September 7th, if I remember correctly, because then we have Labour Day, something something...\nStudent: I don't know. I think it's [inaudible] next time.",
+   "fr": "Vous pouvez générer autant d'échantillons que vous voulez, et c'est du code, n'est-ce pas ? Donc on peut en quelque sorte différentier à travers le code, mais ça pourrait être un peu plus malcommode. Donc ce serait un cas où c'est utile. D'accord. Alors c'est tout. On va simplement se revoir la prochaine fois, le 7 septembre, si je me souviens bien, parce qu'ensuite on a la fête du Travail, quelque chose du genre...\nStudent: Je ne sais pas. Je pense que c'est [inaudible] la prochaine fois."
+  },
+  {
+   "t": 6773840,
+   "text": "What does it say for you?\nStudent: Thursday.\nThere's a class on Thursday?\nStudent: Yes.\nPerfect. Then, yeah. Okay. So the 7th is Labour Day. Okay. Then we'll meet on Thursday. Perfect. And we're going to continue with actually solving these OCPs and stuff. Voila. Thank you. Yeah, next class on Thursday, same place.",
+   "fr": "Qu'est-ce que ça dit, chez vous ?\nStudent: Jeudi.\nIl y a un cours jeudi ?\nStudent: Oui.\nParfait. Alors, oui. D'accord. Donc le 7, c'est la fête du Travail. D'accord. Alors on se voit jeudi. Parfait. Et on va continuer en résolvant concrètement ces OCP et tout ça. Voilà. Merci. Oui, prochain cours jeudi, même endroit."
+  }
+ ]
+}

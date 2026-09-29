@@ -1,0 +1,805 @@
+{
+ "date": "2026-09-10",
+ "tldr": [
+  {
+   "notion": "MPC turns expert models into controllers",
+   "detail": "MPC keeps re-solving a deterministic trajectory optimization problem online, so a model written by a domain expert (buildings, chemical plants, rockets, robots) becomes a controller almost immediately. These methods handle continuous states and controls in continuous time but do not scale to very high-dimensional problems such as vision-based control; he put the reasonable range at up to roughly 50 state dimensions.",
+   "t": 32719,
+   "exam": false,
+   "notion_fr": "La MPC transforme les modèles d'experts en contrôleurs",
+   "detail_fr": "La MPC résout sans cesse, en ligne, un problème d'optimisation de trajectoire déterministe, de sorte qu'un modèle écrit par un expert du domaine (bâtiments, usines chimiques, fusées, robots) devient presque immédiatement un contrôleur. Ces méthodes traitent des états et des commandes continus en temps continu, mais ne passent pas à l'échelle pour des problèmes de très grande dimension comme la commande à partir de la vision; il a situé la plage raisonnable à environ 50 dimensions d'état au maximum."
+  },
+  {
+   "notion": "States as decision variables",
+   "detail": "In the DOCP, both the states and the controls are decision variables and the dynamics \\(x_{t+1} = f_t(x_t, u_t)\\) are equality constraints (simultaneous methods). Eliminating the states by forward simulation (sequential methods) saves memory and compute, but as in backpropagation through time the gradients degrade over long horizons, so keeping the states helps with very unstable systems and also makes hard state constraints easy to impose.",
+   "t": 725200,
+   "exam": false,
+   "notion_fr": "Les états comme variables de décision",
+   "detail_fr": "Dans le DOCP, les états et les commandes sont tous des variables de décision, et la dynamique \\(x_{t+1} = f_t(x_t, u_t)\\) forme des contraintes d'égalité (méthodes simultanées). Éliminer les états par simulation vers l'avant (méthodes séquentielles) économise de la mémoire et du calcul, mais, comme dans la rétropropagation dans le temps, les gradients se dégradent sur de longs horizons; garder les états aide donc pour les systèmes très instables et permet aussi d'imposer facilement des contraintes dures sur l'état."
+  },
+  {
+   "notion": "Lagrangian as a two-player game",
+   "detail": "For \\(\\min f(x)\\) subject to \\(h(x) = 0\\), the Lagrangian \\(L(x, \\lambda) = f(x) + \\lambda^\\top h(x)\\) re-encodes the constrained problem as a min-max game: at any infeasible x, the max player can send the multiplier to infinity. This holds with or without convexity, but swapping the min and the max (strong duality) is not guaranteed, and minimizing the Lagrangian over all variables at once (the 'Lagrangian fallacy') gives the wrong answer.",
+   "t": 1058320,
+   "exam": false,
+   "notion_fr": "Le lagrangien comme jeu à deux joueurs",
+   "detail_fr": "Pour \\(\\min f(x)\\) sous \\(h(x) = 0\\), le lagrangien \\(L(x, \\lambda) = f(x) + \\lambda^\\top h(x)\\) réencode le problème avec contraintes sous forme de jeu min-max : en tout x non réalisable, le joueur max peut envoyer le multiplicateur à l'infini. C'est vrai avec ou sans convexité, mais l'interversion du min et du max (dualité forte) n'est pas garantie, et minimiser le lagrangien sur toutes les variables à la fois (le « sophisme du lagrangien ») donne la mauvaise réponse."
+  },
+  {
+   "notion": "Arrow-Hurwicz gradient descent-ascent",
+   "detail": "Arrow-Hurwicz(-Uzawa) alternates small descent steps on the primal variables with ascent steps on the multipliers, and clips the inequality multipliers \\(\\mu\\) back to nonnegative values. It never solves the inner maximization to completion, so it tends to be unstable. It can be stabilized by alternating the order of the updates, by two-time-scale schemes (more inner steps or a larger inner learning rate), or by augmented-Lagrangian penalty terms.",
+   "t": 1362480,
+   "exam": false,
+   "notion_fr": "La descente-ascension de gradient d'Arrow-Hurwicz",
+   "detail_fr": "Arrow-Hurwicz(-Uzawa) alterne de petits pas de descente sur les variables primales et des pas d'ascension sur les multiplicateurs, et ramène par écrêtage les multiplicateurs d'inégalité \\(\\mu\\) à des valeurs non négatives. Comme la maximisation interne n'est jamais menée à terme, la méthode a tendance à être instable. On peut la stabiliser en alternant l'ordre des mises à jour, par des schémas à deux échelles de temps (plus de pas internes ou un taux d'apprentissage interne plus grand), ou par les termes de pénalité du lagrangien augmenté."
+  },
+  {
+   "notion": "Newton's method on first-order conditions",
+   "detail": "With equality constraints, the first-order conditions say that the gradient of the Lagrangian with respect to \\((z, \\lambda)\\) is zero, which is a nonlinear root-finding problem \\(F(y) = 0\\). Newton's method solves it with \\(y_{k+1} = y_k - J_F(y_k)^{-1} F(y_k)\\) and converges quadratically, but only locally. Each step is computed by solving a linear system (np.linalg.solve, or matrix-free methods such as CG and GMRES), never by forming a matrix inverse.",
+   "t": 2017200,
+   "exam": false,
+   "notion_fr": "La méthode de Newton sur les conditions du premier ordre",
+   "detail_fr": "Avec des contraintes d'égalité, les conditions du premier ordre disent que le gradient du lagrangien par rapport à \\((z, \\lambda)\\) est nul, ce qui est un problème non linéaire de recherche de racine \\(F(y) = 0\\). La méthode de Newton le résout avec \\(y_{k+1} = y_k - J_F(y_k)^{-1} F(y_k)\\) et converge de façon quadratique, mais seulement localement. Chaque pas se calcule en résolvant un système linéaire (np.linalg.solve, ou des méthodes sans matrice comme CG et GMRES), jamais en formant l'inverse d'une matrice."
+  },
+  {
+   "notion": "SQP: quadratize, linearize, repeat",
+   "detail": "The Newton step on the first-order conditions is the solution of a QP: the Lagrangian is quadratized through its Hessian and the constraints are linearized with a first-order Taylor expansion around \\(z_k\\). Solving a new QP at every iteration is sequential quadratic programming, which extends to inequality constraints (e.g. SLSQP in SciPy). Its iterates may be infeasible until convergence, and he contrasted it with interior-point methods such as IPOPT, which use barriers.",
+   "t": 3216880,
+   "exam": false,
+   "notion_fr": "SQP : quadratiser, linéariser, recommencer",
+   "detail_fr": "Le pas de Newton sur les conditions du premier ordre est la solution d'un QP : le lagrangien est quadratisé par sa hessienne et les contraintes sont linéarisées par un développement de Taylor du premier ordre autour de \\(z_k\\). Résoudre un nouveau QP à chaque itération, c'est la programmation quadratique séquentielle, qui s'étend aux contraintes d'inégalité (p. ex. SLSQP dans SciPy). Ses itérés peuvent être non réalisables jusqu'à la convergence, et il l'a opposée aux méthodes de points intérieurs comme IPOPT, qui utilisent des barrières."
+  },
+  {
+   "notion": "Transcription with nodal polynomials",
+   "detail": "A continuous-time problem is transcribed into a finite NLP by approximating the state and control trajectories with polynomials. A degree-\\(r\\) polynomial is identified by its values \\(y_j\\) at \\(r+1\\) support nodes \\(\\sigma_j\\). With the Lagrange cardinal functions \\(\\ell_j(\\tau) = \\prod_{m \\neq j} (\\tau - \\sigma_m)/(\\sigma_j - \\sigma_m)\\), which satisfy \\(\\ell_j(\\sigma_i) = \\delta_{ij}\\), the polynomial is \\(p(\\tau) = \\sum_j y_j \\ell_j(\\tau)\\). Because the node values are the decision variables, state and control constraints are easy to impose.",
+   "t": 5216239,
+   "exam": false,
+   "notion_fr": "La transcription avec des polynômes nodaux",
+   "detail_fr": "Un problème en temps continu est transcrit en un NLP fini en approximant les trajectoires d'état et de commande par des polynômes. Un polynôme de degré \\(r\\) est identifié par ses valeurs \\(y_j\\) en \\(r+1\\) nœuds de support \\(\\sigma_j\\). Avec les fonctions cardinales de Lagrange \\(\\ell_j(\\tau) = \\prod_{m \\neq j} (\\tau - \\sigma_m)/(\\sigma_j - \\sigma_m)\\), qui satisfont \\(\\ell_j(\\sigma_i) = \\delta_{ij}\\), le polynôme s'écrit \\(p(\\tau) = \\sum_j y_j \\ell_j(\\tau)\\). Comme les valeurs aux nœuds sont les variables de décision, les contraintes d'état et de commande sont faciles à imposer."
+  }
+ ],
+ "outline": [
+  {
+   "t": 1760,
+   "title": "Recap: MPC and expert-knowledge models",
+   "title_fr": "Rappel : la MPC et les modèles issus de l'expertise"
+  },
+  {
+   "t": 250080,
+   "title": "Scope and limits of these methods",
+   "title_fr": "Portée et limites de ces méthodes"
+  },
+  {
+   "t": 341520,
+   "title": "DOCP: states and controls as decisions",
+   "title_fr": "DOCP : états et commandes comme variables de décision"
+  },
+  {
+   "t": 1058320,
+   "title": "The Lagrangian as a two-player game",
+   "title_fr": "Le lagrangien comme jeu à deux joueurs"
+  },
+  {
+   "t": 1362480,
+   "title": "Arrow-Hurwicz and how to stabilize it",
+   "title_fr": "Arrow-Hurwicz et comment le stabiliser"
+  },
+  {
+   "t": 2017200,
+   "title": "Newton's method on first-order conditions",
+   "title_fr": "La méthode de Newton sur les conditions du premier ordre"
+  },
+  {
+   "t": 3216880,
+   "title": "From Newton steps to SQP",
+   "title_fr": "Des pas de Newton à la SQP"
+  },
+  {
+   "t": 3342079,
+   "title": "Break",
+   "title_fr": "Pause"
+  },
+  {
+   "t": 4252880,
+   "title": "SQP solvers, feasibility, interior-point methods",
+   "title_fr": "Solveurs SQP, réalisabilité, méthodes de points intérieurs"
+  },
+  {
+   "t": 4977360,
+   "title": "Pontryagin aside and continuous-time transcription",
+   "title_fr": "Aparté sur Pontryagin et transcription en temps continu"
+  },
+  {
+   "t": 5721760,
+   "title": "Polynomial bases and nodal representation",
+   "title_fr": "Bases polynomiales et représentation nodale"
+  },
+  {
+   "t": 6392560,
+   "title": "Lagrange cardinal functions",
+   "title_fr": "Fonctions cardinales de Lagrange"
+  }
+ ],
+ "paras": [
+  {
+   "t": 1760,
+   "text": "Always works. Okay, so where were we last time? We talked about solving trajectory optimization problems, deterministic trajectory optimization problems. And why do we care about that? Because it's a very strong building block for building full robust controllers using the MPC methodology. What is the MPC methodology? The gist of it is that you keep on optimizing all the time, live.",
+   "fr": "Ça marche à tout coup. Bon, alors, où en étions-nous la dernière fois? On a parlé de la résolution de problèmes d'optimisation de trajectoire, de problèmes d'optimisation de trajectoire déterministes. Et pourquoi est-ce que ça nous intéresse? Parce que c'est une brique de base très solide pour construire des contrôleurs robustes complets avec la méthodologie MPC. Qu'est-ce que la méthodologie MPC? L'essentiel, c'est qu'on continue d'optimiser tout le temps, en direct."
+  },
+  {
+   "t": 32719,
+   "text": "It's online optimization. It's not just doing optimization once and deploying. You're doing optimization all the time, and that's a pretty strong approach. What's the reason why it's actually so common in practice? It's actually that it allows you to make use of what's going on here, to make use of expert knowledge in many fields. You can ask an expert who's got expertise in building simulation, let's say, or building assessment of energy efficiency, to come up with a model of how the building is going to evolve. Once you've got that model, you can pretty much immediately turn that into a control algorithm. So it's really a good way to leverage existing known theory, structure, theorems,",
+   "fr": "C'est de l'optimisation en ligne. On ne fait pas juste l'optimisation une fois pour ensuite déployer. On optimise tout le temps, et c'est une approche assez puissante. Pourquoi est-ce que c'est si courant en pratique? En fait, c'est que ça vous permet de tirer parti de ce qui se passe ici, de tirer parti de l'expertise de nombreux domaines. Vous pouvez demander à quelqu'un qui a de l'expertise en simulation de bâtiments, disons, ou en évaluation de l'efficacité énergétique des bâtiments, de construire un modèle de l'évolution du bâtiment. Une fois que vous avez ce modèle, vous pouvez à peu près immédiatement le transformer en algorithme de commande. C'est donc une très bonne façon de mettre à profit la théorie, la structure, les théorèmes existants et connus,"
+  },
+  {
+   "t": 94400,
+   "text": "mathematical expressions and so on, and turn it into a control algorithm. Very, very intuitive, and yeah, that's the main reason. Where is MPC used? It's used, like, everywhere, honestly. When they send rockets to space, it's running MPC. The humanoid robots we're seeing these days, from China mostly, of course, they must be running MPC, at least for the locomotion part.",
+   "fr": "les expressions mathématiques et ainsi de suite, et de les transformer en algorithme de commande. Très, très intuitif, et oui, c'est la raison principale. Où utilise-t-on la MPC? Un peu partout, honnêtement. Quand on envoie des fusées dans l'espace, c'est de la MPC qui tourne. Les robots humanoïdes qu'on voit ces temps-ci, surtout en provenance de la Chine, bien sûr, doivent utiliser la MPC, du moins pour la partie locomotion."
+  },
+  {
+   "t": 126079,
+   "text": "Another big consumer of MPC methods would be the field of process control and chemical engineering. It turns out that a lot of chemical reactions can be described in continuous time. Of course, it's the natural language. And in big factories or plants where they make chemical stuff of all kinds, they can use these structured models to do control, to control the reactions over time and so on. So it's very, very common over there, and it's how many of these plants are actually being operated live. Water treatment plants are another good example of that.",
+   "fr": "Un autre grand consommateur de méthodes MPC, ce serait le domaine de la commande de procédés et du génie chimique. Il se trouve que beaucoup de réactions chimiques peuvent être décrites en temps continu. Évidemment, c'est leur langage naturel. Et dans les grandes usines où l'on fabrique des produits chimiques de toutes sortes, on peut utiliser ces modèles structurés pour faire de la commande, pour commander les réactions dans le temps, et ainsi de suite. C'est donc très, très courant de ce côté-là, et c'est ainsi que bon nombre de ces usines sont réellement exploitées en temps réel. Les usines de traitement de l'eau en sont un autre bon exemple."
+  },
+  {
+   "t": 188239,
+   "text": "What else can I think of? Yeah, wastewater treatment is of course another one, and so on. Somebody asked me a question last time, or made a comment, which is not entirely wrong, but I just want to stress this now. Of course, for the material I'm presenting right now, it makes a lot of sense to talk about physical systems. Why? Because ODEs and continuous-time equations are pretty much the lingua franca of physical systems. So it's a great fit for robotics. That being said, all the ideas we're seeing in this class extend way beyond robotics. I'm not teaching a robotics class here. Of course there'll be applications; you'll be able to apply these things to robotics. But there's a very wide range",
+   "fr": "À quoi d'autre puis-je penser? Oui, le traitement des eaux usées, bien sûr, en est un autre, et ainsi de suite. Quelqu'un m'a posé une question la dernière fois, ou a fait un commentaire, qui n'est pas entièrement faux, mais je veux simplement insister là-dessus maintenant. Bien sûr, pour la matière que je présente en ce moment, il est tout naturel de parler de systèmes physiques. Pourquoi? Parce que les ODE et les équations en temps continu sont à peu près la lingua franca des systèmes physiques. C'est donc tout indiqué pour la robotique. Cela dit, toutes les idées qu'on voit dans ce cours vont bien au-delà de la robotique. Ce n'est pas un cours de robotique que je donne ici. Bien sûr, il y aura des applications; vous pourrez appliquer ces choses à la robotique. Mais il y a un très large éventail"
+  },
+  {
+   "t": 250080,
+   "text": "of applications, going all the way to training LLMs. However, of course, the methods we're talking about right now are not what we're applying to LLMs. Why is that? Because one big caveat of this class of methods is that, although they give you the ability to work with continuous states and continuous actions in continuous time, which is something that is otherwise actually hard to do with traditional RL methods, these methods won't scale really well to high-dimensional input and output spaces, such as vision-based optimal control, which would be very high dimensional. So that's not the right fit. And not only this, oftentimes we don't have a model of what's going on that is",
+   "fr": "d'applications, qui va jusqu'à l'entraînement des LLM. Cependant, bien sûr, les méthodes dont on parle en ce moment ne sont pas celles qu'on applique aux LLM. Pourquoi? Parce qu'une grande limite de cette classe de méthodes, c'est que, même si elles vous permettent de travailler avec des états continus et des actions continues en temps continu, ce qui est en fait difficile à faire autrement avec les méthodes classiques de RL, ces méthodes ne passent pas très bien à l'échelle pour des espaces d'entrée et de sortie de grande dimension, comme la commande optimale à partir de la vision, qui serait de très grande dimension. Ce n'est donc pas le bon outil. Et pas seulement ça : bien souvent, on n'a pas de modèle de ce qui se passe qui se prête"
+  },
+  {
+   "t": 310639,
+   "text": "amenable to the equations we use here. So it's not to say that numerical trajectory optimization methods are the solution to everything. If your problem has an interpretation with these ODEs, it's great, and if the dimensionality is reasonable, then you're in good shape. When I say reasonable, I mean maybe up to 50; perhaps 50 dimensions would be a pretty hard problem, most likely.",
+   "fr": "aux équations qu'on utilise ici. Ce n'est donc pas dire que les méthodes numériques d'optimisation de trajectoire sont la solution à tout. Si votre problème s'interprète avec ces ODE, c'est parfait, et si la dimension est raisonnable, alors vous êtes en bonne posture. Quand je dis raisonnable, je veux dire peut-être jusqu'à 50; 50 dimensions, ce serait sans doute déjà un problème assez difficile, fort probablement."
+  },
+  {
+   "t": 341520,
+   "text": "Whereas if you were to do pixel-based control, let's say with RL, then it would be like hundreds of dimensions. So that's that. Last time we talked a little bit about optimization methods for, let me just find where this is here, optimization methods for solving problems of that form. The acronym we use here is DOCP, as in discrete-time optimal control problem. And why do I talk about optimization only over DOCPs?",
+   "fr": "Alors que si vous faisiez de la commande à partir de pixels, disons avec du RL, on parlerait plutôt de centaines de dimensions. Voilà pour ça. La dernière fois, on a parlé un peu des méthodes d'optimisation pour, laissez-moi juste trouver où c'est ici, des méthodes d'optimisation pour résoudre des problèmes de cette forme. L'acronyme qu'on utilise ici est DOCP, pour problème de commande optimale en temps discret (discrete-time optimal control problem). Et pourquoi est-ce que je parle d'optimisation seulement pour des DOCP?"
+  },
+  {
+   "t": 385360,
+   "text": "It turns out that the recipe we're going to be applying here when working with continuous-time systems will be to come up with a transcription of a continuous-time optimal control problem into a discrete-time counterpart, which of course is an approximation, but an approximation for which the accuracy can be controlled more or less arbitrarily. So that's why, for the optimization methods I'm talking about here, it suffices for us to just stare at problems of that form, where \\(c_T\\), with a big T, is a terminal cost function and \\(c_t\\), with a small t, is an immediate cost function.",
+   "fr": "Il se trouve que la recette qu'on va appliquer ici, quand on travaille avec des systèmes en temps continu, consistera à faire la transcription d'un problème de commande optimale en temps continu vers un équivalent en temps discret, ce qui est bien sûr une approximation, mais une approximation dont la précision peut être contrôlée de façon plus ou moins arbitraire. C'est pour ça que, pour les méthodes d'optimisation dont je parle ici, il nous suffit de regarder des problèmes de cette forme, où \\(c_T\\), avec un grand T, est une fonction de coût terminal et \\(c_t\\), avec un petit t, est une fonction de coût immédiat."
+  },
+  {
+   "t": 429520,
+   "text": "By the way, you might hear me going back and forth between cost and reward. Usually it's a matter of tradition. When we transition more towards, actually starting from here, and mostly here, we are going to use the terminology of reward. But going from cost to reward is just a matter of going from minimization to maximization, or putting a minus in front of your reward function, and the same math holds. So it's mostly a matter of tradition that we work with cost at the moment, a tradition that the control people usually have. They want to minimize energy, they want to minimize distance to goal. It's more natural to pose that as a cost minimization problem than as a reward maximization problem.",
+   "fr": "Au passage, vous m'entendrez peut-être passer du coût à la récompense et vice versa. C'est habituellement une question de tradition. Quand on fera la transition davantage vers, en fait à partir d'ici, et surtout ici, on va utiliser la terminologie de la récompense. Mais passer du coût à la récompense, c'est simplement passer de la minimisation à la maximisation, ou mettre un signe moins devant votre fonction de récompense, et les mêmes mathématiques s'appliquent. C'est donc surtout par tradition qu'on travaille avec des coûts en ce moment, une tradition qu'ont habituellement les gens de la commande. Ils veulent minimiser l'énergie, ils veulent minimiser la distance au but. C'est plus naturel de poser ça comme un problème de minimisation de coût que comme un problème de maximisation de récompense."
+  },
+  {
+   "t": 491280,
+   "text": "So we've got this f here; it's not an ODE in that form. Okay. So here f would be a state transition function, and it's deterministic, fully deterministic. All the stuff we're seeing here is deterministic. x is a state, u is a control. I need to stress that it's deterministic because, if you've seen material and know about RL, you might be tempted to already think of this as a Markov decision process. Well, we don't have stochasticity here. We're really interested in just finding a single trajectory, not a solution that works across the entirety of the situations we might encounter, which is what we're going to be doing in the dynamic programming context.",
+   "fr": "On a donc ce f ici; ce n'est pas une ODE sous cette forme. D'accord. Ici, f serait une fonction de transition d'état, et elle est déterministe, entièrement déterministe. Tout ce qu'on voit ici est déterministe. x est un état, u est une commande. Je dois insister sur le fait que c'est déterministe parce que, si vous avez déjà vu de la matière sur le RL, vous pourriez être tentés de voir déjà ça comme un processus décisionnel de Markov. Eh bien, on n'a pas de stochasticité ici. On cherche vraiment juste une seule trajectoire, et non une solution qui fonctionne dans l'ensemble des situations qu'on pourrait rencontrer, ce qu'on va faire dans le contexte de la programmation dynamique."
+  },
+  {
+   "t": 547279,
+   "text": "It's quite common to have bound constraints, on the controls mostly. Let's say you don't want to use too much torque on the actuators of your robot. That makes a lot of sense. I don't want to use too much energy, I don't know. It's very, very common. Anything safety related would often have it imposed as bound constraints. And a feature that is not always trivial to have would be path constraints, or constraints on the trajectories that your system might take. So this canonical form here, with g smaller than or equal to zero, is just a very general way of saying there might be problems in which you encode constraints on where your system is going to go, on the type of solutions you want to allow.",
+   "fr": "C'est assez courant d'avoir des contraintes de bornes, sur les commandes surtout. Disons que vous ne voulez pas utiliser trop de couple sur les actionneurs de votre robot. C'est tout à fait logique. Je ne veux pas utiliser trop d'énergie, je ne sais pas. C'est très, très courant. Tout ce qui touche à la sécurité est souvent imposé sous forme de contraintes de bornes. Et une caractéristique qui n'est pas toujours triviale à obtenir, ce sont les contraintes de trajectoire, c'est-à-dire des contraintes sur les trajectoires que votre système peut emprunter. Cette forme canonique ici, avec g plus petit ou égal à zéro, est donc simplement une façon très générale de dire qu'il peut y avoir des problèmes dans lesquels on encode des contraintes sur l'endroit où votre système va aller, sur le type de solutions qu'on veut permettre."
+  },
+  {
+   "t": 610480,
+   "text": "So these are the inequality constraints. And remember the big conceptual thing, to me, that I wanted to stress last time, and to me it's always the source of confusion for people learning, I mean myself included when learning these things, is the definition of our decision variables. When you solve a problem like this, you've got decision variables, the things you're searching over. And what's implicit in this formulation, written in this way, is that both the states and the controls are decision variables,",
+   "fr": "Ce sont donc les contraintes d'inégalité. Et rappelez-vous la grande idée conceptuelle, à mes yeux, sur laquelle je voulais insister la dernière fois, et qui pour moi est toujours la source de confusion pour les gens qui apprennent, moi y compris quand j'apprenais ces choses : c'est la définition de nos variables de décision. Quand vous résolvez un problème comme celui-ci, vous avez des variables de décision, les choses sur lesquelles porte la recherche. Et ce qui est implicite dans cette formulation, écrite de cette façon, c'est que les états et les commandes sont tous deux des variables de décision,"
+  },
+  {
+   "t": 652800,
+   "text": "despite the fact that the state variables could also be eliminated through recursion. Here we have it explicitly spelled out as an equality constraint. We talked last time about the distinction between simultaneous versus sequential methods, where sequential methods eliminate the state constraints by simulation, and simulation means you're going to be running your system forward.",
+   "fr": "même si les variables d'état pourraient aussi être éliminées par récursion. Ici, c'est écrit explicitement comme une contrainte d'égalité. On a parlé la dernière fois de la distinction entre les méthodes simultanées et les méthodes séquentielles, où les méthodes séquentielles éliminent les contraintes d'état par simulation, et simuler veut dire que vous allez faire évoluer votre système vers l'avant."
+  },
+  {
+   "t": 690480,
+   "text": "This says basically: minimize this cost. Find some u, a sequence of u's. By the way, it's a sequence indexed by time. It's not a control function, it's not a policy. We're not finding a function. We're just finding a vector of u's and saying: find me a vector of u's that minimizes this. But then, in doing so, we want to find a solution that is consistent with reality, and this is what the equality constraint is doing here.",
+   "fr": "Ça dit essentiellement : minimise ce coût. Trouve un u, une suite de u. Au passage, c'est une suite indexée par le temps. Ce n'est pas une fonction de commande, ce n'est pas une politique. On ne cherche pas une fonction. On cherche seulement un vecteur de u, et on dit : trouve-moi un vecteur de u qui minimise ceci. Mais en faisant ça, on veut trouver une solution qui soit cohérente avec la réalité, et c'est ce que fait la contrainte d'égalité ici."
+  },
+  {
+   "t": 725200,
+   "text": "So this is going to be the big distinction. But written the way it is here in 18, you've got both the states and the controls as decision variables. And does anyone remember why the heck we would care about keeping the states as decision variables? Do you remember what the benefit is? There are drawbacks, of course, but also advantages in keeping the state variables explicitly. Does anyone remember?",
+   "fr": "Ce sera donc la grande distinction. Mais tel que c'est écrit ici en 18, vous avez à la fois les états et les commandes comme variables de décision. Et est-ce que quelqu'un se rappelle pourquoi diable on voudrait garder les états comme variables de décision? Vous rappelez-vous quel est l'avantage? Il y a des inconvénients, bien sûr, mais aussi des avantages à garder explicitement les variables d'état. Quelqu'un s'en souvient?"
+  },
+  {
+   "t": 762880,
+   "text": "So it had to do with numerics. Mathematically, whether you eliminate or not, it's the same mathematical program. There's always a difference between writing down the mathematical statement, the program, and how you're going to be solving it. So the advantage there, what...\nStudent: I was going to say, while you optimize, it can be in an infeasible[?] state temporarily, so you can explore more.\nOkay. That's an interesting point, which I think I'm going to make in a second when talking about optimization algorithms. But I think here, for the formulation, what you're describing to me is more about whether you're capable of explicitly imposing state constraints or not. And this is totally true. When you have x's as decision variables, it's explicit. So you can say I want x to be",
+   "fr": "C'était lié à l'aspect numérique. Mathématiquement, qu'on élimine ou non, c'est le même programme mathématique. Il y a toujours une différence entre écrire l'énoncé mathématique, le programme, et la façon dont on va le résoudre. Donc l'avantage, là, c'est quoi...\nStudent: J'allais dire que pendant l'optimisation, on peut se retrouver temporairement dans un état non réalisable[?], donc on peut explorer davantage.\nD'accord. C'est un point intéressant, que je pense aborder dans une seconde quand je vais parler des algorithmes d'optimisation. Mais je pense qu'ici, pour la formulation, ce que vous me décrivez tient plutôt à la capacité d'imposer explicitement ou non des contraintes d'état. Et c'est tout à fait vrai. Quand les x sont des variables de décision, c'est explicite. Vous pouvez donc dire que vous voulez que x soit"
+  },
+  {
+   "t": 824240,
+   "text": "always smaller than this value. It's a feature. If it's not explicit, you cannot enforce it as a hard constraint. You could have a regularizer, maybe, on the side, but it wouldn't be as easy. But no, actually, the answer I was looking for was different. And if I try to just help you a little bit here: that was the whole discussion about the exploding and vanishing gradient problem in backpropagation through time.",
+   "fr": "toujours plus petit que cette valeur. C'est un atout. Si ce n'est pas explicite, vous ne pouvez pas l'imposer comme contrainte dure. Vous pourriez avoir un régularisateur, peut-être, à côté, mais ce ne serait pas aussi facile. Mais non, en fait, la réponse que je cherchais était différente. Et si j'essaie juste de vous aider un peu ici : c'était toute la discussion sur le problème des gradients qui explosent et qui s'évanouissent dans la rétropropagation dans le temps."
+  },
+  {
+   "t": 865760,
+   "text": "Does that help if I tell you this? Yeah.\nStudent: Yeah, it was related to memory.\nYou're right that keeping x will cost you more memory and more compute. There's more work to do, but there's a benefit. And the benefit is that it's going to allow you to sometimes find solutions for systems that are very unstable. Okay? And why? Because of the alternative, the alternative being the one where you eliminate the equality constraints and you backprop through your simulator. The longer your horizon is, the longer your simulation is, the more funky your gradient is going to be. Just like in backpropagation through time in neural networks. Same idea. So it's a trade-off. And so if it happens that your problem is very unstable, very tricky to solve, it might",
+   "fr": "Est-ce que ça aide si je vous dis ça? Oui.\nStudent: Oui, c'était lié à la mémoire.\nVous avez raison, garder x va vous coûter plus de mémoire et plus de calcul. Il y a plus de travail à faire, mais il y a un avantage. Et l'avantage, c'est que ça va parfois vous permettre de trouver des solutions pour des systèmes très instables. D'accord? Et pourquoi? À cause de l'autre option, celle où vous éliminez les contraintes d'égalité et où vous faites la rétropropagation à travers votre simulateur. Plus votre horizon est long, plus votre simulation est longue, plus votre gradient va être capricieux. Exactement comme dans la rétropropagation dans le temps pour les réseaux de neurones. Même idée. C'est donc un compromis. Et donc, s'il se trouve que votre problème est très instable, très délicat à résoudre, il pourrait"
+  },
+  {
+   "t": 926240,
+   "text": "be a good thing to go towards simultaneous methods that write things down in this way. All right, so I wanted to just go back over this very important optimization algorithm again. I think somebody also asked me what it is that we're doing in the course, why we're seeing this. For most of you, myself included, when we see these mathematical programs, at least as a CS person, in my curriculum as a McGill student, there was nowhere in that curriculum where they would teach us numerical methods for solving these things, unless you took specialized courses. Now, I think it's very important for me to give you a little primer on what types of algorithms we can use to solve these problems. Most likely you will use algorithms implemented by",
+   "fr": "être avantageux de se tourner vers les méthodes simultanées, qui écrivent les choses de cette façon. Bon, je voulais simplement revenir encore une fois sur cet algorithme d'optimisation très important. Je pense que quelqu'un m'a aussi demandé ce qu'on fait dans ce cours, pourquoi on voit ça. Pour la plupart d'entre vous, moi y compris, quand on voit ces programmes mathématiques, du moins en tant que personne en informatique, dans mon cursus d'étudiant à McGill, il n'y avait nulle part dans ce cursus où l'on nous enseignait les méthodes numériques pour résoudre ces choses, à moins de suivre des cours spécialisés. Maintenant, je pense qu'il est très important pour moi de vous donner une petite introduction aux types d'algorithmes qu'on peut utiliser pour résoudre ces problèmes. Vous allez fort probablement utiliser des algorithmes implémentés par"
+  },
+  {
+   "t": 987040,
+   "text": "people, that are very mature. And by the way, when people say that deep learning has a lot of tricks to make it work well, you should see numerical solvers for NLPs and stuff like that. They're very fancy. They've got lots of bells and whistles, way beyond the simple things I'm showing you on the board here. But to me, this is still the essence of many of these optimizers, and whether you have to implement it yourself by hand or you use an existing solver, it's good for you to understand what's going on under the hood.",
+   "fr": "d'autres personnes, et qui sont très matures. Et au passage, quand les gens disent que l'apprentissage profond a plein de trucs pour bien fonctionner, vous devriez voir les solveurs numériques pour les NLP et ce genre de choses. Ils sont très sophistiqués. Ils ont toutes sortes de raffinements, bien au-delà des choses simples que je vous montre au tableau. Mais pour moi, c'est quand même l'essence de plusieurs de ces optimiseurs, et que vous deviez l'implémenter vous-mêmes à la main ou que vous utilisiez un solveur existant, il vous sera utile de comprendre ce qui se passe sous le capot."
+  },
+  {
+   "t": 1022160,
+   "text": "Especially if you're a deep learning person: then most of your life you've been doing unconstrained optimization. You've definitely mastered the art of backpropping and doing gradient descent, but not so much solving constrained optimization problems. And while you can repurpose some of the first-order gradient-based optimizers into constrained solvers, it's not a trivial thing to do.",
+   "fr": "Surtout si vous venez de l'apprentissage profond : vous avez alors passé la majeure partie de votre vie à faire de l'optimisation sans contraintes. Vous maîtrisez sûrement l'art de la rétropropagation et de la descente de gradient, mais pas tellement la résolution de problèmes d'optimisation avec contraintes. Et même si vous pouvez réutiliser certains des optimiseurs de premier ordre fondés sur le gradient comme solveurs avec contraintes, ce n'est pas une chose triviale à faire."
+  },
+  {
+   "t": 1058320,
+   "text": "It's not a trivial thing because there's one big danger that is looming out there, and it's, where is this thing here? I want to show you. It's the danger of treating a constrained problem as an unconstrained optimization problem, what we could call the Lagrangian fallacy, in a way. So remember that the fundamental object we're using here is the Lagrangian function, which augments the primal variables, the decision variables of interest, with some dual variables. So this L here is a Lagrangian function. Here we've added some stuff.",
+   "fr": "Ce n'est pas trivial parce qu'il y a un grand danger qui nous guette, et c'est, où est-ce que c'est, ici? Je veux vous le montrer. C'est le danger de traiter un problème avec contraintes comme un problème d'optimisation sans contraintes, ce qu'on pourrait appeler, d'une certaine façon, le sophisme du lagrangien. Rappelez-vous que l'objet fondamental qu'on utilise ici est la fonction lagrangienne, qui adjoint aux variables primales, les variables de décision qui nous intéressent, des variables duales. Ce L ici est donc une fonction lagrangienne. Ici, on a ajouté quelques éléments."
+  },
+  {
+   "t": 1108000,
+   "text": "Remember, this is called an augmented Lagrangian method, which helps us with the structure of the Lagrangian locally, such that it's more convex. But other than this, the Lagrangian has this form over there. And the danger here is, let's say you minimize over z, and, you might remember, you build the Lagrangian. Definitely the thing you don't want to do is start minimizing with respect to all the variables, because that's not going to give you the right answer. Why was that? Because we had this interpretation, and this interpretation... I'm sorry, I'm lost in my own slides. I've updated them and I don't know where things have gone now.",
+   "fr": "Rappelez-vous, ça s'appelle une méthode du lagrangien augmenté, qui nous aide avec la structure locale du lagrangien, de sorte qu'il soit plus convexe. Mais à part ça, le lagrangien a cette forme-là. Et le danger ici, c'est que, disons que vous minimisez sur z, et, vous vous en souvenez peut-être, vous construisez le lagrangien. La chose que vous ne voulez surtout pas faire, c'est de vous mettre à minimiser par rapport à toutes les variables, parce que ça ne vous donnera pas la bonne réponse. Pourquoi, déjà? Parce qu'on avait cette interprétation, et cette interprétation... Désolé, je suis perdu dans mes propres diapos. Je les ai mises à jour et je ne sais plus où sont passées les choses."
+  },
+  {
+   "t": 1156160,
+   "text": "Maybe if I Control-F here: game, no, saddle point... saddle point. Well, we have it here. But remember, the interpretation is the following, and this is true no matter if your problem is convex or not.",
+   "fr": "Peut-être que si je fais Contrôle-F ici : jeu, non, point de selle... point de selle. Bon, on l'a ici. Mais rappelez-vous, l'interprétation est la suivante, et c'est vrai, que votre problème soit convexe ou non."
+  },
+  {
+   "t": 1186720,
+   "text": "There are some nice things that happen when your problem is convex, but the idea is this. Take a simple equality-constrained problem, just for simplicity. Say you minimize \\(f(x)\\) subject to some equality constraint function, \\(h(x) = 0\\). We want a way to encode feasibility of that constrained program, because it's no longer possible to just minimize: you want to minimize, but within your feasible space. So a way to encode that is by constructing a game, a two-player game. Minimize in x, just the usual thing.",
+   "fr": "Il se passe de belles choses quand votre problème est convexe, mais l'idée est celle-ci. Prenez un simple problème avec contraintes d'égalité, juste pour simplifier. Disons que vous minimisez \\(f(x)\\) sous une fonction de contrainte d'égalité, \\(h(x) = 0\\). On veut une façon d'encoder la réalisabilité de ce programme avec contraintes, parce qu'il n'est plus possible de simplement minimiser : vous voulez minimiser, mais à l'intérieur de votre domaine réalisable. Une façon d'encoder ça, c'est de construire un jeu, un jeu à deux joueurs. Minimiser en x, la chose habituelle."
+  },
+  {
+   "t": 1236000,
+   "text": "But then we're going to do something where, if the min player happens to pick an x which is forbidden, it's going to pay a very, very high cost. It's going to hurt a lot. So how do we do that? We add, for every move that the min player picks, an adversary whose job is to make the life of the min player as hard as possible, through this Lagrangian that we define as \\(L(x, \\lambda)\\). Okay.",
+   "fr": "Mais ensuite, on va faire quelque chose pour que, si le joueur min choisit un x qui est interdit, il paie un coût très, très élevé. Ça va faire très mal. Alors comment fait-on ça? On ajoute, pour chaque coup que choisit le joueur min, un adversaire dont le travail est de rendre la vie du joueur min aussi difficile que possible, à travers ce lagrangien qu'on définit comme \\(L(x, \\lambda)\\). D'accord."
+  },
+  {
+   "t": 1271039,
+   "text": "And this is going to be \\(f(x)\\) plus, let's write it in matrix form, \\(\\lambda^\\top h(x)\\). And so the max player, what is it going to do? Well, if you happen to pick an x for which, sometimes we're going to call these the defect constraints, the equality constraint is not zero, so it's some other value, let's say 1.2, then in that case the solution for the max player is very clear. It's just going to crank up the Lagrange multiplier to infinity, and in that case we're not going to allow our min player to pick that x. So this is basically a re-encoding of that program into a two-player game.",
+   "fr": "Et ça va être \\(f(x)\\) plus, écrivons-le sous forme matricielle, \\(\\lambda^\\top h(x)\\). Et donc le joueur max, qu'est-ce qu'il va faire? Eh bien, si vous choisissez un x pour lequel, on va parfois appeler ça les contraintes de raccordement (defect), la contrainte d'égalité n'est pas nulle, donc elle vaut autre chose, disons 1,2, alors dans ce cas, la solution pour le joueur max est très claire. Il va simplement faire monter le multiplicateur de Lagrange jusqu'à l'infini, et dans ce cas, on ne permettra pas à notre joueur min de choisir ce x. C'est donc essentiellement un réencodage de ce programme sous forme de jeu à deux joueurs."
+  },
+  {
+   "t": 1331760,
+   "text": "This is true whether or not you've got convex structure. What convexity buys you, however, is a very powerful result, which has to do with the interchange of the min and the max. The order of that interchange is not something you can take for granted. In fact, in the usual case, you don't have this strong duality where you can interchange the order of min and max. But in general, this is true.",
+   "fr": "C'est vrai, que vous ayez une structure convexe ou non. Ce que la convexité vous apporte, par contre, c'est un résultat très puissant, qui concerne l'interversion du min et du max. L'ordre de cette interversion n'est pas quelque chose que vous pouvez tenir pour acquis. En fait, dans le cas habituel, vous n'avez pas cette dualité forte qui vous permet d'intervertir l'ordre du min et du max. Mais en général, ceci est vrai."
+  },
+  {
+   "t": 1362480,
+   "text": "And this is the basis for the primal-dual... there are lots of different terms. Some people call these Lagrangian methods. Some people call them primal-dual. Primal-dual, you often see this when people want to sound fancy mathematically. I've seen that as an attempt to intimidate: you can throw in the terms primal and dual, and then it sounds more complicated than it should be. So if you want to intimidate your colleagues, you can say primal-dual. Otherwise, if you want to be historically correct, you can call it Arrow-Hurwicz-Uzawa.",
+   "fr": "Et c'est la base des méthodes primales-duales... il y a plein de termes différents. Certaines personnes appellent ça des méthodes lagrangiennes. D'autres les appellent primales-duales. Primal-dual, on voit souvent ça quand les gens veulent avoir l'air savants mathématiquement. J'y ai vu une tentative d'intimidation : vous pouvez lancer les termes primal et dual, et ensuite ça a l'air plus compliqué que ça ne devrait l'être. Alors si vous voulez intimider vos collègues, vous pouvez dire primal-dual. Sinon, si vous voulez être historiquement exacts, vous pouvez l'appeler Arrow-Hurwicz-Uzawa."
+  },
+  {
+   "t": 1397919,
+   "text": "And this is literally, you turn this two-player game into a gradient descent algorithm. Gradient descent-ascent: you minimize by gradient descent, you maximize by gradient ascent. So there's maybe one subtlety here worth exploring together, because the direct application of a gradient-based method to this would not quite look like what we've got on the board.",
+   "fr": "Et c'est littéralement ça : vous transformez ce jeu à deux joueurs en un algorithme de descente de gradient. Descente-ascension de gradient : vous minimisez par descente de gradient, vous maximisez par ascension de gradient. Il y a donc peut-être une subtilité ici qui vaut la peine d'être explorée ensemble, parce que l'application directe d'une méthode fondée sur le gradient à ceci ne ressemblerait pas tout à fait à ce qu'on a au tableau."
+  },
+  {
+   "t": 1438320,
+   "text": "Why is that? Well, imagine that this is a function also. Sometimes people call that a best response function, but let's give it a name. The thing that varies is the x that you give as an input. And then think of this thing as a little program, a little optimizer, and it finds a lambda that maximizes the Lagrangian. Okay. So if I were to do this by gradient descent, what would it look like? You'd have a loop where you iterate: \\(x_{k+1}\\) is \\(x_k\\) minus some step size, let's say, and then we've got, let's write",
+   "fr": "Pourquoi? Eh bien, imaginez que ceci est aussi une fonction. Parfois, on appelle ça une fonction de meilleure réponse, mais donnons-lui un nom. Ce qui varie, c'est le x que vous donnez en entrée. Et pensez à cette chose comme à un petit programme, un petit optimiseur, qui trouve un lambda qui maximise le lagrangien. D'accord. Alors si je faisais ça par descente de gradient, à quoi ça ressemblerait? Vous auriez une boucle où vous itérez : \\(x_{k+1}\\) est \\(x_k\\) moins un certain pas, disons, et ensuite on a, écrivons-le"
+  },
+  {
+   "t": 1499919,
+   "text": "it this way, \\(d\\phi(x)/dx\\). Okay. But then there's always a question: \\(\\phi(x)\\), how do you implement it? Well, \\(\\phi(x)\\) is also an optimization problem. So in a way, this thing would involve running another auxiliary loop of gradient descent. Every time you pick an x, you'd be doing an inner gradient ascent procedure. That'd be quite costly, don't you think?",
+   "fr": "de cette façon, \\(d\\phi(x)/dx\\). D'accord. Mais il y a toujours une question : \\(\\phi(x)\\), comment l'implémentez-vous? Eh bien, \\(\\phi(x)\\) est aussi un problème d'optimisation. Donc, d'une certaine façon, ceci impliquerait d'exécuter une autre boucle auxiliaire de descente de gradient. Chaque fois que vous choisissez un x, vous feriez une procédure interne d'ascension de gradient. Ce serait assez coûteux, vous ne trouvez pas?"
+  },
+  {
+   "t": 1538799,
+   "text": "Imagine it takes you 5,000 steps, let's say, to converge to a solution, because really, for every single x, it's an optimization problem. So that'd be very costly: two embedded loops, one inside the other. So clearly what we've got on the board here, Arrow-Hurwicz, is not doing that. It's doing a very extreme approximation to that.",
+   "fr": "Imaginez qu'il vous faut 5 000 pas, disons, pour converger vers une solution, parce que vraiment, pour chaque x, c'est un problème d'optimisation. Ce serait donc très coûteux : deux boucles imbriquées, l'une dans l'autre. Clairement, ce qu'on a au tableau ici, Arrow-Hurwicz, ne fait pas ça. Il fait une approximation très extrême de ça."
+  },
+  {
+   "t": 1575120,
+   "text": "Why is it extreme? Because it never runs an inner maximization procedure to completion. All it does is take a little step of this, a little step of the other one, and vice versa. It trades off all the time: a little bit of one, a little bit of the other one. So intuitively, it's no surprise to learn that Arrow-Hurwicz has the big problem that it's very unstable. And it's the same takeaway that the GAN people found out on their own, that the GAN procedure is very unstable.",
+   "fr": "Pourquoi extrême? Parce qu'il ne mène jamais une procédure de maximisation interne jusqu'au bout. Tout ce qu'il fait, c'est un petit pas de ceci, un petit pas de l'autre, et vice versa. Il alterne tout le temps : un peu de l'un, un peu de l'autre. Intuitivement, il n'est donc pas surprenant d'apprendre qu'Arrow-Hurwicz a le gros problème d'être très instable. Et c'est la même leçon que les gens des GAN ont découverte par eux-mêmes : la procédure des GAN est très instable."
+  },
+  {
+   "t": 1617840,
+   "text": "So what are the alternatives to make Arrow-Hurwicz more stable? One very easy trick, which is just weird in a way, but I think it's been shown in a study, is that you can alternate the order in which you do your updates. Because here, let's say on the board, we presume that we're basically doing our updates simultaneously, but you could do a little bit of both. You could do a little bit of an update of z, then an update of lambda and mu, and then at the next iteration you can do it the other way around.",
+   "fr": "Alors quelles sont les solutions de rechange pour rendre Arrow-Hurwicz plus stable? Un truc très facile, qui est juste étrange d'une certaine façon, mais je pense que ça a été démontré dans une étude, c'est que vous pouvez alterner l'ordre dans lequel vous faites vos mises à jour. Parce qu'ici, disons au tableau, on présume qu'on fait essentiellement nos mises à jour simultanément, mais vous pourriez faire un peu des deux. Vous pourriez faire une petite mise à jour de z, puis une mise à jour de lambda et mu, et ensuite, à l'itération suivante, le faire dans l'autre sens."
+  },
+  {
+   "t": 1660720,
+   "text": "And this alternation procedure sometimes provides a benefit. It's easy to implement in code: it's just a flag, literally modulo 2. So every iteration you switch the order, and that tends to help, and it helps you converge faster also. That's one way. Another way that is very common, and we'll come back to that in the context of policy gradient methods in more classical RL, is that this has the structure of a bilevel optimization problem. Okay. And in general, what this thing suggests is that you'd want to be doing more work on the inner problem before you do some work on the outer level. So instead of, let's say, doing optimization until the very end, you could say: I'm going to take K, call it n, steps of inner",
+   "fr": "Et cette procédure d'alternance apporte parfois un avantage. C'est facile à implémenter dans le code : c'est juste un booléen, littéralement un modulo 2. À chaque itération, vous changez l'ordre, et ça a tendance à aider, et ça vous aide aussi à converger plus vite. C'est une façon. Une autre façon, très courante, et on va y revenir dans le contexte des méthodes de gradient de politique en RL plus classique, tient au fait que ceci a la structure d'un problème d'optimisation à deux niveaux. D'accord. Et en général, ce que ça suggère, c'est que vous voudriez faire plus de travail sur le problème interne avant d'en faire sur le niveau externe. Donc, au lieu, disons, d'optimiser jusqu'au bout, vous pourriez dire : je vais faire K, appelons ça n, pas d'optimisation"
+  },
+  {
+   "t": 1722320,
+   "text": "optimization for every step of outer optimization. And what's at play when we do this is that we'd be imposing a time-scale separation. This time-scale separation is a very important principle, the principle behind two-time-scale methods. Okay. And so there are two variants of two-time-scale methods: either you do more iterations within the inner problem, or there's an equivalent view, at least mathematically. In practice it's not true",
+   "fr": "interne pour chaque pas d'optimisation externe. Et ce qui entre en jeu quand on fait ça, c'est qu'on impose une séparation des échelles de temps. Cette séparation des échelles de temps est un principe très important, le principe derrière les méthodes à deux échelles de temps. D'accord. Et il y a donc deux variantes des méthodes à deux échelles de temps : soit vous faites plus d'itérations dans le problème interne, soit il y a une vision équivalente, du moins mathématiquement. En pratique, ce n'est pas vrai"
+  },
+  {
+   "t": 1782480,
+   "text": "that it's equivalent, but mathematically you can also crank up the learning rate, LR, the learning rate of the inner problem. So in policy gradient methods, which we're going to be covering later on, this is true with actor-critic systems. In an actor-critic system, you've got a critic component which depends on the chosen parameters of the actor at this iteration.",
+   "fr": "que c'est équivalent, mais mathématiquement, vous pouvez aussi augmenter le taux d'apprentissage, LR, le taux d'apprentissage du problème interne. Dans les méthodes de gradient de politique, qu'on va couvrir plus tard, c'est le cas avec les systèmes acteur-critique. Dans un système acteur-critique, vous avez une composante critique qui dépend des paramètres choisis pour l'acteur à cette itération."
+  },
+  {
+   "t": 1828640,
+   "text": "And in principle, we want our critic to converge, for these parameters we've chosen on the outer level, at every step. But we never do that. And what we found, and studied also, this is due to... most of the work around two-time-scale systems comes from Konda, 2002, in his PhD thesis at MIT, and then also a very famous name, who I presume is at IIT in India. So it's Borkar. He's built a career around analyzing systems like that. He's got all sorts of textbooks and papers with different assumptions on the noise process of your two-time-scale system and so on. And Konda's work.",
+   "fr": "Et en principe, on veut que notre critique converge, pour les paramètres qu'on a choisis au niveau externe, à chaque pas. Mais on ne fait jamais ça. Et ce qu'on a trouvé, et étudié aussi, c'est dû à... la plupart des travaux sur les systèmes à deux échelles de temps viennent de Konda, 2002, dans sa thèse de doctorat au MIT, et aussi d'un nom très connu, qui est, je présume, à l'IIT en Inde. C'est Borkar. Il a bâti sa carrière autour de l'analyse de systèmes comme ça. Il a toutes sortes de manuels et d'articles avec différentes hypothèses sur le processus de bruit de votre système à deux échelles de temps, et ainsi de suite. Et les travaux de Konda."
+  },
+  {
+   "t": 1889039,
+   "text": "Okay. So that's Arrow-Hurwicz, pretty simple to implement. Here I show it with a vanilla gradient descent step, but nothing prevents you, and in fact you'd want to do it this way, if you implement the equations in 28, to do it with Adam or RMSprop or anything like that. What's important, though, is the sign: you've got a minus and you've got a plus. Or if you were to do maximization subject to equality constraints, you just flip the order. But this is really key. The other little important detail is that when you've got inequality constraints, the corresponding Lagrange multiplier needs to be positive.",
+   "fr": "D'accord. Voilà donc Arrow-Hurwicz, assez simple à implémenter. Ici, je le montre avec un pas de descente de gradient tout simple, mais rien ne vous empêche, et en fait vous voudriez le faire de cette façon, si vous implémentez les équations en 28, de le faire avec Adam ou RMSprop ou n'importe quoi du genre. Ce qui est important, par contre, c'est le signe : vous avez un moins et vous avez un plus. Ou si vous faisiez de la maximisation sous contraintes d'égalité, vous inversez simplement l'ordre. Mais c'est vraiment crucial. L'autre petit détail important, c'est que quand vous avez des contraintes d'inégalité, le multiplicateur de Lagrange correspondant doit être positif."
+  },
+  {
+   "t": 1933440,
+   "text": "So big Pi here is not the symbol for product. It's a symbol we often use when we talk about projections, could be orthogonal projections. But here what it means, literally in plain terms, is clipping. You can implement it like this: if after taking a step on mu you end up with a negative value, you clip it to the positive side, and that's it. And that's how you deal with inequality constraints.",
+   "fr": "Le grand Pi ici n'est donc pas le symbole du produit. C'est un symbole qu'on utilise souvent quand on parle de projections, ça pourrait être des projections orthogonales. Mais ici, ce que ça veut dire, littéralement en termes simples, c'est un écrêtage. Vous pouvez l'implémenter comme ceci : si, après avoir fait un pas sur mu, vous vous retrouvez avec une valeur négative, vous l'écrêtez pour la ramener du côté positif, et c'est tout. Et c'est comme ça qu'on traite les contraintes d'inégalité."
+  },
+  {
+   "t": 1974399,
+   "text": "And so, I mentioned last time a variant that people often use, which is to do Arrow-Hurwicz, but they would convexify the Lagrangian with these penalty terms. It's a detail, but the structure remains the same. So if you code this up, there are a bunch of knobs you can add in your implementation that give you all these variants. I'm going to start with the Arrow-Hurwicz skeleton. I'm going to add alternation. I'm going to add a varying number of steps for the inner problem. And then I can also add the convexification of the Lagrangian locally. It's a local convexification.",
+   "fr": "Et donc, j'ai mentionné la dernière fois une variante que les gens utilisent souvent, qui consiste à faire Arrow-Hurwicz, mais en convexifiant le lagrangien avec ces termes de pénalité. C'est un détail, mais la structure reste la même. Donc si vous codez ça, il y a un tas de boutons de réglage que vous pouvez ajouter dans votre implémentation et qui vous donnent toutes ces variantes. Je vais partir du squelette d'Arrow-Hurwicz. Je vais ajouter l'alternance. Je vais ajouter un nombre variable de pas pour le problème interne. Et ensuite, je peux aussi ajouter la convexification locale du lagrangien. C'est une convexification locale."
+  },
+  {
+   "t": 2017200,
+   "text": "And then, honestly, there's no way ahead of time to know which combination is going to work well, but you can at least search in that space. Okay, another big class of methods, and honestly with this I think we're covering a big chunk, is the perspective that uses... we're going to start here with an equality-constrained problem; it's easier to see this way. So if you only have equality constraints, then the first-order optimality condition for such a problem, again the Lagrange multiplier theorem, tells us essentially two things.",
+   "fr": "Et ensuite, honnêtement, il n'y a aucun moyen de savoir d'avance quelle combinaison va bien fonctionner, mais vous pouvez au moins faire une recherche dans cet espace. D'accord, une autre grande classe de méthodes, et honnêtement, avec ça, je pense qu'on couvre une bonne partie, c'est la perspective qui utilise... on va commencer ici avec un problème avec contraintes d'égalité; c'est plus facile à voir de cette façon. Donc, si vous n'avez que des contraintes d'égalité, alors la condition d'optimalité du premier ordre pour un tel problème, encore une fois le théorème des multiplicateurs de Lagrange, nous dit essentiellement deux choses."
+  },
+  {
+   "t": 2080960,
+   "text": "One is the existence of a Lagrange multiplier lambda, and the second thing is that it's a characterization of that Lagrange multiplier lambda. Because if you've got a solution to your problem, and that solution is feasible, then you're going to be able to test whether it's true, and you're going to see something happening. And that thing is: you plug in your optimal z and your corresponding Lagrange multiplier, and you should get that the derivative of the Lagrangian vanishes.",
+   "fr": "La première, c'est l'existence d'un multiplicateur de Lagrange lambda, et la deuxième, c'est que c'est une caractérisation de ce multiplicateur de Lagrange lambda. Parce que si vous avez une solution à votre problème, et que cette solution est réalisable, alors vous allez pouvoir tester si c'est vrai, et vous allez voir quelque chose se produire. Et cette chose, c'est que vous insérez votre z optimal et le multiplicateur de Lagrange correspondant, et vous devriez obtenir que la dérivée du lagrangien s'annule."
+  },
+  {
+   "t": 2111680,
+   "text": "So this is a first-order characterization. If you've got convexity and so on, you can even add higher-order, second-order optimality conditions, and characterize and verify whether you've got a global minimum and so on. But here it's not important for the presentation; we stick to the first-order optimality condition. And again, this is just a generalization of what we know already from unconstrained optimization. You've got a local optimum: you take, let's say, the parameters you found, you plug them into your loss function, you check the derivative, whether it's zero or how far it is from zero, and that tells you whether you've found a local minimum. Okay. So that gives us the blueprint already for an algorithm.",
+   "fr": "C'est donc une caractérisation du premier ordre. Si vous avez de la convexité et ainsi de suite, vous pouvez même ajouter des conditions d'optimalité d'ordre supérieur, du second ordre, et caractériser et vérifier si vous avez un minimum global, et ainsi de suite. Mais ici, ce n'est pas important pour la présentation; on s'en tient à la condition d'optimalité du premier ordre. Et encore une fois, c'est simplement une généralisation de ce qu'on sait déjà de l'optimisation sans contraintes. Vous avez un optimum local : vous prenez, disons, les paramètres que vous avez trouvés, vous les insérez dans votre fonction de perte, vous vérifiez la dérivée, si elle est nulle ou à quelle distance elle est de zéro, et ça vous dit si vous avez trouvé un minimum local. D'accord. Ça nous donne donc déjà le plan d'un algorithme."
+  },
+  {
+   "t": 2162160,
+   "text": "What is this algorithm? So remember, we don't know lambda. The Lagrange multiplier theorem is just an existence result. It doesn't tell you how you construct that lambda. It's borderline useless, in a way, if you're somebody who wants to build an algorithm. Yeah, sure, it exists, and then how do you find it? So that's a bit how we're going to think about this. Now, the derivative of the Lagrangian is that. Okay, when I write this, by the way, I'm a bit lazy here, but really what I mean is I differentiate the Lagrangian",
+   "fr": "Quel est cet algorithme? Rappelez-vous, on ne connaît pas lambda. Le théorème des multiplicateurs de Lagrange n'est qu'un résultat d'existence. Il ne vous dit pas comment construire ce lambda. C'est presque inutile, d'une certaine façon, si vous êtes quelqu'un qui veut construire un algorithme. Oui, d'accord, il existe, mais ensuite, comment le trouve-t-on? C'est un peu comme ça qu'on va y réfléchir. Maintenant, la dérivée du lagrangien, c'est ça. D'accord, quand j'écris ceci, au passage, je suis un peu paresseux ici, mais ce que je veux vraiment dire, c'est que je différentie le lagrangien"
+  },
+  {
+   "t": 2223200,
+   "text": "in both z and lambda. You lump them together, you concatenate them. Really what I mean, if I were to use JAX, okay, it's jax.grad of L, the Lagrangian, and then it has a second argument, which is, I don't remember, argnums, plural, and you say zero and one. So that gives you its derivative with respect to these concatenated variables here. Or if I were to write it in math notation[?], which is often desirable, I write it as the differentiation of L. Sometimes people write D with subscript z, lambda",
+   "fr": "à la fois en z et en lambda. On les regroupe, on les concatène. Ce que je veux vraiment dire, si j'utilisais JAX, d'accord, c'est jax.grad de L, le lagrangien, et ensuite il y a un deuxième argument, qui est, je ne me rappelle plus, argnums, au pluriel, et vous dites zéro et un. Ça vous donne sa dérivée par rapport à ces variables concaténées ici. Ou si je l'écrivais en notation mathématique[?], ce qui est souvent souhaitable, je l'écris comme la différentiation de L. Parfois, les gens écrivent D avec l'indice z, lambda"
+  },
+  {
+   "t": 2285599,
+   "text": "to denote the derivative with respect to both. Okay, that thing is a function, so let's redefine it. I'm really just redefining it; it still depends on z and lambda. So I put a triangle here, because it means definition. The way I define F, I don't just give a label to the Lagrangian. Say F is the derivative of the Lagrangian in x and lambda.",
+   "fr": "pour désigner la dérivée par rapport aux deux. D'accord, cette chose est une fonction, alors redéfinissons-la. Je ne fais vraiment que la redéfinir; elle dépend toujours de z et de lambda. Je mets donc un triangle ici, parce que ça signifie définition. La façon dont je définis F, je ne me contente pas de donner une étiquette au lagrangien. Disons que F est la dérivée du lagrangien en x et en lambda."
+  },
+  {
+   "t": 2330960,
+   "text": "And then it means that, afterwards, the first-order optimality condition amounts to a problem we could write as: find a tuple \\((z^\\star, \\lambda^\\star)\\) such that when you plug these into F, you get the zero vector.",
+   "fr": "Et ensuite, ça veut dire que, par la suite, la condition d'optimalité du premier ordre revient à un problème qu'on pourrait écrire comme : trouver un couple \\((z^\\star, \\lambda^\\star)\\) tel que, quand vous les insérez dans F, vous obtenez le vecteur nul."
+  },
+  {
+   "t": 2367599,
+   "text": "Okay. A problem of that form is a canonical[?] problem. This is the nonlinear counterpart to solving a linear system of equations: this is solving a nonlinear system of equations. And what's the workhorse for solving a nonlinear system of equations?",
+   "fr": "D'accord. Un problème de cette forme est un problème canonique[?]. C'est l'équivalent non linéaire de la résolution d'un système d'équations linéaires : c'est la résolution d'un système d'équations non linéaires. Et quel est le cheval de bataille pour résoudre un système d'équations non linéaires?"
+  },
+  {
+   "t": 2403599,
+   "text": "So the workhorse is Newton's method, all sorts of Newton variants. Sometimes when you work with infinite-dimensional variables, people would say Newton-Kantorovich, or Newton-Raphson, but for simplicity I'm just going to say Newton here. Newton's method is our workhorse for this. And what does Newton's method look like? Is it confusing if I give it another name? Let's pick y, y star. So what does Newton's method do?",
+   "fr": "Le cheval de bataille, c'est la méthode de Newton, toutes sortes de variantes de Newton. Parfois, quand on travaille avec des variables de dimension infinie, les gens diraient Newton-Kantorovich, ou Newton-Raphson, mais par souci de simplicité, je vais juste dire Newton ici. La méthode de Newton est notre cheval de bataille pour ça. Et à quoi ressemble la méthode de Newton? Est-ce que ça porte à confusion si je lui donne un autre nom? Prenons y, y étoile. Alors, que fait la méthode de Newton?"
+  },
+  {
+   "t": 2464319,
+   "text": "It would form a sequence: \\(y_{k+1}\\) is equal to \\(y_k\\) minus the Jacobian inverse of F evaluated at your current guess. This is a Jacobian; it's a matrix. It's the inverse times the evaluation of F at \\(y_k\\).",
+   "fr": "Elle formerait une suite : \\(y_{k+1}\\) est égal à \\(y_k\\) moins l'inverse de la jacobienne de F évaluée en votre estimation courante. Ceci est une jacobienne; c'est une matrice. C'est l'inverse multiplié par l'évaluation de F en \\(y_k\\)."
+  },
+  {
+   "t": 2501599,
+   "text": "This is Newton's method. This is an algorithm for solving nonlinear systems of equations. Newton's method has both desirable properties and undesirable ones. In a sense, the desirable property is typically due to this term over there, this inverse Jacobian. For example, oh yeah, if you're a deep learning person, okay, probably you've seen Newton's method, but in a very different context. People have told you about Newton's method as a specific instantiation of gradient descent, a way to come up with a learning rate, let's say, that is adaptive and takes into account the curvature.",
+   "fr": "C'est la méthode de Newton. C'est un algorithme pour résoudre des systèmes d'équations non linéaires. La méthode de Newton a à la fois des propriétés souhaitables et d'autres qui le sont moins. Dans un sens, la propriété souhaitable est typiquement due à ce terme-là, cette jacobienne inverse. Par exemple, ah oui, si vous venez de l'apprentissage profond, d'accord, vous avez probablement vu la méthode de Newton, mais dans un contexte très différent. On vous a présenté la méthode de Newton comme une instance particulière de la descente de gradient, une façon d'obtenir un taux d'apprentissage, disons, qui est adaptatif et qui tient compte de la courbure."
+  },
+  {
+   "t": 2562720,
+   "text": "Why is that? Because you can also apply Newton's method in the unconstrained case, let's say in deep learning. You want to minimize a loss function. If I were to simplify things: theta, the parameters of the network. So you can also apply Newton's method to that. And when you apply Newton's method, your steps look like: \\(\\theta_{k+1}\\) is equal to \\(\\theta_k\\) minus a Hessian inverse times the gradient of your loss function. Okay. So the Hessian here is great for speed of convergence, but it's also a big problem in deep learning, and it's a reason why we never do that. Deep learning would never do this, because that would be a second-order method, and it's tricky because you need to take the derivative of a gradient function. To do that efficiently, you need fancier approaches to",
+   "fr": "Pourquoi? Parce que vous pouvez aussi appliquer la méthode de Newton dans le cas sans contraintes, disons en apprentissage profond. Vous voulez minimiser une fonction de perte. Si je simplifiais les choses : thêta, les paramètres du réseau. Vous pouvez donc aussi appliquer la méthode de Newton à ça. Et quand vous appliquez la méthode de Newton, vos pas ressemblent à : \\(\\theta_{k+1}\\) est égal à \\(\\theta_k\\) moins l'inverse d'une hessienne multiplié par le gradient de votre fonction de perte. D'accord. La hessienne ici est excellente pour la vitesse de convergence, mais c'est aussi un gros problème en apprentissage profond, et c'est une raison pour laquelle on ne fait jamais ça. L'apprentissage profond ne ferait jamais ça, parce que ce serait une méthode du second ordre, et c'est délicat parce qu'il faut prendre la dérivée d'une fonction gradient. Pour faire ça efficacement, il faut des approches plus sophistiquées de"
+  },
+  {
+   "t": 2624720,
+   "text": "automatic differentiation, which is now possible, I've got to say, in JAX and modern frameworks. It wasn't the case before. But in fact, you don't even want to form that Hessian matrix. What's the dimensionality of that Hessian? Let's say you're training a Llama model. Okay, say, I mean, two years ago it was big, say Llama 7 billion. Now I can almost do it on my laptop. But still, imagine 7 billion: that Hessian matrix is 7 billion by 7 billion. That's not going to work, even on a really big GPU. It's not going to work. Never.",
+   "fr": "différentiation automatique, ce qui est maintenant possible, je dois dire, dans JAX et les cadriciels modernes. Ce n'était pas le cas avant. Mais en fait, vous ne voulez même pas former cette matrice hessienne. Quelle est la dimension de cette hessienne? Disons que vous entraînez un modèle Llama. D'accord, disons, je veux dire, il y a deux ans c'était gros, disons Llama 7 milliards. Maintenant, je peux presque le faire sur mon portable. Mais quand même, imaginez 7 milliards : cette matrice hessienne est de 7 milliards par 7 milliards. Ça ne marchera pas, même sur un très gros GPU. Ça ne marchera pas. Jamais."
+  },
+  {
+   "t": 2667119,
+   "text": "Anyway, long story short, second-order methods for deep learning, for unconstrained optimization, we don't do it. Here we don't care about that, because the dimensionality of the things we're going to be working with is not that big. We'll be working with state vectors of, I don't know, three, four dimensions, and you'll see in a second, when I talk about collocation, we might pick a mesh of, let's say, 100 points. It's manageable. It's quite massive. Okay, sorry, but let me return to what I was saying here. So what's the advantage of Newton's method? It's that its rate of convergence is quadratic.",
+   "fr": "Bref, en résumé, les méthodes du second ordre pour l'apprentissage profond, pour l'optimisation sans contraintes, on ne fait pas ça. Ici, ça ne nous préoccupe pas, parce que la dimension des objets avec lesquels on va travailler n'est pas si grande. On va travailler avec des vecteurs d'état de, je ne sais pas, trois, quatre dimensions, et vous verrez dans une seconde, quand je vais parler de collocation, qu'on pourrait choisir un maillage de, disons, 100 points. C'est gérable. C'est assez massif. D'accord, désolé, mais laissez-moi revenir à ce que je disais ici. Alors, quel est l'avantage de la méthode de Newton? C'est que son taux de convergence est quadratique."
+  },
+  {
+   "t": 2707680,
+   "text": "So it's fast. But its rate of convergence, and in fact the convergence of that algorithm, is only local. So it goes really fast, but only when you're close to the solution. It's a bit of a chicken-and-egg problem. You want to find the unknown solution to the problem, but for this algorithm to work well in the general setting, the quadratic convergence and the convergence properties rely on being close enough to the solution, being in the basin of attraction.",
+   "fr": "C'est donc rapide. Mais son taux de convergence, et en fait la convergence de cet algorithme, n'est que locale. Ça va donc très vite, mais seulement quand vous êtes près de la solution. C'est un peu le problème de l'œuf ou la poule. Vous voulez trouver la solution inconnue du problème, mais pour que cet algorithme fonctionne bien dans le cas général, la convergence quadratique et les propriétés de convergence reposent sur le fait d'être suffisamment près de la solution, d'être dans le bassin d'attraction."
+  },
+  {
+   "t": 2741119,
+   "text": "We're not going to care about that. There are ways to deal with this. It still remains a very useful algorithm. And if your problem is convex, there's no issue here with convergence: you can converge to the right solution at a quadratic rate no matter where you start. What's interesting for us is, remember again what I said: we take the first-order optimality condition and we apply Newton's method to this object. We treat it as a root-finding problem, which is what it is, a root-finding problem, and then we look at the explicit structure of the problems we're getting here. So what we're seeing here in equation 31 is a subproblem that arises when you implement that step.",
+   "fr": "On ne va pas s'en préoccuper. Il y a des façons de gérer ça. Ça reste un algorithme très utile. Et si votre problème est convexe, il n'y a pas de problème de convergence ici : vous pouvez converger vers la bonne solution à un taux quadratique, peu importe où vous commencez. Ce qui est intéressant pour nous, c'est, rappelez-vous encore ce que j'ai dit : on prend la condition d'optimalité du premier ordre et on applique la méthode de Newton à cet objet. On le traite comme un problème de recherche de racine, ce qu'il est, un problème de recherche de racine, et ensuite on regarde la structure explicite des problèmes qu'on obtient ici. Ce qu'on voit ici dans l'équation 31 est donc un sous-problème qui apparaît quand vous implémentez ce pas."
+  },
+  {
+   "t": 2797520,
+   "text": "Why do we have a subproblem here when you implement that step? Do you want to know what the number one rule of matrix computation is? At least I was taught this very clearly by my teacher at McGill when I took a matrix computation course, a course that at the time I absolutely did not like, but in retrospect was very useful, and I wish I could take it again to, this time, understand it properly. So what's the subproblem here to implement this thing? How are you going to implement it?",
+   "fr": "Pourquoi a-t-on un sous-problème ici quand vous implémentez ce pas? Voulez-vous savoir quelle est la règle numéro un du calcul matriciel? Du moins, mon professeur à McGill me l'a enseignée très clairement quand j'ai suivi un cours de calcul matriciel, un cours que je n'aimais absolument pas à l'époque, mais qui, avec le recul, a été très utile, et j'aimerais pouvoir le suivre à nouveau pour, cette fois, bien le comprendre. Alors, quel est le sous-problème ici pour implémenter cette chose? Comment allez-vous l'implémenter?"
+  },
+  {
+   "t": 2863680,
+   "text": "This term in particular. Okay. So we have JAX, that's fine, so the differentiation is not a problem. But this thing here, call it A, let's say, this is a matrix. That step, are you going to do this? If I were to use NumPy, let's say, are you going to say numpy dot inverse? Never, never, never. There's pretty much no... I can't think of any concrete problems where I would ever use that function. In fact, there might be instances, but I can't think of any.",
+   "fr": "Ce terme en particulier. D'accord. On a JAX, c'est correct, donc la différentiation n'est pas un problème. Mais cette chose ici, appelons-la A, disons, c'est une matrice. Ce pas-là, allez-vous faire ça? Si j'utilisais NumPy, disons, allez-vous écrire numpy point inverse? Jamais, jamais, jamais. Il n'y a à peu près aucun... Je ne vois aucun problème concret où j'utiliserais un jour cette fonction. En fait, il y a peut-être des cas, mais je n'en vois aucun."
+  },
+  {
+   "t": 2915680,
+   "text": "So what would you do instead? So call this A inverse, and call this thing here b. So what you recognize here is something that looks like A inverse b. And this thing here is going to be a step. So here I have delta x, delta u, delta lambda.",
+   "fr": "Alors, que feriez-vous à la place? Appelons ceci A inverse, et appelons cette chose ici b. Ce que vous reconnaissez ici, c'est quelque chose qui ressemble à A inverse b. Et cette chose ici va être un pas. Ici, j'ai donc delta x, delta u, delta lambda."
+  },
+  {
+   "t": 2954240,
+   "text": "So this thing is equal to that step. So you recognize that actually this is finding the solution to the problem A delta equals b, which is a good old linear system of equations. So the way you're going to implement that is you're going to solve for the delta as the solution to a linear system of equations.",
+   "fr": "Cette chose est donc égale à ce pas. Vous reconnaissez qu'en fait, il s'agit de trouver la solution du problème A delta égale b, qui est un bon vieux système d'équations linéaires. La façon dont vous allez implémenter ça, c'est que vous allez obtenir le delta comme solution d'un système d'équations linéaires."
+  },
+  {
+   "t": 2994880,
+   "text": "So most likely what you would use instead is something that looks like np.linalg.solve, and then you give it A and you give it b, and this thing is going to give you delta. And under the hood, linalg.solve is going to do something smarter than that. It might leverage the structure of A to come up with a smart solve. In the most general case, what it would look like is Gaussian elimination.",
+   "fr": "Ce que vous utiliseriez plutôt, fort probablement, c'est quelque chose comme np.linalg.solve, et vous lui donnez A et vous lui donnez b, et cette chose va vous donner delta. Et sous le capot, linalg.solve va faire quelque chose de plus intelligent que ça. Il pourrait exploiter la structure de A pour faire une résolution intelligente. Dans le cas le plus général, ça ressemblerait à l'élimination de Gauss."
+  },
+  {
+   "t": 3030800,
+   "text": "The good old Gaussian elimination algorithm that we applied manually when learning about linear algebra. But Gaussian elimination, at least, is stable, and that's not the case if you were to take an explicit matrix inverse. Not only this, and this is very important for actually scalable second-order methods: what's implemented here is what some authors would call a direct solve.",
+   "fr": "Le bon vieil algorithme d'élimination de Gauss qu'on appliquait à la main en apprenant l'algèbre linéaire. Mais l'élimination de Gauss, au moins, est stable, et ce n'est pas le cas si vous calculiez explicitement l'inverse d'une matrice. Et pas seulement ça, et c'est très important pour des méthodes du second ordre qui passent vraiment à l'échelle : ce qui est implémenté ici, c'est ce que certains auteurs appelleraient une résolution directe."
+  },
+  {
+   "t": 3069520,
+   "text": "There are also what some people call matrix-free solvers. Matrix-free solvers are kind of weird but also beautiful. Believe it or not, there are ways to solve this linear system of equations without ever forming or materializing the entries of A explicitly.",
+   "fr": "Il y a aussi ce que certaines personnes appellent des solveurs sans matrice. Les solveurs sans matrice sont un peu bizarres, mais aussi magnifiques. Croyez-le ou non, il existe des façons de résoudre ce système d'équations linéaires sans jamais former ni matérialiser explicitement les coefficients de A."
+  },
+  {
+   "t": 3101440,
+   "text": "And that's how you can in fact apply second-order methods in deep learning at scale and avoid forming a matrix of 7 billion by 7 billion. I'm not going to go into the details of how, but let's just say that there are algorithms such as the conjugate gradient method, CG, that is matrix-free, and there is also GMRES, which is also matrix-free. And then there are also all these other methods, which I will maybe talk about when talking about policy evaluation in Markov decision processes. But these are all classical,",
+   "fr": "Et c'est comme ça que vous pouvez, en fait, appliquer des méthodes du second ordre en apprentissage profond à grande échelle et éviter de former une matrice de 7 milliards par 7 milliards. Je ne vais pas entrer dans les détails de comment, mais disons simplement qu'il existe des algorithmes comme la méthode du gradient conjugué, CG, qui est sans matrice, et il y a aussi GMRES, qui est aussi sans matrice. Et il y a aussi toutes ces autres méthodes, dont je vais peut-être parler quand on parlera de l'évaluation de politique dans les processus décisionnels de Markov. Mais ce sont toutes des méthodes classiques,"
+  },
+  {
+   "t": 3168079,
+   "text": "classical, what sometimes people call matrix splitting methods. An example of that which is popular is Richardson's method. Okay. So you could do this as well to solve a problem in that form, a root-finding problem. You implement the sequence of iterations like that. When you need to compute the Jacobian inverse, you don't call the inverse explicitly, but you solve instead an auxiliary problem.",
+   "fr": "classiques, ce que certaines personnes appellent parfois des méthodes de scindement de matrice (matrix splitting). Un exemple populaire est la méthode de Richardson. D'accord. Vous pourriez donc faire ça aussi pour résoudre un problème de cette forme, un problème de recherche de racine. Vous implémentez la suite d'itérations comme ça. Quand vous devez calculer l'inverse de la jacobienne, vous n'appelez pas l'inverse explicitement, mais vous résolvez plutôt un problème auxiliaire."
+  },
+  {
+   "t": 3216880,
+   "text": "And when we look at the structure of this auxiliary problem, this is 31. And 31 has a very important structure here. We just worked out what the structure of that Jacobian matrix is, and you see already it's got this block structure that we're going to be leveraging. And then I'll tell you in a second that this has the interpretation... you can think of it here as Newton's method, but there's another very important class of methods called quadratic programming, and in fact 31 can be seen as locally solving a quadratic program. And that's important, because then it gives you a way of also implementing constrained optimization at scale. If you give me a QP solver, which is for a more specific class of problems than general nonlinear programs, I can repurpose that QP solver into a solver",
+   "fr": "Et quand on regarde la structure de ce problème auxiliaire, c'est 31. Et 31 a une structure très importante ici. On vient de déterminer la structure de cette matrice jacobienne, et vous voyez déjà qu'elle a cette structure par blocs qu'on va exploiter. Et ensuite, je vais vous dire dans une seconde que ça a l'interprétation... vous pouvez y penser ici comme à la méthode de Newton, mais il y a une autre classe de méthodes très importante, appelée programmation quadratique, et en fait 31 peut être vu comme la résolution locale d'un programme quadratique. Et c'est important, parce que ça vous donne alors une façon d'implémenter aussi l'optimisation avec contraintes à grande échelle. Si vous me donnez un solveur de QP, qui s'applique à une classe de problèmes plus précise que les programmes non linéaires généraux, je peux réutiliser ce solveur de QP comme solveur"
+  },
+  {
+   "t": 3280640,
+   "text": "for nonlinear programs more generally. And SQP, that method, sequential quadratic programming, is widely used in practice for trajectory optimization. It's widely used. It's widely used also for controlling plants in chemical engineering and so on. Should we take a break? We'll take a break. Yeah, we have to take a break. Let's take a break, and then in 10 minutes we'll continue with that.",
+   "fr": "pour les programmes non linéaires de façon plus générale. Et la SQP, cette méthode, la programmation quadratique séquentielle, est largement utilisée en pratique pour l'optimisation de trajectoire. Elle est largement utilisée. Elle est aussi largement utilisée pour la commande d'usines en génie chimique, et ainsi de suite. Devrait-on prendre une pause? On va prendre une pause. Oui, on doit prendre une pause. Prenons une pause, et dans 10 minutes, on continuera avec ça."
+  },
+  {
+   "t": 3342079,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 3390559,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 3585599,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 3624960,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 3673359,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 3734240,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 3795359,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 3852640,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 3906880,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 3978079,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4089039,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4120000,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4193600,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4252880,
+   "text": "There we go. We're going to talk about SQP, a very important class of methods for",
+   "fr": "Voilà. On va parler de la SQP, une classe de méthodes très importante pour"
+  },
+  {
+   "t": 4313040,
+   "text": "solving nonlinear programs. And we just stopped here before the break. So we said we're going to treat the first-order optimality condition as a root-finding problem, and we're going to apply Newton's method. And when solving the corresponding inner linear solve that we have at every iterate, remember, we don't take a matrix inverse, we solve it as a linear system of equations, then we get the system in line 31. And it turns out that when you look more closely at the structure of the Jacobian,",
+   "fr": "résoudre des programmes non linéaires. Et on s'était arrêtés ici juste avant la pause. On a dit qu'on allait traiter la condition d'optimalité du premier ordre comme un problème de recherche de racine, et qu'on allait appliquer la méthode de Newton. Et quand on résout le système linéaire interne correspondant qu'on a à chaque itéré, rappelez-vous, on ne calcule pas l'inverse d'une matrice, on le résout comme un système d'équations linéaires, on obtient alors le système de la ligne 31. Et il se trouve que quand on regarde de plus près la structure de la jacobienne,"
+  },
+  {
+   "t": 4353360,
+   "text": "there are ways to reinterpret each of the terms, each of the blocks within that big Jacobian, as basically computing the solution to a subproblem at every step. So in other words, what we're doing here by taking the second-order derivative of the Lagrangian in z, nabla squared, the Hessian here, is that we're quadratizing. It's a term that is used: we're quadratizing our loss. Then we're linearizing our equality constraints that we had",
+   "fr": "il y a des façons de réinterpréter chacun des termes, chacun des blocs de cette grosse jacobienne, comme le calcul, essentiellement, de la solution d'un sous-problème à chaque pas. Autrement dit, ce qu'on fait ici en prenant la dérivée seconde du lagrangien en z, nabla carré, la hessienne ici, c'est qu'on quadratise. C'est un terme qu'on utilise : on quadratise notre perte. Ensuite, on linéarise nos contraintes d'égalité qu'on avait"
+  },
+  {
+   "t": 4414080,
+   "text": "in the original problem. In the original problem, the equality constraints might be nonlinear; they need not be linear. And what we have here, which is by the way a rewriting of what we've got here, is a first-order Taylor expansion of our equality constraint around our current guess \\(z_k\\).",
+   "fr": "dans le problème original. Dans le problème original, les contraintes d'égalité peuvent être non linéaires; elles n'ont pas besoin d'être linéaires. Et ce qu'on a ici, qui est au passage une réécriture de ce qu'on a ici, c'est un développement de Taylor du premier ordre de notre contrainte d'égalité autour de notre estimation courante \\(z_k\\)."
+  },
+  {
+   "t": 4445600,
+   "text": "So a problem of that form, a mathematical problem of that form, where you've got an equality constraint which is linear in the decision variable and a quadratic cost function, is known as a quadratic program, QP. And QPs are very fast to solve. That's the good thing.",
+   "fr": "Un problème de cette forme, un problème mathématique de cette forme, où vous avez une contrainte d'égalité linéaire en la variable de décision et une fonction de coût quadratique, s'appelle donc un programme quadratique, QP. Et les QP se résolvent très rapidement. C'est ça, le bon côté."
+  },
+  {
+   "t": 4477520,
+   "text": "Which means that if you have implemented a QP solver, as I was saying earlier, you can repurpose it into a full-fledged nonlinear program solver. But you're going to keep on solving a QP at every step, a different QP. So what it ends up doing is that you take your original problem, with the Lagrangian, you quadratize, you linearize your equality constraints, your dynamics, and you keep on repeating this all the time.",
+   "fr": "Ce qui veut dire que si vous avez implémenté un solveur de QP, comme je le disais plus tôt, vous pouvez le réutiliser comme solveur de programmes non linéaires à part entière. Mais vous allez continuer à résoudre un QP à chaque pas, un QP différent. Ce que ça finit par faire, c'est que vous prenez votre problème original, avec le lagrangien, vous quadratisez, vous linéarisez vos contraintes d'égalité, votre dynamique, et vous continuez à répéter ça tout le temps."
+  },
+  {
+   "t": 4510480,
+   "text": "Quadratize, linearize, solve; quadratize, linearize, QP. This is how we go from a QP to a sequential QP, sequential quadratic programming, which is the expression in line 32. And while the explanation I gave you here is based on the equality constraint perspective, people have then said: well, if that's what we're doing at every step, where we quadratize and linearize, we can as well apply the same recipe to problems where you have inequality constraints.",
+   "fr": "Quadratiser, linéariser, résoudre; quadratiser, linéariser, QP. C'est comme ça qu'on passe d'un QP à un QP séquentiel, la programmation quadratique séquentielle, qui est l'expression de la ligne 32. Et même si l'explication que je vous ai donnée ici repose sur la perspective des contraintes d'égalité, les gens se sont ensuite dit : eh bien, si c'est ce qu'on fait à chaque pas, quadratiser et linéariser, on peut aussi bien appliquer la même recette à des problèmes où il y a des contraintes d'inégalité."
+  },
+  {
+   "t": 4556159,
+   "text": "So the same thing applies also when you've got inequality constraints, and this is the sequential quadratic programming perspective. With the story I gave you here, you wouldn't be able to go from this expression with inequality constraints to that and get the correspondence of the two. But in the equality case, it's the same. So SQP is very much a method that is used widely in the industry, in many existing solvers, commercial ones. There's a free version of that solver you can use right away: if you do SciPy minimize, it has a bunch of different algorithms implemented, including SLSQP.",
+   "fr": "La même chose s'applique donc aussi quand vous avez des contraintes d'inégalité, et c'est la perspective de la programmation quadratique séquentielle. Avec l'histoire que je vous ai racontée ici, vous ne pourriez pas passer de cette expression avec contraintes d'inégalité à celle-là et obtenir la correspondance entre les deux. Mais dans le cas des égalités, c'est la même chose. La SQP est donc vraiment une méthode largement utilisée dans l'industrie, dans de nombreux solveurs existants, commerciaux. Il existe une version gratuite de ce solveur que vous pouvez utiliser tout de suite : si vous faites SciPy minimize, il a un tas d'algorithmes différents implémentés, dont SLSQP."
+  },
+  {
+   "t": 4611520,
+   "text": "The SL, honestly, I don't remember what it is. I think it's just a small variation, least squares, but it is a version of SQP. And then there are commercial solvers, where you need a license and so on, that people use oftentimes in industry, but for us we'll often just use this thing here. SQP is really fast. Why would it be fast, intuitively? Because it's inherently a second-order method, because of the quadratizing bit.",
+   "fr": "Le SL, honnêtement, je ne me rappelle plus ce que c'est. Je pense que c'est juste une petite variante, moindres carrés, mais c'est une version de la SQP. Et il y a ensuite des solveurs commerciaux, pour lesquels il faut une licence et ainsi de suite, que les gens utilisent souvent dans l'industrie, mais pour nous, on va souvent simplement utiliser ce truc-ci. La SQP est vraiment rapide. Pourquoi serait-elle rapide, intuitivement? Parce que c'est intrinsèquement une méthode du second ordre, à cause de la partie quadratisation."
+  },
+  {
+   "t": 4645760,
+   "text": "This is just like Hessian-based methods in deep learning with unconstrained optimization. So it's fast, but it costs you more than a simple Arrow-Hurwicz, of course. Oh yeah, the other thing, maybe the other distinction I need to make, and somebody alluded to this earlier in the course, is the nature of the solution you get along an optimization path. What I mean here is: as you run your optimizer, along the way, the solution you get in these primal-dual methods need not be feasible.",
+   "fr": "C'est exactement comme les méthodes fondées sur la hessienne en apprentissage profond pour l'optimisation sans contraintes. C'est donc rapide, mais ça vous coûte plus cher qu'un simple Arrow-Hurwicz, bien sûr. Ah oui, l'autre chose, peut-être l'autre distinction que je dois faire, et quelqu'un y a fait allusion plus tôt dans le cours, c'est la nature de la solution que vous obtenez le long d'un chemin d'optimisation. Ce que je veux dire ici, c'est que pendant que votre optimiseur tourne, en cours de route, la solution que vous obtenez avec ces méthodes primales-duales n'est pas nécessairement réalisable."
+  },
+  {
+   "t": 4700159,
+   "text": "The guarantee you get, though, is that if you happen to find a solution at the end of it, you'll get a solution which is feasible, but along the way it's infeasible. And it's what your colleague said earlier, I think, which is that it is, in a way, a good thing from my perspective, because we allow our system to sway into infeasible regions to perhaps better explore, so long as it comes back to a feasible solution. And this is in contrast with other classes of methods, which I honestly don't have content about, but maybe I should. And Gabriel, in fact, has worked with these things quite a lot; maybe I should ask him to give you a lecture. But it's in contrast with the feasible methods, and that would represent methods that have the property that if you start",
+   "fr": "La garantie que vous avez, par contre, c'est que si vous trouvez une solution à la fin, vous aurez une solution réalisable, mais en cours de route, elle est non réalisable. Et c'est ce que votre collègue disait plus tôt, je pense, c'est-à-dire que c'est, d'une certaine façon, une bonne chose de mon point de vue, parce qu'on permet à notre système de s'aventurer dans des régions non réalisables pour peut-être mieux explorer, tant qu'il revient vers une solution réalisable. Et ça contraste avec d'autres classes de méthodes, sur lesquelles je n'ai honnêtement pas de contenu, mais je devrais peut-être en avoir. Et Gabriel, en fait, a beaucoup travaillé avec ces choses; je devrais peut-être lui demander de vous donner un cours. Mais ça contraste avec les méthodes réalisables, c'est-à-dire les méthodes qui ont la propriété que si vous commencez"
+  },
+  {
+   "t": 4760880,
+   "text": "in the feasible space, along an optimization path you will remain feasible no matter what. And examples of this would be the class of methods called interior-point methods, which are always feasible if you start feasible.",
+   "fr": "dans le domaine réalisable, le long d'un chemin d'optimisation, vous resterez réalisable quoi qu'il arrive. Et des exemples de ça seraient la classe de méthodes appelées méthodes de points intérieurs, qui sont toujours réalisables si vous commencez de façon réalisable."
+  },
+  {
+   "t": 4806320,
+   "text": "Examples of interior-point methods, of solver packages you can get out there: this one is actually open source, IPOPT. It's a pretty good solver as well for nonlinear programming, IPOPT. And for these interior-point methods, the intuition I can maybe provide is that you want to be building, think of it as, barriers, or huge potentials. You're putting walls within your optimization problem such that if you drop your ball down the loss landscape, there's no way that it's going to cross above that barrier. And the art of these methods is to construct these barriers and so on in a way that is numerically tractable. So",
+   "fr": "Comme exemples de méthodes de points intérieurs, de solveurs que vous pouvez trouver : celui-ci est d'ailleurs à code source ouvert, IPOPT. C'est aussi un assez bon solveur pour la programmation non linéaire, IPOPT. Et pour ces méthodes de points intérieurs, l'intuition que je peux peut-être vous donner, c'est que vous voulez construire, voyez ça comme des barrières, ou d'énormes potentiels. Vous placez des murs dans votre problème d'optimisation de sorte que si vous laissez tomber votre balle dans le paysage de la perte, il n'y a aucune façon qu'elle passe par-dessus cette barrière. Et l'art de ces méthodes, c'est de construire ces barrières et ainsi de suite d'une façon qui soit numériquement traitable. Donc"
+  },
+  {
+   "t": 4866400,
+   "text": "you don't want to cause issues with too large values, but you also want to let your ball drop to the right solution as fast as possible. So we're not going to talk about that, at the moment at least, but in practice you might end up using this, and unfortunately the explanation for interior-point methods does not quite fit what I've got here.",
+   "fr": "vous ne voulez pas causer de problèmes avec des valeurs trop grandes, mais vous voulez aussi laisser votre balle tomber vers la bonne solution aussi vite que possible. On ne va donc pas parler de ça, du moins pour l'instant, mais en pratique, vous pourriez finir par utiliser ça, et malheureusement, l'explication des méthodes de points intérieurs ne cadre pas tout à fait avec ce que j'ai ici."
+  },
+  {
+   "t": 4897120,
+   "text": "Any questions on that? I mean, I've been mostly in monologue mode today. Very few questions. Yeah.\nStudent: SQP, why infeasible-path methods?\nYeah. It's not so much that it gives you better convergence, but the fact that it's infeasible should not be interpreted as a wrong thing. It can actually be a good thing, because it means you're not always spending effort to go back to feasible as you progress towards your solution.",
+   "fr": "Des questions là-dessus? Je veux dire, j'ai surtout été en mode monologue aujourd'hui. Très peu de questions. Oui.\nStudent: La SQP, pourquoi des méthodes à chemin non réalisable?\nOui. Ce n'est pas tant que ça vous donne une meilleure convergence, mais le fait que ce soit non réalisable ne devrait pas être interprété comme une mauvaise chose. Ça peut en fait être une bonne chose, parce que ça veut dire que vous ne dépensez pas toujours des efforts pour revenir dans le réalisable pendant que vous progressez vers votre solution."
+  },
+  {
+   "t": 4942560,
+   "text": "So maybe you found a candidate that might be good, but you don't quite know how to avoid violating your constraint just yet. So you might let your optimizer still explore a little bit and then sort of deal with that later on. It's intuition; it's not very formal, what I'm saying here. But yeah, as an RL person, I think of it as exploration. You let your agent explore a little bit, but eventually it ends up exploiting a bit better.",
+   "fr": "Peut-être que vous avez trouvé un candidat qui pourrait être bon, mais vous ne savez pas encore tout à fait comment éviter de violer votre contrainte. Vous pourriez donc laisser votre optimiseur explorer encore un peu, puis régler ça en quelque sorte plus tard. C'est de l'intuition; ce que je dis ici n'est pas très formel. Mais oui, en tant que personne qui fait du RL, j'y pense comme à de l'exploration. Vous laissez votre agent explorer un peu, mais il finit par exploiter un peu mieux."
+  },
+  {
+   "t": 4977360,
+   "text": "Good. So that's it. What do I want to show you, too? Yeah, I want to talk about continuous-time transcriptions today. We might come back to some of that stuff later on. This is fascinating, but maybe not the thing that you would find the most interesting. Let me just tell you what this subsection is about. Once upon a time, in the 60s, when people were very much interested in launching ballistic missiles at each other, which is still the case, people worked out the basis of optimal control, and that was in a time",
+   "fr": "Bien. Voilà pour ça. Qu'est-ce que je veux vous montrer aussi? Oui, je veux parler aujourd'hui des transcriptions en temps continu. On reviendra peut-être plus tard sur certaines de ces choses. C'est fascinant, mais ce n'est peut-être pas ce que vous trouveriez le plus intéressant. Laissez-moi juste vous dire de quoi parle cette sous-section. Il était une fois, dans les années 60, alors que les gens tenaient beaucoup à se lancer des missiles balistiques les uns sur les autres, ce qui est encore le cas, des gens ont établi les bases de la commande optimale, et c'était à une époque"
+  },
+  {
+   "t": 5039760,
+   "text": "when we didn't have computers and automatic differentiation available to us, and people had to use their brains to figure out solutions to these problems. So in solving these problems... actually it comes from the continuous-time case; here it's an adaptation of that to the discrete-time case. The structure of how gradients or derivatives go through problems of that form was described by a Soviet mathematician, who essentially gave us the structure of how we backprop through problems of that form. That gave rise to this notion of costates and adjoint equations, which came back into fashion around 2018 with",
+   "fr": "où on n'avait pas d'ordinateurs ni de différentiation automatique à notre disposition, et les gens devaient se servir de leur tête pour trouver des solutions à ces problèmes. Donc, en résolvant ces problèmes... en fait, ça vient du cas en temps continu; ici, c'en est une adaptation au cas en temps discret. La structure de la façon dont les gradients ou les dérivées traversent des problèmes de cette forme a été décrite par un mathématicien soviétique, qui nous a essentiellement donné la structure de la rétropropagation à travers des problèmes de cette forme. Ça a donné naissance à cette notion d'états adjoints (co-états) et d'équations adjointes, qui est revenue à la mode vers 2018 avec"
+  },
+  {
+   "t": 5100800,
+   "text": "neural ODEs[?]. But really, the maximum principle, with the costate equation and so on, what it describes is this backprop. I might come back to that. Is it going to change anything in your practice? But I think it's also widely recognized. But really, the true origin of backprop is in optimal control. You can derive backprop from this perspective. The result itself of this theorem, the PMP, is literally the expression for backprop.",
+   "fr": "les ODE neuronales[?]. Mais au fond, le principe du maximum, avec l'équation de l'état adjoint et ainsi de suite, ce qu'il décrit, c'est cette rétropropagation. J'y reviendrai peut-être. Est-ce que ça va changer quoi que ce soit dans votre pratique? Mais je pense que c'est aussi largement reconnu. Mais au fond, la véritable origine de la rétropropagation se trouve en commande optimale. Vous pouvez dériver la rétropropagation de cette perspective. Le résultat même de ce théorème, le PMP, c'est littéralement l'expression de la rétropropagation."
+  },
+  {
+   "t": 5143120,
+   "text": "But that's not what I want to discuss today. So I want to jump right into this: how you deal with continuous-time problems and bring them down to the machinery of numerical optimization we just talked about. There's another path, which is more analytic, where you could apply the calculus of variations to these problems and sometimes also work out the solution analytically.",
+   "fr": "Mais ce n'est pas de ça que je veux parler aujourd'hui. Je veux donc plonger directement dans ceci : comment traiter des problèmes en temps continu et les ramener à la machinerie d'optimisation numérique dont on vient de parler. Il y a une autre voie, plus analytique, où vous pourriez appliquer le calcul des variations à ces problèmes et parfois aussi trouver la solution analytiquement."
+  },
+  {
+   "t": 5181280,
+   "text": "People in economics and econometrics tend to do that quite a bit when they like to come up with, I don't know, theories about the economy. They often study these as optimal control problems, and they would often end up using these tools in continuous time. But that's not what we do. We don't do calculus of variations in this course. Instead, we take this and we turn problems of that form into a discrete-time counterpart, an approximation.",
+   "fr": "Les gens en économie et en économétrie ont tendance à faire ça pas mal quand ils aiment élaborer, je ne sais pas, des théories sur l'économie. Ils étudient souvent ces choses comme des problèmes de commande optimale, et ils finissent souvent par utiliser ces outils en temps continu. Mais ce n'est pas ce qu'on fait. On ne fait pas de calcul des variations dans ce cours. On prend plutôt ceci et on transforme des problèmes de cette forme en un équivalent en temps discret, une approximation."
+  },
+  {
+   "t": 5216239,
+   "text": "And the question is how you control the quality of your approximation. So this is the art of transcribing a continuous-time problem into a discrete-time one. So you'll sometimes see the term transcription. I have a small example here, maybe for intuition. Let's imagine you've got a point. Your goal is to move from the initial position \\(x_0\\).",
+   "fr": "Et la question, c'est de savoir comment contrôler la qualité de votre approximation. C'est donc l'art de transcrire un problème en temps continu en un problème en temps discret. Vous verrez donc parfois le terme transcription. J'ai un petit exemple ici, peut-être pour l'intuition. Imaginons que vous avez un point. Votre but est de vous déplacer à partir de la position initiale \\(x_0\\)."
+  },
+  {
+   "t": 5247920,
+   "text": "The initial point is zero, and you want to move to the point one. The velocity of that point is literally the control you apply. So the more control you apply, the faster the speed is. And our goal is, within that interval from time zero to time one, to minimize how much effort you spend on the control.",
+   "fr": "Le point initial est zéro, et vous voulez vous rendre au point un. La vitesse de ce point est littéralement la commande que vous appliquez. Donc, plus vous appliquez de commande, plus la vitesse est grande. Et notre but est, sur cet intervalle du temps zéro au temps un, de minimiser l'effort que vous dépensez sur la commande."
+  },
+  {
+   "t": 5278880,
+   "text": "So you minimize here. This is very common: when you want to minimize an effort with respect to the control, you often take the square of the control, and our cost function here is the integral from 0 to 1. So again, let's minimize this subject to this, where it's an equality constraint. So written in this form, the minimization is over the space of trajectories, which are functions, and control functions. Here u is not a vector; it's a function too.",
+   "fr": "Vous minimisez donc ici. C'est très courant : quand vous voulez minimiser un effort par rapport à la commande, vous prenez souvent le carré de la commande, et notre fonction de coût ici est l'intégrale de 0 à 1. Donc encore une fois, minimisons ceci sous cette contrainte, qui est une contrainte d'égalité. Écrite sous cette forme, la minimisation porte sur l'espace des trajectoires, qui sont des fonctions, et des fonctions de commande. Ici, u n'est pas un vecteur; c'est aussi une fonction."
+  },
+  {
+   "t": 5316800,
+   "text": "It's pretty nasty. This is where you need to use your calculus of variations just to work this out. But instead, we're going to embrace an approximation approach, and we're going to transcribe that. This is just one type of transcription; it's going to be a very simple one. And the one we take here is, we're only going to use as decision variables... Oh yeah, I have this feature I coded up last time. Oh, okay.",
+   "fr": "C'est assez vilain. C'est là que vous avez besoin de votre calcul des variations juste pour résoudre ça. Mais au lieu de ça, on va adopter une approche par approximation, et on va transcrire ça. Ce n'est qu'un type de transcription; ça va en être une très simple. Et celle qu'on prend ici, c'est qu'on va utiliser comme seules variables de décision... Ah oui, j'ai cette fonctionnalité que j'ai codée la dernière fois. Ah, d'accord."
+  },
+  {
+   "t": 5348239,
+   "text": "It doesn't work today. The only variables we're going to use will be the states \\(x_0\\) and \\(x_1\\). Remember, this is where we want to go; it doesn't mean we're going to find a solution that brings us there. So the variables will be \\(x_0, x_1, u_0, u_1\\). And this is going to be our discretization: instead of searching over an infinite-dimensional space, we'll be searching over the space of these four values. Okay. And because of the constraints we had earlier, and our dynamics are so simple here, we've got that, under the discretization and our constraint that we want to be at one by time one, the equality constraint we end up having is this one here. You can maybe work out the algebra by hand",
+   "fr": "Ça ne marche pas aujourd'hui. Les seules variables qu'on va utiliser seront les états \\(x_0\\) et \\(x_1\\). Rappelez-vous, c'est là qu'on veut aller; ça ne veut pas dire qu'on va trouver une solution qui nous y amène. Les variables seront donc \\(x_0, x_1, u_0, u_1\\). Et ce sera notre discrétisation : au lieu de chercher dans un espace de dimension infinie, on va chercher dans l'espace de ces quatre valeurs. D'accord. Et à cause des contraintes qu'on avait plus tôt, et comme notre dynamique est si simple ici, on a que, sous la discrétisation et notre contrainte d'être à un au temps un, la contrainte d'égalité qu'on finit par avoir est celle-ci. Vous pourrez peut-être faire l'algèbre à la main"
+  },
+  {
+   "t": 5410960,
+   "text": "later on. But with this choice, we've just chosen to retain these four values. What we end up doing here is transcribing this original problem into an approximation that looks like that, where now we're going to be searching over the values of \\(x_0, x_1, u_0, u_1\\). But what's hidden behind this, which by the way geometrically amounts to computing the area under the curve, which here is a line because of the way we define the dynamics, what's hidden behind this is that this transcription here is actually encoding a choice of polynomial approximation. A polynomial approximation to what? To the trajectory function x and also the",
+   "fr": "plus tard. Mais avec ce choix, on vient de choisir de garder ces quatre valeurs. Ce qu'on finit par faire ici, c'est transcrire ce problème original en une approximation qui ressemble à ça, où l'on va maintenant chercher parmi les valeurs de \\(x_0, x_1, u_0, u_1\\). Mais ce qui se cache derrière ceci, qui au passage revient géométriquement à calculer l'aire sous la courbe, qui ici est une droite à cause de la façon dont on définit la dynamique, ce qui se cache derrière ceci, c'est que cette transcription encode en fait un choix d'approximation polynomiale. Une approximation polynomiale de quoi? De la fonction de trajectoire x et aussi de la"
+  },
+  {
+   "t": 5472400,
+   "text": "control function u. So this is the trick here. The way to think about this is: instead of searching over the space of functions, which is an infinite space, we're going to search over the space of polynomials. And why the heck would it help us to search over the space of polynomials? There is one very important point, which is that while a polynomial can describe a function, we can characterize a polynomial by its coefficients.",
+   "fr": "fonction de commande u. Voilà donc le truc ici. La façon d'y penser, c'est la suivante : au lieu de chercher dans l'espace des fonctions, qui est un espace infini, on va chercher dans l'espace des polynômes. Et pourquoi diable est-ce que ça nous aiderait de chercher dans l'espace des polynômes? Il y a un point très important, c'est que même si un polynôme peut décrire une fonction, on peut caractériser un polynôme par ses coefficients."
+  },
+  {
+   "t": 5509199,
+   "text": "The number of coefficients is always finite. Instead of searching over the space of functions, we're searching over the space of coefficients, which is much smaller. Say degree four: that's much more tractable. So this is really the gist of what we're doing here, and the key to understanding the class of methods which are commonly known as collocation methods.",
+   "fr": "Le nombre de coefficients est toujours fini. Au lieu de chercher dans l'espace des fonctions, on cherche dans l'espace des coefficients, qui est beaucoup plus petit. Disons de degré quatre : c'est beaucoup plus traitable. C'est donc vraiment l'essentiel de ce qu'on fait ici, et la clé pour comprendre la classe de méthodes qu'on appelle couramment les méthodes de collocation."
+  },
+  {
+   "t": 5552719,
+   "text": "This is some pretty complicated stuff, I'd say, but I think we're going to be capable of going through it, and it might take a bit more time than today, of course, to absorb all of it. But it's a very important class of methods, collocation methods, a very important family, used widely in nonlinear MPC, in process control, in sending ships to space. In fact, one of the textbooks I used to recommend in this course, because that was the only reference I could find, was a textbook by John, I think it's John T. Betts. And Betts was actually an engineer. I don't know if he's still alive, still an engineer, but he was an engineer at",
+   "fr": "C'est de la matière assez compliquée, je dirais, mais je pense qu'on va être capables d'en venir à bout, et ça pourrait prendre un peu plus de temps qu'aujourd'hui, bien sûr, pour tout assimiler. Mais c'est une classe de méthodes très importante, les méthodes de collocation, une famille très importante, largement utilisée en MPC non linéaire, en commande de procédés, pour envoyer des vaisseaux dans l'espace. En fait, un des manuels que je recommandais dans ce cours, parce que c'était la seule référence que je pouvais trouver, était un manuel de John, je pense que c'est John T. Betts. Et Betts était en fait ingénieur. Je ne sais pas s'il est encore vivant, encore ingénieur, mais il était ingénieur chez"
+  },
+  {
+   "t": 5614000,
+   "text": "Boeing, and that book was written, as far as I know, while he was an engineer, because you look in the first few pages of the book and it says, like, thanks to Boeing[?] and so on, and I think his email is [inaudible]. So people in aerospace use that stuff. So, collocation methods: where are they going to fit with respect to the distinction I gave earlier in trajectory optimization? Collocation methods are inherently simultaneous methods. So collocation methods will be used probably in cases where you need stability. You use them because they're",
+   "fr": "Boeing, et ce livre a été écrit, à ma connaissance, pendant qu'il était ingénieur, parce que si vous regardez les premières pages du livre, on y lit quelque chose comme « merci à Boeing[?] » et ainsi de suite, et je pense que son courriel est [inaudible]. Les gens de l'aérospatiale utilisent donc ces choses. Alors, les méthodes de collocation : où vont-elles se situer par rapport à la distinction que j'ai faite plus tôt en optimisation de trajectoire? Les méthodes de collocation sont intrinsèquement des méthodes simultanées. Les méthodes de collocation seront donc probablement utilisées dans les cas où vous avez besoin de stabilité. Vous les utilisez parce qu'elles sont"
+  },
+  {
+   "t": 5674400,
+   "text": "accurate, they're stable. And the same way that we have a distinction between simultaneous versus sequential, you could also have sequential methods applied to continuous-time problems. I'll show you later on what that looks like concretely, but for now we're going to start with this perspective of simultaneous methods and collocation. Okay, let's talk about polynomials, and a couple of things to say. I'm not super well-versed in polynomials, so maybe there are things here you know, but actually I had to learn about the existence of these concepts in order to appreciate these collocation methods.",
+   "fr": "précises, elles sont stables. Et de la même façon qu'on a une distinction entre méthodes simultanées et séquentielles, vous pourriez aussi avoir des méthodes séquentielles appliquées à des problèmes en temps continu. Je vous montrerai plus tard à quoi ça ressemble concrètement, mais pour l'instant, on va commencer avec cette perspective des méthodes simultanées et de la collocation. D'accord, parlons de polynômes, et de quelques points à mentionner. Je ne suis pas un grand spécialiste des polynômes, alors il y a peut-être des choses ici que vous connaissez, mais en fait, j'ai dû apprendre l'existence de ces concepts pour apprécier ces méthodes de collocation."
+  },
+  {
+   "t": 5721760,
+   "text": "The first thing is the choice of representation for a polynomial. Personally, the only type of polynomials I've been exposed to in my education would be polynomials that are written in the form [inaudible], under a choice of basis. The same way you can have a basis in linear algebra, you can also have a basis for a polynomial. And the only one I've been exposed to is a choice of a monomial basis. Most likely, the first time you saw a polynomial, people presented the polynomial to you in a monomial basis.",
+   "fr": "La première chose, c'est le choix de représentation pour un polynôme. Personnellement, le seul type de polynômes auquel j'ai été exposé dans ma formation, ce serait des polynômes écrits sous la forme [inaudible], dans un choix de base. De la même façon que vous pouvez avoir une base en algèbre linéaire, vous pouvez aussi avoir une base pour un polynôme. Et la seule à laquelle j'ai été exposé, c'est le choix d'une base monomiale. Fort probablement, la première fois que vous avez vu un polynôme, on vous l'a présenté dans une base monomiale."
+  },
+  {
+   "t": 5760800,
+   "text": "We don't really go too deep into this, but it's important to know that if you use, let's say, a commercial package to do collocation, they're not going to use the monomial representation. They're going to use something that is more accurate, numerically more accurate and stable. A package, by the way, that implements these things really well is CasADi. But for this demo we'll be doing things manually, and we'll do it most of the time in a monomial basis, which you can think of as a coordinate system. You can choose different coordinate systems. But the important thing to realize is the following, and I think that's absolutely key, absolutely key. I told you a second ago that the trick for us here is to go from searching over functions to searching over coefficients. It's a bit of a lie, because what we're going to do",
+   "fr": "On ne va pas vraiment approfondir ça, mais c'est important de savoir que si vous utilisez, disons, un logiciel commercial pour faire de la collocation, il ne va pas utiliser la représentation monomiale. Il va utiliser quelque chose de plus précis, numériquement plus précis et plus stable. Un logiciel, au passage, qui implémente vraiment bien ces choses, c'est CasADi. Mais pour cette démo, on va faire les choses à la main, et on va le faire la plupart du temps dans une base monomiale, que vous pouvez voir comme un système de coordonnées. Vous pouvez choisir différents systèmes de coordonnées. Mais la chose importante à comprendre, c'est la suivante, et je pense que c'est absolument crucial, absolument crucial. Je vous ai dit il y a une seconde que le truc pour nous ici, c'est de passer d'une recherche sur des fonctions à une recherche sur des coefficients. C'est un peu un mensonge, parce que ce qu'on va faire,"
+  },
+  {
+   "t": 5822560,
+   "text": "is in fact search not over coefficients but over chosen values of the polynomials. And this hinges on the following property, which is that a polynomial can be identified, yes, by its coefficients, but equivalently, if I have a degree \\(r\\) polynomial, I can choose \\(r + 1\\) distinct points, and all I need to then record is the value of that polynomial at these values \\(\\sigma\\). So \\(\\sigma\\) here, we would call them support nodes. Sometimes people would refer to them as knots[?], but yeah, support nodes.",
+   "fr": "c'est en fait chercher non pas sur des coefficients, mais sur des valeurs choisies des polynômes. Et ça repose sur la propriété suivante : un polynôme peut être identifié, oui, par ses coefficients, mais de façon équivalente, si j'ai un polynôme de degré \\(r\\), je peux choisir \\(r + 1\\) points distincts, et tout ce que j'ai alors besoin de noter, c'est la valeur de ce polynôme en ces valeurs \\(\\sigma\\). Ces \\(\\sigma\\) ici, on les appellerait des nœuds de support. Parfois, les gens les appellent des knots[?], mais bon, des nœuds de support."
+  },
+  {
+   "t": 5886239,
+   "text": "So we record the value of our polynomial at these support nodes, and we're going to be able to go back and forth between a representation of a polynomial given by the values at the support nodes, or by its coefficients, seamlessly. So this is going to be the difference between a representation which is nodal, a nodal representation of a polynomial, and... to get some intuition as to what's going on here,",
+   "fr": "On note donc la valeur de notre polynôme en ces nœuds de support, et on va pouvoir passer sans difficulté d'une représentation d'un polynôme donnée par ses valeurs aux nœuds de support à une représentation par ses coefficients, et vice versa. Ce sera donc la différence entre une représentation nodale, une représentation nodale d'un polynôme, et... pour avoir un peu d'intuition sur ce qui se passe ici,"
+  },
+  {
+   "t": 5930880,
+   "text": "really it's about whether we want to have our coefficients explicit or implicit. And I think this is going to give you the right intuition. So imagine you've got a simple polynomial with two support nodes, 0 and 1. So \\(p(\\tau) = a + b\\tau\\), just the equation of the line, and we've got two support nodes.",
+   "fr": "au fond, il s'agit de savoir si on veut que nos coefficients soient explicites ou implicites. Et je pense que ça va vous donner la bonne intuition. Imaginez que vous avez un polynôme simple avec deux nœuds de support, 0 et 1. Donc \\(p(\\tau) = a + b\\tau\\), simplement l'équation de la droite, et on a deux nœuds de support."
+  },
+  {
+   "t": 5976000,
+   "text": "What would the support nodes be? They would be zero and one. So these are the places in the domain where we're going to evaluate our polynomial p. So that's one thing. But there is a second thing, which was maybe implicit in my presentation, which is that when we do polynomial interpolation in particular, it's quite different than doing least squares regression with a polynomial basis. When we do interpolation, we require the solution to pass through the designated support nodes we're choosing, or the data you've collected.",
+   "fr": "Quels seraient les nœuds de support? Ce seraient zéro et un. Ce sont donc les endroits du domaine où l'on va évaluer notre polynôme p. Voilà une chose. Mais il y a une deuxième chose, qui était peut-être implicite dans ma présentation : quand on fait de l'interpolation polynomiale en particulier, c'est assez différent de faire une régression par moindres carrés avec une base polynomiale. Quand on fait de l'interpolation, on exige que la solution passe par les nœuds de support désignés qu'on choisit, ou par les données que vous avez recueillies."
+  },
+  {
+   "t": 6036400,
+   "text": "With interpolation, we have this property. It's not the case if you do least squares regression. In fact, I have a figure just to show you this. Where's my figure gone? Sometimes I need to recompile the notebook. This one? No, not this one. I had another one.",
+   "fr": "Avec l'interpolation, on a cette propriété. Ce n'est pas le cas si vous faites une régression par moindres carrés. En fait, j'ai une figure juste pour vous montrer ça. Où est passée ma figure? Parfois, je dois recompiler le carnet. Celle-ci? Non, pas celle-ci. J'en avais une autre."
+  },
+  {
+   "t": 6067119,
+   "text": "Apparently it's not there. Okay, well, I'll push it later. In the meantime, I'll just draw it on the board. But yeah, with polynomial interpolation, we require our solution to pass through the nodes, and clearly if you were to do regression, you'd be finding a solution that minimizes the squared residuals, which will give you a solution which need not pass through these points. Okay, so all that to say, to go back to our simple example.",
+   "fr": "Apparemment, elle n'est pas là. D'accord, bon, je la publierai plus tard. En attendant, je vais simplement la dessiner au tableau. Mais oui, avec l'interpolation polynomiale, on exige que notre solution passe par les nœuds, et clairement, si vous faisiez une régression, vous trouveriez une solution qui minimise les carrés des résidus, ce qui vous donnera une solution qui ne passe pas nécessairement par ces points. D'accord, tout ça pour dire, revenons à notre exemple simple."
+  },
+  {
+   "t": 6099199,
+   "text": "So we've got these support nodes, and we've got the polynomial interpolation conditions, which say, if we call these \\(\\sigma_0\\) and \\(\\sigma_1\\): we want the value of my polynomial at the first support node to be \\(y_0\\). And the other polynomial interpolation condition: I want my polynomial at my support node \\(\\sigma_1\\) to be the other value, \\(y_1\\), that has been provided to you.",
+   "fr": "On a donc ces nœuds de support, et on a les conditions d'interpolation polynomiale, qui disent, si on les appelle \\(\\sigma_0\\) et \\(\\sigma_1\\) : on veut que la valeur de mon polynôme au premier nœud de support soit \\(y_0\\). Et l'autre condition d'interpolation polynomiale : je veux que mon polynôme en mon nœud de support \\(\\sigma_1\\) prenne l'autre valeur, \\(y_1\\), qui vous a été fournie."
+  },
+  {
+   "t": 6152000,
+   "text": "So with these conditions, we can reverse engineer what the coefficients must be. It's a very simple expression here. So we're saying that we want p at \\(\\sigma_0\\), which is zero: we want \\(p(0)\\) to be equal to \\(y_0\\), and \\(p(0)\\) is equal to a plus b tau, where tau here is going to be zero. Of course, this guy goes to zero. So it says that \\(y_0\\) is equal to a. Same thing here: we want it at the support node \\(\\sigma_1\\), and \\(\\sigma_1\\) is one. So we want \\(p(1)\\) to be equal to a, which we now know is \\(y_0\\), plus b tau, where tau is one, and we have that this thing needs to be equal to \\(y_1\\), and this guy",
+   "fr": "Avec ces conditions, on peut donc retrouver par rétro-ingénierie ce que doivent être les coefficients. C'est une expression très simple ici. On dit qu'on veut p en \\(\\sigma_0\\), qui vaut zéro : on veut que \\(p(0)\\) soit égal à \\(y_0\\), et \\(p(0)\\) est égal à a plus b tau, où tau ici va valoir zéro. Évidemment, ce terme-là s'annule. Ça dit donc que \\(y_0\\) est égal à a. Même chose ici : on le veut au nœud de support \\(\\sigma_1\\), et \\(\\sigma_1\\) vaut un. On veut donc que \\(p(1)\\) soit égal à a, qui, on le sait maintenant, est \\(y_0\\), plus b tau, où tau vaut un, et on a que cette chose doit être égale à \\(y_1\\), et ce terme-là"
+  },
+  {
+   "t": 6212800,
+   "text": "here is now \\(y_0\\). So we have that b is equal to \\(y_1 - y_0\\). So all we did here is basically work out these coefficients implied by this choice, and this choice of coefficients here is uniquely determined, because we've chosen the right number of support points for the given polynomial here, of degree one.",
+   "fr": "ici vaut maintenant \\(y_0\\). On a donc que b est égal à \\(y_1 - y_0\\). Tout ce qu'on a fait ici, c'est essentiellement trouver ces coefficients impliqués par ce choix, et ce choix de coefficients ici est déterminé de façon unique, parce qu'on a choisi le bon nombre de points de support pour le polynôme donné ici, de degré un."
+  },
+  {
+   "t": 6245360,
+   "text": "Now, what's even more informative, to go to the following part, is how we are going to rewrite this thing. So we had... I really need some new markers. Yeah, okay. So a plus b tau, and we can insert back what we found here, which was that a was equal to \\(y_0\\), plus b, which is equal to \\(y_1 - y_0\\), times tau.",
+   "fr": "Maintenant, ce qui est encore plus instructif, pour passer à la partie suivante, c'est la façon dont on va réécrire cette chose. On avait donc... J'ai vraiment besoin de nouveaux crayons-feutres. Oui, d'accord. Donc a plus b tau, et on peut réinsérer ce qu'on a trouvé ici, c'est-à-dire que a était égal à \\(y_0\\), plus b, qui est égal à \\(y_1 - y_0\\), fois tau."
+  },
+  {
+   "t": 6296719,
+   "text": "So we have a representation of the polynomial which is entirely based on the data, if you wish. So I can work with the coefficients, or I can work with the nodes themselves, the values. This is going to be a very useful property. Why? Because when we do collocation, when we do simultaneous methods, remember, we're going to have state variables x. So by surfacing them explicitly, having a nodal representation will allow us to impose, for example, state constraints easily, or control constraints easily, or path constraints easily.",
+   "fr": "On a donc une représentation du polynôme qui repose entièrement sur les données, si vous voulez. Je peux donc travailler avec les coefficients, ou je peux travailler avec les nœuds eux-mêmes, les valeurs. Ça va être une propriété très utile. Pourquoi? Parce que quand on fait de la collocation, quand on fait des méthodes simultanées, rappelez-vous, on va avoir des variables d'état x. En les faisant apparaître explicitement, une représentation nodale va donc nous permettre d'imposer, par exemple, des contraintes d'état facilement, ou des contraintes sur la commande facilement, ou des contraintes de trajectoire facilement."
+  },
+  {
+   "t": 6338239,
+   "text": "So that's going to be our representation of choice. We can also rearrange: if we group the \\(y_0\\) terms together, we can rewrite it in a convenient form, which would be to write it as \\(y_0(1 - \\tau) + y_1\\tau\\). Why is that useful? You can think of this \\(1 - \\tau\\) term here as basically being like a weight.",
+   "fr": "Ce sera donc notre représentation de prédilection. On peut aussi réarranger : si on regroupe les termes en \\(y_0\\), on peut la réécrire sous une forme pratique, qui serait de l'écrire comme \\(y_0(1 - \\tau) + y_1\\tau\\). Pourquoi est-ce utile? Vous pouvez voir ce terme \\(1 - \\tau\\) ici essentiellement comme un poids."
+  },
+  {
+   "t": 6392560,
+   "text": "So it's weighting the data. It's a bit like nonparametric models in machine learning. We're grounding our model in the data, and then we weight the data dynamically depending on where we are on the time axis. Tau here is time; we often use tau to denote time. This representation is useful because it gives us a basis to appreciate something slightly more general, which is the representation of the Lagrange polynomial, and an object here which we're going to call... it's the Lagrange basis, but let's say",
+   "fr": "Il pondère donc les données. C'est un peu comme les modèles non paramétriques en apprentissage automatique. On ancre notre modèle dans les données, et ensuite on pondère les données de façon dynamique selon l'endroit où l'on se trouve sur l'axe du temps. Tau ici, c'est le temps; on utilise souvent tau pour désigner le temps. Cette représentation est utile parce qu'elle nous donne une base pour apprécier quelque chose d'un peu plus général, qui est la représentation du polynôme de Lagrange, et un objet ici qu'on va appeler... c'est la base de Lagrange, mais disons"
+  },
+  {
+   "t": 6452880,
+   "text": "another way to call it, here in the notes, is the Lagrange cardinal function. The cardinal function is equation 14 here: \\(\\ell_j(\\tau)\\), a product across all of our support nodes, from m equals zero... m, however, is not running over j...",
+   "fr": "qu'une autre façon de l'appeler, ici dans les notes, c'est la fonction cardinale de Lagrange. La fonction cardinale, c'est l'équation 14 ici : \\(\\ell_j(\\tau)\\), un produit sur tous nos nœuds de support, de m égale zéro... m, par contre, ne parcourt pas j..."
+  },
+  {
+   "t": 6490719,
+   "text": "to r. r is the degree. \\(\\tau - \\sigma_m\\), this is our support node, over \\(\\sigma_j - \\sigma_m\\). It looks a bit complicated, but it has this beautiful property, which is that as you evaluate this product for a given set of support nodes, it's going to collapse down to the Kronecker delta function",
+   "fr": "jusqu'à r. r est le degré. \\(\\tau - \\sigma_m\\), c'est notre nœud de support, sur \\(\\sigma_j - \\sigma_m\\). Ça a l'air un peu compliqué, mais ça a cette magnifique propriété : quand vous évaluez ce produit pour un ensemble donné de nœuds de support, il va se réduire à la fonction delta de Kronecker"
+  },
+  {
+   "t": 6524639,
+   "text": "whenever you have i equal to j. So whenever this value here is evaluated at one of the support nodes, it's going to collapse down to a delta function. Okay. What's relevant for us here, going from the small example I gave you here with the line, is that there's a more general representation which we're going to use for polynomials, rather than the coefficient-based one with the monomial basis from earlier. And it's this one. It's in the box because it's important. I wish I could use my presenter feature here. Oh, it's 3:30. Sorry, I'm finishing here. And it's equation 16.",
+   "fr": "chaque fois que vous avez i égal à j. Donc chaque fois que cette valeur ici est évaluée en l'un des nœuds de support, elle va se réduire à une fonction delta. D'accord. Ce qui est pertinent pour nous ici, en partant du petit exemple que je vous ai donné ici avec la droite, c'est qu'il existe une représentation plus générale qu'on va utiliser pour les polynômes, plutôt que celle fondée sur les coefficients avec la base monomiale de tout à l'heure. Et c'est celle-ci. Elle est encadrée parce qu'elle est importante. J'aimerais pouvoir utiliser ma fonction de présentation ici. Oh, il est 15 h 30. Désolé, je termine ici. Et c'est l'équation 16."
+  },
+  {
+   "t": 6575280,
+   "text": "Okay, so this is true: it's a polynomial, the Lagrange polynomial. It's a representation of a polynomial which, as you can see, is entirely built from the node values, the y's, the observables in a way. It's not the representation with the coefficients. And the way we're doing this is by taking a sum, not over coefficients, but a sum over the y's times this Lagrange cardinal function \\(\\ell\\). And so next class we're going to continue with that. There are a bunch of nice things now that we've got a representation like this. It's a linear function; we can work out by hand what the derivative is going to be. So I'm going to have an analytical expression for the derivative, and also an expression for the integral. It's quite unique. There are",
+   "fr": "D'accord, donc ceci est vrai : c'est un polynôme, le polynôme de Lagrange. C'est une représentation d'un polynôme qui, comme vous le voyez, est entièrement construite à partir des valeurs aux nœuds, les y, les observables d'une certaine façon. Ce n'est pas la représentation avec les coefficients. Et la façon dont on fait ça, c'est en prenant une somme, non pas sur des coefficients, mais une somme sur les y multipliés par cette fonction cardinale de Lagrange \\(\\ell\\). Au prochain cours, on va donc continuer avec ça. Il y a plein de belles choses maintenant qu'on a une représentation comme celle-ci. C'est une fonction linéaire; on peut calculer à la main ce que va être la dérivée. Je vais donc avoir une expression analytique pour la dérivée, et aussi une expression pour l'intégrale. C'est assez unique. Il n'y a"
+  },
+  {
+   "t": 6635280,
+   "text": "not a lot of functions in the world for which you can do that beforehand. It's a real feature. Differentiation especially is going to be a hugely useful feature. Why? Because when we have ODEs, we have derivatives. These functions are derivatives. So we're going to be able to impose the continuity of our system by leveraging the fact that we want a polynomial whose derivative matches the slope prescribed by the ODE.",
+   "fr": "pas beaucoup de fonctions au monde pour lesquelles on peut faire ça d'avance. C'est un véritable atout. La différentiation, surtout, va être un atout extrêmement utile. Pourquoi? Parce que quand on a des ODE, on a des dérivées. Ces fonctions sont des dérivées. On va donc pouvoir imposer la continuité de notre système en tirant parti du fait qu'on veut un polynôme dont la dérivée correspond à la pente prescrite par l'ODE."
+  },
+  {
+   "t": 6670800,
+   "text": "See you on Monday.",
+   "fr": "À lundi."
+  }
+ ]
+}

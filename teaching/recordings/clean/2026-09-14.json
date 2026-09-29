@@ -1,0 +1,820 @@
+{
+ "date": "2026-09-14",
+ "tldr": [
+  {
+   "notion": "Lagrange (nodal) polynomial basis",
+   "detail": "A polynomial can be stored by its values \\(y_j\\) at chosen nodes \\(\\sigma_j\\) and reconstructed exactly as \\(p(\\tau)=\\sum_j y_j \\ell_j(\\tau)\\), where the cardinal functions satisfy \\(\\ell_j(\\sigma_i)=\\delta_{ij}\\). This is interpolation (the polynomial passes through the points), not least-squares regression.",
+   "t": 185519,
+   "exam": false,
+   "notion_fr": "Base polynomiale de Lagrange (nodale)",
+   "detail_fr": "Un polynôme peut être stocké par ses valeurs \\(y_j\\) en des nœuds choisis \\(\\sigma_j\\) et reconstruit exactement sous la forme \\(p(\\tau)=\\sum_j y_j \\ell_j(\\tau)\\), où les fonctions cardinales satisfont \\(\\ell_j(\\sigma_i)=\\delta_{ij}\\). Il s'agit d'interpolation (le polynôme passe par les points), et non de régression par moindres carrés."
+  },
+  {
+   "notion": "Exact derivative and integral operators",
+   "detail": "Because the nodal values do not depend on \\(\\tau\\), differentiation and integration act only on the fixed cardinal functions, so a differentiation matrix and integration weights can be precomputed. They give the exact derivative and integral of the polynomial, without automatic differentiation or finite differences.",
+   "t": 601360,
+   "exam": false,
+   "notion_fr": "Opérateurs exacts de dérivation et d'intégration",
+   "detail_fr": "Comme les valeurs nodales ne dépendent pas de \\(\\tau\\), la dérivation et l'intégration n'agissent que sur les fonctions cardinales fixes, si bien qu'on peut précalculer une matrice de différentiation et des poids d'intégration. Ceux-ci donnent la dérivée et l'intégrale exactes du polynôme, sans différentiation automatique ni différences finies."
+  },
+  {
+   "notion": "Three-step collocation recipe",
+   "detail": "On each segment of a piecewise-polynomial trajectory: (1) choose collocation points, (2) require the derivative of the candidate polynomial \\(p'\\) to equal the dynamics \\(f\\) at those points, and (3) require \\(p\\) to pass through the endpoint node values, which are decision variables of the transcribed NLP and make the trajectory continuous across segments.",
+   "t": 1546000,
+   "exam": false,
+   "notion_fr": "Recette de collocation en trois étapes",
+   "detail_fr": "Sur chaque segment d'une trajectoire polynomiale par morceaux : (1) choisir les points de collocation, (2) exiger que la dérivée du polynôme candidat \\(p'\\) soit égale à la dynamique \\(f\\) en ces points, et (3) exiger que \\(p\\) passe par les valeurs nodales aux extrémités, qui sont des variables de décision du NLP transcrit et rendent la trajectoire continue d'un segment à l'autre."
+  },
+  {
+   "notion": "Euler, trapezoidal, Hermite-Simpson transcriptions",
+   "detail": "Euler collocation gives \\(x_{k+1}=x_k+h_k f\\) with the slope taken at one endpoint (explicit or implicit), trapezoidal averages the slopes \\(f_k\\) and \\(f_{k+1}\\) (quadratic state), and Hermite-Simpson adds midpoint states \\(x_{k+1/2}\\) (cubic state). As a rule of thumb, the state polynomial is one degree higher than the control representation (zero-order hold, linear, sometimes quadratic).",
+   "t": 1947919,
+   "exam": false,
+   "notion_fr": "Transcriptions d'Euler, trapézoïdale et d'Hermite-Simpson",
+   "detail_fr": "La collocation d'Euler donne \\(x_{k+1}=x_k+h_k f\\) avec la pente prise à une extrémité (explicite ou implicite), la méthode trapézoïdale fait la moyenne des pentes \\(f_k\\) et \\(f_{k+1}\\) (état quadratique), et Hermite-Simpson ajoute des états au point milieu \\(x_{k+1/2}\\) (état cubique). En règle générale, le polynôme d'état est d'un degré supérieur à la représentation de la commande (bloqueur d'ordre zéro, linéaire, parfois quadratique)."
+  },
+  {
+   "notion": "Why collocation keeps states",
+   "detail": "Collocation is a simultaneous method: the states appear explicitly as decision variables, so bounds and other constraints can be imposed on them directly, and the trajectory can be kept well behaved instead of blowing up, like exploding gradients in backpropagation through time.",
+   "t": 4649199,
+   "exam": false,
+   "notion_fr": "Pourquoi la collocation conserve les états",
+   "detail_fr": "La collocation est une méthode simultanée : les états apparaissent explicitement comme variables de décision, si bien qu'on peut leur imposer directement des bornes et d'autres contraintes, et garder une trajectoire qui se comporte bien au lieu d'exploser, comme les gradients qui explosent dans la rétropropagation à travers le temps."
+  },
+  {
+   "notion": "Augmented state for integral costs",
+   "detail": "A Bolza problem's running cost can be folded into the dynamics by augmenting the state with \\(z\\), where \\(\\dot z = c(x,u)\\) and \\(z(t_0)=0\\), so \\(z(t_f)\\) equals the integral cost. Applying the same collocation scheme to the augmented state prescribes a consistent quadrature rule on the same nodes (a rectangle rule for Euler, the trapezoidal rule for trapezoidal collocation), which explains the \\(h_k\\) factor in the transcribed objective.",
+   "t": 4928560,
+   "exam": false,
+   "notion_fr": "État augmenté pour les coûts intégraux",
+   "detail_fr": "Le coût courant d'un problème de Bolza peut être incorporé à la dynamique en augmentant l'état avec \\(z\\), où \\(\\dot z = c(x,u)\\) et \\(z(t_0)=0\\), de sorte que \\(z(t_f)\\) soit égal au coût intégral. Appliquer le même schéma de collocation à l'état augmenté prescrit une règle de quadrature cohérente sur les mêmes nœuds (une règle des rectangles pour Euler, la règle des trapèzes pour la collocation trapézoïdale), ce qui explique le facteur \\(h_k\\) dans l'objectif transcrit."
+  },
+  {
+   "notion": "Single shooting and long horizons",
+   "detail": "Single shooting eliminates the states by simulating forward from \\(x_0\\) under the candidate controls (an exact reparameterization) and optimizes over the controls only, differentiating through the simulation loop. It is mathematically equivalent but numerically sensitive, so for long horizons or unstable dynamics collocation is the better choice.",
+   "t": 5895679,
+   "exam": true,
+   "notion_fr": "Tir simple et longs horizons",
+   "detail_fr": "Le tir simple élimine les états en simulant vers l'avant à partir de \\(x_0\\) sous les commandes candidates (un reparamétrage exact) et optimise uniquement sur les commandes, en dérivant à travers la boucle de simulation. C'est mathématiquement équivalent, mais sensible numériquement ; pour les longs horizons ou une dynamique instable, la collocation est donc le meilleur choix."
+  }
+ ],
+ "outline": [
+  {
+   "t": 9599,
+   "title": "Recap: NLP solvers and SQP",
+   "title_fr": "Rappel : solveurs de NLP et SQP"
+  },
+  {
+   "t": 124079,
+   "title": "Lagrange basis and nodal representation",
+   "title_fr": "Base de Lagrange et représentation nodale"
+  },
+  {
+   "t": 601360,
+   "title": "Exact polynomial derivatives and integrals",
+   "title_fr": "Dérivées et intégrales polynomiales exactes"
+  },
+  {
+   "t": 914240,
+   "title": "Collocation idea: matching slopes piecewise",
+   "title_fr": "Idée de la collocation : faire correspondre les pentes par morceaux"
+  },
+  {
+   "t": 1205440,
+   "title": "Choosing the control representation",
+   "title_fr": "Choisir la représentation de la commande"
+  },
+  {
+   "t": 1420000,
+   "title": "Three-step collocation recipe",
+   "title_fr": "Recette de collocation en trois étapes"
+  },
+  {
+   "t": 1947919,
+   "title": "Euler transcription from the recipe",
+   "title_fr": "Transcription d'Euler à partir de la recette"
+  },
+  {
+   "t": 2423599,
+   "title": "Break",
+   "title_fr": "Pause"
+  },
+  {
+   "t": 3400960,
+   "title": "Trapezoidal and Hermite-Simpson collocation",
+   "title_fr": "Collocation trapézoïdale et d'Hermite-Simpson"
+  },
+  {
+   "t": 4059839,
+   "title": "Overhead crane example with collocation",
+   "title_fr": "Exemple de la grue à portique avec la collocation"
+  },
+  {
+   "t": 4750239,
+   "title": "Integral costs via augmented state",
+   "title_fr": "Coûts intégraux par état augmenté"
+  },
+  {
+   "t": 5895679,
+   "title": "Single shooting, horizon sensitivity, next steps",
+   "title_fr": "Tir simple, sensibilité à l'horizon, suite du cours"
+  }
+ ],
+ "paras": [
+  {
+   "t": 9599,
+   "text": "Okay, we're going to continue with this. I think it's actually a pretty conceptually challenging part of the course. Honestly, we start with this right from the beginning, but yeah, it's worth it, I guess. Again, what is it that we're doing? We are doing numerical trajectory optimization, and we're particularly interested today in learning how to deal with continuous-time systems. Last week we talked about solving discrete-time optimal control problems by treating them as nonlinear programs. We've talked about solvers for solving NLPs, nonlinear programs, generally. So we saw the simple Arrow-Hurwicz algorithm, which is gradient descent-ascent, or gradient descent-descent, depending on whether you maximize or minimize.",
+   "fr": "Bon, on va continuer avec ça. Je pense que c'est en fait une partie du cours assez difficile sur le plan conceptuel. Honnêtement, on commence avec ça dès le début, mais bon, ça en vaut la peine, j'imagine. Encore une fois, qu'est-ce qu'on est en train de faire ? On fait de l'optimisation numérique de trajectoire, et aujourd'hui on s'intéresse en particulier à apprendre comment traiter les systèmes en temps continu. La semaine dernière, on a parlé de la résolution de problèmes de commande optimale en temps discret en les traitant comme des programmes non linéaires. On a parlé des solveurs pour résoudre les NLP, les programmes non linéaires, de manière générale. On a donc vu l'algorithme simple d'Arrow-Hurwicz, qui est une descente-ascension de gradient, ou une descente-descente de gradient, selon qu'on maximise ou qu'on minimise."
+  },
+  {
+   "t": 62640,
+   "text": "We talked about SQP being, at least in the equality-constrained case, something you can think of as applying Newton's method to the first-order optimality conditions. In the more general case with inequality constraints, the reason why it's called SQP is that you can show that each local linearization step of Newton's method can in fact also be seen as solving a little mini quadratic program every single time. So that's the more general recipe for solving such problems. So last time we started talking about this, it's still on the board, and we've introduced... So we're going to be working with polynomials. And why are we going to be working with polynomials? Because this is how we're going to go from solving infinite-",
+   "fr": "On a parlé de SQP, qui, du moins dans le cas avec contraintes d'égalité, est quelque chose qu'on peut voir comme l'application de la méthode de Newton aux conditions d'optimalité du premier ordre. Dans le cas plus général avec des contraintes d'inégalité, la raison pour laquelle ça s'appelle SQP, c'est qu'on peut montrer que chaque étape de linéarisation locale de la méthode de Newton peut en fait aussi être vue comme la résolution d'un petit programme quadratique, à chaque fois. C'est donc la recette plus générale pour résoudre ce genre de problèmes. Alors la dernière fois, on a commencé à parler de ceci, c'est encore au tableau, et on a introduit... Donc on va travailler avec des polynômes. Et pourquoi est-ce qu'on va travailler avec des polynômes ? Parce que c'est comme ça qu'on va passer de la résolution de problèmes d'optimisation en dimension infinie"
+  },
+  {
+   "t": 124079,
+   "text": "dimensional optimization problems to finite-dimensional ones. Why is it now a finite-dimensional problem? Because now we're going to be searching over, actually here, the nodes of a polynomial. And this is what I had started explaining on the board last time, which is the choice of a basis when it comes to polynomials. If you're like me, the kind of polynomial we've seen all our life, pardon me, has been polynomials in the monomial basis. So that's the usual definition, where you've got your coefficients, then you take \\(x\\) and you take the powers of \\(x\\) up to the degree that you've been given. The thing is that these polynomials admit different bases. The same way we have a basis in linear algebra, we can choose a different basis for polynomials, and the right choice of basis for talking about numerical trajectory",
+   "fr": "à des problèmes en dimension finie. Pourquoi est-ce que c'est maintenant un problème en dimension finie ? Parce que maintenant, ce sur quoi on va chercher, en fait ici, ce sont les nœuds d'un polynôme. Et c'est ce que j'avais commencé à expliquer au tableau la dernière fois, c'est-à-dire le choix d'une base quand on parle de polynômes. Si vous êtes comme moi, le genre de polynômes qu'on a vus toute notre vie, pardon, ce sont des polynômes dans la base des monômes. C'est la définition habituelle, où on a nos coefficients, puis on prend \\(x\\) et on prend les puissances de \\(x\\) jusqu'au degré qu'on nous a donné. Le truc, c'est que ces polynômes admettent différentes bases. De la même façon qu'on a une base en algèbre linéaire, on peut choisir une base différente pour les polynômes, et le bon choix de base pour parler d'optimisation numérique"
+  },
+  {
+   "t": 185519,
+   "text": "optimization here is to go with a Lagrange basis. And so what's remarkable and interesting with the Lagrange basis is this... I'm going to use the term duality, but I don't think it's really mathematically as strong as the concept of duality, but let's call it this way: these polynomials admit a representation fully in terms of the node values themselves. And I think that a useful parallel for you, and for myself included, is that this is a bit like non-parametric models in machine learning, where, say you do nearest neighbors, well, you don't really store weights explicitly in your code. What you store is the data itself.",
+   "fr": "de trajectoire ici, c'est d'opter pour une base de Lagrange. Et ce qui est remarquable et intéressant avec la base de Lagrange, c'est cette... Je vais utiliser le terme dualité, mais je ne pense pas que ce soit mathématiquement aussi fort que le concept de dualité, mais appelons ça comme ça : ces polynômes admettent une représentation entièrement en fonction des valeurs aux nœuds elles-mêmes. Et je pense qu'un parallèle utile pour vous, et pour moi aussi d'ailleurs, c'est que ça ressemble un peu aux modèles non paramétriques en apprentissage automatique, où, disons que vous utilisez les plus proches voisins, eh bien, vous ne stockez pas vraiment de poids explicitement dans votre code. Ce que vous stockez, ce sont les données elles-mêmes."
+  },
+  {
+   "t": 234720,
+   "text": "So it's the same thing here. This is the whole story about the nodal representation of a polynomial, which is that what you want to store is the values at the points you've been given, the nodes, and then you can reconstruct the interpolating polynomial exactly. So what I had shown here was just a little something for building intuition. Imagine you've got a polynomial which essentially is a line, and we're given the following conditions.",
+   "fr": "C'est donc la même chose ici. C'est toute l'histoire de la représentation nodale d'un polynôme : ce que vous voulez stocker, ce sont les valeurs aux points qu'on vous a donnés, les nœuds, et ensuite vous pouvez reconstruire exactement le polynôme d'interpolation. Ce que j'avais montré ici, c'était juste un petit quelque chose pour développer l'intuition. Imaginez que vous avez un polynôme qui est essentiellement une droite, et qu'on vous donne les conditions suivantes."
+  },
+  {
+   "t": 271919,
+   "text": "We want our polynomial to be equal to \\(y_0\\) at zero and \\(y_1\\) at one. And by the way, this is the distinguishing factor when it comes to polynomial interpolation versus least-squares regression with a polynomial. It's not the same thing. When we do polynomial interpolation, we're really asking for a solution that goes through the points themselves. So here, this is our interpolation condition, and what I was just saying is that you can convince yourself with a bit of algebra that you can essentially get rid of the coefficients themselves and solve for them, because we're given these endpoint conditions. We can do backward substitution and recover the representation we had over there in terms of \\(y_0\\) and \\(\\tau\\). What is \\(\\tau\\) here? You would think of \\(\\tau\\) as time, but the interesting",
+   "fr": "On veut que notre polynôme soit égal à \\(y_0\\) en zéro et à \\(y_1\\) en un. Et d'ailleurs, c'est ce qui distingue l'interpolation polynomiale de la régression par moindres carrés avec un polynôme. Ce n'est pas la même chose. Quand on fait de l'interpolation polynomiale, on demande vraiment une solution qui passe par les points eux-mêmes. Donc ici, c'est notre condition d'interpolation, et ce que je disais, c'est que vous pouvez vous convaincre avec un peu d'algèbre qu'on peut essentiellement se débarrasser des coefficients eux-mêmes en les calculant, parce qu'on nous donne ces conditions aux extrémités. On peut faire une substitution arrière et retrouver la représentation qu'on avait là-bas en fonction de \\(y_0\\) et de \\(\\tau\\). Qu'est-ce que \\(\\tau\\) ici ? On penserait à \\(\\tau\\) comme étant le temps, mais l'interprétation intéressante"
+  },
+  {
+   "t": 334479,
+   "text": "interpretation here is that you think of \\(\\tau\\), or \\(1-\\tau\\), as basically a weighting factor. So you're weighting the observations you've essentially collected, the same way as in nonparametric models, honestly. Say you do Nadaraya-Watson or KDE: you're going to be doing essentially the same thing. You'll take your observables, you will weight them, and that's it. So this was just a small worked-out example by hand. You can redo it to convince yourself. But more generally, what's interesting for us is the representation of these Lagrange polynomials, which admits that form. Okay. And so we can build a Lagrange interpolant for a given set of nodes by building this basis that depends on the chosen node values, the sigmas, and we build the corresponding",
+   "fr": "ici, c'est de voir \\(\\tau\\), ou \\(1-\\tau\\), essentiellement comme un facteur de pondération. Vous pondérez donc les observations que vous avez essentiellement recueillies, de la même façon que dans les modèles non paramétriques, honnêtement. Disons que vous faites du Nadaraya-Watson ou du KDE : vous allez faire essentiellement la même chose. Vous prenez vos observables, vous les pondérez, et c'est tout. C'était donc juste un petit exemple fait à la main. Vous pouvez le refaire pour vous en convaincre. Mais plus généralement, ce qui nous intéresse, c'est la représentation de ces polynômes de Lagrange, qui admet cette forme-là. Bon. Et donc on peut construire un interpolant de Lagrange pour un ensemble de nœuds donné en construisant cette base qui dépend des valeurs de nœuds choisies, les sigmas, et on construit le polynôme"
+  },
+  {
+   "t": 396240,
+   "text": "polynomial according to equation 18. Can I do this now? No. Again, it works on the public website but not on my computer. And so the polynomial you're going to be building is this way. So you compute the basis, so all the \\(\\ell_j(\\tau)\\), and that depends on these node values you've picked, and you evaluate the corresponding polynomial this way. You can try these things out yourself in code, by the way. First of all, SciPy has a bunch of functions for working with interpolants.",
+   "fr": "correspondant selon l'équation 18. Est-ce que je peux faire ça maintenant ? Non. Encore une fois, ça marche sur le site public, mais pas sur mon ordinateur. Et donc le polynôme que vous allez construire, c'est comme ça. Vous calculez la base, donc tous les \\(\\ell_j(\\tau)\\), et ça dépend des valeurs de nœuds que vous avez choisies, et vous évaluez le polynôme correspondant de cette façon. Vous pouvez essayer ces choses-là vous-mêmes en code, d'ailleurs. Tout d'abord, SciPy a tout un tas de fonctions pour travailler avec des interpolants."
+  },
+  {
+   "t": 438160,
+   "text": "You can also work it out by hand easily. Let me just split this here. For example, here we're given a set of nodes, of positions. So here the x nodes are essentially what we were calling sigma, the nodes, and the y values are the observed values we've got, and then you can call SciPy with lagrange of x nodes, y nodes. I honestly don't know how it works under the hood. It's probably doing it in a smart way, not necessarily according to the definition. But what's interesting for us is, first of all, this property, let me just remove this for clarity, that I have here: the property that when you evaluate your polynomial at the given node values",
+   "fr": "Vous pouvez aussi le faire à la main facilement. Laissez-moi juste séparer ceci ici. Par exemple, ici, on nous donne un ensemble de nœuds, de positions. Donc ici, les x nodes, c'est essentiellement ce qu'on appelait sigma, les nœuds, et les valeurs y sont les valeurs observées qu'on a, et ensuite vous pouvez appeler SciPy avec lagrange de x nodes, y nodes. Honnêtement, je ne sais pas comment ça fonctionne sous le capot. Ça le fait probablement de façon astucieuse, pas nécessairement selon la définition. Mais ce qui est intéressant pour nous, c'est d'abord cette propriété, laissez-moi juste enlever ça pour que ce soit plus clair, que j'ai ici : la propriété selon laquelle, quand vous évaluez votre polynôme aux valeurs de nœuds données"
+  },
+  {
+   "t": 501360,
+   "text": "you've chosen for your representation, this thing is going to collapse to the delta function, and so you know by construction that your polynomial is going to give you the exact value you had when constructing your polynomial. So this is what we're seeing here, and let's just look at what we had over there. So we had that at zero, for example, we had a value of one. So let's see if we get the same thing here. And what we're doing here is going over the original values. So you can see here, original: basically I store \\(y\\) equal to one.",
+   "fr": "que vous avez choisies pour votre représentation, cette chose va se réduire à la fonction delta, et donc vous savez par construction que votre polynôme va vous redonner exactement la valeur que vous aviez quand vous avez construit votre polynôme. C'est donc ce qu'on voit ici, et regardons simplement ce qu'on avait là-bas. On avait qu'en zéro, par exemple, on avait une valeur de un. Voyons donc si on obtient la même chose ici. Et ce qu'on fait ici, c'est parcourir les valeurs originales. Vous pouvez voir ici, original : en gros, je stocke \\(y\\) égal à un."
+  },
+  {
+   "t": 540000,
+   "text": "And when I look at what my polynomial... So I evaluate, when I call poly of x. The way that SciPy works here is that when you call lagrange, it essentially returns a function, which is the polynomial itself. So then you can give it any value. So this is like \\(\\tau\\) for us, \\(p(\\tau)\\). So here what we're saying is that we're going to be iterating over the nodes, the sigmas that we used, and we're going to check whether it's indeed true that you recover the value that we had. And again, this is what interpolation means. So \\(y_1\\) here matches with \\(y_1\\) here, \\(y_4\\) here matches with \\(y_4\\) here. Okay. An interesting property of working with polynomials, and that's going to be the key to the following set of",
+   "fr": "Et quand je regarde ce que mon polynôme... Donc j'évalue, quand j'appelle poly de x. La façon dont SciPy fonctionne ici, c'est que quand vous appelez lagrange, ça retourne essentiellement une fonction, qui est le polynôme lui-même. Ensuite, vous pouvez lui donner n'importe quelle valeur. C'est comme \\(\\tau\\) pour nous, \\(p(\\tau)\\). Donc ce qu'on dit ici, c'est qu'on va parcourir les nœuds, les sigmas qu'on a utilisés, et on va vérifier s'il est bien vrai qu'on retrouve la valeur qu'on avait. Et encore une fois, c'est ça que veut dire interpoler. Donc \\(y_1\\) ici correspond à \\(y_1\\) ici, \\(y_4\\) ici correspond à \\(y_4\\) ici. Bon. Une propriété intéressante quand on travaille avec des polynômes, et ça va être la clé de la série de"
+  },
+  {
+   "t": 601360,
+   "text": "methods, is the fact that polynomials are nice because they give us a way to evaluate derivatives and integrals very, very easily. I think it's particularly obvious when you look at it in the monomial basis: you differentiate with respect to the input, and then you can work out the expression for the derivative in closed form ahead of time. Okay. So this is why, let's say in SciPy, you've got a function called derivative, and it outputs the exact derivative of your polynomial. This is not doing automatic differentiation. It's not doing finite differences. It's the actual derivative. It's the real thing.",
+   "fr": "méthodes qui suit, c'est que les polynômes sont pratiques parce qu'ils nous donnent une façon d'évaluer des dérivées et des intégrales très, très facilement. Je pense que c'est particulièrement évident quand on regarde dans la base des monômes : on dérive par rapport à l'entrée, et ensuite on peut établir à l'avance l'expression de la dérivée sous forme close. Bon. C'est pour ça que, disons dans SciPy, vous avez une fonction appelée derivative, et elle vous donne la dérivée exacte de votre polynôme. Ça ne fait pas de la différentiation automatique. Ça ne fait pas de différences finies. C'est la vraie dérivée. C'est la vraie affaire."
+  },
+  {
+   "t": 650800,
+   "text": "We can in fact even represent that, pardon me. So we can even implement this differentiation operator by expressing it as a matrix operation. So if we start with our polynomial in the Lagrange basis, we can then consider the corresponding derivative for that Lagrange polynomial, and now, instead of working with the original cardinal Lagrange function, we're going to have the term which is the derivative itself, because the dependence on the input is only seen through the basis itself. The dependence is not through the second term.",
+   "fr": "On peut même en fait représenter ça, pardon. On peut même implémenter cet opérateur de différentiation en l'exprimant comme une opération matricielle. Si on part de notre polynôme dans la base de Lagrange, on peut ensuite considérer la dérivée correspondante de ce polynôme de Lagrange, et maintenant, au lieu de travailler avec la fonction cardinale de Lagrange originale, on va avoir le terme qui est la dérivée elle-même, parce que la dépendance par rapport à l'entrée n'apparaît qu'à travers la base elle-même. La dépendance ne passe pas par le deuxième terme."
+  },
+  {
+   "t": 697279,
+   "text": "The second term is the output. So of course it's not affected by differentiation. And so these things can in fact be computed ahead of time, which means that, for example, and we should look into the code to see how it works with SciPy, let's say when you call lagrange, at this point in time it can already build what's going to be the corresponding differentiation operator, and then it's computed for any given input. Same thing also for integration. Integration can be expressed very simply and computed ahead of time with these weighting functions that will get precomputed.",
+   "fr": "Le deuxième terme, c'est la sortie. Donc évidemment, il n'est pas affecté par la différentiation. Et donc ces choses-là peuvent en fait être calculées à l'avance, ce qui veut dire que, par exemple, et on devrait regarder dans le code pour voir comment ça marche avec SciPy, disons que quand vous appelez lagrange, à ce moment-là, ça peut déjà construire ce qui va être l'opérateur de différentiation correspondant, et ensuite c'est calculé pour n'importe quelle entrée donnée. Même chose aussi pour l'intégration. L'intégration peut s'exprimer très simplement et être calculée à l'avance avec ces fonctions de pondération qui vont être précalculées."
+  },
+  {
+   "t": 739760,
+   "text": "By the way, there's a place where this has become useful for us, now that I think about it. This has nothing to do with optimal control, but in the context, for example, of thermodynamics, you've got the laws of thermodynamics that need to be consistent with each other. You've got the entropy, the enthalpy; all these quantities need to be consistent with each other. So we had this project a year or a year and a half ago where we were trying to learn a predictor to predict essentially the thermal properties of hypothetical fluids, in the context of materials discovery. And we stumbled upon this representation that was widely used in physics. I'm not sure I'm going to be able to Google it right",
+   "fr": "D'ailleurs, il y a un endroit où ça nous a été utile, maintenant que j'y pense. Ça n'a rien à voir avec la commande optimale, mais dans le contexte, par exemple, de la thermodynamique, vous avez les lois de la thermodynamique qui doivent être cohérentes entre elles. Vous avez l'entropie, l'enthalpie ; toutes ces quantités doivent être cohérentes entre elles. On avait donc ce projet, il y a un an ou un an et demi, où on essayait d'apprendre un prédicteur pour prédire essentiellement les propriétés thermiques de fluides hypothétiques, dans le contexte de la découverte de matériaux. Et on est tombés sur cette représentation qui était largement utilisée en physique. Je ne suis pas sûr que je vais être capable de la retrouver sur Google tout de suite,"
+  },
+  {
+   "t": 799920,
+   "text": "away, but it's otherwise in our paper. Is it on my website if I search \"discovery\"? How was it called? I don't think it's there, actually. Oh yeah, it's here. So anyway, this representation is usually called the NASA polynomial. Oh yeah, there you go: NASA polynomials. And NASA polynomials are basically just a representation of these thermodynamic properties in terms of a polynomial. Okay. But why is that? It's because especially that integration here can be done in a tractable way ahead of time, and it can be encoded within the laws themselves such that our prediction will be self-consistent.",
+   "fr": "mais sinon, elle est dans notre article. Est-ce que c'est sur mon site web si je cherche « discovery » ? Comment ça s'appelait ? Je ne pense pas que ce soit là, en fait. Ah oui, c'est ici. Bref, cette représentation s'appelle habituellement le polynôme NASA. Ah oui, voilà : les polynômes NASA. Et les polynômes NASA, c'est essentiellement une représentation de ces propriétés thermodynamiques sous forme de polynôme. Bon. Mais pourquoi ? C'est parce qu'en particulier cette intégration ici peut être faite de manière traitable, à l'avance, et elle peut être encodée dans les lois elles-mêmes de sorte que notre prédiction soit auto-cohérente."
+  },
+  {
+   "t": 852880,
+   "text": "So maybe it's a bit fuzzy, what I'm saying here. If you're interested, if you're a physics person and you want to go more into the details about that, I think we discuss it in the appendix. But yeah, we used that thing here because... look, I can't remember. I'm not a physics person. At some point I understood these things, but it looks like I don't remember them anymore. But I can tell you for sure that we wanted to ensure by design that our equations were consistent with one another, and polynomials are one of the few classes of functions where these things can be done tractably. Otherwise you'd have to approximate it and do it numerically, but here, by design, things are consistent. I don't remember... Yeah, okay. But here we're doing it for control, and in particular we're going to leverage these useful properties... in what context? It's going to be for",
+   "fr": "C'est peut-être un peu flou, ce que je dis là. Si ça vous intéresse, si vous venez de la physique et que vous voulez aller plus dans les détails là-dessus, je pense qu'on en parle dans l'annexe. Mais bon, on a utilisé cette chose-là ici parce que... écoutez, je ne m'en souviens plus. Je ne suis pas physicien. À un moment donné, je comprenais ces choses-là, mais on dirait que je ne m'en souviens plus. Mais je peux vous dire avec certitude qu'on voulait garantir par conception que nos équations soient cohérentes les unes avec les autres, et les polynômes sont l'une des rares classes de fonctions pour lesquelles ces choses-là peuvent se faire de manière traitable. Sinon, il faudrait approximer et le faire numériquement, mais ici, par conception, les choses sont cohérentes. Je ne me souviens pas... Oui, bon. Mais ici, on le fait pour la commande, et en particulier on va tirer parti de ces propriétés utiles... dans quel contexte ? Ça va être pour"
+  },
+  {
+   "t": 914240,
+   "text": "solving problems that look like... well, we want to turn our continuous-time problem into a problem that looks like this. So this is fully finite and deterministic. But remember, the original problem involves an integral, an integral cost. The dynamics themselves are not written in difference form like that. Rather, we've got dynamics that are expressed as an ordinary differential equation.",
+   "fr": "résoudre des problèmes qui ressemblent à... eh bien, on veut transformer notre problème en temps continu en un problème qui ressemble à ceci. Celui-ci est entièrement fini et déterministe. Mais rappelez-vous, le problème original fait intervenir une intégrale, un coût intégral. La dynamique elle-même n'est pas écrite sous forme d'équation aux différences comme ça. On a plutôt une dynamique qui est exprimée comme une équation différentielle ordinaire."
+  },
+  {
+   "t": 949600,
+   "text": "Which means that rather than predicting or specifying directly what the next state is going to be, it tells you: if I'm in this state and I apply this action, here's the rate of change of the state. Rate of change. And so we're going to deal with this by embracing the world of polynomials. And the intuition here for the class of methods we're going to be studying is the following. The class of methods is called collocation methods.",
+   "fr": "Ce qui veut dire qu'au lieu de prédire ou de spécifier directement ce que va être le prochain état, elle vous dit : si je suis dans cet état et que j'applique cette action, voici le taux de variation de l'état. Le taux de variation. Et donc on va traiter ça en adoptant pleinement le monde des polynômes. Et l'intuition ici, pour la classe de méthodes qu'on va étudier, est la suivante. Cette classe de méthodes s'appelle les méthodes de collocation."
+  },
+  {
+   "t": 989440,
+   "text": "And first of all, I need to tell you one thing, which is that we're going to use not just one polynomial but in fact a piecewise polynomial. So we're going to take, again, a trajectory of finite length, and we're going to chunk it up into smaller pieces, and we're then going to essentially fit a polynomial within each of these segments.",
+   "fr": "Et d'abord, je dois vous dire une chose : on ne va pas utiliser un seul polynôme, mais en fait un polynôme par morceaux. On va prendre, encore une fois, une trajectoire de longueur finie, on va la découper en plus petits morceaux, et on va ensuite essentiellement ajuster un polynôme sur chacun de ces segments."
+  },
+  {
+   "t": 1024160,
+   "text": "I think I had a figure. Where's my figure? Sorry, I refreshed my notes. Not here. Not here. All right, I'll draw it on the board. Okay, I'll just draw it on the board. So we're going to be designing things in such a way that when we solve the transcribed problem, because that's how it's called, we're going to have a solution which is consistent with the dynamics. And the way we're doing this, and why I told you about polynomials, is that we're going to work in a nodal representation.",
+   "fr": "Je pense que j'avais une figure. Où est ma figure ? Désolé, j'ai rafraîchi mes notes. Pas ici. Pas ici. Bon, je vais la dessiner au tableau. OK, je vais juste la dessiner au tableau. Donc on va concevoir les choses de telle sorte que quand on résout le problème transcrit, parce que c'est comme ça qu'on l'appelle, on obtienne une solution qui est cohérente avec la dynamique. Et la façon dont on fait ça, et la raison pour laquelle je vous ai parlé des polynômes, c'est qu'on va travailler dans une représentation nodale."
+  },
+  {
+   "t": 1079360,
+   "text": "We're not going to search over coefficients. So imagine that this is the trajectory. It's really just for intuition. And imagine that this is the true trajectory of our system, the one described by the dynamics, and the trajectory induced by a candidate control function \\(u(t)\\), which may not be optimal; we're optimizing over it. But the joint system of the control function with our dynamics gives rise to a trajectory that looks like that. The thing is that we don't know this thing explicitly, because we're going to solve for it implicitly within our NLP.",
+   "fr": "On ne va pas faire la recherche sur les coefficients. Imaginez que ceci est la trajectoire. C'est vraiment juste pour l'intuition. Et imaginez que c'est la vraie trajectoire de notre système, celle décrite par la dynamique, la trajectoire induite par une fonction de commande candidate \\(u(t)\\), qui n'est peut-être pas optimale ; c'est sur elle qu'on optimise. Mais le système conjoint formé par la fonction de commande et notre dynamique donne lieu à une trajectoire qui ressemble à ça. Le truc, c'est qu'on ne connaît pas cette chose explicitement, parce qu'on va la déterminer implicitement à l'intérieur de notre NLP."
+  },
+  {
+   "t": 1131919,
+   "text": "However, we know something very important. We know exactly what the true rate of change is. This piece of information is given to us. The thing I don't know is \\(x\\) at an arbitrary given \\(t\\); that I don't know. So the dot here, very important, the dot means time derivative.",
+   "fr": "Par contre, on sait quelque chose de très important. On sait exactement quel est le vrai taux de variation. Cette information nous est donnée. Ce que je ne connais pas, c'est \\(x\\) à un \\(t\\) arbitraire donné ; ça, je ne le connais pas. Donc le point ici, très important, le point veut dire dérivée par rapport au temps."
+  },
+  {
+   "t": 1169520,
+   "text": "So this we know; it's part of the problem specification. This needs to somehow be inferred as part of our program. So what we're going to do here, in the class of collocation methods, is represent that trajectory as a polynomial. That's not the only place where we're going to have to use a polynomial representation. The other place is going to be for the control function \\(u(t)\\).",
+   "fr": "Donc ça, on le connaît ; ça fait partie de la spécification du problème. Ceci doit, d'une certaine façon, être inféré dans le cadre de notre programme. Ce qu'on va faire ici, dans la classe des méthodes de collocation, c'est représenter cette trajectoire comme un polynôme. Ce n'est pas le seul endroit où on va devoir utiliser une représentation polynomiale. L'autre endroit, ça va être pour la fonction de commande \\(u(t)\\)."
+  },
+  {
+   "t": 1205440,
+   "text": "But that one is a bit... it's not strange, but for that one we're not really going to have to do anything special, because it's kind of our choice to pick which approximation we're going to use for the control function. What do you think is the simplest way to represent a control function? Imagine the following.",
+   "fr": "Mais celle-là est un peu... ce n'est pas bizarre, mais pour celle-là, on n'aura pas vraiment besoin de faire quoi que ce soit de spécial, parce que c'est en quelque sorte à nous de choisir quelle approximation on va utiliser pour la fonction de commande. Selon vous, quelle est la façon la plus simple de représenter une fonction de commande ? Imaginez la situation suivante."
+  },
+  {
+   "t": 1238720,
+   "text": "I've got a system that presumably acts in the real world, in physical continuous time, and I have a controller that computes commands to apply, let's say, to a motor. If I were to plot, say, the commands sent to the motor, what would it look like? Or what are the choices that one could make to go from a mathematical object to the actual control itself that we're going to truly be implementing between two sampling time instants?",
+   "fr": "J'ai un système qui agit vraisemblablement dans le monde réel, en temps continu physique, et j'ai un contrôleur qui calcule des commandes à appliquer, disons, à un moteur. Si je traçais, disons, les commandes envoyées au moteur, à quoi est-ce que ça ressemblerait ? Ou encore, quels sont les choix qu'on pourrait faire pour passer d'un objet mathématique à la commande réelle elle-même qu'on va vraiment implémenter entre deux instants d'échantillonnage ?"
+  },
+  {
+   "t": 1272799,
+   "text": "What would it look like if we were to look? So imagine there are two time instants here, \\(t\\) and \\(t'\\). So one of the easiest choices, which we would often use, is what's sometimes called a zero-order hold, which would literally say: between two time instants, I'm going to keep the same command to, let's say, my motor, and at the next time instant I might end up jumping and applying another command for that instant, and then I can apply another command again.",
+   "fr": "À quoi est-ce que ça ressemblerait si on regardait ? Imaginez qu'il y a deux instants ici, \\(t\\) et \\(t'\\). L'un des choix les plus simples, qu'on utiliserait souvent, c'est ce qu'on appelle parfois un bloqueur d'ordre zéro (zero-order hold), qui dirait littéralement : entre deux instants, je vais garder la même commande pour, disons, mon moteur, et à l'instant suivant, je pourrais finir par sauter et appliquer une autre commande pour cet instant-là, puis je peux encore appliquer une autre commande."
+  },
+  {
+   "t": 1321919,
+   "text": "So a zero-order hold, you can think of it as a polynomial representation of your control, but a polynomial of order zero, where it's constant within each control period. You can be a bit more fancy and instead say: I'm going to represent my control function between two time periods, and I'm going to do it with a linear interpolation, two lines here. And instead of going from, I don't know, a torque value of \\(u\\)... I don't know, let's say you go from 100 RPM, your motor RPM, to 200 RPM, and instead of literally pressing the gas pedal all the way from 100 to 200, you're going to do it maybe more gradually. So you could also have a linear",
+   "fr": "Donc un bloqueur d'ordre zéro, vous pouvez le voir comme une représentation polynomiale de votre commande, mais un polynôme d'ordre zéro, où elle est constante à l'intérieur de chaque période de commande. Vous pouvez être un peu plus sophistiqués et dire plutôt : je vais représenter ma fonction de commande entre deux périodes, et je vais le faire avec une interpolation linéaire, deux droites ici. Et au lieu de passer, je ne sais pas, d'une valeur de couple de \\(u\\)... je ne sais pas, disons que vous passez de 100 tr/min, le régime de votre moteur, à 200 tr/min, et qu'au lieu d'enfoncer littéralement la pédale d'accélérateur à fond de 100 à 200, vous le faites peut-être plus graduellement. Vous pourriez donc aussi avoir une représentation"
+  },
+  {
+   "t": 1382559,
+   "text": "representation of the control function, or you could have higher-order polynomials, quadratic, cubic, and so on. Okay, so this is for the control function. There's not much to say apart from the fact that you're going to be choosing one, and there are places in our transcription where there will be natural choices for which representation. I'll get back to this later. But yeah, what's interesting for us here is the polynomial representation of the trajectory itself.",
+   "fr": "linéaire de la fonction de commande, ou vous pourriez avoir des polynômes d'ordre supérieur, quadratiques, cubiques, et ainsi de suite. Bon, ça, c'est pour la fonction de commande. Il n'y a pas grand-chose à dire, à part que vous allez en choisir une, et il y a des endroits dans notre transcription où il y aura des choix naturels de représentation. J'y reviendrai plus tard. Mais bon, ce qui est intéressant pour nous ici, c'est la représentation polynomiale de la trajectoire elle-même."
+  },
+  {
+   "t": 1420000,
+   "text": "So given what I told you earlier, there's already something which is really interesting, which is that, imagine I've got a representation of \\(x\\) as a polynomial, I'm going to call it \\(p(t)\\), and I can already evaluate, without approximation, \\(p'(t)\\), the derivative of my candidate polynomial for the trajectory. That is information I have available. So I've got two pieces here that I can leverage. I know the true slope of my system, and I know the true derivative of a candidate polynomial. Why do I say candidate?",
+   "fr": "Donc, étant donné ce que je vous ai dit plus tôt, il y a déjà quelque chose de vraiment intéressant, c'est-à-dire : imaginez que j'ai une représentation de \\(x\\) comme un polynôme, je vais l'appeler \\(p(t)\\), et je peux déjà évaluer, sans approximation, \\(p'(t)\\), la dérivée de mon polynôme candidat pour la trajectoire. C'est une information dont je dispose. J'ai donc deux éléments ici dont je peux tirer parti. Je connais la vraie pente de mon système, et je connais la vraie dérivée d'un polynôme candidat. Pourquoi est-ce que je dis candidat ?"
+  },
+  {
+   "t": 1466000,
+   "text": "A candidate for the true underlying \\(x(t)\\) of my system. So I'm going to turn that basically into a system of equations. So I've already got the very important condition: I want the derivative of my candidate polynomial to match the slope.",
+   "fr": "Candidat pour le vrai \\(x(t)\\) sous-jacent de mon système. Je vais donc transformer ça essentiellement en un système d'équations. J'ai donc déjà la condition très importante : je veux que la dérivée de mon polynôme candidat corresponde à la pente."
+  },
+  {
+   "t": 1505440,
+   "text": "If I were to look at the slope locally, I'm going to ask for this. Imagine that this is the polynomial, a candidate \\(p(t)\\), and I'm going to require that \\(p'\\) at, let's call it \\(\\sigma_i\\)... I'm going to ask this to be equal to the value at the same \\(\\sigma_i\\).",
+   "fr": "Si je regardais la pente localement, je vais demander ceci. Imaginez que ceci est le polynôme, un candidat \\(p(t)\\), et je vais exiger que \\(p'\\) en, appelons-le \\(\\sigma_i\\)... je vais demander que ce soit égal à la valeur au même \\(\\sigma_i\\)."
+  },
+  {
+   "t": 1546000,
+   "text": "And I'm going to impose this condition over a set of chosen nodes that I'm going to pick in advance. So the first step for specifying a collocation method will be to choose...",
+   "fr": "Et je vais imposer cette condition sur un ensemble de nœuds que je vais choisir à l'avance. Donc la première étape pour spécifier une méthode de collocation, ce sera de choisir..."
+  },
+  {
+   "t": 1578000,
+   "text": "Choose the collocation points. We'll see more clearly what these choices might look like for specific candidates. But these will be points where we essentially want to sample our candidate polynomial and ensure that there's a match with the true dynamics.",
+   "fr": "Choisir les points de collocation. On verra plus clairement à quoi ces choix peuvent ressembler pour des candidats précis. Mais ce seront des points où on veut essentiellement échantillonner notre polynôme candidat et s'assurer qu'il y a une correspondance avec la vraie dynamique."
+  },
+  {
+   "t": 1613360,
+   "text": "Then the second thing we're going to do is match the slopes. So basically, derivative of candidate... Sorry if this is a bit too low.",
+   "fr": "Ensuite, la deuxième chose qu'on va faire, c'est faire correspondre les pentes. Donc en gros, la dérivée du candidat... Désolé si c'est un peu trop bas."
+  },
+  {
+   "t": 1643600,
+   "text": "...candidate polynomial must be equal to \\(f\\). And there's going to be one more thing, because all of this needs to give us a linear system of equations. And for the linear system of equations to admit a solution, we need to have enough equations in our system, such that we're neither overdetermined nor underdetermined. We want exactly the number that matches the degree of the polynomial. We're going to add two more conditions, which will make the whole thing well defined, and it's going to require... I'm going to write it somewhere else.",
+   "fr": "...du polynôme candidat doit être égale à \\(f\\). Et il va y avoir une chose de plus, parce que tout ça doit nous donner un système d'équations linéaires. Et pour que le système d'équations linéaires admette une solution, il faut avoir assez d'équations dans notre système, de sorte qu'il ne soit ni surdéterminé ni sous-déterminé. On veut exactement le nombre qui correspond au degré du polynôme. On va ajouter deux conditions de plus, ce qui va rendre le tout bien défini, et ça va exiger... je vais l'écrire ailleurs."
+  },
+  {
+   "t": 1715120,
+   "text": "So we're going to require that my candidate polynomial, let's say I'm going to call this, just for simplicity, \\(p(t_0)\\), so that's the value of my candidate polynomial at the beginning of the interval. And so I'm going to require this to match the actual value of my node, which is now a decision variable in the transcribed NLP.",
+   "fr": "On va donc exiger que mon polynôme candidat, disons que je vais appeler ceci, juste pour simplifier, \\(p(t_0)\\), donc c'est la valeur de mon polynôme candidat au début de l'intervalle. Et je vais exiger que ça corresponde à la valeur réelle de mon nœud, qui est maintenant une variable de décision dans le NLP transcrit."
+  },
+  {
+   "t": 1765440,
+   "text": "So we want this to match at the beginning, and the same at the end of my interval. Let's call it \\(t_f\\). These are two conditions. So these \\(t_0\\), \\(t_f\\), they're really about the piecewise representation of our polynomial.",
+   "fr": "On veut donc que ça corresponde au début, et pareil à la fin de mon intervalle. Appelons-la \\(t_f\\). Ce sont deux conditions. Donc ces \\(t_0\\), \\(t_f\\), ça concerne vraiment la représentation par morceaux de notre polynôme."
+  },
+  {
+   "t": 1797279,
+   "text": "So we're going to require this to be consistent and pass through the values. So the values here at these points, these are decision variables. They're exact, and we want our polynomials to pass through them. And also, that condition ensures continuity. Continuity of what? Continuity of the trajectory, because we don't want to have just a collection of polynomials that are not stitched up and glued to one another.",
+   "fr": "On va donc exiger que ce soit cohérent et que ça passe par les valeurs. Les valeurs ici, en ces points, ce sont des variables de décision. Elles sont exactes, et on veut que nos polynômes passent par elles. Et aussi, cette condition assure la continuité. La continuité de quoi ? La continuité de la trajectoire, parce qu'on ne veut pas avoir juste une collection de polynômes qui ne sont pas raccordés et recollés les uns aux autres."
+  },
+  {
+   "t": 1837440,
+   "text": "So this will ensure that whatever polynomial I fit within a segment, its end value matches the beginning of the next one. All right. And so that's basically the three steps, pretty general. We're going to look at some examples, and on Thursday I'll ask Gabriel to come and help you too. I think I'll have some exercises in class, so you get to really work on these things and get some feedback, as you need to practice it.",
+   "fr": "Donc ça va garantir que, peu importe le polynôme que j'ajuste à l'intérieur d'un segment, sa valeur finale correspond au début du suivant. Bon. Et donc ce sont essentiellement les trois étapes, assez générales. On va regarder quelques exemples, et jeudi, je vais demander à Gabriel de venir vous aider aussi. Je pense que j'aurai quelques exercices en classe, pour que vous puissiez vraiment travailler sur ces choses-là et avoir de la rétroaction, parce que vous avez besoin de vous exercer."
+  },
+  {
+   "t": 1879600,
+   "text": "But these are the three main steps. Any question on this?\nStudent: Is there anything that guarantees smoothness between [inaudible]?\nYeah, by construction this will be smooth. The slopes need not be, but the overall trajectory \\(x\\) will be smooth by construction if we find a solution. So there are instances where maybe your optimal control problem might not be feasible at all, so maybe you're not going to be able to find one, but by construction it's going to work out.",
+   "fr": "Mais ce sont les trois étapes principales. Des questions là-dessus ?\nStudent: Est-ce qu'il y a quelque chose qui garantit que c'est lisse entre [inaudible] ?\nOui, par construction, ça va être lisse. Les pentes, pas nécessairement, mais la trajectoire globale \\(x\\) va être lisse par construction si on trouve une solution. Il y a donc des cas où votre problème de commande optimale n'est peut-être pas réalisable du tout, et vous ne serez peut-être pas capables d'en trouver une, mais par construction, ça va fonctionner."
+  },
+  {
+   "t": 1917679,
+   "text": "Any other question? So this is pretty abstract, but let's look at some worked-out examples. I think my notation here is not consistent. I'll try to fix this.",
+   "fr": "D'autres questions ? C'est assez abstrait, mais regardons quelques exemples détaillés. Je pense que ma notation ici n'est pas cohérente. Je vais essayer de corriger ça."
+  },
+  {
+   "t": 1947919,
+   "text": "But here's the simplest transcription that you can think of, and it's an example of a collocation method, which gives you a simultaneous method, by the way [inaudible]. It would be for the choice of two collocation points, 0 and 1. Actually, sorry. We've got two cases, where you can either get what's called explicit Euler or implicit Euler.",
+   "fr": "Mais voici la transcription la plus simple à laquelle on puisse penser, et c'est un exemple de méthode de collocation, qui vous donne une méthode simultanée, d'ailleurs [inaudible]. Ce serait pour le choix de deux points de collocation, 0 et 1. En fait, désolé. On a deux cas, où on peut obtenir soit ce qu'on appelle Euler explicite, soit Euler implicite."
+  },
+  {
+   "t": 1981120,
+   "text": "And we'll go through the derivation by hand of how you get to this. But what's going to be interesting to see is that if you apply that blueprint, one, two, three, you're going to be able to get this representation here. There's a recipe; that's what I mean, for coming up with this. What have we got? Well, the first thing we've done, and I want you to notice this: we turned what would have been an integral into a summation, and there's a term that also appeared in there, \\(h\\), and it's not arbitrary.",
+   "fr": "Et on va refaire le calcul à la main pour voir comment on arrive à ça. Mais ce qui va être intéressant à voir, c'est que si vous appliquez ce plan, un, deux, trois, vous allez pouvoir obtenir cette représentation ici. Il y a une recette ; c'est ce que je veux dire, pour arriver à ça. Qu'est-ce qu'on a ? Eh bien, la première chose qu'on a faite, et je veux que vous le remarquiez : on a transformé ce qui aurait été une intégrale en une somme, et il y a un terme qui est aussi apparu là-dedans, \\(h\\), et il n'est pas arbitraire."
+  },
+  {
+   "t": 2037679,
+   "text": "So the original problem looks like: minimize \\(c_T\\) of \\(x\\). Sometimes I might write, say, \\(c\\) with a big \\(T\\), where big \\(T\\) is the end of the physical time, plus some integral cost of \\(c(x_t, u_t)\\,dt\\). This is the original problem, and there's no approximation yet.",
+   "fr": "Le problème original ressemble à : minimiser \\(c_T\\) de \\(x\\). Parfois, je pourrais écrire, disons, \\(c\\) avec un grand \\(T\\), où le grand \\(T\\) est la fin du temps physique, plus un certain coût intégral de \\(c(x_t, u_t)\\,dt\\). C'est le problème original, et il n'y a pas encore d'approximation."
+  },
+  {
+   "t": 2074800,
+   "text": "Subject to \\(\\dot x\\)... Sometimes, by the way, we can have systems where the dynamics themselves, the rate of change, depend on time. It's not always the case. Sometimes I put it there, sometimes I don't. These are actually more complicated systems, usually, when you analyze them, but for the rest it doesn't really change anything.",
+   "fr": "Sous la contrainte \\(\\dot x\\)... Parfois, d'ailleurs, on peut avoir des systèmes où la dynamique elle-même, le taux de variation, dépend du temps. Ce n'est pas toujours le cas. Parfois je le mets là, parfois non. Ce sont en fait des systèmes plus compliqués, habituellement, quand on les analyse, mais pour le reste, ça ne change pas vraiment grand-chose."
+  },
+  {
+   "t": 2106240,
+   "text": "So we can throw it in there if you want. And inequality constraints, we don't really care, so we'll just leave it like this. And given that we run from \\(t_0\\), \\(x(t_0)\\) is some designated value. This needs to be provided; that's the only thing that needs to be provided externally.",
+   "fr": "On peut donc le mettre là si vous voulez. Et les contraintes d'inégalité, ça ne nous importe pas vraiment, donc on va juste laisser ça comme ça. Et étant donné qu'on part de \\(t_0\\), \\(x(t_0)\\) est une certaine valeur désignée. Elle doit être fournie ; c'est la seule chose qui doit être fournie de l'extérieur."
+  },
+  {
+   "t": 2147599,
+   "text": "So that's the original problem, and by applying the three steps of the collocation recipe for a chosen set of collocation nodes, which we'll derive by hand later, the corresponding transcribed problem is the one shown in 53. And see what the dynamics look like now. If you're familiar with solving ODEs, this is simply the simplest form of numerical integration method, which we've recovered here through the perspective of polynomial interpolation. Sometimes, when you're taught these things, people would tell you about Euler's method by applying Taylor's approximation to the system.",
+   "fr": "C'est donc le problème original, et en appliquant les trois étapes de la recette de collocation pour un ensemble choisi de nœuds de collocation, ce qu'on va faire à la main plus tard, le problème transcrit correspondant est celui présenté en 53. Et regardez à quoi ressemble la dynamique maintenant. Si vous êtes familiers avec la résolution d'ODE, c'est tout simplement la forme la plus simple de méthode d'intégration numérique, qu'on a retrouvée ici à travers la perspective de l'interpolation polynomiale. Parfois, quand on vous enseigne ces choses-là, on vous présente la méthode d'Euler en appliquant l'approximation de Taylor au système."
+  },
+  {
+   "t": 2198560,
+   "text": "But here we're using polynomial approximation. And if I were to write this explicitly, the line in 56 shows a step of Euler's method, which would look like \\(x_{t+1}\\)... Actually, I'm using \\(k\\). I often use \\(k\\) when it's discrete and \\(t\\) when it's continuous. \\(x_{k+1}\\) is equal to \\(x_k\\) plus some step size, which can change, by the way, so that's why it's \\(h_k\\).",
+   "fr": "Mais ici, on utilise l'approximation polynomiale. Et si je l'écrivais explicitement, la ligne 56 montre une étape de la méthode d'Euler, qui ressemblerait à \\(x_{t+1}\\)... En fait, j'utilise \\(k\\). J'utilise souvent \\(k\\) quand c'est discret et \\(t\\) quand c'est continu. \\(x_{k+1}\\) est égal à \\(x_k\\) plus un certain pas, qui peut changer, d'ailleurs, et c'est pour ça que c'est \\(h_k\\)."
+  },
+  {
+   "t": 2251280,
+   "text": "So if I were to do this explicitly and sequentially within a loop, let's say I give you an ODE and you want to solve it, then most likely you would just code this up. You would put this in a for loop, starting from, you know, for k in range, and you would integrate your system, and you compute the step: explicit Euler. By the way, what is implicit Euler? Implicit Euler: see how we've got \\(x_{k+1}\\) here and \\(x_k\\) here. The case where it's implicit is where, if I were to write things symbolically, instead of computing your step directly, explicitly, you'd instead be solving for the",
+   "fr": "Donc si je faisais ça explicitement et séquentiellement dans une boucle, disons que je vous donne une ODE et que vous voulez la résoudre, alors vous coderiez très probablement juste ça. Vous mettriez ça dans une boucle for, en partant de, vous savez, for k in range, et vous intégreriez votre système, et vous calculeriez le pas : Euler explicite. D'ailleurs, c'est quoi, Euler implicite ? Euler implicite : regardez comment on a \\(x_{k+1}\\) ici et \\(x_k\\) ici. Le cas implicite, c'est celui où, si j'écrivais les choses symboliquement, au lieu de calculer votre pas directement, explicitement, vous résoudriez plutôt pour trouver la"
+  },
+  {
+   "t": 2312160,
+   "text": "value of \\(x_{k+1}\\). You put it on both sides, and since it's on both sides, it now becomes implicit. So with implicit Euler, or implicit methods generally in numerical integration, to do an implicit step you need to do Newton's method, or in some cases solve a linear system of equations, but more generally it's a nonlinear system of equations. Here it doesn't matter, because everything is implicit. So we can do both schemes. Long story short, 53 is a thing that we can code up. Now this is a nonlinear program. We can code it up, and you also see how the representation now is in terms of the nodal values \\(x\\), because I told you the story about turning a problem of searching in infinite-dimensional spaces into a problem of searching over polynomials, and I told you that we're not going to use a coefficient representation, we'll use the nodal values. So this is exactly what we see",
+   "fr": "valeur de \\(x_{k+1}\\). Vous la mettez des deux côtés, et comme elle est des deux côtés, ça devient maintenant implicite. Donc avec Euler implicite, ou les méthodes implicites en général en intégration numérique, pour faire un pas implicite, vous devez utiliser la méthode de Newton, ou dans certains cas résoudre un système d'équations linéaires, mais plus généralement, c'est un système d'équations non linéaires. Ici, ça n'a pas d'importance, parce que tout est implicite. On peut donc utiliser les deux schémas. Bref, 53, c'est quelque chose qu'on peut coder. C'est maintenant un programme non linéaire. On peut le coder, et vous voyez aussi comment la représentation est maintenant en fonction des valeurs nodales \\(x\\), parce que je vous ai raconté l'histoire de transformer un problème de recherche dans des espaces de dimension infinie en un problème de recherche sur des polynômes, et je vous ai dit qu'on n'allait pas utiliser une représentation par coefficients, qu'on allait utiliser les valeurs nodales. C'est donc exactement ce qu'on voit"
+  },
+  {
+   "t": 2373280,
+   "text": "here, with min over \\(x\\) and min over \\(u\\). Okay. So we'll work out how we apply the recipe, but let me just take a little break here. I want to get water; my throat is very dry. And then we'll continue with this just after the break. Okay.",
+   "fr": "ici, avec le min sur \\(x\\) et le min sur \\(u\\). Bon. On va voir comment on applique la recette, mais laissez-moi juste prendre une petite pause ici. Je veux aller chercher de l'eau ; j'ai la gorge très sèche. Et ensuite on va continuer avec ça juste après la pause. OK."
+  },
+  {
+   "t": 2423599,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 2503359,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 2616240,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 2674319,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 2728480,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 2785680,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 2834240,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 2893359,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 2932400,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 2967839,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 3011119,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 3046400,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 3115520,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 3145599,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 3244800,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 3310079,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 3342480,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 3400960,
+   "text": "Okay. So yeah, I think I'll let Gabriel do the worked-out examples on Thursday, but I'll want to tell you a bit about the general recipe, because if you look in a package like CasADi, which is a great library, back in the days when people were writing libraries for humans, it was a great library for optimal control. And if you look in a package like CasADi, it does offer collocation, and you can really induce basically any",
+   "fr": "Bon. Alors oui, je pense que je vais laisser Gabriel faire les exemples détaillés jeudi, mais je veux vous parler un peu de la recette générale, parce que si vous regardez dans un logiciel comme CasADi, qui est une excellente bibliothèque, à l'époque où les gens écrivaient des bibliothèques pour des humains, c'était une excellente bibliothèque pour la commande optimale. Et si vous regardez dans un logiciel comme CasADi, il offre la collocation, et vous pouvez vraiment induire essentiellement n'importe quel"
+  },
+  {
+   "t": 3461680,
+   "text": "kind of collocation scheme you want, because the way it's implemented is very general. All the steps that I'm showing you on the board, that I started outlining here, you can work them out by hand, but there are also ways to code things up in such a way that all you've got to specify is your collocation nodes. So it becomes a recipe, and that induces a transcription, so a way to turn a continuous-time problem into a discrete-time one, and all that can be done programmatically. So I'll try to outline what that looks like, because, yeah, you can work it out by hand, but of course you want this to be automated and generalized to any collocation scheme you want. There are specific methods that people tend to use a lot. So it's not like we search over the entire space of collocation methods. There are honestly three main representatives that I'm teaching you today. I'll show you the final solution. And so, the explicit Euler or implicit Euler",
+   "fr": "type de schéma de collocation que vous voulez, parce que la façon dont c'est implémenté est très générale. Toutes les étapes que je vous montre au tableau, que j'ai commencé à esquisser ici, vous pouvez les faire à la main, mais il y a aussi des façons de coder les choses de telle sorte que tout ce que vous avez à spécifier, ce sont vos nœuds de collocation. Ça devient donc une recette, et ça induit une transcription, donc une façon de transformer un problème en temps continu en un problème en temps discret, et tout ça peut se faire de façon programmatique. Je vais donc essayer d'esquisser à quoi ça ressemble, parce que, oui, vous pouvez le faire à la main, mais évidemment, vous voulez que ce soit automatisé et généralisé à n'importe quel schéma de collocation. Il y a des méthodes précises que les gens ont tendance à beaucoup utiliser. Ce n'est donc pas comme si on cherchait dans tout l'espace des méthodes de collocation. Il y a honnêtement trois grands représentants que je vous enseigne aujourd'hui. Je vais vous montrer la solution finale. Et donc, la transcription par Euler explicite ou par Euler implicite"
+  },
+  {
+   "t": 3523280,
+   "text": "transcription: the easiest thing to do. But the downside of Euler is that it's very low accuracy. So if you need to send a probe to deep space and be sure that in 10 years it's exactly where you need it to be at the precise second, you're not going to do it with explicit or implicit Euler. So you're going to have to step up the accuracy of your polynomial representation, and you might go one notch above and choose, for example, trapezoidal collocation. I'll show you what it looks like.",
+   "fr": "est la chose la plus simple à faire. Mais l'inconvénient d'Euler, c'est que la précision est très faible. Donc si vous devez envoyer une sonde dans l'espace lointain et être sûrs que dans 10 ans, elle sera exactement là où vous en avez besoin, à la seconde près, vous n'allez pas le faire avec Euler explicite ou implicite. Vous allez devoir augmenter la précision de votre représentation polynomiale, et vous pourriez monter d'un cran et choisir, par exemple, la collocation trapézoïdale. Je vais vous montrer à quoi ça ressemble."
+  },
+  {
+   "t": 3560480,
+   "text": "But the one that people use a lot is the so-called Hermite-Simpson collocation. That one, for aerospace and so on, seems to strike the right balance in terms of accuracy versus the complexity of solving the resulting problem. So I'll show you this one too. And honestly, that family, from Euler to Hermite-Simpson, covers many, many practical scenarios. But if you've got a way to induce all possible methods, you might choose fancier schemes as well.",
+   "fr": "Mais celle que les gens utilisent beaucoup, c'est la collocation dite d'Hermite-Simpson. Celle-là, pour l'aérospatiale et ainsi de suite, semble trouver le bon équilibre entre la précision et la complexité de la résolution du problème qui en résulte. Je vais donc vous montrer celle-là aussi. Et honnêtement, cette famille, d'Euler à Hermite-Simpson, couvre de très, très nombreux scénarios pratiques. Mais si vous avez une façon d'induire toutes les méthodes possibles, vous pourriez aussi choisir des schémas plus sophistiqués."
+  },
+  {
+   "t": 3598160,
+   "text": "I think there was a question about... yeah? Can you just... I can't hear.\nStudent: Yeah. In the exact [?] collocation methods...\nLet me just exit here.",
+   "fr": "Je pense qu'il y avait une question sur... oui ? Pouvez-vous juste... je n'entends pas.\nStudent: Oui. Dans les méthodes de collocation exactes [?]...\nLaissez-moi juste sortir d'ici."
+  },
+  {
+   "t": 3629839,
+   "text": "Student: Yeah. Does any... What's \\(u_k\\)?\nThis guy? Yeah. No, I'll get rid of it. We don't need this.",
+   "fr": "Student: Oui. Est-ce que... C'est quoi, \\(u_k\\) ?\nCelui-là ? Oui. Non, je vais l'enlever. On n'a pas besoin de ça."
+  },
+  {
+   "t": 3663760,
+   "text": "Yeah, just call it \\(u_k\\). It's good enough. We don't need this. Yeah, it's just \\(u_k\\). Fix it. So yeah, that one's quite easy to implement, but it's low accuracy. And so you might want to step up your game a bit and go to trapezoidal collocation. Again, we can work out the steps of how you derive it by hand, and we'll make sure to do it in class, but let me just highlight what the trapezoidal collocation looks like now. Slightly more complicated. You've got a few more terms.",
+   "fr": "Oui, appelez-le simplement \\(u_k\\). C'est assez bien. On n'a pas besoin de ça. Oui, c'est juste \\(u_k\\). À corriger. Donc oui, celle-là est assez facile à implémenter, mais elle est peu précise. Et donc vous voudrez peut-être passer à la vitesse supérieure et aller vers la collocation trapézoïdale. Encore une fois, on peut refaire à la main les étapes pour l'établir, et on va s'assurer de le faire en classe, mais laissez-moi juste souligner à quoi ressemble maintenant la collocation trapézoïdale. Un peu plus compliquée. Vous avez quelques termes de plus."
+  },
+  {
+   "t": 3707040,
+   "text": "If we were to contrast with the Euler transcription, see how the dynamics constraint now involves the value of the dynamics at the current time step. So \\(f\\) subscript \\(k\\) is just an easy way to write \\(f(x_k, u_k)\\). And here I'm using the value at the next step, which is also why these methods are inherently implicit, simply because we're basically asking for a value in the future. But it's fine, because all these values are solved for simultaneously.",
+   "fr": "Si on compare avec la transcription d'Euler, regardez comment la contrainte de dynamique fait maintenant intervenir la valeur de la dynamique au pas de temps courant. Donc \\(f\\) indice \\(k\\), c'est juste une façon simple d'écrire \\(f(x_k, u_k)\\). Et ici, j'utilise la valeur au pas suivant, ce qui est aussi la raison pour laquelle ces méthodes sont intrinsèquement implicites, tout simplement parce qu'on demande essentiellement une valeur dans le futur. Mais ce n'est pas grave, parce que toutes ces valeurs sont déterminées simultanément."
+  },
+  {
+   "t": 3744480,
+   "text": "But already it shows you, essentially, that we're leveraging a bit more information. And if you were to look at what the update rule would look like if you were to implement this for numerical integration, and rework it a little bit, actually I rewrite it more cleanly in 58, you see that an update step here is mixing the slope information at two places.",
+   "fr": "Mais déjà, ça vous montre essentiellement qu'on exploite un peu plus d'information. Et si vous regardiez à quoi ressemblerait la règle de mise à jour si vous implémentiez ça pour l'intégration numérique, en la retravaillant un peu, en fait je la réécris plus proprement en 58, vous voyez qu'un pas de mise à jour ici combine l'information de pente à deux endroits."
+  },
+  {
+   "t": 3775440,
+   "text": "So you can think of the step you're taking towards \\(x_{k+1}\\) as being an average between the approximated slope at \\(x_k\\), not the approximated but the actual slope at \\(x_k\\), and the value of the slope at \\(x_{k+1}\\). Long story short, trapezoidal is a bit more accurate, a little bit more costly though, because you end up maintaining a few more variables, but it might be worth the step up. I'll get back in a second to what's happening here, by the way, in the terminal cost and the immediate cost term, because there's something that happened. I started saying earlier that there's something happening with the \\(h\\) here. It's not quite the same as earlier, but I'll explain in a sec how you end up with an expression that looks like that. Let's just look at Hermite-Simpson, which is the",
+   "fr": "Vous pouvez donc voir le pas que vous faites vers \\(x_{k+1}\\) comme une moyenne entre la pente approximée en \\(x_k\\), pas approximée, mais la vraie pente en \\(x_k\\), et la valeur de la pente en \\(x_{k+1}\\). Bref, la méthode trapézoïdale est un peu plus précise, un peu plus coûteuse par contre, parce qu'on finit par maintenir quelques variables de plus, mais ça vaut peut-être la peine de monter d'un cran. Je vais revenir dans une seconde sur ce qui se passe ici, d'ailleurs, dans le coût terminal et le terme de coût immédiat, parce qu'il s'est passé quelque chose. J'ai commencé à dire plus tôt qu'il se passe quelque chose avec le \\(h\\) ici. Ce n'est pas tout à fait la même chose que tout à l'heure, mais je vais vous expliquer dans une seconde comment on se retrouve avec une expression qui ressemble à ça. Regardons simplement Hermite-Simpson, qui est la"
+  },
+  {
+   "t": 3836319,
+   "text": "collocation... So that one is quite accurate. So essentially the corresponding polynomial is a cubic polynomial, and it's much more complicated; many more terms got added here. It's not a typo, though: I've got \\(x_{k+1/2}\\). What is \\(x_{k+1/2}\\)? It's actually a midpoint. So for this rule, you're not only going to have your base mesh. When I say mesh, imagine your continuous trajectory and I overlay a mesh, so basically grid points that define the accuracy of my approximation. Then within that mesh, I'm going to have to maintain sub-points in order for this polynomial approximation to hold. So the update looks more complicated, though in terms of implementation it's quite straightforward to code these things up. It's a little bit more difficult to work out explicitly by hand. But again, there's going to be a general recipe where these things get worked out",
+   "fr": "collocation... Celle-là est donc assez précise. Essentiellement, le polynôme correspondant est un polynôme cubique, et c'est beaucoup plus compliqué ; beaucoup plus de termes ont été ajoutés ici. Ce n'est pas une coquille, par contre : j'ai \\(x_{k+1/2}\\). Qu'est-ce que \\(x_{k+1/2}\\) ? C'est en fait un point milieu. Donc pour cette règle, vous n'allez pas seulement avoir votre maillage de base. Quand je dis maillage, imaginez votre trajectoire continue sur laquelle je superpose un maillage, donc essentiellement des points de grille qui définissent la précision de mon approximation. Ensuite, à l'intérieur de ce maillage, je vais devoir maintenir des sous-points pour que cette approximation polynomiale tienne. La mise à jour a donc l'air plus compliquée, même si, en termes d'implémentation, c'est assez simple de coder ces choses-là. C'est un peu plus difficile à établir explicitement à la main. Mais encore une fois, il va y avoir une recette générale où ces choses-là sont établies"
+  },
+  {
+   "t": 3896720,
+   "text": "automatically, without having to do it by hand. But if you were to do the exercise by hand, Hermite-Simpson would look like that. The choice of control function, by the way, for each of these methods: as I said, the control function and the dynamics are basically treated as two separate problems. You could always choose a zero-order hold for any of these things. But sometimes, because, let's say, you add midpoints or you have more information that gets computed along the way, this is also an opportunity for building higher-order polynomials for the control function. So for example, in Hermite-Simpson, the introduction of that midpoint is usually an opportunity for using, sometimes, a quadratic control function. So oftentimes, but this is more a rule of thumb",
+   "fr": "automatiquement, sans avoir à le faire à la main. Mais si vous faisiez l'exercice à la main, Hermite-Simpson ressemblerait à ça. Le choix de la fonction de commande, d'ailleurs, pour chacune de ces méthodes : comme je l'ai dit, la fonction de commande et la dynamique sont essentiellement traitées comme deux problèmes séparés. Vous pourriez toujours choisir un bloqueur d'ordre zéro pour n'importe laquelle de ces méthodes. Mais parfois, parce que, disons, vous ajoutez des points milieux ou que vous avez plus d'information qui est calculée en cours de route, c'est aussi une occasion de construire des polynômes d'ordre supérieur pour la fonction de commande. Par exemple, dans Hermite-Simpson, l'introduction de ce point milieu est habituellement une occasion d'utiliser, parfois, une fonction de commande quadratique. Donc souvent, mais c'est plus une règle empirique"
+  },
+  {
+   "t": 3957839,
+   "text": "than a mathematical theorem, let's say the state degree, the degree of approximation of your state, is typically one higher than that of the control function. So if you're doing explicit Euler, typically you would pair that up with a zero-order hold. If you do trapezoidal, that gives you a quadratic polynomial, a bit more expressive, but you'd pair that up with a linear polynomial for the control function. Hermite-Simpson is cubic, so then you have a choice, but sometimes people pair it up with a quadratic when you're maintaining these midpoints, or you could have a linear interpolation as well. So again, not a hard rule, but usually that's how we pair things up in practice for these choices. And how do you synthesize that control function, by the way? Well, at the end of that program you're going to get a set of values of \\(x\\)'s and \\(u\\)'s, and then you can fit",
+   "fr": "qu'un théorème mathématique, disons que le degré de l'état, le degré d'approximation de votre état, est typiquement supérieur d'un à celui de la fonction de commande. Donc si vous faites Euler explicite, typiquement, vous l'associeriez à un bloqueur d'ordre zéro. Si vous faites la méthode trapézoïdale, ça vous donne un polynôme quadratique, un peu plus expressif, mais vous l'associeriez à un polynôme linéaire pour la fonction de commande. Hermite-Simpson est cubique, donc là, vous avez le choix, mais parfois les gens l'associent à un polynôme quadratique quand on maintient ces points milieux, ou vous pourriez aussi avoir une interpolation linéaire. Encore une fois, ce n'est pas une règle stricte, mais habituellement, c'est comme ça qu'on associe les choses en pratique pour ces choix. Et d'ailleurs, comment est-ce qu'on synthétise cette fonction de commande ? Eh bien, à la fin de ce programme, vous allez obtenir un ensemble de valeurs de \\(x\\) et de \\(u\\), et ensuite vous pouvez ajuster"
+  },
+  {
+   "t": 4020240,
+   "text": "a polynomial to that. So, as we've seen before, a choice of values like this induces a corresponding polynomial in the basis, and that's what we're going to be executing, let's say, on our robot. So it's the fit to these values. We're not going to apply the \\(u_k\\)'s on the robot; these are discrete values, but our system evolves in continuous time. So what we're going to be applying is the polynomial induced by this set of optimal nodes, the \\(u\\)'s that the program has found.",
+   "fr": "un polynôme à ça. Donc, comme on l'a vu avant, un choix de valeurs comme celui-ci induit un polynôme correspondant dans la base, et c'est ça qu'on va exécuter, disons, sur notre robot. C'est donc l'ajustement à ces valeurs. On ne va pas appliquer les \\(u_k\\) sur le robot ; ce sont des valeurs discrètes, mais notre système évolue en temps continu. Donc ce qu'on va appliquer, c'est le polynôme induit par cet ensemble de nœuds optimaux, les \\(u\\) que le programme a trouvés."
+  },
+  {
+   "t": 4059839,
+   "text": "Okay, let's look at fun animations here. I had a team last year that worked on this as a final project. I think their version might have been a bit fancier than this one, but nevertheless it's the same idea. So oftentimes in optimal control or in RL, we like to show pendulum problems, because they're canonical problems for stabilization and they've been studied extensively. I'm kind of fed up with the usual pendulum. That's why I coded up the swing example last time. And this is another variant of a pendulum, but slightly physically different. It's that of a crane.",
+   "fr": "Bon, regardons des animations amusantes ici. J'avais une équipe l'an dernier qui a travaillé là-dessus comme projet final. Je pense que leur version était peut-être un peu plus sophistiquée que celle-ci, mais c'est quand même la même idée. Souvent, en commande optimale ou en RL, on aime montrer des problèmes de pendule, parce que ce sont des problèmes canoniques de stabilisation et qu'ils ont été étudiés en profondeur. J'en ai un peu assez du pendule habituel. C'est pour ça que j'ai codé l'exemple de la balançoire la dernière fois. Et ceci est une autre variante de pendule, mais un peu différente physiquement. C'est celle d'une grue."
+  },
+  {
+   "t": 4103040,
+   "text": "So let's say at the Port of Montreal [?], or these big places where we've got cranes that move containers, or in fact even on construction sites. Oh, but yeah, at the port they definitely have these types of cranes that also move along a rail. I'm sure you've seen them. It's like a gantry, I guess, an overhead gantry. And then as you move your container, you don't want this thing to swing too much.",
+   "fr": "Disons au port de Montréal [?], ou dans ces grands endroits où on a des grues qui déplacent des conteneurs, ou en fait même sur les chantiers de construction. Ah, mais oui, au port, c'est sûr qu'ils ont ce genre de grues qui se déplacent aussi le long d'un rail. Je suis sûr que vous en avez déjà vu. C'est comme un portique, j'imagine, un portique roulant. Et quand vous déplacez votre conteneur, vous ne voulez pas que cette chose se balance trop."
+  },
+  {
+   "t": 4138480,
+   "text": "So you can pose that as an optimal control problem. Now, usually there's going to be an operator that moves that gantry along, but we could do things a bit more optimally and choose the speed at which we're going to move the gantry depending on the weight of the container. And our goal is to get to the final position as fast as possible, but we want to do it smart. And definitely, going there as fast as possible doesn't mean going to the maximum speed right away.",
+   "fr": "On peut donc poser ça comme un problème de commande optimale. Habituellement, il va y avoir un opérateur qui déplace ce portique, mais on pourrait faire les choses de façon un peu plus optimale et choisir la vitesse à laquelle on va déplacer le portique en fonction du poids du conteneur. Et notre but, c'est d'arriver à la position finale le plus vite possible, mais on veut le faire intelligemment. Et c'est sûr qu'y aller le plus vite possible ne veut pas dire aller à la vitesse maximale tout de suite."
+  },
+  {
+   "t": 4176159,
+   "text": "So let's see what it looks like. So in both cases, we've got... now, it's a bit subtle, but see here: the naive method, where we just directly apply the command without any foresight as to what will happen in the future, produces way more swing by the end. So four is the terminal point. The two other solutions are actually solutions found by a collocation method, and... actually no, this one here is a heuristic, and this one is direct collocation. And you see, direct collocation barely swings by the time we get to four. It's smack on four. It swings a bit at the beginning, which makes sense, but it really gets there cleanly. Okay.",
+   "fr": "Voyons donc à quoi ça ressemble. Dans les deux cas, on a... bon, c'est un peu subtil, mais regardez ici : la méthode naïve, où on applique directement la commande sans aucune anticipation de ce qui va se passer dans le futur, produit beaucoup plus de balancement à la fin. Donc quatre est le point terminal. Les deux autres solutions sont en fait des solutions trouvées par une méthode de collocation, et... en fait non, celle-ci ici est une heuristique, et celle-ci est la collocation directe. Et vous voyez, avec la collocation directe, ça se balance à peine au moment où on arrive à quatre. C'est pile sur quatre. Ça se balance un peu au début, ce qui est logique, mais ça arrive vraiment proprement. Bon."
+  },
+  {
+   "t": 4232000,
+   "text": "This is the solution itself. I'm not sure there's much to see; the animation is much better. But we have the code. Where's the code here? So you can try it out yourself. There might be dependencies you can find on my GitHub. And now, actually, it's time for me to push the stuff I haven't pushed. But normally you could take this and try it yourself. And yeah, here we're applying a collocation method, and this is using trapezoidal. So trapezoidal, for that kind of problem, is good enough. The dynamics here, I'm not going to go into details, but this is equation 80. So we've got the trolley position, the velocity, and \\(\\theta\\) and \\(\\omega\\), which are the container angle and the angular velocity, and this is our state space, essentially. So it's four-dimensional: \\(x\\) is a four-dimensional vector of continuous values.",
+   "fr": "Ceci est la solution elle-même. Je ne suis pas sûr qu'il y ait grand-chose à voir ; l'animation est bien meilleure. Mais on a le code. Où est le code ici ? Vous pouvez donc l'essayer vous-mêmes. Il se peut qu'il y ait des dépendances, que vous pouvez trouver sur mon GitHub. Et là, en fait, il est temps que je pousse ce que je n'ai pas encore poussé. Mais normalement, vous pourriez prendre ça et l'essayer vous-mêmes. Et oui, ici, on applique une méthode de collocation, et c'est avec la méthode trapézoïdale. La méthode trapézoïdale, pour ce genre de problème, est suffisante. La dynamique ici, je ne vais pas entrer dans les détails, mais c'est l'équation 80. On a donc la position du chariot, la vitesse, et \\(\\theta\\) et \\(\\omega\\), qui sont l'angle du conteneur et la vitesse angulaire, et c'est notre espace d'états, essentiellement. Il est donc de dimension quatre : \\(x\\) est un vecteur de dimension quatre à valeurs continues."
+  },
+  {
+   "t": 4294400,
+   "text": "\\(u\\)... The dynamics are like that. So you see, because \\(x\\) is a vector now, each component evolves independently. So this is the rate of change of the angular velocity, the rate of change of the payload angle, and so on. And the \\(\\ell\\) is a length; these are just constants. And we've got the control that enters these dynamics through the acceleration of the gantry itself.",
+   "fr": "\\(u\\)... La dynamique est comme ça. Vous voyez, parce que \\(x\\) est maintenant un vecteur, chaque composante évolue indépendamment. Ceci, c'est le taux de variation de la vitesse angulaire, le taux de variation de l'angle de la charge, et ainsi de suite. Et le \\(\\ell\\) est une longueur ; ce sont juste des constantes. Et on a la commande qui entre dans cette dynamique à travers l'accélération du portique lui-même."
+  },
+  {
+   "t": 4332239,
+   "text": "So here, what we used to call \\(u\\) in our programs is, in the math here, the term \\(a\\), which is acceleration. And in the math here we don't show where that comes from, but with this kind of set of equations with sine and cosine here, you pretty much have the same expression if you were to consider a pendulum that you need to stabilize upright. It's kind of an inverted pendulum now, but pointing downwards. So it's a very similar model to other types of pendulum problems. And because our control is the acceleration, that's why you see that \\(\\dot v = a\\), because \\(\\dot v\\) here is the acceleration itself. Remember, acceleration is the derivative of the velocity, so that's why we've got \\(\\dot v\\). Question? No question? Okay. Yeah, ZV: this is actually a",
+   "fr": "Donc ici, ce qu'on appelait \\(u\\) dans nos programmes, c'est, dans les maths ici, le terme \\(a\\), qui est l'accélération. Et dans les maths ici, on ne montre pas d'où ça vient, mais avec ce genre d'ensemble d'équations avec des sinus et des cosinus ici, vous avez à peu près la même expression que si vous considériez un pendule qu'il faut stabiliser à la verticale, vers le haut. C'est un peu comme un pendule inversé maintenant, mais pointant vers le bas. C'est donc un modèle très semblable à d'autres types de problèmes de pendule. Et comme notre commande est l'accélération, c'est pour ça que vous voyez que \\(\\dot v = a\\), parce que \\(\\dot v\\) ici, c'est l'accélération elle-même. Rappelez-vous, l'accélération est la dérivée de la vitesse, c'est pour ça qu'on a \\(\\dot v\\). Une question ? Pas de question ? Bon. Oui, ZV : c'est en fait un"
+  },
+  {
+   "t": 4392800,
+   "text": "hard-coded heuristic that is common in that field. It's called a zero-vibration shaper. The same way that, if you remember, with the swing example I showed you a couple of classes ago, there was a way to also code up pretty strong heuristics that would bring you to the right spot. So usually, when you want to swing up a pendulum, you want to implement these pumping policies where you pump energy back and forth. So the zero-vibration shaper is the analog of a pumping policy for the problem of getting a rod to stand upright. Again, the details here are not important, just that it exists. You can code it up, and then it's going to give you a pretty strong baseline, which, as we've seen in the second plot, is pretty good visually",
+   "fr": "heuristique codée en dur qui est courante dans ce domaine. Ça s'appelle un façonneur à vibration nulle (zero-vibration shaper). De la même façon que, si vous vous souvenez, avec l'exemple de la balançoire que je vous ai montré il y a quelques cours, il y avait une façon de coder aussi des heuristiques assez fortes qui vous amenaient au bon endroit. Habituellement, quand vous voulez faire monter un pendule, vous voulez implémenter ces politiques de pompage où vous pompez de l'énergie par des allers-retours. Donc le façonneur à vibration nulle est l'analogue d'une politique de pompage pour le problème de faire tenir une tige à la verticale. Encore une fois, les détails ici ne sont pas importants, seulement le fait que ça existe. Vous pouvez le coder, et ensuite ça va vous donner une méthode de référence assez forte, qui, comme on l'a vu dans le deuxième graphique, est assez bonne sur le plan"
+  },
+  {
+   "t": 4454480,
+   "text": "speaking, very similar to direct collocation, but when we look at the numbers, we see that direct collocation still performs better. And the question of performing better is always a matter of defining your cost function. So this is where you might get very different solutions. And that goes back to the good old question of defining your problem, which ultimately is this question of alignment and so on. So this is always a choice that you can make as a designer, how you design your cost function, and then the adequacy of your mathematical formulation versus the actual true result is a problem of validation, for which we don't have recipes. It's a bit of a case-by-case basis. Here, the cost function that's been designed: we want to penalize for swings. So we want to essentially penalize the variation at this point",
+   "fr": "visuel, très semblable à la collocation directe, mais quand on regarde les chiffres, on voit que la collocation directe fait quand même mieux. Et la question de faire mieux, c'est toujours une affaire de définition de votre fonction de coût. C'est donc là que vous pourriez obtenir des solutions très différentes. Et ça nous ramène à la bonne vieille question de la définition de votre problème, qui, au bout du compte, est cette question d'alignement et ainsi de suite. C'est donc toujours un choix que vous pouvez faire en tant que concepteur, la façon dont vous concevez votre fonction de coût, et ensuite l'adéquation de votre formulation mathématique par rapport au vrai résultat réel est un problème de validation, pour lequel on n'a pas de recettes. C'est un peu du cas par cas. Ici, la fonction de coût qui a été conçue : on veut pénaliser les balancements. On veut donc essentiellement pénaliser la variation à ce moment"
+  },
+  {
+   "t": 4514560,
+   "text": "in time, and this is implemented by, first of all, penalizing large variations in the controls. Remember, \\(a\\) was the control action, and we're looking at pairwise differences in time of the control. So that's a way to smooth out the control. Basically, this is already hinting the system toward the kind of solution we want. So sometimes the cost structure itself can also be a way to give a prior on the solution we want. So here it is literally saying: I want a solution that is not too jittery.",
+   "fr": "précis, et c'est implémenté, d'abord, en pénalisant les grandes variations des commandes. Rappelez-vous, \\(a\\) était l'action de commande, et on regarde les différences deux à deux dans le temps de la commande. C'est donc une façon de lisser la commande. En gros, ça oriente déjà le système vers le genre de solution qu'on veut. Donc parfois, la structure de coût elle-même peut aussi être une façon de donner un a priori sur la solution qu'on veut. Ici, ça dit littéralement : je veux une solution qui ne soit pas trop saccadée."
+  },
+  {
+   "t": 4553120,
+   "text": "But otherwise, the first term is the one that penalizes for the swing and for the angular velocity being too high as we reach the end point, where the end point is defined as the following. So remember the components themselves: the first term was the position along the gantry, and so our problem stops as we reach position four, which is... I don't know, the units here don't really matter. Okay, so with this cost function, a trapezoidal transcription of the problem, again, the trapezoidal rule gives us an NLP of that form. So we code this, and here it's solved, if I remember correctly, with SLSQP, and we get the following solution. And in order to get this",
+   "fr": "Mais sinon, le premier terme est celui qui pénalise le balancement et une vitesse angulaire trop élevée au moment où on atteint le point final, où le point final est défini de la façon suivante. Rappelez-vous les composantes elles-mêmes : la première était la position le long du portique, et donc notre problème s'arrête quand on atteint la position quatre, qui est... je ne sais pas, les unités ici n'ont pas vraiment d'importance. Bon, donc avec cette fonction de coût, une transcription trapézoïdale du problème, encore une fois, la règle trapézoïdale nous donne un NLP de cette forme. On code ça, et ici, c'est résolu, si je me souviens bien, avec SLSQP, et on obtient la solution suivante. Et pour obtenir cette"
+  },
+  {
+   "t": 4613280,
+   "text": "smooth evolution in time, two things. When you want to produce the final validation, you can do either: you can directly visualize the control trajectory, pardon me, the trajectory that your system has found, or you could also take the optimal control function found by your transcription method and then integrate it a second time with, let's say, a higher degree of numerical integration, to mimic what it would look like to deploy your system in the real world.",
+   "fr": "évolution lisse dans le temps, deux choses. Quand vous voulez produire la validation finale, vous pouvez faire l'un ou l'autre : vous pouvez visualiser directement la trajectoire de commande, pardon, la trajectoire que votre système a trouvée, ou vous pourriez aussi prendre la fonction de commande optimale trouvée par votre méthode de transcription et l'intégrer une deuxième fois avec, disons, un degré d'intégration numérique plus élevé, pour imiter ce que ce serait de déployer votre système dans le monde réel."
+  },
+  {
+   "t": 4649199,
+   "text": "You could afford, maybe, as a validation step, to run your system now at a much higher degree of accuracy. So there you go. Collocation, I'd say, is widely used. It depends on which industry, but widely used. Why, again, do we like collocation? For the ability to control the degree of approximation quite well, but mostly because it allows us to come up with a transcription in which the states are explicitly present as decision variables, which is a good thing, because that allows us to put bound constraints and other constraints on the solution we want, which would not be the case otherwise with the other class of methods, with an indirect method. So that's one thing, and the other thing is stability, and it's kind of connected to the ability to put constraints as well. You would often like to",
+   "fr": "Vous pourriez vous permettre, peut-être, comme étape de validation, de faire rouler votre système maintenant avec un degré de précision beaucoup plus élevé. Et voilà. La collocation, je dirais, est largement utilisée. Ça dépend de l'industrie, mais c'est largement utilisé. Pourquoi, encore une fois, est-ce qu'on aime la collocation ? Pour la capacité de contrôler assez bien le degré d'approximation, mais surtout parce qu'elle nous permet d'arriver à une transcription dans laquelle les états sont explicitement présents comme variables de décision, ce qui est une bonne chose, parce que ça nous permet de mettre des contraintes de bornes et d'autres contraintes sur la solution qu'on veut, ce qui ne serait pas le cas autrement avec l'autre classe de méthodes, avec une méthode indirecte. Ça, c'est une chose, et l'autre chose, c'est la stabilité, et c'est un peu lié à la capacité de mettre des contraintes aussi. Vous voudriez souvent"
+  },
+  {
+   "t": 4709840,
+   "text": "go to a collocation method, because you can clamp the values that are taken by your system and force it to be better behaved through time, and avoid explosion of your system, just the way that we have exploding gradients in backpropagation through time. And yeah, it's used in practice. Okay. What did I want to show? Oh yeah. Okay. A very important thing I need to tell you now.",
+   "fr": "passer à une méthode de collocation, parce que vous pouvez borner les valeurs prises par votre système et le forcer à mieux se comporter dans le temps, et éviter l'explosion de votre système, exactement comme on a des gradients qui explosent dans la rétropropagation à travers le temps. Et oui, c'est utilisé en pratique. Bon. Qu'est-ce que je voulais montrer ? Ah oui. Bon. Une chose très importante que je dois vous dire maintenant."
+  },
+  {
+   "t": 4750239,
+   "text": "So it's this thing here. So there is a way that you can rewrite... I used to make a big distinction between different types of problems; sometimes people use the terms Bolza and Mayer type problems. This form, if I remember correctly, is the form that we call a Bolza problem, because it involves two terms.",
+   "fr": "C'est cette chose-là ici. Il y a une façon de réécrire... Avant, je faisais une grande distinction entre différents types de problèmes ; parfois, les gens utilisent les termes problèmes de type Bolza et de type Mayer. Cette forme, si je me souviens bien, c'est la forme qu'on appelle un problème de Bolza, parce qu'elle fait intervenir deux termes."
+  },
+  {
+   "t": 4800000,
+   "text": "Lagrange problems are problems where you don't have terminal costs. Yeah. And Mayer problems are problems where you only have terminal costs. But for simplicity, generality, [inaudible]. Okay. What I want to say is: how can you rewrite this thing such that you've got an equivalent problem, but you don't have an integral, at least explicitly, for the immediate cost?",
+   "fr": "Les problèmes de Lagrange sont des problèmes où on n'a pas de coûts terminaux. Oui. Et les problèmes de Mayer sont des problèmes où on n'a que des coûts terminaux. Mais par souci de simplicité, de généralité, [inaudible]. Bon. Ce que je veux dire, c'est : comment est-ce qu'on peut réécrire cette chose de sorte qu'on ait un problème équivalent, mais sans intégrale, du moins explicitement, pour le coût immédiat ?"
+  },
+  {
+   "t": 4830640,
+   "text": "Does anyone have an idea how this is done? If you haven't read the notes... there's a way to transform that. And it's also going to tell us why the heck we have an \\(h\\) term all of a sudden. How do we transcribe? Because look, I gave you a recipe for integrating dynamics like that. I haven't been quite direct as to how you deal with an integral. This, by the way, is a numerical problem on its own.",
+   "fr": "Est-ce que quelqu'un a une idée de comment on fait ça ? Si vous n'avez pas lu les notes... il y a une façon de transformer ça. Et ça va aussi nous dire pourquoi diable on a tout à coup un terme \\(h\\). Comment est-ce qu'on transcrit ? Parce que, regardez, je vous ai donné une recette pour intégrer une dynamique comme ça. Je n'ai pas été très direct sur la façon de traiter une intégrale. Ça, d'ailleurs, c'est un problème numérique en soi."
+  },
+  {
+   "t": 4867440,
+   "text": "There is such a thing as numerical integration methods, which we call quadrature. Quadrature rules are numerical techniques for finding approximations to integrals. So, you know, look, naively one could say: I'm going to apply a quadrature rule to deal with the integral term there, and then dump the resulting thing into my solver. I could do this, but it'd be a bit wasteful, because you'd essentially be integrating your system twice, and potentially integrating it at points that are not common between the two systems. And to see how you can unify these two problems into one thing, such",
+   "fr": "Il existe des méthodes d'intégration numérique, qu'on appelle quadrature. Les règles de quadrature sont des techniques numériques pour trouver des approximations d'intégrales. Donc, vous savez, regardez, naïvement, on pourrait dire : je vais appliquer une règle de quadrature pour traiter le terme intégral là, et ensuite balancer le résultat dans mon solveur. Je pourrais faire ça, mais ce serait un peu du gaspillage, parce que vous intégreriez essentiellement votre système deux fois, et potentiellement en des points qui ne sont pas communs aux deux systèmes. Et pour voir comment on peut unifier ces deux problèmes en une seule chose, de sorte"
+  },
+  {
+   "t": 4928560,
+   "text": "that your accuracy of approximation is consistent for either the dynamics or the cost, you can do the following and form an augmented state space. So we're now going to define a new system, which is the concatenation...",
+   "fr": "que votre précision d'approximation soit cohérente, que ce soit pour la dynamique ou pour le coût, vous pouvez faire ce qui suit et former un espace d'états augmenté. On va maintenant définir un nouveau système, qui est la concaténation..."
+  },
+  {
+   "t": 4964639,
+   "text": "So, you know, I should use \\(\\tilde x\\). We use \\(\\tilde x_t\\), the concatenation of the original trajectory \\(x_t\\) and some other variable I'm going to call \\(z_t\\). What is \\(z_t\\) going to be? You can think of \\(z_t\\) as being an accumulation of the cost so far.",
+   "fr": "Bon, vous savez, je devrais utiliser \\(\\tilde x\\). On utilise \\(\\tilde x_t\\), la concaténation de la trajectoire originale \\(x_t\\) et d'une autre variable que je vais appeler \\(z_t\\). Qu'est-ce que \\(z_t\\) va être ? Vous pouvez voir \\(z_t\\) comme l'accumulation du coût jusqu'à maintenant."
+  },
+  {
+   "t": 5015199,
+   "text": "And how are we going to get this accumulation of the cost so far? It's simply by treating \\(c\\) as now being the dynamics of this new variable, which is the accumulation of the cost so far. Essentially, \\(c\\) specifies the rate of accumulation of the cost. So you're going to define a new augmented dynamics, \\(\\tilde f(\\tilde x_t, u_t)\\); \\(u\\) remains the same.",
+   "fr": "Et comment est-ce qu'on va obtenir cette accumulation du coût jusqu'à maintenant ? Simplement en traitant \\(c\\) comme étant maintenant la dynamique de cette nouvelle variable, qui est l'accumulation du coût jusqu'à maintenant. Essentiellement, \\(c\\) spécifie le taux d'accumulation du coût. Vous allez donc définir une nouvelle dynamique augmentée, \\(\\tilde f(\\tilde x_t, u_t)\\) ; \\(u\\) reste le même."
+  },
+  {
+   "t": 5068000,
+   "text": "And once again, this will be the concatenation of two things: \\(f\\) of \\(x_t\\), \\(x_t\\) meaning you unwrap your little bundle in there, and the second thing is, not \\(x\\), \\(c(x_t, u_t)\\). And as you integrate this system, whether you do it, let's say, explicitly or implicitly, if you solve an IVP for that problem, you'll get at the end of your trajectory for your augmented system both where the system has finished, the final state, and the accumulation along that trajectory. So the",
+   "fr": "Et encore une fois, ce sera la concaténation de deux choses : \\(f\\) de \\(x_t\\), \\(x_t\\) voulant dire que vous déballez votre petit paquet là-dedans, et la deuxième chose, c'est, pas \\(x\\), \\(c(x_t, u_t)\\). Et en intégrant ce système, que vous le fassiez, disons, explicitement ou implicitement, si vous résolvez un IVP pour ce problème, vous allez obtenir à la fin de votre trajectoire, pour votre système augmenté, à la fois l'endroit où le système a terminé, l'état final, et l'accumulation le long de cette trajectoire. Donc l'IVP"
+  },
+  {
+   "t": 5129280,
+   "text": "corresponding IVP says that, you know, find \\(x\\) such that... Oh, I don't know how to do this. Maybe that was the wrong choice [inaudible]. I needed to do \\(\\tilde x\\) with the dot on top [?]. You get the point. Now it's the rate of change of the augmented variables. Okay, so as you do this, this is an IVP, an initial value problem, and under some regularity assumptions, this and that, it has a solution. And then the solution is",
+   "fr": "correspondant dit, vous savez, trouver \\(x\\) tel que... Oh, je ne sais pas comment faire ça. C'était peut-être le mauvais choix [inaudible]. Il fallait que je fasse \\(\\tilde x\\) avec le point au-dessus [?]. Vous comprenez l'idée. C'est maintenant le taux de variation des variables augmentées. Bon, en faisant ça, c'est un IVP, un problème à valeur initiale, et sous certaines hypothèses de régularité, ceci et cela, il a une solution. Et ensuite, la solution"
+  },
+  {
+   "t": 5189760,
+   "text": "going to return a vector of two things. It's going to give us the actual \\(x\\) that we've observed at that final time step. Actually, very important: we need to specify the initial condition, and here is the key. So you specify the original \\(x_0\\), and it's going to be... \\(z_0\\)? The value of \\(z_0\\) for this thing to work?\nStudent: 42? Infinity? Minus infinity?\nJust zero. Just zero, because you're accumulating.",
+   "fr": "va retourner un vecteur de deux choses. Elle va nous donner le vrai \\(x\\) qu'on a observé à ce pas de temps final. En fait, très important : il faut spécifier la condition initiale, et c'est là la clé. Vous spécifiez le \\(x_0\\) original, et ça va être... \\(z_0\\) ? La valeur de \\(z_0\\) pour que ça fonctionne ?\nStudent: 42 ? L'infini ? Moins l'infini ?\nJuste zéro. Juste zéro, parce que vous accumulez."
+  },
+  {
+   "t": 5240960,
+   "text": "So you initialize it at zero, and as you integrate this, it will integrate the cost, and then, when it returns, it's going to give you what \\(x\\) is at the final \\(t_f\\), and it's going to give you \\(z(t_f)\\), and \\(z(t_f)\\) will be the integral from \\(t_0\\) to \\(t_f\\) of \\(c\\) of \\(x_t\\). You get it?",
+   "fr": "Vous l'initialisez donc à zéro, et en intégrant ça, ça va intégrer le coût, et ensuite, quand ça retourne, ça va vous donner ce que vaut \\(x\\) au \\(t_f\\) final, et ça va vous donner \\(z(t_f)\\), et \\(z(t_f)\\) va être l'intégrale de \\(t_0\\) à \\(t_f\\) de \\(c\\) de \\(x_t\\). Vous voyez ?"
+  },
+  {
+   "t": 5274880,
+   "text": "Okay. So this trick of forming an augmented state space, to turn a problem that has a terminal cost and a sum or integral of immediate costs, is true both in continuous time and in discrete time. In fact, maybe I should have explained it in discrete time first, because it's even easier. So imagine you're in discrete time. What would the trick look like?",
+   "fr": "Bon. Cette astuce qui consiste à former un espace d'états augmenté, pour transformer un problème qui a un coût terminal et une somme ou une intégrale de coûts immédiats, est valable à la fois en temps continu et en temps discret. En fait, j'aurais peut-être dû l'expliquer d'abord en temps discret, parce que c'est encore plus facile. Imaginez que vous êtes en temps discret. À quoi ressemblerait l'astuce ?"
+  },
+  {
+   "t": 5305440,
+   "text": "The trick in discrete time: you directly have a transition function that directly spits out what \\(x_{k+1}\\) is. Okay. And then, if you wanted to do the same thing, and turn your problem that looks like that and get rid of that summation term,",
+   "fr": "L'astuce en temps discret : vous avez directement une fonction de transition qui vous crache directement ce qu'est \\(x_{k+1}\\). Bon. Et ensuite, si vous vouliez faire la même chose, et transformer votre problème qui ressemble à ça et vous débarrasser de ce terme de somme,"
+  },
+  {
+   "t": 5368159,
+   "text": "you could do the same thing too. You could create a new deterministic discrete-time transition function that works over an augmented state space, where the second component is the accumulation of the cost. And what's behind that is simply the fact that whenever you have a sum, you can compute the result of the sum as a running sum. What's the running sum? The sum so far plus the new term. Same thing. It's really the same thing that's happening here, but you can use that. Okay.",
+   "fr": "vous pourriez faire la même chose aussi. Vous pourriez créer une nouvelle fonction de transition déterministe en temps discret qui fonctionne sur un espace d'états augmenté, où la deuxième composante est l'accumulation du coût. Et ce qu'il y a derrière ça, c'est simplement le fait que chaque fois que vous avez une somme, vous pouvez calculer le résultat de la somme comme une somme cumulative. Qu'est-ce que la somme cumulative ? La somme jusqu'ici plus le nouveau terme. Même chose. C'est vraiment la même chose qui se passe ici, mais vous pouvez utiliser ça. Bon."
+  },
+  {
+   "t": 5404639,
+   "text": "Student: Could we replace \\(t\\) with \\(k\\) in the first equation? Like, \\(x_{t+1}\\) is a function of \\(x_t\\) and... here, instead of the...\nOh, yeah. Here I'm a bit messy, I'm sorry. I would have preferred to use \\(k\\) everywhere here. Yeah, so we can discretize everything. I don't remember if I use big \\(N\\); sometimes I use big \\(M\\), and it depends on whether you like to start at zero or not. But this is already discrete. Let's keep that.\nStudent: And then...\nIt's literally a vector.\nStudent: And then the \\(f\\) function also takes [?] a \\(k\\) as the third term?",
+   "fr": "Student: Est-ce qu'on pourrait remplacer \\(t\\) par \\(k\\) dans la première équation ? C'est-à-dire, \\(x_{t+1}\\) est une fonction de \\(x_t\\) et... ici, au lieu du...\nAh, oui. Ici, je suis un peu brouillon, désolé. J'aurais préféré utiliser \\(k\\) partout ici. Oui, on peut donc tout discrétiser. Je ne me souviens pas si j'utilise un grand \\(N\\) ; parfois j'utilise un grand \\(M\\), et ça dépend si vous aimez commencer à zéro ou non. Mais ceci est déjà discret. Gardons ça.\nStudent: Et ensuite...\nC'est littéralement un vecteur.\nStudent: Et ensuite la fonction \\(f\\) prend aussi [?] un \\(k\\) comme troisième terme ?"
+  },
+  {
+   "t": 5465120,
+   "text": "The one, \\(f\\) of \\(x\\). Okay. Yeah. So why am I telling you this? I'm telling you this because once you've observed that whenever you have an integral cost, you can turn that into one dynamical system that couples both the original dynamical system and the physical cost, then you're like, okay, now I'm going to apply my transcription over my augmented state space. Because, unfortunately, I removed the Bolza problem where I have both terms, but I have an equivalent mathematical program.",
+   "fr": "Celle-là, \\(f\\) de \\(x\\). Bon. Oui. Alors pourquoi est-ce que je vous dis ça ? Je vous dis ça parce qu'une fois que vous avez observé que chaque fois que vous avez un coût intégral, vous pouvez le transformer en un seul système dynamique qui couple à la fois le système dynamique original et le coût physique, alors vous vous dites : bon, maintenant je vais appliquer ma transcription sur mon espace d'états augmenté. Parce que, malheureusement, j'ai effacé le problème de Bolza où j'ai les deux termes, mais j'ai un programme mathématique équivalent."
+  },
+  {
+   "t": 5522880,
+   "text": "I should have more whiteboard space. But yeah, our problem, the original infinite-dimensional problem, is: minimize... Now it's going to look like: minimize... Actually, I also need to redefine my cost function, but you'll see it's nothing very complicated.",
+   "fr": "Il me faudrait plus d'espace au tableau. Mais bon, notre problème, le problème original en dimension infinie, c'est : minimiser... Maintenant, ça va ressembler à : minimiser... En fait, je dois aussi redéfinir ma fonction de coût, mais vous allez voir que ce n'est rien de très compliqué."
+  },
+  {
+   "t": 5553360,
+   "text": "\\(t_f\\), such that my dynamics are given by this thing: \\(\\dot{\\tilde x}(t)\\) is equal to that, given the initial state, and so on. So this is an equivalent mathematical formulation of the original problem that had both a terminal cost term and an integral term. And what's hiding in \\(\\tilde c\\)? Well, \\(\\tilde c\\) is defined simply as the original \\(c\\), where... oh, pardon me, it's \\(\\tilde c(\\tilde x(t_f))\\). So I take my \\(\\tilde x\\), I unwrap it, or I unpack it, if I were to be more programmatic. I unpack it, I read",
+   "fr": "\\(t_f\\), de sorte que ma dynamique soit donnée par ceci : \\(\\dot{\\tilde x}(t)\\) est égal à ça, étant donné l'état initial, et ainsi de suite. C'est donc une formulation mathématique équivalente du problème original qui avait à la fois un terme de coût terminal et un terme intégral. Et qu'est-ce qui se cache dans \\(\\tilde c\\) ? Eh bien, \\(\\tilde c\\) est défini simplement comme le \\(c\\) original, où... oh, pardon, c'est \\(\\tilde c(\\tilde x(t_f))\\). Je prends donc mon \\(\\tilde x\\), je le déballe, ou je le dépaquette, si je voulais parler plus en programmeur. Je le dépaquette, je lis"
+  },
+  {
+   "t": 5617360,
+   "text": "the value of \\(x(t_f)\\) that is contained in there, and I also read the second component, which is \\(z\\), and \\(z\\) is the sum, and I have these two. This is how this is implemented. It's really clear that this is a placeholder for the integral from \\(t_0\\) to \\(t_f\\) of \\(c\\).",
+   "fr": "la valeur de \\(x(t_f)\\) qui est contenue là-dedans, et je lis aussi la deuxième composante, qui est \\(z\\), et \\(z\\), c'est la somme, et j'ai ces deux-là. C'est comme ça que c'est implémenté. C'est vraiment clair que ceci tient lieu de l'intégrale de \\(t_0\\) à \\(t_f\\) de \\(c\\)."
+  },
+  {
+   "t": 5649040,
+   "text": "Right? So I've turned my original problem into this problem, which is still a continuous-time, infinite-dimensional problem. But now let's apply our transcription recipe, collocation. So what would it mean? You apply collocation to \\(\\tilde x\\), and in doing so you would also end up fitting a polynomial, because that's the story I told you: collocation is about representing my candidate trajectory as a polynomial and ensuring that this polynomial is consistent with the underlying dynamics, by matching the slopes and making sure we have continuity across segments, such that whenever you finish one polynomial, the end state of that polynomial needs to be the beginning of the next segment. And so if you were to do collocation over that augmented state space, it means",
+   "fr": "D'accord ? J'ai donc transformé mon problème original en ce problème, qui est encore un problème en temps continu, en dimension infinie. Mais maintenant, appliquons notre recette de transcription, la collocation. Qu'est-ce que ça voudrait dire ? Vous appliquez la collocation à \\(\\tilde x\\), et ce faisant, vous finiriez aussi par ajuster un polynôme, parce que c'est l'histoire que je vous ai racontée : la collocation, c'est représenter ma trajectoire candidate comme un polynôme et s'assurer que ce polynôme est cohérent avec la dynamique sous-jacente, en faisant correspondre les pentes et en s'assurant d'avoir la continuité d'un segment à l'autre, de sorte que chaque fois que vous terminez un polynôme, l'état final de ce polynôme doit être le début du segment suivant. Et donc si vous faisiez la collocation sur cet espace d'états augmenté, ça veut dire"
+  },
+  {
+   "t": 5709280,
+   "text": "you'd also be fitting a polynomial to the evolution of \\(z\\). And this is where we've now got this sort of duality between quadrature rules, polynomial interpolation, and that's more than a duality, and numerical integration for solving IVPs. So in other words, where I'm getting at with this is that you don't want to choose an arbitrary quadrature method that SciPy would offer you. There is a choice that is prescribed by the collocation method you pick.",
+   "fr": "que vous ajusteriez aussi un polynôme à l'évolution de \\(z\\). Et c'est là qu'on a maintenant cette espèce de dualité entre les règles de quadrature, l'interpolation polynomiale, et c'est plus qu'une dualité, et l'intégration numérique pour résoudre des IVP. Autrement dit, là où je veux en venir avec ça, c'est que vous ne voulez pas choisir une méthode de quadrature arbitraire que SciPy vous offrirait. Il y a un choix qui est prescrit par la méthode de collocation que vous choisissez."
+  },
+  {
+   "t": 5758560,
+   "text": "In other words, if you do collocation with Hermite-Simpson, let's say, for your trajectory, then there will be a corresponding way of discretizing the integral cost that is consistent with that scheme. It's consistent, and it's going to reuse the same node information. That's very important. So you're not going to waste effort finding the value of our system at nodes you don't have.",
+   "fr": "Autrement dit, si vous faites de la collocation avec Hermite-Simpson, disons, pour votre trajectoire, alors il y aura une façon correspondante de discrétiser le coût intégral qui est cohérente avec ce schéma. C'est cohérent, et ça va réutiliser la même information aux nœuds. C'est très important. Vous n'allez donc pas gaspiller d'effort à trouver la valeur de notre système en des nœuds que vous n'avez pas."
+  },
+  {
+   "t": 5795280,
+   "text": "So that's the general idea. That's the general idea for why these things are consistent, and why you end up, say, in the Euler case, with this form, which is one of the most basic quadrature rules that you could think of. In fact, it's... is it Simpson's rule? I can't remember. In calculus, it's the one where you fit a rectangle to the area under the curve.",
+   "fr": "C'est donc l'idée générale. C'est l'idée générale qui explique pourquoi ces choses-là sont cohérentes, et pourquoi on se retrouve, disons, dans le cas d'Euler, avec cette forme, qui est l'une des règles de quadrature les plus élémentaires qu'on puisse imaginer. En fait, c'est... est-ce que c'est la règle de Simpson ? Je ne m'en souviens plus. En calcul intégral, c'est celle où on ajuste un rectangle à l'aire sous la courbe."
+  },
+  {
+   "t": 5830560,
+   "text": "So what's the corresponding rule? And then trapezoidal: why do we call it trapezoidal collocation? It's also because it's the trapezoidal rule of calculus. So that's pretty much it. We'll need to practice that stuff a little bit more. It's not like this should be entirely clear from today, but the high-level picture I wanted to give you looks like that. So one thing I want to go back to, because I started with the hardest material first, and now I'm going to go back, maybe, to the easier stuff, is the sequential methods. So instead of transcribing and solving your system simultaneously, let's consider the Euler collocation",
+   "fr": "Alors, quelle est la règle correspondante ? Et ensuite, la méthode trapézoïdale : pourquoi est-ce qu'on l'appelle collocation trapézoïdale ? C'est aussi parce que c'est la règle des trapèzes du calcul intégral. C'est donc à peu près ça. On va devoir pratiquer ces choses-là un peu plus. Ce n'est pas comme si tout ça devait être entièrement clair dès aujourd'hui, mais la vue d'ensemble que je voulais vous donner ressemble à ça. Donc une chose sur laquelle je veux revenir, parce que j'ai commencé par la matière la plus difficile, et maintenant je vais revenir, peut-être, aux choses plus faciles, ce sont les méthodes séquentielles. Au lieu de transcrire et de résoudre votre système simultanément, considérons la collocation d'Euler"
+  },
+  {
+   "t": 5895679,
+   "text": "and consider a way of writing this that does not involve maintaining those \\(x\\)'s as decision variables. So this brings us into the world of so-called shooting methods, and more specifically single shooting methods. Why is it called single shooting? Because the analogy here comes from ballistics. Imagine you're shooting a cannonball from a cannon, and say this is the cannon.",
+   "fr": "et considérons une façon d'écrire ça qui n'implique pas de maintenir ces \\(x\\) comme variables de décision. Ça nous amène dans le monde des méthodes dites de tir, et plus précisément des méthodes de tir simple. Pourquoi est-ce que ça s'appelle tir simple ? Parce que l'analogie ici vient de la balistique. Imaginez que vous tirez un boulet avec un canon, et disons que ceci est le canon."
+  },
+  {
+   "t": 5947280,
+   "text": "Okay. And then it's aimed at the sky with a given angle \\(\\theta\\). And then the ballistics gives you something that goes like that. And then your goal is to hit the target somewhere, let's say here. So what a shooting method does is that the only thing it's going to do while optimizing is fix the value of \\(\\theta\\), the angle, shoot, see where it lands, and then adjust.",
+   "fr": "Bon. Et ensuite, il est pointé vers le ciel avec un certain angle \\(\\theta\\). Et ensuite, la balistique vous donne quelque chose qui fait ça. Et ensuite, votre but, c'est d'atteindre la cible quelque part, disons ici. Ce que fait une méthode de tir, c'est que la seule chose qu'elle va faire pendant l'optimisation, c'est fixer la valeur de \\(\\theta\\), l'angle, tirer, voir où ça atterrit, et ensuite ajuster."
+  },
+  {
+   "t": 5986239,
+   "text": "Why is it that I put single shooting in the bucket of sequential methods? Because once I fix \\(\\theta\\), I will simulate explicitly what's happening, and in order to adjust \\(\\theta\\), [inaudible] we'll have to backprop through that simulated process. Whereas the analogy, if we were to do it simultaneously, is that we would figure out, at the same time, \\(\\theta\\) and what the trajectory for the optimal solution would look like in the sky.",
+   "fr": "Pourquoi est-ce que je mets le tir simple dans le panier des méthodes séquentielles ? Parce qu'une fois que je fixe \\(\\theta\\), je vais simuler explicitement ce qui se passe, et pour ajuster \\(\\theta\\), [inaudible] on va devoir faire la rétropropagation à travers ce processus simulé. Alors que l'analogie, si on le faisait simultanément, c'est qu'on déterminerait en même temps \\(\\theta\\) et ce à quoi ressemblerait la trajectoire de la solution optimale dans le ciel."
+  },
+  {
+   "t": 6031040,
+   "text": "So it wouldn't be like you generate a candidate and you test it; you do both at the same time. That makes sense? So how would we turn 53, very quickly, into a sequential implementation? That would essentially involve eliminating some constraints by reparameterizing our problem.",
+   "fr": "Ce ne serait donc pas comme si vous génériez un candidat et que vous le testiez ; vous faites les deux en même temps. C'est clair ? Alors, comment est-ce qu'on transformerait 53, très rapidement, en une implémentation séquentielle ? Ça impliquerait essentiellement d'éliminer certaines contraintes en reparamétrant notre problème."
+  },
+  {
+   "t": 6064400,
+   "text": "And very concretely, we're going to embed our simulator, to call it this way. I'm going to try to write it differently today. I used to have this notation with the \\(\\phi\\) and everything, but it's a bit heavy, maybe. Simulate. Simulate: I'm going to write \\(u\\), because \\(u\\) here contains, let's say, the entire candidate, the concatenation of all the \\(u\\)'s. Simulate, and I need to give it the initial \\(x_0\\). And then the way we'd be defining",
+   "fr": "Et très concrètement, on va incorporer notre simulateur, pour l'appeler comme ça. Je vais essayer de l'écrire différemment aujourd'hui. Avant, j'avais cette notation avec le \\(\\phi\\) et tout, mais c'est un peu lourd, peut-être. Simulate. Simulate : je vais écrire \\(u\\), parce que \\(u\\) ici contient, disons, le candidat au complet, la concaténation de tous les \\(u\\). Simulate, et je dois lui donner le \\(x_0\\) initial. Et ensuite, la façon dont on définirait"
+  },
+  {
+   "t": 6125440,
+   "text": "simulate, somewhere in that Python function it would be hard-coded that simulate simulates until the end of the integration interval, \\(t_f\\). You could put it as an argument; it doesn't really matter. And the thing is that simulate is the Python program that takes an angle as input and tells you what it's going to look like in the sky and where it's going to land.\nStudent: Yeah. What is the difference between [inaudible] and the simulate function?",
+   "fr": "simulate, quelque part dans cette fonction Python, ce serait codé en dur que simulate simule jusqu'à la fin de l'intervalle d'intégration, \\(t_f\\). Vous pourriez le passer en argument ; ça n'a pas vraiment d'importance. Et le truc, c'est que simulate, c'est le programme Python qui prend un angle en entrée et qui vous dit à quoi ça va ressembler dans le ciel et où ça va atterrir.\nStudent: Oui. Quelle est la différence entre [inaudible] et la fonction simulate ?"
+  },
+  {
+   "t": 6160239,
+   "text": "Simulate will take \\(f\\), most likely, as an input, but then tell you what the corresponding trajectory is. So simulate, let's say, would literally be, in SciPy, say... it's been a while [inaudible], but I think it was called solve_ivp, and this thing takes as input... the signature is something like, for us, it takes \\(x_0\\) [?], \\(f\\), and then \\(t\\), and what it does is it takes \\(f\\) and then it does numerical integration. So I went the other way in my presentation here and showed you the polynomial interpretation. Usually, when we talk about solving IVPs, we would start with the simplest, which was Euler's",
+   "fr": "Simulate va prendre \\(f\\), très probablement, en entrée, mais ensuite vous dire quelle est la trajectoire correspondante. Donc simulate, disons, ce serait littéralement, dans SciPy, disons... ça fait longtemps [inaudible], mais je pense que ça s'appelait solve_ivp, et cette chose prend en entrée... la signature est quelque chose comme, pour nous, elle prend \\(x_0\\) [?], \\(f\\), et ensuite \\(t\\), et ce qu'elle fait, c'est qu'elle prend \\(f\\) et ensuite fait de l'intégration numérique. J'ai donc fait l'inverse dans ma présentation ici et je vous ai montré l'interprétation polynomiale. Habituellement, quand on parle de résoudre des IVP, on commencerait par le plus simple, qui était la méthode"
+  },
+  {
+   "t": 6223280,
+   "text": "method, and how you approximate it by writing a for loop. A for loop where you take steps like that. \\(h\\) is a step size. So this is essentially explicit.",
+   "fr": "d'Euler, et comment on l'approxime en écrivant une boucle for. Une boucle for où on fait des pas comme ça. \\(h\\) est la taille du pas. C'est donc essentiellement explicite."
+  },
+  {
+   "t": 6256400,
+   "text": "This is our simulation loop. You see, again, \\(f\\) on its own doesn't tell you what the state is at any point in time. It tells you what the rate of change is. To figure out the actual position, you need to do integration. Just like the same kind of problems we might have seen in school: somebody tells you there's a bus that moves at this speed.",
+   "fr": "C'est notre boucle de simulation. Vous voyez, encore une fois, \\(f\\) à elle seule ne vous dit pas quel est l'état à un moment donné. Elle vous dit quel est le taux de variation. Pour trouver la position réelle, vous devez faire une intégration. Exactement comme le genre de problèmes qu'on a peut-être vus à l'école : quelqu'un vous dit qu'il y a un autobus qui se déplace à telle vitesse."
+  },
+  {
+   "t": 6291520,
+   "text": "Where is it going to be in x amount of hours? It's literally what this is about. So a single shooting method for a Bolza [?] problem, and you can do the same business if you have an integral term, here I'm just simplifying things, would turn that problem into this. So when I use the expression reparameterization, what I mean here is that we've re-expressed the whole sequence \\(x\\) in terms of \\(u\\). In other words, if you give me any candidate sequence of controls and an initial state, that thing is deterministic. I can always reconstruct exactly the same solution. I can always tell you what the corresponding trajectory is going to be.",
+   "fr": "Où va-t-il être dans x heures ? C'est littéralement de ça qu'il s'agit. Donc une méthode de tir simple pour un problème de Bolza [?], et vous pouvez faire la même chose si vous avez un terme intégral, ici je simplifie juste les choses, transformerait ce problème en ceci. Quand j'utilise l'expression reparamétrage, ce que je veux dire ici, c'est qu'on a réexprimé toute la séquence \\(x\\) en fonction de \\(u\\). Autrement dit, si vous me donnez n'importe quelle séquence candidate de commandes et un état initial, cette chose est déterministe. Je peux toujours reconstruire exactement la même solution. Je peux toujours vous dire quelle va être la trajectoire correspondante."
+  },
+  {
+   "t": 6346000,
+   "text": "I can always reconstruct it. I don't have to... So that's why it's a reparameterization, and it's an exact reparameterization, mathematically. So I would do it this way, and then, in terms of optimization, it means that if you do gradient-based optimization, you'd have to backprop through a for loop, which is okay. A for loop is just a function composition, and if you do it with automatic differentiation, it's going to be able to do it for you, no problem. In JAX you can write a for loop and it's going to be taken care of, no problem. SciPy minimize and these other frameworks, they don't use automatic differentiation. They use finite differences, which means that their derivatives are always approximate, and it's often actually good enough, to be honest. There are ways to specify the true derivatives to SciPy minimize, but",
+   "fr": "Je peux toujours la reconstruire. Je n'ai pas à... C'est pour ça que c'est un reparamétrage, et c'est un reparamétrage exact, mathématiquement. Je le ferais donc de cette façon, et ensuite, en termes d'optimisation, ça veut dire que si vous faites de l'optimisation par gradient, vous devriez faire la rétropropagation à travers une boucle for, ce qui est correct. Une boucle for, c'est juste une composition de fonctions, et si vous le faites avec la différentiation automatique, elle va pouvoir le faire pour vous, pas de problème. En JAX, vous pouvez écrire une boucle for et ça va être pris en charge, pas de problème. SciPy minimize et ces autres cadres logiciels n'utilisent pas la différentiation automatique. Ils utilisent des différences finies, ce qui veut dire que leurs dérivées sont toujours approximatives, et c'est souvent en fait suffisant, pour être honnête. Il y a des façons de fournir les vraies dérivées à SciPy minimize, mais"
+  },
+  {
+   "t": 6406480,
+   "text": "in my experience it never really changes anything. It's often slower than using the finite differences. So yeah, shooting methods, or sequential methods: the intuition behind them is always that you get rid of the \\(x_k\\) for \\(k\\) from 0 to \\(N\\), and instead the only decision variables that you keep are the actual \\(u\\)'s. And it sounds like the thing we should have done since the beginning, much simpler conceptually at least, but it suffers from the curse of horizon, to call it this way, as your horizon grows. Imagine now...",
+   "fr": "d'après mon expérience, ça ne change jamais vraiment rien. C'est souvent plus lent que d'utiliser les différences finies. Donc oui, les méthodes de tir, ou méthodes séquentielles : l'intuition derrière elles, c'est toujours qu'on se débarrasse des \\(x_k\\) pour \\(k\\) de 0 à \\(N\\), et que les seules variables de décision qu'on garde, ce sont les \\(u\\) eux-mêmes. Et ça a l'air d'être ce qu'on aurait dû faire depuis le début, beaucoup plus simple conceptuellement du moins, mais ça souffre de la malédiction de l'horizon, pour l'appeler comme ça, à mesure que votre horizon s'allonge. Imaginez maintenant..."
+  },
+  {
+   "t": 6454560,
+   "text": "Oh, it's gone. Instead of shooting a cannonball to Longueuil [?], I want to shoot a cannonball to your hometown [?]. I'm not sure why I want to do this, but I still want to do it. It's much harder. It's quite far, for sure. If I make a tiny, tiny mistake here on the angle, it's going to have a ripple effect and most likely result in a big error down the line.",
+   "fr": "Oh, ça a disparu. Au lieu de tirer un boulet de canon jusqu'à Longueuil [?], je veux tirer un boulet de canon jusqu'à votre ville natale [?]. Je ne sais pas trop pourquoi je veux faire ça, mais je veux quand même le faire. C'est beaucoup plus difficile. C'est assez loin, c'est sûr. Si je fais une toute petite erreur ici sur l'angle, ça va avoir un effet en cascade et très probablement mener à une grosse erreur plus loin."
+  },
+  {
+   "t": 6487199,
+   "text": "So there's that sensitivity problem that arises from doing things this way. Mathematically, it's equivalent. Numerically, it's never the case. So, long story short, if you've got a long-horizon problem... and maybe if I were to give you a made-up problem in the exam where I say, here's a control problem, and I try to hint to you that it's a very long-horizon problem, probably what I want you to answer to my question is to recognize that it's probably a bad place to do shooting: a long horizon, very unstable dynamics. This is not going to be a good choice. Better go with collocation, because then, computationally, you're still going to be paying a price, you have more decision variables, but it will also give you more control to ensure your system does not blow up.",
+   "fr": "Il y a donc ce problème de sensibilité qui découle du fait de faire les choses de cette façon. Mathématiquement, c'est équivalent. Numériquement, ce n'est jamais le cas. Bref, si vous avez un problème à long horizon... et peut-être que si je vous donnais un problème inventé à l'examen où je dis : voici un problème de commande, et que j'essaie de vous laisser entendre que c'est un problème à très long horizon, ce que je veux probablement que vous répondiez à ma question, c'est de reconnaître que ce n'est probablement pas un bon endroit pour faire du tir : un long horizon, une dynamique très instable. Ça ne va pas être un bon choix. Mieux vaut opter pour la collocation, parce qu'à ce moment-là, sur le plan du calcul, vous allez quand même payer un prix, vous avez plus de variables de décision, mais ça va aussi vous donner plus de contrôle pour vous assurer que votre système n'explose pas."
+  },
+  {
+   "t": 6549520,
+   "text": "So there you go. Shooting methods: that's pretty much what I wanted to say about that. And that's the end of the course. So Thursday we'll practice a little bit more with the derivation. We'll see how we can implement collocation in the general way. I already have a sketch of how this is done. And then we'll move on to some new material, which is really, really practical in practice. So it's trajectory optimization, but instead of using numerical tools from the world of NLPs, nonlinear programs, we're using sampling-based methods.",
+   "fr": "Et voilà. Les méthodes de tir : c'est à peu près ce que je voulais dire là-dessus. Et c'est la fin du cours. Jeudi, on va donc s'exercer un peu plus à faire les calculs. On va voir comment on peut implémenter la collocation de façon générale. J'ai déjà une ébauche de la façon dont ça se fait. Et ensuite, on va passer à de la nouvelle matière, qui est vraiment, vraiment pratique en pratique. C'est donc de l'optimisation de trajectoire, mais au lieu d'utiliser des outils numériques du monde des NLP, les programmes non linéaires, on utilise des méthodes par échantillonnage."
+  },
+  {
+   "t": 6600159,
+   "text": "So this is still going to deal with deterministic ODEs, or systems like the pendulum, but instead of using Arrow-Hurwicz or SQP and doing transcription, we're going to be sampling candidates and reweighting candidates. And what's really interesting is that this algorithm scales quite well to high dimensions, and I've prepared a demo, which I hope will be ready by then, where I simulated a big, complicated PDE. So it's like an image, and then I use MPPI to control the flow of heat in some kind of process.",
+   "fr": "Ça va donc encore porter sur des ODE déterministes, ou des systèmes comme le pendule, mais au lieu d'utiliser Arrow-Hurwicz ou SQP et de faire de la transcription, on va échantillonner des candidats et repondérer des candidats. Et ce qui est vraiment intéressant, c'est que cet algorithme passe assez bien à l'échelle en grande dimension, et j'ai préparé une démo, qui sera prête d'ici là, j'espère, où j'ai simulé une grosse PDE compliquée. C'est comme une image, et ensuite j'utilise MPPI pour contrôler le flux de chaleur dans une espèce de procédé."
+  },
+  {
+   "t": 6644400,
+   "text": "And yeah, MPPI is very much related to diffusions and very much related to GFlowNets as well, and it's used widely in practice, and then you can also combine MPPI within an MPC setting, which we have yet to talk about. Okay, wait.\nStudent: Are we going to code on Thursday, or is it going to be...\nMaybe. It'll be fun. We don't have an actual... how's it called? A demo. But I think it'd be nice to have some [inaudible]. If you have a laptop, maybe bring it just in case.",
+   "fr": "Et oui, MPPI est très lié aux diffusions et très lié aussi aux GFlowNets, et c'est largement utilisé en pratique, et ensuite vous pouvez aussi combiner MPPI dans un cadre de commande prédictive (MPC), dont on n'a pas encore parlé. Bon, attendez.\nStudent: Est-ce qu'on va coder jeudi, ou est-ce que ça va être...\nPeut-être. Ça va être amusant. On n'a pas de vrai... comment ça s'appelle ? Une démo. Mais je pense que ce serait bien d'avoir quelques [inaudible]. Si vous avez un portable, apportez-le peut-être, au cas où."
+  },
+  {
+   "t": 6681360,
+   "text": "Yeah, just bring your laptop, just in case.\nStudent: Okay.",
+   "fr": "Oui, apportez juste votre portable, au cas où.\nStudent: OK."
+  }
+ ]
+}

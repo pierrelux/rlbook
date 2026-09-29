@@ -1,0 +1,810 @@
+{
+ "date": "2026-09-03",
+ "tldr": [
+  {
+   "notion": "Evaluation dates and course logistics",
+   "detail": "There are no assignments; feedback will come from in-class exercises, and the evaluation is split into exams: the first on October 8 (15%), the poster session on December 3, and the final exam on the date the faculty sets (between December 11 and 22). Recordings and past exams are in the course Google Drive, and the TA, Gabriel Sasseville, holds office hours on Thursdays from 12:30 to 1:30 before class.",
+   "t": 282479,
+   "exam": false,
+   "notion_fr": "Dates d'évaluation et logistique du cours",
+   "detail_fr": "Il n'y a pas de devoirs; la rétroaction viendra d'exercices en classe, et l'évaluation est répartie en examens : le premier le 8 octobre (15 %), la séance d'affiches le 3 décembre, et l'examen final à la date fixée par la faculté (entre le 11 et le 22 décembre). Les enregistrements et les examens des années précédentes sont dans le Google Drive du cours, et l'auxiliaire d'enseignement, Gabriel Sasseville, offre ses disponibilités le jeudi de 12 h 30 à 13 h 30, avant le cours."
+  },
+  {
+   "notion": "Discrete-time optimal control program",
+   "detail": "Minimize a terminal cost \\(c_T(\\mathbf{x}_T)\\) plus a sum of immediate (stage) costs \\(c_t(\\mathbf{x}_t,\\mathbf{u}_t)\\) subject to the dynamics \\(\\mathbf{x}_{t+1}=\\mathbf{f}_t(\\mathbf{x}_t,\\mathbf{u}_t)\\), state and control bounds, path inequality constraints \\(\\mathbf{g}_t\\), and a given initial state. With continuous variables and no further structure this is a nonlinear program (NLP), and continuous-time problems are reduced to this form.",
+   "t": 2110480,
+   "exam": false,
+   "notion_fr": "Programme de commande optimale en temps discret",
+   "detail_fr": "Minimiser un coût terminal \\(c_T(\\mathbf{x}_T)\\) plus une somme de coûts immédiats (par étape) \\(c_t(\\mathbf{x}_t,\\mathbf{u}_t)\\) sous les contraintes de la dynamique \\(\\mathbf{x}_{t+1}=\\mathbf{f}_t(\\mathbf{x}_t,\\mathbf{u}_t)\\), de bornes sur l'état et la commande, de contraintes de trajectoire en inégalité \\(\\mathbf{g}_t\\) et d'un état initial donné. Avec des variables continues et sans autre structure, c'est un programme non linéaire (NLP), et les problèmes en temps continu sont ramenés à cette forme."
+  },
+  {
+   "notion": "Simultaneous versus sequential methods",
+   "detail": "Imposing the dynamics as equality (consistency) constraints makes both states and controls decision variables (simultaneous methods): more variables and more work, but better stability and accuracy over long horizons. Sequential (shooting) methods eliminate the states, which means less computation but possible failure over long horizons; both are the same program under a change of variables and differ only numerically.",
+   "t": 2616640,
+   "exam": false,
+   "notion_fr": "Méthodes simultanées et méthodes séquentielles",
+   "detail_fr": "Imposer la dynamique sous forme de contraintes d'égalité (de cohérence) fait des états et des commandes des variables de décision (méthodes simultanées) : plus de variables et plus de travail, mais une meilleure stabilité et une meilleure précision sur de longs horizons. Les méthodes séquentielles (de tir) éliminent les états, ce qui demande moins de calcul mais peut échouer sur de longs horizons; les deux sont le même programme à un changement de variables près et ne diffèrent que numériquement."
+  },
+  {
+   "notion": "Single shooting as RNN unrolling",
+   "detail": "Single shooting rewrites the problem in the controls alone through \\(\\phi_t(\\mathbf{u},\\mathbf{x}_1)\\), the state reached by rolling out the deterministic dynamics (a for loop or lax.scan), so the cost becomes a function composition differentiated by automatic differentiation. The long unrolled chain behaves like an RNN and suffers the same exploding and vanishing gradients over long horizons.",
+   "t": 2961440,
+   "exam": false,
+   "notion_fr": "Le tir simple comme déroulement d'un RNN",
+   "detail_fr": "Le tir simple réécrit le problème en fonction des seules commandes au moyen de \\(\\phi_t(\\mathbf{u},\\mathbf{x}_1)\\), l'état atteint en déroulant la dynamique déterministe (une boucle for ou lax.scan), de sorte que le coût devient une composition de fonctions différentiée par différentiation automatique. La longue chaîne déroulée se comporte comme un RNN et souffre des mêmes problèmes d'explosion et d'évanouissement des gradients sur de longs horizons."
+  },
+  {
+   "notion": "Path constraints require simultaneous methods",
+   "detail": "Because the states stay explicit variables, simultaneous methods can impose hard state and path constraints (which also help pin down unstable modes), whereas after elimination in single shooting only regularizer-like penalties remain. He said he may plant this cue in an exam problem description.",
+   "t": 3586720,
+   "exam": true,
+   "notion_fr": "Les contraintes de trajectoire exigent des méthodes simultanées",
+   "detail_fr": "Comme les états restent des variables explicites, les méthodes simultanées peuvent imposer des contraintes strictes sur les états et sur la trajectoire (qui aident aussi à maîtriser les modes instables), alors qu'après élimination en tir simple, il ne reste que des pénalités semblables à des termes de régularisation. Il a dit qu'il pourrait glisser cet indice dans l'énoncé d'un problème d'examen."
+  },
+  {
+   "notion": "KKT conditions and the Lagrangian",
+   "detail": "For a constrained program, the Lagrange multiplier theorem (KKT conditions with inequalities) states that at an optimal \\(\\mathbf{z}\\) there exist multipliers \\(\\boldsymbol{\\lambda}\\) and \\(\\boldsymbol{\\mu}\\ge 0\\) for which the gradient of the Lagrangian is zero. It is an existence statement, not a regularized loss to be minimized.",
+   "t": 5422159,
+   "exam": false,
+   "notion_fr": "Conditions KKT et lagrangien",
+   "detail_fr": "Pour un programme sous contraintes, le théorème des multiplicateurs de Lagrange (les conditions KKT en présence d'inégalités) affirme qu'en un \\(\\mathbf{z}\\) optimal, il existe des multiplicateurs \\(\\boldsymbol{\\lambda}\\) et \\(\\boldsymbol{\\mu}\\ge 0\\) pour lesquels le gradient du lagrangien est nul. C'est un énoncé d'existence, pas une perte régularisée à minimiser."
+  },
+  {
+   "notion": "Primal-dual (Arrow-Hurwicz-Uzawa) methods",
+   "detail": "The min over \\(\\mathbf{z}\\), max over \\((\\boldsymbol{\\lambda},\\boldsymbol{\\mu})\\) game on the Lagrangian leads to gradient descent in the primal and gradient ascent in the duals, with \\(\\boldsymbol{\\mu}\\) projected back to \\(\\boldsymbol{\\mu}\\ge 0\\); like GAN training it is unstable and only locally convergent, so extragradient steps or an augmented Lagrangian (squared constraint penalty) help. Since the first-order conditions are a root-finding problem, applying Newton's method to them gives SQP, the topic of the next lecture.",
+   "t": 5571360,
+   "exam": false,
+   "notion_fr": "Méthodes primales-duales (Arrow-Hurwicz-Uzawa)",
+   "detail_fr": "Le jeu min sur \\(\\mathbf{z}\\), max sur \\((\\boldsymbol{\\lambda},\\boldsymbol{\\mu})\\) appliqué au lagrangien mène à une descente de gradient sur la variable primale et à une ascension de gradient sur les variables duales, \\(\\boldsymbol{\\mu}\\) étant projeté pour revenir à \\(\\boldsymbol{\\mu}\\ge 0\\); comme l'entraînement des GAN, c'est instable et seulement localement convergent, d'où l'utilité de pas extragradient ou d'un lagrangien augmenté (pénalité quadratique sur les contraintes). Puisque les conditions du premier ordre forment un problème de recherche de racines, leur appliquer la méthode de Newton donne SQP, le sujet du prochain cours."
+  }
+ ],
+ "outline": [
+  {
+   "t": 1199,
+   "title": "Logistics: recordings, past exams, dates, TA",
+   "title_fr": "Logistique : enregistrements, anciens examens, dates, auxiliaire d'enseignement"
+  },
+  {
+   "t": 835279,
+   "title": "Demos: swing 360 and BIXI rebalancing",
+   "title_fr": "Démos : le 360 en balançoire et le rééquilibrage des BIXI"
+  },
+  {
+   "t": 1293440,
+   "title": "Multi-objective and preference-based RL",
+   "title_fr": "RL multiobjectif et RL fondé sur les préférences"
+  },
+  {
+   "t": 1722880,
+   "title": "Course roadmap: trajectory optimization first",
+   "title_fr": "Feuille de route du cours : l'optimisation de trajectoire d'abord"
+  },
+  {
+   "t": 2071280,
+   "title": "The discrete-time optimal control program",
+   "title_fr": "Le programme de commande optimale en temps discret"
+  },
+  {
+   "t": 2442240,
+   "title": "Dynamics as constraints: simultaneous versus sequential",
+   "title_fr": "La dynamique comme contraintes : méthodes simultanées ou séquentielles"
+  },
+  {
+   "t": 2888720,
+   "title": "Single shooting as an unrolled RNN",
+   "title_fr": "Le tir simple comme RNN déroulé"
+  },
+  {
+   "t": 3586720,
+   "title": "Path constraints favour simultaneous methods",
+   "title_fr": "Les contraintes de trajectoire favorisent les méthodes simultanées"
+  },
+  {
+   "t": 3767040,
+   "title": "Break",
+   "title_fr": "Pause"
+  },
+  {
+   "t": 4845280,
+   "title": "GPU frequency-scaling control demo",
+   "title_fr": "Démo de commande par ajustement de la fréquence d'un GPU"
+  },
+  {
+   "t": 5159199,
+   "title": "Constrained optimization: KKT and the Lagrangian",
+   "title_fr": "Optimisation sous contraintes : KKT et lagrangien"
+  },
+  {
+   "t": 5571360,
+   "title": "Primal-dual methods, augmented Lagrangian, SQP preview",
+   "title_fr": "Méthodes primales-duales, lagrangien augmenté, aperçu de SQP"
+  }
+ ],
+ "paras": [
+  {
+   "t": 1199,
+   "text": "Then I only have access to your UMontréal email that they've created temporarily for you. So that's all I have access to. So if you haven't activated this email, please do so. I don't have access to your home institution email or anything like that. And then I sent a link to that folder I created for the course. This is how I do things usually. The link should be open to anyone, so you should be able to open it without a Mila account or anything.",
+   "fr": "Ensuite, je n'ai accès qu'à votre courriel UMontréal, celui qu'on vous a créé temporairement. C'est tout ce à quoi j'ai accès. Alors si vous n'avez pas activé ce courriel, faites-le, s'il vous plaît. Je n'ai pas accès au courriel de votre établissement d'origine ni à quoi que ce soit du genre. Et puis je vous ai envoyé un lien vers le dossier que j'ai créé pour le cours. C'est comme ça que je fais d'habitude. Le lien devrait être ouvert à tout le monde, donc vous devriez pouvoir l'ouvrir sans compte Mila ni rien."
+  },
+  {
+   "t": 39120,
+   "text": "And I'm just going to dump the recordings in there every time. See, this was the recording on Monday. By the way, there's a feature that I really like, that I realized, because it uses the built-in YouTube... I mean, it's all private, but the built-in YouTube video player. There is a place you can click, Settings, and then you can do Transcript, and it gives you the transcript. It's pretty good. So sometimes I use this and run some analytics, you know, and try to improve the course with that. But you can also use it if you want to go faster and, like, ask a model what I talked about. And if you're the kind of person who watches videos at 1.5x speed, then that's even better. I don't have a way, honestly.",
+   "fr": "Et je vais simplement y déposer les enregistrements à chaque fois. Voyez, voici l'enregistrement de lundi. D'ailleurs, il y a une fonctionnalité que j'aime beaucoup, dont je me suis rendu compte, parce que ça utilise le lecteur YouTube intégré... Enfin, tout est privé, mais c'est le lecteur vidéo YouTube intégré. Il y a un endroit où vous pouvez cliquer, Paramètres, puis vous pouvez choisir Transcription, et ça vous donne la transcription. C'est assez bon. Alors parfois je m'en sers pour faire quelques analyses, vous savez, et essayer d'améliorer le cours avec ça. Mais vous pouvez aussi vous en servir si vous voulez aller plus vite et, genre, demander à un modèle de quoi j'ai parlé. Et si vous êtes du genre à regarder les vidéos en vitesse 1,5x, c'est encore mieux. Je n'ai pas de façon de le faire, honnêtement."
+  },
+  {
+   "t": 96720,
+   "text": "Maybe there is a way to export it. I haven't found one, but if you just do Control-A, you should be able to copy-paste it and put it somewhere else. So that's it. By the way, when you come to me during the break and ask me questions, usually I turn off the mic so that I don't record what you say. But if you come here and you really want to make sure that it's not recording, you can check on the mic. There's a green LED. So when it's green, it's because it's recording. So just let me know, I'll press the button, and then it's not going to be in the recording. People also asked me for the material from all the previous years, and I actually went through everything, my emails, my [inaudible], my Google Drive, and then I compiled everything that I could find for these last six",
+   "fr": "Il y a peut-être un moyen de l'exporter. Je n'en ai pas trouvé, mais si vous faites simplement Ctrl-A, vous devriez pouvoir la copier-coller et la mettre ailleurs. Voilà. D'ailleurs, quand vous venez me voir pendant la pause pour me poser des questions, d'habitude je coupe le micro pour ne pas enregistrer ce que vous dites. Mais si vous venez ici et que vous voulez vraiment vous assurer que ça n'enregistre pas, vous pouvez vérifier le micro. Il y a une DEL verte. Quand elle est verte, c'est que ça enregistre. Alors dites-le-moi, j'appuie sur le bouton, et ce ne sera pas dans l'enregistrement. Des gens m'ont aussi demandé le matériel de toutes les années précédentes, et j'ai vraiment tout passé en revue, mes courriels, mes [inaudible], mon Google Drive, puis j'ai compilé tout ce que j'ai pu trouver pour ces six dernières"
+  },
+  {
+   "t": 159360,
+   "text": "years. There's one year that I skipped because I was on paternity leave. I think it was 2025, maybe. It's not in there, but otherwise from 2020 to now, it's all in there. I can't really put links in Google Drive, so I had to create a Google Doc, and the Google Doc itself has a link to the Google Drive of the corresponding year. The content changes a bit, but you can still find, you know, videos of me teaching in 2020. Well, actually, turns out that I was teaching in 2025.",
+   "fr": "années. Il y a une année que j'ai sautée parce que j'étais en congé de paternité. Je pense que c'était 2025, peut-être. Elle n'y est pas, mais sinon, de 2020 à maintenant, tout y est. Je ne peux pas vraiment mettre de liens dans Google Drive, alors j'ai dû créer un Google Doc, et le Google Doc lui-même contient un lien vers le Google Drive de l'année correspondante. Le contenu change un peu, mais vous pouvez quand même trouver, vous savez, des vidéos de moi en train d'enseigner en 2020. Bon, en fait, il s'avère que j'enseignais en 2025."
+  },
+  {
+   "t": 196640,
+   "text": "You'll see the course has changed quite a bit, but you know, you can check it out. And not only this, but also all the exams and homeworks I could find, I've put them there. There might be one or two copies containing answers, but I think most of them don't have answers, because the answer sheet had just never been produced. I was grading them, and the answer sheet was in my head. But yeah, if you study with this material, just dump it in ChatGPT and ask it to give you the answers. It's going to be great. Yeah?",
+   "fr": "Vous verrez que le cours a pas mal changé, mais bon, vous pouvez aller voir. Et pas seulement ça : j'y ai aussi mis tous les examens et les devoirs que j'ai pu trouver. Il y a peut-être une ou deux copies qui contiennent des réponses, mais je pense que la plupart n'en ont pas, parce que le corrigé n'a tout simplement jamais été produit. Je les corrigeais, et le corrigé était dans ma tête. Mais bon, si vous étudiez avec ce matériel, mettez-le simplement dans ChatGPT et demandez-lui de vous donner les réponses. Ça va être super. Oui?"
+  },
+  {
+   "t": 247680,
+   "text": "Student: Maybe you told us on Monday, but are the exams available both in French and...\nOh, yeah. Usually when I prepare the exams, I print them in both languages. And you can also write your answers in French, no problem. Yeah, I print both sets. Speaking of which, I have updated the StudiUM page. Can I log in? This is so annoying, the two-factor authentication thing.",
+   "fr": "Student: Vous nous l'avez peut-être dit lundi, mais est-ce que les examens sont disponibles à la fois en français et...\nAh oui. D'habitude, quand je prépare les examens, je les imprime dans les deux langues. Et vous pouvez aussi rédiger vos réponses en français, pas de problème. Oui, j'imprime les deux versions. D'ailleurs, j'ai mis à jour la page StudiUM. Est-ce que je peux me connecter? C'est tellement agaçant, cette histoire d'authentification à deux facteurs."
+  },
+  {
+   "t": 282479,
+   "text": "It's like, okay, great. This is 6162, right? Syllabus. How come it's not updated? Yes, it's here. I think it's just because of the French version. I don't know. Okay. No, it's fine. Yeah. So, the breakdown, like we talked about on Monday. And then I promised you I would upload the exact dates at 1:30 on Monday, and I failed on my promise. Apologies. It took a bit more back and forth because there were some holidays, and then, you know, there's a break in the fall, right? And then NeurIPS. So I played, like, 4D chess to find what I think is a good schedule. So it looks like that. First, I mean, it's not a midterm anymore when it's split in three. I don't know what it's called. It's like the first exam, October 8th. So the",
+   "fr": "Genre, OK, super. C'est bien 6162, hein? Plan de cours. Comment ça se fait que ce n'est pas à jour? Oui, c'est ici. Je pense que c'est juste à cause de la version française. Je ne sais pas. OK. Non, c'est correct. Oui. Donc, la répartition, comme on en a parlé lundi. Et puis je vous avais promis de mettre en ligne les dates exactes à 13 h 30 lundi, et je n'ai pas tenu ma promesse. Désolé. Ça a demandé un peu plus d'allers-retours parce qu'il y avait des congés, et puis, vous savez, il y a une semaine de relâche à l'automne, hein? Et puis NeurIPS. Alors j'ai joué aux échecs en 4D pour trouver ce qui me semble être un bon horaire. Donc ça ressemble à ça. D'abord, bon, ce n'est plus vraiment un examen de mi-session quand c'est divisé en trois. Je ne sais pas comment ça s'appelle. C'est genre le premier examen, le 8 octobre. Donc le"
+  },
+  {
+   "t": 347600,
+   "text": "good thing with having many evaluations like that is that each exam might be a little bit more self-contained. So I think it's going to help you anyway. You'll get feedback. The weight is not that big, 15%. I mean, you want to do a good job, but if things are not working out at one of those, you can always compensate with the final exam and then get a straight A in the final exam. For the poster session, looks like I picked December 3rd. It's a bit early, but I expect many of you will attend NeurIPS, and I think NeurIPS is something like December 4th or 6th. So that's the best I could do. And then I chose to leave the final exam on whatever date the faculty has decided for us. And there's probably a way of knowing that. If",
+   "fr": "bon côté d'avoir plusieurs évaluations comme ça, c'est que chaque examen peut être un peu plus autonome. Alors je pense que ça va vous aider de toute façon. Vous allez avoir de la rétroaction. La pondération n'est pas si élevée, 15 %. Bon, vous voulez faire du bon travail, mais si ça ne se passe pas bien à l'un d'eux, vous pouvez toujours compenser avec l'examen final et décrocher un A à l'examen final. Pour la séance d'affiches, on dirait que j'ai choisi le 3 décembre. C'est un peu tôt, mais je m'attends à ce que plusieurs d'entre vous aillent à NeurIPS, et je pense que NeurIPS, c'est vers le 4 ou le 6 décembre. Alors c'est le mieux que j'ai pu faire. Et puis j'ai choisi de laisser l'examen final à la date que la faculté a fixée pour nous, quelle qu'elle soit. Et il y a probablement un moyen de la connaître. Si"
+  },
+  {
+   "t": 410160,
+   "text": "somebody figures it out, just let me know. Maybe the information is not available yet, but it might be somewhere on the StudiUM platform or Synchro, I don't know, one of those. If you can't find it, we'll ask and get some [inaudible]. But it's somewhere between December 11th and 22nd, because the end of classes is somewhere around December 10, if I remember correctly, and then the actual end of semester is December 22nd. Now, I personally don't want to stay too long here, right? If we can go on holidays earlier, then that's my preference. So if they decide that we should take our exam on December 22nd, then maybe we can reconsider that a little bit.",
+   "fr": "quelqu'un la trouve, faites-le-moi savoir. L'information n'est peut-être pas encore disponible, mais elle se trouve peut-être quelque part sur la plateforme StudiUM ou dans Synchro, je ne sais pas, l'une de celles-là. Si vous ne la trouvez pas, on va demander et obtenir des [inaudible]. Mais c'est quelque part entre le 11 et le 22 décembre, parce que la fin des cours tombe autour du 10 décembre, si je me souviens bien, et puis la vraie fin du trimestre, c'est le 22 décembre. Maintenant, personnellement, je ne veux pas rester ici trop longtemps, hein? Si on peut partir en vacances plus tôt, c'est ce que je préfère. Alors s'ils décident qu'on doit passer notre examen le 22 décembre, on pourra peut-être revoir ça un peu."
+  },
+  {
+   "t": 462639,
+   "text": "All right. So it looks like that. Anything else I promised you I would do? I think that's about it, right? I had some good questions also. Thank you, by the way, a lot for your questions. I really enjoy it, and that's the fun of having classes, right? Like, what's the point in going to university anymore, right? I think there must be something. So at least that something is to be here and talk to people and ask questions and get some feedback. So yeah, I had good questions. I'll come back to that question here and that question there.",
+   "fr": "Bon. Donc ça ressemble à ça. Y a-t-il autre chose que je vous avais promis de faire? Je pense que c'est à peu près tout, non? J'ai aussi eu de bonnes questions. Merci beaucoup, d'ailleurs, pour vos questions. J'aime vraiment ça, et c'est ça, le plaisir d'avoir des cours, non? Genre, à quoi ça sert encore d'aller à l'université, hein? Je pense qu'il doit bien y avoir quelque chose. Alors au moins, ce quelque chose, c'est d'être ici, de parler avec des gens, de poser des questions et d'avoir de la rétroaction. Donc oui, j'ai eu de bonnes questions. Je vais revenir à cette question-ci et à cette question-là."
+  },
+  {
+   "t": 502160,
+   "text": "I forgot that. I promised you I would make a Slack, but I haven't created one. So I will create one. I usually pick the demo version of Slack, so sometimes at the end of the semester we run out of space, but it's okay. Yep?\nStudent: [inaudible question]\nOh, yeah. Makes no sense.",
+   "fr": "J'ai oublié ça. Je vous avais promis de créer un Slack, mais je ne l'ai pas encore fait. Alors je vais en créer un. D'habitude je prends la version d'essai de Slack, donc parfois, à la fin du trimestre, on manque d'espace, mais c'est correct. Oui?\nStudent: [inaudible question]\nAh oui. Ça n'a aucun sens."
+  },
+  {
+   "t": 536399,
+   "text": "Yeah. I don't know why. I'll delete it. Yeah, there's no... the volume. I don't know why it's there. So this is it. Look, I haven't finalized the hiring of my TA, and it's tricky because there's a union here and I can't just make a call. But most likely it's going to be Gabriel Sasseville, who's my PhD[?] student, and he messaged me today. I'm looking at my phone because I want to go on Slack, and I just want to share with you what he told me about his office hours. Gabriel...",
+   "fr": "Oui. Je ne sais pas pourquoi. Je vais l'enlever. Oui, il n'y a pas de... le volume. Je ne sais pas pourquoi c'est là. Donc voilà. Écoutez, je n'ai pas finalisé l'embauche de mon auxiliaire d'enseignement, et c'est délicat parce qu'il y a un syndicat ici et je ne peux pas simplement décider comme ça. Mais fort probablement, ce sera Gabriel Sasseville, qui est mon étudiant au doctorat[?], et il m'a écrit aujourd'hui. Je regarde mon téléphone parce que je veux aller sur Slack, et je veux juste partager avec vous ce qu'il m'a dit à propos de ses disponibilités. Gabriel..."
+  },
+  {
+   "t": 585680,
+   "text": "So he's going to have a Google Meet link. So I think his preferred way of meeting is probably going to be virtual, but if you want to meet him in person, then you should ask him, and he can find a time to meet you in person. So he says that he thinks a good time would be... yeah, every Thursday before class, from 12:30 to 1:30.",
+   "fr": "Donc il va avoir un lien Google Meet. Je pense que sa façon préférée de rencontrer les gens sera probablement virtuelle, mais si vous voulez le rencontrer en personne, demandez-lui, et il pourra trouver un moment pour vous voir en personne. Il dit qu'à son avis, un bon moment serait... oui, tous les jeudis avant le cours, de 12 h 30 à 13 h 30."
+  },
+  {
+   "t": 616320,
+   "text": "So I guess you could maybe meet him there. Although if you don't have your card because you're not Mila, it might be a problem. So if you want to meet him in person anyway, you'll figure it out. Yeah, looks like that. So he created an event on Google Calendar. I'll send it to you as soon as I'm done at 3:30. Let's make it a promise here: 3:30. Anyway, it's in the transcript, so when I review the course, if I forgot to do something, then maybe it's going to come back. Oh, there was no... okay, the question here[?] doesn't exist. Mistake.",
+   "fr": "Donc je suppose que vous pourriez peut-être le rencontrer là. Mais si vous n'avez pas votre carte parce que vous n'êtes pas à Mila, ça pourrait poser problème. Alors si vous voulez quand même le rencontrer en personne, vous trouverez une solution. Oui, ça ressemble à ça. Il a créé un événement dans Google Calendar. Je vous l'envoie dès que j'ai fini, à 15 h 30. Faisons-en une promesse ici : 15 h 30. De toute façon, c'est dans la transcription, alors quand je réviserai le cours, si j'ai oublié de faire quelque chose, peut-être que ça va ressortir. Oh, il n'y avait pas de... OK, la question ici[?] n'existe pas. Erreur."
+  },
+  {
+   "t": 654079,
+   "text": "Anything else about... So yeah, somebody gave me feedback also that one downside of not having assignments, and it's totally true, is that there's less chance of getting retroactive[?] feedback before your exam. Totally fair. But I think it's just going to push me to come up with better ways of teaching. Today is a bit too soon. I thought of some ways to have some exercises in class today, but most likely that's how we're going to be doing things. So you'll get to have some feedback in class. So instead of going back home and doing assignments, the way I see it, we'll be answering questions. I'll force myself to create stuff that you can answer in class,",
+   "fr": "Autre chose à propos de... Donc oui, quelqu'un m'a aussi fait remarquer qu'un inconvénient de ne pas avoir de devoirs, et c'est tout à fait vrai, c'est qu'il y a moins de chances d'avoir un retour rétroactif[?] avant votre examen. Tout à fait juste. Mais je pense que ça va simplement me pousser à trouver de meilleures façons d'enseigner. Aujourd'hui, c'est un peu trop tôt. J'ai pensé à des façons de faire des exercices en classe aujourd'hui, mais c'est fort probablement comme ça qu'on va fonctionner. Donc vous allez avoir de la rétroaction en classe. Au lieu de rentrer chez vous faire des devoirs, de la façon dont je le vois, on va répondre à des questions. Je vais m'obliger à créer des choses auxquelles vous pourrez répondre en classe,"
+  },
+  {
+   "t": 697040,
+   "text": "maybe talk to people around. So I think it'll be more interactive, and honestly, I think it might be better from a pedagogical standpoint, if I can pull it off the way I envision it. I think you're going to come better prepared to the exam, because anyway, to be honest, it's not great of me to say that, but I've been really bad at grading assignments in the past. So oftentimes people would go to their midterms and they wouldn't have their feedback yet on the assignments. So that might actually be a better way of doing things.\nStudent: Yeah, about the exams.",
+   "fr": "peut-être en discutant avec les gens autour de vous. Je pense donc que ce sera plus interactif, et honnêtement, je pense que ça pourrait être mieux d'un point de vue pédagogique, si j'arrive à le faire comme je l'imagine. Je pense que vous allez arriver mieux préparés à l'examen, parce que de toute façon, pour être honnête, ce n'est pas très glorieux de ma part de le dire, mais j'ai été vraiment mauvais pour corriger les devoirs dans le passé. Souvent, les gens arrivaient à leurs examens de mi-session sans avoir encore reçu leur rétroaction sur les devoirs. Alors ça pourrait en fait être une meilleure façon de faire.\nStudent: Oui, à propos des examens."
+  },
+  {
+   "t": 728000,
+   "text": "Student: Could we maybe have some examples of how you grade? Because, for example, I'm not from a mathematical background, so I'm not sure how you grade on the syntax and notation[?].\nYeah. So there are copies in the Google Drive with the answer sheet, so it's going to give you a sense of what it looks like. Over the last years, you know, I think I've become a better prof. Every year I think I'm improving, hopefully. And so I'm a bit better now when I grade, and I try to come up with a grading rubric, which is the way that we should be doing things, so that we grade consistently. So starting from, let's say, maybe a year and a half ago or two, I started being more consistent, and I have these grading rubrics I can share.",
+   "fr": "Student: Est-ce qu'on pourrait avoir des exemples de votre façon de corriger? Parce que, par exemple, je n'ai pas une formation en mathématiques, alors je ne sais pas trop comment vous évaluez la syntaxe et la notation[?].\nOui. Il y a des copies dans le Google Drive avec le corrigé, alors ça va vous donner une idée de ce à quoi ça ressemble. Au fil des dernières années, vous savez, je pense que je suis devenu un meilleur prof. Chaque année, je m'améliore, j'espère. Alors je suis un peu meilleur maintenant quand je corrige, et j'essaie de préparer une grille de correction, ce qui est la façon dont on devrait faire les choses, pour corriger de façon cohérente. Donc depuis, disons, peut-être un an et demi ou deux, j'ai commencé à être plus cohérent, et j'ai ces grilles de correction que je peux partager."
+  },
+  {
+   "t": 775279,
+   "text": "Student: And are you really strict on, like, notation, or...\nNo. Look, math and notation, it's about communication. So if it's clear between you and me, it should be fine. Same with, say, you need to use calculus: I'm not going to test you on whether you remember a calculus identity. Usually I would put all the identities written down, so it's self-contained. Yeah, same for syntax. I don't care about programming syntax, because anyway, even prior to LLMs, syntax was not important, because our IDE would autocorrect syntax, or we'd be able to search online. So syntax has never been something interesting to test. But you need to be able, though, to understand and read and simulate in your brain what a program is doing. So that, I think, is still important.",
+   "fr": "Student: Et est-ce que vous êtes vraiment sévère sur, genre, la notation, ou...\nNon. Écoutez, les maths et la notation, c'est une question de communication. Alors si c'est clair entre vous et moi, ça devrait aller. Même chose si, disons, vous devez faire du calcul différentiel : je ne vais pas vérifier si vous vous souvenez d'une identité de calcul. D'habitude, j'écris toutes les identités, pour que l'examen se suffise à lui-même. Oui, même chose pour la syntaxe. La syntaxe de programmation, ça m'est égal, parce que de toute façon, même avant les LLM, la syntaxe n'était pas importante, parce que notre IDE corrigeait automatiquement la syntaxe, ou on pouvait chercher en ligne. Donc la syntaxe n'a jamais été quelque chose d'intéressant à évaluer. Mais vous devez quand même être capables de comprendre, de lire et de simuler dans votre tête ce que fait un programme. Ça, je pense, c'est encore important."
+  },
+  {
+   "t": 835279,
+   "text": "Good. So it looks like that. I don't know if I've pushed the latest version of my notes online. This actually is broken. Why is it broken? I don't know. I came up with some really cool new demos. I think we might look at them a little bit later, but yeah, I came up with some cool demos. I just want to show you, because I think it's pretty cool. And it's just for fun.",
+   "fr": "Bon. Donc ça ressemble à ça. Je ne sais pas si j'ai mis en ligne la dernière version de mes notes. Ça, en fait, c'est brisé. Pourquoi c'est brisé? Je ne sais pas. J'ai préparé de nouvelles démos vraiment géniales. Je pense qu'on pourra les regarder un peu plus tard, mais oui, j'ai préparé des démos géniales. Je veux juste vous les montrer, parce que je trouve ça vraiment génial. Et c'est juste pour le plaisir."
+  },
+  {
+   "t": 866320,
+   "text": "So yeah, I was at the park with my daughter, and she kept asking me, \"Papa, push me higher, higher, higher, higher.\" And at some point I just couldn't push her any higher than that. So I told her, you know, at this point maybe you're going to do a 360 if I keep on pushing. Of course, I knew that probably wouldn't be possible, but I still asked myself: is there a way we can actually verify if you can do a 360 with a swing? I haven't done the analysis myself. There's an excellent blog post; somebody has worked out the math. So I used that as a basis for it. And what I did instead is I used this as a basis to build an environment. But this is totally toy. I like to tell you that my course is serious and I just do applications; you know, this one is not so serious, but you'll see I've connected it to more serious applications.",
+   "fr": "Donc oui, j'étais au parc avec ma fille, et elle n'arrêtait pas de me demander : « Papa, pousse-moi plus haut, plus haut, plus haut, plus haut. » Et à un moment donné, je ne pouvais tout simplement plus la pousser plus haut que ça. Alors je lui ai dit, tu sais, à ce stade-ci, tu vas peut-être faire un 360 si je continue de pousser. Évidemment, je savais que ce ne serait probablement pas possible, mais je me suis quand même demandé : est-ce qu'il y a un moyen de vérifier si on peut vraiment faire un 360 sur une balançoire? Je n'ai pas fait l'analyse moi-même. Il y a un excellent billet de blogue; quelqu'un a fait les calculs. Alors je me suis servi de ça comme base. Et ce que j'ai fait, c'est que je m'en suis servi comme base pour construire un environnement. Mais c'est complètement un jouet. J'aime vous dire que mon cours est sérieux et que je ne fais que des applications; vous savez, celle-ci n'est pas si sérieuse, mais vous verrez que je l'ai reliée à des applications plus sérieuses."
+  },
+  {
+   "t": 923199,
+   "text": "And yeah, I wrote this simulator of a swing, and the goal here is to learn to do a 360. Now, here's one important thing I've learned about the physics of swings: if you have chains, it's actually impossible. Unless maybe you put a rocket behind you, it's not going to happen. It is possible, however, with rods. And I remember, childhood memories, at the Festival Western in Saint-Tite, in Quebec, there was a guy where you'd pay and you'd go on a swing, and it was with a rod, and you could do a 360. So I've seen it with my own eyes when I was six years old. So with a rod, it is physically possible, you can do a 360. So here, this is what I did: I simulated this thing with a rod. And this little guy here is actually learning to swing, but actually standing up. I have both versions, if you want. I've pushed it on GitHub; it's called SwingRL. And there's one version where you do a 360 while standing up, which helps, by the way, to have more energy, and",
+   "fr": "Et donc, j'ai écrit ce simulateur de balançoire, et le but ici est d'apprendre à faire un 360. Maintenant, voici une chose importante que j'ai apprise sur la physique des balançoires : si vous avez des chaînes, c'est en fait impossible. À moins peut-être de vous mettre une fusée dans le dos, ça n'arrivera pas. C'est possible, par contre, avec des tiges rigides. Et je me souviens, des souvenirs d'enfance, au Festival Western de Saint-Tite, au Québec, il y avait un gars chez qui on payait pour monter sur une balançoire, et c'était avec une tige rigide, et on pouvait faire un 360. Donc je l'ai vu de mes propres yeux quand j'avais six ans. Avec une tige rigide, c'est physiquement possible, on peut faire un 360. Alors ici, voici ce que j'ai fait : j'ai simulé ce truc avec une tige rigide. Et ce petit bonhomme ici est en train d'apprendre à se balancer, mais debout. J'ai les deux versions, si vous voulez. Je l'ai mis sur GitHub; ça s'appelle SwingRL. Et il y a une version où on fait un 360 debout, ce qui aide, d'ailleurs, à avoir plus d'énergie, et"
+  },
+  {
+   "t": 984160,
+   "text": "one where you're sitting down. And see, the action space here is basically the pulling on the rod and the squatting, the two motions that are simulated. Anyway, I've got a bunch of variants of this, with chains and without chains. I'm not going to go over this right now, but we'll get back to this, and we can maybe use it as a test bed for learning algorithms. But one thing maybe I can say right away is that in this video here, it's doing a 360. But although the problem itself is quite complicated, if you throw an RL algorithm at this, and I've run the experiment, it's somewhere in the notes,",
+   "fr": "une où on est assis. Et voyez, l'espace d'actions ici, c'est essentiellement le fait de tirer sur la tige et de s'accroupir, les deux mouvements qui sont simulés. Bref, j'ai tout un tas de variantes de ça, avec des chaînes et sans chaînes. Je ne vais pas entrer là-dedans maintenant, mais on va y revenir, et on pourra peut-être s'en servir comme banc d'essai pour des algorithmes d'apprentissage. Mais une chose que je peux peut-être dire tout de suite, c'est que dans cette vidéo-ci, ça fait un 360. Mais même si le problème lui-même est assez compliqué, si vous lancez un algorithme de RL là-dessus, et j'ai fait l'expérience, c'est quelque part dans les notes,"
+  },
+  {
+   "t": 1031760,
+   "text": "it's actually struggling. Even if you throw PPO at it, it's going to struggle, at least if you do it naively. But the problem structure is such that you can actually code up a controller by hand. No feedback, no nothing, because there's no noise anyway. So what kind of controller would that be? If there's no feedback, if it's deterministic, how do we call that? You remember from Monday?\nStudent: Is it open loop?\nIt's open loop. So you can write an open-loop controller where we've hard-coded the sequence. Basically, you can decompose it into two action sequences, one where you're pumping energy into the system, basically, and it's efficient to solve that problem. And so, anyway, I think that's an example that tells us something about the fact that structure can actually be very useful. And I've got some more stuff, we'll go back over this, but I think it's also cool. I",
+   "fr": "ça a en fait beaucoup de difficulté. Même si vous lancez PPO dessus, ça va avoir de la difficulté, du moins si vous le faites naïvement. Mais la structure du problème est telle que vous pouvez en fait coder un contrôleur à la main. Pas de rétroaction, rien, parce qu'il n'y a pas de bruit de toute façon. Alors quel genre de contrôleur ce serait? S'il n'y a pas de rétroaction, si c'est déterministe, comment on appelle ça? Vous vous souvenez de lundi?\nStudent: C'est en boucle ouverte?\nC'est en boucle ouverte. Donc vous pouvez écrire un contrôleur en boucle ouverte où on a codé la séquence en dur. Essentiellement, vous pouvez la décomposer en deux séquences d'actions, une où vous injectez de l'énergie dans le système, essentiellement, et c'est efficace pour résoudre ce problème. Et donc, bref, je pense que c'est un exemple qui nous dit quelque chose sur le fait que la structure peut vraiment être très utile. Et j'ai d'autres choses, on va y revenir, mais je trouve que c'est aussi très intéressant. J'"
+  },
+  {
+   "t": 1092320,
+   "text": "can't wait to show you, but I've used actual BIXI data. People oftentimes use the BIXI dataset for teaching supervised learning and stuff like that. I think what's cool here is that I've used the BIXI dataset, but to come up with a control problem. So what do you think? Actually, it's written, but how could we turn BIXI into a control problem? Here, the control problem is that of deciding where to relocate bikes. You know, at the BIXI stations, there's a truck that goes between stations and makes sure that the stations are well balanced. I don't know how they do it under the hood; there must be a process that tells them where to go. But clearly this is an inventory management problem, and it's a control problem. It's one that belongs a bit more to the world of people in OR, but it's nevertheless also a control problem. So here I used some data from the BIXI stations at Berri[?] and [inaudible]",
+   "fr": "ai hâte de vous montrer ça, mais j'ai utilisé de vraies données de BIXI. Les gens utilisent souvent le jeu de données BIXI pour enseigner l'apprentissage supervisé et des choses comme ça. Je pense que ce qui est intéressant ici, c'est que j'ai utilisé le jeu de données BIXI, mais pour formuler un problème de commande. Alors qu'en pensez-vous? En fait, c'est écrit, mais comment pourrait-on transformer BIXI en problème de commande? Ici, le problème de commande, c'est de décider où relocaliser les vélos. Vous savez, aux stations BIXI, il y a un camion qui circule entre les stations et qui s'assure que les stations sont bien équilibrées. Je ne sais pas comment ils font en coulisse; il doit y avoir un processus qui leur dit où aller. Mais clairement, c'est un problème de gestion des stocks, et c'est un problème de commande. C'en est un qui appartient un peu plus au monde des gens en recherche opérationnelle, mais c'est néanmoins aussi un problème de commande. Donc ici, j'ai utilisé des données des stations BIXI de Berri[?] et [inaudible]"
+  },
+  {
+   "t": 1155360,
+   "text": "and then fit a stochastic model. For these kinds of replenishment systems and inventory, oftentimes a good starting point is to use a Poisson process. So here's what I did, with the Poisson process, based on actual data. And then once we've identified the parameters of that Poisson process, we can just run in simulation as much as we want, pretending it's the real world. And then we're seeing here the difference between... oops, I need to put it here... a control strategy that is open loop. So you see, it decides to go there. It doesn't take into account the actual number of bikes. It's a bit silly, right? As if somebody's just... maybe that's how they do it, who knows? Maybe somebody has decided that on Monday, that person's going to go to Prince[?], and then they're going to go to Berri[?], and no matter how many bikes there are, they're going to go there no matter what. This",
+   "fr": "puis j'ai ajusté un modèle stochastique. Pour ce genre de systèmes de réapprovisionnement et de stocks, un bon point de départ est souvent d'utiliser un processus de Poisson. Voici donc ce que j'ai fait, avec le processus de Poisson, à partir de vraies données. Et puis une fois qu'on a identifié les paramètres de ce processus de Poisson, on peut simplement simuler autant qu'on veut, en faisant comme si c'était le monde réel. Et on voit ici la différence entre... oups, il faut que je le mette ici... une stratégie de commande en boucle ouverte. Voyez, elle décide d'aller là. Elle ne tient pas compte du nombre réel de vélos. C'est un peu bête, hein? Comme si quelqu'un avait juste... c'est peut-être comme ça qu'ils font, qui sait? Peut-être que quelqu'un a décidé que le lundi, cette personne-là va aller à Prince[?], puis ensuite à Berri[?], et peu importe combien il y a de vélos, elle va y aller quoi qu'il arrive. Ceci"
+  },
+  {
+   "t": 1215360,
+   "text": "is an open-loop controller. And here, at the end of a simulation, we get 21 lost rentals. That means, basically, there was an opportunity cost here that we didn't manage to leverage. And 40 rejected returns. That's very annoying. I don't know if it ever happened to you: you get a bike, and then you arrive at your destination, you try to find the nearest bike station, and then it's full. It's very annoying. So of course we want to minimize that too. We want people to be able to have access to BIXIs, but also be able to return them. And so the last one is a feedback controller. It's hard-coded. You can look at the details in the code, which is here.",
+   "fr": "est un contrôleur en boucle ouverte. Et ici, à la fin d'une simulation, on obtient 21 locations perdues. Ça veut dire, essentiellement, qu'il y avait ici un coût d'opportunité dont on n'a pas réussi à tirer parti. Et 40 retours refusés. Ça, c'est très agaçant. Je ne sais pas si ça vous est déjà arrivé : vous prenez un vélo, puis vous arrivez à destination, vous essayez de trouver la station la plus proche, et elle est pleine. C'est très agaçant. Alors évidemment, on veut minimiser ça aussi. On veut que les gens puissent avoir accès aux BIXI, mais aussi pouvoir les rapporter. Et donc le dernier, c'est un contrôleur à rétroaction. Il est codé en dur. Vous pouvez regarder les détails dans le code, qui est ici."
+  },
+  {
+   "t": 1258400,
+   "text": "So there's no learning. It's a heuristic, but a heuristic that uses feedback, and we're achieving much better performance. You'll see the little truck, the truck goes between stations in a different pattern. Okay. So it goes like that, depending on the numbers, and at the end of the day, zero lost rentals and 17 rejected returns. That's much better. By the way, if you were to solve this as an optimization problem...",
+   "fr": "Donc il n'y a pas d'apprentissage. C'est une heuristique, mais une heuristique qui utilise la rétroaction, et on obtient de bien meilleurs résultats. Vous allez voir le petit camion, le camion circule entre les stations selon un parcours différent. OK. Donc ça va comme ça, selon les nombres, et à la fin de la journée, zéro location perdue et 17 retours refusés. C'est bien mieux. D'ailleurs, si vous deviez résoudre ça comme un problème d'optimisation..."
+  },
+  {
+   "t": 1293440,
+   "text": "Let's think about this for a sec. What is the goal here, based on what I've just told you? Yeah?\nStudent: The quantity of rentals we missed.\nBut it's not only rentals, there's also the returns. So how do you turn that into an objective? And what I want to say here is that, right off the bat, this thing shows us that, in fact, the majority of the problems we face that we're interested in are oftentimes multi-objective. There are multiple things, criteria, we want optimized. And I have good news, bad news for you. One good news is there's actually a field called multi-objective optimization, which exists outside of RL and in RL, that gives us tools to talk about multiple objectives. The thing is that these techniques are not always practical. I've done research in my group on making these things practical. There are things we can do, but",
+   "fr": "Réfléchissons-y une seconde. Quel est le but ici, d'après ce que je viens de vous dire? Oui?\nStudent: Le nombre de locations qu'on a manquées.\nMais ce ne sont pas seulement les locations, il y a aussi les retours. Alors comment transformer ça en objectif? Et ce que je veux dire ici, c'est que, d'entrée de jeu, ça nous montre qu'en fait, la majorité des problèmes auxquels on fait face et qui nous intéressent sont souvent multiobjectifs. Il y a plusieurs choses, plusieurs critères, qu'on veut optimiser. Et j'ai une bonne et une mauvaise nouvelle pour vous. La bonne nouvelle, c'est qu'il existe en fait un domaine appelé l'optimisation multiobjectif, qui existe en dehors du RL et dans le RL, et qui nous donne des outils pour parler de plusieurs objectifs. Le problème, c'est que ces techniques ne sont pas toujours pratiques. J'ai fait de la recherche dans mon groupe pour rendre ces choses pratiques. Il y a des choses qu'on peut faire, mais"
+  },
+  {
+   "t": 1356320,
+   "text": "generally speaking, you're going to be spending a lot of compute in solving a problem as a multi-objective optimization problem. Maybe I should talk about that this year, who knows? So most of the content, in fact all of the content in the textbook currently, might change tomorrow, assumes that we work with a scalar cost or reward function. So you're certainly losing something as you do this. And there's a whole characterization also of what we're losing and what we're gaining, and of going back and forth between these frameworks.",
+   "fr": "de manière générale, vous allez dépenser beaucoup de calcul pour résoudre un problème en tant que problème d'optimisation multiobjectif. Je devrais peut-être en parler cette année, qui sait? Donc la majorité du contenu, en fait tout le contenu actuel du manuel, ça pourrait changer demain, suppose qu'on travaille avec une fonction de coût ou de récompense scalaire. Donc vous perdez certainement quelque chose en faisant ça. Et il existe aussi toute une caractérisation de ce qu'on perd et de ce qu'on gagne, et des allers-retours entre ces cadres."
+  },
+  {
+   "t": 1396559,
+   "text": "But the overarching theme here is that when we solve these problems, usually we've got preferences encoded in our mind as to what we want the system to do or not to do. And then the challenge here is to turn these preferences into not only an actual optimization problem, but a numerical scalar[?]. So what we're doing in this course, especially the part that has learning in it, really belongs to a more general umbrella.",
+   "fr": "Mais le thème général ici, c'est que quand on résout ces problèmes, on a d'habitude des préférences encodées dans notre tête quant à ce qu'on veut que le système fasse ou ne fasse pas. Et le défi ici, c'est de transformer ces préférences non seulement en un véritable problème d'optimisation, mais en un scalaire[?] numérique. Donc ce qu'on fait dans ce cours, surtout la partie qui comporte de l'apprentissage, relève en fait d'un cadre plus général."
+  },
+  {
+   "t": 1443760,
+   "text": "It's under the umbrella of... honestly, you're not going to see that expression often, but I think it's useful to bring it up today. Maybe you don't have to reuse it, but we're doing utility-based preference RL. So what does utility-based preference RL mean? It's that we're going to do RL from a utility function. A utility function is inherently a function that maps to a scalar, and we use that for optimization. Now, there's something a bit broader than that, and this broader thing is preference-based RL. And interestingly,",
+   "fr": "Ça relève du cadre du... honnêtement, vous ne verrez pas cette expression souvent, mais je pense que c'est utile de l'évoquer aujourd'hui. Vous n'aurez peut-être pas à la réutiliser, mais on fait du RL par préférences fondé sur l'utilité. Alors qu'est-ce que ça veut dire, le RL par préférences fondé sur l'utilité? Ça veut dire qu'on va faire du RL à partir d'une fonction d'utilité. Une fonction d'utilité, c'est intrinsèquement une fonction à valeurs scalaires, et on s'en sert pour l'optimisation. Maintenant, il y a quelque chose d'un peu plus large que ça, et cette chose plus large, c'est le RL fondé sur les préférences. Et fait intéressant,"
+  },
+  {
+   "t": 1504880,
+   "text": "that's a field that received a lot of attention around, you know, when...\nStudent: [inaudible question]\nNo, earlier than that. Say 2010, and a little bit earlier. So what you had in mind was probably what made preferences and all that stuff very popular recently, through 2017: Christiano. And in fact, I think Dario, the current CEO of Anthropic, was on that paper. So they've applied some of these ideas from preference-based RL from 2010, in that 2017 paper that then became the basis for RLHF, which then became the basis for why these LLMs actually work nowadays.",
+   "fr": "c'est un domaine qui a reçu beaucoup d'attention vers, vous savez, quand...\nStudent: [inaudible question]\nNon, plus tôt que ça. Disons 2010, et un peu avant. Donc ce que vous aviez en tête, c'est probablement ce qui a rendu les préférences et tout ça très populaires récemment, vers 2017 : Christiano. Et en fait, je pense que Dario, l'actuel PDG d'Anthropic, faisait partie des auteurs de cet article. Donc ils ont appliqué certaines de ces idées du RL fondé sur les préférences de 2010 dans cet article de 2017, qui est ensuite devenu la base du RLHF, qui est ensuite devenu la raison pour laquelle ces LLM fonctionnent vraiment aujourd'hui."
+  },
+  {
+   "t": 1557279,
+   "text": "Okay, long story short, preference-based RL is pretty general as a framework, and it starts from the concept of preferences. Preferences are an ordering between items. So the framework is quite different when you go from ordering to utility and back and forth. There are conditions under which you can go from preferences to utility, and in fact this characterization is given by the von Neumann[?] theorem, which tells us the conditions under which you can go from preferences to utility. There are some. But yeah, so actually utility-based preference RL is just more convenient, but maybe the big picture of what we're doing is preference-based RL, under which there's also multi-objective RL.",
+   "fr": "Bon, bref, le RL fondé sur les préférences est un cadre assez général, et il part du concept de préférences. Les préférences, c'est un ordre entre des éléments. Donc le cadre est assez différent quand on passe de l'ordre à l'utilité et inversement. Il y a des conditions sous lesquelles on peut passer des préférences à l'utilité, et en fait cette caractérisation est donnée par le théorème de von Neumann[?], qui nous dit sous quelles conditions on peut passer des préférences à l'utilité. Il y en a. Mais oui, donc en fait le RL par préférences fondé sur l'utilité est simplement plus pratique, mais la vue d'ensemble de ce qu'on fait, c'est peut-être le RL fondé sur les préférences, sous lequel il y a aussi le RL multiobjectif."
+  },
+  {
+   "t": 1612320,
+   "text": "So I don't have anything about this currently in the textbook, but I might at some point. I think I need a charger. Does anyone know about [inaudible] with LLMs? No... DPO, excuse me.",
+   "fr": "Donc je n'ai rien là-dessus actuellement dans le manuel, mais ça pourrait venir à un moment donné. Je pense que j'ai besoin d'un chargeur. Est-ce que quelqu'un connaît [inaudible] avec les LLM? Non... DPO, pardon."
+  },
+  {
+   "t": 1642320,
+   "text": "DPO, direct preference optimization. Three years ago already, there was quite a lot of buzz around this, and it was a way to do RLHF, which is to train LLMs to be aligned on preferences, basically. And they would do it by what they would call skipping the reward, skipping RL. But what they meant here is that they would go directly from preferences to updates of the weights, without deriving a reward function, a utility function, that expresses those preferences.",
+   "fr": "DPO, direct preference optimization. Il y a déjà trois ans, il y avait pas mal d'engouement autour de ça, et c'était une façon de faire du RLHF, c'est-à-dire d'entraîner des LLM à être alignés sur des préférences, essentiellement. Et ils le faisaient par ce qu'ils appelaient « se passer de la récompense », « se passer du RL ». Mais ce qu'ils voulaient dire, c'est qu'ils passaient directement des préférences aux mises à jour des poids, sans établir une fonction de récompense, une fonction d'utilité, qui exprime ces préférences."
+  },
+  {
+   "t": 1682000,
+   "text": "And yeah, I think what's interesting is, if you look back, in fact you realize that this dichotomy between going directly from preferences, or deriving a reward function or a utility function in between, is a dichotomy that has been known for a relatively long time in RL, and in this field of preference-based RL and so on. Well, I was not planning to talk about that, but I couldn't help but say a few things. So I had in mind today to jump straight into trajectory optimization.",
+   "fr": "Et oui, je pense que ce qui est intéressant, c'est que si on regarde en arrière, on se rend compte en fait que cette dichotomie entre passer directement par les préférences ou établir une fonction de récompense ou une fonction d'utilité entre les deux est une dichotomie connue depuis relativement longtemps en RL, et dans ce domaine du RL fondé sur les préférences et ainsi de suite. Bon, je n'avais pas prévu de parler de ça, mais je n'ai pas pu m'empêcher de dire quelques mots. Donc j'avais en tête aujourd'hui de plonger directement dans l'optimisation de trajectoire."
+  },
+  {
+   "t": 1722880,
+   "text": "And probably I'm going to go right away into continuous-time systems. Last year I tried to do it the other way around: start with discrete time and go to continuous. I think there might be a better way to do it by going for continuous... But if you just Google it, it's going to be easy to find. 2010, if not earlier. This one, 2010, preference-based RL. Oh, this guy with a W[?]... Christian [inaudible]. Yeah, Darmstadt. There you go.",
+   "fr": "Et je vais probablement passer tout de suite aux systèmes en temps continu. L'an dernier, j'ai essayé de faire l'inverse : commencer par le temps discret et aller vers le continu. Je pense qu'il y a peut-être une meilleure façon de faire en allant vers le continu... Mais si vous faites simplement une recherche Google, ça va être facile à trouver. 2010, sinon avant. Celui-ci, 2010, RL fondé sur les préférences. Oh, ce gars avec un W[?]... Christian [inaudible]. Oui, Darmstadt. Voilà."
+  },
+  {
+   "t": 1774480,
+   "text": "So yeah, they wrote a lot of stuff about this around 2010, a bit earlier even. And generally speaking also, I think Gerhard Neumann, also at Darmstadt[?], they wrote things about this. It was good. Yeah. Okay. So the way that this course goes is that we start with trajectory optimization. Then we talk about MPC. I don't go very deep into MPC, but we talk about MPC a little bit. And then we go into dynamic programming and learning-based methods, the way we're used to with RL, as in, you know, the usual definition of RL. And there's a reason why I do things this way. It's not to say that trajectory optimization is a dumber set of techniques, but all of this fits in a continuum. And what's remarkable is that, first of all,",
+   "fr": "Donc oui, ils ont écrit beaucoup de choses là-dessus autour de 2010, même un peu avant. Et de manière générale aussi, je pense que Gerhard Neumann, aussi à Darmstadt[?], ils ont écrit des choses là-dessus. C'était bien. Oui. OK. Donc la façon dont ce cours se déroule, c'est qu'on commence par l'optimisation de trajectoire. Ensuite, on parle de commande prédictive (MPC). Je ne vais pas très loin dans la MPC, mais on en parle un peu. Et ensuite on passe à la programmation dynamique et aux méthodes fondées sur l'apprentissage, comme on en a l'habitude en RL, c'est-à-dire, vous savez, la définition habituelle du RL. Et il y a une raison pour laquelle je fais les choses de cette façon. Ce n'est pas pour dire que l'optimisation de trajectoire est un ensemble de techniques plus bêtes, mais tout ça s'inscrit dans un continuum. Et ce qui est remarquable, c'est que, premièrement,"
+  },
+  {
+   "t": 1836880,
+   "text": "you can go pretty far with a good trajectory optimization algorithm. And the second thing is, yeah, what's the downside of trajectory optimization with a deterministic model of the world? What can go wrong with this?\nStudent: It's hard to predict.",
+   "fr": "on peut aller assez loin avec un bon algorithme d'optimisation de trajectoire. Et la deuxième chose, c'est, oui, quel est l'inconvénient de l'optimisation de trajectoire avec un modèle déterministe du monde? Qu'est-ce qui peut mal tourner avec ça?\nStudent: C'est difficile à prédire."
+  },
+  {
+   "t": 1868320,
+   "text": "Yeah. If there's a discrepancy between what you imagine versus what is actually happening, then your system might become unstable, might do crazy things. And I mean, our models are never perfect. That's one thing, the discrepancy. And if there's noise, then we're not going to be able to account for this. So that's one issue. But then, as I said last time, there's one way that we can account for this, which is very simple: on the fly, you keep on optimizing all the time. So here there's no learning in what we're presenting. You're given a model of the environment. That being said, that model of the environment might have been learned beforehand.",
+   "fr": "Oui. S'il y a un écart entre ce que vous imaginez et ce qui se passe réellement, votre système peut devenir instable, peut faire des choses folles. Et bon, nos modèles ne sont jamais parfaits. Ça, c'est une chose, l'écart. Et s'il y a du bruit, on ne pourra pas en tenir compte. Donc c'est un problème. Mais ensuite, comme je l'ai dit la dernière fois, il y a une façon d'en tenir compte, qui est très simple : à la volée, on continue d'optimiser tout le temps. Donc ici, il n'y a pas d'apprentissage dans ce qu'on présente. On vous donne un modèle de l'environnement. Cela dit, ce modèle de l'environnement a pu être appris au préalable."
+  },
+  {
+   "t": 1911360,
+   "text": "So you could still think of this as a learning-based control method. But the way that we derive controls, or actions, is via numerical optimization techniques. And the way that we account for noise is by replanning all the time, on the fly, as fast as we can. And what's remarkable is that when we take this numerical optimization perspective, where everything is written as a mathematical program, the mathematical programs we have, irrespective of whether it's a linear or nonlinear program, always have an input. An input that typically is the current state, which is the beginning of our trajectory, and you can think of that initial state as essentially being the parameters",
+   "fr": "Donc on pourrait quand même voir ça comme une méthode de commande fondée sur l'apprentissage. Mais la façon dont on obtient les commandes, ou les actions, c'est par des techniques d'optimisation numérique. Et la façon dont on tient compte du bruit, c'est en replanifiant tout le temps, à la volée, aussi vite qu'on peut. Et ce qui est remarquable, c'est que quand on adopte cette perspective d'optimisation numérique, où tout est écrit sous forme de programme mathématique, les programmes mathématiques qu'on a, qu'il s'agisse d'un programme linéaire ou non linéaire, ont toujours une entrée. Une entrée qui est typiquement l'état courant, c'est-à-dire le début de notre trajectoire, et on peut voir cet état initial comme étant essentiellement les paramètres"
+  },
+  {
+   "t": 1975600,
+   "text": "of a mathematical program. Parameters not in the sense of the parameters of a neural network, but as in configurable knobs: if you change that knob, the input, you get a different output. Yeah. And look, it might be a bit too much for today, but what I'm going to show is that for these parametric mathematical programs, when you look at the mapping from input to optimal solution, which is a mapping that involves a lot of compute, nevertheless it's a mapping. Well, that mapping is a fundamental object in the theory of dynamic programming, and it's called a value function. And so from that point on, the rest follows. You know, I could have started the class, and by today I'd already be writing on the board a value function, V of s is equal to blah blah blah. But then why? You know, why,",
+   "fr": "d'un programme mathématique. Des paramètres non pas au sens des paramètres d'un réseau de neurones, mais au sens de boutons de réglage : si vous tournez ce bouton, l'entrée, vous obtenez une sortie différente. Oui. Et écoutez, c'est peut-être un peu trop pour aujourd'hui, mais ce que je vais montrer, c'est que pour ces programmes mathématiques paramétriques, quand on regarde l'application qui va de l'entrée à la solution optimale, une application qui demande beaucoup de calcul, ça reste néanmoins une application. Eh bien, cette application est un objet fondamental de la théorie de la programmation dynamique, et elle s'appelle une fonction de valeur. Et à partir de là, le reste suit. Vous savez, j'aurais pu commencer le cours, et à l'heure qu'il est, je serais déjà en train d'écrire au tableau une fonction de valeur, V de s égale bla bla bla. Mais pourquoi? Vous savez, pourquoi,"
+  },
+  {
+   "t": 2038799,
+   "text": "where's this guy coming from, that concept of a value function? There's a reason why it's called a value function. A value function is a concept on its own when you talk about mathematical programming. People didn't come up with that term randomly. And that's the part that is not told in the story of reinforcement learning. Okay. So where do we start? Do we start with continuous? I can't decide.",
+   "fr": "d'où sort ce truc-là, ce concept de fonction de valeur? Il y a une raison pour laquelle on l'appelle une fonction de valeur. Une fonction de valeur est un concept à part entière quand on parle de programmation mathématique. Les gens n'ont pas inventé ce terme au hasard. Et c'est la partie qu'on ne raconte pas dans l'histoire de l'apprentissage par renforcement. OK. Alors par où commence-t-on? On commence par le continu? Je n'arrive pas à me décider."
+  },
+  {
+   "t": 2071280,
+   "text": "Let's start with discrete. Well, we'll start with discrete. Okay. So when I'm talking about... Oh, by the way, I'm working on a feature. It's not quite there yet, but I think it's going to be pretty cool. Look, it's a presentation mode. So whenever I'm talking to you, okay, and usually I gesture and I scroll, I'll be able to do this. All right. And then it zooms, and then it's going to record all the places I've highlighted. And then I'm going to be able to publish it afterwards, and you'll be able to use it as slides, and it's going to replay. I think it's a good idea. I don't know if it's over-engineered.",
+   "fr": "Commençons par le discret. Bon, on va commencer par le discret. OK. Donc quand je parle de... Oh, d'ailleurs, je travaille sur une fonctionnalité. Ce n'est pas encore tout à fait au point, mais je pense que ça va être assez génial. Regardez, c'est un mode présentation. Donc chaque fois que je vous parle, OK, et d'habitude je fais des gestes et je fais défiler, je vais pouvoir faire ça. Bon. Et ensuite ça zoome, et ça va enregistrer tous les endroits que j'ai surlignés. Et ensuite je vais pouvoir le publier après coup, et vous pourrez vous en servir comme diapositives, et ça va rejouer le tout. Je pense que c'est une bonne idée. Je ne sais pas si c'est trop compliqué pour rien."
+  },
+  {
+   "t": 2110480,
+   "text": "We'll see. But that's where I want to go with that. So actually, let's use it, because it's just zooming in on a mathematical program that looks like that. And, oops, I resume. So the structure here is: we've got an immediate cost function and the terminal cost function. There's one slight difference that I want you to observe: the immediate cost function depends on the control, while the terminal cost function depends on the terminal state. And then we've got a transition function, which gives us directly the next state.",
+   "fr": "On verra. Mais c'est là que je veux aller avec ça. Alors en fait, utilisons-le, parce que ça ne fait que zoomer sur un programme mathématique qui ressemble à ça. Et, oups, je reprends. Donc la structure ici, c'est : on a une fonction de coût immédiat et la fonction de coût terminal. Il y a une légère différence que je veux que vous remarquiez : la fonction de coût immédiat dépend de la commande, alors que la fonction de coût terminal dépend de l'état terminal. Et ensuite on a une fonction de transition, qui nous donne directement l'état suivant."
+  },
+  {
+   "t": 2164400,
+   "text": "And if you remember from last lecture, I briefly talked about ODEs and continuous time. And with ODEs, the function f is giving us another type of information. It's not giving us the next state directly. Do you remember what it was? When you have ODEs, the function f gives us the rate of change of the state. It doesn't give us the next state directly. So we'll get into the details of how we turn a continuous-time system into a form that looks like this. But ultimately, whether you start with a continuous-time or a discrete-time problem, most, actually all, of the techniques I'll be teaching will be dealing with problems like that. The question is more: have you been able to reduce your continuous-time problem to a problem that looks like that? Usually we like to put bounds, but these are bells and whistles. Okay. So you don't necessarily have to have all the components. Really, the key components are the cost, the dynamics,",
+   "fr": "Et si vous vous souvenez du dernier cours, j'ai brièvement parlé des ODE et du temps continu. Et avec les ODE, la fonction f nous donne un autre type d'information. Elle ne nous donne pas directement l'état suivant. Vous vous souvenez de ce que c'était? Quand on a des ODE, la fonction f nous donne le taux de variation de l'état. Elle ne nous donne pas directement l'état suivant. Donc on va entrer dans les détails de la façon dont on transforme un système en temps continu en une forme qui ressemble à ceci. Mais au bout du compte, que vous partiez d'un problème en temps continu ou en temps discret, la plupart, en fait la totalité des techniques que je vais enseigner vont traiter des problèmes comme celui-là. La question est plutôt : est-ce que vous avez réussi à ramener votre problème en temps continu à un problème qui ressemble à ça? D'habitude, on aime mettre des bornes, mais ce sont des fioritures. OK. Donc vous n'avez pas nécessairement besoin d'avoir toutes les composantes. Vraiment, les composantes clés, ce sont le coût, la dynamique,"
+  },
+  {
+   "t": 2225599,
+   "text": "and the input I was talking about earlier. But here, these are bound constraints. Typically we like to use them to enforce, say, states you don't want to encounter, you don't want to go to these places, and now it's a hard constraint. So if your solver finds a solution to that problem, then it's never going to go there. It's a hard constraint. Same with bounds on the controls. This is very, very common. In fact, there's no single real-world control problem that doesn't use constraints. And here, an example could be not using too much torque on your robot arm, so as not to break your robot.",
+   "fr": "et l'entrée dont je parlais tout à l'heure. Mais ici, ce sont des contraintes de bornes. Typiquement, on aime s'en servir pour imposer, disons, des états que vous ne voulez pas rencontrer, vous ne voulez pas aller à ces endroits, et là c'est une contrainte stricte. Donc si votre solveur trouve une solution à ce problème, alors il n'ira jamais là. C'est une contrainte stricte. Même chose pour les bornes sur les commandes. C'est très, très courant. En fait, il n'existe pas un seul problème de commande réel qui n'utilise pas de contraintes. Et ici, un exemple pourrait être de ne pas utiliser trop de couple sur votre bras robotique, pour ne pas briser votre robot."
+  },
+  {
+   "t": 2269280,
+   "text": "And g can be a function that would, let's say, measure properties along a solution path, as an inequality. So that encompasses both equality and inequality constraints. And finally, this is like conditioning on some external initial state. So as we, for example, do MPC and replan, we'll be shifting our horizon as we move along and then conditioning on the current state.",
+   "fr": "Et g peut être une fonction qui, disons, mesure des propriétés le long d'une trajectoire solution, sous forme d'inégalité. Donc ça englobe à la fois les contraintes d'égalité et d'inégalité. Et finalement, ceci revient à conditionner par un état initial externe. Donc quand, par exemple, on fait de la MPC et qu'on replanifie, on va décaler notre horizon au fur et à mesure qu'on avance, puis conditionner par l'état courant."
+  },
+  {
+   "t": 2300160,
+   "text": "So it will be the same structure, but shifted in time. Now, if we don't impose any additional structure on that problem, this is known as a nonlinear program, an NLP here. And so that's the most general type of problem. By the way, there are other kinds of optimization problems, of course. If you're in OR, you know, logistics and these sorts of things... My colleagues from OR, or CIRRELT[?], at UdeM, at least from my perspective, it looks like 95% of their work is done with integer programming or mixed-integer programming.",
+   "fr": "Donc ce sera la même structure, mais décalée dans le temps. Maintenant, si on n'impose aucune structure supplémentaire à ce problème, on appelle ça un programme non linéaire, un NLP ici. Et c'est donc le type de problème le plus général. D'ailleurs, il y a d'autres types de problèmes d'optimisation, bien sûr. Si vous êtes en recherche opérationnelle, vous savez, la logistique et ce genre de choses... Mes collègues en recherche opérationnelle, ou du CIRRELT[?], à l'UdeM, du moins de mon point de vue, on dirait que 95 % de leur travail se fait en programmation en nombres entiers ou en programmation mixte en nombres entiers."
+  },
+  {
+   "t": 2352880,
+   "text": "Here, we assume that the variables are continuous. So it changes the game a little bit as to how we are going to be solving them. For physical systems, these continuous representations of states and actions make a lot of sense, with ODEs especially. Now, for problems where you've got discrete actions or states, the techniques I'm going to talk about today might not be the ones that are appropriate. And yeah, there's a question over there? No? Yep.",
+   "fr": "Ici, on suppose que les variables sont continues. Ça change donc un peu la donne quant à la façon dont on va les résoudre. Pour les systèmes physiques, ces représentations continues des états et des actions sont très naturelles, surtout avec les ODE. Maintenant, pour des problèmes où vous avez des actions ou des états discrets, les techniques dont je vais parler aujourd'hui ne sont peut-être pas les plus appropriées. Et oui, il y a une question là-bas? Non? Oui."
+  },
+  {
+   "t": 2402800,
+   "text": "For example, you could be measuring the distance to a reference trajectory and say: I want to minimize whatever cost function, and I also want my system to stay close to a trajectory, and also never go into these specific states, for example. So you don't always need to encode it. In fact, in many of these problems you don't have it, but you might want to do it this way. What this form makes explicit is how the dynamics enter the program.",
+   "fr": "Par exemple, vous pourriez mesurer la distance à une trajectoire de référence et dire : je veux minimiser telle ou telle fonction de coût, et je veux aussi que mon système reste proche d'une trajectoire, et aussi qu'il n'aille jamais dans ces états précis, par exemple. Donc vous n'avez pas toujours besoin de l'encoder. En fait, dans beaucoup de ces problèmes, vous n'en avez pas, mais vous pourriez vouloir le faire de cette façon. Ce que cette forme rend explicite, c'est la façon dont la dynamique entre dans le programme."
+  },
+  {
+   "t": 2442240,
+   "text": "Okay, so this way of writing things, \"minimize, subject to\", is the way we usually encode mathematical programs. And when I say \"subject to\", it means that this is an equality constraint. And when you think about it, it's a bit weird, you know. Intuitively, if somebody gives me the dynamics, they say this is f, right?",
+   "fr": "OK, donc cette façon d'écrire les choses, « minimiser, sous les contraintes », c'est la façon dont on encode habituellement les programmes mathématiques. Et quand je dis « sous les contraintes », ça veut dire que ceci est une contrainte d'égalité. Et quand on y pense, c'est un peu bizarre, vous savez. Intuitivement, si quelqu'un me donne la dynamique, on me dit que c'est f, non?"
+  },
+  {
+   "t": 2474960,
+   "text": "Why would I want to put it as a constraint? Because what does this say? It says: whatever value I'm going to find, I need to be able to test this and make sure it's true. What does it mean to test it? It means you put x and u inside of f, and you should be getting \\(x_{t+1}\\). This is a consistency condition. Why do we need a consistency condition here?",
+   "fr": "Pourquoi voudrais-je la mettre sous forme de contrainte? Parce que qu'est-ce que ça dit? Ça dit : quelle que soit la valeur que je vais trouver, je dois pouvoir tester ceci et m'assurer que c'est vrai. Qu'est-ce que ça veut dire, le tester? Ça veut dire que vous mettez x et u dans f, et vous devriez obtenir \\(x_{t+1}\\). C'est une condition de cohérence. Pourquoi a-t-on besoin d'une condition de cohérence ici?"
+  },
+  {
+   "t": 2506960,
+   "text": "Student: [inaudible] noise.\nSay it again.\nStudent: Noise.\nThere's no noise here. It's purely deterministic.\nStudent: I was saying it's part of our model. So when we build our model, [inaudible].\nYou're getting there. But I think we don't have the main element, which is written in this way. There is still a choice about what are the optimization variables, the decision variables.",
+   "fr": "Student: [inaudible] bruit.\nPouvez-vous répéter?\nStudent: Le bruit.\nIl n'y a pas de bruit ici. C'est purement déterministe.\nStudent: Je disais que ça fait partie de notre modèle. Donc quand on construit notre modèle, [inaudible].\nVous vous en approchez. Mais je pense qu'il nous manque l'élément principal, qui est écrit de cette façon. Il reste un choix à faire quant à ce que sont les variables d'optimisation, les variables de décision."
+  },
+  {
+   "t": 2541920,
+   "text": "So let's say I literally code this up in my favorite solver, okay, using their API, and then I specify the constraints. Look, you're not going to be able to code that without specifying the decision variables. So you're going to have to know in advance what they are. But let's pretend you took a snapshot of this thing. Yeah, actually, this is possible. I take my phone right now, I take a photo of this, put it in ChatGPT: \"Solve this program that I took a photo of.\" And then I observe the output of that function. What is ChatGPT going to write? It's going to write a function.",
+   "fr": "Alors disons que je code littéralement ça dans mon solveur préféré, OK, avec son API, puis je spécifie les contraintes. Écoutez, vous ne pourrez pas coder ça sans spécifier les variables de décision. Donc vous allez devoir savoir d'avance ce qu'elles sont. Mais faisons comme si vous aviez pris une photo de ce truc. Oui, en fait, c'est possible. Je prends mon téléphone maintenant, je prends une photo de ça, je la mets dans ChatGPT : « Résous ce programme que j'ai pris en photo. » Et ensuite j'observe la sortie de cette fonction. Qu'est-ce que ChatGPT va écrire? Il va écrire une fonction."
+  },
+  {
+   "t": 2573680,
+   "text": "And what are going to be the return variables I'm going to get out of this? It's going to be a tuple of two things. So between you and me, the thing we care about is to have good controls, because what we're planning here is a sequence of controls. And here it's a vector. So that thing is going to output a vector of things to do in time. Now, it's all discrete time, so it's going to be a vector. But written this way, I'm going to get a tuple. I'm going to get all the actions I need to apply, and all the states I'm going to be encountering as I apply those optimal actions.",
+   "fr": "Et quelles vont être les variables de retour que je vais obtenir? Ça va être un tuple de deux choses. Entre vous et moi, ce qui nous importe, c'est d'avoir de bonnes commandes, parce que ce qu'on planifie ici, c'est une séquence de commandes. Et ici, c'est un vecteur. Donc ce truc va sortir un vecteur de choses à faire dans le temps. Maintenant, tout est en temps discret, donc ça va être un vecteur. Mais écrit de cette façon, je vais obtenir un tuple. Je vais obtenir toutes les actions que je dois appliquer, et tous les états que je vais rencontrer en appliquant ces actions optimales."
+  },
+  {
+   "t": 2616640,
+   "text": "Kind of sounds silly, right? Why would you want to do this? Well, actually, there's going to be a really good reason why you want to do this. And long story short, it's for numerical reasons. Now, there's a cost to pay, because we have way more decision variables, but we gain in stability. And this is where there are always two big branches. Some authors call them simultaneous methods: simultaneous versus sequential.",
+   "fr": "Ça a l'air un peu absurde, non? Pourquoi voudriez-vous faire ça? Eh bien, en fait, il va y avoir une très bonne raison de vouloir faire ça. Et pour faire court, c'est pour des raisons numériques. Maintenant, il y a un prix à payer, parce qu'on a beaucoup plus de variables de décision, mais on gagne en stabilité. Et c'est là qu'il y a toujours deux grandes branches. Certains auteurs les appellent méthodes simultanées : simultanées par opposition à séquentielles."
+  },
+  {
+   "t": 2674560,
+   "text": "So in simultaneous methods, well, we're going to be getting both. If I start at one here... So if I write it like this, I'm going to get a tuple. Imagine this is a vector of all this. It's a concatenation, just notation, right? I could be writing it explicitly. Okay. And \\(u^\\star_{1:T-1}\\); star means optimal. So I'm getting a tuple of those things. So I simultaneously simulate the evolution of the system while finding out the optimal actions to take.",
+   "fr": "Donc dans les méthodes simultanées, eh bien, on va obtenir les deux. Si je commence à un ici... Donc si je l'écris comme ça, je vais obtenir un tuple. Imaginez que ceci est un vecteur de tout ça. C'est une concaténation, juste de la notation, non? Je pourrais l'écrire explicitement. OK. Et \\(u^\\star_{1:T-1}\\); l'étoile veut dire optimal. Donc j'obtiens un tuple de ces choses. Donc je simule simultanément l'évolution du système tout en trouvant les actions optimales à prendre."
+  },
+  {
+   "t": 2735359,
+   "text": "And this is going to be in contrast with sequential methods. And usually, within that family, we refer to specific algorithms under the umbrella of shooting methods. I'll explain in a second why we call it shooting. It's not really violent. But with sequential, or shooting, methods,",
+   "fr": "Et ça va contraster avec les méthodes séquentielles. Et d'habitude, au sein de cette famille, on désigne des algorithmes précis sous l'appellation de méthodes de tir. Je vais vous expliquer dans une seconde pourquoi on parle de tir. Ce n'est pas vraiment violent. Mais avec les méthodes séquentielles, ou de tir,"
+  },
+  {
+   "t": 2771040,
+   "text": "what we'd be getting is just this[?] here, right? So why would you want to go for one versus the other? I'm just going to write it here, without going into details for a second, but the main reason is stability and accuracy over long horizons.",
+   "fr": "ce qu'on obtiendrait, c'est juste ceci[?] ici, non? Alors pourquoi voudriez-vous choisir l'une plutôt que l'autre? Je vais juste l'écrire ici, sans entrer dans les détails pour l'instant, mais la raison principale, c'est la stabilité et la précision sur de longs horizons."
+  },
+  {
+   "t": 2815839,
+   "text": "So it's numerical properties, basically. What's a downside, though? More work, because there are more decision variables. Sequential methods: well, of course, the good thing about them is less work, less computing.",
+   "fr": "Donc ce sont des propriétés numériques, essentiellement. Quel est l'inconvénient, par contre? Plus de travail, parce qu'il y a plus de variables de décision. Les méthodes séquentielles : eh bien, évidemment, leur avantage, c'est moins de travail, moins de calcul."
+  },
+  {
+   "t": 2852400,
+   "text": "But the drawback: they might fail over long horizons. So with just this description I gave you, okay, if you're somebody with a background in deep learning, would that ring a bell for you? This kind of problem we might be encountering, of stability over a long horizon.",
+   "fr": "Mais l'inconvénient : elles peuvent échouer sur de longs horizons. Donc avec juste cette description que je vous ai donnée, OK, si vous avez une formation en apprentissage profond, est-ce que ça vous dirait quelque chose? Ce genre de problème qu'on pourrait rencontrer, de stabilité sur un long horizon."
+  },
+  {
+   "t": 2888720,
+   "text": "What would be the closest problem you know about?\nStudent: Reasoning in LLMs?\nStudent: Gradients?\nI think the reasoning is good, but what I was getting at was more specifically exploding and vanishing gradients in training RNNs. It's actually pretty much the same thing that happens here.",
+   "fr": "Quel serait le problème le plus proche que vous connaissez?\nStudent: Le raisonnement dans les LLM?\nStudent: Les gradients?\nJe pense que le raisonnement, c'est une bonne réponse, mais ce à quoi je voulais en venir, c'était plus précisément l'explosion et l'évanouissement des gradients dans l'entraînement des RNN. C'est en fait à peu près la même chose qui se passe ici."
+  },
+  {
+   "t": 2927599,
+   "text": "I haven't told you just yet how we're going to be doing single shooting, but you know how, when you do autoregressive computation in an RNN, right? If you've implemented those things by hand, how are you going to do it? If you do it in a non-optimized way, you're going to write a for loop. If you do it in a more optimized way, you'll use a scan op. Okay, you're going to be unrolling your model in time. And that unrolling creates a long chain.",
+   "fr": "Je ne vous ai pas encore dit comment on va faire le tir simple, mais vous savez comment on fait, quand on fait un calcul autorégressif dans un RNN, non? Si vous avez implémenté ces choses à la main, comment allez-vous le faire? Si vous le faites de façon non optimisée, vous allez écrire une boucle for. Si vous le faites de façon plus optimisée, vous allez utiliser une opération scan. OK, vous allez dérouler votre modèle dans le temps. Et ce déroulement crée une longue chaîne."
+  },
+  {
+   "t": 2961440,
+   "text": "A long chain becomes quite a problem when you want to take a gradient of it, right? So single shooting is basically doing exactly this. And actually, you can view what single shooting is doing as... I should have written the math, but what single shooting is doing is eliminating variables, essentially, in that mathematical program.",
+   "fr": "Une longue chaîne devient tout un problème quand on veut en calculer le gradient, non? Donc le tir simple fait essentiellement exactement ça. Et en fait, on peut voir ce que fait le tir simple comme... J'aurais dû écrire les maths, mais ce que fait le tir simple, c'est éliminer des variables, essentiellement, dans ce programme mathématique."
+  },
+  {
+   "t": 3005680,
+   "text": "And how is it doing this? It's doing this, intuitively, via a reparameterization. And what is this reparameterization? I'm pretty sure I have it written somewhere. There you go.",
+   "fr": "Et comment fait-il ça? Il le fait, intuitivement, par une reparamétrisation. Et quelle est cette reparamétrisation? Je suis pas mal sûr de l'avoir écrite quelque part. Voilà."
+  },
+  {
+   "t": 3037040,
+   "text": "Sorry to use my feature again. Okay. So the way we're doing this is that we're going to go from this form. I've got rid of the inequalities and bound constraints, because they're just a distraction for us at this point. Okay. It's still a mathematical program. I've just written it in one line, and I've got the equality constraint here. And you see, I was a bit more explicit: I wrote min over the two things that are the actual optimization variables, so that there's no ambiguity. And we're going to turn it into this, where now the only variables of interest are the u's.",
+   "fr": "Désolé d'utiliser encore ma fonctionnalité. OK. Donc la façon dont on fait ça, c'est qu'on va partir de cette forme. Je me suis débarrassé des inégalités et des contraintes de bornes, parce qu'à ce stade-ci, elles ne font que nous distraire. OK. C'est toujours un programme mathématique. Je l'ai simplement écrit sur une ligne, et j'ai la contrainte d'égalité ici. Et vous voyez, j'ai été un peu plus explicite : j'ai écrit min sur les deux choses qui sont les vraies variables d'optimisation, pour qu'il n'y ait pas d'ambiguïté. Et on va le transformer en ceci, où maintenant les seules variables d'intérêt sont les u."
+  },
+  {
+   "t": 3077359,
+   "text": "And how is that happening? So what you see already is the presence now of this \\(\\phi\\) function. Okay, what is that \\(\\phi\\) function doing? You can think of it basically as a loop, a function, let's say in Python, that takes an initial state and a current vector of optimal controls we're considering, and then it unrolls that sequence in time and outputs the corresponding state at any point in time. So here, it's not the most enlightening equation, because it's recursive. It just looks like what we had above. It's a recursive definition. But you see, we've got \\(\\phi\\) on both sides here. So essentially, in order to compute \\(\\phi\\),",
+   "fr": "Et comment ça se passe? Donc ce que vous voyez déjà, c'est la présence maintenant de cette fonction \\(\\phi\\). OK, que fait cette fonction \\(\\phi\\)? Vous pouvez la voir essentiellement comme une boucle, une fonction, disons en Python, qui prend un état initial et un vecteur courant de commandes optimales qu'on considère, puis qui déroule cette séquence dans le temps et renvoie l'état correspondant à n'importe quel instant. Donc ici, ce n'est pas l'équation la plus éclairante, parce qu'elle est récursive. Elle ressemble simplement à ce qu'on avait plus haut. C'est une définition récursive. Mais vous voyez, on a \\(\\phi\\) des deux côtés ici. Donc essentiellement, pour calculer \\(\\phi\\),"
+  },
+  {
+   "t": 3139359,
+   "text": "what \\(\\phi\\) is going to give you is the state at time t, given an initial state and a sequence of controls. In other words, why can we do this? Because we have a deterministic system. So we can always reconstruct the sequence of states we're going to be encountering. It's always going to be the same thing, right? So \\(\\phi\\) here is literally a Python function. I mean, it's in math, but if it helps you, there you go, I have it here.",
+   "fr": "ce que \\(\\phi\\) va vous donner, c'est l'état au temps t, étant donné un état initial et une séquence de commandes. Autrement dit, pourquoi peut-on faire ça? Parce qu'on a un système déterministe. Donc on peut toujours reconstruire la séquence d'états qu'on va rencontrer. Ça va toujours être la même chose, non? Donc \\(\\phi\\) ici, c'est littéralement une fonction Python. Bon, c'est en maths, mais si ça vous aide, voilà, je l'ai ici."
+  },
+  {
+   "t": 3179440,
+   "text": "Think of it as a Python function. This is a for loop, but it's written with the scan, so it's jittable and everything. And you see how it works: it takes the initial state, the current vector of controls we're optimizing over, and a time index. And then what it does here, with lax.scan, which is the JAX scan thing, is it applies the sequence of controls, and then the only thing that it does is return the last element of that vector. lax.scan is going to give you all the elements in the sequence, if I remember correctly. It's been a couple of years since I wrote JAX by hand. But yeah, if you look in the API, it returns a tuple, and here we only return \\(x_t\\), which is the last state that got computed as we unrolled that sequence and applied the f here.",
+   "fr": "Voyez-la comme une fonction Python. C'est une boucle for, mais elle est écrite avec le scan, donc on peut la compiler avec jit et tout. Et vous voyez comment ça marche : elle prend l'état initial, le vecteur courant de commandes sur lequel on optimise, et un indice de temps. Et ensuite, ce qu'elle fait ici, avec lax.scan, qui est le scan de JAX, c'est qu'elle applique la séquence de commandes, puis la seule chose qu'elle fait, c'est renvoyer le dernier élément de ce vecteur. lax.scan va vous donner tous les éléments de la séquence, si je me souviens bien. Ça fait quelques années que je n'ai pas écrit de JAX à la main. Mais oui, si vous regardez dans l'API, ça renvoie un tuple, et ici on ne renvoie que \\(x_t\\), qui est le dernier état calculé pendant qu'on déroulait cette séquence en appliquant le f ici."
+  },
+  {
+   "t": 3237599,
+   "text": "The carry, think of it as the hidden state. If you were to code up an RNN, it would be the hidden state. And the carry is the new state we've computed. We put this; this is the new carry that becomes the input to the next one. And we keep on repeating this. So single shooting, you can literally implement it this way. So now everything will be folded into the definition of the c function. The immediate cost function will now contain this \\(\\phi\\) function in there. It'll be a function composition of two things, just the way we see it in the math.",
+   "fr": "Le carry, voyez-le comme l'état caché. Si vous deviez coder un RNN, ce serait l'état caché. Et le carry, c'est le nouvel état qu'on a calculé. On met ceci; c'est le nouveau carry qui devient l'entrée du suivant. Et on continue de répéter ça. Donc le tir simple, vous pouvez littéralement l'implémenter de cette façon. Maintenant, tout va donc être intégré dans la définition de la fonction c. La fonction de coût immédiat va maintenant contenir cette fonction \\(\\phi\\). Ce sera une composition de deux fonctions, exactement comme on le voit dans les maths."
+  },
+  {
+   "t": 3283359,
+   "text": "So as you compute the immediate cost, you will have to do this unrolling. So our optimizer will mostly be a gradient-based optimizer, and whenever it needs to take a gradient through this cost, it's going to take a gradient through that sequence. And we know how to do gradients through a sequence. There's nothing mystical in this. It's a for loop, but it's a function composition, and it's all taken care of by our automatic differentiation tool.",
+   "fr": "Donc en calculant le coût immédiat, vous allez devoir faire ce déroulement. Notre optimiseur sera surtout un optimiseur à base de gradient, et chaque fois qu'il aura besoin de calculer un gradient à travers ce coût, il va calculer un gradient à travers cette séquence. Et on sait comment calculer des gradients à travers une séquence. Il n'y a rien de mystique là-dedans. C'est une boucle for, mais c'est une composition de fonctions, et tout est pris en charge par notre outil de différentiation automatique."
+  },
+  {
+   "t": 3322079,
+   "text": "So I always say, and maybe I should test it at some point, maybe next year: I start the course and I don't tell you anything about how to solve these problems. And my gut feeling is that 95% of you, and me included, if I tell you to solve this optimal control problem that I just came up with, I'm pretty sure you would come up with that solution. That's a natural thing to do for us. We've got a system. We know how to simulate that system forward, right? If you've got a candidate sequence u, I want to know if it's good. I want to know what the associated cost is. What do I do? I code up this for loop. I run my system. I compute the cost along the trajectory, and I check if it's good.",
+   "fr": "Donc je dis toujours, et je devrais peut-être le tester à un moment donné, peut-être l'an prochain : je commence le cours et je ne vous dis rien sur la façon de résoudre ces problèmes. Et mon intuition, c'est que 95 % d'entre vous, moi y compris, si je vous demande de résoudre ce problème de commande optimale que je viens d'inventer, je suis pas mal sûr que vous arriveriez à cette solution. C'est une chose naturelle à faire pour nous. On a un système. On sait comment simuler ce système vers l'avant, non? Si vous avez une séquence candidate u, je veux savoir si elle est bonne. Je veux savoir quel est le coût associé. Qu'est-ce que je fais? Je code cette boucle for. Je fais tourner mon système. Je calcule le coût le long de la trajectoire, et je vérifie si c'est bon."
+  },
+  {
+   "t": 3365839,
+   "text": "That whole process can be seen as a function, a differentiable function, and I can differentiate through it. So that would be, I'm pretty sure, the intuitive thing that everybody would be doing. The thing that's less intuitive, in my opinion, is doing it in the simultaneous way. Because if we were to think about what it means... I'm sorry to scroll in your face like that. If we think about what it means, say, from a neural network perspective, and I like to give this as an example,",
+   "fr": "Tout ce processus peut être vu comme une fonction, une fonction différentiable, et je peux la différentier. Donc ce serait, j'en suis pas mal sûr, la chose intuitive que tout le monde ferait. Ce qui est moins intuitif, à mon avis, c'est de le faire de façon simultanée. Parce que si on réfléchit à ce que ça veut dire... Désolé de faire défiler l'écran sous votre nez comme ça. Si on réfléchit à ce que ça veut dire, disons, du point de vue d'un réseau de neurones, et j'aime bien donner ça comme exemple,"
+  },
+  {
+   "t": 3403920,
+   "text": "this is as if you'd be learning with a neural network and you would be updating the weights without ever doing forward propagation in the network. Forward propagation is where you give an input to the network and compute its output. What's the analogy I'm making here? In our neural network, the layers would be the f function.",
+   "fr": "c'est comme si vous faisiez de l'apprentissage avec un réseau de neurones et que vous mettiez à jour les poids sans jamais faire de propagation avant dans le réseau. La propagation avant, c'est quand on donne une entrée au réseau et qu'on calcule sa sortie. Quelle est l'analogie que je fais ici? Dans notre réseau de neurones, les couches seraient la fonction f."
+  },
+  {
+   "t": 3434000,
+   "text": "The states would be the activations across the layers. The initial state would be the initial input of your model. And then across these layers, I'd be computing a loss. You know, typically I would just take the output of the network, so that you just have this term, but who knows, you might want to regularize by the weights within the network, so that it becomes exactly like this sum across the layers. So yeah, if you were to solve it like this with a neural network, it means that you'd be updating your weights without ever, at any point in time, going from the first layer to the last layer with your inputs.",
+   "fr": "Les états seraient les activations à travers les couches. L'état initial serait l'entrée initiale de votre modèle. Et ensuite, à travers ces couches, je calculerais une perte. Vous savez, typiquement, je prendrais simplement la sortie du réseau, de sorte que vous n'auriez que ce terme, mais qui sait, vous pourriez vouloir régulariser par les poids à l'intérieur du réseau, de sorte que ça devienne exactement comme cette somme à travers les couches. Donc oui, si vous deviez le résoudre comme ça avec un réseau de neurones, ça voudrait dire que vous mettriez à jour vos poids sans jamais, à aucun moment, aller de la première couche à la dernière couche avec vos entrées."
+  },
+  {
+   "t": 3476400,
+   "text": "Just funky. And when I first learned about optimal control and these things, I got all excited. I'm like, wow, this would be so cool to do, and it's something that nobody has thought about. Let's try to do it. And then I quickly found out that people had been thinking about this in the field of biologically plausible backprop, people in neuroscience. They're very much interested in that question of what it means to do backprop in a way that the brain could do it.",
+   "fr": "Franchement bizarre. Et quand j'ai appris la commande optimale et ces choses-là pour la première fois, je me suis tout emballé. Je me disais : wow, ce serait tellement génial à faire, et c'est quelque chose auquel personne n'a pensé. Essayons de le faire. Et puis j'ai vite découvert que des gens y avaient réfléchi dans le domaine de la rétropropagation biologiquement plausible, des gens en neurosciences. Ils s'intéressent beaucoup à la question de savoir ce que ça veut dire de faire de la rétropropagation d'une façon que le cerveau pourrait faire."
+  },
+  {
+   "t": 3507599,
+   "text": "Apparently, the brain... I don't know the reason, but the way we think of it, in a single shooting manner, doesn't make sense for the brain. So there's a whole bunch of papers that try to do something like this. And when you look at the solution methods, they essentially all end up turning the problem of learning in a neural network into a constrained optimization problem. And they do exactly this: they decouple the layers by introducing intermediate variables, the activations themselves. And then it becomes an implicit computation.",
+   "fr": "Apparemment, le cerveau... Je ne connais pas la raison, mais la façon dont on voit ça, à la manière du tir simple, n'a pas de sens pour le cerveau. Donc il y a tout un tas d'articles qui essaient de faire quelque chose comme ça. Et quand on regarde les méthodes de résolution, elles finissent essentiellement toutes par transformer le problème d'apprentissage dans un réseau de neurones en un problème d'optimisation sous contraintes. Et elles font exactement ça : elles découplent les couches en introduisant des variables intermédiaires, les activations elles-mêmes. Et ensuite ça devient un calcul implicite."
+  },
+  {
+   "t": 3546880,
+   "text": "None of it has worked, and I don't think it's going to work naively, and I've tried really hard. Without going into details: well, first of all, throwing constrained optimization at that scale doesn't work, and it doesn't do well with stochasticity. That's the gist of it. So it's a good idea in principle, but it never worked, and I don't think it's ever going to work. Yeah. So if you could solve this optimization problem, mathematically, the solution is the same.",
+   "fr": "Rien de tout ça n'a fonctionné, et je ne pense pas que ça va fonctionner de façon naïve, et pourtant j'ai vraiment beaucoup essayé. Sans entrer dans les détails : eh bien, d'abord, lancer de l'optimisation sous contraintes à cette échelle, ça ne marche pas, et ça ne s'accommode pas bien de la stochasticité. C'est l'essentiel. Donc c'est une bonne idée en principe, mais ça n'a jamais marché, et je ne pense pas que ça va marcher un jour. Oui. Donc si vous pouviez résoudre ce problème d'optimisation, mathématiquement, la solution est la même."
+  },
+  {
+   "t": 3586720,
+   "text": "Mathematically, whether you do simultaneous or sequential, it's the same thing. It's expressing the same mathematical program under a change of variables. Literally, that's what it is. But numerically, it's not the same thing. That's always the difference between math and what your computer computes. And so, where are instances where people like to do it this way? When you need a lot of accuracy is one of them. When you send satellites to space, for example, because you can't control accuracy there. There's another thing that this formulation gives us that sequential doesn't give us, and it's the ability to impose path constraints. And I'll write it on the board, because it's the kind of question that... I might plant this cue into a problem description in an exam, and I want you to latch onto that problem structure, to be like: oh, given that problem description, the only way I can",
+   "fr": "Mathématiquement, que vous fassiez du simultané ou du séquentiel, c'est la même chose. C'est exprimer le même programme mathématique au moyen d'un changement de variables. Littéralement, c'est ça. Mais numériquement, ce n'est pas la même chose. C'est toujours la différence entre les maths et ce que votre ordinateur calcule. Et donc, dans quels cas les gens aiment-ils le faire de cette façon? Quand on a besoin de beaucoup de précision, c'en est un. Quand on envoie des satellites dans l'espace, par exemple, parce que là, on ne peut pas contrôler la précision. Il y a une autre chose que cette formulation nous donne et que le séquentiel ne nous donne pas : c'est la capacité d'imposer des contraintes de trajectoire. Et je vais l'écrire au tableau, parce que c'est le genre de question que... Je pourrais glisser cet indice dans l'énoncé d'un problème à l'examen, et je veux que vous vous accrochiez à cette structure de problème, que vous vous disiez : oh, étant donné cet énoncé, la seule façon dont je peux"
+  },
+  {
+   "t": 3648559,
+   "text": "do it is actually if I were to do a simultaneous method. So what's one of the advantages of simultaneous? It's easy to impose state and path constraints. Why? Because now your states along the trajectory are explicit variables. So you can put bound constraints, you can do all sorts of things like that. When you do it the other way, you eliminate them as explicit variables. So it's no longer possible to impose these constraints as explicitly.",
+   "fr": "le faire, c'est en fait avec une méthode simultanée. Alors quel est l'un des avantages du simultané? C'est facile d'imposer des contraintes sur les états et des contraintes de trajectoire. Pourquoi? Parce que maintenant, vos états le long de la trajectoire sont des variables explicites. Donc vous pouvez mettre des contraintes de bornes, vous pouvez faire toutes sortes de choses comme ça. Quand vous le faites de l'autre façon, vous les éliminez en tant que variables explicites. Donc il n'est plus possible d'imposer ces contraintes aussi explicitement."
+  },
+  {
+   "t": 3704720,
+   "text": "You can always come up with, like, a regularizer-looking thing, but it's never going to be like a hard constraint. An expression that is used sometimes in the literature to talk about the benefits of simultaneous methods, again, not that simultaneous is necessarily better than anything else, is that when you put these bound constraints, it helps you pin down the unstable modes of a system. And that's widely used in dynamical systems theory, in physics, in chaos theory, bifurcation analysis, all these things. So it's used beyond, also, by the way. There's a question somewhere? No.",
+   "fr": "Vous pouvez toujours trouver, genre, quelque chose qui ressemble à un terme de régularisation, mais ce ne sera jamais comme une contrainte stricte. Une expression qu'on utilise parfois dans la littérature pour parler des avantages des méthodes simultanées, encore une fois, pas que le simultané soit nécessairement meilleur que quoi que ce soit d'autre, c'est que quand vous mettez ces contraintes de bornes, ça vous aide à maîtriser les modes instables d'un système. Et c'est largement utilisé en théorie des systèmes dynamiques, en physique, en théorie du chaos, en analyse de bifurcation, toutes ces choses-là. Donc c'est utilisé au-delà aussi, d'ailleurs. Il y a une question quelque part? Non."
+  },
+  {
+   "t": 3767040,
+   "text": "Okay. So when did we start? We started at... Okay. So we take a break, right? We have to take a break. You can complain to the faculty if we don't take a break. So, hey. Just a second.",
+   "fr": "OK. Alors quand est-ce qu'on a commencé? On a commencé à... OK. Donc on prend une pause, hein? On doit prendre une pause. Vous pouvez vous plaindre à la faculté si on ne prend pas de pause. Alors, voilà. Juste une seconde."
+  },
+  {
+   "t": 3893039,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 3927440,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 3963520,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4011920,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4084079,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4115040,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4174480,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4207760,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4283760,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4351440,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4401280,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4461920,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4500640,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4572960,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4630560,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4683520,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4736800,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4806320,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 4845280,
+   "text": "Okay. So I just wanted to show you something quite cool. It's not ready just yet, because I'm still collecting... oops... still collecting data. But I've pushed the latest changes. You might be able to see it live, and I'll spend some time on it next time, which is not going to be on Monday but, I guess, Thursday. All right. Yeah. So this thing here, it's pretty cool. I'm a co-founder of a startup, so it's a topic that we know quite well. And I'm like, that's a great example for my course. And I've run some experiments",
+   "fr": "OK. Donc je voulais juste vous montrer quelque chose d'assez génial. Ce n'est pas encore prêt, parce que je suis encore en train de collecter... oups... encore en train de collecter des données. Mais j'ai mis en ligne les derniers changements. Vous pourrez peut-être le voir en direct, et j'y consacrerai un peu de temps la prochaine fois, ce qui ne sera pas lundi mais, je suppose, jeudi. Bon. Oui. Donc ce truc ici, c'est assez génial. Je suis cofondateur d'une entreprise en démarrage, donc c'est un sujet qu'on connaît assez bien. Et je me suis dit : c'est un excellent exemple pour mon cours. Et j'ai fait quelques expériences"
+  },
+  {
+   "t": 4906560,
+   "text": "on actual hardware this morning. It just hasn't finished. I was on GCP. But yeah, the problem of serving large language models: lots of business opportunities. This is what we're leveraging with my co-founders. But there are a bunch of techniques that can be applied to basically do optimization in those models, to squeeze more value out of your hardware and get more tokens than what you'd be getting otherwise. Now, of course, this is for models that you self-host. So it's not going to optimize anything on OpenAI.",
+   "fr": "sur du vrai matériel ce matin. Ça n'a juste pas fini de rouler. J'étais sur GCP. Mais oui, le problème de servir des grands modèles de langage : beaucoup d'occasions d'affaires. C'est ce qu'on exploite avec mes cofondateurs. Mais il y a tout un tas de techniques qu'on peut appliquer pour essentiellement faire de l'optimisation dans ces modèles, pour tirer plus de valeur de votre matériel et obtenir plus de jetons que ce que vous obtiendriez autrement. Maintenant, bien sûr, c'est pour des modèles que vous hébergez vous-mêmes. Donc ça ne va rien optimiser chez OpenAI."
+  },
+  {
+   "t": 4950320,
+   "text": "So yeah, there are lots of levers you can act upon to optimize performance, energy. The company I'm part of, we focus on energy, but the same pattern holds across different levels. And yeah, so one good example is you can actually vary dynamically... you can vary the clock on a GPU. It's not something you do on a CPU, but on a GPU you can dynamically change the clock rate, and that's actually a very, very effective lever to control, for example, energy usage. The higher the clock rate, the higher the energy consumption is going to be. And the good news is that not all phases of generation require the same amount of compute. And so it's a well-known fact that many people have leveraged; there's lots of literature on that topic.",
+   "fr": "Donc oui, il y a beaucoup de leviers sur lesquels vous pouvez agir pour optimiser la performance, l'énergie. L'entreprise dont je fais partie, on se concentre sur l'énergie, mais le même schéma vaut à différents niveaux. Et oui, donc un bon exemple, c'est que vous pouvez en fait faire varier dynamiquement... vous pouvez faire varier l'horloge d'un GPU. Ce n'est pas quelque chose qu'on fait sur un CPU, mais sur un GPU, vous pouvez changer dynamiquement la fréquence d'horloge, et c'est en fait un levier très, très efficace pour contrôler, par exemple, la consommation d'énergie. Plus la fréquence d'horloge est élevée, plus la consommation d'énergie va être élevée. Et la bonne nouvelle, c'est que les phases de génération ne demandent pas toutes la même quantité de calcul. Et donc c'est un fait bien connu que beaucoup de gens ont exploité; il y a beaucoup de littérature sur le sujet."
+  },
+  {
+   "t": 5008480,
+   "text": "So the problem is frequency scaling. Now the question is how you do frequency scaling and what variables you have access to. This is where there's a big difference between a theory paper and a solution in practice. But here I've coded up a little example. It uses actual traffic traces collected by Azure, that they've collected on a model, and then I've tried to do some identification of the corresponding behavior of the GPU on actual machines on GCP.",
+   "fr": "Donc le problème, c'est l'ajustement de la fréquence. Maintenant, la question, c'est comment on fait l'ajustement de la fréquence et à quelles variables on a accès. C'est là qu'il y a une grande différence entre un article théorique et une solution en pratique. Mais ici, j'ai codé un petit exemple. Il utilise de vraies traces de trafic collectées par Azure, qu'ils ont collectées sur un modèle, puis j'ai essayé de faire de l'identification du comportement correspondant du GPU sur de vraies machines sur GCP."
+  },
+  {
+   "t": 5050480,
+   "text": "That then gives me the ability to simulate how the GPU is going to react in terms of the thermal properties of the GPU. When you play these traces on the GPU on a real model, you literally see the GPU ramping up; the temperature goes up directly. And so, again, it depends on what levers you've got, but you can even imagine a world in which not only can you play with the frequency, but you can also play with the pump rate. Let's say you've got a liquid cooling system on your chip, right? You can extract more or less heat by pumping more water. You can change the temperature of your cooling liquid as well. So it's a very rich optimal control problem. And I'm in the process of getting those things and showing you a bunch of different baselines, and I've started working on demonstrations all the way from optimal control, with very reactive",
+   "fr": "Ça me donne ensuite la capacité de simuler comment le GPU va réagir sur le plan de ses propriétés thermiques. Quand vous faites jouer ces traces sur le GPU avec un vrai modèle, vous voyez littéralement le GPU monter en régime; la température monte directement. Et donc, encore une fois, ça dépend des leviers dont vous disposez, mais vous pouvez même imaginer un monde dans lequel non seulement vous pouvez jouer sur la fréquence, mais vous pouvez aussi jouer sur le débit de la pompe. Disons que vous avez un système de refroidissement liquide sur votre puce, non? Vous pouvez extraire plus ou moins de chaleur en pompant plus d'eau. Vous pouvez aussi changer la température de votre liquide de refroidissement. Donc c'est un problème de commande optimale très riche. Et je suis en train de préparer tout ça et de vous montrer un tas de méthodes de référence différentes, et j'ai commencé à travailler sur des démonstrations qui vont de la commande optimale, avec des contrôleurs très réactifs"
+  },
+  {
+   "t": 5113120,
+   "text": "basic controllers, all the way to reinforcement learning with FQI. We'll see that later on. But it's not there yet. It takes a lot of time to collect the data, because when you do these experiments, the GPU temperature goes up, and you literally have to wait in between two recordings for the GPU temperature to go down if you want to get consistent measurements. So it takes a lot of time; you have to wait. So I launched a data collection run last night, and in the morning there were some problems. I haven't quite finished, but hopefully I'll have something cool to talk about and share with you next Thursday.",
+   "fr": "de base, jusqu'à l'apprentissage par renforcement avec FQI. On verra ça plus tard. Mais ce n'est pas encore prêt. Ça prend beaucoup de temps de collecter les données, parce que quand vous faites ces expériences, la température du GPU monte, et vous devez littéralement attendre entre deux enregistrements que la température du GPU redescende si vous voulez obtenir des mesures cohérentes. Donc ça prend beaucoup de temps; il faut attendre. Alors j'ai lancé une collecte de données hier soir, et le matin il y avait quelques problèmes. Je n'ai pas tout à fait fini, mais j'espère avoir quelque chose de génial à vous présenter et à partager avec vous jeudi prochain."
+  },
+  {
+   "t": 5159199,
+   "text": "Okay. But let's go back to the very concrete topics. Actually, I pushed these changes just before the break. And then, yeah, we talked about these general techniques for trajectory optimization. Now the question here is: how do we solve these mathematical programs? Okay, so I don't want to give a complete course on mathematical programming, but I still need to give you a basic overview of how we solve these things, if you haven't seen that before. Personally, I hadn't learned about this until I decided to learn about it on my own. So no worries. But it's important to spend some time on it, because if you're a machine learning person, you've probably spent your entire trajectory up to this point doing unconstrained",
+   "fr": "OK. Mais revenons aux sujets très concrets. En fait, j'ai mis en ligne ces changements juste avant la pause. Et puis, oui, on a parlé de ces techniques générales d'optimisation de trajectoire. Maintenant, la question ici, c'est : comment résout-on ces programmes mathématiques? OK, donc je ne veux pas donner un cours complet de programmation mathématique, mais je dois quand même vous donner un aperçu de base de la façon dont on résout ces choses, si vous n'avez jamais vu ça. Personnellement, je n'avais pas appris ça avant de décider de l'apprendre par moi-même. Alors pas d'inquiétude. Mais c'est important d'y consacrer un peu de temps, parce que si vous venez de l'apprentissage automatique, vous avez probablement passé tout votre parcours jusqu'ici à faire de l'optimisation sans"
+  },
+  {
+   "t": 5220719,
+   "text": "optimization. So here we need slightly different techniques. And honestly, we don't have good tools available to us, even if we want to do constrained optimization. Say our toolbox right now: if you use PyTorch, JAX... I'm going to say use JAX, because I know JAX. You might want to use Optax. Optax is going to give you Adam, RMSProp, but all of these are just gradient descent techniques. That's not enough to solve a constrained optimization problem. Okay. And so I'll show you some very broad categories of solvers. I think you might have enough that you could implement your own solver yourself, if need be.",
+   "fr": "contraintes. Donc ici, on a besoin de techniques un peu différentes. Et honnêtement, on n'a pas de bons outils à notre disposition, même si on veut faire de l'optimisation sous contraintes. Disons notre boîte à outils actuelle : si vous utilisez PyTorch, JAX... Je vais dire d'utiliser JAX, parce que je connais JAX. Vous voudrez peut-être utiliser Optax. Optax va vous donner Adam, RMSProp, mais ce ne sont que des techniques de descente de gradient. Ce n'est pas suffisant pour résoudre un problème d'optimisation sous contraintes. OK. Et donc je vais vous montrer quelques très grandes catégories de solveurs. Je pense que vous pourriez en savoir assez pour implémenter votre propre solveur vous-mêmes, au besoin."
+  },
+  {
+   "t": 5271920,
+   "text": "If you don't implement it yourself, at least you'll get to understand a little bit better how it works under the hood. And the techniques I want to present, today at least, will be heavily based on this perspective based on the KKT conditions. And so this characterization of what it means for a solution to be optimal when you have equality constraints and inequality constraints.",
+   "fr": "Si vous ne l'implémentez pas vous-mêmes, au moins vous allez comprendre un peu mieux comment ça fonctionne sous le capot. Et les techniques que je veux présenter, aujourd'hui du moins, vont s'appuyer fortement sur cette perspective fondée sur les conditions KKT. Et donc sur cette caractérisation de ce que ça veut dire, pour une solution, d'être optimale quand on a des contraintes d'égalité et des contraintes d'inégalité."
+  },
+  {
+   "t": 5305040,
+   "text": "So let's talk about the unconstrained case, for example. And I'm going to ask you: let's say, at first order, what's a test that you can apply to verify that the solution might be an optimal solution? What's our usual way to go about characterizing, let's say, a local or global optimum of an optimization problem in the unconstrained case? Yeah?",
+   "fr": "Alors parlons du cas sans contraintes, par exemple. Et je vais vous demander : disons, au premier ordre, quel est le test que vous pouvez appliquer pour vérifier que la solution pourrait être une solution optimale? Quelle est notre façon habituelle de caractériser, disons, un optimum local ou global d'un problème d'optimisation dans le cas sans contraintes? Oui?"
+  },
+  {
+   "t": 5338000,
+   "text": "Yeah. The first-order optimality condition tells us that, let's say you minimize the loss, okay, with a neural network, and then you found a solution. There's a test that you can perform, and there should be an answer to that. What's that test? You give me your vector of parameters that you claim is a solution. You plug it into the gradient of the loss, which is a function, and then you check, and that gradient should be close to the zero vector. Now, most likely, when you do deep learning, it's never going to be the zero vector, but at least the way we conceptualize things mathematically, that's how it should be. This is for the unconstrained case.",
+   "fr": "Oui. La condition d'optimalité du premier ordre nous dit que, disons que vous minimisez la perte, OK, avec un réseau de neurones, et que vous avez trouvé une solution. Il y a un test que vous pouvez faire, et il devrait y avoir une réponse à ça. Quel est ce test? Vous me donnez votre vecteur de paramètres que vous prétendez être une solution. Vous le mettez dans le gradient de la perte, qui est une fonction, et ensuite vous vérifiez, et ce gradient devrait être proche du vecteur nul. Maintenant, fort probablement, quand vous faites de l'apprentissage profond, ce ne sera jamais le vecteur nul, mais du moins, dans notre façon de concevoir les choses mathématiquement, c'est comme ça que ça devrait être. Ça, c'est pour le cas sans contraintes."
+  },
+  {
+   "t": 5380239,
+   "text": "How about when you have constraints? Now, this is a bit different, because it's no longer possible to just say, well, I'm going to check if the gradient of my cost functional is zero, because it doesn't enforce the fact that we need a solution that is feasible. What does feasibility mean? Well, it means that if we've got an equality constraint, it's zero; an inequality constraint, greater or equal than zero. That's the canonical form of it. So in other words, we need to have a way to also verify that we've got a feasible solution.",
+   "fr": "Et quand on a des contraintes? Là, c'est un peu différent, parce qu'on ne peut plus simplement dire : bon, je vais vérifier si le gradient de ma fonctionnelle de coût est nul, parce que ça n'impose pas le fait qu'on a besoin d'une solution réalisable. Qu'est-ce que la réalisabilité veut dire? Eh bien, ça veut dire que si on a une contrainte d'égalité, elle vaut zéro; une contrainte d'inégalité, supérieure ou égale à zéro. C'est la forme canonique. Donc autrement dit, on doit aussi avoir un moyen de vérifier qu'on a une solution réalisable."
+  },
+  {
+   "t": 5422159,
+   "text": "And the way we go about this is through this construction of the Lagrangian. We're going to characterize at first order... You can do it at second order, but we're not going to need it here. At first order, you can characterize what an optimal solution should be for a constrained program with equality and inequality constraints by building this so-called Lagrangian function. And here's the important thing to stress, and this is where we all make mistakes, and myself, in my understanding, I think this was flawed initially: the construction of a Lagrangian is not to say that we are now solving a regularized problem. Not at all.",
+   "fr": "Et la façon dont on s'y prend, c'est par la construction du lagrangien. On va caractériser au premier ordre... On peut le faire au second ordre, mais on n'en aura pas besoin ici. Au premier ordre, on peut caractériser ce que devrait être une solution optimale pour un programme sous contraintes, avec des contraintes d'égalité et d'inégalité, en construisant cette fonction qu'on appelle le lagrangien. Et voici la chose importante à souligner, et c'est là qu'on se trompe tous, et moi-même, dans ma compréhension, je pense que c'était erroné au départ : construire un lagrangien, ce n'est pas dire qu'on résout maintenant un problème régularisé. Pas du tout."
+  },
+  {
+   "t": 5467600,
+   "text": "It is not equivalent. It's not just a question of saying I regularize my problem and minimize the resulting loss. Okay. So the Lagrangian, at the moment, we think of it first as an existence statement. Okay. So the Lagrange multiplier theorem, or the KKT conditions when you have inequality constraints, is a statement about the existence of a vector of Lagrange multipliers, \\(\\lambda\\) and \\(\\mu\\). The existence of those objects that correspond to an optimal solution z, which have the property that when you plug these three things into the Lagrangian and take the derivative of the Lagrangian, it's going to be zero. So that's the",
+   "fr": "Ce n'est pas équivalent. Ce n'est pas simplement une question de dire : je régularise mon problème et je minimise la perte qui en résulte. OK. Donc le lagrangien, pour l'instant, on le voit d'abord comme un énoncé d'existence. OK. Donc le théorème des multiplicateurs de Lagrange, ou les conditions KKT quand on a des contraintes d'inégalité, est un énoncé sur l'existence d'un vecteur de multiplicateurs de Lagrange, \\(\\lambda\\) et \\(\\mu\\). L'existence de ces objets qui correspondent à une solution optimale z, et qui ont la propriété que quand on met ces trois choses dans le lagrangien et qu'on prend la dérivée du lagrangien, ça donne zéro. Donc c'est,"
+  },
+  {
+   "t": 5528800,
+   "text": "let's say, extension of our first-order optimality condition. And really, yeah, there's an existence aspect to that. It doesn't tell you how you're going to find those \\(\\lambda\\) and \\(\\mu\\). The theorem itself says that under some conditions of feasibility and so on, okay, there will exist a \\(\\lambda\\) and a \\(\\mu\\) such that if you take the derivative at your resulting triple, then it's going to be zero. And not only this, there's one slight important detail: when you have inequality constraints, the Lagrange multiplier \\(\\mu\\) is also not any \\(\\mu\\). We know also that it's going to be greater or equal than zero.",
+   "fr": "disons, l'extension de notre condition d'optimalité du premier ordre. Et vraiment, oui, il y a un aspect d'existence là-dedans. Ça ne vous dit pas comment vous allez trouver ces \\(\\lambda\\) et \\(\\mu\\). Le théorème lui-même dit que sous certaines conditions de réalisabilité et ainsi de suite, OK, il va exister un \\(\\lambda\\) et un \\(\\mu\\) tels que si vous prenez la dérivée en votre triplet résultant, ça va donner zéro. Et pas seulement ça, il y a un petit détail important : quand on a des contraintes d'inégalité, le multiplicateur de Lagrange \\(\\mu\\) n'est pas non plus n'importe quel \\(\\mu\\). On sait aussi qu'il va être supérieur ou égal à zéro."
+  },
+  {
+   "t": 5571360,
+   "text": "It's an important detail, because when it comes to designing algorithms, sometimes you have to be careful with that. Okay, so that's what I want to say for now. Now the question is: how do you turn that into an algorithm? There are different ways to go about this. And one algorithm, which I think is quite simple, and it's oftentimes the first thing you implement, and I'd say it's always a good idea to try it out in practice, is this algorithm where, if you want to be correct, you need to credit... actually, there's a third author usually. If you want to be very correct, it's Arrow-Hurwicz-Uzawa. And I always tell that story. You can verify me, but I think Arrow and Hurwicz",
+   "fr": "C'est un détail important, parce que lorsqu'il s'agit de concevoir des algorithmes, il faut parfois faire attention à ça. OK, donc c'est ce que je voulais dire pour l'instant. Maintenant, la question, c'est : comment transformer ça en algorithme? Il y a différentes façons de s'y prendre. Et un algorithme, qui est assez simple à mon avis, et c'est souvent la première chose qu'on implémente, et je dirais que c'est toujours une bonne idée de l'essayer en pratique, c'est cet algorithme où, si vous voulez être exacts, vous devez attribuer le mérite à... en fait, il y a habituellement un troisième auteur. Si vous voulez être très exacts, c'est Arrow-Hurwicz-Uzawa. Et je raconte toujours cette histoire. Vous pouvez vérifier, mais je pense qu'Arrow et Hurwicz"
+  },
+  {
+   "t": 5632239,
+   "text": "were the editors of a textbook in which Uzawa published an article. And it's an awful thing that we credit the editors, who had nothing to do with the actual algorithm, and the actual author is now not even mentioned in there. So what do we have? Sometimes, yeah, if you want to be historically correct, you're going to call that [inaudible]. Sometimes people call that the Lagrangian method.",
+   "fr": "étaient les directeurs de publication d'un manuel dans lequel Uzawa a publié un article. Et c'est une chose terrible qu'on attribue le mérite aux directeurs de publication, qui n'avaient rien à voir avec l'algorithme lui-même, et que le véritable auteur ne soit même plus mentionné. Alors qu'est-ce qu'on a? Parfois, oui, si vous voulez être historiquement exacts, vous allez appeler ça [inaudible]. Parfois, les gens appellent ça la méthode lagrangienne."
+  },
+  {
+   "t": 5664880,
+   "text": "Sometimes people call that primal-dual methods. If you're someone like Gauthier, who works on adversarial optimization, then you're going to refer to this as gradient descent-ascent. Why? Because it's doing two types of updates. Why, by the way, primal-dual? Because the dual variables are the \\(\\lambda\\) and \\(\\mu\\); we call them dual variables. Primal would be z here. And yeah, we do two types of updates. You see, the difference is we've got a minus here and we've got a plus here.",
+   "fr": "Parfois, les gens appellent ça des méthodes primales-duales. Si vous êtes quelqu'un comme Gauthier, qui travaille sur l'optimisation antagoniste, alors vous allez appeler ça la descente-ascension de gradient. Pourquoi? Parce que ça fait deux types de mises à jour. Pourquoi, d'ailleurs, primal-dual? Parce que les variables duales, ce sont \\(\\lambda\\) et \\(\\mu\\); on les appelle variables duales. La variable primale serait z ici. Et oui, on fait deux types de mises à jour. Vous voyez, la différence, c'est qu'on a un moins ici et un plus ici."
+  },
+  {
+   "t": 5705040,
+   "text": "So if we're minimizing a cost, that makes sense. What is this here? It's gradient descent over the Lagrangian, but with respect to the z variable, the primal variable, and the two other equations are gradient ascent with respect to the dual variables. So you see, this is where I told you that it'd be a big mistake to think of the Lagrangian as being just a regularized loss. Why? If you take the Lagrangian and you say it's a regularized loss, then you're going to end up minimizing everywhere. And that's not going to bring you to the right solution.",
+   "fr": "Donc si on minimise un coût, c'est logique. Qu'est-ce que c'est, ceci? C'est une descente de gradient sur le lagrangien, mais par rapport à la variable z, la variable primale, et les deux autres équations sont une ascension de gradient par rapport aux variables duales. Donc vous voyez, c'est là que je vous disais que ce serait une grosse erreur de voir le lagrangien simplement comme une perte régularisée. Pourquoi? Si vous prenez le lagrangien et que vous dites que c'est une perte régularisée, vous allez finir par minimiser partout. Et ça ne vous mènera pas à la bonne solution."
+  },
+  {
+   "t": 5750639,
+   "text": "Clearly, it's not going to go to the same place. And why is that? Well, because actually there's a way to think of what an optimal solution is in terms of what's sometimes called... and honestly, there's way more to this than what I'm going to tell you, but I think intuitively it's enough... the saddle point theorem, or the saddle point property of those programs. And that interpretation, I think, makes a lot of sense for why we end up with this gradient descent-ascent. Let's think of a game, to ensure that if we find a solution to that game, then it's going to be feasible. Not only is it going to be a minimizer of the cost functional, but it's also going to be feasible. And the way to do this is to consider the following nested optimization",
+   "fr": "Clairement, ça ne va pas aboutir au même endroit. Et pourquoi? Eh bien, parce qu'en fait, il y a une façon de voir ce qu'est une solution optimale en termes de ce qu'on appelle parfois... et honnêtement, il y a bien plus à dire là-dessus que ce que je vais vous raconter, mais je pense qu'intuitivement, c'est suffisant... le théorème du point de selle, ou la propriété de point de selle de ces programmes. Et cette interprétation, je pense, explique très bien pourquoi on se retrouve avec cette descente-ascension de gradient. Imaginons un jeu, pour garantir que si on trouve une solution à ce jeu, elle sera réalisable. Non seulement elle va minimiser la fonctionnelle de coût, mais elle va aussi être réalisable. Et la façon de faire ça, c'est de considérer le problème d'optimisation imbriqué"
+  },
+  {
+   "t": 5810960,
+   "text": "problem. You minimize... here I use z... you minimize over z of your Lagrangian, and you're going to maximize over the dual variables. All right. And let's just write it more specifically: min over z... I think I'm not consistent in my notation, so I'll have to verify this.",
+   "fr": "suivant. Vous minimisez... ici j'utilise z... vous minimisez sur z votre lagrangien, et vous allez maximiser sur les variables duales. Bon. Et écrivons-le plus précisément : min sur z... Je pense que je ne suis pas cohérent dans ma notation, alors je vais devoir vérifier ça."
+  },
+  {
+   "t": 5861520,
+   "text": "But it's going to be okay here. Oh yeah. So what is this going to do? Well, let's say we start at the outer level and we minimize over x. So let's say we minimize, and then we happen to pick a z which is not feasible. And the job of the other player is to make your life as hard as possible, because the other player doesn't want you to play infeasible things.",
+   "fr": "Mais ça va aller ici. Ah oui. Donc qu'est-ce que ça va faire? Eh bien, disons qu'on commence au niveau extérieur et qu'on minimise sur x. Donc disons qu'on minimise, et qu'on tombe sur un z qui n'est pas réalisable. Et le travail de l'autre joueur, c'est de vous rendre la vie aussi difficile que possible, parce que l'autre joueur ne veut pas que vous jouiez des choses non réalisables."
+  },
+  {
+   "t": 5907040,
+   "text": "So what's going to be the response of the other player, the max player? The max player wants to make this thing as large as possible. The min player wants to make it as small as possible. So what is the max player going to do if the min player picks something infeasible? Yeah. The max player can just pick any \\(\\lambda\\) or \\(\\mu\\) as large as possible, crank it up to plus infinity or minus infinity, and then it's just not going to allow it to play. And so when we've got a feasible solution, then, first of all, the equality constraint is going to be zero, right? So there's no way for the max player to then crank up its Lagrange multiplier to make your life miserable, because there's no residual left. You satisfy your constraints, or your inequality constraints, right? So",
+   "fr": "Alors quelle va être la réponse de l'autre joueur, le joueur max? Le joueur max veut rendre ce truc aussi grand que possible. Le joueur min veut le rendre aussi petit que possible. Alors que va faire le joueur max si le joueur min choisit quelque chose de non réalisable? Oui. Le joueur max peut simplement choisir n'importe quel \\(\\lambda\\) ou \\(\\mu\\) aussi grand que possible, le pousser à plus l'infini ou à moins l'infini, et alors il ne va tout simplement pas le laisser jouer ça. Et donc quand on a une solution réalisable, alors, d'abord, la contrainte d'égalité va valoir zéro, non? Donc le joueur max n'a plus aucun moyen de pousser son multiplicateur de Lagrange pour vous rendre la vie misérable, parce qu'il ne reste aucun résidu. Vous satisfaites vos contraintes, ou vos contraintes d'inégalité, non? Donc"
+  },
+  {
+   "t": 5967360,
+   "text": "in that case, the min player can just do whatever it wants. So this way of seeing things, of ensuring that our optimal solution is feasible within that set, can give you intuition for how you get the algorithm from this. Because now let's think about how we do optimization with that. Well, what we can do is actually to alternate the two steps.",
+   "fr": "dans ce cas, le joueur min peut faire ce qu'il veut. Donc cette façon de voir les choses, de garantir que notre solution optimale est réalisable dans cet ensemble, peut vous donner l'intuition de la façon dont on obtient l'algorithme à partir de ça. Parce que maintenant, réfléchissons à la façon de faire de l'optimisation avec ça. Eh bien, ce qu'on peut faire, c'est en fait alterner les deux étapes."
+  },
+  {
+   "t": 6004080,
+   "text": "Actually, the algorithm doesn't follow directly from this line, but this thing suggests that you're going to minimize, hence a minus, and you're going to maximize, hence a plus. Okay, so generally speaking, you know, this is really describing a bilevel optimization problem, because it's an optimization problem that has an optimization problem inside of it. And, you know, there are lots of ways you can solve optimization problems.",
+   "fr": "En fait, l'algorithme ne découle pas directement de cette ligne, mais ce truc suggère que vous allez minimiser, d'où un moins, et que vous allez maximiser, d'où un plus. OK, donc de manière générale, vous savez, ceci décrit vraiment un problème d'optimisation à deux niveaux, parce que c'est un problème d'optimisation qui contient un problème d'optimisation. Et, vous savez, il y a beaucoup de façons de résoudre des problèmes d'optimisation."
+  },
+  {
+   "t": 6034080,
+   "text": "But one of these is to do it in this manner, by doing a little bit of this and a little bit of that, and a little bit of this and a little bit of that. So maybe you want to do a little bit more of this and a little bit less of this, and you can play with the schedules, but we don't have to think about it. So it gives you an algorithm that looks like that. So this is a basic Lagrangian method. It maintains two sets of variables, because, I told you earlier, the Lagrange multiplier theorem is an existence statement. It doesn't tell you how you're going to find the corresponding \\(\\lambda\\) and \\(\\mu\\) for an optimal solution.",
+   "fr": "Mais l'une d'elles, c'est de le faire de cette manière, en faisant un peu de ceci et un peu de cela, et un peu de ceci et un peu de cela. Donc peut-être que vous voulez faire un peu plus de ceci et un peu moins de cela, et vous pouvez jouer avec les calendriers de mise à jour, mais on n'a pas à y penser. Donc ça vous donne un algorithme qui ressemble à ça. C'est donc une méthode lagrangienne de base. Elle tient à jour deux ensembles de variables, parce que, je vous l'ai dit tout à l'heure, le théorème des multiplicateurs de Lagrange est un énoncé d'existence. Il ne vous dit pas comment vous allez trouver les \\(\\lambda\\) et \\(\\mu\\) correspondants pour une solution optimale."
+  },
+  {
+   "t": 6083760,
+   "text": "So you maintain those guys, and by maintaining them, it helps you enforce feasibility and search within the right solution space. What is this big pi here doing?\nStudent: Product?\nNot here, actually. You're right that usually it's a product, but here it's actually big pi, the Greek letter, just not... So here, actually, this symbol means projection. Oftentimes we use big pi to mean projection. We'll reuse that letter afterwards, but here it's a projection. Why projection? Because the KKT theorem says that when we have inequality constraints, the Lagrange multiplier corresponding to the inequality constraints is going to be greater or equal than zero. So it means that if you've got a vector that has",
+   "fr": "Donc vous tenez à jour ces variables-là, et en les tenant à jour, ça vous aide à imposer la réalisabilité et à chercher dans le bon espace de solutions. Que fait ce grand pi ici?\nStudent: Un produit?\nPas ici, en fait. Vous avez raison, d'habitude c'est un produit, mais ici c'est en fait un grand pi, la lettre grecque, juste pas... Donc ici, en fait, ce symbole veut dire projection. On utilise souvent un grand pi pour désigner une projection. On va réutiliser cette lettre plus tard, mais ici c'est une projection. Pourquoi une projection? Parce que le théorème KKT dit que quand on a des contraintes d'inégalité, le multiplicateur de Lagrange correspondant aux contraintes d'inégalité va être supérieur ou égal à zéro. Donc ça veut dire que si vous avez un vecteur qui a des"
+  },
+  {
+   "t": 6144560,
+   "text": "negative values, that's no good, it doesn't work. So we need to enforce that somehow in our algorithm. And a way that we can do this is projection. Basically, what it means is that you're going to clip. You can clip things. There are multiple ways you can do the projection, but you're going to bring it back, you're going to force it back into that region. Does it mean that that's all we need to know? Not at all. Because that's one particular instance, and probably the most naive algorithm that one could implement.",
+   "fr": "valeurs négatives, ce n'est pas bon, ça ne marche pas. Donc on doit imposer ça d'une façon ou d'une autre dans notre algorithme. Et une façon de le faire, c'est la projection. Essentiellement, ça veut dire que vous allez écrêter. Vous pouvez écrêter les choses. Il y a plusieurs façons de faire la projection, mais vous allez le ramener, vous allez le forcer à revenir dans cette région. Est-ce que ça veut dire que c'est tout ce qu'on a besoin de savoir? Pas du tout. Parce que c'est un cas particulier, et probablement l'algorithme le plus naïf qu'on puisse implémenter."
+  },
+  {
+   "t": 6185600,
+   "text": "I still recommend that everybody implement that first, because it's easy enough that you can make it work well. That being said, it has a serious drawback. Does anyone know what that drawback would be? And I'm going to give you a hint here. And look, for me this is recent work, but I think I need to accept the fact that I'm getting older and it's no longer recent. So in 2020, I would ask pretty much the same question and tell you: you all know how we do training in GANs, and what's the problem with training GANs?",
+   "fr": "Je recommande quand même à tout le monde de l'implémenter en premier, parce que c'est assez facile pour que vous puissiez le faire bien fonctionner. Cela dit, il a un sérieux inconvénient. Est-ce que quelqu'un sait quel serait cet inconvénient? Et je vais vous donner un indice ici. Et écoutez, pour moi, ce sont des travaux récents, mais je pense que je dois accepter le fait que je vieillis et que ce n'est plus récent. Donc en 2020, je posais à peu près la même question et je vous disais : vous savez tous comment on entraîne les GAN, et quel est le problème avec l'entraînement des GAN?"
+  },
+  {
+   "t": 6223440,
+   "text": "Student: Collapse? Instability?\nAnd why is that a problem? Well, training GANs is exactly that structure. The most basic algorithm you could apply for training GANs would be gradient descent-ascent, exactly what we're describing, and we know really well that this is very unstable. This is very unstable, and this too is very unstable. There are stability results for this particular algorithm. You know, I used to go over the proof, and I don't go over the proofs anymore, since there are so many things to talk about, but it's in the textbook by Bertsekas, who unfortunately passed away. He was a hero of our community, a true legend of reinforcement learning and optimization. That person was a machine. He wrote books and books, books and books, and really very impactful things. I think he passed away last month. But anyway, Bertsekas, in his Nonlinear Programming textbook, has",
+   "fr": "Student: L'effondrement? L'instabilité?\nEt pourquoi est-ce un problème? Eh bien, l'entraînement des GAN a exactement cette structure. L'algorithme le plus simple qu'on pourrait appliquer pour entraîner des GAN serait la descente-ascension de gradient, exactement ce qu'on est en train de décrire, et on sait très bien que c'est très instable. C'est très instable, et ceci aussi est très instable. Il y a des résultats de stabilité pour cet algorithme en particulier. Vous savez, avant, je présentais la démonstration, et je ne présente plus les démonstrations, parce qu'il y a tellement de choses à couvrir, mais c'est dans le manuel de Bertsekas, qui est malheureusement décédé. C'était un héros de notre communauté, une véritable légende de l'apprentissage par renforcement et de l'optimisation. Cette personne était une machine. Il a écrit des livres et des livres, des livres et des livres, et vraiment des choses très marquantes. Je pense qu'il est décédé le mois dernier. Mais bref, Bertsekas, dans son manuel Nonlinear Programming, en"
+  },
+  {
+   "t": 6283760,
+   "text": "got the proof for that, and the convergence of that algorithm is only local. So the result we've got is that, basically, if you start around the solution, it's going to converge. But of course, when we optimize, we don't have a solution to start with. So it's very limited. And yeah, there are other tricks and things you can do, actually, to make it more stable. There's a variant of this called the extragradient method that Gauthier was really fond of; it was one of his main contributions in his thesis. They've adapted the extragradient method to GANs, and you can do it here too. Extragradient would basically introduce two additional steps, and it would use extrapolation. It would try to guess where it's going to",
+   "fr": "donne la démonstration, et la convergence de cet algorithme n'est que locale. Donc le résultat qu'on a, c'est que, essentiellement, si vous partez près de la solution, ça va converger. Mais évidemment, quand on optimise, on n'a pas de solution de départ. Donc c'est très limité. Et oui, il y a d'autres astuces et d'autres choses que vous pouvez faire, en fait, pour le rendre plus stable. Il y a une variante de ça qui s'appelle la méthode extragradient, que Gauthier aimait beaucoup; c'était l'une des principales contributions de sa thèse. Ils ont adapté la méthode extragradient aux GAN, et vous pouvez le faire ici aussi. L'extragradient introduirait essentiellement deux étapes supplémentaires, et utiliserait une extrapolation. Il essaierait de deviner où il va"
+  },
+  {
+   "t": 6345679,
+   "text": "land and then put that as the input to the next update. So it's a bit more costly, but it brings a lot of stability. You can also alternate. Instead of updating the primal first and then the dual, every round you can swap the order in which you do things, and that can be shown to bring stability. And yeah, there are other things you could do, but that's pretty much where my knowledge stops in adversarial methods. Now, a thing that we do a lot in practice is a variant of 26, and we use a slightly different object. We don't just use the Lagrangian; we use 27 here, which is the Lagrangian plus a penalty around our equality constraints and inequality constraints. So here we use, let's say, a square penalty.",
+   "fr": "atterrir, puis mettrait ça comme entrée de la mise à jour suivante. Donc c'est un peu plus coûteux, mais ça apporte beaucoup de stabilité. Vous pouvez aussi alterner. Au lieu de mettre à jour le primal d'abord, puis le dual, à chaque tour vous pouvez inverser l'ordre dans lequel vous faites les choses, et on peut montrer que ça apporte de la stabilité. Et oui, il y a d'autres choses que vous pourriez faire, mais c'est à peu près là que s'arrêtent mes connaissances en méthodes antagonistes. Maintenant, une chose qu'on fait beaucoup en pratique, c'est une variante de 26, et on utilise un objet légèrement différent. On n'utilise pas juste le lagrangien; on utilise 27 ici, qui est le lagrangien plus une pénalité sur nos contraintes d'égalité et nos contraintes d'inégalité. Donc ici on utilise, disons, une pénalité quadratique."
+  },
+  {
+   "t": 6406639,
+   "text": "And why would we do this? Well, you know, the Lagrangian itself as a mathematical object already enforces all these things. So you look at this and you're like, why do you want to do this? Actually, there's a reason, which is again the discrepancy between math and computer, and it's that it's going to give you numerical stability. And why? Well, intuitively, it's because of this square penalty. It has the effect of convexifying the loss surface, and that helps the progress of the algorithm a lot.",
+   "fr": "Et pourquoi ferait-on ça? Eh bien, vous savez, le lagrangien lui-même, en tant qu'objet mathématique, impose déjà toutes ces choses. Donc vous regardez ça et vous vous dites : pourquoi voudrait-on faire ça? En fait, il y a une raison, qui est encore une fois l'écart entre les maths et l'ordinateur : ça va vous donner de la stabilité numérique. Et pourquoi? Eh bien, intuitivement, c'est à cause de cette pénalité quadratique. Elle a pour effet de convexifier la surface de perte, et ça aide beaucoup la progression de l'algorithme."
+  },
+  {
+   "t": 6441040,
+   "text": "So anyway, if you've got the machinery implemented to do a first-order Lagrangian method, gradient descent-ascent like this, you can just swap it for an augmented Lagrangian. It might work better, but the backbone is the same. Okay, am I supposed to stop now, or do I stop at 3:30?\nStudent: Yeah, stop now.\nOkay. I just want to tell you one thing. I often like to say that in this course you need to know two things, and maybe almost only one: that in life there are root-finding problems and fixed-point problems. But actually, maybe all you need to say is that root-finding problems are all you need.",
+   "fr": "Donc bref, si vous avez déjà implémenté la machinerie pour faire une méthode lagrangienne du premier ordre, une descente-ascension de gradient comme ça, vous pouvez simplement la remplacer par un lagrangien augmenté. Ça pourrait mieux marcher, mais l'ossature est la même. OK, est-ce que je suis censé arrêter maintenant, ou est-ce que j'arrête à 15 h 30?\nStudent: Oui, arrêtez maintenant.\nOK. Je veux juste vous dire une chose. J'aime souvent dire que dans ce cours, vous devez savoir deux choses, et peut-être presque une seule : que dans la vie, il y a des problèmes de recherche de racines et des problèmes de point fixe. Mais en fait, on pourrait peut-être se contenter de dire que les problèmes de recherche de racines, c'est tout ce dont vous avez besoin."
+  },
+  {
+   "t": 6492080,
+   "text": "And why is that? Because the first-order optimality condition for a constrained problem, say if you've got equalities, but you can have inequalities too, right, looks something like that. And problems of that form, a function being equal to zero, that's a fundamental problem. It's a root-finding problem. For easy scalar functions, right, we've done it in primary school, high school. We can derive the roots of a function. I don't remember the formulas, but, let's say, for a quadratic, you know where it's going to intersect the x-axis. For more complicated functions, you can't do that analytically, so you need to run algorithms. What's the number one canonical method for finding the roots of a function?",
+   "fr": "Et pourquoi? Parce que la condition d'optimalité du premier ordre pour un problème sous contraintes, disons si vous avez des égalités, mais vous pouvez aussi avoir des inégalités, non, ressemble à quelque chose comme ça. Et les problèmes de cette forme, une fonction égale à zéro, c'est un problème fondamental. C'est un problème de recherche de racines. Pour des fonctions scalaires faciles, non, on l'a fait au primaire, au secondaire. On peut trouver les racines d'une fonction. Je ne me souviens plus des formules, mais, disons, pour une fonction du second degré, vous savez où elle va croiser l'axe des x. Pour des fonctions plus compliquées, on ne peut pas faire ça analytiquement, donc il faut faire tourner des algorithmes. Quelle est la méthode canonique numéro un pour trouver les racines d'une fonction?"
+  },
+  {
+   "t": 6537920,
+   "text": "Newton's method. Newton's method is the basis for everything. Okay. So I'll go back to this. Long story short: you take the first-order optimality conditions, throw Newton's method at them, and you get a very important algorithm called SQP. And SQP, sequential quadratic programming, is used widely in trajectory optimization. So we'll go over this next Thursday. Okay. Thank you, everyone. Have a good, relaxing weekend, and I hope, with Labour Day...",
+   "fr": "La méthode de Newton. La méthode de Newton est à la base de tout. OK. Donc je vais revenir là-dessus. Bref : vous prenez les conditions d'optimalité du premier ordre, vous leur appliquez la méthode de Newton, et vous obtenez un algorithme très important qui s'appelle SQP. Et SQP, la programmation quadratique séquentielle, est largement utilisée en optimisation de trajectoire. Donc on va voir ça jeudi prochain. OK. Merci, tout le monde. Bonne fin de semaine, reposez-vous bien, et j'espère, avec la fête du Travail..."
+  }
+ ]
+}
