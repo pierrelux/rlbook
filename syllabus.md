@@ -215,7 +215,7 @@ December 14, 10:30–12:30, in Auditorium 1 at Mila.
 :::{note}
 The registrar lists the course as beginning **Monday, August 31**, while the
 University's academic calendar gives the *rentrée* as **Tuesday, September 1**.
-The date of the first Monday meeting will be confirmed before the term starts.
+The first meeting took place on Monday, August 31.
 :::
 
 The appendices on [worked examples](appendix_examples.md),
@@ -465,7 +465,7 @@ lundi 14 décembre, de 10 h 30 à 12 h 30, à l'Auditorium 1 de Mila.
 :::{note}
 Le répertoire des cours indique un début le **lundi 31 août**, alors que le
 calendrier universitaire fixe la rentrée au **mardi 1<sup>er</sup> septembre**.
-La date de la première séance du lundi sera confirmée avant le début du trimestre.
+La première séance a eu lieu le lundi 31 août.
 :::
 
 Les annexes sur les [exemples détaillés](appendix_examples.md), les
