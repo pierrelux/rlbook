@@ -8,6 +8,91 @@
  "updated": "2026-09-29",
  "lectures": [
   {
+   "date": "2026-09-28",
+   "week": 5,
+   "title": {
+    "en": "Model predictive control: feedback, value function and warm starts; parametric programming and continuation",
+    "fr": "Commande prédictive : rétroaction, fonction de valeur et démarrage à chaud; programmation paramétrique et continuation"
+   },
+   "chapters": [
+    {
+     "slug": "receding-horizon-control",
+     "title": "Receding-Horizon Control"
+    },
+    {
+     "slug": "mpc-variants-reliability",
+     "title": "MPC Variants and Reliable Operation"
+    },
+    {
+     "slug": "parametric-controllers",
+     "title": "Parametric and Approximate Controllers"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/1Hq_8W1gb19VbFmG8UBwQdb-B7zGRFOXt/view",
+   "duration_ms": 6567639,
+   "thumb": "2026-09-28.jpg",
+   "paragraphs": 128,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "Final exam date and coverage",
+      "fr": "Date et matière de l'examen final"
+     },
+     "p": 1,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "MPC as receding-horizon control",
+      "fr": "La MPC comme commande à horizon glissant"
+     },
+     "p": 17,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Feedback map and value function",
+      "fr": "Application de rétroaction et fonction de valeur"
+     },
+     "p": 34,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Warm starting by shifting",
+      "fr": "Démarrage à chaud par décalage"
+     },
+     "p": 51,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Implicit function theorem",
+      "fr": "Théorème des fonctions implicites"
+     },
+     "p": 69,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Predictor-corrector MPC",
+      "fr": "MPC prédicteur-correcteur"
+     },
+     "p": 96,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Amortization and dynamic programming",
+      "fr": "Amortissement et programmation dynamique"
+     },
+     "p": 108,
+     "exam": false
+    }
+   ]
+  },
+  {
    "date": "2026-09-24",
    "week": 4,
    "title": {
@@ -169,6 +254,87 @@
       "fr": "MPPI dans une MPC à horizon glissant"
      },
      "p": 111,
+     "exam": false
+    }
+   ]
+  },
+  {
+   "date": "2026-09-17",
+   "week": 3,
+   "title": {
+    "en": "Collocation: nodal polynomials and the collocation recipe; introduction to MPPI",
+    "fr": "Collocation : polynômes nodaux et recette de collocation; introduction à MPPI"
+   },
+   "chapters": [
+    {
+     "slug": "continuous-time-collocation",
+     "title": "Continuous-Time Transcription and Collocation"
+    },
+    {
+     "slug": "model-predictive-path-integral-control",
+     "title": "Model Predictive Path Integral Control"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/1m8nyh8luS1FQ-H5tzmU1A56diXKmn2Kw/view",
+   "duration_ms": 6076520,
+   "thumb": "2026-09-17.jpg",
+   "paragraphs": 102,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "Monomial vs nodal (Lagrange) representation",
+      "fr": "Représentation monomiale vs nodale (Lagrange)"
+     },
+     "p": 2,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Precomputed derivative and integral operators",
+      "fr": "Opérateurs de dérivation et d'intégration précalculés"
+     },
+     "p": 9,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Integration-form collocation constraints",
+      "fr": "Contraintes de collocation, forme intégrale"
+     },
+     "p": 36,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Nodes generate the collocation scheme",
+      "fr": "Les nœuds engendrent le schéma de collocation"
+     },
+     "p": 44,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Differentiation-form collocation",
+      "fr": "Collocation, forme par dérivation"
+     },
+     "p": 56,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "MPPI: softmax-weighted sampled plans",
+      "fr": "MPPI : plans échantillonnés pondérés par softmax"
+     },
+     "p": 76,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "MPPI as sequential, gradient-free shooting",
+      "fr": "MPPI, un tir séquentiel sans gradient"
+     },
+     "p": 91,
      "exam": false
     }
    ]
