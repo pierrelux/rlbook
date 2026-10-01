@@ -72,6 +72,7 @@ Throughout this section, we use the **denominator layout** (gradient layout) con
 - $\nabla_{\mathbf{x}} f(\mathbf{x})$ produces a **column vector** (gradient)
 - $\frac{\partial f}{\partial \mathbf{x}}$ produces the Jacobian matrix
 - For scalar functions: $\nabla_{\mathbf{x}} f = \left(\frac{\partial f}{\partial \mathbf{x}}\right)^\top$
+- For vector-valued maps such as $\mathbf{f}_t$, we write $\nabla_{\mathbf{x}} \mathbf{f}_t$ for the Jacobian $\frac{\partial \mathbf{f}_t}{\partial \mathbf{x}}$ (one row per component of $\mathbf{f}_t$), so that $[\nabla_{\mathbf{x}} \mathbf{f}_t]^\top \boldsymbol{\lambda}$ is a vector-Jacobian product
 
 This is the standard convention in optimization and control theory.
 ```
@@ -160,7 +161,7 @@ there exist multipliers $\{\boldsymbol{\lambda}_{t+1}\}$, $\{\boldsymbol{\mu}_t\
 Here $H_t(\mathbf{x}_t,\mathbf{u}_t,\boldsymbol{\lambda}_{t+1},\boldsymbol{\mu}_t):=c_t(\mathbf{x}_t,\mathbf{u}_t)+\boldsymbol{\lambda}_{t+1}^\top\mathbf{f}_t(\mathbf{x}_t,\mathbf{u}_t)+\boldsymbol{\mu}_t^\top\mathbf{g}_t(\mathbf{x}_t,\mathbf{u}_t)$ is the stage Hamiltonian.
 ```
 
-**Recap.** The discrete-time Pontryagin principle is the KKT system for trajectory optimization, organized to exploit temporal structure. It has a forward-backward decomposition: states propagate forward through the dynamics, while costates propagate backward through the adjoint equation. The Hamiltonian $H_t$ packages together the stage cost, the dynamics (weighted by the next costate), and any path constraints (weighted by their multipliers). Control stationarity says that optimal controls minimize the Hamiltonian at each stage. Complementarity ensures that only binding constraints carry nonzero multipliers. This structure underlies both analytical solution methods (such as LQR) and numerical algorithms (such as the adjoint method for gradient computation).
+**Recap.** The discrete-time Pontryagin principle is the KKT system for trajectory optimization, organized to exploit temporal structure. It has a forward-backward decomposition: states propagate forward through the dynamics, while costates propagate backward through the adjoint equation. The Hamiltonian $H_t$ packages together the stage cost, the dynamics (weighted by the next costate), and any path constraints (weighted by their multipliers). Control stationarity says that optimal controls are stationary points of the Hamiltonian at each stage (zero gradient, or the variational inequality when $\mathcal{U}_t$ is constrained); when $H_t$ is convex in $\mathbf{u}_t$, as in the LQR setting, stationarity strengthens to minimization of the Hamiltonian. Complementarity ensures that only binding constraints carry nonzero multipliers. This structure underlies both analytical solution methods (such as LQR) and numerical algorithms (such as the adjoint method for gradient computation).
 
 ## The adjoint equation as reverse accumulation
 
@@ -257,7 +258,7 @@ Consider an unconstrained DOCP with objective $J = c_T(x_T) + \sum_{t=1}^{T-1} c
 :::{solution} ex-trajectories-costate
 :class: dropdown
 
-By definition, $V_t(x_t)$ is the minimum future cost starting from $x_t$. At the optimal trajectory, the envelope theorem gives $\nabla_{x_t} V_t = \lambda_t$, the marginal value of the state. Economically, $\lambda_t$ measures how much the optimal cost would decrease if we could perturb the state $x_t$ by a small amount—it is the "shadow price" of the state at time $t$.
+By definition, $V_t(x_t)$ is the minimum future cost starting from $x_t$. At the optimal trajectory, the envelope theorem gives $\nabla_{x_t} V_t = \lambda_t$, the marginal value of the state. Economically, $\lambda_t$ is the rate at which the optimal cost-to-go changes under a small perturbation of the state $x_t$ (the cost increases by approximately $\lambda_t^\top \delta x_t$ for a perturbation $\delta x_t$)—it is the "shadow price" of the state at time $t$.
 :::
 
 ---
@@ -284,7 +285,7 @@ Adjoint: $\lambda_4 = 1$, $\lambda_3 = 2(0.0625)(1) = 0.125$, $\lambda_2 = 2(0.2
 
 Control gradients: $\nabla_{u_t} J = \lambda_{t+1}$, so $\nabla_u J = [\lambda_2, \lambda_3, \lambda_4] = [0.0625, 0.125, 1.0]$.
 
-Finite differences should match. The adjoint is $O(T)$ work regardless of the number of controls; finite differences require $O(T \cdot m)$ rollouts for $m$-dimensional control.
+Finite differences should match. The adjoint is $O(T)$ work (one forward rollout and one backward pass) regardless of the number of controls; finite differences require one rollout per control variable, that is $O(T m)$ rollouts of $O(T)$ each, for $O(T^2 m)$ total work with $m$-dimensional control.
 :::
 
 ---

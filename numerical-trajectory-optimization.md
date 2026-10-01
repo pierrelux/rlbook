@@ -1178,7 +1178,7 @@ develops nodal polynomial representations directly from differential equations.
 :::{exercise} Single shooting implementation
 :label: ex-trajectories-single-shooting
 
-Consider the scalar system $x_{t+1} = x_t + u_t$ with $x_1 = 0$ and objective:
+Consider the scalar system $x_{t+1} = x_t + u_t$ with $x_1 = 1$ and objective:
 
 $$
 J = x_T^2 + \sum_{t=1}^{T-1} u_t^2.
@@ -1188,16 +1188,16 @@ $$
 
 **(b)** Substitute into $J$ to obtain an unconstrained objective in the controls only.
 
-**(c)** Implement single shooting in Python/JAX to minimize $J$ for $T = 10$. Use gradient descent with a learning rate of 0.1 for 100 iterations. Report the optimal controls and final cost.
+**(c)** Implement single shooting in Python/JAX to minimize $J$ for $T = 10$. Use gradient descent with a learning rate of 0.01 for 100 iterations. Report the optimal controls and final cost.
 
 :::
 
 :::{solution} ex-trajectories-single-shooting
 :class: dropdown
 
-**(a)** $x_T = \sum_{t=1}^{T-1} u_t$.
+**(a)** $x_T = 1 + \sum_{t=1}^{T-1} u_t$.
 
-**(b)** $J(u) = \left(\sum_{t=1}^{T-1} u_t\right)^2 + \sum_{t=1}^{T-1} u_t^2$.
+**(b)** $J(u) = \left(1 + \sum_{t=1}^{T-1} u_t\right)^2 + \sum_{t=1}^{T-1} u_t^2$.
 
 **(c)** Sample code:
 ```python
@@ -1205,17 +1205,17 @@ import jax.numpy as jnp
 from jax import grad
 
 def objective(u):
-    x_T = jnp.sum(u)
+    x_T = 1.0 + jnp.sum(u)
     return x_T**2 + jnp.sum(u**2)
 
 T = 10
 u = jnp.zeros(T - 1)
 for _ in range(100):
-    u = u - 0.1 * grad(objective)(u)
+    u = u - 0.01 * grad(objective)(u)
 
 print(f"Optimal u: {u}, Cost: {objective(u):.4f}")
 ```
-The optimal controls should be approximately equal and negative, with total cost near $0$.
+By symmetry the optimal controls are equal, $u_t = -x_1/T = -0.1$, which gives $x_T = 0.1$ and total cost $J = x_1^2/T = 0.1$: the quadratic control penalty makes it cheaper to spread the correction over all stages than to cancel $x_1$ exactly. (The Hessian of $J$ has largest eigenvalue $2T = 20$, so a learning rate of $0.1$ would oscillate without converging; $0.01$ converges in well under 100 iterations.)
 :::
 
 ---

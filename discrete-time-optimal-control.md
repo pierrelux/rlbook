@@ -920,7 +920,7 @@ $$
 \boldsymbol{\lambda}_k=\nabla_{\mathbf{x}_k} c_k + \left(\nabla_{\mathbf{x}_k}\Phi_k\right)^\top \boldsymbol{\lambda}_{k+1},
 $$
 
-and the gradients with respect to controls are
+where $\nabla_{\mathbf{x}_k}\Phi_k$ denotes the Jacobian of the vector-valued map $\Phi_k$ with respect to $\mathbf{x}_k$, so that $\left(\nabla_{\mathbf{x}_k}\Phi_k\right)^\top \boldsymbol{\lambda}_{k+1}$ is a vector-Jacobian product, and the gradients with respect to controls are
 
 $$
 \nabla_{\mathbf{u}_k}\mathcal{J}=\nabla_{\mathbf{u}_k} c_k + \left(\nabla_{\mathbf{u}_k}\Phi_k\right)^\top \boldsymbol{\lambda}_{k+1}.
@@ -1105,7 +1105,7 @@ Consider a DOCP where the state must satisfy $x_T = 0$ and also $x_T \leq 0$ at 
 :::{solution} ex-trajectories-licq
 :class: dropdown
 
-Both constraints $h(x_T) = x_T = 0$ and $g(x_T) = -x_T \leq 0$ are active when $x_T = 0$. The gradients are $\nabla h = 1$ and $\nabla g = -1$, which are parallel (linearly dependent). LICQ fails because the constraint gradients do not span independent directions. Consequence: the multipliers $\lambda$ (for equality) and $\mu$ (for inequality) may not be unique—any combination satisfying $\lambda - \mu = c$ for a fixed $c$ could work. This leads to numerical difficulties in optimization algorithms.
+Both constraints $h(x_T) = x_T = 0$ and $g(x_T) = x_T \leq 0$ are active when $x_T = 0$. The gradients are $\nabla h = 1$ and $\nabla g = 1$, which are parallel (linearly dependent). LICQ fails because the constraint gradients do not span independent directions. Consequence: the multipliers $\lambda$ (for equality) and $\mu \geq 0$ (for inequality) may not be unique—only the sum enters the stationarity condition, so any combination satisfying $\lambda + \mu = c$ for a fixed $c$ could work. This leads to numerical difficulties in optimization algorithms.
 :::
 
 ---
