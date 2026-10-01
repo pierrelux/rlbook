@@ -121,7 +121,7 @@
     "sha256": {
       "code/trajectory_optimization.py": "f215a6163457e6889064716e9acee7bf6991575c191af0e5b1327103e2c85eae",
       "code/thermoacoustic_pulldown.py": "6441f978d47376d5f09742574459767723353029b0dd64a25ef8d2fa9113c8ff",
-      "scripts/build_thermoacoustic_pulldown_artifacts.py": "1310a3033693b4b1f60f026c4cdcc44e39c941d351433d25e3443a183a59d213"
+      "scripts/build_thermoacoustic_pulldown_artifacts.py": "47998cb9101190c1a9bdc143d18365e96390f5c72111369359186f9cb23ecc19"
     },
     "solver_options": {
       "max_iterations": 200,
@@ -198,7 +198,7 @@
       "projected_gradient": 7.996522372599735e-06,
       "forward_evaluations": 25,
       "backward_attempts": 24,
-      "solver_seconds_excluding_compilation": 0.38886129204183817,
+      "solver_seconds_excluding_compilation": 1.251082958187908,
       "states": [
         [
           20.0,
@@ -2361,7 +2361,7 @@
       "projected_gradient": 1.4845051327094794e-06,
       "forward_evaluations": 12,
       "backward_attempts": 19,
-      "solver_seconds_excluding_compilation": 0.20961308293044567,
+      "solver_seconds_excluding_compilation": 0.6856669168919325,
       "states": [
         [
           20.0,
@@ -4540,7 +4540,7 @@
       "projected_gradient": 9.509923424855238e-06,
       "forward_evaluations": 28,
       "backward_attempts": 28,
-      "solver_seconds_excluding_compilation": 0.40959479194134474,
+      "solver_seconds_excluding_compilation": 1.220496625173837,
       "states": [
         [
           20.0,
@@ -6699,7 +6699,7 @@
       "projected_gradient": 2.7617119799927536e-06,
       "forward_evaluations": 8,
       "backward_attempts": 13,
-      "solver_seconds_excluding_compilation": 0.13069679168984294,
+      "solver_seconds_excluding_compilation": 0.29715187521651387,
       "states": [
         [
           20.0,
@@ -8878,7 +8878,7 @@
       "projected_gradient": 8.374186577730924e-06,
       "forward_evaluations": 28,
       "backward_attempts": 28,
-      "solver_seconds_excluding_compilation": 0.43380145775154233,
+      "solver_seconds_excluding_compilation": 1.153791416902095,
       "states": [
         [
           20.0,
@@ -11043,7 +11043,7 @@
       "projected_gradient": 2.54842372282571e-06,
       "forward_evaluations": 18,
       "backward_attempts": 21,
-      "solver_seconds_excluding_compilation": 0.23587808292359114,
+      "solver_seconds_excluding_compilation": 0.5291278748773038,
       "states": [
         [
           20.0,
@@ -13394,7 +13394,7 @@
       "projected_gradient": 0.0001298374996278051,
       "forward_evaluations": 203,
       "backward_attempts": 200,
-      "solver_seconds_excluding_compilation": 3.36221658391878,
+      "solver_seconds_excluding_compilation": 9.580926457885653,
       "states": [
         [
           20.0,
@@ -15572,7 +15572,7 @@
       "projected_gradient": 6.396177655743074e-06,
       "forward_evaluations": 47,
       "backward_attempts": 40,
-      "solver_seconds_excluding_compilation": 0.5390012077987194,
+      "solver_seconds_excluding_compilation": 1.4032232090830803,
       "states": [
         [
           20.0,
@@ -17725,7 +17725,7 @@
       "projected_gradient": 0.0,
       "forward_evaluations": 2,
       "backward_attempts": 2,
-      "solver_seconds_excluding_compilation": 0.07192929089069366,
+      "solver_seconds_excluding_compilation": 0.16276037506759167,
       "states": [
         [
           20.0,
@@ -19886,7 +19886,7 @@
       "projected_gradient": 0.0,
       "forward_evaluations": 10,
       "backward_attempts": 19,
-      "solver_seconds_excluding_compilation": 0.2590427501127124,
+      "solver_seconds_excluding_compilation": 0.5175858750008047,
       "states": [
         [
           20.0,

@@ -117,13 +117,17 @@ function pruneBrowserOnlyOutputs(node) {
 }
 
 const staticCompanionSvgPatterns = [
+  /^_static\/collocation\/(stage-and-endpoint|nlp-quantities|evaluation-and-differentiation|destination-and-slope-stages)\.svg$/,
   /^_static\/inference_serving\/(modeling|open-loop|mpc|scheduling|fqi)\.svg$/,
   /^_static\/bixi\/(bixi-model-interface|bixi-feedback-evidence|bixi-completed-trip-censoring)\.svg$/,
   /^_static\/gimbal\/partial-observability\.svg$/,
   /^_static\/swing_modeling\/model_audit\.svg$/,
   /^_static\/battery\/fast-charging\.svg$/,
   /^_static\/cubesat\/differential-drag\.svg$/,
+  /^_static\/(brownian_mppi|aircraft_mppi)\/[\w-]+\.svg$/,
   /^_static\/boat_docking\/[\w-]+\.svg$/,
+  /^_static\/truck_parking\/[\w-]+\.svg$/,
+  /^_static\/thermoacoustic_pulldown\/[\w-]+\.svg$/,
 ];
 
 // The HTML book keeps the responsive SVG fallbacks. For TeX, point the same
@@ -143,6 +147,25 @@ function usePdfCompanion(node) {
   const pdfSource = source.replace(/\.svg$/, ".pdf");
   node.urlSource = pdfSource;
   node.url = pdfSource;
+}
+
+// An {iframe} directive with a :placeholder: option carries a static image as
+// its only child. myst-to-tex has no iframe handler, so promote that image to
+// the iframe's place: the enclosing figure container keeps its label, number,
+// and caption, and usePdfCompanion then swaps a listed SVG for its PDF twin.
+// Iframes without a placeholder still become empty blocks below.
+function promoteIframePlaceholder(node) {
+  if (node?.type !== "iframe" || !Array.isArray(node.children)) return;
+  const placeholder = node.children.find(
+    (child) => child?.type === "image" && child.placeholder === true,
+  );
+  if (!placeholder) return;
+  for (const key of ["src", "title", "children", "align"]) delete node[key];
+  node.type = "image";
+  node.url = placeholder.url;
+  node.urlSource = placeholder.urlSource ?? placeholder.url;
+  node.width = placeholder.width ?? node.width ?? "100%";
+  if (placeholder.alt) node.alt = placeholder.alt;
 }
 
 function extractOutputGroups(node, extracted) {
@@ -278,6 +301,7 @@ const pdfStaticParityTransform = {
     let algorithmCount = 0;
 
     pruneBrowserOnlyOutputs(tree);
+    walk(tree, promoteIframePlaceholder);
     walk(tree, usePdfCompanion);
 
     walk(tree, (node) => {

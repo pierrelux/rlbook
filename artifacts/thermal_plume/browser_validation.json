@@ -1,0 +1,34 @@
+{
+  "autoplay": true,
+  "pause": true,
+  "scrub": true,
+  "heating_switches": true,
+  "endpoint": true,
+  "reset": true,
+  "tab_pause": true,
+  "original_mppi_views": true,
+  "lazy_initial_binary": [
+    "http://127.0.0.1:8003/interactive/thermal-plume-data/constant.bin"
+  ],
+  "reduced_motion": true,
+  "narrow_layout": {
+    "inner": 390,
+    "scroll": 390
+  },
+  "errors": [],
+  "checked_at_utc": "2026-09-12T11:17:44.663605+00:00",
+  "python_tests": {
+    "passed": 32,
+    "skipped": 1,
+    "skip_reason": "Optional Metal backend test; no inference backend changes in this revision"
+  },
+  "inspected_figures": [
+    "plume-storyboard.png"
+  ],
+  "source_sha256": {
+    "code/thermal_reactor.py": "6e35fc98599732e5b5f525f951d0b47715e83bb0242bb6dc6b84ffb456259088",
+    "code/thermal_plume.py": "b5a2adbfeb25e030c6f3cddc6c04c8b42843465e272fa6caaa3ee505a0318667",
+    "interactive/thermal-plume-replay.js": "8914c54237075f3e9c32e52d82abd01ad7e421e17393e4cba0cde646e3bacb2c",
+    "interactive/thermal-reactor-mppi.html": "c57ec991838bd1b0c039d5a8fd8a31348573948895474755f529103d63ce3667"
+  }
+}

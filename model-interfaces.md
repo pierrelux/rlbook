@@ -177,11 +177,65 @@ manifest states whether the maps come from completed L4 measurements or a
 pre-measurement engineering surrogate, and every rendered result displays that
 provenance.
 
+#### Batch Size Changes the Service Map
+
+The recorded 64.8 W L4 profile shows why a service map must retain concurrency.
+At a requested 2,040 MHz with a 1,024-token prompt, aggregate decode throughput rises
+from 17.5 generated tokens per second for one request to 105.6 for eight
+concurrent requests. Aggregate prefill throughput changes much less across
+these batch sizes. Pooling the measurements into one rate per clock loses this
+difference and can give a controller the wrong prediction of queue drainage.
+
+:::{figure} _static/inference_serving/batch-calibration.svg
+:label: fig-inference-batch-calibration
+:alt: Prefill and decode throughput at five requested GPU clocks, with separate curves for one, four, and eight concurrent requests. Decode throughput increases strongly with concurrency; prefill throughput changes little.
+
+Batch size changes decode capacity in the recorded 2 September 2026 L4 profile
+at a 64.8 W cap. Each point is the median of five concurrent batches; whiskers show their minimum
+and maximum. Prompt length is fixed within each panel. All five requested clocks
+are retained, including the throughput plateau above 1,125 MHz.
+:::
+
+The plateau also motivates a fixed moderate-clock baseline. A feedback
+controller can lower energy relative to the maximum clock without improving on
+a well-chosen constant clock. The live experiment therefore selects a constant
+clock on development requests before comparing it with the governor and MPC on
+fresh requests. The current live experiment uses a 40 W cap and requires fresh
+service and idle power measurements at that cap. The 64.8 W curves remain
+historical evidence; the replay below retains the original reduced teaching model.
+
+The live controller distinguishes requests awaiting their first output from
+requests already streaming. It estimates remaining output work from development
+request lengths and the tokens received so far, then fits its transition model
+on mixed-serving measurements. These observations preserve useful differences
+in the workload without exposing unfinished requests' final lengths or assuming
+that the resulting state is fully Markov.
+
+{download}`Download the phase, context, and concurrency calibration table (CSV) <artifacts/inference_serving/live_control_development/batch_calibration.csv>`
+
+A separate measured study now compares fixed clocks, GPU-managed graphics clocks,
+and a causal demand/phase heuristic under the configured 40 W setting. Across four
+held-out Azure request blocks, each repeated twice, fixed 660 MHz used 10.31% less
+telemetry-derived GPU energy than GPU-managed clocks; the adaptive heuristic used
+a further 0.77% less than fixed 660 MHz. All paired relative latency checks passed,
+but the candidate failed development qualification and all three methods missed
+the absolute time-to-first-token target on the shorter code block. These are
+exploratory observations, not established latency-qualified adaptive savings.
+The heuristic is separate from the governor and MPC, whose calibration remains
+incomplete. The [measured study](interactive/gpu-adaptive-study.html) includes the
+five-clock screen, request-shape probes, observed clocks, and retained failures.
+
+{download}`Read the completed study and paired results (PDF) <artifacts/inference_serving/live_control_preparation/adaptive-study-v3/final-delivery-v1/article/article.pdf>`
+
 #### Workload and Scheduling Rule
 
 The conservation equations specify how work moves through the server, but an
 experiment also needs a reproducible arrival process and a declared scheduler.
-The workload is a five-minute excerpt from the Azure 2023 code-generation
+The following settings define the recorded simulation. The revised live
+experiment instead measures mixed-serving capacity and freezes its latency
+targets from development requests before confirmation.
+
+The simulated workload is a five-minute excerpt from the Azure 2023 code-generation
 trace, which records request times and input and output token counts
 {cite}`azureLLMTrace2023,patel2024splitwise`. Arrival times are dilated once to
 place maximum-clock utilization near 80 percent. This time dilation preserves
@@ -199,14 +253,14 @@ $$
 The factor $\kappa$ is at least one, so it can leave the trace unchanged or
 slow its arrivals; it never compresses them into a shorter interval.
 
-All controllers receive the same immutable requests after this transformation.
-The experimental time-to-first-token limit is twice the median baseline value
+All simulated controllers receive the same immutable requests after this transformation.
+The simulated time-to-first-token limit is twice the median baseline value
 for a 1,024-token prompt at concurrency one and the highest clock. The
 time-per-output-token limit is 1.5 times the corresponding median. These are
 reference levels for a controlled comparison, not service-level objectives
 claimed for production systems.
 
-| quantity | experiment setting |
+| quantity | recorded simulation setting |
 |---|---|
 | model | Qwen2.5-7B-Instruct, revision `acbd96531cda22292a3ceaa67e984955d3965282` {cite}`qwen25modelcard` |
 | inference engine | vLLM OpenAI server, version 0.28.0 {cite}`vllmDocker028` |

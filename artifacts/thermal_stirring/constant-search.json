@@ -1,0 +1,2333 @@
+{
+  "grid_spacing": 0.25,
+  "candidate_count": 257,
+  "selected_index": 128,
+  "controls": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "runtime_s": 2.5123812910169363,
+  "rows": [
+    {
+      "control": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "objective": 0.4879723787307739,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.75,
+        -0.5,
+        -0.25
+      ],
+      "objective": 1.1354796886444092,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.75,
+        -0.5,
+        0.0
+      ],
+      "objective": 0.849837064743042,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.75,
+        -0.5,
+        0.25
+      ],
+      "objective": 0.6832443475723267,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.75,
+        -0.25,
+        -0.5
+      ],
+      "objective": 1.1254974603652954,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.75,
+        -0.25,
+        -0.25
+      ],
+      "objective": 0.85343337059021,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.75,
+        -0.25,
+        0.0
+      ],
+      "objective": 0.614905595779419,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.75,
+        -0.25,
+        0.25
+      ],
+      "objective": 0.49382922053337097,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.75,
+        -0.25,
+        0.5
+      ],
+      "objective": 0.5522841215133667,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.75,
+        0.0,
+        -0.5
+      ],
+      "objective": 0.8097729682922363,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.75,
+        0.0,
+        -0.25
+      ],
+      "objective": 0.5794392824172974,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.75,
+        0.0,
+        0.0
+      ],
+      "objective": 0.4108750820159912,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.75,
+        0.0,
+        0.25
+      ],
+      "objective": 0.35701537132263184,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.75,
+        0.0,
+        0.5
+      ],
+      "objective": 0.4534945487976074,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.75,
+        0.25,
+        -0.5
+      ],
+      "objective": 0.6146498918533325,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.75,
+        0.25,
+        -0.25
+      ],
+      "objective": 0.4311800003051758,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.75,
+        0.25,
+        0.0
+      ],
+      "objective": 0.33284565806388855,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.75,
+        0.25,
+        0.25
+      ],
+      "objective": 0.3554592430591583,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.75,
+        0.25,
+        0.5
+      ],
+      "objective": 0.4937070310115814,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.75,
+        0.5,
+        -0.25
+      ],
+      "objective": 0.4567428231239319,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.75,
+        0.5,
+        0.0
+      ],
+      "objective": 0.4085163474082947,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.75,
+        0.5,
+        0.25
+      ],
+      "objective": 0.4850512146949768,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        -0.75,
+        -0.25
+      ],
+      "objective": 1.121269702911377,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        -0.75,
+        0.0
+      ],
+      "objective": 0.843518853187561,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        -0.75,
+        0.25
+      ],
+      "objective": 0.674731433391571,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        -0.5,
+        -0.5
+      ],
+      "objective": 1.2004106044769287,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        -0.5,
+        -0.25
+      ],
+      "objective": 0.9294952154159546,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        -0.5,
+        0.0
+      ],
+      "objective": 0.6752054691314697,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        -0.5,
+        0.25
+      ],
+      "objective": 0.5261868238449097,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        -0.5,
+        0.5
+      ],
+      "objective": 0.5542592406272888,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        -0.25,
+        -0.75
+      ],
+      "objective": 1.1068834066390991,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        -0.25,
+        -0.5
+      ],
+      "objective": 0.9008703231811523,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        -0.25,
+        -0.25
+      ],
+      "objective": 0.6569637060165405,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        -0.25,
+        0.0
+      ],
+      "objective": 0.448276162147522,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        -0.25,
+        0.25
+      ],
+      "objective": 0.34672170877456665,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        -0.25,
+        0.5
+      ],
+      "objective": 0.4016554653644562,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        -0.25,
+        0.75
+      ],
+      "objective": 0.5731478929519653,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        0.0,
+        -0.75
+      ],
+      "objective": 0.8118770718574524,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        0.0,
+        -0.5
+      ],
+      "objective": 0.6115454435348511,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        0.0,
+        -0.25
+      ],
+      "objective": 0.40932199358940125,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        0.0,
+        0.0
+      ],
+      "objective": 0.2703961133956909,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        0.0,
+        0.25
+      ],
+      "objective": 0.23484256863594055,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        0.0,
+        0.5
+      ],
+      "objective": 0.32538682222366333,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        0.0,
+        0.75
+      ],
+      "objective": 0.49279987812042236,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        0.25,
+        -0.75
+      ],
+      "objective": 0.6270131468772888,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        0.25,
+        -0.5
+      ],
+      "objective": 0.44311875104904175,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        0.25,
+        -0.25
+      ],
+      "objective": 0.2886947989463806,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        0.25,
+        0.0
+      ],
+      "objective": 0.21637499332427979,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        0.25,
+        0.25
+      ],
+      "objective": 0.24808304011821747,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        0.25,
+        0.5
+      ],
+      "objective": 0.37312746047973633,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        0.25,
+        0.75
+      ],
+      "objective": 0.5383391380310059,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        0.5,
+        -0.5
+      ],
+      "objective": 0.4411129653453827,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        0.5,
+        -0.25
+      ],
+      "objective": 0.3216783404350281,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        0.5,
+        0.0
+      ],
+      "objective": 0.29246312379837036,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        0.5,
+        0.25
+      ],
+      "objective": 0.36854350566864014,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        0.5,
+        0.5
+      ],
+      "objective": 0.5262940526008606,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        0.75,
+        -0.25
+      ],
+      "objective": 0.4234344959259033,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        0.75,
+        0.0
+      ],
+      "objective": 0.4091189503669739,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.5,
+        0.75,
+        0.25
+      ],
+      "objective": 0.509048581123352,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        -0.75,
+        -0.5
+      ],
+      "objective": 1.1109133958816528,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        -0.75,
+        -0.25
+      ],
+      "objective": 0.8530670404434204,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        -0.75,
+        0.0
+      ],
+      "objective": 0.6210411787033081,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        -0.75,
+        0.25
+      ],
+      "objective": 0.4886389374732971,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        -0.75,
+        0.5
+      ],
+      "objective": 0.5161111354827881,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        -0.5,
+        -0.75
+      ],
+      "objective": 1.1023669242858887,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        -0.5,
+        -0.5
+      ],
+      "objective": 0.9055095314979553,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        -0.5,
+        -0.25
+      ],
+      "objective": 0.6635628342628479,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        -0.5,
+        0.0
+      ],
+      "objective": 0.45406797528266907,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        -0.5,
+        0.25
+      ],
+      "objective": 0.3443988561630249,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        -0.5,
+        0.5
+      ],
+      "objective": 0.3835052251815796,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        -0.5,
+        0.75
+      ],
+      "objective": 0.5393790006637573,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        -0.25,
+        -0.75
+      ],
+      "objective": 0.8257173895835876,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        -0.25,
+        -0.5
+      ],
+      "objective": 0.6264868974685669,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        -0.25,
+        -0.25
+      ],
+      "objective": 0.419355571269989,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        -0.25,
+        0.0
+      ],
+      "objective": 0.2652139365673065,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        -0.25,
+        0.25
+      ],
+      "objective": 0.20684269070625305,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        -0.25,
+        0.5
+      ],
+      "objective": 0.2722184956073761,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        -0.25,
+        0.75
+      ],
+      "objective": 0.42427122592926025,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        0.0,
+        -0.75
+      ],
+      "objective": 0.5783759355545044,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        0.0,
+        -0.5
+      ],
+      "objective": 0.3902507424354553,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        0.0,
+        -0.25
+      ],
+      "objective": 0.2351708710193634,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        0.0,
+        0.0
+      ],
+      "objective": 0.1492074429988861,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        0.0,
+        0.25
+      ],
+      "objective": 0.14820215106010437,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        0.0,
+        0.5
+      ],
+      "objective": 0.24028700590133667,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        0.0,
+        0.75
+      ],
+      "objective": 0.38797101378440857,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        0.25,
+        -0.75
+      ],
+      "objective": 0.44548749923706055,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        0.25,
+        -0.5
+      ],
+      "objective": 0.27870163321495056,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        0.25,
+        -0.25
+      ],
+      "objective": 0.17086514830589294,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        0.25,
+        0.0
+      ],
+      "objective": 0.1409452110528946,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        0.25,
+        0.25
+      ],
+      "objective": 0.19200773537158966,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        0.25,
+        0.5
+      ],
+      "objective": 0.3097766637802124,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        0.25,
+        0.75
+      ],
+      "objective": 0.45715391635894775,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        0.5,
+        -0.75
+      ],
+      "objective": 0.454447865486145,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        0.5,
+        -0.5
+      ],
+      "objective": 0.3049711585044861,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        0.5,
+        -0.25
+      ],
+      "objective": 0.22507624328136444,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        0.5,
+        0.0
+      ],
+      "objective": 0.22720976173877716,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        0.5,
+        0.25
+      ],
+      "objective": 0.312356173992157,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        0.5,
+        0.5
+      ],
+      "objective": 0.45850497484207153,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        0.5,
+        0.75
+      ],
+      "objective": 0.6205930709838867,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        0.75,
+        -0.5
+      ],
+      "objective": 0.3944467306137085,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        0.75,
+        -0.25
+      ],
+      "objective": 0.320834755897522,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        0.75,
+        0.0
+      ],
+      "objective": 0.3350565433502197,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        0.75,
+        0.25
+      ],
+      "objective": 0.4422394633293152,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        -0.25,
+        0.75,
+        0.5
+      ],
+      "objective": 0.6230378746986389,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "objective": 0.5080779790878296,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        -0.75,
+        -0.5
+      ],
+      "objective": 0.8352444171905518,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        -0.75,
+        -0.25
+      ],
+      "objective": 0.6092649698257446,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        -0.75,
+        0.0
+      ],
+      "objective": 0.4305686950683594,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        -0.75,
+        0.25
+      ],
+      "objective": 0.3498334288597107,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        -0.75,
+        0.5
+      ],
+      "objective": 0.39844048023223877,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        -0.5,
+        -0.75
+      ],
+      "objective": 0.83161860704422,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        -0.5,
+        -0.5
+      ],
+      "objective": 0.6424546241760254,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        -0.5,
+        -0.25
+      ],
+      "objective": 0.43351900577545166,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        -0.5,
+        0.0
+      ],
+      "objective": 0.28220441937446594,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        -0.5,
+        0.25
+      ],
+      "objective": 0.22740809619426727,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        -0.5,
+        0.5
+      ],
+      "objective": 0.287972629070282,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        -0.5,
+        0.75
+      ],
+      "objective": 0.4283919334411621,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        -0.25,
+        -0.75
+      ],
+      "objective": 0.5945034027099609,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        -0.25,
+        -0.5
+      ],
+      "objective": 0.4065173268318176,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        -0.25,
+        -0.25
+      ],
+      "objective": 0.24533042311668396,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        -0.25,
+        0.0
+      ],
+      "objective": 0.15237271785736084,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        -0.25,
+        0.25
+      ],
+      "objective": 0.14271113276481628,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        -0.25,
+        0.5
+      ],
+      "objective": 0.22246061265468597,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        -0.25,
+        0.75
+      ],
+      "objective": 0.35901498794555664,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "objective": 0.5351610779762268,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        0.0,
+        -0.75
+      ],
+      "objective": 0.4145253300666809,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        0.0,
+        -0.5
+      ],
+      "objective": 0.24542832374572754,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        0.0,
+        -0.25
+      ],
+      "objective": 0.13795194029808044,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "objective": 0.10279843211174011,
+      "coarse_feasible": true,
+      "fine_validation": {
+        "maximum_temperature_K": 1044.5938720703125,
+        "minimum_outlet_conversion": 0.9986490607261658,
+        "duration_s": 200.0,
+        "frame_dt_s": 0.25
+      }
+    },
+    {
+      "control": [
+        0.0,
+        0.0,
+        0.25
+      ],
+      "objective": 0.13729965686798096,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        0.0,
+        0.5
+      ],
+      "objective": 0.23537594079971313,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        0.0,
+        0.75
+      ],
+      "objective": 0.3694435954093933,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "objective": 0.4800022840499878,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        0.25,
+        -0.75
+      ],
+      "objective": 0.3487173914909363,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        0.25,
+        -0.5
+      ],
+      "objective": 0.2020971029996872,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        0.25,
+        -0.25
+      ],
+      "objective": 0.13425278663635254,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        0.25,
+        0.0
+      ],
+      "objective": 0.1424134075641632,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        0.25,
+        0.25
+      ],
+      "objective": 0.2165152132511139,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        0.25,
+        0.5
+      ],
+      "objective": 0.33551299571990967,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        0.25,
+        0.75
+      ],
+      "objective": 0.4733610153198242,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        0.5,
+        -0.75
+      ],
+      "objective": 0.39434805512428284,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        0.5,
+        -0.5
+      ],
+      "objective": 0.2600845396518707,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        0.5,
+        -0.25
+      ],
+      "objective": 0.21162977814674377,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        0.5,
+        0.0
+      ],
+      "objective": 0.2439892292022705,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        0.5,
+        0.25
+      ],
+      "objective": 0.34701764583587646,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        0.5,
+        0.5
+      ],
+      "objective": 0.4944760799407959,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        0.5,
+        0.75
+      ],
+      "objective": 0.6492595672607422,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        0.75,
+        -0.5
+      ],
+      "objective": 0.3521295189857483,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        0.75,
+        -0.25
+      ],
+      "objective": 0.3077336549758911,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        0.75,
+        0.0
+      ],
+      "objective": 0.3514959514141083,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        0.75,
+        0.25
+      ],
+      "objective": 0.47706833481788635,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        0.75,
+        0.5
+      ],
+      "objective": 0.657018780708313,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "objective": 0.4180269241333008,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        -0.75,
+        -0.5
+      ],
+      "objective": 0.6900182962417603,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        -0.75,
+        -0.25
+      ],
+      "objective": 0.4857933819293976,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        -0.75,
+        0.0
+      ],
+      "objective": 0.3516497015953064,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        -0.75,
+        0.25
+      ],
+      "objective": 0.3205108344554901,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        -0.75,
+        0.5
+      ],
+      "objective": 0.3940954804420471,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        -0.5,
+        -0.75
+      ],
+      "objective": 0.692875325679779,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        -0.5,
+        -0.5
+      ],
+      "objective": 0.5079754590988159,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        -0.5,
+        -0.25
+      ],
+      "objective": 0.32675889134407043,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        -0.5,
+        0.0
+      ],
+      "objective": 0.2238655537366867,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        -0.5,
+        0.25
+      ],
+      "objective": 0.21806013584136963,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        -0.5,
+        0.5
+      ],
+      "objective": 0.30092763900756836,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        -0.5,
+        0.75
+      ],
+      "objective": 0.43149977922439575,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        -0.25,
+        -0.75
+      ],
+      "objective": 0.4911585748195648,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        -0.25,
+        -0.5
+      ],
+      "objective": 0.31412386894226074,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        -0.25,
+        -0.25
+      ],
+      "objective": 0.18740007281303406,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        -0.25,
+        0.0
+      ],
+      "objective": 0.13896185159683228,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        -0.25,
+        0.25
+      ],
+      "objective": 0.1695253700017929,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        -0.25,
+        0.5
+      ],
+      "objective": 0.2656962275505066,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        -0.25,
+        0.75
+      ],
+      "objective": 0.39526060223579407,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        0.0,
+        -0.75
+      ],
+      "objective": 0.37170231342315674,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        0.0,
+        -0.5
+      ],
+      "objective": 0.2162724733352661,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        0.0,
+        -0.25
+      ],
+      "objective": 0.13849957287311554,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        0.0,
+        0.0
+      ],
+      "objective": 0.13863766193389893,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        0.0,
+        0.25
+      ],
+      "objective": 0.20438307523727417,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        0.0,
+        0.5
+      ],
+      "objective": 0.3159199357032776,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        0.0,
+        0.75
+      ],
+      "objective": 0.4478488564491272,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        0.25,
+        -0.75
+      ],
+      "objective": 0.3672640323638916,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        0.25,
+        -0.5
+      ],
+      "objective": 0.23015332221984863,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        0.25,
+        -0.25
+      ],
+      "objective": 0.18341314792633057,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        0.25,
+        0.0
+      ],
+      "objective": 0.21915185451507568,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        0.25,
+        0.25
+      ],
+      "objective": 0.31980445981025696,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        0.25,
+        0.5
+      ],
+      "objective": 0.4532219171524048,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        0.25,
+        0.75
+      ],
+      "objective": 0.59471595287323,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        0.5,
+        -0.75
+      ],
+      "objective": 0.4461914300918579,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        0.5,
+        -0.5
+      ],
+      "objective": 0.31521257758140564,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        0.5,
+        -0.25
+      ],
+      "objective": 0.2829369306564331,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        0.5,
+        0.0
+      ],
+      "objective": 0.34128904342651367,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        0.5,
+        0.25
+      ],
+      "objective": 0.472348690032959,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        0.5,
+        0.5
+      ],
+      "objective": 0.6399186253547668,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        0.5,
+        0.75
+      ],
+      "objective": 0.801228404045105,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        0.75,
+        -0.5
+      ],
+      "objective": 0.41666048765182495,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        0.75,
+        -0.25
+      ],
+      "objective": 0.3880155682563782,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        0.75,
+        0.0
+      ],
+      "objective": 0.459449827671051,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        0.75,
+        0.25
+      ],
+      "objective": 0.6158974170684814,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.25,
+        0.75,
+        0.5
+      ],
+      "objective": 0.8156862258911133,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        -0.75,
+        -0.25
+      ],
+      "objective": 0.5199570655822754,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        -0.75,
+        0.0
+      ],
+      "objective": 0.4043341279029846,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        -0.75,
+        0.25
+      ],
+      "objective": 0.40102240443229675,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        -0.5,
+        -0.5
+      ],
+      "objective": 0.5383344888687134,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        -0.5,
+        -0.25
+      ],
+      "objective": 0.3642469048500061,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        -0.5,
+        0.0
+      ],
+      "objective": 0.28103065490722656,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        -0.5,
+        0.25
+      ],
+      "objective": 0.30127668380737305,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        -0.5,
+        0.5
+      ],
+      "objective": 0.401952862739563,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        -0.25,
+        -0.75
+      ],
+      "objective": 0.5373260974884033,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        -0.25,
+        -0.5
+      ],
+      "objective": 0.3592188060283661,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        -0.25,
+        -0.25
+      ],
+      "objective": 0.2421562671661377,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        -0.25,
+        0.0
+      ],
+      "objective": 0.21025089919567108,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        -0.25,
+        0.25
+      ],
+      "objective": 0.2633349895477295,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        -0.25,
+        0.5
+      ],
+      "objective": 0.37774819135665894,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        -0.25,
+        0.75
+      ],
+      "objective": 0.5146499276161194,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        0.0,
+        -0.75
+      ],
+      "objective": 0.44557541608810425,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        0.0,
+        -0.5
+      ],
+      "objective": 0.2870689630508423,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        0.0,
+        -0.25
+      ],
+      "objective": 0.2151140570640564,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        0.0,
+        0.0
+      ],
+      "objective": 0.23054304718971252,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        0.0,
+        0.25
+      ],
+      "objective": 0.3188166618347168,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        0.0,
+        0.5
+      ],
+      "objective": 0.4523186683654785,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        0.0,
+        0.75
+      ],
+      "objective": 0.5974345207214355,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        0.25,
+        -0.75
+      ],
+      "objective": 0.4743054509162903,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        0.25,
+        -0.5
+      ],
+      "objective": 0.32908591628074646,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        0.25,
+        -0.25
+      ],
+      "objective": 0.2847353518009186,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        0.25,
+        0.0
+      ],
+      "objective": 0.33596932888031006,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        0.25,
+        0.25
+      ],
+      "objective": 0.4640456438064575,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        0.25,
+        0.5
+      ],
+      "objective": 0.6266320943832397,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        0.25,
+        0.75
+      ],
+      "objective": 0.7861153483390808,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        0.5,
+        -0.5
+      ],
+      "objective": 0.43674179911613464,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        0.5,
+        -0.25
+      ],
+      "objective": 0.4058194160461426,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        0.5,
+        0.0
+      ],
+      "objective": 0.4827113747596741,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        0.5,
+        0.25
+      ],
+      "objective": 0.6482677459716797,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "objective": 0.8531585335731506,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        0.75,
+        -0.25
+      ],
+      "objective": 0.5268799662590027,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        0.75,
+        0.0
+      ],
+      "objective": 0.617866039276123,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.5,
+        0.75,
+        0.25
+      ],
+      "objective": 0.8112319707870483,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.75,
+        -0.5,
+        -0.25
+      ],
+      "objective": 0.47289419174194336,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.75,
+        -0.5,
+        0.0
+      ],
+      "objective": 0.3830528259277344,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.75,
+        -0.5,
+        0.25
+      ],
+      "objective": 0.4121611416339874,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.75,
+        -0.25,
+        -0.5
+      ],
+      "objective": 0.4710736572742462,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.75,
+        -0.25,
+        -0.25
+      ],
+      "objective": 0.34105241298675537,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.75,
+        -0.25,
+        0.0
+      ],
+      "objective": 0.30581212043762207,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.75,
+        -0.25,
+        0.25
+      ],
+      "objective": 0.3711358606815338,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.75,
+        -0.25,
+        0.5
+      ],
+      "objective": 0.5120699405670166,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.75,
+        0.0,
+        -0.5
+      ],
+      "objective": 0.3957076072692871,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.75,
+        0.0,
+        -0.25
+      ],
+      "objective": 0.3128807246685028,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.75,
+        0.0,
+        0.0
+      ],
+      "objective": 0.3302459716796875,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.75,
+        0.0,
+        0.25
+      ],
+      "objective": 0.43696144223213196,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.75,
+        0.0,
+        0.5
+      ],
+      "objective": 0.6016073226928711,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.75,
+        0.25,
+        -0.5
+      ],
+      "objective": 0.4507301151752472,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.75,
+        0.25,
+        -0.25
+      ],
+      "objective": 0.39673876762390137,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.75,
+        0.25,
+        0.0
+      ],
+      "objective": 0.4544757306575775,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.75,
+        0.25,
+        0.25
+      ],
+      "objective": 0.6086020469665527,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.75,
+        0.25,
+        0.5
+      ],
+      "objective": 0.8072025775909424,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.75,
+        0.5,
+        -0.25
+      ],
+      "objective": 0.5410246253013611,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.75,
+        0.5,
+        0.0
+      ],
+      "objective": 0.6260002255439758,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        0.75,
+        0.5,
+        0.25
+      ],
+      "objective": 0.8213807344436646,
+      "coarse_feasible": true
+    },
+    {
+      "control": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "objective": 0.3960808515548706,
+      "coarse_feasible": true
+    }
+  ],
+  "selection_note": "Lowest full-record mean stage cost plus terminal mixing error among finely validated grid vectors; not a continuous global optimum."
+}

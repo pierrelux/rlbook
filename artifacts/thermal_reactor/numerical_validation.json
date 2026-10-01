@@ -1,0 +1,22 @@
+{
+  "duration_s": 40,
+  "base_shape": [
+    32,
+    64
+  ],
+  "time_refinement": {
+    "temperature_rmse_K": 0.002918096026405692,
+    "outlet_conversion_difference": 1.12876296043396e-06,
+    "peak_temperature_difference_K": 0.00048828125
+  },
+  "space_refinement": {
+    "temperature_rmse_K": 0.8155171871185303,
+    "outlet_conversion_difference": 0.0005964227020740509,
+    "peak_temperature_difference_K": 0.58837890625
+  },
+  "fine_shape": [
+    64,
+    128
+  ],
+  "note": "Same initial field and controls; spatial refinement is a sensitivity check, not an exact solution."
+}

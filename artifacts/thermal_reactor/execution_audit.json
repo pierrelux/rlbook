@@ -1,0 +1,521 @@
+{
+  "runs": [
+    {
+      "trial": 0,
+      "controller": "constant",
+      "prediction_temperature_rmse_K": 0.7422873377799988,
+      "prediction_outlet_conversion_mae": 0.0001602608390385285,
+      "prediction_peak_underprediction_K": 0.4642333984375,
+      "fine_maximum_temperature_K": 1057.088134765625,
+      "fine_minimum_outlet_conversion": 0.9685392379760742,
+      "fine_quality_violation_duration_s": 0.0,
+      "fine_temperature_violation_duration_s": 0.0,
+      "fine_temperature_residual_K": -12.911865234375,
+      "fine_conversion_residual": -0.018539249897003174,
+      "fine_sampling_interval_s": 0.1,
+      "realized_disturbance_sha256": "2ebe25faeb1a70dc500a52df84b06a7712410cca0264e5186b3268a46f8c6fb5"
+    },
+    {
+      "trial": 0,
+      "controller": "mean",
+      "prediction_temperature_rmse_K": 0.7394946813583374,
+      "prediction_outlet_conversion_mae": 0.00024041510187089443,
+      "prediction_peak_underprediction_K": 0.4688720703125,
+      "fine_maximum_temperature_K": 1049.2999267578125,
+      "fine_minimum_outlet_conversion": 0.9632853269577026,
+      "fine_quality_violation_duration_s": 0.0,
+      "fine_temperature_violation_duration_s": 0.0,
+      "fine_temperature_residual_K": -20.7000732421875,
+      "fine_conversion_residual": -0.013285338878631592,
+      "fine_sampling_interval_s": 0.1,
+      "realized_disturbance_sha256": "2ebe25faeb1a70dc500a52df84b06a7712410cca0264e5186b3268a46f8c6fb5"
+    },
+    {
+      "trial": 0,
+      "controller": "stochastic",
+      "prediction_temperature_rmse_K": 0.7381306290626526,
+      "prediction_outlet_conversion_mae": 0.00023049666197039187,
+      "prediction_peak_underprediction_K": 0.44970703125,
+      "fine_maximum_temperature_K": 1049.31201171875,
+      "fine_minimum_outlet_conversion": 0.9651580452919006,
+      "fine_quality_violation_duration_s": 0.0,
+      "fine_temperature_violation_duration_s": 0.0,
+      "fine_temperature_residual_K": -20.68798828125,
+      "fine_conversion_residual": -0.01515805721282959,
+      "fine_sampling_interval_s": 0.1,
+      "realized_disturbance_sha256": "2ebe25faeb1a70dc500a52df84b06a7712410cca0264e5186b3268a46f8c6fb5"
+    },
+    {
+      "trial": 1,
+      "controller": "constant",
+      "prediction_temperature_rmse_K": 0.6516602635383606,
+      "prediction_outlet_conversion_mae": 0.00036154905683360994,
+      "prediction_peak_underprediction_K": 0.5118408203125,
+      "fine_maximum_temperature_K": 1050.138427734375,
+      "fine_minimum_outlet_conversion": 0.9507800340652466,
+      "fine_quality_violation_duration_s": 0.0,
+      "fine_temperature_violation_duration_s": 0.0,
+      "fine_temperature_residual_K": -19.861572265625,
+      "fine_conversion_residual": -0.0007800459861755371,
+      "fine_sampling_interval_s": 0.1,
+      "realized_disturbance_sha256": "6ee0612c095a94c297e4974e0a1864c03cc07f0405417748394ff1b5ccb1bd3a"
+    },
+    {
+      "trial": 1,
+      "controller": "mean",
+      "prediction_temperature_rmse_K": 0.6477993130683899,
+      "prediction_outlet_conversion_mae": 0.0003827736363746226,
+      "prediction_peak_underprediction_K": 0.281005859375,
+      "fine_maximum_temperature_K": 1042.4241943359375,
+      "fine_minimum_outlet_conversion": 0.9528655409812927,
+      "fine_quality_violation_duration_s": 0.0,
+      "fine_temperature_violation_duration_s": 0.0,
+      "fine_temperature_residual_K": -27.5758056640625,
+      "fine_conversion_residual": -0.0028655529022216797,
+      "fine_sampling_interval_s": 0.1,
+      "realized_disturbance_sha256": "6ee0612c095a94c297e4974e0a1864c03cc07f0405417748394ff1b5ccb1bd3a"
+    },
+    {
+      "trial": 1,
+      "controller": "stochastic",
+      "prediction_temperature_rmse_K": 0.6499501466751099,
+      "prediction_outlet_conversion_mae": 0.000396953517338261,
+      "prediction_peak_underprediction_K": 0.3502197265625,
+      "fine_maximum_temperature_K": 1044.982666015625,
+      "fine_minimum_outlet_conversion": 0.9514734148979187,
+      "fine_quality_violation_duration_s": 0.0,
+      "fine_temperature_violation_duration_s": 0.0,
+      "fine_temperature_residual_K": -25.017333984375,
+      "fine_conversion_residual": -0.0014734268188476562,
+      "fine_sampling_interval_s": 0.1,
+      "realized_disturbance_sha256": "6ee0612c095a94c297e4974e0a1864c03cc07f0405417748394ff1b5ccb1bd3a"
+    },
+    {
+      "trial": 2,
+      "controller": "constant",
+      "prediction_temperature_rmse_K": 0.6783959865570068,
+      "prediction_outlet_conversion_mae": 0.00026415084721520543,
+      "prediction_peak_underprediction_K": 0.7288818359375,
+      "fine_maximum_temperature_K": 1052.05908203125,
+      "fine_minimum_outlet_conversion": 0.9619492292404175,
+      "fine_quality_violation_duration_s": 0.0,
+      "fine_temperature_violation_duration_s": 0.0,
+      "fine_temperature_residual_K": -17.94091796875,
+      "fine_conversion_residual": -0.011949241161346436,
+      "fine_sampling_interval_s": 0.1,
+      "realized_disturbance_sha256": "a8749f7465f0d91627d3eceee69298f2c8146325d2aff04818447fc427767d09"
+    },
+    {
+      "trial": 2,
+      "controller": "mean",
+      "prediction_temperature_rmse_K": 0.6750467419624329,
+      "prediction_outlet_conversion_mae": 0.00031214026967063546,
+      "prediction_peak_underprediction_K": 0.5928955078125,
+      "fine_maximum_temperature_K": 1047.003173828125,
+      "fine_minimum_outlet_conversion": 0.9603688716888428,
+      "fine_quality_violation_duration_s": 0.0,
+      "fine_temperature_violation_duration_s": 0.0,
+      "fine_temperature_residual_K": -22.996826171875,
+      "fine_conversion_residual": -0.010368883609771729,
+      "fine_sampling_interval_s": 0.1,
+      "realized_disturbance_sha256": "a8749f7465f0d91627d3eceee69298f2c8146325d2aff04818447fc427767d09"
+    },
+    {
+      "trial": 2,
+      "controller": "stochastic",
+      "prediction_temperature_rmse_K": 0.6751150488853455,
+      "prediction_outlet_conversion_mae": 0.0003102442715317011,
+      "prediction_peak_underprediction_K": 0.6146240234375,
+      "fine_maximum_temperature_K": 1047.0291748046875,
+      "fine_minimum_outlet_conversion": 0.9602459073066711,
+      "fine_quality_violation_duration_s": 0.0,
+      "fine_temperature_violation_duration_s": 0.0,
+      "fine_temperature_residual_K": -22.9708251953125,
+      "fine_conversion_residual": -0.010245919227600098,
+      "fine_sampling_interval_s": 0.1,
+      "realized_disturbance_sha256": "a8749f7465f0d91627d3eceee69298f2c8146325d2aff04818447fc427767d09"
+    },
+    {
+      "trial": 3,
+      "controller": "constant",
+      "prediction_temperature_rmse_K": 0.6404349207878113,
+      "prediction_outlet_conversion_mae": 0.0002684772480279207,
+      "prediction_peak_underprediction_K": 0.349853515625,
+      "fine_maximum_temperature_K": 1052.4820556640625,
+      "fine_minimum_outlet_conversion": 0.9565809965133667,
+      "fine_quality_violation_duration_s": 0.0,
+      "fine_temperature_violation_duration_s": 0.0,
+      "fine_temperature_residual_K": -17.5179443359375,
+      "fine_conversion_residual": -0.006581008434295654,
+      "fine_sampling_interval_s": 0.1,
+      "realized_disturbance_sha256": "7359df5e75af06eb82fec74588b4a8dfa7d2be637183c5ddaeaf28ad815e4b55"
+    },
+    {
+      "trial": 3,
+      "controller": "mean",
+      "prediction_temperature_rmse_K": 0.6391733884811401,
+      "prediction_outlet_conversion_mae": 0.0002933954237960279,
+      "prediction_peak_underprediction_K": 0.3394775390625,
+      "fine_maximum_temperature_K": 1048.703125,
+      "fine_minimum_outlet_conversion": 0.9577106237411499,
+      "fine_quality_violation_duration_s": 0.0,
+      "fine_temperature_violation_duration_s": 0.0,
+      "fine_temperature_residual_K": -21.296875,
+      "fine_conversion_residual": -0.007710635662078857,
+      "fine_sampling_interval_s": 0.1,
+      "realized_disturbance_sha256": "7359df5e75af06eb82fec74588b4a8dfa7d2be637183c5ddaeaf28ad815e4b55"
+    },
+    {
+      "trial": 3,
+      "controller": "stochastic",
+      "prediction_temperature_rmse_K": 0.6386361122131348,
+      "prediction_outlet_conversion_mae": 0.00030019934638403356,
+      "prediction_peak_underprediction_K": 0.433837890625,
+      "fine_maximum_temperature_K": 1050.088623046875,
+      "fine_minimum_outlet_conversion": 0.9574829339981079,
+      "fine_quality_violation_duration_s": 0.0,
+      "fine_temperature_violation_duration_s": 0.0,
+      "fine_temperature_residual_K": -19.911376953125,
+      "fine_conversion_residual": -0.007482945919036865,
+      "fine_sampling_interval_s": 0.1,
+      "realized_disturbance_sha256": "7359df5e75af06eb82fec74588b4a8dfa7d2be637183c5ddaeaf28ad815e4b55"
+    },
+    {
+      "trial": 4,
+      "controller": "constant",
+      "prediction_temperature_rmse_K": 0.6255093216896057,
+      "prediction_outlet_conversion_mae": 0.0003325268626213074,
+      "prediction_peak_underprediction_K": 0.568603515625,
+      "fine_maximum_temperature_K": 1057.1693115234375,
+      "fine_minimum_outlet_conversion": 0.9577275514602661,
+      "fine_quality_violation_duration_s": 0.0,
+      "fine_temperature_violation_duration_s": 0.0,
+      "fine_temperature_residual_K": -12.8306884765625,
+      "fine_conversion_residual": -0.007727563381195068,
+      "fine_sampling_interval_s": 0.1,
+      "realized_disturbance_sha256": "4fcc09073924d7c7d3c3a6ea6aa79a3e01be314bf8e2a7631588ef185ed550c7"
+    },
+    {
+      "trial": 4,
+      "controller": "mean",
+      "prediction_temperature_rmse_K": 0.6218013763427734,
+      "prediction_outlet_conversion_mae": 0.00036883814027532935,
+      "prediction_peak_underprediction_K": 0.4627685546875,
+      "fine_maximum_temperature_K": 1050.2574462890625,
+      "fine_minimum_outlet_conversion": 0.9584245085716248,
+      "fine_quality_violation_duration_s": 0.0,
+      "fine_temperature_violation_duration_s": 0.0,
+      "fine_temperature_residual_K": -19.7425537109375,
+      "fine_conversion_residual": -0.008424520492553711,
+      "fine_sampling_interval_s": 0.1,
+      "realized_disturbance_sha256": "4fcc09073924d7c7d3c3a6ea6aa79a3e01be314bf8e2a7631588ef185ed550c7"
+    },
+    {
+      "trial": 4,
+      "controller": "stochastic",
+      "prediction_temperature_rmse_K": 0.6227566599845886,
+      "prediction_outlet_conversion_mae": 0.000375933013856411,
+      "prediction_peak_underprediction_K": 0.483154296875,
+      "fine_maximum_temperature_K": 1050.29248046875,
+      "fine_minimum_outlet_conversion": 0.9570701718330383,
+      "fine_quality_violation_duration_s": 0.0,
+      "fine_temperature_violation_duration_s": 0.0,
+      "fine_temperature_residual_K": -19.70751953125,
+      "fine_conversion_residual": -0.007070183753967285,
+      "fine_sampling_interval_s": 0.1,
+      "realized_disturbance_sha256": "4fcc09073924d7c7d3c3a6ea6aa79a3e01be314bf8e2a7631588ef185ed550c7"
+    },
+    {
+      "trial": 5,
+      "controller": "constant",
+      "prediction_temperature_rmse_K": 0.6906277537345886,
+      "prediction_outlet_conversion_mae": 0.00022101812646724284,
+      "prediction_peak_underprediction_K": 0.60205078125,
+      "fine_maximum_temperature_K": 1045.8173828125,
+      "fine_minimum_outlet_conversion": 0.9667612910270691,
+      "fine_quality_violation_duration_s": 0.0,
+      "fine_temperature_violation_duration_s": 0.0,
+      "fine_temperature_residual_K": -24.1826171875,
+      "fine_conversion_residual": -0.016761302947998047,
+      "fine_sampling_interval_s": 0.1,
+      "realized_disturbance_sha256": "9d761a75db3b3a72a7440e3de6c186b1e1501dd09a13521868040818cdc98ad7"
+    },
+    {
+      "trial": 5,
+      "controller": "mean",
+      "prediction_temperature_rmse_K": 0.6870754361152649,
+      "prediction_outlet_conversion_mae": 0.00028873077826574445,
+      "prediction_peak_underprediction_K": 0.5804443359375,
+      "fine_maximum_temperature_K": 1041.561767578125,
+      "fine_minimum_outlet_conversion": 0.9623364210128784,
+      "fine_quality_violation_duration_s": 0.0,
+      "fine_temperature_violation_duration_s": 0.0,
+      "fine_temperature_residual_K": -28.438232421875,
+      "fine_conversion_residual": -0.012336432933807373,
+      "fine_sampling_interval_s": 0.1,
+      "realized_disturbance_sha256": "9d761a75db3b3a72a7440e3de6c186b1e1501dd09a13521868040818cdc98ad7"
+    },
+    {
+      "trial": 5,
+      "controller": "stochastic",
+      "prediction_temperature_rmse_K": 0.6872164011001587,
+      "prediction_outlet_conversion_mae": 0.00029267219360917807,
+      "prediction_peak_underprediction_K": 0.5985107421875,
+      "fine_maximum_temperature_K": 1043.238037109375,
+      "fine_minimum_outlet_conversion": 0.9634993672370911,
+      "fine_quality_violation_duration_s": 0.0,
+      "fine_temperature_violation_duration_s": 0.0,
+      "fine_temperature_residual_K": -26.761962890625,
+      "fine_conversion_residual": -0.01349937915802002,
+      "fine_sampling_interval_s": 0.1,
+      "realized_disturbance_sha256": "9d761a75db3b3a72a7440e3de6c186b1e1501dd09a13521868040818cdc98ad7"
+    },
+    {
+      "trial": 6,
+      "controller": "constant",
+      "prediction_temperature_rmse_K": 0.6781979203224182,
+      "prediction_outlet_conversion_mae": 0.000263414578512311,
+      "prediction_peak_underprediction_K": 0.3416748046875,
+      "fine_maximum_temperature_K": 1059.494873046875,
+      "fine_minimum_outlet_conversion": 0.9702973365783691,
+      "fine_quality_violation_duration_s": 0.0,
+      "fine_temperature_violation_duration_s": 0.0,
+      "fine_temperature_residual_K": -10.505126953125,
+      "fine_conversion_residual": -0.020297348499298096,
+      "fine_sampling_interval_s": 0.1,
+      "realized_disturbance_sha256": "51db170d2f6475d0b374e2fbafd46e63e9f9f09c54cfdd863e81a06a30777005"
+    },
+    {
+      "trial": 6,
+      "controller": "mean",
+      "prediction_temperature_rmse_K": 0.6737918257713318,
+      "prediction_outlet_conversion_mae": 0.00027826527366414666,
+      "prediction_peak_underprediction_K": 0.2540283203125,
+      "fine_maximum_temperature_K": 1051.900390625,
+      "fine_minimum_outlet_conversion": 0.9661372303962708,
+      "fine_quality_violation_duration_s": 0.0,
+      "fine_temperature_violation_duration_s": 0.0,
+      "fine_temperature_residual_K": -18.099609375,
+      "fine_conversion_residual": -0.016137242317199707,
+      "fine_sampling_interval_s": 0.1,
+      "realized_disturbance_sha256": "51db170d2f6475d0b374e2fbafd46e63e9f9f09c54cfdd863e81a06a30777005"
+    },
+    {
+      "trial": 6,
+      "controller": "stochastic",
+      "prediction_temperature_rmse_K": 0.6746829748153687,
+      "prediction_outlet_conversion_mae": 0.0002822395763359964,
+      "prediction_peak_underprediction_K": 0.4443359375,
+      "fine_maximum_temperature_K": 1052.4364013671875,
+      "fine_minimum_outlet_conversion": 0.96558678150177,
+      "fine_quality_violation_duration_s": 0.0,
+      "fine_temperature_violation_duration_s": 0.0,
+      "fine_temperature_residual_K": -17.5635986328125,
+      "fine_conversion_residual": -0.015586793422698975,
+      "fine_sampling_interval_s": 0.1,
+      "realized_disturbance_sha256": "51db170d2f6475d0b374e2fbafd46e63e9f9f09c54cfdd863e81a06a30777005"
+    },
+    {
+      "trial": 7,
+      "controller": "constant",
+      "prediction_temperature_rmse_K": 0.6657691597938538,
+      "prediction_outlet_conversion_mae": 0.00020841220975853503,
+      "prediction_peak_underprediction_K": 0.2603759765625,
+      "fine_maximum_temperature_K": 1050.371337890625,
+      "fine_minimum_outlet_conversion": 0.9683181047439575,
+      "fine_quality_violation_duration_s": 0.0,
+      "fine_temperature_violation_duration_s": 0.0,
+      "fine_temperature_residual_K": -19.628662109375,
+      "fine_conversion_residual": -0.018318116664886475,
+      "fine_sampling_interval_s": 0.1,
+      "realized_disturbance_sha256": "eafcf8891d2bc0b509f940ad8bd06761f3b9c50a28d80e9535a413f437b7ef4e"
+    },
+    {
+      "trial": 7,
+      "controller": "mean",
+      "prediction_temperature_rmse_K": 0.6607779860496521,
+      "prediction_outlet_conversion_mae": 0.0002642083854880184,
+      "prediction_peak_underprediction_K": 0.283935546875,
+      "fine_maximum_temperature_K": 1044.259521484375,
+      "fine_minimum_outlet_conversion": 0.9651737809181213,
+      "fine_quality_violation_duration_s": 0.0,
+      "fine_temperature_violation_duration_s": 0.0,
+      "fine_temperature_residual_K": -25.740478515625,
+      "fine_conversion_residual": -0.015173792839050293,
+      "fine_sampling_interval_s": 0.1,
+      "realized_disturbance_sha256": "eafcf8891d2bc0b509f940ad8bd06761f3b9c50a28d80e9535a413f437b7ef4e"
+    },
+    {
+      "trial": 7,
+      "controller": "stochastic",
+      "prediction_temperature_rmse_K": 0.6610173583030701,
+      "prediction_outlet_conversion_mae": 0.00028151122387498617,
+      "prediction_peak_underprediction_K": 0.2802734375,
+      "fine_maximum_temperature_K": 1044.015625,
+      "fine_minimum_outlet_conversion": 0.9603757858276367,
+      "fine_quality_violation_duration_s": 0.0,
+      "fine_temperature_violation_duration_s": 0.0,
+      "fine_temperature_residual_K": -25.984375,
+      "fine_conversion_residual": -0.010375797748565674,
+      "fine_sampling_interval_s": 0.1,
+      "realized_disturbance_sha256": "eafcf8891d2bc0b509f940ad8bd06761f3b9c50a28d80e9535a413f437b7ef4e"
+    }
+  ],
+  "paired_disturbances_verified": true,
+  "paired_comparisons": [
+    {
+      "difference": "stochastic minus constant",
+      "complete_pair_count": 8,
+      "metrics": {
+        "normalized_heating_energy_s": {
+          "n": 8,
+          "mean": -1.0408618927002067,
+          "ci95_halfwidth": 0.3406520646723365
+        },
+        "minimum_outlet_conversion": {
+          "n": 8,
+          "mean": -0.0024954527616500854,
+          "ci95_halfwidth": 0.0024911161634497627
+        },
+        "maximum_temperature_K": {
+          "n": 8,
+          "mean": -5.4156036376953125,
+          "ci95_halfwidth": 1.6849012990094367
+        },
+        "quality_violation_duration_s": {
+          "n": 8,
+          "mean": 0.0,
+          "ci95_halfwidth": 0.0
+        },
+        "temperature_violation_duration_s": {
+          "n": 8,
+          "mean": 0.0,
+          "ci95_halfwidth": 0.0
+        },
+        "planning_runtime_s": {
+          "n": 8,
+          "mean": 356.03661680576624,
+          "ci95_halfwidth": 14.479045260406687
+        },
+        "prediction_temperature_rmse_K": {
+          "n": 8,
+          "mean": -0.003172166645526886,
+          "ci95_halfwidth": 0.0008853702398355479
+        },
+        "fine_quality_violation_duration_s": {
+          "n": 8,
+          "mean": 0.0,
+          "ci95_halfwidth": 0.0
+        },
+        "fine_temperature_violation_duration_s": {
+          "n": 8,
+          "mean": 0.0,
+          "ci95_halfwidth": 0.0
+        }
+      }
+    },
+    {
+      "difference": "mean minus constant",
+      "complete_pair_count": 8,
+      "metrics": {
+        "normalized_heating_energy_s": {
+          "n": 8,
+          "mean": -0.9928215026855582,
+          "ci95_halfwidth": 0.2977718136464399
+        },
+        "minimum_outlet_conversion": {
+          "n": 8,
+          "mean": -0.001828022301197052,
+          "ci95_halfwidth": 0.0023805854130843638
+        },
+        "maximum_temperature_K": {
+          "n": 8,
+          "mean": -6.1609649658203125,
+          "ci95_halfwidth": 1.3561517215707994
+        },
+        "quality_violation_duration_s": {
+          "n": 8,
+          "mean": 0.0,
+          "ci95_halfwidth": 0.0
+        },
+        "temperature_violation_duration_s": {
+          "n": 8,
+          "mean": 0.0,
+          "ci95_halfwidth": 0.0
+        },
+        "planning_runtime_s": {
+          "n": 8,
+          "mean": 105.62238022568636,
+          "ci95_halfwidth": 8.657767326361547
+        },
+        "prediction_temperature_rmse_K": {
+          "n": 8,
+          "mean": -0.003490239381790161,
+          "ci95_halfwidth": 0.0009349084981893467
+        },
+        "fine_quality_violation_duration_s": {
+          "n": 8,
+          "mean": 0.0,
+          "ci95_halfwidth": 0.0
+        },
+        "fine_temperature_violation_duration_s": {
+          "n": 8,
+          "mean": 0.0,
+          "ci95_halfwidth": 0.0
+        }
+      }
+    },
+    {
+      "difference": "stochastic minus mean",
+      "complete_pair_count": 8,
+      "metrics": {
+        "normalized_heating_energy_s": {
+          "n": 8,
+          "mean": -0.04804039001464844,
+          "ci95_halfwidth": 0.09907437058796795
+        },
+        "minimum_outlet_conversion": {
+          "n": 8,
+          "mean": -0.0006674304604530334,
+          "ci95_halfwidth": 0.0016515618209408368
+        },
+        "maximum_temperature_K": {
+          "n": 8,
+          "mean": 0.745361328125,
+          "ci95_halfwidth": 0.8478503308511818
+        },
+        "quality_violation_duration_s": {
+          "n": 8,
+          "mean": 0.0,
+          "ci95_halfwidth": 0.0
+        },
+        "temperature_violation_duration_s": {
+          "n": 8,
+          "mean": 0.0,
+          "ci95_halfwidth": 0.0
+        },
+        "planning_runtime_s": {
+          "n": 8,
+          "mean": 250.4142365800799,
+          "ci95_halfwidth": 19.72034480839143
+        },
+        "prediction_temperature_rmse_K": {
+          "n": 8,
+          "mean": 0.00031807273626327515,
+          "ci95_halfwidth": 0.0008799280921387403
+        },
+        "fine_quality_violation_duration_s": {
+          "n": 8,
+          "mean": 0.0,
+          "ci95_halfwidth": 0.0
+        },
+        "fine_temperature_violation_duration_s": {
+          "n": 8,
+          "mean": 0.0,
+          "ci95_halfwidth": 0.0
+        }
+      }
+    }
+  ],
+  "diagnostic_note": "Constraint checks during planning use 2 s output times. Post-experiment audits replay every executed control on a 0.1 s output grid. Neither grid provides a continuous-time or stochastic feasibility guarantee."
+}

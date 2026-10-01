@@ -1,0 +1,41 @@
+{
+  "unchanged": {
+    "duration_s": 66.0,
+    "integrated_field_error_s": 3.70869779586792,
+    "mean_field_error": 0.056192390846483635,
+    "temperature_rmse_K": 3.8144853115081787,
+    "conversion_rmse": 0.014077159576117992,
+    "terminal_field_error": 2.6386973672742897e-07,
+    "energy_s": 30.360000550746918,
+    "maximum_temperature_K": 1063.537353515625,
+    "minimum_outlet_conversion": 0.9474697113037109,
+    "temperature_violation_duration_s": 0.0,
+    "quality_violation_duration_s": 7.5
+  },
+  "seed": {
+    "duration_s": 66.0,
+    "integrated_field_error_s": 2.0979840755462646,
+    "mean_field_error": 0.031787637508276734,
+    "temperature_rmse_K": 2.9249744415283203,
+    "conversion_rmse": 0.010197523050010204,
+    "terminal_field_error": 3.8429297433140164e-07,
+    "energy_s": 30.484211042523384,
+    "maximum_temperature_K": 1066.9432373046875,
+    "minimum_outlet_conversion": 0.9527145624160767,
+    "temperature_violation_duration_s": 0.0,
+    "quality_violation_duration_s": 0.0
+  },
+  "mppi": {
+    "duration_s": 66.0,
+    "integrated_field_error_s": 1.9622786045074463,
+    "mean_field_error": 0.02973149400768858,
+    "temperature_rmse_K": 2.848808765411377,
+    "conversion_rmse": 0.009717105887830257,
+    "terminal_field_error": 1.5779016393935308e-05,
+    "energy_s": 30.438652396202087,
+    "maximum_temperature_K": 1066.160400390625,
+    "minimum_outlet_conversion": 0.9532949924468994,
+    "temperature_violation_duration_s": 0.0,
+    "quality_violation_duration_s": 0.0
+  }
+}

@@ -688,18 +688,64 @@ step introduced in [receding-horizon control](receding-horizon-control.md).
 (sec-thermoacoustic-pulldown)=
 ## Pulling Down a Thermoacoustic Refrigerator
 
-A standing-wave thermoacoustic refrigerator has a loudspeaker at one end of a
-sealed tube and a stack of thin plates inside it. Oscillating gas parcels
-exchange heat with the plates as they compress and expand, carrying heat from
-the cold end of the stack toward the hot end. Heat exchangers connect those
-ends to a payload and to ambient air. How should the loudspeaker amplitude
-vary when acoustic energy and the payload temperature at a fixed deadline
-both matter?
+A standing-wave thermoacoustic refrigerator is a sealed, gas-filled tube with
+a loudspeaker at one end and a stack of thin parallel plates inside
+({numref}`fig-thermoacoustic-geometry`a). The loudspeaker excites a standing
+sound wave in the tube. Each gas parcel near a plate is pushed back and forth
+along it, compressing and heating as it moves toward the loudspeaker end and
+expanding and cooling as it moves away. At the loudspeaker end of its travel
+the parcel is warmer than the plate and gives up heat to it; at the far end it
+is cooler than the plate and takes heat from it. Every cycle therefore moves a
+little heat one step along the plate, and the parcels together act as a
+bucket brigade that transports heat from the far end of the stack toward the
+loudspeaker end. Sound is used to move heat from a cold place to a warmer
+one, against the direction it would flow on its own. A household heat pump
+does the same thing with a compressor when it extracts heat from cold outdoor
+air and delivers it indoors; a refrigerator is the same machine used for its
+cold side. A cold heat exchanger at the far end of the stack connects to the
+payload, the refrigeration term for the object or compartment being cooled,
+and a hot heat exchanger at the loudspeaker end rejects the heat to ambient
+air. There are no moving parts other than the loudspeaker, and the only knob
+is how hard it drives. The control problem is what refrigeration engineers
+call a pull-down: bringing the payload from ambient temperature down to its
+set point after switch-on. Here that means choosing a driver-amplitude
+schedule that brings the payload to a target temperature by a fixed deadline
+while spending little acoustic energy.
 
-We represent the cold payload and hot exchanger by two lumped temperatures,
-$\mathbf x_t=(T_{c,t},T_{h,t})$, and control the normalized driver amplitude
-$u_t\in[0,1]$. Let $\Delta T=T_h-T_c$ and
-$\eta(\Delta T)=1-\Delta T/\Delta T_0$. The continuous model is
+:::{iframe} ../interactive/thermoacoustic-refrigerator.html
+:label: fig-thermoacoustic-geometry
+:width: 100%
+:title: Thermoacoustic refrigerator: device, lumped model, and recorded pull-down plans
+:class: thermoacoustic-replay
+:placeholder: _static/thermoacoustic_pulldown/geometry.svg
+
+Geometry of the thermoacoustic refrigerator and its two-state abstraction.
+(a) The device: a loudspeaker piston at the left end of a sealed resonator, a
+hot heat exchanger, a stack of thin plates, and a cold heat exchanger. The
+dashed envelope is the standing-wave pressure amplitude. Gas parcels
+oscillating along the plates pump heat from the cold exchanger toward the
+hot one. (b) The lumped model the optimizer sees. The state is the pair of
+exchanger temperatures, the action is the driver amplitude, the stage cost
+charges acoustic work, and the terminal cost penalizes the final cold-side
+temperature error. In the online book the figure replays the recorded
+iLQR and DDP plans: the piston stroke, wave, and parcel motion follow the
+action, the exchanger and node tints follow the state, and the panels
+below compare the plan with a constant-amplitude schedule. The static
+version shows the same two panels.
+:::
+
+In the online book, the replay reads the recorded plans and integrates only
+the constant-amplitude comparison; it does not rerun the optimizer.
+
+Rather than simulate the acoustics, we lump the whole device into two
+thermal masses ({numref}`fig-thermoacoustic-geometry`b): the cold exchanger
+together with its payload, and the hot exchanger. The state is their
+temperatures, $\mathbf x_t=(T_{c,t},T_{h,t})$, and the action is the
+normalized driver amplitude $u_t\in[0,1]$, so this is a two-dimensional
+continuous-state, one-dimensional continuous-action problem. Let
+$\Delta T=T_h-T_c$ be the temperature span across the stack and
+$\eta(\Delta T)=1-\Delta T/\Delta T_0$ a pumping efficiency that decreases
+linearly with that span. The continuous-time dynamics are
 
 $$
 \begin{aligned}
@@ -710,14 +756,26 @@ C_h\dot T_h &= \dot Q_c+\dot W-UA(T_h-T_{\mathrm{amb}}).
 \end{aligned}
 $$
 
-Here $\dot Q_c$ is heat removed from the cold side, $\dot W$ is work supplied
-by the driver, and $UA$ is the hot exchanger's conductance to ambient. At
-positive work, the cooling coefficient of performance (COP) is
-$\dot Q_c/\dot W$. The short-stack approximation motivates the $u^2$ terms
-and their dependence on the temperature span
-{cite:p}`swift1988thermoacoustic,swift2017thermoacoustics`. The cubic term
-represents an additional loss at high amplitude. These coefficients are
-synthetic teaching values, not measurements of a particular device.
+Here $\dot Q_c$ is the heat pumped out of the cold side, $\dot W$ is the
+acoustic work the driver injects, $Q_{\mathrm{load}}$ is a parasitic heat
+leak into the payload, and $UA$ is the hot exchanger's conductance to
+ambient. Both heat flows scale with $u^2$ because acoustic power is
+quadratic in wave amplitude, and both weaken as the span grows; this is the
+short-stack approximation of thermoacoustics
+{cite:p}`swift1988thermoacoustic,swift2017thermoacoustics`. Two loss terms
+complete the work: a viscous term in $u^2$ and a cubic term $k_3u^3$ that
+makes hard driving disproportionately expensive. The coupling matters for
+the optimizer. Driving hard pumps heat faster, but it also dumps that heat
+plus the work into the hot side, which raises $T_h$, widens the span, and
+lowers the efficiency of every later step. Refrigeration engineers measure
+this efficiency by the coefficient of performance (COP), the ratio
+$\dot Q_c/\dot W$ of heat pumped to work spent while the driver is on.
+Unlike an efficiency it can exceed one, because the work only moves heat
+rather than producing cold. In this model the COP falls as the span grows
+and, through the cubic term, as the amplitude grows; one scenario below
+removes the cubic term so that the COP no longer depends on amplitude. All
+coefficients are synthetic teaching values, not measurements of a particular
+device.
 
 | Quantity | Value |
 | :--- | ---: |
@@ -731,11 +789,11 @@ synthetic teaching values, not measurements of a particular device.
 | Critical temperature span $\Delta T_0$ | $40\ \mathrm K$ |
 | Target temperature $T^\star$ | $5\ ^\circ\mathrm C$ |
 
-Both temperatures begin at $20\ ^\circ\mathrm C$. A fourth-order
-Runge--Kutta step of length $h=1\ \mathrm s$ defines the discrete transition
-$\mathbf x_{t+1}=\mathbf f_t(\mathbf x_t,u_t)$ for $T-1=300$ control
-intervals. The cost uses the same running-plus-terminal form as the docking
-problem:
+Both temperatures begin at ambient, $20\ ^\circ\mathrm C$. A fourth-order
+Runge--Kutta step of length $h=1\ \mathrm s$ defines the deterministic
+transition $\mathbf x_{t+1}=\mathbf f_t(\mathbf x_t,u_t)$ over a horizon
+of $T-1=300$ actions, so the episode is exactly five minutes. The cost uses
+the same stage-plus-terminal form as the docking problem:
 
 $$
 c_t(\mathbf x_t,u_t)=h\,w_E\dot W(\mathbf x_t,u_t),\qquad
@@ -743,11 +801,12 @@ c_T(\mathbf x_T)=w_T(T_{c,T}-T^\star)^2,
 \qquad w_E=0.05,\quad w_T=10.
 $$
 
-There is no running temperature-tracking term: the target applies at the
-end of the five-minute pull-down, while the running cost measures energy use.
-The terminal penalty is soft, so a plan can trade some arrival error for lower
-energy. Both methods start from the constant sequence $u_t=0.5$ and use the
-same control box and stopping settings.
+The stage cost charges only energy, and the target enters only through the
+terminal cost, so the objective is sparse in the RL sense: nothing tells the
+optimizer how cold to be at intermediate times. The terminal penalty is
+soft, so a plan can trade some arrival error for lower energy. Both methods
+start from the constant open-loop sequence $u_t=0.5$ and use the same action
+bounds and stopping settings.
 
 :::{include} artifacts/thermoacoustic_pulldown/results.md
 :::
@@ -969,8 +1028,10 @@ models and artifact builders:
 - {download}`Experiment and figure builder <scripts/build_boat_docking_artifacts.py>`
 - {download}`Numerical diagnostics and source hashes <artifacts/boat_docking/metrics.json>`
 - {download}`Thermoacoustic model and costs <code/thermoacoustic_pulldown.py>`
+- {download}`Thermoacoustic geometry figure <code/thermoacoustic_geometry.py>`
 - {download}`Thermoacoustic experiment builder <scripts/build_thermoacoustic_pulldown_artifacts.py>`
 - {download}`Thermoacoustic diagnostics <artifacts/thermoacoustic_pulldown/metrics.json>`
+- {download}`Thermoacoustic replay data <interactive/thermoacoustic-refrigerator-data.json>`
 
 Run `uv run python scripts/build_boat_docking_artifacts.py` from the repository
 root to reproduce the solves, figures, results table, and browser data. Normal
@@ -979,7 +1040,8 @@ the composed DDP curvature, the scalar calculation, and agreement between
 backward elimination and a dense quadratic solve.
 
 Run `uv run python scripts/build_thermoacoustic_pulldown_artifacts.py` to
-regenerate the refrigerator results table, figures, and diagnostics.
+regenerate the refrigerator results table, figures, diagnostics, and the
+browser replay data.
 
 ## Summary and Outlook
 

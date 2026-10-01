@@ -1,0 +1,11 @@
+{
+  "binary_arrays_verified": 72,
+  "runs": 24,
+  "planning_snapshots": 6,
+  "timestamps_and_scalar_diagnostics_verified": true,
+  "field_channels": [
+    "temperature_K",
+    "remaining_reactant_fraction"
+  ],
+  "binary_encoding": "little-endian float32"
+}

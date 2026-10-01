@@ -1,0 +1,46 @@
+{
+  "arrays_checked": 4,
+  "frames_per_run": 321,
+  "physical_states_valid": true,
+  "matched_references_verified": true,
+  "motion": [
+    {
+      "time_s": 20,
+      "maximum_cold_contrast_K": 39.80224609375,
+      "cold_centroid_x_m": 2.1060588335970483,
+      "maximum_reactant_excess": 0.09807413816452026
+    },
+    {
+      "time_s": 30,
+      "maximum_cold_contrast_K": 21.590576171875,
+      "cold_centroid_x_m": 4.185622690591349,
+      "maximum_reactant_excess": 0.12879830598831177
+    },
+    {
+      "time_s": 40,
+      "maximum_cold_contrast_K": 16.64825439453125,
+      "cold_centroid_x_m": 6.168015034438332,
+      "maximum_reactant_excess": 0.07886096835136414
+    }
+  ],
+  "numerical_validation": {
+    "time_refinement": {
+      "temperature_rmse_K": 0.0033021376002579927,
+      "peak_temperature_difference_K": 0.0130615234375,
+      "outlet_conversion_mae": 2.069265292448108e-06
+    },
+    "space_refinement": {
+      "temperature_rmse_K": 0.9997156858444214,
+      "peak_temperature_difference_K": 2.179443359375,
+      "outlet_conversion_mae": 0.0016903155483305454
+    },
+    "fine_mesh": [
+      64,
+      128
+    ],
+    "duration_s": 80.0,
+    "initial_transfer": "piecewise constant prolongation preserves each coarse cell average",
+    "note": "First-order upwind spreading includes numerical diffusion of about v*dx/2 (roughly 0.013 m\u00b2/s), exceeding the physical 0.0005 m\u00b2/s; refinement measures this discretization sensitivity."
+  },
+  "elapsed_s": 3.5916738333180547
+}

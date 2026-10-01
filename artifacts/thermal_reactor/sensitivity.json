@@ -1,0 +1,411 @@
+{
+  "sampling": [
+    {
+      "candidates": 32,
+      "ensemble": 4,
+      "seed": 0,
+      "accepted": 2,
+      "rejected": 0,
+      "planning_failure": false,
+      "ess": [
+        25.69396021256424,
+        15.189749056779691
+      ],
+      "current_gust_K": 0.0,
+      "forecast_ensemble": 4,
+      "invalid_candidates": 0,
+      "runtime_s": 1.2344148750416934,
+      "forecast_cost": 0.4683096706867218,
+      "first_control": [
+        0.4730181097984314,
+        0.48925334215164185,
+        0.45450732111930847,
+        0.4756706655025482
+      ],
+      "held_out_pde_cost": 0.468309611082077
+    },
+    {
+      "candidates": 32,
+      "ensemble": 4,
+      "seed": 1,
+      "accepted": 2,
+      "rejected": 0,
+      "planning_failure": false,
+      "ess": [
+        21.888812304110424,
+        13.83508592741807
+      ],
+      "current_gust_K": 0.0,
+      "forecast_ensemble": 4,
+      "invalid_candidates": 0,
+      "runtime_s": 1.2720902082510293,
+      "forecast_cost": 0.4759582281112671,
+      "first_control": [
+        0.47075319290161133,
+        0.4637335240840912,
+        0.4619266092777252,
+        0.4938967823982239
+      ],
+      "held_out_pde_cost": 0.47595810890197754
+    },
+    {
+      "candidates": 32,
+      "ensemble": 4,
+      "seed": 2,
+      "accepted": 1,
+      "rejected": 1,
+      "planning_failure": false,
+      "ess": [
+        24.888687359511042,
+        19.614240281985712
+      ],
+      "current_gust_K": 0.0,
+      "forecast_ensemble": 4,
+      "invalid_candidates": 0,
+      "runtime_s": 1.3498039171099663,
+      "forecast_cost": 0.4738544821739197,
+      "first_control": [
+        0.47984567284584045,
+        0.4895455539226532,
+        0.47585853934288025,
+        0.4686284065246582
+      ],
+      "held_out_pde_cost": 0.47385430335998535
+    },
+    {
+      "candidates": 128,
+      "ensemble": 4,
+      "seed": 0,
+      "accepted": 2,
+      "rejected": 0,
+      "planning_failure": false,
+      "ess": [
+        99.10931089773541,
+        102.21925789602493
+      ],
+      "current_gust_K": 0.0,
+      "forecast_ensemble": 4,
+      "invalid_candidates": 0,
+      "runtime_s": 4.857922417111695,
+      "forecast_cost": 0.4729491174221039,
+      "first_control": [
+        0.46961119771003723,
+        0.4778803884983063,
+        0.48409292101860046,
+        0.4799143373966217
+      ],
+      "held_out_pde_cost": 0.4729490578174591
+    },
+    {
+      "candidates": 128,
+      "ensemble": 4,
+      "seed": 1,
+      "accepted": 2,
+      "rejected": 0,
+      "planning_failure": false,
+      "ess": [
+        98.6621762560174,
+        91.44356193137558
+      ],
+      "current_gust_K": 0.0,
+      "forecast_ensemble": 4,
+      "invalid_candidates": 0,
+      "runtime_s": 4.779124291148037,
+      "forecast_cost": 0.4744510054588318,
+      "first_control": [
+        0.47484683990478516,
+        0.475160151720047,
+        0.48148179054260254,
+        0.4731300473213196
+      ],
+      "held_out_pde_cost": 0.4744510352611542
+    },
+    {
+      "candidates": 128,
+      "ensemble": 4,
+      "seed": 2,
+      "accepted": 2,
+      "rejected": 0,
+      "planning_failure": false,
+      "ess": [
+        102.19577720750759,
+        91.86127676380269
+      ],
+      "current_gust_K": 0.0,
+      "forecast_ensemble": 4,
+      "invalid_candidates": 0,
+      "runtime_s": 4.645414582919329,
+      "forecast_cost": 0.4749894440174103,
+      "first_control": [
+        0.478873074054718,
+        0.4844732880592346,
+        0.478695809841156,
+        0.4849710762500763
+      ],
+      "held_out_pde_cost": 0.474989652633667
+    },
+    {
+      "candidates": 512,
+      "ensemble": 4,
+      "seed": 0,
+      "accepted": 1,
+      "rejected": 1,
+      "planning_failure": false,
+      "ess": [
+        387.1702612961501,
+        452.72107642816167
+      ],
+      "current_gust_K": 0.0,
+      "forecast_ensemble": 4,
+      "invalid_candidates": 0,
+      "runtime_s": 23.16595891630277,
+      "forecast_cost": 0.4730987548828125,
+      "first_control": [
+        0.4707041084766388,
+        0.47784820199012756,
+        0.4737873077392578,
+        0.47618362307548523
+      ],
+      "held_out_pde_cost": 0.4730987548828125
+    },
+    {
+      "candidates": 512,
+      "ensemble": 4,
+      "seed": 1,
+      "accepted": 2,
+      "rejected": 0,
+      "planning_failure": false,
+      "ess": [
+        395.3441501057958,
+        453.9510637188652
+      ],
+      "current_gust_K": 0.0,
+      "forecast_ensemble": 4,
+      "invalid_candidates": 0,
+      "runtime_s": 19.00476466678083,
+      "forecast_cost": 0.4738239645957947,
+      "first_control": [
+        0.4811672866344452,
+        0.4784614145755768,
+        0.47420480847358704,
+        0.47650083899497986
+      ],
+      "held_out_pde_cost": 0.47382378578186035
+    },
+    {
+      "candidates": 512,
+      "ensemble": 4,
+      "seed": 2,
+      "accepted": 1,
+      "rejected": 1,
+      "planning_failure": false,
+      "ess": [
+        403.0157142736201,
+        446.70576414122564
+      ],
+      "current_gust_K": 0.0,
+      "forecast_ensemble": 4,
+      "invalid_candidates": 0,
+      "runtime_s": 18.284689042251557,
+      "forecast_cost": 0.4741109311580658,
+      "first_control": [
+        0.47372931241989136,
+        0.47813910245895386,
+        0.47382786870002747,
+        0.4770643413066864
+      ],
+      "held_out_pde_cost": 0.47411081194877625
+    },
+    {
+      "candidates": 128,
+      "ensemble": 1,
+      "seed": 0,
+      "accepted": 2,
+      "rejected": 0,
+      "planning_failure": false,
+      "ess": [
+        99.08091247976921,
+        102.74722432568916
+      ],
+      "current_gust_K": 0.0,
+      "forecast_ensemble": 1,
+      "invalid_candidates": 0,
+      "runtime_s": 5.059700542129576,
+      "forecast_cost": 0.4730728566646576,
+      "first_control": [
+        0.4707997739315033,
+        0.477780818939209,
+        0.4849313199520111,
+        0.47963792085647583
+      ],
+      "held_out_pde_cost": 0.47307294607162476
+    },
+    {
+      "candidates": 128,
+      "ensemble": 1,
+      "seed": 1,
+      "accepted": 2,
+      "rejected": 0,
+      "planning_failure": false,
+      "ess": [
+        98.88714453307723,
+        91.9564839345085
+      ],
+      "current_gust_K": 0.0,
+      "forecast_ensemble": 1,
+      "invalid_candidates": 0,
+      "runtime_s": 1.1157010840252042,
+      "forecast_cost": 0.4745602011680603,
+      "first_control": [
+        0.47491341829299927,
+        0.4753251373767853,
+        0.4816461503505707,
+        0.47344374656677246
+      ],
+      "held_out_pde_cost": 0.474560022354126
+    },
+    {
+      "candidates": 128,
+      "ensemble": 1,
+      "seed": 2,
+      "accepted": 2,
+      "rejected": 0,
+      "planning_failure": false,
+      "ess": [
+        105.11165292419626,
+        92.82358989066992
+      ],
+      "current_gust_K": 0.0,
+      "forecast_ensemble": 1,
+      "invalid_candidates": 0,
+      "runtime_s": 0.9955664589069784,
+      "forecast_cost": 0.47521814703941345,
+      "first_control": [
+        0.480104923248291,
+        0.485473096370697,
+        0.4791010022163391,
+        0.48522046208381653
+      ],
+      "held_out_pde_cost": 0.4752180278301239
+    },
+    {
+      "candidates": 128,
+      "ensemble": 16,
+      "seed": 0,
+      "accepted": 2,
+      "rejected": 0,
+      "planning_failure": false,
+      "ess": [
+        98.7517088229655,
+        101.11483664203709
+      ],
+      "current_gust_K": 0.0,
+      "forecast_ensemble": 16,
+      "invalid_candidates": 0,
+      "runtime_s": 19.665972957853228,
+      "forecast_cost": 0.4730106592178345,
+      "first_control": [
+        0.4696469008922577,
+        0.47784900665283203,
+        0.48411011695861816,
+        0.4800853729248047
+      ],
+      "held_out_pde_cost": 0.4730108380317688
+    },
+    {
+      "candidates": 128,
+      "ensemble": 16,
+      "seed": 1,
+      "accepted": 2,
+      "rejected": 0,
+      "planning_failure": false,
+      "ess": [
+        99.20660279790653,
+        91.63172742368177
+      ],
+      "current_gust_K": 0.0,
+      "forecast_ensemble": 16,
+      "invalid_candidates": 0,
+      "runtime_s": 17.98363129189238,
+      "forecast_cost": 0.47453412413597107,
+      "first_control": [
+        0.47465503215789795,
+        0.4753386378288269,
+        0.48124149441719055,
+        0.4735332131385803
+      ],
+      "held_out_pde_cost": 0.4745340943336487
+    },
+    {
+      "candidates": 128,
+      "ensemble": 16,
+      "seed": 2,
+      "accepted": 2,
+      "rejected": 0,
+      "planning_failure": false,
+      "ess": [
+        103.04981006626792,
+        93.49930353926698
+      ],
+      "current_gust_K": 0.0,
+      "forecast_ensemble": 16,
+      "invalid_candidates": 0,
+      "runtime_s": 19.58760583307594,
+      "forecast_cost": 0.4749017655849457,
+      "first_control": [
+        0.47877922654151917,
+        0.4843471944332123,
+        0.4785339832305908,
+        0.4843907952308655
+      ],
+      "held_out_pde_cost": 0.47490194439888
+    }
+  ],
+  "model_comparison": [
+    {
+      "rollout_model": "surrogate",
+      "first_control": [
+        0.48415347933769226,
+        0.4735778868198395,
+        0.4857330322265625,
+        0.4798456132411957
+      ],
+      "accepted": 2,
+      "rejected": 0,
+      "planning_failure": false,
+      "ess": [
+        97.57006128427516,
+        94.49198141028263
+      ],
+      "current_gust_K": 0.0,
+      "forecast_ensemble": 4,
+      "invalid_candidates": 0,
+      "runtime_s": 14.573665208183229,
+      "forecast_cost": 0.4733140170574188,
+      "held_out_pde_cost": 0.473314106464386
+    },
+    {
+      "rollout_model": "PDE",
+      "first_control": [
+        0.4837673008441925,
+        0.4723864793777466,
+        0.48626741766929626,
+        0.47806936502456665
+      ],
+      "accepted": 2,
+      "rejected": 0,
+      "planning_failure": false,
+      "ess": [
+        98.18174784094434,
+        96.99122663032414
+      ],
+      "current_gust_K": 0.0,
+      "forecast_ensemble": 4,
+      "invalid_candidates": 0,
+      "runtime_s": 11.251243166159838,
+      "forecast_cost": 0.47249624133110046,
+      "held_out_pde_cost": 0.4724960923194885
+    }
+  ],
+  "timing_note": "Local wall-clock planning times include PDE validation and first-use compilation where needed. The two model-comparison calls also capture candidate snapshots; sampling-count calls do not. These are indicative offline timings."
+}

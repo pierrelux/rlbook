@@ -1,0 +1,38 @@
+{
+  "disjoint_whole_episode_splits": true,
+  "split_sizes": [
+    179,
+    38,
+    39
+  ],
+  "training_only_normalization_verified": true,
+  "channel_means": [
+    920.4227633136911,
+    0.5090971289525009
+  ],
+  "channel_stds": [
+    64.7633704752722,
+    0.32338376729245827
+  ],
+  "training_seed": 20260911,
+  "physical_evaluation_seeds": [
+    90000,
+    90001,
+    90002,
+    90003,
+    90004,
+    90005,
+    90006,
+    90007
+  ],
+  "planning_seeds": [
+    190000,
+    190001,
+    190002,
+    190003,
+    190004,
+    190005,
+    190006,
+    190007
+  ]
+}

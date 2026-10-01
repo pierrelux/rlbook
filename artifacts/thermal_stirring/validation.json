@@ -1,0 +1,154 @@
+{
+  "completed": true,
+  "arrays_checked": 29,
+  "run_count": 5,
+  "snapshot_count": 3,
+  "source_sha256": {
+    "code/thermal_stirring.py": "4ffd07c2cfae5420cf1e9f5f5ecf0dc56d892135bf27687cab5a6c71b3a36150",
+    "code/thermal_stirring_metal.py": "e931fc1d007198f4734dc0e823d8841cdf77b788ad7afb8fe66e04023ebfa597",
+    "code/thermal_stirring_kernel.py": "a0711508a32df930dcb971fede1beeda889f6e9508dd2682f776744d5f1e1757",
+    "code/thermal_stirring_experiment.py": "03ca04a4fe4db80177d99831a7240252fa3273e0dc2d86220237f592d16d9e34",
+    "code/thermal_stirring_replay.py": "30ac422ae1ba4c1e5a36e5277d5629a940d587d2957bc99cdc0ae81c986b8aae",
+    "code/thermal_reactor.py": "6e35fc98599732e5b5f525f951d0b47715e83bb0242bb6dc6b84ffb456259088",
+    "code/mppi_control.py": "4d714d744b9396263d760f87a9fa6255ee0b4de87dc8168174d0e6ff2fdcf255",
+    "scripts/build_thermal_reactor.py": "e43a8beb6a88b0599287d645d1a400f7abd462c78f992552bd1e8d326495e857"
+  },
+  "field_hashes_timestamps_controls_and_diagnostics_verified": true,
+  "numerical_validation": {
+    "unstirred": {
+      "time_refinement": {
+        "temperature_rmse_K": 0.001158882980234921,
+        "mean_mixing_error": 0.05381453037261963,
+        "mixing_error_relative_change": 0.00021270325901268095,
+        "maximum_temperature_K": 1044.5987548828125,
+        "minimum_outlet_conversion": 0.9986490607261658,
+        "temperature_violation_s": 0.0,
+        "conversion_violation_s": 0.0
+      },
+      "space_refinement": {
+        "temperature_rmse_K": 0.3086034655570984,
+        "mean_mixing_error": 0.05428605079650879,
+        "mixing_error_relative_change": 0.008976520662127507,
+        "maximum_temperature_K": 1044.724365234375,
+        "minimum_outlet_conversion": 0.9986693263053894,
+        "temperature_violation_s": 0.0,
+        "conversion_violation_s": 0.0
+      },
+      "fine_mesh": [
+        64,
+        128
+      ],
+      "initial_transfer": "Conservative piecewise-constant prolongation; controls and forcing unchanged."
+    },
+    "constant": {
+      "time_refinement": {
+        "temperature_rmse_K": 0.001158882980234921,
+        "mean_mixing_error": 0.05381453037261963,
+        "mixing_error_relative_change": 0.00021270325901268095,
+        "maximum_temperature_K": 1044.5987548828125,
+        "minimum_outlet_conversion": 0.9986490607261658,
+        "temperature_violation_s": 0.0,
+        "conversion_violation_s": 0.0
+      },
+      "space_refinement": {
+        "temperature_rmse_K": 0.3086034655570984,
+        "mean_mixing_error": 0.05428605079650879,
+        "mixing_error_relative_change": 0.008976520662127507,
+        "maximum_temperature_K": 1044.724365234375,
+        "minimum_outlet_conversion": 0.9986693263053894,
+        "temperature_violation_s": 0.0,
+        "conversion_violation_s": 0.0
+      },
+      "fine_mesh": [
+        64,
+        128
+      ],
+      "initial_transfer": "Conservative piecewise-constant prolongation; controls and forcing unchanged."
+    },
+    "mppi-19744": {
+      "time_refinement": {
+        "temperature_rmse_K": 0.0016927830874919891,
+        "mean_mixing_error": 0.03554104566574097,
+        "mixing_error_relative_change": 8.427962015633561e-05,
+        "maximum_temperature_K": 1043.786376953125,
+        "minimum_outlet_conversion": 0.9984315633773804,
+        "temperature_violation_s": 0.0,
+        "conversion_violation_s": 0.0
+      },
+      "space_refinement": {
+        "temperature_rmse_K": 0.3539603352546692,
+        "mean_mixing_error": 0.036440327763557434,
+        "mixing_error_relative_change": 0.02538904688638799,
+        "maximum_temperature_K": 1043.9296875,
+        "minimum_outlet_conversion": 0.9984108209609985,
+        "temperature_violation_s": 0.0,
+        "conversion_violation_s": 0.0
+      },
+      "fine_mesh": [
+        64,
+        128
+      ],
+      "initial_transfer": "Conservative piecewise-constant prolongation; controls and forcing unchanged."
+    },
+    "mppi-19745": {
+      "time_refinement": {
+        "temperature_rmse_K": 0.002080377424135804,
+        "mean_mixing_error": 0.0365131288766861,
+        "mixing_error_relative_change": -3.338180905243515e-05,
+        "maximum_temperature_K": 1043.93701171875,
+        "minimum_outlet_conversion": 0.9983837008476257,
+        "temperature_violation_s": 0.0,
+        "conversion_violation_s": 0.0
+      },
+      "space_refinement": {
+        "temperature_rmse_K": 0.38600680232048035,
+        "mean_mixing_error": 0.03776661455631256,
+        "mixing_error_relative_change": 0.03429519737790376,
+        "maximum_temperature_K": 1044.190673828125,
+        "minimum_outlet_conversion": 0.9983760118484497,
+        "temperature_violation_s": 0.0,
+        "conversion_violation_s": 0.0
+      },
+      "fine_mesh": [
+        64,
+        128
+      ],
+      "initial_transfer": "Conservative piecewise-constant prolongation; controls and forcing unchanged."
+    },
+    "mppi-19746": {
+      "time_refinement": {
+        "temperature_rmse_K": 0.0020665100309997797,
+        "mean_mixing_error": 0.03526919186115265,
+        "mixing_error_relative_change": 8.788034550066826e-06,
+        "maximum_temperature_K": 1043.341796875,
+        "minimum_outlet_conversion": 0.9977422952651978,
+        "temperature_violation_s": 0.0,
+        "conversion_violation_s": 0.0
+      },
+      "space_refinement": {
+        "temperature_rmse_K": 0.3896191716194153,
+        "mean_mixing_error": 0.0367976576089859,
+        "mixing_error_relative_change": 0.04334630441599585,
+        "maximum_temperature_K": 1043.5316162109375,
+        "minimum_outlet_conversion": 0.9976890087127686,
+        "temperature_violation_s": 0.0,
+        "conversion_violation_s": 0.0
+      },
+      "fine_mesh": [
+        64,
+        128
+      ],
+      "initial_transfer": "Conservative piecewise-constant prolongation; controls and forcing unchanged."
+    }
+  },
+  "optimizer_variability": {
+    "seeds": [
+      19744,
+      19745,
+      19746
+    ],
+    "mean_mixing_error_mean": 0.03577376008033752,
+    "mean_mixing_error_sample_sd": 0.0006553362148589253,
+    "note": "Optimizer randomness on one deterministic feed history; not physical-disturbance uncertainty."
+  }
+}

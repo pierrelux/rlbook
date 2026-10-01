@@ -1,0 +1,60 @@
+{
+  "problem": "Periodic unit square, velocity(1,1), duration1, zero diffusion; exact field returns to initial state.",
+  "results": [
+    {
+      "mesh": 32,
+      "order": 1,
+      "rmse": 0.0708409920334816,
+      "mass_error": 0.0,
+      "variance_retained": 0.08536966145038605,
+      "minimum": 0.4417760372161865,
+      "maximum": 0.5582239627838135
+    },
+    {
+      "mesh": 32,
+      "order": 2,
+      "rmse": 0.015840277075767517,
+      "mass_error": 0.0,
+      "variance_retained": 0.7953037023544312,
+      "minimum": 0.34987616539001465,
+      "maximum": 0.6501239538192749
+    },
+    {
+      "mesh": 64,
+      "order": 1,
+      "rmse": 0.046024080365896225,
+      "mass_error": 0.0,
+      "variance_retained": 0.29145336151123047,
+      "minimum": 0.39219650626182556,
+      "maximum": 0.6078034043312073
+    },
+    {
+      "mesh": 64,
+      "order": 2,
+      "rmse": 0.00534939207136631,
+      "mass_error": 5.960464477539063e-08,
+      "variance_retained": 0.9559659361839294,
+      "minimum": 0.3222792148590088,
+      "maximum": 0.6777207255363464
+    },
+    {
+      "mesh": 128,
+      "order": 1,
+      "rmse": 0.026537442579865456,
+      "mass_error": 5.960464477539063e-08,
+      "variance_retained": 0.539697527885437,
+      "minimum": 0.3531440794467926,
+      "maximum": 0.6468560695648193
+    },
+    {
+      "mesh": 128,
+      "order": 2,
+      "rmse": 0.0016872938722372055,
+      "mass_error": 0.0,
+      "variance_retained": 0.9897029399871826,
+      "minimum": 0.30941352248191833,
+      "maximum": 0.6905866861343384
+    }
+  ],
+  "note": "Variance lost in this benchmark is numerical smoothing, not physical mixing."
+}

@@ -1,0 +1,173 @@
+[
+  {
+    "candidates": 128,
+    "seed": 19744,
+    "feasible": true,
+    "initial_objective": 0.048847537487745285,
+    "final_objective": 0.046246472746133804,
+    "runtime_s": 10.253327750135213,
+    "ess": [
+      17.360705551482067,
+      7.639049048588778,
+      9.65751745542128,
+      8.368042746587227
+    ],
+    "accepted": 4,
+    "maximum_temperature_K": 1066.0845947265625,
+    "minimum_outlet_conversion": 0.9530051350593567,
+    "duration_s": 80.0,
+    "frame_dt_s": 0.25
+  },
+  {
+    "candidates": 128,
+    "seed": 19745,
+    "feasible": true,
+    "initial_objective": 0.048847537487745285,
+    "final_objective": 0.0455537810921669,
+    "runtime_s": 13.481105083134025,
+    "ess": [
+      11.079827434684,
+      9.306095653879348,
+      5.532099760592201,
+      4.250032483022465
+    ],
+    "accepted": 3,
+    "maximum_temperature_K": 1066.993896484375,
+    "minimum_outlet_conversion": 0.9538888931274414,
+    "duration_s": 80.0,
+    "frame_dt_s": 0.25
+  },
+  {
+    "candidates": 128,
+    "seed": 19746,
+    "feasible": true,
+    "initial_objective": 0.048847537487745285,
+    "final_objective": 0.046085719019174576,
+    "runtime_s": 9.433625125326216,
+    "ess": [
+      9.596670152191377,
+      11.573441316712746,
+      18.8927185115781,
+      8.38977840373355
+    ],
+    "accepted": 3,
+    "maximum_temperature_K": 1065.955078125,
+    "minimum_outlet_conversion": 0.9532800912857056,
+    "duration_s": 80.0,
+    "frame_dt_s": 0.25
+  },
+  {
+    "candidates": 256,
+    "seed": 19744,
+    "feasible": true,
+    "initial_objective": 0.048847537487745285,
+    "final_objective": 0.04566646367311478,
+    "runtime_s": 15.593870208133012,
+    "ess": [
+      26.6503949941921,
+      25.179633535658997,
+      20.84545343889204,
+      20.621524230524233
+    ],
+    "accepted": 4,
+    "maximum_temperature_K": 1066.994140625,
+    "minimum_outlet_conversion": 0.9533211588859558,
+    "duration_s": 80.0,
+    "frame_dt_s": 0.25
+  },
+  {
+    "candidates": 256,
+    "seed": 19745,
+    "feasible": true,
+    "initial_objective": 0.048847537487745285,
+    "final_objective": 0.04607197269797325,
+    "runtime_s": 11.232310708146542,
+    "ess": [
+      19.72039573903059,
+      17.248388931372524,
+      30.08513863344305,
+      16.42270265312369
+    ],
+    "accepted": 3,
+    "maximum_temperature_K": 1066.85888671875,
+    "minimum_outlet_conversion": 0.9535554051399231,
+    "duration_s": 80.0,
+    "frame_dt_s": 0.25
+  },
+  {
+    "candidates": 256,
+    "seed": 19746,
+    "feasible": true,
+    "initial_objective": 0.048847537487745285,
+    "final_objective": 0.046013884246349335,
+    "runtime_s": 11.466966541018337,
+    "ess": [
+      18.68785071928097,
+      37.46256333274971,
+      30.659577652284792,
+      30.86560585897441
+    ],
+    "accepted": 3,
+    "maximum_temperature_K": 1066.01220703125,
+    "minimum_outlet_conversion": 0.9534667730331421,
+    "duration_s": 80.0,
+    "frame_dt_s": 0.25
+  },
+  {
+    "candidates": 512,
+    "seed": 19744,
+    "feasible": true,
+    "initial_objective": 0.048847537487745285,
+    "final_objective": 0.045906342566013336,
+    "runtime_s": 18.302994375117123,
+    "ess": [
+      55.535401697560154,
+      57.53178478236199,
+      47.889902915153854,
+      59.465136047513006
+    ],
+    "accepted": 3,
+    "maximum_temperature_K": 1066.094970703125,
+    "minimum_outlet_conversion": 0.9529165029525757,
+    "duration_s": 80.0,
+    "frame_dt_s": 0.25
+  },
+  {
+    "candidates": 512,
+    "seed": 19745,
+    "feasible": true,
+    "initial_objective": 0.048847537487745285,
+    "final_objective": 0.045779358595609665,
+    "runtime_s": 18.336212082765996,
+    "ess": [
+      39.824349123034644,
+      57.318861793807784,
+      32.54639572849562,
+      63.040651216123614
+    ],
+    "accepted": 3,
+    "maximum_temperature_K": 1065.436767578125,
+    "minimum_outlet_conversion": 0.9530114531517029,
+    "duration_s": 80.0,
+    "frame_dt_s": 0.25
+  },
+  {
+    "candidates": 512,
+    "seed": 19746,
+    "feasible": true,
+    "initial_objective": 0.048847537487745285,
+    "final_objective": 0.04610968753695488,
+    "runtime_s": 26.46270391717553,
+    "ess": [
+      48.92757335420486,
+      60.33964379610102,
+      56.27004353040326,
+      58.206054717339846
+    ],
+    "accepted": 3,
+    "maximum_temperature_K": 1065.6611328125,
+    "minimum_outlet_conversion": 0.9530088901519775,
+    "duration_s": 80.0,
+    "frame_dt_s": 0.25
+  }
+]

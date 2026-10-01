@@ -1,0 +1,26 @@
+{
+  "completed_epochs": 3,
+  "requested_max_epochs": 200,
+  "stopping_reason": "Local CPU training budget; partial fourth epoch discarded; best of three completed epochs retained",
+  "regenerate_command": "python scripts/build_thermal_reactor.py train --epochs 3",
+  "checkpoint_sha256": "0001ae4ec8a5bb547ed587caa6cc5db79b88695cf6c76f1cb3836b2f68c95504",
+  "inference_fraction_projection": "[0,1], applied after each residual prediction; temperature unrestricted",
+  "platform": "macOS-14.6-arm64-arm-64bit-Mach-O",
+  "package_versions": {
+    "jax": "0.11.0",
+    "optax": "0.2.8",
+    "numpy": "2.3.1",
+    "mlx": "0.32.2"
+  },
+  "architecture": {
+    "convolution_layers": 4,
+    "kernel_size": 3,
+    "hidden_channels": 16,
+    "dilations": [
+      1,
+      2,
+      4,
+      1
+    ]
+  }
+}

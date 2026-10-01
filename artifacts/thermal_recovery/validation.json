@@ -1,0 +1,44 @@
+{
+  "completed": true,
+  "run_count": 3,
+  "snapshot_count": 3,
+  "field_arrays_checked": 28,
+  "sample_weights_and_timestamps_verified": true,
+  "mppi_summary": {
+    "duration_s": 66.0,
+    "integrated_field_error_s": 1.9622786045074463,
+    "mean_field_error": 0.02973149400768858,
+    "temperature_rmse_K": 2.848808765411377,
+    "conversion_rmse": 0.009717105887830257,
+    "terminal_field_error": 1.5779016393935308e-05,
+    "energy_s": 30.438652396202087,
+    "maximum_temperature_K": 1066.160400390625,
+    "minimum_outlet_conversion": 0.9532949924468994,
+    "temperature_violation_duration_s": 0.0,
+    "quality_violation_duration_s": 0.0
+  },
+  "numerical_validation": {
+    "time_refinement": {
+      "temperature_rmse_K": 0.0014347099931910634,
+      "outlet_conversion_mae": 8.344650268554688e-07,
+      "maximum_temperature_K": 1066.1611328125,
+      "minimum_outlet_conversion": 0.9532946348190308,
+      "temperature_violation_duration_s": 0.0,
+      "quality_violation_duration_s": 0.0
+    },
+    "space_refinement": {
+      "temperature_rmse_K": 0.7784738540649414,
+      "outlet_conversion_mae": 0.0018573985435068607,
+      "maximum_temperature_K": 1068.42333984375,
+      "minimum_outlet_conversion": 0.9535555243492126,
+      "temperature_violation_duration_s": 0.0,
+      "quality_violation_duration_s": 0.0
+    },
+    "fine_mesh": [
+      64,
+      128
+    ],
+    "initial_transfer": "piecewise constant conservative prolongation",
+    "note": "Same recorded controls and initial cell averages. First-order upwind spreading includes numerical diffusion, exceeding physical diffusion on the base mesh. Checks are on discrete output grids, not continuous-time guarantees."
+  }
+}

@@ -14,11 +14,13 @@ CORE_CHAPTERS = [
     "numerical-trajectory-optimization.md",
     "iterative-trajectory-optimization.md",
     "continuous-time-collocation.md",
+    "model-predictive-path-integral-control.md",
     "receding-horizon-control.md",
     "mpc-variants-reliability.md",
     "parametric-controllers.md",
     "finite-horizon-dp.md",
     "stochastic-dp.md",
+    "path-integral-stochastic-control.md",
     "infinite-horizon-mdps.md",
     "regularized-dp.md",
     "weighted-residual-methods.md",
@@ -124,6 +126,32 @@ class BookStructureTests(unittest.TestCase):
                         len(re.findall(r"[A-Za-z]{2,}", opening)), 20,
                         f"{file}: {title} needs an explanatory opening")
 
+    def test_thermoacoustic_replay_is_wired(self):
+        chapter = (ROOT / "iterative-trajectory-optimization.md").read_text(encoding="utf-8")
+        start = chapter.find(":::{iframe} ../interactive/thermoacoustic-refrigerator.html")
+        self.assertGreaterEqual(start, 0, "thermoacoustic replay iframe missing")
+        block = chapter[start:chapter.find("\n:::", start + 10)]
+        for option in (":label: fig-thermoacoustic-geometry", ":class: thermoacoustic-replay",
+                       ":placeholder: _static/thermoacoustic_pulldown/geometry.svg"):
+            self.assertIn(option, block)
+        self.assertNotIn("{figure} _static/thermoacoustic_pulldown/geometry.svg", chapter)
+        for relative in ("interactive/thermoacoustic-refrigerator.html",
+                         "interactive/thermoacoustic-refrigerator-data.json",
+                         "_static/thermoacoustic_pulldown/geometry.svg",
+                         "_static/thermoacoustic_pulldown/geometry.pdf"):
+            self.assertTrue((ROOT / relative).exists(), relative)
+        html = (ROOT / "interactive/thermoacoustic-refrigerator.html").read_text(encoding="utf-8")
+        for token in ("thermoacoustic-refrigerator-data.json", "(a) device", "(b) lumped model",
+                      "prefers-reduced-motion", 'role="img"'):
+            self.assertIn(token, html)
+        for forbidden in ("<script src=", "<link", "http://", "https://"):
+            self.assertNotIn(forbidden, html)
+        css = (ROOT / "_static/custom.css").read_text(encoding="utf-8")
+        self.assertIn(".thermoacoustic-replay > div > div", css)
+        plugin = (ROOT / "plugins/pdf-static-parity.mjs").read_text(encoding="utf-8")
+        self.assertIn("placeholder", plugin)
+        self.assertIn("thermoacoustic_pulldown", plugin)
+
     def test_removed_routes_are_not_referenced(self):
         route_pattern = re.compile(
             r"(?<![-\w])(?:" + "|".join(re.escape(route) for route in REMOVED_ROUTES) + r")"
@@ -132,7 +160,7 @@ class BookStructureTests(unittest.TestCase):
         for suffix in ("*.md", "*.yml", "*.html", "*.py", "*.mjs"):
             candidates.extend(ROOT.rglob(suffix))
         for path in candidates:
-            if any(part in {".git", ".venv", "_build"} for part in path.parts):
+            if any(part in {".git", ".venv", "_build", ".claude"} for part in path.parts):
                 continue
             if path == Path(__file__).resolve():
                 continue

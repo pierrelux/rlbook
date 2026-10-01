@@ -588,6 +588,7 @@ These terms change the curvature away from feasibility. Their use still
 requires a suitable step-selection or subproblem strategy; adding them alone
 is not a convergence guarantee.
 
+(sec-sqp-newton)=
 #### SQP as Newton on the KKT system (equality case)
 
 With **only equality constraints** $H(\mathbf{z})=\mathbf{0}$, write first-order conditions
@@ -617,13 +618,120 @@ H(\mathbf{z}^k)
 \end{bmatrix}.
 $$
 
-This is exactly the step computed by **Sequential Quadratic Programming (SQP)** in the equality-constrained case: it is Newton's method on the KKT equations. For general problems with inequalities, SQP forms a **quadratic subproblem** by quadratically modeling $F$ with $\nabla_{\mathbf{z}\mathbf{z}}^2\mathcal{L}$ and linearizing the constraints, then solves that QP with line search or trust region. In least-squares-like problems one often uses **Gauss–Newton** (or a Levenberg–Marquardt trust region) as a positive-definite approximation to the Lagrangian Hessian.
+The same step has an optimization interpretation. With
+$B_k=\nabla^2_{\mathbf z\mathbf z}\mathcal L(\mathbf z^k,\boldsymbol\lambda^k)$,
+**Sequential Quadratic Programming (SQP)** chooses a displacement
+$\Delta\mathbf z$ by solving the quadratic program
 
-In trajectory optimization, the KKT matrix inherits banded/sparse structure from the dynamics. Newton/SQP steps can be computed efficiently by exploiting this structure; in the special case of quadratic models and linearized dynamics, the QP reduces to an LQR solve along the horizon (this is the backbone of iLQR/DDP-style methods). Primal-dual updates provide simpler iterations and are easy to implement; augmented terms are typically needed to obtain stable progress when constraints couple stages.
+$$
+\boxed{
+\begin{aligned}
+\underset{\Delta\mathbf z}{\operatorname{minimize}}\quad&
+\nabla F(\mathbf z^k)^\top\Delta\mathbf z
++\frac12\Delta\mathbf z^\top B_k\Delta\mathbf z\\
+\text{subject to}\quad&
+H(\mathbf z^k)+J_H(\mathbf z^k)\Delta\mathbf z=\mathbf0.
+\end{aligned}}
+$$
 
-The choice between methods depends on the context. Primal-dual gradients give lightweight iterations and are suited for warm starts or as inner loops with penalties. SQP/Newton can give rapid local convergence near a regular solution when the
-relevant second-order conditions also hold; trust regions or line search
-control steps farther from a solution.
+The quadratic objective retains a slope, $\nabla F(\mathbf z^k)$, and a
+curvature matrix, $B_k$. Its gradient changes linearly with the proposed
+displacement: $\nabla F(\mathbf z^k)+B_k\Delta\mathbf z$. This lets the model
+predict how the benefit of moving in a direction changes as we move farther.
+The constant $F(\mathbf z^k)$ can be omitted because it does not affect which
+step minimizes the model.
+
+Linearizing a constraint means replacing its value at the trial point by its
+current value plus its predicted first-order change. Thus the QP asks
+$J_H(\mathbf z^k)\Delta\mathbf z$ to cancel the current residual
+$H(\mathbf z^k)$. At a feasible iterate, this becomes
+$J_H(\mathbf z^k)\Delta\mathbf z=\mathbf0$: the step lies in the tangent
+space to the constraints. These are *affine* constraints on the step, meaning
+linear expressions plus constants.
+
+Why use the Lagrangian's Hessian in the quadratic objective? For equality
+constraints it is
+
+$$
+B_k=\nabla^2 F(\mathbf z^k)
++\sum_i\lambda_i^k\nabla^2 H_i(\mathbf z^k).
+$$
+
+The additional terms carry information about the curvature of the
+constraints, weighted by their multipliers. The QP therefore uses a quadratic
+model designed for the constrained problem; it is generally different from
+the second-order Taylor expansion of $F$ alone. Its connection to Newton's
+method explains this choice. If $\boldsymbol\lambda_{\mathrm{QP}}$ denotes
+the multiplier of the QP equality, the QP's stationarity and feasibility
+conditions are
+
+$$
+\begin{bmatrix}
+B_k & J_H(\mathbf z^k)^\top\\
+J_H(\mathbf z^k) & 0
+\end{bmatrix}
+\begin{bmatrix}
+\Delta\mathbf z\\ \boldsymbol\lambda_{\mathrm{QP}}
+\end{bmatrix}
+=-
+\begin{bmatrix}
+\nabla F(\mathbf z^k)\\ H(\mathbf z^k)
+\end{bmatrix}.
+$$
+
+Substitute
+$\boldsymbol\lambda_{\mathrm{QP}}=\boldsymbol\lambda^k+
+\Delta\boldsymbol\lambda$ and move
+$J_H(\mathbf z^k)^\top\boldsymbol\lambda^k$ to the right-hand side.
+This gives exactly the Newton system above. The QP multiplier is thus the
+new multiplier estimate for a full step; its difference from the old estimate
+is the Newton multiplier increment.
+
+With inequalities $G(\mathbf z)\le\mathbf0$, the QP also includes
+
+$$
+G(\mathbf z^k)+J_G(\mathbf z^k)\Delta\mathbf z\le\mathbf0.
+$$
+
+The Hessian $B_k$ then includes
+$\sum_i\mu_i^k\nabla^2G_i(\mathbf z^k)$, and the QP returns inequality
+multipliers $\boldsymbol\mu_{\mathrm{QP}}\ge\mathbf0$ as well.
+
+The computational benefit comes from fixing these matrices for the duration
+of each QP solve. The solver works with a quadratic function and flat
+constraint boundaries, without repeatedly differentiating the original
+nonlinear functions. In the equality case, one linear KKT solve gives the
+unique QP minimizer when $J_H$ has full row rank and $B_k$ is positive
+definite on nonzero directions $\mathbf v$ satisfying $J_H\mathbf v=\mathbf0$.
+With inequalities, an **active-set method** selects candidate tight
+constraints and solves equality-constrained QPs, updating the selection as
+needed. An **interior-point method** handles the inequalities through slacks
+and perturbed complementarity equations, solving related linear systems.
+Both approaches can exploit sparse matrix factorizations.
+The [NEOS guide to QP algorithms](https://neos-guide.org/guide/algorithms/qp/)
+develops these two approaches.
+
+Consecutive subproblems often share their pattern of nonzero entries, so
+solvers can reuse the ordering used for sparse elimination and start from
+previous primal and dual estimates. A numerical factorization can also be
+reused when its coefficient matrix stays unchanged; changing the Hessian or
+constraint Jacobians generally requires updating or recomputing it.
+[OSQP](https://osqp.org/docs/) provides one implementation of factorization
+reuse and warm starts for convex QPs. In trajectory optimization, each
+dynamics constraint couples neighboring time steps, which gives the matrices
+a sparse block structure. With stagewise quadratic costs, linearized
+dynamics, and no additional inequalities, suitable QPs can be solved by a
+Riccati recursion as in LQR.
+
+The exact Lagrangian Hessian need not give a convex QP away from a solution.
+Practical SQP methods often modify it or use a positive-definite
+approximation. For a least-squares objective, a Gauss–Newton approximation
+provides positive-semidefinite curvature; adding a positive multiple of the
+identity makes it positive definite. These choices give modified Newton
+steps. Finally, satisfying the linearized constraints does not ensure
+nonlinear feasibility at $\mathbf z^k+\Delta\mathbf z$. A line search or
+trust region checks progress using the original objective and constraints
+and controls how far to move before constructing the next QP.
 
 
 ## Further Sources of Discrete-Time Optimal-Control Problems

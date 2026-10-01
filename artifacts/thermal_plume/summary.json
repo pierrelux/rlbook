@@ -1,0 +1,30 @@
+{
+  "constant": {
+    "maximum_temperature_K": 1078.511962890625,
+    "minimum_outlet_conversion": 0.9609469175338745,
+    "temperature_violation_duration_s": 80.0,
+    "conversion_violation_duration_s": 0.0,
+    "energy_s": 38.399999141693115
+  },
+  "boost": {
+    "maximum_temperature_K": 1097.4693603515625,
+    "minimum_outlet_conversion": 0.9683713912963867,
+    "temperature_violation_duration_s": 80.0,
+    "conversion_violation_duration_s": 0.0,
+    "energy_s": 38.75999906659126
+  },
+  "constant-reference": {
+    "maximum_temperature_K": 1078.511962890625,
+    "minimum_outlet_conversion": 0.9691883325576782,
+    "temperature_violation_duration_s": 80.0,
+    "conversion_violation_duration_s": 0.0,
+    "energy_s": 38.399999141693115
+  },
+  "boost-reference": {
+    "maximum_temperature_K": 1098.341552734375,
+    "minimum_outlet_conversion": 0.9691883325576782,
+    "temperature_violation_duration_s": 80.0,
+    "conversion_violation_duration_s": 0.0,
+    "energy_s": 38.75999906659126
+  }
+}

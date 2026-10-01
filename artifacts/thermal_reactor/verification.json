@@ -1,0 +1,28 @@
+{
+  "checked_at_utc": "2026-09-12T04:10:04.418643+00:00",
+  "numerical_and_controller_tests": {
+    "passed": 25,
+    "optional_gpu_test_passed_separately": true
+  },
+  "executed_trials": 24,
+  "artifact_arrays_checked": 72,
+  "desktop_and_390px_layouts_inspected": true,
+  "horizontal_overflow_at_390px": false,
+  "checked_controls": [
+    "play/pause",
+    "reset",
+    "time scrub",
+    "playback speed",
+    "trial selection",
+    "controller comparison",
+    "candidate forecast replay",
+    "candidate field selection",
+    "surrogate/PDE signed error view"
+  ],
+  "static_figures_inspected": [
+    "fields",
+    "control",
+    "paired-trials"
+  ],
+  "note": "Browser checks use a local static server; no optimization or training on page load."
+}

@@ -1,0 +1,6 @@
+interface:
+  display_name: "RL Textbook Writing"
+  short_description: "Revise textbook prose using the rlbook house style"
+  default_prompt: "Use $rlbook-writing to revise this textbook passage using the local writing guidelines."
+policy:
+  allow_implicit_invocation: true

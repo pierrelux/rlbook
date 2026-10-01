@@ -1,0 +1,737 @@
+[
+  {
+    "candidates": 128,
+    "seed": 19744,
+    "time_s": 0.0,
+    "iterations": [
+      {
+        "iteration": 1,
+        "accepted": true,
+        "alpha": 1.0,
+        "ess": 17.18660025421775,
+        "feasible_candidates": 128,
+        "incumbent_before_objective": 0.11326898634433746,
+        "weighted_proposal_objective": 0.09018455445766449,
+        "weighted_proposal_feasible": true,
+        "accepted_validation": {
+          "maximum_temperature_K": 1044.08056640625,
+          "minimum_outlet_conversion": 0.9985014796257019,
+          "duration_s": 80.0,
+          "frame_dt_s": 0.25
+        },
+        "incumbent_after_objective": 0.09018455445766449
+      },
+      {
+        "iteration": 2,
+        "accepted": true,
+        "alpha": 0.125,
+        "ess": 9.599971918534544,
+        "feasible_candidates": 128,
+        "incumbent_before_objective": 0.09018455445766449,
+        "weighted_proposal_objective": 0.11728543043136597,
+        "weighted_proposal_feasible": true,
+        "accepted_validation": {
+          "maximum_temperature_K": 1044.0853271484375,
+          "minimum_outlet_conversion": 0.9985047578811646,
+          "duration_s": 80.0,
+          "frame_dt_s": 0.25
+        },
+        "incumbent_after_objective": 0.08999112993478775
+      },
+      {
+        "iteration": 3,
+        "accepted": true,
+        "alpha": 0.125,
+        "ess": 14.364824057335863,
+        "feasible_candidates": 128,
+        "incumbent_before_objective": 0.08999112993478775,
+        "weighted_proposal_objective": 0.11913632601499557,
+        "weighted_proposal_feasible": true,
+        "accepted_validation": {
+          "maximum_temperature_K": 1044.0718994140625,
+          "minimum_outlet_conversion": 0.9985843896865845,
+          "duration_s": 80.0,
+          "frame_dt_s": 0.25
+        },
+        "incumbent_after_objective": 0.08971299976110458
+      },
+      {
+        "iteration": 4,
+        "accepted": true,
+        "alpha": 1.0,
+        "ess": 12.712701903318083,
+        "feasible_candidates": 128,
+        "incumbent_before_objective": 0.08971299976110458,
+        "weighted_proposal_objective": 0.08512379229068756,
+        "weighted_proposal_feasible": true,
+        "accepted_validation": {
+          "maximum_temperature_K": 1043.81005859375,
+          "minimum_outlet_conversion": 0.9986006617546082,
+          "duration_s": 80.0,
+          "frame_dt_s": 0.25
+        },
+        "incumbent_after_objective": 0.08512379229068756
+      }
+    ],
+    "planning_failure": false,
+    "initial_validation": {
+      "maximum_temperature_K": 1044.58447265625,
+      "minimum_outlet_conversion": 0.9986490607261658,
+      "duration_s": 80.0,
+      "frame_dt_s": 0.25
+    },
+    "initial_objective": 0.11326898634433746,
+    "final_objective": 0.08512379229068756,
+    "runtime_s": 4.331152417231351,
+    "accepted": 4,
+    "rejected": 0
+  },
+  {
+    "candidates": 128,
+    "seed": 19745,
+    "time_s": 0.0,
+    "iterations": [
+      {
+        "iteration": 1,
+        "accepted": true,
+        "alpha": 1.0,
+        "ess": 12.467790831626003,
+        "feasible_candidates": 128,
+        "incumbent_before_objective": 0.11326898634433746,
+        "weighted_proposal_objective": 0.09056269377470016,
+        "weighted_proposal_feasible": true,
+        "accepted_validation": {
+          "maximum_temperature_K": 1044.177001953125,
+          "minimum_outlet_conversion": 0.9983702301979065,
+          "duration_s": 80.0,
+          "frame_dt_s": 0.25
+        },
+        "incumbent_after_objective": 0.09056269377470016
+      },
+      {
+        "iteration": 2,
+        "accepted": true,
+        "alpha": 0.5,
+        "ess": 1.3310888832827992,
+        "feasible_candidates": 128,
+        "incumbent_before_objective": 0.09056269377470016,
+        "weighted_proposal_objective": 0.1304464191198349,
+        "weighted_proposal_feasible": true,
+        "accepted_validation": {
+          "maximum_temperature_K": 1043.919921875,
+          "minimum_outlet_conversion": 0.998492419719696,
+          "duration_s": 80.0,
+          "frame_dt_s": 0.25
+        },
+        "incumbent_after_objective": 0.08345413953065872
+      },
+      {
+        "iteration": 3,
+        "accepted": true,
+        "alpha": 0.125,
+        "ess": 5.810905049100772,
+        "feasible_candidates": 128,
+        "incumbent_before_objective": 0.08345413953065872,
+        "weighted_proposal_objective": 0.12557527422904968,
+        "weighted_proposal_feasible": true,
+        "accepted_validation": {
+          "maximum_temperature_K": 1043.895751953125,
+          "minimum_outlet_conversion": 0.9985117316246033,
+          "duration_s": 80.0,
+          "frame_dt_s": 0.25
+        },
+        "incumbent_after_objective": 0.08334879577159882
+      },
+      {
+        "iteration": 4,
+        "accepted": true,
+        "alpha": 0.25,
+        "ess": 4.715141619724706,
+        "feasible_candidates": 128,
+        "incumbent_before_objective": 0.08334879577159882,
+        "weighted_proposal_objective": 0.1094401553273201,
+        "weighted_proposal_feasible": true,
+        "accepted_validation": {
+          "maximum_temperature_K": 1043.73486328125,
+          "minimum_outlet_conversion": 0.9985626935958862,
+          "duration_s": 80.0,
+          "frame_dt_s": 0.25
+        },
+        "incumbent_after_objective": 0.08108699321746826
+      }
+    ],
+    "planning_failure": false,
+    "initial_validation": {
+      "maximum_temperature_K": 1044.58447265625,
+      "minimum_outlet_conversion": 0.9986490607261658,
+      "duration_s": 80.0,
+      "frame_dt_s": 0.25
+    },
+    "initial_objective": 0.11326898634433746,
+    "final_objective": 0.08108699321746826,
+    "runtime_s": 3.8701182501390576,
+    "accepted": 4,
+    "rejected": 0
+  },
+  {
+    "candidates": 128,
+    "seed": 19746,
+    "time_s": 0.0,
+    "iterations": [
+      {
+        "iteration": 1,
+        "accepted": true,
+        "alpha": 1.0,
+        "ess": 19.412553509657503,
+        "feasible_candidates": 128,
+        "incumbent_before_objective": 0.11326898634433746,
+        "weighted_proposal_objective": 0.08579200506210327,
+        "weighted_proposal_feasible": true,
+        "accepted_validation": {
+          "maximum_temperature_K": 1043.8883056640625,
+          "minimum_outlet_conversion": 0.9986488223075867,
+          "duration_s": 80.0,
+          "frame_dt_s": 0.25
+        },
+        "incumbent_after_objective": 0.08579200506210327
+      },
+      {
+        "iteration": 2,
+        "accepted": true,
+        "alpha": 0.5,
+        "ess": 11.940909644737285,
+        "feasible_candidates": 128,
+        "incumbent_before_objective": 0.08579200506210327,
+        "weighted_proposal_objective": 0.08599626272916794,
+        "weighted_proposal_feasible": true,
+        "accepted_validation": {
+          "maximum_temperature_K": 1043.9136962890625,
+          "minimum_outlet_conversion": 0.9985803365707397,
+          "duration_s": 80.0,
+          "frame_dt_s": 0.25
+        },
+        "incumbent_after_objective": 0.08334080129861832
+      },
+      {
+        "iteration": 3,
+        "accepted": false,
+        "alpha": 0.0,
+        "ess": 7.6342181567049785,
+        "feasible_candidates": 128,
+        "incumbent_before_objective": 0.08334080129861832,
+        "weighted_proposal_objective": 0.11446671932935715,
+        "weighted_proposal_feasible": true,
+        "incumbent_after_objective": 0.08334080129861832
+      },
+      {
+        "iteration": 4,
+        "accepted": false,
+        "alpha": 0.0,
+        "ess": 9.957399564733027,
+        "feasible_candidates": 128,
+        "incumbent_before_objective": 0.08334080129861832,
+        "weighted_proposal_objective": 0.11030801385641098,
+        "weighted_proposal_feasible": true,
+        "incumbent_after_objective": 0.08334080129861832
+      }
+    ],
+    "planning_failure": false,
+    "initial_validation": {
+      "maximum_temperature_K": 1044.58447265625,
+      "minimum_outlet_conversion": 0.9986490607261658,
+      "duration_s": 80.0,
+      "frame_dt_s": 0.25
+    },
+    "initial_objective": 0.11326898634433746,
+    "final_objective": 0.08334080129861832,
+    "runtime_s": 3.6764208748936653,
+    "accepted": 2,
+    "rejected": 2
+  },
+  {
+    "candidates": 256,
+    "seed": 19744,
+    "time_s": 0.0,
+    "iterations": [
+      {
+        "iteration": 1,
+        "accepted": true,
+        "alpha": 1.0,
+        "ess": 31.682054746921136,
+        "feasible_candidates": 256,
+        "incumbent_before_objective": 0.11326898634433746,
+        "weighted_proposal_objective": 0.08549709618091583,
+        "weighted_proposal_feasible": true,
+        "accepted_validation": {
+          "maximum_temperature_K": 1044.3343505859375,
+          "minimum_outlet_conversion": 0.9984827041625977,
+          "duration_s": 80.0,
+          "frame_dt_s": 0.25
+        },
+        "incumbent_after_objective": 0.08549709618091583
+      },
+      {
+        "iteration": 2,
+        "accepted": true,
+        "alpha": 0.25,
+        "ess": 30.509711297197843,
+        "feasible_candidates": 256,
+        "incumbent_before_objective": 0.08549709618091583,
+        "weighted_proposal_objective": 0.09401287138462067,
+        "weighted_proposal_feasible": true,
+        "accepted_validation": {
+          "maximum_temperature_K": 1044.24072265625,
+          "minimum_outlet_conversion": 0.9985467195510864,
+          "duration_s": 80.0,
+          "frame_dt_s": 0.25
+        },
+        "incumbent_after_objective": 0.08535350114107132
+      },
+      {
+        "iteration": 3,
+        "accepted": false,
+        "alpha": 0.0,
+        "ess": 21.672383177178407,
+        "feasible_candidates": 256,
+        "incumbent_before_objective": 0.08535350114107132,
+        "weighted_proposal_objective": 0.09728007763624191,
+        "weighted_proposal_feasible": true,
+        "incumbent_after_objective": 0.08535350114107132
+      },
+      {
+        "iteration": 4,
+        "accepted": false,
+        "alpha": 0.0,
+        "ess": 9.077691566769339,
+        "feasible_candidates": 256,
+        "incumbent_before_objective": 0.08535350114107132,
+        "weighted_proposal_objective": 0.10212285816669464,
+        "weighted_proposal_feasible": true,
+        "incumbent_after_objective": 0.08535350114107132
+      }
+    ],
+    "planning_failure": false,
+    "initial_validation": {
+      "maximum_temperature_K": 1044.58447265625,
+      "minimum_outlet_conversion": 0.9986490607261658,
+      "duration_s": 80.0,
+      "frame_dt_s": 0.25
+    },
+    "initial_objective": 0.11326898634433746,
+    "final_objective": 0.08535350114107132,
+    "runtime_s": 4.686366083100438,
+    "accepted": 2,
+    "rejected": 2
+  },
+  {
+    "candidates": 256,
+    "seed": 19745,
+    "time_s": 0.0,
+    "iterations": [
+      {
+        "iteration": 1,
+        "accepted": true,
+        "alpha": 1.0,
+        "ess": 25.660397396883667,
+        "feasible_candidates": 256,
+        "incumbent_before_objective": 0.11326898634433746,
+        "weighted_proposal_objective": 0.0908387079834938,
+        "weighted_proposal_feasible": true,
+        "accepted_validation": {
+          "maximum_temperature_K": 1044.04736328125,
+          "minimum_outlet_conversion": 0.9985653758049011,
+          "duration_s": 80.0,
+          "frame_dt_s": 0.25
+        },
+        "incumbent_after_objective": 0.0908387079834938
+      },
+      {
+        "iteration": 2,
+        "accepted": true,
+        "alpha": 1.0,
+        "ess": 12.502610870229093,
+        "feasible_candidates": 256,
+        "incumbent_before_objective": 0.0908387079834938,
+        "weighted_proposal_objective": 0.08744648844003677,
+        "weighted_proposal_feasible": true,
+        "accepted_validation": {
+          "maximum_temperature_K": 1044.14501953125,
+          "minimum_outlet_conversion": 0.9984442591667175,
+          "duration_s": 80.0,
+          "frame_dt_s": 0.25
+        },
+        "incumbent_after_objective": 0.08744648844003677
+      },
+      {
+        "iteration": 3,
+        "accepted": true,
+        "alpha": 0.125,
+        "ess": 1.863284359938938,
+        "feasible_candidates": 256,
+        "incumbent_before_objective": 0.08744648844003677,
+        "weighted_proposal_objective": 0.1221579983830452,
+        "weighted_proposal_feasible": true,
+        "accepted_validation": {
+          "maximum_temperature_K": 1044.3048095703125,
+          "minimum_outlet_conversion": 0.9984759092330933,
+          "duration_s": 80.0,
+          "frame_dt_s": 0.25
+        },
+        "incumbent_after_objective": 0.0867338702082634
+      },
+      {
+        "iteration": 4,
+        "accepted": true,
+        "alpha": 0.5,
+        "ess": 10.242275742757178,
+        "feasible_candidates": 256,
+        "incumbent_before_objective": 0.0867338702082634,
+        "weighted_proposal_objective": 0.09446059912443161,
+        "weighted_proposal_feasible": true,
+        "accepted_validation": {
+          "maximum_temperature_K": 1044.238037109375,
+          "minimum_outlet_conversion": 0.9985295534133911,
+          "duration_s": 80.0,
+          "frame_dt_s": 0.25
+        },
+        "incumbent_after_objective": 0.086155965924263
+      }
+    ],
+    "planning_failure": false,
+    "initial_validation": {
+      "maximum_temperature_K": 1044.58447265625,
+      "minimum_outlet_conversion": 0.9986490607261658,
+      "duration_s": 80.0,
+      "frame_dt_s": 0.25
+    },
+    "initial_objective": 0.11326898634433746,
+    "final_objective": 0.086155965924263,
+    "runtime_s": 4.231683709193021,
+    "accepted": 4,
+    "rejected": 0
+  },
+  {
+    "candidates": 256,
+    "seed": 19746,
+    "time_s": 0.0,
+    "iterations": [
+      {
+        "iteration": 1,
+        "accepted": true,
+        "alpha": 1.0,
+        "ess": 35.89070169531406,
+        "feasible_candidates": 256,
+        "incumbent_before_objective": 0.11326898634433746,
+        "weighted_proposal_objective": 0.08026554435491562,
+        "weighted_proposal_feasible": true,
+        "accepted_validation": {
+          "maximum_temperature_K": 1043.926513671875,
+          "minimum_outlet_conversion": 0.9986478686332703,
+          "duration_s": 80.0,
+          "frame_dt_s": 0.25
+        },
+        "incumbent_after_objective": 0.08026554435491562
+      },
+      {
+        "iteration": 2,
+        "accepted": false,
+        "alpha": 0.0,
+        "ess": 19.061804852251687,
+        "feasible_candidates": 256,
+        "incumbent_before_objective": 0.08026554435491562,
+        "weighted_proposal_objective": 0.10509347170591354,
+        "weighted_proposal_feasible": true,
+        "incumbent_after_objective": 0.08026554435491562
+      },
+      {
+        "iteration": 3,
+        "accepted": false,
+        "alpha": 0.0,
+        "ess": 27.331120530874852,
+        "feasible_candidates": 256,
+        "incumbent_before_objective": 0.08026554435491562,
+        "weighted_proposal_objective": 0.09047500789165497,
+        "weighted_proposal_feasible": true,
+        "incumbent_after_objective": 0.08026554435491562
+      },
+      {
+        "iteration": 4,
+        "accepted": true,
+        "alpha": 1.0,
+        "ess": 16.9521090387396,
+        "feasible_candidates": 256,
+        "incumbent_before_objective": 0.08026554435491562,
+        "weighted_proposal_objective": 0.07867059111595154,
+        "weighted_proposal_feasible": true,
+        "accepted_validation": {
+          "maximum_temperature_K": 1043.89404296875,
+          "minimum_outlet_conversion": 0.998568058013916,
+          "duration_s": 80.0,
+          "frame_dt_s": 0.25
+        },
+        "incumbent_after_objective": 0.07867059111595154
+      }
+    ],
+    "planning_failure": false,
+    "initial_validation": {
+      "maximum_temperature_K": 1044.58447265625,
+      "minimum_outlet_conversion": 0.9986490607261658,
+      "duration_s": 80.0,
+      "frame_dt_s": 0.25
+    },
+    "initial_objective": 0.11326898634433746,
+    "final_objective": 0.07867059111595154,
+    "runtime_s": 3.688662000000477,
+    "accepted": 2,
+    "rejected": 2
+  },
+  {
+    "candidates": 512,
+    "seed": 19744,
+    "time_s": 0.0,
+    "iterations": [
+      {
+        "iteration": 1,
+        "accepted": true,
+        "alpha": 1.0,
+        "ess": 65.27734849871962,
+        "feasible_candidates": 512,
+        "incumbent_before_objective": 0.11326898634433746,
+        "weighted_proposal_objective": 0.0849282294511795,
+        "weighted_proposal_feasible": true,
+        "accepted_validation": {
+          "maximum_temperature_K": 1044.04345703125,
+          "minimum_outlet_conversion": 0.9986313581466675,
+          "duration_s": 80.0,
+          "frame_dt_s": 0.25
+        },
+        "incumbent_after_objective": 0.0849282294511795
+      },
+      {
+        "iteration": 2,
+        "accepted": false,
+        "alpha": 0.0,
+        "ess": 46.341208334759784,
+        "feasible_candidates": 512,
+        "incumbent_before_objective": 0.0849282294511795,
+        "weighted_proposal_objective": 0.08986673504114151,
+        "weighted_proposal_feasible": true,
+        "incumbent_after_objective": 0.0849282294511795
+      },
+      {
+        "iteration": 3,
+        "accepted": true,
+        "alpha": 1.0,
+        "ess": 14.483086244119479,
+        "feasible_candidates": 512,
+        "incumbent_before_objective": 0.0849282294511795,
+        "weighted_proposal_objective": 0.08472388237714767,
+        "weighted_proposal_feasible": true,
+        "accepted_validation": {
+          "maximum_temperature_K": 1044.1763916015625,
+          "minimum_outlet_conversion": 0.9984766244888306,
+          "duration_s": 80.0,
+          "frame_dt_s": 0.25
+        },
+        "incumbent_after_objective": 0.08472388237714767
+      },
+      {
+        "iteration": 4,
+        "accepted": true,
+        "alpha": 0.25,
+        "ess": 9.03226098264037,
+        "feasible_candidates": 512,
+        "incumbent_before_objective": 0.08472388237714767,
+        "weighted_proposal_objective": 0.08866366744041443,
+        "weighted_proposal_feasible": true,
+        "accepted_validation": {
+          "maximum_temperature_K": 1044.208984375,
+          "minimum_outlet_conversion": 0.9985005259513855,
+          "duration_s": 80.0,
+          "frame_dt_s": 0.25
+        },
+        "incumbent_after_objective": 0.08461513370275497
+      }
+    ],
+    "planning_failure": false,
+    "initial_validation": {
+      "maximum_temperature_K": 1044.58447265625,
+      "minimum_outlet_conversion": 0.9986490607261658,
+      "duration_s": 80.0,
+      "frame_dt_s": 0.25
+    },
+    "initial_objective": 0.11326898634433746,
+    "final_objective": 0.08461513370275497,
+    "runtime_s": 7.351576500106603,
+    "accepted": 3,
+    "rejected": 1
+  },
+  {
+    "candidates": 512,
+    "seed": 19745,
+    "time_s": 0.0,
+    "iterations": [
+      {
+        "iteration": 1,
+        "accepted": true,
+        "alpha": 1.0,
+        "ess": 55.22642194598801,
+        "feasible_candidates": 512,
+        "incumbent_before_objective": 0.11326898634433746,
+        "weighted_proposal_objective": 0.08712300658226013,
+        "weighted_proposal_feasible": true,
+        "accepted_validation": {
+          "maximum_temperature_K": 1043.976806640625,
+          "minimum_outlet_conversion": 0.9986434578895569,
+          "duration_s": 80.0,
+          "frame_dt_s": 0.25
+        },
+        "incumbent_after_objective": 0.08712300658226013
+      },
+      {
+        "iteration": 2,
+        "accepted": true,
+        "alpha": 0.5,
+        "ess": 43.31920493045184,
+        "feasible_candidates": 512,
+        "incumbent_before_objective": 0.08712300658226013,
+        "weighted_proposal_objective": 0.08770973235368729,
+        "weighted_proposal_feasible": true,
+        "accepted_validation": {
+          "maximum_temperature_K": 1043.99560546875,
+          "minimum_outlet_conversion": 0.9986495971679688,
+          "duration_s": 80.0,
+          "frame_dt_s": 0.25
+        },
+        "incumbent_after_objective": 0.08638253808021545
+      },
+      {
+        "iteration": 3,
+        "accepted": true,
+        "alpha": 0.25,
+        "ess": 43.492048939318266,
+        "feasible_candidates": 512,
+        "incumbent_before_objective": 0.08638253808021545,
+        "weighted_proposal_objective": 0.08928833156824112,
+        "weighted_proposal_feasible": true,
+        "accepted_validation": {
+          "maximum_temperature_K": 1043.960205078125,
+          "minimum_outlet_conversion": 0.9986492991447449,
+          "duration_s": 80.0,
+          "frame_dt_s": 0.25
+        },
+        "incumbent_after_objective": 0.08616099506616592
+      },
+      {
+        "iteration": 4,
+        "accepted": true,
+        "alpha": 0.5,
+        "ess": 47.40060076225283,
+        "feasible_candidates": 512,
+        "incumbent_before_objective": 0.08616099506616592,
+        "weighted_proposal_objective": 0.08748787641525269,
+        "weighted_proposal_feasible": true,
+        "accepted_validation": {
+          "maximum_temperature_K": 1044.001953125,
+          "minimum_outlet_conversion": 0.998648464679718,
+          "duration_s": 80.0,
+          "frame_dt_s": 0.25
+        },
+        "incumbent_after_objective": 0.08587180823087692
+      }
+    ],
+    "planning_failure": false,
+    "initial_validation": {
+      "maximum_temperature_K": 1044.58447265625,
+      "minimum_outlet_conversion": 0.9986490607261658,
+      "duration_s": 80.0,
+      "frame_dt_s": 0.25
+    },
+    "initial_objective": 0.11326898634433746,
+    "final_objective": 0.08587180823087692,
+    "runtime_s": 6.36006125016138,
+    "accepted": 4,
+    "rejected": 0
+  },
+  {
+    "candidates": 512,
+    "seed": 19746,
+    "time_s": 0.0,
+    "iterations": [
+      {
+        "iteration": 1,
+        "accepted": true,
+        "alpha": 1.0,
+        "ess": 56.65384402941317,
+        "feasible_candidates": 512,
+        "incumbent_before_objective": 0.11326898634433746,
+        "weighted_proposal_objective": 0.08307357132434845,
+        "weighted_proposal_feasible": true,
+        "accepted_validation": {
+          "maximum_temperature_K": 1043.919921875,
+          "minimum_outlet_conversion": 0.998648464679718,
+          "duration_s": 80.0,
+          "frame_dt_s": 0.25
+        },
+        "incumbent_after_objective": 0.08307357132434845
+      },
+      {
+        "iteration": 2,
+        "accepted": true,
+        "alpha": 0.5,
+        "ess": 26.92256148576043,
+        "feasible_candidates": 512,
+        "incumbent_before_objective": 0.08307357132434845,
+        "weighted_proposal_objective": 0.0833439752459526,
+        "weighted_proposal_feasible": true,
+        "accepted_validation": {
+          "maximum_temperature_K": 1043.89306640625,
+          "minimum_outlet_conversion": 0.9986492991447449,
+          "duration_s": 80.0,
+          "frame_dt_s": 0.25
+        },
+        "incumbent_after_objective": 0.08207835257053375
+      },
+      {
+        "iteration": 3,
+        "accepted": false,
+        "alpha": 0.0,
+        "ess": 32.395572422129796,
+        "feasible_candidates": 512,
+        "incumbent_before_objective": 0.08207835257053375,
+        "weighted_proposal_objective": 0.09157692641019821,
+        "weighted_proposal_feasible": true,
+        "incumbent_after_objective": 0.08207835257053375
+      },
+      {
+        "iteration": 4,
+        "accepted": true,
+        "alpha": 0.25,
+        "ess": 23.846420928955506,
+        "feasible_candidates": 512,
+        "incumbent_before_objective": 0.08207835257053375,
+        "weighted_proposal_objective": 0.08402688056230545,
+        "weighted_proposal_feasible": true,
+        "accepted_validation": {
+          "maximum_temperature_K": 1044.080078125,
+          "minimum_outlet_conversion": 0.998603343963623,
+          "duration_s": 80.0,
+          "frame_dt_s": 0.25
+        },
+        "incumbent_after_objective": 0.0820741280913353
+      }
+    ],
+    "planning_failure": false,
+    "initial_validation": {
+      "maximum_temperature_K": 1044.58447265625,
+      "minimum_outlet_conversion": 0.9986490607261658,
+      "duration_s": 80.0,
+      "frame_dt_s": 0.25
+    },
+    "initial_objective": 0.11326898634433746,
+    "final_objective": 0.0820741280913353,
+    "runtime_s": 5.938628999982029,
+    "accepted": 3,
+    "rejected": 1
+  }
+]

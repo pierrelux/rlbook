@@ -30,6 +30,7 @@ from trajectory_optimization import SolverOptions, solve_trajectory  # noqa: E40
 
 STATIC = ROOT / "_static" / "thermoacoustic_pulldown"
 ARTIFACTS = ROOT / "artifacts" / "thermoacoustic_pulldown"
+REPLAY_DATA = ROOT / "interactive" / "thermoacoustic-refrigerator-data.json"
 BLUE, ORANGE = "#0072B2", "#D55E00"
 GREEN, PURPLE, GRAY = "#009E73", "#CC79A7", "#666666"
 METHOD_LABEL = {"ilqr": "iLQR", "ddp": "DDP"}
@@ -186,6 +187,61 @@ def comparison_report(problem, parameters):
     }
 
 
+def write_replay_data(reports, full_amplitude, provenance):
+    """Write the compact plan data read by interactive/thermoacoustic-refrigerator.html.
+
+    The page replays these fixed open-loop plans and recomputes only the
+    instantaneous flows, the running costs, and the constant-amplitude
+    comparison; it never reruns the optimizer. States and controls are
+    rounded to 6 decimals (about 1e-6 K), far inside the tests' tolerance.
+    """
+    def rounded(array):
+        return np.round(np.asarray(array, dtype=float), 6).tolist()
+
+    def run_entry(report):
+        return {
+            "status": report["status"],
+            "cost": report["cost"],
+            "energy_J": report["energy_J"],
+            "terminal_cold_C": report["terminal_cold_C"],
+            "terminal_hot_C": report["terminal_hot_C"],
+            "target_reached": report["target_reached"],
+            "accepted_costs": report["accepted_costs"],
+            "states": rounded(report["states"]),
+            "controls": rounded(np.asarray(report["controls"])[:, 0]),
+        }
+
+    scenarios = {}
+    for key, cfg in SCENARIOS.items():
+        scenarios[key] = {
+            "name": cfg["name"],
+            "target_reachable": cfg["target_reachable"],
+            "parameters": asdict(cfg["parameters"]),
+            "runs": {report["method"]: run_entry(report) for report in reports
+                     if report["scenario"] == key},
+        }
+    data = {
+        "schema_version": 1,
+        "parameters": asdict(FridgeParameters()),
+        "state_columns": ["cold_temperature_C", "hot_temperature_C"],
+        "control_columns": ["driver_amplitude_fraction"],
+        "provenance": provenance,
+        "scenarios": scenarios,
+        "full_amplitude_comparison": {
+            "scenario": "baseline",
+            "amplitude": 1.0,
+            "cost": float(full_amplitude["cost"]),
+            "energy_J": full_amplitude["energy_J"],
+            "terminal_cold_C": full_amplitude["terminal_cold_C"],
+            "terminal_hot_C": full_amplitude["terminal_hot_C"],
+            "states": rounded(full_amplitude["states"]),
+            "controls": rounded(np.asarray(full_amplitude["controls"])[:, 0]),
+        },
+    }
+    REPLAY_DATA.write_text(
+        json.dumps(data, separators=(",", ":"), allow_nan=False) + "\n")
+
+
 def source_provenance(options):
     source_files = [
         "code/trajectory_optimization.py",
@@ -241,7 +297,12 @@ def write_readme():
         "accepted costs, energy, status, and replay checks;\n"
         "- `results.md`: the chapter's numerical comparison;\n"
         "- `../../_static/thermoacoustic_pulldown/`: matching SVG, PDF, and PNG "
-        "teaching figures.\n\n"
+        "teaching figures (the two-panel schematic `geometry.{svg,pdf,png}` in "
+        "that folder is not written here; regenerate it with "
+        "`uv run python code/thermoacoustic_geometry.py`);\n"
+        "- `../../interactive/thermoacoustic-refrigerator-data.json`: recorded "
+        "plans and the constant full-amplitude rollout for the chapter's "
+        "browser replay.\n\n"
         "The state columns are cold and hot temperatures in degrees Celsius. "
         "Controls are driver-amplitude fractions in [0, 1]. One RK4 step lasts "
         "1 s, and the 300 controls cover a fixed 300 s horizon. Energy is the "
@@ -325,6 +386,7 @@ def main():
 
     figures(results, full_amplitude, baseline_parameters)
     provenance = source_provenance(options)
+    write_replay_data(reports, full_amplitude, provenance)
     data = {
         "schema_version": 1,
         "parameters": asdict(FridgeParameters()),

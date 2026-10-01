@@ -16,3 +16,29 @@ PEDAGOGICAL_GUIDELINES.md
 .github/
 tmp/
 outputs/
+
+# Research moved to ~/Documents/llm-serving-dvfs on 2026-09-10 (manifest sha256 32d80b00).
+# Keep it out of this public textbook. Only files that chapters link stay here.
+/artifacts/inference_serving/voltana-*/
+/artifacts/inference_serving/literature-methodology-*/
+/cloud-validation/
+/code/voltana_*.py
+/scripts/*voltana*
+/tests/test_voltana_*.py
+/artifacts/inference_serving/live_control_development/*
+!/artifacts/inference_serving/live_control_development/README.md
+!/artifacts/inference_serving/live_control_development/batch_calibration.csv
+!/artifacts/inference_serving/live_control_development/thermal_history_development.json
+!/artifacts/inference_serving/live_control_development/thermal_history_development_live_v2.json
+/artifacts/inference_serving/live_control_preparation/*
+!/artifacts/inference_serving/live_control_preparation/adaptive-study-v3/
+/artifacts/inference_serving/live_control_preparation/adaptive-study-v3/*
+!/artifacts/inference_serving/live_control_preparation/adaptive-study-v3/final-delivery-v1/
+/artifacts/inference_serving/live_control_preparation/adaptive-study-v3/final-delivery-v1/*
+!/artifacts/inference_serving/live_control_preparation/adaptive-study-v3/final-delivery-v1/article/
+/artifacts/inference_serving/live_control_preparation/adaptive-study-v3/final-delivery-v1/article/*
+!/artifacts/inference_serving/live_control_preparation/adaptive-study-v3/final-delivery-v1/article/article.pdf
+
+# Local tooling
+.DS_Store
+.claude/worktrees/

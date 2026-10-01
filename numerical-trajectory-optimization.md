@@ -40,7 +40,24 @@ There are multiple ways to arrive at (and benefit from) this NLP:
 * Sequential (recursive elimination / single shooting): eliminate states by forward propagation from the initial condition, leaving controls as the main decision variables. This reduces dimension and constraints, but can be sensitive to initialization and longer horizons.
 * Multiple shooting: introduce state variables at segment boundaries and enforce continuity between simulated segments. This compromises between size and conditioning and is often more robust than pure single shooting.
 
-The next sections work through these formulations, starting with simultaneous methods, then sequential methods, and finally multiple shooting, before discussing how generic NLP solvers and specialized algorithms leverage the resulting structure in practice.
+## Learning Goals
+
+After working through the examples and exercises, you should be able to:
+
+- Formulate simultaneous, single-shooting, and multiple-shooting programs.
+- Compare their variables, constraints, sparsity, and sensitivity paths.
+- Differentiate a rollout in reverse mode to measure how each control affects
+  the terminal state, and relate that sensitivity to the conditioning of a
+  shooting program.
+- Construct continuity defects between independently simulated segments and
+  check a computed trajectory against its dynamics and constraints.
+
+## Prerequisites
+
+The formulations use the [finite-horizon optimal-control problem](discrete-time-optimal-control.md)
+and its [Pontryagin recursion](discrete-time-pmp.md). The
+[nonlinear-programming appendix](appendix_nlp.md) reviews constrained
+optimization, derivatives, and numerical solvers.
 
 ## Simultaneous Methods
 
@@ -307,6 +324,201 @@ Feedback changes the object being computed. A feedback controller maps the state
 
 {download}`Download the complete cart-pole trajectory-optimization and control source <code/cartpole_control.py>`.
 
+
+
+(sec-truck-alley-dock)=
+### Example: Alley-Docking a Semi Truck
+
+The cart-pole comparison kept the solver fixed and changed the decision
+variables. This example stays with single shooting and asks what its one long
+rollout does to the derivatives the optimizer receives. A tractor-semitrailer
+backing into a loading bay is a useful test because the rig has a well-known
+instability: in reverse, a small steering error grows into a jackknife unless
+it is corrected. That growth is the long product of dynamics Jacobians
+mentioned above, and it can be measured on the solution.
+
+**The model.** The state is the tractor's rear-axle position $(p_x, p_y)$,
+the tractor heading $\theta_0$, and the trailer heading $\theta_1$. The fifth
+wheel sits over the tractor's rear axle, and the trailer axle trails it by
+$L_1 = 10\ \mathrm m$ along the trailer axis. The controls are the tractor
+speed $v$ and the steering angle $\delta$, which act through the kinematic
+model
+
+$$
+\dot p_x = v\cos\theta_0,\qquad
+\dot p_y = v\sin\theta_0,\qquad
+\dot\theta_0 = \frac{v}{L_0}\tan\delta,\qquad
+\dot\theta_1 = \frac{v}{L_1}\sin(\theta_0-\theta_1),
+$$
+
+with tractor wheelbase $L_0 = 4.5\ \mathrm m$. The hitch angle
+$\beta = \theta_0 - \theta_1$ is zero when the rig is straight. The controls
+are held constant over intervals of $0.25\ \mathrm s$, each integrated with
+one RK4 step, and $T = 160$ intervals cover a fixed $40\ \mathrm s$
+maneuver. Speed is bounded by $\pm 1.5\ \mathrm{m/s}$ and steering by
+$\pm 30^\circ$.
+
+**The maneuver.** The dock face is the line $p_y = 0$ and the bay is
+centered on $p_x = 0$. The rig starts in a lane parallel to the dock,
+$19\ \mathrm m$ out, pointing along $+x$ with the trailer behind it. It must
+end straight and pointing away from the dock, with the trailer's rear bumper
+$0.5\ \mathrm m$ from the face. A second scenario exchanges the endpoints:
+the rig starts docked and must pull out to the lane position.
+
+**The program.** Single shooting keeps only the $2T = 320$ control values
+as decision variables. The objective is the cost of the rollout they
+generate,
+
+$$
+J(\mathbf u) = \sum_{t=0}^{T-1} c\bigl(\boldsymbol\phi_t(\mathbf u,\mathbf x_0),\mathbf u_t\bigr) + r(\mathbf u) + c_T\bigl(\boldsymbol\phi_T(\mathbf u,\mathbf x_0)\bigr).
+$$
+
+The stage cost charges speed, steering, and the distance between the trailer
+axle and its target, and adds two smooth penalties evaluated on the
+rolled-out state: one for any body corner closer than $0.2\ \mathrm m$ to the
+dock face and one for hitch angles beyond $60^\circ$. These are state
+constraints of the kind discussed above, and in this formulation each one
+becomes a function of every earlier control. The term $r(\mathbf u)$ depends
+on the controls alone. It charges changes between consecutive intervals and a
+moving final interval. The terminal cost penalizes the trailer-axle position
+error, the trailer heading error, and the hitch angle. The control bounds
+stay explicit and are handled by the solver.
+
+The implementation follows {prf:ref}`single-shooting-forward-unroll`. A
+`jax.lax.scan` rollout produces the states, the cost is accumulated along
+it, and `jax.value_and_grad` returns $J(\mathbf u)$ with its gradient by
+reverse mode. SciPy's L-BFGS-B receives both, together with the box on each
+control, and stops when the projected gradient falls below $10^{-5}$ or the
+relative decrease of $J$ falls below $10^{-10}$. The seed is a straight creep
+at $0.5\ \mathrm{m/s}$ in the relevant direction: backing for the docking
+scenario and forward for the pull-out.
+
+:::{figure} _static/truck_parking/iterations.svg
+:label: fig-truck-iterations
+:width: 100%
+
+Four L-BFGS-B iterates of the backing solve. Each panel is a complete
+rollout of the current control sequence, with the trailer-axle path in blue
+and rig outlines every ten seconds; the dotted outline is the target. The
+seed backs straight along the lane. By iteration 10 the trailer swings toward
+the bay, and the final plan docks it.
+:::
+
+:::{iframe} ../interactive/truck-parking.html
+:label: fig-truck-paths
+:width: 100%
+:title: Semi-truck alley dock by single shooting
+:class: truck-parking-replay
+:placeholder: _static/truck_parking/paths.svg
+
+Final plans for both scenarios. The blue curve is the trailer axle, the
+dashed orange curve the tractor axle, and the dotted gray line the straight
+seed. Outlines show the rig every five seconds. In the online book this
+figure is a replay: choose a scenario and an optimizer checkpoint, then
+scrub or play simulation time within that fixed plan. The path ahead and the
+translucent outlines show the plan's remaining states; the tiles and plots
+belong to the selected checkpoint, including early ones that do not dock.
+:::
+
+:::{include} artifacts/truck_parking/results.md
+:::
+
+Both solves stop on a small relative decrease of the objective and pass the
+arrival checks, which replay the final controls with four RK4 substeps per
+interval. Backing needed 821 iterations and 1750 objective evaluations,
+pulling out 510 and 1044. The docking plan backs at the speed limit for the
+first 17 seconds. Its steering starts at $+21^\circ$, which bends the rig,
+sweeps through zero, and reaches $-29^\circ$ at 17 seconds as the trailer
+swings toward the bay; speed and steering then relax together as the rig
+straightens. The hitch angle peaks near $45^\circ$, inside the $60^\circ$
+limit ({numref}`fig-truck-plan`). The pull-out plan overshoots the lane
+position slightly and backs up to straighten the rig, which is why its
+distance is longer.
+
+:::{figure} _static/truck_parking/plan.svg
+:label: fig-truck-plan
+:width: 100%
+
+Left: the final backing plan, that is, the 320 numbers the optimizer
+returns. Speed saturates at the reverse limit and steering approaches its
+$30^\circ$ limit before both relax as the rig straightens. Right: the hitch
+angle along both final plans; dotted lines mark the $60^\circ$ penalty
+threshold.
+:::
+
+**Measuring the sensitivity chain.** Subtracting the two heading equations
+gives a closed equation for the hitch angle,
+
+$$
+\dot\beta = \frac{v}{L_0}\tan\delta - \frac{v}{L_1}\sin\beta .
+$$
+
+Along a given plan, a small hitch perturbation $\Delta\beta$ evolves as
+$\Delta\dot\beta = -(v\cos\beta/L_1)\,\Delta\beta$. Driving forward, $v>0$,
+the coefficient is negative and the perturbation decays. Backing, $v<0$, it is
+positive and the perturbation grows: this is the jackknife instability. Over
+one control interval of length $\Delta t$ the perturbation is multiplied by
+$\exp(-v\cos\beta\,\Delta t/L_1)$, and the effect of a steering change at
+interval $t$ on the terminal hitch angle is the product of these factors over
+all later intervals. For a straight rig the product is $\exp(d_t/L_1)$, where
+$d_t$ is the distance still to be backed after interval $t$: every ten metres
+of backing multiplies an uncorrected hitch error by $e$.
+
+This product is what reverse-mode differentiation computes through the
+rollout. {numref}`fig-truck-conditioning` compares the two. The dots are
+$\partial\beta_T/\partial\delta_t$ from `jax.jacrev`, divided by the tractor
+heading change that the same steering causes within interval $t$, so that a
+value of one means the rest of the rollout neither amplifies nor attenuates
+the error. The lines are the products of per-interval factors along the same
+plan. They agree to within half a percent. For the backing plan, a steering
+error at the start of the maneuver is amplified fourteen times by the time
+the trailer reaches the dock. For the same path driven forward, obtained by
+reversing the control sequence and the sign of the speed, an early steering
+error is attenuated to $0.07$ of its immediate effect, because the trailer
+follows the tractor and forgets.
+
+:::{figure} _static/truck_parking/conditioning.svg
+:label: fig-truck-conditioning
+:width: 100%
+
+Left: amplification of a steering perturbation into the terminal hitch
+angle, per control interval, for the final backing plan and for the same
+path driven forward. Dots come from reverse-mode differentiation of the
+rollout; lines are products of the linearized per-interval hitch Jacobians.
+Intervals with speed below $0.1\ \mathrm{m/s}$ are omitted because a
+stationary tractor cannot steer. Right: objective value at every L-BFGS-B
+iteration for the two scenarios, which start from the same seed cost.
+:::
+
+The consequence for the optimizer appears in the right panel. At the seed,
+the gradient of $J$ with respect to the first steering angle is about 800 in
+the backing scenario and about 200 in the pull-out, while the gradient with
+respect to the last steering angle is 0.04 in both. The curvature of $J$
+varies across the decision vector in the same way, more strongly for backing.
+The backing solve descends more slowly, stops later, and ends with a
+projected gradient roughly three times larger than the pull-out solve. Two
+local solves do not establish a general rule, but they show the mechanism:
+eliminating the states did not remove the dynamics from the problem, it moved
+them into the derivatives. A longer backing distance multiplies the
+amplification by $e$ every ten metres, and the formulation of the next
+section shortens that chain by keeping selected states as variables.
+
+:::{dropdown} Inspect the reduced objective and the L-BFGS-B driver
+```{literalinclude} code/truck_parking.py
+:language: python
+:start-at: def shooting_objective
+:end-before: def terminal_sensitivity
+:linenos:
+```
+:::
+
+- {download}`Truck model, costs, solver, and sensitivity <code/truck_parking.py>`
+- {download}`Experiment and figure builder <scripts/build_truck_parking_artifacts.py>`
+- {download}`Numerical diagnostics and source hashes <artifacts/truck_parking/metrics.json>`
+
+Run `uv run python scripts/build_truck_parking_artifacts.py` from the
+repository root to reproduce the solves, figures, tables, and replay data.
+Normal book builds read those artifacts.
 
 
 ## In Between Sequential and Simultaneous
@@ -1155,13 +1367,20 @@ The figure shows the result of a multiple-shooting optimization applied to a thr
 
 The top-left panel shows the water levels in each reservoir. We observe that upstream reservoirs tend to increase their levels ahead of discharge events, building potential energy before releasing water downstream. The top-right panel shows turbine discharges for each reach. These vary smoothly and are temporally coordinated across the system. The bottom-right panel compares the total generation to a synthetic demand profile, which is generated by a sum of time-shifted sigmoids and normalized to be feasible given turbine capacities. The optimized schedule (orange) tracks this demand closely, while the initial guess (blue) lags behind. The bottom-left panel plots the routed inflows between reaches, which display the expected lag and smoothing effects from Muskingum routing. The interplay between these plots shows how the system anticipates, stores, and routes water to meet time-varying generation targets within physical and operational limits.
 
-The ballistic and hydro examples use the same numerical structure at different scales: integrate locally, expose states at segment boundaries, and drive every continuity defect to zero. We now return to the first-order optimality conditions of the underlying discrete-time program.
+The ballistic and hydro examples use the same numerical structure at different
+scales: integrate locally, expose states at segment boundaries, and drive every
+continuity defect to zero. Introducing these boundary states changes the
+optimization variables and their coupling, independently of whether the
+underlying physical model includes random disturbances.
 
 ## Summary and Outlook
 
 Direct transcription keeps states and controls explicit and exposes sparse
 dynamics constraints. Single shooting eliminates the states but couples early
-actions to every later quantity through one rollout. Multiple shooting keeps
+actions to every later quantity through one rollout. The truck alley-dock
+example measured that coupling: reverse-mode derivatives through the rollout
+reproduce the product of per-interval hitch Jacobians, and backing amplifies
+an early steering error that forward driving forgets. Multiple shooting keeps
 selected boundary states, trading additional variables for shorter sensitivity
 paths and sparse continuity defects.
 
@@ -1170,8 +1389,14 @@ uses this temporal structure to solve successive local quadratic problems by
 backward elimination. Its boat-docking example follows both the optimizer's
 iterations and the vessel's predicted motion along a selected plan.
 
+The transcription formulations use a discrete transition map.
 [Continuous-time transcription and collocation](continuous-time-collocation.md)
 develops nodal polynomial representations directly from differential equations.
+The subsequent [MPPI chapter](model-predictive-path-integral-control.md) returns
+to the single-shooting rollout, sampling candidate control sequences and
+combining them according to their costs. For models with uncertain
+disturbances, several simulated futures estimate each candidate's expected
+cost.
 
 ## Exercises
 
@@ -1223,7 +1448,7 @@ By symmetry the optimal controls are equal, $u_t = -x_1/T = -0.1$, which gives $
 :::{exercise} Multiple shooting segments
 :label: ex-trajectories-multiple-shooting
 
-Using the same problem as Exercise 5, implement multiple shooting with $K = 3$ segments.
+Using the problem in @ex-trajectories-single-shooting, implement multiple shooting with $K = 3$ segments.
 
 **(a)** Define the segment boundaries and the continuity defects.
 
@@ -1241,6 +1466,52 @@ The defects are $d_k = x_{k+1}^{\text{simulated}} - x_{k+1}^{\text{variable}}$ a
 
 ---
 
+:::{exercise} Truck parking with a first-order optimizer
+:label: ex-trajectories-truck-first-order
+
+The alley-dock example in @sec-truck-alley-dock minimizes $J(\mathbf u)$ with
+L-BFGS-B. Using the downloadable model, replace the solver by projected
+gradient descent with a fixed step, projecting each iterate onto the control
+box after every update.
+
+**(a)** At the seed, the gradient with respect to the first steering angle is
+about $800$ and with respect to the last one about $0.04$. Using the
+amplification profile of {numref}`fig-truck-conditioning`, explain why a step
+size that is stable for the first steering controls makes almost no progress
+on the last ones.
+
+**(b)** Run projected gradient descent from the same straight seed for the
+same number of objective evaluations that L-BFGS-B used, and compare the
+reached cost and the arrival checks reported by `audit`.
+
+**(c)** Repeat with Adam, which rescales each coordinate by a running
+estimate of its gradient magnitude. Does per-coordinate rescaling remove the
+difficulty, or only part of it?
+
+:::
+
+:::{solution} ex-trajectories-truck-first-order
+:class: dropdown
+
+**(a)** The stable step for gradient descent is bounded by the largest
+curvature of $J$, which the first steering controls set because their effect
+on the terminal cost is amplified through the whole backing rollout. The
+same step multiplied by a gradient component of $0.04$ moves the last
+controls by a negligible amount, so progress along those directions takes
+thousands of iterations.
+
+**(b)** With a matched evaluation budget, projected gradient descent
+typically stops far from the L-BFGS-B cost, and the arrival checks fail on
+heading or hitch angle. Increasing the step to speed up the late controls
+makes the early ones oscillate.
+
+**(c)** Adam rescales each coordinate and therefore reaches a docking plan
+in a few thousand iterations, but the coupling between early and late
+controls is off-diagonal and remains: its cost after several thousand
+iterations is still above the L-BFGS-B value obtained in fewer than a
+thousand.
+:::
+
 ## Self-checks
 
 :::{exercise} Count the decisions
@@ -1252,7 +1523,9 @@ A single-shooting problem has horizon $T$ and scalar controls. How many optimiza
 :::{solution} ex-trajectories-check-1
 :class: dropdown
 
-There are $T$ control variables. Forward simulation couples every early control to all later states and therefore to the terminal cost.
+With the chapter's states $x_1,\ldots,x_T$, there are $T-1$ control variables.
+Forward simulation couples every early control to all later states and
+therefore to the terminal cost.
 :::
 
 :::{exercise} Shooting trade-off
@@ -1265,4 +1538,21 @@ Why can multiple shooting be easier to optimize than single shooting even though
 :class: dropdown
 
 Intermediate states break a long sensitive rollout into shorter segments. The resulting continuity constraints are sparse, and derivatives need not propagate through the full horizon in one chain.
+:::
+
+:::{exercise} Direction of travel
+:label: ex-trajectories-check-direction
+
+In the truck example, the same path is driven backward in one plan and forward in the other. Why does an early steering error matter fourteen times more in one direction and fourteen times less in the other?
+:::
+
+:::{solution} ex-trajectories-check-direction
+:class: dropdown
+
+The hitch angle obeys $\dot\beta = (v/L_0)\tan\delta - (v/L_1)\sin\beta$.
+Its linearization has coefficient $-v\cos\beta/L_1$: negative when driving
+forward, so deviations decay, and positive when backing, so they grow. The
+terminal sensitivity to an early steering change is the product of these
+per-interval factors, which reverse-mode differentiation of the rollout
+computes exactly.
 :::

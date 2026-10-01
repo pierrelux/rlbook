@@ -590,6 +590,12 @@ randomization they use, then evaluates each action by averaging its continuation
 value over the transition kernel. Finite-horizon optimality remains a backward
 recursion because the terminal date supplies the boundary condition.
 
+For continuous-time systems driven by Gaussian disturbances, the same
+short-time recursion gives the Hamilton--Jacobi--Bellman equation.
+[Path-integral stochastic control](path-integral-stochastic-control.md)
+examines a class of such systems for which optimal feedback can be
+estimated from weighted trajectories.
+
 What replaces that boundary when decisions continue indefinitely? [The
 infinite-horizon formulation](infinite-horizon-mdps.md) uses discounting to
 obtain bounded value functions and fixed-point equations whose solutions no

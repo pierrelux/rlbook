@@ -799,42 +799,75 @@ $$
 \end{aligned}
 $$
 
-At each iteration $k$, we approximate the objective function $f(\mathbf{x})$ using a second-order Taylor expansion around the current iterate $\mathbf{x}^k$. The standard Taylor expansion for $f$ would be:
+At iteration $k$, we seek a displacement
+$\Delta\mathbf x=\mathbf x-\mathbf x^k$. A second-order Taylor expansion of
+the objective gives
 
 \begin{align*}
 f(\mathbf{x}) \approx f(\mathbf{x}^k) + \nabla f(\mathbf{x}^k)^T (\mathbf{x} - \mathbf{x}^k) + \frac{1}{2} (\mathbf{x} - \mathbf{x}^k)^T \nabla^2 f(\mathbf{x}^k) (\mathbf{x} - \mathbf{x}^k).
 \end{align*}
 
-This expansion uses the **Hessian of the objective function** $\nabla^2 f(\mathbf{x}^k)$ to capture the curvature of $f$. However, in the context of constrained optimization, we also need to account for the effect of the constraints on the local behavior of the solution. If we were to use only $\nabla^2 f(\mathbf{x}^k)$, we would not capture the influence of the constraints on the curvature of the feasible region. The resulting subproblem might then lead to steps that violate the constraints or are less effective in achieving convergence. The choice that we make instead is to use the Hessian of the Lagrangian, $\nabla^2_{\mathbf{x}\mathbf{x}} \mathcal L(\mathbf{x}^k, \boldsymbol{\lambda}^k)$, leading to the following quadratic model:
+The Hessian determines how the model's gradient changes as the displacement
+grows. For a constrained problem, the Newton equations also involve
+curvature from the constraints. SQP incorporates that curvature through
+the Hessian of the Lagrangian,
 
 $$
-f(\mathbf{x}) \approx f(\mathbf{x}^k) + \nabla f(\mathbf{x}^k)^T (\mathbf{x} - \mathbf{x}^k) + \frac{1}{2} (\mathbf{x} - \mathbf{x}^k)^T \nabla^2_{\mathbf{x}\mathbf{x}} \mathcal L(\mathbf{x}^k, \boldsymbol{\lambda}^k) (\mathbf{x} - \mathbf{x}^k).
+B_k=\nabla^2_{\mathbf x\mathbf x}
+\mathcal L(\mathbf x^k,\boldsymbol\lambda^k)
+=\nabla^2 f(\mathbf x^k)+
+\sum_i\lambda_i^k\nabla^2 h_i(\mathbf x^k),
 $$
 
-Similarly, the equality constraints $\mathbf{h}(\mathbf{x})$ are linearized around $\mathbf{x}^k$:
+and defines the step objective
+
+$$
+m_k(\Delta\mathbf x)=
+\nabla f(\mathbf x^k)^\top\Delta\mathbf x
++\frac12\Delta\mathbf x^\top B_k\Delta\mathbf x.
+$$
+
+This is a model for choosing a constrained step, rather than the Taylor
+expansion of $f$ alone. We omit the constant $f(\mathbf x^k)$ because it
+does not affect the minimizing displacement.
+
+Each equality is replaced by its current residual plus its predicted
+first-order change:
 
 $$
 \mathbf{h}(\mathbf{x}) \approx \mathbf{h}(\mathbf{x}^k) + J_h(\mathbf{x}^k) (\mathbf{x} - \mathbf{x}^k).
 $$
 
-Combining these approximations, we obtain a Quadratic Programming (QP) subproblem, which approximates our original problem locally at $\mathbf{x}^k$ but is easier to solve:
+Setting this affine expression to zero asks the step to cancel the current
+constraint residual. At a feasible point, the condition becomes
+$J_h(\mathbf x^k)\Delta\mathbf x=\mathbf0$, so the step lies in the
+tangent space. The resulting QP is
 
 $$
 \begin{aligned}
-\text{Minimize} \quad & \nabla f(\mathbf{x}^k)^T \Delta \mathbf{x} + \frac{1}{2} \Delta \mathbf{x}^T \nabla^2_{\mathbf{x}\mathbf{x}} \mathcal L(\mathbf{x}^k, \boldsymbol{\lambda}^k) \Delta \mathbf{x} \\
+\underset{\Delta\mathbf x}{\operatorname{minimize}}\quad&
+\nabla f(\mathbf{x}^k)^T \Delta \mathbf{x} + \frac{1}{2} \Delta \mathbf{x}^T B_k \Delta \mathbf{x} \\
 \text{subject to} \quad & J_h(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{h}(\mathbf{x}^k) = \mathbf{0},
 \end{aligned}
 $$
 
-where $\Delta \mathbf{x} = \mathbf{x} - \mathbf{x}^k$. The QP subproblem solved at each iteration focuses on finding the optimal step direction $\Delta \mathbf{x}$ for the primal variables.
-While solving this QP, we obtain not only the step $\Delta \mathbf{x}$ but also the associated Lagrange multipliers for the QP subproblem, which correspond to an updated dual variable vector $\boldsymbol{\lambda}^{k+1}$. More specifically, after solving the QP, we use $\Delta \mathbf{x}^k$ to update the primal variables:
+Solving the QP gives both a displacement $\Delta\mathbf x^k$ and a
+multiplier vector $\boldsymbol\lambda_{\mathrm{QP}}$. A full SQP step
+updates the primal and dual estimates by
 
 \begin{align*}
-\mathbf{x}^{k+1} = \mathbf{x}^k + \Delta \mathbf{x}^k.
+\mathbf{x}^{k+1} = \mathbf{x}^k + \Delta \mathbf{x}^k,
+\qquad
+\boldsymbol\lambda^{k+1}=\boldsymbol\lambda_{\mathrm{QP}}.
 \end{align*}
 
-Simultaneously, the Lagrange multipliers from the QP provide the updated dual variables $\boldsymbol{\lambda}^{k+1}$.
-We summarize the SQP algorithm in the following pseudo-code: 
+The linearized equalities can hold even when
+$\mathbf h(\mathbf x^k+\Delta\mathbf x^k)\ne\mathbf0$. For example, a
+nonzero tangent step from a point on a circle leaves the circle. Practical
+algorithms therefore use a line search or trust region to assess progress
+on the original problem, and may modify the Hessian or relax inconsistent
+linearized constraints. The following pseudocode describes the local
+full-step iteration, assuming its QPs have solutions.
 
 ````{prf:algorithm} Sequential Quadratic Programming (SQP)
 :label: alg-sqp
@@ -858,11 +891,34 @@ We summarize the SQP algorithm in the following pseudo-code:
 
 #### Connection to Newton's Method in the Equality-Constrained Case
 
-The QP subproblem in SQP is directly related to applying Newton's method for equality-constrained optimization. To see this, note that the KKT matrix of the QP subproblem is: 
+Because the QP objective is quadratic and its constraints are affine, its
+stationarity and feasibility conditions form a linear system:
+
+$$
+\begin{bmatrix}
+B_k & J_h(\mathbf x^k)^\top\\
+J_h(\mathbf x^k) & \mathbf0
+\end{bmatrix}
+\begin{bmatrix}
+\Delta\mathbf x^k\\
+\boldsymbol\lambda_{\mathrm{QP}}
+\end{bmatrix}
+=-
+\begin{bmatrix}
+\nabla f(\mathbf x^k)\\
+\mathbf h(\mathbf x^k)
+\end{bmatrix}.
+$$
+
+The QP multiplier is a new estimate, while Newton's method solves for a
+change in that estimate. Set
+$\Delta\boldsymbol\lambda^k=
+\boldsymbol\lambda_{\mathrm{QP}}-\boldsymbol\lambda^k$.
+Substitution gives
 
 \begin{align*}
 \begin{bmatrix}
-\nabla^2_{\mathbf{x}\mathbf{x}} \mathcal L(\mathbf{x}^k, \boldsymbol{\lambda}^k) & J_h(\mathbf{x}^k)^T \\
+B_k & J_h(\mathbf{x}^k)^T \\
 J_h(\mathbf{x}^k) & \mathbf{0}
 \end{bmatrix}
 \begin{bmatrix}
@@ -877,7 +933,20 @@ J_h(\mathbf{x}^k) & \mathbf{0}
 \end{bmatrix}
 \end{align*}
 
-This is exactly the same linear system that have to solve when applying Newton's method to the KKT conditions of the original program! Thus, solving the QP subproblem at each iteration of SQP is equivalent to taking a Newton step on the KKT conditions of the original nonlinear problem.
+With the exact Lagrangian Hessian $B_k$, this is Newton's method applied to
+the original KKT equations. When $J_h$ has full row rank and $B_k$ is
+positive definite on nonzero directions in the null space of $J_h$, the
+linear system determines the unique QP minimizer and its multiplier.
+Without suitable curvature, a solution of the stationarity equations need
+not minimize the QP. Replacing $B_k$ by a positive-definite approximation
+gives a modified Newton method with convex QP subproblems.
+
+The quadratic and affine structure means that all derivative matrices stay
+fixed within a QP solve. Equality-constrained QPs under the conditions above
+require only a linear solve; QPs with inequalities require additional work
+to enforce feasibility and complementarity. Sparse factorizations and
+reuse across related systems make that work efficient, as discussed in
+the [SQP section of the optimal-control chapter](#sec-sqp-newton).
 
 ### SQP for Inequality-Constrained Optimization
 
@@ -899,7 +968,11 @@ As we did earlier, we approximate this problem by constructing a quadratic appro
 & J_h(\mathbf{x}^k) \Delta \mathbf{x} + \mathbf{h}(\mathbf{x}^k) = \mathbf{0},
 \end{align*}
 
-where $\Delta \mathbf{x} = \mathbf{x} - \mathbf{x}^k$ represents the step direction for the primal variables. The following pseudocode outlines the steps involved in applying SQP to a problem with both equality and inequality constraints:
+where $\Delta \mathbf{x} = \mathbf{x} - \mathbf{x}^k$ represents the step
+direction for the primal variables. As in the equality case, the following
+pseudocode describes the local full-step iteration and assumes solvable
+QP subproblems; step selection and subproblem modifications are needed in a
+general implementation.
 
 ````{prf:algorithm} Sequential Quadratic Programming (SQP) with Inequality Constraints
 :label: alg-sqp-ineq

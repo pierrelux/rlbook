@@ -1,0 +1,24 @@
+{
+  "platform": "macOS-14.6-arm64-arm-64bit",
+  "machine": "arm64",
+  "python": "3.12.8",
+  "packages": {
+    "jax": "0.11.0",
+    "jaxlib": "0.11.0",
+    "mlx": "0.32.2",
+    "numpy": "2.3.1",
+    "matplotlib": "3.10.3"
+  },
+  "test_command": ".venv/bin/python -m pytest tests/test_thermal_stirring.py tests/test_thermal_recovery.py tests/test_thermal_plume.py tests/test_thermal_reactor.py tests/test_mppi_control.py -q",
+  "test_result": "51 passed, 1 skipped",
+  "candidate_backend": "MLX fused Metal PDE stencil",
+  "execution_and_validation_backend": "JAX CPU",
+  "backend_parity_probe": {
+    "candidate_count": 16,
+    "horizon_s": 40,
+    "maximum_cost_difference": 1.0430813e-06,
+    "maximum_temperature_difference_K": 0.0012207031,
+    "temperature_rmse_K": 0.00013556
+  },
+  "note": "The parity probe compares the same numerical PDE on CPU and GPU; it does not measure discretization error."
+}

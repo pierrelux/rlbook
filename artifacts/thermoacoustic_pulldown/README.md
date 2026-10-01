@@ -12,7 +12,8 @@ The builder solves five variants with both iLQR and DDP from the same constant-a
 
 - `metrics.json`: parameters, source hashes, solver settings, final plans, accepted costs, energy, status, and replay checks;
 - `results.md`: the chapter's numerical comparison;
-- `../../_static/thermoacoustic_pulldown/`: matching SVG, PDF, and PNG teaching figures.
+- `../../_static/thermoacoustic_pulldown/`: matching SVG, PDF, and PNG teaching figures (the two-panel schematic `geometry.{svg,pdf,png}` in that folder is not written here; regenerate it with `uv run python code/thermoacoustic_geometry.py`);
+- `../../interactive/thermoacoustic-refrigerator-data.json`: recorded plans and the constant full-amplitude rollout for the chapter's browser replay.
 
 The state columns are cold and hot temperatures in degrees Celsius. Controls are driver-amplitude fractions in [0, 1]. One RK4 step lasts 1 s, and the 300 controls cover a fixed 300 s horizon. Energy is the sum of acoustic work over those intervals. The running cost weights that energy, and the terminal cost penalizes the final cold-temperature error.
 

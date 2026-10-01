@@ -1,0 +1,61 @@
+{
+  "deep_link": true,
+  "initial_lazy_binaries": [
+    "thermal-recovery-data/target.bin",
+    "thermal-recovery-data/unchanged.bin",
+    "thermal-recovery-data/mppi.bin"
+  ],
+  "playback": true,
+  "pause": true,
+  "scrub": true,
+  "comparison": true,
+  "endpoint": true,
+  "reset": true,
+  "candidates": true,
+  "decision_selection": true,
+  "tab_pause": true,
+  "legacy_surrogate_view": true,
+  "narrow_widths": {
+    "inner": 390,
+    "scroll": 390
+  },
+  "errors": [],
+  "regression_tests": {
+    "passed": 41,
+    "skipped": 1,
+    "skip_reason": "Optional Metal backend",
+    "command": ".venv/bin/python -m pytest tests/test_thermal_recovery.py tests/test_thermal_plume.py tests/test_thermal_reactor.py tests/test_mppi_control.py -q"
+  },
+  "visual_inspection": {
+    "desktop": [
+      1440,
+      1080
+    ],
+    "narrow": [
+      390,
+      844
+    ],
+    "views": [
+      "target fields",
+      "field comparison",
+      "candidate futures",
+      "heater controls"
+    ],
+    "static_figures": [
+      "recovery-storyboard.png",
+      "recovery-control.png"
+    ],
+    "final_heading_checked_in_app": true
+  },
+  "source_sha256": {
+    "code/thermal_recovery.py": "0c0bb8e34e51f633b4dc345f97b01a17ab64dfd0a927b7054f9813218851d0c0",
+    "code/thermal_plume.py": "7f16377f68bd762906b072a4814c09bcb5c6aa7c69670161f369830b7c3aa369",
+    "code/thermal_reactor.py": "6e35fc98599732e5b5f525f951d0b47715e83bb0242bb6dc6b84ffb456259088",
+    "code/mppi_control.py": "4d714d744b9396263d760f87a9fa6255ee0b4de87dc8168174d0e6ff2fdcf255",
+    "scripts/build_thermal_reactor.py": "274ae41e1984c13f12e44ac1b800ce021f886eb7a43481110feeb17a6cefedb9",
+    "interactive/thermal-reactor-mppi.html": "0ec713689819cbf7b336aad4f483ac5cbc145bcd68c493b8f69a2c114837a872",
+    "interactive/thermal-recovery-replay.js": "7b0f99ae1da884696a27f527c5dd797d071a061ab2ad38dfe52d49f7f36d3d25",
+    "interactive/thermal-plume-replay.js": "c70db522f500c8733b3c83786f41aa898a2f71346c3ef2228b6494bbcfa33e15",
+    "tests/test_thermal_recovery.py": "35d231c76415b94bd01675a0b6c24ffdebbca0b85cd87f833ba5a2227083d5e0"
+  }
+}

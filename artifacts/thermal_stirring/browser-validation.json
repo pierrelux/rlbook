@@ -1,0 +1,41 @@
+{
+  "completed": true,
+  "browser": "Codex in-app browser",
+  "url": "http://localhost:8003/interactive/thermal-reactor-mppi.html?v=stirring#stirring",
+  "viewports": [
+    {
+      "width": 1737,
+      "height": 1439,
+      "horizontal_overflow": false
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "horizontal_overflow": false
+    }
+  ],
+  "checks": [
+    "Absolute and cross-section departure maps, physical axes, fixed scales, flow arrows",
+    "Main replay play, tab-exit pause, 160 s endpoint stop, reset, scrub, speed selection",
+    "Both baseline options and all three optimizer seed selections",
+    "Six candidate futures at all three saved decisions; both field channels",
+    "Rejected and accepted partial proposals displayed separately from kept plans",
+    "Future replay play, 40 s endpoint stop, reset and scrub",
+    "Mobile candidate panels enlarged to one column; signed traces and maps inspected",
+    "Earlier recovery replay still loads and scrubs; PDE dynamics still loads on selection",
+    "Opening deep link requests only two stirring field arrays; old scenario field arrays and candidate arrays remain lazy",
+    "No browser console errors or warnings"
+  ],
+  "initial_binary_requests": [
+    "thermal-stirring-data/unstirred.bin",
+    "thermal-stirring-data/mppi-19744.bin"
+  ],
+  "lazy_loading_evidence": "Observed localhost static-server access log immediately after opening the stirring deep link.",
+  "source_sha256": {
+    "interactive/thermal-reactor-mppi.html": "8ca4d590b1cf3508589a9e42a09c5286dd3dd23e2f4168b64ee9be57e26ffa98",
+    "interactive/thermal-stirring-replay.js": "64a91ad37cf90194f2329d6fff560e8d82dcdbb3ae69c42a2bc786b9cdfeaf08",
+    "interactive/thermal-stirring-data/manifest.json": "17a041af60d8ada38a63c52c20bc02c6aaf2edbaf68f5a040a8c23992b9e6dac",
+    "tests/test_thermal_stirring.py": "c3997c3c035ce88ab9d91bca71b8c083d88be4b93629962ebd2eaa245df8c933"
+  },
+  "final_view": "Seed 19744 against no stirring, 48 s, cross-section departures, arrows on, paused, default desktop viewport restored."
+}

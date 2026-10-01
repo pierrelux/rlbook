@@ -83,6 +83,9 @@ $\sqrt{\Delta t}$ and its covariance as $\Delta t$. Halving the sampling
 interval does not mean adding the same covariance twice as often. A full
 treatment of stochastic differential equations lies outside this book; these
 relations record the scaling needed to construct a consistent sampled model.
+The later [path-integral stochastic control chapter](path-integral-stochastic-control.md#sec-path-integral-control)
+uses these Brownian moments to extend dynamic programming to continuous
+time and express optimal feedback through expectations over trajectories.
 
 ### Bicycle Inventory and Stochastic Demand
 

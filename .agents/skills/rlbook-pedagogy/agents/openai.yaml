@@ -1,0 +1,6 @@
+interface:
+  display_name: "RL Textbook Pedagogy"
+  short_description: "Structure examples and learning sequences for rlbook"
+  default_prompt: "Use $rlbook-pedagogy to improve this chapter's teaching sequence using the local pedagogical guidelines."
+policy:
+  allow_implicit_invocation: true

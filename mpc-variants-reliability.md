@@ -17,32 +17,32 @@ finite-horizon problem. How must that problem and its surrounding controller
 change when the task tracks a reference, values economic output, contains
 uncertainty or discrete modes, or misses its solver deadline?
 
-Once the basic idea of receding-horizon control is clear, it is helpful to see how the same backbone accommodates many variations. In every case, we transcribe the continuous-time optimal control problem into a nonlinear program of the form
+Once the basic idea of receding-horizon control is clear, it is helpful to see how the same backbone accommodates many variations. In every case, we transcribe the continuous-time optimal control problem into a nonlinear program with the structure of the [receding-horizon subproblem](receding-horizon-control.md#the-receding-horizon-principle):
 
 $$
 \begin{aligned}
-    \text{minimize} \quad & c(\mathbf{x}_N) + \sum_{k=0}^{N-1} w_k\,c(\mathbf{x}_k, \mathbf{u}_k) \\
-    \text{subject to} \quad & \mathbf{x}_{k+1} = \mathbf{F}_k(\mathbf{x}_k, \mathbf{u}_k) \\
-                            & \mathbf{g}(\mathbf{x}_k, \mathbf{u}_k) \leq \mathbf{0} \\
+    \text{minimize} \quad & c_N(\mathbf{x}_N) + \sum_{k=0}^{N-1} c_k(\mathbf{x}_k, \mathbf{u}_k) \\
+    \text{subject to} \quad & \mathbf{x}_{k+1} = \mathbf{f}_k(\mathbf{x}_k, \mathbf{u}_k) \\
+                            & \mathbf{g}_k(\mathbf{x}_k, \mathbf{u}_k) \leq \mathbf{0} \\
                             & \mathbf{x}_{\min} \leq \mathbf{x}_k \leq \mathbf{x}_{\max} \\
                             & \mathbf{u}_{\min} \leq \mathbf{u}_k \leq \mathbf{u}_{\max} \\
-    \text{given} \quad & \mathbf{x}_0 = \hat{\mathbf{x}}(t) \enspace .
+    \text{given} \quad & \mathbf{x}_0 = \mathbf{x}_{\text{current}} \enspace .
 \end{aligned}
 $$
 
-The components in this NLP come from discretizing the continuous-time problem with a fixed horizon $[t, t+T]$ and step size $\Delta t$. The stage weights $w_k$ and discrete dynamics $\mathbf{F}_k$ are determined by the choice of quadrature and integration scheme. With this blueprint in place, the rest is a matter of interpretation: how we define the cost, how we handle uncertainty, how we treat constraints, and what structure we exploit.
+The components in this NLP come from discretizing the continuous-time problem over a prediction horizon of $N$ steps of length $\Delta t$, starting at the current time. The discrete transition $\mathbf{f}_k$ is determined by the integration scheme, and each stage cost $c_k$ includes the quadrature weight of its interval, as in the [collocation transcriptions](continuous-time-collocation.md). With this blueprint in place, the rest is a matter of interpretation: how we define the cost, how we handle uncertainty, how we treat constraints, and what structure we exploit.
 
 ## Tracking MPC
 
 How should the finite-horizon objective penalize deviation from a time-varying
 reference trajectory?
 
-The most common setup is reference tracking. Here, we are given time-varying target trajectories $(\mathbf{x}_k^{\text{ref}}, \mathbf{u}_k^{\text{ref}})$, and the controller's job is to keep the system close to these. The cost is typically quadratic:
+The most common setup is reference tracking. Here, we are given time-varying target trajectories $(\mathbf{x}_k^{\mathrm{ref}}, \mathbf{u}_k^{\mathrm{ref}})$, and the controller's job is to keep the system close to these. The cost is typically quadratic:
 
 $$
 \begin{aligned}
-    c(\mathbf{x}_k, \mathbf{u}_k) &= \| \mathbf{x}_k - \mathbf{x}_k^{\text{ref}} \|_{\mathbf{Q}}^2 + \| \mathbf{u}_k - \mathbf{u}_k^{\text{ref}} \|_{\mathbf{R}}^2 \\
-    c(\mathbf{x}_N) &= \| \mathbf{x}_N - \mathbf{x}_N^{\text{ref}} \|_{\mathbf{P}}^2 \enspace .
+    c_k(\mathbf{x}_k, \mathbf{u}_k) &= \| \mathbf{x}_k - \mathbf{x}_k^{\mathrm{ref}} \|_{Q}^2 + \| \mathbf{u}_k - \mathbf{u}_k^{\mathrm{ref}} \|_{R}^2 \\
+    c_N(\mathbf{x}_N) &= \| \mathbf{x}_N - \mathbf{x}_N^{\mathrm{ref}} \|_{P}^2 \enspace .
 \end{aligned}
 $$
 
@@ -53,12 +53,12 @@ When dynamics are linear and constraints are polyhedral, this yields a convex qu
 What changes when the target is a fixed equilibrium rather than a moving
 reference?
 
-In regulation tasks, we aim to bring the system back to an equilibrium point $(\mathbf{x}^e, \mathbf{u}^e)$, typically in the presence of disturbances. This is simply tracking MPC with constant references:
+In regulation tasks, we aim to bring the system back to an equilibrium point $(\mathbf{x}_{\mathrm{eq}}, \mathbf{u}_{\mathrm{eq}})$, typically in the presence of disturbances. This is simply tracking MPC with constant references, so the stage cost no longer depends on $k$:
 
 $$
 \begin{aligned}
-    c(\mathbf{x}_k, \mathbf{u}_k) &= \| \mathbf{x}_k - \mathbf{x}^e \|_{\mathbf{Q}}^2 + \| \mathbf{u}_k - \mathbf{u}^e \|_{\mathbf{R}}^2 \\
-    c(\mathbf{x}_N) &= \| \mathbf{x}_N - \mathbf{x}^e \|_{\mathbf{P}}^2 \enspace .
+    c(\mathbf{x}_k, \mathbf{u}_k) &= \| \mathbf{x}_k - \mathbf{x}_{\mathrm{eq}} \|_{Q}^2 + \| \mathbf{u}_k - \mathbf{u}_{\mathrm{eq}} \|_{R}^2 \\
+    c_N(\mathbf{x}_N) &= \| \mathbf{x}_N - \mathbf{x}_{\mathrm{eq}} \|_{P}^2 \enspace .
 \end{aligned}
 $$
 
@@ -92,13 +92,13 @@ Restricting $\rho\geq0$ keeps the PTO passive because $\tau_{\mathrm{PTO}}\dot q
 
 A frozen-state calculation suggests using as much damping as possible. At $\dot q=0.4$ rad/s, damping values of $900$ and $1900$ N m s/rad yield instantaneous capture rates of $144$ and $304$ W. The calculation holds velocity fixed. In the dynamical system, stronger damping reduces future velocity, so captured energy need not increase monotonically with $\rho$. The constant-damping sweep below measures that delayed effect.
 
-The experiment uses a deterministic sum of three wave-torque components for $45$ s. The controller updates every $h=0.12$ s and predicts $18$ steps, or $2.16$ s, into the future. Its finite-horizon problem is
+The experiment uses a deterministic sum of three wave-torque components for $45$ s. The controller updates every $h=0.12$ s and predicts $N=18$ steps, or $2.16$ s, into the future. Its finite-horizon problem is
 
 $$
 \begin{aligned}
-\max_{\rho_{0:H-1}}\quad &
-h\sum_{j=0}^{H-1}\rho_j\omega_j^2
--\lambda\sum_{j=0}^{H-1}
+\max_{\rho_{0:N-1}}\quad &
+h\sum_{j=0}^{N-1}\rho_j\omega_j^2
+-\lambda\sum_{j=0}^{N-1}
 \left(\frac{\rho_j-\rho_{j-1}}{\rho_{\max}}\right)^2 \\
 \text{subject to}\quad &
 \mathbf{x}_{j+1}=F_h(\mathbf{x}_j,\rho_j,\tau_{\mathrm{wave}}), \\
@@ -234,14 +234,14 @@ Some systems are exposed to external disturbances or small errors in the model. 
 Instead of planning a single trajectory, the controller plans a "nominal" path (what would happen in the absence of any disturbance) and then adds a feedback correction to react to whatever disturbances actually occur. This looks like:
 
 $$
-\mathbf{u}_k = \bar{\mathbf{u}}_k + \mathbf{K} (\mathbf{x}_k - \bar{\mathbf{x}}_k) \enspace ,
+\mathbf{u}_k = \bar{\mathbf{u}}_k + K (\mathbf{x}_k - \bar{\mathbf{x}}_k) \enspace ,
 $$
 
-where $\bar{\mathbf{u}}_k$ is the planned input and $\mathbf{K}$ is a feedback gain that pulls the system back toward the nominal path if it deviates.
+where $\bar{\mathbf{u}}_k$ is the planned input and $K$ is a feedback gain that pulls the system back toward the nominal path if it deviates.
 
 Because we know the worst-case size of the disturbance, we can estimate how far the real state might drift from the plan, and "shrink" the constraints accordingly. The result is that the nominal plan is kept safely away from constraint boundaries, so even if the system gets pushed around, it stays inside limits. This is often called **tube MPC** because the true trajectory stays inside a tube around the nominal one.
 
-The main benefit is that we can handle uncertainty without solving a complicated worst-case optimization at every time step. All the uncertainty is accounted for in the design of the feedback $\mathbf{K}$ and the tightened constraints.
+The main benefit is that we can handle uncertainty without solving a complicated worst-case optimization at every time step. All the uncertainty is accounted for in the design of the feedback $K$ and the tightened constraints.
 
 
 ## Stochastic MPC
@@ -254,12 +254,12 @@ If disturbances are random rather than adversarial, a natural goal is to optimiz
 * The cost becomes an expectation:
 
   $$
-  \mathbb{E} \left[ c(\mathbf{x}_N) + \sum_{k=0}^{N-1} w_k\, c(\mathbf{x}_k, \mathbf{u}_k) \right]
+  \mathbb{E} \left[ c_N(\mathbf{x}_N) + \sum_{k=0}^{N-1} c_k(\mathbf{x}_k, \mathbf{u}_k) \right]
   $$
 * Constraints are allowed to be violated with small probability:
 
   $$
-  \mathbb{P}[\mathbf{g}(\mathbf{x}_k, \mathbf{u}_k) \leq \mathbf{0}] \geq 1 - \varepsilon
+  \mathbb{P}[\mathbf{g}_k(\mathbf{x}_k, \mathbf{u}_k) \leq \mathbf{0}] \geq 1 - \varepsilon
   $$
 
 In practice, expectations are approximated using a finite set of disturbance scenarios drawn ahead of time. For each scenario, the system dynamics are simulated forward using the same control inputs $\mathbf{u}_k$, which are shared across all scenarios to respect non-anticipativity. The result is a single deterministic optimization problem with multiple parallel copies of the dynamics, one per sampled future. This retains the standard MPC structure, with only moderate growth in problem size.
@@ -276,10 +276,10 @@ finite-horizon optimization?
 When systems involve discrete switches  (eg. on/off valves, mode selection, or combinatorial logic) the MPC problem must include integer or binary variables. These show up in constraints like
 
 $$
-\boldsymbol{\delta}_k \in \{0,1\}^m, \qquad \mathbf{u}_k \in \mathcal{U}(\boldsymbol{\delta}_k)
+\boldsymbol{\delta}_k \in \{0,1\}^{n_\delta}, \qquad \mathbf{u}_k \in \mathcal{U}(\boldsymbol{\delta}_k)
 $$
 
-along with mode-dependent dynamics and costs. The resulting formulation is a **mixed-integer nonlinear program** (MINLP). The receding-horizon idea is the same, but each solve is more expensive due to the combinatorial nature of the decision space.
+where $n_\delta$ counts the binary decisions at each step, along with mode-dependent dynamics and costs. The resulting formulation is a **mixed-integer nonlinear program** (MINLP). The receding-horizon idea is the same, but each solve is more expensive due to the combinatorial nature of the decision space.
 
 ## Distributed and Decentralized MPC
 
@@ -289,7 +289,7 @@ information must local controllers exchange to coordinate their plans?
 Large-scale systems often consist of interacting subsystems. Distributed MPC decomposes the global NLP into smaller ones that run in parallel, with coordination constraints enforcing consistency across shared variables:
 
 $$
-\sum_{i} \mathbf{H}^i \mathbf{z}^i_k = \mathbf{0} \qquad \text{(coupling constraint)}
+\sum_{i} H^i \mathbf{z}^i_k = \mathbf{0} \qquad \text{(coupling constraint)}
 $$
 
 Each subsystem solves a local problem over its own state and input variables, then exchanges information with neighbors. Coordination can be done via primal–dual methods, ADMM, or consensus schemes, but each local block looks like a standard MPC problem.
@@ -300,14 +300,14 @@ Each subsystem solves a local problem over its own state and input variables, th
 How can the prediction model improve from data without discarding the explicit
 constraints enforced by MPC?
 
-In practice, we may not know the true model $\mathbf{F}_k$ or cost function $c$ precisely. In **adaptive MPC**, these are updated online from data:
+In practice, we may not know the true model $\mathbf{f}_k$ or cost function $c_k$ precisely. In **adaptive MPC**, these are updated online from data:
 
 $$
-\mathbf{x}_{k+1} = \mathbf{F}_k(\mathbf{x}_k, \mathbf{u}_k; \boldsymbol{\theta}_t), \qquad
-c(\mathbf{x}_k, \mathbf{u}_k) = c(\mathbf{x}_k, \mathbf{u}_k; \boldsymbol{\phi}_t)
+\mathbf{x}_{k+1} = \mathbf{f}_k(\mathbf{x}_k, \mathbf{u}_k; \boldsymbol{\theta}_t), \qquad
+c_k(\mathbf{x}_k, \mathbf{u}_k) = c_k(\mathbf{x}_k, \mathbf{u}_k; \boldsymbol{\psi}_t)
 $$
 
-The parameters $\boldsymbol{\theta}_t$ and $\boldsymbol{\phi}_t$ are learned in real time. When combined with policy distillation, value approximation, or trajectory imitation, this leads to overlaps with reinforcement learning where the MPC solutions act as supervision for a reactive policy.
+The parameters $\boldsymbol{\theta}_t$ and $\boldsymbol{\psi}_t$ are learned in real time, and the subproblem solved at time $t$ uses their current estimates. When combined with policy distillation, value approximation, or trajectory imitation, this leads to overlaps with reinforcement learning where the MPC solutions act as supervision for a reactive policy.
 
 
 ## Robustness and Failure Handling
@@ -329,24 +329,24 @@ This hierarchy motivates reformulating the optimization problem using **slack va
 
 $$
 \begin{aligned}
-\min_{\mathbf{u}, \boldsymbol{\epsilon}} \quad & \sum_{i=0}^{N-1} \|\mathbf{x}_i - \mathbf{x}_i^{\text{ref}}\|_{\mathbf{Q}}^2 + \|\mathbf{u}_i\|_{\mathbf{R}}^2 + \boldsymbol{\rho}^T \boldsymbol{\epsilon}_i \\
-\text{s.t.} \quad & \mathbf{x}_{i+1} = \mathbf{f}(\mathbf{x}_i, \mathbf{u}_i) \\
-& \mathbf{g}_{\text{hard}}(\mathbf{x}_i, \mathbf{u}_i) \leq \mathbf{0} \\
-& \mathbf{g}_{\text{soft}}(\mathbf{x}_i, \mathbf{u}_i) \leq \boldsymbol{\epsilon}_i \\
-& \boldsymbol{\epsilon}_i \geq \mathbf{0}
+\min_{\mathbf{u}, \boldsymbol{\epsilon}} \quad & \sum_{k=0}^{N-1} \left( \|\mathbf{x}_k - \mathbf{x}_k^{\mathrm{ref}}\|_{Q}^2 + \|\mathbf{u}_k\|_{R}^2 + \mathbf{w}^\top \boldsymbol{\epsilon}_k \right) \\
+\text{s.t.} \quad & \mathbf{x}_{k+1} = \mathbf{f}_k(\mathbf{x}_k, \mathbf{u}_k) \\
+& \mathbf{g}_{\text{hard}}(\mathbf{x}_k, \mathbf{u}_k) \leq \mathbf{0} \\
+& \mathbf{g}_{\text{soft}}(\mathbf{x}_k, \mathbf{u}_k) \leq \boldsymbol{\epsilon}_k \\
+& \boldsymbol{\epsilon}_k \geq \mathbf{0}
 \end{aligned}
 $$
 
-The penalty weights $\boldsymbol{\rho}$ encode our priorities. Safety constraints might use $\rho_j = 10^6$, while comfort constraints use $\rho_j = 1$. This reformulated problem is always feasible as long as the hard constraints alone admit a solution. That is: we can always make the slack variables $\boldsymbol{\epsilon}$ sufficiently large to satisfy the soft constraints.
+The penalty weights $\mathbf{w}$ encode our priorities. Safety constraints might use $w_j = 10^6$, while comfort constraints use $w_j = 1$. This reformulated problem is always feasible as long as the hard constraints alone admit a solution. That is: we can always make the slack variables $\boldsymbol{\epsilon}$ sufficiently large to satisfy the soft constraints.
 
 Rather than treating constraints as binary hard/soft categories, we can establish a **constraint hierarchy** that enables graceful degradation:
 
 $$
 \begin{aligned}
-\text{Safety:} \quad & T_{\text{reactor}} \leq T_{\text{runaway}} - 10 \quad & \rho = \infty \text{ (hard)} \\
-\text{Equipment:} \quad & 0 \leq u_{\text{valve}} \leq 100 \quad & \rho = 10^4 \\
-\text{Efficiency:} \quad & T_{\text{optimal}} - 5 \leq T \leq T_{\text{optimal}} + 5 \quad & \rho = 10^2 \\
-\text{Comfort:} \quad & |T - T_{\text{setpoint}}| \leq 1 \quad & \rho = 1
+\text{Safety:} \quad & T_{\text{reactor}} \leq T_{\text{runaway}} - 10 \quad & w = \infty \text{ (hard)} \\
+\text{Equipment:} \quad & 0 \leq u_{\text{valve}} \leq 100 \quad & w = 10^4 \\
+\text{Efficiency:} \quad & T_{\text{optimal}} - 5 \leq T \leq T_{\text{optimal}} + 5 \quad & w = 10^2 \\
+\text{Comfort:} \quad & |T - T_{\text{setpoint}}| \leq 1 \quad & w = 1
 \end{aligned}
 $$
 
@@ -362,9 +362,9 @@ When even soft constraints prove insufficient (perhaps due to catastrophic solve
 $$
 \begin{aligned}
 \min_{\mathbf{u}, \mathbf{s}} \quad & \|\mathbf{s}\|_1 \\
-\text{s.t.} \quad & \mathbf{x}_{i+1} = \mathbf{f}(\mathbf{x}_i, \mathbf{u}_i) + \mathbf{s}_i \\
-& \mathbf{x}_{\min} - \mathbf{s}_{x,i} \leq \mathbf{x}_i \leq \mathbf{x}_{\max} + \mathbf{s}_{x,i} \\
-& \mathbf{u}_{\min} \leq \mathbf{u}_i \leq \mathbf{u}_{\max} \\
+\text{s.t.} \quad & \mathbf{x}_{k+1} = \mathbf{f}_k(\mathbf{x}_k, \mathbf{u}_k) + \mathbf{s}_k \\
+& \mathbf{x}_{\min} - \mathbf{s}_{x,k} \leq \mathbf{x}_k \leq \mathbf{x}_{\max} + \mathbf{s}_{x,k} \\
+& \mathbf{u}_{\min} \leq \mathbf{u}_k \leq \mathbf{u}_{\max} \\
 & \mathbf{s} \geq \mathbf{0}
 \end{aligned}
 $$
@@ -379,7 +379,10 @@ inner controller?
 Rather than reacting to infeasibility after it occurs, we can prevent it by filtering references through a **reference governor**. Consider an aircraft following waypoints. Instead of passing waypoints directly to the MPC, the governor asks: what is the closest approachable reference from our current state?
 
 $$
-\mathbf{r}_{\text{filtered}} = \arg\max_{\kappa \in [0,1]} \kappa \quad \text{s.t. MPC}(\mathbf{x}_{\text{current}}, \kappa \mathbf{r}_{\text{desired}} + (1-\kappa)\mathbf{x}_{\text{current}}) \text{ is feasible}
+\begin{aligned}
+\kappa^\star &= \max\left\{\kappa \in [0,1] : \text{MPC}(\mathbf{x}_{\text{current}}, \kappa \mathbf{r}_{\text{desired}} + (1-\kappa)\mathbf{x}_{\text{current}}) \text{ is feasible}\right\}, \\
+\mathbf{r}_{\text{filtered}} &= \kappa^\star \mathbf{r}_{\text{desired}} + (1-\kappa^\star)\mathbf{x}_{\text{current}}
+\end{aligned}
 $$
 
 The governor performs a line search between the current state (always feasible since staying put requires no action) and the desired reference (potentially infeasible). This guarantees the MPC always receives feasible problems while making maximum progress toward the goal.
@@ -402,19 +405,19 @@ When MPC fails entirely (due to solver crashes, timeouts, or numerical failures)
 The standard approach uses a pre-computed **local LQR controller** around the equilibrium:
 
 $$
-\mathbf{K}_{\text{LQR}}, \mathbf{P} = \text{LQR}(\mathbf{A}, \mathbf{B}, \mathbf{Q}, \mathbf{R})
+K_{\text{LQR}}, P = \text{LQR}(A, B, Q, R)
 $$
 
-where $(\mathbf{A}, \mathbf{B})$ are the linearized dynamics at equilibrium. When MPC fails:
+where $(A, B)$ are the linearized dynamics at equilibrium. When MPC fails:
 
 $$
 \mathbf{u}_{\text{backup}} = \begin{cases}
-\mathbf{K}_{\text{LQR}}(\mathbf{x} - \mathbf{x}_{\text{eq}}) & \text{if } \mathbf{x} \in \mathcal{X}_{\text{LQR}} \\
+K_{\text{LQR}}(\mathbf{x} - \mathbf{x}_{\text{eq}}) & \text{if } \mathbf{x} \in \mathcal{X}_{\text{LQR}} \\
 \mathbf{u}_{\text{safe}} & \text{otherwise}
 \end{cases}
 $$
 
-The region $\mathcal{X}_{\text{LQR}} = \{\mathbf{x} : (\mathbf{x} - \mathbf{x}_{\text{eq}})^T \mathbf{P} (\mathbf{x} - \mathbf{x}_{\text{eq}}) \leq \alpha\}$ represents the largest invariant set where LQR is guaranteed to work.
+The region $\mathcal{X}_{\text{LQR}} = \{\mathbf{x} : (\mathbf{x} - \mathbf{x}_{\text{eq}})^\top P (\mathbf{x} - \mathbf{x}_{\text{eq}}) \leq \alpha\}$ represents the largest invariant set where LQR is guaranteed to work.
 
 ## Cascade Architectures
 
@@ -471,17 +474,17 @@ Even when using backup controllers, we can maintain solution continuity through 
 
 $$
 \begin{aligned}
-\mathbf{z}_{\text{warm}}^{(k+1)} = \begin{cases}
-\text{shift}(\mathbf{z}^{(k)}) & \text{if MPC succeeded at time } k \\
-\text{lift}(\mathbf{u}_{\text{backup}}^{(k)}) & \text{if backup controller used} \\
-\text{propagate}(\mathbf{z}_{\text{warm}}^{(k)}) & \text{if maintaining virtual solution}
+\mathbf{z}_{\text{warm}}^{(t+1)} = \begin{cases}
+\text{shift}(\mathbf{z}^{(t)}) & \text{if MPC succeeded at time } t \\
+\text{lift}(\mathbf{u}_{\text{backup}}^{(t)}) & \text{if backup controller used} \\
+\text{propagate}(\mathbf{z}_{\text{warm}}^{(t)}) & \text{if maintaining virtual solution}
 \end{cases}
 \end{aligned}
 $$
 
-The **shift** operation takes a successful MPC solution and moves it forward by one time step, appending a terminal action: $[\mathbf{u}_1^{(k)}, \mathbf{u}_2^{(k)}, \ldots, \mathbf{u}_{N-1}^{(k)}, \kappa_f(\mathbf{x}_N^{(k)})]$. This shifted sequence provides natural temporal continuity for the next optimization.
+Here the superscript $(t)$ marks the solution computed at time $t$, and subscripts remain prediction steps. The **shift** operation takes a successful MPC solution and moves it forward by one time step, appending a terminal action: $[\mathbf{u}_1^{(t)}, \mathbf{u}_2^{(t)}, \ldots, \mathbf{u}_{N-1}^{(t)}, \pi_f(\mathbf{x}_N^{(t)})]$. This shifted sequence provides natural temporal continuity for the next optimization.
 
-When MPC fails and backup control is applied, the **lift** operation extends the single backup action $\mathbf{u}_{\text{backup}}^{(k)}$ into a full horizon-length sequence, either by repetition or by simulating the backup controller forward. This creates a reasonable warm-start guess from limited information.
+When MPC fails and backup control is applied, the **lift** operation extends the single backup action $\mathbf{u}_{\text{backup}}^{(t)}$ into a full horizon-length sequence, either by repetition or by simulating the backup controller forward. This creates a reasonable warm-start guess from limited information.
 
 The **propagate** operation maintains a "virtual" trajectory by continuing to evolve the previous solution as if it were still being executed, even when the actual system follows backup control. This forward simulation keeps the warm-start temporally aligned and relevant for when MPC recovers.
 
@@ -514,16 +517,17 @@ plant receives the realized requests and output lengths instead.
 The finite-horizon problem uses the normalized objective
 
 $$
-J_t=\sum_{k=t}^{t+9}\left[
+J_t=\sum_{k=0}^{9}\left[
 \frac{E_k}{E_{\max}}
 +20\delta_{k,\mathrm{TTFT}}^2
 +10\delta_{k,\mathrm{TPOT}}^2
 +0.05\Delta f_k^2
 +1000(s_{P,k}^2+s_{T,k}^2)
-\right]+20B_{t+10}^2.
+\right]+20B_{10}^2,
 $$
 
-The variables $\delta_{k,\mathrm{TTFT}}$ and
+where, as in the receding-horizon subproblem, $k$ counts seconds after the
+control time $t$. The variables $\delta_{k,\mathrm{TTFT}}$ and
 $\delta_{k,\mathrm{TPOT}}$ are normalized overruns of two aggregate delay
 estimates. The first divides predicted queued prefill tokens by the profiled
 prefill rate. The second divides the predicted number of active decode requests
@@ -532,7 +536,7 @@ equal realized request-level TTFT and TPOT; the detailed simulation computes
 the latter. The frequency difference $\Delta f_k$ is normalized by the profiled
 clock range.
 The slacks $s_{P,k}$ and $s_{T,k}$ penalize violations of the experimental
-power and thermal limits, and $B_{t+10}$ penalizes unfinished work at the end of
+power and thermal limits, and $B_{10}$ penalizes unfinished work at the end of
 the horizon. SLSQP receives at most 50 iterations and a tolerance of $10^{-6}$.
 Only the first frequency is applied. The continuous result is rounded downward
 to the nearest profiled requested clock before the next state is observed. The
@@ -657,10 +661,58 @@ profile level and is 0.052 W above the configured 64.800 W cap. The cap was an
 experimental setting rather than a hard sample-wise guarantee. None of the
 four simulations records a thermal or KV-capacity violation.
 
+### Live Comparison at Common Latency Targets
+
+The live experiment asks which clock policy uses the least measured GPU energy
+while meeting common request-level latency limits. Development measurements
+select a fixed clock and set the limits on the 95th percentile of time to first
+token and of per-request mean inter-token latency. The planned confirmation compares this
+fixed clock, maximum clock, the governor, and MPC including its fallback. A
+constant clock or governor can be the preferred policy if it meets both limits
+with lower measured energy.
+
+Development and confirmation each use 32 requests from disjoint portions of
+the recorded trace, under steady and bursty arrival schedules. Each arrival
+window spans at least 240 seconds. The GPU has a 40 W board power cap and a
+6,251 MHz requested memory clock. Service rates and idle power require fresh
+measurements at this cap; the original 64.8 W calibration remains archived.
+The live state distinguishes requests awaiting their first output from requests
+already streaming. A transition model fitted on mixed-serving data must pass
+whole-run validation before it can support MPC. These measurements test queue
+drainage under the workload the controller will actually encounter.
+
+Confirmation plans five paired repetitions per schedule across three
+independent acquisitions, with counterbalanced method order. Each pair uses
+identical requests and arrival times. Energy includes the final request drain;
+an efficiency claim requires all five valid pairs and both methods to meet both
+frozen latency limits. Invalid trials and fallback decisions remain in the
+record. Development qualification and a frozen comparison protocol are still
+needed before confirmation can begin.
+
+Two earlier development acquisitions completed the full steady workload at
+210 MHz, using 8.55 and 8.30 kJ, but could not return to their startup temperature
+references before the cooling timeout. A subsequent qualification warms the GPU
+with the full steady workload before selecting its reference from a stable
+300-second cooling window. Its final 60-second mean fixes the reference for the
+remaining trials; this stability criterion does not establish thermal equilibrium.
+
+That warm-reference acquisition qualified both requested settings, 210 and
+660 MHz, on the two designated arrival patterns. All 32 requests completed
+validly in each of the four trials. The separate warm-up does not count toward
+qualification. Energy was 7.65 and 8.29 kJ for the 210 MHz bursty and steady
+trials, and 7.09 and 8.43 kJ for the corresponding 660 MHz trials. Clock labels
+name requested settings: the 660 MHz request produced lower measured clocks
+during active inference, with medians of 360 MHz for bursty and 300 MHz for
+steady arrivals. These operating-point checks establish neither a common latency
+target nor an energy winner. Controller development and a frozen comparison
+protocol are still required before confirmation.
+
+{download}`Download the live experiment protocol and run instructions <artifacts/inference_serving/live_control_development/README.md>`
+
 ### Validation of the Thermal Constraint
 
-The controller above constrains a junction temperature predicted by a
-one-state thermal model. None of the simulated controllers violates that
+The controller in the recorded replay constrains a junction temperature
+predicted by a one-state thermal model. None of the simulated controllers violates that
 constraint, but this establishes feasibility only for the model used inside
 the optimizer.
 
@@ -668,8 +720,8 @@ A power-matched pair of workloads exposes the modeling problem. During the
 held-out experiment, a 55 W decode pulse and a 55 W prefill pulse consumed
 nearly the same electrical energy, with a difference of 0.2 percent. The
 measured peak temperature rise during prefill was nevertheless 2.00 degrees C
-larger than during decode. A model driven only by board power receives nearly
-the same input for both pulses and has no variable with which to represent
+larger than during decode. A one-state model driven only by board power receives
+nearly the same input for both pulses and has no variable with which to represent
 this difference.
 
 The clock sweep used to calibrate the serving model was designed to measure
@@ -703,7 +755,7 @@ decode. The phase-gain model can therefore assign different effective thermal
 inputs to two workloads with the same measured board power. Its state
 dimension and measured input remain unchanged.
 
-The training and validation pulses were independent cold starts:
+The training and validation split used separate workload pulses:
 
 | Data split | Workloads and duration | Use |
 |---|---|---|
@@ -713,7 +765,8 @@ The training and validation pulses were independent cold starts:
 The order of the four training pulses was counterbalanced. Every pulse began
 from a verified post-relock temperature within a one-degree-Celsius band. The
 acquisition retained a 77 degree C safe-down threshold and a 79 degree C abort
-threshold.
+threshold. Matching the measured junction temperature does not establish that
+the unobserved heat-sink temperature was also matched.
 
 :::{figure} _static/inference_serving/thermal-phase-validation.svg
 :label: fig-inference-thermal-validation
@@ -733,16 +786,59 @@ This parameter is reproducible across the ten optimization starts. The training
 Jacobian also has full numerical rank, with condition number 384. These checks
 reduce concern about an ambiguous parameter fit, but they do not establish that
 one thermal state is sufficient. The validation residuals miss the rapid
-initial temperature rise and later reverse sign, which is evidence of missing
-dynamics in this experiment.
+initial temperature rise and later reverse sign. Inherited thermal state,
+sensor timing and filtering, and phase-dependent heating remain possible
+explanations; these pulse measurements do not isolate their contributions.
 
-A second thermal state could represent package or heat-sink temperature through
-the cooldown, memory-relock, and workload segments. Repeating the same six
-pulses would estimate run-to-run variability but would not add this missing
-state. Any enlarged model would require another held-out validation test before
-its predictions could support a hardware constraint.
+#### Fitting the Complete Thermal History
 
-For the present MPC comparison, the temperature state and inequality remain a
+The expanded development comparison selects a two-state thermal model. It adds
+the completed 4 September pilot, including its failed sustained-serving trial,
+to the five historical acquisitions. All six acquisitions, including the
+earlier validation data, are development data for this comparison.
+
+Each acquisition retains its continuous temperature history through cooldown,
+memory relocking, and workload segments. The two-state model carries an
+unobserved heat-sink temperature through these transitions rather than resetting
+it to the measured junction temperature at each pulse. The fit compares predictions with the
+sensor's one-degree-Celsius bins. Each evaluation holds out one complete
+acquisition; the table averages its ten-second RMSE equally across the six
+acquisitions. These predictions use measured future board power, so they test
+the temperature model with its future input supplied.
+
+| Thermal model | Mean run-weighted ten-second RMSE (degrees C) |
+|---|---:|
+| One state | 0.726 |
+| One state with phase gain, diagnostic only | 0.722 |
+| Two states | 0.540 |
+| Two states with phase gain, diagnostic only | 0.518 |
+
+The unchanged selection rule requires at least 0.1 degrees C and a ten-percent
+improvement to add a state, without materially worsening one-second error or
+ten-second underprediction. The two-state model improves mean RMSE by 0.186
+degrees C, or 25.58 percent, and passes those safeguards. Its fitted modes are
+about 1.72 and 154 seconds. These describe the model response under the recorded
+sensor alignment; they do not establish uniquely identified physical time
+constants. Phase-gain models remain diagnostic because mixed serving supplies
+no runtime phase-activity signal.
+
+The gain is smaller within the failed sustained trial: ten-second RMSE falls
+from 0.907 to 0.825 degrees C across only nine forecast origins. The raw sensor
+peak is 77 degrees C, while the retained one-second observations peak at 76.
+The selected model was frozen before the 40 W acquisition. Fresh evaluation
+still needs power forecasts available when the controller acts. The model remains
+unaccepted for online advisory forecasts or hard thermal constraints;
+measured-temperature watchdogs operate independently.
+
+{download}`Download the six-acquisition thermal development report (JSON) <artifacts/inference_serving/live_control_development/thermal_history_development_live_v2.json>`
+
+The original five-acquisition analysis retained one state because adding a
+second state improved RMSE by only 0.069 degrees C, below the same absolute
+threshold. Its data and report remain unchanged.
+
+{download}`Download the original five-acquisition report (JSON) <artifacts/inference_serving/live_control_development/thermal_history_development.json>`
+
+For the recorded MPC simulation, the temperature state and inequality remain a
 teaching model. The absence of a simulated thermal violation is not a hardware
 safety certificate. The arrival forecast is deliberately simple, output length
 is observed only at completion, and the scheduler is held fixed. Network delay,
@@ -822,7 +918,9 @@ about the experiment?
 No. A reproducible parameter estimate does not establish that the model class
 captures the relevant plant dynamics. The failed held-out criterion prevents
 the constraint from serving as a safety certificate. The experiment remains
-useful because it rejects the power-only assumption, quantifies the improvement
-from a phase-dependent input, and points to missing thermal state as the next
-modeling hypothesis.
+useful because it measures a discrepancy between power-matched workloads and
+quantifies the prediction improvement from a phase-dependent input. It does not
+identify the physical cause: inherited thermal state and sensor timing or
+filtering remain competing explanations to test with complete acquisition
+histories.
 :::
