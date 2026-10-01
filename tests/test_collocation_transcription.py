@@ -25,6 +25,19 @@ def test_generated_low_order_rules(nodes, A, b):
     np.testing.assert_allclose(rule.B, np.column_stack([1-np.array(nodes), nodes]))
 
 
+def test_worked_basis_coefficient_calculus():
+    ell3 = np.polynomial.Polynomial([0, -1, 2])
+    L3 = ell3.integ()
+    np.testing.assert_allclose(L3.coef, [0, 0, -1/2, 2/3])
+    np.testing.assert_allclose(ell3.deriv().coef, [-1, 4])
+    np.testing.assert_allclose(L3.deriv().coef, ell3.coef)
+    rule = make_rule([0, .5, 1], [0, 1])
+    np.testing.assert_allclose(L3(1) - L3(0), 1/6)
+    np.testing.assert_allclose(L3(.5) - L3(0), -1/24)
+    np.testing.assert_allclose(rule.b[2], L3(1) - L3(0))
+    np.testing.assert_allclose(rule.A[1, 2], L3(.5) - L3(0))
+
+
 def test_interior_nodes_integrate_slopes_and_evaluate_controls():
     nodes = np.array([0.13, 0.44, 0.92])
     rule = make_rule(nodes, [0.0, 0.3, 1.0])

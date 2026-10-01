@@ -1,10 +1,10 @@
 # Browser Labs
 
-The browser lab is a small, install-free companion to the book. Its six notebooks focus on examples that fit comfortably in a WebAssembly Python kernel; the expensive JAX, MPC, and nonlinear solver demonstrations remain precomputed in the main text.
+The browser lab is an install-free companion to the book. Notebooks 01–06 introduce small numerical experiments, and notebook 08 is a short demonstration of direct collocation. These notebooks use NumPy, SciPy, Matplotlib, and, in some earlier sessions, ipywidgets. Larger JAX and MPC demonstrations remain precomputed in the main text.
 
 [Launch the browser labs](https://pierrelux.github.io/rlbook/lab/)
 
-Each notebook begins with a working baseline, asks you to predict an outcome before changing parameters, and ends with executable assertions:
+Notebooks 01–06 begin with a working baseline, ask you to predict an outcome before changing parameters, and include executable checks:
 
 1. finite-MDP policy evaluation;
 2. value iteration and policy iteration;
@@ -13,7 +13,26 @@ Each notebook begins with a working baseline, asks you to predict an outcome bef
 5. finite-horizon LQR and the Riccati recursion;
 6. a small SciPy trajectory-optimization problem.
 
-The notebooks use only NumPy, SciPy, Matplotlib, and ipywidgets. Changes are stored in your browser. Download a notebook from JupyterLab if you want to keep or submit it.
+[Notebook 07, Lagrange operators](lab/notebooks/07_lagrange_operators.ipynb), is an optional symbolic-algebra companion for Colab or local Jupyter. It uses SymPy, which is not included in the browser-lab environment. The collocation notebook constructs its own operators and does not require notebook 07.
+
+## Direct collocation for a pendulum swing-up
+
+[Notebook 08](lab/notebooks/08_collocation_from_nodes.ipynb) applies the node-to-NLP recipe of [Continuous-Time Transcription and Collocation](continuous-time-collocation.md) to a pendulum swing-up with a weak, torque-limited motor, which must swing the pendulum back before it can bring it up. The same notebook is a page of the book, in its Demos part, and the chapter links to it at each step it illustrates. Its text explains why each step is needed and what each line of code computes, in the chapter's notation. It follows the steps of the chapter's algorithm in about one hundred lines of code:
+
+1. compute $A$ and $b$ for the two-stage Radau nodes by hand, then with a generator that accepts any nodes;
+2. allocate the mesh states, stage states, and controls in one decision vector;
+3. assemble the objective and the stage, endpoint, and boundary equations;
+4. solve the nonlinear program with SciPy, then replay the optimized control with an accurate ODE solver.
+
+A final section repeats the construction in differentiation form. It keeps the same variables and changes two lines of the constraint function. Three short experiments then change the nodes to recover the other schemes of the chapter, refine the mesh, and raise the torque limit so that the motor lifts the pendulum directly.
+
+[![Open notebook 08 in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pierrelux/rlbook/blob/main/lab/notebooks/08_collocation_from_nodes.ipynb)
+
+The Colab button opens the notebook from this repository's `main` branch on GitHub. Use Colab to read the equations and run the cells if your current notebook preview does not render the mathematics correctly.
+
+The notebook is self-contained and runs on a CPU in about half a minute, with no downloads, installation cells, or repository imports. Browser kernels can take longer. Open it in Colab or local Jupyter with a Python 3 runtime. In the browser lab, select **Python (XPython)**. Changes in the browser lab are stored in your browser; download the notebook if you want to keep or submit it.
+
+## Local use
 
 To serve the lab locally after building it, run:
 

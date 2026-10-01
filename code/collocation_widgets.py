@@ -244,7 +244,7 @@ def render_linear_control_area(
       root.querySelector("[data-state-dot]").style.left=`${100*fraction}%`;
       root.querySelector("[data-state-label]").innerHTML=`x<sub>1</sub> = x<sub>0</sub> + ${finalArea.toFixed(3)}`;
       const description=progress>=.999
-        ? `The full trapezoid has area ${finalArea.toFixed(3)}, so X1 minus X0 equals ${finalArea.toFixed(3)}.`
+        ? `The full trapezoid has area ${finalArea.toFixed(3)}, so x1 minus x0 equals ${finalArea.toFixed(3)}.`
         : `At time ${t.toFixed(2)}, the accumulated area and state change are ${partial.toFixed(3)}.`;
       root.querySelector("[data-status]").textContent=description;
       root.querySelector("[data-live-status]").textContent=description;

@@ -20,7 +20,7 @@ The production-equivalent book build executes every MyST code cell and treats wa
 BASE_URL=/rlbook uv run jupyter-book build --html --execute --strict
 ```
 
-Build the six browser notebooks into the same site:
+Build the browser notebooks into the same site:
 
 ```bash
 uv run jupyter lite build --lite-dir lab --contents notebooks --output-dir _build/html/lab
@@ -28,16 +28,16 @@ uv run jupyter lite build --lite-dir lab --contents notebooks --output-dir _buil
 
 For local authoring, use `uv run jupyter-book start --execute --port 3000`. The browser lab can be served separately with `uv run jupyter lite serve --lite-dir lab --contents notebooks`.
 
-The spotlight presenter must share an origin with the rendered chapter. Preview
-that workflow from a root-based static build rather than MyST's split-port
-development server:
+Keep `--execute` on builds as well as previews: it includes notebook outputs
+even when execution results are cached. A build without it can leave only the
+captions of generated figures and animations. Stop the preview before running
+a separate build, since both commands write to `_build/site`, then restart it
+with the authoring command above.
 
-```bash
-BASE_URL='' uv run jupyter-book build --html
-python3 -m http.server 8000 --bind 127.0.0.1 --directory _build/html
-```
-
-Then open `http://127.0.0.1:8000/modeling-controlled-systems/` and use **Present**.
+Use **Present** on any chapter in the local preview or published book. It opens
+the spotlight recorder over the current chapter; **Exit** returns to the same
+reading position. The presenter launcher keeps the recorder on the chapter's
+origin, including when MyST serves assets on a separate development port.
 
 `publish.sh` performs both strict builds and publishes the assembled `_build/html` directory to `gh-pages` with `ghp-import`.
 
@@ -76,11 +76,31 @@ disclosure is intentional. After changing an imported Python module, run
 `uv run jupyter-book clean --execute -y`; MyST's execution cache does not track
 changes inside imported files.
 
-To regenerate the checked-in notebook JSON after editing their source definitions, run:
+Notebooks 01–06 are generated from their source definitions. To regenerate those notebooks, run:
 
 ```bash
 uv run python lab/generate_notebooks.py
 ```
+
+Notebooks 07 and 08 are authored directly in `lab/notebooks/`; the generator does not
+overwrite them. Notebook 07 uses SymPy in Colab or local Jupyter. Notebook 08,
+`08_collocation_from_nodes.ipynb`, is a short, self-contained NumPy/SciPy/Matplotlib
+demonstration of direct collocation for Colab, local Jupyter, and the browser lab,
+saved with its outputs. It is also a page of the book, listed in the `myst.yml`
+table of contents under the Demos part and served at `/collocation-from-nodes`;
+the book build executes it like any other page. The collocation chapter links to
+its section headings, for example
+`lab/notebooks/08_collocation_from_nodes.ipynb#step-5-solve-and-check`, so a renamed
+heading must be renamed in the chapter too; the notebook tests check these anchors.
+It is stored in Colab's notebook layout: format 4.0, a
+Python 3 kernel, and text cells that each begin with their heading. Its five figure and
+animation cells start with `# @title` and carry the `hide-input` tag, which folds their code in
+Colab and in the book. Its formulas
+avoid a backslash followed by punctuation, such as `\,` and `\\`, so that they
+render the same way in Colab and in Jupyter. `tests/test_collocation_demo_notebook.py`
+executes its code cells and checks the results. See [the lab guide](labs.md) for a
+description. After editing the notebook, execute it from a fresh Python 3 kernel
+before saving; in the browser lab, use Python (XPython).
 
 The modeling chapter reads committed trajectories and figures so that an
 ordinary book build does not rerun long experiments. Regenerate its domain
@@ -102,6 +122,24 @@ The BIXI builder consumes the small, checksum-pinned derived data committed in
 `data/bixi/`; it does not download the original archive. Recreating those
 derived inputs from official source files is documented in
 `data/bixi/README.md`.
+
+## Semi-truck alley dock with single shooting
+
+The [numerical trajectory optimization chapter](numerical-trajectory-optimization.md)
+parks a tractor-semitrailer by single shooting: the 320 speed and steering
+values are the only decision variables, and L-BFGS-B minimizes the cost of
+one differentiable rollout. Rebuild its two scenarios, static figures,
+results tables, and browser replay data with:
+
+```bash
+uv run python scripts/build_truck_parking_artifacts.py
+```
+
+The replay shows checkpointed optimizer iterates and a fixed plan's future
+rig poses. The experiment's [artifact notes](artifacts/truck_parking/README.md)
+document the kinematic model, the data format, and the finer-replay arrival
+checks, including the steering-amplification diagnostic that compares
+reverse-mode derivatives with the product of per-interval hitch Jacobians.
 
 ## Boat docking with iLQR and DDP
 
@@ -128,6 +166,33 @@ model, data format, and finer-integration arrival and hull-clearance checks.
 The second builder records the thermoacoustic refrigerator's pull-down solves
 and static figures; its [artifact notes](artifacts/thermoacoustic_pulldown/README.md)
 describe the synthetic model and checks.
+
+## MPPI experiments
+
+The [Model Predictive Path Integral Control chapter](model-predictive-path-integral-control.md) follows continuous-time transcription and collocation.
+
+The MPPI chapter reads the precomputed aircraft experiment. The separate
+[Path-Integral Stochastic Control chapter](path-integral-stochastic-control.md)
+contains the HJB derivation and Brownian-passage experiment. Regenerate the
+numerical results, static figures, and standalone browser replays with:
+
+```bash
+uv run python scripts/build_brownian_mppi_artifacts.py
+uv run python scripts/build_aircraft_mppi_artifacts.py
+```
+
+The aircraft experiment uses numerical OpenAP performance models and the
+committed ERA5 wind extraction in `data/aircraft/`. Recreating that extraction
+from the original local GRIB file requires a temporary ecCodes environment:
+
+```bash
+uv run --no-project --with eccodes==2.48.0 --with numpy==2.5.3 python scripts/prepare_aircraft_wind.py
+```
+
+Neither ordinary book builds nor browser replay fetch weather data or rerun
+the optimizers. The aircraft's synthetic gust process is separate from the
+historical mean-wind snapshot. Controller comparisons keep planner random
+numbers independent from the realized physical disturbances.
 
 ## Recorded spotlight presentations
 

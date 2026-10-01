@@ -125,3 +125,115 @@ def transcribed_problem(
             )
     G = np.concatenate(inequalities) if inequalities else np.empty(0)
     return float(objective), G, np.concatenate(equalities)
+
+
+@dataclass
+class DifferentiationRule:
+    nodes: np.ndarray
+    state_nodes: np.ndarray
+    control_nodes: np.ndarray
+    E: np.ndarray
+    D: np.ndarray
+    state_left: np.ndarray
+    state_right: np.ndarray
+    b: np.ndarray
+    B: np.ndarray
+    control_left: np.ndarray
+    control_right: np.ndarray
+
+
+def make_differentiation_rule(nodes, state_nodes, control_nodes):
+    """Precompute the state-value form of a polynomial collocation rule.
+
+    With s collocation nodes, use s+1 state nodes for a degree-s state.
+    E[i,r] = state basis r evaluated at collocation node i.
+    D[i,r] = its derivative with respect to local time, evaluated at node i.
+    b integrates cost rates at collocation nodes, not state-support nodes.
+    """
+    state_basis = cardinal_polynomials(state_nodes)
+    cost_basis = cardinal_polynomials(nodes)
+    control_basis = cardinal_polynomials(control_nodes)
+    nodes = np.asarray(nodes, dtype=float)
+    if len(state_basis) != len(nodes) + 1:
+        raise ValueError("s collocation nodes require s+1 state-support nodes")
+    E = np.column_stack([p(nodes) for p in state_basis])
+    D = np.column_stack([p.deriv()(nodes) for p in state_basis])
+    antiderivatives = [p.integ() for p in cost_basis]
+    b = np.array([p(1.0) - p(0.0) for p in antiderivatives])
+    B = np.column_stack([p(nodes) for p in control_basis])
+    return DifferentiationRule(
+        nodes=nodes,
+        state_nodes=np.asarray(state_nodes, dtype=float),
+        control_nodes=np.asarray(control_nodes, dtype=float),
+        E=E, D=D,
+        state_left=np.array([p(0.0) for p in state_basis]),
+        state_right=np.array([p(1.0) for p in state_basis]),
+        b=b, B=B,
+        control_left=np.array([p(0.0) for p in control_basis]),
+        control_right=np.array([p(1.0) for p in control_basis]),
+    )
+
+
+def differentiation_problem(
+    rule, mesh, x_mesh, x_support, u_support,
+    dynamics, running_cost, terminal_cost, boundary, path=None,
+    *, continuous_control=False,
+):
+    """Return F, G <= 0, H = 0 for the state-value formulation.
+
+    x_mesh: (N+1, n); x_support: (N, s+1, n); u_support: (N, d_u+1, m).
+    Stage states are computed from x_support, not separate NLP variables.
+    This uneliminated form keeps mesh and support states as separate slots
+    and connects both polynomial endpoints to the mesh with equalities.
+    Callback signatures and the path-sampling convention match
+    transcribed_problem. Residual order is boundary, then each interval's
+    slope, left endpoint, right endpoint, and optional control continuity.
+    """
+    mesh = np.asarray(mesh, dtype=float)
+    x_mesh, x_support, u_support = map(
+        lambda a: np.asarray(a, dtype=float), (x_mesh, x_support, u_support)
+    )
+    if mesh.ndim != 1 or len(mesh) < 2 or not np.all(np.isfinite(mesh)):
+        raise ValueError("mesh must be a finite one-dimensional array")
+    widths = np.diff(mesh)
+    if np.any(widths <= 0):
+        raise ValueError("mesh times must be strictly increasing")
+    N, s, r = len(widths), len(rule.nodes), len(rule.control_nodes)
+    if x_mesh.ndim != 2 or x_mesh.shape[0] != N + 1:
+        raise ValueError("x_mesh must have shape (N+1, n)")
+    if x_support.shape != (N, s + 1, x_mesh.shape[1]):
+        raise ValueError("x_support must have shape (N, s+1, n)")
+    if u_support.ndim != 3 or u_support.shape[:2] != (N, r):
+        raise ValueError("u_support must have shape (N, d_u+1, m)")
+
+    objective = float(terminal_cost(x_mesh[-1], mesh[-1]))
+    equalities = [np.asarray(boundary(x_mesh[0], x_mesh[-1], mesh[-1])).ravel()]
+    inequalities = []
+    for k, width in enumerate(widths):
+        stage_times = mesh[k] + width * rule.nodes
+        stage_states = rule.E @ x_support[k]
+        stage_controls = rule.B @ u_support[k]
+        slopes = np.stack([
+            dynamics(x, u, t)
+            for x, u, t in zip(stage_states, stage_controls, stage_times)
+        ])
+        rates = np.array([
+            running_cost(x, u, t)
+            for x, u, t in zip(stage_states, stage_controls, stage_times)
+        ])
+        equalities.append((rule.D @ x_support[k] - width * slopes).ravel())
+        equalities.append(rule.state_left @ x_support[k] - x_mesh[k])
+        equalities.append(rule.state_right @ x_support[k] - x_mesh[k + 1])
+        objective += width * rule.b @ rates
+        if path is not None:
+            inequalities.extend(
+                np.asarray(path(x, u, t)).ravel()
+                for x, u, t in zip(stage_states, stage_controls, stage_times)
+            )
+        if continuous_control and k + 1 < N:
+            equalities.append(
+                rule.control_right @ u_support[k]
+                - rule.control_left @ u_support[k + 1]
+            )
+    G = np.concatenate(inequalities) if inequalities else np.empty(0)
+    return float(objective), G, np.concatenate(equalities)

@@ -10,7 +10,9 @@ project:
   bibliography:
     - references.bib
   exclude:
-    # Generated copies are build inputs/outputs, not authored pages.
+    # Generated copies are build inputs/outputs, not authored pages. A file
+    # listed in the toc, such as the collocation notebook under lab/, is still
+    # built as a page.
     - .jupyter-book-marimo/**
     - .venv/**
     - _build/**
@@ -22,6 +24,7 @@ project:
     - type: executable
       path: .venv/bin/jupyter-book-marimo
     - plugins/pdf-static-parity.mjs
+    - plugins/presenter.mjs
   math:
     '\Proj': '\mathsf{P}'
     '\Residual': '\mathsf{N}'
@@ -75,6 +78,9 @@ project:
         - file: gradient-estimation.md
         - file: regularized-policy-learning.md
         - file: policy-gradients.md
+    - title: Demos
+      children:
+        - file: lab/notebooks/08_collocation_from_nodes.ipynb
     - title: Appendix
       children:
         - file: appendix_examples.md
