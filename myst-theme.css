@@ -1197,6 +1197,42 @@ iframe {
 @media (max-width: 400px) { .thermoacoustic-replay > div > div { height: 2440px; } }
 @media (max-width: 375px) { .thermoacoustic-replay > div > div { height: 2550px; } }
 @media (max-width: 340px) { .thermoacoustic-replay > div > div { height: 2620px; } }
+
+/* Hydro reservoir DP: controls, map with side column, strips and metrics.
+   Content heights measured in the page (iframe width -> height): 808 -> 1014,
+   680 -> 1014, 600 -> 1493 (side column stacks below 620px), 375 -> 1749. */
+.hydro-reservoir-replay > div > div {
+  height: 1070px;
+  padding-bottom: 0 !important;
+  width: 100% !important;
+}
+@media (max-width: 644px) { .hydro-reservoir-replay > div > div { height: 1560px; } }
+@media (max-width: 480px) { .hydro-reservoir-replay > div > div { height: 1700px; } }
+@media (max-width: 400px) { .hydro-reservoir-replay > div > div { height: 1800px; } }
 @media (max-width: 640px) {
   .mppi-replay > div > div { height: 860px; }
 }
+
+/* Thermal-reactor replay, opened on its field-recovery tab. The page switches
+   to a stacked single-column layout when its own width is 700px or less.
+   Window-to-iframe widths follow the thermoacoustic notes above: the text
+   column from 768px (680px at 768, about 712px at 800, 763px at 1280), and
+   the window width minus 24px below 768px. Content heights of the recovery
+   view and its sampled-update view (iframe width -> larger height):
+   808 -> 2427, 763 -> 2457, 743 -> 2478, 705 -> 2457, 700 -> 3451,
+   680 -> 3448, 616 -> 3399, 576 -> 3417, 496 -> 3413, 480 -> 3516,
+   456 -> 3611, 406 -> 3670, 376 -> 3718, 351 -> 3786, 316 -> 3992.
+   Each bucket adds about 70px of slack for font differences. Other tabs
+   scroll inside the frame. Re-measure after changing the page's layout. */
+.thermal-reactor-replay > div > div {
+  height: 2550px;
+  padding-bottom: 0 !important;
+  width: 100% !important;
+}
+@media (min-width: 768px) and (max-width: 789px) { .thermal-reactor-replay > div > div { height: 3520px; } }
+@media (max-width: 724px) { .thermal-reactor-replay > div > div { height: 3520px; } }
+@media (max-width: 514px) { .thermal-reactor-replay > div > div { height: 3680px; } }
+@media (max-width: 430px) { .thermal-reactor-replay > div > div { height: 3740px; } }
+@media (max-width: 400px) { .thermal-reactor-replay > div > div { height: 3790px; } }
+@media (max-width: 375px) { .thermal-reactor-replay > div > div { height: 3860px; } }
+@media (max-width: 340px) { .thermal-reactor-replay > div > div { height: 4060px; } }

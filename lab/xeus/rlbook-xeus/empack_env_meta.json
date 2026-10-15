@@ -53,21 +53,6 @@
       "subdir": "noarch"
     },
     {
-      "name": "numpy",
-      "version": "2.5.3",
-      "build": "py313h9242c33_3",
-      "filename_stem": "numpy-2.5.3-py313h9242c33_3",
-      "filename": "numpy-2.5.3-py313h9242c33_3.tar.gz",
-      "channel": "https://prefix.dev/emscripten-forge-4x",
-      "depends": [
-        "openblas",
-        "python",
-        "emscripten-abi >=4,<5.0a0",
-        "python_abi 3.13.* *_cp313"
-      ],
-      "subdir": "emscripten-wasm32"
-    },
-    {
       "name": "cycler",
       "version": "0.12.1",
       "build": "pyhcf101f3_2",
@@ -160,6 +145,34 @@
       "subdir": "noarch"
     },
     {
+      "name": "numpy",
+      "version": "2.5.4",
+      "build": "py313h9242c33_0",
+      "filename_stem": "numpy-2.5.4-py313h9242c33_0",
+      "filename": "numpy-2.5.4-py313h9242c33_0.tar.gz",
+      "channel": "https://prefix.dev/emscripten-forge-4x",
+      "depends": [
+        "openblas",
+        "python",
+        "emscripten-abi >=4,<5.0a0",
+        "python_abi 3.13.* *_cp313"
+      ],
+      "subdir": "emscripten-wasm32"
+    },
+    {
+      "name": "pytz",
+      "version": "2026.5",
+      "build": "pyh5ded981_0",
+      "filename_stem": "pytz-2026.5-pyh5ded981_0",
+      "filename": "pytz-2026.5-pyh5ded981_0.tar.gz",
+      "channel": "https://prefix.dev/conda-forge",
+      "depends": [
+        "python >=3.11",
+        "python"
+      ],
+      "subdir": "noarch"
+    },
+    {
       "name": "openblas",
       "version": "0.3.34",
       "build": "h69b678e_4",
@@ -209,19 +222,6 @@
         "python >=3.10",
         "traitlets >=4.3.1",
         "widgetsnbextension >=4.0.16,<4.1.0"
-      ],
-      "subdir": "noarch"
-    },
-    {
-      "name": "pytz",
-      "version": "2026.4",
-      "build": "pyh5ded981_0",
-      "filename_stem": "pytz-2026.4-pyh5ded981_0",
-      "filename": "pytz-2026.4-pyh5ded981_0.tar.gz",
-      "channel": "https://prefix.dev/conda-forge",
-      "depends": [
-        "python >=3.11",
-        "python"
       ],
       "subdir": "noarch"
     },
@@ -490,6 +490,18 @@
       "subdir": "noarch"
     },
     {
+      "name": "executing",
+      "version": "2.3.0",
+      "build": "pyhd8ed1ab_0",
+      "filename_stem": "executing-2.3.0-pyhd8ed1ab_0",
+      "filename": "executing-2.3.0-pyhd8ed1ab_0.tar.gz",
+      "channel": "https://prefix.dev/conda-forge",
+      "depends": [
+        "python >=3.11"
+      ],
+      "subdir": "noarch"
+    },
+    {
       "name": "prompt-toolkit",
       "version": "3.0.53",
       "build": "pyha770c72_0",
@@ -622,18 +634,6 @@
       "depends": [
         "python >=3.10",
         "python"
-      ],
-      "subdir": "noarch"
-    },
-    {
-      "name": "executing",
-      "version": "2.2.1",
-      "build": "pyhd8ed1ab_0",
-      "filename_stem": "executing-2.2.1-pyhd8ed1ab_0",
-      "filename": "executing-2.2.1-pyhd8ed1ab_0.tar.gz",
-      "channel": "https://prefix.dev/conda-forge",
-      "depends": [
-        "python >=3.10"
       ],
       "subdir": "noarch"
     },
