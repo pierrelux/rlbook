@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>IFT6162 Project Finder</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="IFT6162 final project: a short brief, a matcher that suggests topics from what you care about, and 129 real control problems with papers to start from.">
+<meta name="description" content="IFT6162 final project: a short brief, a matcher that suggests topics from what you care about, a list of real control problems with papers to start from, and a ready-to-send email to confirm your team and topic.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" rel="stylesheet">
@@ -118,7 +118,8 @@
   .facts dt { font: 600 12px/1.9 var(--font-sans); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-muted); }
   .facts dd { margin: 0; font-size: 15px; }
   .grading { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 14px; }
-  .grading span { white-space: nowrap; }
+  .grading span { min-width: 0; }
+  .grading i { white-space: nowrap; }
   .grading i { font: normal 500 13px var(--font-mono); color: var(--ink-muted); }
   .impact { margin-top: 22px; padding: 14px 18px; border-radius: 8px; background: var(--green-soft); color: var(--ink); max-width: 46rem; font-size: 15px; }
   .impact b { color: var(--green); }
@@ -240,6 +241,43 @@
   .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 8px 14px; border-radius: 6px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 40; }
   .toast.show { opacity: 1; }
   .status { color: var(--ink-muted); padding: 20px 0; }
+
+  /* Team email: a form on the left, the message as it will be sent on the right.
+     Blanks still to fill are marked in the preview so nobody sends "[full name]". */
+  .composer { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 28px; align-items: start; }
+  @media (max-width: 860px) { .composer { grid-template-columns: minmax(0, 1fr); } }
+  .cform { display: grid; gap: 18px; min-width: 0; }
+  .cform fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 8px; min-width: 0; }
+  .cform .lbl, .cform legend { font: 600 11.5px/1.4 var(--font-sans); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-muted); padding: 0; }
+  .team-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 2px; }
+  .team-head label { white-space: nowrap; font-size: 14px; color: var(--ink-muted); display: flex; align-items: center; gap: 6px; }
+  .team-head select { width: auto; padding: 3px 8px; }
+  .member { display: grid; grid-template-columns: 1.4rem minmax(0, 1fr) minmax(0, 1.2fr); gap: 8px; align-items: center; }
+  .member .num { font: 500 13px var(--font-mono); color: var(--accent); }
+  @media (max-width: 520px) { .member { grid-template-columns: 1.4rem minmax(0, 1fr); } .member input[type="email"] { grid-column: 2; } }
+  .cform input[type="text"], .cform input[type="email"], .cform select, .cform textarea { width: 100%; padding: 8px 11px; border: 1px solid var(--rule); border-radius: 8px; background: var(--bg-raised); font-size: 15px; min-width: 0; }
+  .cform textarea { resize: vertical; min-height: 88px; line-height: 1.5; font-family: var(--font-sans); }
+  .cform label.blk { display: grid; gap: 6px; min-width: 0; }
+  .cform .help { font-size: 13.5px; color: var(--ink-muted); margin: 0; }
+  .check { display: flex; gap: 8px; align-items: center; font-size: 14.5px; cursor: pointer; }
+  .check input { width: 16px; height: 16px; accent-color: var(--accent); }
+  .seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; margin-top: 6px; }
+  .seg button { border: 0; background: var(--bg-raised); padding: 6px 14px; cursor: pointer; font-size: 14px; }
+  .seg button + button { border-left: 1px solid var(--rule); }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+  .mail { border: 1px solid var(--rule); border-radius: 12px; background: var(--bg-raised); box-shadow: var(--shadow); overflow: hidden; min-width: 0; }
+  .mail-h { display: grid; grid-template-columns: 4.6rem minmax(0, 1fr); gap: 4px 10px; margin: 0; padding: 12px 16px; border-bottom: 1px solid var(--rule); background: var(--bg-sunken); font-size: 14.5px; }
+  .mail-h dt { font: 500 12px/1.8 var(--font-mono); color: var(--ink-muted); text-transform: uppercase; letter-spacing: .04em; }
+  .mail-h dd { margin: 0; overflow-wrap: anywhere; min-width: 0; }
+  .mail-h .addr { font: 14px/1.7 var(--font-mono); user-select: all; }
+  .mail-h .muted { color: var(--ink-muted); }
+  .mail-body { margin: 0; padding: 16px; white-space: pre-wrap; overflow-wrap: anywhere; font: 15px/1.6 var(--font-sans); color: var(--ink); }
+  mark.blank { background: var(--warn-soft); color: var(--warn); border-radius: 3px; padding: 0 2px; }
+  .mail-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--rule); }
+  .blanks { font: 500 13px var(--font-mono); color: var(--warn); margin-right: auto; }
+  .blanks.ok { color: var(--green); }
+  .cnote { font-size: 14px; color: var(--ink-muted); margin: 12px 2px 0; }
+  .cnote b { color: var(--ink); font-weight: 500; font-family: var(--font-mono); font-size: 13.5px; }
 </style>
 </head>
 <body>
@@ -250,6 +288,7 @@
       <a href="#brief">Brief</a>
       <a href="#match">Find your project</a>
       <a href="#topics">All topics</a>
+      <a href="#confirm">Team email</a>
       <button class="pill-btn" id="open-shortlist" type="button" aria-label="Open your shortlist">Shortlist <span class="n" id="short-n">0</span></button>
     </nav>
   </div>
@@ -307,7 +346,7 @@
         <li><p><b>Show we can trust your numbers.</b> Sanity checks on units and signs, limiting cases, a published result reproduced, sensitivity to parameters and seeds.</p></li>
       </ol>
       <dl class="facts">
-        <div><dt>Team</dt><dd>Three students. Mix backgrounds, and pick a field you don't already work in.</dd></div>
+        <div><dt>Team</dt><dd>Exactly three students; any exception is arranged with the instructor. Mix backgrounds, and pick a field you don't already work in. Once you're set, <a href="#confirm">send us your team and topic</a>.</dd></div>
         <div><dt>Proposal</dt><dd>One page by email, ungraded, any time before the poster session. The earlier you send it, the more feedback you get.</dd></div>
         <div><dt>Poster</dt><dd>Thursday, December 3, 13:30–15:30 at Mila. In person; it cannot be done late.</dd></div>
         <div><dt>Hand in</dt><dd>A code repository with a README and tests, a one-page project website with at least one interactive figure, the poster, and an oral defense at the poster.</dd></div>
@@ -387,6 +426,51 @@
     <div class="count" id="count"></div>
     <div class="cards" id="cards"><p class="status">Loading topics…</p></div>
   </section>
+
+  <section id="confirm" class="wrap" aria-labelledby="confirm-h">
+    <div class="section-head">
+      <h2 id="confirm-h">Tell us your team and project</h2>
+      <p>Once your team has settled on a topic, send this short email so we know who is working on what. It is not the proposal; that comes later, once you have something running.</p>
+    </div>
+    <div class="composer">
+      <form class="cform" id="cform" autocomplete="on">
+        <fieldset aria-labelledby="c-team-l">
+          <div class="team-head">
+            <span class="lbl" id="c-team-l">Team</span>
+            <label>Team of <select id="c-size" aria-label="Team size"><option value="3">3</option><option value="2">2</option><option value="1">1</option></select></label>
+          </div>
+          <div class="member"><span class="num">1</span><input type="text" data-k="names" data-i="0" placeholder="Full name" aria-label="Member 1 name" autocomplete="name"><input type="email" data-k="emails" data-i="0" placeholder="Email" aria-label="Member 1 email" autocomplete="email"></div>
+          <div class="member"><span class="num">2</span><input type="text" data-k="names" data-i="1" placeholder="Full name" aria-label="Member 2 name" autocomplete="off"><input type="email" data-k="emails" data-i="1" placeholder="Email" aria-label="Member 2 email" autocomplete="off"></div>
+          <div class="member"><span class="num">3</span><input type="text" data-k="names" data-i="2" placeholder="Full name" aria-label="Member 3 name" autocomplete="off"><input type="email" data-k="emails" data-i="2" placeholder="Email" aria-label="Member 3 email" autocomplete="off"></div>
+        </fieldset>
+        <label class="blk"><span class="lbl">Project</span>
+          <select id="c-topic"><option value="">Loading topics…</option></select>
+          <span class="help">Your shortlist and matches come first. Any topic card also has a <b>Use for our team email</b> button.</span>
+        </label>
+        <label class="blk" id="c-own-wrap" hidden><span class="lbl">Your own problem, in a few words</span><input type="text" id="c-own" placeholder="Snow-clearing routes for a Montréal borough"></label>
+        <label class="blk"><span class="lbl">In your own words</span><textarea id="c-pitch" rows="3" placeholder="One or two sentences: the system, what you will control, and the baseline you want to beat."></textarea></label>
+        <label class="check" id="c-backups-wrap" hidden><input type="checkbox" id="c-backups"> Also mention the other topics on our shortlist</label>
+        <div><span class="lbl" id="c-lang-l">Write the email in</span><br><div class="seg" role="group" aria-labelledby="c-lang-l"><button type="button" data-lang="en">English</button><button type="button" data-lang="fr">Français</button></div></div>
+      </form>
+      <div>
+        <div class="mail">
+          <dl class="mail-h">
+            <dt>To</dt><dd><span class="addr" id="c-to">pierre-luc.bacon@mila.quebec</span></dd>
+            <dt>Cc</dt><dd id="c-cc"></dd>
+            <dt>Subject</dt><dd id="c-subj"></dd>
+          </dl>
+          <pre class="mail-body" id="c-body" aria-live="polite"></pre>
+          <div class="mail-foot">
+            <span class="blanks" id="c-blanks"></span>
+            <button type="button" class="btn small" id="c-copy-to">Copy address</button>
+            <button type="button" class="btn small" id="c-copy-subj">Copy subject</button>
+            <button type="button" class="btn small primary" id="c-copy">Copy message</button>
+          </div>
+        </div>
+        <p class="cnote">Paste it into a new email to <b>pierre-luc.bacon@mila.quebec</b> with your teammates in copy, or <a id="c-mailto" href="#">open it in your mail app</a>. What you type here stays in this browser.</p>
+      </div>
+    </div>
+  </section>
 </main>
 
 <footer>
@@ -465,7 +549,7 @@
       opts: [{ v: 1, b: "A solid first project", s: "A working simulator or clean data, so we can go deep on the method." },
              { v: 2, b: "Some stretch", s: "Some modelling or setup work before the control part." },
              { v: 3, b: "Ambitious", s: "Heavy modelling, slow simulators or data agreements. We like hard problems." }] },
-    { key: "known", multi: 13, chips: true, optional: true, title: "Which fields do you already work or study in?", hint: "The project is a chance to learn a new field, so we steer you away from these. Skip if none apply.",
+    { key: "known", multi: DATA.areas.length, chips: true, optional: true, title: "Which fields do you already work or study in?", hint: "The project is a chance to learn a new field, so we steer you away from these. Skip if none apply.",
       opts: DATA.areas.map(a => ({ v: a.id, b: a.label })) },
   ];
 
@@ -636,6 +720,7 @@
         <div class="topic-actions">
           <button type="button" class="btn small star" data-star="${t.id}" aria-pressed="${short.has(t.id)}">${short.has(t.id) ? "Saved to shortlist" : "Save to shortlist"}</button>
           <button type="button" class="btn small" data-proposal="${t.id}">Copy a proposal outline</button>
+          <button type="button" class="btn small" data-email="${t.id}">Use for our team email</button>
         </div>
       </article>`;
   }
@@ -644,6 +729,8 @@
     showingResults = true;
     drawLoop(6, -1);
     const { top, detour } = rank(ans);
+    lastMatches = top.concat(detour ? [detour] : []).map(r => r.t.id);
+    refreshComposer();
     const labels = ["Best match", "Also a strong fit", "Worth a look"];
     $("#q-pane").innerHTML = `
       <div class="results-head">
@@ -651,6 +738,7 @@
         <div class="right" style="display:flex;gap:8px;flex-wrap:wrap">
           <button type="button" class="btn small" id="r-edit">Change my answers</button>
           <button type="button" class="btn small" id="r-copy">Copy my matches</button>
+          <a class="btn small" href="#confirm">Write our team email</a>
         </div>
       </div>
       <div class="match-list">
@@ -732,11 +820,13 @@
     dlg.setAttribute("aria-labelledby", "dlg-title");
     $("#dlg-body").innerHTML = items.length ? `
       <ul class="shortlist">${items.map(t => `<li><a href="#${t.id}" data-open="${t.id}">${esc(t.title)}</a><button type="button" class="btn small" data-star="${t.id}" aria-pressed="true">Remove</button></li>`).join("")}</ul>
-      <button type="button" class="btn small" id="copy-short">Copy the shortlist for your team</button>
+      <div style="display:flex;flex-wrap:wrap;gap:8px"><button type="button" class="btn small" id="copy-short">Copy the shortlist for your team</button><button type="button" class="btn small" id="email-short">Write our team email</button></div>
       <p style="font-size:13.5px;color:var(--ink-muted);margin:10px 0 0">Saved in this browser only.</p>`
       : `<p>Nothing saved yet. Use <b>Save to shortlist</b> on any topic, then share the list with your team from here.</p>`;
     const cs = $("#copy-short");
     if (cs) cs.onclick = () => copyText("IFT6162 project shortlist\n\n" + items.map(t => `${t.title}\n${t.hook}\n${mdPlain(t.start)}`).join("\n\n"), "Shortlist copied");
+    const es = $("#email-short");
+    if (es) es.onclick = () => useForEmail(C.topic && C.topic !== "__own" && short.has(C.topic) ? C.topic : items[0].id);
     if (!dlg.open) dlg.showModal();
   }
   dlg.addEventListener("click", e => {
@@ -759,10 +849,12 @@
         if (!b.closest(".shortlist")) b.textContent = on ? "Saved to shortlist" : "Save to shortlist";
       });
       if (s.closest(".shortlist")) openShortlist();
-      renderCards();
+      renderCards(); refreshComposer();
       toast(short.has(id) ? "Saved to your shortlist" : "Removed from your shortlist");
       return;
     }
+    const em = e.target.closest("[data-email]");
+    if (em) { useForEmail(em.dataset.email); return; }
     const p = e.target.closest("[data-proposal]");
     if (p) {
       const t = BYID[p.dataset.proposal];
@@ -780,9 +872,9 @@
       ].join("\n"), "Proposal outline copied. Paste it into your email and fill the blanks.");
     }
   });
-  function copyText(txt, msg) {
+  function copyText(txt, msg, hostEl) {
     const fallback = () => {
-      const host = dlg.open ? $("#dlg-body") : $("#q-pane");
+      const host = hostEl || (dlg.open ? $("#dlg-body") : $("#q-pane"));
       let ta = host.querySelector("textarea.copy-fallback");
       if (!ta) { ta = document.createElement("textarea"); ta.className = "copy-fallback"; ta.setAttribute("aria-label", "Text to copy"); host.appendChild(ta); }
       ta.value = txt; ta.focus(); ta.select();
@@ -794,6 +886,121 @@
   let qTimer;
   $("#q").addEventListener("input", e => { clearTimeout(qTimer); qTimer = setTimeout(() => { F.q = e.target.value.trim().toLowerCase(); renderCards(); }, 120); });
 
+  /* ---------- Team email ---------- */
+  // Blanks are wrapped in \u0001…\u0002 so the preview can mark them and the
+  // copied text keeps them as plain [brackets].
+  const TO = "pierre-luc.bacon@mila.quebec";
+  const C = Object.assign({ size: 3, names: ["", "", ""], emails: ["", "", ""], topic: "", own: "", pitch: "", backups: false, lang: "en" }, store.get("compose", {}));
+  let lastMatches = [], composed = { subject: "", plain: "" };
+  const saveC = () => store.set("compose", C);
+  const firstRef = s => { const m = /\[([^\]]+)\]\((https?:[^)\s]+)\)/.exec(s || ""); return m ? `${m[1]} (${m[2]})` : ""; };
+  const joinNames = (xs, and) => xs.length < 2 ? xs.join("") : xs.slice(0, -1).join(", ") + ` ${and} ` + xs[xs.length - 1];
+  const MAIL = {
+    en: { c: ": ", hi: "Hi Pierre-Luc,", intro: "Our team for the IFT6162 final project is set, and here is the topic we picked.",
+      introOne: "Here is the topic I picked for the IFT6162 final project.",
+      team: "Team", project: "Project", projectOwn: "Project (our own idea)", start: "Starting point", words: "In our words",
+      others: "Other topics we are still weighing", thanks: "Thanks,", and: "and", subj: "[IFT6162] Team and project",
+      bName: "[full name]", bEmail: "[email]", bTopic: "[pick a topic]", bOwn: "[your problem in a few words]",
+      bRef: "[the paper, simulator or dataset you start from]", bNames: "[your names]",
+      bPitch: "[one or two sentences: the system, what we will control, and the baseline we want to beat]",
+      few: n => n === 1 ? ["I do not have a team yet.", "[say why, or ask to be matched with one]"] : ["We are two, not three.", "[say why, or ask to be matched with a third member]"] },
+    fr: { c: " : ", hi: "Bonjour Pierre-Luc,", intro: "Notre équipe pour le projet final d'IFT6162 est formée, et voici le sujet que nous avons choisi.",
+      introOne: "Voici le sujet que j'ai choisi pour le projet final d'IFT6162.",
+      team: "Équipe", project: "Projet", projectOwn: "Projet (notre propre idée)", start: "Point de départ", words: "En nos mots",
+      others: "Autres sujets que nous envisageons encore", thanks: "Merci,", and: "et", subj: "[IFT6162] Équipe et projet",
+      bName: "[nom complet]", bEmail: "[courriel]", bTopic: "[choisissez un sujet]", bOwn: "[votre problème en quelques mots]",
+      bRef: "[l'article, le simulateur ou le jeu de données de départ]", bNames: "[vos noms]",
+      bPitch: "[une ou deux phrases : le système, ce que nous allons commander et la méthode de référence à battre]",
+      few: n => n === 1 ? ["Je n'ai pas encore d'équipe.", "[expliquez pourquoi, ou demandez un jumelage avec une équipe]"] : ["Nous sommes deux, et non trois.", "[expliquez pourquoi, ou demandez un jumelage avec une troisième personne]"] },
+  };
+  function composeMail() {
+    const L = MAIL[C.lang] || MAIL.en, B = s => "\u0001" + s + "\u0002", n = C.size;
+    const own = C.topic === "__own", t = BYID[C.topic];
+    const title = own ? (C.own.trim() || B(L.bOwn)) : t ? t.title : B(L.bTopic);
+    const ref = !own && t ? firstRef(t.start) : B(L.bRef);
+    const names = C.names.slice(0, n).map(s => s.trim()).filter(Boolean);
+    const others = C.backups ? [...short].filter(id => id !== C.topic && BYID[id]).map(id => BYID[id].title) : [];
+    const lines = [L.hi, "", n === 1 ? L.introOne : L.intro, "", L.team];
+    for (let i = 0; i < n; i++) lines.push(`- ${C.names[i].trim() || B(L.bName)} <${C.emails[i].trim() || B(L.bEmail)}>`);
+    if (n < 3) { const [said, ask] = L.few(n); lines.push("", said + " " + B(ask)); }
+    lines.push("", (own ? L.projectOwn : L.project) + L.c + title, L.start + L.c + ref, L.words + L.c + (C.pitch.trim() || B(L.bPitch)));
+    if (others.length) lines.push("", L.others + L.c + others.join("; "));
+    lines.push("", L.thanks, names.length ? joinNames(names, L.and) : B(L.bNames));
+    const subjTitle = own ? C.own.trim() : t ? t.title : "";
+    return { subject: L.subj + (subjTitle ? L.c + subjTitle : ""), body: lines.join("\n") };
+  }
+  function composerOptions() {
+    if (!DATA) return;
+    const o = (id, label) => `<option value="${id}">${esc(label)}</option>`;
+    const shortIds = [...short].filter(id => BYID[id]);
+    const bySec = new Map();
+    DATA.topics.forEach(t => { if (!bySec.has(t.section)) bySec.set(t.section, []); bySec.get(t.section).push(t); });
+    $("#c-topic").innerHTML = o("", "Choose a topic…") +
+      (shortIds.length ? `<optgroup label="Your shortlist">${shortIds.map(id => o(id, BYID[id].title)).join("")}</optgroup>` : "") +
+      (lastMatches.length ? `<optgroup label="Your matches">${lastMatches.map(id => o(id, BYID[id].title)).join("")}</optgroup>` : "") +
+      o("__own", "Our own problem (not on the list)") +
+      [...bySec].map(([s, ts]) => `<optgroup label="${esc(s)}">${ts.map(t => o(t.id, t.title)).join("")}</optgroup>`).join("");
+    $("#c-topic").value = C.topic && (BYID[C.topic] || C.topic === "__own") ? C.topic : "";
+  }
+  function renderComposer() {
+    if (!DATA) return;
+    const { subject, body } = composeMail();
+    const blanks = (body.match(/\u0001/g) || []).length;
+    composed = { subject, plain: body.replace(/[\u0001\u0002]/g, "") };
+    $("#c-body").innerHTML = esc(body).replace(/\u0001/g, '<mark class="blank">').replace(/\u0002/g, "</mark>");
+    $("#c-subj").textContent = subject;
+    const cc = C.emails.slice(0, C.size).map(s => s.trim()).filter(Boolean);
+    $("#c-cc").innerHTML = cc.length ? esc(cc.join(", ")) : `<span class="muted">${C.size === 1 ? "Nobody" : "Your teammates, once you add their emails"}</span>`;
+    const bl = $("#c-blanks");
+    bl.textContent = blanks ? `${blanks} blank${blanks > 1 ? "s" : ""} to fill` : "Ready to send";
+    bl.classList.toggle("ok", !blanks);
+    $("#c-mailto").href = `mailto:${TO}?` + [cc.length ? "cc=" + encodeURIComponent(cc.join(",")) : "",
+      "subject=" + encodeURIComponent(subject), "body=" + encodeURIComponent(composed.plain)].filter(Boolean).join("&");
+    $("#c-own-wrap").hidden = C.topic !== "__own";
+    $("#c-backups-wrap").hidden = ![...short].some(id => id !== C.topic && BYID[id]);
+    document.querySelectorAll(".member").forEach((m, i) => { m.hidden = i >= C.size; });
+    document.querySelectorAll("[data-lang]").forEach(b => b.setAttribute("aria-pressed", b.dataset.lang === C.lang));
+  }
+  function refreshComposer() { composerOptions(); renderComposer(); }
+  function useForEmail(id) {
+    C.topic = id; saveC(); refreshComposer();
+    if (dlg.open) dlg.close();
+    $("#confirm").scrollIntoView({ block: "start" });
+    toast(BYID[id] ? `“${BYID[id].title}” is in your team email` : "Team email updated");
+  }
+  function initComposer() {
+    if (!C.topic) C.topic = [...short].find(id => BYID[id]) || lastMatches[0] || "";
+    document.querySelectorAll("#cform [data-k]").forEach(inp => { inp.value = C[inp.dataset.k][+inp.dataset.i] || ""; });
+    $("#c-size").value = String(C.size); $("#c-own").value = C.own; $("#c-pitch").value = C.pitch; $("#c-backups").checked = !!C.backups;
+    $("#cform").addEventListener("input", e => {
+      const el = e.target;
+      if (el.dataset.k) C[el.dataset.k][+el.dataset.i] = el.value;
+      else if (el.id === "c-own") C.own = el.value;
+      else if (el.id === "c-pitch") C.pitch = el.value;
+      else return;
+      saveC(); renderComposer();
+    });
+    $("#cform").addEventListener("change", e => {
+      const el = e.target;
+      if (el.id === "c-size") C.size = +el.value;
+      else if (el.id === "c-topic") C.topic = el.value;
+      else if (el.id === "c-backups") C.backups = el.checked;
+      else return;
+      saveC(); renderComposer();
+      if (el.id === "c-topic" && C.topic === "__own") $("#c-own").focus();
+    });
+    $("#cform").addEventListener("submit", e => e.preventDefault());
+    document.querySelectorAll("[data-lang]").forEach(b => b.onclick = () => { C.lang = b.dataset.lang; saveC(); renderComposer(); });
+    const host = $(".composer .mail");
+    $("#c-copy").onclick = () => {
+      const n = (composeMail().body.match(/\u0001/g) || []).length;
+      copyText(composed.plain, n ? `Message copied. Fill the ${n} blank${n > 1 ? "s" : ""} in [brackets] before sending.` : "Message copied", host);
+    };
+    $("#c-copy-subj").onclick = () => copyText(composed.subject, "Subject copied", host);
+    $("#c-copy-to").onclick = () => copyText(TO, "Address copied", host);
+    refreshComposer();
+  }
+
   /* ---------- Boot ---------- */
   fetch("projects-data/topics.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(d => {
     DATA = d;
@@ -804,6 +1011,7 @@
     $("#browse-btn").textContent = `Browse all ${d.topics.length} topics`;
     setShortCount(); renderFilters(); renderCards();
     if (store.get("done", false) && QUESTIONS().every(answered)) renderResults(); else renderQuestion();
+    initComposer();
     const h = decodeURIComponent(location.hash.slice(1));
     if (BYID[h]) openTopic(h);
   }).catch(() => {

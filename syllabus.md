@@ -161,14 +161,15 @@ The applied project is completed in teams of exactly three. If enrollment makes
 that impossible, exceptions will be arranged privately by the instructor.
 Each team will formulate and investigate a substantive control-and-learning
 problem rather than reproduce a canned benchmark. The deliverables are working
-code, a poster, and an oral defense. A short proposal is an ungraded checkpoint.
+code, a poster, a one-page project website with at least one interactive
+figure, and an oral defense. A short proposal is an ungraded checkpoint.
 The team artifact establishes the base project grade; an individual's grade may
 be adjusted when the oral defense shows a materially different level of
 understanding.
 
 The [project page](https://pierrelucbacon.com/rlbook/interactive/projects.html) has a one-minute brief, a list of suggested topics with
 papers to start from, and a short questionnaire that matches topics to your
-interests.
+interests, and a ready-to-send email to confirm your team and topic.
 
 **Grading scale.** Final grades are reported as UdeM letter grades. The
 instructor converts the weighted total (out of 100%) into a letter grade.
@@ -211,6 +212,7 @@ December 14, 10:30–12:30, in Auditorium 1 at Mila.
 **No class on:**
 
 - Monday **September 7**: Labour Day (*Fête du travail*)
+- Monday **October 5**: provincial election; all teaching at UdeM was suspended
 - Monday **October 12**: Thanksgiving (*Action de grâce*)
 - **October 19–25**: *période d'activités libres* (no meetings; this is the gap
   between the two blocks in the registrar's listing)
@@ -414,14 +416,14 @@ Le projet appliqué se réalise en équipes d'exactement trois personnes. Si le
 nombre d'inscriptions rend cette règle impossible, l'enseignant réglera les
 exceptions en privé. Chaque équipe formulera et étudiera un problème substantiel
 de commande et d'apprentissage, plutôt que de reproduire un banc d'essai
-préfabriqué. Les livrables sont du code fonctionnel, une affiche et une défense
-orale. Une courte proposition sert de jalon non noté. La production d'équipe
+préfabriqué. Les livrables sont du code fonctionnel, une affiche, un site web d'une
+page avec au moins une figure interactive, et une défense orale. Une courte proposition sert de jalon non noté. La production d'équipe
 établit la note de base du projet; la note individuelle peut être ajustée si la
 défense orale indique un niveau de compréhension sensiblement différent.
 
 La [page du projet](https://pierrelucbacon.com/rlbook/interactive/projects.html) (en anglais) présente le projet en une minute,
 une liste de sujets suggérés avec des articles de départ, et un court questionnaire qui
-propose des sujets selon vos intérêts.
+propose des sujets selon vos intérêts, ainsi qu'un courriel prêt à envoyer pour confirmer votre équipe et votre sujet.
 
 **Barème de notation.** La note finale est exprimée en notation littérale de
 l'UdeM. L'enseignant convertit le total pondéré (sur 100 %) en note littérale.
@@ -466,6 +468,7 @@ lundi 14 décembre, de 10 h 30 à 12 h 30, à l'Auditorium 1 de Mila.
 **Aucune séance :**
 
 - Lundi **7 septembre**: congé universitaire, Fête du travail
+- Lundi **5 octobre**: élections provinciales, activités d'enseignement suspendues à l'UdeM
 - Lundi **12 octobre**: congé universitaire, Action de grâce
 - **19 au 25 octobre**: période d'activités libres (c'est l'intervalle entre les
   deux blocs de dates au répertoire des cours)

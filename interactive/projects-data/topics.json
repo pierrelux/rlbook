@@ -35,7 +35,7 @@
   },
   {
    "id": "food",
-   "label": "Food and agriculture"
+   "label": "Food, agriculture and food security"
   },
   {
    "id": "nature",
@@ -50,8 +50,16 @@
    "label": "Health and emergency care"
   },
   {
+   "id": "society",
+   "label": "Democracy, governance and human rights"
+  },
+  {
+   "id": "discovery",
+   "label": "Self-driving labs and scientific discovery"
+  },
+  {
    "id": "science",
-   "label": "Fusion and big science"
+   "label": "Physics, astronomy and big instruments"
   },
   {
    "id": "computing",
@@ -2521,6 +2529,353 @@
    "angle": "learned transport surrogate from EPANET runs, MPC with constraint tightening; transport delays make credit assignment interesting"
   },
   {
+   "id": "fair-allocation-of-food-bank-donations",
+   "title": "Fair allocation of food bank donations",
+   "problem": "As a food bank's mobile pantry visits sites one after another over a season, decide how much of each donated commodity to give each site. Demand at the sites still to come is unknown and the truck's supply is fixed. The goal is to maximize Nash social welfare while keeping envy between sites and leftover food low.",
+   "section": "Food security and the future of food",
+   "areas": [
+    "food",
+    "health"
+   ],
+   "climate": 0,
+   "time": "o",
+   "style": [
+    "s"
+   ],
+   "methods": [
+    "dp",
+    "mpc",
+    "pg"
+   ],
+   "level": 1,
+   "hook": "The problem comes from a real Feeding America partner: in 2019 its Mobile Food Pantry served 70 regular sites over 722 visits. The paper proves that fairness and efficiency cannot both be had online, so the student has to choose a point on that tradeoff explicitly.",
+   "start": "[Sinclair et al. 2021, Sequential Fair Allocation: Achieving the Optimal Envy-Efficiency Tradeoff Curve, arXiv](https://arxiv.org/abs/2105.05308); [Sinclair et al. 2020, Sequential Fair Allocation of Limited Resources under Stochastic Demands, arXiv](https://arxiv.org/abs/2011.14382); [ORSuite resource-allocation env built on the Food Bank of the Southern Tier case](https://orsuite.readthedocs.io/en/latest/resource_allocation_readme.html); [code, MIT, needs an older Gymnasium](https://github.com/cornell-orie/ORSuite)",
+   "baseline": "ORSuite's equal-allocation agent and the paper's HopeGuardrail threshold policy",
+   "angle": "rolling-horizon re-solve or ADP with learned demand histograms; policy gradient on the ORSuite env, scored against the paper's envy-efficiency frontier"
+  },
+  {
+   "id": "wfp-food-aid-sourcing-under-uncertainty",
+   "title": "WFP food aid sourcing under uncertainty",
+   "problem": "Each month over a multi-month operation, choose the ration basket, the procurement source (international, regional or local) and the delivery routing for a World Food Programme operation. Funding, prices and lead times are uncertain. The goal is to minimize cost while meeting nutrient targets for every beneficiary, within capacity limits.",
+   "section": "Food security and the future of food",
+   "areas": [
+    "food",
+    "health",
+    "transport"
+   ],
+   "climate": 1,
+   "time": "p",
+   "style": [
+    "b",
+    "d"
+   ],
+   "methods": [
+    "mpc",
+    "dfl"
+   ],
+   "level": 3,
+   "hook": "WFP's model cut Iraq operating costs by about 12% with almost no change in kilocalories. The authors say it is not robust to uncertain costs, lead times and capacities, which is exactly the gap a sequential, uncertainty-aware controller fills.",
+   "start": "[Peters et al. 2021, The Nutritious Supply Chain: Optimizing Humanitarian Food Assistance, INFORMS J. Optimization](https://pubsonline.informs.org/doi/abs/10.1287/ijoo.2019.0047); [preprint with the full MILP](https://optimization-online.org/2019/05/7198/); [WFP market price data, 76 countries](https://data.humdata.org/dataset/wfp-food-prices); [IPC acute food insecurity data](https://data.humdata.org/dataset/ipc-country-data); model rebuilt from the paper",
+   "baseline": "the paper's deterministic MILP, re-solved with point estimates",
+   "angle": "stochastic or robust rolling-horizon MPC over funding and price scenarios; decision-focused training of the price or IPC-phase forecaster on the cost of the resulting plan"
+  },
+  {
+   "id": "grain-reserve-and-trade-policy-as-sdp",
+   "title": "Grain reserve and trade policy as SDP",
+   "problem": "Each year after the harvest, a government sets public storage (and, optionally, trade taxes) for a staple food based on available supply and the world price. Harvests and world prices are random. The goal is to maximize welfare and stabilize prices, with stocks that can never go negative.",
+   "section": "Food security and the future of food",
+   "areas": [
+    "food",
+    "markets"
+   ],
+   "climate": 1,
+   "time": "p",
+   "style": [
+    "s",
+    "d"
+   ],
+   "methods": [
+    "dp",
+    "amortize"
+   ],
+   "level": 2,
+   "hook": "Gouel and Jean find that storage alone can hurt consumers in a small open economy because the stabilizing effect leaks to world markets, while pairing storage with trade policy stabilizes prices far more. The occasionally binding constraint that stocks stay non-negative is why tools like Dynare cannot solve these models.",
+   "start": "[Gouel and Jean 2015, Optimal Food Price Stabilization in a Small Open Developing Country, World Bank Economic Review](https://openknowledge.worldbank.org/handle/10986/24604); [working paper PDF](https://www.usitc.gov/research_and_analysis/documents/Gouel_and_Jean-Optimal_Food_0.pdf); [RECS rational-expectations storage solver, MATLAB](https://github.com/christophe-gouel/recs); [FAO Food Price Index, monthly since 1990](https://www.fao.org/worldfoodsituation/foodpricesindex/en/); [WFP domestic market prices](https://data.humdata.org/dataset/wfp-food-prices)",
+   "baseline": "private competitive storage only, or a fixed price-band buffer-stock rule; the paper's collocation solution as the reference",
+   "angle": "fitted value iteration, or a neural policy that amortizes the complementarity solver, scaled to larger states (several commodities, harvest forecasts) where the paper's 41x23 collocation grid stops scaling"
+  },
+  {
+   "id": "stored-grain-aeration-fan-control",
+   "title": "Stored-grain aeration fan control",
+   "problem": "Hour by hour over a storage season, decide when to run a grain bin's aeration fan. The weather is uncertain, and grain temperature, moisture and the insect population are only partly observed. The goal is to minimize insect growth, spoilage and fan energy without re-wetting the grain.",
+   "section": "Food security and the future of food",
+   "areas": [
+    "food",
+    "energy",
+    "waste"
+   ],
+   "climate": 1,
+   "time": "o",
+   "style": [
+    "b",
+    "d"
+   ],
+   "methods": [
+    "mpc",
+    "model"
+   ],
+   "level": 2,
+   "hook": "In Yang et al.'s US simulations, raising the aeration target temperature roughly doubled adult insect numbers in southern states, so the fan rule decides whether insecticide is needed. In a 2025 barley trial, a drying-capacity trigger ran the fan 61 to 79% less than a simulated fixed schedule.",
+   "start": "[Yang et al. 2017, Regional analysis of bin aeration as an alternative to insecticidal control, Ecological Modelling](https://ideas.repec.org/a/eee/ecomod/v359y2017icp165-181.html); [Zekri et al., Energy-saving aeration control for semi-arid barley stores using a psychrometric drying-capacity criterion](https://www.ecoeet.com/Energy-saving-aeration-control-for-reducing-post-harvest-losses-in-semi-arid-barley,226004,0,2.html); [Roskopf 2015, MSc thesis simulating wheat aeration and cooling in Argentina](https://repositorio.inta.gob.ar/handle/20.500.12123/25183); [hourly ERA5 weather](https://open-meteo.com/en/docs/historical-weather-api); model rebuilt from the paper",
+   "baseline": "target-temperature thermostat rule (Yang et al.) or a fixed night-time schedule",
+   "angle": "MPC with weather forecasts and time-of-use electricity prices on a reduced bin heat-and-moisture model coupled to an age-structured insect model; offline RL from logged fan and sensor data"
+  },
+  {
+   "id": "fish-feeding-control-with-growth-models",
+   "title": "Fish feeding control with growth models",
+   "problem": "Each day of a grow-out cycle, choose the feed ration (and, where they can be controlled, temperature and dissolved oxygen) for a tank or pen. Appetite, water quality (unionized ammonia) and growth are uncertain. The goal is to track a target harvest weight at minimum feed cost and mortality.",
+   "section": "Food security and the future of food",
+   "areas": [
+    "food",
+    "water"
+   ],
+   "climate": 0,
+   "time": "o",
+   "style": [
+    "s",
+    "b"
+   ],
+   "methods": [
+    "mpc",
+    "pg"
+   ],
+   "level": 1,
+   "hook": "Aljehani et al. report that Q-learning avoided mortality but tended to underfeed, while MPC cut both mortality and feed use at every ammonia level they tested, a clean model-based versus model-free comparison to extend. FishMet adds an appetite model validated on rainbow trout and Atlantic salmon.",
+   "start": "[Chahid et al. 2021, Model Predictive Control Paradigms for Fish Growth Reference Tracking in Precision Aquaculture, arXiv](https://arxiv.org/abs/2102.00004); [Aljehani et al. 2023, Model-based versus model-free feeding control and water quality monitoring for fish growth tracking, arXiv](https://arxiv.org/abs/2306.09915); [FishMet salmonid appetite and growth digital twin, AGPL code](https://git.app.uib.no/Sergey.Budaev/fishmet); [FishMet overview, Budaev et al. 2025](https://ahamodel.uib.no/fishmet-a-digital-twin-framework-for-appetite-feeding-decisions-and-growth-in-salmonid-fish.html)",
+   "baseline": "fixed feeding table (percent of body weight per day), or the papers' MPC",
+   "angle": "MPC on the Nile tilapia bioenergetic model compared with RL, then transfer to salmon or trout with FishMet as a stochastic, higher-fidelity simulator; objective aware of the feed conversion ratio"
+  },
+  {
+   "id": "single-cell-protein-bioreactor-control",
+   "title": "Single-cell protein bioreactor control",
+   "problem": "Over a 48-hour moving horizon, set the six inlet flows (water, ammonium, nitrate, sodium, methane, oxygen) of a continuous Methylococcus capsulatus reactor. Kinetics and gas transfer are uncertain. The goal is to maximize biomass revenue minus feed cost while keeping pH on target.",
+   "section": "Food security and the future of food",
+   "areas": [
+    "food",
+    "chem"
+   ],
+   "climate": 0,
+   "time": "f",
+   "style": [
+    "b"
+   ],
+   "methods": [
+    "mpc",
+    "amortize"
+   ],
+   "level": 2,
+   "hook": "Protein grown on methane by bacteria is one of the few alternative proteins with a published, control-ready reactor model: pH chemistry is coupled to growth, and six inputs must be coordinated. The lab model has seven differential states, and the industrial U-loop version reaches 87 states after discretization, a natural step up.",
+   "start": "[Nielsen et al. 2022, Modelling and Economic Optimal Control for a Laboratory-scale Continuous Stirred Tank Reactor for Single-cell Protein Production, arXiv](https://arxiv.org/abs/2212.02210); [Ritschel et al. 2020, Economic Nonlinear Model Predictive Control of a U-loop Bioreactor, ECC](https://orbit.dtu.dk/en/publications/economic-nonlinear-model-predictive-control-of-a-u-loop-bioreacto/); model rebuilt from the paper",
+   "baseline": "fixed steady-state feed rates, or the paper's open-loop economic optimal control",
+   "angle": "economic NMPC with an extended Kalman filter, then amortize the NMPC into a policy network or learn residual kinetics from data"
+  },
+  {
+   "id": "fungicide-spray-timing-for-wheat-septoria",
+   "title": "Fungicide spray timing for wheat septoria",
+   "problem": "Through the season, decide on which days to spray winter wheat against septoria, and at what dose. Weather forecasts are uncertain and the infection stays partly hidden until symptoms show. The goal is to maximize yield revenue minus fungicide cost and the number of sprays.",
+   "section": "Food security and the future of food",
+   "areas": [
+    "food",
+    "nature"
+   ],
+   "climate": 0,
+   "time": "o",
+   "style": [
+    "s"
+   ],
+   "methods": [
+    "pg",
+    "dp"
+   ],
+   "level": 2,
+   "hook": "The spray decision is made on a hidden epidemic state, so this is a real POMDP and not just a threshold rule. Siddique et al. apply robust RL to weekly codling moth sprays in apple orchards, and FraNchEstYN models fungicide timing, dose and decay directly, so the same idea can be tested on wheat.",
+   "start": "[Milne et al. 2007, A model of the effect of fungicides on disease-induced yield loss for use in wheat disease management decision support systems, Annals of Applied Biology](https://repository.rothamsted.ac.uk/item/89x14/a-model-of-the-effect-of-fungicides-on-disease-induced-yield-loss-for-use-in-wheat-disease-management-decision-support-systems); [Siddique et al. 2019, Robust Pest Management Using Reinforcement Learning](https://www.cs.unh.edu/~mpetrik/pub/Siddique2019.pdf); [simpest crop, disease and fungicide simulator, Python, MIT](https://github.com/KaziJahidurRahaman/simpest); [FraNchEstYN crop, disease and fungicide model, R/C#](https://github.com/GeoModelLab/FraNchEstYN)",
+   "baseline": "fixed two-spray calendar at set growth stages, or a disease-threshold rule",
+   "angle": "POMDP with a belief over latent infection, solved by rollout or MPC on the simulator or by policy gradient; robust RL across calibrated parameter sets"
+  },
+  {
+   "id": "seasonal-stocking-and-pasture-renewal-sdp",
+   "title": "Seasonal stocking and pasture renewal SDP",
+   "problem": "Each season, set the stocking rate and decide whether to re-sow the pasture, given pasture biomass and the share of desirable species. Seasonal climate is random. The goal is to maximize the present value of grazing returns without degrading the pasture.",
+   "section": "Food security and the future of food",
+   "areas": [
+    "food",
+    "nature"
+   ],
+   "climate": 1,
+   "time": "p",
+   "style": [
+    "b",
+    "d"
+   ],
+   "methods": [
+    "dp",
+    "model"
+   ],
+   "level": 2,
+   "hook": "Behrendt et al. treat pasture as a renewable resource, solve a four-season SDP by value iteration, and find the pasture states where tactical rests or re-sowing pay off. Adding paddocks makes it a rotational grazing problem that grid-based DP struggles with.",
+   "start": "[Behrendt et al. 2016, Using Seasonal Stochastic Dynamic Programming to identify optimal management decisions that achieve maximum economic sustainable yields from grasslands under climate risk, Agricultural Systems](https://hau.repository.guildhe.ac.uk/17250/1/Karl%20Behrendt%20using%20seasonal%20upload.pdf); [SILO daily climate data for Australia since 1889](https://www.longpaddock.qld.gov.au/silo/); model rebuilt from the paper",
+   "baseline": "a fixed stocking rate; the paper's discretized SDP as the reference",
+   "angle": "fitted value iteration or MPC over a continuous state with climate-conditioned transitions; extend to several paddocks to make it a rotational grazing problem"
+  },
+  {
+   "id": "solar-pump-drip-irrigation-scheduling",
+   "title": "Solar-pump drip irrigation scheduling",
+   "problem": "Each day, and hour by hour within it, decide when and how long to run a solar-powered drip-irrigation pump and how much to draw from a small battery. Solar power and crop water demand are only forecast. The goal is to meet the crop's water needs reliably with the least water and the smallest battery.",
+   "section": "Food security and the future of food",
+   "areas": [
+    "food",
+    "water",
+    "energy"
+   ],
+   "climate": 1,
+   "time": "o",
+   "style": [
+    "b",
+    "d"
+   ],
+   "methods": [
+    "mpc",
+    "dfl"
+   ],
+   "level": 2,
+   "hook": "Over three growing seasons, the POWEIr controller cut water use by up to 44% and energy use by up to 43% compared with typical farmer practice, with no loss of yield. Unlike yield-based irrigation scheduling (the existing AquaCrop topic), the binding constraint here is when the sun shines.",
+   "start": "[Sheline et al. 2025, Designing a predictive optimal water and energy irrigation (POWEIr) controller for solar-powered drip irrigation systems in resource-constrained contexts, Applied Energy](https://ideas.repec.org/a/eee/appene/v377y2025ipas0306261924014909.html); [Sheline et al. 2026, Technical validation of the POWEIr controller, Smart Agricultural Technology](https://repo.mel.cgiar.org/items/1998f0b9-821f-45df-91ad-d3671bec18df); [Sheline 2024, MIT PhD thesis](https://dspace.mit.edu/handle/1721.1/154164); [NASA POWER solar and weather data](https://power.larc.nasa.gov/); model rebuilt from the paper",
+   "baseline": "typical farmer practice (fixed daily schedule), or the POWEIr optimizer",
+   "angle": "stochastic MPC on solar and evapotranspiration forecasts; decision-focused training of the solar forecaster on irrigation shortfall"
+  },
+  {
+   "id": "lettuce-greenhouse-climate",
+   "title": "Lettuce greenhouse climate",
+   "problem": "Lettuce greenhouse climate: RL-tuned MPC vs MPC vs RL on the van Henten model",
+   "section": "Agriculture and greenhouses",
+   "areas": [
+    "food"
+   ],
+   "climate": 1,
+   "time": "o",
+   "style": [
+    "s"
+   ],
+   "methods": [
+    "mpc",
+    "pg",
+    "model"
+   ],
+   "level": 1,
+   "hook": "Greenhouses burn gas for heat and CO2. Tuning an MPC with RL on the standard lettuce model is a well-scoped first project.",
+   "start": "[Mallick et al. 2024, RL-based MPC for greenhouse climate](https://arxiv.org/abs/2409.12789) with [code](https://github.com/SamuelMallick/mpcrl-greenhouse); [Morcego et al. 2023, RL vs MPC](https://arxiv.org/abs/2303.06110)",
+   "baseline": "Nominal MPC with the true model and grower setpoint schedules",
+   "angle": "RL tuning of the MPC cost, backoff or model under mismatch, or a learned terminal cost for short-horizon MPC"
+  },
+  {
+   "id": "tomato-greenhouse-greenlight",
+   "title": "Tomato greenhouse (GreenLight)",
+   "problem": "Tomato production control on the GreenLight model",
+   "section": "Agriculture and greenhouses",
+   "areas": [
+    "food"
+   ],
+   "climate": 1,
+   "time": "o",
+   "style": [
+    "s"
+   ],
+   "methods": [
+    "mpc",
+    "pg",
+    "dp"
+   ],
+   "level": 3,
+   "hook": "GreenLight is the reference model for high-tech greenhouses. Short-horizon MPC with a learned terminal value is this course's spine in one project.",
+   "start": "[GreenLight-Gym, van Laatum et al. 2024](https://arxiv.org/abs/2410.05336); [van Laatum et al. 2026, RL inside short-horizon MPC](https://arxiv.org/abs/2607.07365); [GreenLightGym](https://github.com/BartvLaatum/GreenLightGym)",
+   "baseline": "Rule-based grower controller",
+   "angle": "short-horizon NMPC with an RL-learned terminal value vs PPO under parametric uncertainty"
+  },
+  {
+   "id": "nitrogen-fertilization",
+   "title": "Nitrogen fertilization",
+   "problem": "Nitrogen fertilization timing and dose for wheat",
+   "section": "Agriculture and greenhouses",
+   "areas": [
+    "food",
+    "nature"
+   ],
+   "climate": 2,
+   "time": "p",
+   "style": [
+    "s"
+   ],
+   "methods": [
+    "offline",
+    "dp"
+   ],
+   "level": 1,
+   "hook": "Making and spreading nitrogen fertilizer emits a lot, and what the crop does not take up pollutes water. The right dose at the right time cuts both.",
+   "start": "[CropGym, Overweg et al. 2021](https://arxiv.org/abs/2104.04326); [WOFOSTGym, Solow et al. 2025, RLC](https://arxiv.org/abs/2502.19308); [WOFOSTGym](https://github.com/Intelligent-Reliable-Autonomous-Systems/WOFOSTGym)",
+   "baseline": "Agronomic split-application rule and an open-loop optimized schedule",
+   "angle": "offline RL and off-policy evaluation from logged seasons, forecast-aware policy vs DP over discretized soil nitrogen"
+  },
+  {
+   "id": "irrigation-scheduling",
+   "title": "Irrigation scheduling",
+   "problem": "Irrigation scheduling for maize or wheat with soil-water dynamics",
+   "section": "Agriculture and greenhouses",
+   "areas": [
+    "food",
+    "water"
+   ],
+   "climate": 1,
+   "time": "o",
+   "style": [
+    "s"
+   ],
+   "methods": [
+    "mpc",
+    "pg"
+   ],
+   "level": 1,
+   "hook": "Agriculture uses most of the world's freshwater. Measuring the value of a weather forecast in litres saved makes a good poster.",
+   "start": "[Saikai et al. 2023, deep RL for irrigation scheduling](https://arxiv.org/abs/2301.00899); [gym-DSSAT, Gautron et al. 2022](https://arxiv.org/abs/2207.03270); [AquaCrop-OSPy](https://aquacropos.github.io/aquacrop/)",
+   "baseline": "Soil-moisture threshold rule",
+   "angle": "MPC with weather-ensemble forecasts on the AquaCrop model vs the rule vs an RL policy; quantify the value of forecast information"
+  },
+  {
+   "id": "indoor-farm-lighting",
+   "title": "Indoor-farm lighting",
+   "problem": "Indoor-farm LED lighting with time-of-use prices and a thermal model",
+   "section": "Agriculture and greenhouses",
+   "areas": [
+    "food",
+    "energy"
+   ],
+   "climate": 1,
+   "time": "o",
+   "style": [
+    "b"
+   ],
+   "methods": [
+    "model",
+    "mpc",
+    "dp"
+   ],
+   "level": 2,
+   "hook": "Vertical farms trade sunlight for electricity. Lighting when power is cheap while hitting the plants' daily light dose is the whole business.",
+   "start": "[LightFARM, Yu et al. 2026](https://arxiv.org/abs/2606.27649)",
+   "baseline": "Fixed photoperiod",
+   "angle": "learned light-response model + MPC, or DP over the daily light budget with prices; the model is rebuilt from the paper"
+  },
+  {
    "id": "process-units-with-an-nmpc-oracle",
    "title": "Process units with an NMPC oracle",
    "problem": "PC-Gym process units (crystallizer, four-tank, biofilm reactor) against an NMPC oracle",
@@ -2669,127 +3024,6 @@
    "start": "[Otálora et al. 2025, economic MPC for industrial microalgae](https://arxiv.org/abs/2512.15668); [Gil et al. 2025, behaviour cloning deployed on an industrial photobioreactor](https://arxiv.org/abs/2509.06853)",
    "baseline": "Fixed harvest and on/off CO2 with PI on pH",
    "angle": "behaviour cloning from PID then online fine-tuning, or EMPC with a learned growth model; the model is rebuilt from the paper"
-  },
-  {
-   "id": "lettuce-greenhouse-climate",
-   "title": "Lettuce greenhouse climate",
-   "problem": "Lettuce greenhouse climate: RL-tuned MPC vs MPC vs RL on the van Henten model",
-   "section": "Agriculture and greenhouses",
-   "areas": [
-    "food"
-   ],
-   "climate": 1,
-   "time": "o",
-   "style": [
-    "s"
-   ],
-   "methods": [
-    "mpc",
-    "pg",
-    "model"
-   ],
-   "level": 1,
-   "hook": "Greenhouses burn gas for heat and CO2. Tuning an MPC with RL on the standard lettuce model is a well-scoped first project.",
-   "start": "[Mallick et al. 2024, RL-based MPC for greenhouse climate](https://arxiv.org/abs/2409.12789) with [code](https://github.com/SamuelMallick/mpcrl-greenhouse); [Morcego et al. 2023, RL vs MPC](https://arxiv.org/abs/2303.06110)",
-   "baseline": "Nominal MPC with the true model and grower setpoint schedules",
-   "angle": "RL tuning of the MPC cost, backoff or model under mismatch, or a learned terminal cost for short-horizon MPC"
-  },
-  {
-   "id": "tomato-greenhouse-greenlight",
-   "title": "Tomato greenhouse (GreenLight)",
-   "problem": "Tomato production control on the GreenLight model",
-   "section": "Agriculture and greenhouses",
-   "areas": [
-    "food"
-   ],
-   "climate": 1,
-   "time": "o",
-   "style": [
-    "s"
-   ],
-   "methods": [
-    "mpc",
-    "pg",
-    "dp"
-   ],
-   "level": 3,
-   "hook": "GreenLight is the reference model for high-tech greenhouses. Short-horizon MPC with a learned terminal value is this course's spine in one project.",
-   "start": "[GreenLight-Gym, van Laatum et al. 2024](https://arxiv.org/abs/2410.05336); [van Laatum et al. 2026, RL inside short-horizon MPC](https://arxiv.org/abs/2607.07365); [GreenLightGym](https://github.com/BartvLaatum/GreenLightGym)",
-   "baseline": "Rule-based grower controller",
-   "angle": "short-horizon NMPC with an RL-learned terminal value vs PPO under parametric uncertainty"
-  },
-  {
-   "id": "nitrogen-fertilization",
-   "title": "Nitrogen fertilization",
-   "problem": "Nitrogen fertilization timing and dose for wheat",
-   "section": "Agriculture and greenhouses",
-   "areas": [
-    "food",
-    "nature"
-   ],
-   "climate": 2,
-   "time": "p",
-   "style": [
-    "s"
-   ],
-   "methods": [
-    "offline",
-    "dp"
-   ],
-   "level": 1,
-   "hook": "Making and spreading nitrogen fertilizer emits a lot, and what the crop does not take up pollutes water. The right dose at the right time cuts both.",
-   "start": "[CropGym, Overweg et al. 2021](https://arxiv.org/abs/2104.04326); [WOFOSTGym, Solow et al. 2025, RLC](https://arxiv.org/abs/2502.19308); [WOFOSTGym](https://github.com/Intelligent-Reliable-Autonomous-Systems/WOFOSTGym)",
-   "baseline": "Agronomic split-application rule and an open-loop optimized schedule",
-   "angle": "offline RL and off-policy evaluation from logged seasons, forecast-aware policy vs DP over discretized soil nitrogen"
-  },
-  {
-   "id": "irrigation-scheduling",
-   "title": "Irrigation scheduling",
-   "problem": "Irrigation scheduling for maize or wheat with soil-water dynamics",
-   "section": "Agriculture and greenhouses",
-   "areas": [
-    "food",
-    "water"
-   ],
-   "climate": 1,
-   "time": "o",
-   "style": [
-    "s"
-   ],
-   "methods": [
-    "mpc",
-    "pg"
-   ],
-   "level": 1,
-   "hook": "Agriculture uses most of the world's freshwater. Measuring the value of a weather forecast in litres saved makes a good poster.",
-   "start": "[Saikai et al. 2023, deep RL for irrigation scheduling](https://arxiv.org/abs/2301.00899); [gym-DSSAT, Gautron et al. 2022](https://arxiv.org/abs/2207.03270); [AquaCrop-OSPy](https://aquacropos.github.io/aquacrop/)",
-   "baseline": "Soil-moisture threshold rule",
-   "angle": "MPC with weather-ensemble forecasts on the AquaCrop model vs the rule vs an RL policy; quantify the value of forecast information"
-  },
-  {
-   "id": "indoor-farm-lighting",
-   "title": "Indoor-farm lighting",
-   "problem": "Indoor-farm LED lighting with time-of-use prices and a thermal model",
-   "section": "Agriculture and greenhouses",
-   "areas": [
-    "food",
-    "energy"
-   ],
-   "climate": 1,
-   "time": "o",
-   "style": [
-    "b"
-   ],
-   "methods": [
-    "model",
-    "mpc",
-    "dp"
-   ],
-   "level": 2,
-   "hook": "Vertical farms trade sunlight for electricity. Lighting when power is cheap while hitting the plants' daily light dose is the whole business.",
-   "start": "[LightFARM, Yu et al. 2026](https://arxiv.org/abs/2606.27649)",
-   "baseline": "Fixed photoperiod",
-   "angle": "learned light-response model + MPC, or DP over the daily light budget with prices; the model is rebuilt from the paper"
   },
   {
    "id": "traffic-signals-with-speed-advice",
@@ -3201,6 +3435,414 @@
    "start": "[Rantanen et al. 2005, blow-line kappa number, IFAC](https://folk.ntnu.no/skoge/prost/proceedings/ifac2005/Fullpapers/03850.pdf); [kraft digester model code, University of Pretoria](https://researchdata.up.ac.za/articles/code/Kraft_digester_modelling_and_optimization_code/22302685)",
    "baseline": "H-factor and PI temperature control",
    "angle": "Koopman or NN surrogate of the distributed model + MPC with long transport delays and grade transitions"
+  },
+  {
+   "id": "rl-for-multi-step-nanocrystal-synthesis",
+   "title": "RL for multi-step nanocrystal synthesis",
+   "problem": "Choose, injection by injection over an episode of up to 20 injections, which reagent to add and at what volume and reaction time in a self-driving fluidic lab, under uncertainty about which partial sequences are even viable, to maximize the optical quality of the resulting core-shell quantum dots within a fixed experiment budget.",
+   "section": "Self-driving labs and scientific discovery",
+   "areas": [
+    "discovery",
+    "chem",
+    "science"
+   ],
+   "climate": 0,
+   "time": "f",
+   "style": [
+    "s",
+    "d"
+   ],
+   "methods": [
+    "model",
+    "mpc",
+    "offline"
+   ],
+   "level": 2,
+   "hook": "In the paper's own comparison, Bayesian optimization over the full sequence failed to find any viable 20-injection route in 100 experiments, while the sequential agent found one and reached 450% higher photoluminescence intensity than the literature protocol. The released digital twin lets you rerun that comparison without a lab.",
+   "start": "[Volk et al. 2023, AlphaFlow: autonomous discovery and optimization of multi-step chemistry using a self-driven fluidic lab guided by reinforcement learning, Nature Communications 14:1403](https://par.nsf.gov/servlets/purl/10420940); [code, campaign exports and digital twin](https://github.com/AbolhasaniLab/AlphaFlow)",
+   "baseline": "the literature colloidal-ALD injection sequence, plus the paper's ensemble-NN Bayesian optimization over whole sequences",
+   "angle": "treat the injection sequence as a finite-horizon MDP and plan with the learned viability classifier and reward model; compare rollout depth, and try offline RL on the released campaign data instead of the paper's 4-step rollout"
+  },
+  {
+   "id": "transient-flow-ramps-for-kinetics",
+   "title": "Transient flow ramps for kinetics",
+   "problem": "Design the time profile of flow rate, temperature and feed concentration in a plug-flow reactor over a single 100-minute run, subject to pump, HPLC-sampling and monotonicity constraints, to minimize the posterior uncertainty of Arrhenius kinetic parameters that are only partially known beforehand.",
+   "section": "Self-driving labs and scientific discovery",
+   "areas": [
+    "discovery",
+    "chem",
+    "industry"
+   ],
+   "climate": 0,
+   "time": "f",
+   "style": [
+    "b"
+   ],
+   "methods": [
+    "trajopt",
+    "model",
+    "mpc"
+   ],
+   "level": 2,
+   "hook": "One designed 2-hour ramp gave parameter precision comparable to a steady-state campaign of eight experiments at about eight hours each. The reactor model is a short ODE, so the whole loop is rebuildable, and the paper reports one designed experiment whose confidence region did not overlap the others, which is a real modelling-mismatch question to dig into.",
+   "start": "[Waldron et al. 2019, Model-based design of transient flow experiments for the identification of kinetic parameters, Reaction Chemistry & Engineering](https://discovery.ucl.ac.uk/10086273/1/c9re00342h.pdf) (benzoic acid esterification, transient PFR as a train of batch reactors, D-optimal Fisher-information objective, all parameter ranges and initial guesses given); model rebuilt from the paper",
+   "baseline": "the paper's intuitively designed ramps, and its earlier campaign of 8 factorial plus 8 steady-state D-optimal experiments",
+   "angle": "cast information-maximizing experiment design as trajectory optimization on the reactor ODE, then make it closed-loop: re-plan the remaining ramp after each HPLC measurement as the parameter estimate moves"
+  },
+  {
+   "id": "experiment-paths-in-a-flow-reactor",
+   "title": "Experiment paths in a flow reactor",
+   "problem": "Pick the next reaction condition in a flow reactor at each sampling instant over an episode, where moving an input is itself costly and some moves are forbidden (flow rate may only decrease, so residence time is non-decreasing), to find high-yield conditions while minimizing total campaign time rather than number of experiments.",
+   "section": "Self-driving labs and scientific discovery",
+   "areas": [
+    "discovery",
+    "chem",
+    "industry"
+   ],
+   "climate": 0,
+   "time": "f",
+   "style": [
+    "s",
+    "d"
+   ],
+   "methods": [
+    "dp",
+    "model",
+    "pg"
+   ],
+   "level": 2,
+   "hook": "This is the cleanest example of why a self-driving lab is not black-box optimization: the lab cannot teleport between conditions, and some transitions corrupt the measurement. Both the constraint structure and an open emulator built from real reaction data are available, so the planning-versus-greedy comparison is a week of work plus thinking.",
+   "start": "[Folch et al. 2024, Transition Constrained Bayesian Optimization via Markov Decision Processes, NeurIPS](https://arxiv.org/abs/2402.08406) (Knorr pyrazole transient reactor, 10 episodes of 10 steps, ODE-informed kernel); [SnAKe code with its SnAr cost-aware benchmark](https://github.com/cog-imperial/SnAKe); [Summit, with SnAr and data-driven cross-coupling emulators](https://github.com/sustainable-processes/summit)",
+   "baseline": "greedy UCB with no planning, which the paper reports performs very poorly under these transition constraints",
+   "angle": "solve the acquisition problem in policy space with dynamic programming or policy gradient over the reactor's reachable transitions; compare against a path-planning heuristic (SnAKe) and a myopic acquisition on the same emulator"
+  },
+  {
+   "id": "battery-test-campaign-as-an-mdp",
+   "title": "Battery test campaign as an MDP",
+   "problem": "Decide which of 224 six-step ten-minute fast-charging protocols to put on the 48 available test channels each round, and when to stop a running test early on the basis of its first cycles, to identify the longest-lifetime protocol under a fixed wall-clock budget and uncertain, noisy lifetime predictions.",
+   "section": "Self-driving labs and scientific discovery",
+   "areas": [
+    "discovery",
+    "energy",
+    "industry"
+   ],
+   "climate": 2,
+   "time": "p",
+   "style": [
+    "s",
+    "d"
+   ],
+   "methods": [
+    "dp",
+    "offline",
+    "model"
+   ],
+   "level": 2,
+   "hook": "The paper found good protocols in 16 days where exhaustive testing without early prediction would have taken over 500 days, and the repository ships the stochastic lifetime simulator the authors used for tuning, so the allocation and stopping policy can be studied against the real campaign. This is the lab-loop and test-allocation side of fast charging, not the battery physics.",
+   "start": "[Attia et al. 2020, Closed-loop optimization of fast-charging protocols for batteries with machine learning, Nature 578:397](https://escholarship.org/uc/item/117547r6); [closed-loop code, protocol space and stochastic lifetime simulator](https://github.com/chueh-ermon/battery-fast-charging-optimization); [early-prediction paper repo and the 124-cell dataset pointer](https://github.com/rdbraatz/data-driven-prediction-of-battery-cycle-life-before-capacity-degradation)",
+   "baseline": "the paper's closed-loop Bayesian optimization with a fixed early-prediction cutoff, and exhaustive testing",
+   "angle": "treat channel allocation plus early stopping as an optimal-stopping and budgeted-allocation MDP, where the stopping time is decided per cell from its own partial trace rather than fixed in advance"
+  },
+  {
+   "id": "optogenetic-control-of-gene-expression",
+   "title": "Optogenetic control of gene expression",
+   "problem": "Choose red or green light every five minutes for each of thousands of individual bacterial cells, over a horizon of a few hours, to hold or track a target fluorescence level despite cell-to-cell variability, division noise and an unstable intermediate range of a self-activating circuit.",
+   "section": "Self-driving labs and scientific discovery",
+   "areas": [
+    "discovery",
+    "science",
+    "health"
+   ],
+   "climate": 0,
+   "time": "f",
+   "style": [
+    "s",
+    "d"
+   ],
+   "methods": [
+    "mpc",
+    "pg",
+    "model"
+   ],
+   "level": 1,
+   "hook": "The experimental paper controls up to 10,000 cells individually with a 5-minute light decision and a 2-hour horizon, searching about 1,000 candidate light sequences per cell per step; the companion paper gives a Gillespie simulator of the same circuit in JAX with PI, bang-bang and deep MPC baselines already implemented. You get a real actuator, a real sampling rate, and a controller comparison that someone cares about.",
+   "start": "[Lugagne/Dunlop et al., Deep model predictive control of gene expression in thousands of single cells, Nature Communications 15 (2024), preprint](https://www.biorxiv.org/content/10.1101/2022.10.28.514305.full.pdf); [control, training and analysis code](https://gitlab.com/dunloplab/deepcellcontrol); [Control of a bi-stable genetic system via parallelized reinforcement learning, CDC 2025 preprint](https://www.biorxiv.org/content/10.1101/2025.09.14.676149.full.pdf); [JAX/gymnax Gillespie simulator and PQN code](https://gitlab.com/lugagnelab/pqn-control-cdc2025)",
+   "baseline": "constant light, bang-bang and PI control, and the deep MPC with an LSTM encoder plus particle-swarm search over light sequences",
+   "angle": "learn a policy on the stochastic simulator and compare it against deep MPC on the same objective, with the real question being sample cost in simulated lab hours and transfer to the noise the microscope actually sees"
+  },
+  {
+   "id": "turbidostat-control-for-lab-evolution",
+   "title": "Turbidostat control for lab evolution",
+   "problem": "Set dilution events and temperature in each vial of a continuous-culture array, every 30 seconds over runs of hundreds of hours, to hold a population at a prescribed density or growth rate (or to track a designed selection pressure) despite drift in growth rate as the population evolves.",
+   "section": "Self-driving labs and scientific discovery",
+   "areas": [
+    "discovery",
+    "science",
+    "health"
+   ],
+   "climate": 0,
+   "time": "o",
+   "style": [
+    "b"
+   ],
+   "methods": [
+    "mpc",
+    "model",
+    "pg"
+   ],
+   "level": 2,
+   "hook": "The paper evolves 78 yeast populations for 500 hours in different density windows, and the density window is exactly the experimental variable the controller sets, so controller design changes what the experiment measures. The hardware is open and the control scripts are plain Python, which makes the model-versus-threshold comparison concrete even if you only ever run it in simulation.",
+   "start": "[Wong et al. 2018, Precise, automated control of conditions for high-throughput growth of yeast and bacteria with eVOLVER, Nature Biotechnology 36:614](https://www.bu.edu/khalillab/_papers/wong-nbt2018.pdf); [eVOLVER control software, where feedback routines are written](https://github.com/FYNCH-BIO/dpu); model rebuilt from the paper",
+   "baseline": "the platform's threshold turbidostat (dilute above an upper OD, stop at a lower OD) with PID temperature control",
+   "angle": "replace the threshold rule with receding-horizon control on a Monod chemostat model identified online, so growth rate rather than density is the controlled variable and the selection pressure stays constant as fitness changes"
+  },
+  {
+   "id": "scheduling-a-self-driving-lab",
+   "title": "Scheduling a self-driving lab",
+   "problem": "Assign each synthesis task of a batch of samples to an instrument and a start time on a robotic materials platform, with task durations from minutes to over twelve hours, lockstep capacity constraints (the centrifuge runs all its samples together), heater cooldown rules and limits on how long a prepared sample may wait, to minimize campaign makespan while new jobs keep arriving.",
+   "section": "Self-driving labs and scientific discovery",
+   "areas": [
+    "discovery",
+    "industry",
+    "science"
+   ],
+   "climate": 1,
+   "time": "o",
+   "style": [
+    "s"
+   ],
+   "methods": [
+    "dp",
+    "amortize",
+    "offline"
+   ],
+   "level": 2,
+   "hook": "The authors report about 28 seconds to schedule a 16-job batch and 1.4 seconds to reschedule after 8 jobs are added, so there is a solved optimum to measure a learned dispatcher against. It is also the one topic where throughput, not sample efficiency, is what limits a real self-driving lab.",
+   "start": "[McDannald, Tisaranni and Joress, Optimal Resource Utilization for Autonomous Laboratory Orchestrators (NIST), preprint](https://arxiv.org/pdf/2607.01188); [autoMOF orchestrator and OR-Tools job-shop scheduler](https://github.com/usnistgov/autoMOF)",
+   "baseline": "the paper's constraint-programming job-shop solve, plus naive sequential and round-robin execution",
+   "angle": "learn a dispatching policy that re-decides as jobs arrive and durations turn out wrong, and feed the scheduling cost back into which experiments the campaign proposes, which the authors list as an open problem"
+  },
+  {
+   "id": "steering-evolution-with-drug-sequences",
+   "title": "Steering evolution with drug sequences",
+   "problem": "Choose which antibiotic to apply at each step of a one-to-three-step sequence before the final treatment, given a measured fitness landscape over 16 genotypes and uncertainty about the starting population, to minimize the probability that the population ends at the most resistant genotype.",
+   "section": "Self-driving labs and scientific discovery",
+   "areas": [
+    "discovery",
+    "health",
+    "science"
+   ],
+   "climate": 0,
+   "time": "o",
+   "style": [
+    "s",
+    "d"
+   ],
+   "methods": [
+    "dp",
+    "model",
+    "offline"
+   ],
+   "level": 1,
+   "hook": "The transition matrices come from measured growth rates of isogenic E. coli mutants under 15 antibiotics, and the paper finds that none of the 15 drug pairs commute, so order genuinely matters and exhaustive search over sequences stops being possible past three steps. It pairs naturally with a turbidostat as the apparatus that would run the policy.",
+   "start": "[Nichol et al. 2015, Steering Evolution with Sequential Therapy to Prevent the Emergence of Bacterial Antibiotic Resistance, PLoS Computational Biology 11(9)](https://ora.ox.ac.uk/objects/uuid:39c50aee-1ae7-4241-a792-8cd36d6bca03/files/m96103ecee9c20e439ed9aea07333299f); [Markov chain model code](https://github.com/Daniel-Nichol/EvolutionarySteering); landscapes from Mira et al. (15 beta-lactams, blaTEM-50 mutants), model rebuilt from the paper",
+   "baseline": "no steering, and the paper's exhaustive search over sequences of length one to three",
+   "angle": "solve the absorbing-Markov-chain model as a finite-horizon MDP, then as a POMDP where the genotype distribution is only observed through growth-rate measurements, which is what a continuous-culture experiment would actually give you"
+  },
+  {
+   "id": "ligo-hard-pitch-angular-loop-shaping",
+   "title": "LIGO hard-pitch angular loop shaping",
+   "problem": "Choose the feedback controller for LIGO Livingston's common-hard-pitch angular loop, running continuously while the detector is locked, under time-varying optical-spring dynamics and sensor noise, to minimize control noise injected into the 10-30 Hz band while keeping the loop stable and the mirror angle suppressed.",
+   "section": "Instruments, observatories and measurement",
+   "areas": [
+    "science"
+   ],
+   "climate": 0,
+   "time": "f",
+   "style": [
+    "d",
+    "b"
+   ],
+   "methods": [
+    "pg",
+    "model"
+   ],
+   "level": 2,
+   "hook": "The current angular control loop adds noise that limits low-frequency sensitivity, and Deep Loop Shaping cut that control noise by over 30x in the 10-30 Hz band on the real detector. The identified plant and recorded data are public, so the problem can be studied without detector access.",
+   "start": "[Buchli et al. 2025, Improving cosmological reach of a gravitational wave observatory using Deep Loop Shaping, Science](https://arxiv.org/abs/2509.14016); [identified CHARD plant model and selected ASC data from LIGO Livingston (Zenodo, CC BY 4.0)](https://zenodo.org/records/18892402); closed-loop model rebuilt from the paper",
+   "baseline": "LIGO's hand-designed linear SISO controller",
+   "angle": "actor-critic RL with frequency-domain rewards on the identified plant, compared with convex or H-infinity loop shaping; test robustness to optical-spring drift"
+  },
+  {
+   "id": "rubin-lsst-survey-scheduling",
+   "title": "Rubin LSST survey scheduling",
+   "problem": "Choose the next pointing and filter for the Rubin Observatory visit by visit through each night of a multi-year survey, under uncertain clouds, seeing and sky brightness and with slew and filter-change time costs, to maximize survey metrics (depth, sky coverage, revisit cadence) subject to visibility and Moon-avoidance constraints.",
+   "section": "Instruments, observatories and measurement",
+   "areas": [
+    "science"
+   ],
+   "climate": 0,
+   "time": "o",
+   "style": [
+    "s"
+   ],
+   "methods": [
+    "mpc",
+    "pg"
+   ],
+   "level": 2,
+   "hook": "The scheduler that will run Rubin picks each visit greedily from a hand-weighted reward, and the same code ships with a survey simulator (a full 10-year run takes about 6 hours, and shorter runs are an option). A better policy can be scored on the metrics the project itself uses.",
+   "start": "[Naghib et al. 2019, A Framework for Telescope Schedulers: With Applications to the Large Synoptic Survey Telescope, AJ](https://arxiv.org/abs/1810.04815); [rubin_scheduler, the Feature Based Scheduler with survey simulation](https://github.com/lsst/rubin_scheduler); [docs](https://rubin-scheduler.lsst.io/); for an offline-RL variant on a small telescope, [Terranova et al. 2023, Self-Driving Telescopes, NeurIPS ML4PS workshop](https://arxiv.org/abs/2311.18094) with [data, checkpoints and code](https://zenodo.org/records/8388483)",
+   "baseline": "the Feature Based Scheduler, which greedily picks the feasible survey with the highest weighted sum of basis-function rewards",
+   "angle": "learn the basis-function weights by policy search on the simulator's science metrics, or add receding-horizon lookahead over the night (MPC) on top of the greedy rule"
+  },
+  {
+   "id": "gw-counterpart-follow-up-scheduling",
+   "title": "GW counterpart follow-up scheduling",
+   "problem": "Over the first nights after a gravitational-wave alert, choose which sky tiles a wide-field telescope observes, in what order and for how long, under skymap localization uncertainty, an unknown fading transient, visibility windows and weather, to maximize the probability that the counterpart is detected in two images over two nights within the available telescope time.",
+   "section": "Instruments, observatories and measurement",
+   "areas": [
+    "science"
+   ],
+   "climate": 0,
+   "time": "o",
+   "style": [
+    "s"
+   ],
+   "methods": [
+    "mpc",
+    "amortize",
+    "dp"
+   ],
+   "level": 2,
+   "hook": "Coughlin et al. found that detection efficiency changes by a factor of 2 or more depending on the tiling, time-allocation and scheduling choice, so the decision rule matters. The scheduler is open source and installs from PyPI, so the whole loop can be closed in simulation.",
+   "start": "[Coughlin et al. 2018, Optimizing searches for electromagnetic counterparts of gravitational wave triggers, MNRAS](https://arxiv.org/abs/1803.02255); [Almualla et al. 2020, Dynamic Scheduling: Target of Opportunity Observations of Gravitational Wave Events, MNRAS](https://arxiv.org/abs/2003.09718); [gwemopt code](https://github.com/mcoughlin/gwemopt)",
+   "baseline": "gwemopt's greedy or SEAR tile scheduling with a fixed time-allocation rule",
+   "angle": "closed-loop replanning (MPC) that updates the counterpart posterior after each non-detection; amortize the planner into a policy trained on many simulated skymaps"
+  },
+  {
+   "id": "cryo-em-data-collection-path-planning",
+   "title": "Cryo-EM data collection path planning",
+   "problem": "During a cryo-EM session of a few hours, choose which grid, square, patch and hole to image next, when hole quality is known only through a noisy classifier on low-magnification images and each move costs 2 to 10 minutes of stage time, to maximize the number of good (low-CTF) micrographs within the time budget.",
+   "section": "Instruments, observatories and measurement",
+   "areas": [
+    "science",
+    "discovery"
+   ],
+   "climate": 0,
+   "time": "o",
+   "style": [
+    "s",
+    "d"
+   ],
+   "methods": [
+    "dp",
+    "mpc",
+    "pg"
+   ],
+   "level": 1,
+   "hook": "Cryo-EM data collection is costly and needs expert operators, and in one of the paper's datasets only 33.4% of holes give usable images. CryoRL already beat average human operators; a planner that uses the patch/square/grid cost hierarchy explicitly is the natural next step.",
+   "start": "[Fan et al. 2024, CryoRL: Reinforcement Learning Enables Efficient Cryo-EM Data Collection, WACV](https://openaccess.thecvf.com/content/WACV2024/html/Fan_CryoRL_Reinforcement_Learning_Enables_Efficient_Cryo-EM_Data_Collection_WACV_2024_paper.html) ([arXiv](https://arxiv.org/abs/2204.07543)); [code](https://github.com/IBM/CryoRL-pytorch); [hole-level image data](https://github.com/yilaili/cryoRL-pytorch-data)",
+   "baseline": "greedy ranking of squares and patches by predicted low-CTF count (the paper also compares with human operators)",
+   "angle": "treat it as stochastic orienteering over the grid hierarchy: lookahead/MPC or DP that uses the travel-cost structure, against the published DQN"
+  },
+  {
+   "id": "neutron-triple-axis-measurement-planning",
+   "title": "Neutron triple-axis measurement planning",
+   "problem": "During a beam-time allocation, choose the sequence of (Q, E) points a three-axis neutron spectrometer measures, when the intensity map is unknown and each point costs counting time plus axis travel time, to minimize the reconstruction error of the intensity at each cost milestone.",
+   "section": "Instruments, observatories and measurement",
+   "areas": [
+    "discovery",
+    "science"
+   ],
+   "climate": 0,
+   "time": "o",
+   "style": [
+    "s"
+   ],
+   "methods": [
+    "mpc",
+    "amortize"
+   ],
+   "level": 2,
+   "hook": "Beam time at neutron sources is scarce, and grid scans spend much of it on background. BASE already prices every move with the instrument's axis speeds and provides test cases and a scoring procedure, so a travel-aware planner can be compared fairly with grids and myopic active learning.",
+   "start": "[Teixeira Parente et al. 2022, Benchmarking Autonomous Scattering Experiments Illustrated on TAS, Front. Mater.](https://www.frontiersin.org/journals/materials/articles/10.3389/fmats.2021.772014/full); [Teixeira Parente et al. 2023, Active learning-assisted neutron spectroscopy with log-Gaussian processes, Nat. Commun.](https://arxiv.org/abs/2209.00980); [BASE benchmark code (GPL-3.0)](https://jugit.fz-juelich.de/ainx/base)",
+   "baseline": "predefined grid scans, and the myopic log-Gaussian-process active learner",
+   "angle": "non-myopic, route-aware planning that trades information gain against motor travel (lookahead/MPC), or an amortized policy trained across the BASE test cases"
+  },
+  {
+   "id": "lc-ms-ms-precursor-selection-dda",
+   "title": "LC-MS/MS precursor selection (DDA)",
+   "problem": "At every MS1 survey scan of a liquid-chromatography run, choose which precursor ions to fragment next and which to exclude, under unknown elution profiles and a fixed scan-time budget, to maximize the number of distinct compounds that receive a usable fragmentation spectrum.",
+   "section": "Instruments, observatories and measurement",
+   "areas": [
+    "science",
+    "chem"
+   ],
+   "climate": 0,
+   "time": "f",
+   "style": [
+    "s"
+   ],
+   "methods": [
+    "pg",
+    "offline"
+   ],
+   "level": 1,
+   "hook": "Every scan spent re-fragmenting an abundant ion is a compound left unidentified. ViMMS simulates acquisition scan by scan from real LC-MS data, and heuristics that Davies et al. tuned in it beat TopN on a real instrument, so gains in the simulator have carried over to hardware before.",
+   "start": "[Davies et al. 2021, Rapid Development of Improved Data-dependent Acquisition Strategies, Anal. Chem.](https://www.biorxiv.org/content/10.1101/2020.09.11.293092v1); [Wandy et al. 2022, ViMMS 2.0, JOSS](https://joss.theoj.org/papers/10.21105/joss.03990); [ViMMS simulator (MIT)](https://github.com/glasgowcompbio/vimms); [Wandy et al. 2023, Simulated-to-real benchmarking of acquisition methods in untargeted metabolomics, Front. Mol. Biosci.](https://www.frontiersin.org/journals/molecular-biosciences/articles/10.3389/fmolb.2023.1130781/full)",
+   "baseline": "TopN with dynamic exclusion, and the grid-search-tuned SmartROI and WeightedDEW heuristics",
+   "angle": "policy gradient on per-scan fragmentation decisions in the simulator; offline RL or model-based lookahead from replayed real runs"
+  },
+  {
+   "id": "stm-single-atom-manipulation",
+   "title": "STM single-atom manipulation",
+   "problem": "For each manipulation attempt in an episode of up to five moves, choose the bias voltage, tunneling conductance and tip start and end positions that drag an adatom toward a target site, under an unobserved tip condition that changes the response, to maximize the rate of placements within a/√3 (about 0.58 lattice spacings) of the target.",
+   "section": "Instruments, observatories and measurement",
+   "areas": [
+    "discovery",
+    "science"
+   ],
+   "climate": 0,
+   "time": "f",
+   "style": [
+    "d"
+   ],
+   "methods": [
+    "model",
+    "offline",
+    "mpc"
+   ],
+   "level": 2,
+   "hook": "The fixed-parameter routine succeeded 100%, 92% and 68% of the time under three tip conditions, while the RL agent adapted and then built a 42-atom kagome lattice in 66 manipulations. The logged manipulations are public, so model-based and offline variants can be tested without an STM.",
+   "start": "[Chen et al. 2022, Precise atom manipulation through deep reinforcement learning, Nat. Commun.](https://www.nature.com/articles/s41467-022-35149-w); [code, logged training data and trained networks](https://github.com/SINGROUP/Atom_manipulation_with_RL)",
+   "baseline": "hand-tuned fixed parameters (10 mV, 6 µA/V, tip moved 0.1 nm past the target)",
+   "angle": "fit a stochastic dynamics model to the logged manipulations and plan with it (model-based RL, MPC), or offline RL compared with the published SAC agent"
+  },
+  {
+   "id": "adaptive-sampling-for-protein-folding-md",
+   "title": "Adaptive sampling for protein folding MD",
+   "problem": "At each epoch of a molecular-dynamics campaign, choose which conformational states to restart a batch of trajectories from, given a Markov state model fit to the data so far and a fixed GPU budget, to reach the folded state and converge the kinetics with the fewest simulated nanoseconds.",
+   "section": "Instruments, observatories and measurement",
+   "areas": [
+    "discovery",
+    "chem"
+   ],
+   "climate": 0,
+   "time": "o",
+   "style": [
+    "s"
+   ],
+   "methods": [
+    "model",
+    "mpc",
+    "dp"
+   ],
+   "level": 3,
+   "hook": "Folding and binding happen on timescales far longer than a single trajectory, so where simulations are restarted decides whether a GPU budget ever sees these events. HTMD ships both the count-based and bandit strategies as baselines, plus a villin folding setup.",
+   "start": "[Pérez et al. 2020, AdaptiveBandit: A multi-armed bandit framework for adaptive sampling in molecular simulations, arXiv](https://arxiv.org/abs/2002.12582); [HTMD AdaptiveBandit tutorial on villin folding](https://software.acellera.com/htmd/tutorials/adaptive-bandit.html); [HTMD code (Community Edition, free for not-for-profit use)](https://github.com/Acellera/htmd)",
+   "baseline": "count-based MSM respawning (HTMD AdaptiveMD) and the UCB AdaptiveBandit",
+   "angle": "plan respawns over several epochs with the current MSM as a learned model (lookahead, MPC) instead of one-step bandit scores"
   },
   {
    "id": "tokamak-ramp-up",
@@ -3710,6 +4352,207 @@
    "start": "[Astaraky & Patrick 2015, simulation-based ADP for multi-class, multi-resource surgical scheduling, EJOR](https://ideas.repec.org/a/eee/ejores/v245y2015i1p309-319.html); [Astaraky thesis, uOttawa](https://ruor.uottawa.ca/items/449f9534-f933-4c5a-a698-6459c0265f0c); [German surgical case mix and duration distributions (Zenodo, CC BY 4.0)](https://zenodo.org/record/7147921); [Leeftink & Hans OR scheduling benchmark and instance generator](https://www.utwente.nl/en/choir/research/benchmark-orscheduling/); model rebuilt from the paper",
    "baseline": "first-come first-served booking into the earliest day with free OR time",
    "angle": "least-squares approximate policy iteration as in the paper versus PPO, with a sampled-scenario MPC lookahead as a strong baseline"
+  },
+  {
+   "id": "polling-place-resources-to-cut-wait-times",
+   "title": "Polling-place resources to cut wait times",
+   "problem": "Before and during election day, decide how a fixed pool of check-in stations, voting booths and floating poll workers is split across a county's polling places (and moved hour by hour), under uncertain turnout, arrival peaks and service times, to minimize the worst-place (or 99th-percentile) wait subject to the 30-minute standard and fixed equipment and staff.",
+   "section": "Democracy, governance and human rights",
+   "areas": [
+    "society",
+    "infra"
+   ],
+   "climate": 0,
+   "time": "o",
+   "style": [
+    "b",
+    "d"
+   ],
+   "methods": [
+    "mpc",
+    "amortize",
+    "model"
+   ],
+   "level": 1,
+   "hook": "In 2024, 11% of Election Day voters and 15% of early voters waited more than 30 minutes (SPAE). In central Florida in 2012, reallocating the same booths was estimated to cut the average wait from 49.2 to 39.0 minutes.",
+   "start": "[Allen, Yang, Huang, Hernandez 2020, Determining resource requirements for elections using indifference-zone generalized binary search, Computers & Industrial Engineering](https://par.nsf.gov/servlets/purl/10134950); [Li, Allen, Akah 2013, Could simulation optimization have prevented 2012 Central Florida election lines?, Winter Simulation Conference](https://informs-sim.org/wsc13papers/includes/files/183.pdf); [Stewart 2015, Managing Polling Place Resources, Caltech/MIT Voting Technology Project](https://vote.caltech.edu/documents/152/Managing_Polling_Place_Resources.pdf); [BPC/Stewart hourly line-count program](https://bipartisanpolicy.org/votinglines); [SPAE 2024 survey data, CC0](https://doi.org/10.7910/DVN/GWBAP5); model rebuilt from the paper",
+   "baseline": "booths allocated in proportion to eligible voters, with no moves during the day",
+   "angle": "simulation-based optimization or an amortized policy mapping turnout forecasts to a minimax-wait allocation; MPC that moves floating poll workers using hourly line counts"
+  },
+  {
+   "id": "adaptive-sampling-for-risk-limiting-audits",
+   "title": "Adaptive sampling for risk-limiting audits",
+   "problem": "After an election, decide one draw at a time which stratum or batch of paper ballots to sample next and how much to bet on each observation, under uncertainty about the true vote shares and tabulation errors, to stop as early as possible while keeping the chance of confirming a wrong outcome below the risk limit, falling back to a full hand count otherwise.",
+   "section": "Democracy, governance and human rights",
+   "areas": [
+    "society",
+    "computing"
+   ],
+   "climate": 0,
+   "time": "o",
+   "style": [
+    "s"
+   ],
+   "methods": [
+    "dp",
+    "pg"
+   ],
+   "level": 1,
+   "hook": "Spertus and Stark found that a better stratum-allocation rule cut expected workload from 752 to 271 cards in one setting, and they leave optimal allocation as open future work. That makes this a clean sequential-design problem with real open-source audit code.",
+   "start": "[Stark 2020, SHANGRLA: sets of half-average nulls generate risk-limiting audits, arXiv](https://arxiv.org/abs/1911.10035); [Stark 2022, ALPHA: audit that learns from previously hand-audited ballots, arXiv](https://arxiv.org/abs/2201.02707); [Spertus & Stark 2022, Sweeter than SUITE: supermartingale stratified union-intersection tests of elections, E-Vote-ID](https://arxiv.org/abs/2207.03379); [Spertus, Sridhar, Stark, Sequential stratified inference for the mean, arXiv](https://arxiv.org/abs/2409.06680); [Waudby-Smith, Stark, Ramdas 2021, RiLACS, arXiv](https://arxiv.org/abs/2107.11323); [SHANGRLA code](https://github.com/pbstark/SHANGRLA); [RiLACS code](https://github.com/WannabeSmith/RiLACS); [Arlo audit software](https://github.com/votingworks/arlo)",
+   "baseline": "ALPHA or BRAVO with a fixed betting rule and proportional or round-robin stratum sampling",
+   "angle": "treat the bet size and next-stratum choice as a predictable policy trained by DP or RL on simulated elections; anytime validity holds by construction, so only expected sample size is optimized"
+  },
+  {
+   "id": "audit-budgets-against-municipal-corruption",
+   "title": "Audit budgets against municipal corruption",
+   "problem": "Each year, decide which of several thousand municipalities (or federally funded programs) a national audit agency inspects with a fixed audit budget, under uncertainty about each one's irregularity rate and how audits deter future misuse, to maximize misused funds detected and prevented while keeping an unbiased national estimate of irregularity.",
+   "section": "Democracy, governance and human rights",
+   "areas": [
+    "society",
+    "markets"
+   ],
+   "climate": 0,
+   "time": "p",
+   "style": [
+    "b",
+    "d"
+   ],
+   "methods": [
+    "dp",
+    "pg"
+   ],
+   "level": 2,
+   "hook": "In a CGU randomized evaluation, raising annual audit risk from about 5% to 25% cut the share of procurement processes with evidence of corruption by about 15 percentage points, and a past audit lowers future corruption by about 8%. CGU has since moved from lottery to risk-matrix and machine-learning selection, which makes the detect, deter and estimate trade-off a live policy question.",
+   "start": "[Litschig & Zamboni 2018, Audit risk and rent extraction: evidence from a randomized evaluation in Brazil, BSE Working Paper 554](https://bse.eu/sites/default/files/working_paper_pdfs/554_0.pdf); [Avis, Ferraz, Finan 2018, Do government audits reduce corruption?, Journal of Political Economy (NBER w22443)](https://www.nber.org/papers/w22443); [Henderson et al. 2023, Integrating reward maximization and population estimation: sequential decision-making for IRS audit selection, AAAI](https://arxiv.org/abs/2204.11910); [CGU note on its audit-selection cycles](https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/fiscalizacao-em-entes-federativos); [OpenTender procurement data (OCDS), optional contract-level covariates](https://data.open-contracting.org/en/publication/87); model rebuilt from the paper",
+   "baseline": "uniform public lottery at about 5% audit probability per year (CGU's original program), or greedy ranking by predicted risk",
+   "angle": "restless bandit or POMDP where audits both reveal and deter; learn a randomized index policy whose inclusion probabilities keep the inverse-propensity estimate of national irregularity unbiased"
+  },
+  {
+   "id": "dynamic-refugee-placement-under-capacity",
+   "title": "Dynamic refugee placement under capacity",
+   "problem": "As refugee cases arrive in weekly batches over a fiscal year, assign each family to a local affiliate or locality, under uncertainty about the future arrival mix and employment outcomes, to maximize expected employment subject to annual capacities, indivisible families, even allocation over time and group-fairness constraints.",
+   "section": "Democracy, governance and human rights",
+   "areas": [
+    "society",
+    "markets"
+   ],
+   "climate": 0,
+   "time": "p",
+   "style": [
+    "b",
+    "d"
+   ],
+   "methods": [
+    "amortize",
+    "mpc",
+    "dp"
+   ],
+   "level": 2,
+   "hook": "Ahani et al. report over 98% of hindsight-optimal employment against under 90% for greedy-like approaches, and their algorithm runs inside the Annie MOORE software at a US resettlement agency. Bansak and Paulson report 40 to 50% gains over the status quo on US and Swiss data.",
+   "start": "[Bansak & Paulson, Outcome-driven dynamic refugee assignment with allocation balancing, Operations Research](https://arxiv.org/abs/2007.03069); [Ahani, Gölz, Procaccia, Teytelboym, Trapp 2021, Dynamic placement in refugee resettlement, ACM EC](https://arxiv.org/abs/2105.14388); [Freund, Lykouris, Paulson, Sturt, Weng, Group fairness in dynamic refugee assignment, arXiv](https://arxiv.org/abs/2301.10642); [Trapp et al., Placement optimization in refugee resettlement (Annie MOORE), Lund WP](https://ora.ox.ac.uk/objects/uuid:ac6d7b8d-203e-4fd8-9bb7-cf9f8735bb87/files/s9593tv441); [US refugee arrivals by state, nationality and month](https://www.rpc.state.gov/admissions-and-arrivals/); model rebuilt from the paper",
+   "baseline": "greedy, status-quo-like placement, compared with the papers' minimum-discord and two-stage stochastic programming policies",
+   "angle": "online assignment as an MDP; learn or amortize bid prices from sampled future arrivals and compare with re-solving MPC, with fairness and balance constraints"
+  },
+  {
+   "id": "landmine-survey-and-clearance-prioritization",
+   "title": "Landmine survey and clearance prioritization",
+   "problem": "Each quarter, decide which municipalities or suspected hazardous areas receive a limited number of survey and clearance teams, under uncertainty about where contamination remains (revealed only by survey, clearance or accidents), to minimize expected civilian accidents and maximize land released within a team-time budget.",
+   "section": "Democracy, governance and human rights",
+   "areas": [
+    "society"
+   ],
+   "climate": 0,
+   "time": "p",
+   "style": [
+    "d",
+    "b"
+   ],
+   "methods": [
+    "dp",
+    "model"
+   ],
+   "level": 2,
+   "hook": "Colombia's open registry lists 39,171 mine-related events in 774 municipalities from 1990 to 2023, including 7,299 accidents. RELand cut the mean number of empty cells visited before a region is cleared from about 227 to 132 compared with the previous risk model.",
+   "start": "[Dulce Rubio et al. 2023, RELand: risk estimation of landmines via interpretable invariant risk minimization, arXiv](https://arxiv.org/abs/2311.03115); [CMU ML blog on RELand, prioritization as a budgeted knapsack](https://blog.ml.cmu.edu/2024/11/07/identification-of-hazardous-areas-for-priority-landmine-clearance-ai-for-humanitarian-mine-action); [Kischelewski, Guedj, Wahl 2025, RestoreAI: pattern-based risk estimation of remaining explosives (virtual demining environment), arXiv](https://arxiv.org/abs/2507.19873); [Colombia landmine events 1990 to 2023 by municipality, datos.gov.co, CC BY-SA 4.0](https://www.datos.gov.co/d/sgp4-3e6k); model rebuilt from the paper",
+   "baseline": "rank areas by historical event density or a static risk score and clear greedily within budget",
+   "angle": "Bayesian POMDP or bandit over municipal contamination with team-allocation actions; extension to tile-level adaptive search in a rebuilt virtual minefield"
+  },
+  {
+   "id": "scheduling-fact-checks-on-crowd-flags",
+   "title": "Scheduling fact-checks on crowd flags",
+   "problem": "In continuous time over hours to days, decide which crowd-flagged stories to send to a limited pool of independent fact checkers and when, under uncertain spread (reshare point processes) and noisy flags, to minimize users exposed to stories later found false subject to a fact-checking rate budget.",
+   "section": "Democracy, governance and human rights",
+   "areas": [
+    "society",
+    "computing"
+   ],
+   "climate": 0,
+   "time": "o",
+   "style": [
+    "s",
+    "d"
+   ],
+   "methods": [
+    "dp",
+    "pg",
+    "model"
+   ],
+   "level": 1,
+   "hook": "Platforms send crowd-flagged stories to a small pool of third-party fact checkers, so the order of checks matters. Curb's public code and cascades let a student test a learned scheduler against a published optimal-control policy within the first week.",
+   "start": "[Kim, Tabibian, Oh, Schölkopf, Gomez-Rodriguez 2018, Leveraging the crowd to detect and reduce the spread of fake news and misinformation, WSDM](https://arxiv.org/abs/1711.09918); [Curb code and Twitter/Weibo reshare data](https://github.com/Networks-Learning/curb); [Lykouris & Weng, Learning to defer in congested systems: the AI-human interplay (review-queue variant), arXiv](https://arxiv.org/abs/2402.12237)",
+   "baseline": "Curb's optimal-control policy and the repo's flag-ratio and exposure heuristics",
+   "angle": "stochastic optimal control of SDEs with jumps as in Curb against a learned scheduler trained by policy gradient on simulated cascades; add a reviewer-capacity queue with deadlines"
+  },
+  {
+   "id": "adaptive-nonresponse-follow-up-in-surveys",
+   "title": "Adaptive nonresponse follow-up in surveys",
+   "problem": "Each day of a survey field period, decide which nonresponding sample units get another interviewer visit or call, at what time and in which mode, or are retired, under uncertain contact and cooperation propensities, to maximize response representativeness (R-indicator) or minimize nonresponse bias subject to an interviewer-hours budget.",
+   "section": "Democracy, governance and human rights",
+   "areas": [
+    "society",
+    "health"
+   ],
+   "climate": 0,
+   "time": "o",
+   "style": [
+    "d",
+    "b"
+   ],
+   "methods": [
+    "offline",
+    "dp"
+   ],
+   "level": 2,
+   "hook": "In the 2022 California Health Interview Survey, stopping low-propensity cases after three calls cut calls per sampled unit by about 14% while the completion rate fell about 0.3 points. Statistical agencies face this budgeted follow-up choice in every field period.",
+   "start": "[Calinescu & Schouten 2016, Adaptive survey designs for nonresponse and measurement error in multi-purpose surveys, Survey Research Methods](https://ojs.ub.uni-konstanz.de/srm/article/view/6157/6061); [Schouten, Calinescu, Luiten 2013, Optimizing quality of response through adaptive survey designs, Survey Methodology](https://www150.statcan.gc.ca/n1/pub/12-001-x/2013001/article/11824-eng.htm); [Jackson, Hughes, Fu 2024, dynamic adaptive design for CATI nonresponse follow-up, JSSAM](https://academic.oup.com/jssam/article/12/3/712/7619574); [ESS contact-form call records, free after login, CC BY 4.0](https://data.norge.no/en/datasets/acd46276-1c00-3192-a97f-6ad4debe4f3b); [ESS contact form layout (per-attempt date, time, mode, outcome)](https://www.europeansocialsurvey.org/sites/default/files/2023-06/ESS9_source_contact_forms.pdf); model rebuilt from the paper",
+   "baseline": "fixed protocol with the same maximum number of visits for everyone, or a static design optimized by grid search",
+   "angle": "offline RL and off-policy evaluation of contact policies from call-record paradata; per-case optimal stopping under a cost budget"
+  },
+  {
+   "id": "judicial-time-allocation-to-cut-backlogs",
+   "title": "Judicial time allocation to cut backlogs",
+   "problem": "Each week, decide how judges' hearing time is split between early-stage (admission) and later-stage cases and how hearings are booked in advance, under uncertain filings, adjournments and hearing lengths, to minimize mean time to disposition and pending caseload with a fixed number of judges and no case-level risk scoring.",
+   "section": "Democracy, governance and human rights",
+   "areas": [
+    "society"
+   ],
+   "climate": 0,
+   "time": "p",
+   "style": [
+    "d",
+    "b"
+   ],
+   "methods": [
+    "mpc",
+    "dp",
+    "model"
+   ],
+   "level": 2,
+   "hook": "Bakshi, Kim and Randhawa estimate that rebalancing judicial time between case stages at the Supreme Court of India could cut expected delay by up to 65% without adding judges. The open eCourts data covers over 80 million lower-court cases, with mean filing-to-decision times from 149 days to 5 years across districts.",
+   "start": "[Bakshi, Kim, Randhawa, Service operations for justice-on-time: a data-driven queueing approach, MSOM](https://pubsonline.informs.org/doi/fpi/10.1287/msom.2023.0530); [INFORMS summary with headline numbers](https://www.informs.org/News-Room/INFORMS-Releases/News-Releases/Court-Backlogs-Are-Clogging-the-System-New-Research-Finds-a-Surprising-Fix); [Development Data Lab India eCourts data 2010 to 2018 (filing, hearing, decision dates), CC BY-NC-SA](http://www.devdatalab.org/judicial-bias-data); model rebuilt from the paper",
+   "baseline": "current scheduling guidelines that favor fresh matters, with hearings fixed in advance",
+   "angle": "fluid or MDP model of a two-stage case queue with shared judges; MPC or a learned policy evaluated in a simulator calibrated to eCourts dates"
   },
   {
    "id": "walleye-fishery-harvest-rules",
