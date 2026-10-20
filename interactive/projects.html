@@ -19,6 +19,7 @@
     --accent: #2f6f8f; --accent-soft: #e2edf1; --on-accent: #ffffff;
     --green: #2e7d5b; --green-soft: #e4f0e9;
     --warn: #a83a32; --warn-soft: #f5e5e3;
+    --gold: #855700; --gold-soft: #f5ead2;
     --shadow: 0 1px 2px rgba(27,36,48,.06), 0 4px 16px rgba(27,36,48,.05);
     --font-display: "Newsreader", Georgia, "Times New Roman", serif;
     --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -32,6 +33,7 @@
       --accent: #72a8c2; --accent-soft: #1d3440; --on-accent: #0d141a;
       --green: #6cc19a; --green-soft: #173027;
       --warn: #df786f; --warn-soft: #3d211f;
+      --gold: #e2b65a; --gold-soft: #382d15;
       --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25);
     }
   }
@@ -42,6 +44,7 @@
     --accent: #72a8c2; --accent-soft: #1d3440; --on-accent: #0d141a;
     --green: #6cc19a; --green-soft: #173027;
     --warn: #df786f; --warn-soft: #3d211f;
+    --gold: #e2b65a; --gold-soft: #382d15;
     --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25);
   }
 
@@ -179,6 +182,9 @@
   .tag.yes { background: var(--accent-soft); color: var(--ink); }
   .tag.climate { background: var(--green-soft); color: var(--green); font-weight: 500; }
   .tag.caution { background: var(--warn-soft); color: var(--warn); }
+  .tag.venture { background: var(--gold-soft); color: var(--gold); font-weight: 500; }
+  .venture-note { margin: 0; font-size: 14.5px; padding: 8px 12px; background: var(--gold-soft); border-left: 3px solid var(--gold); border-radius: 0 6px 6px 0; }
+  .venture-note b { color: var(--gold); font-weight: 600; }
   .grid2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px 24px; }
   @media (max-width: 760px) { .grid2 { grid-template-columns: minmax(0, 1fr); } }
   .field { min-width: 0; }
@@ -205,6 +211,7 @@
   .chip { border: 1px solid var(--rule); background: var(--bg-raised); border-radius: 999px; padding: 4px 11px; font-size: 13.5px; cursor: pointer; white-space: nowrap; }
   .chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
   .chip.green[aria-pressed="true"] { background: var(--green); border-color: var(--green); color: var(--bg); }
+  .chip.gold[aria-pressed="true"] { background: var(--gold); border-color: var(--gold); color: var(--bg); }
   .count { font: 500 13px var(--font-mono); color: var(--ink-muted); margin: 4px 0 12px; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
   .count button { border: 0; background: none; color: var(--accent); cursor: pointer; padding: 0; font: inherit; text-decoration: underline; text-underline-offset: 2px; }
   .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; align-items: stretch; }
@@ -218,6 +225,7 @@
   .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--rule); display: block; }
   .dots i.on { background: var(--accent); }
   .leaf { color: var(--green); font-weight: 600; }
+  .startup { color: var(--gold); font-weight: 600; }
   .saved-mark { color: var(--accent); font-weight: 600; }
   .empty { padding: 28px; text-align: center; color: var(--ink-muted); border: 1px dashed var(--rule); border-radius: 10px; }
 
@@ -365,6 +373,7 @@
           <li>Two to four plots, including your method against the baseline, each with a caption that states the conclusion.</li>
           <li>400 to 700 words in total. Above 800 you are writing a paper.</li>
           <li>A QR code to your project website.</li>
+          <li>If your topic is marked <b>Startup potential</b>, say who would pay for your controller and roughly what it would save them.</li>
           <li>Print a draft on Letter paper. If it looks like a wall of text, cut.</li>
         </ul>
       </details>
@@ -412,7 +421,7 @@
   <section id="topics" class="wrap" aria-labelledby="topics-h">
     <div class="section-head">
       <h2 id="topics-h">All topics</h2>
-      <p>Each one comes with a paper that defines the model and the numbers to beat, a simulator or dataset to start from, and a baseline. Bring your own system if it meets the brief.</p>
+      <p>Each one comes with a paper that defines the model and the numbers to beat, a simulator or dataset to start from, and a baseline. Topics marked <b>Startup potential</b> have operators who would pay for a better controller. Bring your own system if it meets the brief.</p>
     </div>
     <div class="filters">
       <label class="search" for="q">
@@ -693,16 +702,18 @@
     const chapters = chaptersFor(t, a);
     const tags = (opts.why || [])
       .map(w => `<span class="tag${w.yes ? " yes" : ""}${w.climate ? " climate" : ""}${w.caution ? " caution" : ""}">${esc(w.txt)}</span>`).join("");
+    const ventureTag = t.venture ? `<span class="tag venture">Startup potential</span>` : "";
     const baseTags = opts.why ? "" :
       (t.climate ? `<span class="tag climate">${CLIMATE[t.climate]}</span>` : "") +
       `<span class="tag">${esc(LEVEL[t.level])}</span><span class="tag">${TIME[t.time]}</span>` +
-      t.style.map(s => `<span class="tag">${STYLE[s]}</span>`).join("");
+      t.style.map(s => `<span class="tag">${STYLE[s]}</span>`).join("") + ventureTag;
     return `
       <article class="topic${opts.detour ? " detour" : ""}">
         ${opts.rank ? `<div class="rankline"><span class="rank">${opts.rank}</span>${opts.pct != null ? `<span class="score">${opts.pct}% match</span>` : ""}</div>` : ""}
         <h4 ${opts.titleId ? `id="${opts.titleId}"` : ""}>${esc(t.title)}</h4>
         <p class="hook">${esc(t.hook)}</p>
-        <div class="why">${tags}${baseTags}</div>
+        <div class="why">${tags}${baseTags}${opts.why ? ventureTag : ""}</div>
+        ${t.venture ? `<p class="venture-note"><b>Startup potential.</b> ${esc(t.venture)}</p>` : ""}
         <div class="grid2">
           <div class="field"><h5>The problem</h5><p>${esc(t.problem)}</p></div>
           <div class="field"><h5>Start from</h5><p>${md(t.start)}</p></div>
@@ -753,13 +764,14 @@
   }
 
   /* ---------- Explorer ---------- */
-  const F = { q: "", areas: new Set(), methods: new Set(), level: new Set(), style: new Set(), climate: false, saved: false };
+  const F = { q: "", areas: new Set(), methods: new Set(), level: new Set(), style: new Set(), climate: false, startup: false, saved: false };
   function chip(label, pressed, attrs, cls = "") { return `<button type="button" class="chip ${cls}" aria-pressed="${pressed}" ${attrs}>${esc(label)}</button>`; }
   function renderFilters() {
     $("#f-area").innerHTML = `<span class="label">Field</span>` + DATA.areas.map(a => chip(a.label, F.areas.has(a.id), `data-f="areas" data-v="${a.id}"`)).join("");
     $("#f-method").innerHTML = `<span class="label">Method</span>` + DATA.methods.map(m => chip(m.label, F.methods.has(m.id), `data-f="methods" data-v="${m.id}"`)).join("");
     $("#f-misc").innerHTML = `<span class="label">Also</span>` +
       chip("Cuts emissions", F.climate, `data-f="climate"`, "green") +
+      chip("Startup potential", F.startup, `data-f="startup"`, "gold") +
       [1, 2, 3].map(l => chip(`Level ${l}`, F.level.has(String(l)), `data-f="level" data-v="${l}"`)).join("") +
       Object.entries(STYLE).map(([k, v]) => chip(v, F.style.has(k), `data-f="style" data-v="${k}"`)).join("") +
       chip("My shortlist", F.saved, `data-f="saved"`);
@@ -768,7 +780,7 @@
     const c = e.target.closest(".chip[data-f]");
     if (!c) return;
     const f = c.dataset.f, v = c.dataset.v;
-    if (f === "climate" || f === "saved") F[f] = !F[f];
+    if (f === "climate" || f === "saved" || f === "startup") F[f] = !F[f];
     else F[f].has(v) ? F[f].delete(v) : F[f].add(v);
     renderFilters(); renderCards();
   });
@@ -778,9 +790,10 @@
     if (F.level.size && !F.level.has(String(t.level))) return false;
     if (F.style.size && !t.style.some(s => F.style.has(s))) return false;
     if (F.climate && t.climate < 2) return false;
+    if (F.startup && !t.venture) return false;
     if (F.saved && !short.has(t.id)) return false;
     if (F.q) {
-      const hay = (t.title + " " + t.problem + " " + t.hook + " " + t.start + " " + t.angle + " " + t.areas.map(a => AREA[a].label).join(" ") + " " + t.methods.map(m => METHOD[m].label).join(" ")).toLowerCase();
+      const hay = (t.title + " " + t.problem + " " + t.hook + " " + t.start + " " + t.angle + " " + (t.venture || "") + " " + t.areas.map(a => AREA[a].label).join(" ") + " " + t.methods.map(m => METHOD[m].label).join(" ")).toLowerCase();
       if (!F.q.split(/\s+/).every(w => hay.includes(w))) return false;
     }
     return true;
@@ -788,18 +801,18 @@
   function dots(n) { return `<span class="dots" aria-label="Level ${n} of 3">${[1, 2, 3].map(i => `<i class="${i <= n ? "on" : ""}"></i>`).join("")}</span>`; }
   function renderCards() {
     const list = DATA.topics.filter(matches);
-    const active = F.q || F.areas.size || F.methods.size || F.level.size || F.style.size || F.climate || F.saved;
+    const active = F.q || F.areas.size || F.methods.size || F.level.size || F.style.size || F.climate || F.startup || F.saved;
     $("#count").innerHTML = `<span>${list.length} of ${DATA.topics.length} topics</span>` +
       (active ? `<button type="button" id="clear">Clear filters</button>` : "") +
       `<button type="button" id="surprise">Surprise me</button>`;
-    const clr = $("#clear"); if (clr) clr.onclick = () => { F.q = ""; $("#q").value = ""; ["areas", "methods", "level", "style"].forEach(k => F[k].clear()); F.climate = F.saved = false; renderFilters(); renderCards(); };
+    const clr = $("#clear"); if (clr) clr.onclick = () => { F.q = ""; $("#q").value = ""; ["areas", "methods", "level", "style"].forEach(k => F[k].clear()); F.climate = F.startup = F.saved = false; renderFilters(); renderCards(); };
     $("#surprise").onclick = () => { const pool = list.length ? list : DATA.topics; openTopic(pool[Math.floor(Math.random() * pool.length)].id); };
     $("#cards").innerHTML = list.length ? list.map(t => `
       <button type="button" class="card" data-open="${t.id}" aria-label="${esc(t.title)}: open details">
         <span class="area">${esc(AREA[t.areas[0]].label)}</span>
         <h3>${esc(t.title)}</h3>
         <p>${esc(t.hook)}</p>
-        <span class="meta">${dots(t.level)}<span>${TIME[t.time]}</span><span>${t.style.map(s => STYLE[s]).join(" · ")}</span>${t.climate === 2 ? `<span class="leaf">Cuts emissions</span>` : ""}${short.has(t.id) ? `<span class="saved-mark">Saved</span>` : ""}</span>
+        <span class="meta">${dots(t.level)}<span>${TIME[t.time]}</span><span>${t.style.map(s => STYLE[s]).join(" · ")}</span>${t.climate === 2 ? `<span class="leaf">Cuts emissions</span>` : ""}${t.venture ? `<span class="startup">Startup potential</span>` : ""}${short.has(t.id) ? `<span class="saved-mark">Saved</span>` : ""}</span>
       </button>`).join("")
       : `<p class="empty">No topic matches all of these filters. Remove one, or bring your own system.</p>`;
   }
