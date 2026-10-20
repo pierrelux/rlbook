@@ -56,6 +56,7 @@ uv run python scripts/build_gpu_demo_gallery.py
 - Reactive marimo components are deliberately limited to focused conceptual islands and must include a static fallback.
 - `interactive/` contains standalone HTML demonstrations copied verbatim into the site. `lab/` contains the xeus environment and curated JupyterLite notebooks.
 - `interactive/projects.html` is the final-project page (brief, topic matcher, topic explorer). It loads `interactive/projects-data/topics.json`, which is the source of truth for the topics: edit that file to add or change one. Link to the page with its absolute URL, since MyST rewrites relative links to files in `interactive/` into hashed copies under `/build/`, where the page cannot find its data.
+- Every project topic requires a `control` object with `state` (including observations), `action` (including timing), `dynamics` (what carries forward and how actions affect it) and `objective` (horizon goal and constraints). Forecasting, static response fitting and one-off rankings must feed an explicit sequential decision problem. Use `scope` to identify required model extensions or causal assumptions; compare policies using the same available information and a justified action-response model or off-policy evaluation.
 
 For prose-first executed examples, put figure metadata on the MyST code-cell
 directive and remove the input from the rendered page:

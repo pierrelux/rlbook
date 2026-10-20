@@ -198,6 +198,7 @@
   details.plan summary::before { content: "▸"; font-size: 11px; transition: transform .15s; }
   details.plan[open] summary::before { transform: rotate(90deg); }
   details.plan .grid2 { margin-top: 10px; }
+  details.plan > .field { margin-top: 10px; }
   .topic-actions { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 4px; }
   .star[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
 
@@ -348,10 +349,10 @@
     <div class="brief">
       <ol class="steps">
         <li><p><b>Pick a real system.</b> Start from a paper in the control or domain literature that gives you a model or data, and numbers to compare against. No Atari, MuJoCo, Gym or toy robotics.</p></li>
-        <li><p><b>Write it as a control problem.</b> State, action, disturbances, objective, constraints: <code>x<sub>t+1</sub> = f(x<sub>t</sub>, u<sub>t</sub>, w<sub>t</sub>)</code> and a cost.</p></li>
-        <li><p><b>Implement a baseline.</b> The published controller, a PID, a rule, or a myopic policy. Knowing how far a simple method gets is half the result.</p></li>
-        <li><p><b>Let learning do real work.</b> A learned model inside MPC, a value function, a policy amortized from a solver, offline RL from logs, a forecast trained for the decision.</p></li>
-        <li><p><b>Show we can trust your numbers.</b> Sanity checks on units and signs, limiting cases, a published result reproduced, sensitivity to parameters and seeds.</p></li>
+        <li><p><b>Write it as a control problem.</b> Specify what the policy observes, what it can change and when, and how actions affect later states or information: <code>x<sub>t+1</sub> = f(x<sub>t</sub>, u<sub>t</sub>, w<sub>t</sub>)</code>. Define a horizon objective and constraints. Explain why solving each decision independently would miss something.</p></li>
+        <li><p><b>Implement a baseline.</b> The published controller, a PID, a rule, or a myopic policy. Compare policies with the same observations and constraints. A perfect-foresight schedule is a hindsight bound.</p></li>
+        <li><p><b>Let learning do real work.</b> A learned model inside MPC, a value function, a policy amortized from a solver, offline RL from logs, a forecast trained for the decision. Evaluate the decisions it changes over full trajectories; prediction accuracy or a one-off ranking alone is not enough.</p></li>
+        <li><p><b>Show we can trust your numbers.</b> Check units, limiting cases and a reproduced result, then compare horizon cost and constraint violations on unseen conditions. Logged outcomes alone cannot score actions that were never taken: use a justified action-response simulator or defensible off-policy evaluation, and state the assumptions.</p></li>
       </ol>
       <dl class="facts">
         <div><dt>Team</dt><dd>Exactly three students; any exception is arranged with the instructor. Mix backgrounds, and pick a field you don't already work in. Once you're set, <a href="#confirm">send us your team and topic</a>.</dd></div>
@@ -421,7 +422,7 @@
   <section id="topics" class="wrap" aria-labelledby="topics-h">
     <div class="section-head">
       <h2 id="topics-h">All topics</h2>
-      <p>Each one comes with a paper that defines the model and the numbers to beat, a simulator or dataset to start from, and a baseline. Topics marked <b>Startup potential</b> have operators who would pay for a better controller. Bring your own system if it meets the brief.</p>
+      <p>Each topic spells out the state, decisions, consequences over time, objective and constraints, with papers, starting resources and a baseline. Some require a model extension, described in their project scope. Topics marked <b>Startup potential</b> suggest an operator and a practical value to test. Bring your own system if it meets the brief.</p>
     </div>
     <div class="filters">
       <label class="search" for="q">
@@ -521,14 +522,14 @@
   const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
   const FIRST_WEEKS = {
     b: ["Rebuild the model from the paper and reproduce one of its figures before anything else.",
-        "Implement the baseline and compare its numbers with the paper's.",
-        "Turn two sanity checks (units, a limiting case) into tests."],
-    d: ["Get the data and plot every signal you will use; check units, gaps and sampling rates.",
-        "Fit the simplest model that could work and test it on held-out days.",
-        "Run the operators' policy or the paper's baseline on the same data."],
+        "Check how actions change the next state or information, and implement the baseline with only observations available at decision time.",
+        "Compare complete trajectories, horizon cost and constraint violations; test units, limiting cases and any added dynamics."],
+    d: ["Check signals, action timestamps, units and gaps; separate policy observations from information recorded only later.",
+        "Establish an action-response model or a defensible off-policy evaluation method. State confounding and action-support assumptions; held-out prediction alone is insufficient.",
+        "Compare the baseline and learned policy over the same evaluation scenarios, carrying state forward and reporting horizon cost and constraint violations."],
     s: ["Install the simulator and run its baseline end to end.",
         "Reproduce one published number before you change anything.",
-        "Write one sentence on what learning adds that the baseline lacks. That sentence is your proposal."],
+        "Identify what learning changes in the decisions, then compare complete trajectories under the same observations, disturbances and constraints."],
   };
 
   let DATA = null, AREA = {}, METHOD = {}, BYID = {};
@@ -717,7 +718,14 @@
           <div class="field"><h5>The problem</h5><p>${esc(t.problem)}</p></div>
           <div class="field"><h5>Start from</h5><p>${md(t.start)}</p></div>
         </div>
-        ${opts.compact ? `<details class="plan"${opts.open ? " open" : ""}><summary>Baseline, where learning comes in, first steps</summary>` : ""}
+        ${opts.compact ? `<details class="plan"${opts.open ? " open" : ""}><summary>Control formulation, baseline and first steps</summary>` : ""}
+        <div class="grid2 control-formulation">
+          <div class="field"><h5>State and observations</h5><p>${esc(t.control.state)}</p></div>
+          <div class="field"><h5>Decision and timing</h5><p>${esc(t.control.action)}</p></div>
+          <div class="field"><h5>What changes next</h5><p>${esc(t.control.dynamics)}</p></div>
+          <div class="field"><h5>Objective and constraints</h5><p>${esc(t.control.objective)}</p></div>
+        </div>
+        ${t.scope ? `<div class="field"><h5>Project scope</h5><p>${esc(t.scope)}</p></div>` : ""}
         <div class="grid2">
           <div class="field"><h5>Baseline</h5><p>${esc(cap(t.baseline))}</p></div>
           <div class="field"><h5>Where learning comes in</h5><p>${esc(cap(t.angle))}</p></div>
@@ -792,7 +800,7 @@
     if (F.startup && !t.venture) return false;
     if (F.saved && !short.has(t.id)) return false;
     if (F.q) {
-      const hay = (t.title + " " + t.problem + " " + t.hook + " " + t.start + " " + t.angle + " " + (t.venture || "") + " " + t.areas.map(a => AREA[a].label).join(" ") + " " + t.methods.map(m => METHOD[m].label).join(" ")).toLowerCase();
+      const hay = [t.title, t.problem, t.hook, t.start, t.angle, t.scope || "", t.venture || "", ...Object.values(t.control), ...t.areas.map(a => AREA[a].label), ...t.methods.map(m => METHOD[m].label)].join(" ").toLowerCase();
       if (!F.q.split(/\s+/).every(w => hay.includes(w))) return false;
     }
     return true;
@@ -875,12 +883,16 @@
         "Team: (three names)", "",
         `System and source: ${t.problem}`,
         `Starting points: ${mdPlain(t.start)}`, "",
-        "State, actions and disturbances:", "",
-        "Objective and constraints:", "",
+        `State and observations: ${t.control.state}`, "",
+        `Decision and timing: ${t.control.action}`, "",
+        `What changes next: ${t.control.dynamics}`, "",
+        `Objective and constraints: ${t.control.objective}`, "",
+        ...(t.scope ? [`Project scope: ${t.scope}`, ""] : []),
         "Data or simulator we will use:", "",
         `Baseline: ${t.baseline}`, "",
         `Learning-based method: ${t.angle}`, "",
         "How we will verify the results:",
+        "Compare complete policy trajectories using the same available observations and evaluation scenarios. Report horizon cost and constraint violations. Justify the action-response model or off-policy evaluation assumptions.",
       ].join("\n"), "Proposal outline copied. Paste it into your email and fill the blanks.");
     }
   });
