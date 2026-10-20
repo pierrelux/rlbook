@@ -214,7 +214,8 @@
    "hook": "Calcined clay can replace part of the clinker in cement, and the flash calciner is where that clay is made. Hot enough to activate the clay, cool enough not to ruin it.",
    "start": "[Cantisani et al. 2024, dynamic modeling of a flash clay calciner, ADCHEM](https://www.arxiv.org/abs/2404.07674) (full equations, kinetics and parameter table); model rebuilt from the paper",
    "baseline": "SISO PID from clay feed to calcination degree, as the authors suggest",
-   "angle": "learn a neural ODE or Koopman surrogate of the plug-flow DAE, run NMPC on it, then amortize into a policy; dynamics settle in seconds, so data is cheap"
+   "angle": "learn a neural ODE or Koopman surrogate of the plug-flow DAE, run NMPC on it, then amortize into a policy; dynamics settle in seconds, so data is cheap",
+   "venture": "Producers of calcined clay for low-carbon cement, a fast-growing market; they pay for fuel per tonne and consistent clay reactivity."
   },
   {
    "id": "electric-clay-calcination-plant",
@@ -286,7 +287,8 @@
    "hook": "Waste-derived fuels displace coal, but their heating value drifts. A controller that estimates it on the fly lets a plant burn more of them safely.",
    "start": "[Gallestey, ABB, advanced process control for alternative fuels in precalciners](https://library.e.abb.com/public/4ee4ca9cd1cd2ed0c1257b350030736a/Advanced%20Process%20Control%20to%20increase%20Alternative%20Fuels%20Usage%20in%20Cement%20Kilns_A4_cor.pdf); [Fernández Gassó et al. 2025, expert systems for kiln operation](https://riuma.uma.es/entities/publication/1852c959-889b-4d37-b7b6-62cec478c1b5); lumped model rebuilt",
    "baseline": "PID with a Smith predictor and the expert rules",
-   "angle": "MPC with a learned calorific-value estimator, since slowly drifting fuel quality is the real problem; maximize the alternative-fuel share within the temperature, O2 and CO window"
+   "angle": "MPC with a learned calorific-value estimator, since slowly drifting fuel quality is the real problem; maximize the alternative-fuel share within the temperature, O2 and CO window",
+   "venture": "Cement plants, which pay for every point of fossil fuel replaced by waste-derived fuel without upsetting the kiln."
   },
   {
    "id": "cement-grinding-circuit",
@@ -334,7 +336,8 @@
    "hook": "Mills and silos let a cement plant move its electricity use to hours when power is cheap and clean, which helps a grid full of wind and solar.",
    "start": "[Rojas-Innocenti et al. 2024, electricity flexibility of industrial plants](https://arxiv.org/html/2411.09279v2); [robust scheduling for a cement plant with market participation, 2025](https://arxiv.org/abs/2506.10824); MILP fully specified",
    "baseline": "Deterministic MILP with perfect foresight",
-   "angle": "decision-focused training of the price forecaster through the MILP, or an amortized policy on rolling horizons; pair with the grinding row for dynamics"
+   "angle": "decision-focused training of the price forecaster through the MILP, or an amortized policy on rolling horizons; pair with the grinding row for dynamics",
+   "venture": "Cement plants, which pay for lower electricity bills and demand-response revenue from shifting mill and silo operations."
   },
   {
    "id": "low-carbon-concrete-mix-design",
@@ -357,7 +360,8 @@
    "hook": "Each tested mix takes 28 days to reveal its strength. Choosing which mixes to cast next is a sequential decision with a real carbon payoff.",
    "start": "[Ament et al. 2023, sustainable concrete via Bayesian optimization](https://arxiv.org/abs/2310.18288); [BOxCrete, 2026](https://arxiv.org/abs/2603.21525); [SustainableConcrete data and code](https://github.com/facebookresearch/SustainableConcrete)",
    "baseline": "The Bayesian optimization loop in the repository",
-   "angle": "mix selection as a finite-horizon MDP, decision-focused strength model; not a dynamical system, so pair it with curing"
+   "angle": "mix selection as a finite-horizon MDP, decision-focused strength model; not a dynamical system, so pair it with curing",
+   "venture": "Ready-mix and precast producers, who pay to cut cement content, cost and embodied carbon while still meeting strength specifications."
   },
   {
    "id": "precast-steam-curing",
@@ -427,7 +431,8 @@
    "hook": "Curing blocks in CO2 instead of steam locks carbon into the concrete as minerals. Get the moisture and timing right and the blocks also come out stronger.",
    "start": "[Shao et al. 2013, maximizing CO2 uptake in block carbonation, AIChE](https://proceedings.aiche.org/videos/maximizing-co2-uptake-concrete-blocks-carbonation); [Kashef-Haghighi 2012, McGill PhD thesis, 1-D reactive transport model](https://escholarship.mcgill.ca/downloads/d791sm26s); model rebuilt",
    "baseline": "Fixed recipe",
-   "angle": "MPC on measured outlet CO2 with a learned uptake model; a Montreal angle (McGill, Quebec precast) may help with data"
+   "angle": "MPC on measured outlet CO2 with a learned uptake model; a Montreal angle (McGill, Quebec precast) may help with data",
+   "venture": "Precast and block plants, who pay for faster curing, higher strength and CO2 storage they can count toward carbon claims."
   },
   {
    "id": "3d-concrete-printing",
@@ -523,7 +528,8 @@
    "hook": "A steel mill can move its biggest loads to cheap hours, if its schedule commits without knowing tomorrow's prices.",
    "start": "[Pi et al. 2025, EAF scheduling under price volatility with RL](https://arxiv.org/abs/2512.09293); MILP fully specified, public NYISO prices",
    "baseline": "Rule-based and hindsight MILP",
-   "angle": "amortized policy from MILP solutions, decision-focused price forecasting; non-anticipativity is the point"
+   "angle": "amortized policy from MILP solutions, decision-focused price forecasting; non-anticipativity is the point",
+   "venture": "Electric-arc steel mills, among the largest single electricity buyers, who pay for lower power bills under real-time prices."
   },
   {
    "id": "hydrogen-direct-reduction-furnace",
@@ -621,7 +627,8 @@
    "hook": "Heat pumps can supply much of the low-temperature heat factories now get from gas. With storage, a batch plant can reuse its own waste heat at the right moment.",
    "start": "[Agner et al. 2024, MPC of heat pumps with thermal storage, Energies](https://www.mdpi.com/1996-1073/17/19/4823) (2-state model given); [Padullés et al. 2023, brewery case, ECOS](https://orbit.dtu.dk/en/publications/potential-for-optimal-operation-of-industrial-heat-pumps-with-the/)",
    "baseline": "Rule-based charging and the MIQP MPC",
-   "angle": "decision-focused load and price forecasts through the MIQP, a learned policy handling the integer switching"
+   "angle": "decision-focused load and price forecasts through the MIQP, a learned policy handling the integer switching",
+   "venture": "Food, beverage and chemical plants electrifying their process heat, who pay for lower energy cost and peak demand."
   },
   {
    "id": "firebrick-thermal-battery",
@@ -646,7 +653,8 @@
    "hook": "Hot bricks store cheap renewable electricity as heat for factories, losing about one percent of it per day. The question is when to charge and when to hold back.",
    "start": "[Jacobson et al. 2024, firebricks for industrial process heat, PNAS Nexus](https://web.stanford.edu/group/efmh/jacobson/Articles/Others/24-Firebricks.pdf) (unit parameters given); model rebuilt, public prices",
    "baseline": "Priority heuristic and perfect-foresight LP",
-   "angle": "approximate DP under price uncertainty, multi-market bidding and demand uncertainty to make it hard"
+   "angle": "approximate DP under price uncertainty, multi-market bidding and demand uncertainty to make it hard",
+   "venture": "Operators and makers of thermal batteries for process heat, who pay for charging on the cheapest hours while always meeting heat demand."
   },
   {
    "id": "steel-plant-waste-heat-recovery",
@@ -791,7 +799,8 @@
    "hook": "Biochar locks plant carbon away for a long time and goes back into soils. The kiln decides how much of that carbon ends up stable.",
    "start": "[Babler et al. 2017, slow pyrolysis in a rotary kiln, Applied Energy](https://ideas.repec.org/a/eee/appene/v207y2017icp123-133.html); [Pichler et al. 2021 dataset](https://doaj.org/article/0192027231e446e4a73e503fb7325340) with [code](https://github.com/mptutvt/rotaryPyrolysis) and [13,851 simulated cases](https://data.mendeley.com/datasets/j3zm2xv53y/1)",
    "baseline": "Fixed operating point",
-   "angle": "learned surrogate from the cases, add thermal inertia, MPC; the dynamic extension is your contribution and must be justified"
+   "angle": "learned surrogate from the cases, add thermal inertia, MPC; the dynamic extension is your contribution and must be justified",
+   "venture": "Biochar producers selling carbon-removal credits, who pay for higher yield and stable carbon content per tonne of biomass."
   },
   {
    "id": "flexible-ammonia-synthesis",
@@ -890,7 +899,8 @@
    "hook": "The paper's real case is Twente Milieu's 378-container network. There, tuning a simple bin-selection heuristic cut costs by up to about 40% against default settings, so choosing which bins to empty matters more than the routing. The Mildura file has about 42,000 ultrasonic distance-to-top readings for 7 bins from Dec 2021 to Sep 2023, enough to fit fill-rate and emptying-event models.",
    "start": "[Mes, Schutten & Pérez Rivera 2013, Inventory routing for dynamic waste collection, BETA WP 431](https://ris.utwente.nl/ws/files/5141220/wp_431.pdf); [Markov et al. 2016, Inventory routing with non-stationary stochastic demands, EPFL report](https://infoscience.epfl.ch/record/221364); [Mildura smart-bin fill levels, data.gov.au (CC BY 3.0 AU)](https://data.gov.au/data/dataset/mildura-rrc-smart-bin-fill-levels/resource/b5e11aa0-6beb-4bd3-b164-20c4c01dc780); [City of Melbourne Netvox bin sensors, DataVic](https://discover.data.vic.gov.au/dataset/netvox-r718x-bin-sensor/resource/8aa57ce9-2939-4c70-92f7-c20e436fdd99); model rebuilt from the paper",
    "baseline": "the paper's MustGo/MayGo threshold heuristic with cheapest insertion, or a fixed daily fraction of bins as in the operator's practice",
-   "angle": "ADP with a value function over fill levels for bin selection, with routing left to a heuristic; or amortize a rolling-horizon IRP solver into a fast selection policy"
+   "angle": "ADP with a value function over fill levels for bin selection, with routing left to a heuristic; or amortize a rolling-horizon IRP solver into a fast selection policy",
+   "venture": "Municipalities and waste haulers, who pay for fewer truck kilometres and fewer overflowing containers."
   },
   {
    "id": "sorting-plant-container-emptying",
@@ -940,7 +950,8 @@
    "hook": "Küppers et al. found that yield falls exponentially with throughput while purity falls linearly with belt occupation density. The slope of the purity decline depends on input composition, so the best operating point moves with the feed. Friedrich et al. report that these response models must be fit per machine, even for the same material.",
    "start": "[Küppers et al. 2020, Influence of throughput rate and input composition on sensor-based sorting efficiency, Detritus (open access)](https://digital.detritusjournal.com/articles/influence-of-throughput-rate-and-input-composition-on-sensor-based-sorting-efficiency/287); [Friedrich, Pomberger & Koinig 2024, Der optimale Betriebspunkt in der sensorgestützten Sortierung, Österr. Wasser- und Abfallwirtschaft (CC BY)](https://pureadmin.unileoben.ac.at/portal/files/26591658/s00506-023-01003-6.pdf); [Maus, Zengeler & Glasmachers 2025, SortingEnv: an RL environment for an industrial sorting process, arXiv](https://arxiv.org/abs/2503.10466); model rebuilt from the paper",
    "baseline": "a fixed throughput setpoint chosen for nominal input composition",
-   "angle": "fit purity and yield response surfaces (GP) from the reported trials, then run chance-constrained MPC on feed rate and bunker level; or decision-focused learning of the response model"
+   "angle": "fit purity and yield response surfaces (GP) from the reported trials, then run chance-constrained MPC on feed rate and bunker level; or decision-focused learning of the response model",
+   "venture": "Recycling facilities, which pay for recovering more material at the purity buyers demand."
   },
   {
    "id": "forced-aeration-composting-control",
@@ -1016,7 +1027,8 @@
    "hook": "RetaiL is fitted to item data from a large European grocer, released as copula-generated pseudo-items, and the authors report that classical supply-chain policies handle its uncertainty poorly. viso_jax gives exact optima for perishable problems with up to about 16 million states, so you can measure how far a learned policy is from optimal.",
    "start": "[Jullien et al. 2023, A simulation environment and reinforcement learning method for waste reduction, arXiv](https://arxiv.org/abs/2205.15455); [RetaiL environment and GTDQN code](https://github.com/samijullien/GTDQN); [Farrington et al. 2023, GPU-accelerated value iteration and simulation for perishable inventory control using JAX, arXiv](https://arxiv.org/abs/2303.10672); [viso_jax code (Apache-2.0)](https://github.com/joefarrington/viso_jax)",
    "baseline": "an (s, Q) ordering policy, or a base-stock policy tuned by simulation optimization",
-   "angle": "exact value iteration on small instances as ground truth, then distributional or offline RL and a single policy amortized across items with different shelf lives and margins"
+   "angle": "exact value iteration on small instances as ground truth, then distributional or offline RL and a single policy amortized across items with different shelf lives and margins",
+   "venture": "Grocery chains, which pay for less spoilage and fewer empty shelves on fresh food."
   },
   {
    "id": "waste-to-energy-grate-combustion",
@@ -1065,7 +1077,8 @@
    "hook": "Cu and Ni do not go to the slag, so uncertainty in scrap composition directly caps how much scrap a heat can take. On the paper's synthetic benchmark (45 scrap types, 20,000 heats), a Kalman filter cut Cu estimation error to 13.25 ppm from 16.93 ppm for windowed least squares.",
    "start": "[Zhou, Naert & Nuyens 2025, Modeling scrap composition in electric arc and basic oxygen furnaces, arXiv](https://arxiv.org/abs/2504.09382); [Gaustad et al. 2016, Operational strategies for increasing secondary materials in metals production under uncertainty, J. Sustainable Metallurgy](https://dspace.mit.edu/handle/1721.1/109890); model rebuilt from the paper",
    "baseline": "deterministic LP blending on windowed least-squares composition estimates, or a chance-constrained blend with normal approximations",
-   "angle": "Kalman-filter belief state plus chance-constrained MPC over the next heats; decision-focused learning of composition estimates; value of exploring poorly known grades"
+   "angle": "Kalman-filter belief state plus chance-constrained MPC over the next heats; decision-focused learning of composition estimates; value of exploring poorly known grades",
+   "venture": "Steel and aluminium recyclers, who pay to use cheaper, dirtier scrap while still meeting copper and nickel specifications."
   },
   {
    "id": "district-heating-network",
@@ -1090,7 +1103,8 @@
    "hook": "Hot water takes time to travel through city pipes, so the plant must act before the cold arrives. Delays plus storage make this a textbook MPC problem.",
    "start": "[Deng et al. 2023, deep RL for fuel cost in district heating, Sustainable Cities and Society](https://research.abo.fi/fi/publications/deep-reinforcement-learning-for-fuel-cost-optimization-in-distric); [Le Coz et al. 2020, NeurIPS Climate Change AI workshop](https://arxiv.org/abs/2012.09508); [pandapipes](https://github.com/e2nIEE/pandapipes)",
    "baseline": "Operator heating curve",
-   "angle": "learned RC or RNN dynamics + MPC, offline RL on operation logs, policy amortized from MILP dispatch"
+   "angle": "learned RC or RNN dynamics + MPC, offline RL on operation logs, policy amortized from MILP dispatch",
+   "venture": "District heating utilities, which pay for lower supply temperatures, less fuel and better use of their storage."
   },
   {
    "id": "fifth-generation-district-heating",
@@ -1139,7 +1153,8 @@
    "hook": "Millions of hot-water tanks could act as a distributed battery. A classic fitted Q iteration application, now with a well-documented simulator.",
    "start": "[Ruelens et al. 2015, RL applied to an electric water heater](https://arxiv.org/abs/1512.00408) (40-day lab experiment); [NREL OCHRE](https://github.com/NREL/OCHRE) stratified-tank model",
    "baseline": "Thermostat",
-   "angle": "batch RL from logs, learned tank model + MPC, MILP schedule amortized into a policy"
+   "angle": "batch RL from logs, learned tank model + MPC, MILP schedule amortized into a policy",
+   "venture": "Utilities and aggregators that pay households for flexible load, and makers of connected water heaters."
   },
   {
    "id": "heat-pump-defrost",
@@ -1188,7 +1203,8 @@
    "hook": "Quebec's winter peak is driven by heating. Coordinating many heat pumps under a feeder limit without anyone getting cold is what utilities want.",
    "start": "[Nespoli and Medici 2025, forecasting residential flexibility](https://www.frontiersin.org/journals/energy-research/articles/10.3389/fenrg.2025.1547617/pdf); [Chen et al. 2020, distributed control of thermostatic loads](https://arxiv.org/abs/2007.00791); [i4b simulator](https://github.com/lfrison/i4b) ([Zhang et al. 2024, constrained RL for safe heat-pump control](https://arxiv.org/abs/2409.19716v1))",
    "baseline": "Heating curve per building",
-   "angle": "aggregate surrogate + MPC, decision-focused training of the flexibility forecaster, constrained RL"
+   "angle": "aggregate surrogate + MPC, decision-focused training of the flexibility forecaster, constrained RL",
+   "venture": "Utilities and aggregators, which pay for flexible heating load that respects feeder limits and keeps homes comfortable."
   },
   {
    "id": "supermarket-co2-refrigeration",
@@ -1211,7 +1227,8 @@
    "hook": "Supermarkets are switching to CO2 as a refrigerant to avoid potent synthetic gases. The food on the shelves doubles as thermal storage for load shifting.",
    "start": "[Mazare et al. 2026, data-driven predictive control for CO2 refrigeration, Int. J. Refrigeration](https://vbn.aau.dk/en/publications/optimal-data-driven-predictive-control-for-transcritical-co2-refr/); [Hovgaard et al. 2012, economic MPC for refrigeration, Energy](https://ideas.repec.org/a/eee/energy/v44y2012i1p105-116.html); model from [Shafiei et al. 2013, Energies](https://ideas.repec.org/a/gam/jeners/v6y2013i2p900-920d23546.html)",
    "baseline": "PID or hysteresis per display case",
-   "angle": "data-driven predictive control vs learned-model MPC, goods as thermal storage"
+   "angle": "data-driven predictive control vs learned-model MPC, goods as thermal storage",
+   "venture": "Supermarket chains, which pay for lower refrigeration energy and demand-response revenue across hundreds of stores."
   },
   {
    "id": "cold-storage-warehouse",
@@ -1235,7 +1252,8 @@
    "hook": "A frozen-food warehouse can switch off for hours without harm. How long and when, given prices and door openings, is a clean economic MPC problem.",
    "start": "[Mammoli et al. 2022, eceee Summer Study](https://www.eceee.org/library/conference_proceedings/eceee_Summer_Studies/2022/9-deep-decarbonisation-of-industry/demand-response-capabilities-of-industrial-refrigerated-warehouses-experiences-in-practical-implementation/); lumped thermal model rebuilt",
    "baseline": "Fixed setpoint",
-   "angle": "economic MPC with price forecasts, offline RL; needs stochastic door and infiltration loads to be non-trivial"
+   "angle": "economic MPC with price forecasts, offline RL; needs stochastic door and infiltration loads to be non-trivial",
+   "venture": "Cold-storage operators, which pay to shift refrigeration to cheap hours and earn demand-response revenue."
   },
   {
    "id": "ship-weather-routing",
@@ -1261,7 +1279,8 @@
    "hook": "Ships carry most of world trade on heavy fuel. Routing around weather is one of the few emission cuts available to a ship already at sea.",
    "start": "[VISIR-2, Mannarini et al. 2024, Geoscientific Model Development](https://gmd.copernicus.org/articles/17/4355/2024/) with [code](https://zenodo.org/records/15497175); [Bora et al. 2026, physics-informed offline RL for maritime routing](https://arxiv.org/abs/2603.17319); [NOAA AIS data](https://coast.noaa.gov/digitalcoast/data/vesseltraffic.html)",
    "baseline": "Great circle and the VISIR graph search",
-   "angle": "MPC on forecast ensembles, offline RL from AIS logs, amortized routing policy"
+   "angle": "MPC on forecast ensembles, offline RL from AIS logs, amortized routing policy",
+   "venture": "Shipping companies, which pay for fuel and emissions savings on every voyage."
   },
   {
    "id": "rotor-sails-on-cargo-ships",
@@ -1697,7 +1716,8 @@
    "hook": "OpenEnergyMonitor's analysis of the EoH trial finds a mean SPF H4 of 2.81 across 428 air-source units, against 3.86 for 170 HeatpumpMonitor systems, and links much of the gap to weather-compensation curves set too high.",
    "start": "[Electrification of Heat heat pump performance cleansed data 2020-2023, UK Data Service SN 9050 (open, OGL)](https://b2find.eudat.eu/dataset/21e967cf-72a2-5344-b412-3e8e14cc1afb); [OpenEnergyMonitor analysis of the EoH trial data](https://docs.openenergymonitor.org/heatpumpmonitor/eoh.html); [worked examples of curves set too high](https://docs.openenergymonitor.org/heatpumpmonitor/commissioning.html); model learned from the data",
    "baseline": "the installer's or factory-default weather-compensation curve",
-   "angle": "fit a per-home grey-box model (building, COP and cycling) from the monitoring data, then optimize the curve offline; compare a model fitted for prediction with one fitted for the decision"
+   "angle": "fit a per-home grey-box model (building, COP and cycling) from the monitoring data, then optimize the curve offline; compare a model fitted for prediction with one fitted for the decision",
+   "venture": "Heat-pump installers, utilities and efficiency programs, which pay to make installed heat pumps run more efficiently without a site visit."
   },
   {
    "id": "heat-pump-inspection-targeting-heapo",
@@ -1817,7 +1837,8 @@
    "hook": "Landfills leak methane, a potent greenhouse gas. Tuning the vacuum on each well captures more of it without pulling air into the waste.",
    "start": "[Townsend et al. 2005, gas flow model for landfill collection systems, J. Environmental Engineering](https://ascelibrary.com/doi/10.1061/%28ASCE%290733-9372%282005%29131%3A12%281716%29); Darcy-flow model rebuilt",
    "baseline": "Monthly manual wellhead tuning",
-   "angle": "learned well-response model + MPC per well; no public wellhead data"
+   "angle": "learned well-response model + MPC per well; no public wellhead data",
+   "venture": "Landfill operators, who pay for more captured methane, which is sold as energy, and fewer emissions violations."
   },
   {
    "id": "wastewater-nitrous-oxide",
@@ -1939,7 +1960,8 @@
    "hook": "A bus fleet goes electric only if the depot can charge everyone overnight without a huge grid connection. STM's open timetables give a Montreal instance.",
    "start": "[Heide et al. 2025, electric bus fleet deployment, World Electric Vehicle Journal](https://www.mdpi.com/2032-6653/16/7/378); [Qi et al. 2025, hierarchical deep RL for bus charging](https://arxiv.org/abs/2505.10296); [eflips-depot](https://pypi.org/project/eflips-depot); STM GTFS for a Montreal instance",
    "baseline": "Plug-and-charge and the ILP",
-   "angle": "amortize the ILP, MPC with a rolling schedule, RL under uncertainty"
+   "angle": "amortize the ILP, MPC with a rolling schedule, RL under uncertainty",
+   "venture": "Transit agencies and fleet operators electrifying their buses, who pay for lower charging bills and grid-connection costs."
   },
   {
    "id": "truck-platooning",
@@ -2136,7 +2158,8 @@
    "hook": "Montreal publishes the date and location of water-main repairs back to 1972, plus its own A-D intervention class for each street segment, so a local project can test a model against the city's actual plan. In Syracuse, ranking by past breaks already reached a precision of 0.48 on the riskiest 1% of mains, against 0.62 for a boosted-tree model.",
    "start": "[Kumar et al. 2018, using machine learning to assess the risk of and prevent water main breaks (Syracuse), arXiv](https://arxiv.org/abs/1805.03597); [Ville de Montreal, water-main break repairs from 1972 with coordinates, CC-BY 4.0](https://www.donneesquebec.ca/recherche/fr/dataset/vmtl-reparation-reseau-eau-potable); [Ville de Montreal, intervention plan results by street segment, classes A-D, lengths and costs](https://www.donneesquebec.ca/recherche/fr/dataset/0d5fab8e-f673-48fd-96dd-745f50ca1ec0); repair records carry no pipe ID, so join them spatially to segments; model rebuilt from the paper",
    "baseline": "rank segments by past break count (the strongest heuristic in Kumar et al.) or follow the city's A-D intervention classes",
-   "angle": "decision-focused learning: train the break-rate model on the regret of the budgeted selection (a knapsack) instead of prediction error; extend to a multi-year DP"
+   "angle": "decision-focused learning: train the break-rate model on the regret of the budgeted selection (a knapsack) instead of prediction error; extend to a multi-year DP",
+   "venture": "Water utilities, which pay to spend a fixed renewal budget on the pipes most likely to break."
   },
   {
    "id": "fatigue-inspection-planning-offshore-wind",
@@ -2308,7 +2331,8 @@
    "hook": "Parked EVs can charge when power is cheap and even give some back. The simulator ships with a perfect-information MPC oracle to measure your gap.",
    "start": "[EV2Gym, Orfanoudakis et al. 2024](https://arxiv.org/abs/2404.01849); [Diaz-Londono et al. 2024, MPC for V2G demand response](https://arxiv.org/abs/2405.11963); [ev2gym](https://pypi.org/project/ev2gym/)",
    "baseline": "Charge-as-fast-as-possible and the perfect-information MPC oracle",
-   "angle": "policy amortized from MPC solutions, stochastic MPC with learned arrival and price models, offline RL"
+   "angle": "policy amortized from MPC solutions, stochastic MPC with learned arrival and price models, offline RL",
+   "venture": "Charging operators and fleet owners, who pay to charge more vehicles under a fixed transformer limit and earn grid revenue."
   },
   {
    "id": "battery-fast-charging",
@@ -2332,7 +2356,8 @@
    "hook": "Charging faster plates lithium and ages the cell. An electrochemical model lets you push right up to that limit.",
    "start": "[Park et al. 2020, RL fast charging](https://arxiv.org/abs/2002.02060); [Yuan and Zou 2025, lifelong RL for health-aware fast charging](https://web3.arxiv.org/abs/2505.11061); [PyBaMM](https://pybamm.org/)",
    "baseline": "CC-CV protocol",
-   "angle": "NMPC on a reduced single-particle model with a learned residual, or a policy trained on SPMe and tested on DFN; plating potential as a hard constraint"
+   "angle": "NMPC on a reduced single-particle model with a learned residual, or a policy trained on SPMe and tested on DFN; plating potential as a hard constraint",
+   "venture": "Battery and device makers, who license charging algorithms that charge faster without shortening battery life."
   },
   {
    "id": "wind-farm-wake-steering",
@@ -2355,7 +2380,8 @@
    "hook": "Turning upstream turbines slightly off the wind steers their wakes away from the turbines behind. More energy from the same farm.",
    "start": "[WFCRL, Bizon Monroc et al. 2024, NeurIPS D&B](https://arxiv.org/abs/2501.13592); [WindGym, JOSS 2026](https://www.theoj.org/joss-papers/joss.09946/10.21105.joss.09946.pdf); [wfcrl-env](https://github.com/ifpen/wfcrl-env), [FLORIS](https://github.com/NREL/floris)",
    "baseline": "Greedy zero-yaw and the FLORIS static lookup table",
-   "angle": "learn a wake surrogate from FAST.Farm and run MPC on it, or train on FLORIS and test on FAST.Farm"
+   "angle": "learn a wake surrogate from FAST.Farm and run MPC on it, or train on FLORIS and test on FAST.Farm",
+   "venture": "Wind-farm owners, who pay for more energy from turbines they already have, delivered as a software upgrade."
   },
   {
    "id": "grid-frequency-control",
@@ -2403,7 +2429,8 @@
    "hook": "Green hydrogen is cheap only if electrolyzers run on cheap renewable power without wearing out. Degradation makes every start count.",
    "start": "[Schofield et al. 2024, dynamic optimization of PEM electrolyzers with usage-based degradation](https://arxiv.org/abs/2405.06766)",
    "baseline": "Open-loop MILP with perfect foresight",
-   "angle": "receding-horizon MPC with learned price and renewable forecasts and a learned degradation model, or a policy amortized from MILP solutions"
+   "angle": "receding-horizon MPC with learned price and renewable forecasts and a learned degradation model, or a policy amortized from MILP solutions",
+   "venture": "Green-hydrogen producers, whose margins depend on running on cheap power without wearing out the stack."
   },
   {
    "id": "water-pump-scheduling-from-logs",
@@ -2428,7 +2455,8 @@
    "hook": "Pumping drinking water is a large electricity bill for a city. Three years of real logs from a German facility let you learn from what operators did.",
    "start": "[Donâncio et al. 2022, the pump scheduling problem](https://arxiv.org/abs/2210.11111) with [code and data](https://gitlab.com/hdonancio/pumpscheduling); [WNTR](https://usepa.github.io/WNTR/)",
    "baseline": "Level-hysteresis rules and MILP with a demand forecast",
-   "angle": "offline RL from operator logs, learned demand model + MPC, exact DP over the tank level as a ceiling"
+   "angle": "offline RL from operator logs, learned demand model + MPC, exact DP over the tank level as a ceiling",
+   "venture": "Water utilities, for which pumping is often the largest electricity bill."
   },
   {
    "id": "lake-como-reservoir",
@@ -2477,7 +2505,8 @@
    "hook": "Aeration is the largest energy use in a wastewater plant. BSM1 is the benchmark the field itself uses.",
    "start": "[Hernández-del-Olmo et al. 2016, Energies](https://www.mdpi.com/1996-1073/9/9/755); [bsm2-python](https://pypi.org/project/bsm2-python/)",
    "baseline": "Default PI loops",
-   "angle": "learned reduced model + economic MPC, or RL on setpoints with PI underneath, scored with the standard cost and effluent-quality indices"
+   "angle": "learned reduced model + economic MPC, or RL on setpoints with PI underneath, scored with the standard cost and effluent-quality indices",
+   "venture": "Wastewater treatment plants, where aeration is the largest energy use and effluent limits are strict."
   },
   {
    "id": "irrigation-canal-regulation",
@@ -2628,7 +2657,8 @@
    "hook": "In Yang et al.'s US simulations, raising the aeration target temperature roughly doubled adult insect numbers in southern states, so the fan rule decides whether insecticide is needed. In a 2025 barley trial, a drying-capacity trigger ran the fan 61 to 79% less than a simulated fixed schedule.",
    "start": "[Yang et al. 2017, Regional analysis of bin aeration as an alternative to insecticidal control, Ecological Modelling](https://ideas.repec.org/a/eee/ecomod/v359y2017icp165-181.html); [Zekri et al., Energy-saving aeration control for semi-arid barley stores using a psychrometric drying-capacity criterion](https://www.ecoeet.com/Energy-saving-aeration-control-for-reducing-post-harvest-losses-in-semi-arid-barley,226004,0,2.html); [Roskopf 2015, MSc thesis simulating wheat aeration and cooling in Argentina](https://repositorio.inta.gob.ar/handle/20.500.12123/25183); [hourly ERA5 weather](https://open-meteo.com/en/docs/historical-weather-api); model rebuilt from the paper",
    "baseline": "target-temperature thermostat rule (Yang et al.) or a fixed night-time schedule",
-   "angle": "MPC with weather forecasts and time-of-use electricity prices on a reduced bin heat-and-moisture model coupled to an age-structured insect model; offline RL from logged fan and sensor data"
+   "angle": "MPC with weather forecasts and time-of-use electricity prices on a reduced bin heat-and-moisture model coupled to an age-structured insect model; offline RL from logged fan and sensor data",
+   "venture": "Farms and grain elevators, which pay to prevent spoilage and insect damage while running fans less."
   },
   {
    "id": "fish-feeding-control-with-growth-models",
@@ -2653,7 +2683,8 @@
    "hook": "Aljehani et al. report that Q-learning avoided mortality but tended to underfeed, while MPC cut both mortality and feed use at every ammonia level they tested, a clean model-based versus model-free comparison to extend. FishMet adds an appetite model validated on rainbow trout and Atlantic salmon.",
    "start": "[Chahid et al. 2021, Model Predictive Control Paradigms for Fish Growth Reference Tracking in Precision Aquaculture, arXiv](https://arxiv.org/abs/2102.00004); [Aljehani et al. 2023, Model-based versus model-free feeding control and water quality monitoring for fish growth tracking, arXiv](https://arxiv.org/abs/2306.09915); [FishMet salmonid appetite and growth digital twin, AGPL code](https://git.app.uib.no/Sergey.Budaev/fishmet); [FishMet overview, Budaev et al. 2025](https://ahamodel.uib.no/fishmet-a-digital-twin-framework-for-appetite-feeding-decisions-and-growth-in-salmonid-fish.html)",
    "baseline": "fixed feeding table (percent of body weight per day), or the papers' MPC",
-   "angle": "MPC on the Nile tilapia bioenergetic model compared with RL, then transfer to salmon or trout with FishMet as a stochastic, higher-fidelity simulator; objective aware of the feed conversion ratio"
+   "angle": "MPC on the Nile tilapia bioenergetic model compared with RL, then transfer to salmon or trout with FishMet as a stochastic, higher-fidelity simulator; objective aware of the feed conversion ratio",
+   "venture": "Fish farms, where feed is the largest operating cost."
   },
   {
    "id": "single-cell-protein-bioreactor-control",
@@ -2800,7 +2831,8 @@
    "hook": "GreenLight is the reference model for high-tech greenhouses. Short-horizon MPC with a learned terminal value is this course's spine in one project.",
    "start": "[GreenLight-Gym, van Laatum et al. 2024](https://arxiv.org/abs/2410.05336); [van Laatum et al. 2026, RL inside short-horizon MPC](https://arxiv.org/abs/2607.07365); [GreenLightGym](https://github.com/BartvLaatum/GreenLightGym)",
    "baseline": "Rule-based grower controller",
-   "angle": "short-horizon NMPC with an RL-learned terminal value vs PPO under parametric uncertainty"
+   "angle": "short-horizon NMPC with an RL-learned terminal value vs PPO under parametric uncertainty",
+   "venture": "Commercial greenhouse growers, who pay for more yield per unit of heating and lighting energy."
   },
   {
    "id": "nitrogen-fertilization",
@@ -2848,7 +2880,8 @@
    "hook": "Agriculture uses most of the world's freshwater. Measuring the value of a weather forecast in litres saved makes a good poster.",
    "start": "[Saikai et al. 2023, deep RL for irrigation scheduling](https://arxiv.org/abs/2301.00899); [gym-DSSAT, Gautron et al. 2022](https://arxiv.org/abs/2207.03270); [AquaCrop-OSPy](https://aquacropos.github.io/aquacrop/)",
    "baseline": "Soil-moisture threshold rule",
-   "angle": "MPC with weather-ensemble forecasts on the AquaCrop model vs the rule vs an RL policy; quantify the value of forecast information"
+   "angle": "MPC with weather-ensemble forecasts on the AquaCrop model vs the rule vs an RL policy; quantify the value of forecast information",
+   "venture": "Farms and irrigation-equipment makers, who pay for the same yield with less water and pumping energy."
   },
   {
    "id": "indoor-farm-lighting",
@@ -2998,7 +3031,8 @@
    "hook": "Digesters turn food waste and sludge into biogas. Overfeed them and the microbes acidify and stop; the constraint is real.",
    "start": "[Gao et al. 2024, Communications Engineering](https://link.springer.com/10.1038/s44172-024-00183-7); [PyADM1](https://github.com/CaptainFerMag/PyADM1)",
    "baseline": "PID on gas flow and constant loading rate",
-   "angle": "learned two-time-scale dynamics + MPC, robust policy with randomized influent, acidification as a hard constraint"
+   "angle": "learned two-time-scale dynamics + MPC, robust policy with randomized influent, acidification as a hard constraint",
+   "venture": "Biogas and renewable-natural-gas plants, which pay for more gas from variable feedstocks without upsetting the digester."
   },
   {
    "id": "microalgae-photobioreactor",
@@ -3047,7 +3081,8 @@
    "hook": "Idling at red lights burns fuel and time. Calibrated scenarios from Cologne and Ingolstadt keep it real.",
    "start": "[RESCO, Ault and Sharon 2021, NeurIPS D&B](https://datasets-benchmarks-proceedings.neurips.cc/paper/2021/hash/f0935e4cd5920aa6c7c996a5ee53a70f-Abstract-round1.html); [Busch et al. 2023, joint signal and speed advice](https://arxiv.org/abs/2309.09881); [sumo-rl](https://github.com/lucasalegre/sumo-rl), [CityFlow](https://github.com/cityflow-project/CityFlow)",
    "baseline": "Fixed-time (Webster) and max-pressure",
-   "angle": "learn a store-and-forward queue model from rollouts, MPC over phases, amortize into a policy; compare with the published DQN numbers"
+   "angle": "learn a store-and-forward queue model from rollouts, MPC over phases, amortize into a policy; compare with the published DQN numbers",
+   "venture": "Cities and transport departments, which pay for less delay and fuel at intersections they already control."
   },
   {
    "id": "highway-ramp-metering",
@@ -3218,7 +3253,8 @@
    "hook": "Earth-observing satellites watch forests, ice and crops. Choosing what to image with limited battery and storage is a planning problem.",
    "start": "[BSK-RL, Stephenson and Schaub 2024](https://hanspeterschaub.info/Papers/Stephenson2024c.pdf); [bsk-rl](https://avslab.github.io/bsk_rl/)",
    "baseline": "Greedy scheduler",
-   "angle": "receding-horizon DP or tree search with a learned resource model, then an amortized policy"
+   "angle": "receding-horizon DP or tree search with a learned resource model, then an amortized policy",
+   "venture": "Earth-observation satellite operators, which pay to deliver more useful images per satellite under power and downlink limits."
   },
   {
    "id": "contrail-aware-flight-paths",
@@ -3242,7 +3278,8 @@
    "hook": "Contrails may warm the planet about as much as aviation's CO2, and a small change of altitude avoids many of them. The open toolchain already runs collocation with real winds.",
    "start": "[Sun and Olive 2025, feasibility of climate-optimal routing](https://arxiv.org/abs/2504.13907); [OpenAP.top, Sun 2022, Aerospace](https://www.mdpi.com/2226-4310/9/7/383); [openap-top](https://github.com/junzis/openap-top) (CasADi collocation, ERA5 winds)",
    "baseline": "Deterministic fuel-optimal collocation",
-   "angle": "scenario or robust MPC with re-planning as forecasts update, or a policy amortized from many optimized trajectories"
+   "angle": "scenario or robust MPC with re-planning as forecasts update, or a policy amortized from many optimized trajectories",
+   "venture": "Airlines, which pay to cut the warming effect of their contrails at a small fuel cost."
   },
   {
    "id": "air-traffic-conflict-resolution",
@@ -3315,7 +3352,8 @@
    "hook": "Low orbit is getting crowded. Whether and when to manoeuvre, from a stream of conjunction warnings, is optimal stopping on real ESA data.",
    "start": "[Bourriez et al. 2023, autonomous collision avoidance with RL](https://arxiv.org/abs/2310.18966); [Uriot et al. 2020, ESA collision avoidance challenge](https://arxiv.org/abs/2008.03069); [Kelvins CDM dataset](https://kelvins.esa.int/collision-avoidance-challenge/data/)",
    "baseline": "Threshold rule on collision probability",
-   "angle": "learn a risk-evolution model from CDM sequences, then optimal stopping by DP or a POMDP; offline RL from historical events"
+   "angle": "learn a risk-evolution model from CDM sequences, then optimal stopping by DP or a POMDP; offline RL from historical events",
+   "venture": "Satellite operators and space-safety services, which pay to avoid both collisions and needless fuel-burning maneuvers."
   },
   {
    "id": "wafer-fab-dispatching",
@@ -3339,7 +3377,8 @@
    "hook": "Chip fabs route lots through hundreds of tools with setups and queue-time limits. Dispatching rules still dominate, so there is room to do better.",
    "start": "[Tassel et al. 2023, fab scheduling with self-supervised and RL](https://arxiv.org/abs/2302.07162); [Stöckermann et al. 2025, scalability of RL dispatching](https://arxiv.org/abs/2505.11135); [PySCFabSim](https://github.com/prosysscience/PySCFabSim-release)",
    "baseline": "FIFO, critical ratio, earliest due date",
-   "angle": "fluid or queueing model + rolling-horizon dispatch vs policy gradient; restrict to one bottleneck area (lithography)"
+   "angle": "fluid or queueing model + rolling-horizon dispatch vs policy gradient; restrict to one bottleneck area (lithography)",
+   "venture": "Semiconductor fabs, where small throughput gains are worth millions."
   },
   {
    "id": "warehouse-robot-dispatch",
@@ -3364,7 +3403,8 @@
    "hook": "A fleet of warehouse robots is a queueing network. Add realistic orders and congestion, or it stays a toy.",
    "start": "[Krnjaic et al. 2024, scalable MARL for warehouse logistics](https://arxiv.org/abs/2212.11498); [RWARE](https://github.com/semitable/robotic-warehouse)",
    "baseline": "Nearest-idle-robot and FIFO",
-   "angle": "aggregate fluid model of aisle queues + MPC-based assignment vs hierarchical MARL; add realistic order statistics and congestion, or it stays a toy"
+   "angle": "aggregate fluid model of aisle queues + MPC-based assignment vs hierarchical MARL; add realistic order statistics and congestion, or it stays a toy",
+   "venture": "Warehouse operators and robot makers, who pay for more orders per hour from the same fleet."
   },
   {
    "id": "metal-3d-printing-melt-pool",
@@ -3387,7 +3427,8 @@
    "hook": "Metal 3D printing fails when the melt pool runs too hot or too cold. Learning control across layers is iterative learning control in action.",
    "start": "[Liao-McPherson et al. 2024, layer-to-layer melt pool control](https://arxiv.org/abs/2311.10218); [Ogoke and Barati Farimani 2021, thermal control with deep RL](https://arxiv.org/abs/2102.03355); [AdditiveFOAM](https://github.com/ORNL/AdditiveFOAM) for validation",
    "baseline": "Constant power or PI on the melt pool",
-   "angle": "learn a layer-to-layer linear or Koopman model from a few simulated layers, then iterative-learning control or MPC"
+   "angle": "learn a layer-to-layer linear or Koopman model from a few simulated layers, then iterative-learning control or MPC",
+   "venture": "Makers and users of metal 3D printers, who pay for fewer defective parts and less post-build inspection."
   },
   {
    "id": "mineral-grinding-circuit",
@@ -3411,7 +3452,8 @@
    "hook": "Grinding ore takes a large share of a mine's energy. Ore hardness changes all the time, and the published model gives you every parameter.",
    "start": "[Le Roux et al. 2013, grinding mill circuit model, Minerals Engineering](https://repository.up.ac.za/handle/2263/39683); [Van Niekerk et al. 2025, RL-tuned PID for grinding circuits, Control Engineering Practice](https://repository.up.ac.za/items/9ac56fb7-85b2-4949-9427-f172fa652e45)",
    "baseline": "Decentralized PID",
-   "angle": "NMPC on the true model vs MPC on an identified model (SINDy or NN), RL-tuned PID; robustness to ore-hardness changes; the published ODE model is implemented by you"
+   "angle": "NMPC on the true model vs MPC on an identified model (SINDy or NN), RL-tuned PID; robustness to ore-hardness changes; the published ODE model is implemented by you",
+   "venture": "Mining companies, for which grinding is the largest energy use at a mine."
   },
   {
    "id": "kraft-pulp-digester",
@@ -3541,7 +3583,8 @@
    "hook": "The paper found good protocols in 16 days where exhaustive testing without early prediction would have taken over 500 days, and the repository ships the stochastic lifetime simulator the authors used for tuning, so the allocation and stopping policy can be studied against the real campaign. This is the lab-loop and test-allocation side of fast charging, not the battery physics.",
    "start": "[Attia et al. 2020, Closed-loop optimization of fast-charging protocols for batteries with machine learning, Nature 578:397](https://escholarship.org/uc/item/117547r6); [closed-loop code, protocol space and stochastic lifetime simulator](https://github.com/chueh-ermon/battery-fast-charging-optimization); [early-prediction paper repo and the 124-cell dataset pointer](https://github.com/rdbraatz/data-driven-prediction-of-battery-cycle-life-before-capacity-degradation)",
    "baseline": "the paper's closed-loop Bayesian optimization with a fixed early-prediction cutoff, and exhaustive testing",
-   "angle": "treat channel allocation plus early stopping as an optimal-stopping and budgeted-allocation MDP, where the stopping time is decided per cell from its own partial trace rather than fixed in advance"
+   "angle": "treat channel allocation plus early stopping as an optimal-stopping and budgeted-allocation MDP, where the stopping time is decided per cell from its own partial trace rather than fixed in advance",
+   "venture": "Battery developers, who pay to find good cell designs and charging protocols with fewer months of testing."
   },
   {
    "id": "optogenetic-control-of-gene-expression",
@@ -4351,7 +4394,8 @@
    "hook": "Booking a surgery commits OR time on one day and a ward bed for the days after, so wait time, overtime and ward congestion trade off. The Zenodo file gives fitted duration distributions from 2,035,126 surgeries at 212 German hospitals to drive the simulator.",
    "start": "[Astaraky & Patrick 2015, simulation-based ADP for multi-class, multi-resource surgical scheduling, EJOR](https://ideas.repec.org/a/eee/ejores/v245y2015i1p309-319.html); [Astaraky thesis, uOttawa](https://ruor.uottawa.ca/items/449f9534-f933-4c5a-a698-6459c0265f0c); [German surgical case mix and duration distributions (Zenodo, CC BY 4.0)](https://zenodo.org/record/7147921); [Leeftink & Hans OR scheduling benchmark and instance generator](https://www.utwente.nl/en/choir/research/benchmark-orscheduling/); model rebuilt from the paper",
    "baseline": "first-come first-served booking into the earliest day with free OR time",
-   "angle": "least-squares approximate policy iteration as in the paper versus PPO, with a sampled-scenario MPC lookahead as a strong baseline"
+   "angle": "least-squares approximate policy iteration as in the paper versus PPO, with a sampled-scenario MPC lookahead as a strong baseline",
+   "venture": "Hospitals, which pay for fuller operating rooms and fewer cancellations caused by missing beds."
   },
   {
    "id": "polling-place-resources-to-cut-wait-times",
@@ -4866,7 +4910,8 @@
    "hook": "Batteries next to solar farms earn from energy and reserve markets at once. Real Australian market data, real price spikes.",
    "start": "[Li et al. 2024, storage bidding in energy and reserve markets](https://arxiv.org/abs/2402.19110); [Li et al. 2024, solar-storage in real-time markets](https://arxiv.org/abs/2401.15853); [AEMO NEM data](https://aemo.com.au/energy-systems/electricity/national-electricity-market-nem/data-nem/aggregated-data)",
    "baseline": "Rolling-horizon MILP with a price forecast, SDP",
-   "angle": "joint energy and reserve co-optimization with learned price dynamics"
+   "angle": "joint energy and reserve co-optimization with learned price dynamics",
+   "venture": "Owners of solar and battery plants, whose revenue depends on how they bid into energy and reserve markets."
   },
   {
    "id": "data-centre-cooling",
@@ -4891,7 +4936,8 @@
    "hook": "Google showed that a learned linear model plus MPC can cool a real data centre. Add carbon-aware workload shifting.",
    "start": "[Lazic et al. 2018, data center cooling using MPC, NeurIPS](https://research.google/pubs/data-center-cooling-using-model-predictive-control/); [SustainDC benchmark](https://arxiv.org/abs/2408.07841) and [dc-rl](https://github.com/HewlettPackard/dc-rl)",
    "baseline": "Fixed setpoints, then linear MPC with a learned model as in Lazic",
-   "angle": "compare to the shipped multi-agent RL baselines"
+   "angle": "compare to the shipped multi-agent RL baselines",
+   "venture": "Data-centre operators, which pay for lower cooling energy and lower carbon per workload."
   },
   {
    "id": "llm-inference-scheduling",
@@ -4915,7 +4961,8 @@
    "hook": "Every chatbot answer goes through a scheduler that batches requests under latency targets. Queueing control at the heart of AI's energy bill.",
    "start": "[Sarathi-Serve, Agrawal et al. 2024](https://arxiv.org/abs/2403.02310); [Fu et al. 2024, scheduling by learning to rank](https://arxiv.org/abs/2408.15792); [Vidur simulator](https://github.com/microsoft/vidur); [Azure LLM traces](https://github.com/Azure/AzurePublicDataset), [BurstGPT](https://github.com/hpmll/burstgpt)",
    "baseline": "FCFS and fixed chunking",
-   "angle": "queueing MDP with a learned output-length model, tail latency as a chance constraint"
+   "angle": "queueing MDP with a learned output-length model, tail latency as a chance constraint",
+   "venture": "Companies serving language models, who pay for more requests per GPU within their latency targets."
   },
   {
    "id": "gpu-power-control",
@@ -4940,7 +4987,8 @@
    "hook": "Lowering a GPU's clock or power cap often costs little speed and saves a lot of energy. Find the sweet spot as the load changes.",
    "start": "[DynamoLLM, Stojkovic et al. 2024](https://arxiv.org/abs/2408.00741); [Zeus, You et al. 2022](https://arxiv.org/abs/2208.06102); [Perseus, Chung et al. 2024](https://arxiv.org/abs/2312.06902); [Zeus library](https://github.com/ml-energy/zeus)",
    "baseline": "Max frequency and a static per-job optimum",
-   "angle": "identify frequency-to-latency and power curves, MPC over a load forecast vs an online bandit (needs a GPU you can set power limits on)"
+   "angle": "identify frequency-to-latency and power curves, MPC over a load forecast vs an online bandit (needs a GPU you can set power limits on)",
+   "venture": "Companies running GPU clusters, who pay for lower energy per token or per training step at the same speed."
   },
   {
    "id": "internet-congestion-control",
@@ -5035,7 +5083,8 @@
    "hook": "A new GPU server takes time to start, so the autoscaler must act before the burst arrives. Delayed actions on real traces.",
    "start": "[KIS-S, Zhang et al. 2025](https://arxiv.org/abs/2507.07932); [Azure Functions traces](https://github.com/Azure/AzurePublicDataset)",
    "baseline": "Threshold autoscaler and M/M/c sizing",
-   "angle": "learned arrival and latency dynamics, MPC with a forecast; cold start makes it a delayed-action problem"
+   "angle": "learned arrival and latency dynamics, MPC with a forecast; cold start makes it a delayed-action problem",
+   "venture": "Companies serving models in the cloud, who pay for fewer idle GPUs without missing latency targets."
   }
  ]
 }
