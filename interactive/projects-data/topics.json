@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-19",
+ "updated": "2026-10-20",
  "areas": [
   {
    "id": "industry",
@@ -27,7 +27,11 @@
   },
   {
    "id": "water",
-   "label": "Water and waste"
+   "label": "Water and wastewater"
+  },
+  {
+   "id": "waste",
+   "label": "Waste, recycling and circular economy"
   },
   {
    "id": "food",
@@ -38,8 +42,12 @@
    "label": "Forests, ecosystems and climate risk"
   },
   {
+   "id": "infra",
+   "label": "Infrastructure and disaster resilience"
+  },
+  {
    "id": "health",
-   "label": "Health and medicine"
+   "label": "Health and emergency care"
   },
   {
    "id": "science",
@@ -851,6 +859,207 @@
    "angle": "learned dynamics + MPC with a tube-temperature constraint; small but real, so depth must come from the robustness study"
   },
   {
+   "id": "sensor-driven-waste-bin-collection",
+   "title": "Sensor-driven waste bin collection",
+   "problem": "Each day, choose which sensor-equipped containers to empty and how to route a small truck fleet, given current fill levels and stochastic deposit rates, to minimize travel, handling and overflow penalty costs subject to truck capacity and shift length.",
+   "section": "Circular economy and waste",
+   "areas": [
+    "waste",
+    "transport"
+   ],
+   "climate": 1,
+   "time": "o",
+   "style": [
+    "d",
+    "b"
+   ],
+   "methods": [
+    "dp",
+    "amortize",
+    "mpc"
+   ],
+   "level": 2,
+   "hook": "The paper's real case is Twente Milieu's 378-container network. There, tuning a simple bin-selection heuristic cut costs by up to about 40% against default settings, so choosing which bins to empty matters more than the routing. The Mildura file has about 42,000 ultrasonic distance-to-top readings for 7 bins from Dec 2021 to Sep 2023, enough to fit fill-rate and emptying-event models.",
+   "start": "[Mes, Schutten & Pérez Rivera 2013, Inventory routing for dynamic waste collection, BETA WP 431](https://ris.utwente.nl/ws/files/5141220/wp_431.pdf); [Markov et al. 2016, Inventory routing with non-stationary stochastic demands, EPFL report](https://infoscience.epfl.ch/record/221364); [Mildura smart-bin fill levels, data.gov.au (CC BY 3.0 AU)](https://data.gov.au/data/dataset/mildura-rrc-smart-bin-fill-levels/resource/b5e11aa0-6beb-4bd3-b164-20c4c01dc780); [City of Melbourne Netvox bin sensors, DataVic](https://discover.data.vic.gov.au/dataset/netvox-r718x-bin-sensor/resource/8aa57ce9-2939-4c70-92f7-c20e436fdd99); model rebuilt from the paper",
+   "baseline": "the paper's MustGo/MayGo threshold heuristic with cheapest insertion, or a fixed daily fraction of bins as in the operator's practice",
+   "angle": "ADP with a value function over fill levels for bin selection, with routing left to a heuristic; or amortize a rolling-horizon IRP solver into a fast selection policy"
+  },
+  {
+   "id": "sorting-plant-container-emptying",
+   "title": "Sorting-plant container emptying",
+   "problem": "Every 1 to 2 minutes, decide which of many continuously filling containers at the end of a waste sorting plant to send to a scarce processing unit, under stochastic fill rates, so containers are emptied near their ideal volume without ever overflowing.",
+   "section": "Circular economy and waste",
+   "areas": [
+    "waste",
+    "industry"
+   ],
+   "climate": 1,
+   "time": "f",
+   "style": [
+    "s"
+   ],
+   "methods": [
+    "mpc",
+    "dp",
+    "pg"
+   ],
+   "level": 1,
+   "hook": "The environment is derived from the final stage of a real waste sorting plant, and in the paper PPO, TRPO and DQN often lose to a naive rule-based controller. The fill dynamics are written out in the paper, so a model-based planner is a fair and easy-to-build challenger.",
+   "start": "[Pendyala et al. 2023, ContainerGym: A Real-World Reinforcement Learning Benchmark for Resource Allocation, arXiv](https://arxiv.org/abs/2307.02991); [ContainerGym code (MIT)](https://github.com/Pendu/ContainerGym); [Pendyala, Atamna & Glasmachers 2024, PPO with curriculum learning on the same sorting facility, arXiv](https://arxiv.org/abs/2404.02577)",
+   "baseline": "the paper's rule-based controller that empties the first container within one volume unit of its ideal emptying volume",
+   "angle": "MPC or rollout lookahead on the known random-walk-with-drift fill model and unit timers, compared with PPO/DQN"
+  },
+  {
+   "id": "sorter-throughput-purity-vs-yield",
+   "title": "Sorter throughput: purity vs yield",
+   "problem": "Set the feed rate (belt loading) of a sensor-based NIR/VIS sorter as input composition fluctuates, to maximize recovered target material while keeping product purity above a sales specification, with a buffer bunker limiting how far feed can be held back.",
+   "section": "Circular economy and waste",
+   "areas": [
+    "waste",
+    "industry"
+   ],
+   "climate": 2,
+   "time": "f",
+   "style": [
+    "b"
+   ],
+   "methods": [
+    "mpc",
+    "dfl",
+    "model"
+   ],
+   "level": 2,
+   "hook": "Küppers et al. found that yield falls exponentially with throughput while purity falls linearly with belt occupation density. The slope of the purity decline depends on input composition, so the best operating point moves with the feed. Friedrich et al. report that these response models must be fit per machine, even for the same material.",
+   "start": "[Küppers et al. 2020, Influence of throughput rate and input composition on sensor-based sorting efficiency, Detritus (open access)](https://digital.detritusjournal.com/articles/influence-of-throughput-rate-and-input-composition-on-sensor-based-sorting-efficiency/287); [Friedrich, Pomberger & Koinig 2024, Der optimale Betriebspunkt in der sensorgestützten Sortierung, Österr. Wasser- und Abfallwirtschaft (CC BY)](https://pureadmin.unileoben.ac.at/portal/files/26591658/s00506-023-01003-6.pdf); [Maus, Zengeler & Glasmachers 2025, SortingEnv: an RL environment for an industrial sorting process, arXiv](https://arxiv.org/abs/2503.10466); model rebuilt from the paper",
+   "baseline": "a fixed throughput setpoint chosen for nominal input composition",
+   "angle": "fit purity and yield response surfaces (GP) from the reported trials, then run chance-constrained MPC on feed rate and bunker level; or decision-focused learning of the response model"
+  },
+  {
+   "id": "forced-aeration-composting-control",
+   "title": "Forced-aeration composting control",
+   "problem": "Over a 2 to 3 week batch, choose the aeration (and air heating) schedule of a forced-aeration pile to hold thermophilic temperature long enough for sanitization while keeping oxygen and moisture in range and minimizing fan energy, under uncertain substrate degradability and ambient conditions.",
+   "section": "Circular economy and waste",
+   "areas": [
+    "waste",
+    "chem",
+    "food"
+   ],
+   "climate": 1,
+   "time": "o",
+   "style": [
+    "b"
+   ],
+   "methods": [
+    "mpc",
+    "trajopt",
+    "amortize"
+   ],
+   "level": 2,
+   "hook": "At the Colombian pilot plant the thermophilic phase stayed near 40 °C for about a week, below the 55 °C pathogen-elimination threshold, so aeration and heating are a real control problem. The 1996 model already includes fan operating costs, so energy enters the objective directly.",
+   "start": "[Stombaugh & Nokes 1996, Development of a biologically based aerobic composting simulation model, Trans. ASAE](https://uknowledge.uky.edu/bae_facpub/113/); [Patiño-Forero et al. 2025, Dynamic modeling of poultry litter composting in high mountain climates using system identification, Automation (open access)](https://www.mdpi.com/2673-4052/6/3/36/html); model rebuilt from the paper",
+   "baseline": "timer-based or on/off temperature-thermostat aeration at a fixed airflow",
+   "angle": "nonlinear MPC or trajectory optimization on the Monod, heat and moisture model; amortize it into a feedback policy and test robustness on the identified pilot-plant models"
+  },
+  {
+   "id": "remanufacturing-with-sales-driven-returns",
+   "title": "Remanufacturing with sales-driven returns",
+   "problem": "Each period, decide how many returned cores to remanufacture and how many new units to produce, when buyback returns depend on sales from many past periods and demand is stochastic, to minimize production, holding and backlog costs over a finite horizon.",
+   "section": "Circular economy and waste",
+   "areas": [
+    "waste",
+    "industry"
+   ],
+   "climate": 2,
+   "time": "p",
+   "style": [
+    "b"
+   ],
+   "methods": [
+    "dp",
+    "pg"
+   ],
+   "level": 1,
+   "hook": "The case company's records cover 7 core types at two distribution centers from 2010 to 2014. In them, returns depend on sales from up to eight months earlier, so the state carries a long sales history and exact DP quickly becomes intractable. The paper's simple policy comes with a cost bound you can test a learned policy against.",
+   "start": "[Chou, Sim & Yuan 2020, Policies for inventory models with product returns forecast from past demands and past sales, Annals of Operations Research (open access)](https://link.springer.com/article/10.1007/s10479-020-03545-4); [Inderfurth & van der Laan 2001, Leadtime effects and policy improvement for stochastic inventory control with remanufacturing, Int. J. Production Economics](https://repub.eur.nl/pub/14930); model rebuilt from the paper",
+   "baseline": "the paper's simplified feasible policy (cost gap bounded) or the four-parameter manufacture/remanufacture rule",
+   "angle": "ADP or policy gradient on the high-dimensional sales-history state, checked against exact DP on short-memory instances"
+  },
+  {
+   "id": "grocery-perishables-ordering-vs-waste",
+   "title": "Grocery perishables ordering vs waste",
+   "problem": "Each day, choose order quantities for perishable grocery items given per-unit remaining shelf life in stock and uncertain demand, to maximize sales minus waste and missed sales.",
+   "section": "Circular economy and waste",
+   "areas": [
+    "waste",
+    "food"
+   ],
+   "climate": 1,
+   "time": "o",
+   "style": [
+    "s"
+   ],
+   "methods": [
+    "dp",
+    "pg",
+    "amortize",
+    "offline"
+   ],
+   "level": 1,
+   "hook": "RetaiL is fitted to item data from a large European grocer, released as copula-generated pseudo-items, and the authors report that classical supply-chain policies handle its uncertainty poorly. viso_jax gives exact optima for perishable problems with up to about 16 million states, so you can measure how far a learned policy is from optimal.",
+   "start": "[Jullien et al. 2023, A simulation environment and reinforcement learning method for waste reduction, arXiv](https://arxiv.org/abs/2205.15455); [RetaiL environment and GTDQN code](https://github.com/samijullien/GTDQN); [Farrington et al. 2023, GPU-accelerated value iteration and simulation for perishable inventory control using JAX, arXiv](https://arxiv.org/abs/2303.10672); [viso_jax code (Apache-2.0)](https://github.com/joefarrington/viso_jax)",
+   "baseline": "an (s, Q) ordering policy, or a base-stock policy tuned by simulation optimization",
+   "angle": "exact value iteration on small instances as ground truth, then distributional or offline RL and a single policy amortized across items with different shelf lives and margins"
+  },
+  {
+   "id": "waste-to-energy-grate-combustion",
+   "title": "Waste-to-energy grate combustion",
+   "problem": "Adjust ram feed, grate speed and primary/secondary air flows of a moving-grate incinerator to hold steam production and flue-gas O2 at setpoints, despite unmeasured swings in waste heating value and moisture, within combustion and emission limits.",
+   "section": "Circular economy and waste",
+   "areas": [
+    "waste",
+    "energy"
+   ],
+   "climate": 1,
+   "time": "f",
+   "style": [
+    "b"
+   ],
+   "methods": [
+    "mpc",
+    "model"
+   ],
+   "level": 3,
+   "hook": "Magnanelli et al. validated their Simulink model on plant data and found that raising waste humidity from 25% to 35% lengthened the steam-production response by 21 minutes. Leskens et al. note that the commercial controller holds only steam offset-free, which leaves O2 and economics on the table.",
+   "start": "[Magnanelli et al. 2020, Dynamic modeling of municipal solid waste incineration, Energy (open access)](https://www.sintef.no/en/publications/publication/1823541/); [Leskens et al. 2010, Improved economic operation of MSWC plants with a new model based PID control strategy, DYCOPS](https://skoge.folk.ntnu.no/prost/proceedings/dycops-2010/Papers_DYCOPS2010/WeMT4-03.pdf); [Ding, Tang & Qiao 2023, Dynamic modeling of multi-input and multi-output controlled object for MSWI, Applied Energy](https://ideas.repec.org/a/eee/appene/v339y2023ics030626192300346x.html); model rebuilt from the paper",
+   "baseline": "a commercial PID combustion controller (offset-free on steam only) or the paper's model-based PID",
+   "angle": "offset-free MPC with an estimator for waste heating value and moisture, or a learned dynamics model plus MPC, on a simulator rebuilt from the mass and energy balances"
+  },
+  {
+   "id": "scrap-charge-mix-under-composition-drift",
+   "title": "Scrap charge mix under composition drift",
+   "problem": "For each furnace heat, choose the masses of each scrap grade (and virgin iron) to meet Cu and Ni specifications at minimum cost, when scrap compositions are uncertain, drift over time and are only seen afterwards through the steel analysis.",
+   "section": "Circular economy and waste",
+   "areas": [
+    "waste",
+    "industry"
+   ],
+   "climate": 2,
+   "time": "o",
+   "style": [
+    "b"
+   ],
+   "methods": [
+    "dfl",
+    "mpc",
+    "dp"
+   ],
+   "level": 2,
+   "hook": "Cu and Ni do not go to the slag, so uncertainty in scrap composition directly caps how much scrap a heat can take. On the paper's synthetic benchmark (45 scrap types, 20,000 heats), a Kalman filter cut Cu estimation error to 13.25 ppm from 16.93 ppm for windowed least squares.",
+   "start": "[Zhou, Naert & Nuyens 2025, Modeling scrap composition in electric arc and basic oxygen furnaces, arXiv](https://arxiv.org/abs/2504.09382); [Gaustad et al. 2016, Operational strategies for increasing secondary materials in metals production under uncertainty, J. Sustainable Metallurgy](https://dspace.mit.edu/handle/1721.1/109890); model rebuilt from the paper",
+   "baseline": "deterministic LP blending on windowed least-squares composition estimates, or a chance-constrained blend with normal approximations",
+   "angle": "Kalman-filter belief state plus chance-constrained MPC over the next heats; decision-focused learning of composition estimates; value of exploring poorly known grades"
+  },
+  {
    "id": "district-heating-network",
    "title": "District heating network",
    "problem": "District heating network: supply-temperature setpoint and thermal-storage dispatch with pipe transport delays",
@@ -1213,6 +1422,300 @@
    "angle": "grey-box identification + MPC with CO and O2 constraints"
   },
   {
+   "id": "industrial-thermoacoustic-heat-pump-drive",
+   "title": "Industrial thermoacoustic heat pump drive",
+   "problem": "Electrically driven thermoacoustic heat pump lifting industrial waste heat above 100 °C: set the drive ratio and frequency to deliver the required heat at the best COP while keeping motor power and temperature within limits near acoustic resonance",
+   "section": "Alternative heat pumps and refrigeration",
+   "areas": [
+    "industry",
+    "heat"
+   ],
+   "climate": 1,
+   "time": "f",
+   "style": [
+    "s",
+    "b"
+   ],
+   "methods": [
+    "mpc",
+    "trajopt",
+    "model"
+   ],
+   "level": 3,
+   "hook": "In tests the ECN prototype pumped heat from about 41 °C to 109 °C with an internal COP of about 4.8, but its drive motor overheated near acoustic resonance, which forced a 3.49% drive ratio instead of the 5% design value.",
+   "start": "[Tijani et al. 2017, development of a thermoacoustic heat pump for distillation column, IEA Heat Pump Conf.](https://publications.tno.nl/publication/34631718/r10Ya6/m16072.pdf); [Tijani et al. 2014, bench-scale electrically driven thermoacoustic heat pump (design)](https://publications.tno.nl/publication/34631561/i17Fz0/m14025.pdf); [DeltaEC, free LANL thermoacoustics code](https://lanl.gov/org/ddste/aldps/materials-physics-applications/quantum/thermoacoustics/computer-codes.php); model rebuilt from the paper",
+   "baseline": "fixed drive frequency and a hand-set drive ratio kept below the motor's thermal limit, as in the ECN tests",
+   "angle": "calibrate a Rott/DeltaEC model to the reported operating point, then MPC or iLQR on drive amplitude and frequency with a motor-heating constraint; takes the course book's synthetic thermoacoustic iLQR demo to a published device"
+  },
+  {
+   "id": "two-source-compact-thermoacoustic-heat-pump",
+   "title": "Two-source compact thermoacoustic heat pump",
+   "problem": "Compact thermoacoustic heat pump driven by two acoustic sources: set the source amplitudes and their relative phase to pump a target heat load at the least acoustic power",
+   "section": "Alternative heat pumps and refrigeration",
+   "areas": [
+    "heat"
+   ],
+   "climate": 1,
+   "time": "f",
+   "style": [
+    "b"
+   ],
+   "methods": [
+    "dfl",
+    "trajopt",
+    "model"
+   ],
+   "level": 2,
+   "hook": "TACOT aims at a compact thermoacoustic cooler for cars. In the 2D model the best pressure-velocity phase lies between 5π/6 and π, while linear theory puts it at 3π/4, so a controller tuned on the cheap model chooses the wrong operating point.",
+   "start": "[Fraigneau, Weisman, Baltean-Carlès 2023, numerical model of thermoacoustic heat pumping inside a compact cavity, Acta Acustica](https://acta-acustica.edpsciences.org/10.1051/aacus/2023008); [TACOT project description (ANR)](https://anr.fr/Project-ANR-17-CE06-0007); model rebuilt from the paper",
+   "baseline": "fixed phase and amplitude chosen from linear-theory design",
+   "angle": "fit a cheap linear-theory model, then learn its correction from higher-fidelity runs so the chosen phase is right where it matters (decision-focused calibration), and optimize the drive"
+  },
+  {
+   "id": "elastocaloric-regenerator-cycle",
+   "title": "Elastocaloric regenerator cycle",
+   "problem": "Elastocaloric regenerator: time the loading, unloading and fluid flow to maximize cooling per unit of work under a fatigue-limiting strain bound",
+   "section": "Alternative heat pumps and refrigeration",
+   "areas": [
+    "heat"
+   ],
+   "climate": 1,
+   "time": "f",
+   "style": [
+    "b"
+   ],
+   "methods": [
+    "trajopt",
+    "amortize"
+   ],
+   "level": 2,
+   "hook": "The Ljubljana NiTi regenerator reached a 31.3 K span and over 60 W (4,400 W/kg at a 10 K span). The 1D model, validated against experiments and written in MATLAB, uses step flow and instantaneous loading, so shaping the cycle is left open.",
+   "start": "[Ahčin et al. 2022, numerical modeling of a shell-and-tube-like elastocaloric regenerator, Energies](https://www.mdpi.com/1996-1073/15/23/9253); [Ahčin et al. 2022, fatigue-resistant elastocaloric cooling and heat pumping in compression, Joule (lab page)](https://lahde.fs.uni-lj.si/en/high-performance-cooling-and-heat-pumping-based-on-fatigue-resistant-elastocaloric-effect-in-compression/); [Qian et al. 2023, multimode elastocaloric cooling system, Science (summary)](https://ceee.umd.edu/news/story/elastocaloric-cooling-system-codeveloped-by-ceee-faculty-featured-innbspscience); model rebuilt from the paper",
+   "baseline": "fixed Brayton-like cycle with step on/off flow at a swept frequency",
+   "angle": "periodic trajectory optimization of the strain and flow waveforms on the 1D model, amortized into a policy over span and load; optionally learn when to switch between regeneration and maximum-utilization modes as in the Maryland device"
+  },
+  {
+   "id": "magnetocaloric-heat-pump-seasonal-operation",
+   "title": "Magnetocaloric heat pump seasonal operation",
+   "problem": "Magnetocaloric heat pump for a house: choose cycle frequency, fluid flow rate and the number of active regenerators each hour to meet heating demand at the highest seasonal COP",
+   "section": "Alternative heat pumps and refrigeration",
+   "areas": [
+    "heat"
+   ],
+   "climate": 1,
+   "time": "o",
+   "style": [
+    "s"
+   ],
+   "methods": [
+    "amortize",
+    "mpc",
+    "dp"
+   ],
+   "level": 2,
+   "hook": "The open Python model takes flow and field profiles over the cycle as inputs. The paper reaches a seasonal COP of 5.6 by adjusting flow and frequency and switching regenerator groups, and estimates about 69 regenerators for peak demand, which leaves room to test a predictive policy against it.",
+   "start": "[Pineda Quijano et al. 2024, seasonal COP of a residential magnetocaloric heat pump based on MnFePSi, Int. J. Refrig.](https://iifiir.org/en/fridoc/seasonal-cop-of-a-residential-magnetocaloric-heat-pump-based-on-mnfepsi-148745); [Pineda Quijano et al. 2023, layering strategies for AMRs, Appl. Therm. Eng. (open access)](https://research.tudelft.nl/en/publications/layering-strategies-for-active-magnetocaloric-regenerators-using-); [code: FAME_AMR_model, Python 1D AMR](https://github.com/diego-pineda/FAME_AMR_model); [data and code, 4TU](https://data.4tu.nl/datasets/cd51b1e3-ab4a-4e6c-a668-f53da25475d4)",
+   "baseline": "the paper's strategy: set flow and frequency from steady-state maps and switch regenerator groups on and off to match demand",
+   "angle": "train a fast surrogate of the 1D AMR model, then MPC or DP over hourly demand using the building's thermal mass"
+  },
+  {
+   "id": "adsorption-chiller-cycle-timing",
+   "title": "Adsorption chiller cycle timing",
+   "problem": "Two-bed adsorption chiller on solar or waste heat: choose the adsorption, desorption and mass-recovery phase durations as source and ambient temperatures drift, to trade cooling power against COP",
+   "section": "Alternative heat pumps and refrigeration",
+   "areas": [
+    "heat",
+    "energy"
+   ],
+   "climate": 1,
+   "time": "f",
+   "style": [
+    "b"
+   ],
+   "methods": [
+    "trajopt",
+    "amortize",
+    "mpc"
+   ],
+   "level": 2,
+   "hook": "On a validated Modelica model of a test bed, cutting the cycle from 1860 s to about 393 s raised volumetric cooling power from 29 to 42 kW/m3 for silica gel but lowered COP substantially, so the best timing depends on what the heat source can supply.",
+   "start": "[RWTH (Bardow group) 2015, optimal design of adsorption chillers based on a validated dynamic object-oriented model, Sci. Technol. Built Environ. (open manuscript)](https://publications.rwth-aachen.de/record/466219/files/466219.pdf); [Gräber et al. 2011, optimal cyclic operation of two-bed adsorption chillers with mass recovery](https://iifiir.org/en/fridoc/optimal-cyclic-operation-of-two-bed-adsorption-chillers-with-mass-27649); [Daborer-Prado and Resch 2021, lumped two-bed silica gel/water chiller model](https://pure.fh-ooe.at/en/publications/preliminary-results-on-experimental-modelling-of-an-adsorption-ch/); model rebuilt from the paper",
+   "baseline": "fixed cycle time tuned offline at nominal temperatures",
+   "angle": "periodic optimal control by multiple shooting, amortized into a feedback policy of heat-source and ambient temperature; compare with MPC over a varying heat source"
+  },
+  {
+   "id": "absorption-heat-pump-part-load-control",
+   "title": "Absorption heat pump part-load control",
+   "problem": "LiBr/H2O absorption heat pump or chiller: modulate the driving heat and the internal and external flows to track output temperature over a wide part-load range",
+   "section": "Alternative heat pumps and refrigeration",
+   "areas": [
+    "heat",
+    "energy"
+   ],
+   "climate": 1,
+   "time": "f",
+   "style": [
+    "b",
+    "s"
+   ],
+   "methods": [
+    "mpc",
+    "model"
+   ],
+   "level": 2,
+   "hook": "Absorption devices run on heat instead of electricity, but Staudt et al. note that poor control limits their modulation and part-load range. They provide a validated control-oriented model and a linearized state-space version intended for MPC.",
+   "start": "[Staudt et al. 2023, control-oriented modeling of a LiBr/H2O absorption heat pumping device with experimental validation, arXiv](https://arxiv.org/abs/2303.15097); [code: Absolut Modelica library for absorption cycles](https://github.com/carlesRT/Absolut)",
+   "baseline": "conventional PI control of output temperature",
+   "angle": "linear or nonlinear MPC on the validated DAE model, with a learned residual fitted on Modelica runs"
+  },
+  {
+   "id": "variable-geometry-ejector-chiller",
+   "title": "Variable-geometry ejector chiller",
+   "problem": "Heat-driven ejector chiller with a movable spindle: set the primary-nozzle area ratio as generator and condenser conditions vary, to maximize COP while keeping the ejector in critical mode",
+   "section": "Alternative heat pumps and refrigeration",
+   "areas": [
+    "heat"
+   ],
+   "climate": 1,
+   "time": "o",
+   "style": [
+    "s",
+    "b"
+   ],
+   "methods": [
+    "amortize",
+    "mpc"
+   ],
+   "level": 2,
+   "hook": "In the R290 study, moving the spindle raised the entrainment ratio by about 86% but lowered the critical pressure by about 283 kPa, so the best position depends on the condenser condition. That makes it a feedback problem, not a design choice.",
+   "start": "[Besagni and Inzoli 2022, influence of variable geometry control on an R290 ejector refrigeration system, J. Phys. Conf. Ser.](https://re.public.polimi.it/retrieve/e0c31c12-dbfe-4599-e053-1705fe0aef77/Besagni_2022_J._Phys.__Conf._Ser._2177_012010.pdf); [code: simpy_ejector, 1D ejector simulator (CoolProp)](https://github.com/AdamBuruzs/simpy_ejector); cycle model rebuilt from the paper",
+   "baseline": "fixed-geometry ejector, or the spindle look-up table the authors propose",
+   "angle": "wrap simpy_ejector in a lumped cycle model, amortize the spindle optimization into a policy of measured temperatures, and use MPC when the generator's thermal inertia matters"
+  },
+  {
+   "id": "150-c-steam-heat-pump-start-up-and-turndown",
+   "title": "150 °C steam heat pump start-up and turndown",
+   "problem": "Cascade heat pump making 150 °C steam from an ambient source: coordinate compressor speeds and expansion-valve superheat setpoints through cold start and load changes, avoiding liquid at compressor inlets and staying inside compressor maps",
+   "section": "Alternative heat pumps and refrigeration",
+   "areas": [
+    "industry",
+    "heat"
+   ],
+   "climate": 2,
+   "time": "f",
+   "style": [
+    "b"
+   ],
+   "methods": [
+    "mpc",
+    "model"
+   ],
+   "level": 3,
+   "hook": "Steam heat pumps like this cascade prototype (R1233zd(E) over R513a) are meant to replace fossil steam boilers. The thesis shows that the plain PID scheme needs an ad hoc superheat change during turndown to keep liquid out of the compressors.",
+   "start": "[Ryan 2024, transient modeling of an ambient-source centrifugal-compressor steam-generating heat pump, Colorado State MS thesis](https://mountainscholar.org/items/81dbe058-fd5b-499b-b3ee-e9454baa2c59/full); model rebuilt from the paper",
+   "baseline": "PID loops with a fixed LP/HP compressor speed ratio and a temporary 15 K superheat setpoint during turndown",
+   "angle": "constrained MPC on a reduced cascade model that coordinates the three compressors and both valves, with a learned surrogate for the heat exchangers"
+  },
+  {
+   "id": "electrified-milk-evaporator-mvr",
+   "title": "Electrified milk evaporator (MVR)",
+   "problem": "Falling-film milk evaporator with mechanical vapor recompression: set the compression ratio and feed temperature over time to reach the target dry-mass content at the least electricity cost",
+   "section": "Alternative heat pumps and refrigeration",
+   "areas": [
+    "industry",
+    "food",
+    "heat"
+   ],
+   "climate": 2,
+   "time": "o",
+   "style": [
+    "b"
+   ],
+   "methods": [
+    "mpc",
+    "trajopt",
+    "amortize"
+   ],
+   "level": 2,
+   "hook": "MVR is a heat pump that replaces process steam with electricity. In this model, dynamic optimization cut the annual electricity cost by about 30% for a 35% dry-mass product, and the authors find the case for MVR is sensitive to the electricity price.",
+   "start": "[Tsochatzidi, Arvanitidis, Georgiadis 2024, model-based optimization of energy consumption in milk evaporators, Processes](https://mdpi-res.com/d_attachment/processes/processes-12-00209/article_deploy/processes-12-00209.pdf); model rebuilt from the paper",
+   "baseline": "steady operation at a fixed compression ratio and feed temperature (the paper's non-optimized case)",
+   "angle": "economic MPC on the evaporator model with time-varying electricity prices and dry-mass constraints, then amortize the dynamic optimization into a policy"
+  },
+  {
+   "id": "vapor-compression-superheat-benchmark",
+   "title": "Vapor-compression superheat benchmark",
+   "problem": "Single-stage vapor-compression chiller: move compressor speed and expansion-valve opening to track the brine outlet temperature and evaporator superheat under inlet-temperature disturbances",
+   "section": "Alternative heat pumps and refrigeration",
+   "areas": [
+    "heat"
+   ],
+   "climate": 1,
+   "time": "f",
+   "style": [
+    "s"
+   ],
+   "methods": [
+    "mpc",
+    "pg",
+    "amortize"
+   ],
+   "level": 1,
+   "hook": "The Simulink benchmark comes with fixed 20-minute test scenarios, input constraints and a combined score, so a student can compare a learned or predictive controller with tuned PID in a week. Its refrigerant is R404a, which makes moving the model to a low-GWP refrigerant a natural extension.",
+   "start": "[Bejarano et al. 2018, benchmark for PID control of refrigeration systems based on vapour compression, IFAC PID'18](https://skoge.folk.ntnu.no/prost/proceedings/PID-2018/0043.PDF); [code: MATLAB/Simulink benchmark files](https://www.dia.uned.es/~fmorilla/benchmarkPID2018/)",
+   "baseline": "the benchmark's default decentralised PID controller",
+   "angle": "linear or nonlinear MPC, or an RL policy trained in the simulator, scored with the benchmark's combined index J; extension: rebuild the moving-boundary model for propane or CO2"
+  },
+  {
+   "id": "field-heat-pumps-weather-curve-tuning",
+   "title": "Field heat pumps: weather-curve tuning",
+   "problem": "Installed air-source heat pumps: choose each home's weather-compensation curve (slope and offset) from its own monitoring data to maximize seasonal performance without losing comfort or causing short cycling",
+   "section": "Alternative heat pumps and refrigeration",
+   "areas": [
+    "heat",
+    "energy"
+   ],
+   "climate": 2,
+   "time": "o",
+   "style": [
+    "d"
+   ],
+   "methods": [
+    "model",
+    "dfl",
+    "offline"
+   ],
+   "level": 2,
+   "hook": "OpenEnergyMonitor's analysis of the EoH trial finds a mean SPF H4 of 2.81 across 428 air-source units, against 3.86 for 170 HeatpumpMonitor systems, and links much of the gap to weather-compensation curves set too high.",
+   "start": "[Electrification of Heat heat pump performance cleansed data 2020-2023, UK Data Service SN 9050 (open, OGL)](https://b2find.eudat.eu/dataset/21e967cf-72a2-5344-b412-3e8e14cc1afb); [OpenEnergyMonitor analysis of the EoH trial data](https://docs.openenergymonitor.org/heatpumpmonitor/eoh.html); [worked examples of curves set too high](https://docs.openenergymonitor.org/heatpumpmonitor/commissioning.html); model learned from the data",
+   "baseline": "the installer's or factory-default weather-compensation curve",
+   "angle": "fit a per-home grey-box model (building, COP and cycling) from the monitoring data, then optimize the curve offline; compare a model fitted for prediction with one fitted for the decision"
+  },
+  {
+   "id": "heat-pump-inspection-targeting-heapo",
+   "title": "Heat pump inspection targeting (HEAPO)",
+   "problem": "Heat pump optimization visits: decide which households to inspect and which settings to change, using smart-meter data and past inspection outcomes, to maximize the electricity saved per visit",
+   "section": "Alternative heat pumps and refrigeration",
+   "areas": [
+    "heat",
+    "energy"
+   ],
+   "climate": 2,
+   "time": "p",
+   "style": [
+    "d"
+   ],
+   "methods": [
+    "offline",
+    "dfl"
+   ],
+   "level": 1,
+   "hook": "Of 410 consultant reports, 168 (41%) flagged a heating curve set too high. The dataset pairs those visits with 15-minute smart-meter data from 1,408 Zurich households from 2018 to 2024, enough to test whether a learned targeting rule would have chosen the right homes.",
+   "start": "[Brudermueller et al. 2025, HEAPO open dataset for heat pump optimization, arXiv](https://arxiv.org/abs/2503.16993); [data, Zenodo (CC BY 4.0)](https://zenodo.org/records/15056919); [code: Python data loader](https://github.com/tbrumue/heapo)",
+   "baseline": "the consultants' visits as actually scheduled, plus the rule of thumb that the heating curve is usually too high",
+   "angle": "estimate per-household intervention effects from smart-meter data before and after visits, then learn a targeting policy offline and evaluate it with off-policy estimators"
+  },
+  {
    "id": "boreal-forest-management",
    "title": "Boreal forest management",
    "problem": "Boreal forest management: carbon storage vs permafrost thaw over 50 years",
@@ -1291,7 +1794,7 @@
    "problem": "Landfill gas wellfield vacuum control",
    "section": "Climate: land, methane, storage, transit and adaptation",
    "areas": [
-    "water"
+    "waste"
    ],
    "climate": 2,
    "time": "o",
@@ -1461,6 +1964,7 @@
    "section": "Climate: land, methane, storage, transit and adaptation",
    "areas": [
     "nature",
+    "infra",
     "water"
    ],
    "climate": 1,
@@ -1526,6 +2030,203 @@
    "start": "[Eum et al. 2011, sampling stochastic DP with a hedging rule, J. Water Resources Planning and Management](https://ascelibrary.com/doi/10.1061/%28ASCE%29WR.1943-5452.0000095); [Macian-Sorribes et al. 2015, HESS](https://hess.copernicus.org/articles/19/3925/2015/hess-19-3925-2015-metrics.html)",
    "baseline": "Fixed trigger rule curves",
    "angle": "sampling SDP, policy search over thresholds, learned inflow model"
+  },
+  {
+   "id": "nonlinear-20-story-seismic-benchmark",
+   "title": "Nonlinear 20-story seismic benchmark",
+   "problem": "Choose active actuator forces or semi-active damper commands at each control step from noisy floor accelerations to reduce inter-story drift and floor accelerations of a 20-story steel frame that yields under strong earthquakes, within the benchmark's device and sensor constraints.",
+   "section": "Infrastructure and disaster resilience",
+   "areas": [
+    "infra"
+   ],
+   "climate": 0,
+   "time": "f",
+   "style": [
+    "s"
+   ],
+   "methods": [
+    "pg",
+    "mpc",
+    "amortize"
+   ],
+   "level": 2,
+   "hook": "This is the structural control community's standard yardstick, with a fixed nonlinear evaluation model and fixed criteria, so a learned controller is compared with decades of published designs. On a smaller five-story benchmark a model-free RL controller reported about 25% more drift reduction than LQG; testing whether that holds on the yielding 20-story frame is a clean project.",
+   "start": "[Ohtori, Christenson, Spencer and Dyke, third-generation benchmark control problems for seismically excited nonlinear buildings (3-, 9- and 20-story SAC frames), benchmark definition page](https://sstl.cee.illinois.edu/benchmarks/bench3def/); [NEES database of structural control benchmark problems, MATLAB data and simulation files](https://datacenterhub.org/resources/257); [Spencer 2004, editorial on the benchmark special issue, J. Eng. Mech.](https://ascelibrary.com/doi/10.1061/%28ASCE%290733-9399%282004%29130%3A4%28363%29); [Eshkevari et al. 2021, RL-Controller for active structural control, arXiv](https://arxiv.org/abs/2103.07616)",
+   "baseline": "the benchmark's sample LQG active controller, plus the uncontrolled frame",
+   "angle": "RL or learned-model MPC that uses the nonlinear (yielding) evaluation model; amortize the MPC into an output-feedback network and test across records and intensities"
+  },
+  {
+   "id": "wind-excited-76-story-tower-with-atmd",
+   "title": "Wind-excited 76-story tower with ATMD",
+   "problem": "Choose the active tuned mass damper force on top of a 76-story, 306 m tower from a few floor accelerations to cut wind-induced floor accelerations under wind-tunnel loads, with force within ±118 kN, stroke within 95 cm, and building stiffness uncertain by ±15%.",
+   "section": "Infrastructure and disaster resilience",
+   "areas": [
+    "infra"
+   ],
+   "climate": 0,
+   "time": "f",
+   "style": [
+    "s",
+    "d"
+   ],
+   "methods": [
+    "mpc",
+    "amortize",
+    "pg"
+   ],
+   "level": 2,
+   "hook": "The building, the wind-tunnel loads and both an LQG and a hard-constrained MPC (±118 kN, 95 cm stroke) are published, so the project is about beating a known controller rather than building a model. The open question is whether a cheap explicit policy keeps the MPC's constraint handling when stiffness is off by 15%.",
+   "start": "[Mei, Kareem and Kantor 2004, model predictive control of wind-excited building: benchmark study, J. Eng. Mech.](https://nathaz.nd.edu/journals/%282004%29ModelPredictiveControlofWind-ExcitedBuilding.pdf); [Yang, Lin and Jabbari 2004, multiobjective controllers on the same benchmark vs LQG, J. Eng. Mech.](https://ascelibrary.com/doi/10.1061/%28ASCE%290733-9399%282004%29130%3A4%28471%29); [benchmark index, wind-excited 76-story building with MATLAB models](https://sstl.cee.illinois.edu/benchmarks/); [NEES structural control benchmark files](https://datacenterhub.org/resources/257); [wind tunnel data, NEES-2014-1241](https://datacenterhub.org/landingpages/519/519_LandingPage.html)",
+   "baseline": "the benchmark LQG sample controller and the constrained MPC of Mei et al. (2004)",
+   "angle": "amortize the constrained MPC into an explicit policy, or train a policy robust to the stiffness range by domain randomization"
+  },
+  {
+   "id": "bridge-deck-maintenance-from-nbi-ratings",
+   "title": "Bridge deck maintenance from NBI ratings",
+   "problem": "Each year, choose do-nothing, maintain, repair or replace for every deck in a bridge network from noisy condition ratings, to minimize life-cycle cost under an annual budget and a limit on the share of decks in poor condition.",
+   "section": "Infrastructure and disaster resilience",
+   "areas": [
+    "infra",
+    "transport"
+   ],
+   "climate": 0,
+   "time": "p",
+   "style": [
+    "d",
+    "b"
+   ],
+   "methods": [
+    "dp",
+    "pg",
+    "offline"
+   ],
+   "level": 2,
+   "hook": "The NBI files give a deck rating for every listed US bridge in each year from 1992 to 2025, so the deterioration model comes from real data. On a Pennsylvania network, a constrained multi-agent DRL policy cost about 32% less than the state DOT's policy and about 6% less than a tuned condition-based policy.",
+   "start": "[Bhattacharya, Saifullah and Papakonstantinou 2024, DRL-driven life-cycle management of bridge and pavement systems (PennDOT and Hampton Roads networks), IABMAS](https://par.nsf.gov/servlets/purl/10552119); [Andriotis and Papakonstantinou 2020, DRL inspection and maintenance planning under incomplete information and constraints, arXiv](https://arxiv.org/abs/2007.01380); [FHWA National Bridge Inventory annual ASCII files 1992-2025 (deck item 58, superstructure 59, substructure 60)](https://www.fhwa.dot.gov/bridge/nbi/ascii.cfm); model rebuilt from the paper",
+   "baseline": "a condition-based threshold policy tuned on the same model, and the agency's rule-based policy",
+   "angle": "estimate Markov transitions from NBI deck rating histories; exact constrained DP or POMDP for one deck, multi-agent actor-critic with Lagrangian budget constraints for the network"
+  },
+  {
+   "id": "montreal-water-main-renewal",
+   "title": "Montreal water main renewal",
+   "problem": "Choose which street segments' water mains to renew each year under a fixed budget, given break histories and segment condition data with uncertain future break rates, to minimize breaks and repair costs over a multi-year horizon.",
+   "section": "Infrastructure and disaster resilience",
+   "areas": [
+    "infra",
+    "water"
+   ],
+   "climate": 0,
+   "time": "p",
+   "style": [
+    "d"
+   ],
+   "methods": [
+    "dfl",
+    "dp"
+   ],
+   "level": 2,
+   "hook": "Montreal publishes the date and location of water-main repairs back to 1972, plus its own A-D intervention class for each street segment, so a local project can test a model against the city's actual plan. In Syracuse, ranking by past breaks already reached a precision of 0.48 on the riskiest 1% of mains, against 0.62 for a boosted-tree model.",
+   "start": "[Kumar et al. 2018, using machine learning to assess the risk of and prevent water main breaks (Syracuse), arXiv](https://arxiv.org/abs/1805.03597); [Ville de Montreal, water-main break repairs from 1972 with coordinates, CC-BY 4.0](https://www.donneesquebec.ca/recherche/fr/dataset/vmtl-reparation-reseau-eau-potable); [Ville de Montreal, intervention plan results by street segment, classes A-D, lengths and costs](https://www.donneesquebec.ca/recherche/fr/dataset/0d5fab8e-f673-48fd-96dd-745f50ca1ec0); repair records carry no pipe ID, so join them spatially to segments; model rebuilt from the paper",
+   "baseline": "rank segments by past break count (the strongest heuristic in Kumar et al.) or follow the city's A-D intervention classes",
+   "angle": "decision-focused learning: train the break-rate model on the regret of the budgeted selection (a knapsack) instead of prediction error; extend to a multi-year DP"
+  },
+  {
+   "id": "fatigue-inspection-planning-offshore-wind",
+   "title": "Fatigue inspection planning, offshore wind",
+   "problem": "Decide when to inspect and when to repair each fatigue-prone component of an offshore wind support structure or k-out-of-n system, with crack size seen only through imperfect inspections, to minimize inspection, repair and system-failure costs.",
+   "section": "Infrastructure and disaster resilience",
+   "areas": [
+    "infra",
+    "energy"
+   ],
+   "climate": 0,
+   "time": "p",
+   "style": [
+    "s"
+   ],
+   "methods": [
+    "dp",
+    "pg"
+   ],
+   "level": 1,
+   "hook": "An inspection is only worth what it changes in the repair decision, and a POMDP belief policy prices exactly that. Morato et al. found POMDP policies substantially cheaper than the heuristic rules used in risk-based inspection, and the environments run on NumPy alone.",
+   "start": "[Morato et al. 2022, optimal inspection and maintenance planning for deteriorating structural components through dynamic Bayesian networks and MDPs, Structural Safety (arXiv)](https://arxiv.org/abs/2009.04547); [Leroy et al. 2023, IMP-MARL, environments for infrastructure management planning, arXiv](https://arxiv.org/abs/2306.11551); [IMP-MARL code: k-out-of-n and offshore wind fatigue environments plus heuristics, Apache-2.0, NumPy only](https://github.com/moratodpg/imp_marl)",
+   "baseline": "the expert-based heuristic inspection and repair policies shipped with IMP-MARL",
+   "angle": "exact point-based POMDP on one component, then multi-agent actor-critic on the system; measure the value of information of each inspection"
+  },
+  {
+   "id": "post-storm-repair-crew-dispatch",
+   "title": "Post-storm repair crew dispatch",
+   "problem": "After a storm, assign repair crews to damaged feeder components as outage calls and field reports arrive, to minimize customer interruption time subject to radial precedence, travel times and the number of crews.",
+   "section": "Infrastructure and disaster resilience",
+   "areas": [
+    "infra",
+    "energy"
+   ],
+   "climate": 1,
+   "time": "o",
+   "style": [
+    "b"
+   ],
+   "methods": [
+    "pg",
+    "amortize",
+    "dp"
+   ],
+   "level": 2,
+   "hook": "On a radial feeder, fixing a downstream line restores nobody until the upstream fault is cleared, which makes this scheduling with precedence. Tan et al. give a 2-approximation rule, a sharp baseline for a policy that must also cope with damage revealed over time.",
+   "start": "[Tan et al. 2017, scheduling post-disaster repairs in electricity distribution networks, arXiv](https://arxiv.org/abs/1702.08382); [Amani, Ardali and Kargarian 2026, event-driven deep RL dispatcher for post-storm restoration on IEEE 13- and 123-bus feeders, arXiv](https://arxiv.org/abs/2601.10044); [Shuai and Li 2021, AlphaZero-based post-storm repair crew dispatch, arXiv](https://arxiv.org/abs/2010.06764); [IEEE PES distribution test feeders](https://cmte.ieee.org/pes-testfeeders/resources/); model rebuilt from the paper",
+   "baseline": "Tan et al.'s ρ-factor dispatch rule, or their time-indexed ILP re-solved as information arrives",
+   "angle": "MCTS or actor-critic over the belief state of damage; amortize the re-solved ILP into a fast dispatch policy"
+  },
+  {
+   "id": "post-earthquake-water-network-repairs",
+   "title": "Post-earthquake water network repairs",
+   "problem": "After an earthquake, choose the order in which a few crews repair broken pipes, with damage drawn from fragility curves and only partly observed, to maximize the water demand served over the recovery period.",
+   "section": "Infrastructure and disaster resilience",
+   "areas": [
+    "infra",
+    "water"
+   ],
+   "climate": 0,
+   "time": "o",
+   "style": [
+    "s"
+   ],
+   "methods": [
+    "dp",
+    "model",
+    "pg"
+   ],
+   "level": 2,
+   "hook": "WNTR already models earthquake damage through fragility curves and pressure-dependent demand, so the repair-sequencing environment is a thin wrapper. Klise et al. stress that how bad an earthquake is for water service depends on available resources and repair strategy, not only on the shaking.",
+   "start": "[Klise et al. 2017, a software framework for assessing the resilience of drinking water systems to disasters with an example earthquake case study, Environ. Model. Softw.](https://www.sandia.gov/research/publications/details/a-software-framework-for-assessing-the-resilience-of-drinking-water-systems-2017-01-01/); [Fan, Zhang and Yu 2022, GCN-DRL model for resilient water distribution network repair decisions, CACAIE](https://researchconnect.buffalo.edu/en/publications/a-graph-convolution-network-deep-reinforcement-learning-model-for/); [WNTR simulator (EPA), pip install wntr](https://github.com/USEPA/WNTR); [WNTR disaster models: earthquake PGA, fragility curves, pipe leaks](https://usepa.github.io/WNTR/disaster_models.html)",
+   "baseline": "a fixed ranking of damaged pipes by component importance, the conventional rule",
+   "angle": "rollout or MCTS on WNTR with a learned value function, or a graph-network policy trained by RL; a learned hydraulic surrogate to make planning fast"
+  },
+  {
+   "id": "critical-load-restoration-with-ders",
+   "title": "Critical load restoration with DERs",
+   "problem": "During a post-event outage with the feeder islanded, choose which critical loads to restore and how to dispatch local distributed energy resources over the coming hours under uncertain wind and solar forecasts, to maximize restored load within power-flow and energy limits.",
+   "section": "Infrastructure and disaster resilience",
+   "areas": [
+    "infra",
+    "energy"
+   ],
+   "climate": 1,
+   "time": "o",
+   "style": [
+    "s"
+   ],
+   "methods": [
+    "mpc",
+    "pg"
+   ],
+   "level": 1,
+   "hook": "NREL released the environment and the MPC baseline, so the project starts at the control question. Zhang et al. report that RL controllers were less sensitive to renewable forecast errors than the MPCs, a claim worth testing against a properly stochastic MPC.",
+   "start": "[Zhang et al. 2022, curriculum-based RL for distribution system critical load restoration, IEEE TPWRS (arXiv)](https://arxiv.org/abs/2203.04166); [Zhang et al. 2021, curriculum-learned controller on the IEEE 13-bus system, IEEE PES GM](https://research-hub.nrel.gov/en/publications/restoring-critical-loads-in-resilient-distribution-systems-using--3/); [NREL hybrid-rl-mpc4clr: gym environment, MPC and RL code, BSD-3, archived 2026](https://github.com/NREL/hybrid-rl-mpc4clr)",
+   "baseline": "the repo's MPC driven by imperfect renewable forecasts",
+   "angle": "hybrid RL-MPC where RL sets the reserve the MPC must hold to hedge forecast error; compare with a scenario-based stochastic MPC"
   },
   {
    "id": "volt-var-control",
@@ -2811,6 +3512,204 @@
    "start": "[Krylov et al. 2020, RL framework for DBS](https://arxiv.org/abs/2002.10948); [RL-DBS environment](https://github.com/cviaai/RL-DBS)",
    "baseline": "Open-loop high-frequency stimulation and delayed feedback",
    "angle": "reduced phase or Koopman model + MPC"
+  },
+  {
+   "id": "ambulance-redeployment-with-adp",
+   "title": "Ambulance redeployment with ADP",
+   "problem": "Each time an ambulance becomes free, decide which base to send it to (and optionally move other idle units), under random call arrival times, locations and service durations, to maximize the fraction of calls reached within the response-time target with a fixed fleet and set of bases.",
+   "section": "Health systems and emergency response",
+   "areas": [
+    "health",
+    "transport"
+   ],
+   "climate": 0,
+   "time": "f",
+   "style": [
+    "s",
+    "d"
+   ],
+   "methods": [
+    "dp",
+    "pg",
+    "mpc"
+   ],
+   "level": 2,
+   "hook": "The move-up decision recurs after every call and directly sets how many calls are reached in time. JEMSS ships a Manhattan model you can calibrate with NYC's public dispatch file, which logs call creation, assignment, on-scene and hospital arrival times per incident by dispatch area.",
+   "start": "[Maxwell, Restrepo, Henderson & Topaloglu 2010, ADP for ambulance redeployment, INFORMS J. Computing](https://pubsonline.informs.org/doi/fpi/10.1287/ijoc.1090.0345); [JEMSS.jl EMS simulator with Auckland, Edmonton, Manhattan and Utrecht models](https://github.com/uoa-ems-research/JEMSS.jl); [NYC EMS incident dispatch data](https://data.cityofnewyork.us/Public-Safety/EMS-Incident-Dispatch-Data/76xm-jjuj); [Guigues et al. 2024, EMS management tools with Rio de Janeiro SAMU call history](https://arxiv.org/pdf/2409.09154) and [their dispatch/relocation heuristics code](https://github.com/vguigues/Heuristics_Dynamic_Ambulance_Management)",
+   "baseline": "static policy that returns each ambulance to its home base (the paper's static benchmarks)",
+   "angle": "value-function ADP over the ambulance configuration with basis functions tuned by simulation; compare to PPO or a short-horizon MPC lookahead in the simulator"
+  },
+  {
+   "id": "hospital-platelet-ordering",
+   "title": "Hospital platelet ordering",
+   "problem": "Each day, decide how many platelet units to order given stock by remaining shelf life and orders in transit, under uncertain daily demand, to minimize expected outdating, shortage and holding cost with delivery lead times and a shelf life of a few days.",
+   "section": "Health systems and emergency response",
+   "areas": [
+    "health"
+   ],
+   "climate": 0,
+   "time": "o",
+   "style": [
+    "s"
+   ],
+   "methods": [
+    "dfl",
+    "dp",
+    "amortize",
+    "pg"
+   ],
+   "level": 1,
+   "hook": "Platelets keep only three to seven days, so hospitals both discard units and run short. At RWTH Aachen University Hospital historical outdating was about 10.1% and shortage about 6.5%, and forecast-driven ordering roughly halved both in retrospective simulation; viso_jax lets you check any learned policy against the exact optimum.",
+   "start": "[Farrington, Li, Wong & Utley 2023, GPU value iteration for perishable inventory (arXiv)](https://www.arxiv.org/abs/2303.10672); [viso_jax code, Scenario C = hospital platelets after Mirjalili 2022](https://github.com/joefarrington/viso_jax); [Schilling et al. 2022, forecast-driven platelet ordering at RWTH Aachen, JMIR Med. Inform.](https://pmc.ncbi.nlm.nih.gov/articles/PMC8848235)",
+   "baseline": "order-up-to policy fitted by simulation optimization, with exact value iteration as the reference optimum",
+   "angle": "decision-focused training of the demand forecaster on ordering cost instead of MAPE; amortize the value-iteration policy or train PPO and measure the gap to the exact optimum"
+  },
+  {
+   "id": "dynamic-kidney-exchange-match-or-wait",
+   "title": "Dynamic kidney exchange: match or wait",
+   "problem": "At each match run, choose which cycles and chains of incompatible patient-donor pairs and altruistic donors to execute now versus keep in the pool, under random arrivals, departures and failed matches, to maximize (quality-weighted) transplants over the horizon subject to cycle and chain length caps.",
+   "section": "Health systems and emergency response",
+   "areas": [
+    "health",
+    "markets"
+   ],
+   "climate": 0,
+   "time": "o",
+   "style": [
+    "s"
+   ],
+   "methods": [
+    "dp",
+    "pg",
+    "amortize"
+   ],
+   "level": 2,
+   "hook": "Executing every cycle available today can consume pairs that would have formed better cycles after the next arrivals, while waiting risks patients leaving the pool. kep_solver includes a dynamic simulator and a published UK NHS 2022 generator, so the trade-off can be tested end to end with an exact IP inside the loop.",
+   "start": "[Dickerson & Sandholm 2015, FutureMatch: learning to match in dynamic kidney exchange, AAAI](https://ojs.aaai.org/index.php/AAAI/article/view/9239); [Barkel et al. 2025, survey and empirical evaluation of kidney exchange models with open instances](https://arxiv.org/pdf/2504.04091); [kep_solver API: DynamicGenerator, DynamicSimulation, uk_nhs_generator2022](https://kep-solver.readthedocs.io/en/latest/source/kep_solver.html); [kep_solver on PyPI](https://pypi.org/project/kep-solver/)",
+   "baseline": "myopic maximum-transplant matching at every run",
+   "angle": "learn vertex/pair potentials (a value function) that reweight the matching IP, tuned by policy gradient in the dynamic simulator; optionally learn when to run a match"
+  },
+  {
+   "id": "inpatient-overflow-to-off-service-wards",
+   "title": "Inpatient overflow to off-service wards",
+   "problem": "Throughout the day, decide which waiting inpatients to place in a nonprimary (overflow) ward instead of waiting for a bed in their primary ward, under time-varying random admissions and discharges, to minimize long-run average waiting cost plus overflow penalties with fixed ward capacities.",
+   "section": "Health systems and emergency response",
+   "areas": [
+    "health"
+   ],
+   "climate": 0,
+   "time": "o",
+   "style": [
+    "b"
+   ],
+   "methods": [
+    "dp",
+    "pg"
+   ],
+   "level": 2,
+   "hook": "Bed managers make this call every hour. In the paper's baseline scenario the ADP policy matched complete bed sharing on congestion with 20% less overflow, and the PPO follow-up scaled to 20 wards with about 25% lower cost than night-time-only practice.",
+   "start": "[Dai & Shi 2019, Inpatient overflow: an ADP approach, MSOM](https://pubsonline.informs.org/doi/suppl/10.1287/msom.2018.0730); [Sun, Shi & Dai 2024, Inpatient overflow management with PPO (arXiv)](https://arxiv.org/html/2410.13767v4); model rebuilt from the paper",
+   "baseline": "night-time-only overflow (current practice), complete overflow, and the Dai and Shi ADP policy",
+   "angle": "basis-function ADP from a fluid/single-pool approximation versus PPO on the multiclass multipool queue"
+  },
+  {
+   "id": "tuning-deceased-donor-allocation-rules",
+   "title": "Tuning deceased-donor allocation rules",
+   "problem": "Choose the parameters of the deceased-donor kidney allocation rule (point weights on HLA match, waiting time, vPRA, donor-candidate age matching) that rank candidates for each donor, under random donor and candidate arrivals, offer acceptance and waitlist removal, to improve transplant outcomes and equity across groups and countries within Eurotransplant's balance rules.",
+   "section": "Health systems and emergency response",
+   "areas": [
+    "health",
+    "markets"
+   ],
+   "climate": 0,
+   "time": "p",
+   "style": [
+    "s"
+   ],
+   "methods": [
+    "pg",
+    "model"
+   ],
+   "level": 2,
+   "hook": "Eurotransplant allocates organs across eight countries, and these simulators were built with its physicians and advisory committees to evaluate rule changes; ETKidney reproduces the current kidney rules, was validated on 2021 to 2024 outcomes, and exposes point weights in YAML. The shipped synthetic data is for trying the code only; research-grade conclusions need a study proposal to Eurotransplant.",
+   "start": "[de Ferrante et al. 2025, ETKidney discrete event simulator for Eurotransplant (arXiv)](https://arxiv.org/html/2502.15001v1); [ETKidney code with synthetic data](https://github.com/hansdeferrante/Eurotransplant_ETKidney_simulator); [de Ferrante et al., ELAS liver allocation simulator (arXiv)](https://arxiv.org/abs/2410.10840); [ELAS code with synthetic data](http://github.com/hansdeferrante/Eurotransplant_ELAS_simulator)",
+   "baseline": "Eurotransplant's current ETKAS/ESP point system",
+   "angle": "black-box policy optimization (policy gradient or evolution strategies) over point weights, with a learned surrogate of simulator outcomes to cut simulation cost"
+  },
+  {
+   "id": "week-by-week-nurse-rostering",
+   "title": "Week-by-week nurse rostering",
+   "problem": "Each week, assign shifts and skills to nurses knowing only that week's coverage requirements and requests while later weeks are unknown, to minimize the weighted soft-constraint penalty over a 4- or 8-week horizon subject to hard single-assignment, minimum-coverage, shift-succession and skill constraints.",
+   "section": "Health systems and emergency response",
+   "areas": [
+    "health"
+   ],
+   "climate": 0,
+   "time": "o",
+   "style": [
+    "s"
+   ],
+   "methods": [
+    "dp",
+    "amortize"
+   ],
+   "level": 2,
+   "hook": "A weekly solver has to decide how much of each nurse's total-shift and weekend quota to spend before seeing next week's demand, which is a value-function question. INRC-II gives 14 datasets (30 to 120 nurses, 4 or 8 weeks) with a stage-by-stage simulator and a validator.",
+   "start": "[Ceschia, Dang, De Causmaecker, Haspeslagh & Schaerf 2015, INRC-II problem description (arXiv)](https://arxiv.org/pdf/1501.04177); [INRC-II datasets](https://mobiz.vives.be/inrc2/?page_id=20); [INRC-II simulator, validator and benchmark tools](https://mobiz.vives.be/inrc2/?page_id=245); [Kim & Mehrotra 2015, two-stage stochastic nurse staffing on Northwestern Memorial data, Operations Research](https://pubsonline.informs.org/doi/fpi/10.1287/opre.2015.1421)",
+   "baseline": "myopic weekly optimization that ignores future weeks",
+   "angle": "learn a value function of the end-of-week history (work and weekend counters, last shifts) and add it as a terminal cost to the weekly MIP or local search"
+  },
+  {
+   "id": "hurricane-relief-pre-positioning",
+   "title": "Hurricane relief pre-positioning",
+   "problem": "Every 12 hours before landfall, decide how much relief to produce at each distribution center, how much to ship to each shelter and whether to activate contingency capacity, under a Markov-chain forecast of hurricane track and intensity, to minimize logistics cost plus unmet-demand penalties within capacity limits.",
+   "section": "Health systems and emergency response",
+   "areas": [
+    "health",
+    "transport",
+    "infra"
+   ],
+   "climate": 1,
+   "time": "o",
+   "style": [
+    "b",
+    "d"
+   ],
+   "methods": [
+    "mpc",
+    "dp",
+    "amortize"
+   ],
+   "level": 2,
+   "hook": "Supplies must be produced and moved while landfall is still a moving forecast. The appendix lists the full South Carolina case: seven distribution centers, seven county shelters, 12-hour stages to landfall at period 11, and the cost parameters.",
+   "start": "[Castro, Bodur & Song, Markov chain-based policies for multistage stochastic integer programs with disaster relief, MSOM](https://pubsonline.informs.org/doi/fpi/10.1287/msom.2023.0658); [arXiv version](https://arxiv.org/abs/2207.14779); [online appendix with the synthetic generator and the Hurricane Florence / South Carolina instance](https://pubsonline.informs.org/doi/suppl/10.1287/msom.2023.0658/suppl_file/msom.2023.0658.sm1.pdf); [NHC forecast verification and error database](https://www.nhc.noaa.gov/verification/); model rebuilt from the paper",
+   "baseline": "static two-stage plan or rolling two-stage re-solve, with the paper's linear decision rule as the strong baseline",
+   "angle": "MPC with a hurricane-state model fitted to NHC forecast errors; amortize the multistage solve into a neural policy and compare to the linear decision rule"
+  },
+  {
+   "id": "elective-surgery-booking-with-ward-beds",
+   "title": "Elective surgery booking with ward beds",
+   "problem": "Each day, decide how many waiting elective patients of each specialty to book into future OR days of a master surgical schedule, under random referrals, surgery durations and post-operative lengths of stay, to minimize waits beyond target, OR overtime and ward overcapacity.",
+   "section": "Health systems and emergency response",
+   "areas": [
+    "health"
+   ],
+   "climate": 0,
+   "time": "o",
+   "style": [
+    "b",
+    "d"
+   ],
+   "methods": [
+    "dp",
+    "pg",
+    "mpc"
+   ],
+   "level": 2,
+   "hook": "Booking a surgery commits OR time on one day and a ward bed for the days after, so wait time, overtime and ward congestion trade off. The Zenodo file gives fitted duration distributions from 2,035,126 surgeries at 212 German hospitals to drive the simulator.",
+   "start": "[Astaraky & Patrick 2015, simulation-based ADP for multi-class, multi-resource surgical scheduling, EJOR](https://ideas.repec.org/a/eee/ejores/v245y2015i1p309-319.html); [Astaraky thesis, uOttawa](https://ruor.uottawa.ca/items/449f9534-f933-4c5a-a698-6459c0265f0c); [German surgical case mix and duration distributions (Zenodo, CC BY 4.0)](https://zenodo.org/record/7147921); [Leeftink & Hans OR scheduling benchmark and instance generator](https://www.utwente.nl/en/choir/research/benchmark-orscheduling/); model rebuilt from the paper",
+   "baseline": "first-come first-served booking into the earliest day with free OR time",
+   "angle": "least-squares approximate policy iteration as in the paper versus PPO, with a sampled-scenario MPC lookahead as a strong baseline"
   },
   {
    "id": "walleye-fishery-harvest-rules",
