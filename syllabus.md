@@ -166,6 +166,10 @@ The team artifact establishes the base project grade; an individual's grade may
 be adjusted when the oral defense shows a materially different level of
 understanding.
 
+The [project page](https://pierrelucbacon.com/rlbook/interactive/projects.html) has a one-minute brief, 129 suggested topics with
+papers to start from, and a short questionnaire that matches topics to your
+interests.
+
 **Grading scale.** Final grades are reported as UdeM letter grades. The
 instructor converts the weighted total (out of 100%) into a letter grade.
 
@@ -414,6 +418,10 @@ préfabriqué. Les livrables sont du code fonctionnel, une affiche et une défen
 orale. Une courte proposition sert de jalon non noté. La production d'équipe
 établit la note de base du projet; la note individuelle peut être ajustée si la
 défense orale indique un niveau de compréhension sensiblement différent.
+
+La [page du projet](https://pierrelucbacon.com/rlbook/interactive/projects.html) (en anglais) présente le projet en une minute,
+129 sujets suggérés avec des articles de départ, et un court questionnaire qui
+propose des sujets selon vos intérêts.
 
 **Barème de notation.** La note finale est exprimée en notation littérale de
 l'UdeM. L'enseignant convertit le total pondéré (sur 100 %) en note littérale.
