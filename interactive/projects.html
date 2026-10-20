@@ -122,7 +122,7 @@
   .grading i { font: normal 500 13px var(--font-mono); color: var(--ink-muted); }
   .impact { margin-top: 22px; padding: 14px 18px; border-radius: 8px; background: var(--green-soft); color: var(--ink); max-width: 46rem; font-size: 15px; }
   .impact b { color: var(--green); }
-  .more { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 18px; }
+  .more { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 18px; align-items: start; }
   details.fold { border: 1px solid var(--rule); border-radius: 8px; background: var(--bg-raised); padding: 10px 16px; }
   details.fold summary { cursor: pointer; font-weight: 600; font-size: 15px; list-style: none; display: flex; align-items: center; gap: 8px; }
   details.fold summary::-webkit-details-marker { display: none; }
@@ -260,7 +260,7 @@
     <div>
     <p class="eyebrow">IFT6162 · Fall 2026 · Final project</p>
     <h1>Pick a real system worth controlling</h1>
-    <p class="lede">Take a system from the engineering literature, implement the controller its operators would use, then show where <strong>learning-based control</strong> does better. You present it at a poster session on <strong>December 3</strong>.</p>
+    <p class="lede">Take a system from the engineering literature, implement the controller its operators would use, then show where <strong>learning-based control</strong> does better. You present it at a poster session on <strong>December 3</strong>, with a small website that lets people play with your results.</p>
     <div class="cta">
       <a class="btn primary" href="#match">Find my project</a>
       <a class="btn" href="#topics" id="browse-btn">Browse all topics</a>
@@ -310,8 +310,8 @@
         <div><dt>Team</dt><dd>Three students. Mix backgrounds, and pick a field you don't already work in.</dd></div>
         <div><dt>Proposal</dt><dd>One page by email, ungraded, any time before the poster session. The earlier you send it, the more feedback you get.</dd></div>
         <div><dt>Poster</dt><dd>Thursday, December 3, 13:30–15:30 at Mila. In person; it cannot be done late.</dd></div>
-        <div><dt>Hand in</dt><dd>A code repository with a README and tests, the poster, and an oral defense at the poster.</dd></div>
-        <div><dt>Grading</dt><dd>30% of the course grade.<div class="grading"><span>Real-world grounding <i>25</i></span><span>Formulation <i>25</i></span><span>Technical quality <i>25</i></span><span>Creativity <i>15</i></span><span>Communication <i>10</i></span></div></dd></div>
+        <div><dt>Hand in</dt><dd>A code repository with a README and tests, a one-page project website with at least one interactive figure, the poster, and an oral defense at the poster.</dd></div>
+        <div><dt>Grading</dt><dd>30% of the course grade.<div class="grading"><span>Real-world grounding <i>25</i></span><span>Formulation <i>25</i></span><span>Technical quality <i>25</i></span><span>Creativity <i>15</i></span><span>Communication: poster, website, pitch <i>10</i></span></div></dd></div>
         <div><dt>AI tools</dt><dd>Allowed. Every member must be able to defend every claim, line of code and plot.</dd></div>
       </dl>
     </div>
@@ -325,7 +325,19 @@
           <li>One system diagram showing states, controls, disturbances and constraints.</li>
           <li>Two to four plots, including your method against the baseline, each with a caption that states the conclusion.</li>
           <li>400 to 700 words in total. Above 800 you are writing a paper.</li>
-          <li>Print it at A4. If it looks like a wall of text, cut.</li>
+          <li>A QR code to your project website.</li>
+          <li>Print a draft on Letter paper. If it looks like a wall of text, cut.</li>
+        </ul>
+      </details>
+      <details class="fold">
+        <summary>Project website</summary>
+        <ul>
+          <li>One page, published from your repository (GitHub Pages is enough) and linked from a QR code on the poster.</li>
+          <li>At least one interactive figure that explains your core idea: let the visitor change a disturbance, a horizon or a cost weight and watch the closed loop respond.</li>
+          <li>Drive it with your real results. Precomputed traces from your runs are fine; a cartoon is not.</li>
+          <li>Show the baseline next to your method, and how you checked the numbers.</li>
+          <li>Keep it small: a few days of work. Content beats polish, and you must be able to explain every number it shows.</li>
+          <li>For the genre, see the demos in the book, such as the thermoacoustic pull-down in <a data-book="iterative-trajectory-optimization" href="#">Iterative Trajectory Optimization</a> or the aircraft replay in <a data-book="model-predictive-path-integral-control" href="#">Model Predictive Path Integral Control</a>.</li>
         </ul>
       </details>
       <details class="fold">
@@ -396,6 +408,7 @@
   const $ = (s, el = document) => el.querySelector(s);
   const BOOK = location.pathname.includes("/interactive/") ? "../" : "https://pierrelucbacon.com/rlbook/";
   $("#brand").href = BOOK;
+  document.querySelectorAll("a[data-book]").forEach(a => { a.href = BOOK + a.dataset.book; a.target = "_blank"; a.rel = "noopener"; });
 
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const md = s => esc(s).replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, (_, t, u) => `<a href="${u}" target="_blank" rel="noopener">${t}</a>`);

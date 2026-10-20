@@ -166,7 +166,7 @@ The team artifact establishes the base project grade; an individual's grade may
 be adjusted when the oral defense shows a materially different level of
 understanding.
 
-The [project page](https://pierrelucbacon.com/rlbook/interactive/projects.html) has a one-minute brief, 129 suggested topics with
+The [project page](https://pierrelucbacon.com/rlbook/interactive/projects.html) has a one-minute brief, a list of suggested topics with
 papers to start from, and a short questionnaire that matches topics to your
 interests.
 
@@ -420,7 +420,7 @@ orale. Une courte proposition sert de jalon non noté. La production d'équipe
 défense orale indique un niveau de compréhension sensiblement différent.
 
 La [page du projet](https://pierrelucbacon.com/rlbook/interactive/projects.html) (en anglais) présente le projet en une minute,
-129 sujets suggérés avec des articles de départ, et un court questionnaire qui
+une liste de sujets suggérés avec des articles de départ, et un court questionnaire qui
 propose des sujets selon vos intérêts.
 
 **Barème de notation.** La note finale est exprimée en notation littérale de
