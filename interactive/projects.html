@@ -407,12 +407,12 @@
   <section id="match" class="wrap" aria-labelledby="match-h">
     <div class="section-head">
       <h2 id="match-h">Find your project</h2>
-      <p>Six questions about what you care about and what you want to learn. Each answer is a measurement; when the loop closes, you get three matches and one detour.</p>
+      <p>Five questions about what you care about and what you want to learn. Each answer is a measurement; when the loop closes, you get three matches and one detour.</p>
     </div>
     <div class="matcher" id="matcher">
       <div class="loop-side">
         <svg class="loop" id="loop" viewBox="0 0 120 120" role="img" aria-label="Progress"></svg>
-        <p class="loop-caption" id="loop-caption">Six measurements to close the loop.</p>
+        <p class="loop-caption" id="loop-caption">Five measurements to close the loop.</p>
       </div>
       <div class="q-pane" id="q-pane" aria-live="polite"></div>
     </div>
@@ -537,6 +537,7 @@
 
   /* ---------- Matcher ---------- */
   const ans = Object.assign({ areas: [], style: null, methods: [], time: null, level: null, known: [] }, store.get("answers", {}));
+  ans.known = []; // the old "fields you already know" question is gone; ignore stored answers to it
   let step = 0, showingResults = false;
 
   const QUESTIONS = () => [
@@ -558,8 +559,6 @@
       opts: [{ v: 1, b: "A solid first project", s: "A working simulator or clean data, so we can go deep on the method." },
              { v: 2, b: "Some stretch", s: "Some modelling or setup work before the control part." },
              { v: 3, b: "Ambitious", s: "Heavy modelling, slow simulators or data agreements. We like hard problems." }] },
-    { key: "known", multi: DATA.areas.length, chips: true, optional: true, title: "Which fields do you already work or study in?", hint: "The project is a chance to learn a new field, so we steer you away from these. Skip if none apply.",
-      opts: DATA.areas.map(a => ({ v: a.id, b: a.label })) },
   ];
 
   function arcPath(i, n, r) {
@@ -569,15 +568,15 @@
     return `M${x0.toFixed(2)} ${y0.toFixed(2)} A${r} ${r} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`;
   }
   function drawLoop(done, now) {
-    const n = 6;
+    const n = 5;
     let s = "";
     for (let i = 0; i < n; i++) s += `<path class="seg${i < done ? " done" : i === now ? " now" : ""}" d="${arcPath(i, n, 48)}"/>`;
     if (done >= n) s += `<path class="tick" d="M46 61 l9 9 l19 -21"/>`;
     else s += `<text class="center" x="60" y="62" text-anchor="middle">${done}/${n}</text><text class="sub" x="60" y="78" text-anchor="middle">answers</text>`;
     $("#loop").innerHTML = s;
-    $("#loop").setAttribute("aria-label", done >= n ? "All six questions answered" : `${done} of ${n} questions answered`);
+    $("#loop").setAttribute("aria-label", done >= n ? "All five questions answered" : `${done} of ${n} questions answered`);
     $("#loop-caption").textContent = done >= n ? "Loop closed. Change any answer and the matches follow."
-      : done === 0 ? "Six measurements to close the loop." : `${n - done} more to close the loop.`;
+      : done === 0 ? "Five measurements to close the loop." : `${n - done} more to close the loop.`;
   }
   const answered = (q) => {
     const v = ans[q.key];
@@ -738,7 +737,7 @@
 
   function renderResults() {
     showingResults = true;
-    drawLoop(6, -1);
+    drawLoop(5, -1);
     const { top, detour } = rank(ans);
     lastMatches = top.concat(detour ? [detour] : []).map(r => r.t.id);
     refreshComposer();
