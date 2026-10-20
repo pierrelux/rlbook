@@ -250,6 +250,20 @@
       "subdir": "emscripten-wasm32"
     },
     {
+      "name": "pillow",
+      "version": "13.0.0",
+      "build": "py313hd87ed1a_0",
+      "filename_stem": "pillow-13.0.0-py313hd87ed1a_0",
+      "filename": "pillow-13.0.0-py313hd87ed1a_0.tar.gz",
+      "channel": "https://prefix.dev/emscripten-forge-4x",
+      "depends": [
+        "zlib",
+        "emscripten-abi >=4,<5.0a0",
+        "python_abi 3.13.* *_cp313"
+      ],
+      "subdir": "emscripten-wasm32"
+    },
+    {
       "name": "emscripten-abi",
       "version": "4.0.9",
       "build": "h267e887_9",
@@ -271,19 +285,6 @@
         "python"
       ],
       "subdir": "noarch"
-    },
-    {
-      "name": "pyjs-rt",
-      "version": "4.0.6",
-      "build": "py313h06ab7c0_0",
-      "filename_stem": "pyjs-rt-4.0.6-py313h06ab7c0_0",
-      "filename": "pyjs-rt-4.0.6-py313h06ab7c0_0.tar.gz",
-      "channel": "https://prefix.dev/emscripten-forge-4x",
-      "depends": [
-        "emscripten-abi >=4,<5.0a0",
-        "python_abi 3.13.* *_cp313"
-      ],
-      "subdir": "emscripten-wasm32"
     },
     {
       "name": "contourpy",
@@ -401,6 +402,19 @@
         "python"
       ],
       "subdir": "noarch"
+    },
+    {
+      "name": "pyjs-rt",
+      "version": "4.0.7",
+      "build": "py313h06ab7c0_0",
+      "filename_stem": "pyjs-rt-4.0.7-py313h06ab7c0_0",
+      "filename": "pyjs-rt-4.0.7-py313h06ab7c0_0.tar.gz",
+      "channel": "https://prefix.dev/emscripten-forge-4x",
+      "depends": [
+        "emscripten-abi >=4,<5.0a0",
+        "python_abi 3.13.* *_cp313"
+      ],
+      "subdir": "emscripten-wasm32"
     },
     {
       "name": "xeus-python-shell-lite",
@@ -539,20 +553,6 @@
         "python"
       ],
       "subdir": "noarch"
-    },
-    {
-      "name": "pillow",
-      "version": "12.3.0",
-      "build": "py313h6414d15_0",
-      "filename_stem": "pillow-12.3.0-py313h6414d15_0",
-      "filename": "pillow-12.3.0-py313h6414d15_0.tar.gz",
-      "channel": "https://prefix.dev/emscripten-forge-4x",
-      "depends": [
-        "zlib",
-        "emscripten-abi >=4,<5.0a0",
-        "python_abi 3.13.* *_cp313"
-      ],
-      "subdir": "emscripten-wasm32"
     },
     {
       "name": "xeus-python",
