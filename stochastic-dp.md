@@ -200,208 +200,319 @@ However, just as we tackled the challenges of continuous state spaces with discr
 
 These two elements essentially distill the key ingredients of machine learning, which is the direction we'll be exploring in this course. 
 
-## Example: Stochastic Optimal Harvest in Resource Management
+## Example: Reservoir Operation with Random Inflows
 
-How does uncertain growth change the harvest policy and the distribution of
-realized returns?
+How does the reservoir policy change when each week's release must be chosen
+before that week's inflow is known?
 
-Building upon our previous deterministic model, we now introduce stochasticity to more accurately reflect the uncertainties inherent in real-world resource management scenarios {cite:p}`Conroy2013`. As before, we consider a population of a particular species, whose abundance we denote by $x_t$, where $t$ represents discrete time steps. Our objective remains to maximize the cumulative harvest over a finite time horizon, while also considering the long-term sustainability of the population. However, we now account for two sources of stochasticity: partial controllability of harvest and environmental variability affecting growth rates.
-The optimization problem can be formulated as:
+The previous chapter operated a [seasonal hydroelectric
+reservoir](finite-horizon-dp.md#example-seasonal-operation-of-a-hydroelectric-reservoir)
+against an inflow forecast and treated the forecast as exact. Its policy
+refills the reservoir after the spring freshet, holds it at capacity from
+September to late November, and releases exactly the forecast inflow in each of
+those weeks. That plan is only as good as the forecast: a week wetter than
+forecast finds the reservoir full and sends the difference over the spillway.
+Stochastic dynamic programming has long been used to compute reservoir
+operating policies that account for this risk {cite:p}`Stedinger1984`. We keep
+every element of the deterministic model (52 weekly stages, the storage and
+release limits, the head $h(x)$, the price $p_t$ and the terminal value) and
+make the inflow random.
+
+Let $\bar w_t$ denote the forecast of the previous chapter. The inflow in week
+$t$ is
 
 $$
-\text{maximize} \quad \mathbb{E}\left[\sum_{t=t_0}^{t_f} F(x_t \cdot h_t)\right]
-$$
-
-Here, $F(\cdot)$ represents the immediate reward function associated with harvesting, and $h_t$ is the realized harvest rate at time $t$. The expectation $\mathbb{E}[\cdot]$ over both harvest and growth rates, which we view as random variables. 
-In our stochastic model, the abundance $x$ still ranges from 1 to 100 individuals. The decision variable is now the desired harvest rate $d_t$, which can take values from the set $D = {0, 0.1, 0.2, 0.3, 0.4, 0.5}$. However, the realized harvest rate $h_t$ is stochastic and follows a discrete distribution:
-
-$$
-h_t = \begin{cases}
-0.75d_t & \text{with probability } 0.25 \\
-d_t & \text{with probability } 0.5 \\
-1.25d_t & \text{with probability } 0.25
+w_t = \xi_t\,\bar w_t,
+\qquad
+\xi_t = \begin{cases}
+0.6 & \text{with probability } 1/4, \\
+1.0 & \text{with probability } 1/2, \\
+1.4 & \text{with probability } 1/4,
 \end{cases}
 $$
 
-By expressing the harvest rate as a random variable, we mean to capture the fact that harvesting is a not completely under our control: we might obtain more or less what we had intended to. Furthermore, we generalize the population dynamics to the stochastic case via: 
+where the factors $\xi_0, \ldots, \xi_{51}$ are independent. The mean inflow
+equals the forecast, and one week in four is 40% wetter than forecast. The
+inflow plays the role of the disturbance $\mathbf{w}_t$ in the stochastic
+dynamics above. Because the factors are independent, past inflows carry no
+information about the next one, and storage alone remains a sufficient state,
+as in {prf:ref}`stoch-state-suff`.
+
+The operator sets the release $u_t$ at the start of the week, before the inflow
+arrives. In a dry week the requested release can exceed the water available
+above dead storage. The turbines then stop when the level reaches dead storage,
+so the volume actually released is
 
 $$
-
-x_{t+1} = x_t + r_tx_t(1 - x_t/K) - h_tx_t
+\tilde u_t = \min\{u_t,\ x_t + w_t - x_{\min}\}.
 $$
 
-where $K = 125$ is the carrying capacity. The growth rate $r_t$ is now stochastic and follows a discrete distribution:
+Storage evolves as $x_{t+1} = \min\{x_t + w_t - \tilde u_t,\ \bar x\}$, and the
+week earns $p_t\,\kappa\,h(x_t)\,\tilde u_t$. Both the successor and the revenue
+now depend on the disturbance, as $\mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t,
+\mathbf{w}_t)$ and $c_t(\mathbf{x}_t, \mathbf{u}_t, \mathbf{w}_t)$ do in the
+general formulation. Writing $\xi^k$ for the three factors and $q_k$ for their
+probabilities, Bellman's equation reads
 
 $$
-r_t = \begin{cases}
-0.85r_{\text{max}} & \text{with probability } 0.25 \\
-1.05r_{\text{max}} & \text{with probability } 0.5 \\
-1.15r_{\text{max}} & \text{with probability } 0.25
-\end{cases}
+J_t^\star(x) = \max_{u_{\min} \le u \le u_{\max}}
+\sum_{k=1}^{3} q_k \Big[\, p_t\,\kappa\,h(x)\,\tilde u^k
++ J_{t+1}^\star\big(\min\{x + \xi^k \bar w_t - \tilde u^k,\ \bar x\}\big) \Big],
+\qquad
+\tilde u^k = \min\{u,\ x + \xi^k \bar w_t - x_{\min}\},
 $$
 
-where $r_{\text{max}} = 0.3$ is the maximum growth rate. 
-Applying the principle of optimality, we can express the optimal value function $J^\star(x_t, t)$ recursively:
+with the terminal value $J_T^\star(x) = p_T\,\kappa\,h(x)\,(x - x_{\min})$ as
+before. The expectation sits inside the maximum because a single release has to
+serve all three inflows.
 
-$$
-J^\star(x_t, t) = \max_{d(t) \in D} \mathbb{E}\left[F(x_t \cdot h_t) + J^\star(x_{t+1}, t+1)\right]
-$$
-
-where the expectation is taken over the harvest and growth rate random variables. The boundary condition remains $J^*(x_{t_f}) = 0$. We can now adapt our previous code to account for the stochasticity in our model. One important difference is that simulating a solution in this context requires multiple realizations of our process. This is an important consideration when evaluating reinforcement learning methods in practice, as success cannot be claimed based on a single successful trajectory.
+The code below changes the deterministic solver in two places. The bracket is
+averaged over the three inflows before the maximum over releases is taken. And
+the successors $x + 0.6\,\bar w_t - u$ and $x + 1.4\,\bar w_t - u$ are in
+general no longer multiples of the 10 hm³ grid step, so $J_{t+1}^\star$ is
+evaluated between grid points by linear interpolation, as in [the interpolation
+section](finite-horizon-dp.md#handling-continuous-spaces-with-interpolation)
+of the previous chapter. Given the single factor 1 with probability 1, the same
+function solves the deterministic problem and returns its 74.1 M\$ from
+1100 hm³; with a known inflow, stopping a release at dead storage is the same
+as forbidding it. This is the *certainty-equivalent* problem: the random inflow
+is replaced by its mean, and the resulting policy is applied as if the forecast
+were exact. The last lines operate both policies for 2000 simulated years, on
+the same inflow sequences.
 
 ```{code-cell} python
-:tags: [hide-input]
-
-#  label: dp-harvest-stochastic
-#  caption: Stochastic resource management simulation: the cell reports the optimal policy sample, average trajectory, and visualizes ensemble trajectories plus the distribution of total harvest.
-
 import numpy as np
-from scipy.interpolate import interp1d
 
-rng = np.random.default_rng(2026)
+# The deterministic model of the previous chapter.
+T = 52
+weeks = np.arange(T)
+w_bar = 60 + 340 * np.exp(-((weeks - 19) / 3.5) ** 2) + 60 * np.exp(-((weeks - 43) / 4) ** 2)
+w_bar = 10 * np.round(w_bar / 10)                    # inflow forecast (hm³/week)
+p = 60 + 30 * np.cos(2 * np.pi * (weeks - 5) / 52)   # price ($/MWh)
+x_min, x_max = 200, 2000
+u_min, u_max = 30, 250
+kappa, p_T = 2.45, 50
 
-# Parameters
-r_max = 0.3
-K = 125
-T = 30  # Number of time steps
-N_max = 100  # Maximum population size to consider
-h_max = 0.5  # Maximum harvest rate
-h_step = 0.1  # Step size for harvest rate
+def head(x):
+    return 40 + 40 * np.sqrt(x / x_max)
 
-# Create state and decision spaces
-N_space = np.linspace(1, N_max, 100)  # Using more granular state space
-h_space = np.arange(0, h_max + h_step, h_step)
+def terminal_value(x):
+    return p_T * kappa * head(x) * (x - x_min)
 
-# Stochastic parameters
-h_outcomes = np.array([0.75, 1.0, 1.25])
-h_probs = np.array([0.25, 0.5, 0.25])
-r_outcomes = np.array([0.85, 1.05, 1.15]) * r_max
-r_probs = np.array([0.25, 0.5, 0.25])
+dx = 10
+X = np.arange(x_min, x_max + dx, dx)
+U = np.arange(u_min, u_max + dx, dx)
 
-# Initialize value function and policy
-V = np.zeros((T + 1, len(N_space)))
-policy = np.zeros((T, len(N_space)))
+# Random inflow w_t = xi_t * w_bar_t, with xi_t drawn independently each week.
+factors = np.array([0.6, 1.0, 1.4])
+probs = np.array([0.25, 0.5, 0.25])
 
-# State return function (F)
-def state_return(N, h):
-    return N * h
+def solve(factors, probs):
+    J = np.zeros((T + 1, len(X)))
+    policy = np.zeros((T, len(X)))
+    J[T] = terminal_value(X)
+    x, u = X[:, None], U[None, :]                     # all (storage, release) pairs
+    for t in reversed(range(T)):
+        value = np.zeros((len(X), len(U)))
+        for factor, prob in zip(factors, probs):      # expectation over the inflow...
+            inflow = factor * w_bar[t]
+            release = np.minimum(u, x + inflow - x_min)       # turbines stop at dead storage
+            x_next = np.minimum(x + inflow - release, x_max)  # water above capacity spills
+            value += prob * (p[t] * kappa * head(x) * release
+                             + np.interp(x_next, X, J[t + 1]))
+        J[t] = value.max(axis=1)                      # ...inside the maximum over releases
+        policy[t] = U[value.argmax(axis=1)]
+    return J, policy
 
-# State dynamics function (stochastic)
-def state_dynamics(N, h, r):
-    return N + r * N * (1 - N / K) - h * N
+def simulate(policy, years, x0):
+    """Operate the reservoir for many years at once: one row of factors per year."""
+    x = np.full(len(years), float(x0))
+    storage, revenue, spill = [x], 0.0, 0.0
+    for t in range(T):
+        inflow = years[:, t] * w_bar[t]
+        requested = policy[t, np.round((x - x_min) / dx).astype(int)]
+        release = np.minimum(requested, x + inflow - x_min)
+        revenue = revenue + p[t] * kappa * head(x) * release
+        spill = spill + np.maximum(x + inflow - release - x_max, 0)
+        x = np.minimum(x + inflow - release, x_max)
+        storage.append(x)
+    return np.array(storage), revenue + terminal_value(x), spill
 
-# Function to create interpolation function for a given time step
-def create_interpolator(V_t, N_space):
-    return interp1d(N_space, V_t, kind='linear', bounds_error=False, fill_value=(V_t[0], V_t[-1]))
+J_ce, policy_ce = solve([1.0], [1.0])         # certainty equivalent: inflow = forecast
+J_sto, policy_sto = solve(factors, probs)     # stochastic dynamic programming
 
-# Backward iteration with stochastic dynamics
-for t in range(T - 1, -1, -1):
-    interpolator = create_interpolator(V[t+1], N_space)
-    
-    for i, N in enumerate(N_space):
-        max_value = float('-inf')
-        best_h = 0
-
-        for h in h_space:
-            if h > 1:  # Ensure harvest rate doesn't exceed 100%
-                continue
-
-            expected_value = 0
-            for h_factor, h_prob in zip(h_outcomes, h_probs):
-                for r_factor, r_prob in zip(r_outcomes, r_probs):
-                    realized_h = h * h_factor
-                    realized_r = r_factor
-
-                    next_N = state_dynamics(N, realized_h, realized_r)
-                    if next_N < 1:  # Ensure population doesn't go extinct
-                        continue
-
-                    # Use interpolation to get the value for next_N
-                    value = state_return(N, realized_h) + interpolator(next_N)
-                    expected_value += value * h_prob * r_prob
-
-            if expected_value > max_value:
-                max_value = expected_value
-                best_h = h
-
-        V[t, i] = max_value
-        policy[t, i] = best_h
-
-# Function to simulate the optimal policy using interpolation (stochastic version)
-def simulate_optimal_policy(initial_N, T, num_simulations=100):
-    all_trajectories = []
-    all_harvests = []
-
-    for _ in range(num_simulations):
-        trajectory = [initial_N]
-        harvests = []
-
-        for t in range(T):
-            N = trajectory[-1]
-            
-            # Create interpolator for the policy at time t
-            policy_interpolator = interp1d(N_space, policy[t], kind='linear', bounds_error=False, fill_value=(policy[t][0], policy[t][-1]))
-            
-            intended_h = policy_interpolator(N)
-            
-            # Apply stochasticity
-            h_factor = rng.choice(h_outcomes, p=h_probs)
-            r_factor = rng.choice(r_outcomes, p=r_probs)
-            
-            realized_h = intended_h * h_factor
-            harvests.append(N * realized_h)
-
-            next_N = state_dynamics(N, realized_h, r_factor)
-            trajectory.append(next_N)
-
-        all_trajectories.append(trajectory)
-        all_harvests.append(harvests)
-
-    return all_trajectories, all_harvests
-
-# Example usage
-initial_N = 50
-trajectories, harvests = simulate_optimal_policy(initial_N, T)
-
-# Calculate average trajectory and total harvest
-avg_trajectory = np.mean(trajectories, axis=0)
-avg_total_harvest = np.mean([sum(h) for h in harvests])
-
-print("Optimal policy (first few rows):")
-print(policy[:5])
-print("\nAverage population trajectory:", avg_trajectory)
-print("Average total harvest:", avg_total_harvest)
-
-# Plot results
-%config InlineBackend.figure_format = 'retina'
-import matplotlib.pyplot as plt
-
-# Apply book style
-try:
-    import scienceplots
-    plt.style.use(['science', 'notebook'])
-except (ImportError, OSError):
-    pass  # Use matplotlib defaults
-
-plt.figure(figsize=(12, 6))
-plt.subplot(121)
-for traj in trajectories[:20]:  # Plot first 20 trajectories
-    plt.plot(range(T+1), traj, alpha=0.3)
-plt.plot(range(T+1), avg_trajectory, 'r-', linewidth=2)
-plt.title('Population Trajectories')
-plt.xlabel('Time')
-plt.ylabel('Population')
-
-plt.subplot(122)
-plt.hist([sum(h) for h in harvests], bins=20)
-plt.title('Distribution of Total Harvest')
-plt.xlabel('Total Harvest')
-plt.ylabel('Frequency')
-
-plt.tight_layout()
+rng = np.random.default_rng(0)
+years = rng.choice(factors, size=(2000, T), p=probs)   # the same inflows for both policies
+i0 = np.searchsorted(X, 1100)
+results = {}
+for name, J, policy in (("certainty equivalent", J_ce, policy_ce),
+                        ("stochastic", J_sto, policy_sto)):
+    storage, revenue, spill = simulate(policy, years, x0=1100)
+    results[name] = (storage, revenue, spill)
+    print(f"{name:<21} predicted {J[0, i0] / 1e6:5.2f} M$   simulated {revenue.mean() / 1e6:5.2f} M$"
+          f"   spill {spill.mean():3.0f} hm³/year")
 ```
 
+The two backward passes predict different things. The certainty-equivalent
+pass predicts 74.06 M\$, the revenue its policy would earn if every week's
+inflow matched the forecast, which never happens. On the simulated inflows the
+same policy earns 73.05 M\$ on average, about 1 M\$ less, and spills water in
+96% of the years. At a water value of about 11 k\$ per hm³, the 85 hm³ it
+spills each year account for most of the shortfall. The stochastic pass predicts
+73.75 M\$, and the simulation agrees within its standard error of 0.06 M\$.
+This agreement is expected: $J_0^\star(1100)$ is the expected revenue of the
+stochastic policy under the inflow model, and the average over simulated years
+estimates the same expectation.
 
+On the same inflows, the stochastic policy earns 0.68 M\$ more per year than
+the certainty-equivalent policy. Stochastic programming calls this difference
+the *value of the stochastic solution* {cite:p}`Birge2011`. It is small next to
+the total revenue, but most of that revenue comes from water that any rule would
+sell. In the deterministic model, running the river without storing anything
+earned 66.8 M\$, and managing the storage added 7.3 M\$. The loss from
+ignoring the inflow uncertainty is about a tenth of that amount.
+
+```{code-cell} python
+:tags: [remove-cell]
+
+from pathlib import Path
+import sys
+
+code_directory = Path.cwd() / "code"
+if str(code_directory) not in sys.path:
+    sys.path.insert(0, str(code_directory))
+
+from hydro_reservoir_stochastic import (
+    make_stochastic_comparison_figure,
+    make_stochastic_policy_figure,
+)
+
+water_value_ce = np.gradient(J_ce, dx, axis=1)    # dJ_t/dx on the grid, $ per hm³
+water_value_sto = np.gradient(J_sto, dx, axis=1)
+storage_ce, revenue_ce, spill_ce = results["certainty equivalent"]
+storage_sto, revenue_sto, spill_sto = results["stochastic"]
+```
+
+```{code-cell} python
+:label: fig-hydro-stochastic-comparison
+:caption: Both policies operated on the same 2000 simulated years from $x_0 = 1100$ hm³. Left, storage from August to December: median (solid) and 5th and 95th percentiles (dashed). The certainty-equivalent policy (orange) holds the reservoir at capacity and spills whenever a week is wetter than forecast; the stochastic policy (blue) holds it about 50 hm³ below. Right, the revenue of the stochastic policy minus that of the certainty-equivalent policy in each simulated year.
+:tags: [remove-input]
+
+make_stochastic_comparison_figure(storage_ce, storage_sto, revenue_ce,
+                                  revenue_sto, x_max, first_week=30)
+```
+
+Because both policies face the same inflows, the gain can be measured year by
+year, as in the right panel of {numref}`fig-hydro-stochastic-comparison`. Its
+mean has a standard error of 0.01 M\$, against 0.06 M\$ for either mean revenue:
+a wet or dry year raises or lowers the revenue of both policies alike, and this
+common variation cancels in the difference. Evaluating competing policies on the
+same random inputs is a variance-reduction technique known as *common random
+numbers*. The stochastic policy earns more in 87% of the years. The other years
+have dry autumns, in which the certainty-equivalent policy spills little and
+the margin kept by the stochastic policy turns out to be unnecessary.
+
+The gain comes almost entirely from the autumn, shown in the left panel. The
+certainty-equivalent policy refills the reservoir to capacity in September and
+holds it there, releasing the forecast inflow each week, so every week wetter
+than forecast spills. The stochastic policy stops about 50 hm³ below capacity.
+In late October the forecast inflow is 120 hm³ per week, and the wettest week
+brings $0.4 \times 120 = 48$ hm³ more than forecast. The policy keeps exactly
+enough room to absorb it.
+
+The size of this margin follows from the comparison that explained the
+deterministic policy in the previous chapter: the turbines run when releasing
+one more hm³, worth $p_t\,\kappa\,h(x)$, earns more than keeping it, worth the
+water value $\partial J_{t+1}^\star/\partial x$ at the next storage. With random
+inflow, the second term becomes an average over the three successors
+$x_{t+1}^k$. For an inflow that fills the reservoir, an hm³ kept this week
+spills and adds nothing next week, so those successors drop out of the
+average. As long as the release is not cut short at dead storage, the
+derivative of the bracket with respect to $u$ is
+
+$$
+p_t\,\kappa\,h(x) \;-\; \sum_{k:\ x_{t+1}^k < \bar x} q_k\,
+\frac{\partial J_{t+1}^\star}{\partial x}\big(x_{t+1}^k\big).
+$$
+
+The rule becomes: run the turbines when the price exceeds the expected value of
+the water kept, counting water that would spill as worth nothing. In late
+October, near capacity, one hm³ earns about 10.3 k\$ if released and has a
+water value of about 11.2 k\$ if kept. Below the margin, the kept hm³ never
+spills, so keeping it is worth more. Above the margin, it spills in the wettest
+week, with probability 1/4, and its expected value falls to
+$0.75 \times 11.2 = 8.4$ k\$, less than the 10.3 k\$ from releasing it. The
+policy therefore holds the storage level from which the wettest week just fills
+the reservoir. The deterministic policy knows the inflow and can fill the
+reservoir to capacity without spilling.
+
+```{code-cell} python
+:label: fig-hydro-stochastic-policy
+:caption: Solution of the stochastic problem. Left, the optimal release $u_t^\star(x)$ below the inflow forecast (dark marks) and the range of the random inflow (light bars). White curves are 40 simulated years of operation from 1100 hm³. Right, the water value at the start of the freshet. With the inflow known (orange), it drops abruptly at the storage level from which the freshet fills the reservoir; with random inflow (blue), the drop is spread from about 1100 hm³ to capacity.
+:tags: [remove-input]
+
+make_stochastic_policy_figure(w_bar, factors, X, policy_sto, storage_sto[:, :40],
+                              14, water_value_ce[14], water_value_sto[14])
+```
+
+The same averaging changes the water value. The right panel of
+{numref}`fig-hydro-stochastic-policy` shows it in week 14, early April, when the
+freshet begins. In the certainty-equivalent model it drops abruptly at
+1770 hm³: from that level on, the forecast freshet fills the reservoir, and any
+additional hm³ is certain to spill. In the stochastic model the drop is spread
+from about 1100 hm³ to capacity. An additional hm³ spills only if the freshet
+is wet enough, and the probability of such a freshet rises gradually with
+storage. More generally, each $J_t^\star$ averages $J_{t+1}^\star$ over three
+successors, and this averaging smooths the kinks of the deterministic value
+function at every step of the recursion.
+
+The white curves in the left panel are 40 simulated years. In the deterministic
+model a single path described the operation of the policy; here each year
+follows its own. The paths spread out in January and February, while the policy
+releases the minimum and storage follows the random inflow. They come back
+together at the end of the winter drawdown, when every year reaches low storage
+before the freshet, spread again during the freshet, whose volume differs from
+year to year, and converge in autumn toward the level below capacity where the
+policy holds them. The outcome of a policy under uncertainty is a distribution,
+and estimating it takes many simulated trajectories. The same holds for the
+reinforcement learning methods of later chapters: one good trajectory does not
+show that a policy is good.
+
+> **Question.** If the operator could see each week's inflow before choosing
+> the release, would the expected revenue from 1100 hm³ be above or below
+> 73.75 M\$? Which lines of `solve` would change?
+
+:::{dropdown} Answer
+Above, or at least equal. Seeing the inflow first allows a different release
+for each of the three inflows, and choosing the same release for all three
+remains possible, so the maximum cannot decrease. In Bellman's equation the
+maximum moves inside the expectation,
+$J_t^\star(x) = \sum_k q_k \max_u [\,\cdots]$. In `solve`, each term is
+maximized over releases before it is added, `value += prob * (...).max(axis=1)`
+with `value` a vector over storage levels, and `J[t] = value`. The policy then
+depends on the inflow as well as on the storage. The expected revenue becomes
+74.01 M\$, so knowing each week's inflow in advance is worth 0.26 M\$ per year.
+:::
+
+> **Question.** In this model the inflow factor is drawn independently each
+> week, so a wet April says nothing about May. Real freshets tend to be wet or
+> dry for weeks at a time, because they melt from a single snowpack. What would
+> the state have to contain for the backward recursion to remain valid, and
+> what would that cost?
+
+:::{dropdown} Answer
+With correlated inflows, storage is no longer a sufficient state: the
+distribution of next week's inflow depends on past inflows, and the argument of
+{prf:ref}`stoch-state-suff` no longer applies to storage alone. If the factor
+follows a Markov chain, adding last week's factor to the state restores it. The
+state becomes $(x_t, \xi_{t-1})$, with $181 \times 3 = 543$ grid points instead
+of 181, and the expectation uses the transition probabilities out of
+$\xi_{t-1}$. A measured snowpack would be a continuous second state variable
+with its own grid. Each such variable multiplies the size of the grid, which is
+the curse of dimensionality again. A common alternative is to re-solve a
+deterministic problem every week with an updated forecast, as in
+[receding-horizon control](receding-horizon-control.md).
+:::
 
 ## Markov Decision Process Formulation
 

@@ -5,8 +5,93 @@
   "fr": "Automne 2026"
  },
  "folder_url": "https://drive.google.com/drive/folders/1iwN-j6IJP9l8EOkXrcxy4DpWRNcTixr8",
- "updated": "2026-09-29",
+ "updated": "2026-10-01",
  "lectures": [
+  {
+   "date": "2026-10-01",
+   "week": 5,
+   "title": {
+    "en": "Midterm 1 review: collocation worked example, single shooting and KKT conditions",
+    "fr": "Révision pour l'examen de mi-session 1 : exemple de collocation, tir simple et conditions KKT"
+   },
+   "chapters": [
+    {
+     "slug": "continuous-time-collocation",
+     "title": "Continuous-Time Transcription and Collocation"
+    },
+    {
+     "slug": "numerical-trajectory-optimization",
+     "title": "Numerical Trajectory Optimization"
+    },
+    {
+     "slug": "appendix_nlp",
+     "title": "Nonlinear Programming"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/1pe8Bg9NRHM_R8cht-TRMvR3eQngMqJX9/view",
+   "duration_ms": 6483679,
+   "thumb": "2026-10-01.jpg",
+   "paragraphs": 131,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "Collocation decision variables",
+      "fr": "Variables de décision de la collocation"
+     },
+     "p": 18,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Integral-form collocation constraints",
+      "fr": "Contraintes de collocation, forme intégrale"
+     },
+     "p": 23,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Counting NLP unknowns",
+      "fr": "Compter les inconnues du NLP"
+     },
+     "p": 51,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Small residual is not accuracy",
+      "fr": "Petit résidu n'égale pas précision"
+     },
+     "p": 85,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Lagrangian, KKT, Arrow-Hurwicz",
+      "fr": "Lagrangien, KKT et Arrow-Hurwicz"
+     },
+     "p": 104,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Limits of single shooting",
+      "fr": "Limites du tir simple"
+     },
+     "p": 122,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Midterm 1 format and coverage",
+      "fr": "Examen de mi-session 1 : format et matière"
+     },
+     "p": 127,
+     "exam": true
+    }
+   ]
+  },
   {
    "date": "2026-09-28",
    "week": 5,

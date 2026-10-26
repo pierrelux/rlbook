@@ -1,0 +1,780 @@
+{
+ "date": "2026-10-01",
+ "tldr": [
+  {
+   "notion": "Collocation decision variables",
+   "t": 851120,
+   "exam": true,
+   "detail": "A mesh splits the horizon into intervals of length h, each mapped to normalized time \\(\\tau \\in [0,1]\\); the unknowns are the mesh states \\(x_k\\), the stage states \\(x_{k,i}\\) at the collocation nodes (whose choice defines the method, here the Radau nodes 1/3 and 1) and one control \\(u_k\\) per interval for a zero-order hold. Unlike the continuous OCP, where u is a function, direct transcription searches simultaneously over these nodal values of both x and u, and he plans midterm questions on collocation.",
+   "notion_fr": "Variables de décision de la collocation",
+   "detail_fr": "Un maillage découpe l'horizon en intervalles de longueur h, chacun ramené au temps normalisé \\(\\tau \\in [0,1]\\); les inconnues sont les états de maillage \\(x_k\\), les états d'étage \\(x_{k,i}\\) aux nœuds de collocation (dont le choix définit la méthode, ici les nœuds de Radau 1/3 et 1) et une commande \\(u_k\\) par intervalle pour un bloqueur d'ordre zéro. Contrairement à l'OCP continu, où u est une fonction, la transcription directe cherche simultanément dans ces valeurs nodales de x et de u, et il prévoit des questions sur la collocation à l'examen de mi-session."
+  },
+  {
+   "notion": "Integral-form collocation constraints",
+   "t": 1067360,
+   "exam": true,
+   "detail": "From the fundamental theorem of calculus, interpolating the slopes \\(f_{k,j}\\) in a Lagrange basis lets the basis integrals be precomputed, \\(A_{ij} = \\int_0^{\\tau_i} \\ell_j(\\tau)\\,d\\tau\\) and \\(b_j = \\int_0^1 \\ell_j(\\tau)\\,d\\tau\\), giving the stage equations \\(x_{k,i} = x_k + h\\sum_j A_{ij} f_{k,j}\\) and the continuity (defect) equations \\(x_{k+1} = x_k + h\\sum_j b_j f_{k,j}\\), which he suggested putting on the cheat sheet. The running cost is integrated with the same weights, and the derivative form (interpolate x and match its derivative to f) is left for self-study.",
+   "notion_fr": "Contraintes de collocation, forme intégrale",
+   "detail_fr": "À partir du théorème fondamental de l'analyse, interpoler les pentes \\(f_{k,j}\\) dans une base de Lagrange permet de précalculer les intégrales de la base, \\(A_{ij} = \\int_0^{\\tau_i} \\ell_j(\\tau)\\,d\\tau\\) et \\(b_j = \\int_0^1 \\ell_j(\\tau)\\,d\\tau\\), ce qui donne les équations d'étage \\(x_{k,i} = x_k + h\\sum_j A_{ij} f_{k,j}\\) et les équations de continuité (contraintes de raccordement, defect) \\(x_{k+1} = x_k + h\\sum_j b_j f_{k,j}\\), qu'il suggère de mettre sur l'aide-mémoire. Le coût courant est intégré avec les mêmes poids, et la forme dérivée (interpoler x et faire correspondre sa dérivée à f) est laissée en étude personnelle."
+  },
+  {
+   "notion": "Counting NLP unknowns",
+   "t": 2455040,
+   "exam": true,
+   "detail": "With N intervals, s stage nodes per interval, state dimension n and a zero-order-hold scalar control, the program has \\((N+1)n + Nsn + N\\) unknowns, that is 82 + 160 + 40 = 282 for the pendulum (N = 40, s = 2, n = 2). He called this a good exam question, and the practice set has a variant where 31 mesh nodes imply 30 intervals.",
+   "notion_fr": "Compter les inconnues du NLP",
+   "detail_fr": "Avec N intervalles, s nœuds d'étage par intervalle, un état de dimension n et une commande scalaire à bloqueur d'ordre zéro, le programme a \\((N+1)n + Nsn + N\\) inconnues, soit 82 + 160 + 40 = 282 pour le pendule (N = 40, s = 2, n = 2). Il a qualifié ça de bonne question d'examen, et les questions d'entraînement en ont une variante où 31 nœuds de maillage impliquent 30 intervalles."
+  },
+  {
+   "notion": "Small residual is not accuracy",
+   "t": 4251840,
+   "exam": true,
+   "detail": "A residual near machine precision only says that the solution satisfies this transcription; its accuracy with respect to the true dynamics depends on the mesh resolution and on the choice of collocation points. A residual that is not small does signal a struggling solver, for example one given a poor initial guess (a straight line from start to goal state is a common guess).",
+   "notion_fr": "Petit résidu n'égale pas précision",
+   "detail_fr": "Un résidu de l'ordre de la précision machine indique seulement que la solution satisfait cette transcription; sa précision par rapport à la vraie dynamique dépend de la finesse du maillage et du choix des points de collocation. Un résidu qui n'est pas petit signale par contre un solveur en difficulté, par exemple à cause d'une mauvaise estimation initiale (une ligne droite entre l'état de départ et l'état but est une estimation courante)."
+  },
+  {
+   "notion": "Lagrangian, KKT, Arrow-Hurwicz",
+   "t": 5154639,
+   "exam": true,
+   "detail": "The Lagrangian adds a multiplier per equality constraint to the cost; its first-order conditions (whose derivative with respect to \\(\\lambda\\) recovers the constraints) are what Newton's method or SQP solves, with linalg.solve rather than an explicit inverse. Freezing \\(\\lambda = 1\\) and running Adam only solves a penalized problem, whereas Arrow-Hurwicz does gradient descent in z and ascent in \\(\\lambda\\), clipping the inequality multipliers so that \\(\\mu \\geq 0\\); he said the exam may ask you to find such a bug in a code snippet.",
+   "notion_fr": "Lagrangien, KKT et Arrow-Hurwicz",
+   "detail_fr": "Le lagrangien ajoute au coût un multiplicateur par contrainte d'égalité; ses conditions du premier ordre (dont la dérivée par rapport à \\(\\lambda\\) redonne les contraintes) sont ce que résout la méthode de Newton ou SQP, avec linalg.solve plutôt qu'une inverse explicite. Figer \\(\\lambda = 1\\) et lancer Adam ne résout qu'un problème pénalisé, alors qu'Arrow-Hurwicz fait une descente de gradient en z et une ascension en \\(\\lambda\\), en écrêtant les multiplicateurs d'inégalité pour que \\(\\mu \\geq 0\\); il a dit que l'examen pourrait demander de trouver ce genre d'erreur dans un bout de code."
+  },
+  {
+   "notion": "Limits of single shooting",
+   "t": 6069920,
+   "exam": true,
+   "detail": "Single shooting keeps only the controls as decision variables (the states come from the rollout \\(\\phi\\)), so it can bound the steering angle but cannot impose hard constraints on the state trajectory, and backpropagating through the rollout can make gradients explode or vanish (in the semi-truck backing question the gradient grows about 20 times, like an exponential in the horizon). For a long-horizon unstable system such as a deep-space probe that must stay in a safe region, a simultaneous method like collocation is appropriate because it can constrain the states.",
+   "notion_fr": "Limites du tir simple",
+   "detail_fr": "Le tir simple ne garde que les commandes comme variables de décision (les états viennent du déroulement (rollout) \\(\\phi\\)), donc il peut borner l'angle de braquage mais ne peut pas imposer de contraintes dures sur la trajectoire d'état, et la rétropropagation à travers le déroulement peut faire exploser ou s'évanouir le gradient (dans la question sur la marche arrière du semi-remorque, le gradient devient environ 20 fois plus grand, comme une exponentielle de l'horizon). Pour un système instable à long horizon, comme une sonde spatiale lointaine qui doit rester dans une région sûre, une méthode simultanée comme la collocation est appropriée, car elle peut contraindre les états."
+  },
+  {
+   "notion": "Midterm 1 format and coverage",
+   "t": 6330320,
+   "exam": true,
+   "detail": "Next week's midterm (Thursday, October 8) will be quite similar in flavor to the midterm practice, with the same kind of questions phrased less as multiple choice, and it is aligned with what he presented in class, which the new transcript summary page captures; the questions he flagged today (collocation, counting unknowns, residual versus accuracy, buggy code, single shooting) show the style. Each student may bring one double-sided cheat sheet written by hand, not typed, and can email the TA, Gabriel Sasseville, for help.",
+   "notion_fr": "Examen de mi-session 1 : format et matière",
+   "detail_fr": "L'examen de mi-session de la semaine prochaine (jeudi 8 octobre) ressemblera beaucoup, dans son style, aux questions d'entraînement, avec le même genre de questions formulées moins sous forme de choix multiples, et il est aligné sur ce qu'il a présenté en classe, ce que capte la nouvelle page de résumés des transcriptions; les questions qu'il a signalées aujourd'hui (collocation, compte des inconnues, résidu versus précision, code fautif, tir simple) montrent le style attendu. Chaque étudiant peut apporter un aide-mémoire recto verso écrit à la main, pas tapé à l'ordinateur, et peut écrire à l'auxiliaire d'enseignement, Gabriel Sasseville, pour obtenir de l'aide."
+  }
+ ],
+ "outline": [
+  {
+   "t": 6240,
+   "title": "Transcript summary page and session plan",
+   "title_fr": "Page de résumés des transcriptions et plan de la séance"
+  },
+  {
+   "t": 281919,
+   "title": "Underpowered pendulum swing-up OCP",
+   "title_fr": "OCP de redressement d'un pendule sous-motorisé"
+  },
+  {
+   "t": 593680,
+   "title": "Normalized time, mesh, and stage nodes",
+   "title_fr": "Temps normalisé, maillage et nœuds d'étage"
+  },
+  {
+   "t": 1067360,
+   "title": "Fundamental theorem of calculus, integral form",
+   "title_fr": "Théorème fondamental de l'analyse, forme intégrale"
+  },
+  {
+   "t": 1524480,
+   "title": "Lagrange basis and precomputed integrals",
+   "title_fr": "Base de Lagrange et intégrales précalculées"
+  },
+  {
+   "t": 2455040,
+   "title": "Counting the NLP decision variables",
+   "title_fr": "Compter les variables de décision du NLP"
+  },
+  {
+   "t": 3024079,
+   "title": "Break",
+   "title_fr": "Pause"
+  },
+  {
+   "t": 3589520,
+   "title": "Constraints, initialization, and solution residual",
+   "title_fr": "Contraintes, initialisation et résidu de la solution"
+  },
+  {
+   "t": 4497280,
+   "title": "Practice quiz on decision variables",
+   "title_fr": "Quiz d'entraînement sur les variables de décision"
+  },
+  {
+   "t": 5053199,
+   "title": "Lagrangian, KKT conditions, Newton step",
+   "title_fr": "Lagrangien, conditions KKT, pas de Newton"
+  },
+  {
+   "t": 5582480,
+   "title": "Arrow-Hurwicz descent-ascent and code review",
+   "title_fr": "Descente-ascension d'Arrow-Hurwicz et révision de code"
+  },
+  {
+   "t": 6009360,
+   "title": "Single shooting limits and midterm logistics",
+   "title_fr": "Limites du tir simple et logistique de l'examen"
+  }
+ ],
+ "paras": [
+  {
+   "t": 6240,
+   "text": "Okay, ready. Look at this cool thing I made. So, of course, you can always find the video recordings in Google Drive. But I told you that there's this nice thing where you can get the transcript from the videos in Google Drive. So I went and fetched all the transcripts, collected everything in that one page, and then summarized what it is that I talked about. This is perfect for the student who... there might be some, like the kind of student who doesn't show up to class but then is going to be present for the midterm, and then that person is going to go, like, click, click, click: \"Okay, this is the one thing I've got to learn.\" And I absolutely don't encourage you to do this. But I guess even if you're not that kind of student, it's probably useful. Look: key notions. \"Last time we talked about model predictive control.\" And you can",
+   "fr": "Bon, c'est parti. Regardez ce truc génial que j'ai fait. Bien sûr, vous pouvez toujours trouver les enregistrements vidéo dans Google Drive. Mais je vous avais dit qu'il y a cette fonction bien pratique qui permet d'obtenir la transcription des vidéos dans Google Drive. Alors je suis allé chercher toutes les transcriptions, j'ai tout rassemblé sur une seule page, puis j'ai résumé ce dont j'ai parlé. C'est parfait pour l'étudiant qui... il y en a peut-être, le genre d'étudiant qui ne vient pas au cours, mais qui va être présent à l'examen de mi-session, et cette personne-là va faire clic, clic, clic : « Bon, c'est ça, la seule chose que je dois apprendre. » Et je ne vous encourage absolument pas à faire ça. Mais j'imagine que même si vous n'êtes pas ce genre d'étudiant, c'est probablement utile. Regardez : notions clés. « La dernière fois, nous avons parlé de commande prédictive. » Et vous pouvez"
+  },
+  {
+   "t": 68080,
+   "text": "go there: transcript, and there's a translation [?]. And the captions sometimes are a bit not perfect, so I asked Claude to kind of guess the right completion. So there are places where he might have guessed, but I don't think he guessed wrong. It's like we've reached AGI, guys. So I don't think he made a mistake. But look: key notions, last time, final exam, talk about MPC, this and that. I think it's great. So I hope you enjoy, and I hope you make use of it. And there's maybe the one feature that is not there, where you could click on maybe one part of a sentence I said and then it would bring you to the video. I haven't done it, but please vibe code it yourself if you want, or maybe I'll do it at some other time.",
+   "fr": "aller là : transcription, et il y a une traduction [?]. Et les sous-titres ne sont pas toujours parfaits, alors j'ai demandé à Claude de deviner en quelque sorte la bonne complétion. Il y a donc des endroits où il a peut-être deviné, mais je ne pense pas qu'il se soit trompé. C'est comme si on avait atteint l'AGI. Donc je ne pense pas qu'il ait fait d'erreur. Mais regardez : notions clés, la dernière fois, examen final, on parle de MPC, ceci, cela. Je trouve ça génial. Alors j'espère que ça vous plaira et que vous allez vous en servir. Et il manque peut-être une fonctionnalité : pouvoir cliquer sur un bout de phrase que j'ai dit pour être amené à ce moment-là dans la vidéo. Je ne l'ai pas fait, mais codez-la vous-mêmes en vibe coding si vous voulez, ou peut-être que je le ferai une autre fois."
+  },
+  {
+   "t": 125280,
+   "text": "Good. And it motivated me also to get some good recordings of my voice. So I think I'll use my research funds to buy maybe one of those podcaster mics I can wear, so that it records properly, because when I move there to the whiteboard, this thing is not picking up much. Yeah, the stuff we can do now. Amazing. MPPI [?] should be there. There was a problem with the page showing up, not showing up. It should be there. I'm using the URL from my public website, so that should be good.",
+   "fr": "Bien. Et ça m'a aussi motivé à avoir de bons enregistrements de ma voix. Je pense que je vais utiliser mes fonds de recherche pour acheter un de ces micros de baladodiffusion qu'on peut porter sur soi, pour que ça enregistre correctement, parce que quand je me déplace là-bas vers le tableau blanc, ceci ne capte pas grand-chose. Oui, tout ce qu'on peut faire maintenant. Incroyable. MPPI [?] devrait être là. Il y avait un problème avec la page qui s'affichait, qui ne s'affichait pas. Elle devrait être là. J'utilise l'adresse de mon site Web public, donc ça devrait être correct."
+  },
+  {
+   "t": 165120,
+   "text": "A little bit, not much. I prepared some questions today. Yeah. So I prepared too much stuff for two hours. I'd better stop talking about unrelated things and get to work. So please open these two things. You can follow interactively or as you want, but you should be on the website. So this thing is not like any page. It's actually a Colab. It's rendered in Jupyter Book, but it's an IPython notebook, and this should work normally if you do \"Open in Colab.\" It takes it from my GitHub repo and then copies it into Colab, so you can execute it in a live environment. So we're going to do this today. Not sure where I should start, but I also have these practice questions that we can work through together. Out of two hours, so maybe what we can do is one hour we do the demo and one hour we",
+   "fr": "Un peu, pas beaucoup. J'ai préparé des questions aujourd'hui. Oui. En fait, j'ai préparé trop de matière pour deux heures. Je ferais mieux d'arrêter de parler de choses sans rapport et de me mettre au travail. Alors, ouvrez ces deux choses-là, s'il vous plaît. Vous pouvez suivre de façon interactive ou comme vous voulez, mais vous devriez être sur le site Web. Ceci n'est pas une page comme les autres. C'est en fait un Colab. C'est rendu dans Jupyter Book, mais c'est un notebook IPython, et ça devrait fonctionner normalement si vous faites « Open in Colab ». Ça le prend dans mon dépôt GitHub puis le copie dans Colab, pour que vous puissiez l'exécuter dans un environnement en direct. C'est ce qu'on va faire aujourd'hui. Je ne sais pas trop par où commencer, mais j'ai aussi ces questions d'entraînement qu'on peut faire ensemble. Sur deux heures, ce qu'on pourrait faire, c'est une heure pour la démo et une heure pour"
+  },
+  {
+   "t": 227680,
+   "text": "do the questions. Okay, let's start with the demo. And then in the second half we'll go with the midterm practice questions. Sounds good? Have you opened it? Yeah? You need more time? If you can't find it, go on StudiUM, then click \"Nouvelles\" [?] or whatever it is in the English version, and then the last message, or it might be in your email actually, and then open the notebook. So I think the collocation concept is a bit abstract. Hopefully it's going to make it clear today. I want to ask you questions about that in the midterm. So hopefully that's going to help you solidify your understanding.",
+   "fr": "les questions. Bon, commençons par la démo. Et dans la deuxième moitié, on passera aux questions d'entraînement pour l'examen de mi-session. Ça vous va? Vous l'avez ouvert? Oui? Vous avez besoin de plus de temps? Si vous ne le trouvez pas, allez sur StudiUM, puis cliquez sur « Nouvelles » [?] ou peu importe comment ça s'appelle dans la version anglaise, puis sur le dernier message, ou c'est peut-être dans vos courriels, en fait, et ouvrez le notebook. Je pense que le concept de collocation est un peu abstrait. J'espère que ça va devenir clair aujourd'hui. Je veux vous poser des questions là-dessus à l'examen de mi-session. Alors j'espère que ça va vous aider à consolider votre compréhension."
+  },
+  {
+   "t": 281919,
+   "text": "Okay, I think the idea, once you get it, is intuitive, but there are things you need to know before it gets intuitive. Okay, so we're going to solve a sort of pendulum problem, but it's not an underactuated pendulum problem. So it's a problem where there is a motor, so it can apply a torque. I'm going to show you the end result to begin. It's going to look like that.",
+   "fr": "Bon, je pense que l'idée, une fois qu'on la saisit, est intuitive, mais il y a des choses à savoir avant qu'elle le devienne. Alors, on va résoudre une sorte de problème de pendule, mais ce n'est pas un problème de pendule sous-actionné. C'est un problème où il y a un moteur, donc il peut appliquer un couple. Je vais vous montrer le résultat final pour commencer. Ça va ressembler à ça."
+  },
+  {
+   "t": 318240,
+   "text": "So one difference with the other pendulum problems we've seen so far: it's kind of a bit easier, this version, because we assume there's a motor here. The problem is that the motor is underpowered. So if you were to do this in reality, what underpowered means is that it's not strong enough to overcome gravity. Then it needs to be smart and find a solution. If it's stronger than gravity, that's basically a trivial problem. All it's got to do is turn the motor all the way to the upright position. But here, because it's underactuated, underpowered, it did this. You saw this is a solution it found, where it's going to swing the pendulum to build energy, basically. Let's just do it again. So see, it first swings it like that, and then it's got enough energy and momentum to reach the upright position.",
+   "fr": "Une différence avec les autres problèmes de pendule qu'on a vus jusqu'ici : cette version est un peu plus facile, parce qu'on suppose qu'il y a un moteur ici. Le problème, c'est que le moteur n'est pas assez puissant. Si vous faisiez ça dans la réalité, pas assez puissant veut dire qu'il n'a pas la force de vaincre la gravité. Il doit donc être astucieux et trouver une solution. S'il est plus fort que la gravité, c'est essentiellement un problème trivial. Tout ce qu'il a à faire, c'est de tourner le moteur jusqu'à la position verticale. Mais ici, parce qu'il est sous-actionné, pas assez puissant, il a fait ceci. Vous avez vu, c'est une solution qu'il a trouvée, où il balance le pendule pour accumuler de l'énergie, essentiellement. Refaisons-le. Voyez, il le balance d'abord comme ça, puis il a assez d'énergie et de quantité de mouvement pour atteindre la position verticale."
+  },
+  {
+   "t": 377600,
+   "text": "So that's going to be our goal. It's just for understanding. It's not really of practical relevance. The dynamics look like that. Yeah, there's not much for us to know, apart from the fact that this is a standard model. I just took this from one of the million pendulum formulations that exist. It's often a toy problem that we like to use because it's relatively easy to analyze. Nevertheless, it's nonlinear, and that makes it non-trivial to solve. Our objective, the OCP we're going to solve, is we're going to be minimizing the overall... what does that mean? Let me ask you as a question. Yeah, what is that? Why do we write \"minimize the integral of u squared\"?",
+   "fr": "Ce sera donc notre objectif. C'est seulement pour la compréhension. Ça n'a pas vraiment de pertinence pratique. La dynamique ressemble à ça. Oui, il n'y a pas grand-chose à savoir, à part que c'est un modèle standard. Je l'ai pris dans une des millions de formulations du pendule qui existent. C'est souvent un problème jouet qu'on aime utiliser parce qu'il est relativement facile à analyser. Néanmoins, il est non linéaire, ce qui le rend non trivial à résoudre. Notre objectif, l'OCP qu'on va résoudre, c'est qu'on va minimiser l'ensemble... qu'est-ce que ça veut dire? Je vais vous le poser comme question. Oui, qu'est-ce que c'est? Pourquoi écrit-on « minimiser l'intégrale de u au carré »?"
+  },
+  {
+   "t": 433919,
+   "text": "You want to find a solution of least effort, which is usually a regularizer we like to use. Subject to the dynamics. The dynamics are these two things. What's the dimensionality of the state here? Two. So just the angle and the angular velocity, omega. And, more importantly, we have terminal constraints that make the problem well posed, because our goal, again, is to bring the rod upright.",
+   "fr": "On veut trouver une solution de moindre effort, ce qui est habituellement un régularisateur qu'on aime utiliser. Sous la contrainte de la dynamique. La dynamique, ce sont ces deux choses-là. Quelle est la dimension de l'état ici? Deux. Donc seulement l'angle et la vitesse angulaire, oméga. Et, plus important encore, on a des contraintes terminales qui rendent le problème bien posé, parce que notre objectif, encore une fois, est d'amener la tige à la verticale."
+  },
+  {
+   "t": 466639,
+   "text": "And we do it from the starting position, the resting position. So the initial state is (0, 0): the angle is zero, the angular velocity is zero. And then we want to land in a position where the rod is at pi radians and with zero angular velocity. So that's our goal. And this is a boundary constraint. So we're going to have to transcribe that problem using collocation.",
+   "fr": "Et on le fait à partir de la position de départ, la position de repos. L'état initial est donc (0, 0) : l'angle est nul, la vitesse angulaire est nulle. Puis on veut arriver dans une position où la tige est à pi radians, avec une vitesse angulaire nulle. C'est notre objectif. Et c'est une contrainte aux limites. On va donc devoir transcrire ce problème par collocation."
+  },
+  {
+   "t": 497199,
+   "text": "And this is what we're going to be doing, with the two approaches we've seen. The general recipe: I think one great innovation of this year's edition is that I present this in a more general manner, which, in my opinion, at the end of the day, might end up being simpler. I used to present only the very complicated formulas of Hermite-Simpson and all of that, but in fact you don't even need to implement Hermite-Simpson this way. You can just implement it using the general recipe, and that just becomes a subcase of it.",
+   "fr": "Et c'est ce qu'on va faire, avec les deux approches qu'on a vues. La recette générale : je pense qu'une belle innovation de l'édition de cette année, c'est que je présente ça de façon plus générale, ce qui, à mon avis, au bout du compte, pourrait s'avérer plus simple. Avant, je présentais seulement les formules très compliquées d'Hermite-Simpson et tout ça, mais en fait, on n'a même pas besoin d'implémenter Hermite-Simpson de cette façon. On peut simplement l'implémenter avec la recette générale, et ça devient un cas particulier."
+  },
+  {
+   "t": 532720,
+   "text": "Okay, so how do we code this up? We're going to code it up this way, using SciPy. So it's all going to be SciPy, NumPy, no JAX, although you could do it. Is it not...? No. Let me just restart the kernel. So we define our dynamics just the way we've done it earlier. It's a simple translation here of what we had. Just note how we write things down: we're going to lump both state components into x. So it's a vector of these two things; the control; and then the running cost. All right. So then the question afterwards is how we're going to be solving this thing, and I invite you to read the text. I think, honestly, it might do a better job at explaining the ideas than the main notes themselves. So please go through it. What the text here is saying is that we're going to be working within a",
+   "fr": "Bon, comment est-ce qu'on code ça? On va le coder de cette façon, avec SciPy. Ce sera donc entièrement en SciPy, NumPy, pas de JAX, même si on pourrait. Ça ne marche pas...? Non. Je vais juste redémarrer le noyau. On définit notre dynamique exactement comme on l'a fait plus tôt. C'est une simple traduction de ce qu'on avait. Remarquez seulement comment on écrit les choses : on regroupe les deux composantes de l'état dans x. C'est donc un vecteur de ces deux choses; la commande; puis le coût courant. Bon. Ensuite, la question est de savoir comment on va résoudre ça, et je vous invite à lire le texte. Honnêtement, je pense qu'il explique peut-être mieux les idées que les notes principales elles-mêmes. Alors lisez-le, s'il vous plaît. Ce que le texte dit ici, c'est qu'on va travailler dans un"
+  },
+  {
+   "t": 593680,
+   "text": "normalized time interval. So it makes everything easy to work with: the coefficients will be contained in a matrix, and everything will be defined over the same time scale. It's just normalized time, with tau. So whenever I write tau, it's a normalized time. It means I'm going to be within a segment, and that segment runs from time zero to one, but this is embedded within a larger time scale. So it's just a matter of shifting the current time index with respect to the beginning of the interval, \\(t_k\\), and dividing by the length of the interval.",
+   "fr": "intervalle de temps normalisé. Ça rend tout facile à manipuler : les coefficients seront contenus dans une matrice, et tout sera défini sur la même échelle de temps. C'est simplement du temps normalisé, avec tau. Chaque fois que j'écris tau, c'est un temps normalisé. Ça veut dire que je suis à l'intérieur d'un segment, et que ce segment va du temps zéro à un, mais il est inséré dans une échelle de temps plus grande. Il s'agit simplement de décaler l'indice de temps courant par rapport au début de l'intervalle, \\(t_k\\), et de diviser par la longueur de l'intervalle."
+  },
+  {
+   "t": 628000,
+   "text": "So visually speaking, it's going to look like this when we do collocation. I think it's a great figure. If you struggle with visualizing what's going on, this is going to help you, I think. Okay. So our goal is to... well, when we start, we actually don't know that curve. What is the curve? It's the trajectory in state space of our system. But what we're provided with is the slope. It's how it changes.",
+   "fr": "Visuellement, quand on fait de la collocation, ça va ressembler à ça. Je trouve que c'est une excellente figure. Si vous avez du mal à visualiser ce qui se passe, ça va vous aider, je pense. Bon. Notre objectif est de... eh bien, au départ, on ne connaît pas cette courbe. Quelle est la courbe? C'est la trajectoire de notre système dans l'espace d'états. Mais ce qu'on nous donne, c'est la pente. C'est la façon dont elle change."
+  },
+  {
+   "t": 660079,
+   "text": "Worse than that: yes, we're presented with the slope. Let's go back to the math and maybe I should be writing it a little bit differently, but really the OCP we solve here has a constraint that says that x dot... I should bring them back to whoever is in charge of doing this, because I waste my time every... Okay. So really it's a bit clearer to write it this way, to really show that there's a dependence. It's a function of time, and what I want to say is that really our constraint is written like that.",
+   "fr": "Pire que ça : oui, on nous donne la pente. Revenons aux maths, et je devrais peut-être l'écrire un peu différemment, mais en réalité, l'OCP qu'on résout ici a une contrainte qui dit que x point... Je devrais les rapporter à la personne qui s'occupe de ça, parce que je perds mon temps chaque... Bon. C'est vraiment un peu plus clair de l'écrire de cette façon, pour bien montrer qu'il y a une dépendance. C'est une fonction du temps, et ce que je veux dire, c'est qu'en réalité notre contrainte s'écrit comme ça."
+  },
+  {
+   "t": 715279,
+   "text": "So what's the problem here? Well, we know we can plug any value in this. We can plug any number, say \\(x_{k,i}\\). So it's going to be a node for the k-th stage, the i-th node within the k-th stage, but it doesn't matter. What I'm saying is, if you give me an x, I plug it in there and f is going to tell me what's the slope. That's not a problem. But the problem is, when we write our OCP, minimize [inaudible] subject to that, well, I've got the trajectory in there, and this thing is unknown. So it's like a chicken-and-egg problem. We need to break this. This is what collocation is doing.",
+   "fr": "Alors, quel est le problème ici? Eh bien, on sait qu'on peut y brancher n'importe quelle valeur. On peut brancher n'importe quel nombre, disons \\(x_{k,i}\\). Ce sera donc un nœud pour le k-ième étage, le i-ème nœud dans le k-ième étage, mais peu importe. Ce que je dis, c'est que si vous me donnez un x, je le branche là-dedans et f va me dire quelle est la pente. Ça, ce n'est pas un problème. Mais le problème, c'est que quand on écrit notre OCP, minimiser [inaudible] sous cette contrainte, eh bien, j'ai la trajectoire là-dedans, et cette chose est inconnue. C'est donc comme le problème de l'œuf et de la poule. Il faut briser ça. C'est ce que fait la collocation."
+  },
+  {
+   "t": 772880,
+   "text": "And how are we going to be breaking this? Well, this is what the text is explaining. Where was I? It would have done it here. Okay. So what we're going to do is actually fit a polynomial within each interval. Where are these intervals coming from? You're defining them. This is what we call the mesh. We overlay a mesh on our system.",
+   "fr": "Et comment va-t-on briser ça? Eh bien, c'est ce que le texte explique. Où est-ce que j'étais? Ça l'aurait fait ici. Bon. Ce qu'on va faire, c'est ajuster un polynôme dans chaque intervalle. D'où viennent ces intervalles? C'est vous qui les définissez. C'est ce qu'on appelle le maillage. On superpose un maillage à notre système."
+  },
+  {
+   "t": 808399,
+   "text": "The simplest mesh is a regular, uniform mesh, where every interval has length h. Fancier methods do adaptive meshes, so that they can have finer resolution in places where the dynamics are funky. If it's flat, you can have maybe a very large mesh, but for simplicity, everything's uniform here. And then we're going to be fitting a polynomial, but we need to be smart about how we fit it, because we need that polynomial to be consistent with the dynamics, which means we need that polynomial to have the same derivative as our f.",
+   "fr": "Le maillage le plus simple est un maillage régulier, uniforme, où chaque intervalle a une longueur h. Des méthodes plus élaborées utilisent des maillages adaptatifs, pour avoir une résolution plus fine aux endroits où la dynamique est bizarre. Si c'est plat, on peut avoir un maillage très grossier, mais pour simplifier, tout est uniforme ici. Ensuite, on va ajuster un polynôme, mais il faut être astucieux dans la façon de l'ajuster, parce qu'il faut que ce polynôme soit cohérent avec la dynamique, ce qui veut dire qu'il doit avoir la même dérivée que notre f."
+  },
+  {
+   "t": 851120,
+   "text": "So, very important: two types of decision variables. We've got the state nodes. These are the blue nodes. Or the mesh nodes; it's what I use in the notebook. So x is a mesh node, and the orange ones are the stage nodes. And the stage nodes, where they're spaced out will be chosen ahead of time. So, in other words, the stage nodes, also what we call the collocation nodes, will be what defines the method.",
+   "fr": "Donc, très important : deux types de variables de décision. On a les nœuds d'état. Ce sont les nœuds bleus. Ou plutôt les nœuds de maillage; c'est le terme que j'utilise dans le notebook. Donc x est un nœud de maillage, et les orange sont les nœuds d'étage. Et pour les nœuds d'étage, leur espacement sera choisi à l'avance. Autrement dit, les nœuds d'étage, qu'on appelle aussi les nœuds de collocation, sont ce qui définit la méthode."
+  },
+  {
+   "t": 899519,
+   "text": "A choice of collocation nodes is a choice of an algorithm. Basically, it induces an algorithm. All right. And you see here on this figure, we've got the orange lines, which represent the slope at these stage nodes. And what we're going to want is that the derivative of the polynomial within each interval should match f at that same point.",
+   "fr": "Choisir des nœuds de collocation, c'est choisir un algorithme. Essentiellement, ça induit un algorithme. Bon. Et vous voyez ici, sur cette figure, on a les traits orange, qui représentent la pente à ces nœuds d'étage. Et ce qu'on veut, c'est que la dérivée du polynôme dans chaque intervalle corresponde à f en ce même point."
+  },
+  {
+   "t": 932480,
+   "text": "But there's one more thing we need to understand why that method works. It's the fact that we use polynomials. Polynomials, compared to, let's say, neural networks, are very convenient for two reasons. Especially with Lagrange bases, we can compute their integrals and derivatives ahead of time. Which means that we're going to be able to ensure that these two things are consistent with our representation. So even if f is a neural network, the transcription here, which relies on polynomials, is still capable of handling that.",
+   "fr": "Mais il y a encore une chose qu'il faut pour comprendre pourquoi cette méthode fonctionne. C'est le fait qu'on utilise des polynômes. Les polynômes, comparés, disons, aux réseaux de neurones, sont très pratiques pour deux raisons. Surtout avec des bases de Lagrange, on peut calculer leurs intégrales et leurs dérivées à l'avance. Ce qui veut dire qu'on va pouvoir s'assurer que ces deux choses sont cohérentes avec notre représentation. Donc même si f est un réseau de neurones, la transcription ici, qui repose sur des polynômes, est quand même capable de le gérer."
+  },
+  {
+   "t": 977920,
+   "text": "We've done it, by the way. Four years ago we wrote a paper, a benchmark paper, with my student [name], and, yeah, we were using a neural f [?], and then we were using Hermite-Simpson to solve the problems. The bottom plot here shows, within each interval, what control we're going to be applying, because, remember, u(t) is a function of time, but here we're considering a transcription. So it's a discrete representation of the continuous problem. We also need to represent our control function as a polynomial.",
+   "fr": "On l'a fait, d'ailleurs. Il y a quatre ans, on a écrit un article, un article de banc d'essai, avec mon étudiant [name], et on utilisait un f neuronal [?], puis on utilisait Hermite-Simpson pour résoudre les problèmes. Le graphique du bas montre, dans chaque intervalle, quelle commande on va appliquer, parce que, rappelez-vous, u(t) est une fonction du temps, mais ici on considère une transcription. C'est donc une représentation discrète du problème continu. Il faut aussi représenter notre fonction de commande par un polynôme."
+  },
+  {
+   "t": 1023199,
+   "text": "But here, what is the bottom plot suggesting regarding the choice of polynomial that we've picked? Which kind of polynomial is that? Yeah, it's called a zero-order hold, and as you see, it holds the same value constant within the interval. What would be an alternative to that? Well, for example, you could have a line. So you could represent the control as a continuous function between two mesh points, by interpolating the values of the controls at those two points. You use two points per interval now to represent a line.",
+   "fr": "Mais ici, qu'est-ce que le graphique du bas suggère quant au choix de polynôme qu'on a fait? De quel genre de polynôme s'agit-il? Oui, ça s'appelle un bloqueur d'ordre zéro, et comme vous voyez, il maintient la même valeur constante dans l'intervalle. Quelle serait une solution de rechange? Eh bien, par exemple, on pourrait avoir une droite. On pourrait représenter la commande comme une fonction continue entre deux points du maillage, en interpolant les valeurs de la commande en ces deux points. On utilise maintenant deux points par intervalle pour représenter une droite."
+  },
+  {
+   "t": 1067360,
+   "text": "If you pick three points, then you can have a quadratic. But that's not where the problem is going to be. Honestly, the complicated bit is ensuring that our dynamics constraints are consistent. Okay. Second key notion to understand: the fundamental theorem of calculus. I had forgotten this thing since calculus, in, I don't know, 2005, something like that, and then it came back into my life, and now it has a purpose and it's very useful. So, the relationship between f and the trajectory itself. This has nothing to do with polynomials. It's just a fact of life that stems from the fundamental theorem of calculus, which says that if I want to know what's the state at time \\(t_k + h\\tau\\)... so what does that",
+   "fr": "Si vous prenez trois points, vous pouvez avoir un polynôme du second degré. Mais ce n'est pas là que sera le problème. Honnêtement, la partie compliquée, c'est de s'assurer que nos contraintes de dynamique sont cohérentes. Bon. Deuxième notion clé à comprendre : le théorème fondamental de l'analyse. J'avais oublié ce truc depuis mon cours de calcul, en, je ne sais pas, 2005, quelque chose comme ça, puis c'est revenu dans ma vie, et maintenant ça a une utilité et c'est très utile. Donc, la relation entre f et la trajectoire elle-même. Ça n'a rien à voir avec les polynômes. C'est simplement un fait qui découle du théorème fondamental de l'analyse, qui dit que si je veux connaître l'état au temps \\(t_k + h\\tau\\)... alors qu'est-ce que ça"
+  },
+  {
+   "t": 1127840,
+   "text": "mean? \\(t_k\\) is the time at the beginning, at the mesh node, and \\(h\\tau\\), that's a fraction of h. So let's say it's \\(t_k\\) plus half of the interval h. It represents a state within that interval. Then the fundamental theorem of calculus says that this is going to be equal to the value of the state at the beginning, which you need to provide here, plus the integral from the beginning, \\(t_k\\), to \\(t_k + h\\tau\\), of f. Okay. So, in other words, let's say you're here. This is \\(t_k\\), time \\(t_k\\), and then this is the value \\(x_k\\),",
+   "fr": "veut dire? \\(t_k\\) est le temps au début, au nœud de maillage, et \\(h\\tau\\), c'est une fraction de h. Disons que c'est \\(t_k\\) plus la moitié de l'intervalle h. Ça représente un état à l'intérieur de cet intervalle. Alors le théorème fondamental de l'analyse dit que ce sera égal à la valeur de l'état au début, qu'il faut fournir ici, plus l'intégrale de f depuis le début, \\(t_k\\), jusqu'à \\(t_k + h\\tau\\). Bon. Autrement dit, disons que vous êtes ici. Ceci est \\(t_k\\), le temps \\(t_k\\), puis ceci est la valeur \\(x_k\\),"
+  },
+  {
+   "t": 1188160,
+   "text": "and then this whole interval here has length h. And then what is \\(t_k + h\\tau\\)? Well, it would be a point maybe here, \\(t_k + h\\tau\\). So the math says that the point here is equal to \\(x_k\\) plus [?] the integral within that segment. [inaudible] theorem.",
+   "fr": "puis tout cet intervalle ici a une longueur h. Et alors, qu'est-ce que \\(t_k + h\\tau\\)? Eh bien, ce serait un point, peut-être ici, \\(t_k + h\\tau\\). Donc les maths disent que le point ici est égal à \\(x_k\\) plus [?] l'intégrale sur ce segment. [inaudible] théorème."
+  },
+  {
+   "t": 1238960,
+   "text": "Okay, that's number one. It has nothing to do with polynomials, but we reuse it in a second. And the second equality is just a change of variable, so that our integral is defined within the interval [0, 1], because we like to work in normalized time. It's not so important here. Okay. So remember, we had two methods, two ways of going about solving the collocation problem: one way that goes through the integral form, I think I was calling it this way, and the other one is the derivative form. I think the derivative form is simpler, but for completeness we're going to cover both, and I think once you understand one, you're going to understand the other one.",
+   "fr": "Bon, ça, c'est le premier point. Ça n'a rien à voir avec les polynômes, mais on va le réutiliser dans une seconde. Et la deuxième égalité est simplement un changement de variable, pour que notre intégrale soit définie sur l'intervalle [0, 1], parce qu'on aime travailler en temps normalisé. Ce n'est pas si important ici. Bon. Rappelez-vous, on avait deux méthodes, deux façons de résoudre le problème de collocation : une qui passe par la forme intégrale, je pense que je l'appelais comme ça, et l'autre, c'est la forme dérivée. Je pense que la forme dérivée est plus simple, mais par souci d'exhaustivité, on va couvrir les deux, et je pense qu'une fois que vous en comprenez une, vous allez comprendre l'autre."
+  },
+  {
+   "t": 1283760,
+   "text": "So for this particular problem we're going to consider a set of collocation nodes whose values I don't remember exactly now; we're going to see them in a second. But in the first method, the integral form of the collocation method, we're going to interpolate what? Do you remember? You've got two choices of things to interpolate. And I've got to say that the integral route for collocation is almost silly when you think of it, but actually it does make sense.",
+   "fr": "Pour ce problème-ci, on va considérer un ensemble de nœuds de collocation dont je ne me rappelle pas exactement les valeurs; on va les voir dans une seconde. Mais dans la première méthode, la forme intégrale de la méthode de collocation, on va interpoler quoi? Vous vous en souvenez? Vous avez deux choix de choses à interpoler. Et je dois dire que la voie intégrale pour la collocation est presque absurde quand on y pense, mais en fait, ça a du sens."
+  },
+  {
+   "t": 1330559,
+   "text": "My goal is really to fit that into one hour, and it's like a marathon. There's a lot of material. So we're going to fit the slopes. The slopes: these are the f. We've got two choices: either we fit the slopes or we fit the trajectory.",
+   "fr": "Mon but, c'est vraiment de faire entrer ça dans une heure, et c'est comme un marathon. Il y a beaucoup de matière. Donc on va ajuster les pentes. Les pentes : ce sont les f. On a deux choix : soit on ajuste les pentes, soit on ajuste la trajectoire."
+  },
+  {
+   "t": 1364799,
+   "text": "In both cases, we're going to have a set of decision variables. What are the decision variables? This is true for both the derivative form and the integral form. The decision variables are going to be the mesh nodes. I'm going to write them as \\(x_k\\). So there's a mesh node at the beginning of the interval, and the mesh node at the end of the interval we write as \\(x_{k+1}\\).",
+   "fr": "Dans les deux cas, on va avoir un ensemble de variables de décision. Quelles sont les variables de décision? C'est vrai à la fois pour la forme dérivée et pour la forme intégrale. Les variables de décision vont être les nœuds de maillage. Je vais les écrire \\(x_k\\). Il y a donc un nœud de maillage au début de l'intervalle, et le nœud de maillage à la fin de l'intervalle, on l'écrit \\(x_{k+1}\\)."
+  },
+  {
+   "t": 1400400,
+   "text": "Okay. And then we're going to have the stage nodes, and these ones I'm going to write as \\(x_{k,i}\\). So these are variables that our solver is going to maintain. Not only this: I'm also going to maintain, if I have a zero-order hold, one \\(u_k\\) per interval.",
+   "fr": "Bon. Ensuite, on va avoir les nœuds d'étage, et ceux-là, je vais les écrire \\(x_{k,i}\\). Ce sont donc des variables que notre solveur va maintenir. Et pas seulement ça : je vais aussi maintenir, si j'ai un bloqueur d'ordre zéro, un \\(u_k\\) par intervalle."
+  },
+  {
+   "t": 1434640,
+   "text": "If I use a linear representation for the control, I'll use two u's. I would have \\(u_k\\) and \\(u_{k+1}\\). So here, just zero-order hold, simple. The decision variables that we're going to maintain in our solver, at any time as we solve our problem, are a guess of what the real trajectory should look like. So it's going to simultaneously find the trajectory that corresponds to an optimal control function, and the optimal control function, at the same time.",
+   "fr": "Si j'utilise une représentation linéaire pour la commande, j'utiliserai deux u. J'aurais \\(u_k\\) et \\(u_{k+1}\\). Donc ici, simplement un bloqueur d'ordre zéro, c'est simple. Les variables de décision qu'on va maintenir dans notre solveur, à tout moment pendant qu'on résout notre problème, sont une estimation de ce à quoi devrait ressembler la vraie trajectoire. Le solveur va donc trouver simultanément la trajectoire qui correspond à une fonction de commande optimale, et la fonction de commande optimale, en même temps."
+  },
+  {
+   "t": 1484960,
+   "text": "So while this thing is solving, it might not look like the real system, but we know that if it converges, it's going to converge to something that is consistent with the physics. Okay. So this is important to know: whether we fit the slope or we fit the trajectory, in both cases this remains the same. But then it's a question of how we ensure consistency with the dynamics. And, okay, the other thing that is important is the choice of basis.",
+   "fr": "Donc, pendant que ça se résout, ça ne ressemble peut-être pas au vrai système, mais on sait que si ça converge, ça va converger vers quelque chose de cohérent avec la physique. Bon. C'est important à savoir : qu'on ajuste la pente ou qu'on ajuste la trajectoire, dans les deux cas, ceci reste pareil. Mais ensuite, la question est de savoir comment on assure la cohérence avec la dynamique. Et, bon, l'autre chose importante, c'est le choix de la base."
+  },
+  {
+   "t": 1524480,
+   "text": "So we use the Lagrange basis here because it's very convenient, because... can anyone remind us why the Lagrange basis was useful?\nStudent: Using nodes.\nThank you so much. Exactly. So the Lagrange basis was allowing us to use a nodal representation of a polynomial, as opposed to a modal, coefficient representation. A nodal representation is a representation of a polynomial in terms of the values of that polynomial at a number of designated points. So this is an important fact that, to be honest, I didn't even know myself, but once you know it... actually, you need to know it. You can represent a polynomial either by its coefficients or by the values that it takes at some designated",
+   "fr": "On utilise ici la base de Lagrange parce qu'elle est très pratique, parce que... quelqu'un peut nous rappeler pourquoi la base de Lagrange était utile?\nStudent: En utilisant des nœuds.\nMerci beaucoup. Exactement. La base de Lagrange nous permettait d'utiliser une représentation nodale d'un polynôme, par opposition à une représentation modale, par coefficients. Une représentation nodale est une représentation d'un polynôme par les valeurs que prend ce polynôme en un certain nombre de points désignés. C'est un fait important que, pour être honnête, je ne connaissais même pas moi-même, mais une fois qu'on le sait... en fait, il faut le savoir. On peut représenter un polynôme soit par ses coefficients, soit par les valeurs qu'il prend en certains"
+  },
+  {
+   "t": 1584960,
+   "text": "nodes. And when you work in a nodal representation, one of the natural choices is to go with a Lagrange basis, which then forms a representation of the polynomial as a linear combination of these basis functions that are defined in this way. This is the definition. So I would define the Lagrange basis like this. Tau here would be some time indices for the chosen nodal values that are used for representing the polynomial. And what is the consequence of using this nodal representation? It's the following.",
+   "fr": "nœuds désignés. Et quand on travaille dans une représentation nodale, un des choix naturels est d'opter pour une base de Lagrange, qui forme alors une représentation du polynôme comme une combinaison linéaire de ces fonctions de base définies de cette façon. Voici la définition. Je définirais donc la base de Lagrange comme ceci. Tau, ici, ce seraient des indices de temps pour les valeurs nodales choisies qui servent à représenter le polynôme. Et quelle est la conséquence d'utiliser cette représentation nodale? C'est la suivante."
+  },
+  {
+   "t": 1636320,
+   "text": "Look at this equation. Where is it coming from? Ask yourself; you need to know where it is coming from. How do we get to this? What are we looking at here?\nStudent: Wait, we try to take our previous...\nAnd which is the previous equation?",
+   "fr": "Regardez cette équation. D'où vient-elle? Posez-vous la question; il faut savoir d'où elle vient. Comment arrive-t-on à ceci? Qu'est-ce qu'on regarde ici?\nStudent: Attendez, on essaie de prendre notre précédente...\nEt c'est laquelle, l'équation précédente?"
+  },
+  {
+   "t": 1672240,
+   "text": "The formula we had from the fundamental theorem of calculus. Here this is an equality, and here there's a wiggle sign, because it's an approximation, because we use a polynomial. It's an equality if we write x of the polynomial; it's a wiggle when we write x of the real underlying state. And then we've got this integral. Why do we have the integral? Fundamental theorem of calculus. So it says the value of my state at \\(t_k\\) plus a fraction of my interval is the value of my mesh node at the beginning plus the integral from the beginning to that point.",
+   "fr": "La formule qu'on avait à partir du théorème fondamental de l'analyse. Ici, c'est une égalité, et ici, il y a un tilde, parce que c'est une approximation, parce qu'on utilise un polynôme. C'est une égalité si on écrit le x du polynôme; c'est un tilde quand on écrit le x du véritable état sous-jacent. Ensuite, on a cette intégrale. Pourquoi a-t-on l'intégrale? Le théorème fondamental de l'analyse. Il dit donc que la valeur de mon état à \\(t_k\\) plus une fraction de mon intervalle est égale à la valeur de mon nœud de maillage au début plus l'intégrale depuis le début jusqu'à ce point."
+  },
+  {
+   "t": 1723760,
+   "text": "And what is this thing about the summation in there? This is just our polynomial, the polynomial representation we've picked within that segment, or stage k. Here we're using two collocation nodes, so we've got two terms in our basis; that might vary depending on the number of collocation nodes you pick. And we've got the corresponding Lagrange basis at the collocation nodes we've picked, times f, the nodal values that we want to interpolate. What would it look like, guys, if I wanted to interpolate x instead? What would be the math for the polynomial in the Lagrange basis that interpolates x rather than f?",
+   "fr": "Et c'est quoi, cette histoire de sommation là-dedans? C'est simplement notre polynôme, la représentation polynomiale qu'on a choisie sur ce segment, ou l'étage k. Ici, on utilise deux nœuds de collocation, donc on a deux termes dans notre base; ça peut varier selon le nombre de nœuds de collocation que vous choisissez. Et on a la base de Lagrange correspondante aux nœuds de collocation qu'on a choisis, multipliée par f, les valeurs nodales qu'on veut interpoler. À quoi ça ressemblerait si je voulais plutôt interpoler x? Quelles seraient les maths pour le polynôme dans la base de Lagrange qui interpole x plutôt que f?"
+  },
+  {
+   "t": 1785600,
+   "text": "With the nodal representation, very easy. Wait.\nStudent: I would say... I don't remember the name of the function that calculates the index, the recursive function, and we put it in.\nWhat I meant was something even simpler than that. It's just that if you give me some values of x, I can just write the corresponding polynomial. Fitting the polynomial just means doing the sum of x, instead of f, times the Lagrange basis. But here, what I said in this first method is that we fit the slope. This is what it means: use f here instead. Okay. So, fundamental theorem of calculus, then we've got an integral. Remember, an integral... this is a summation, so the integral has a property, linearity of the integral, which means that we can split it into a sum of integrals, because we can interchange the order and have a sum of integrals. And then we moved here the",
+   "fr": "Avec la représentation nodale, très facile. Attendez.\nStudent: Je dirais... je ne me rappelle plus le nom de la fonction qui calcule l'indice, la fonction récursive, et on la met dedans.\nCe que je voulais dire, c'était encore plus simple que ça. C'est simplement que si vous me donnez des valeurs de x, je peux tout de suite écrire le polynôme correspondant. Ajuster le polynôme, ça veut seulement dire faire la somme des x, au lieu des f, multipliés par la base de Lagrange. Mais ici, ce que j'ai dit dans cette première méthode, c'est qu'on ajuste la pente. Voilà ce que ça veut dire : utiliser f ici à la place. Bon. Donc, théorème fondamental de l'analyse, puis on a une intégrale. Rappelez-vous, une intégrale... ceci est une sommation, donc l'intégrale a une propriété, la linéarité de l'intégrale, ce qui veut dire qu'on peut la séparer en une somme d'intégrales, parce qu'on peut intervertir l'ordre et avoir une somme d'intégrales. Puis on a déplacé ici le"
+  },
+  {
+   "t": 1848320,
+   "text": "term f, because f does not depend on the time at all. Here, when we integrate over sigma, the only place where sigma appears is within L, so we can isolate it and have only this integral here over the Lagrange basis, and these things can be precomputed ahead of time. So this is maybe, I don't know, the third key notion to grasp to unlock all of this. Because, honestly, when I look at this, I'm like, wow, there's a lot more work to do, because I have an integral here. I don't want to deal with an integral. What's the point of that whole thing we're doing here, integrating, or approximating with polynomials? Because we need to do numerical integration. So why the heck do I still have an integral? Because L here is a Lagrange basis, and that integral is not nasty at all.",
+   "fr": "terme f, parce que f ne dépend pas du tout du temps. Ici, quand on intègre par rapport à sigma, le seul endroit où sigma apparaît, c'est dans L, donc on peut l'isoler et avoir seulement cette intégrale-ci sur la base de Lagrange, et ces choses-là peuvent être précalculées à l'avance. C'est donc peut-être, je ne sais pas, la troisième notion clé à saisir pour débloquer tout ça. Parce que, honnêtement, quand je regarde ça, je me dis : wow, il y a beaucoup plus de travail à faire, parce que j'ai une intégrale ici. Je ne veux pas avoir affaire à une intégrale. À quoi sert tout ce qu'on fait ici, intégrer, ou approximer avec des polynômes? Parce qu'on doit faire de l'intégration numérique. Alors pourquoi diable ai-je encore une intégrale? Parce que L, ici, est une base de Lagrange, et cette intégrale n'est pas méchante du tout."
+  },
+  {
+   "t": 1912000,
+   "text": "We can compute it ahead of time. So I'll get to this, but just what I was saying earlier is that these terms can be precomputed ahead of time for every single j. What is j here? j is a stage node. So you see this dependence on j, and then we're going to form that matrix \\(A_{ij}\\), where each term here is going to be for the collocation node i and the basis j. We're going to integrate. And this term here is the same thing, except, instead of going from the first mesh node at the beginning of the interval to the stage node here, it goes from the beginning of the interval to the end. So it's the value of the trajectory at the end of the interval.",
+   "fr": "On peut la calculer à l'avance. J'y reviendrai, mais c'est simplement ce que je disais tout à l'heure : ces termes peuvent être précalculés à l'avance pour chaque j. Qu'est-ce que j, ici? j, c'est un nœud d'étage. Vous voyez donc cette dépendance en j, puis on va former cette matrice \\(A_{ij}\\), où chaque terme ici correspond au nœud de collocation i et à la fonction de base j. On va intégrer. Et ce terme-ci, c'est la même chose, sauf qu'au lieu d'aller du premier nœud de maillage au début de l'intervalle jusqu'au nœud d'étage ici, il va du début de l'intervalle jusqu'à la fin. C'est donc la valeur de la trajectoire à la fin de l'intervalle."
+  },
+  {
+   "t": 1974399,
+   "text": "Okay. So it's from zero to one rather than zero to tau. That's it. Okay. What it's saying is that this integral is not nasty at all, because the Lagrange basis itself is a polynomial. We fit a polynomial using a Lagrange basis, and each Lagrange basis function is itself a polynomial. Remember, we define it this way, with the product of the ratios, whatever, but this thing is actually a polynomial.",
+   "fr": "Bon. C'est donc de zéro à un plutôt que de zéro à tau. C'est tout. Bon. Ce que ça dit, c'est que cette intégrale n'est pas méchante du tout, parce que la base de Lagrange elle-même est un polynôme. On ajuste un polynôme avec une base de Lagrange, et chaque fonction de la base de Lagrange est elle-même un polynôme. Rappelez-vous, on la définit de cette façon, avec le produit des rapports, peu importe, mais cette chose est en fait un polynôme."
+  },
+  {
+   "t": 2009200,
+   "text": "It's a product of a bunch of terms, and it can be written down. Oops. We could write it down also. Sorry. Where is that? Here. Yeah. So we can also write it down in monomial form, if you want to make it clear. You could work out the calculus also with the ratio. By the way, I really don't remember my calculus rules, but an easier way to do it is to write it in monomial form. And so then the integral becomes, again, the same trick, because L is a polynomial. So it's a sum, but here it's a sum over a monomial basis. Same trick we're playing here. And then it shows that basically the integral is now a sum of integrals of sigma to the m. And then we know our calculus rule for sigma to the m, and we end up with this expression over there. Okay. So all that",
+   "fr": "C'est un produit d'un tas de termes, et on peut l'écrire. Oups. On pourrait l'écrire aussi. Désolé. Où est-ce que c'est? Ici. Oui. On peut aussi l'écrire sous forme monomiale, si on veut que ce soit clair. On pourrait aussi faire le calcul avec le rapport. D'ailleurs, je ne me rappelle vraiment pas mes règles de calcul, mais une façon plus simple de le faire, c'est de l'écrire sous forme monomiale. Et alors l'intégrale devient, encore une fois, le même truc, parce que L est un polynôme. C'est donc une somme, mais ici, c'est une somme sur une base monomiale. Le même truc qu'ici. Et ça montre qu'essentiellement, l'intégrale est maintenant une somme d'intégrales de sigma à la puissance m. Et on connaît notre règle de calcul pour sigma à la puissance m, et on obtient cette expression là-bas. Bon. Tout ça"
+  },
+  {
+   "t": 2069919,
+   "text": "to say that these integrals can be precomputed ahead of time. They're known. In fact, if you have the coefficients of a polynomial, bam, I can compute the integral and give it to you for free. This is what SciPy... and we're going to use it later on. This is what SciPy is doing. It's called integ, and it's not doing anything computationally expensive. All it does is take the coefficients and then compute this expression over there.",
+   "fr": "pour dire que ces intégrales peuvent être précalculées à l'avance. Elles sont connues. En fait, si vous avez les coefficients d'un polynôme, paf, je peux calculer l'intégrale et vous la donner gratuitement. C'est ce que SciPy... et on va l'utiliser plus tard. C'est ce que fait SciPy. Ça s'appelle integ, et ça ne fait rien de coûteux en calcul. Tout ce que ça fait, c'est prendre les coefficients puis calculer cette expression là-bas."
+  },
+  {
+   "t": 2104480,
+   "text": "So it's all good. It's all good. Okay. I'm not going to go through the numerical... we're not going to plug these numbers in there. Please do it on your own, just to really make sure you understand. But here we're picking two collocation nodes. And really, think of this as defining the recipe. Each choice of collocation nodes defines a particular collocation method. So here we pick a particular recipe. These two coefficients, they're called Radau, I don't know why, Radau collocation nodes, and we pick one third and one. So it means we pick a stage node which is one third of the way into the interval, and one collocation node which coincides",
+   "fr": "Donc tout va bien. Tout va bien. Bon. Je ne vais pas passer par le calcul numérique... on ne va pas mettre ces nombres-là dedans. Faites-le par vous-mêmes, s'il vous plaît, juste pour vous assurer de bien comprendre. Mais ici, on choisit deux nœuds de collocation. Et voyez vraiment ça comme la définition de la recette. Chaque choix de nœuds de collocation définit une méthode de collocation particulière. Ici, on choisit donc une recette particulière. Ces deux coefficients s'appellent Radau, je ne sais pas pourquoi, des nœuds de collocation de Radau, et on choisit un tiers et un. Ça veut dire qu'on choisit un nœud d'étage situé au tiers de l'intervalle, et un nœud de collocation qui coïncide"
+  },
+  {
+   "t": 2164880,
+   "text": "with the end of the interval. You could pick different recipes, but that one is one particular choice. So then work out the basis by hand, if you want. Then you can work out the integral by hand, plug it in there, and convince yourself that you can write down these matrices by hand, which then gives you these expressions. Okay. So in the code, we're doing it here. There's also a way of constructing a Lagrange basis with SciPy, but here we're just doing it explicitly, for pedagogical reasons. And this piece of code here, what is it doing, guys? It's not really a trick. Yeah?",
+   "fr": "avec la fin de l'intervalle. Vous pourriez choisir d'autres recettes, mais celle-là est un choix particulier. Ensuite, calculez la base à la main, si vous voulez. Puis vous pouvez calculer l'intégrale à la main, la mettre là-dedans, et vous convaincre que vous pouvez écrire ces matrices à la main, ce qui vous donne ces expressions. Bon. Dans le code, on le fait ici. Il y a aussi une façon de construire une base de Lagrange avec SciPy, mais ici on le fait explicitement, pour des raisons pédagogiques. Et ce bout de code ici, qu'est-ce qu'il fait? Ce n'est pas vraiment une astuce. Oui?"
+  },
+  {
+   "t": 2220320,
+   "text": "No. Which formula is this? So is it this formula? No. Is it this formula? No, this formula. Right. So this pi here is a product. Here we're doing it in a not very Pythonic or JAX-y way, right, as a for loop. It's not great, but it's the simplest, most [inaudible] way of writing things down. So you see we have an accumulation here, which is a product. L is our Lagrange basis. It's the product, and then I accumulate the sigma to the m, and so on.",
+   "fr": "Non. C'est quelle formule, ça? Est-ce que c'est cette formule-ci? Non. Est-ce que c'est cette formule-là? Non, cette formule-ci. C'est ça. Ce pi ici est un produit. Ici, on le fait d'une façon pas très pythonique ni très JAX, sous forme de boucle for. Ce n'est pas génial, mais c'est la façon la plus simple, la plus [inaudible] d'écrire les choses. Vous voyez qu'on a une accumulation ici, qui est un produit. L, c'est notre base de Lagrange. C'est le produit, puis j'accumule sigma à la puissance m, et ainsi de suite."
+  },
+  {
+   "t": 2264240,
+   "text": "The denominator remains the same throughout, and that's it. Okay. So this is for the... Oh, yeah, we're also using this Polynomial, which is an object as defined in SciPy.",
+   "fr": "Le dénominateur reste le même tout du long, et c'est tout. Bon. Donc ceci, c'est pour le... Ah oui, on utilise aussi ce Polynomial, qui est un objet défini dans SciPy."
+  },
+  {
+   "t": 2299839,
+   "text": "So it allows us, when we write multiplication like this, to actually use the overloaded multiplication operator, so that Polynomial is doing the multiplication for us in a well-defined way. And because it's in this Polynomial class, and I told you earlier that if you give me a polynomial I can give you its integral, SciPy is giving us for free this integ function, which we need to then build the A and b matrices. And how are you going to use them again, these A and b matrices? Why do we need them again? What are you going to do with them? Where are we going with this?",
+   "fr": "Ça nous permet, quand on écrit une multiplication comme ceci, d'utiliser en fait l'opérateur de multiplication surchargé, de sorte que Polynomial fait la multiplication pour nous d'une façon bien définie. Et parce que c'est dans cette classe Polynomial, et que je vous ai dit tout à l'heure que si vous me donnez un polynôme, je peux vous donner son intégrale, SciPy nous donne gratuitement cette fonction integ, dont on a besoin ensuite pour construire les matrices A et b. Et comment allez-vous les utiliser, déjà, ces matrices A et b? Pourquoi en a-t-on besoin, déjà? Qu'est-ce que vous allez en faire? Où est-ce qu'on s'en va avec ça?"
+  },
+  {
+   "t": 2363680,
+   "text": "So, A and b: where are you going to use this? Why are we going to use them? Because we're going to impose the consistency condition. Sorry, I'm scrolling through this in your face. It's annoying. We're going to impose that if you take our current guess on the state trajectory and you integrate the corresponding polynomial from the beginning to the collocation node,",
+   "fr": "Donc A et b : où allez-vous utiliser ça? Pourquoi va-t-on les utiliser? Parce qu'on va imposer la condition de cohérence. Désolé, je fais défiler ça sous vos yeux. C'est agaçant. On va imposer que si on prend notre estimation actuelle de la trajectoire d'état et qu'on intègre le polynôme correspondant depuis le début jusqu'au nœud de collocation,"
+  },
+  {
+   "t": 2410320,
+   "text": "we're going to ask to be able to recover the corresponding decision variable. So it's a consistency condition. It's like a reconstruction, basically. Yeah, I would think of it this way: like in an autoencoder [?], we have a consistency loss. We say we want to reconstruct it and match it. It's a bit like a reconstruction loss. Here we start from \\(x_k\\), we work our way to one of the stage nodes, and we say, well, the result of unrolling this integration should coincide with the guess I'm maintaining in memory right now.",
+   "fr": "on va exiger de pouvoir retrouver la variable de décision correspondante. C'est donc une condition de cohérence. C'est comme une reconstruction, essentiellement. Oui, je le verrais comme ça : comme dans un autoencodeur [?], on a une perte de cohérence. On dit qu'on veut la reconstruire et qu'elle corresponde. C'est un peu comme une perte de reconstruction. Ici, on part de \\(x_k\\), on avance jusqu'à un des nœuds d'étage, et on dit : eh bien, le résultat du déroulement de cette intégration devrait coïncider avec l'estimation que je garde en mémoire en ce moment."
+  },
+  {
+   "t": 2455040,
+   "text": "Okay. So we've done this here. We built those matrices. Now we're going to get to where we actually build a program to solve that. Okay. So a good question for the exam, and I've got some in my midterm practice, is the following: when I allocate the number of variables for that program, how many unknowns am I going to have, depending on the mesh size and the number of collocation points?",
+   "fr": "Bon. On a fait ça ici. On a construit ces matrices. Maintenant, on arrive au moment où on construit vraiment un programme pour résoudre ça. Bon. Une bonne question d'examen, et j'en ai quelques-unes dans mes questions d'entraînement pour la mi-session, c'est la suivante : quand j'alloue les variables de ce programme, combien d'inconnues vais-je avoir, selon la taille du maillage et le nombre de points de collocation?"
+  },
+  {
+   "t": 2503680,
+   "text": "So we're going to have... yeah, that thing is going to help. So we're going to have a number of decision variables for each mesh node of our trajectory. Remember, I said that we have two sets of decision variables: we have the mesh states and then the stage states.",
+   "fr": "On va donc avoir... oui, ça, ça va aider. On va avoir un certain nombre de variables de décision pour chaque nœud de maillage de notre trajectoire. Rappelez-vous, j'ai dit qu'on a deux ensembles de variables de décision : on a les états de maillage, puis les états d'étage."
+  },
+  {
+   "t": 2537040,
+   "text": "So here we have: number of mesh states is 82. Why was it 82? So we had big N. Big N is the number of intervals. So if I divide up my full interval... Let's say this is my problem. It goes from here to here. I can divide it up into, let's say, two intervals.",
+   "fr": "Donc ici, on a : le nombre d'états de maillage est 82. Pourquoi 82? On avait le grand N. Le grand N, c'est le nombre d'intervalles. Si je découpe mon intervalle complet... Disons que ceci est mon problème. Il va d'ici à ici. Je peux le découper en, disons, deux intervalles."
+  },
+  {
+   "t": 2579760,
+   "text": "So here I have 40 intervals. Here I would only have N equal to 2. The interval width is h. So if this point here is time T, then of course, with an equal grid size, this is going to be T over N.",
+   "fr": "Ici, j'ai 40 intervalles. Ici, j'aurais seulement N égal à 2. La largeur d'un intervalle est h. Donc si ce point ici est le temps T, alors bien sûr, avec une grille de pas égal, ce sera T sur N."
+  },
+  {
+   "t": 2612400,
+   "text": "Number of stages per interval. How are we defining tau again? Where is it defined? There you go. So tau was the... yeah, the time indices, the collocation nodes that we're picking. And so we had one third and one. So we have two here. Which means that within each interval it's always going to be subdivided the same way, in three parts here. We're going to have one here at one third, and then we're going to have one here.",
+   "fr": "Nombre d'étages par intervalle. Comment définit-on tau, déjà? Où est-ce que c'est défini? Voilà. Tau, c'était les... oui, les indices de temps, les nœuds de collocation qu'on choisit. Et on avait un tiers et un. On en a donc deux ici. Ce qui veut dire que chaque intervalle sera toujours subdivisé de la même façon, en trois parties ici. On va en avoir un ici, au tiers, puis on va en avoir un ici."
+  },
+  {
+   "t": 2659599,
+   "text": "So we're going to be maintaining values for these ones. We're going to be maintaining values for each of the mesh states. And n here is the dimensionality of our state vector. For us, what is it? Two. And we get the final expression over there. Let's try to make sense of it. We had it in the plot.",
+   "fr": "On va donc maintenir des valeurs pour ceux-ci. On va maintenir des valeurs pour chacun des états de maillage. Et n, ici, c'est la dimension de notre vecteur d'état. Pour nous, c'est combien? Deux. Et on obtient l'expression finale là-bas. Essayons de la comprendre. On l'avait dans le graphique."
+  },
+  {
+   "t": 2703760,
+   "text": "N plus one. So we have three... no, here we had 40, excuse me. So we had 40 plus 1, so 41, times two, so 82, and it matches. And here, if we were to look at this in the same way, number of mesh points: it tells us that we have three... let's say we have... we would have three mesh states: one here, one here, one here. That's the first part. The second part of the equation is the number of stage variables. So here it's N times s times n: N because it's for each interval, s because we have",
+   "fr": "N plus un. Donc on a trois... non, ici on en avait 40, pardon. On avait 40 plus 1, donc 41, fois deux, donc 82, et ça concorde. Et ici, si on regardait ça de la même façon, le nombre de points de maillage : ça nous dit qu'on a trois... disons qu'on a... on aurait trois états de maillage : un ici, un ici, un ici. Ça, c'est la première partie. La deuxième partie de l'équation, c'est le nombre de variables d'étage. Ici, c'est donc N fois s fois n : N parce que c'est pour chaque intervalle, s parce qu'on a"
+  },
+  {
+   "t": 2765599,
+   "text": "s stage nodes. So here it's two. So 40 times 2 times 2, again, 160. And then the last one is u. Exactly: we have a zero-order hold. So we're going to be maintaining one value per interval to represent the control. Sum these up and it gives you a program with 282 variables, which is not small.",
+   "fr": "s nœuds d'étage. Ici, c'est deux. Donc 40 fois 2 fois 2, encore une fois, 160. Et la dernière, c'est u. Exactement : on a un bloqueur d'ordre zéro. On va donc maintenir une valeur par intervalle pour représenter la commande. Additionnez tout ça et ça vous donne un programme à 282 variables, ce qui n'est pas petit."
+  },
+  {
+   "t": 2806000,
+   "text": "Unfortunately, I cannot cram this into one hour, apparently. So we'll take a quick break. We'll come back and continue with this. And here's what I'm going to do, actually: I'm going to finish the integral perspective. I'm going to leave the derivative perspective for you to review on your own. We talked about it in class, but review it, and then we're going to quickly jump to the interactive questions, so that we can cover more, beyond collocation. But it was important for me to spend a good hour on collocation. I think this really helps understand things. Okay. So I have to go drink some water. I'll be back in 10 minutes, and we'll continue with all of that.",
+   "fr": "Malheureusement, je ne peux pas faire entrer tout ça dans une heure, apparemment. On va donc prendre une petite pause. On va revenir et continuer avec ça. Et voici ce que je vais faire, en fait : je vais terminer la perspective intégrale. Je vais vous laisser revoir la perspective dérivée par vous-mêmes. On en a parlé en classe, mais revoyez-la, puis on va passer rapidement aux questions interactives, pour pouvoir couvrir davantage, au-delà de la collocation. Mais c'était important pour moi de passer une bonne heure sur la collocation. Je pense que ça aide vraiment à comprendre les choses. Bon. Je dois aller boire de l'eau. Je reviens dans 10 minutes, et on continuera avec tout ça."
+  },
+  {
+   "t": 3024079,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 3104640,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 3209359,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 3254880,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 3306079,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 3373599,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 3419359,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 3463920,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 3494480,
+   "text": "[Break]",
+   "fr": "[Break]"
+  },
+  {
+   "t": 3532799,
+   "text": "Okay, let's get going.",
+   "fr": "Bon, on y va."
+  },
+  {
+   "t": 3589520,
+   "text": "Okay. The real stuff is happening now. We set up everything, but now this is the real stuff. Here's the magic. We're going to do these two equations. Write them down. You can write them down on your cheat sheet, if you want. So we've done all that business with the matrix A, the integration, the Lagrange basis, whatever, for this. And the notation here is important: \\(x_k\\), \\(x_{k,i}\\). What is \\(x_{k,i}\\) again?",
+   "fr": "Bon. C'est maintenant que les choses sérieuses commencent. On a tout mis en place, mais maintenant, c'est du sérieux. Voici la magie. On va faire ces deux équations. Notez-les. Vous pouvez les écrire sur votre aide-mémoire, si vous voulez. On a donc fait toute cette histoire avec la matrice A, l'intégration, la base de Lagrange, peu importe, pour ceci. Et la notation ici est importante : \\(x_k\\), \\(x_{k,i}\\). Qu'est-ce que \\(x_{k,i}\\), déjà?"
+  },
+  {
+   "t": 3622000,
+   "text": "It's a decision variable. It's an unknown. What is \\(x_{k,i}\\)? It's the i-th decision variable within the k-th stage. And \\(x_{k+1}\\) is the mesh node at the end of an interval. And what is the math saying? What is this thing over there? Well, this is the value of our fitted polynomial, remember, because here we fit the slopes, and if we have the slopes, by the fundamental theorem of calculus, to get the state trajectory you need to integrate, which is exactly what that summation is hiding, because A is the integral that we've precomputed ahead of time. Right. So this term over there is a term \\(A_{ij}\\).",
+   "fr": "C'est une variable de décision. C'est une inconnue. Qu'est-ce que \\(x_{k,i}\\)? C'est la i-ème variable de décision dans le k-ième étage. Et \\(x_{k+1}\\), c'est le nœud de maillage à la fin d'un intervalle. Et que disent les maths? Qu'est-ce que c'est, cette chose-là? Eh bien, c'est la valeur de notre polynôme ajusté, rappelez-vous, parce qu'ici on ajuste les pentes, et si on a les pentes, par le théorème fondamental de l'analyse, pour obtenir la trajectoire d'état, il faut intégrer, ce qui est exactement ce que cache cette sommation, parce que A est l'intégrale qu'on a précalculée à l'avance. C'est ça. Donc ce terme-là est un terme \\(A_{ij}\\)."
+  },
+  {
+   "t": 3677680,
+   "text": "Whenever tau here is \\(\\tau_i\\), it becomes \\(A_{ij}\\). So this whole thing here can be efficiently implemented as this multiplication over there. Right? So this is giving us: given our guess on what the trajectory should be, where would I end up? What would be my corresponding value for a stage node? This is \\(x_{k,i}\\).",
+   "fr": "Chaque fois que tau, ici, vaut \\(\\tau_i\\), ça devient \\(A_{ij}\\). Tout ceci peut donc être implémenté efficacement comme cette multiplication-là. D'accord? Ça nous donne : étant donné notre estimation de ce que devrait être la trajectoire, où est-ce que j'aboutirais? Quelle serait ma valeur correspondante pour un nœud d'étage? C'est \\(x_{k,i}\\)."
+  },
+  {
+   "t": 3711760,
+   "text": "And this is the same thing, but asking from the beginning of an interval to the end of an interval, which here we just collect into this vector b. And we're now going to turn that into constraints. We want things to be consistent. The constraint is that a reconstruction from an \\(x_k\\) matches the value that we maintain for that node. And this looks like this in code, in the general case. So these are the slopes. These are evaluated at the decision variables that we have.",
+   "fr": "Et ceci, c'est la même chose, mais en allant du début d'un intervalle jusqu'à la fin d'un intervalle, ce qu'on regroupe ici dans ce vecteur b. Et maintenant, on va transformer ça en contraintes. On veut que les choses soient cohérentes. La contrainte, c'est qu'une reconstruction à partir d'un \\(x_k\\) corresponde à la valeur qu'on maintient pour ce nœud. Et ça ressemble à ceci dans le code, dans le cas général. Ce sont les pentes. Elles sont évaluées aux variables de décision qu'on a."
+  },
+  {
+   "t": 3754559,
+   "text": "These x_stage here: this is a guess that we're improving across iterations. This is \\(u_k\\), which is a zero-order hold: it's the same value no matter where you are. And here, slopes collects all of the evaluations of f for each of the stage nodes. And then this is where we add an equality constraint that we're going to then send to SciPy minimize.",
+   "fr": "Ces x_stage, ici : c'est une estimation qu'on améliore d'une itération à l'autre. Ceci, c'est \\(u_k\\), qui est un bloqueur d'ordre zéro : c'est la même valeur peu importe où on se trouve. Et ici, slopes rassemble toutes les évaluations de f pour chacun des nœuds d'étage. Puis c'est ici qu'on ajoute une contrainte d'égalité qu'on va ensuite envoyer à minimize de SciPy."
+  },
+  {
+   "t": 3795039,
+   "text": "So here we're assembling all of the equality constraints. And the way that these solvers work is that you want to write the equality constraints as zeros. So if it's like \"blah is equal to blah,\" you want to move it to the other side, so that it becomes a zero problem. Here we say that the variable x_stage k should match the integral from the beginning to the current point.",
+   "fr": "Donc ici, on assemble toutes les contraintes d'égalité. Et la façon dont ces solveurs fonctionnent, c'est qu'il faut écrire les contraintes d'égalité sous forme de zéros. Donc si c'est du genre « bidule est égal à bidule », il faut le passer de l'autre côté pour que ça devienne un problème de zéros. Ici, on dit que la variable x_stage k doit correspondre à l'intégrale depuis le début jusqu'au point courant."
+  },
+  {
+   "t": 3829280,
+   "text": "So I want this to be true everywhere. And then this other condition is a bit special. What does it say? Well, this is the continuity constraint. Because here we have the stage variable, and here we have the mesh variable, it says: I want the value at the end of my interval to coincide with the end of my polynomial, so I don't end up with these discontinuous bits and pieces. So over time it's going to glue it, right? When it's reducing the residual error, the defect constraint, it's gluing up the segments. And the other constraint, what it's doing is making each segment closer to reality.",
+   "fr": "Je veux donc que ce soit vrai partout. Et cette autre condition est un peu spéciale. Que dit-elle? Eh bien, c'est la contrainte de continuité. Parce qu'ici on a la variable d'étage, et ici on a la variable de maillage, elle dit : je veux que la valeur à la fin de mon intervalle coïncide avec la fin de mon polynôme, pour ne pas me retrouver avec des bouts discontinus. Donc, au fil du temps, ça va recoller le tout, d'accord? Quand le solveur réduit l'erreur résiduelle, la contrainte de raccordement (defect), il recolle les segments. Et l'autre contrainte, ce qu'elle fait, c'est rapprocher chaque segment de la réalité."
+  },
+  {
+   "t": 3879039,
+   "text": "Make it more consistent with the dynamics. So that's it. Now there's this term over there. It's the approximation of the objective. Why is it that our objective looks like that? Does anyone remember? Why is it not just c? What's the simplest thing we could do, actually? Yeah. So I only have a number of discrete values. I could just sum up all the c's. So that would be an approximation of the cost. But the cost evolves continuously. So clearly, if I just take a sum of the cost at these discrete points, it's going to be off from what it should be. And so I have these coefficients in front.",
+   "fr": "Le rendre plus cohérent avec la dynamique. Voilà. Maintenant, il y a ce terme-là. C'est l'approximation de l'objectif. Pourquoi notre objectif a-t-il cette forme? Quelqu'un s'en souvient? Pourquoi ce n'est pas juste c? Quelle est la chose la plus simple qu'on pourrait faire, en fait? Oui. Je n'ai qu'un certain nombre de valeurs discrètes. Je pourrais simplement additionner tous les c. Ce serait une approximation du coût. Mais le coût évolue de façon continue. Donc clairement, si je prends seulement la somme du coût en ces points discrets, ça va s'écarter de ce que ça devrait être. Et c'est pourquoi j'ai ces coefficients devant."
+  },
+  {
+   "t": 3927920,
+   "text": "Why do I have these things again? Where do they come from? Yeah?\nStudent: [inaudible]\nYeah. And why do we integrate, then? Why are we then integrating c?\nStudent: [inaudible]\nThat's right. So then we think of c as basically the rate of change. And so we said that another way of seeing this integral of the cost is as an ODE itself, where the rate of change is c, not f. So you can even lump everything into one system, to some extent, and just augment your original f with another component, which is the running... not the running sum, but the running cost from the beginning to the current time step.",
+   "fr": "Pourquoi est-ce que j'ai ces choses-là, déjà? D'où viennent-elles? Oui?\nStudent: [inaudible]\nOui. Et pourquoi intègre-t-on, alors? Pourquoi intègre-t-on c?\nStudent: [inaudible]\nC'est ça. On voit donc c essentiellement comme le taux de variation. Et on a dit qu'une autre façon de voir cette intégrale du coût, c'est comme une ODE elle-même, où le taux de variation est c, et non f. On peut même tout regrouper dans un seul système, jusqu'à un certain point, et simplement augmenter notre f original d'une autre composante, qui est le... pas la somme courante, mais le coût cumulé depuis le début jusqu'au pas de temps courant."
+  },
+  {
+   "t": 3986160,
+   "text": "So this means that our approximation of the cost is consistent with the approximation of the dynamics. Okay. That's it. We've written it. Now things need to be properly initialized. So you see np.zeros [?]. We initialize our guess with n_z. n_z here was the formula that we convinced ourselves is the number of variables we need. And we initialize our system like that. Now, because this is nonlinear programming, it might not converge to the global solution at all,",
+   "fr": "Ça veut donc dire que notre approximation du coût est cohérente avec l'approximation de la dynamique. Bon. C'est tout. On l'a écrit. Maintenant, il faut initialiser les choses correctement. Vous voyez np.zeros [?]. On initialise notre estimation avec n_z. n_z, ici, c'était la formule dont on s'est convaincus qu'elle donne le nombre de variables dont on a besoin. Et on initialise notre système comme ça. Maintenant, comme c'est de la programmation non linéaire, ça pourrait ne pas converger du tout vers la solution globale,"
+  },
+  {
+   "t": 4024079,
+   "text": "and you might need to nudge your system with a good initialization. So here, yeah, there you go. Here we give it a guess, which is essentially... there's the start state and there's the goal state. Remember, the goal state is: I want to be at pi, with zero angular velocity.",
+   "fr": "et vous pourriez devoir donner un coup de pouce à votre système avec une bonne initialisation. Donc ici, oui, voilà. Ici, on lui donne une estimation qui est essentiellement... il y a l'état de départ et il y a l'état but. Rappelez-vous, l'état but, c'est : je veux être à pi, avec une vitesse angulaire nulle."
+  },
+  {
+   "t": 4055599,
+   "text": "The simplest guess you can give, and of course it's a wrong guess, is to say, because it's trajectory optimization, that the trajectory to go from start to end is going to be a straight line. It's a pretty reasonable guess. Between this and just giving it an array of random values, that's probably a better guess. This is what we do here. It's quite common: whenever you have a goal-reaching task, you can always give it a guess that is a line. If you're doing robotics, sometimes you're going to give a demonstration. That's a great way of bootstrapping the system. And there you go. So then we pass it to SciPy, with the objective, with the guess, with the bounds... bound constraints. Do we have bound constraints? Yeah, it's just the limits on the torque. And we use SLSQP, which is SQP, basically. And then when we run it, it's going to be... oops, because I didn't run the whole thing.",
+   "fr": "L'estimation la plus simple qu'on puisse donner, et bien sûr c'est une estimation fausse, c'est de dire, puisque c'est de l'optimisation de trajectoire, que la trajectoire pour aller du départ à l'arrivée va être une ligne droite. C'est une estimation assez raisonnable. Entre ça et simplement lui donner un tableau de valeurs aléatoires, c'est probablement une meilleure estimation. C'est ce qu'on fait ici. C'est assez courant : chaque fois qu'on a une tâche d'atteinte de but, on peut toujours lui donner une estimation qui est une droite. Si vous faites de la robotique, parfois vous allez donner une démonstration. C'est une excellente façon d'amorcer le système. Et voilà. Ensuite, on le passe à SciPy, avec l'objectif, avec l'estimation, avec les bornes... les contraintes de bornes. Est-ce qu'on a des contraintes de bornes? Oui, ce sont seulement les limites sur le couple. Et on utilise SLSQP, qui est essentiellement du SQP. Et quand on l'exécute, ça va... oups, parce que je n'ai pas tout exécuté."
+  },
+  {
+   "t": 4126640,
+   "text": "It should be fairly fast, but...\nStudent: Our point is the same [inaudible] last [inaudible]\nCan you say that again?",
+   "fr": "Ça devrait être assez rapide, mais...\nStudent: Notre point est le même [inaudible] dernier [inaudible]\nPouvez-vous répéter?"
+  },
+  {
+   "t": 4158159,
+   "text": "Yeah?\nStudent: Then we had our stage points, which were two in that interval, and [inaudible] the reason why we're setting [inaudible] matches [?].\nIt's a particular choice for this family of collocation methods. And it might lead to some special structure here. It's just an exercise, but it's one instance, and you're allowed to pick... you could pick other values, so long as they're within zero to one.",
+   "fr": "Oui?\nStudent: Ensuite, on avait nos points d'étage, qui étaient deux dans cet intervalle, et [inaudible] la raison pour laquelle on fixe [inaudible] correspond [?].\nC'est un choix particulier pour cette famille de méthodes de collocation. Et ça peut mener à une structure particulière ici. C'est juste un exercice, mais c'est un cas parmi d'autres, et vous avez le droit de choisir... vous pourriez choisir d'autres valeurs, tant qu'elles sont entre zéro et un."
+  },
+  {
+   "t": 4188319,
+   "text": "There are methods that don't include the end point in there. So it converged. And then there's another question that I could ask; I think I have it in the exercises. So look, it's finished, and it says \"largest residual,\" this thing, which is great. We're probably running in float64. This is close enough to zero for us. Residual means that the constraints... if you do one minus the other one and you take the [inaudible] norm, I guess, you get a residual of this value, which is very tiny. The machine epsilon would be maybe, who knows, around... If I see something which is of the order of 1e-8, then I'm like, okay, maybe there's more to squeeze out, but this is pretty good. So you see this and you're like, \"All right, great. I solved my problem.\"",
+   "fr": "Il y a des méthodes qui n'incluent pas l'extrémité. Donc ça a convergé. Et il y a une autre question que je pourrais poser; je pense que je l'ai dans les exercices. Regardez, c'est fini, et ça affiche « largest residual », ce truc-là, ce qui est très bien. On roule probablement en float64. C'est assez proche de zéro pour nous. Le résidu, ça veut dire que les contraintes... si on fait l'une moins l'autre et qu'on prend la norme [inaudible], j'imagine, on obtient un résidu de cette valeur, qui est minuscule. L'epsilon machine serait peut-être, qui sait, autour de... Si je vois quelque chose de l'ordre de 1e-8, je me dis : bon, il y a peut-être encore de la marge à aller chercher, mais ceci est très bien. Alors vous voyez ça et vous vous dites : « Parfait. J'ai résolu mon problème. »"
+  },
+  {
+   "t": 4251840,
+   "text": "So here's an exam question. If I have a small residual here, does it mean that I have an accurate answer? Does it mean that I have found a solution which has a high degree of accuracy, that I could send a deep space probe with this and know that in 30 years it's going to reach its destination at the exact second it's supposed to? Yes or no?",
+   "fr": "Alors voici une question d'examen. Si j'ai un petit résidu ici, est-ce que ça veut dire que j'ai une réponse exacte? Est-ce que ça veut dire que j'ai trouvé une solution d'un haut degré de précision, que je pourrais envoyer une sonde spatiale lointaine avec ça et savoir que dans 30 ans, elle va arriver à destination à la seconde près? Oui ou non?"
+  },
+  {
+   "t": 4296000,
+   "text": "No is the right answer. But I think your explanation is not quite... I think you're going in the right direction, but there's maybe a bigger picture on this. So why is the answer no? Having a small residual means that my solution is accurate... what it means is that it's accurate with respect to this transcription. And what does affect the accuracy of your transcription?",
+   "fr": "Non, c'est la bonne réponse. Mais je pense que votre explication n'est pas tout à fait... je pense que vous allez dans la bonne direction, mais il y a peut-être une vue d'ensemble plus large. Alors pourquoi la réponse est-elle non? Avoir un petit résidu veut dire que ma solution est exacte... ce que ça veut dire, c'est qu'elle est exacte par rapport à cette transcription. Et qu'est-ce qui influe sur la précision de votre transcription?"
+  },
+  {
+   "t": 4328719,
+   "text": "Well, number one is the number of mesh points you pick. If your mesh is very, very fine, you're going to have a higher accuracy, usually. And then the second thing is that your choice of collocation points also affects the accuracy. Your choice of collocation points is where you enforce consistency with the dynamics. And some choices of collocation points might be more adequate for certain dynamics, let's say. So the answer is no. But it's a good thing: if your residual is not small, then you have a problem. It means that your solver is struggling. Maybe you didn't give it a good enough guess, so you need to work on that. Actually, I have the answer there, so read that. And, yeah. So then it gives us this. This is an example of the trajectory.",
+   "fr": "Eh bien, premièrement, le nombre de points de maillage que vous choisissez. Si votre maillage est très, très fin, vous allez avoir une meilleure précision, habituellement. Et deuxièmement, votre choix de points de collocation influe aussi sur la précision. Vos points de collocation, c'est là que vous imposez la cohérence avec la dynamique. Et certains choix de points de collocation peuvent être plus adéquats pour certaines dynamiques, disons. Donc la réponse est non. Mais c'est une bonne chose : si votre résidu n'est pas petit, alors vous avez un problème. Ça veut dire que votre solveur a de la difficulté. Peut-être que vous ne lui avez pas donné une estimation assez bonne, et il faut travailler là-dessus. En fait, j'ai la réponse là, alors lisez-la. Et, oui. Ensuite, ça nous donne ceci. C'est un exemple de la trajectoire."
+  },
+  {
+   "t": 4383679,
+   "text": "And you can play with that. Try with different collocation nodes. The beauty of the way I've shown it to you is that you can just plug in any other collocation nodes, any other recipe, and you're going to get something else. It's great. You don't have to do it on a case-by-case basis. Now, the second part you need to study on your own. It's the same thing, but we flip it. Instead of saying I'm going to interpolate f, here I use my values of x that I maintain in memory, which are discrete guesses on what x is, and I'm going to interpolate that. And with the nodal representation it's very easy: you form the Lagrange basis, you multiply the Lagrange basis by x, bam, you've now got an expression for what the corresponding polynomial would be. And once I have a polynomial in place, I can either integrate it or",
+   "fr": "Et vous pouvez jouer avec ça. Essayez avec différents nœuds de collocation. La beauté de la façon dont je vous l'ai montré, c'est que vous pouvez simplement brancher n'importe quels autres nœuds de collocation, n'importe quelle autre recette, et vous allez obtenir autre chose. C'est génial. Vous n'avez pas à y aller au cas par cas. Maintenant, la deuxième partie, vous devez l'étudier par vous-mêmes. C'est la même chose, mais on l'inverse. Au lieu de dire que je vais interpoler f, ici j'utilise mes valeurs de x que je garde en mémoire, qui sont des estimations discrètes de ce qu'est x, et je vais interpoler ça. Et avec la représentation nodale, c'est très facile : vous formez la base de Lagrange, vous multipliez la base de Lagrange par x, paf, vous avez maintenant une expression pour le polynôme correspondant. Et une fois que j'ai un polynôme en place, je peux soit l'intégrer, soit"
+  },
+  {
+   "t": 4445760,
+   "text": "differentiate it. So here we do the opposite. Here the consistency condition is not on the integral but on the derivative. And it's often more like the story that people tell first. Like, if you read Russ Tedrake's notes, he's going to present it this way, and that's how it's implemented also in CasADi. So instead we say: I want my dynamics f to match the derivative implied by my polynomial, which I'm maintaining in memory, at those collocation points. The decision variables are the same, and mathematically it leads to the same thing, but there are practical advantages to doing it this way. But anyways, please read through this one. If you understand the integral one, you should understand that one. Okay, so it's good practice.",
+   "fr": "le dériver. Donc ici, on fait l'inverse. Ici, la condition de cohérence ne porte pas sur l'intégrale, mais sur la dérivée. Et c'est souvent plutôt l'histoire que les gens racontent en premier. Par exemple, si vous lisez les notes de Russ Tedrake, il va le présenter de cette façon, et c'est aussi comme ça que c'est implémenté dans CasADi. On dit plutôt : je veux que ma dynamique f corresponde à la dérivée impliquée par le polynôme que je garde en mémoire, à ces points de collocation. Les variables de décision sont les mêmes, et mathématiquement, ça mène à la même chose, mais il y a des avantages pratiques à le faire de cette façon. Mais bon, lisez celle-là, s'il vous plaît. Si vous comprenez la forme intégrale, vous devriez comprendre celle-là. Bon, c'est donc un bon exercice."
+  },
+  {
+   "t": 4497280,
+   "text": "Okay, so less than 40 minutes to do this. I hope it helped. Take your time. Here you go. So let's do this one together. Okay, it's going to be more fun. Open it. And here you can click the answer and it's going to give you the right answer. So it's like a quiz. This is a quote, literally, from me saying this. I don't know in which lecture, but this was maybe in the first lecture: \"The big conceptual thing, always a source of confusion...\" That's how I speak, right? Sentence ordering is not great. \"The big conceptual thing, always a source of confusion, is the definition of our decision variables.\" Which statement about decision variables is correct? \"In the continuous-time OCP, the unknown u is a vector of snapshots of",
+   "fr": "Bon, il reste donc moins de 40 minutes pour faire ça. J'espère que ça vous a aidés. Prenez votre temps. Voilà. Faisons celle-ci ensemble. Bon, ça va être plus amusant. Ouvrez-le. Et ici, vous pouvez cliquer sur la réponse et ça va vous donner la bonne réponse. C'est donc comme un quiz. Ceci est une citation, littéralement, de moi qui dis ça. Je ne sais pas dans quel cours, mais c'était peut-être au premier cours : « La grande chose conceptuelle, toujours une source de confusion... » C'est comme ça que je parle, n'est-ce pas? L'ordre des mots n'est pas génial. « La grande chose conceptuelle, toujours une source de confusion, c'est la définition de nos variables de décision. » Quel énoncé sur les variables de décision est correct? « Dans l'OCP en temps continu, l'inconnue u est un vecteur d'instantanés des"
+  },
+  {
+   "t": 4560239,
+   "text": "the actions at the mesh times.\" Does that make sense? Yes or no? You need to answer which one is true [?]. Okay, I'm giving you two minutes. Answer it, and then we're going to look at the answer. You can cheat and press it, but think about it. And I have to time myself so that we have... \"In direct transcription, the decision variables are the values of the state and the control at the nodes, and the dynamics enter as equality constraints.\" \"In single shooting, both x and u are decision variables, but x is initialized by simulation.\" \"The",
+   "fr": "actions aux instants du maillage. » Est-ce que ça a du sens? Oui ou non? Vous devez répondre lequel est vrai [?]. Bon, je vous donne deux minutes. Répondez, puis on va regarder la réponse. Vous pouvez tricher et cliquer, mais réfléchissez-y. Et je dois me minuter pour qu'on ait... « En transcription directe, les variables de décision sont les valeurs de l'état et de la commande aux nœuds, et la dynamique intervient sous forme de contraintes d'égalité. » « En tir simple, x et u sont tous deux des variables de décision, mais x est initialisé par simulation. » « Le"
+  },
+  {
+   "t": 4622560,
+   "text": "transcribed NLP searches directly in the space of control functions.\" So which one is true among these four statements? Only one of them is true. Does anyone know the answer? A, B, C, D? B? Is B true or false? Let's see. I think if I had clicked the other one, it would show in red. But yes, indeed.",
+   "fr": "NLP transcrit cherche directement dans l'espace des fonctions de commande. » Alors, lequel est vrai parmi ces quatre énoncés? Un seul est vrai. Quelqu'un connaît la réponse? A, B, C, D? B? B est vrai ou faux? Voyons voir. Je pense que si j'avais cliqué sur l'autre, ça s'afficherait en rouge. Mais oui, effectivement."
+  },
+  {
+   "t": 4654880,
+   "text": "Okay. So the first one: what's wrong? \"Continuous OCP: the unknown is a vector of snapshots.\" No. When you're in a continuous OCP, u is a function. It's a continuous function of time. Not the snapshots. They only appear in the transcribed problem. Okay. B is the thing that I kept repeating, and I say it's always a source of confusion: when you write the OCP in the form of minimize blah, integral of blah, subject to blah, then the decision variables, the decisions you've got to make, are both x and u. This is the thing which I think is conceptually challenging sometimes. So both of them: we solve for both of them, unless you do single shooting. In single shooting, you would eliminate x as a decision variable and you only search over u. So the statement C is false: \"In single shooting, both x and u are decision variables.\" No, it's only u.",
+   "fr": "Bon. Le premier : qu'est-ce qui ne va pas? « OCP continu : l'inconnue est un vecteur d'instantanés. » Non. Quand on est dans un OCP continu, u est une fonction. C'est une fonction continue du temps. Pas des instantanés. Ceux-ci n'apparaissent que dans le problème transcrit. Bon. B, c'est ce que je n'arrêtais pas de répéter, et je dis que c'est toujours une source de confusion : quand on écrit l'OCP sous la forme minimiser bidule, intégrale de bidule, sous la contrainte bidule, alors les variables de décision, les décisions qu'il faut prendre, ce sont à la fois x et u. C'est ce qui, je pense, est parfois difficile sur le plan conceptuel. Donc les deux : on résout pour les deux, à moins de faire du tir simple. En tir simple, on éliminerait x comme variable de décision et on chercherait seulement sur u. L'énoncé C est donc faux : « En tir simple, x et u sont tous deux des variables de décision. » Non, c'est seulement u."
+  },
+  {
+   "t": 4712239,
+   "text": "And the initialization has nothing to do, in our recipe, with single shooting. You can initialize it with whatever you want. \"The transcribed NLP searches directly in the space of control functions.\" No. The whole point of transcription is that we make our mathematical problem tractable on a computer, because otherwise we'd have to search in the space of functions, which we cannot do on a computer with a finite representation. We can only search over the space, in that case, of polynomials. And the whole thing about collocation is that we don't search over the space of coefficients;",
+   "fr": "Et l'initialisation n'a rien à voir, dans notre recette, avec le tir simple. Vous pouvez l'initialiser avec ce que vous voulez. « Le NLP transcrit cherche directement dans l'espace des fonctions de commande. » Non. Tout l'intérêt de la transcription, c'est de rendre notre problème mathématique traitable sur un ordinateur, parce que sinon il faudrait chercher dans l'espace des fonctions, ce qu'on ne peut pas faire sur un ordinateur avec une représentation finie. On peut seulement chercher, dans ce cas-là, dans l'espace des polynômes. Et tout le principe de la collocation, c'est qu'on ne cherche pas dans l'espace des coefficients;"
+  },
+  {
+   "t": 4748719,
+   "text": "we search over the space of nodal values. But as we know now, the nodal representation or the one with coefficients gives us the same representation. It's just more convenient. Okay. Next. So we just did that one here. You can go back to the notebook, maybe, if you don't remember it. But your job here is... we have a cart-pole swing-up.",
+   "fr": "on cherche dans l'espace des valeurs nodales. Mais comme on le sait maintenant, la représentation nodale ou celle par coefficients donne la même représentation. C'est juste plus pratique. Bon. Suivante. On vient de faire celle-ci, ici. Vous pouvez retourner au notebook, peut-être, si vous ne vous en souvenez pas. Mais votre tâche ici, c'est... on a un redressement de pendule sur chariot."
+  },
+  {
+   "t": 4783280,
+   "text": "We use, and I should have used different wording to be consistent, 31 mesh nodes, and we use four stage nodes in each interval. And we have 30 scalar controls and a fixed initial state. How many decision variables do we have, and how many equality constraints are we going to get in this problem? So where do we start with this? Let's go check our figure over there again.",
+   "fr": "On utilise, et j'aurais dû employer d'autres mots pour être cohérent, 31 nœuds de maillage, et on utilise quatre nœuds d'étage dans chaque intervalle. Et on a 30 commandes scalaires et un état initial fixé. Combien de variables de décision a-t-on, et combien de contraintes d'égalité va-t-on avoir dans ce problème? Alors, par où commence-t-on? Retournons voir notre figure là-bas."
+  },
+  {
+   "t": 4830159,
+   "text": "So at each mesh state we have a decision variable. Here we already know we're going to need 31. And the cart-pole swing-up here: do we assume it's one-dimensional? I don't remember the answer to that one. And why am I not giving you the number of intervals? Oh, wait, wait. Okay. So we've got... yeah. All right. So if we've got 31 state nodes, or mesh nodes, then how many intervals are we going to get? First of all, that's the first thing you need to infer.",
+   "fr": "À chaque état de maillage, on a une variable de décision. Ici, on sait déjà qu'on va en avoir besoin de 31. Et le redressement du pendule sur chariot, ici : est-ce qu'on suppose qu'il est unidimensionnel? Je ne me rappelle pas la réponse à celle-là. Et pourquoi est-ce que je ne vous donne pas le nombre d'intervalles? Oh, attendez, attendez. Bon. On a donc... oui. D'accord. Si on a 31 nœuds d'état, ou nœuds de maillage, combien d'intervalles va-t-on avoir? D'abord, c'est la première chose que vous devez déduire."
+  },
+  {
+   "t": 4870080,
+   "text": "Student: 30.\n30. That you can write down. That was big N: 30 intervals. For each interval... so we're going to get 30 [?] times 4, plus 31, plus the controls, 30. And that's my first guess. Let's see.",
+   "fr": "Student: 30.\n30. Ça, vous pouvez l'écrire. C'était le grand N : 30 intervalles. Pour chaque intervalle... on va donc avoir 30 [?] fois 4, plus 31, plus les commandes, 30. Et c'est ma première estimation. Voyons voir."
+  },
+  {
+   "t": 4902640,
+   "text": "I don't know if it makes sense. So which one is this? And the number of equalities: where are the equalities going to appear? Are they going to appear at the controls? No. So we already know that it's going to be less than the total over there. That can't be the last one, because we have more equalities than the first one. So we could have replaced that one. And so the total answer is 31 times 4. So this is the number of variables corresponding to our stage variables, plus 30 of those ones here.",
+   "fr": "Je ne sais pas si ça a du sens. Alors, laquelle est-ce? Et le nombre d'égalités : où vont apparaître les égalités? Est-ce qu'elles vont apparaître aux commandes? Non. On sait donc déjà que ce sera moins que le total là-bas. Ça ne peut pas être la dernière, parce qu'on a plus d'égalités que la première. On aurait donc pu remplacer celle-là. Et donc la réponse totale est 31 fois 4. C'est donc le nombre de variables correspondant à nos variables d'étage, plus 30 de celles-ci, ici."
+  },
+  {
+   "t": 4962719,
+   "text": "And does it make sense? Is it working out?\nStudent: [inaudible]\nThat's right. So we need those to match the dynamics of our system.",
+   "fr": "Et est-ce que ça a du sens? Est-ce que ça fonctionne?\nStudent: [inaudible]\nC'est ça. Il faut donc que celles-ci correspondent à la dynamique de notre système."
+  },
+  {
+   "t": 4994239,
+   "text": "Okay. So it's the same exercise that we've done before. And this comment here, I haven't talked about it so much. But when we write things down in this way, with the residual, the corresponding Jacobian matrix oftentimes has a structure which we don't really leverage when we do automatic differentiation. A thing that I haven't talked about very much this year is that, let's say, SQP under the hood is instead going to use finite differences, rather than automatic differentiation. And I told you that the one thing we usually want to avoid in automatic differentiation is to form Jacobian matrices explicitly. These guys embrace it: they use finite differences and they represent everything explicitly as big matrices. So presumably here you'd get a Jacobian matrix of something like 154 by 154. It's pretty big, and they do a lot of tricks to make sure that it's a sparse matrix.",
+   "fr": "Bon. C'est donc le même exercice que celui qu'on a fait avant. Et ce commentaire ici, je n'en ai pas beaucoup parlé. Mais quand on écrit les choses de cette façon, avec le résidu, la matrice jacobienne correspondante a souvent une structure qu'on n'exploite pas vraiment quand on fait de la différentiation automatique. Une chose dont je n'ai pas beaucoup parlé cette année, c'est que, disons, SQP sous le capot va plutôt utiliser des différences finies au lieu de la différentiation automatique. Et je vous ai dit que la chose qu'on veut habituellement éviter en différentiation automatique, c'est de former explicitement des matrices jacobiennes. Ces gens-là, eux, l'assument : ils utilisent des différences finies et représentent tout explicitement sous forme de grosses matrices. Donc ici, vous auriez probablement une matrice jacobienne d'environ 154 par 154. C'est assez gros, et ils font beaucoup d'astuces pour s'assurer que c'est une matrice creuse."
+  },
+  {
+   "t": 5053199,
+   "text": "But here, the comment is that that Jacobian matrix, because of the way that our dynamics are defined, will give a structured matrix, a block-banded structure, which is used by solvers to make it more efficient, to use sparse linear algebra rather than dense linear algebra. That's the reason why we have this comment over there. Okay, so let's now have a look at this one here. What we're going to be doing in this exercise is take a problem which is written as an OCP, and written in this way, it suggests that we solve it as a simultaneous problem, but then we want to remove the states as decision variables",
+   "fr": "Mais ici, le commentaire, c'est que cette matrice jacobienne, à cause de la façon dont notre dynamique est définie, va donner une matrice structurée, une structure en bandes par blocs, que les solveurs exploitent pour être plus efficaces, pour utiliser de l'algèbre linéaire creuse plutôt que de l'algèbre linéaire dense. C'est la raison pour laquelle on a ce commentaire là-bas. Bon, regardons maintenant celle-ci. Ce qu'on va faire dans cet exercice, c'est prendre un problème qui est écrit comme un OCP, et écrit de cette façon, ça suggère qu'on le résolve comme un problème simultané, mais ensuite on veut retirer les états comme variables de décision"
+  },
+  {
+   "t": 5114880,
+   "text": "by reparameterizing our problem. And the way we reparameterize this is the whole business about the \\(\\phi\\) function, which, as you remember, is like a loop, an unrolling [?]. So here, instead of just saying, well, we're going to reparameterize, we're going to write \\(\\phi\\), we're just going to do it by hand, and we can do it by hand easily here because it's a small problem. Let's work on this, guys. Give it a shot, and we're going to look at this. I'm not going to give you seven minutes, because we'll run out of time.",
+   "fr": "en reparamétrant notre problème. Et la façon dont on reparamètre ça, c'est toute l'histoire de la fonction \\(\\phi\\), qui, comme vous vous en souvenez, est comme une boucle, un déroulement [?]. Donc ici, au lieu de simplement dire : bon, on va reparamétrer, on va écrire \\(\\phi\\), on va simplement le faire à la main, et on peut facilement le faire à la main ici parce que c'est un petit problème. Travaillons là-dessus. Essayez-le, et on va regarder ça. Je ne vais pas vous donner sept minutes, parce qu'on va manquer de temps."
+  },
+  {
+   "t": 5154639,
+   "text": "So try to work it out. Maybe use paper, because it's a bit awkward otherwise. So you write the Lagrangian corresponding to that problem. First you write the cost, and then you add a term which is the price you've got to pay for violating the constraints, and you attach a Lagrange multiplier to each such constraint.",
+   "fr": "Essayez donc de le résoudre. Utilisez peut-être du papier, parce que c'est un peu malcommode autrement. Vous écrivez le lagrangien correspondant à ce problème. D'abord, vous écrivez le coût, puis vous ajoutez un terme qui est le prix à payer pour violer les contraintes, et vous associez un multiplicateur de Lagrange à chacune de ces contraintes."
+  },
+  {
+   "t": 5226639,
+   "text": "C and D might take a bit more time. So at least let's start with A and B, and we're going to look at this together.",
+   "fr": "C et D vont peut-être prendre un peu plus de temps. Alors commençons au moins par A et B, et on va regarder ça ensemble."
+  },
+  {
+   "t": 5378239,
+   "text": "Okay, let's look at the answer. So when you form the Lagrangian... it has nothing to do with control, but form the Lagrangian by first writing down the cost term. So it's \\(2x_3^2\\), \\(u_1\\) plus \\(u_2\\) [inaudible]. This is what we see. I can't highlight for some reason here, but you see my cursor. And then the second part: sometimes I would write it as a vector-Jacobian multiplication, but here it's just written explicitly as a summation. So I've got one Lagrange multiplier associated with each of those. I've got one for t equal to one and one for t equal to two. So it means that I've got one multiplier attached to \\(x_2\\).",
+   "fr": "Bon, regardons la réponse. Quand vous formez le lagrangien... ça n'a rien à voir avec la commande, mais formez le lagrangien en écrivant d'abord le terme de coût. C'est donc \\(2x_3^2\\), \\(u_1\\) plus \\(u_2\\) [inaudible]. C'est ce qu'on voit. Je ne peux pas surligner ici, pour une raison ou une autre, mais vous voyez mon curseur. Ensuite, la deuxième partie : parfois je l'écrirais comme une multiplication vecteur-jacobienne, mais ici c'est simplement écrit explicitement sous forme de sommation. J'ai donc un multiplicateur de Lagrange associé à chacune d'elles. J'en ai un pour t égal à un et un pour t égal à deux. Ça veut dire que j'ai un multiplicateur rattaché à \\(x_2\\)."
+  },
+  {
+   "t": 5429440,
+   "text": "This is what I see here, the first term. And why is it written this way? Because whenever we have an equality constraint, we like to move it to the same side. So it's an equation that reads as \"something must be equal to zero.\" That's why we have it this way. We've got \\(x_1 + u_1\\), at t equal to 1, minus \\(x_2\\). So this is the first one. Same thing here at time 2, the second term. So, the Lagrangian [?]: it's just a definition.",
+   "fr": "C'est ce que je vois ici, le premier terme. Et pourquoi est-ce écrit de cette façon? Parce que chaque fois qu'on a une contrainte d'égalité, on aime tout passer du même côté. C'est donc une équation qui se lit « quelque chose doit être égal à zéro ». C'est pour ça qu'on l'a sous cette forme. On a \\(x_1 + u_1\\), à t égal à 1, moins \\(x_2\\). Ça, c'est la première. Même chose ici au temps 2, le deuxième terme. Donc, le lagrangien [?] : c'est simplement une définition."
+  },
+  {
+   "t": 5460320,
+   "text": "Now, the first-order optimality condition says that the derivative must vanish at an optimal primal-dual pair. And by the way, a thing I haven't really highlighted is what happens when you take the partial derivative with respect to the dual variable, the Lagrange multiplier. It sort of degenerates back into something trivial but important: when you take the derivative of the Lagrangian with respect to lambda, it gives you that the solution must be valid according to the equality constraint. So this is what the \"plus the two constraints\" means. And here we're just asking you to write down the derivative of the Lagrangian with respect to the decision variables and then to set it to zero. Look, I think it's kind of useless for me to go over this, but... so we took the Lagrangian here and took the partial with respect to each of the variables, let's say \\(x_3\\). We look wherever \\(x_3\\) appears. It appears",
+   "fr": "Maintenant, la condition d'optimalité du premier ordre dit que la dérivée doit s'annuler en une paire primale-duale optimale. Et d'ailleurs, une chose que je n'ai pas vraiment soulignée, c'est ce qui se passe quand on prend la dérivée partielle par rapport à la variable duale, le multiplicateur de Lagrange. Ça dégénère en quelque sorte en quelque chose de trivial, mais d'important : quand on prend la dérivée du lagrangien par rapport à lambda, ça nous dit que la solution doit être valide au sens de la contrainte d'égalité. C'est ce que veut dire le « plus les deux contraintes ». Et ici, on vous demande simplement d'écrire la dérivée du lagrangien par rapport aux variables de décision, puis de l'égaler à zéro. Écoutez, je pense que c'est un peu inutile que je passe à travers ça, mais... on a pris le lagrangien ici et on a pris la dérivée partielle par rapport à chacune des variables, disons \\(x_3\\). On regarde partout où \\(x_3\\) apparaît. Il apparaît"
+  },
+  {
+   "t": 5520480,
+   "text": "first here, it appears here, and that gives us \\(4x_3 - \\lambda_3\\); set it to zero. And we did this because in C we're asking you to write a step of Newton's method. Newton's method, remember, was defined this way. So you take the inverse Jacobian, so it means you need to compute the derivative, and then a step of this, times the first-order optimality condition. I might not ask you this, because I think conceptually there's not much to see, but it's good practice to get warmed up, I guess, on those things. So please do it by hand. A thing I've said oftentimes in class is that whenever we implement Newton's method in this way, we don't do it through an explicit matrix inversion, which is why we're always going to rewrite this as a linear system of equations and use linalg.solve, and not the inverse function. And",
+   "fr": "d'abord ici, il apparaît ici, et ça nous donne \\(4x_3 - \\lambda_3\\); on l'égale à zéro. Et on a fait ça parce qu'en C, on vous demande d'écrire un pas de la méthode de Newton. La méthode de Newton, rappelez-vous, était définie de cette façon. On prend l'inverse de la jacobienne, ce qui veut dire qu'il faut calculer la dérivée, puis un pas de ceci, multiplié par la condition d'optimalité du premier ordre. Je ne vous poserai peut-être pas cette question, parce que je pense que sur le plan conceptuel, il n'y a pas grand-chose à voir, mais c'est un bon exercice pour se réchauffer, j'imagine, sur ces choses-là. Alors faites-le à la main, s'il vous plaît. Une chose que j'ai souvent dite en classe, c'est que chaque fois qu'on implémente la méthode de Newton de cette façon, on ne le fait pas par une inversion explicite de matrice, et c'est pourquoi on va toujours réécrire ça comme un système d'équations linéaires et utiliser linalg.solve, et non la fonction d'inversion. Et"
+  },
+  {
+   "t": 5582480,
+   "text": "we're going to do this at every step. In this particular case, when you work out the math for the Jacobian, you get that, essentially, F is linear. So Newton's method, in that case, can be shown to converge in one step. But that's not something we've really talked about. Okay, this one here, let's do it together. A colleague wants to solve an equality-constrained problem of that kind. And that person says, \"All right, I know I can use a Lagrangian method for that. I'm going to write down the Lagrangian,\" which they do here.",
+   "fr": "on va faire ça à chaque pas. Dans ce cas particulier, quand on fait le calcul de la jacobienne, on obtient qu'essentiellement, F est linéaire. On peut donc montrer que, dans ce cas, la méthode de Newton converge en un seul pas. Mais ce n'est pas quelque chose dont on a vraiment parlé. Bon, celle-ci, faisons-la ensemble. Un collègue veut résoudre un problème avec contraintes d'égalité de ce genre. Et cette personne dit : « Bon, je sais que je peux utiliser une méthode lagrangienne pour ça. Je vais écrire le lagrangien », ce qu'elle fait ici."
+  },
+  {
+   "t": 5622639,
+   "text": "And they say, \"Great. Now all I've got to do is throw Adam at it. And I'm going to pick lambda equal to one.\" And they say, \"I've coded up the Lagrange method.\" What's wrong with that? Is there anything wrong with this? \"Nothing. This is Arrow-Hurwicz.\" Kind of obvious, guys. \"This is not Arrow-Hurwicz. The Lagrangian defines a game, min over z, max over lambda. With lambda frozen equal to one, they solve a penalized problem whose minimizer is not feasible in general.",
+   "fr": "Et elle dit : « Parfait. Maintenant, tout ce que j'ai à faire, c'est de lancer Adam là-dessus. Et je vais choisir lambda égal à un. » Et elle dit : « J'ai codé la méthode de Lagrange. » Qu'est-ce qui cloche? Est-ce qu'il y a quelque chose qui ne va pas? « Rien. C'est Arrow-Hurwicz. » Assez évident. « Ce n'est pas Arrow-Hurwicz. Le lagrangien définit un jeu, min sur z, max sur lambda. Avec lambda figé à un, on résout un problème pénalisé dont le minimiseur n'est pas réalisable en général."
+  },
+  {
+   "t": 5663280,
+   "text": "It's the max player who, by driving lambda, forces h to be equal to zero.\" True or false? Is there anything wrong with that statement? Let's look at C: \"They should have used a variable called mu instead,",
+   "fr": "C'est le joueur max qui, en faisant varier lambda, force h à être égal à zéro. » Vrai ou faux? Est-ce qu'il y a quelque chose qui cloche dans cet énoncé? Regardons C : « Cette personne aurait dû utiliser plutôt une variable appelée mu,"
+  },
+  {
+   "t": 5693920,
+   "text": "that is greater or equal than zero, instead of lambda.\" True or false? Final question: \"Adam cannot be used on the Lagrangian.\" Which one is true? A, B, C, D? Any guess? B is true. B is indeed true: \"This is not Arrow-Hurwicz.\" Mu greater or equal than zero: this is when we have inequality constraints. And we can totally use Adam, but we need to use it in the right way, and the right way to use it, in Arrow-Hurwicz's algorithm, is to pose it as a game between a min player and a max player.",
+   "fr": "supérieure ou égale à zéro, au lieu de lambda. » Vrai ou faux? Dernière question : « Adam ne peut pas être utilisé sur le lagrangien. » Lequel est vrai? A, B, C, D? Une idée? B est vrai. B est effectivement vrai : « Ce n'est pas Arrow-Hurwicz. » Mu supérieur ou égal à zéro : c'est quand on a des contraintes d'inégalité. Et on peut tout à fait utiliser Adam, mais il faut l'utiliser de la bonne façon, et la bonne façon de l'utiliser, dans l'algorithme d'Arrow-Hurwicz, c'est de poser ça comme un jeu entre un joueur min et un joueur max."
+  },
+  {
+   "t": 5749520,
+   "text": "It's a primal-dual problem, and we do gradient descent-ascent. So we alternate between minimizing with respect to z and maximizing with respect to lambda. Minus and plus. All right. Let's look at the code. I told you I'm probably going to give you some code snippets. You need to read them and see what's wrong. Yeah, more and more we're not going to write code, but we're going to review code. Or maybe not anymore.",
+   "fr": "C'est un problème primal-dual, et on fait de la descente-ascension de gradient. On alterne donc entre minimiser par rapport à z et maximiser par rapport à lambda. Moins et plus. Bon. Regardons le code. Je vous ai dit que j'allais probablement vous donner des bouts de code. Vous devez les lire et trouver ce qui cloche. Oui, de plus en plus, on ne va plus écrire de code, mais on va réviser du code. Ou peut-être même plus ça."
+  },
+  {
+   "t": 5792639,
+   "text": "At least we need to do something. So we verify stuff, hopefully. This is an attempt to do Arrow-Hurwicz. If an LLM wrote this, bad LLM, it needs to go back to school. That LLM made a mistake. Which line is wrong? So we have a Lagrangian. Now it's not just a lambda h; there's also mu.",
+   "fr": "Il faut au moins qu'on fasse quelque chose. On vérifie des choses, espérons-le. Ceci est une tentative d'implémenter Arrow-Hurwicz. Si c'est un LLM qui a écrit ça, mauvais LLM, il doit retourner à l'école. Ce LLM a fait une erreur. Quelle ligne est fausse? On a donc un lagrangien. Maintenant, il n'y a pas seulement un lambda h; il y a aussi mu."
+  },
+  {
+   "t": 5823119,
+   "text": "We've got a mu vector of Lagrange multipliers associated with the inequality constraints. So we're running a bunch of gradient steps. We've got three updates: one update for z, one update for lambda, one update for mu. For z, we minimize. For lambda, we minimize. And for mu, we maximize.",
+   "fr": "On a un vecteur mu de multiplicateurs de Lagrange associés aux contraintes d'inégalité. On exécute donc une série de pas de gradient. On a trois mises à jour : une pour z, une pour lambda, une pour mu. Pour z, on minimise. Pour lambda, on minimise. Et pour mu, on maximise."
+  },
+  {
+   "t": 5859040,
+   "text": "Yeah?\nStudent: I think it's [inaudible]\nAnd why... But let's look at the choices first. So which one is wrong? One possibility, somebody says: \"Line one is wrong because it should be gradient ascent on z.\" Is it true or false? No. Line one is totally fine. We minimize f, so we have a minus. Makes sense. \"Line two has the wrong sign.\" Pardon me? \"Which means that lambda must ascend.",
+   "fr": "Oui?\nStudent: Je pense que c'est [inaudible]\nEt pourquoi... Mais regardons d'abord les choix. Lequel est faux? Une possibilité, quelqu'un dit : « La ligne un est fausse parce que ce devrait être une ascension de gradient sur z. » Vrai ou faux? Non. La ligne un est tout à fait correcte. On minimise f, donc on a un moins. C'est logique. « La ligne deux a le mauvais signe. » Pardon? « Ce qui veut dire que lambda doit monter."
+  },
+  {
+   "t": 5909679,
+   "text": "We need it to be a plus. And line three is missing the projection,\" which, as you remember, is clipping, which ensures that the Lagrange multiplier for the inequality is greater or equal than zero. Is that statement B true or false? It's confusing. It's like the opposite of \"which one is wrong,\" of true and false. But let's just say it this way: is statement B a true statement or a false statement about the code?",
+   "fr": "Il faut que ce soit un plus. Et il manque la projection à la ligne trois », qui, comme vous vous en souvenez, est un écrêtage, qui assure que le multiplicateur de Lagrange de l'inégalité est supérieur ou égal à zéro. Cet énoncé B est-il vrai ou faux? C'est mêlant. C'est comme l'inverse de « lequel est faux », de vrai et faux. Mais disons-le comme ça : l'énoncé B est-il un énoncé vrai ou un énoncé faux à propos du code?"
+  },
+  {
+   "t": 5945119,
+   "text": "It's a true statement. Indeed, the issue with that code is that for lambda we need a plus, because we minimize over z. So for the Lagrange multiplier, we need to do the opposite. And this is the role of the other player: to ensure that we're always feasible, and it prevents us from having an answer which is not feasible. So if this one is minus, the other one needs to be plus. This needs to be plus.",
+   "fr": "C'est un énoncé vrai. Effectivement, le problème avec ce code, c'est que pour lambda, il faut un plus, parce qu'on minimise par rapport à z. Pour le multiplicateur de Lagrange, il faut donc faire l'inverse. Et c'est le rôle de l'autre joueur : s'assurer qu'on est toujours réalisable, et ça nous empêche d'avoir une réponse qui n'est pas réalisable. Donc si celui-ci est un moins, l'autre doit être un plus. Ceci doit être un plus."
+  },
+  {
+   "t": 5975920,
+   "text": "The second error is that this step here may not give us a Lagrange multiplier which is greater or equal than zero. So one way to force it is to clip it. This \"max of zero, blah\" is a clipping operation, and it ensures that it's going to be as we require per the KKT theorem.",
+   "fr": "La deuxième erreur, c'est que ce pas-ci peut ne pas nous donner un multiplicateur de Lagrange supérieur ou égal à zéro. Une façon de le forcer, c'est de l'écrêter. Ce « max de zéro, bidule » est une opération d'écrêtage, et ça assure que ce sera comme l'exige le théorème KKT."
+  },
+  {
+   "t": 6009360,
+   "text": "Okay. Oh my goodness, three minutes. So this question here was about the perspective of SQP as Newton's method applied to the KKT system. What was the KKT system? You take the Lagrangian of your problem with the inequalities, and then it's the statement that the Lagrangian needs to vanish, and when you collect all the terms, it gives you a KKT matrix system like this, and we solve it as a root-finding problem. I don't have time for this, because I want to go to more important questions in those two minutes. It's going to be an overview, guys. I'm sorry, I can't do it all. But remember the semi-truck parking example. You can",
+   "fr": "Bon. Oh mon Dieu, trois minutes. Cette question ici portait sur la perspective de SQP comme méthode de Newton appliquée au système KKT. C'était quoi, le système KKT? On prend le lagrangien de notre problème avec les inégalités, puis c'est l'énoncé que le lagrangien doit s'annuler, et quand on rassemble tous les termes, ça donne un système matriciel KKT comme celui-ci, et on le résout comme un problème de recherche de racine. Je n'ai pas le temps pour ça, parce que je veux passer à des questions plus importantes dans ces deux minutes. Ça va être un survol. Je suis désolé, je ne peux pas tout faire. Mais rappelez-vous l'exemple du stationnement du semi-remorque. Vous pouvez"
+  },
+  {
+   "t": 6069920,
+   "text": "go back to the demo and observe it. This was an attempt for me to highlight the drawbacks of single shooting versus collocation. Today we talked a lot about collocation, but remember, there's even simpler stuff to do, which is just to numerically integrate your system, let's say by doing Euler's method in a loop, and then backpropping through your loop. Okay, just a sequential method. Then there's an issue with this: when you backprop through that loop, you suffer from the vanishing or exploding gradient problem. And that question here was just asking you to... Oh, no, it's not this question. I have another one to ask you this. This one I can ask you. Imagine you solve a semi-truck problem by single shooting, and then you use a solver, L-BFGS, whatever. Which requirement can you not impose as a hard constraint if you use single shooting? It's the one property I've reminded you we cannot do with single",
+   "fr": "retourner à la démo et l'observer. C'était une tentative de ma part de mettre en évidence les inconvénients du tir simple par rapport à la collocation. Aujourd'hui, on a beaucoup parlé de collocation, mais rappelez-vous, il y a encore plus simple : simplement intégrer numériquement votre système, disons avec la méthode d'Euler dans une boucle, puis faire la rétropropagation à travers votre boucle. Bon, simplement une méthode séquentielle. Mais il y a un problème avec ça : quand on fait la rétropropagation à travers cette boucle, on souffre du problème de l'évanouissement ou de l'explosion du gradient. Et cette question ici vous demandait simplement de... Oh, non, ce n'est pas cette question. J'en ai une autre pour vous demander ça. Celle-ci, je peux vous la poser. Imaginez que vous résolvez un problème de semi-remorque par tir simple, puis que vous utilisez un solveur, L-BFGS, peu importe. Quelle exigence ne pouvez-vous pas imposer comme contrainte dure si vous utilisez le tir simple? C'est la seule propriété dont je vous ai rappelé qu'on ne peut pas la traiter en tir"
+  },
+  {
+   "t": 6131199,
+   "text": "shooting. Yes, there are drawbacks regarding the numerical stability, but also, conceptually, there are things you cannot express. What is it you cannot express here? A statement that you cannot have a constraint on the steering angle: so this is the action, the control. Does single shooting allow you to do this or not? Yes, it allows you to do this. This is just a bound constraint on the control. No problem, because your decision variables are explicit for the control. What it cannot do is B, which is a constraint on the state trajectory. That it cannot do, because the state variables are no longer explicit decision variables in your program.",
+   "fr": "simple. Oui, il y a des inconvénients sur le plan de la stabilité numérique, mais aussi, conceptuellement, il y a des choses qu'on ne peut pas exprimer. Qu'est-ce qu'on ne peut pas exprimer ici? Un énoncé selon lequel on ne peut pas avoir de contrainte sur l'angle de braquage : ça, c'est l'action, la commande. Est-ce que le tir simple permet de faire ça ou non? Oui, il le permet. C'est simplement une contrainte de borne sur la commande. Aucun problème, parce que vos variables de décision sont explicites pour la commande. Ce qu'il ne peut pas faire, c'est B, une contrainte sur la trajectoire d'état. Ça, il ne peut pas le faire, parce que les variables d'état ne sont plus des variables de décision explicites dans votre programme."
+  },
+  {
+   "t": 6176960,
+   "text": "You can definitely add a terminal penalty, and you can definitely add a penalty for the steering rate. So that's not an issue. Oops. You have a deep space probe. I used that example earlier. Very long horizon, 30 years, and the dynamics are very unstable, and you want to make sure that the deep space probe is always within a safe region. Which method is appropriate here? Single shooting with Adam? No. Simultaneous methods such as collocation? Yes. This is the answer, because a simultaneous method with collocation allows you to better deal with the unstable system, by adding constraints on the states themselves, to clip them, to pin down the unstable modes. And that's it. And the other ones are",
+   "fr": "Vous pouvez tout à fait ajouter une pénalité terminale, et vous pouvez tout à fait ajouter une pénalité sur la vitesse de braquage. Ça, ce n'est pas un problème. Oups. Vous avez une sonde spatiale lointaine. J'ai utilisé cet exemple tout à l'heure. Horizon très long, 30 ans, et la dynamique est très instable, et vous voulez vous assurer que la sonde reste toujours dans une région sûre. Quelle méthode est appropriée ici? Le tir simple avec Adam? Non. Les méthodes simultanées comme la collocation? Oui. C'est la réponse, parce qu'une méthode simultanée par collocation permet de mieux gérer le système instable, en ajoutant des contraintes sur les états eux-mêmes, pour les écrêter, pour maîtriser les modes instables. Et c'est tout. Et les autres ne sont"
+  },
+  {
+   "t": 6237520,
+   "text": "not appropriate. MPPI, because no gradient: that has nothing to do with it. Single shooting with reverse mode: also not related. This was a question I thought I was asking you earlier. You can work it out by hand: you can do single shooting by hand for this small little problem. And then all it means is that you're just going to write \\(x_1\\), \\(x_2\\), \\(x_3\\), \\(x_4\\) as a sum of the previous controls. So it looks like that.",
+   "fr": "pas appropriées. MPPI, parce qu'il n'y a pas de gradient : ça n'a rien à voir. Le tir simple avec le mode inverse : pas pertinent non plus. C'était une question que je pensais vous poser plus tôt. Vous pouvez la faire à la main : vous pouvez faire le tir simple à la main pour ce petit problème. Et tout ce que ça veut dire, c'est que vous allez simplement écrire \\(x_1\\), \\(x_2\\), \\(x_3\\), \\(x_4\\) comme une somme des commandes précédentes. Ça ressemble donc à ça."
+  },
+  {
+   "t": 6271199,
+   "text": "Not super conceptually deep, but you can do it here. This is the question I wanted to ask for the backing up of the semi-truck. This question is asking you, in this particular case, to reason about what happens with the error in the gradient. And if you work out the math here, you can see that actually the gradient with respect to the input is going to get 20 times larger over time, because of the particular structure that it has. You should go back to the notes to see this, but have a look at this. And it's a really good example of why single shooting suffers from ill-conditioning here. It's really clear from the derivative, which becomes like an exponential, basically. It becomes a to the horizon. What is important in single shooting? Here I'm asking you the same type of question: the number of variables you would have if you were to do single shooting.",
+   "fr": "Pas très profond sur le plan conceptuel, mais vous pouvez le faire ici. C'est la question que je voulais poser pour la marche arrière du semi-remorque. Cette question vous demande, dans ce cas particulier, de raisonner sur ce qui arrive à l'erreur dans le gradient. Et si vous faites le calcul ici, vous pouvez voir qu'en fait le gradient par rapport à l'entrée va devenir 20 fois plus grand au fil du temps, à cause de la structure particulière qu'il a. Retournez voir les notes pour ça, mais jetez-y un coup d'œil. Et c'est un très bon exemple de la raison pour laquelle le tir simple souffre ici d'un mauvais conditionnement. C'est très clair à partir de la dérivée, qui devient essentiellement comme une exponentielle. Ça devient a à la puissance de l'horizon. Qu'est-ce qui est important en tir simple? Ici, je vous pose le même type de question : le nombre de variables que vous auriez si vous faisiez du tir simple."
+  },
+  {
+   "t": 6330320,
+   "text": "It's pretty much like a simpler version of collocation, where I don't have interior nodes as decision variables. I only have continuity constraints. So when you count the number of variables, you only need to count the constraints at the mesh nodes plus the controls themselves. And this is what the solution is going to show you. And then some more practice on collocation. So please go through this practice. I think it's pretty representative of what I might ask you, except that I'm not going to write an entire exam as multiple-choice questions. But the flavor is going to be quite similar to what I wrote here. And I really made sure that whatever I wrote here is what I presented in class, so it's better aligned with my",
+   "fr": "C'est à peu près comme une version plus simple de la collocation, où je n'ai pas de nœuds intérieurs comme variables de décision. J'ai seulement des contraintes de continuité. Donc quand on compte le nombre de variables, il suffit de compter les contraintes aux nœuds de maillage plus les commandes elles-mêmes. Et c'est ce que la solution va vous montrer. Puis, encore un peu de pratique sur la collocation. Alors faites ces exercices, s'il vous plaît. Je pense que c'est assez représentatif de ce que je pourrais vous demander, sauf que je ne vais pas écrire un examen entier sous forme de questions à choix multiples. Mais le style va être assez semblable à ce que j'ai écrit ici. Et je me suis vraiment assuré que tout ce que j'ai écrit ici correspond à ce que j'ai présenté en classe, donc c'est mieux aligné sur ma"
+  },
+  {
+   "t": 6392800,
+   "text": "transcript than the full notes. So please practice it at home, and if you do well on this, you're going to do great in next week's exam. No problem. Bring a cheat sheet, recto verso, both sides, written by hand. I think it's fair. If you write it by hand, it's just going to help you study, right? So I force you to write it by hand, just so that I force you to study. Don't type it out. Or if you ask Claude, then write it down by hand afterwards. It's just that your brain memorizes it. Okay? And email Gabriel if you need help. Okay?",
+   "fr": "transcription que les notes complètes. Alors pratiquez-vous à la maison, et si vous réussissez bien ceci, vous allez très bien réussir l'examen de la semaine prochaine. Aucun problème. Apportez un aide-mémoire, recto verso, les deux côtés, écrit à la main. Je pense que c'est juste. Si vous l'écrivez à la main, ça va simplement vous aider à étudier, n'est-ce pas? Je vous oblige donc à l'écrire à la main, simplement pour vous forcer à étudier. Ne le tapez pas à l'ordinateur. Ou si vous le demandez à Claude, recopiez-le à la main ensuite. C'est simplement que votre cerveau le mémorise. D'accord? Et écrivez un courriel à Gabriel si vous avez besoin d'aide. D'accord?"
+  },
+  {
+   "t": 6434480,
+   "text": "It's just his job. So...\nStudent: [inaudible question]\nNope. I think it's going to be more similar to that midterm practice.\nStudent: Because the other [inaudible]\nYeah. But imagine the same questions, but phrased in a way that is less multiple choice. Okay. So, but yeah.",
+   "fr": "C'est son travail, tout simplement. Alors...\nStudent: [inaudible question]\nNon. Je pense que ça va ressembler davantage à ces questions d'entraînement pour la mi-session.\nStudent: Parce que l'autre [inaudible]\nOui. Mais imaginez les mêmes questions, mais formulées d'une façon qui ressemble moins à du choix multiple. Bon. Alors, mais bon."
+  },
+  {
+   "t": 6475520,
+   "text": "I showed you a page at the beginning. This is going to be perfect. It's exactly what I did. So study with this.",
+   "fr": "Je vous ai montré une page au début. Ça va être parfait. C'est exactement ce que j'ai fait. Alors étudiez avec ça."
+  }
+ ]
+}

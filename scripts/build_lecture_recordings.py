@@ -128,9 +128,8 @@ def main() -> None:
     fixes = manifest.get("corrections", {})
     fix_en, fix_fr = corrector(fixes.get("en", {})), corrector(fixes.get("fr", {}))
 
-    if OUT.exists():
-        shutil.rmtree(OUT)
-    OUT.mkdir(parents=True)
+    OUT.mkdir(parents=True, exist_ok=True)
+    written: set[str] = {"index.json"}
 
     entries = []
     for bundle_path in sorted(SRC.glob("lecture_*.json")):
@@ -180,6 +179,7 @@ def main() -> None:
             for p in paras:
                 p.extend(["", ""])
 
+        written.update({f"{date}.json", f"{date}.jpg"})
         (OUT / f"{date}.json").write_text(
             json.dumps({"date": date, "paras": paras, "tldr": tldr, "outline": outline},
                        ensure_ascii=False, separators=(",", ":")),
@@ -224,6 +224,13 @@ def main() -> None:
     (OUT / "index.json").write_text(
         json.dumps(index, ensure_ascii=False, indent=1), encoding="utf-8"
     )
+    # Remove outputs for lectures that no longer exist (overwrite-in-place, no rmtree).
+    for stale in OUT.iterdir():
+        if stale.name not in written:
+            try:
+                stale.unlink()
+            except OSError as err:
+                print(f"note: could not remove stale {stale.name}: {err}")
     print(f"Wrote {len(entries)} lectures to {OUT.relative_to(ROOT)}")
 
 
