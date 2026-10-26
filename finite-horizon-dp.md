@@ -300,8 +300,16 @@ J_t^\star(x) = \max_{u_{\min} \le u \le u_{\max}}
 \qquad x + w_t - u \ge x_{\min}.
 $$
 
-The bracket weighs the revenue earned by releasing $u$ this week against the
-revenue still obtainable from the storage that remains.
+Call the expression inside the maximum
+
+$$
+Q_t(x, u) = p_t\,\kappa\,h(x)\,u \;+\; J_{t+1}^\star\big(\min\{x + w_t - u,\ \bar x\}\big),
+$$
+
+the total revenue from storage $x$ in week $t$ if we release $u$ now and act
+optimally afterwards. It weighs the revenue earned by releasing $u$ this week
+against the revenue still obtainable from the storage that remains, and
+Bellman's equation reads $J_t^\star(x) = \max_u Q_t(x, u)$.
 
 **Code.** The storage grid has a step of 10 hm³, and the inflows are rounded to
 multiples of 10 hm³. Every successor $x + w_t - u$ is therefore a grid point,
@@ -421,23 +429,71 @@ full storage during the freshet: the reservoir cannot hold more, so an extra
 hm³ would spill and earn nothing. It is highest in winter at low storage, when
 every hm³ can be sold at the winter price and none is at risk of spilling.
 
-**Why the policy is all or nothing.** The release enters the bracket of Bellman's
-equation twice: it earns $p_t\,\kappa\,h(x)$ per hm³ now, and it lowers next
-week's storage, which costs $\partial J_{t+1}^\star/\partial x$ per hm³. The
-derivative of the bracket with respect to $u$ is
+**Why the policy is all or nothing.** Fix the week $t$ and the storage $x$,
+and look at $Q_t(x, u)$ as a function of the release $u$ alone. It has two
+terms, and $u$ enters each one once.
+
+The first term, $p_t\,\kappa\,h(x)\,u$, is linear in $u$. The head $h(x)$
+depends on the storage at the start of the week, which is fixed, so each
+extra hm³ released earns the same amount, $p_t\,\kappa\,h(x)$.
+
+The second term depends on $u$ only through next week's storage
+$x_{t+1} = x + w_t - u$. Releasing one more hm³ lowers $x_{t+1}$ by one hm³,
+so by the chain rule this term changes at the rate
+$-\partial J_{t+1}^\star/\partial x$ evaluated at $x_{t+1}$, minus the
+water value. (If the reservoir overflows, $x_{t+1} = \bar x$ does not depend
+on $u$, and this rate is zero: the extra hm³ would have spilled anyway.)
+
+Adding the two rates gives the slope of $Q_t$ in $u$:
 
 $$
-p_t\,\kappa\,h(x) \;-\; \frac{\partial J_{t+1}^\star}{\partial x}(x_{t+1}).
+\frac{\partial Q_t}{\partial u}(x, u)
+\;=\; \underbrace{p_t\,\kappa\,h(x)}_{\text{value of releasing one hm³}}
+\;-\; \underbrace{\frac{\partial J_{t+1}^\star}{\partial x}(x + w_t - u)}_{\text{value of keeping it}} .
 $$
 
-Revenue now grows linearly in $u$. When this difference is positive, releasing
-more increases the bracket, so the release goes to turbine capacity. When it is
-negative, the release falls to the minimum. The release lies strictly between
-the bounds only when the two terms are equal. The decision rule is therefore a
-price comparison: **run the turbines when the price exceeds the value of the
-water in the reservoir**, both expressed per hm³. In hydro-dominated power
-systems such as Norway's, producers compute water values with dynamic
-programming and use them to set the prices at which they offer their energy.
+We maximize $Q_t$ over the interval $[u_{\min}, u_{\max}]$, and the sign of
+this slope tells us where the maximum is:
+
+- If the slope is positive for every $u$ in the interval, $Q_t$ increases
+  from one end to the other, and the maximum is at $u = u_{\max}$.
+- If it is negative for every $u$, $Q_t$ decreases, and the maximum is at
+  $u = u_{\min}$.
+- Only if the slope changes sign inside the interval can the maximum be
+  strictly between the bounds, at a release where the two values are equal.
+
+The first term of the slope does not depend on $u$ at all. The second
+depends on $u$ only through the water value, and over the storage levels
+reachable in one week the water value changes little compared with the gap
+between it and the price. For most $(t, x)$ the slope therefore keeps one
+sign over the whole interval, and the release is at a bound. This is the
+two-region map of {numref}`fig-hydro-policy`. The interior case is the thin
+boundary between the regions: there the policy releases exactly enough
+water to bring $x_{t+1}$ to the level at which the water value equals the
+price.
+
+Two physical limits also produce releases between $u_{\min}$ and
+$u_{\max}$, and both show up in the figures. At low storage the constraint
+$x + w_t - u \ge x_{\min}$ caps the release below turbine capacity, so
+"release as much as possible" means emptying the reservoir to dead storage.
+At full storage the slope jumps at the release $u = x + w_t - \bar x$:
+below it the extra water would spill, the second term is zero and the slope
+is positive; above it the slope is the price minus the water value at
+$\bar x$. When that is negative, the best release is the kink itself, which
+keeps the reservoir exactly full and releases the inflow. This is what
+happens from September to November in {numref}`fig-hydro-threshold`.
+
+The decision rule is therefore a price comparison: **run the turbines when
+the price exceeds the value of the water in the reservoir**, both expressed
+per hm³. In hydro-dominated power systems such as Norway's, producers compute
+water values with dynamic programming and use them to set the prices at which
+they offer their energy.
+
+The same structure appears in continuous time, where the slope is called a
+*switching function* and a control that sits at its bounds is called
+*bang-bang*. Whenever the reward is linear in a bounded control, the optimum
+is at a bound except where the switching function is zero, the *singular*
+case.
 
 ```{code-cell} python
 :label: fig-hydro-threshold

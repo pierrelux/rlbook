@@ -428,7 +428,7 @@ inflow, the second term becomes an average over the three successors
 $x_{t+1}^k$. For an inflow that fills the reservoir, an hm³ kept this week
 spills and adds nothing next week, so those successors drop out of the
 average. As long as the release is not cut short at dead storage, the
-derivative of the bracket with respect to $u$ is
+slope $\partial Q_t/\partial u$ from the previous chapter becomes
 
 $$
 p_t\,\kappa\,h(x) \;-\; \sum_{k:\ x_{t+1}^k < \bar x} q_k\,
