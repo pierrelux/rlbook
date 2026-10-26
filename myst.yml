@@ -51,7 +51,6 @@ project:
         - file: discrete-time-optimal-control.md
         - file: discrete-time-pmp.md
         - file: numerical-trajectory-optimization.md
-        - file: iterative-trajectory-optimization.md
         - file: continuous-time-collocation.md
         - file: model-predictive-path-integral-control.md
     - title: Feedback Control
@@ -62,6 +61,7 @@ project:
     - title: Dynamic Programming
       children:
         - file: finite-horizon-dp.md
+        - file: iterative-trajectory-optimization.md
         - file: stochastic-dp.md
         - file: path-integral-stochastic-control.md
         - file: infinite-horizon-mdps.md

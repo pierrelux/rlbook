@@ -146,8 +146,8 @@ reverse-mode derivatives with the product of per-interval hitch Jacobians.
 ## Boat docking with iLQR and DDP
 
 The [iLQR and DDP chapter](iterative-trajectory-optimization.md) follows
-numerical trajectory optimization and derives the methods through successive
-approximation and backward elimination. Rebuild its two docking scenarios,
+the LQR section of finite-horizon dynamic programming and derives the methods
+through successive approximation and backward elimination. Rebuild its two docking scenarios,
 four optimizer runs, static figures, and interactive replay data with:
 
 ```bash

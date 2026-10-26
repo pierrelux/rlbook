@@ -26,8 +26,10 @@ backward, one time step at a time. The resulting correction is then tested
 through the nonlinear simulator. Repeating these operations gives the
 **iterative linear-quadratic regulator**, or **iLQR**. Keeping additional
 curvature from the dynamics gives **differential dynamic programming**, or
-**DDP**. Both methods compute corrections around a nominal trajectory. Their
-backward recursions follow from substitution and quadratic minimization.
+**DDP**. Both methods compute corrections around a nominal trajectory. The
+local problem is the [linear-quadratic regulator](#sec-lqr-dp) solved by dynamic
+programming in the previous chapter, and its backward recursion can also be
+read as substitution and quadratic minimization.
 
 ## Learning Goals
 
@@ -43,11 +45,12 @@ After working through the derivations and examples, you should be able to:
 ## Prerequisites
 
 The chapter uses the [finite-horizon optimal-control formulation](discrete-time-optimal-control.md),
-[single shooting](numerical-trajectory-optimization.md), and first and second
-derivatives. The [sequential-methods discussion](numerical-trajectory-optimization.md#sequential-methods)
+[single shooting](numerical-trajectory-optimization.md), the
+[linear-quadratic regulator](#sec-lqr-dp) from finite-horizon dynamic
+programming, and first and second derivatives. The
+[sequential-methods discussion](numerical-trajectory-optimization.md#sequential-methods)
 introduces general SQP subproblems, and the [initial-value-problem appendix](appendix_ivps.md) reviews
-numerical integration. Neither dynamic programming nor a previous derivation
-of LQR is required.
+numerical integration.
 
 (sec-boat-docking)=
 ## A Docking Problem
@@ -377,8 +380,9 @@ the number of these elimination steps grows linearly with the horizon.
 
 For linear dynamics and quadratic costs, this procedure solves the original
 unconstrained problem exactly when its control minimizations are well posed.
-That problem is called the **linear-quadratic regulator** problem, and the
-matrix recursion for $P_t$ is a **Riccati recursion**. Along a nonlinear
+It is the [LQR backward recursion](#sec-lqr-dp) of the previous chapter, with
+the quadratic tail playing the role of the optimal cost-to-go, and the matrix
+recursion for $P_t$ is the same **Riccati recursion**. Along a nonlinear
 trajectory, $A_t$, $B_t$, and the cost derivatives describe only a local
 approximation. They must be recomputed after the trajectory changes.
 
@@ -1055,11 +1059,9 @@ decreasing sequence of actual trajectory costs.
 The refrigerator applies the same calculation to a bounded driver amplitude,
 with energy use and terminal temperature competing in the objective.
 
-The docking and refrigerator experiments both use discrete transitions
-obtained by integrating ordinary differential equations. [Continuous-time
-transcription and collocation](continuous-time-collocation.md) develops other
-ways to represent continuous trajectories inside a finite optimization
-problem. Later,
-[finite-horizon dynamic programming](finite-horizon-dp.md) gives a broader
-interpretation of the quadratic tail: in the linear-quadratic case, the
-function produced by elimination is the optimal cost-to-go.
+The quadratic tail produced by elimination is a local model of the cost-to-go
+along one trajectory. For linear-quadratic problems it is the
+[optimal cost-to-go](#sec-lqr-dp) itself. When the model prescribes a
+distribution over successors instead of one next state,
+[stochastic dynamic programming](stochastic-dp.md) replaces the continuation
+cost by a conditional expectation.

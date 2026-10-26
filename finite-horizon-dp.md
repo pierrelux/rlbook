@@ -1019,6 +1019,7 @@ function.
 :::
 
 
+(sec-lqr-dp)=
 ## Linear Quadratic Regulator via Dynamic Programming
 
 What form do the value function and feedback law take when the dynamics are
@@ -1074,16 +1075,16 @@ $$
 \frac{1}{2}\mathbf{x}_t^\top Q_t \mathbf{x}_t + \frac{1}{2}\mathbf{u}_t^\top R_t \mathbf{u}_t + \frac{1}{2}\mathbf{x}_t^\top A_t^\top P_{t+1} A_t \mathbf{x}_t + \mathbf{x}_t^\top A_t^\top P_{t+1} B_t \mathbf{u}_t + \frac{1}{2}\mathbf{u}_t^\top B_t^\top P_{t+1} B_t \mathbf{u}_t
 $$
 
-Collecting terms involving $\mathbf{u}_t$:
+Collecting terms involving $\mathbf{u}_t$ and calling the result $G_t$:
 
 $$
-= \frac{1}{2}\mathbf{x}_t^\top (Q_t + A_t^\top P_{t+1} A_t) \mathbf{x}_t + \mathbf{x}_t^\top A_t^\top P_{t+1} B_t \mathbf{u}_t + \frac{1}{2}\mathbf{u}_t^\top (R_t + B_t^\top P_{t+1} B_t) \mathbf{u}_t
+G_t(\mathbf{x}_t,\mathbf{u}_t) = \frac{1}{2}\mathbf{x}_t^\top (Q_t + A_t^\top P_{t+1} A_t) \mathbf{x}_t + \mathbf{x}_t^\top A_t^\top P_{t+1} B_t \mathbf{u}_t + \frac{1}{2}\mathbf{u}_t^\top (R_t + B_t^\top P_{t+1} B_t) \mathbf{u}_t
 $$
 
-This is a quadratic function of $\mathbf{u}_t$. To find the minimizer, we take the gradient with respect to $\mathbf{u}_t$ and set it to zero:
+This is a quadratic function of $\mathbf{u}_t$, and $J_t^\star(\mathbf{x}_t) = \min_{\mathbf{u}_t} G_t(\mathbf{x}_t,\mathbf{u}_t)$. To find the minimizer, we set the gradient of $G_t$ with respect to $\mathbf{u}_t$ to zero:
 
 $$
-\frac{\partial}{\partial \mathbf{u}_t} = (R_t + B_t^\top P_{t+1} B_t) \mathbf{u}_t + B_t^\top P_{t+1} A_t \mathbf{x}_t = 0
+\nabla_{\mathbf{u}_t} G_t(\mathbf{x}_t,\mathbf{u}_t) = (R_t + B_t^\top P_{t+1} B_t) \mathbf{u}_t + B_t^\top P_{t+1} A_t \mathbf{x}_t = 0
 $$
 
 Since $R_t + B_t^\top P_{t+1} B_t$ is positive definite (both $R_t$ and $P_{t+1}$ are positive semidefinite with $R_t$ strictly positive), we can solve for the optimal control:
@@ -1143,11 +1144,12 @@ The resulting backward recursion is:
 **Optimal cost-to-go:** $J_t^\star(\mathbf{x}_t) = \frac{1}{2}\mathbf{x}_t^\top P_t \mathbf{x}_t$
 ````
 
-The same recursion appeared in the [iLQR chapter](iterative-trajectory-optimization.md),
-which obtained a quadratic tail by eliminating controls backward along a
-nominal trajectory. In the linear-quadratic case that tail is exactly the
-optimal cost-to-go $J_t^\star$, so backward elimination and Bellman's equation
-are two derivations of the same Riccati recursion.
+The [next chapter](iterative-trajectory-optimization.md) applies this
+recursion to nonlinear problems. Linearizing the dynamics and quadratically
+approximating the costs along a nominal trajectory gives a local
+linear-quadratic problem, whose Riccati recursion yields a correction to the
+trajectory. Repeating that step gives iLQR and differential dynamic
+programming.
 
 ### Local Stabilization of the Cart-Pole
 
@@ -1250,6 +1252,12 @@ decision between grid states comes from a one-step lookahead against the
 interpolated cost-to-go. The linear-quadratic case needs no grid: the value
 function stays quadratic, the recursion becomes the Riccati recursion, and the
 policy is linear state feedback.
+
+The [iLQR and DDP chapter](iterative-trajectory-optimization.md) uses this
+Riccati recursion as a local step for nonlinear trajectory optimization. It
+linearizes the dynamics around a nominal trajectory, solves the resulting
+linear-quadratic problem backward, and tests the correction through the
+nonlinear simulator.
 
 Linear interpolation already replaced each deterministic successor by a
 distribution over two grid states. How do the value and policy change when the

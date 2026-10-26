@@ -1384,13 +1384,8 @@ an early steering error that forward driving forgets. Multiple shooting keeps
 selected boundary states, trading additional variables for shorter sensitivity
 paths and sparse continuity defects.
 
-The next chapter, [iLQR and differential dynamic programming](iterative-trajectory-optimization.md),
-uses this temporal structure to solve successive local quadratic problems by
-backward elimination. Its boat-docking example follows both the optimizer's
-iterations and the vessel's predicted motion along a selected plan.
-
-The transcription formulations use a discrete transition map.
-[Continuous-time transcription and collocation](continuous-time-collocation.md)
+The transcription formulations use a discrete transition map. The next chapter,
+[continuous-time transcription and collocation](continuous-time-collocation.md),
 develops nodal polynomial representations directly from differential equations.
 The subsequent [MPPI chapter](model-predictive-path-integral-control.md) returns
 to the single-shooting rollout, sampling candidate control sequences and
