@@ -49,7 +49,7 @@ $$
 v_\gamma^{\boldsymbol{\pi}^*}(s) \geq v_\gamma^{\boldsymbol{\pi}}(s) \quad \text { for each } s \in S \text { and all } \boldsymbol{\pi} \in \Pi^{\mathrm{HR}}
 $$
 
-Furthermore, the value of a discounted MDP $v_\gamma^*(s)$, is defined by:
+Furthermore, the value of a discounted MDP, $v_\gamma^*(s)$, is defined by:
 
 $$
 v_\gamma^*(s) \equiv \max _{\boldsymbol{\pi} \in \Pi^{\mathrm{HR}}} v_\gamma^{\boldsymbol{\pi}}(s)
@@ -66,7 +66,7 @@ $$
 
 Can geometric termination give the discount factor a probabilistic meaning
 rather than treating it only as an algebraic device?
-The use of discounting can be motivated both from a modeling perspective and as a means to ensure that the total reward remains bounded. From the modeling perspective, we can view discounting as a way to weight more or less importance on the immediate rewards vs. the long-term consequences. There is also another interpretation which stems from that of a finite horizon model but with an uncertain end time. More precisely:
+The use of discounting can be motivated both from a modeling perspective and as a means to ensure that the total reward remains bounded. From the modeling perspective, we can view discounting as a way to put more or less weight on the immediate rewards vs. the long-term consequences. There is also another interpretation which stems from that of a finite horizon model but with an uncertain end time. More precisely:
 
 Let $v_\nu^{\boldsymbol{\pi}}(s)$ denote the expected total reward obtained by using policy $\boldsymbol{\pi}$ when the horizon length $\nu$ is random. We define it by:
 
@@ -140,7 +140,7 @@ Let V be the set of bounded real-valued functions on a discrete state space S. T
 $$
 \|f\| = \max_{s \in S} |f(s)| < \infty.
 $$
-where notation $ \|f\| $ represents the sup-norm (or $ \ell_\infty $-norm) of the function $ f $. 
+where the notation $ \|f\| $ represents the sup-norm (or $ \ell_\infty $-norm) of the function $ f $. 
 
 When working with discrete state spaces, we can interpret elements of V as vectors and linear operators on V as matrices, allowing us to leverage tools from linear algebra. The sup-norm ($\ell_\infty$ norm) of matrix $\mathbf{H}$ is defined as:
 
@@ -203,7 +203,7 @@ $$
 \end{align*}
 $$
 
-This last expression is called a Neumann series expansion, and it's guaranteed to exists under the assumptions of bounded reward and discount factor strictly less than one. 
+This last expression is called a Neumann series expansion, and it's guaranteed to exist under the assumptions of bounded reward and discount factor strictly less than one. 
 
 ```{prf:theorem} Neumann Series and Invertibility
 :label: neumann-series
@@ -333,7 +333,7 @@ The operator equation we encountered in MDPs, $\mathbf{v}_\gamma^{\pi} = \mathrm
 Operator equations can take several forms, each with its own characteristics and solution methods:
 
 1. **Fixed Point Form**: $x = \mathrm{T}(x)$, where $\mathrm{T}: X \rightarrow X$.
-   Common in fixed-point problems, such as our MDP equation, we seek a fixed point $x^*$ such that $x^* = \mathrm{T}(x^*)$.
+   This form is common in fixed-point problems, such as our MDP equation: we seek a fixed point $x^*$ such that $x^* = \mathrm{T}(x^*)$.
 
 2. **General Operator Equation**: $\mathrm{T}(x) = y$, where $\mathrm{T}: X \rightarrow Y$.
    Here, $X$ and $Y$ can be different spaces. We seek an $x \in X$ that satisfies the equation for a given $y \in Y$.
@@ -819,7 +819,7 @@ predictive distinctions disappear in that reduction?
 
 The inference examples have so far treated the scheduling rule as fixed and the
 GPU clock as the action. A different decision interface fixes the clock and
-asks which phase should receive the next unit of service. Prefill admits new
+makes the action the choice of which phase should receive the next unit of service. Prefill admits new
 requests into decode and consumes cache; decode advances requests already
 producing output tokens. Serving either phase delays the other.
 
