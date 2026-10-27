@@ -14,8 +14,9 @@ kernelspec:
 
 Receding-horizon control supplies feedback by repeatedly solving one nominal
 finite-horizon problem. How must that problem and its surrounding controller
-change when the task tracks a reference, values economic output, contains
-uncertainty or discrete modes, or misses its solver deadline?
+change when the task is to track a reference or to maximize economic output,
+when the problem contains uncertainty or discrete modes, or when the solver
+misses its deadline?
 
 Once the basic idea of receding-horizon control is clear, it is helpful to see how the same backbone accommodates many variations. In every case, we transcribe the continuous-time optimal control problem into a nonlinear program with the structure of the [receding-horizon subproblem](receding-horizon-control.md#the-receding-horizon-principle):
 
@@ -273,7 +274,7 @@ Risk constraints are typically enforced across all scenarios or encoded using ri
 How can mode switches, on-off devices, and logical decisions enter the same
 finite-horizon optimization?
 
-When systems involve discrete switches  (eg. on/off valves, mode selection, or combinatorial logic) the MPC problem must include integer or binary variables. These show up in constraints like
+When systems involve discrete switches (e.g., on/off valves, mode selection, or combinatorial logic), the MPC problem must include integer or binary variables. These show up in constraints like
 
 $$
 \boldsymbol{\delta}_k \in \{0,1\}^{n_\delta}, \qquad \mathbf{u}_k \in \mathcal{U}(\boldsymbol{\delta}_k)
@@ -357,7 +358,7 @@ As conditions deteriorate, the controller abandons objectives in reverse priorit
 If the main problem fails, can a secondary optimization recover a state from
 which the nominal constraints become satisfiable again?
 
-When even soft constraints prove insufficient (perhaps due to catastrophic solver failure or corrupted problem structure) we need **feasibility restoration** that finds any feasible point regardless of optimality:
+When even soft constraints prove insufficient (perhaps due to catastrophic solver failure or corrupted problem structure), we need **feasibility restoration** that finds any feasible point regardless of optimality:
 
 $$
 \begin{aligned}
@@ -400,7 +401,7 @@ Online, the governor simply projects the desired reference onto $\mathcal{O}_\in
 Which independently validated action should take over when the optimizer or
 its model cannot be trusted?
 
-When MPC fails entirely (due to solver crashes, timeouts, or numerical failures) we need backup controllers that require minimal computation while guaranteeing stability and keeping the system away from dangerous regions.
+When MPC fails entirely (due to solver crashes, timeouts, or numerical failures), we need backup controllers that require minimal computation while guaranteeing stability and keeping the system away from dangerous regions.
 
 The standard approach uses a pre-computed **local LQR controller** around the equilibrium:
 
@@ -664,8 +665,8 @@ four simulations records a thermal or KV-capacity violation.
 ### Live Comparison at Common Latency Targets
 
 The live experiment asks which clock policy uses the least measured GPU energy
-while meeting common request-level latency limits. Development measurements
-select a fixed clock and set the limits on the 95th percentile of time to first
+while meeting common request-level latency limits. We use development measurements
+to select a fixed clock and to set the limits on the 95th percentile of time to first
 token and of per-request mean inter-token latency. The planned confirmation compares this
 fixed clock, maximum clock, the governor, and MPC including its fallback. A
 constant clock or governor can be the preferred policy if it meets both limits
@@ -681,7 +682,7 @@ already streaming. A transition model fitted on mixed-serving data must pass
 whole-run validation before it can support MPC. These measurements test queue
 drainage under the workload the controller will actually encounter.
 
-Confirmation plans five paired repetitions per schedule across three
+For confirmation, we plan five paired repetitions per schedule across three
 independent acquisitions, with counterbalanced method order. Each pair uses
 identical requests and arrival times. Energy includes the final request drain;
 an efficiency claim requires all five valid pairs and both methods to meet both
@@ -689,8 +690,8 @@ frozen latency limits. Invalid trials and fallback decisions remain in the
 record. Development qualification and a frozen comparison protocol are still
 needed before confirmation can begin.
 
-Two earlier development acquisitions completed the full steady workload at
-210 MHz, using 8.55 and 8.30 kJ, but could not return to their startup temperature
+In two earlier development acquisitions, the GPU completed the full steady workload at
+210 MHz, using 8.55 and 8.30 kJ, but could not return to its startup temperature
 references before the cooling timeout. A subsequent qualification warms the GPU
 with the full steady workload before selecting its reference from a stable
 300-second cooling window. Its final 60-second mean fixes the reference for the
