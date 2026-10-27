@@ -606,8 +606,8 @@ program, however, has to store $J_{t+1}^\star$ as finitely many numbers. The
 reservoir code stores one value per 10 hm³ of storage, and it avoided the
 question by construction: its inflows were rounded to multiples of the grid
 step, so every successor $x + w_t - u$ landed on a grid point. Measured inflows
-are not multiples of anything. A week with 63.7 hm³ of inflow and a 30 hm³
-release sends a reservoir at 1000 hm³ to 1033.7 hm³, between two grid points,
+are not multiples of anything. In a week with 63.7 hm³ of inflow and a 30 hm³
+release, a reservoir at 1000 hm³ moves to 1033.7 hm³, between two grid points,
 and Bellman's equation then asks for $J_{t+1}^\star(1033.7)$, which the table
 does not contain. Choosing a value for it is a representation problem that the
 [collocation chapter](continuous-time-collocation.md) already treated for
