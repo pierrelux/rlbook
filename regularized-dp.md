@@ -98,7 +98,7 @@ This differs from logsumexp in that it adapts to state-action-specific uncertain
 Why does adding independent Gumbel perturbations to action rewards produce a
 log-sum-exp value before the perturbation is observed?
 
-We can obtain the smooth Bellman equation by considering a setting in which we have Gumbel noise added to the reward function. This derivation provides both theoretical insight and connects to practical modeling scenarios where rewards have random perturbations.
+We can obtain the smooth Bellman equation by considering a setting in which we have Gumbel noise added to the reward function. This derivation provides theoretical insight and also connects to practical modeling scenarios where rewards have random perturbations.
 
 ### Step 1: Define the Augmented MDP with Gumbel Noise
 
@@ -604,7 +604,7 @@ $$
 
 The entropy bonus at each state, when averaged over the policy, becomes a per-action penalty proportional to the negative log probability of the action taken. This reformulation is more useful because the modified reward now depends only on the state, the action taken, and the probability assigned to that specific action by the policy, not on the entire distribution over actions.
 
-This expression shows that entropy regularization is equivalent to adding a state-action dependent penalty term $-\alpha \ln \pi(a|s)$ to the reward. Intuititively, this terms amounts to paying a cost for low-entropy (deterministic) policies.
+This expression shows that entropy regularization is equivalent to adding a state-action dependent penalty term $-\alpha \ln \pi(a|s)$ to the reward. Intuitively, this term amounts to paying a cost for low-entropy (deterministic) policies.
 
 Now, when we write down the Bellman equation for this entropy-regularized problem, at each state $s$ we need to find the decision rule $d(\cdot|s) \in \Delta(\mathcal{A}_s)$ (a probability distribution over actions) that maximizes:
 
