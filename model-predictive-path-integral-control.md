@@ -2088,7 +2088,7 @@ limit. Minimizing heating pushes the plan toward the conversion limit, so
 these are the candidates that matter.
 
 **(b)** No. The $8.31$ K figure is a percentile over held-out windows, not a
-bound: one window in twenty underpredicted by more, and an optimized plan is
+bound: in one window in twenty the surrogate underpredicted by more, and an optimized plan is
 not drawn from the held-out distribution. Adding $8.31$ K to $1064$ K already
 exceeds $1070$ K. The PDE acceptance check simulates the proposed plan before
 it replaces the stored one. It uses the conditional mean of the future
