@@ -1024,7 +1024,7 @@ from $x_k=1$, with one collocation node at $\tau_1=1/2$. A trial stage
 value $x_{k,1}=3$ supplies the slope $f_{k,1}=3$ and hence the state piece
 $p_k(\tau)=1+3\tau$. Its midpoint value is $5/2$, not the stored value $3$.
 The polynomial's slope is $3$, but the ODE evaluated on the curve at the
-midpoint asks for $5/2$. The state equation
+midpoint gives $5/2$. The state equation
 $x_{k,1}=1+\tfrac12 x_{k,1}$ instead gives $x_{k,1}=2$.
 The reconstructed polynomial is then $p_k(\tau)=1+2\tau$, whose midpoint
 state and slope both equal $2$. The state-matching constraint has made
@@ -2573,7 +2573,7 @@ and checks between nodes remain part of the construction.
 ## Worked Example: Moving an Overhead Crane While Limiting Residual Sway
 
 How do the nodal variables and trapezoidal defects behave in a constrained
-motion problem whose terminal state must suppress residual oscillation?
+motion problem in which the payload must finish without residual oscillation?
 
 An overhead crane moves a trolley while a payload hangs from a cable. A
 precomputed trolley command can complete the move and still leave the payload
@@ -2619,7 +2619,7 @@ by acceleration at $0.80$ m/s$^2$ up to $1.00$ m/s, cruising, and symmetric
 deceleration. These phases last $1.25$, $2.75$, and $1.25$ s, respectively.
 Its acceleration
 and deceleration phases excite the payload oscillation because their timing
-ignores the pendulum period.
+does not account for the pendulum period.
 
 An **input shaper** filters a command into weighted, delayed copies. The delays
 are chosen so that vibrations excited by the copies cancel one another. For a
@@ -3290,7 +3290,7 @@ minimum cost is one. This recovers the opening trajectory on a finer mesh.
 On $[0,1]$, consider $\dot x=u$ with $x(0)=0$ and collocation stages only
 at the endpoints. Compare the controls $u(t)=0$ and $u(t)=4t(1-t)$.
 
-1. What control values does the endpoint transcription see? Can its
+1. Which control values enter the endpoint transcription? Can its
    trapezoidal defect distinguish the commands?
 2. Integrate each control to find the state at $t=1$. Explain why a
    quadratic control can cause a problem when only endpoint stages are used.
