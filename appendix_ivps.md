@@ -411,9 +411,9 @@ $$
 
 The integrator is therefore part of the model seen by the optimizer. Its step
 size, control interpolation, nonlinear-solve tolerance, and differentiability
-all affect the resulting objective and constraints. After optimization, a
-tighter integration tolerance or a refined step should replay the fixed control
-trajectory. A large discrepancy between the optimization rollout and this
+all affect the resulting objective and constraints. After optimization, the
+fixed control trajectory should be replayed with a tighter integration tolerance
+or a refined step. A large discrepancy between the optimization rollout and this
 validation rollout indicates that the integration mesh was inadequate.
 
 ## From shooting to collocation
