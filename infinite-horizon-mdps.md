@@ -818,8 +818,8 @@ How can a large request-level system be reduced to a finite MDP, and which
 predictive distinctions disappear in that reduction?
 
 The inference examples have so far treated the scheduling rule as fixed and the
-GPU clock as the action. A different decision interface fixes the clock and
-makes the action the choice of which phase should receive the next unit of service. Prefill admits new
+GPU clock as the action. In a different decision interface, the clock is fixed
+and the action is the phase that receives the next unit of service. Prefill admits new
 requests into decode and consumes cache; decode advances requests already
 producing output tokens. Serving either phase delays the other.
 
