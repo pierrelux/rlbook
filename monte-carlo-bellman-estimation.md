@@ -17,12 +17,12 @@ The projection methods from the previous chapter showed how to transform the inf
 
 However, we left unresolved the question of how to evaluate the Bellman operator itself. Applying $\Bellman$ at any state requires computing an expectation:
 
-Can that expectation and the outer projection integrals be estimated when the
-model supplies samples rather than an explicit transition density?
-
 $$
 (\Bellman v)(s) = \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \int v(s')p(ds'|s,a)\right\}
 $$
+
+Can that expectation and the outer projection integrals be estimated when the
+model supplies samples rather than an explicit transition density?
 
 For discrete state spaces with a manageable number of states, this expectation is a finite sum we can compute exactly. For continuous or high-dimensional state spaces, we need numerical integration. The projection methods framework is compatible with any quadrature scheme, but leaves the choice of integration method unspecified.
 
@@ -580,7 +580,7 @@ While we cannot compute $\delta(s)$ directly (we lack both the expectation and t
 
 Rather than deriving $\delta(s)$ analytically, Keane and Wolpin proposed learning it empirically. The strategy follows a "simulate on a subset, interpolate everywhere" template common in econometric dynamic programming. At a carefully chosen set of states, we run both high-fidelity simulation (many samples or exact integration) and the low-fidelity $N$-sample estimate used in value iteration. The gap between these estimates provides training data for the bias. We then fit a regression model $g_\eta$ that predicts $\delta(s)$ from features of the state and action-value distribution. During value iteration, we subtract the predicted bias from the raw Monte Carlo maximum.
 
-Useful features for predicting the bias include the spread of action values (from a separate high-fidelity simulation), the number of actions, and gaps to the best action. These are cheap to compute and track regimes where maximization bias is large. The procedure can be summarized as:
+Useful features for predicting the bias include the spread of action values (from a separate high-fidelity simulation), the number of actions, and gaps to the best action. These features are cheap to compute, and they track regimes where maximization bias is large. The procedure can be summarized as:
 
 ```{prf:algorithm} Keane-Wolpin Bias-Corrected Value Iteration
 :label: keane-wolpin-bias-correction
