@@ -144,6 +144,19 @@
       "redact": [
         "Nadin"
       ]
+    },
+    "2026-10-26": {
+      "title": {
+        "en": "Interpolating the cost-to-go; the linear quadratic regulator by backward induction; stochastic dynamic programming",
+        "fr": "Interpolation de la fonction de coût; régulateur linéaire quadratique par induction arrière; programmation dynamique stochastique"
+      },
+      "chapters": [
+        "finite-horizon-dp",
+        "stochastic-dp"
+      ],
+      "redact": [
+        "Tanway"
+      ]
     }
   },
   "corrections": {
@@ -173,7 +186,11 @@
       "Galerin": "Galerkin",
       "Freninger": "Frejinger",
       "hydraology": "hydrology",
-      "hydrarology": "hydrology"
+      "hydrarology": "hydrology",
+      "C bar": "CVaR",
+      "P1 DP": "POMDP",
+      "Aditia": "Aditya",
+      "Gabrielle": "Gabriel"
     },
     "fr": {
       "polomial": "polynomial",
