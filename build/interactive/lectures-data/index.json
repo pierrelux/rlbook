@@ -8,6 +8,30 @@
  "updated": "2026-10-27",
  "lectures": [
   {
+   "date": "2026-10-26",
+   "week": 8,
+   "title": {
+    "en": "Interpolating the cost-to-go; the linear quadratic regulator by backward induction; stochastic dynamic programming",
+    "fr": "Interpolation de la fonction de coût; régulateur linéaire quadratique par induction arrière; programmation dynamique stochastique"
+   },
+   "chapters": [
+    {
+     "slug": "finite-horizon-dp",
+     "title": "Finite-Horizon Dynamic Programming"
+    },
+    {
+     "slug": "stochastic-dp",
+     "title": "Stochastic Dynamic Programming and Markov Decision Processes"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/1_4fT_SRY4WJEtJEoYQuYUUZQG8MkU1x_/view",
+   "duration_ms": 6410840,
+   "thumb": "2026-10-26.jpg",
+   "paragraphs": 136,
+   "cleaned": false,
+   "tldr": []
+  },
+  {
    "date": "2026-10-15",
    "week": 7,
    "title": {
