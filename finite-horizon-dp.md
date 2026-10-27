@@ -85,7 +85,7 @@ The principle of optimality provides a methodology for solving optimal control p
 ````
 
 
-Upon completion of this backward pass, we now have access to the optimal control to take at any stage and in any state. Furthermore, we can simulate optimal trajectories from any initial state and applying the optimal policy at each stage to generate the optimal trajectory.
+Upon completion of this backward pass, we now have access to the optimal control to take at any stage and in any state. Furthermore, we can simulate optimal trajectories from any initial state by applying the optimal policy at each stage to generate the optimal trajectory.
 
 
 
@@ -414,7 +414,7 @@ make_policy_figure(w, p, X, policy, water_value[:T], rollouts)
 
 The left map is the policy. It has two regions: release at turbine capacity or
 release the ecological minimum, with a thin boundary between them. The white
-storage paths read the policy as an operator would. Whatever the level in
+storage paths show the policy the way an operator would read it. Whatever the level in
 January, the reservoir is drawn down to dead storage by late March, refilled by
 the freshet and then more slowly through the summer until it is full in
 mid-September, held full until late November, and drawn down at turbine
@@ -1212,7 +1212,7 @@ print(format_lqr_metrics(lqr_cases, lqr_design))
 make_lqr_figure(lqr_cases, cartpole_parameters)
 ```
 
-The closed-loop eigenvalues certify asymptotic stability of the unconstrained linearized model, not every trajectory of the nonlinear constrained plant. The $5^\circ$ rollout remains in a region where the linear approximation supplies useful actions. The $45^\circ$ rollout immediately asks for more acceleration than the actuator can provide, then exhausts the available rail. Increasing the entries of $Q$ cannot remove those physical limits.
+The closed-loop eigenvalues certify asymptotic stability of the unconstrained linearized model, not every trajectory of the nonlinear constrained plant. The $5^\circ$ rollout remains in a region where the linear approximation supplies useful actions. In the $45^\circ$ rollout, the controller immediately commands more acceleration than the actuator can provide, and the cart then reaches the end of the rail. Increasing the entries of $Q$ cannot remove those physical limits.
 
 ```{code-cell} python
 :label: anim-cartpole-lqr
@@ -1227,7 +1227,7 @@ display(HTML(lqr_animation.to_jshtml()))
 plt.close(lqr_animation._fig)
 ```
 
-Balancing a pen on a finger motivates the action channel because the finger stabilizes the object by moving its base. The cart-pole model replaces the contact by a planar frictionless hinge. A real pen can slip, detach, flex, and rotate out of the plane, while sensing and hand motion introduce delays. The calculation establishes local stabilization for the stated rigid-body model; the classroom demonstration shares its instability and feedback mechanism, not all of its equations.
+Balancing a pen on a finger motivates the choice of cart acceleration as the input, because the finger stabilizes the object by moving its base. The cart-pole model replaces the contact by a planar frictionless hinge. A real pen can slip, detach, flex, and rotate out of the plane, while sensing and hand motion introduce delays. The calculation establishes local stabilization for the stated rigid-body model; the classroom demonstration shares its instability and feedback mechanism, not all of its equations.
 
 :::{dropdown} Inspect the linearization and LQR design
 ```{literalinclude} code/cartpole_control.py

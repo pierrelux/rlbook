@@ -210,13 +210,14 @@ reservoir](finite-horizon-dp.md#example-seasonal-operation-of-a-hydroelectric-re
 against an inflow forecast and treated the forecast as exact. Its policy
 refills the reservoir after the spring freshet, holds it at capacity from
 September to late November, and releases exactly the forecast inflow in each of
-those weeks. That plan is only as good as the forecast: a week wetter than
-forecast finds the reservoir full and sends the difference over the spillway.
+those weeks. That plan is only as good as the forecast: in a week wetter than
+forecast, the reservoir is already full and the extra water goes over the
+spillway.
 Stochastic dynamic programming has long been used to compute reservoir
-operating policies that account for this risk {cite:p}`Stedinger1984`. We keep
-every element of the deterministic model (52 weekly stages, the storage and
-release limits, the head $h(x)$, the price $p_t$ and the terminal value) and
-make the inflow random.
+operating policies that account for this risk {cite:p}`Stedinger1984`. We make
+the inflow random and keep every other element of the deterministic model: 52
+weekly stages, the storage and release limits, the head $h(x)$, the price $p_t$
+and the terminal value.
 
 Let $\bar w_t$ denote the forecast of the previous chapter. The inflow in week
 $t$ is
