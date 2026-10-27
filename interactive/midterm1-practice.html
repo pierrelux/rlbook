@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Midterm 1 Practice</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+  svg: { fontCache: 'global' },
+  options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] }
+};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.js"></script>
+<style>
+/* Layout: one reading column in study mode; one full-viewport card in presenter mode. Palette and type follow the book's custom.css. */
+:root {
+  --font-display: "Newsreader", Georgia, "Times New Roman", serif;
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --bg: #f6f7f4;
+  --bg-raised: #ffffff;
+  --bg-sunken: #eaeeec;
+  --ink: #1b2430;
+  --ink-muted: #5c6874;
+  --rule: #d2d9d7;
+  --structure: #2f6f8f;
+  --structure-soft: #e2edf1;
+  --good: #2e7d5b;
+  --good-soft: #e4f0e9;
+  --warn: #b8860b;
+  --warn-soft: #f5ecd2;
+  --bad: #a83a32;
+  --bad-soft: #f5e5e3;
+  --shadow: 0 1px 2px rgba(20, 30, 40, 0.06);
+  --radius: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121920; --bg-raised: #1b2430; --bg-sunken: #0d141a;
+    --ink: #edf1f1; --ink-muted: #a8b2b9; --rule: #34434d;
+    --structure: #7fb3cf; --structure-soft: #1f3540;
+    --good: #7cc8a4; --good-soft: #1d3a2d;
+    --warn: #e0b64a; --warn-soft: #3d3418;
+    --bad: #e08a82; --bad-soft: #432323;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121920; --bg-raised: #1b2430; --bg-sunken: #0d141a;
+  --ink: #edf1f1; --ink-muted: #a8b2b9; --rule: #34434d;
+  --structure: #7fb3cf; --structure-soft: #1f3540;
+  --good: #7cc8a4; --good-soft: #1d3a2d;
+  --warn: #e0b64a; --warn-soft: #3d3418;
+  --bad: #e08a82; --bad-soft: #432323;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-sans); font-size: 1rem; line-height: 1.55;
+  padding-block: 0; padding-inline: 16px;
+}
+.wrap { max-width: 46rem; margin: 0 auto; padding-block: 1.5rem 4rem; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: 2.1rem; }
+h2 { font-size: 1.35rem; margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); }
+h2 small { font-family: var(--font-sans); font-weight: 500; font-size: .8rem; color: var(--ink-muted); margin-left: .6rem; letter-spacing: .02em; }
+p { margin: .5rem 0; }
+.lede { color: var(--ink-muted); max-width: 40rem; }
+.toolbar { display: flex; flex-wrap: wrap; gap: .5rem .75rem; align-items: center; margin-top: 1rem; }
+button {
+  font: 500 .85rem/1 var(--font-sans); color: var(--ink);
+  background: var(--bg-raised); border: 1px solid var(--rule); border-radius: 999px;
+  padding: .55rem .9rem; cursor: pointer; box-shadow: var(--shadow);
+}
+button:hover { border-color: var(--structure); }
+button:focus-visible { outline: 3px solid var(--structure-soft); outline-offset: 2px; }
+button.primary { background: var(--structure); color: #fff; border-color: var(--structure); }
+.kbd { font-family: var(--font-mono); font-size: .75rem; color: var(--ink-muted); }
+.progress { font-family: var(--font-mono); font-size: .8rem; color: var(--ink-muted); margin-left: auto; font-variant-numeric: tabular-nums; }
+
+/* Question cards */
+.q { background: var(--bg-raised); border: 1px solid var(--rule); border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.1rem 1.25rem 1.25rem; margin-top: 1rem; }
+.q-head { display: flex; flex-wrap: wrap; gap: .4rem .6rem; align-items: baseline; margin-bottom: .5rem; }
+.q-num { font-family: var(--font-mono); font-size: .8rem; color: var(--structure); font-weight: 500; }
+.tag { font-size: .7rem; letter-spacing: .05em; text-transform: uppercase; padding: .15rem .5rem; border-radius: 999px; background: var(--bg-sunken); color: var(--ink-muted); }
+.tag.core { background: var(--structure-soft); color: var(--structure); }
+.tag.min { font-family: var(--font-mono); text-transform: none; letter-spacing: 0; }
+.stem { font-size: 1.02rem; }
+.stem p { margin: .4rem 0; }
+.opts { list-style: none; padding: 0; margin: .9rem 0 0; display: grid; gap: .45rem; }
+.opts li {
+  display: grid; grid-template-columns: 1.6rem 1fr; gap: .5rem; align-items: start;
+  padding: .55rem .7rem; border: 1px solid var(--rule); border-radius: var(--radius);
+  cursor: pointer; background: var(--bg);
+}
+.opts li:hover { border-color: var(--structure); }
+.opts li .letter { font-family: var(--font-mono); font-size: .8rem; color: var(--ink-muted); padding-top: .15rem; }
+.opts li.picked { border-color: var(--structure); }
+.q.revealed .opts li[data-correct] { border-color: var(--good); background: var(--good-soft); }
+.q.revealed .opts li.picked:not([data-correct]) { border-color: var(--bad); background: var(--bad-soft); }
+.q.revealed .opts li { cursor: default; }
+.parts { margin: .6rem 0 0; padding-left: 1.3rem; }
+.parts li { margin: .3rem 0; }
+.actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .9rem; align-items: center; }
+.verdict { font-size: .85rem; font-weight: 500; }
+.verdict.ok { color: var(--good); }
+.verdict.no { color: var(--bad); }
+.expl, .sol { margin-top: .9rem; padding: .8rem .95rem; border-left: 3px solid var(--structure); background: var(--structure-soft); border-radius: 0 var(--radius) var(--radius) 0; font-size: .95rem; }
+.expl p:first-child, .sol p:first-child { margin-top: 0; }
+.expl p:last-child, .sol p:last-child { margin-bottom: 0; }
+.rehearses { margin-top: .75rem; font-size: .8rem; color: var(--ink-muted); }
+.rehearses b { font-weight: 500; color: var(--ink); }
+code { font-family: var(--font-mono); font-size: .9em; background: var(--bg-sunken); padding: .05em .3em; border-radius: 3px; }
+pre { font-family: var(--font-mono); font-size: .85rem; line-height: 1.45; background: var(--bg-sunken); border-radius: var(--radius); padding: .75rem .9rem; overflow-x: auto; margin: .6rem 0; }
+pre code { background: none; padding: 0; font-size: inherit; }
+mjx-container { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
+mjx-container[display="true"] { margin: .6rem 0 !important; }
+.note { font-size: .85rem; color: var(--ink-muted); }
+
+/* Presenter mode */
+body.presenter { overflow: hidden; }
+body.presenter .wrap { max-width: none; padding: 0; height: 100%; display: flex; flex-direction: column; }
+body.presenter .intro, body.presenter h2, body.presenter .q { display: none; }
+body.presenter .q.current { display: block; flex: 1; overflow: auto; border: 0; box-shadow: none; background: var(--bg); margin: 0; padding: 2.5vh 6vw 10vh; font-size: calc(1rem + 0.9vw); }
+body.presenter .q.current .stem { font-size: calc(1.05rem + 1vw); max-width: 60ch; }
+body.presenter .q.current .opts { max-width: 70ch; gap: .6rem; }
+body.presenter .q.current .expl, body.presenter .q.current .sol { max-width: 70ch; font-size: calc(.95rem + .6vw); }
+body.presenter .q.current .parts { max-width: 65ch; }
+body.presenter .q.current pre { font-size: calc(.85rem + .5vw); max-width: 70ch; }
+body.presenter .q.current .q-num { font-size: calc(.8rem + .4vw); }
+body.presenter .q.current .rehearses { display: none; }
+body.presenter .q.current .actions { display: none; }
+.deck {
+  display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+  padding: .5rem 1rem calc(.5rem + env(safe-area-inset-bottom, 0px));
+  background: var(--bg-raised); border-top: 1px solid var(--rule);
+  align-items: center; gap: .6rem; flex-wrap: wrap;
+}
+body.presenter .deck { display: flex; }
+.deck .where { font-family: var(--font-mono); font-size: .85rem; color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+.deck .block-name { font-family: var(--font-display); font-size: 1rem; }
+.deck .spacer { flex: 1; }
+.deck .kbd { display: none; }
+@media (min-width: 700px) { .deck .kbd { display: inline; } }
+@media (prefers-reduced-motion: no-preference) { .opts li { transition: border-color .12s ease, background .12s ease; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="intro">
+  <h1>Midterm 1 Practice</h1>
+  <p class="lede">IFT 6162, Thursday October 1, 2026. The first midterm is Thursday October 8, 13:30, on paper, with one double-sided reference sheet. It covers what we did in class: transcription and collocation, simultaneous versus sequential methods and single shooting, the Lagrangian machinery behind constrained solvers, multiple shooting, and the basics of MPC and MPPI. Work each question before you reveal the answer. Items marked <span class="tag core">core</span> are the ones to make sure you can do.</p>
+  <div class="toolbar">
+    <button id="btn-presenter" class="primary" type="button">Presenter mode</button>
+    <button id="btn-core" type="button">Core only: off</button>
+    <button id="btn-reset" type="button">Clear my answers</button>
+    <span class="kbd">In presenter mode: ← → move, R reveals, Esc exits</span>
+    <span class="progress" id="progress"></span>
+  </div>
+</header>
+
+<h2 data-block="A">A. Decision variables and the program <small>OCP, transcription, first-order conditions</small></h2>
+
+<article class="q" id="q1" data-type="mcq" data-core="1" data-min="2" data-block="A">
+  <div class="q-head"><span class="q-num">Q1</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>"The big conceptual thing, always the source of confusion, is the definition of our decision variables." Which statement about decision variables is correct?</p>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>In the continuous-time OCP, the unknown \(u\) is a vector of snapshots of the action at the mesh times</span></li>
+    <li data-correct><span class="letter">b</span><span>In direct transcription, the decision variables are the values of the state and of the control at the nodes, and the dynamics enter as equality constraints (a consistency condition at every step)</span></li>
+    <li><span class="letter">c</span><span>In single shooting, both \(\mathbf{x}\) and \(\mathbf{u}\) are decision variables, but \(\mathbf{x}\) is initialized by simulation</span></li>
+    <li><span class="letter">d</span><span>The transcribed NLP searches directly in the space of control functions</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>In the continuous problem \(u(t)\) is a function, not a vector of snapshots. We never search in the space of functions; we search in a space of parameters, here the nodal values. Transcription produces a finite NLP whose solution is a tuple \((\mathbf{u}^\star_{1:T-1}, \mathbf{x}^\star_{1:T})\), with \(\mathbf{x}_{t+1} = f(\mathbf{x}_t, \mathbf{u}_t)\) imposed as an equality constraint. Single shooting eliminates the states altogether: only the controls remain, and \(\mathbf{x}\) is whatever the rollout produces.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> saying what the unknowns are in each formulation.</p>
+</article>
+
+<article class="q" id="q2" data-type="mcq" data-core="1" data-min="2" data-block="A">
+  <div class="q-head"><span class="q-num">Q2</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>A cart-pole swing-up is transcribed directly: 31 state nodes \(\mathbf{x}_1,\dots,\mathbf{x}_{31}\) with \(n=4\) states each, 30 scalar controls \(u_1,\dots,u_{30}\), and a fixed initial state. How many decision variables does the NLP have, and how many equality constraints come from the dynamics plus the initial condition?</p>
+  </div>
+  <ol class="opts">
+    <li data-correct><span class="letter">a</span><span>154 variables, 124 equalities</span></li>
+    <li><span class="letter">b</span><span>30 variables, 0 equalities</span></li>
+    <li><span class="letter">c</span><span>154 variables, 120 equalities</span></li>
+    <li><span class="letter">d</span><span>124 variables, 154 equalities</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>Variables: \(31\cdot 4 + 30 = 154\). Equalities: 30 consistency conditions of size 4 give 120, plus 4 for \(\mathbf{x}_1 = \mathbf{x}_{\text{init}}\), so 124. Option (b) is what remains after eliminating the states by simulation: single shooting, 30 unknowns and no equality constraints. "Mathematically it's the same program. Numerically it's never the case."</p>
+    <p>Each residual depends only on \((\mathbf{x}_k, u_k, \mathbf{x}_{k+1})\), so the constraint Jacobian is block banded. That is the structure a Newton or SQP step exploits when it solves its linear system.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> counting unknowns and constraints of a transcription.</p>
+</article>
+
+<article class="q" id="q3" data-type="work" data-core="1" data-min="7" data-block="A">
+  <div class="q-head"><span class="q-num">Q3</span><span class="tag core">core</span><span class="tag min">7 min, on paper</span></div>
+  <div class="stem">
+    <p>Consider the two-step problem
+    \[ \min_{u_1,u_2}\; 2x_3^2 + u_1^2 + u_2^2 \quad\text{s.t.}\quad x_{t+1} = x_t + u_t,\; t=1,2,\qquad x_1 = 1, \]
+    written with the states as decision variables.</p>
+  </div>
+  <ol class="parts" type="a">
+    <li>Write the Lagrangian with multipliers \(\lambda_2,\lambda_3\) on the two consistency conditions, written as \(x_t + u_t - x_{t+1} = 0\).</li>
+    <li>Write the first-order optimality conditions: the derivative of the Lagrangian with respect to \(x_2, x_3, u_1, u_2\) is zero, plus the two constraints.</li>
+    <li>This is a root-finding problem \(F(\mathbf{z}, \boldsymbol\lambda) = 0\). Solve it by hand. Report \(u^\star\), \(x_3^\star\), \(\lambda^\star\), and the optimal cost.</li>
+    <li>What would Newton's method do with these equations? Would it invert a matrix?</li>
+  </ol>
+  <div class="actions"><button type="button" class="reveal">Show solution</button></div>
+  <div class="sol" hidden>
+    <p>(a) \(\mathcal{L} = 2x_3^2 + u_1^2 + u_2^2 + \lambda_2(x_1 + u_1 - x_2) + \lambda_3(x_2 + u_2 - x_3)\).</p>
+    <p>(b) \(\partial_{x_3}: 4x_3 - \lambda_3 = 0\). \(\partial_{x_2}: -\lambda_2 + \lambda_3 = 0\). \(\partial_{u_1}: 2u_1 + \lambda_2 = 0\). \(\partial_{u_2}: 2u_2 + \lambda_3 = 0\). Plus \(x_2 = 1 + u_1\), \(x_3 = x_2 + u_2\).</p>
+    <p>(c) \(\lambda_2 = \lambda_3 =: \lambda\), \(u_1 = u_2 = -\lambda/2\), and \(x_3 = 1 - \lambda\). Then \(\lambda = 4x_3 = 4(1-\lambda)\) gives \(\lambda^\star = 4/5\), \(u^\star = (-2/5, -2/5)\), \(x_3^\star = 1/5\), cost \(2/25 + 8/25 = 2/5\). Check by eliminating: with \(u_1 = u_2 = u\), \(\tfrac{d}{du}\left[2(1+2u)^2 + 2u^2\right] = 8(1+2u) + 4u = 0\) gives \(u = -2/5\).</p>
+    <p>(d) Newton treats \(F = \nabla_{\mathbf z,\boldsymbol\lambda}\mathcal L\) as a function whose root we want and iterates \(\mathbf{y}_{k+1} = \mathbf{y}_k - [J_F(\mathbf{y}_k)]^{-1}F(\mathbf{y}_k)\). Here \(F\) is linear, so one step lands on the answer. It never forms the inverse: it solves the linear system \(J_F\,\delta = -F\) ("\(A\delta = b\), <code>np.linalg.solve</code>, never <code>inv</code>"). Quadratize the Lagrangian, linearize the constraints, solve, repeat: that is SQP.</p>
+    <p>Notice the structure of the \(x\)-equations: \(\lambda_3\) is set by the terminal cost and \(\lambda_2\) is obtained from \(\lambda_3\). The multipliers propagate backward from the end. That backward pass is what the notes call the adjoint or costate recursion, and it is the same computation as backprop through the rollout.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> writing first-order optimality conditions for a transcribed problem and solving a small instance.</p>
+</article>
+
+<article class="q" id="q4" data-type="mcq" data-core="1" data-min="2" data-block="A">
+  <div class="q-head"><span class="q-num">Q4</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>A colleague wants to solve \(\min_{\mathbf z} f(\mathbf z)\) s.t. \(h(\mathbf z) = 0\). They form \(f(\mathbf z) + \lambda\, h(\mathbf z)\) with a fixed \(\lambda = 1\), minimize it over \(\mathbf z\) with Adam, and call this "the Lagrangian method". What is wrong?</p>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>Nothing; this is exactly Arrow–Hurwicz</span></li>
+    <li data-correct><span class="letter">b</span><span>The Lagrangian defines a game: \(\min_{\mathbf z}\max_{\lambda}\mathcal{L}\). With \(\lambda\) frozen they solved a penalized problem whose minimizer is not feasible in general; it is the max player who, by driving \(\lambda\), forces \(h = 0\)</span></li>
+    <li><span class="letter">c</span><span>They should have used \(\mu \ge 0\) instead of \(\lambda\)</span></li>
+    <li><span class="letter">d</span><span>Adam cannot be used on a Lagrangian</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>This is the "Lagrangian fallacy": the construction of a Lagrangian is not a regularized problem. If the min player picks an infeasible \(\mathbf z\) with \(h(\mathbf z) = 1.2\), the max player cranks \(\lambda\) up to infinity. The existence of multipliers \((\lambda^\star, \mu^\star)\) at a solution is the first-order condition; it does not say how to find them. Arrow–Hurwicz plays the game with simultaneous gradient descent on \(\mathbf z\) and gradient ascent on \(\lambda\). Option (c): \(\mu \ge 0\) is for inequality constraints \(g \le 0\).</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> what the Lagrangian is and is not.</p>
+</article>
+
+<article class="q" id="q5" data-type="mcq" data-core="1" data-min="3" data-block="A">
+  <div class="q-head"><span class="q-num">Q5</span><span class="tag core">core</span><span class="tag min">3 min</span></div>
+  <div class="stem">
+    <p>Inspect this primal–dual (Arrow–Hurwicz) update for \(\min f(\mathbf z)\) s.t. \(h(\mathbf z) = 0\), \(g(\mathbf z) \le 0\), with \(\mathcal L = f + \lambda^\top h + \mu^\top g\). Which lines are wrong?</p>
+<pre><code>for k in range(iters):
+    z   = z   - alpha * grad_z_L(z, lam, mu)   # line 1
+    lam = lam - beta  * h(z)                   # line 2
+    mu  = mu  + beta  * g(z)                   # line 3</code></pre>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>Line 1 should be gradient ascent on \(\mathbf z\)</span></li>
+    <li data-correct><span class="letter">b</span><span>Line 2 has the wrong sign (\(\lambda\) must ascend: \(+\beta\, h\)), and line 3 is missing the projection \(\mu \leftarrow \max(0, \mu + \beta g)\)</span></li>
+    <li><span class="letter">c</span><span>Only line 3 is wrong; the dual variables should use the same step \(\alpha\)</span></li>
+    <li><span class="letter">d</span><span>The code is correct: this is gradient descent–ascent</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>"What's important is the sign: you've got a minus and you've got a plus." The primal variable descends on \(\mathcal L\), the dual variables ascend on it, because the dual player maximizes. Inequality multipliers must stay nonnegative, so after the ascent step they are clipped: \(\Pi\) is literally <code>np.maximum(0, ...)</code>. Different step sizes for primal and dual are allowed and often needed (two-time-scale updates); the method is only locally convergent and can oscillate, which is the same instability GAN training shows.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> reading an optimizer loop and spotting the sign and projection errors.</p>
+</article>
+
+<article class="q" id="q6" data-type="mcq" data-min="2" data-block="A">
+  <div class="q-head"><span class="q-num">Q6</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>An SQP step on \(\min f\) s.t. \(h = 0\) solves
+    \[ \begin{bmatrix} \nabla^2_{\mathbf{zz}}\mathcal L & J_h^\top \\ J_h & 0 \end{bmatrix} \begin{bmatrix} \Delta\mathbf z \\ \Delta\boldsymbol\lambda \end{bmatrix} = - \begin{bmatrix} \nabla_{\mathbf z}\mathcal L \\ h \end{bmatrix}. \]
+    Which statement is correct?</p>
+  </div>
+  <ol class="opts">
+    <li data-correct><span class="letter">a</span><span>This is Newton's method applied to the first-order optimality conditions, viewed as a root-finding problem \(F(\mathbf z, \boldsymbol\lambda) = 0\)</span></li>
+    <li><span class="letter">b</span><span>Every intermediate iterate satisfies \(h(\mathbf z) = 0\)</span></li>
+    <li><span class="letter">c</span><span>The matrix should be inverted once and reused at every iteration</span></li>
+    <li><span class="letter">d</span><span>Convergence is quadratic from any starting point</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>"Root-finding problems are all you need." Quadratize the Lagrangian, linearize the constraints, solve the QP, repeat. The step satisfies the linearized constraint \(h + J_h\Delta\mathbf z = 0\), not the nonlinear one, so SQP is an infeasible-path method: think of infeasible iterates as exploration, not as a mistake. The matrix changes every iteration, is never inverted explicitly (solve \(A\delta = b\)), and Newton's convergence is quadratic but only local.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> what a constrained solver does under the hood.</p>
+</article>
+
+<h2 data-block="B">B. Simultaneous versus sequential <small>single shooting as elimination</small></h2>
+
+<article class="q" id="q7" data-type="mcq" data-core="1" data-min="2" data-block="B">
+  <div class="q-head"><span class="q-num">Q7</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>The semi truck is docked by single shooting: the states are eliminated through the rollout \(\boldsymbol\phi_t(\mathbf{u}, \mathbf{x}_1)\), and L-BFGS-B optimizes the 320 steering and speed inputs. Which requirement can you <em>not</em> impose as a hard constraint in this formulation?</p>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>A box bound \(|\delta_t| \le \delta_{\max}\) on every steering angle</span></li>
+    <li data-correct><span class="letter">b</span><span>A hitch-angle bound \(|\beta_t| \le 60^\circ\) at every time step</span></li>
+    <li><span class="letter">c</span><span>A terminal penalty on the final pose</span></li>
+    <li><span class="letter">d</span><span>A penalty on the steering rate \(\delta_{t+1} - \delta_t\)</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>The hitch angle is a state, and the states are no longer decision variables. All you can do is penalize \(\beta_t(\mathbf{u})\) inside the objective: you can regularize, you cannot enforce. "It's a price you pay." Controls are explicit, so box bounds and rate penalties on them are fine, and a terminal penalty is just part of the objective. With a simultaneous method the states are explicit, so a state constraint is one more inequality at each node.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> what single shooting gives up relative to a simultaneous method. This one was announced in class.</p>
+</article>
+
+<article class="q" id="q8" data-type="mcq" data-core="1" data-min="2" data-block="B">
+  <div class="q-head"><span class="q-num">Q8</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>A problem statement describes a deep-space probe: a very long horizon, dynamics with unstable modes, and a requirement that the state stays inside a safe region at all times. Which approach fits, and why?</p>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>Single shooting with Adam, since it has the fewest unknowns</span></li>
+    <li data-correct><span class="letter">b</span><span>A simultaneous method such as collocation: the states are decision variables, so the safe region becomes bound constraints at the nodes, and the equality constraints pin down the unstable modes instead of letting a long rollout explode</span></li>
+    <li><span class="letter">c</span><span>Single shooting with exact gradients from reverse-mode AD, which removes the long-horizon problem</span></li>
+    <li><span class="letter">d</span><span>MPPI, because it needs no gradients</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>Three cues, same answer. Long horizon: a shooting objective chains \(T\) steps of dynamics, like backprop through time, and the gradient explodes or vanishes. Unstable dynamics: the simulation itself blows up far from a good guess, whereas the simultaneous method anchors the trajectory at every node. State constraints: only explicit states can be bounded. Exact gradients (c) do not change the conditioning; they only compute the same badly scaled gradient faster. MPPI (d) is also a shooting method and has no built-in constraint mechanism.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> recognizing the cue in a problem description and picking the method.</p>
+</article>
+
+<article class="q" id="q9" data-type="work" data-core="1" data-min="6" data-block="B">
+  <div class="q-head"><span class="q-num">Q9</span><span class="tag core">core</span><span class="tag min">6 min, on paper</span></div>
+  <div class="stem">
+    <p>Dynamics \(x_{t+1} = x_t + u_t\), \(x_1 = 1\), \(T = 4\), objective \(J = x_4^2 + \sum_{t=1}^{3} u_t^2\).</p>
+  </div>
+  <ol class="parts" type="a">
+    <li>Eliminate the states: write \(x_4\) as a function of \(\mathbf u = (u_1, u_2, u_3)\).</li>
+    <li>Write the reduced single-shooting objective \(J(\mathbf u)\) and its gradient.</li>
+    <li>Evaluate the gradient at \(\mathbf u = \mathbf 0\), then take one gradient step with step size \(0.1\). Does the cost go down?</li>
+    <li>Find the minimizer of \(J(\mathbf u)\) and the optimal cost.</li>
+    <li>Write the same problem as a simultaneous NLP (variables and equality constraints). Do the two formulations have the same solution?</li>
+  </ol>
+  <div class="actions"><button type="button" class="reveal">Show solution</button></div>
+  <div class="sol" hidden>
+    <p>(a) \(x_4 = 1 + u_1 + u_2 + u_3\).</p>
+    <p>(b) \(J(\mathbf u) = (1 + u_1 + u_2 + u_3)^2 + u_1^2 + u_2^2 + u_3^2\), so \(\partial J/\partial u_t = 2x_4(\mathbf u) + 2u_t\). The first term is the same for every \(t\): each control pushes the terminal state by the same amount, because \(\partial x_4/\partial u_t = 1\) for this dynamics. With \(x_{t+1} = a x_t + u_t\) it would be \(a^{3-t}\), which is where long horizons go wrong.</p>
+    <p>(c) At \(\mathbf u = 0\): \(x_4 = 1\), gradient \((2,2,2)\), cost 1. Step: \(\mathbf u = (-0.2,-0.2,-0.2)\), \(x_4 = 0.4\), cost \(0.16 + 0.12 = 0.28\). Yes.</p>
+    <p>(d) Setting the gradient to zero: \(u_t = -x_4\) for all \(t\), so \(x_4 = 1 - 3x_4\), \(x_4^\star = 1/4\), \(u_t^\star = -1/4\), \(J^\star = 1/16 + 3/16 = 1/4\).</p>
+    <p>(e) Variables \(x_2, x_3, x_4, u_1, u_2, u_3\), objective \(x_4^2 + \sum u_t^2\), constraints \(x_2 = 1 + u_1\), \(x_3 = x_2 + u_2\), \(x_4 = x_3 + u_3\). Same minimizer: elimination is an exact reparameterization. What differs is the numerics: the simultaneous version has six unknowns and three constraints but no long chain in its derivatives, and it could add a bound on \(x_2\) or \(x_3\) directly.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> elimination by simulation, the reduced gradient, and the equivalence of the two formulations.</p>
+</article>
+
+<article class="q" id="q10" data-type="mcq" data-min="2" data-block="B">
+  <div class="q-head"><span class="q-num">Q10</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>For the backing truck, a hitch-angle error grows by a factor \(e\) for every 10 m of reversing (\(L_1 = 10\) m). The plan backs up 30 m. Roughly how does the gradient of a terminal-pose penalty with respect to the <em>first</em> steering input compare with the gradient with respect to the <em>last</em> one?</p>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>About the same; both act on the same trajectory</span></li>
+    <li><span class="letter">b</span><span>About 3 times larger</span></li>
+    <li data-correct><span class="letter">c</span><span>About \(e^3 \approx 20\) times larger</span></li>
+    <li><span class="letter">d</span><span>About \(e^{-3}\) times, so 20 times smaller</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>The derivative with respect to an early control passes through the product of all later dynamics Jacobians: for \(x_{t+1} = a x_t + u_t\) it is \(a^{T-1-t}\). Backing is the unstable (jackknife) direction, so the factors exceed one and compound to \(e^{d/L_1}\); driving forward they shrink to \(e^{-3}\). Think of it as an exploding gradient problem. The book's measured ratio at the seed was about 800 to 0.04. That spread is a conditioning problem for any fixed-step method; Adam rescales one coordinate at a time and does not undo the coupling.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> linking unstable dynamics to the conditioning of single shooting.</p>
+</article>
+
+<article class="q" id="q11" data-type="mcq" data-min="2" data-block="B">
+  <div class="q-head"><span class="q-num">Q11</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>Single shooting computes \(\nabla_{\mathbf u} J\) by backprop through the rollout (<code>scan</code>). Which statement is correct?</p>
+  </div>
+  <ol class="opts">
+    <li data-correct><span class="letter">a</span><span>One forward rollout plus one backward pass gives the gradient with respect to every control; the backward pass propagates a vector through transposed Jacobians (vector–Jacobian products) without ever forming them</span></li>
+    <li><span class="letter">b</span><span>You need one rollout per control, as in finite differences</span></li>
+    <li><span class="letter">c</span><span>The Jacobians \(\partial f/\partial \mathbf x\) must be formed explicitly and multiplied together</span></li>
+    <li><span class="letter">d</span><span>The gradient with respect to \(u_1\) only involves the first step of the dynamics</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>The backward pass starts from the gradient of the terminal cost and accumulates one VJP per step, so the cost is one forward and one backward sweep, at the price of storing (or checkpointing) the trajectory. "The golden rule: never form Jacobian matrices explicitly." This backward recursion is what the notes write as the adjoint (costate) equation of the Pontryagin principle: forward dynamics, backward multipliers, and the derivative with respect to each \(u_t\) assembled from them. For us it is a way to compute the shooting gradient, not a tool for analytical solutions. Finite differences cost one rollout per control, and \(u_1\) affects every later state, so its gradient involves the whole chain.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> what reverse-mode AD does and why the adjoint recursion is backprop.</p>
+</article>
+
+<h2 data-block="C">C. Multiple shooting <small>a knob between the two</small></h2>
+
+<article class="q" id="q12" data-type="work" data-core="1" data-min="6" data-block="C">
+  <div class="q-head"><span class="q-num">Q12</span><span class="tag core">core</span><span class="tag min">6 min, on paper</span></div>
+  <div class="stem">
+    <p>Dynamics \(x_{t+1} = f(x_t, u_t)\), \(x_1\) given, \(T = 5\), hard terminal constraint \(x_5 = 0\), objective \(\sum_{t=1}^{4} u_t^2\). Use multiple shooting with \(K = 2\) segments of \(L = 2\) steps. Write \(\hat x\) for a state obtained by simulating a segment from its start state.</p>
+  </div>
+  <ol class="parts" type="a">
+    <li>List the decision variables.</li>
+    <li>Write the continuity constraint between the segments and the terminal constraint, in terms of the decision variables and the simulation map.</li>
+    <li>What does the formulation become for \(K = 1\)? For \(K = 4\)? Where does collocation sit?</li>
+    <li>Before convergence, is an iterate a consistent trajectory? What can be computed in parallel?</li>
+    <li>For \(f(x,u) = x + u\) and \(x_1 = 1\), solve the NLP (symmetry is enough).</li>
+  </ol>
+  <div class="actions"><button type="button" class="reveal">Show solution</button></div>
+  <div class="sol" hidden>
+    <p>(a) The four controls \(u_1,\dots,u_4\) and the start state of the second segment, \(x_3\). (\(x_1\) is given.)</p>
+    <p>(b) Simulate segment 1 from \(x_1\): \(\hat x_3 = f(f(x_1,u_1),u_2)\). Continuity: \(x_3 - \hat x_3 = 0\), the discrepancy between the decision variable and where the simulation lands (the notes call it a defect). Terminal: \(\hat x_5 = f(f(x_3,u_3),u_4) = 0\).</p>
+    <p>(c) \(K = 1\): no intermediate state, one rollout from \(x_1\) to the end: single shooting. \(K = 4\): every state is a decision variable and every continuity constraint is a one-step consistency condition: the fully simultaneous program. Collocation is the extreme case with segment length one interval \(h\), where the integrator inside the segment is replaced by the polynomial.</p>
+    <p>(d) No: each segment is consistent internally, but the continuity constraints are violated until the solver drives them to zero (the ballistic demo starts with the knots 2 m off). The segment simulations are independent given their start states, so they run in parallel; the synchronization happens in the NLP. Derivatives travel through at most \(L\) steps before hitting a decision variable, so the knob \(K\) trades conditioning against problem size.</p>
+    <p>(e) With \(f = x + u\): \(x_3 = 1 + u_1 + u_2\) and \(x_3 + u_3 + u_4 = 0\), so \(1 + \sum u_t = 0\). By symmetry \(u_t = -1/4\), \(x_3 = 1/2\), cost \(1/4\).</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> setting up a multiple-shooting NLP and placing it between single shooting and direct transcription.</p>
+</article>
+
+<article class="q" id="q13" data-type="mcq" data-min="2" data-block="C">
+  <div class="q-head"><span class="q-num">Q13</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>Multiple shooting has <em>more</em> unknowns than single shooting on the same problem. Why is it nevertheless easier to solve on long horizons?</p>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>The extra unknowns make the constraints linear</span></li>
+    <li data-correct><span class="letter">b</span><span>A derivative passes through at most \(L\) dynamics Jacobians before hitting a decision variable, so sensitivities cannot compound across the whole horizon</span></li>
+    <li><span class="letter">c</span><span>It avoids numerical integration altogether</span></li>
+    <li><span class="letter">d</span><span>It needs no initial guess for the controls</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>Single shooting chains the dynamics across \(T\) steps, the exploding or vanishing gradient problem of unrolled recurrent networks. Multiple shooting cuts the chain every \(L\) steps and asks a constrained solver to glue the pieces with continuity constraints, whose Jacobian is sparse: constraint \(k\) depends on \(x_k\), \(x_{k+1}\), and the controls of segment \(k\) only. Integration is still used inside each segment, and the initial guess still matters.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> explaining the conditioning gain in terms of Jacobian products.</p>
+</article>
+
+<h2 data-block="D">D. Collocation <small>nodal representation, operators, the recipe, schemes</small></h2>
+
+<article class="q" id="q14" data-type="mcq" data-core="1" data-min="2" data-block="D">
+  <div class="q-head"><span class="q-num">Q14</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>A polynomial can be written in the monomial form \(p(\tau) = \sum_j a_j \tau^j\) or in the nodal (Lagrange) form \(p(\tau) = \sum_j y_j \ell_j(\tau)\). Why does collocation insist on the nodal form?</p>
+  </div>
+  <ol class="opts">
+    <li data-correct><span class="letter">a</span><span>The unknowns are then the values of the state at the nodes, so bound constraints on the state are direct, and differentiation and integration become precomputed matrices acting on those values</span></li>
+    <li><span class="letter">b</span><span>Lagrange polynomials can represent functions that monomials cannot</span></li>
+    <li><span class="letter">c</span><span>The nodal form avoids the fundamental theorem of calculus</span></li>
+    <li><span class="letter">d</span><span>The nodal form is fitted by least squares to samples of the true trajectory</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>Same space of polynomials, different coordinates: \(\mathbf y = V\mathbf a\) with \(V\) invertible for distinct nodes. In the nodal form \(\ell_j(\sigma_i) = \delta_{ij}\), so the coefficient \(y_j\) <em>is</em> the value at node \(j\); "search not over coefficients but over chosen values of the polynomial". That makes the state explicit in the NLP (bounds, stability) and gives derivative and integral "for free": \(p'(\sigma_i) = \sum_j D_{ij} y_j\) and \(\int_0^1 p = \mathbf w^\top \mathbf y\), exact, no autodiff, no finite differences. The polynomial passes through the nodal values exactly: this is interpolation, not regression; there is no loss being fitted.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> the nodal versus monomial distinction, "maybe the third time I've presented this".</p>
+</article>
+
+<article class="q" id="q15" data-type="work" data-core="1" data-min="8" data-block="D">
+  <div class="q-head"><span class="q-num">Q15</span><span class="tag core">core</span><span class="tag min">8 min, on paper</span></div>
+  <div class="stem">
+    <p>Nodes \(\sigma = (0, \tfrac12, 1)\) on the unit interval.</p>
+  </div>
+  <ol class="parts" type="a">
+    <li>Write the three Lagrange basis polynomials \(\ell_0, \ell_m, \ell_1\). Check \(\ell_j(\sigma_i) = \delta_{ij}\) and \(\sum_j \ell_j \equiv 1\).</li>
+    <li>Build the differentiation matrix \(D_{ij} = \ell_j'(\sigma_i)\) and the quadrature weights \(w_j = \int_0^1 \ell_j\).</li>
+    <li>Check both on \(p(\tau) = 1 + \tau + \tau^2\): form the nodal vector \(\mathbf{y}\), compute \(D\mathbf{y}\) and \(\mathbf{w}^\top\mathbf{y}\), and compare with \(p'\) and \(\int_0^1 p\).</li>
+    <li>Raise the midpoint value from \(7/4\) to \(11/4\), keeping the other two. Where does the new polynomial peak, and what does that say about imposing a state bound \(x \le 3\) only at the nodes?</li>
+  </ol>
+  <div class="actions"><button type="button" class="reveal">Show solution</button></div>
+  <div class="sol" hidden>
+    <p>(a) \(\ell_0 = 2\tau^2 - 3\tau + 1\), \(\ell_m = 4\tau(1-\tau)\), \(\ell_1 = 2\tau^2 - \tau\). Each is 1 at its own node and 0 at the other two; the quadratic terms cancel in the sum and the rest adds to 1.</p>
+    <p>(b) \(\ell_0' = 4\tau - 3\), \(\ell_m' = 4 - 8\tau\), \(\ell_1' = 4\tau - 1\) at the nodes:
+    \[ D = \begin{pmatrix} -3 & 4 & -1 \\ -1 & 0 & 1 \\ 1 & -4 & 3 \end{pmatrix}, \qquad \mathbf{w} = \left(\tfrac16, \tfrac46, \tfrac16\right). \]
+    The weights are Simpson's rule. Every row of \(D\) sums to zero (derivative of a constant) and the weights sum to one (integral of the constant 1).</p>
+    <p>(c) \(\mathbf{y} = (1, 7/4, 3)\). \(D\mathbf{y} = (-3 + 7 - 3,\; -1 + 3,\; 1 - 7 + 9) = (1, 2, 3) = p'(\sigma_i)\) with \(p' = 1 + 2\tau\). \(\mathbf{w}^\top\mathbf{y} = \tfrac16 + \tfrac76 + \tfrac36 = \tfrac{11}{6} = \int_0^1 p\). Exact, because \(p\) lies in the space the nodes span.</p>
+    <p>(d) Adding 1 at the midpoint adds \(\ell_m\): \(q(\tau) = 1 + 5\tau - 3\tau^2\), maximum at \(\tau = 5/6\) where \(q = 37/12 \approx 3.08 > 3\). All three nodal values satisfy \(x \le 3\), yet the piece violates the bound between nodes. Nodal bounds bound the piece itself only for constant or linear pieces.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> the suggested hand exercise: pick nodes, build the Lagrange basis and the operators, test them.</p>
+</article>
+
+<article class="q" id="q16" data-type="work" data-core="1" data-min="8" data-block="D">
+  <div class="q-head"><span class="q-num">Q16</span><span class="tag core">core</span><span class="tag min">8 min, on paper</span></div>
+  <div class="stem">
+    <p>Apply the three-step recipe (choose collocation points; match slopes to \(f\) there; impose the endpoint values so the pieces are stitched together) on one interval \([t_k, t_{k+1}]\) of length \(h\), with the interval clock \(\tau \in [0,1]\). Write \(f_k = f(x_k,u_k)\) and \(f_{k+1} = f(x_{k+1},u_{k+1})\).</p>
+  </div>
+  <ol class="parts" type="a">
+    <li>Collocation points \((0, 1)\). Interpolate the slope \(\dot x_h\) with the Lagrange basis on these two nodes.</li>
+    <li>Integrate from the start of the interval (fundamental theorem of calculus) to get the state piece \(x_h(\tau)\). What degree is it?</li>
+    <li>Impose \(x_h(1) = x_{k+1}\). Which scheme is this? Write its collocation condition and the matching discretization of \(\int c\,dt\) over the interval.</li>
+    <li>Repeat with a single collocation point \(\tau_1 = 0\), then \(\tau_1 = 1\). Which schemes result? Why does the "implicit" one cost nothing extra in direct transcription?</li>
+  </ol>
+  <div class="actions"><button type="button" class="reveal">Show solution</button></div>
+  <div class="sol" hidden>
+    <p>(a) \(\ell_0 = 1 - \tau\), \(\ell_1 = \tau\), so \(\dot x_h(t_k + h\tau) = f_k(1-\tau) + f_{k+1}\tau\): the slope is linear across the interval.</p>
+    <p>(b) \(x_h(\tau) = x_k + h\int_0^\tau \left[f_k(1-s) + f_{k+1}s\right]ds = x_k + h\left[f_k\left(\tau - \tfrac{\tau^2}{2}\right) + f_{k+1}\tfrac{\tau^2}{2}\right]\). Quadratic: one degree above the slope, as integration always gives.</p>
+    <p>(c) \(x_{k+1} = x_k + \tfrac{h}{2}(f_k + f_{k+1})\): the trapezoidal collocation condition, which stitches this interval to the next through the shared variable \(x_{k+1}\). The cost uses the same weights, \(\tfrac{h}{2}(c_k + c_{k+1})\), the trapezoidal rule. The quadrature is prescribed by the collocation scheme; you do not pick it independently.</p>
+    <p>(d) One node means a constant slope. \(\tau_1 = 0\): \(x_{k+1} = x_k + h f_k\), explicit Euler, with the rectangle rule \(h c_k\). \(\tau_1 = 1\): \(x_{k+1} = x_k + h f_{k+1}\), implicit Euler. In simulation, implicit Euler needs Newton at every step because \(x_{k+1}\) appears on both sides. In transcription \(x_{k+1}\) is already a decision variable and the condition is just another equality constraint, so the two cost the same.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> deriving a scheme from its collocation points by hand, the exercise deferred to this session.</p>
+</article>
+
+<article class="q" id="q17" data-type="work" data-core="1" data-min="7" data-block="D">
+  <div class="q-head"><span class="q-num">Q17</span><span class="tag core">core</span><span class="tag min">7 min, on paper</span></div>
+  <div class="stem">
+    <p>One interval, trapezoidal collocation. Dynamics \(\dot x = -x + u\) on \([0,1]\), so \(h = 1\). Boundary conditions \(x(0) = 1\) and \(x(1) = 0\). Decision variables \(x_0, x_1, u_0, u_1\), control linear on the interval. Minimize \(\tfrac12(u_0^2 + u_1^2)\).</p>
+  </div>
+  <ol class="parts" type="a">
+    <li>Write the collocation condition, substitute the boundary conditions, and reduce it to one equation in \(u_0, u_1\).</li>
+    <li>Solve the NLP. Report \(u^\star\) and the cost.</li>
+    <li>Write the state piece \(x_h(\tau)\) for your solution and check \(x_h(1)\).</li>
+    <li>Compute the residual \(r(\tau) = x_h'(\tau) - \big(-x_h(\tau) + u_h(\tau)\big)\). Where is it zero, and what does that tell you about a converged solver?</li>
+  </ol>
+  <div class="actions"><button type="button" class="reveal">Show solution</button></div>
+  <div class="sol" hidden>
+    <p>(a) \(x_1 - x_0 - \tfrac12\left[f(x_0,u_0) + f(x_1,u_1)\right] = 0\) with \(f_0 = -1 + u_0\) and \(f_1 = u_1\): \(0 - 1 - \tfrac12(-1 + u_0 + u_1) = 0\), that is \(u_0 + u_1 = -1\).</p>
+    <p>(b) Minimize \(\tfrac12(u_0^2 + u_1^2)\) subject to \(u_0 + u_1 = -1\): \(u_0^\star = u_1^\star = -\tfrac12\), cost \(\tfrac14\).</p>
+    <p>(c) \(f_0 = -\tfrac32\), \(f_1 = -\tfrac12\). From Q16(b): \(x_h(\tau) = 1 - \tfrac32(\tau - \tau^2/2) - \tfrac14\tau^2 = 1 - \tfrac32\tau + \tfrac12\tau^2\), and \(x_h(1) = 0\).</p>
+    <p>(d) \(x_h' = -\tfrac32 + \tau\), \(u_h = -\tfrac12\), so \(r(\tau) = -\tfrac32 + \tau + \left(1 - \tfrac32\tau + \tfrac12\tau^2\right) + \tfrac12 = \tfrac12\tau(\tau - 1)\). Zero at both collocation points, \(|r| = \tfrac18\) at the midpoint. The solver did its job: the collocation conditions hold exactly. But one interval with a linear control cannot represent the true optimum, whose control is smooth. That error is controlled by the mesh and the degree, never by the solver tolerance. The crane demo checked this by re-integrating the optimized control with an accurate integrator.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> solving a tiny transcribed problem and separating solver error from discretization error.</p>
+</article>
+
+<article class="q" id="q18" data-type="mcq" data-core="1" data-min="2" data-block="D">
+  <div class="q-head"><span class="q-num">Q18</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>The general collocation condition for interior stage \(i\) of interval \(k\) reads
+    \[ x_{k,i} - x_k - h_k \sum_j A_{ij}\, f_{k,j} = 0, \qquad f_{k,j} = f(x_{k,j}, u_{k,j}). \]
+    Which statement is correct?</p>
+  </div>
+  <ol class="opts">
+    <li data-correct><span class="letter">a</span><span>\(A_{ij} = \int_0^{\tau_i} \ell_j\): the sum integrates the interpolated slope from the start of the interval to stage \(i\) (FTC); with \(b_j = \int_0^1 \ell_j\) instead, the same line evaluated at the end gives the continuity condition for \(x_{k+1}\)</span></li>
+    <li><span class="letter">b</span><span>\(A_{ij} = \ell_j'(\tau_i)\), the differentiation matrix</span></li>
+    <li><span class="letter">c</span><span>The integral runs from the previous stage \(\tau_{i-1}\) to \(\tau_i\)</span></li>
+    <li><span class="letter">d</span><span>Only stages \(j < i\) appear in the sum</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>"The important point is really this equation: these are the equality constraints of the program you will be implementing." Every integral starts at the beginning of the interval, and the sum runs over all slope nodes, including those after \(i\); an entry like \(A_{23} = -1/24\) in Hermite–Simpson is a signed area, not a mistake. \(A\) and \(b\) depend only on the chosen nodes and are precomputed once. In the demo we checked \(\sum_j A_{ij} = \tau_i\) and \(\sum_j b_j = 1\), which is what a constant slope must give.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> reading the integration-form collocation condition.</p>
+</article>
+
+<article class="q" id="q19" data-type="mcq" data-core="1" data-min="3" data-block="D">
+  <div class="q-head"><span class="q-num">Q19</span><span class="tag core">core</span><span class="tag min">3 min</span></div>
+  <div class="stem">
+    <p>Inspect this residual function for trapezoidal collocation on \(N\) intervals of length <code>h</code>, with state and control values stacked in <code>z</code>. What is wrong?</p>
+<pre><code>def residuals(z, N, h, f):
+    x = z[: (N + 1) * n].reshape(N + 1, n)
+    u = z[(N + 1) * n :].reshape(N + 1, m)
+    r = []
+    for k in range(N):
+        fk  = f(x[k],     u[k])
+        fk1 = f(x[k + 1], u[k + 1])
+        r.append(x[k + 1] - x[k] - h * (fk + fk1))
+    return np.concatenate(r)</code></pre>
+  </div>
+  <ol class="opts">
+    <li data-correct><span class="letter">a</span><span>The average is missing its \(\tfrac12\): for a constant slope \(c\) this residual forces \(x_{k+1} = x_k + 2hc\). The weights must sum to one</span></li>
+    <li><span class="letter">b</span><span><code>fk1</code> should be evaluated with <code>u[k]</code>, since the control is constant on the interval</span></li>
+    <li><span class="letter">c</span><span>The loop should run to <code>N + 1</code> to include the last node</span></li>
+    <li><span class="letter">d</span><span>Nothing is wrong</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>Trapezoidal: \(x_{k+1} - x_k - \tfrac{h}{2}(f_k + f_{k+1})\). The quick test for any collocation condition is the constant-slope check: \(\dot x = c\) must give \(x_{k+1} = x_k + hc\), so the weights \(b_j = \int_0^1 \ell_j\) must sum to one. Option (b) describes Euler's zero-order hold; the trapezoidal scheme pairs with a linear control, and \(u\) has \(N+1\) values here on purpose. There are \(N\) intervals, so \(N\) conditions.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> inspecting code and finding the flaw with a sanity check.</p>
+</article>
+
+<article class="q" id="q20" data-type="mcq" data-core="1" data-min="2" data-block="D">
+  <div class="q-head"><span class="q-num">Q20</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>The original problem is \(\min\; c_T(x(t_f)) + \int_{t_0}^{t_f} c(x,u)\,dt\) subject to \(\dot x = f(x,u)\). To transcribe the integral cost consistently, we augment the state. Which is right?</p>
+  </div>
+  <ol class="opts">
+    <li data-correct><span class="letter">a</span><span>Add \(z\) with \(\dot z = c(x,u)\) and \(z(t_0) = 0\); the objective becomes \(c_T(x_N) + z_N\), and \(z\) is collocated with the same scheme as \(x\), so trapezoidal collocation yields the trapezoidal rule for the cost and Euler yields the rectangle rule</span></li>
+    <li><span class="letter">b</span><span>Add \(z\) with \(z(t_0) = c(x_0,u_0)\), the first immediate cost</span></li>
+    <li><span class="letter">c</span><span>Keep the integral and always discretize it with Simpson's rule, whatever the collocation scheme</span></li>
+    <li><span class="letter">d</span><span>\(z\) is not a decision variable; it is computed after the solve</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>The augmented dynamics are \(\tilde f = (f, c)\) on \(\tilde x = (x, z)\); \(z\) starts at zero because it accumulates, and \(z(t_f) = \int c\). In discrete time it is the running sum. Because \(z\) obeys the same collocation conditions as \(x\), the quadrature is prescribed by the scheme ("you don't want to choose an arbitrary quadrature method"). This turns a Lagrange or Bolza problem into a Mayer problem with only a terminal cost.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> the augmented-state trick and consistent quadrature.</p>
+</article>
+
+<article class="q" id="q21" data-type="mcq" data-min="2" data-block="D">
+  <div class="q-head"><span class="q-num">Q21</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>CasADi and similar tools write collocation in the differentiation form: interpolate the <em>state</em> on each interval and impose \(\sum_r D_{ir}\,\hat x_{k,r} = h_k\, f(\cdot)\) at the collocation points. How does it relate to the integration form from Q18?</p>
+  </div>
+  <ol class="opts">
+    <li data-correct><span class="letter">a</span><span>Integration form interpolates the slopes and integrates them (FTC); differentiation form interpolates the state and differentiates it at the collocation points. With the same nodes and degrees they describe the same set of feasible trajectories</span></li>
+    <li><span class="letter">b</span><span>The differentiation form requires automatic differentiation of \(f\)</span></li>
+    <li><span class="letter">c</span><span>The two forms have different optimal solutions</span></li>
+    <li><span class="letter">d</span><span>The differentiation form has no continuity constraint between intervals</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>Both are "the slope of the polynomial equals what \(f\) dictates at the collocation points"; one builds the slope match in and constrains the state values, the other builds the state interpolant in and constrains its slopes. \(D\) is the precomputed differentiation matrix, nothing is autodiffed. Continuity comes from a shared endpoint value in both forms. Off the solution the residuals and their conditioning differ, so solvers may behave differently, but the feasible set is the same.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> the two equivalent forms of a collocation condition.</p>
+</article>
+
+<article class="q" id="q22" data-type="mcq" data-min="2" data-block="D">
+  <div class="q-head"><span class="q-num">Q22</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>Rule of thumb from class: the control polynomial has one degree less than the state polynomial. Which pairing follows it, and what is actually applied to the system after the solve?</p>
+  </div>
+  <ol class="opts">
+    <li data-correct><span class="letter">a</span><span>Euler with a zero-order hold, trapezoidal with a linear control, Hermite–Simpson with a quadratic control; the system receives the control polynomial induced by the optimal nodal values, not the bare nodal values</span></li>
+    <li><span class="letter">b</span><span>Euler with a linear control, trapezoidal with a quadratic control; the system receives the nodal values at the mesh times</span></li>
+    <li><span class="letter">c</span><span>The control degree must equal the state degree so that the collocation condition is square</span></li>
+    <li><span class="letter">d</span><span>The control is always piecewise constant whatever the scheme</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>Integration raises the degree by one, so a state of degree \(d\) goes with a slope, hence a control, of degree \(d - 1\): Euler 1/0, trapezoidal 2/1, Hermite–Simpson 3/2. It is a rule of thumb, not a theorem. "We're not going to apply the \(u_k\)'s on the robot; we apply the polynomial induced by the optimal nodes." A control with more freedom than the stages can see is wasted: a quadratic bump between two endpoint stages is invisible to the trapezoidal condition.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> control parameterization and what the solution means.</p>
+</article>
+
+<article class="q" id="q23" data-type="mcq" data-core="1" data-min="2" data-block="D">
+  <div class="q-head"><span class="q-num">Q23</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>Your solver reports a maximum residual of \(10^{-10}\) on the crane problem. Re-integrating the optimized control with an accurate integrator shows the sway angle exceeding the \(15^\circ\) bound between two nodes. Which action addresses the actual problem?</p>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>Tighten the solver tolerance to \(10^{-14}\)</span></li>
+    <li data-correct><span class="letter">b</span><span>Check the polynomial residual between nodes, then refine the mesh or raise the degree</span></li>
+    <li><span class="letter">c</span><span>Switch from trapezoidal to explicit Euler</span></li>
+    <li><span class="letter">d</span><span>Run more solver iterations from the same point</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>A small residual at the collocation points says the discrete NLP was solved accurately. It says nothing about the mesh resolving the continuous dynamics, and path bounds are only imposed at the nodes, so a quadratic state piece can overshoot between them (Q15d). Two separate errors: solver error, controlled by tolerance and iterations, and discretization error, controlled by mesh and degree. Explicit Euler is lower order, so (c) makes the second error worse.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> diagnosing a transcription result, which is why the crane demo validates by re-integration.</p>
+</article>
+
+<article class="q" id="q24" data-type="mcq" data-min="2" data-block="D">
+  <div class="q-head"><span class="q-num">Q24</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>In the demo we built \(A\) and \(b\) for the Radau nodes \(\tau = (\tfrac13, 1)\) and checked that each row of \(A\) sums to its node: \(\sum_j A_{ij} = \tau_i\). What does this check verify?</p>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>That the scheme is third-order accurate</span></li>
+    <li data-correct><span class="letter">b</span><span>That a constant slope is integrated exactly up to each stage: \(x_{k,i} = x_k + h\,\tau_i f\)</span></li>
+    <li><span class="letter">c</span><span>That the state polynomial is continuous across intervals</span></li>
+    <li><span class="letter">d</span><span>That the assembled NLP is feasible</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>\(A_{ij} = \int_0^{\tau_i} \ell_j\) and \(\sum_j \ell_j \equiv 1\), so \(\sum_j A_{ij} = \tau_i\). It is a sanity check on the generator, nothing more. The order of the scheme came from the mesh-refinement experiment (the error fell by about 8 per doubling of \(N\)), continuity comes from sharing \(x_{k+1}\) between neighbouring intervals, and feasibility is a property of the whole NLP.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> reading the coefficient arrays of a scheme generated from its nodes.</p>
+</article>
+
+<h2 data-block="E">E. MPPI <small>sampling-based plan improvement</small></h2>
+
+<article class="q" id="q25" data-type="mcq" data-core="1" data-min="3" data-block="E">
+  <div class="q-head"><span class="q-num">Q25</span><span class="tag core">core</span><span class="tag min">3 min</span></div>
+  <div class="stem">
+    <p>MPPI, one control, nominal plan \(u = 0\). Three perturbations \(\epsilon = (-1, 0, 1)\) with corrected costs \(\tilde S = (0, \log 2, \log 2)\) and temperature \(\lambda = 1\). The updated control \(u^+ = u + \sum_i w_i \epsilon_i\) is</p>
+  </div>
+  <ol class="opts">
+    <li data-correct><span class="letter">a</span><span>\(-\tfrac14\)</span></li>
+    <li><span class="letter">b</span><span>\(0\)</span></li>
+    <li><span class="letter">c</span><span>\(-1\)</span></li>
+    <li><span class="letter">d</span><span>\(+\tfrac14\)</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>Weights \(\propto e^{-\tilde S_i/\lambda} = (1, \tfrac12, \tfrac12)\), normalized to \((\tfrac12, \tfrac14, \tfrac14)\), so \(u^+ = -\tfrac12 + 0 + \tfrac14 = -\tfrac14\). The ratio of two weights is \(e^{-(\tilde S_i - \tilde S_j)/\lambda}\): \(\lambda\) amplifies or shrinks differences between candidates. As \(\lambda \to 0\) the weights collapse onto the best sample (\(u^+ \to -1\), a soft argmax becoming an argmax); as \(\lambda \to \infty\) they flatten to \(\tfrac13\) each and \(u^+ \to 0\). Subtracting the minimum cost \(\rho\) from every \(\tilde S_i\) changes nothing: it is a numerical trick for the exponentials.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> the MPPI update and the role of temperature.</p>
+</article>
+
+<article class="q" id="q26" data-type="mcq" data-min="3" data-block="E">
+  <div class="q-head"><span class="q-num">Q26</span><span class="tag min">3 min</span></div>
+  <div class="stem">
+    <p>The exponential weighting solves \(\min_Q\; \mathbb E_Q[S] + \lambda\, D_{\mathrm{KL}}(Q \,\|\, P_0)\), whose solution is \(P^\star \propto P_0\, e^{-S/\lambda}\), and the update sets \(u_k^+ = \mathbb E_{P^\star}[v_k]\). When the samples are drawn around the current plan \(\mathbf U \ne 0\) rather than from \(P_0\), the costs are corrected to \(\tilde S_i = S_i + \lambda\sum_k u_k^\top\Sigma^{-1}\epsilon^{(i)}_k\). Why?</p>
+  </div>
+  <ol class="opts">
+    <li data-correct><span class="letter">a</span><span>The expectation is under \(P^\star\), built on \(P_0\), but the samples come from \(Q_{\mathbf U}\): a change of measure (importance sampling) multiplies each sample by \(p_0/q_{\mathbf U}\), and the log of that ratio is this term, up to a constant that cancels in the normalization</span></li>
+    <li><span class="letter">b</span><span>It adds the control-effort penalty \(\tfrac12 \mathbf u^\top\Sigma^{-1}\mathbf u\) to the cost</span></li>
+    <li><span class="letter">c</span><span>It is the numerical-stability shift \(\rho\)</span></li>
+    <li><span class="letter">d</span><span>It makes the weights sum to one</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>Multiply and divide by \(q\): \(\mathbb E_p[g] = \mathbb E_q[g\, p/q]\), an unbiased change of measure whose variance can blow up when \(q\) is small where \(p\) is not. For two Gaussians with the same \(\Sigma\), \(\log\frac{p_0(\mathbf V)}{q_{\mathbf U}(\mathbf V)} = -\sum_k \left[\mathbf u_k^\top\Sigma^{-1}\boldsymbol\epsilon_k + \tfrac12 \mathbf u_k^\top\Sigma^{-1}\mathbf u_k\right]\); the second term is the same for all samples and drops out of the self-normalized estimator. Control effort enters the objective through the KL term (with \(\Sigma = I\) it is \(\sum \|\mathbf u_k\|^2\)), not through \(S\), which is why \(S\) contains state costs only. Omitting the correction converges to the wrong mean no matter how many samples you draw.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> importance sampling as the change of measure behind the corrected costs.</p>
+</article>
+
+<article class="q" id="q27" data-type="mcq" data-core="1" data-min="2" data-block="E">
+  <div class="q-head"><span class="q-num">Q27</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>Is MPPI a simultaneous or a sequential method, and what follows?</p>
+  </div>
+  <ol class="opts">
+    <li data-correct><span class="letter">a</span><span>Sequential: every candidate is a rollout from the current state, there are no state decision variables, so there is no built-in way to impose hard state constraints; the result is an open-loop plan until it is replanned inside a receding-horizon loop</span></li>
+    <li><span class="letter">b</span><span>Simultaneous: the sampled trajectories play the role of state variables</span></li>
+    <li><span class="letter">c</span><span>Closed-loop by construction, because sampling many futures amounts to feedback</span></li>
+    <li><span class="letter">d</span><span>Sequential, and it requires the gradient of \(f\) for each rollout</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>MPPI begins with the single-shooting rollout and changes how candidate inputs are combined: a softmax-weighted average instead of a gradient step. No derivatives of \(f\) or of the cost are needed, and the rollouts run in parallel on a GPU. "Resist the temptation to view everything as finding a policy. We're finding plans here." Feedback only appears when the loop replans from the newly observed state and applies the first control. Constraints are handled by barriers, penalties, or by filtering candidates, since an average of feasible plans can be infeasible.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> placing MPPI in the simultaneous/sequential picture.</p>
+</article>
+
+<h2 data-block="F">F. MPC basics <small>closing the loop by replanning</small></h2>
+
+<article class="q" id="q28" data-type="mcq" data-core="1" data-min="2" data-block="F">
+  <div class="q-head"><span class="q-num">Q28</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>An MPC controller solves an \(N = 20\) step problem every \(0.1\) s with a deterministic prediction model. Which controls are applied, and where does the feedback come from?</p>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>All 20, because the model is deterministic</span></li>
+    <li data-correct><span class="letter">b</span><span>Only the first one; feedback comes from re-solving at the next step from the measured state, which carries the effect of disturbances and model error</span></li>
+    <li><span class="letter">c</span><span>Only the first one; feedback comes from the terminal cost</span></li>
+    <li><span class="letter">d</span><span>The average of the 20 planned controls</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>"Throw away the entire plan except for the first control. Models are always going to be wrong, so we need feedback." The discarded tail usually seeds the next solve, shifted by one step, as a warm start. Replanning trades compute for robustness: the mapping from the measured state to the first optimal control is the feedback law, even though no explicit policy was ever written down.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> what receding-horizon execution adds to an open-loop plan.</p>
+</article>
+
+<article class="q" id="q29" data-type="mcq" data-min="2" data-block="F">
+  <div class="q-head"><span class="q-num">Q29</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>In the finite-horizon problem solved at each MPC step, a terminal cost \(V_f(\mathbf x_N)\) and a terminal set \(\mathbf x_N \in \mathcal X_f\) are added. What are they for?</p>
+  </div>
+  <ol class="opts">
+    <li data-correct><span class="letter">a</span><span>\(V_f\) stands in for the cost-to-go beyond the horizon (the value function from \(\mathbf x_N\)), and \(\mathcal X_f\) is a region from which a known safe, stabilizing controller can take over; without them a short horizon ignores consequences past step \(N\)</span></li>
+    <li><span class="letter">b</span><span>\(V_f\) is the immediate cost at step \(N\) and \(\mathcal X_f\) is the set of reachable states</span></li>
+    <li><span class="letter">c</span><span>They are needed only when the task has a fixed end time</span></li>
+    <li><span class="letter">d</span><span>They replace the need to replan</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>The true objective runs to the end of the task or to infinity; the horizon truncates it, and \(V_f\) approximates the tail \(\sum_{k \ge N} c\). That is the same object as the value function in dynamic programming, and one can learn it. For a task with a fixed end time, the horizon shrinks as the end approaches and the true terminal cost takes over, so the controller does not optimize past completion.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> the role of the terminal ingredients in MPC.</p>
+</article>
+
+</div>
+
+<div class="deck" role="toolbar" aria-label="Presenter controls">
+  <span class="where" id="deck-where"></span>
+  <span class="block-name" id="deck-block"></span>
+  <span class="spacer"></span>
+  <button type="button" id="deck-prev">← Prev</button>
+  <button type="button" id="deck-reveal" class="primary">Reveal (R)</button>
+  <button type="button" id="deck-next">Next →</button>
+  <button type="button" id="deck-exit">Exit (Esc)</button>
+</div>
+
+<script>
+(function () {
+  const allQs = Array.from(document.querySelectorAll('.q'));
+  const blockNames = {};
+  document.querySelectorAll('h2[data-block]').forEach(h => {
+    blockNames[h.dataset.block] = h.childNodes[0].textContent.trim();
+  });
+  const STORE = 'ift6162-midterm1-practice-v2';
+  let state = {};
+  try { state = JSON.parse(localStorage.getItem(STORE) || '{}') || {}; } catch (e) { state = {}; }
+  function save() { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {} }
+
+  function reveal(q, pickedIndex) {
+    q.classList.add('revealed');
+    const expl = q.querySelector('.expl, .sol');
+    if (expl) expl.hidden = false;
+    const btn = q.querySelector('button.reveal');
+    if (btn) btn.hidden = true;
+    const v = q.querySelector('.verdict');
+    if (v && q.dataset.type === 'mcq') {
+      const opts = q.querySelectorAll('.opts li');
+      if (pickedIndex == null) { v.textContent = ''; }
+      else if (opts[pickedIndex].hasAttribute('data-correct')) { v.textContent = 'Correct.'; v.className = 'verdict ok'; }
+      else { v.textContent = 'Not this one. See why below.'; v.className = 'verdict no'; }
+    }
+  }
+  function applyState(q) {
+    const s = state[q.id];
+    if (!s) return;
+    if (s.picked != null) {
+      const opts = q.querySelectorAll('.opts li');
+      if (opts[s.picked]) opts[s.picked].classList.add('picked');
+    }
+    if (s.revealed) reveal(q, s.picked);
+  }
+  function updateProgress() {
+    const done = allQs.filter(q => state[q.id] && state[q.id].revealed).length;
+    const el = document.getElementById('progress');
+    if (el) el.textContent = done + ' / ' + allQs.length + ' revealed';
+  }
+
+  allQs.forEach(q => {
+    q.querySelectorAll('.opts li').forEach((li, i) => {
+      li.addEventListener('click', () => {
+        if (q.classList.contains('revealed')) return;
+        q.querySelectorAll('.opts li').forEach(o => o.classList.remove('picked'));
+        li.classList.add('picked');
+        state[q.id] = { picked: i, revealed: true };
+        save();
+        reveal(q, i);
+        updateProgress();
+      });
+    });
+    const btn = q.querySelector('button.reveal');
+    if (btn) btn.addEventListener('click', () => {
+      state[q.id] = { revealed: true };
+      save();
+      reveal(q, null);
+      updateProgress();
+    });
+    applyState(q);
+  });
+  updateProgress();
+
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    state = {}; save();
+    allQs.forEach(q => {
+      q.classList.remove('revealed');
+      q.querySelectorAll('.opts li').forEach(o => o.classList.remove('picked'));
+      const expl = q.querySelector('.expl, .sol'); if (expl) expl.hidden = true;
+      const btn = q.querySelector('button.reveal'); if (btn) btn.hidden = false;
+      const v = q.querySelector('.verdict'); if (v) { v.textContent = ''; v.className = 'verdict'; }
+    });
+    updateProgress();
+  });
+
+  // Core-only filter (study mode and presenter order).
+  let coreOnly = false;
+  const coreBtn = document.getElementById('btn-core');
+  function activeQs() { return coreOnly ? allQs.filter(q => q.dataset.core) : allQs; }
+  function applyCoreFilter() {
+    allQs.forEach(q => { q.hidden = coreOnly && !q.dataset.core; });
+    coreBtn.textContent = 'Core only: ' + (coreOnly ? 'on' : 'off');
+  }
+  coreBtn.addEventListener('click', () => { coreOnly = !coreOnly; applyCoreFilter(); });
+
+  // Presenter mode: one question at a time, independent of the study-mode answers.
+  let presenting = false, cur = 0;
+  const body = document.body;
+  function show(i) {
+    const qs = activeQs();
+    cur = Math.max(0, Math.min(qs.length - 1, i));
+    allQs.forEach(q => q.classList.remove('current'));
+    const q = qs[cur];
+    q.classList.add('current'); q.hidden = false;
+    document.getElementById('deck-where').textContent = (cur + 1) + ' / ' + qs.length + '  ·  ' + q.dataset.min + ' min' + (q.dataset.core ? '  ·  core' : '');
+    document.getElementById('deck-block').textContent = blockNames[q.dataset.block] || '';
+    q.scrollTop = 0;
+    try { history.replaceState(null, '', '#' + q.id); } catch (e) {}
+  }
+  function currentQ() { return activeQs()[cur]; }
+  function presenterReveal() {
+    const q = currentQ();
+    q.classList.add('revealed');
+    const expl = q.querySelector('.expl, .sol'); if (expl) expl.hidden = false;
+  }
+  function presenterHide(q) {
+    if (!q) return;
+    if (state[q.id] && state[q.id].revealed) return; // keep the student's own reveal
+    q.classList.remove('revealed');
+    const expl = q.querySelector('.expl, .sol'); if (expl) expl.hidden = true;
+  }
+  function enter(i) {
+    presenting = true; body.classList.add('presenter');
+    show(i == null ? 0 : i);
+    try { document.documentElement.requestFullscreen && document.documentElement.requestFullscreen().catch(() => {}); } catch (e) {}
+  }
+  function exit() {
+    presenting = false; body.classList.remove('presenter');
+    allQs.forEach(q => { q.classList.remove('current'); presenterHide(q); });
+    applyCoreFilter();
+    try { document.fullscreenElement && document.exitFullscreen(); } catch (e) {}
+  }
+  document.getElementById('btn-presenter').addEventListener('click', () => enter(0));
+  document.getElementById('deck-prev').addEventListener('click', () => { presenterHide(currentQ()); show(cur - 1); });
+  document.getElementById('deck-next').addEventListener('click', () => { presenterHide(currentQ()); show(cur + 1); });
+  document.getElementById('deck-reveal').addEventListener('click', presenterReveal);
+  document.getElementById('deck-exit').addEventListener('click', exit);
+  document.addEventListener('keydown', e => {
+    if (!presenting) return;
+    if (e.key === 'ArrowRight' || e.key === 'PageDown') { presenterHide(currentQ()); show(cur + 1); e.preventDefault(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { presenterHide(currentQ()); show(cur - 1); e.preventDefault(); }
+    else if (e.key === 'r' || e.key === 'R' || e.key === ' ') { presenterReveal(); e.preventDefault(); }
+    else if (e.key === 'Escape') { exit(); }
+  });
+
+  // Deep link: #q7 jumps to that card in study mode.
+  const m = /^#(q\d+)$/.exec(location.hash || '');
+  if (m) { const t = document.getElementById(m[1]); if (t) t.scrollIntoView(); }
+})();
+</script>
+</body>
+</html>

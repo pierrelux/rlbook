@@ -1,0 +1,717 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lecture recordings · IFT6162</title>
+<meta name="description" content="IFT6162 lecture recordings with key notions and searchable transcripts in English and French.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+<style>
+  /* Tokens follow _static/custom.css so the page reads as part of the book. */
+  :root {
+    color-scheme: light;
+    --bg: #f6f7f4; --bg-raised: #ffffff; --bg-sunken: #eaeeec;
+    --ink: #1b2430; --ink-muted: #5c6874; --rule: #d2d9d7;
+    --accent: #2f6f8f; --accent-soft: #e2edf1;
+    --exam: #a83a32; --exam-soft: #f5e5e3;
+    --mark: #f5ecd2; --mark-ink: #1b2430; --mark-current: #e8c96a;
+    --shadow: 0 1px 2px rgba(27,36,48,.06), 0 4px 16px rgba(27,36,48,.05);
+    --font-display: "Newsreader", Georgia, "Times New Roman", serif;
+    --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --bg: #121920; --bg-raised: #1b2430; --bg-sunken: #0d141a;
+      --ink: #edf1f1; --ink-muted: #a8b2b9; --rule: #34434d;
+      --accent: #72a8c2; --accent-soft: #1d3440;
+      --exam: #df786f; --exam-soft: #3d211f;
+      --mark: #3b3013; --mark-ink: #f3e3b0; --mark-current: #7a5f12;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25);
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 var(--font-sans); }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  button, input { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  [hidden] { display: none !important; }
+  .katex { font-size: 1.04em; }
+
+  .top { position: sticky; top: 0; z-index: 10; background: var(--bg); border-bottom: 1px solid var(--rule); }
+  .top-inner { max-width: 1120px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .brand { font-family: var(--font-display); font-weight: 600; font-size: 18px; color: var(--ink); text-decoration: none; white-space: nowrap; }
+  .seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 999px; padding: 2px; background: var(--bg-raised); }
+  .seg button { border: 0; background: none; padding: 4px 12px; border-radius: 999px; font-size: 14px; cursor: pointer; color: var(--ink-muted); white-space: nowrap; }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+
+  main { max-width: 1120px; margin: 0 auto; padding: 28px 16px 64px; }
+  .eyebrow { font: 500 13px/1.4 var(--font-mono); letter-spacing: .04em; text-transform: uppercase; color: var(--ink-muted); margin: 0 0 6px; }
+  h1 { font: 600 clamp(30px, 5vw, 42px)/1.15 var(--font-display); margin: 0 0 10px; letter-spacing: -.01em; }
+  .lede { max-width: 46rem; margin: 0 0 18px; color: var(--ink-muted); }
+  .note { max-width: 46rem; font-size: 14px; color: var(--ink-muted); background: var(--bg-sunken); border-left: 3px solid var(--rule); padding: 10px 14px; border-radius: 0 6px 6px 0; margin: 0 0 24px; }
+  .note p { margin: 0; }
+  .note p + p { margin-top: 6px; }
+
+  .search { position: relative; max-width: 46rem; margin: 0 0 8px; }
+  .search input { width: 100%; padding: 11px 14px 11px 40px; border: 1px solid var(--rule); border-radius: 8px; background: var(--bg-raised); font-size: 16px; }
+  .search svg { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: var(--ink-muted); pointer-events: none; }
+  .search-meta { min-height: 22px; font-size: 13px; color: var(--ink-muted); margin: 0 0 16px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; align-items: start; }
+  .card { background: var(--bg-raised); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--shadow); }
+  .thumb { position: relative; display: block; aspect-ratio: 16 / 9; background: var(--bg-sunken); }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .badge { position: absolute; right: 8px; bottom: 8px; background: rgba(13,20,26,.82); color: #fff; font: 500 12px/1 var(--font-mono); padding: 4px 6px; border-radius: 4px; }
+  .latest { position: absolute; left: 8px; top: 8px; background: var(--accent); color: #fff; font: 600 11px/1 var(--font-sans); letter-spacing: .04em; text-transform: uppercase; padding: 5px 7px; border-radius: 4px; }
+  .card-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .meta { font: 500 12.5px/1.4 var(--font-mono); color: var(--ink-muted); margin: 0; }
+  .card h2 { font: 600 20px/1.25 var(--font-display); margin: 0; }
+  .card h2 a { color: var(--ink); text-decoration: none; }
+  .card h2 a:hover { text-decoration: underline; }
+  .chapters { font-size: 13.5px; color: var(--ink-muted); margin: 0; }
+  .notions { border-top: 1px solid var(--rule); padding-top: 8px; font-size: 14px; }
+  .notions summary { cursor: pointer; font-weight: 600; font-size: 13px; letter-spacing: .03em; text-transform: uppercase; color: var(--ink-muted); list-style: none; display: flex; align-items: center; gap: 6px; }
+  .notions summary::-webkit-details-marker { display: none; }
+  .notions summary::before { content: "▸"; font-size: 11px; transition: transform .15s; }
+  .notions[open] summary::before { transform: rotate(90deg); }
+  .notions ol { margin: 8px 0 2px; padding-left: 20px; }
+  .notions li { margin: 3px 0; }
+  .notions li a { color: var(--ink); text-decoration: none; }
+  .notions li a:hover { color: var(--accent); text-decoration: underline; }
+  .exam { display: inline-block; font: 600 10.5px/1 var(--font-sans); letter-spacing: .05em; text-transform: uppercase; color: var(--exam); background: var(--exam-soft); padding: 3px 5px; border-radius: 3px; vertical-align: 2px; margin-left: 4px; white-space: nowrap; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 6px; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--rule); background: var(--bg-raised); color: var(--ink); padding: 6px 12px; border-radius: 6px; font-size: 14px; text-decoration: none; cursor: pointer; line-height: 1.4; }
+  .btn:hover { background: var(--bg-sunken); }
+  .btn.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .btn.primary:hover { filter: brightness(1.15); }
+
+  .results { list-style: none; padding: 0; margin: 0; max-width: 52rem; }
+  .results > li { border-top: 1px solid var(--rule); padding: 14px 0; }
+  .results h3 { font: 600 17px/1.3 var(--font-display); margin: 0 0 6px; }
+  .results h3 .meta { font-size: 12px; margin-left: 6px; display: inline; }
+  .hit { display: flex; gap: 12px; padding: 6px 8px; margin: 0 -8px; border-radius: 6px; color: var(--ink); text-decoration: none; font-size: 15px; }
+  .hit:hover { background: var(--bg-sunken); }
+  .more { font-size: 13px; color: var(--ink-muted); padding-left: 64px; margin: 4px 0 0; }
+  mark { background: var(--mark); color: var(--mark-ink); border-radius: 2px; padding: 0 1px; }
+  mark.current { background: var(--mark-current); }
+
+  .back { display: inline-block; margin-bottom: 18px; font-size: 14px; }
+  .lec-head { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 24px; align-items: start; margin-bottom: 26px; }
+  .lec-head .thumb { border-radius: 8px; overflow: hidden; border: 1px solid var(--rule); }
+  .lec-head h1 { font-size: clamp(26px, 4vw, 36px); }
+  .lec-head .chapters { font-size: 14.5px; margin-bottom: 12px; }
+  .overview { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 300px); gap: 20px 32px; margin-bottom: 26px; align-items: start; }
+  .tldr { background: var(--bg-raised); border: 1px solid var(--rule); border-radius: 10px; padding: 16px 20px 8px; box-shadow: var(--shadow); }
+  .panel-title { font: 600 13px/1.4 var(--font-sans); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-muted); margin: 0 0 10px; }
+  .tldr ol { list-style: none; padding: 0; margin: 0; counter-reset: n; }
+  .tldr li { counter-increment: n; display: grid; grid-template-columns: 26px minmax(0, 1fr); padding: 10px 0; border-top: 1px solid color-mix(in srgb, var(--rule) 60%, transparent); }
+  .tldr li:first-child { border-top: 0; padding-top: 2px; }
+  .tldr li::before { content: counter(n); font: 500 13px/1.7 var(--font-mono); color: var(--ink-muted); }
+  .tldr h3 { font: 600 17px/1.35 var(--font-display); margin: 0 0 3px; }
+  .tldr p { margin: 0; font-size: 15px; }
+  .tldr .jump { font: 500 12.5px/1 var(--font-mono); margin-left: 6px; white-space: nowrap; }
+  .tldr-note { font-size: 13px; color: var(--ink-muted); margin: 6px 0 8px; }
+  .contents ol { list-style: none; margin: 0; padding: 0; }
+  .contents li a { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 8px; padding: 5px 0; color: var(--ink); text-decoration: none; font-size: 14.5px; line-height: 1.4; border-top: 1px solid color-mix(in srgb, var(--rule) 55%, transparent); }
+  .contents li:first-child a { border-top: 0; }
+  .contents li a:hover { color: var(--accent); }
+  .contents .ts { line-height: 1.55; }
+
+  .toolbar { position: sticky; top: var(--top-h, 53px); z-index: 5; background: var(--bg); padding: 10px 0; border-bottom: 1px solid var(--rule); display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .toolbar .search { flex: 1 1 260px; margin: 0; }
+  .toolbar .search input { padding-top: 8px; padding-bottom: 8px; font-size: 15px; }
+  .find-nav { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-muted); }
+  .find-nav button { border: 1px solid var(--rule); background: var(--bg-raised); border-radius: 6px; width: 30px; height: 30px; cursor: pointer; }
+  .toolbar .seg button { font-size: 13px; padding: 4px 10px; }
+  .mt-note { font-size: 13px; color: var(--ink-muted); margin: 10px 0 0; max-width: 50rem; }
+
+  .transcript { list-style: none; padding: 0; margin: 8px 0 0; max-width: 50rem; }
+  .transcript li { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px; padding: 10px 0; border-bottom: 1px solid color-mix(in srgb, var(--rule) 55%, transparent); scroll-margin-top: calc(var(--top-h, 53px) + var(--bar-h, 62px) + 8px); }
+  .transcript li.flash { animation: flash 1.8s ease-out; }
+  @keyframes flash { from { background: var(--accent-soft); } to { background: transparent; } }
+  .ts { font: 500 13px/1.9 var(--font-mono); color: var(--ink-muted); text-decoration: none; }
+  a.ts:hover { color: var(--accent); text-decoration: underline; }
+  .transcript p { margin: 0; }
+  .transcript li.gap p { color: var(--ink-muted); font-style: italic; font-size: 14px; }
+  .student { display: block; padding-left: 12px; border-left: 2px solid var(--rule); color: var(--ink-muted); margin: 2px 0; }
+  .who { font: 600 11px/1 var(--font-sans); letter-spacing: .05em; text-transform: uppercase; margin-right: 4px; }
+  .marker { color: var(--ink-muted); font-size: .88em; }
+  .hit .ts { flex: 0 0 52px; }
+  .status { padding: 30px 0; color: var(--ink-muted); }
+  footer { max-width: 1120px; margin: 0 auto; padding: 0 16px 40px; font-size: 13px; color: var(--ink-muted); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 8px 14px; border-radius: 6px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+
+  @media (max-width: 860px) { .overview { grid-template-columns: 1fr; } }
+  @media (max-width: 720px) {
+    main { padding-top: 20px; }
+    .lec-head { grid-template-columns: 1fr; gap: 14px; }
+    .grid { grid-template-columns: 1fr; }
+    .transcript li { grid-template-columns: 1fr; gap: 2px; }
+    .more { padding-left: 0; }
+    .tldr { padding: 14px 14px 6px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .transcript li.flash { animation: none; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-inner">
+    <a class="brand" href="../">RL &amp; Control</a>
+    <div class="seg" id="lang" role="group" aria-label="Language / Langue">
+      <button type="button" data-lang="en" aria-pressed="true">English</button>
+      <button type="button" data-lang="fr" aria-pressed="false">Français</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section id="list-view" aria-labelledby="page-title">
+    <p class="eyebrow" id="eyebrow">IFT6162</p>
+    <h1 id="page-title" data-i18n="title">Lecture recordings</h1>
+    <p class="lede" data-i18n="lede"></p>
+    <div class="note">
+      <p data-i18n-html="captions"></p>
+      <p data-i18n-html="links"></p>
+    </div>
+    <div class="search">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="8.5" cy="8.5" r="6"/><path d="m13 13 5 5"/></svg>
+      <input id="q" type="search" autocomplete="off" spellcheck="false" data-i18n-placeholder="searchAll" aria-label="Search">
+    </div>
+    <p class="search-meta" id="q-meta" aria-live="polite"></p>
+    <ul class="results" id="results" hidden></ul>
+    <div class="grid" id="grid"><p class="status" data-i18n="loading">Loading…</p></div>
+  </section>
+
+  <section id="lecture-view" hidden>
+    <a class="back" href="#" data-i18n="back">All lectures</a>
+    <div class="lec-head">
+      <a class="thumb" id="lec-thumb" target="_blank" rel="noopener"><img alt="" id="lec-img"><span class="badge" id="lec-dur"></span></a>
+      <div>
+        <p class="meta" id="lec-meta"></p>
+        <h1 id="lec-title"></h1>
+        <p class="chapters" id="lec-chapters"></p>
+        <div class="actions">
+          <a class="btn primary" id="lec-watch" target="_blank" rel="noopener"></a>
+          <button class="btn" type="button" id="lec-copy"></button>
+          <button class="btn" type="button" id="lec-download"></button>
+        </div>
+      </div>
+    </div>
+    <div class="overview" id="overview">
+      <section class="tldr" id="tldr" aria-labelledby="tldr-title">
+        <h2 class="panel-title" id="tldr-title" data-i18n="tldrTitle">Key notions</h2>
+        <p class="tldr-note" id="tldr-note" hidden></p>
+        <ol id="tldr-list"></ol>
+      </section>
+      <nav class="contents" aria-labelledby="contents-title">
+        <h2 class="panel-title" id="contents-title" data-i18n="contents">Contents</h2>
+        <ol id="contents-list"></ol>
+      </nav>
+    </div>
+    <div class="toolbar">
+      <div class="search">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="8.5" cy="8.5" r="6"/><path d="m13 13 5 5"/></svg>
+        <input id="find" type="search" autocomplete="off" spellcheck="false" data-i18n-placeholder="findHere" aria-label="Find">
+      </div>
+      <span class="find-nav" id="find-nav" hidden>
+        <span id="find-count" aria-live="polite"></span>
+        <button type="button" id="find-prev" aria-label="Previous">↑</button>
+        <button type="button" id="find-next" aria-label="Next">↓</button>
+      </span>
+      <div class="seg" id="version" role="group" aria-label="Transcript version">
+        <button type="button" data-version="clean" aria-pressed="true"></button>
+        <button type="button" data-version="raw" aria-pressed="false"></button>
+      </div>
+    </div>
+    <p class="mt-note" id="lec-note"></p>
+    <ol class="transcript" id="transcript"></ol>
+  </section>
+</main>
+<footer id="footer"></footer>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(() => {
+  const DATA = "lectures-data/";
+  const GAP = new Set(["[Break]", "[No speech]"]);
+  const T = {
+    en: {
+      title: "Lecture recordings",
+      lede: "Every recorded session of the course, newest first. Each lecture lists its key notions, a table of contents and a searchable transcript. The lectures are given in English.",
+      captions: "The transcripts are edited from Google Drive's automatic captions: filler words removed, technical terms and notation checked against the <a href=\"../\">course notes</a>, then translated into French. <span class=\"marker\">[?]</span> marks a guessed word and <span class=\"marker\">[inaudible]</span> a passage that could not be recovered; the original captions remain one click away. When a passage matters, check the recording.",
+      links: "Recordings live in the <a id=\"folder-link\" target=\"_blank\" rel=\"noopener\">course Google Drive folder</a>. Schedule and readings are in the <a href=\"../syllabus\">syllabus</a>.",
+      searchAll: "Search all transcripts…",
+      findHere: "Find in this transcript…",
+      loading: "Loading…",
+      loadError: "Could not load the lecture list. Open this page from the course website rather than from a local file.",
+      back: "← All lectures",
+      week: "Week",
+      watch: "Watch on Google Drive",
+      copy: "Copy transcript",
+      download: "Download .txt",
+      read: "Open",
+      copied: "Transcript copied",
+      copyFail: "Copy failed; use Download instead",
+      chapters: "Book: ",
+      latest: "Latest",
+      keyNotions: n => `Key notions (${n})`,
+      tldrTitle: "Key notions",
+      tldrNote: "",
+      contents: "Contents",
+      exam: "Exam",
+      examTitle: "Flagged in class as exam material",
+      student: "Student",
+      clean: "Edited",
+      raw: "Raw captions",
+      noteClean: "Edited from the automatic captions. [?] marks a guessed word; [inaudible] a passage that could not be recovered. Each timestamp links to its paragraph; the same time locates the passage in the video.",
+      noteRaw: "Google's automatic captions, unedited (except a few recurring technical terms).",
+      breakLabel: (a, b) => `Break (${a}–${b})`,
+      noSpeech: "No speech",
+      matches: (n, m) => `${n} match${n === 1 ? "" : "es"} in ${m} lecture${m === 1 ? "" : "s"}`,
+      more: n => `and ${n} more in this lecture`,
+      none: "No matches.",
+      tooShort: "Type at least 3 characters.",
+      searching: "Searching…",
+      updated: d => `${d.n} lectures · transcripts updated ${d.date}`,
+      findCount: (i, n) => n ? `${i} / ${n}` : "0",
+    },
+    fr: {
+      title: "Enregistrements des séances",
+      lede: "Toutes les séances enregistrées du cours, de la plus récente à la plus ancienne. Chaque séance présente ses notions clés, une table des matières et une transcription où l'on peut chercher. Les séances sont données en anglais.",
+      captions: "Les transcriptions sont révisées à partir des sous-titres automatiques de Google Drive (mots de remplissage retirés, termes techniques et notation vérifiés dans les <a href=\"../\">notes de cours</a>), puis traduites en français. <span class=\"marker\">[?]</span> signale un mot incertain et <span class=\"marker\">[inaudible]</span> un passage irrécupérable; la version d'origine reste accessible en un clic. Pour un passage important, vérifiez l'enregistrement.",
+      links: "Les enregistrements se trouvent dans le <a id=\"folder-link\" target=\"_blank\" rel=\"noopener\">dossier Google Drive du cours</a>. L'horaire et les lectures sont dans le <a href=\"../syllabus\">plan de cours</a>.",
+      searchAll: "Rechercher dans les transcriptions…",
+      findHere: "Rechercher dans cette transcription…",
+      loading: "Chargement…",
+      loadError: "Impossible de charger la liste des séances. Ouvrez cette page depuis le site du cours plutôt que depuis un fichier local.",
+      back: "← Toutes les séances",
+      week: "Semaine",
+      watch: "Regarder sur Google Drive",
+      copy: "Copier la transcription",
+      download: "Télécharger .txt",
+      read: "Ouvrir",
+      copied: "Transcription copiée",
+      copyFail: "La copie a échoué; utilisez Télécharger",
+      chapters: "Livre : ",
+      latest: "Récente",
+      keyNotions: n => `Notions clés (${n})`,
+      tldrTitle: "Notions clés",
+      tldrNote: "",
+      contents: "Table des matières",
+      exam: "Examen",
+      examTitle: "Signalé en classe comme matière d'examen",
+      student: "Étudiant·e",
+      clean: "Révisée",
+      raw: "Traduction automatique",
+      noteClean: "Traduction de la transcription anglaise révisée. [?] signale un mot incertain; [inaudible], un passage irrécupérable. Chaque horodatage est un lien vers ce paragraphe; le même temps permet de retrouver le passage dans la vidéo.",
+      noteRaw: "Traduction automatique, par Google, des sous-titres anglais bruts, sans révision.",
+      breakLabel: (a, b) => `Pause (${a}–${b})`,
+      noSpeech: "Aucune parole",
+      matches: (n, m) => `${n} résultat${n > 1 ? "s" : ""} dans ${m} séance${m > 1 ? "s" : ""}`,
+      more: n => `et ${n} autre${n > 1 ? "s" : ""} dans cette séance`,
+      none: "Aucun résultat.",
+      tooShort: "Tapez au moins 3 caractères.",
+      searching: "Recherche…",
+      updated: d => `${d.n} séances · transcriptions mises à jour le ${d.date}`,
+      findCount: (i, n) => n ? `${i} / ${n}` : "0",
+    },
+  };
+
+  const $ = id => document.getElementById(id);
+  const esc = s => s.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const fold = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  const fmtTime = ms => {
+    const s = Math.floor(ms / 1000), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), r = String(s % 60).padStart(2, "0");
+    return h ? `${h}:${String(m).padStart(2, "0")}:${r}` : `${m}:${r}`;
+  };
+  const fmtDur = ms => { const m = Math.round(ms / 60000); return `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, "0")}`; };
+  const fmtDate = (iso, lang, long = true) => new Intl.DateTimeFormat(lang === "fr" ? "fr-CA" : "en-CA",
+    long ? { weekday: "long", year: "numeric", month: "long", day: "numeric" } : { month: "short", day: "numeric" })
+    .format(new Date(iso + "T12:00:00"));
+
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+  };
+
+  const params = new URLSearchParams(location.search);
+  let lang = params.get("lang") || store.get("ift6162-lang") || ((navigator.language || "").startsWith("fr") ? "fr" : "en");
+  if (!T[lang]) lang = "en";
+  let version = store.get("ift6162-version") === "raw" ? "raw" : "clean";
+
+  let index = null;
+  const cache = new Map();
+  let current = null;           // date of the open lecture
+  let currentData = null;       // its transcript, once loaded
+  let findHits = [], findPos = -1;
+
+  // Paragraph layout: [t_ms, en_raw, fr_machine, en_edited, fr_edited]. Which column is shown.
+  const hasEdited = (d, col) => d && d.paras.some(p => p[col]);
+  const column = (d) => lang === "fr"
+    ? (version === "raw" || !hasEdited(d, 4) ? 2 : 4)
+    : (version === "raw" || !hasEdited(d, 3) ? 1 : 3);
+  const pick = v => (v && typeof v === "object") ? (v[lang] || v.en || "") : (v || "");
+  const isGap = p => GAP.has(p[3]);
+
+  // ---------- text rendering ----------
+  const MATH = /\\\((.+?)\\\)|\\\[(.+?)\\\]/gs;
+
+  // Wrap each occurrence of the folded query in <mark>, HTML-escaping the rest.
+  function highlight(text, q) {
+    if (!q) return esc(text);
+    const f = fold(text);
+    let out = "", i = 0, j;
+    while ((j = f.indexOf(q, i)) !== -1) {
+      out += esc(text.slice(i, j)) + "<mark>" + esc(text.slice(j, j + q.length)) + "</mark>";
+      i = j + q.length;
+    }
+    return out + esc(text.slice(i));
+  }
+  const MARKER_FR = { "inaudible question": "question inaudible", "name": "nom", "Break": "pause", "No speech": "aucune parole" };
+  const plain = (s, q) => highlight(s, q).replace(/\[(\?|inaudible[^\]<]*|name|Break|No speech)\]/g,
+    (_, m) => `<span class="marker">[${lang === "fr" && MARKER_FR[m] ? MARKER_FR[m] : m}]</span>`);
+  // Highlight outside math only; math stays as LaTeX source for KaTeX.
+  function inline(text, q) {
+    let out = "", last = 0;
+    for (const m of text.matchAll(MATH)) {
+      out += plain(text.slice(last, m.index), q) + esc(m[0]);
+      last = m.index + m[0].length;
+    }
+    return out + plain(text.slice(last), q);
+  }
+  function paraHtml(text, q) {
+    return text.split("\n").map(line => line.startsWith("Student: ")
+      ? `<span class="student"><span class="who">${T[lang].student}</span>${inline(line.slice(9), q)}</span>`
+      : inline(line, q)).join(" ");
+  }
+  function renderMath(el) {
+    if (window.renderMathInElement) {
+      renderMathInElement(el, { delimiters: [{ left: "\\(", right: "\\)", display: false }, { left: "\\[", right: "\\]", display: false }], throwOnError: false });
+    }
+  }
+  // KaTeX loads deferred; render whatever is on screen once it arrives.
+  window.addEventListener("load", () => { renderMath(document.body); });
+
+  function snippet(text, q, pos, radius = 90) {
+    let a = Math.max(0, pos - radius), b = Math.min(text.length, pos + q.length + radius);
+    for (const m of text.matchAll(MATH)) {          // never cut through a formula
+      const s = m.index, e = m.index + m[0].length;
+      if (a > s && a < e) a = s;
+      if (b > s && b < e) b = e;
+    }
+    if (a > 0) { const sp = text.indexOf(" ", a); if (sp !== -1 && sp < pos) a = sp + 1; }
+    if (b < text.length) { const sp = text.lastIndexOf(" ", b); if (sp > pos + q.length) b = sp; }
+    return (a > 0 ? "… " : "") + paraHtml(text.slice(a, b), q) + (b < text.length ? " …" : "");
+  }
+
+  async function loadLecture(date) {
+    if (!cache.has(date)) {
+      cache.set(date, fetch(DATA + date + ".json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }));
+    }
+    return cache.get(date);
+  }
+
+  function toast(msg) {
+    const t = $("toast"); t.textContent = msg; t.classList.add("show");
+    clearTimeout(toast.timer); toast.timer = setTimeout(() => t.classList.remove("show"), 1800);
+  }
+
+  function applyStatic() {
+    const L = T[lang];
+    document.documentElement.lang = lang;
+    document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = L[el.dataset.i18n]; });
+    document.querySelectorAll("[data-i18n-html]").forEach(el => { el.innerHTML = L[el.dataset.i18nHtml]; });
+    document.querySelectorAll("[data-i18n-placeholder]").forEach(el => { el.placeholder = L[el.dataset.i18nPlaceholder]; });
+    document.querySelectorAll("#lang button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
+    document.querySelectorAll("#version button").forEach(b => {
+      b.textContent = T[lang][b.dataset.version];
+      b.setAttribute("aria-pressed", String(b.dataset.version === version));
+    });
+    if (index) {
+      const fl = $("folder-link"); if (fl) fl.href = index.folder_url;
+      $("eyebrow").textContent = `${index.course} · ${index.term[lang] || ""}`;
+      $("footer").textContent = L.updated({ n: index.lectures.length, date: fmtDate(index.updated, lang) });
+    }
+    if ($("lecture-view").hidden) document.title = `${L.title} · IFT6162`;
+  }
+
+  function chaptersHtml(lec) {
+    if (!lec.chapters.length) return "";
+    return T[lang].chapters + lec.chapters.map(c => `<a href="../${esc(c.slug)}">${esc(c.title)}</a>`).join(", ");
+  }
+  const examBadge = () => `<span class="exam" title="${esc(T[lang].examTitle)}">${T[lang].exam}</span>`;
+
+  function renderGrid() {
+    const L = T[lang];
+    $("grid").innerHTML = index.lectures.map((lec, i) => `
+      <article class="card">
+        <a class="thumb" href="#${lec.date}" aria-label="${esc(L.read)}: ${esc(lec.title[lang] || lec.date)}">
+          <img src="${DATA}${lec.thumb}" alt="" loading="lazy" width="640" height="360">
+          ${i === 0 ? `<span class="latest">${L.latest}</span>` : ""}
+          <span class="badge">${fmtDur(lec.duration_ms)}</span>
+        </a>
+        <div class="card-body">
+          <p class="meta">${L.week} ${lec.week} · ${esc(fmtDate(lec.date, lang))}</p>
+          <h2><a href="#${lec.date}">${esc(lec.title[lang] || fmtDate(lec.date, lang))}</a></h2>
+          <p class="chapters">${chaptersHtml(lec)}</p>
+          ${lec.tldr && lec.tldr.length ? `
+          <details class="notions">
+            <summary>${L.keyNotions(lec.tldr.length)}</summary>
+            <ol>${lec.tldr.map(n => `<li><a href="#${lec.date}/p${n.p}">${esc(pick(n.notion))}</a>${n.exam ? examBadge() : ""}</li>`).join("")}</ol>
+          </details>` : ""}
+          <div class="actions">
+            <a class="btn primary" href="#${lec.date}">${L.read}</a>
+            <a class="btn" href="${esc(lec.drive)}" target="_blank" rel="noopener">${L.watch} ↗</a>
+          </div>
+        </div>
+      </article>`).join("");
+  }
+
+  // ---------- global search ----------
+  let searchToken = 0;
+  async function runSearch() {
+    const L = T[lang];
+    const raw = $("q").value.trim();
+    const q = fold(raw);
+    const token = ++searchToken;
+    if (!q) { $("results").hidden = true; $("grid").hidden = false; $("q-meta").textContent = ""; return; }
+    $("grid").hidden = true; $("results").hidden = false;
+    if (q.length < 3) { $("q-meta").textContent = L.tooShort; $("results").innerHTML = ""; return; }
+    $("q-meta").textContent = L.searching;
+    const all = await Promise.all(index.lectures.map(l => loadLecture(l.date).catch(() => null)));
+    if (token !== searchToken) return;
+    let total = 0, lectures = 0, html = "";
+    index.lectures.forEach((lec, k) => {
+      const d = all[k]; if (!d) return;
+      const col = column(d);
+      const hits = [];
+      d.paras.forEach((p, idx) => { if (isGap(p)) return; const pos = fold(p[col]).indexOf(q); if (pos !== -1) hits.push([idx, pos]); });
+      if (!hits.length) return;
+      total += hits.length; lectures += 1;
+      const shown = hits.slice(0, 6);
+      html += `<li><h3>${esc(lec.title[lang] || lec.date)}<span class="meta">${esc(fmtDate(lec.date, lang, false))}</span></h3>` +
+        shown.map(([idx, pos]) => {
+          const p = d.paras[idx];
+          return `<a class="hit" href="#${lec.date}/p${idx}?q=${encodeURIComponent(raw)}"><span class="ts">${fmtTime(p[0])}</span><span>${snippet(p[col], q, pos)}</span></a>`;
+        }).join("") +
+        (hits.length > shown.length ? `<p class="more"><a href="#${lec.date}?q=${encodeURIComponent(raw)}">${L.more(hits.length - shown.length)}</a></p>` : "") +
+        `</li>`;
+    });
+    $("results").innerHTML = html;
+    renderMath($("results"));
+    $("q-meta").textContent = total ? L.matches(total, lectures) : L.none;
+  }
+  let debounce;
+  $("q").addEventListener("input", () => { clearTimeout(debounce); debounce = setTimeout(runSearch, 180); });
+
+  // ---------- lecture view ----------
+  function paraEl(i) {                  // paragraphs inside a collapsed break point to its first row
+    for (let j = i; j >= 0; j--) { const el = document.getElementById("p" + j); if (el) return el; }
+    return null;
+  }
+  function goToPara(i) {
+    const el = paraEl(i); if (!el) return;
+    el.scrollIntoView({ block: "start" }); el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash");
+    return el;
+  }
+
+  function renderTranscript(q) {
+    const d = currentData, col = column(d), L = T[lang], rows = [];
+    for (let i = 0; i < d.paras.length; i++) {
+      const p = d.paras[i];
+      if (isGap(p)) {
+        let j = i; while (j + 1 < d.paras.length && isGap(d.paras[j + 1])) j++;
+        const end = j + 1 < d.paras.length ? d.paras[j + 1][0] : p[0] + 30000;
+        const label = p[3] === "[Break]" || j > i ? L.breakLabel(fmtTime(p[0]), fmtTime(end)) : L.noSpeech;
+        rows.push(`<li id="p${i}" class="gap"><a class="ts" href="#${current}/p${i}">${fmtTime(p[0])}</a><p>${esc(label)}</p></li>`);
+        i = j; continue;
+      }
+      rows.push(`<li id="p${i}"><a class="ts" href="#${current}/p${i}">${fmtTime(p[0])}</a><p data-i="${i}">${paraHtml(p[col], q)}</p></li>`);
+    }
+    $("transcript").innerHTML = rows.join("");
+    renderMath($("transcript"));
+  }
+
+  function renderOverview(lec) {
+    const d = currentData, L = T[lang];
+    $("overview").hidden = !(d.tldr && d.tldr.length) && !(d.outline && d.outline.length);
+    $("tldr").hidden = !(d.tldr && d.tldr.length);
+    $("tldr-note").hidden = !L.tldrNote; $("tldr-note").textContent = L.tldrNote;
+    $("tldr-list").innerHTML = (d.tldr || []).map(n => `
+      <li><div><h3>${esc(pick(n.notion))}${n.exam ? examBadge() : ""}</h3>
+      <p>${inline(pick(n.detail), "")} <a class="jump" href="#${lec.date}/p${n.p}">${fmtTime(d.paras[n.p][0])}</a></p></div></li>`).join("");
+    $("contents-list").innerHTML = (d.outline || []).map(o =>
+      `<li><a href="#${lec.date}/p${o.p}"><span class="ts">${fmtTime(d.paras[o.p][0])}</span><span>${esc(pick(o.title))}</span></a></li>`).join("");
+    renderMath($("tldr-list"));
+  }
+
+  async function renderLecture(date, target) {
+    const L = T[lang];
+    const lec = index.lectures.find(l => l.date === date);
+    if (!lec) { location.hash = ""; return; }
+    $("list-view").hidden = true; $("lecture-view").hidden = false;
+    $("lec-thumb").href = lec.drive;
+    $("lec-img").src = DATA + lec.thumb;
+    $("lec-dur").textContent = fmtDur(lec.duration_ms);
+    $("lec-meta").textContent = `${L.week} ${lec.week} · ${fmtDate(lec.date, lang)}`;
+    $("lec-title").textContent = lec.title[lang] || fmtDate(lec.date, lang);
+    $("lec-chapters").innerHTML = chaptersHtml(lec);
+    $("lec-watch").href = lec.drive; $("lec-watch").textContent = L.watch + " ↗";
+    $("lec-copy").textContent = L.copy; $("lec-download").textContent = L.download;
+    document.title = `${lec.title[lang] || lec.date} · IFT6162`;
+    if (current !== date) { $("transcript").innerHTML = `<li><p class="status">${L.loading}</p></li>`; $("overview").hidden = true; }
+    let d;
+    try { d = await loadLecture(date); } catch { $("transcript").innerHTML = `<li><p class="status">${L.loadError}</p></li>`; return; }
+    current = date; currentData = d;
+    const col = column(d);
+    $("lec-note").textContent = col >= 3 ? L.noteClean : L.noteRaw;
+    $("version").hidden = !hasEdited(d, lang === "fr" ? 4 : 3);
+    renderOverview(lec);
+    applyFind(target == null && $("find").value.trim().length >= 2);
+    if (target != null) {
+      const el = goToPara(target);
+      const first = el && el.querySelector("mark");
+      if (first) {
+        findPos = findHits.indexOf(first); first.classList.add("current");
+        $("find-count").textContent = T[lang].findCount(findPos + 1, findHits.length);
+      }
+    }
+  }
+
+  function transcriptText() {
+    if (!currentData) return "";
+    const d = currentData, col = column(d);
+    const lec = index.lectures.find(l => l.date === current);
+    let out = `${lec.title[lang] || ""}\nIFT6162 · ${fmtDate(lec.date, lang)}\n${lec.drive}\n\n`;
+    if (d.tldr && d.tldr.length) {
+      out += `${T[lang].tldrTitle.toUpperCase()}\n` + d.tldr.map((n, k) =>
+        `${k + 1}. ${pick(n.notion)}${n.exam ? ` [${T[lang].exam}]` : ""} (${fmtTime(d.paras[n.p][0])}): ${pick(n.detail)}`).join("\n") + "\n\n";
+    }
+    let prevGap = false;
+    for (const p of d.paras) {
+      if (isGap(p)) { if (!prevGap) out += `[${fmtTime(p[0])}] ${lang === "fr" ? "[Pause]" : p[3]}\n\n`; prevGap = true; continue; }
+      prevGap = false;
+      out += `[${fmtTime(p[0])}] ${p[col].replace(/^Student: /gm, T[lang].student + " : ")}\n\n`;
+    }
+    return out;
+  }
+  $("lec-copy").addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(transcriptText()); toast(T[lang].copied); }
+    catch { toast(T[lang].copyFail); }
+  });
+  $("lec-download").addEventListener("click", () => {
+    const blob = new Blob([transcriptText()], { type: "text/plain;charset=utf-8" });
+    const a = document.createElement("a");
+    const suffix = lang + (column(currentData) >= 3 ? "" : "-raw");
+    a.href = URL.createObjectURL(blob); a.download = `IFT6162_${current}_${suffix}.txt`;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+
+  // ---------- find in transcript ----------
+  function applyFind(scroll = true) {
+    if (!currentData) return;
+    const q = fold($("find").value.trim());
+    findHits = []; findPos = -1;
+    renderTranscript(q.length >= 2 ? q : "");
+    if (q.length < 2) { $("find-nav").hidden = true; return; }
+    findHits = [...document.querySelectorAll("#transcript mark")];
+    $("find-nav").hidden = false;
+    if (findHits.length && scroll) stepFind(1);
+    else $("find-count").textContent = T[lang].findCount(0, findHits.length);
+  }
+  function stepFind(dir) {
+    if (!findHits.length) return;
+    if (findPos >= 0) findHits[findPos].classList.remove("current");
+    findPos = (findPos + dir + findHits.length) % findHits.length;
+    const m = findHits[findPos]; m.classList.add("current");
+    m.closest("li").scrollIntoView({ block: "center" });
+    $("find-count").textContent = T[lang].findCount(findPos + 1, findHits.length);
+  }
+  let findDebounce;
+  $("find").addEventListener("input", () => { clearTimeout(findDebounce); findDebounce = setTimeout(() => applyFind(true), 200); });
+  $("find").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); stepFind(e.shiftKey ? -1 : 1); } });
+  $("find-next").addEventListener("click", () => stepFind(1));
+  $("find-prev").addEventListener("click", () => stepFind(-1));
+
+  // ---------- routing ----------
+  // #2026-09-24            open a lecture
+  // #2026-09-24/p42        open it at paragraph 42
+  // #2026-09-24/p42?q=foo  ... with "foo" highlighted
+  function route() {
+    const h = decodeURIComponent(location.hash.slice(1));
+    const m = h.match(/^(\d{4}-\d{2}-\d{2})(?:\/p(\d+))?(?:\?q=(.*))?$/);
+    if (!m) {
+      $("lecture-view").hidden = true; $("list-view").hidden = false;
+      document.title = `${T[lang].title} · IFT6162`;
+      return;
+    }
+    const [, date, p, q] = m;
+    const sameLecture = current === date;
+    if (q != null) $("find").value = q;
+    else if (!sameLecture) $("find").value = "";
+    if (sameLecture && !$("lecture-view").hidden && p != null && q == null) { goToPara(+p); return; }
+    if (!sameLecture || $("lecture-view").hidden) window.scrollTo(0, 0);
+    renderLecture(date, p != null ? +p : null);
+  }
+  window.addEventListener("hashchange", route);
+
+  // ---------- language and version ----------
+  function firstVisibleRow() {
+    for (const li of document.querySelectorAll("#transcript li")) {
+      if (li.getBoundingClientRect().bottom > 160) return li.id;
+    }
+    return null;
+  }
+  function rerender() {
+    const anchor = $("lecture-view").hidden ? null : firstVisibleRow();
+    applyStatic();
+    if (index) renderGrid();
+    if (!$("lecture-view").hidden && current) {
+      renderLecture(current, null).then(() => { if (anchor) document.getElementById(anchor)?.scrollIntoView({ block: "start" }); });
+    }
+    if ($("q").value.trim()) runSearch();
+  }
+  document.querySelectorAll("#lang button").forEach(b => b.addEventListener("click", () => {
+    if (b.dataset.lang === lang) return;
+    lang = b.dataset.lang; store.set("ift6162-lang", lang); rerender();
+  }));
+  document.querySelectorAll("#version button").forEach(b => b.addEventListener("click", () => {
+    if (b.dataset.version === version) return;
+    version = b.dataset.version; store.set("ift6162-version", version); rerender();
+  }));
+
+  document.addEventListener("keydown", e => {
+    if (e.key === "/" && !/input|textarea/i.test(document.activeElement.tagName)) {
+      e.preventDefault(); ($("lecture-view").hidden ? $("q") : $("find")).focus();
+    }
+  });
+
+  // Sticky offsets depend on the header and toolbar heights, which change with the viewport.
+  function measure() {
+    const root = document.documentElement.style;
+    root.setProperty("--top-h", document.querySelector(".top").offsetHeight + "px");
+    const bar = document.querySelector(".toolbar");
+    if (bar.offsetHeight) root.setProperty("--bar-h", bar.offsetHeight + "px");
+  }
+  window.addEventListener("resize", measure);
+  new ResizeObserver(measure).observe(document.querySelector(".toolbar"));
+  measure();
+
+  applyStatic();
+  fetch(DATA + "index.json")
+    .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(data => { index = data; applyStatic(); renderGrid(); route(); })
+    .catch(() => { $("grid").innerHTML = `<p class="status">${T[lang].loadError}</p>`; });
+})();
+</script>
+</body>
+</html>
