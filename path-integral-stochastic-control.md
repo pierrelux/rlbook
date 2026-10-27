@@ -713,7 +713,7 @@ continuous-time value.
 
 The comparison controller solves a deterministic dynamic program with the
 same state cost and control effort, using $x_{k+1}=x_k+hu_k$.
-This baseline asks what is lost by replacing the future diffusion by its mean. It applies its
+With this baseline, we ask what is lost by replacing the future diffusion by its mean. It applies its
 first action to the observed noisy state and recomputes the action after each
 step. Both methods therefore use feedback; they differ in whether planning
 accounts for the future diffusion. The deterministic position grid has spacing
@@ -738,8 +738,8 @@ across trials. The sampled controller and the independent numerical
 reference give similar mean costs. Mean-dynamics planning has larger cost
 at both noise levels, even though it also replans from the observed state.
 
-At low noise, neither planning method occupies the wide passage at time
-$1.5$. At high noise, their choices separate:
+At low noise, the particle is not in the wide passage at time $1.5$ under
+either planning method. At high noise, their choices separate:
 
 | Controller, $\nu=0.3$ | Wide-passage trials | Wilson 95% interval for the proportion |
 | --- | ---: | ---: |
