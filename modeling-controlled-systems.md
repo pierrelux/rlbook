@@ -501,8 +501,8 @@ correct force constraint. The matched comparison applies one
 observed oscillation phase, to the standing body under two suspension models
 supplied by SwingRL. A
 rigid rod can carry tension or compression. A chain can pull but cannot push.
-The body parameters, initial state, squat and lean limits, feedback rule,
-32-second horizon, and 0.02-second sampling interval remain fixed. During the
+Everything else remains fixed: the body parameters, initial state, squat and
+lean limits, feedback rule, 32-second horizon, and 0.02-second sampling interval. During the
 first 0.25 seconds, both runs multiply their requested squat and lean targets by
 
 $$
