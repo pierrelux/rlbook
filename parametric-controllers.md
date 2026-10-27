@@ -138,7 +138,7 @@ To invoke IFT, we need the Jacobian $\partial F/\partial y$ to be invertible at 
 
 * **LICQ (Linear Independence Constraint Qualification)** at $(\mathbf{x}^\star,\boldsymbol{\theta}^\star)$: the gradients of all active constraints are linearly independent.
 * **Second-order sufficiency** on the critical cone (the Lagrangian Hessian is positive definite on feasible directions).
-* **Strict complementarity** (optional but convenient): each active inequality has strictly positive multiplier.
+* **Strict complementarity** (optional but convenient): each active inequality has a strictly positive multiplier.
 
 Under these, the **KKT matrix**,
 
@@ -307,7 +307,7 @@ Once trained, the network acts as a surrogate for the optimizer, providing insta
 How does a parametric receding-horizon controller translate a measured patient
 state into a constrained infusion decision?
 
-This problem explores the control of propofol infusion in total intravenous anesthesia (TIVA). Our presentation follows the problem formulation developped by {cite:t}`Sawaguchi2008`. The primary objective is to maintain the desired level of unconsciousness while minimizing adverse reactions and ensuring quick recovery after surgery. 
+This problem explores the control of propofol infusion in total intravenous anesthesia (TIVA). Our presentation follows the problem formulation developed by {cite:t}`Sawaguchi2008`. The primary objective is to maintain the desired level of unconsciousness while minimizing adverse reactions and ensuring quick recovery after surgery. 
 
 The level of unconsciousness is measured by the Bispectral Index (BIS), which is obtained using an electroencephalography (EEG) device. The BIS ranges from $0$ (complete suppression of brain activity) to $100$ (fully awake), with the target range for general anesthesia typically between $40$ and $60$.
 
@@ -334,7 +334,7 @@ Where:
 - $\lambda$ is a regularization parameter penalizing excessive drug use
 - $E_0$, $E_{\text{max}}$, $EC_{50}$, and $\gamma$ are parameters of the pharmacodynamic model
 
-The specific dynamics model used in this problem is so-called "Pharmacokinetic-Pharmacodynamic Model" and consists of three main components:
+The specific dynamics model used in this problem is the so-called "Pharmacokinetic-Pharmacodynamic Model" and consists of three main components:
 
 1. **Pharmacokinetic Model**, which describes how the drug distributes through the body over time. It's based on a three-compartment model:
    - Central compartment (blood and well-perfused organs)
@@ -346,7 +346,7 @@ The specific dynamics model used in this problem is so-called "Pharmacokinetic-P
 3. **Pharmacodynamic Model** that relates the effect-site concentration to the observed BIS.
 
 The propofol infusion control problem presents several interesting challenges from a research perspective. 
-First, there is a delay in how fast the drug can reach a different compartments in addition to the BIS measurements which can lag. This could lead to instability if not properly addressed in the control design. 
+First, there is a delay in how fast the drug can reach the different compartments, and the BIS measurements can also lag. This could lead to instability if not properly addressed in the control design. 
 
 Furthermore, every patient is different from another. Hence, we cannot simply learn a single controller offline and hope that it will generalize to an entire patient population. We will account for this variability through Model Predictive Control (MPC) and dynamically adapt to the model mismatch through replanning. How a patient will react to a given dose of drug also varies and must be carefully controlled to avoid overdoses. This adds an additional layer of complexity since we have to incorporate safety constraints. Finally, the patient might suddenly change state, for example due to surgical stimuli, and the controller must be able to adapt quickly to compensate for the disturbance to the system.
 
