@@ -428,8 +428,8 @@ $$
 \end{aligned}
 $$
 
-Here $G$ stacks inequalities of the form $g_i\leq0$, and $H$ stacks
-equalities of the form $h_i=0$. Define the **Lagrangian**
+where $G$ stacks inequalities of the form $g_i\leq0$ and $H$ stacks
+equalities of the form $h_i=0$, define the **Lagrangian**
 
 $$
 \mathcal{L}(\mathbf{z},\boldsymbol{\lambda},\boldsymbol{\mu})
@@ -784,7 +784,7 @@ $$
 \quad\text{s.t.}\quad \mathbf{x}_{k+1}=\Phi_k(\mathbf{x}_k,\mathbf{u}_k).
 $$
 
-In differentiable programming (e.g., JAX, PyTorch), the composed map $\Phi_{T-1}\circ\cdots\circ\Phi_0$ is differentiable, enabling reverse-mode automatic differentiation and efficient gradient-based trajectory optimization. When parts of the program are non-differentiable (discrete branches, simulators with events), DOCPs can still be solved using derivative-free or weak-gradient methods (eg. finite differences, SPSA, Nelder–Mead, CMA-ES, or evolutionary strategies) optionally combined with smoothing, relaxations, or stochastic estimators to navigate non-smooth regions.
+In differentiable programming (e.g., JAX, PyTorch), the composed map $\Phi_{T-1}\circ\cdots\circ\Phi_0$ is differentiable, enabling reverse-mode automatic differentiation and efficient gradient-based trajectory optimization. When parts of the program are non-differentiable (discrete branches, simulators with events), DOCPs can still be solved using derivative-free or weak-gradient methods (e.g., finite differences, SPSA, Nelder–Mead, CMA-ES, or evolutionary strategies) optionally combined with smoothing, relaxations, or stochastic estimators to navigate non-smooth regions.
 
 #### Example: Offline Frequency Planning for Inference
 
@@ -1121,7 +1121,7 @@ solution of the resulting nonlinear program, but their raw form hides the
 direction of time. Can the multipliers be
 organized into a backward recursion that matches the forward state dynamics?
 [Adjoints and the discrete-time Pontryagin principle](discrete-time-pmp.md)
-provide that organization.
+provides that organization.
 
 ## Exercises
 
