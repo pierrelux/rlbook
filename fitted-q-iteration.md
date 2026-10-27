@@ -466,7 +466,7 @@ At step $t$, we have $n = \lfloor t/K \rfloor$ (outer iteration) and $k = t \bmo
 
 Flattening replaces the pair $(n,k)$ by a single global step index $t$, but the underlying empirical distribution $\hat{P}_{\mathcal{D}}$ remains the same. We still sample from the fixed offline dataset throughout.
 
-The target network arises directly from flattening the nested FQI structure. When DQN is presented with a target network that updates every $K$ steps, this is approximate value iteration in flattened form. The algorithm still performs outer loop (value iteration) and inner loop (regression), but the presentation obscures this structure. The periodic target updates mark the boundaries between outer iterations. DQN is batch approximate DP in flattened form, using online data collection with a replay buffer.
+The target network arises directly from flattening the nested FQI structure. When DQN is presented with a target network that updates every $K$ steps, this is approximate value iteration in flattened form. The algorithm still performs an outer loop (value iteration) and an inner loop (regression), but the presentation obscures this structure. The periodic target updates mark the boundaries between outer iterations. DQN is batch approximate DP in flattened form, using online data collection with a replay buffer.
 
 ### Smooth Target Updates via Exponential Moving Average
 
@@ -505,7 +505,7 @@ updated from replayed transitions?
 
 We now keep the same fitted Q-iteration template but allow the buffer $\mathcal{B}_t$ and its empirical distribution $\hat{P}_{\mathcal{B}_t}$ to evolve while we learn. Instead of repeatedly sampling from a fixed $\hat{P}_{\mathcal{D}}$, we collect new transitions during learning and store them in a circular replay buffer. 
 
-Note that "online" here takes on a second meaning: we collect data online (interacting with the environment) while also maintaining the online network (actively-updated parameters $\boldsymbol{\theta}_t$) and target network (frozen parameters $\boldsymbol{\theta}_{\text{target}}$) distinction from the flattened FQI structure. The online network now plays a dual role: it is both the parameters being trained and the policy used to collect new data for the buffer. 
+Note that "online" here takes on a second meaning: we collect data online (interacting with the environment) while also maintaining the distinction, inherited from the flattened FQI structure, between the online network (actively-updated parameters $\boldsymbol{\theta}_t$) and the target network (frozen parameters $\boldsymbol{\theta}_{\text{target}}$). The online network now plays a dual role: it is both the parameters being trained and the policy used to collect new data for the buffer. 
 
 Deep Q-Network (DQN) instantiates the online template with moderate choices along the design axes: buffer capacity $B \approx 10^6$, mini-batch size $b \approx 32$, and target network update frequency $K \approx 10^4$. DQN is not an ad hoc collection of tricks. It is fitted Q-iteration in flattened form (as developed in the nested-to-flattened transformation earlier) with an evolving buffer $\mathcal{B}_t$ and low replay ratio.
 
@@ -591,7 +591,7 @@ DQN and Double DQN use moderate settings: $B \approx 10^6$, $K \approx 10^4$, mi
 
 In the buffer perspective, Q-learning has $\mathcal{B}_t = \{(s_t, a_t, r_t, s'_t)\}$ with $|\mathcal{B}_t | = 1$. The empirical distribution $\hat{P}_{\mathcal{B}_t}$ collapses to a Dirac mass at the current transition. We use each transition exactly once then discard it. There is no separate target network: the parameters used for computing targets are immediately updated after each step ($K=1$, or equivalently $\tau=1$ in EMA). This makes Q-learning a **stochastic approximation** method with replay ratio 1.
 
-**Stochastic approximation** is a general framework for solving equations of the form $\mathbb{E}[h(X; \boldsymbol{\theta})] = 0$ using noisy samples, without computing expectations explicitly. The classic example is root-finding: given function $f(\boldsymbol{\theta}; Z)$ whose expectation $\mathbb{E}[f(\boldsymbol{\theta}; Z)] = F(\boldsymbol{\theta})$ we want to solve $F(\boldsymbol{\theta}) = 0$, the Robbins-Monro procedure updates:
+**Stochastic approximation** is a general framework for solving equations of the form $\mathbb{E}[h(X; \boldsymbol{\theta})] = 0$ using noisy samples, without computing expectations explicitly. The classic example is root-finding: given a function $f(\boldsymbol{\theta}; Z)$ with expectation $\mathbb{E}[f(\boldsymbol{\theta}; Z)] = F(\boldsymbol{\theta})$, to solve $F(\boldsymbol{\theta}) = 0$ the Robbins-Monro procedure updates:
 
 $$
 \boldsymbol{\theta}_{t+1} = \boldsymbol{\theta}_t - \alpha_t f(\boldsymbol{\theta}_t; Z_t)
@@ -964,13 +964,13 @@ This provides three sources of implicit robustness. First, gradient influence is
 
 The two-hot weights $q_j(y_i), q_{j+1}(y_i)$ are barycentric coordinates, identical to linear interpolation in the [dynamic programming chapter](finite-horizon-dp.md) ({prf:ref}`backward-recursion-interp`). This places the encoding within Gordon's monotone approximator framework ({prf:ref}`gordon-averager`): targets are convex combinations preserving order and boundedness. The neural network predicting $p_{\boldsymbol{\theta}}(\cdot \mid s,a)$ is non-monotone, making classification-based Q-learning a hybrid: monotone target structure paired with flexible function approximation.
 
-Empirically, cross-entropy loss scales better with network capacity. Farebrother et al. {cite}`farebrother2024stop` found that L2-based DQN and CQL degrade when Q-networks scale to large ResNets, while classification loss (specifically HL-Gauss, which uses Gaussian smoothing instead of two-hot) maintains performance. The combination of KL geometry, quantization, and smoothing prevents overfitting to noisy targets that plagues L2 with high-capacity networks.
+Empirically, cross-entropy loss scales better with network capacity. Farebrother et al. {cite}`farebrother2024stop` found that L2-based DQN and CQL degrade when Q-networks scale to large ResNets, while classification loss (specifically HL-Gauss, which uses Gaussian smoothing instead of two-hot) maintains performance. The combination of KL geometry, quantization, and smoothing prevents the overfitting to noisy targets that plagues L2 with high-capacity networks.
 
 ## Summary
 
-Fitted Q-iteration has a two-level structure: an outer loop applies the Bellman operator to construct targets, an inner loop fits a function approximator to those targets. All algorithms in this chapter instantiate this template with different choices of buffer $\mathcal{B}_t$, target function $g$, loss $\ell$, and optimization budget $K$.
+Fitted Q-iteration has a two-level structure: an outer loop applies the Bellman operator to construct targets, and an inner loop fits a function approximator to those targets. All algorithms in this chapter instantiate this template with different choices of buffer $\mathcal{B}_t$, target function $g$, loss $\ell$, and optimization budget $K$.
 
-The empirical distribution $\hat{P}_{\mathcal{B}_t}$ unifies offline and online methods through plug-in approximation: replace unknown transition law $P$ with $\hat{P}_{\mathcal{B}_t}$ and minimize empirical risk $\mathbb{E}_{((s,a),y)\sim \hat{P}_t^{\text{fit}}} [\ell(q, y)]$. Offline uses fixed $\mathcal{B}_t \equiv \mathcal{D}$ (sample average approximation), online uses circular buffer (Q-learning with $B=1$ is stochastic approximation, DQN with large $B$ is hybrid).
+The empirical distribution $\hat{P}_{\mathcal{B}_t}$ unifies offline and online methods through plug-in approximation: replace the unknown transition law $P$ with $\hat{P}_{\mathcal{B}_t}$ and minimize the empirical risk $\mathbb{E}_{((s,a),y)\sim \hat{P}_t^{\text{fit}}} [\ell(q, y)]$. Offline methods use a fixed $\mathcal{B}_t \equiv \mathcal{D}$ (sample average approximation), and online methods use a circular buffer (Q-learning with $B=1$ is stochastic approximation, DQN with large $B$ is hybrid).
 
 The inference-scheduling experiment held the MDP, regressor, data-set size,
 seeds, and evaluation episodes fixed while changing the behavior distribution.
