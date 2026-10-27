@@ -629,6 +629,33 @@ $$
 
 where $P_1(S_1 = s)$ is the probability of starting in state $s$.
 
+Both definitions rank policies, and the ranking has two ingredients that are
+modeling choices rather than consequences of the dynamics.
+
+The first is the order itself. Uniform optimality compares value functions
+state by state: $\boldsymbol{\pi}$ is at least as good as $\boldsymbol{\pi}'$
+when $v^{\boldsymbol{\pi}}(s) \ge v^{\boldsymbol{\pi}'}(s)$ for every
+$s \in \mathcal{S}$. This is a *partial* order. Two policies can be
+incomparable, each better than the other from some initial state. The existence
+of a policy that dominates all others in this order is therefore a result to
+be proved, not an assumption, and the backward induction algorithm below
+supplies the proof for finite horizons.
+
+The second is the expectation. With noise, a policy induces a distribution over
+total rewards from each state, and a ranking needs one number per
+distribution. Taking the mean is the classical answer of expected utility
+theory, going back to von Neumann and Morgenstern: preferences over uncertain
+outcomes that satisfy a few consistency axioms can be represented by the
+expectation of a utility. Using the reward itself as the utility makes the
+decision maker *risk neutral*. Two policies with the same mean are equally good,
+however different their spreads or worst cases. A reservoir operator who must
+avoid spilling in a wet year may not accept that trade. Risk-sensitive
+formulations replace the mean by another functional of the distribution, for
+example the conditional value at risk (CVaR), the mean of the worst
+$\alpha$-fraction of outcomes. Such criteria lead to different Bellman
+equations, and some of them no longer decompose stage by stage. This book keeps
+the expectation throughout.
+
 The maximum value can be achieved by searching over the space of deterministic Markovian Policies. Consequently:
 
 $$ v^*(s) = \max_{\boldsymbol{\pi} \in \Pi^{\mathrm{HR}}} v^{\boldsymbol{\pi}}(s) = \max _{\boldsymbol{\pi} \in \Pi^{M D}} v^{\boldsymbol{\pi}}(s), \quad s \in S$$

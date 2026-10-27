@@ -190,20 +190,20 @@ Pacing is indicative and will be adjusted as the term goes on.
 
 | Week | Topic | Reading |
 |---|---|---|
-| 1 · Aug 31 – Sep 3 | Course overview; system boundaries; state and action | [Controlled Systems](modeling-controlled-systems.md) |
-| 2 · Sep 7 – 10 | Dynamics models and the state-space perspective | [Controlled Systems](modeling-controlled-systems.md) |
-| 3 · Sep 14 – 17 | Stochastic dynamics; partial observation; programs and data as model interfaces | [Stochastic Dynamics](stochastic-dynamics-observation.md), [Model Interfaces](model-interfaces.md) |
-| 4 · Sep 21 – 24 | Discrete-time optimal control problems; existence and optimality conditions | [Finite-Horizon Optimal Control](discrete-time-optimal-control.md) |
-| 5 · Sep 28 – Oct 1 | Adjoints and the Pontryagin principle; single and multiple shooting | [Discrete-Time PMP](discrete-time-pmp.md), [Numerical Trajectory Optimization](numerical-trajectory-optimization.md) |
-| 6 · Oct 5 – 8 | Direct transcription; polynomial interpolation (Monday). Midterm 1: Thursday, October 8, 13:30–15:30 | [Continuous-Time Collocation](continuous-time-collocation.md) |
-| 7 · Oct 12 – 15 | Direct transcription examples; MPPI and stochastic trajectory optimization | [Continuous-Time Collocation](continuous-time-collocation.md), [Model Predictive Path Integral Control](model-predictive-path-integral-control.md) |
-| 8 · Oct 26 – 29 | Closing the loop by replanning; theoretical guarantees; MPC variants | [Receding-Horizon Control](receding-horizon-control.md), [MPC Variants](mpc-variants-reliability.md) |
-| 9 · Nov 2 – 5 | MPC failure handling; parametric optimization and approximate controllers | [Reliable MPC](mpc-variants-reliability.md), [Parametric Controllers](parametric-controllers.md) |
-| 10 · Nov 9 – 12 | Backward recursion, continuous spaces, and the linear quadratic regulator; iLQR and DDP | [Finite-Horizon Dynamic Programming](finite-horizon-dp.md), [iLQR and DDP](iterative-trajectory-optimization.md) |
-| 11 · Nov 16 – 19 | Stochastic and infinite-horizon MDPs; Bellman operators; value and policy iteration (Monday). Midterm 2: Thursday, November 19, 13:30–15:30 | [Stochastic DP](stochastic-dp.md), [Path-Integral Control](path-integral-stochastic-control.md), [Infinite-Horizon MDPs](infinite-horizon-mdps.md) |
-| 12 · Nov 23 – 26 | Regularized MDPs; weighted residuals; approximate Bellman equations | [Regularized DP](regularized-dp.md), [Weighted Residuals](weighted-residual-methods.md), [Approximate Bellman Equations](approximate-bellman-equations.md) |
-| 13 · Nov 30 – Dec 3 | Monte Carlo methods and overestimation bias; fitted Q iteration, NFQ, DQN (Monday). Final project poster session: Thursday, December 3, 13:30–15:30 at Mila | [Monte Carlo](monte-carlo-bellman-estimation.md), [FQI](fitted-q-iteration.md) |
-| 14 · Dec 7 | Amortized action optimization; stochastic gradient estimators; regularized and direct policy optimization | [Amortized Action Optimization](amortized-action-optimization.md), [Gradient Estimation](gradient-estimation.md), [Regularized Policy Learning](regularized-policy-learning.md), [Policy Gradients](policy-gradients.md) |
+| 1 · Aug 31 – Sep 3 | Course overview; dynamics models; finite-horizon optimal control, single shooting, KKT conditions and primal-dual methods | [Controlled Systems](modeling-controlled-systems.md), [Finite-Horizon Optimal Control](discrete-time-optimal-control.md), [Numerical Trajectory Optimization](numerical-trajectory-optimization.md) |
+| 2 · Sep 7 – 10 | Constrained optimization: Lagrangian, Newton and SQP; toward collocation (Thursday) | [Numerical Trajectory Optimization](numerical-trajectory-optimization.md), [Nonlinear Programming](appendix_nlp.md) |
+| 3 · Sep 14 – 17 | Collocation with Lagrange bases and nodal polynomials; introduction to MPPI | [Continuous-Time Collocation](continuous-time-collocation.md), [Model Predictive Path Integral Control](model-predictive-path-integral-control.md) |
+| 4 · Sep 21 – 24 | Model predictive path integral control; adjoints and the discrete-time Pontryagin principle; single and multiple shooting | [Model Predictive Path Integral Control](model-predictive-path-integral-control.md), [Discrete-Time PMP](discrete-time-pmp.md), [Numerical Trajectory Optimization](numerical-trajectory-optimization.md) |
+| 5 · Sep 28 – Oct 1 | Closing the loop by replanning; parametric programming and continuation; midterm 1 review (Thursday) | [Receding-Horizon Control](receding-horizon-control.md), [MPC Variants](mpc-variants-reliability.md), [Parametric Controllers](parametric-controllers.md) |
+| 6 · Oct 5 – 8 | Midterm 1: Thursday, October 8, 13:30–15:30 |  |
+| 7 · Oct 12 – 15 | From trajectory optimization to dynamic programming: backward induction; the hydro reservoir (Thursday) | [Finite-Horizon Dynamic Programming](finite-horizon-dp.md) |
+| 8 · Oct 26 – 29 | Continuous states and interpolation; the linear quadratic regulator; stochastic dynamic programming and policy classes; midterm 1 return | [Finite-Horizon Dynamic Programming](finite-horizon-dp.md), [Stochastic DP](stochastic-dp.md) |
+| 9 · Nov 2 – 5 | Infinite-horizon MDPs: discounting, Bellman operators and fixed points; value and policy iteration | [Infinite-Horizon MDPs](infinite-horizon-mdps.md) |
+| 10 · Nov 9 – 12 | Regularized MDPs; weighted residuals and Galerkin methods | [Regularized DP](regularized-dp.md), [Weighted Residuals](weighted-residual-methods.md) |
+| 11 · Nov 16 – 19 | Approximate Bellman equations (Monday). Midterm 2: Thursday, November 19, 13:30–15:30 | [Approximate Bellman Equations](approximate-bellman-equations.md) |
+| 12 · Nov 23 – 26 | Monte Carlo methods and overestimation bias; fitted Q iteration, NFQ, DQN | [Monte Carlo](monte-carlo-bellman-estimation.md), [FQI](fitted-q-iteration.md) |
+| 13 · Nov 30 – Dec 3 | Amortized action optimization; stochastic gradient estimators (Monday). Final project poster session: Thursday, December 3, 13:30–15:30 at Mila | [Amortized Action Optimization](amortized-action-optimization.md), [Gradient Estimation](gradient-estimation.md) |
+| 14 · Dec 7 | Regularized and direct policy optimization | [Regularized Policy Learning](regularized-policy-learning.md), [Policy Gradients](policy-gradients.md) |
 
 The poster session is on December 3, before [NeurIPS 2026](https://neurips.cc/Conferences/2026/Dates)
 runs December 6–13 across its sites. The final examination is on Monday,
@@ -224,6 +224,10 @@ The registrar lists the course as beginning **Monday, August 31**, while the
 University's academic calendar gives the *rentrée* as **Tuesday, September 1**.
 The first meeting took place on Monday, August 31.
 :::
+
+The chapters on [iLQR and DDP](iterative-trajectory-optimization.md) and
+[path-integral control](path-integral-stochastic-control.md) are reading
+material without a dedicated lecture.
 
 The appendices on [worked examples](appendix_examples.md),
 [initial value problems](appendix_ivps.md), and
@@ -445,20 +449,20 @@ du trimestre.
 
 | Semaine | Sujet | Lecture |
 |---|---|---|
-| 1 · 31 août – 3 sept. | Présentation du cours ; frontière du système ; état et action | [Controlled Systems](modeling-controlled-systems.md) |
-| 2 · 7 – 10 sept. | Modèles de dynamique et perspective de l'espace d'états | [Controlled Systems](modeling-controlled-systems.md) |
-| 3 · 14 – 17 sept. | Dynamique stochastique ; observation partielle ; programmes et données comme interfaces de modèle | [Stochastic Dynamics](stochastic-dynamics-observation.md), [Model Interfaces](model-interfaces.md) |
-| 4 · 21 – 24 sept. | Problèmes de commande optimale en temps discret ; existence et conditions d'optimalité | [Finite-Horizon Optimal Control](discrete-time-optimal-control.md) |
-| 5 · 28 sept. – 1<sup>er</sup> oct. | États adjoints et principe de Pontryagin ; tir simple et tir multiple | [Discrete-Time PMP](discrete-time-pmp.md), [Numerical Trajectory Optimization](numerical-trajectory-optimization.md) |
-| 6 · 5 – 8 oct. | Transcription directe ; interpolation polynomiale (lundi). Premier examen de mi-session : jeudi 8 octobre, de 13 h 30 à 15 h 30 | [Continuous-Time Collocation](continuous-time-collocation.md) |
-| 7 · 12 – 15 oct. | Exemples de transcription directe ; MPPI et optimisation stochastique de trajectoires | [Continuous-Time Collocation](continuous-time-collocation.md), [Model Predictive Path Integral Control](model-predictive-path-integral-control.md) |
-| 8 · 26 – 29 oct. | Boucler la boucle par replanification ; garanties théoriques ; variantes de commande prédictive | [Receding-Horizon Control](receding-horizon-control.md), [MPC Variants](mpc-variants-reliability.md) |
-| 9 · 2 – 5 nov. | Gestion des défaillances en commande prédictive ; optimisation paramétrique et contrôleurs approchés | [Reliable MPC](mpc-variants-reliability.md), [Parametric Controllers](parametric-controllers.md) |
-| 10 · 9 – 12 nov. | Récurrence arrière, espaces continus et régulateur linéaire quadratique; iLQR et DDP | [Finite-Horizon Dynamic Programming](finite-horizon-dp.md), [iLQR and DDP](iterative-trajectory-optimization.md) |
-| 11 · 16 – 19 nov. | MDP stochastiques et à horizon infini ; opérateurs de Bellman ; itérations sur la valeur et la politique (lundi). Deuxième examen de mi-session : jeudi 19 novembre, de 13 h 30 à 15 h 30 | [Stochastic DP](stochastic-dp.md), [Path-Integral Control](path-integral-stochastic-control.md), [Infinite-Horizon MDPs](infinite-horizon-mdps.md) |
-| 12 · 23 – 26 nov. | MDP régularisés ; résidus pondérés ; équations de Bellman approchées | [Regularized DP](regularized-dp.md), [Weighted Residuals](weighted-residual-methods.md), [Approximate Bellman Equations](approximate-bellman-equations.md) |
-| 13 · 30 nov. – 3 déc. | Méthodes de Monte-Carlo et biais de surestimation ; itération sur $Q$ ajustée, NFQ, DQN (lundi). Séance de présentation des affiches du projet final : jeudi 3 décembre, de 13 h 30 à 15 h 30, à Mila | [Monte Carlo](monte-carlo-bellman-estimation.md), [FQI](fitted-q-iteration.md) |
-| 14 · 7 déc. | Optimisation amortie des actions ; estimateurs de gradient stochastique ; optimisation régularisée et directe des politiques | [Amortized Action Optimization](amortized-action-optimization.md), [Gradient Estimation](gradient-estimation.md), [Regularized Policy Learning](regularized-policy-learning.md), [Policy Gradients](policy-gradients.md) |
+| 1 · 31 août – 3 sept. | Présentation du cours ; modèles de dynamique ; commande optimale à horizon fini, tir simple, conditions KKT et méthodes primales-duales | [Controlled Systems](modeling-controlled-systems.md), [Finite-Horizon Optimal Control](discrete-time-optimal-control.md), [Numerical Trajectory Optimization](numerical-trajectory-optimization.md) |
+| 2 · 7 – 10 sept. | Optimisation sous contraintes : lagrangien, Newton et SQP ; vers la collocation (jeudi) | [Numerical Trajectory Optimization](numerical-trajectory-optimization.md), [Nonlinear Programming](appendix_nlp.md) |
+| 3 · 14 – 17 sept. | Collocation avec des bases de Lagrange et polynômes nodaux ; introduction à MPPI | [Continuous-Time Collocation](continuous-time-collocation.md), [Model Predictive Path Integral Control](model-predictive-path-integral-control.md) |
+| 4 · 21 – 24 sept. | Commande prédictive par intégrale de chemin ; états adjoints et principe de Pontryagin en temps discret ; tir simple et tir multiple | [Model Predictive Path Integral Control](model-predictive-path-integral-control.md), [Discrete-Time PMP](discrete-time-pmp.md), [Numerical Trajectory Optimization](numerical-trajectory-optimization.md) |
+| 5 · 28 sept. – 1<sup>er</sup> oct. | Boucler la boucle par replanification ; programmation paramétrique et continuation ; révision pour le premier examen (jeudi) | [Receding-Horizon Control](receding-horizon-control.md), [MPC Variants](mpc-variants-reliability.md), [Parametric Controllers](parametric-controllers.md) |
+| 6 · 5 – 8 oct. | Premier examen de mi-session : jeudi 8 octobre, de 13 h 30 à 15 h 30 |  |
+| 7 · 12 – 15 oct. | De l'optimisation de trajectoire à la programmation dynamique : induction arrière ; le réservoir hydroélectrique (jeudi) | [Finite-Horizon Dynamic Programming](finite-horizon-dp.md) |
+| 8 · 26 – 29 oct. | Espaces d'états continus et interpolation ; régulateur linéaire quadratique ; programmation dynamique stochastique et classes de politiques ; retour sur le premier examen | [Finite-Horizon Dynamic Programming](finite-horizon-dp.md), [Stochastic DP](stochastic-dp.md) |
+| 9 · 2 – 5 nov. | MDP à horizon infini : actualisation, opérateurs de Bellman et points fixes ; itérations sur la valeur et la politique | [Infinite-Horizon MDPs](infinite-horizon-mdps.md) |
+| 10 · 9 – 12 nov. | MDP régularisés ; résidus pondérés et méthodes de Galerkin | [Regularized DP](regularized-dp.md), [Weighted Residuals](weighted-residual-methods.md) |
+| 11 · 16 – 19 nov. | Équations de Bellman approchées (lundi). Deuxième examen de mi-session : jeudi 19 novembre, de 13 h 30 à 15 h 30 | [Approximate Bellman Equations](approximate-bellman-equations.md) |
+| 12 · 23 – 26 nov. | Méthodes de Monte-Carlo et biais de surestimation ; itération sur $Q$ ajustée, NFQ, DQN | [Monte Carlo](monte-carlo-bellman-estimation.md), [FQI](fitted-q-iteration.md) |
+| 13 · 30 nov. – 3 déc. | Optimisation amortie des actions ; estimateurs de gradient stochastique (lundi). Séance de présentation des affiches du projet final : jeudi 3 décembre, de 13 h 30 à 15 h 30, à Mila | [Amortized Action Optimization](amortized-action-optimization.md), [Gradient Estimation](gradient-estimation.md) |
+| 14 · 7 déc. | Optimisation régularisée et directe des politiques | [Regularized Policy Learning](regularized-policy-learning.md), [Policy Gradients](policy-gradients.md) |
 
 La séance de présentation des affiches a lieu le 3 décembre, avant
 [NeurIPS 2026](https://neurips.cc/Conferences/2026/Dates), qui se déroule du 6 au
@@ -480,6 +484,10 @@ Le répertoire des cours indique un début le **lundi 31 août**, alors que le
 calendrier universitaire fixe la rentrée au **mardi 1<sup>er</sup> septembre**.
 La première séance a eu lieu le lundi 31 août.
 :::
+
+Les chapitres sur [iLQR et DDP](iterative-trajectory-optimization.md) et la
+[commande par intégrale de chemin](path-integral-stochastic-control.md) sont des
+lectures sans séance dédiée.
 
 Les annexes sur les [exemples détaillés](appendix_examples.md), les
 [problèmes à valeur initiale](appendix_ivps.md) et la
