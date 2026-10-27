@@ -132,6 +132,18 @@
       "redact": [
         "Nikki"
       ]
+    },
+    "2026-10-15": {
+      "title": {
+        "en": "From trajectory optimization to dynamic programming: backward induction and the hydro reservoir",
+        "fr": "De l'optimisation de trajectoire à la programmation dynamique : induction arrière et réservoir hydroélectrique"
+      },
+      "chapters": [
+        "finite-horizon-dp"
+      ],
+      "redact": [
+        "Nadin"
+      ]
     }
   },
   "corrections": {
@@ -152,7 +164,16 @@
       "SDS": "SDEs",
       "sqp": "SQP",
       "adjint": "adjoint",
-      "OCPS": "OCPs"
+      "OCPS": "OCPs",
+      "Balman": "Bellman",
+      "BMAN": "Bellman",
+      "Bman": "Bellman",
+      "ricatti": "Riccati",
+      "Gallerin": "Galerkin",
+      "Galerin": "Galerkin",
+      "Freninger": "Frejinger",
+      "hydraology": "hydrology",
+      "hydrarology": "hydrology"
     },
     "fr": {
       "polomial": "polynomial",

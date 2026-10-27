@@ -5,8 +5,28 @@
   "fr": "Automne 2026"
  },
  "folder_url": "https://drive.google.com/drive/folders/1iwN-j6IJP9l8EOkXrcxy4DpWRNcTixr8",
- "updated": "2026-10-01",
+ "updated": "2026-10-27",
  "lectures": [
+  {
+   "date": "2026-10-15",
+   "week": 7,
+   "title": {
+    "en": "From trajectory optimization to dynamic programming: backward induction and the hydro reservoir",
+    "fr": "De l'optimisation de trajectoire à la programmation dynamique : induction arrière et réservoir hydroélectrique"
+   },
+   "chapters": [
+    {
+     "slug": "finite-horizon-dp",
+     "title": "Finite-Horizon Dynamic Programming"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/11CXLfow7MAdJi5bh-kXtIS7t3HO3EEET/view",
+   "duration_ms": 6038600,
+   "thumb": "2026-10-15.jpg",
+   "paragraphs": 134,
+   "cleaned": false,
+   "tldr": []
+  },
   {
    "date": "2026-10-01",
    "week": 5,
