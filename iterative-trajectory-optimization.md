@@ -56,8 +56,8 @@ numerical integration.
 ## A Docking Problem
 
 Docking requires the boat to reach the berth, align with the quay, and shed
-its momentum. A trajectory that reaches the right position with appreciable
-translational or angular velocity will carry the boat away again.
+its momentum. If the boat reaches the right position with appreciable
+translational or angular velocity, its momentum will carry it away again.
 
 Consider a two-metre boat moving in the horizontal plane. Its state and control
 are
