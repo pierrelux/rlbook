@@ -191,7 +191,7 @@ These results justify focusing on deterministic Markov policies and lead to the 
 4. Return $J_t^\star(\cdot)$, $\pi_t^\star(\cdot)$ for $t = 1, \ldots, T$
 ````
 
-While SDP provides us with a framework to for handling uncertainty, it makes the curse of dimensionality even more difficult to handle in practice. Both the state space and the disturbance space must be discretized. This can lead to a combinatorial explosion in the number of scenarios to be evaluated at each stage.
+While SDP provides us with a framework for handling uncertainty, it makes the curse of dimensionality even more difficult to handle in practice. Both the state space and the disturbance space must be discretized. This can lead to a combinatorial explosion in the number of scenarios to be evaluated at each stage.
 
 However, just as we tackled the challenges of continuous state spaces with discretization and interpolation, we can devise efficient methods to handle the additional complexity of evaluating expectations. This problem essentially becomes one of numerical integration. When the set of disturbances is continuous (as is often the case with continuous state spaces), we enter a domain where numerical quadrature methods could be applied. But these methods tend to scale poorly as the number of dimensions grows. This is where more efficient techniques, often rooted in Monte Carlo methods, come into play. Two ingredients tackle the curse of dimensionality:
 
@@ -444,8 +444,8 @@ spills, so keeping it is worth more. Above the margin, it spills in the wettest
 week, with probability 1/4, and its expected value falls to
 $0.75 \times 11.2 = 8.4$ k\$, less than the 10.3 k\$ from releasing it. The
 policy therefore holds the storage level from which the wettest week just fills
-the reservoir. The deterministic policy knows the inflow and can fill the
-reservoir to capacity without spilling.
+the reservoir. In the deterministic model the inflow is known, so the policy can
+fill the reservoir to capacity without spilling.
 
 ```{code-cell} python
 :label: fig-hydro-stochastic-policy
@@ -520,7 +520,7 @@ deterministic problem every week with an updated forecast, as in
 Which state, action, transition, reward, and horizon objects define the common
 finite MDP representation?
 
-Rather than expressing the stochasticity in our system through a disturbance term as a parameter to a deterministic difference equation, we often work with an alternative representation (more common in operations research) which uses the Markov Decision Process formulation. The idea is that when we model our system in this way with the disturbance term being drawn indepently of the previous stages, the induced trajectory are those of a Markov chain. Hence, we can re-cast our control problem in that language, leading to the so-called Markov Decision Process framework in which we express the system dynamics in terms of transition probabilities rather than explicit state equations. In this framework, we express the probability that the system is in a given state using the transition probability function:
+Rather than expressing the stochasticity in our system through a disturbance term as a parameter to a deterministic difference equation, we often work with an alternative representation (more common in operations research) which uses the Markov Decision Process formulation. The idea is that when we model our system in this way with the disturbance term being drawn independently of the previous stages, the induced trajectories are those of a Markov chain. Hence, we can re-cast our control problem in that language, leading to the so-called Markov Decision Process framework in which we express the system dynamics in terms of transition probabilities rather than explicit state equations. In this framework, we express the probability that the system is in a given state using the transition probability function:
 
 $$ p_t(\mathbf{x}_{t+1} | \mathbf{x}_t, \mathbf{u}_t) $$
 
@@ -538,7 +538,7 @@ $$
 Here, $q_t(\mathbf{w})$ represents the probability density or mass function of the disturbance $\mathbf{W}_t$ (assuming discrete state spaces). When dealing with continuous spaces, the above expression simply contains an integral rather than a summation. 
 
 
-For a system with deterministic dynamics and no disturbance, the transition probabilities become much simpler and be expressed using the indicator function. Given a deterministic system with dynamics:
+For a system with deterministic dynamics and no disturbance, the transition probabilities become much simpler and can be expressed using the indicator function. Given a deterministic system with dynamics:
 
 $$ \mathbf{x}_{t+1} = f_t(\mathbf{x}_t, \mathbf{u}_t) $$
 
@@ -584,7 +584,7 @@ The reward function is denoted by $r_t(s, a)$, representing the reward received 
 
 $$r_t(s, a) = \sum_{j \in \mathcal{S}} r_t(s, a, j) p_t(j | s, a)$$
 
-Combined together, these elemetns specify a Markov decision process, which is fully described by the tuple:
+Combined together, these elements specify a Markov decision process, which is fully described by the tuple:
 
 $$\{T, S, \mathcal{A}_s, p_t(\cdot | s, a), r_t(s, a)\}$$
 
@@ -595,7 +595,7 @@ where $\mathrm{T}$ represents the set of decision epochs (the horizon).
 Against which competing policy class and initial states must a policy be
 compared before it can be called optimal?
 
-Let's go back to the starting point and define what it means for a policy to be optimal in a Markov Decision Problem. For this, we will be considering different possible search spaces (policy classes) and compare policies based on the ordering of their value from any possible start state. The value of a policy $\boldsymbol{\pi}$ (optimal or not) is defined as the expected total reward obtained by following that policy from a given starting state. Formally, for a finite-horizon MDP with $N$ decision epochs, we define the value function $v^{\boldsymbol{\pi}}(s, t)$ as:
+Let's go back to the starting point and define what it means for a policy to be optimal in a Markov Decision Problem. For this, we will be considering different possible search spaces (policy classes) and comparing policies based on the ordering of their value from any possible start state. The value of a policy $\boldsymbol{\pi}$ (optimal or not) is defined as the expected total reward obtained by following that policy from a given starting state. Formally, for a finite-horizon MDP with $N$ decision epochs, we define the value function $v^{\boldsymbol{\pi}}(s, t)$ as:
 
 $$
 v^{\boldsymbol{\pi}}(s, t) \triangleq \mathbb{E}\left[\sum_{k=t}^{N-1} r_t(S_k, A_k) + r_N(S_N) \mid S_t = s\right]
