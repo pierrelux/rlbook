@@ -168,7 +168,7 @@ be adjusted when the oral defense shows a materially different level of
 understanding.
 
 The [project page](https://pierrelucbacon.com/rlbook/interactive/projects.html) has a one-minute brief, a list of suggested topics with
-papers to start from, and a short questionnaire that matches topics to your
+papers to start from, a short questionnaire that matches topics to your
 interests, and a ready-to-send email to confirm your team and topic.
 
 **Grading scale.** Final grades are reported as UdeM letter grades. The
