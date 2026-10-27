@@ -43,7 +43,7 @@ $$
 \end{align*}
 $$
 
-In this example, the objective function $f(x_1, x_2)$ is quadratic, the inequality constraint $g(x_1, x_2)$ defines a circular feasible region centered at $(1, 1)$ with a radius of $\sqrt{1.5}$ and the equality constraint $h(x_1, x_2)$ requires $x_2$ to lie on a sine wave function. The following code demonstrates the difference between the unconstrained, and constrained solutions to this problem. 
+In this example, the objective function $f(x_1, x_2)$ is quadratic, the inequality constraint $g(x_1, x_2)$ defines a circular feasible region centered at $(1, 1)$ with a radius of $\sqrt{1.5}$ and the equality constraint $h(x_1, x_2)$ requires $x_2$ to lie on a sine wave function. The following code demonstrates the difference between the unconstrained and constrained solutions to this problem. 
 
 ```{code-cell} python
 :tags: [hide-input]
@@ -533,12 +533,12 @@ $$
 
 where $\mathbf{z}^k$ is the k-th iterate, and $J_F(\mathbf{z}^k)$ is the Jacobian matrix of $\mathbf{F}$ evaluated at $\mathbf{z}^k$.
 
-Newton's method exhibits local quadratic convergence: if the initial guess $\mathbf{z}^0$ is sufficiently close to the true solution $\mathbf{z}^*$, and $J_F(\mathbf{z}^*)$ is nonsingular, the method converges quadratically to $\mathbf{z}^*$ {cite}`ortega_rheinboldt_1970`. However, the method is sensitive to the initial guess; if it's too far from the desired solution, Newton's method might fail to converge or converge to a different root. To mitigate this problem, a set of techniques known as numerical continuation methods {cite}`allgower_georg_1990` have been developed. These methods effectively enlarge the basin of attraction of Newton's method by solving a sequence of related problems, progressing from an easy one to the target problem. This approach is reminiscent of several concepts in machine learning and statistical inference: curriculum learning in machine learning, where models are trained on increasingly complex data; tempering in Markov Chain Monte Carlo (MCMC) samplers, which gradually adjusts the target distribution to improve mixing; and modern diffusion models, which use a similar concept of gradually transforming noise into structured data.
+Newton's method exhibits local quadratic convergence: if the initial guess $\mathbf{z}^0$ is sufficiently close to the true solution $\mathbf{z}^*$, and $J_F(\mathbf{z}^*)$ is nonsingular, the method converges quadratically to $\mathbf{z}^*$ {cite}`ortega_rheinboldt_1970`. However, the method is sensitive to the initial guess; if it's too far from the desired solution, Newton's method might fail to converge or converge to a different root. To mitigate this problem, a set of techniques known as numerical continuation methods {cite}`allgower_georg_1990` has been developed. These methods effectively enlarge the basin of attraction of Newton's method by solving a sequence of related problems, progressing from an easy one to the target problem. This approach is reminiscent of several concepts in machine learning and statistical inference: curriculum learning in machine learning, where models are trained on increasingly complex data; tempering in Markov Chain Monte Carlo (MCMC) samplers, which gradually adjusts the target distribution to improve mixing; and modern diffusion models, which use a similar concept of gradually transforming noise into structured data.
 
 ##### Efficient Implementation of Newton's Method
 
 Note that each step of Newton's method involves computing the inverse of a Jacobian matrix. However, a cardinal rule in numerical linear algebra is to avoid computing matrix inverses explicitly: rarely, if ever, should there be a `np.linalg.inv` in your code. Instead, the numerically stable and computationally efficient approach is to solve a linear system of equations at each step.
-Given the Newton's method iterate:
+Given the iterate of Newton's method:
 
 $$
 \mathbf{z}^{k+1} = \mathbf{z}^k - [J_F(\mathbf{z}^k)]^{-1} \mathbf{F}(\mathbf{z}^k)
@@ -593,7 +593,7 @@ J_h(\mathbf{x}^k) & \mathbf{0}
 \end{bmatrix}.
 $$
 
-The matrix on the left-hand side is known as the KKT matrix, as it stems from the Karush-Kuhn-Tucker conditions for this optimization problem
+The matrix on the left-hand side is known as the KKT matrix, as it stems from the Karush-Kuhn-Tucker conditions for this optimization problem.
 The solution of this system provides the updates $\Delta \mathbf{x}^k$ and $\Delta \boldsymbol{\lambda}^k$, which are then used to update the primal and dual variables:
 
 $$
@@ -601,7 +601,7 @@ $$
 $$
 
 ##### Demonstration
-The following code demonstates how we can implement this idea in Jax. In this demonstration, we are minimizing a quadratic objective function subject to a single equality constraint, a problem formally stated as follows:
+The following code demonstrates how we can implement this idea in Jax. In this demonstration, we are minimizing a quadratic objective function subject to a single equality constraint, a problem formally stated as follows:
 
 $$
 \begin{aligned}
@@ -616,7 +616,7 @@ $$
 \mathcal L(x, \lambda) = f(x) + \lambda h(x) = (x_1 - 2)^2 + (x_2 - 1)^2 + \lambda(x_1^2 + x_2^2 - 1)
 $$
 
-For this particular problem, it happens so that we can also find an analytical without even having to use Newton's method. From the first-order optimality conditions, we obtain the following linear system of equations: 
+For this particular problem, it happens that we can also find an analytical solution without even having to use Newton's method. From the first-order optimality conditions, we obtain the following linear system of equations: 
 \begin{align*}
    2(x_1 - 2) + 2\lambda x_1 &= 0 \\
    2(x_2 - 1) + 2\lambda x_2 &= 0 \\
@@ -627,7 +627,7 @@ From the first two equations, we then get:
  
    $$x_1 = \frac{2}{1 + \lambda}, \quad x_2 = \frac{1}{1 + \lambda}$$
 
-which we can substitute these into the 3rd constraint equation to obtain:
+which we can substitute into the 3rd constraint equation to obtain:
   
   $$(\frac{2}{1 + \lambda})^2 + (\frac{1}{1 + \lambda})^2 = 1 \Leftrightarrow \lambda = \sqrt{5} - 1$$
 
@@ -960,7 +960,7 @@ Consider a general nonlinear optimization problem that includes both equality an
 & \mathbf{h}(\mathbf{x}) = \mathbf{0}.
 \end{align*}
 
-As we did earlier, we approximate this problem by constructing a quadratic approximation to the objective and a linearization of the constraints. QP subproblem at each iteration is then formulated as:
+As we did earlier, we approximate this problem by constructing a quadratic approximation to the objective and a linearization of the constraints. The QP subproblem at each iteration is then formulated as:
 
 \begin{align*}
 \text{Minimize} \quad & \nabla f(\mathbf{x}^k)^T \Delta \mathbf{x} + \frac{1}{2} \Delta \mathbf{x}^T \nabla^2_{\mathbf{x}\mathbf{x}} \mathcal L(\mathbf{x}^k, \boldsymbol{\lambda}^k, \boldsymbol{\mu}^k) \Delta \mathbf{x} \\
