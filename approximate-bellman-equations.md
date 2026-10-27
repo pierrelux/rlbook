@@ -338,7 +338,7 @@ $$
 \boldsymbol{\Phi}^\top \boldsymbol{\Xi} (\boldsymbol{\Phi} - \gamma \mathbf{P}_{\pi^{(k)}} \boldsymbol{\Phi}) \theta^{(k+1)} = \boldsymbol{\Phi}^\top \boldsymbol{\Xi} \mathbf{r}_{\pi^{(k)}}.
 $$
 
-This evaluates the current greedy policy using LSTD, then implicitly improves by computing a new greedy policy at the next iteration. However, convergence can be slow when the finite-dimensional approximation poorly preserves contraction.
+This evaluates the current greedy policy using LSTD, then implicitly improves it by computing a new greedy policy at the next iteration. However, convergence can be slow when the finite-dimensional approximation poorly preserves contraction.
 
 **Newton's method** treats $G(\theta) = 0$ as a rootfinding problem and uses the Jacobian to accelerate convergence. The Jacobian of $G$ is:
 
@@ -540,7 +540,7 @@ The following table summarizes which common approximation operators satisfy the 
 | Fourier/spectral methods | No | Not monotone-preserving in general |
 | Neural networks | No | Highly flexible but no monotonicity guarantees |
 
-The distinction between "safe" (monotone) and "potentially unstable" (non-monotone) approximators provides rigorous foundation for the folk wisdom that linear interpolation is reliable while high-order polynomials can be dangerous for value iteration. But notice that the table's verdict on "least squares projection" is somewhat abstract. It doesn't specifically address the three weighted residual methods we introduced at the start of this chapter.
+The distinction between "safe" (monotone) and "potentially unstable" (non-monotone) approximators provides a rigorous foundation for the folk wisdom that linear interpolation is reliable while high-order polynomials can be dangerous for value iteration. But notice that the table's verdict on "least squares projection" is somewhat abstract. It doesn't specifically address the three weighted residual methods we introduced at the start of this chapter.
 
 The choice of solution method determines which approximation operators are safe to use. Successive approximation (fixed-point iteration) requires monotone approximators to guarantee convergence. Rootfinding methods like Newton's method do not require monotonicity. Stability depends on numerical properties of the Jacobian rather than contraction preservation. These considerations suggest hybrid strategies. One approach runs a few iterations with a monotone method to generate an initial guess, then switches to Newton's method with a smooth approximation for rapid final convergence. 
 
@@ -554,7 +554,7 @@ $$
 (\Proj v)(s) = \frac{s_{i+1} - s}{s_{i+1} - s_i} v(s_i) + \frac{s - s_i}{s_{i+1} - s_i} v(s_{i+1}).
 $$
 
-The interpolation weights (barycentric coordinates) are nonnegative and sum to one, making this an averager in Gordon's sense. Therefore collocation with piecewise linear bases satisfies the monotonicity conditions and the Santos-Vigo-Aguiar stability theorem applies. The folk wisdom that "linear interpolation is safe for value iteration" has rigorous theoretical foundation.
+The interpolation weights (barycentric coordinates) are nonnegative and sum to one, making this an averager in Gordon's sense. Therefore collocation with piecewise linear bases satisfies the monotonicity conditions and the Santos-Vigo-Aguiar stability theorem applies. The folk wisdom that "linear interpolation is safe for value iteration" has a rigorous theoretical foundation.
 
 Galerkin projection is generally not monotone. The Galerkin projection operator for a general basis $\{\varphi_1, \ldots, \varphi_n\}$ has the form:
 
