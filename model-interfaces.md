@@ -554,8 +554,8 @@ $$
 y_k=\alpha\phi_k+\epsilon_k.
 $$
 
-The estimate chooses the value of $\alpha$ that makes the sum of squared voltage
-prediction errors as small as possible, while restricting the value to a
+The estimate is the value of $\alpha$ that makes the sum of squared voltage
+prediction errors as small as possible, with the value restricted to a
 plausible interval:
 
 $$
@@ -605,7 +605,7 @@ This governor is a fixed local rule, not an optimization over a future current
 sequence. Constrained fast charging also motivates richer predictive-control
 methods {cite}`gonzalezSaenz2024fastCharging`.
 
-The three matched runs ask whether the governor reaches the charge target while
+We use three matched runs to ask whether the governor reaches the charge target while
 respecting its bounds on the reference plant, whether the stale model preserves
 the voltage margin after resistance changes, and whether updating one parameter
 restores that margin.
@@ -730,8 +730,8 @@ m_{t+1}=m_t+C_t^p+C_t^d+rN_t^p
 $$
 
 where $C_t^p$ and $C_t^d$ are processed prompt and decode tokens, $rN_t^p$ is
-the fixed reserve for requests entering decode, $\mathcal C_t$ is the set that
-completes, and $L_{j,t}$ is all occupancy released by completed request $j$.
+the fixed reserve for requests entering decode, $\mathcal C_t$ is the set of requests that
+complete, and $L_{j,t}$ is all occupancy released by completed request $j$.
 Equal totals can hide different per-request remaining output lengths, so future
 completion and cache-release times can differ.
 :::
