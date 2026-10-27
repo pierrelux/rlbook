@@ -152,7 +152,7 @@ s_{i,k+1}=q_{i,N_k},
 b_{k+1}=b_k-\sum_i\rho_{i,k}.
 $$
 
-Relocation cancels when station and truck inventories are added. Customer trips
+Relocation preserves the sum of station and truck inventories. Customer trips
 can still change the total inside this three-station boundary because
 their other endpoint may lie elsewhere in the network.
 
@@ -418,9 +418,9 @@ $$
 
 Integrating these readings turns a rate estimate into an angle estimate. Over
 $T$ seconds, an approximately constant bias $b$ contributes roughly $Tb$ to
-that estimated angle. A camera that is actually motionless therefore acquires
-about eight degrees of estimated rotation after ten seconds when an uncorrected
-$0.8$-degree-per-second bias is integrated. Zero-mean measurement noise tends
+that estimated angle. For a camera that is actually motionless, integrating an
+uncorrected $0.8$-degree-per-second bias therefore produces about eight degrees
+of estimated rotation after ten seconds. Zero-mean measurement noise tends
 to fluctuate in both directions; the persistent offset accumulates in one
 direction.
 
