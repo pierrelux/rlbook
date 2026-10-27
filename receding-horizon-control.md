@@ -156,8 +156,8 @@ and keeps $|\theta|\le 0.28$ rad.
 
 The model error alone defeats the open-loop plan. The shorter stick falls
 faster than predicted, the planned commands are too small to catch it, and the
-angle leaves its limit at $t=0.85$ s, before the tap arrives. Nothing in the
-open-loop execution can notice. The replanned controller solves the same
+angle leaves its limit at $t=0.85$ s, before the tap arrives. The open-loop
+execution never measures the state, so it cannot detect the error. The replanned controller solves the same
 optimization with the same wrong model, but each new solve starts from the
 measured state, so the accumulated prediction error is corrected one step at a
 time. Every one of its 60 subproblems is feasible, and the tap appears only as
@@ -711,7 +711,7 @@ $N$-step objective, because $c_N$ is exactly the cost of the extension. The
 infinite-horizon problem can choose among more sequences, so
 $V_\infty(\mathbf x)\le V_N(\mathbf x)$ on $\mathcal X_N$. The bound requires
 that $c_N$ be at least the cost of following $\pi_f$ from every point of
-$\mathcal X_f$. A terminal cost that underestimates that tail loses it.
+$\mathcal X_f$. A terminal cost that underestimates that tail loses the upper bound.
 
 #### Deriving the Approximation Error
 
@@ -762,8 +762,8 @@ Receding-horizon control turns a finite-horizon optimizer into feedback by
 reinitializing it from each measured state and applying only the first planned
 action. The result is a state-feedback law $\kappa_N$, defined on the feasible
 set $\mathcal X_N$ and evaluated by optimization. On the balancing stick,
-replanning with a wrong model stays upright, while the same plan executed open
-loop falls within a second.
+replanning with a wrong model keeps the stick upright, while under the same plan
+executed open loop the stick falls within a second.
 
 A short horizon alone guarantees nothing. It can leave an unstable system
 uncontrolled, lose feasibility, or create a spurious equilibrium near a
