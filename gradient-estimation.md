@@ -73,9 +73,9 @@ $$
 \frac{d}{d\theta}J(\theta) = \int \frac{\partial}{\partial \theta}[f(x,\theta)p(x;\theta)]dx = \int \left[\frac{\partial f}{\partial \theta}p(x;\theta) + f(x,\theta)\frac{\partial p(x;\theta)}{\partial \theta}\right]dx
 $$
 
-While the first term could be numerically integrated using Monte Carlo, the second one cannot as it is not in the form of an expectation. 
+While the first term could be numerically integrated using Monte Carlo, the second one cannot, as it is not in the form of an expectation. 
 
-To transform our objective so that the Monte Carlo estimator for the objective could be differentiated directly while ensuring that the resulting derivative is unbiased, there are two main solutions: a change of measure, or a change of variables. 
+There are two main ways to transform our objective so that the Monte Carlo estimator for the objective can be differentiated directly while ensuring that the resulting derivative is unbiased: a change of measure, or a change of variables. 
 
 ### The Likelihood Ratio Method
 
@@ -131,7 +131,7 @@ p(x;\theta) = q(g^{-1}(x,\theta))\left|\det\frac{\partial g^{-1}(x,\theta)}{\par
 $$
 
 
-For example, if we want to sample from any multivariate Gaussian distributions with covariance matrix $\Sigma$ and mean $\mu$, it suffices to be able to sample from a standard normal noise and compute the linear transformation:
+For example, if we want to sample from any multivariate Gaussian distribution with covariance matrix $\Sigma$ and mean $\mu$, it suffices to be able to sample from a standard normal noise and compute the linear transformation:
 
 $$
 x = \mu + \Sigma^{1/2}\epsilon, \quad \epsilon \sim \mathcal{N}(0,I)
@@ -257,7 +257,7 @@ For concreteness, we fix $\theta = 1.0$ and analyze samples drawn using Monte Ca
 
     $$\hat{g}_{\text{SF}}(\theta) = \frac{1}{N}\sum_{i=1}^N \left[x_i^2\theta(x_i - \theta) + x_i^2\right]$$
 
-    This estimator is unbiased with $\mathbb{E}[\hat{g}_{\text{SF}}] = 4$
+    This estimator is unbiased with $\mathbb{E}[\hat{g}_{\text{SF}}] = 4$.
 
 3. Finally, through the reparameterization $x = \theta + \epsilon$ where $\epsilon \sim \mathcal{N}(0,1)$, we obtain:
 
