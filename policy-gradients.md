@@ -511,7 +511,7 @@ trajectories collected under an earlier policy?
 
 The score function estimator from the previous section is a special case of the likelihood ratio method where the proposal distribution equals the target distribution. We now consider the general case where they differ.
 
-Recall the likelihood ratio gradient estimator from the beginning of this chapter. For objective $J(\theta) = \mathbb{E}_{x \sim p(x;\theta)}[f(x)]$ and any proposal distribution $q(x)$:
+Recall the likelihood ratio gradient estimator from the beginning of this chapter. For an objective $J(\theta) = \mathbb{E}_{x \sim p(x;\theta)}[f(x)]$ and any proposal distribution $q(x)$:
 
 $$
 \nabla_\theta J(\theta) = \mathbb{E}_{x \sim q(x)}\left[f(x) \rho(x; q, \theta) \nabla_\theta \log p(x;\theta)\right]
@@ -804,7 +804,7 @@ $$
 \frac{d\mathbf{v}(\mathbf{w})}{d\mathbf{w}} = -\left(\frac{\partial F(\mathbf{v}(\mathbf{w}), \mathbf{w})}{\partial \mathbf{v}}\right)^{-1}\frac{\partial F(\mathbf{v}(\mathbf{w}), \mathbf{w})}{\partial \mathbf{w}}
 $$
 
-Here we made it clear in our notation that the derivative must be evaluated at root $(\mathbf{v}(\mathbf{w}), \mathbf{w})$ of $F$. For the remaining of this derivation, we will drop this dependence to make notation more compact. 
+Here we made it clear in our notation that the derivative must be evaluated at the root $(\mathbf{v}(\mathbf{w}), \mathbf{w})$ of $F$. For the remainder of this derivation, we will drop this dependence to make notation more compact. 
 
 Applying this to our case with $F(\mathbf{v}, \mathbf{w}) = (\mathbf{I} - \gamma \mathbf{P}_{\pi_{\boldsymbol{w}}})\mathbf{v} - \mathbf{r}_{\pi_{\boldsymbol{w}}}$:
 
@@ -1088,8 +1088,8 @@ critics reduce its variance. Importance ratios then compare data from an older
 policy with the current one, while PPO clips those ratios to limit the update.
 
 The SwingRL experiment separated a correct PPO implementation from a
-successful control result. Five million total training interactions improved
-the shaped return but produced no full rotations. The structured controller
+successful control result. Across five million total training interactions, PPO
+improved the shaped return but produced no full rotations. The structured controller
 solved the nominal rigid-link problem without policy training, then failed a
 different test because the resulting trajectory required a chain to push.
 Algorithm diagnostics, task success, and model validity therefore remain
