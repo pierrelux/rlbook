@@ -1,0 +1,973 @@
+{
+ "date": "2026-10-26",
+ "tldr": [
+  {
+   "notion": "Interpolating the cost-to-go",
+   "t": 1542640,
+   "exam": true,
+   "detail": "On a continuous state space the table \\(J_t\\) is stored at grid nodes. Rounding a successor to the nearest node, as the reservoir code's index function does, is a zero-order hold; a nodal (Lagrange) representation \\(J_t(x)\\approx\\sum_i V_{t,i}\\,\\ell_i(x)\\) generalizes it, with linear interpolation between \\(V_{t,i}\\) and \\(V_{t,i+1}\\) as the next step. The interpolation is now over the state, not over time as in collocation.",
+   "notion_fr": "Interpoler la fonction de coût à venir",
+   "detail_fr": "Sur un espace d'états continu, le tableau \\(J_t\\) est stocké aux nœuds d'une grille. Arrondir un successeur au nœud le plus proche, comme le fait la fonction index du code du réservoir, est un bloqueur d'ordre zéro ; une représentation nodale (Lagrange) \\(J_t(x)\\approx\\sum_i V_{t,i}\\,\\ell_i(x)\\) le généralise, l'interpolation linéaire entre \\(V_{t,i}\\) et \\(V_{t,i+1}\\) étant l'étape suivante. L'interpolation porte maintenant sur l'état, et non sur le temps comme en collocation."
+  },
+  {
+   "notion": "Grids and the curse of dimensionality",
+   "t": 1753919,
+   "exam": false,
+   "detail": "Covering an n-dimensional state space with a grid needs a number of nodes exponential in n, for the zero-order hold and for linear or spline interpolation alike. Multilinear and tensor methods exist but are not covered; interpolation remains attractive when accuracy matters (economics, econometrics) and because it yields discretization error bounds that can guide grid refinement.",
+   "notion_fr": "Grilles et malédiction de la dimension",
+   "detail_fr": "Couvrir un espace d'états de dimension n par une grille exige un nombre de nœuds exponentiel en n, pour le bloqueur d'ordre zéro comme pour l'interpolation linéaire ou par splines. Des méthodes multilinéaires et tensorielles existent mais ne sont pas couvertes ; l'interpolation reste intéressante quand la précision compte (économie, économétrie) et parce qu'elle fournit des bornes d'erreur de discrétisation qui peuvent guider le raffinement de la grille."
+  },
+  {
+   "notion": "Only the ordering matters for the policy",
+   "t": 1941919,
+   "exam": false,
+   "detail": "The argmin in the Bellman recursion is unchanged if \\(J\\) is shifted by a constant, so a deployed policy depends only on the ordering the cost-to-go induces over actions. Learning methods therefore seek a value function that preserves this ordering rather than the exact value, unlike economists for whom \\(J\\) may be a monetary quantity.",
+   "notion_fr": "Seul l'ordre compte pour la politique",
+   "detail_fr": "L'argmin de la récurrence de Bellman ne change pas si \\(J\\) est décalée d'une constante ; une politique déployée ne dépend donc que de l'ordre que la fonction de coût à venir induit sur les actions. Les méthodes d'apprentissage cherchent ainsi une fonction de valeur qui préserve cet ordre plutôt que la valeur exacte, contrairement aux économistes pour qui \\(J\\) peut être une quantité monétaire."
+  },
+  {
+   "notion": "LQR assumptions and its place in a controller stack",
+   "t": 2471119,
+   "exam": false,
+   "detail": "LQR assumes linear dynamics \\(x_{t+1}=A_tx_t+B_tu_t\\) and quadratic costs with \\(Q\\succeq 0\\): \\(x^\\top Qx\\) penalizes distance to a target (subtract the setpoint to track it) and \\(u^\\top Ru\\) penalizes effort, acting like a regularizer; weighting Q and R reshapes the geometry. Because it only regulates near an equilibrium, it is typically one layer of a cascade, for example a hand-coded swing-up that hands over to an LQR linearized at the upright cart-pole, possibly feeding a PID loop.",
+   "notion_fr": "Hypothèses du LQR et sa place dans une pile de contrôleurs",
+   "detail_fr": "Le LQR suppose une dynamique linéaire \\(x_{t+1}=A_tx_t+B_tu_t\\) et des coûts quadratiques avec \\(Q\\succeq 0\\) : \\(x^\\top Qx\\) pénalise la distance à une cible (on soustrait la consigne pour la suivre) et \\(u^\\top Ru\\) pénalise l'effort, à la manière d'un régularisateur ; pondérer Q et R déforme la géométrie. Comme il ne régule qu'au voisinage d'un équilibre, il forme typiquement un étage d'une cascade, par exemple un balancement codé à la main qui passe la main à un LQR linéarisé autour du pendule inversé en position haute, alimentant éventuellement une boucle PID."
+  },
+  {
+   "notion": "LQR by backward induction: the Riccati recursion",
+   "t": 2857119,
+   "exam": true,
+   "detail": "Starting from \\(J_T(x)=x^\\top P_Tx\\), substituting the linear dynamics keeps the term inside the min quadratic in u, so the minimizer is found by setting the gradient to zero: \\(u_t^*=-K_tx_t\\) with \\(K_t=(R_t+B_t^\\top P_{t+1}B_t)^{-1}B_t^\\top P_{t+1}A_t\\). Plugging it back gives the discrete-time Riccati equation for \\(P_t\\), which stays positive semidefinite: Bellman's recursion specialized to linear-quadratic problems, run backward over matrices instead of functions, with exact values \\(x^\\top P_tx\\) and no interpolation. In practice, use SciPy's solvers rather than explicit inverses.",
+   "notion_fr": "Le LQR par induction arrière : la récurrence de Riccati",
+   "detail_fr": "En partant de \\(J_T(x)=x^\\top P_Tx\\), substituer la dynamique linéaire garde le terme dans le min quadratique en u, et on trouve le minimiseur en annulant le gradient : \\(u_t^*=-K_tx_t\\) avec \\(K_t=(R_t+B_t^\\top P_{t+1}B_t)^{-1}B_t^\\top P_{t+1}A_t\\). En le réinjectant, on obtient l'équation de Riccati en temps discret pour \\(P_t\\), qui reste semi-définie positive : la récurrence de Bellman spécialisée aux problèmes linéaires quadratiques, exécutée à rebours sur des matrices plutôt que sur des fonctions, avec des valeurs exactes \\(x^\\top P_tx\\) et sans interpolation. En pratique, utilisez les solveurs de SciPy plutôt que des inverses explicites."
+  },
+  {
+   "notion": "Noise and the transition kernel",
+   "t": 4274159,
+   "exam": false,
+   "detail": "Noise enters either as an exogenous input, \\(x_{t+1}=f_t(x_t,u_t,\\omega_t)\\), or, after marginalizing it out, through the transition kernel \\(p(x_{t+1}\\mid x_t,u_t)\\), a matrix in the discrete case. The MDP framework also allows random rewards with the same mathematics.",
+   "notion_fr": "Le bruit et le noyau de transition",
+   "detail_fr": "Le bruit intervient soit comme une entrée exogène, \\(x_{t+1}=f_t(x_t,u_t,\\omega_t)\\), soit, une fois marginalisé, par le noyau de transition \\(p(x_{t+1}\\mid x_t,u_t)\\), une matrice dans le cas discret. Le cadre des MDP permet aussi des récompenses aléatoires avec les mêmes mathématiques."
+  },
+  {
+   "notion": "Expectation, policy ordering and risk",
+   "t": 4404880,
+   "exam": true,
+   "detail": "With noise, a min needs an objective: taking the expectation is a modeling choice grounded in von Neumann-Morgenstern utility theory, and it makes the decision maker risk-neutral; risk-sensitive RL replaces it, for example by CVaR on the tail of the return distribution. Policies are compared by the component-wise partial order \\(J^\\pi(x)\\le J^{\\pi'}(x)\\) for every x.",
+   "notion_fr": "Espérance, ordre des politiques et risque",
+   "detail_fr": "Avec du bruit, un min exige un objectif : prendre l'espérance est un choix de modélisation fondé sur la théorie de l'utilité de von Neumann et Morgenstern, et rend le décideur neutre au risque ; l'apprentissage par renforcement sensible au risque la remplace, par exemple par la CVaR sur la queue de la distribution des rendements. Les politiques sont comparées par l'ordre partiel composante par composante \\(J^\\pi(x)\\le J^{\\pi'}(x)\\) pour tout x."
+  },
+  {
+   "notion": "Policy evaluation versus optimality",
+   "t": 4773520,
+   "exam": false,
+   "detail": "\\(J^\\pi\\) is the expected cumulative cost of running a given policy; it can be estimated by rolling the policy out many times and averaging. Evaluation and optimization are distinct problems: the evaluation equation is linear, while the optimality equation is nonlinear because of the min or max.",
+   "notion_fr": "Évaluation de politique et optimalité",
+   "detail_fr": "\\(J^\\pi\\) est le coût cumulé espéré obtenu en exécutant une politique donnée ; on peut l'estimer en exécutant la politique plusieurs fois et en faisant la moyenne. L'évaluation et l'optimisation sont deux problèmes distincts : l'équation d'évaluation est linéaire, alors que l'équation d'optimalité est non linéaire à cause du min ou du max."
+  },
+  {
+   "notion": "Policy classes and Markov sufficiency",
+   "t": 5242320,
+   "exam": true,
+   "detail": "Policies can be history-dependent or Markovian, randomized or deterministic; history-dependent randomized is the largest class but grows intractably with time. With Markovian dynamics and a finite horizon, a Markovian deterministic optimal policy exists and backward induction with an expectation computes it. It is non-stationary: finite-horizon policies must depend on t, and stationarity only comes with the infinite-horizon discounted case.",
+   "notion_fr": "Classes de politiques et suffisance markovienne",
+   "detail_fr": "Les politiques peuvent dépendre de l'historique ou être markoviennes, être randomisées ou déterministes ; la classe randomisée dépendant de l'historique est la plus grande, mais devient intraitable avec le temps. Avec une dynamique markovienne et un horizon fini, il existe une politique optimale markovienne déterministe, que l'induction arrière avec une espérance permet de calculer. Elle est non stationnaire : à horizon fini, les politiques doivent dépendre de t, et la stationnarité n'apparaît qu'avec l'horizon infini actualisé."
+  },
+  {
+   "notion": "Monte Carlo integration for the Bellman expectation",
+   "t": 5815199,
+   "exam": true,
+   "detail": "The conditional expectation of the next cost-to-go is an integral that quadrature rules cannot handle in high dimension. Monte Carlo integration replaces it by a sample average over draws from the transition kernel, needs only a simulator rather than the probabilities, and its error does not depend on the dimension; empirical risk minimization in supervised learning rests on the same idea.",
+   "notion_fr": "Intégration de Monte-Carlo pour l'espérance de Bellman",
+   "detail_fr": "L'espérance conditionnelle du coût à venir suivant est une intégrale que les règles de quadrature ne peuvent pas traiter en grande dimension. L'intégration de Monte-Carlo la remplace par une moyenne d'échantillons tirés du noyau de transition, n'exige qu'un simulateur plutôt que les probabilités, et son erreur ne dépend pas de la dimension ; la minimisation du risque empirique en apprentissage supervisé repose sur la même idée."
+  },
+  {
+   "notion": "Partial observability and information states",
+   "t": 6162400,
+   "exam": false,
+   "detail": "When states are observed indirectly, the problem is a POMDP, the controlled counterpart of an HMM, and history matters. The course mostly assumes full observation and handles partial observability through learned representations such as recurrent models; an information state is a compression of the history that preserves optimality, a sufficient statistic for control, and self-supervised RL objectives can be read as trying to satisfy its conditions.",
+   "notion_fr": "Observabilité partielle et états d'information",
+   "detail_fr": "Quand les états sont observés indirectement, le problème est un POMDP, la contrepartie commandée d'un HMM, et l'historique compte. Le cours suppose surtout une observation complète et traite l'observabilité partielle par des représentations apprises comme des modèles récurrents ; un état d'information est une compression de l'historique qui préserve l'optimalité, une statistique exhaustive pour la commande, et les objectifs d'apprentissage par renforcement auto-supervisé peuvent être vus comme des tentatives d'en satisfaire les conditions."
+  }
+ ],
+ "outline": [
+  {
+   "t": 80960,
+   "title": "Midterm 1 regrade and the project matchmaking page",
+   "title_fr": "Recorrection du premier examen et page de jumelage des projets"
+  },
+  {
+   "t": 523680,
+   "title": "Poster session, project website and startup potential",
+   "title_fr": "Séance d'affiches, site Web du projet et potentiel de démarrage d'entreprise"
+  },
+  {
+   "t": 1182000,
+   "title": "Deterministic dynamic programming recap; horizons",
+   "title_fr": "Rappel de la programmation dynamique déterministe ; horizons"
+  },
+  {
+   "t": 1428720,
+   "title": "Interpolating the cost-to-go on continuous states",
+   "title_fr": "Interpoler la fonction de coût à venir sur des états continus"
+  },
+  {
+   "t": 2046000,
+   "title": "Linear quadratic regulator: assumptions and uses",
+   "title_fr": "Régulateur linéaire quadratique : hypothèses et usages"
+  },
+  {
+   "t": 2590480,
+   "title": "LQR by backward induction and the Riccati recursion",
+   "title_fr": "Le LQR par induction arrière et la récurrence de Riccati"
+  },
+  {
+   "t": 3369760,
+   "title": "Break",
+   "title_fr": "Pause"
+  },
+  {
+   "t": 4108400,
+   "title": "Interpolation error bounds; adding noise",
+   "title_fr": "Bornes d'erreur d'interpolation ; ajout du bruit"
+  },
+  {
+   "t": 4372800,
+   "title": "Expectation, policy ordering and risk",
+   "title_fr": "Espérance, ordre des politiques et risque"
+  },
+  {
+   "t": 4838080,
+   "title": "Policy classes and Markov sufficiency",
+   "title_fr": "Classes de politiques et suffisance markovienne"
+  },
+  {
+   "t": 5538639,
+   "title": "Computing the expectation: Monte Carlo integration",
+   "title_fr": "Calculer l'espérance : intégration de Monte-Carlo"
+  },
+  {
+   "t": 6100800,
+   "title": "Partial observability and information states",
+   "title_fr": "Observabilité partielle et états d'information"
+  }
+ ],
+ "paras": [
+  {
+   "t": 3919,
+   "text": "[No speech]",
+   "fr": "[No speech]",
+   "readable": "[No speech]"
+  },
+  {
+   "t": 41600,
+   "text": "[No speech]",
+   "fr": "[No speech]",
+   "readable": "[No speech]"
+  },
+  {
+   "t": 80960,
+   "text": "Okay. Everything's okay. A good reading week? You had time to read stuff. Yeah. Sorry, it's a dad joke. That's what happens when you have three kids: you start making bad jokes all the time. I will spend time next Thursday to go over the first midterm.",
+   "fr": "Bon. Tout va bien. Une bonne semaine de lecture ? Vous avez eu le temps de lire. Oui. Désolé, c'est une blague de papa. C'est ce qui arrive quand on a trois enfants : on se met à faire de mauvaises blagues tout le temps. Jeudi prochain, je prendrai le temps de revenir sur le premier examen de mi-session.",
+   "readable": "I hope the reading week went well and that you had time to read. On Thursday I will go over the first midterm."
+  },
+  {
+   "t": 124399,
+   "text": "Gabriel told me that question one was misunderstood, and indeed it's the case. So I want to regrade it somehow to give more points, because I think the wording was probably not the best. It was not meant to be that complicated, and you were probably expecting something more than what I was actually asking. You've been overthinking, I think. So I'll try to fix that one and bring you back your copies. On Thursday, we'll go over this.",
+   "fr": "Gabriel m'a dit que la question un avait été mal comprise, et c'est effectivement le cas. Je veux donc la recorriger d'une façon ou d'une autre pour donner plus de points, parce que je pense que la formulation n'était probablement pas la meilleure. Elle n'était pas censée être si compliquée, et vous vous attendiez sans doute à quelque chose de plus que ce que je demandais réellement. Vous avez trop réfléchi, je pense. Je vais donc essayer de corriger celle-là et vous rendre vos copies. Jeudi, on reviendra là-dessus.",
+   "readable": "Gabriel told me that question one was misunderstood, and he is right. The wording was probably not the best: the question was not meant to be complicated, and many of you expected more than I was asking and overthought it. I will regrade it to give more points and return your copies on Thursday, when we go over the exam."
+  },
+  {
+   "t": 165519,
+   "text": "While you were reading last week, I sent you a web page whose URL is somewhere. I'll have to go to StudiUM to find it myself. It's asking me for two-factor authentication. No. Okay. Phew. Okay. So, this one, and then where was it sent? \"Nouvelles\".",
+   "fr": "Pendant que vous lisiez la semaine dernière, je vous ai envoyé une page Web dont l'URL est quelque part. Je vais devoir aller sur StudiUM pour la retrouver moi-même. Il me demande l'authentification à deux facteurs. Non. Bon. Ouf. Bon. Alors, celle-ci, et où est-ce que ça a été envoyé ? « Nouvelles ».",
+   "readable": "During the reading week I sent you a web page through the news section on StudiUM."
+  },
+  {
+   "t": 195680,
+   "text": "Yes. Here you go. Yes, that's the right one. How cool is this? Of course, my friend Claude helped me prepare this, because I didn't go through 200 projects manually, but it's been a tremendous help to skim through potential good projects and shape them to be what I want for projects. And I even created this matchmaking questionnaire here. You don't have to use it, but if you want to try different routes: what would you like your work to change in life?",
+   "fr": "Oui. Voilà. Oui, c'est la bonne. C'est génial, non ? Bien sûr, mon ami Claude m'a aidé à préparer ça, parce que je n'ai pas parcouru 200 projets à la main, mais ça a été d'une aide énorme pour passer en revue les projets potentiellement intéressants et les façonner pour qu'ils correspondent à ce que je veux pour les projets. J'ai même créé ce questionnaire de jumelage ici. Vous n'êtes pas obligés de l'utiliser, mais si vous voulez essayer différentes pistes : qu'aimeriez-vous que votre travail change dans la vie ?",
+   "readable": "This page lists the project ideas. With Claude's help, I screened about 200 candidate projects and shaped the most promising ones into what I want for this course. The page also has a matchmaking questionnaire. You don't have to use it, but it can help you explore. It asks, for example, what you would like your work to change in the world."
+  },
+  {
+   "t": 234239,
+   "text": "\"I want to make some improvement in democracy.\" Yes. Next. All right. \"Which part sounds the most fun?\" I want to focus on the controller. \"By the end of the semester, I want to be good at...\" amortizing a solver, which you might not know what it means now, but just playing along. \"I want it to be...\" any speed, I don't care, I'm very ambitious. There you go. This is the suggestion for you: dynamic refugee placement under capacity.",
+   "fr": "« Je veux améliorer un peu la démocratie. » Oui. Suivant. Très bien. « Quelle partie semble la plus amusante ? » Je veux me concentrer sur le contrôleur. « D'ici la fin du trimestre, je veux être bon en... » amortir un solveur, ce que vous ne savez peut-être pas encore ce que ça veut dire, mais je joue le jeu. « Je veux que ce soit... » n'importe quelle vitesse, ça m'est égal, je suis très ambitieux. Voilà. Voici la suggestion pour vous : placement dynamique de réfugiés sous contrainte de capacité.",
+   "readable": "Suppose you answer that you want to improve democracy, that you want to focus on the controller, that by the end of the term you want to be good at amortizing a solver (a notion we will see later), and that you are ambitious about the pace. The page then suggests a project: dynamic refugee placement under capacity constraints."
+  },
+  {
+   "t": 270960,
+   "text": "And thanks to my good old friend Claude, I've already been sketching out what it could look like in terms of the framing and the paper. Then you can create a short list of those things here, and you can copy-paste it. At the end of the day, you can send me an email with the names of your teammates, it's going to send me the list, and I'll tell you whether it's a good idea or not, and whether you want to build extensions to it. So you're not bound to picking projects from that list, but I think it's very representative of what I expect.",
+   "fr": "Et grâce à mon bon vieil ami Claude, j'ai déjà esquissé à quoi ça pourrait ressembler en termes de cadrage et d'article. Ensuite, vous pouvez dresser une courte liste de ces éléments ici, et vous pouvez la copier-coller. À la fin, vous pouvez m'envoyer un courriel avec les noms de vos coéquipiers ; ça m'enverra la liste, et je vous dirai si c'est une bonne idée ou non, et si vous voulez y ajouter des extensions. Vous n'êtes donc pas obligés de choisir des projets dans cette liste, mais je pense qu'elle est très représentative de ce que j'attends.",
+   "readable": "For each project I have already sketched a possible framing and paper outline. You can build a short list and copy it. When your team is formed, send me an email with your teammates' names and your list, and I will tell you whether the idea works and how you might extend it. You are not bound to this list, but it is very representative of what I expect."
+  },
+  {
+   "t": 306880,
+   "text": "And with 200 projects, I think there should be a fit for your own tastes. If it's not the case, you can always talk to me, but I have a preference if you stick to those things. Just some general guidelines. There are some projects where, I don't know, you pick your favorite application, let's say you like driving a car, whatever, and then you find a driving gym, or whatever gym. The gym interface is a standardized API for reinforcement learning. You can find a lot of these projects where people have wrapped these environments, and all you've got to do is apply your algorithm. You pick PPO, you pick whatever, and then you run it. I think the interesting part in this class is actually for you to think about designing the",
+   "fr": "Et avec 200 projets, je pense qu'il devrait y en avoir un qui corresponde à vos goûts. Si ce n'est pas le cas, vous pouvez toujours venir me parler, mais je préfère que vous vous en teniez à ces projets. Juste quelques lignes directrices générales. Il y a des projets où, je ne sais pas, vous choisissez votre application préférée, disons que vous aimez conduire une voiture, peu importe, et vous trouvez un gym de conduite, ou n'importe quel gym. L'interface gym est une API standardisée pour l'apprentissage par renforcement. On trouve beaucoup de ces projets où des gens ont encapsulé ces environnements, et tout ce que vous avez à faire, c'est appliquer votre algorithme. Vous choisissez PPO, n'importe quoi, et vous l'exécutez. Je pense que la partie intéressante de ce cours, c'est justement que vous réfléchissiez à concevoir le",
+   "readable": "With 200 projects there should be one that fits your taste. If not, come and talk to me, but I prefer that you choose from the list. One general guideline: avoid projects where you pick a favorite application, find an existing gym environment for it (gym is the standard interface for reinforcement learning environments, and many simulators have been wrapped in it), choose PPO or another algorithm, and simply run it."
+  },
+  {
+   "t": 367360,
+   "text": "whole thing end to end. If you just stick to the API on the gym side of things, I think you're missing out on a lot of the stuff I'm trying to convey in this course. If you read a bit of the position piece in the introduction of the notes or book, whatever: what I'm trying to share with you and convey is that if you really want to do control and reinforcement learning in real life, the part where you choose and play with the hyperparameters of your algorithm is actually the easy part. What's really hard is formulating the whole thing end to end. When you're a researcher, especially in academia, you're always presented with these gym environments that other people have come up with. And it's okay if your goal is to design new algorithms: you want to benchmark on standardized benchmarks whose internals you don't touch. But it doesn't expose you to the reality of getting these things working and shipping them",
+   "fr": "tout de bout en bout. Si vous vous en tenez à l'API du côté gym, je pense que vous passez à côté de beaucoup de ce que j'essaie de transmettre dans ce cours. Si vous lisez un peu le texte de position dans l'introduction des notes ou du livre, peu importe : ce que j'essaie de partager avec vous, c'est que si vous voulez vraiment faire de la commande et de l'apprentissage par renforcement dans la vraie vie, la partie où vous choisissez et ajustez les hyperparamètres de votre algorithme est en fait la partie facile. Ce qui est vraiment difficile, c'est de formuler le tout de bout en bout. Quand on est chercheur, surtout dans le milieu universitaire, on nous présente toujours ces environnements gym que d'autres ont conçus. Et c'est correct si votre but est de concevoir de nouveaux algorithmes : vous voulez vous comparer sur des bancs d'essai standardisés dont vous ne touchez pas les rouages. Mais ça ne vous expose pas à la réalité de faire fonctionner ces choses et de les livrer",
+   "readable": "The interesting part of this course is designing the whole problem end to end. If you stay on the algorithm side of a gym interface, you miss much of what I am trying to convey. As the position statement in the introduction of the book argues, when you do control and reinforcement learning in real life, choosing and tuning the algorithm's hyperparameters is the easy part. The hard part is formulating the problem end to end. Academic researchers are usually handed environments that someone else designed. That is fine when the goal is a new algorithm, since benchmarks must be standardized and left untouched. But it does not expose you to what it takes to get such a system working and deployed."
+  },
+  {
+   "t": 427520,
+   "text": "in real life. Because if you were to apply these things, nobody's going to write a gym and hand you a gym interface for your problem. That's the hard part, in my opinion. PPO, one of those famous algorithms, is not perfect. It can diverge, we know that. Doesn't matter. It's actually pretty good. If you've got a gym environment that is properly defined, I guarantee you that you're going to be able to do something with PPO, no matter what, even if theoretically it's not the best algorithm, it can diverge, all these properties. It doesn't matter in practice. Solving environments defined by simulators: right now, we're really, really good at this. I'm not going to say it's solved, but we're really good at this, especially if you've got compute. This, to me, has been the big lesson of the last decade or more of progress at DeepMind, with AlphaGo and all the successor papers.",
+   "fr": "dans la vraie vie. Parce que si vous deviez appliquer ces méthodes, personne n'écrira un gym pour vous donner une interface gym pour votre problème. C'est ça, la partie difficile, à mon avis. PPO, un de ces algorithmes célèbres, n'est pas parfait. Il peut diverger, on le sait. Peu importe. Il est en fait assez bon. Si vous avez un environnement gym bien défini, je vous garantis que vous pourrez faire quelque chose avec PPO, quoi qu'il arrive, même si théoriquement ce n'est pas le meilleur algorithme, qu'il peut diverger, toutes ces propriétés. Ça n'a pas d'importance en pratique. Résoudre des environnements définis par des simulateurs : en ce moment, on est vraiment, vraiment bons là-dedans. Je ne dirai pas que c'est résolu, mais on est vraiment bons, surtout si on a de la puissance de calcul. C'est, pour moi, la grande leçon de la dernière décennie ou plus de progrès chez DeepMind, avec AlphaGo et tous les articles qui ont suivi.",
+   "readable": "In practice nobody will write a gym environment for your problem; building it is the hard part. PPO is not perfect, and it can diverge, but with a properly defined environment I guarantee you can get something working with it, whatever its theoretical shortcomings. We have become very good at solving problems defined by simulators. I would not say the problem is solved, but with enough compute we are very good at it. To me, that is the main lesson of the last decade of progress at DeepMind, from AlphaGo to its successors."
+  },
+  {
+   "t": 488400,
+   "text": "I think the takeaway is that if you've got a simulator, we're really good now at finding a solution, somehow brute-forcing it. So, long story short, I expect you to do more than apply an off-the-shelf algorithm to an already designed environment. I want you to design the whole thing end to end. What else? I asked you to prepare a poster.",
+   "fr": "Je pense que la leçon à retenir, c'est que si on a un simulateur, on est maintenant vraiment bons pour trouver une solution, en quelque sorte par force brute. Bref, j'attends de vous plus que d'appliquer un algorithme prêt à l'emploi à un environnement déjà conçu. Je veux que vous conceviez le tout de bout en bout. Quoi d'autre ? Je vous ai demandé de préparer une affiche.",
+   "readable": "Given a simulator, we can now find good solutions, almost by brute force. So I expect more from you than applying an off-the-shelf algorithm to an existing environment: I want you to design the whole thing end to end."
+  },
+  {
+   "t": 523680,
+   "text": "Yes. I did one more thing this year. Instead of asking for a report, which I didn't ask for last year either, I want you to prepare a poster. There's going to be a poster session. It's been confirmed, it's at the usual class time, and it's going to be right outside, over there. The Agora downstairs was taken on the day I asked, but this space over there will be available. They're going to bring poster boards.",
+   "fr": "Oui. J'ai fait une chose de plus cette année. Au lieu de demander un rapport, ce que je n'ai pas demandé l'an dernier non plus, je veux que vous prépariez une affiche. Il y aura une séance d'affiches. C'est confirmé, c'est à l'heure habituelle du cours, et ce sera juste à l'extérieur, là-bas. L'Agora en bas était prise le jour où j'ai demandé, mais cet espace là-bas sera disponible. Ils vont apporter des panneaux d'affichage.",
+   "readable": "This year, instead of a report, I am asking for a poster. The poster session is confirmed, at the usual class time, in the space just outside this room; the Agora downstairs was already booked. Poster boards will be provided."
+  },
+  {
+   "t": 559040,
+   "text": "I don't have a printer to print posters. So if you don't have access to one, or you don't have a cheap option, it's okay if you print it on US letter sheets and assemble them. You can do that, it's fine. Here at Mila, there's even a color printer, so you can do that. But I also ask you for another deliverable: I want you to create a website. It's super easy nowadays to create a website. Not only this, I want you to spend a bit of time on it. It's okay if you use generative AI for these things, of course, but try to illustrate your paper with some animations, like I'm trying to do, and try to be pedagogical in your website. The point is that you present what you did and you want people to be engaged in the material. Our attention spans are all very short now. So think of material that you could share; have in",
+   "fr": "Je n'ai pas d'imprimante pour imprimer des affiches. Donc si vous n'y avez pas accès, ou que vous n'avez pas d'option bon marché, c'est correct de l'imprimer sur des feuilles format lettre et de les assembler. Vous pouvez faire ça, c'est correct. Ici à Mila, il y a même une imprimante couleur, donc vous pouvez l'utiliser. Mais je vous demande aussi un autre livrable : je veux que vous créiez un site Web. C'est super facile aujourd'hui de créer un site Web. Et pas seulement ça, je veux que vous y consacriez un peu de temps. C'est correct d'utiliser l'IA générative pour ça, bien sûr, mais essayez d'illustrer votre article avec des animations, comme j'essaie de le faire, et essayez d'être pédagogiques sur votre site. Le but, c'est de présenter ce que vous avez fait et que les gens s'intéressent au contenu. Notre capacité d'attention est très courte maintenant. Alors pensez à du contenu que vous pourriez partager ; dites-vous",
+   "readable": "I cannot print posters for you. If you have no access to a large-format printer or no cheap option, you may print your poster on letter-size sheets and assemble them. Mila also has a color printer. I am also asking for a second deliverable: a project website. Building one is easy today. Spend some time on it; you may use generative AI, of course. Illustrate your work with animations, as I try to do in the book, and make the site pedagogical. The goal is to present what you did in a way that engages people whose attention span is short."
+  },
+  {
+   "t": 620640,
+   "text": "mind that you're going to create a Twitter thread about how amazing your project was, and you want people to actually spend a bit of time understanding what happens. So create some visuals, some animations. Claude is really good at it. ChatGPT is really good at it. You can do it manually too if you want, no problem. But I want a website that summarizes what you did, instead of a paper: just the main takeaways, animations, a figure to explain the pipeline, the steps. And of course, the material you develop for the website you can definitely put on your poster. The website allows you to have dynamic content, so if you want stuff that moves, put it on the website. Okay? You can push that website on GitHub. I presume most of you have a GitHub account. If you don't want to use GitHub, just let me know. Otherwise, on GitHub you use GitHub Pages: you go to settings, then Pages. Every repo can have its own web page. So I think that's the way to go for this.",
+   "fr": "que vous allez créer un fil Twitter sur à quel point votre projet était génial, et que vous voulez que les gens prennent un peu de temps pour comprendre ce qui se passe. Alors créez des visuels, des animations. Claude est vraiment bon pour ça. ChatGPT est vraiment bon pour ça. Vous pouvez aussi le faire à la main si vous voulez, pas de problème. Mais je veux un site Web qui résume ce que vous avez fait, au lieu d'un article : juste les principaux enseignements, des animations, une figure pour expliquer le pipeline, les étapes. Et bien sûr, le matériel que vous développez pour le site, vous pouvez tout à fait le mettre sur votre affiche. Le site vous permet d'avoir du contenu dynamique, donc si vous voulez des choses qui bougent, mettez-les sur le site. D'accord ? Vous pouvez publier ce site sur GitHub. Je présume que la plupart d'entre vous ont un compte GitHub. Si vous ne voulez pas utiliser GitHub, dites-le-moi. Sinon, sur GitHub, vous utilisez GitHub Pages : vous allez dans les paramètres, puis Pages. Chaque dépôt peut avoir sa propre page Web. Je pense que c'est la voie à suivre.",
+   "readable": "Imagine you are writing a Twitter thread about your project and want people to take the time to understand it. Create visuals and animations; Claude and ChatGPT are good at this, or you can make them by hand. The website replaces a paper: it should give the main takeaways, animations, and a figure that explains the pipeline and its steps. You can reuse this material on your poster, and keep the moving parts on the website. Host the site on GitHub Pages (Settings, then Pages; every repository can have its own page). If you would rather not use GitHub, let me know."
+  },
+  {
+   "t": 681600,
+   "text": "Another thing: my friend Claude scanned these 216 papers, and I asked it to flag those that have good startup potential. Now at Mila we have Mila Ventures, and every year I think it's kind of cool to get students who are interested in this to think a bit more broadly about startup opportunities, and to use this course to maybe pick a project that could, if they want, turn into a startup. Last year I did this. Mila Ventures was not a thing yet in December last year, but I invited all the partnership people at Mila to come visit the posters. This year I'll do it again with the Mila Ventures people, so that maybe they can convince you to join their startup program, if you're interested.",
+   "fr": "Autre chose : mon ami Claude a passé en revue ces 216 articles, et je lui ai demandé de signaler ceux qui ont un bon potentiel de démarrage d'entreprise. À Mila, on a maintenant Mila Ventures, et chaque année je trouve que c'est intéressant d'amener les étudiants que ça intéresse à réfléchir plus largement aux occasions de démarrage d'entreprise, et à utiliser ce cours pour peut-être choisir un projet qui pourrait, s'ils le veulent, devenir une jeune pousse. L'an dernier, je l'ai fait. Mila Ventures n'existait pas encore en décembre dernier, mais j'avais invité toutes les personnes des partenariats de Mila à venir voir les affiches. Cette année, je le referai avec les gens de Mila Ventures, pour qu'ils puissent peut-être vous convaincre de vous joindre à leur programme de démarrage, si ça vous intéresse.",
+   "readable": "I also asked Claude to scan the 216 candidate papers and flag those with startup potential. Mila now has Mila Ventures, and each year I like to encourage interested students to think about startup opportunities and perhaps choose a project that could become one. Last year, before Mila Ventures existed, I invited Mila's partnerships team to visit the posters. This year I will invite the Mila Ventures team, who may try to recruit you into their startup program."
+  },
+  {
+   "t": 733120,
+   "text": "It's a thing they put in place. I think they give you 10,000 bucks to attend that workshop, and they help you create a startup. If you choose to create a startup, I think Mila Ventures probably takes a cut in your startup, which is reasonable. But in any case, it's something you can think about. Last thing regarding startups: I think, guys, it's probably a very good time now to come up with a company.",
+   "fr": "C'est quelque chose qu'ils ont mis en place. Je pense qu'ils vous donnent 10 000 $ pour participer à cet atelier, et ils vous aident à créer une jeune pousse. Si vous choisissez de créer une entreprise, je pense que Mila Ventures prend probablement une part de votre entreprise, ce qui est raisonnable. Mais de toute façon, c'est quelque chose auquel vous pouvez réfléchir. Dernière chose concernant les jeunes pousses : je pense, les amis, que c'est probablement un très bon moment pour fonder une entreprise.",
+   "readable": "As I understand it, the program gives you about $10,000 to attend a workshop and helps you start a company, in exchange for a share of the company, which is reasonable. It is something to consider. More generally, I think now is a very good time to start a company."
+  },
+  {
+   "t": 764160,
+   "text": "Look, this is my opinion, okay? I don't want to be alarmist, but I think software on its own is not going to have any value anymore. But there's going to be value in creating very focused companies on well-scoped problems, even more so if your company has a physical component. That's the one aspect, the physical world, that cannot be taken over just yet by AI. So yeah, it's a good time to create value with startups, I think. We can move really fast. You can build a company now with two or three of you and build something that would have taken years and huge teams. You don't have to, but I think it's a good time.",
+   "fr": "Écoutez, c'est mon opinion, d'accord ? Je ne veux pas être alarmiste, mais je pense que le logiciel à lui seul n'aura plus aucune valeur. Mais il y aura de la valeur à créer des entreprises très ciblées sur des problèmes bien circonscrits, encore plus si votre entreprise a une composante physique. C'est le seul aspect, le monde physique, qui ne peut pas encore être pris en charge par l'IA. Alors oui, je pense que c'est un bon moment pour créer de la valeur avec des jeunes pousses. On peut aller très vite. Vous pouvez bâtir une entreprise à deux ou trois et construire quelque chose qui aurait pris des années et d'énormes équipes. Vous n'êtes pas obligés, mais je pense que c'est un bon moment.",
+   "readable": "This is my opinion, and I don't want to be alarmist, but I think software on its own will soon have little value. There will be value in companies focused on well-scoped problems, especially those with a physical component, since the physical world cannot yet be taken over by AI. Teams can now move very fast: two or three people can build what used to take years and large teams. You don't have to do it, but it is a good time."
+  },
+  {
+   "t": 824160,
+   "text": "So these are the projects. Any questions on this, on expectations and so on? There is one thing, okay? If you don't know Québécois, there's a word we like to use, \"chicaner\": to scold you, I guess, in English. I'm going to scold you in advance, okay? You can use AI. I use AI all the time. For the final project, I'm going to come see you at the poster and I'm going to be in front of you. You'd better be prepared to answer any question I have about every single number you've got on your poster, every single line, every single baseline. Okay? It's entirely fine to use generative AI. Use it all the time; we're going to use it all the time in the future. However, I need you to understand everything.",
+   "fr": "Voilà donc les projets. Des questions là-dessus, sur les attentes, etc. ? Il y a une chose, d'accord ? Si vous ne connaissez pas le québécois, il y a un mot qu'on aime utiliser, « chicaner » : vous gronder, je suppose, en anglais. Je vais vous chicaner d'avance, d'accord ? Vous pouvez utiliser l'IA. J'utilise l'IA tout le temps. Pour le projet final, je vais venir vous voir à votre affiche et je vais être devant vous. Vous avez intérêt à être prêts à répondre à toutes mes questions sur chaque nombre de votre affiche, chaque ligne, chaque méthode de référence. D'accord ? C'est tout à fait correct d'utiliser l'IA générative. Utilisez-la tout le temps ; on va l'utiliser tout le temps à l'avenir. Par contre, j'ai besoin que vous compreniez tout.",
+   "readable": "Before questions, a warning. In Québécois we say \"chicaner\", roughly \"to scold\", and I am scolding you in advance. You may use AI; I use it all the time, and we all will. But at the poster session I will stand in front of you and ask about every number, every line and every baseline on your poster, so you must understand everything on it."
+  },
+  {
+   "t": 878160,
+   "text": "Okay? So the day before, once your poster is prepared, study. You can even think strategically, right? It's like your comprehensive exam at McGill, or your predoc, whatever it's called. When you prepare your report, you want to be strategic about what you put on it. If you put a formula, it's always an invitation for your jury members to ask you questions about that formula. So think about what you put there, because whatever you put there, I'm going to ask you questions about it. And last year was the first time I did posters.",
+   "fr": "D'accord ? Donc la veille, une fois votre affiche prête, étudiez. Vous pouvez même penser de façon stratégique, non ? C'est comme votre examen de synthèse à McGill, ou votre prédoc, peu importe comment ça s'appelle. Quand vous préparez votre rapport, vous voulez être stratégiques sur ce que vous y mettez. Si vous mettez une formule, c'est toujours une invitation pour les membres de votre jury à vous poser des questions sur cette formule. Alors réfléchissez à ce que vous y mettez, parce que tout ce que vous y mettrez, je vais vous poser des questions dessus. Et l'an dernier, c'était la première fois que je faisais des affiches.",
+   "readable": "Study the day before the session, and be strategic about what you put on the poster, as you would for a comprehensive or qualifying exam: every formula is an invitation for questions about it. Last year was the first time I used posters."
+  },
+  {
+   "t": 911920,
+   "text": "It was very exciting. I really, really liked it. I really liked the projects people picked, I was really impressed by the outcome, and clearly the level of what we can do now has gone up ten times compared to what it used to be, and it showed. However, I've also seen cases where, if I had just looked at a student's poster or final report (I was not asking for a final report, exactly because of that), I'd have been like, wow, this is amazing, A+, 200%, amazing project. And then you start asking questions: all right, so this is what you did, how does it work? Okay, you compare against what? And then: okay, that number in the table and that algorithm name, what is it exactly? And you've got students who say, I don't know, it's my teammate who did it, and then the teammate doesn't know either. So clearly there are instances where, of course, you run out of time. It's",
+   "fr": "C'était très stimulant. J'ai vraiment, vraiment aimé ça. J'ai vraiment aimé les projets que les gens ont choisis, j'ai été très impressionné par les résultats, et clairement le niveau de ce qu'on peut faire maintenant a été multiplié par dix par rapport à avant, et ça se voyait. Par contre, j'ai aussi vu des cas où, si je n'avais regardé que l'affiche ou le rapport final d'un étudiant (je ne demandais pas de rapport final, justement pour cette raison), je me serais dit : wow, c'est incroyable, A+, 200 %, projet extraordinaire. Puis on commence à poser des questions : bon, alors c'est ce que vous avez fait, comment ça marche ? D'accord, vous vous comparez à quoi ? Et puis : ce nombre dans le tableau et ce nom d'algorithme, qu'est-ce que c'est exactement ? Et il y a des étudiants qui répondent : je ne sais pas, c'est mon coéquipier qui l'a fait, et le coéquipier ne le sait pas non plus. Donc il y a clairement des cas où, bien sûr, on manque de temps. C'est",
+   "readable": "I enjoyed it very much. I liked the projects people chose and was impressed by the results; what students can do now is an order of magnitude beyond what was possible before, and it showed. But I also saw posters that, on their own, looked like A+ work, and the presenters could not explain them. I asked how the method worked, what it was compared against, what a number in a table meant or what an algorithm name referred to, and heard \"my teammate did it\", from teammates who did not know either. I understand that time runs short at the end,"
+  },
+  {
+   "t": 972720,
+   "text": "normal, last minute, you try stuff, you put in a baseline, it looks nice on your poster. But it's a risk. Whatever you put there, you want to be able to defend it, at least explain what it does, and I'm going to see it. I'm going to sense it, you know. Oral exams can be stressful for some people, of course, but they're super effective, in my opinion, at detecting true understanding. So prepare well. That's all I want to say here. Okay.",
+   "fr": "normal, à la dernière minute, on essaie des choses, on ajoute une méthode de référence, ça a l'air bien sur l'affiche. Mais c'est un risque. Tout ce que vous y mettez, vous voulez pouvoir le défendre, au moins expliquer ce que ça fait, et je vais le voir. Je vais le sentir, vous savez. Les examens oraux peuvent être stressants pour certaines personnes, bien sûr, mais ils sont super efficaces, à mon avis, pour détecter une vraie compréhension. Alors préparez-vous bien. C'est tout ce que je voulais dire ici. D'accord.",
+   "readable": "that you try things at the last minute and add a baseline because it looks good. That is a risk. Whatever you put on the poster, you must be able to defend it, or at least explain what it does, and I will notice if you cannot. Oral examinations can be stressful, but in my experience they are very effective at revealing real understanding. So prepare well."
+  },
+  {
+   "t": 1003519,
+   "text": "And that's about it. Any questions?\nStudent: The posters, do we have to print them?\nI think so.\nYeah.\nStudent: Do you have any resources?\nThat's what I just said. I don't have a printer. You can print on a normal printer and put it together as an assembly of sheets. That's okay. It's not as pretty as a nice poster, but it's understandable. If I had funding for you, I'd force you to print it on an actual printer, but I'm quite broke, so it's not going to happen. Voilà.",
+   "fr": "Et c'est à peu près tout. Des questions ?\nStudent: Les affiches, est-ce qu'on doit les imprimer ?\nJe pense que oui.\nOui.\nStudent: Avez-vous des ressources ?\nC'est ce que je viens de dire. Je n'ai pas d'imprimante. Vous pouvez imprimer sur une imprimante normale et assembler les feuilles. C'est correct. Ce n'est pas aussi joli qu'une belle affiche, mais c'est compréhensible. Si j'avais du financement pour vous, je vous obligerais à l'imprimer sur une vraie imprimante, mais je suis assez fauché, alors ça n'arrivera pas. Voilà.",
+   "readable": "Any questions?\nStudent: Do we have to print the posters?\nYes, I think so.\nStudent: Are there resources for printing?\nAs I said, I have no printer and no funding for it. Printing on a normal printer and assembling the sheets is acceptable. It is less pretty than a real poster, but it is readable."
+  },
+  {
+   "t": 1043199,
+   "text": "Any other questions? One day maybe we should buy a printer, all the profs: we should pool resources and buy a printer. I think it's going to become useful in the future. But for now, we can't do it. Wait.\nStudent: Will the next midterm cover everything?\nNo, typically they cover their own material. The final, though, usually goes back to content from the beginning, but it's always skewed towards the latest part. Yeah.",
+   "fr": "D'autres questions ? Un jour, on devrait peut-être acheter une imprimante, tous les profs : on devrait mettre nos ressources en commun et acheter une imprimante. Je pense que ça deviendra utile à l'avenir. Mais pour l'instant, on ne peut pas. Attendez.\nStudent: Est-ce que le prochain examen va couvrir tout ?\nNon, normalement ils couvrent leur propre matière. L'examen final, par contre, revient habituellement sur le contenu du début, mais il est toujours orienté vers la dernière partie. Oui.",
+   "readable": "Perhaps the professors should one day pool resources and buy a poster printer; it will become useful. For now we can't.\nStudent: Will the next midterm cover everything?\nNo, each midterm covers its own material. The final exam goes back to the beginning, but it is weighted towards the later part of the course."
+  },
+  {
+   "t": 1085039,
+   "text": "I know that in December, in a month and a half or so, maybe you're not going to remember so much about collocation. That's okay, but I expect you to at least remember the idea of collocation, how to derive it. I don't know, maybe not. But yeah. Any other questions on that?\nStudent: No.\n[Break]",
+   "fr": "Je sais qu'en décembre, dans un mois et demi environ, vous ne vous souviendrez peut-être plus tellement de la collocation. C'est correct, mais je m'attends à ce que vous vous souveniez au moins de l'idée de la collocation, de comment la dériver. Je ne sais pas, peut-être pas. Mais bon. D'autres questions là-dessus ?\nStudent: Non.\n[Break]",
+   "readable": "By December you may not remember the details of collocation, and that is fine, but I expect you to remember the idea of collocation and how it is derived.\n[Break]"
+  },
+  {
+   "t": 1121600,
+   "text": "[Break]",
+   "fr": "[Break]",
+   "readable": "[Break]"
+  },
+  {
+   "t": 1182000,
+   "text": "Good. Let's talk about actual content now. All right. We talked about the Bellman equation and backward induction, and we looked at Markov decision processes without noise. It's important to stress that there is still no noise. We're going to bring it in in a second. The recursion is going to be the same, but for now there's no noise: the dynamics are fully deterministic. That being said, the algorithm here could apply",
+   "fr": "Bien. Parlons maintenant du vrai contenu. Très bien. Nous avons parlé de l'équation de Bellman et de l'induction arrière, et nous avons regardé des processus de décision markoviens sans bruit. Il est important de souligner qu'il n'y a toujours pas de bruit. Nous allons l'introduire dans un instant. La récurrence sera la même, mais pour l'instant il n'y a pas de bruit : la dynamique est entièrement déterministe. Cela dit, l'algorithme ici pourrait s'appliquer",
+   "readable": "Now to the material. So far we have seen the Bellman equation and backward induction for Markov decision processes without noise. I stress that there is still no noise: the dynamics are deterministic. Noise comes shortly, and the recursion will keep the same form."
+  },
+  {
+   "t": 1242000,
+   "text": "to continuous states. Well, not quite this one, but the next one can apply to continuous state spaces, and to continuous actions to some extent. But we are in discrete time. Until the end of the semester, we're done with continuous time. Everything now is going to take place in discrete time. It could be continuous states and actions, but discrete time. J is the cost-to-go. Now we're computing not only a plan but a policy, so there's a dependency on both x and t.",
+   "fr": "à des états continus. Enfin, pas tout à fait celui-ci, mais le suivant peut s'appliquer à des espaces d'états continus, et à des actions continues dans une certaine mesure. Mais nous sommes en temps discret. D'ici la fin du trimestre, on en a fini avec le temps continu. Tout se passera désormais en temps discret. Les états et les actions peuvent être continus, mais le temps est discret. J est la fonction de coût à venir. Nous calculons maintenant non seulement un plan, mais une politique, donc il y a une dépendance à la fois en x et en t.",
+   "readable": "The next algorithm applies to continuous state spaces, and to some extent to continuous actions, but time is now discrete. From here to the end of the term, we leave continuous time behind. J denotes the cost-to-go. We are now computing a policy rather than a plan, so the decision depends on both the state x and the time t."
+  },
+  {
+   "t": 1282159,
+   "text": "So now, when we pick an action, we not only look at the stage, but we also look at the state x. Finite horizon means that the number of stages is fixed and known in advance. It's important to specify. It means that I'm trying to solve a task and I need to solve that task in, let's say, \\(T = 15\\) steps, and the policy you get is optimal with respect to that fixed horizon you picked. In other formulations, we're going to see that we can have random horizons, so the end is not known in advance. It varies stochastically.",
+   "fr": "Donc maintenant, quand on choisit une action, on ne regarde pas seulement l'étape, on regarde aussi l'état x. Horizon fini signifie que le nombre d'étapes est fixé et connu d'avance. C'est important de le préciser. Ça veut dire que j'essaie de résoudre une tâche et que je dois la résoudre en, disons, \\(T = 15\\) étapes, et la politique obtenue est optimale par rapport à cet horizon fixe que vous avez choisi. Dans d'autres formulations, nous verrons qu'on peut avoir des horizons aléatoires : la fin n'est pas connue d'avance. Elle varie de façon stochastique.",
+   "readable": "When we choose an action, we look at the stage and at the current state. A finite horizon means that the number of stages is fixed and known in advance, say \\(T = 15\\) steps, and the resulting policy is optimal for that horizon. Later we will see random horizons, where the end is not known in advance."
+  },
+  {
+   "t": 1329520,
+   "text": "We can have infinite horizons, and in that case the objective is not the sum of the costs, because if your horizon is infinite, the sum of costs will go unbounded. So we're going to have different objectives that make the whole thing well defined and bounded. One way is to introduce discounting; another is the average-reward case, which essentially normalizes the cost over the infinite trajectory.",
+   "fr": "On peut avoir des horizons infinis, et dans ce cas l'objectif n'est pas la somme des coûts, parce que si l'horizon est infini, la somme des coûts n'est pas bornée. Nous aurons donc d'autres objectifs qui rendent le tout bien défini et borné. Une façon est d'introduire l'actualisation ; une autre est le cas de la récompense moyenne, qui normalise essentiellement le coût sur la trajectoire infinie.",
+   "readable": "We will also see infinite horizons. There the objective cannot be a plain sum of costs, which would be unbounded, so we use other objectives that keep it well defined: discounting, or the average cost per stage over the infinite trajectory."
+  },
+  {
+   "t": 1364720,
+   "text": "So that's it. The recursion looks like this: you start from the end, you set the cost-to-go function, the value function, to be the terminal cost, and then you iterate with the cost-to-go at the next stage. So you see, we have t here and \\(t+1\\) on the other side. f of x gives you the next state; it's deterministic, so there's no sampling involved. It gives you the next state, and that's it. Another cool thing, by the way: look at our recursion. We also allow for stage-dependent costs and stage-dependent dynamics, which is more of a feature than something you would see all the time. But you can do that. You'll see that in typical RL, in learning-based formulations, we typically don't support that, because it often brings you to a setup where the dynamics become non-stationary, and non-stationary means non-i.i.d., and non-i.i.d.",
+   "fr": "Voilà. La récurrence ressemble à ceci : on part de la fin, on pose la fonction de coût à venir, la fonction de valeur, égale au coût terminal, puis on itère avec le coût à venir à l'étape suivante. Vous voyez, on a t ici et \\(t+1\\) de l'autre côté. f de x donne l'état suivant ; c'est déterministe, donc il n'y a pas d'échantillonnage. Ça donne l'état suivant, et c'est tout. Autre chose intéressante, d'ailleurs : regardez notre récurrence. On permet aussi des coûts et une dynamique qui dépendent de l'étape, ce qui est plutôt une possibilité qu'on ne voit pas tout le temps. Mais on peut le faire. Vous verrez qu'en apprentissage par renforcement typique, dans les formulations fondées sur l'apprentissage, on ne permet généralement pas ça, parce que ça mène souvent à une situation où la dynamique devient non stationnaire, et non stationnaire veut dire non i.i.d., et non i.i.d.",
+   "readable": "The recursion starts at the end: the cost-to-go at the final stage is the terminal cost, and each earlier stage uses the cost-to-go of the next one, so t appears on one side and \\(t+1\\) on the other. The dynamics f give the next state deterministically, with no sampling. Note also that the recursion allows stage-dependent costs and dynamics. Typical learning-based RL formulations do not support this, because time-varying dynamics make the data non-stationary, hence not i.i.d.,"
+  },
+  {
+   "t": 1428720,
+   "text": "means our algorithms are quite bad at it. Here there's no problem with that, because everything is numerical: there's no sampling, there's no learning involved. So we can do it, no problem. So we do these two things: the min is for the value function, the argmin is to extract the policy, and we go from the end all the way to the beginning. Okay. Last time we looked at the proof. We're not going to go back over it. We talked about how to handle continuous state spaces, and in the demo, if you read the code carefully, there was a function called index. What index does is take the value and round it to its nearest grid point, because that J function, the cost-",
+   "fr": "veut dire que nos algorithmes s'en tirent assez mal. Ici, ça ne pose aucun problème, parce que tout est numérique : il n'y a pas d'échantillonnage, il n'y a pas d'apprentissage. On peut donc le faire sans problème. On fait donc ces deux choses : le min donne la fonction de valeur, l'argmin sert à extraire la politique, et on va de la fin jusqu'au début. Bon. La dernière fois, nous avons vu la preuve. Nous n'allons pas y revenir. Nous avons parlé de la façon de traiter les espaces d'états continus, et dans la démo, si vous lisez le code attentivement, il y avait une fonction appelée index. Ce que fait index, c'est prendre la valeur et l'arrondir au point de grille le plus proche, parce que cette fonction J, le coût",
+   "readable": "and our learning algorithms handle that poorly. Here it is no problem, because everything is computed numerically, with no sampling and no learning. Each step takes a min, which gives the value function, and an argmin, which gives the policy, from the last stage back to the first. We went through the proof last time and will not repeat it. We also discussed continuous state spaces: in the reservoir demo, a function called index rounds a state to the nearest grid point, because the cost-to-go"
+  },
+  {
+   "t": 1489840,
+   "text": "to-go, if you represent it with a finite representation on the computer, becomes an array. It becomes a vector. Okay. Which means that when you write J of x, x would normally be a continuous value, but since we don't have an infinity of those... In the simplest case, if I write J of x, x could be 4.12315, right? You can't index an array with that. You can't write it like this. It needs to be either rounded, which is what we do in the code, or something better than that.",
+   "fr": "à venir, si on la représente de façon finie sur l'ordinateur, devient un tableau. Elle devient un vecteur. Bon. Ce qui veut dire que quand on écrit J de x, x serait normalement une valeur continue, mais comme on n'en a pas une infinité... Dans le cas le plus simple, si j'écris J de x, x pourrait valoir 4,12315, n'est-ce pas ? On ne peut pas indexer un tableau avec ça. On ne peut pas l'écrire comme ça. Il faut soit arrondir, ce qu'on fait dans le code, soit faire mieux que ça.",
+   "readable": "is stored on the computer as a finite array. J(x) is defined for continuous x, say x = 4.12315, but an array cannot be indexed by such a value. We must either round x, as the code does, or do something better."
+  },
+  {
+   "t": 1542640,
+   "text": "We know how to deal with infinite-dimensional representations of functions and work with them finitely. The tools we've used so far are interpolation and collocation, so we can do the same thing here too. In fact, I told you last time that rounding to the nearest neighbor, the nearest grid point, is really akin to a zero-order hold. Remember, when we were synthesizing a control function, a plan, the easiest way was to represent it as a step function, a zero-order hold.",
+   "fr": "Nous savons comment traiter des représentations de fonctions de dimension infinie et les manipuler de façon finie. Les outils que nous avons utilisés jusqu'ici sont l'interpolation et la collocation, donc on peut faire la même chose ici. En fait, je vous ai dit la dernière fois qu'arrondir au plus proche voisin, au point de grille le plus proche, revient vraiment à un bloqueur d'ordre zéro. Souvenez-vous, quand on synthétisait une fonction de commande, un plan, la façon la plus simple était de la représenter comme une fonction en escalier, un bloqueur d'ordre zéro.",
+   "readable": "We already know how to represent infinite-dimensional objects with finitely many numbers: interpolation and collocation. The same tools apply here. As I said last time, rounding to the nearest grid point amounts to a zero-order hold, the step function we used as the simplest representation of a control signal."
+  },
+  {
+   "t": 1579679,
+   "text": "So the rounding amounts to that. But we can be fancier than that, of course, and use a nodal representation of the cost-to-go function. What does that mean? Remember, in the nodal representation, we represent the polynomial by its values, and we use cardinal functions, the Lagrange basis, at those designated nodes we've picked. The Lagrange functions have this special property that they act like a delta function: they're like spikes on the grid points you've picked. And when you want to approximate the value function at any x, where x can be any value, 4.12315, you output an answer as a combination of all the nodal values you've picked. So these \\(V_{t,i}\\),",
+   "fr": "Donc l'arrondi revient à ça. Mais on peut bien sûr faire plus sophistiqué et utiliser une représentation nodale de la fonction de coût à venir. Qu'est-ce que ça veut dire ? Souvenez-vous, dans la représentation nodale, on représente le polynôme par ses valeurs, et on utilise des fonctions cardinales, la base de Lagrange, aux nœuds désignés que nous avons choisis. Les fonctions de Lagrange ont cette propriété particulière d'agir comme une fonction delta : ce sont comme des pics sur les points de grille choisis. Et quand on veut approximer la fonction de valeur en n'importe quel x, où x peut prendre n'importe quelle valeur, 4,12315, on produit une réponse comme une combinaison de toutes les valeurs nodales choisies. Donc ces \\(V_{t,i}\\),",
+   "readable": "We can do better with a nodal representation of the cost-to-go. As in collocation, we represent the function by its values at chosen nodes and use cardinal functions, the Lagrange basis, which equal one at their own node and zero at the others. The value at an arbitrary x, such as 4.12315, is then a combination of the stored nodal values \\(V_{t,i}\\),"
+  },
+  {
+   "t": 1641200,
+   "text": "these are actual values that you've computed and stored, and whatever falls in between is computed using this representation. Okay. So with this scheme we can represent a bunch of things. For example, we could represent the value function using linear interpolation. If we write it explicitly, it gives you an interpolation that naturally looks like this: we're drawing a line between \\(V_{t,i}\\) and \\(V_{t,i+1}\\). And keep in mind that in the previous chapters, we were doing interpolation over the time axis.",
+   "fr": "ce sont des valeurs réelles que vous avez calculées et stockées, et tout ce qui tombe entre les deux est calculé à l'aide de cette représentation. Bon. Avec ce schéma, on peut représenter beaucoup de choses. Par exemple, on pourrait représenter la fonction de valeur par interpolation linéaire. Si on l'écrit explicitement, ça donne une interpolation qui ressemble naturellement à ceci : on trace une droite entre \\(V_{t,i}\\) et \\(V_{t,i+1}\\). Et gardez à l'esprit que dans les chapitres précédents, on faisait de l'interpolation sur l'axe du temps.",
+   "readable": "which are the values we computed and stored; everything in between follows from the representation. Linear interpolation, for example, draws a line between \\(V_{t,i}\\) and \\(V_{t,i+1}\\). Earlier in the course we interpolated over time."
+  },
+  {
+   "t": 1692720,
+   "text": "The thing we wanted to deal with was the fact that t would be a continuous value. Here t is discrete, so that's not where we're doing interpolation. We're doing interpolation at the level of the state. So when I go from i to \\(i+1\\), it's the next grid point in state space, right? And there you go. As usual, you can always crank up the order of your polynomial interpolation to get higher accuracy. We can do that here too: cubic splines and so on. I told you a little bit last time what the caveat is with interpolating value functions. Time is very nice, because as far as I know, time is one-dimensional. But the state space, the variable x, need not be one-dimensional. It can be a vector of as many dimensions as you want.",
+   "fr": "Ce qu'on voulait traiter, c'était le fait que t soit une valeur continue. Ici, t est discret, donc ce n'est pas là qu'on interpole. On interpole au niveau de l'état. Donc quand je passe de i à \\(i+1\\), c'est le point de grille suivant dans l'espace d'états, n'est-ce pas ? Et voilà. Comme d'habitude, on peut toujours augmenter l'ordre de l'interpolation polynomiale pour gagner en précision. On peut le faire ici aussi : splines cubiques, etc. Je vous ai dit un peu la dernière fois quelle est la limite de l'interpolation des fonctions de valeur. Le temps, c'est très agréable, parce qu'à ma connaissance le temps est unidimensionnel. Mais l'espace d'états, la variable x, n'est pas forcément unidimensionnel. Ce peut être un vecteur d'autant de dimensions que vous voulez.",
+   "readable": "There the issue was that time was continuous. Here time is discrete, and we interpolate over the state: going from i to \\(i+1\\) means moving to the next grid point in state space. Higher-order interpolation, such as cubic splines, gives higher accuracy. The caveat, which I mentioned last time, is dimension. Time is one-dimensional, but the state can be a vector with many components."
+  },
+  {
+   "t": 1753919,
+   "text": "And in that case, interpolation over multiple dimensions just doesn't scale well. It's the curse of dimensionality. I think it's quite clear even if you look at the zero-order hold. It means you're overlaying a grid, and it grows exponentially in the number of dimensions. Imagine you're in 2D and put a bunch of points like that. Now, if you want to cover the space in 3D, add another axis here.",
+   "fr": "Et dans ce cas, l'interpolation sur plusieurs dimensions ne passe tout simplement pas à l'échelle. C'est la malédiction de la dimension. Je pense que c'est assez clair même avec le bloqueur d'ordre zéro. Ça veut dire qu'on superpose une grille, et ça croît exponentiellement avec le nombre de dimensions. Imaginez que vous êtes en 2D et que vous placez des points comme ceci. Maintenant, si vous voulez couvrir l'espace en 3D, ajoutez un autre axe ici.",
+   "readable": "Interpolation over many dimensions does not scale: this is the curse of dimensionality. Even the zero-order hold makes it clear. It overlays a grid on the state space, and the number of grid points grows exponentially with the dimension. Take a set of points that covers a square in 2D; covering a cube in 3D requires a new axis,"
+  },
+  {
+   "t": 1789039,
+   "text": "You're adding another dimension, and the number of points you need grows exponentially with the number of dimensions: the usual curse of dimensionality. It's the same story we tell you in intro to machine learning when we talk about histograms and Parzen windows and all that stuff. So this is true for the zero-order hold, true for linear interpolation, and so on. There are alternatives, multilinear interpolation methods that use tensor methods, but it's a bit fancy and I'm not teaching it. But again, if you take Guillaume Rabusseau's course, if it's offered in winter, it could be a nice class project, because there are all sorts of fancy tensor methods that I don't know about, and I'm sure there are cool things to do there. Now, a question is also:",
+   "fr": "Vous ajoutez une autre dimension, et le nombre de points nécessaires croît exponentiellement avec le nombre de dimensions : la malédiction de la dimension habituelle. C'est la même histoire qu'on vous raconte en introduction à l'apprentissage automatique quand on parle d'histogrammes, de fenêtres de Parzen et de tout ça. C'est donc vrai pour le bloqueur d'ordre zéro, vrai pour l'interpolation linéaire, etc. Il existe des solutions de rechange, des méthodes d'interpolation multilinéaire qui utilisent des méthodes tensorielles, mais c'est un peu sophistiqué et je ne l'enseigne pas. Mais encore une fois, si vous suivez le cours de Guillaume Rabusseau, s'il est offert à l'hiver, ça pourrait faire un beau projet de cours, parce qu'il existe toutes sortes de méthodes tensorielles sophistiquées que je ne connais pas, et je suis sûr qu'il y a des choses intéressantes à faire là. Maintenant, une autre question :",
+   "readable": "and each added dimension multiplies the number of points. This is the same story as histograms and Parzen windows in introductory machine learning, and it holds for the zero-order hold, linear interpolation and higher orders alike. Multilinear interpolation with tensor methods is an alternative, but it is beyond this course. If Guillaume Rabusseau's course on tensor methods is offered in the winter, this could make a good class project. A further question is"
+  },
+  {
+   "t": 1850480,
+   "text": "do you need interpolation? That's another good question. There are people who truly need interpolation, and usually the biggest consumers of interpolation methods are people working in finance, theoretical economics or econometrics. They tend to be big fans of analytical models that they can study and explain, and in that case it's important for them to solve their equations with great accuracy. They want to describe phenomena as accurately as possible. They typically don't care about the actual policy in the end. It's not something they're going to deploy: they're not going to deploy a controller to control the economy. But they care about understanding the structure of those equations, the structure of the cost-to-go function and the structure of an optimal policy. Is it linear? Is it bang-bang, where you go 100% or 0%, that sort of thing?",
+   "fr": "a-t-on besoin d'interpolation ? C'est une autre bonne question. Il y a des gens qui ont vraiment besoin d'interpolation, et habituellement les plus grands consommateurs de méthodes d'interpolation sont les gens qui travaillent en finance, en économie théorique ou en économétrie. Ils aiment beaucoup les modèles analytiques qu'ils peuvent étudier et expliquer, et dans ce cas il est important pour eux de résoudre leurs équations avec une grande précision. Ils veulent décrire des phénomènes aussi précisément que possible. En général, la politique elle-même ne les intéresse pas au bout du compte. Ce n'est pas quelque chose qu'ils vont déployer : ils ne vont pas déployer un contrôleur pour piloter l'économie. Mais ils tiennent à comprendre la structure de ces équations, la structure de la fonction de coût à venir et la structure d'une politique optimale. Est-elle linéaire ? Est-elle de type bang-bang, où on va à 100 % ou à 0 %, ce genre de chose ?",
+   "readable": "whether we need interpolation at all. Some people truly do. The main users of interpolation methods are in finance, theoretical economics and econometrics. They favor analytical models they can study and explain, so they need to solve their equations very accurately and describe phenomena precisely. They usually do not care about deploying the policy; nobody deploys a controller for the economy. What they care about is the structure of the equations, of the cost-to-go function and of the optimal policy: whether it is linear, for instance, or bang-bang, switching between 0% and 100%."
+  },
+  {
+   "t": 1908320,
+   "text": "Yeah, they typically care a lot about this. In learning communities, like reinforcement learning, we often don't care at all about accuracy. And there's a subtle point here that's going to become clearer and clearer. Let's just stare at the Bellman equation together, or the recursion itself.",
+   "fr": "Oui, ça leur importe beaucoup en général. Dans les communautés de l'apprentissage, comme l'apprentissage par renforcement, la précision nous importe souvent très peu. Et il y a ici un point subtil qui va devenir de plus en plus clair. Regardons ensemble l'équation de Bellman, ou la récurrence elle-même.",
+   "readable": "In learning communities such as reinforcement learning, we often care little about accuracy, for a subtle reason that will become clearer over the course. Look at the Bellman recursion again."
+  },
+  {
+   "t": 1941919,
+   "text": "At the end of the day, if you want to deploy a policy, what matters to you is the ordering that is encoded in this line. The argmin, if it's discrete, gives you the index of the action that achieves the minimum or the maximum, and it doesn't matter whether J is a certain value, or that value plus two, or that value plus any constant. It's the ordering that matters. So in many instances, like in learning-based settings, the thing you care about at the end is the policy itself, whether it's good or not, and you maintain optimality under any arbitrary shift of the cost-to-go function. Which means that we rarely care about finding the ground-truth value function, but we care about finding a value",
+   "fr": "Au bout du compte, si on veut déployer une politique, ce qui compte, c'est l'ordre encodé dans cette ligne. L'argmin, dans le cas discret, donne l'indice de l'action qui atteint le minimum ou le maximum, et peu importe que J vaille une certaine valeur, ou cette valeur plus deux, ou cette valeur plus n'importe quelle constante. C'est l'ordre qui compte. Donc dans bien des cas, comme dans les contextes fondés sur l'apprentissage, ce qui nous importe à la fin, c'est la politique elle-même, qu'elle soit bonne ou non, et l'optimalité est préservée par n'importe quel décalage de la fonction de coût à venir. Ce qui veut dire qu'on cherche rarement à trouver la vraie fonction de valeur ; on cherche plutôt une fonction de",
+   "readable": "If you want to deploy a policy, what matters is the ordering encoded in the argmin. In the discrete case, the argmin returns the index of the action that achieves the minimum, and the result does not change if J is shifted by two or by any constant. Only the ordering matters. In learning-based settings, what we care about in the end is the policy and its quality, and optimality is preserved under any constant shift of the cost-to-go. We therefore rarely need the true value function; we need a"
+  },
+  {
+   "t": 2003679,
+   "text": "function, a cost-to-go function, that preserves the right ordering. Okay? So it's subtle. If you're in econometrics or economics, you truly care about having a precise J. J might have monetary value, and you want to be very precise. Why was I telling you this? Oh yeah, interpolation. So don't use it too much, actually. We're going to talk about other methods that are more scalable, methods that are not bound to the curse of dimensionality.",
+   "fr": "valeur, une fonction de coût à venir, qui préserve le bon ordre. D'accord ? C'est subtil. Si vous êtes en économétrie ou en économie, vous tenez vraiment à avoir un J précis. J peut avoir une valeur monétaire, et vous voulez être très précis. Pourquoi est-ce que je vous disais ça ? Ah oui, l'interpolation. Donc n'en abusez pas, en fait. Nous allons parler d'autres méthodes plus évolutives, des méthodes qui ne sont pas soumises à la malédiction de la dimension.",
+   "readable": "cost-to-go function that preserves the correct ordering. In economics or econometrics, by contrast, J may have a monetary meaning, and precision matters. So, back to interpolation: use it sparingly. We will soon see more scalable methods that do not suffer from the curse of dimensionality."
+  },
+  {
+   "t": 2046000,
+   "text": "Sorry, before we get there, we're long overdue to talk about a very useful structure of the Bellman equation, which has a beautiful property. Even if you have a continuous state space and a continuous action space, you can find the optimal policy and the value function, the cost-to-go function, exactly, up to numerical precision. There's no need to do interpolation at all. How remarkable is that? For me, I mean, if you're an engineer you've probably seen these things; if you did electrical engineering, you might have worked with LQR already. I started in CS, then I started with TD learning and learning-based methods, and I remember playing with these things, and",
+   "fr": "Désolé, avant d'y arriver, il est grand temps de parler d'une structure très utile de l'équation de Bellman, qui a une belle propriété. Même avec un espace d'états continu et un espace d'actions continu, on peut trouver la politique optimale et la fonction de valeur, la fonction de coût à venir, exactement, à la précision numérique près. Aucune interpolation n'est nécessaire. N'est-ce pas remarquable ? Pour moi, enfin, si vous êtes ingénieur, vous avez probablement déjà vu ça ; si vous avez fait du génie électrique, vous avez peut-être déjà travaillé avec le LQR. Moi, j'ai commencé en informatique, puis avec l'apprentissage TD et les méthodes fondées sur l'apprentissage, et je me souviens d'avoir joué avec ces choses, et",
+   "readable": "Before that, we are overdue to discuss a very useful structure of the Bellman equation with a remarkable property: even with continuous state and action spaces, the optimal policy and the cost-to-go can be computed exactly, up to numerical precision, with no interpolation. Engineers, especially from electrical engineering, may already know LQR. I came from computer science, starting with TD learning and other learning-based methods,"
+  },
+  {
+   "t": 2106800,
+   "text": "your reflex becomes: oh, I have a continuous state space, it's going to be nasty, so I need a neural network to approximate the value function and another policy network to approximate the policy itself. There's no need for this, you know. However, there's a catch: this is a particular type of MDP, and that particular type of MDP may not be sufficient to represent complex problems. We need to make two assumptions to make it tractable like that.",
+   "fr": "le réflexe devient : oh, j'ai un espace d'états continu, ça va être pénible, donc il me faut un réseau de neurones pour approximer la fonction de valeur et un autre réseau de politique pour approximer la politique elle-même. Ce n'est pas nécessaire, vous savez. Il y a toutefois un piège : c'est un type particulier de MDP, et ce type particulier de MDP ne suffit peut-être pas à représenter des problèmes complexes. Il faut faire deux hypothèses pour le rendre traitable ainsi.",
+   "readable": "and there the reflex is that a continuous state space is hard, so you need a neural network for the value function and another for the policy. For this class of problems that is unnecessary. The catch is that this particular type of MDP may be too restrictive for complex problems. Two assumptions make it tractable,"
+  },
+  {
+   "t": 2140240,
+   "text": "And these two assumptions are in the name of the method, linear quadratic. Linear how? Linear in the dynamics. Can you see it there, at the back? Sorry. Getting there. Okay.",
+   "fr": "Et ces deux hypothèses sont dans le nom de la méthode, linéaire quadratique. Linéaire comment ? Linéaire dans la dynamique. Vous voyez, là, au fond ? Désolé. J'y arrive. Bon.",
+   "readable": "and they are in the name of the method: linear and quadratic. First, the dynamics are linear."
+  },
+  {
+   "t": 2172240,
+   "text": "Linear in the dynamics. So the control enters through this B matrix, and x enters through this A matrix. x can be a vector, of course, and u can be a vector as well. That's how we assume our system evolves. And then the cost function itself has a particular structure. The terminal cost is going to be of this form.",
+   "fr": "Linéaire dans la dynamique. La commande entre par cette matrice B, et x entre par cette matrice A. x peut être un vecteur, bien sûr, et u aussi. C'est ainsi que nous supposons que notre système évolue. Ensuite, la fonction de coût elle-même a une structure particulière. Le coût terminal sera de cette forme.",
+   "readable": "The control enters through the matrix B and the state through the matrix A; both x and u can be vectors. Second, the costs are quadratic, including the terminal cost."
+  },
+  {
+   "t": 2205599,
+   "text": "And we require Q to be a special matrix: we require Q to be positive semidefinite. It's very important. The simplest case: you can set Q and R to be the identity, and it's going to work out. And think about it: if Q is the identity, what does \\(x^\\top Q x\\) mean here? What is it going to compute?",
+   "fr": "Et on exige que Q soit une matrice particulière : on exige que Q soit semi-définie positive. C'est très important. Le cas le plus simple : vous pouvez prendre Q et R égales à l'identité, et ça va fonctionner. Et réfléchissez : si Q est l'identité, que représente \\(x^\\top Q x\\) ici ? Qu'est-ce que ça va calculer ?",
+   "readable": "We require Q to be positive semidefinite; this is essential. The simplest choice is Q = I and R = I, which works. With Q = I, what does \\(x^\\top Q x\\) compute?"
+  },
+  {
+   "t": 2243200,
+   "text": "What can you express with that? What's it going to give you? It's going to give you a dot product. Essentially, what you're doing here is computing the squared L2 norm of a vector, and the same thing here with u. So when you want to minimize that thing, what does it mean? What is it naturally going to want? If we want to minimize it, why do we take the L2 norm of x?",
+   "fr": "Que peut-on exprimer avec ça ? Qu'est-ce que ça donne ? Ça donne un produit scalaire. Essentiellement, on calcule ici le carré de la norme L2 d'un vecteur, et la même chose ici avec u. Alors quand on veut minimiser cette quantité, qu'est-ce que ça signifie ? Qu'est-ce qu'elle cherche naturellement ? Si on veut la minimiser, pourquoi prendre la norme L2 de x ?",
+   "readable": "It is the dot product of x with itself, the squared L2 norm, and similarly for u. Minimizing it pushes the state towards zero. Why would we want that?"
+  },
+  {
+   "t": 2292560,
+   "text": "Student: To make it small.\nYeah. And what kind of problem could that be concretely?\nStudent: Following a baseline.\nPerfect, exactly. Follow a baseline. This is why it's called a regulator. Can I ask you a follow-up on this? How would you code this up, following a baseline, so that it fits this form, given that the baseline is not naturally zero?",
+   "fr": "Student: Pour la rendre petite.\nOui. Et quel genre de problème ça pourrait être concrètement ?\nStudent: Suivre une référence.\nParfait, exactement. Suivre une référence. C'est pour ça qu'on parle de régulateur. Je peux vous poser une question de suivi ? Comment coderiez-vous ça, suivre une référence, pour que ça entre dans cette forme, sachant que la référence n'est pas naturellement zéro ?",
+   "readable": "Student: To keep the state small.\nWhat kind of concrete problem does that represent?\nStudent: Following a reference.\nExactly: following a reference, which is why the method is called a regulator. How would you write reference tracking in this form, given that the reference is not zero in general?"
+  },
+  {
+   "t": 2326000,
+   "text": "Student: You subtract it?\nExactly. You subtract the baseline: take the state minus the target. If you're at the target, that term becomes zero, right? So that's why it's an LQR, a regulator. It's good for tracking. It's meant to stabilize a system, and stabilize is often synonymous with bringing a system to zero,",
+   "fr": "Student: On la soustrait ?\nExactement. On soustrait la référence : on prend l'état moins la cible. Si on est à la cible, ce terme devient zéro, n'est-ce pas ? C'est pour ça que c'est un LQR, un régulateur. C'est bon pour le suivi. C'est fait pour stabiliser un système, et stabiliser est souvent synonyme d'amener un système à zéro,",
+   "readable": "Student: By subtracting it?\nYes: penalize the state minus the target, which is zero at the target. That is why LQR is a regulator, suited to tracking and stabilization. Stabilizing usually means bringing the system to zero,"
+  },
+  {
+   "t": 2356400,
+   "text": "a stable equilibrium centered at zero. If your system is not naturally centered at zero, if it's centered at five, it doesn't matter: we just shift it, exactly as we said here. Now, why the L2 norm of the control? We have one piece of the puzzle to represent distance to goal, to follow a target.\nStudent: Minimize effort.\nMinimize effort. And why would that be a good idea?\nStudent: Usually for physical systems.\nDefinitely physical systems. I can't really think of any practical case where you wouldn't want this. For me, it's almost like an inductive bias. It says that the solutions we're usually interested in are not the crazy ones that use",
+   "fr": "un équilibre stable centré en zéro. Si votre système n'est pas naturellement centré en zéro, s'il est centré en cinq, peu importe : on le décale, exactement comme on vient de le dire. Maintenant, pourquoi la norme L2 de la commande ? On a une pièce du casse-tête pour représenter la distance au but, pour suivre une cible.\nStudent: Minimiser l'effort.\nMinimiser l'effort. Et pourquoi serait-ce une bonne idée ?\nStudent: En général pour les systèmes physiques.\nPour les systèmes physiques, certainement. Je n'arrive pas vraiment à penser à un cas pratique où on ne voudrait pas ça. Pour moi, c'est presque un biais inductif. Ça dit que les solutions qui nous intéressent habituellement ne sont pas les solutions folles qui utilisent",
+   "readable": "to a stable equilibrium at the origin. If the natural equilibrium is elsewhere, say at five, we shift coordinates as just described. Why penalize the squared norm of the control? The state term measures distance to the goal.\nStudent: To minimize effort.\nRight. Why is that a good idea?\nStudent: For physical systems.\nYes, for physical systems in particular; I can hardly think of a practical case where you would not want it. I see it as an inductive bias. The solutions we want are not extreme ones that"
+  },
+  {
+   "t": 2418560,
+   "text": "all possible rocket fuel all of a sudden. We want those that behave smoothly. So this is akin to a regularizer that imposes a particular structure. Now, what can you do with Q and R? You can basically distort the geometry. If it's the identity, it's just the Euclidean distance, but if you start putting weights on the diagonal, it becomes a weighted Euclidean distance. And you can go fancier than that and use positive semidefinite Q and R matrices to express even weirder geometry, if you need to work in a different space, for which I don't have concrete examples for you today, unfortunately. But you could do it; the math allows it.",
+   "fr": "tout le carburant de fusée d'un coup. On veut celles qui se comportent en douceur. C'est donc comparable à un régularisateur qui impose une structure particulière. Maintenant, que peut-on faire avec Q et R ? On peut essentiellement déformer la géométrie. Si c'est l'identité, c'est simplement la distance euclidienne, mais si on commence à mettre des poids sur la diagonale, ça devient une distance euclidienne pondérée. Et on peut aller plus loin et utiliser des matrices Q et R semi-définies positives pour exprimer une géométrie encore plus étrange, si on a besoin de travailler dans un autre espace, pour lequel je n'ai malheureusement pas d'exemple concret pour vous aujourd'hui. Mais on pourrait le faire ; les mathématiques le permettent.",
+   "readable": "burn all the fuel at once but smooth ones, so the control term acts as a regularizer that imposes structure. The matrices Q and R shape the geometry. The identity gives the Euclidean distance, a diagonal of weights gives a weighted Euclidean distance, and general positive semidefinite matrices can express more unusual geometries if a problem calls for them. I have no concrete example today, but the mathematics allows it."
+  },
+  {
+   "t": 2471119,
+   "text": "So when you design an LQR, these are the knobs you can play with to express your problem. Again, because this is only good for regulation, LQR on its own may not be sufficient for the full control problem. The pole-balancing task is a very good example of that. To swing the pole up, this is a nonlinear system; there's no way you can linearize the whole thing to bring it upwards. So what you're going to do is probably a hybrid thing. In that particular problem, the structure is simple enough that you can code up a swinging policy, back and forth, hard-coded, and then put an if statement in the code: whenever it's close to the upward position, within a certain range, a small enough range, you trigger the LQR. The LQR takes over and does active corrections to bring the pole into a",
+   "fr": "Donc quand on conçoit un LQR, ce sont les leviers qu'on peut ajuster pour exprimer son problème. Encore une fois, comme ce n'est bon que pour la régulation, le LQR seul peut ne pas suffire pour le problème de commande complet. Le pendule inversé en est un très bon exemple. Pour redresser le pendule, c'est un système non linéaire ; il n'y a aucun moyen de tout linéariser pour l'amener en haut. Ce que vous allez faire, c'est probablement une approche hybride. Dans ce problème précis, la structure est assez simple pour qu'on puisse coder une politique de balancement, d'avant en arrière, codée en dur, puis mettre une condition if dans le code : dès qu'il est proche de la position haute, dans une certaine plage, une plage assez petite, on déclenche le LQR. Le LQR prend le relais et effectue des corrections actives pour amener le pendule à une",
+   "readable": "These are the design knobs of an LQR. Because LQR only regulates around an equilibrium, it is rarely sufficient for a full control problem. Cart-pole balancing is a good example. Swinging the pole up is a nonlinear task that no single linearization can handle. A common solution is hybrid. The swing-up structure is simple enough to hard-code a back-and-forth swinging policy, with a rule that switches to the LQR once the pole is within a small range of the upright position. The LQR then takes over and applies corrections that bring the pole to a"
+  },
+  {
+   "t": 2533599,
+   "text": "stable upward position. And why is it going to be applicable? Because you linearize your system around that point, and this is what you use for the dynamics. Even though your swing-up dynamics is nonlinear, you use a linear surrogate, linearized around the equilibrium you want, and you quadratize the cost: we say we want to penalize the distance to the upward position. So that's where LQR is typically used: within a stack, a hierarchy of controllers, and actual systems often work this way. You can have a policy that sends commands to an LQR, and the LQR itself can even send commands to a PID controller. It's very, very common to see these things. It's a cascade, basically.",
+   "fr": "position haute stable. Et pourquoi est-ce applicable ? Parce qu'on linéarise le système autour de ce point, et c'est ce qu'on utilise comme dynamique. Même si la dynamique de redressement est non linéaire, on utilise un substitut linéaire, linéarisé autour de l'équilibre voulu, et on rend le coût quadratique : on dit qu'on veut pénaliser la distance à la position haute. C'est donc là que le LQR est typiquement utilisé : dans une pile, une hiérarchie de contrôleurs, et les systèmes réels fonctionnent souvent ainsi. On peut avoir une politique qui envoie des commandes à un LQR, et le LQR lui-même peut envoyer des commandes à un régulateur PID. C'est très, très courant. C'est une cascade, en gros.",
+   "readable": "stable upright position. This works because the controller uses dynamics linearized around the upright equilibrium, even though the swing-up dynamics are nonlinear, and a quadratic cost that penalizes the distance to the upright position. This is how LQR is typically used: as one layer in a hierarchy of controllers. Real systems are often cascades: a higher-level policy sends commands to an LQR, which may in turn send commands to a PID controller."
+  },
+  {
+   "t": 2590480,
+   "text": "You could have an RL policy learned from data that controls an LQR, too. All these things are possible. All right, the remarkable thing. Let's start by applying the backward induction recipe. Here, by design, the terminal cost has this particular form, where P is positive semidefinite. Remember, in the backward induction recursion, we start by saying that the cost-to-go at the last stage is equal to the terminal cost. So we do that here, and of course J at the last stage is also positive semidefinite. It's kind of trivial; it's true by definition. What's less obvious is what happens once we start applying the recursion, (23). So we take the cost-to-go of the last stage and put it in there.",
+   "fr": "On pourrait avoir une politique d'apprentissage par renforcement apprise à partir de données qui pilote un LQR, aussi. Toutes ces choses sont possibles. Très bien, la chose remarquable. Commençons par appliquer la recette de l'induction arrière. Ici, par construction, le coût terminal a cette forme particulière, où P est semi-définie positive. Souvenez-vous, dans la récurrence de l'induction arrière, on commence par dire que le coût à venir à la dernière étape est égal au coût terminal. On fait donc ça ici, et bien sûr J à la dernière étape est aussi semi-défini positif. C'est un peu trivial ; c'est vrai par définition. Ce qui est moins évident, c'est ce qui se passe quand on commence à appliquer la récurrence, (23). On prend donc le coût à venir de la dernière étape et on l'insère là.",
+   "readable": "The higher-level policy could even be an RL policy learned from data. Now for the remarkable part. Apply the backward induction recipe. By design, the terminal cost has the form \\(x^\\top P x\\) with P positive semidefinite, and backward induction starts by setting the cost-to-go at the last stage equal to the terminal cost, so it is positive semidefinite by definition. The less obvious question arises when we apply the recursion, equation (23), and insert the last-stage cost-to-go."
+  },
+  {
+   "t": 2650240,
+   "text": "We know that this bit at \\(t+1\\) is positive semidefinite. The question now is: is the whole thing also positive semidefinite? And the remarkable thing we're going to be able to show is that yes, it will be, no matter what. As we propagate it backwards, the cost-to-go function will always be positive semidefinite. And why is that going to be useful, do you think? Does anyone know how we're going to make use of that property?",
+   "fr": "On sait que ce morceau à \\(t+1\\) est semi-défini positif. La question est maintenant : est-ce que le tout est aussi semi-défini positif ? Et la chose remarquable qu'on va pouvoir montrer, c'est que oui, il le sera, quoi qu'il arrive. En le propageant vers l'arrière, la fonction de coût à venir restera toujours semi-définie positive. Et pourquoi, à votre avis, est-ce utile ? Quelqu'un sait-il comment on va se servir de cette propriété ?",
+   "readable": "The term at stage \\(t+1\\) is positive semidefinite. Is the whole expression at stage t also positive semidefinite? The remarkable fact we will show is that it is: as the recursion runs backwards, the cost-to-go stays quadratic and positive semidefinite at every stage. Why is that useful?"
+  },
+  {
+   "t": 2680240,
+   "text": "Well, first of all, it's a remarkable fact; it's fun to know. But more than that, one of the big consequences is that we're going to be able to solve this particular problem analytically at every stage. That's very important, because written this way, if you don't stop and think about what you've got under your eyes, you might do unconstrained optimization here, run gradient descent just to find a solution, and that's a problem you'd have to solve for every given x. Imagine: if you're not smart about this, every time you give me an x, I have to run my gradient descent procedure to output the right action. That's not a good idea. You could do it, but it would be very wasteful, especially since we can find the solution exactly. So we're going to precompute it.",
+   "fr": "Eh bien, d'abord, c'est un fait remarquable ; c'est amusant à savoir. Mais plus que ça, l'une des grandes conséquences est qu'on pourra résoudre ce problème particulier analytiquement à chaque étape. C'est très important, parce qu'écrit ainsi, si on ne s'arrête pas pour réfléchir à ce qu'on a sous les yeux, on risque de faire de l'optimisation sans contrainte ici, de lancer une descente de gradient juste pour trouver une solution, et c'est un problème qu'il faudrait résoudre pour chaque x donné. Imaginez : si on n'est pas malin, chaque fois que vous me donnez un x, je dois lancer ma descente de gradient pour produire la bonne action. Ce n'est pas une bonne idée. On pourrait le faire, mais ce serait très coûteux, surtout qu'on peut trouver la solution exactement. On va donc la précalculer.",
+   "readable": "Beyond being a pleasing fact, it means we can solve the minimization analytically at every stage. Otherwise you might treat it as a generic unconstrained optimization and run gradient descent to find the action, separately for every state x you encounter, which is very wasteful when an exact solution exists. Instead we precompute it."
+  },
+  {
+   "t": 2739440,
+   "text": "To study this, we take the cost-to-go function at the last stage, and we substitute \\(x_{t+1}\\) by its dynamics. The dynamics are linear, so that gives us (24). Honestly, there's nothing profound happening mathematically in the derivation. It's just very messy because there are lots of terms. Don't worry, it's housekeeping. Conceptually, what's happening is just this: we substitute \\(x_{t+1}\\) by f, and f here is linear, so we get it here and here. Why here and here? Because the last stage was given by \\(x_t^\\top P_t x_t\\). The first part didn't change, it's the same, and now we have this term. So what we do in (25) is",
+   "fr": "Pour étudier ça, on prend la fonction de coût à venir à la dernière étape et on remplace \\(x_{t+1}\\) par sa dynamique. La dynamique est linéaire, ce qui nous donne (24). Honnêtement, il ne se passe rien de profond mathématiquement dans la dérivation. C'est juste très fouillis parce qu'il y a beaucoup de termes. Ne vous inquiétez pas, c'est du ménage. Conceptuellement, ce qui se passe, c'est simplement ceci : on remplace \\(x_{t+1}\\) par f, et f est linéaire ici, donc on l'obtient ici et ici. Pourquoi ici et ici ? Parce que la dernière étape était donnée par \\(x_t^\\top P_t x_t\\). La première partie n'a pas changé, c'est la même, et maintenant on a ce terme. Ce qu'on fait dans (25), c'est",
+   "readable": "Take the cost-to-go of the last stage and substitute the linear dynamics for \\(x_{t+1}\\); this gives equation (24). The derivation contains nothing deep. It is messy because there are many terms, but it is bookkeeping. Since the last-stage cost is \\(x_t^\\top P_t x_t\\), the substitution introduces the dynamics in two places. The state cost is unchanged, and a new quadratic term appears. Equation (25)"
+  },
+  {
+   "t": 2801119,
+   "text": "just distribute all these terms. Flatten the whole thing. That gives us this monster, (25), which again has nothing complicated. You'd want to work it out yourself, and you'd make many mistakes writing it down, but nothing very deep. Here's the interesting part, though. We tidy up the big mess we created by expanding this term, and we're left with (27). (27) is what you get once you start collecting all the terms and clean up a bit. This is the term inside the minimization, the same thing that's inside (24), just expanded and organized differently.",
+   "fr": "simplement distribuer tous ces termes. Tout aplatir. Ça nous donne ce monstre, (25), qui encore une fois n'a rien de compliqué. Vous voudrez le faire vous-mêmes, et vous ferez beaucoup d'erreurs en l'écrivant, mais rien de très profond. Voici la partie intéressante, par contre. On range le gros fouillis qu'on a créé en développant ce terme, et il nous reste (27). (27), c'est ce qu'on obtient une fois qu'on a regroupé tous les termes et fait un peu de ménage. C'est le terme à l'intérieur de la minimisation, la même chose qu'à l'intérieur de (24), simplement développée et organisée différemment.",
+   "readable": "distributes all the terms. The result looks like a monster but is not complicated; it is worth working out yourself, and you will make mistakes on the way. The interesting step is collecting terms in the expanded expression, which gives equation (27): the same expression as inside the minimization in (24), organized differently."
+  },
+  {
+   "t": 2857119,
+   "text": "So now we ask a question. This is the monster we got, and written this way it's kind of neat, because it's a quadratic function of u. This is what it shows: a term that only involves x, terms that involve x and u, and a quadratic term in u. So the term inside the minimization is a quadratic, and this is great. We all know there's only one minimum to that parabola, and we can find it. The way we do it is to take the gradient of this guy and set it to zero to find the minimizer. This is the standard recipe, right? Once you set it to zero and solve for u, you get this beauty here, (29). It's",
+   "fr": "Maintenant, on pose une question. Voici le monstre qu'on a obtenu, et écrit ainsi c'est plutôt joli, parce que c'est une fonction quadratique de u. C'est ce que ça montre : un terme qui ne fait intervenir que x, des termes en x et u, et un terme quadratique en u. Le terme à l'intérieur de la minimisation est donc quadratique, et c'est formidable. On sait tous que cette parabole n'a qu'un seul minimum, et qu'on peut le trouver. Pour ça, on prend le gradient de cette expression et on l'annule pour trouver le minimiseur. C'est la recette standard, n'est-ce pas ? Une fois le gradient annulé et l'équation résolue en u, on obtient cette beauté ici, (29). On",
+   "readable": "Written this way, the expression is a quadratic function of u: one term involves only x, one involves both x and u, and one is quadratic in u. A quadratic with a positive definite curvature has a single minimum, which we find with the standard recipe: set the gradient with respect to u to zero and solve. This gives equation (29)."
+  },
+  {
+   "t": 2917680,
+   "text": "debatable whether it's beautiful, but it's beautiful that it exists and that it's compact. Okay, so let's stare at this for a second. This \\(u_t^*\\) is the closed-form solution to the minimization at stage t, and it's something we compute along the way as we do backward induction. One thing is that \\(u_t\\) depends on \\(P_{t+1}\\). Let's say we're at the penultimate stage: \\(P_{t+1}\\) is the terminal cost. Which means that if you want to compute the optimal actions for any given x, you're going to have to do it backwards in time. But you're also going to be able to summarize",
+   "fr": "peut débattre de sa beauté, mais c'est beau qu'elle existe et qu'elle soit compacte. Bon, regardons-la un instant. Ce \\(u_t^*\\) est la solution en forme close de la minimisation à l'étape t, et c'est quelque chose qu'on calcule au fil de l'induction arrière. Une chose : \\(u_t\\) dépend de \\(P_{t+1}\\). Disons qu'on est à l'avant-dernière étape : \\(P_{t+1}\\) est le coût terminal. Ce qui veut dire que si on veut calculer les actions optimales pour n'importe quel x donné, il faudra le faire à rebours dans le temps. Mais on pourra aussi résumer",
+   "readable": "Whether it is beautiful is debatable, but it is remarkable that it exists in compact form. \\(u_t^*\\) is the closed-form solution of the minimization at stage t, computed along the way during backward induction. It depends on \\(P_{t+1}\\); at the penultimate stage, \\(P_{t+1}\\) is the terminal cost matrix. Optimal actions must therefore be computed backwards in time, but the information can be summarized"
+  },
+  {
+   "t": 2978800,
+   "text": "all that information. Take all this stuff over there and write it as a matrix, because it's a matrix. We call it K, as in gain matrix. I don't know why, but usually we use K and it's called a gain matrix. Okay. So when I do backward induction, I obtain \\(P_{t+1}\\) at the stage before, and I can also compute \\(K_t\\), the gain matrix, which is just this guy.",
+   "fr": "toute cette information. Prenez tout ça, là-bas, et écrivez-le comme une matrice, parce que c'en est une. On l'appelle K, comme matrice de gain. Je ne sais pas pourquoi, mais d'habitude on utilise K et on l'appelle matrice de gain. Bon. Donc quand je fais l'induction arrière, j'obtiens \\(P_{t+1}\\) à l'étape précédente, et je peux aussi calculer \\(K_t\\), la matrice de gain, qui est simplement cette expression.",
+   "readable": "in a matrix, the gain matrix \\(K_t\\); it is traditionally called K, though I don't know why. During backward induction, once \\(P_{t+1}\\) is available from the following stage, I compute \\(K_t\\)."
+  },
+  {
+   "t": 3009760,
+   "text": "And I keep that matrix in memory. The x has nothing to do with it: the x here was just a demonstration of what it would look like for some given x, any x, right? But we want something that applies to any state, so we summarize it in the matrix K. And the beauty of this is that if you ask me what action to take at stage t when I happen to be in state \\(x_t\\), which can be anything, I can give you the optimal answer right away, if your system is LQR, of course. It's going to be this.\nStudent: Yeah, R and Q are time-dependent. Is there a reason why they would change over time?",
+   "fr": "Et je garde cette matrice en mémoire. Le x n'a rien à voir là-dedans : le x ici servait seulement à montrer à quoi ça ressemblerait pour un x donné, n'importe quel x, n'est-ce pas ? Mais on veut quelque chose qui s'applique à n'importe quel état, donc on le résume dans la matrice K. Et la beauté de la chose, c'est que si vous me demandez quelle action prendre à l'étape t quand je me trouve dans l'état \\(x_t\\), qui peut être n'importe quoi, je peux vous donner la réponse optimale immédiatement, si votre système est LQR, bien sûr. Ce sera ceci.\nStudent: Oui, R et Q dépendent du temps. Y a-t-il une raison pour qu'elles changent avec le temps ?",
+   "readable": "I store it. The particular x does not matter; it only illustrated the computation for an arbitrary state. \\(K_t\\) applies to every state, so for any stage t and any state \\(x_t\\) I can return the optimal action immediately, provided the system is LQR.\nStudent: Why are R and Q time-dependent? Is there a reason for them to change over time?"
+  },
+  {
+   "t": 3062160,
+   "text": "It's a modeling knob. You don't have to use that knob. It's like having bells and whistles: you don't have to use them all. There's another way to think of this. If you work with RL, you know what a policy is, and you've implemented a policy network. This means that in an LQR, the policy network already has this form: the policy parameterization is just a linear map, and its parameters are K. But we happen to be able to find them through backward induction. You don't need REINFORCE or a gradient estimator or anything. It can be found right away. And this is why we can deal with continuous action spaces: we can predict the right action everywhere.",
+   "fr": "C'est un levier de modélisation. Vous n'êtes pas obligés de l'utiliser. C'est comme avoir toutes les options : vous n'êtes pas obligés de toutes les utiliser. Il y a une autre façon d'y penser. Si vous faites de l'apprentissage par renforcement, vous savez ce qu'est une politique, et vous avez implémenté un réseau de politique. Ça veut dire que dans un LQR, le réseau de politique a déjà cette forme : la paramétrisation de la politique est simplement une application linéaire, et ses paramètres sont K. Mais il se trouve qu'on peut les trouver par induction arrière. Pas besoin de REINFORCE ni d'estimateur de gradient ni de quoi que ce soit. On les trouve directement. Et c'est pourquoi on peut traiter des espaces d'actions continus : on peut prédire la bonne action partout.",
+   "readable": "It is a modeling option. You don't have to use it, just as you don't have to use every feature a model offers. Another way to see this: if you have implemented policy networks in RL, the LQR policy is a policy network whose parameterization is a linear map with parameters K. Here the parameters are found by backward induction, with no REINFORCE and no gradient estimator. This is why continuous action spaces pose no difficulty: we can compute the right action everywhere."
+  },
+  {
+   "t": 3121040,
+   "text": "Okay, so we're going to do this. By the way, if you were to study (30), you would also see that as we do this, we maintain that the cost-to-go function is always positive semidefinite, and so on. Now, if you take this equation, the optimal choice of control, and substitute it back into the cost-to-go function, the one where we had this min: we now know in advance what that min is going to be. You plug it back in there.",
+   "fr": "Bon, on va donc faire ça. Au passage, si vous étudiez (30), vous verrez aussi qu'en faisant ça, on maintient le fait que la fonction de coût à venir reste toujours semi-définie positive, etc. Maintenant, si vous prenez cette équation, le choix optimal de la commande, et que vous la substituez dans la fonction de coût à venir, celle où on avait ce min : on sait maintenant d'avance ce que sera ce min. On l'insère là.",
+   "readable": "Equation (30) also shows that the cost-to-go remains positive semidefinite throughout. Now substitute the optimal control back into the cost-to-go, where the min appeared. Since we know the minimizer in closed form,"
+  },
+  {
+   "t": 3160800,
+   "text": "So instead of having a recursion in terms of J on both sides, as you replace this min with the analytical min, you get a recursive equation that involves matrices rather than a function, and these matrices are computed backward in time. That is called the discrete-time Riccati equation. The discrete-time Riccati equation is simply the Bellman equation, backward induction, specialized to linear quadratic systems. It's also a recursion, but now, instead of having a function, which is an infinite-dimensional object, on both sides, our recursion is over these matrices.",
+   "fr": "Donc au lieu d'avoir une récurrence en J des deux côtés, en remplaçant ce min par le min analytique, on obtient une équation récursive qui porte sur des matrices plutôt que sur une fonction, et ces matrices sont calculées à rebours dans le temps. C'est ce qu'on appelle l'équation de Riccati en temps discret. L'équation de Riccati en temps discret est simplement l'équation de Bellman, l'induction arrière, spécialisée aux systèmes linéaires quadratiques. C'est aussi une récurrence, mais maintenant, au lieu d'avoir une fonction, qui est un objet de dimension infinie, des deux côtés, notre récurrence porte sur ces matrices.",
+   "readable": "the min is replaced by an analytical expression, and the recursion on J becomes a recursion on matrices, computed backwards in time. This is the discrete-time Riccati equation. The discrete-time Riccati equation is the Bellman equation, that is, backward induction, specialized to linear quadratic systems. It is still a recursion, but over matrices instead of functions, which are infinite-dimensional objects."
+  },
+  {
+   "t": 3207359,
+   "text": "And you do the same thing backwards in time. You start from the end, you set P of the last stage to be the terminal cost, and you keep computing this backwards. As you do this, it gives you a sequence of gain matrices that you keep in memory, so you're going to have as many gain matrices as you've got stages. Actually, you have to keep the P matrices to compute the gains, but you can also predict not only the optimal control but also the optimal value. See, here I've got round parentheses, because I can plug in any x I want, and I can predict its value using the \\(P_t\\) I've computed in my recursion.",
+   "fr": "Et on fait la même chose à rebours dans le temps. On part de la fin, on pose P de la dernière étape égal au coût terminal, et on continue de calculer vers l'arrière. Ce faisant, on obtient une suite de matrices de gain qu'on garde en mémoire ; on aura donc autant de matrices de gain que d'étapes. En fait, il faut garder les matrices P pour calculer les gains, mais on peut aussi prédire non seulement la commande optimale, mais aussi la valeur optimale. Vous voyez, ici j'ai des parenthèses, parce que je peux insérer n'importe quel x et prédire sa valeur à l'aide du \\(P_t\\) calculé dans ma récurrence.",
+   "readable": "As before, it runs backwards in time: set P at the last stage equal to the terminal cost and compute backwards. This produces one gain matrix per stage, which you store; the P matrices are needed along the way to compute the gains. Besides the optimal control, you also obtain the optimal value: for any x, the cost-to-go is \\(x^\\top P_t x\\), using the \\(P_t\\) computed by the recursion."
+  },
+  {
+   "t": 3260480,
+   "text": "So I think it's a pretty powerful and pretty simple recursion to implement. Now, there are a bunch of numerical details, and there's a whole literature of tricks to do this numerically. There's a matrix inverse in there, and as you all know, we never compute explicit matrix inverses, ever. If you were to do it by hand, at least use a linear solve, not a matrix inversion. But even better, just use the built-in LQR methods available in SciPy. SciPy has the Riccati equation, and they have fancier ways to do it that use the structure. I'm going to say QR factorization, but it's fancier than that, and it's numerically stable. So use these methods, but conceptually, under the hood, this is what it's doing.",
+   "fr": "Je pense donc que c'est une récurrence assez puissante et assez simple à implémenter. Il y a maintenant tout un tas de détails numériques, et toute une littérature de trucs pour faire ça numériquement. Il y a une inverse de matrice là-dedans, et comme vous le savez tous, on ne calcule jamais d'inverse de matrice explicite, jamais. Si vous deviez le faire à la main, utilisez au moins une résolution de système linéaire, pas une inversion de matrice. Mais encore mieux, utilisez simplement les méthodes LQR intégrées de SciPy. SciPy a l'équation de Riccati, et ils ont des façons plus sophistiquées de la résoudre qui exploitent la structure. Je dirais une factorisation QR, mais c'est plus sophistiqué que ça, et c'est numériquement stable. Utilisez donc ces méthodes, mais conceptuellement, sous le capot, c'est ce qu'elles font.",
+   "readable": "This is a powerful recursion and a simple one to implement. There are many numerical details and a literature of techniques for doing it well. The recursion contains a matrix inverse, and we never compute explicit inverses: if you implement it yourself, use a linear solve. Better still, use the LQR and Riccati solvers in SciPy, which exploit the structure of the problem with stable factorizations, more sophisticated than a plain QR factorization. Conceptually, though, this recursion is what they compute."
+  },
+  {
+   "t": 3312079,
+   "text": "Okay, so that's something to add to your toolbox. Let's take a break. This section here is just putting some math on what I was saying: you can linearize the system, which is literally what we're doing. Long story short, a Taylor expansion. There you go, this shows you how to do it. Let's take a little break, and we'll move on to the next section. In the next section, we're going to add some noise to this. Okay.",
+   "fr": "Bon, c'est donc un outil de plus pour votre boîte à outils. Prenons une pause. Cette section-ci met simplement un peu de mathématiques sur ce que je disais : on peut linéariser le système, ce qui est exactement ce qu'on fait. Bref, un développement de Taylor. Voilà, ça vous montre comment faire. Prenons une petite pause, puis on passera à la section suivante. Dans la section suivante, on va ajouter du bruit à tout ça. Bon.",
+   "readable": "That is one more tool for your toolbox. The next section formalizes linearization: a Taylor expansion of the dynamics around an operating point, as shown there. After the break we will add noise."
+  },
+  {
+   "t": 3369760,
+   "text": "[Break]",
+   "fr": "[Break]",
+   "readable": "[Break]"
+  },
+  {
+   "t": 3410559,
+   "text": "[Break]",
+   "fr": "[Break]",
+   "readable": "[Break]"
+  },
+  {
+   "t": 3476000,
+   "text": "[Break]",
+   "fr": "[Break]",
+   "readable": "[Break]"
+  },
+  {
+   "t": 3555359,
+   "text": "[Break]",
+   "fr": "[Break]",
+   "readable": "[Break]"
+  },
+  {
+   "t": 3645200,
+   "text": "[Break]",
+   "fr": "[Break]",
+   "readable": "[Break]"
+  },
+  {
+   "t": 3690480,
+   "text": "[Break]",
+   "fr": "[Break]",
+   "readable": "[Break]"
+  },
+  {
+   "t": 3722480,
+   "text": "[Break]",
+   "fr": "[Break]",
+   "readable": "[Break]"
+  },
+  {
+   "t": 3771200,
+   "text": "[Break]",
+   "fr": "[Break]",
+   "readable": "[Break]"
+  },
+  {
+   "t": 3817520,
+   "text": "[Break]",
+   "fr": "[Break]",
+   "readable": "[Break]"
+  },
+  {
+   "t": 3897359,
+   "text": "[Break]",
+   "fr": "[Break]",
+   "readable": "[Break]"
+  },
+  {
+   "t": 3929359,
+   "text": "[Break]",
+   "fr": "[Break]",
+   "readable": "[Break]"
+  },
+  {
+   "t": 3969680,
+   "text": "[Break]",
+   "fr": "[Break]",
+   "readable": "[Break]"
+  },
+  {
+   "t": 4013920,
+   "text": "[Break]",
+   "fr": "[Break]",
+   "readable": "[Break]"
+  },
+  {
+   "t": 4076880,
+   "text": "[Break]",
+   "fr": "[Break]",
+   "readable": "[Break]"
+  },
+  {
+   "t": 4108400,
+   "text": "Okay. By the way, there's a section at the end of the last part that talks about bounding the errors of interpolation.",
+   "fr": "Bon. Au passage, il y a une section à la fin de la dernière partie qui parle de borner les erreurs d'interpolation.",
+   "readable": "The end of the previous part of the chapter has a section on bounding interpolation errors."
+  },
+  {
+   "t": 4144799,
+   "text": "I'm not covering this material, but it's a good thing to know. Another good reason why people like to use interpolation, and it's true for optimal control too, is that you can get bounds on discretization errors. That can be very useful. In particular, you can use these bounds to refine your grid. What does that mean concretely? If you notice along the way that a certain part of the state space is trickier to capture well, because the discretization error given by the bound is going up, you can refine the grid there and have more points to cover that tricky part. It's the same in trajectory optimization. It's another reason why people like interpolation: it gives you bounds.",
+   "fr": "Je ne couvre pas cette matière, mais c'est bon à savoir. Une autre bonne raison pour laquelle les gens aiment utiliser l'interpolation, et c'est vrai aussi en commande optimale, c'est qu'on peut obtenir des bornes sur les erreurs de discrétisation. Ça peut être très utile. En particulier, on peut utiliser ces bornes pour raffiner la grille. Concrètement, qu'est-ce que ça veut dire ? Si vous remarquez en cours de route qu'une certaine partie de l'espace d'états est plus difficile à bien capturer, parce que l'erreur de discrétisation donnée par la borne augmente, vous pouvez raffiner la grille à cet endroit et avoir plus de points pour couvrir cette partie difficile. C'est la même chose en optimisation de trajectoire. C'est une autre raison pour laquelle on aime l'interpolation : elle donne des bornes.",
+   "readable": "I am not covering it, but it is worth knowing. Error bounds are another reason people like interpolation, in optimal control as elsewhere. They can guide grid refinement: if the bound shows that the discretization error grows in some region of the state space, you add grid points there. Trajectory optimization uses the same idea."
+  },
+  {
+   "t": 4192080,
+   "text": "That wouldn't be the case, I think, for other choices of function approximator. Okay, let's now finally extend the previous material to the case where you've got noise. What does that mean concretely? I think we covered this at the beginning of the course, but there are two ways to write down the math here. One way is to take your dynamics function f, which used to be \\(f_t(x_t, u_t)\\), and say it's still a deterministic function, but there's another input, an exogenous input, call it omega, \\(\\omega_t\\), and \\(\\omega_t\\) is some noise drawn from a distribution of your choice.",
+   "fr": "Ce ne serait pas le cas, je pense, avec d'autres choix d'approximateur de fonctions. Bon, étendons maintenant enfin la matière précédente au cas où il y a du bruit. Concrètement, qu'est-ce que ça veut dire ? Je pense qu'on l'a vu au début du cours, mais il y a deux façons d'écrire les mathématiques ici. Une façon est de prendre votre fonction de dynamique f, qui était \\(f_t(x_t, u_t)\\), et de dire que c'est toujours une fonction déterministe, mais qu'il y a une autre entrée, une entrée exogène, appelons-la oméga, \\(\\omega_t\\), et \\(\\omega_t\\) est un bruit tiré d'une loi de votre choix.",
+   "readable": "Other function approximators generally do not give such bounds. Now let us extend the material to systems with noise. As we saw at the beginning of the course, there are two ways to write the model. One keeps a deterministic dynamics function, \\(f_t(x_t, u_t)\\), and adds an exogenous input \\(\\omega_t\\), a noise term drawn from some distribution."
+  },
+  {
+   "t": 4242800,
+   "text": "That's a modeling form we sometimes like to use. But for the material from now on, we're essentially going to marginalize out this noise and work instead with an equivalent representation, the so-called transition kernel.",
+   "fr": "C'est une forme de modélisation qu'on aime parfois utiliser. Mais pour la matière à partir de maintenant, nous allons essentiellement marginaliser ce bruit et travailler plutôt avec une représentation équivalente, ce qu'on appelle le noyau de transition.",
+   "readable": "That form is sometimes convenient for modeling. From now on, however, we will marginalize the noise out and work with an equivalent representation, the transition kernel."
+  },
+  {
+   "t": 4274159,
+   "text": "\"Kernel\" is a term used when you're in a continuous space; in the discrete case it would be a matrix, well, kind of. Okay. But it's this object: the probability of \\(x_{t+1}\\) given \\(x_t\\) and \\(u_t\\). So this is the transition kernel, and we're now going to be working in the full setting of Markov decision processes, where we can have not only continuous states and actions but also uncertain transitions.",
+   "fr": "« Noyau » est un terme utilisé quand on est dans un espace continu ; dans le cas discret, ce serait une matrice, enfin, en quelque sorte. Bon. Mais c'est cet objet : la probabilité de \\(x_{t+1}\\) sachant \\(x_t\\) et \\(u_t\\). Voilà le noyau de transition, et nous allons maintenant travailler dans le cadre complet des processus de décision markoviens, où l'on peut avoir non seulement des états et des actions continus, mais aussi des transitions incertaines.",
+   "readable": "The term kernel is used for continuous spaces; in the discrete case it is essentially a matrix. It is the conditional probability of \\(x_{t+1}\\) given \\(x_t\\) and \\(u_t\\). We are now in the full setting of Markov decision processes, with possibly continuous states and actions and uncertain transitions."
+  },
+  {
+   "t": 4330640,
+   "text": "Not only this, we can even capture stochastic costs, or random rewards, with the same math, the same language. We don't see that very often, but you can do it: in RL, when you define your environment, you could have a reward that is, let's say, a random variable you draw. Remarkably, the math remains the same. Okay. But there are serious questions we're going to have to start asking here, questions we didn't have to consider up to now.",
+   "fr": "Et pas seulement ça : on peut même représenter des coûts stochastiques, ou des récompenses aléatoires, avec les mêmes mathématiques, le même langage. On ne le voit pas très souvent, mais on peut le faire : en apprentissage par renforcement, quand on définit son environnement, on pourrait avoir une récompense qui est, disons, une variable aléatoire qu'on tire. Fait remarquable, les mathématiques restent les mêmes. Bon. Mais il y a des questions sérieuses qu'on va devoir commencer à se poser ici, des questions qu'on n'avait pas à considérer jusqu'à maintenant.",
+   "readable": "The same framework also covers random costs or rewards. This is less common, but an RL environment can define a reward drawn at random, and the mathematics is unchanged. Noise does, however, raise questions we did not have to face before,"
+  },
+  {
+   "t": 4372800,
+   "text": "And this goes back to the very beginning, to what our problem is. Let me just stare at some equations with you. Okay. Let's look at this first. This is what our math is going to look like, and the first question, which we didn't have earlier: earlier, in the math, we had this min of whatever, but now we have noise. Where do you evaluate the min of whatever?",
+   "fr": "Et ça nous ramène au tout début, à ce qu'est notre problème. Regardons quelques équations ensemble. Bon. Regardons d'abord ceci. Voici à quoi vont ressembler nos mathématiques, et la première question, qu'on n'avait pas avant : avant, dans les mathématiques, on avait ce min de quelque chose, mais maintenant on a du bruit. Où évalue-t-on le min de quelque chose ?",
+   "readable": "and they take us back to the definition of the problem itself. Look at the equations. Before, we minimized a deterministic quantity. With noise, what does it mean to minimize?"
+  },
+  {
+   "t": 4404880,
+   "text": "You sample a bunch of random variables, and then what does that even mean? So we need to pick an objective. The natural choice, and there are reasons to go with it, is to take the expectation over the noise variables. Maybe one day I'm going to add this to the book; there are just so many things I'd like to cover. But the choice of the expectation is a modeling choice, and the justification for it goes back to utility theory.",
+   "fr": "On tire un tas de variables aléatoires, et ensuite qu'est-ce que ça veut même dire ? Il faut donc choisir un objectif. Le choix naturel, et il y a des raisons de le faire, est de prendre l'espérance par rapport aux variables de bruit. Peut-être qu'un jour j'ajouterai ça au livre ; il y a tellement de choses que j'aimerais couvrir. Mais le choix de l'espérance est un choix de modélisation, et sa justification remonte à la théorie de l'utilité.",
+   "readable": "Each draw of the random variables gives a different outcome, so we must choose an objective. The natural choice, for good reasons, is the expectation over the noise. I may add this discussion to the book one day. Choosing the expectation is a modeling decision, justified by utility theory."
+  },
+  {
+   "t": 4456560,
+   "text": "It goes back to fundamental results by von Neumann, among others, that tell us how we encode preferences: the ordering, the encoding of preferences. What are the preferences about here? \"Preferences\" is a term we now use a lot in RLHF with LLMs, but it goes way back to utility theory. What do I mean by preference? I mean an ordering. An ordering of what? An ordering of policies.",
+   "fr": "Elle remonte à des résultats fondamentaux de von Neumann, entre autres, qui nous disent comment encoder des préférences : l'ordre, l'encodage des préférences. Sur quoi portent les préférences ici ? « Préférences » est un terme qu'on utilise beaucoup maintenant en RLHF avec les LLM, mais ça remonte loin, à la théorie de l'utilité. Qu'est-ce que j'entends par préférence ? J'entends un ordre. Un ordre sur quoi ? Un ordre sur les politiques.",
+   "readable": "It goes back to fundamental results by von Neumann and others on how to encode preferences as an ordering. \"Preferences\" is now a familiar word in RLHF for LLMs, but the idea goes back to utility theory. Here, the preferences are an ordering of policies."
+  },
+  {
+   "t": 4494880,
+   "text": "Because when I talk about optimality, it means something is better than something else, and the whole notion of better implies there's some ordering underneath. You need to be able to order your policies to even start asking the question of finding an optimal policy. And we're going to make a particular choice here.",
+   "fr": "Parce que quand je parle d'optimalité, ça veut dire que quelque chose est meilleur qu'autre chose, et toute la notion de « meilleur » suppose qu'il y a un ordre sous-jacent. Il faut pouvoir ordonner ses politiques pour même commencer à se poser la question de trouver une politique optimale. Et nous allons faire un choix particulier ici.",
+   "readable": "Optimality means that something is better than something else, so it presupposes an ordering. We must be able to order policies before we can ask for an optimal one, and we make a particular choice."
+  },
+  {
+   "t": 4537840,
+   "text": "The ordering is that we're going to induce a partial order, a component-wise partial order, which says that a policy, let's call it \\(\\pi\\), is better than \\(\\pi'\\) if... did I switch to this now? Let's just write J for now. If the value function associated with \\(\\pi\\), which I'll define in a second, is greater than or equal to \\(J^{\\pi'}\\)",
+   "fr": "L'ordre est le suivant : nous allons induire un ordre partiel, un ordre partiel composante par composante, qui dit qu'une politique, appelons-la \\(\\pi\\), est meilleure que \\(\\pi'\\) si... est-ce que j'ai changé de notation ? Écrivons simplement J pour l'instant. Si la fonction de valeur associée à \\(\\pi\\), que je définirai dans un instant, est supérieure ou égale à \\(J^{\\pi'}\\)",
+   "readable": "We use the component-wise partial order: a policy \\(\\pi\\) is better than a policy \\(\\pi'\\) if the value function of \\(\\pi\\), defined below and written J for now, is at least \\(J^{\\pi'}\\)"
+  },
+  {
+   "t": 4603120,
+   "text": "for all states, for all x. This is a component-wise partial order, and the ordering is in terms of the cost-to-go function, and that cost-to-go function is defined as an expectation. By the way, another topic I'm not covering, but it's good to know it exists: choosing the expectation assumes something about our behavior towards risk.",
+   "fr": "pour tous les états, pour tout x. C'est un ordre partiel composante par composante, l'ordre est défini en fonction de la fonction de coût à venir, et cette fonction de coût à venir est définie comme une espérance. Au passage, un autre sujet que je ne couvre pas, mais qu'il est bon de connaître : choisir l'espérance suppose quelque chose sur notre attitude face au risque.",
+   "readable": "in every state x. The order is component-wise, it is defined through the cost-to-go function, and that function is an expectation. Choosing the expectation also embodies an assumption about our attitude towards risk, a topic I will not cover but that is worth knowing about."
+  },
+  {
+   "t": 4648800,
+   "text": "What does risk mean? It means uncertainty: uncertainty about the future, uncertainty about the consequences of our actions. By choosing the expectation this way, we're essentially saying that we're risk-neutral. But there are also ways to define these Bellman equations to be risk-averse, risk-seeking, or something in between, and there's no unique way to define these notions of risk. There's a whole field called risk-sensitive reinforcement learning that deals with this; my student [name] in my group has worked on it. One particular choice people like is the CVaR. The CVaR essentially looks at the tail events of your distribution, and you quantify and rank policies with respect to the tail you set.",
+   "fr": "Que veut dire risque ? Ça veut dire incertitude : incertitude sur l'avenir, incertitude sur les conséquences de nos actions. En choisissant l'espérance de cette façon, on dit essentiellement qu'on est neutre au risque. Mais il existe aussi des façons de définir ces équations de Bellman pour qu'elles soient averses au risque, preneuses de risque, ou quelque chose entre les deux, et il n'y a pas de façon unique de définir ces notions de risque. Il existe tout un domaine appelé apprentissage par renforcement sensible au risque qui traite de ça ; [name], une personne de mon groupe, y a travaillé. Un choix particulier que les gens aiment est la CVaR. La CVaR regarde essentiellement les événements de queue de la distribution, et on quantifie et ordonne les politiques en fonction de la queue qu'on a fixée.",
+   "readable": "Risk here means uncertainty about the future and about the consequences of our actions. Using the expectation makes us risk-neutral. Bellman equations can also be defined to be risk-averse, risk-seeking or in between, and there is no unique definition of risk. Risk-sensitive reinforcement learning studies these questions, and [name] in my group has worked on them. A popular choice is the CVaR, which looks at the tail of the outcome distribution and ranks policies by their behavior in that tail."
+  },
+  {
+   "t": 4710880,
+   "text": "Here, the expectation is risk-neutral. All we care about: there's a distribution that is induced, and we pick the mean. That's how we characterize the performance of our system: just by its mean, nothing else. Okay. So the cost-to-go is now an expectation, and we rank policies according to the component-wise partial order in terms of the value function associated with each policy. What is \\(J^\\pi\\)? \\(J^\\pi\\) is the expected sum of costs, or rewards, encountered as you execute the policy in your system. Think of it this way, if you were to run an experiment. You can compute this thing exactly, by the way, but let's not talk about how you solve it yet. I give you a candidate policy",
+   "fr": "Ici, l'espérance est neutre au risque. Tout ce qui nous importe : une distribution est induite, et on en prend la moyenne. C'est ainsi qu'on caractérise la performance de notre système : uniquement par sa moyenne, rien d'autre. Bon. Le coût à venir est donc maintenant une espérance, et on ordonne les politiques selon l'ordre partiel composante par composante, en fonction de la fonction de valeur associée à chaque politique. Qu'est-ce que \\(J^\\pi\\) ? \\(J^\\pi\\) est la somme espérée des coûts, ou des récompenses, rencontrés en exécutant la politique dans votre système. Pensez-y ainsi, comme si vous meniez une expérience. On peut calculer cette quantité exactement, d'ailleurs, mais ne parlons pas encore de la façon de la résoudre. Je vous donne une politique candidate",
+   "readable": "With the expectation, we are risk-neutral: a policy induces a distribution over outcomes, and we characterize its performance by the mean alone. So the cost-to-go is now an expectation, and policies are ranked by the component-wise partial order of their value functions. \\(J^\\pi\\) is the expected sum of costs, or rewards, incurred by executing policy \\(\\pi\\) in the system. It can be computed exactly, but suppose for now that"
+  },
+  {
+   "t": 4773520,
+   "text": "and I ask you to evaluate it. What can you do? Take the policy, run it in the real system, collect the costs, sum them up, do that a bunch of times, and average. That's policy evaluation. Computing \\(J^\\pi\\) doesn't mean you're computing the optimal policy; you're just evaluating whatever you've got. This is always going to be a very important distinction I want to make: there are two fundamental problems.",
+   "fr": "et je vous demande de l'évaluer. Que pouvez-vous faire ? Prendre la politique, l'exécuter dans le vrai système, recueillir les coûts, les additionner, le refaire un bon nombre de fois, et faire la moyenne. C'est l'évaluation de politique. Calculer \\(J^\\pi\\) ne veut pas dire calculer la politique optimale ; vous évaluez simplement ce que vous avez. C'est une distinction très importante que je ferai toujours : il y a deux problèmes fondamentaux.",
+   "readable": "you are given a candidate policy to evaluate. You can run it in the real system, sum the costs, repeat many times and average. This is policy evaluation. Computing \\(J^\\pi\\) evaluates a given policy; it does not find the optimal one. I will keep stressing this distinction between two fundamental problems:"
+  },
+  {
+   "t": 4805679,
+   "text": "One is policy evaluation, and the other has to do with optimality, finding an optimal policy. They go hand in hand, but you'll see that they come with different equations. One of them is inherently nonlinear: the optimality one, because of the max operator.",
+   "fr": "L'un est l'évaluation de politique, et l'autre concerne l'optimalité, trouver une politique optimale. Ils vont de pair, mais vous verrez qu'ils viennent avec des équations différentes. L'une d'elles est intrinsèquement non linéaire : celle de l'optimalité, à cause de l'opérateur max.",
+   "readable": "policy evaluation and policy optimization. They go hand in hand, but they lead to different equations. The optimality equation is inherently nonlinear because of the max operator."
+  },
+  {
+   "t": 4838080,
+   "text": "Okay. So far, what we've seen is a natural progression from trajectory optimization. We had plans indexed by time, and we said: let's now have the feedback loop, and a dependence on the current state.",
+   "fr": "Bon. Jusqu'ici, ce qu'on a vu est une progression naturelle depuis l'optimisation de trajectoire. On avait des plans indexés par le temps, et on s'est dit : ajoutons maintenant la boucle de rétroaction, et une dépendance à l'état courant.",
+   "readable": "So far we have followed a natural progression from trajectory optimization: from plans indexed by time to feedback that depends on the current state."
+  },
+  {
+   "t": 4870000,
+   "text": "We didn't really have to go towards fancier types of policies, but nobody has really asked whether we need something more than feedback from the current state. Maybe we need a policy that depends on whatever happened up to now. Probably not on the future, because that's not a causal policy you could deploy.",
+   "fr": "On n'a pas vraiment eu besoin d'aller vers des types de politiques plus sophistiqués, mais personne n'a vraiment demandé si on avait besoin de plus qu'une rétroaction sur l'état courant. Peut-être qu'il nous faut une politique qui dépend de tout ce qui s'est passé jusqu'ici. Probablement pas du futur, parce que ce ne serait pas une politique causale qu'on pourrait déployer.",
+   "readable": "We have not asked whether feedback on the current state is enough, or whether a policy might need everything that has happened so far. It cannot depend on the future, since such a policy would not be causal and could not be deployed."
+  },
+  {
+   "t": 4900560,
+   "text": "But if you don't know anything about your problem, it would be quite reasonable to say that, when searching for an optimal policy, a policy might be an object that looks at the entire history so far. Now there's a bit of a change of notation here, and I invite you to be aware of it. It reflects a preference between communities. What we've done so far belongs more to the tradition of engineering and optimal control, whereas now, at least the way I'm presenting it, it belongs more to the tradition of operations research. As you transition from one field to the other, we use s instead of x, a instead of u, and rewards instead of costs. Are you good? You can go back and forth; they're not fundamentally different, just a preference for symbols.",
+   "fr": "Mais si on ne sait rien de son problème, il serait assez raisonnable de dire qu'en cherchant une politique optimale, une politique pourrait être un objet qui regarde tout l'historique jusqu'ici. Il y a maintenant un petit changement de notation, et je vous invite à en être conscients. Il reflète une préférence entre communautés. Ce qu'on a fait jusqu'ici relève davantage de la tradition de l'ingénierie et de la commande optimale, alors que maintenant, du moins tel que je le présente, ça relève davantage de la tradition de la recherche opérationnelle. En passant d'un domaine à l'autre, on utilise s au lieu de x, a au lieu de u, et des récompenses au lieu de coûts. Ça va ? On peut passer de l'un à l'autre ; ce n'est pas fondamentalement différent, juste une préférence de symboles.",
+   "readable": "Without knowledge of the problem's structure, it would be reasonable to search over policies that depend on the entire history. Note a change of notation at this point, which reflects the habits of different communities. What we have done so far follows the engineering and optimal control tradition; the material from here on, as I present it, follows the operations research tradition. We now write s instead of x, a instead of u, and rewards instead of costs. The two notations are interchangeable; only the symbols differ."
+  },
+  {
+   "t": 4961120,
+   "text": "So in the most general case, a policy could be an object defined like that. In order to pick an action, you might want to keep in memory whatever happened up to now. This is the history: all the states you've encountered and the actions you applied, up to state \\(s_t\\), the current time step.",
+   "fr": "Donc dans le cas le plus général, une politique pourrait être un objet défini comme ceci. Pour choisir une action, on pourrait vouloir garder en mémoire tout ce qui s'est passé jusqu'ici. C'est l'historique : tous les états rencontrés et les actions appliquées, jusqu'à l'état \\(s_t\\), le pas de temps courant.",
+   "readable": "In the most general case, a policy is defined on histories: to choose an action, it may use everything that has happened so far, all the states visited and actions taken up to the current state \\(s_t\\)."
+  },
+  {
+   "t": 4992239,
+   "text": "Okay. Not only this: your policy so far has been a direct mapping. In the LQR case, I could directly compute the optimal action. All I had to do was a matrix-vector multiplication. Bam. There's only one solution: repeat the same thing a gazillion times, and you get the same answer.",
+   "fr": "Bon. Et pas seulement ça : jusqu'ici, votre politique était une application directe. Dans le cas LQR, je pouvais calculer directement l'action optimale. Il suffisait d'un produit matrice-vecteur. Bang. Il n'y a qu'une solution : répétez la même chose un nombre incalculable de fois, vous obtiendrez la même réponse.",
+   "readable": "Moreover, our policies so far have been direct mappings. In the LQR case, the optimal action is a matrix-vector product, and repeating the computation always gives the same answer."
+  },
+  {
+   "t": 5026960,
+   "text": "So that type of policy was Markovian, because it only depends on the current state, and deterministic. We could also have a Markovian randomized policy, in which case you would sample the action at the current time step. And you could condition your randomized policy on the entire history up to now as well.",
+   "fr": "Ce type de politique était donc markovien, parce qu'il ne dépend que de l'état courant, et déterministe. On pourrait aussi avoir une politique markovienne randomisée, auquel cas on tirerait l'action au pas de temps courant. Et on pourrait aussi conditionner sa politique randomisée sur tout l'historique jusqu'ici.",
+   "readable": "Such a policy is Markovian, because it depends only on the current state, and deterministic. A policy can also be Markovian and randomized, sampling its action at each step, and a randomized policy can be conditioned on the entire history."
+  },
+  {
+   "t": 5061679,
+   "text": "That would be a history-dependent randomized policy. Just a quick check here: which one is the most general type of policy?\nStudent: The history-dependent randomized one.\nYes, exactly. That's the largest possible class you might have. So you might ask: how about we just solve everything within that space?",
+   "fr": "Ce serait une politique randomisée dépendant de l'historique. Petite vérification : quel est le type de politique le plus général ?\nStudent: Celle randomisée qui dépend de l'historique.\nOui, exactement. C'est la plus grande classe possible. Vous pourriez donc demander : pourquoi ne pas tout résoudre dans cet espace ?",
+   "readable": "That gives a history-dependent randomized policy. Which type of policy is the most general?\nStudent: The history-dependent randomized one.\nExactly; it is the largest class. Why not simply optimize over that class?"
+  },
+  {
+   "t": 5093520,
+   "text": "Well, the reason is that it's just not tractable. The history grows with time, and as you remember from the curse of dimensionality, if you start interpolating over something that grows over time, it's going to explode exponentially. Even if you have discrete state spaces and discrete actions, this is not going to scale. You might be able to do it for a very, very short horizon: maybe enumerate all possible policies, at least the deterministic ones, and pick the best one. But it would quickly become infeasible.",
+   "fr": "Eh bien, la raison, c'est que ce n'est tout simplement pas traitable. L'historique croît avec le temps, et comme vous vous en souvenez avec la malédiction de la dimension, si on commence à interpoler sur quelque chose qui croît avec le temps, ça va exploser exponentiellement. Même avec des espaces d'états et d'actions discrets, ça ne passera pas à l'échelle. On pourrait peut-être le faire pour un horizon très, très court : énumérer toutes les politiques possibles, du moins les déterministes, et choisir la meilleure. Mais ça deviendrait vite infaisable.",
+   "readable": "Because it is intractable. The history grows with time, and as with the curse of dimensionality, representing functions of something that grows over time explodes exponentially. Even with discrete states and actions, it does not scale. For a very short horizon you might enumerate all deterministic policies and pick the best, but this quickly becomes infeasible."
+  },
+  {
+   "t": 5140000,
+   "text": "So a large part of the advances made in the 60s, or maybe even before, during the Cold War, when none of it was really discussed openly, was understanding the structure of the problem that allows us to make simplifications and make it tractable. And one of the big results is this: if your dynamics are Markovian,",
+   "fr": "Une grande partie des avancées faites dans les années 60, ou même avant, pendant la guerre froide, quand rien de tout ça n'était vraiment discuté ouvertement, a consisté à comprendre la structure du problème qui permet de faire des simplifications et de le rendre traitable. Et l'un des grands résultats est celui-ci : si votre dynamique est markovienne,",
+   "readable": "Much of the progress made in the 1960s and earlier, partly during the Cold War and largely undiscussed in public, consisted of understanding the structure that allows such problems to be simplified and made tractable. A central result concerns Markovian dynamics,"
+  },
+  {
+   "t": 5191040,
+   "text": "which means something of this form, and you're in a finite-horizon setting, then you can restrict your attention to Markovian deterministic policies, even though your system is stochastic. It's kind of remarkable, don't you think?",
+   "fr": "c'est-à-dire de cette forme, et que vous êtes dans un cadre à horizon fini, alors vous pouvez vous restreindre aux politiques markoviennes déterministes, même si votre système est stochastique. C'est plutôt remarquable, non ?",
+   "readable": "that is, dynamics of this form. In a finite-horizon problem with Markovian dynamics, it suffices to search over Markovian deterministic policies, even though the system is stochastic. That is a remarkable result."
+  },
+  {
+   "t": 5242320,
+   "text": "Even if you've got noise in the next state, even if you've got noise in the reward, you can still show that if your dynamics are Markovian, there exists an optimal policy that is Markovian and deterministic. And not only this, you can compute it. How? By backward induction. Let's look at this; I think we can stare at it. The algorithm has exactly the same structure. The only thing we've done is take the expectation. To show this properly, we'd have to prove it again, essentially going through the same steps of backward induction. I want to choose where I spend time, so I'm not going to go into why. But let's appreciate the fact that having",
+   "fr": "Même s'il y a du bruit dans l'état suivant, même s'il y a du bruit dans la récompense, on peut quand même montrer que si la dynamique est markovienne, il existe une politique optimale markovienne et déterministe. Et pas seulement ça, on peut la calculer. Comment ? Par induction arrière. Regardons ça ; je pense qu'on peut l'examiner. L'algorithme a exactement la même structure. La seule chose qu'on a faite, c'est prendre l'espérance. Pour le montrer correctement, il faudrait le prouver à nouveau, en reprenant essentiellement les mêmes étapes d'induction arrière. Je veux choisir où je passe mon temps, alors je ne vais pas expliquer pourquoi. Mais apprécions le fait qu'avoir",
+   "readable": "Even with noise in the next state and in the reward, if the dynamics are Markovian there exists an optimal policy that is Markovian and deterministic, and backward induction computes it. The algorithm has exactly the same structure as before; the only change is the expectation. A proper proof repeats the steps of the backward induction argument, which I will skip to save time. What matters is that"
+  },
+  {
+   "t": 5305120,
+   "text": "Markovian dynamics is very useful. It allows us to show that this class is enough in the finite-horizon setting. Okay. So when we compute a policy, again, it's going to be time-dependent. Very important, very important, don't make that mistake. I'm going to make sure you know it in the final exam: if your horizon is fixed and finite, your policies are said to be non-stationary. They depend on time. Finite horizon: I need to see a t in there. There's only one setting where you can get rid of the dependence on time.",
+   "fr": "une dynamique markovienne est très utile. Ça permet de montrer que cette classe suffit dans le cadre à horizon fini. Bon. Donc quand on calcule une politique, encore une fois, elle va dépendre du temps. Très important, très important, ne faites pas cette erreur. Je vais m'assurer que vous le sachiez à l'examen final : si votre horizon est fixe et fini, vos politiques sont dites non stationnaires. Elles dépendent du temps. Horizon fini : je dois voir un t là-dedans. Il n'y a qu'un seul cadre où l'on peut se débarrasser de la dépendance au temps.",
+   "readable": "Markovian dynamics make this class sufficient in the finite-horizon setting. The resulting policy depends on time. This is very important, and I will check it on the final exam: with a fixed finite horizon, optimal policies are non-stationary and must depend on t. There is only one setting in which the dependence on time disappears,"
+  },
+  {
+   "t": 5353040,
+   "text": "That's the setting all of you have seen if you've done RL before taking this class, and you might have worked so much with that setting that you think it's the default, the way it has to be. That setting is the infinite-horizon discounted case. It's only with an infinite horizon that we can show (and it's not for free, we need to show it) that there exist optimal Markovian, deterministic, stationary policies. That's another axis I want to add here: I'll just write \"stat.\", stationary versus non-stationary policies. Okay. So the policies we compute here are",
+   "fr": "C'est le cadre que vous avez tous vu si vous avez fait de l'apprentissage par renforcement avant ce cours, et vous avez peut-être tellement travaillé dans ce cadre que vous pensez que c'est la norme, la façon dont ça doit être. Ce cadre, c'est l'horizon infini actualisé. Ce n'est qu'avec un horizon infini qu'on peut montrer (et ce n'est pas gratuit, il faut le montrer) qu'il existe des politiques optimales markoviennes, déterministes et stationnaires. C'est un autre axe que je veux ajouter ici : je vais simplement écrire « stat. », politiques stationnaires ou non stationnaires. Bon. Les politiques qu'on calcule ici sont donc",
+   "readable": "the infinite-horizon discounted case, which you have seen if you studied RL before. If you have worked mostly in that setting, you may think stationarity is the default. It is not: only for an infinite horizon can we show, and it requires proof, that there exist optimal policies that are Markovian, deterministic and stationary. This adds a third axis to our classification: stationary versus non-stationary policies."
+  },
+  {
+   "t": 5413840,
+   "text": "going to be Markovian, deterministic, but non-stationary. Otherwise, the procedure is the same. You can code this up, but you need to give me P, and you need to be able to compute the expectation tractably. I said P, but you could also do it this way: if your system is described by a function that takes the noise, you could compute it this way too. Any questions on that?",
+   "fr": "markoviennes, déterministes, mais non stationnaires. Sinon, la procédure est la même. Vous pouvez la coder, mais il faut me donner P, et il faut pouvoir calculer l'espérance de façon traitable. J'ai dit P, mais on pourrait aussi faire comme ceci : si votre système est décrit par une fonction qui prend le bruit, on pourrait le calculer de cette façon aussi. Des questions là-dessus ?",
+   "readable": "The policies we compute here are Markovian, deterministic and non-stationary; otherwise the procedure is unchanged. To implement it you need the transition kernel P and a tractable way to compute the expectation. If the system is instead described by a dynamics function with a noise input, the expectation can be computed over the noise. Any questions?"
+  },
+  {
+   "t": 5443840,
+   "text": "Yeah.\nStudent: Sorry, this is kind of a silly question.\nNo worries.\nStudent: So the time-dependent policy clearly depends on t to make a decision about the control. What is a stationary policy? Is it still dependent on the state?\nYeah. A stationary policy still depends on the state, but it doesn't change in time. It only looks like this.",
+   "fr": "Oui.\nStudent: Désolé, c'est un peu une question bête.\nPas de souci.\nStudent: Donc la politique dépendant du temps dépend clairement de t pour décider de la commande. Qu'est-ce qu'une politique stationnaire ? Est-ce qu'elle dépend encore de l'état ?\nOui. Une politique stationnaire dépend encore de l'état, mais elle ne change pas dans le temps. Elle ressemble simplement à ceci.",
+   "readable": "Student: Sorry, this may be a silly question.\nNo worries.\nStudent: The time-dependent policy uses t to choose the control. What is a stationary policy? Does it still depend on the state?\nYes. A stationary policy depends on the state but does not change over time;"
+  },
+  {
+   "t": 5476880,
+   "text": "It's non-stationary when I put a t in there, because it changes in time. Okay. Usually the equation is written this way, using a function f that takes a noise variable. This way of writing things is really just cultural. You're going to find more papers, especially in hydrology and electricity, hydro and so on, that call this SDP, for stochastic dynamic programming. Just good to know. Honestly, it's not a term I use very frequently, but if you talk to colleagues, they might say, \"Oh, we tried stochastic dynamic programming.\" Okay, what does that mean? It just means this. It's just an instance of backward",
+   "fr": "Elle est non stationnaire quand je mets un t dedans, parce qu'elle change dans le temps. Bon. Habituellement, l'équation s'écrit de cette façon, avec une fonction f qui prend une variable de bruit. Cette façon d'écrire les choses est vraiment une question de culture. Vous trouverez davantage d'articles, surtout en hydrologie et en électricité, hydroélectricité et ainsi de suite, qui appellent ça SDP, pour programmation dynamique stochastique. C'est simplement bon à savoir. Honnêtement, ce n'est pas un terme que j'utilise très souvent, mais si vous parlez à des collègues, ils pourraient dire : « Oh, on a essayé la programmation dynamique stochastique. » Bon, qu'est-ce que ça veut dire ? Ça veut simplement dire ceci. C'est juste une instance d'induction",
+   "readable": "putting t in it makes it non-stationary. The equation is often written with a dynamics function f that takes a noise variable; this is a matter of culture. In hydrology and in the electricity and hydropower literature, this approach is usually called SDP, for stochastic dynamic programming. I rarely use the term, but colleagues may say \"we tried stochastic dynamic programming\", and it means exactly this: backward"
+  },
+  {
+   "t": 5538639,
+   "text": "induction for a Markov decision process. There are going to be some challenges here, and I started mentioning them: the expectation, especially if x is continuous. Now we've got another problem. Earlier we had the problem of representing J when x is continuous. Now there's another problem. Does anyone see what that other challenge is going to be?",
+   "fr": "arrière pour un processus de décision markovien. Il va y avoir quelques difficultés ici, et j'ai commencé à les mentionner : l'espérance, surtout si x est continu. On a maintenant un autre problème. Avant, on avait le problème de représenter J quand x est continu. Maintenant, il y a un autre problème. Quelqu'un voit-il quelle sera cette autre difficulté ?",
+   "readable": "induction for a Markov decision process. Computing the expectation brings a new difficulty, especially when x is continuous. Before, the difficulty was representing J for continuous x. What is the new one?"
+  },
+  {
+   "t": 5575600,
+   "text": "What else do I need to do now? We can use interpolation again, but how would you implement 2.1.1 and 2.1.2? There might be specific cases where the expectation can be written analytically, but in most cases it can't. This expectation over there is a nasty integral.",
+   "fr": "Que dois-je faire d'autre maintenant ? On peut de nouveau utiliser l'interpolation, mais comment implémenteriez-vous 2.1.1 et 2.1.2 ? Il peut y avoir des cas particuliers où l'espérance s'écrit analytiquement, mais dans la plupart des cas, non. Cette espérance là-bas est une intégrale pénible.",
+   "readable": "We can still use interpolation for J, but how would we implement steps 2.1.1 and 2.1.2 of the algorithm? In special cases the expectation has a closed form, but in general it does not: it is a difficult integral."
+  },
+  {
+   "t": 5610320,
+   "text": "Right? Maybe it's clearer if we write it using the transition kernel. Where is it? Yeah, okay, let's look at this one. This is a version with the transition kernel, but for discrete state spaces, and here it doesn't look like much: it's a summation. The summation can be very large, though. But in the general case, this is going to be an integral.",
+   "fr": "N'est-ce pas ? C'est peut-être plus clair si on l'écrit avec le noyau de transition. Où est-ce ? Oui, bon, regardons celle-ci. C'est une version avec le noyau de transition, mais pour des espaces d'états discrets, et ici ça n'a pas l'air de grand-chose : c'est une somme. La somme peut cependant être très grande. Mais dans le cas général, ce sera une intégrale.",
+   "readable": "Writing it with the transition kernel makes this clearer. For discrete state spaces, the expectation is a sum, which looks harmless even though it can be very large. In the general case, it is an integral"
+  },
+  {
+   "t": 5645199,
+   "text": "Look at this equation over there. Instead of a sum over next states, it's going to be an integral over next states. So you're going to have to do two things here. First, you need to interpolate, or discretize and round, and also compute an integral, a quadrature, along the way. Worse than that, if u is continuous, you're also going to have to solve an optimization problem along the way. So we'll have to find ways to make these things tractable. For dealing with the integral, there's a particular choice we're going to be very fond of.",
+   "fr": "Regardez cette équation là-bas. Au lieu d'une somme sur les états suivants, ce sera une intégrale sur les états suivants. Il faudra donc faire deux choses ici. D'abord, il faut interpoler, ou discrétiser et arrondir, et aussi calculer une intégrale, une quadrature, en cours de route. Pire encore, si u est continu, il faudra aussi résoudre un problème d'optimisation en cours de route. Il faudra donc trouver des moyens de rendre tout ça traitable. Pour l'intégrale, il y a un choix particulier qu'on va beaucoup aimer.",
+   "readable": "over next states. Each step then requires interpolating J, or discretizing and rounding, and computing an integral. If u is continuous, it also requires solving an optimization problem. We need ways to make all this tractable, and for the integral there is one method we will rely on heavily."
+  },
+  {
+   "t": 5693280,
+   "text": "Do you know what it's going to be? Numerically, you can approximate integrals using quadrature rules, numerical integration methods. But numerical integration methods also don't scale as the dimension increases, because they're inherently interpolation. There's one special method, special in our hearts as machine learning researchers, a kind of blessing of the universe that makes everything tractable. Does anyone know, or can anyone guess, what method that would be?",
+   "fr": "Savez-vous ce que ce sera ? Numériquement, on peut approximer des intégrales avec des règles de quadrature, des méthodes d'intégration numérique. Mais les méthodes d'intégration numérique ne passent pas non plus à l'échelle quand la dimension augmente, parce qu'elles sont fondamentalement de l'interpolation. Il y a une méthode spéciale, chère à nos cœurs de chercheurs en apprentissage automatique, une sorte de bénédiction de l'univers qui rend tout traitable. Quelqu'un sait-il, ou peut-il deviner, quelle est cette méthode ?",
+   "readable": "Numerical quadrature rules can approximate integrals, but they do not scale with dimension, because they are themselves a form of interpolation. One method, dear to machine learning researchers, makes the problem tractable. Can you guess which?"
+  },
+  {
+   "t": 5747040,
+   "text": "We wouldn't exist as machine learning researchers if this method didn't exist. Yeah?\nStudent: Monte Carlo.\nExactly. Monte Carlo, Monte Carlo integration. A very simple idea. Let's just look here at (22). Basically (22) is this, right? The expectation of \\(J_{t+1}\\), here I'll put a star, of \\(x_{t+1}\\).",
+   "fr": "Nous n'existerions pas en tant que chercheurs en apprentissage automatique si cette méthode n'existait pas. Oui ?\nStudent: Monte-Carlo.\nExactement. Monte-Carlo, l'intégration de Monte-Carlo. Une idée très simple. Regardons simplement (22). En gros, (22), c'est ceci, n'est-ce pas ? L'espérance de \\(J_{t+1}\\), je mets une étoile ici, de \\(x_{t+1}\\).",
+   "readable": "Machine learning research would not exist without it.\nStudent: Monte Carlo.\nExactly: Monte Carlo integration, a very simple idea. Look at equation (22). It contains the expectation of \\(J_{t+1}^*\\) at \\(x_{t+1}\\)."
+  },
+  {
+   "t": 5779520,
+   "text": "My random variable here is \\(x_{t+1}\\). But this expectation is actually a conditional expectation: it's conditioned on \\(x_t\\) and on \\(u_t\\). It says: I'm in this state, I take this control, and then I average what the next value is going to be, with \\(x_{t+1}\\) drawn from... let's write it this way. Okay.",
+   "fr": "Ma variable aléatoire ici est \\(x_{t+1}\\). Mais cette espérance est en fait une espérance conditionnelle : elle est conditionnelle à \\(x_t\\) et à \\(u_t\\). Elle dit : je suis dans cet état, j'applique cette commande, puis je fais la moyenne de ce que sera la valeur suivante, avec \\(x_{t+1}\\) tiré de... écrivons-le comme ceci. Bon.",
+   "readable": "The random variable is \\(x_{t+1}\\), and the expectation is conditional on \\(x_t\\) and \\(u_t\\): from this state, with this control, average the next value, with \\(x_{t+1}\\) drawn from the transition kernel."
+  },
+  {
+   "t": 5815199,
+   "text": "So what your colleague said is that the blessing we have is Monte Carlo integration. And what is Monte Carlo integration? It's basically just taking a sample average. In other words, I assume I can draw samples from P, which is not a given either, by the way. Monte Carlo integration is the only method that doesn't even require you to know the particular values of P.",
+   "fr": "Donc ce que votre collègue a dit, c'est que la bénédiction qu'on a, c'est l'intégration de Monte-Carlo. Et qu'est-ce que l'intégration de Monte-Carlo ? C'est simplement prendre une moyenne d'échantillons. Autrement dit, je suppose que je peux tirer des échantillons de P, ce qui n'est pas acquis non plus, d'ailleurs. L'intégration de Monte-Carlo est la seule méthode qui n'exige même pas de connaître les valeurs particulières de P.",
+   "readable": "As your classmate said, Monte Carlo integration is the blessing. It replaces the expectation by a sample average over draws from P. That assumes we can sample from P, which is not always given, but Monte Carlo integration is the only method that does not require knowing the values of P."
+  },
+  {
+   "t": 5850880,
+   "text": "All it says is: give me samples. That's great, because it means you can design a simulator and give the simulator to your friend as a black box. All you've got to do is sample outputs and average the values. So you have a budget, right? Let's write it like this.",
+   "fr": "Tout ce qu'elle dit, c'est : donnez-moi des échantillons. C'est formidable, parce que ça veut dire qu'on peut concevoir un simulateur et le donner à un ami comme une boîte noire. Il suffit d'échantillonner des sorties et de faire la moyenne des valeurs. On a donc un budget, n'est-ce pas ? Écrivons-le comme ceci.",
+   "readable": "It only needs samples. You can design a simulator and hand it to someone as a black box; they only need to sample outputs and average the values, within some sampling budget."
+  },
+  {
+   "t": 5887920,
+   "text": "You average these guys, and we know that as the number of samples goes to infinity, this converges to the expectation above. And this is the recipe we apply all the time when we do supervised learning. Another little quiz: what is the instantiation of that principle in the context of supervised learning?",
+   "fr": "On fait la moyenne de ces termes, et on sait que quand le nombre d'échantillons tend vers l'infini, ça converge vers l'espérance ci-dessus. Et c'est la recette qu'on applique tout le temps en apprentissage supervisé. Autre petit quiz : quelle est l'instanciation de ce principe dans le contexte de l'apprentissage supervisé ?",
+   "readable": "As the number of samples goes to infinity, the average converges to the expectation. We apply this recipe all the time in supervised learning. What is the corresponding principle in supervised learning?"
+  },
+  {
+   "t": 5919760,
+   "text": "There is a principle that embodies this fact, a three-letter acronym. The empirical risk minimization principle in supervised learning is exactly this. It says: I want to minimize the true risk, but I don't know the exact probabilities, because they're nature's, and even if I knew the true probabilities, I couldn't afford numerical integration; it's too costly. So what do I do? I work with a surrogate, a surrogate I build as an average over the samples I drew. And the same thing is going to happen here. We could do other manipulations, but this is a beautiful method that has the",
+   "fr": "Il y a un principe qui incarne ce fait, un acronyme de trois lettres. Le principe de minimisation du risque empirique en apprentissage supervisé, c'est exactement ça. Il dit : je veux minimiser le vrai risque, mais je ne connais pas les probabilités exactes, parce qu'elles appartiennent à la nature, et même si je les connaissais, je ne pourrais pas me permettre l'intégration numérique ; c'est trop coûteux. Alors que fais-je ? Je travaille avec un substitut, un substitut que je construis comme une moyenne sur les échantillons que j'ai tirés. Et la même chose va se produire ici. On pourrait faire d'autres manipulations, mais c'est une belle méthode qui a la",
+   "readable": "It has a three-letter acronym: ERM, empirical risk minimization. We want to minimize the true risk, but we do not know the true distribution, and even if we did, numerical integration would be too costly. So we minimize a surrogate built from an average over samples. The same will happen here. Monte Carlo integration has the remarkable"
+  },
+  {
+   "t": 5979920,
+   "text": "property of being independent of the number of dimensions. It doesn't matter if I have a state space that is a billion-dimensional: the dimension doesn't show up anywhere in the estimator. That wouldn't be the case with other quadrature methods. With Simpson's rule, say, the computer would struggle with just three or four dimensions. If we didn't have this, we wouldn't be able to do reinforcement learning from pixels, let's say. We wouldn't be able to do supervised learning; there would be no learning, in fact. Okay. So for now, we've got the Bellman equation for the finite horizon. It looks essentially like (22): we now have an expectation wherever there's a next state, and that's all we've got to change. You could also have an expectation over the rewards: same math as (22), just move the",
+   "fr": "propriété d'être indépendante du nombre de dimensions. Peu importe que mon espace d'états ait un milliard de dimensions : la dimension n'apparaît nulle part dans l'estimateur. Ce ne serait pas le cas avec d'autres méthodes de quadrature. Avec la règle de Simpson, par exemple, l'ordinateur aurait du mal avec seulement trois ou quatre dimensions. Sans ça, on ne pourrait pas faire d'apprentissage par renforcement à partir de pixels, disons. On ne pourrait pas faire d'apprentissage supervisé ; il n'y aurait pas d'apprentissage du tout, en fait. Bon. Pour l'instant, on a donc l'équation de Bellman à horizon fini. Elle ressemble essentiellement à (22) : on a maintenant une espérance partout où il y a un état suivant, et c'est tout ce qu'il faut changer. On pourrait aussi avoir une espérance sur les récompenses : mêmes mathématiques que (22), il suffit de déplacer",
+   "readable": "property that its error does not depend on the dimension. The state space could have a billion dimensions, and the dimension would appear nowhere in the estimator. Quadrature methods such as Simpson's rule already struggle in three or four dimensions. Without Monte Carlo, there would be no reinforcement learning from pixels and no supervised learning; no learning at all. So the finite-horizon Bellman equation, essentially equation (22), now has an expectation wherever a next state appears, and that is the only change. Random rewards fit the same equation: move the expectation"
+  },
+  {
+   "t": 6040639,
+   "text": "expectation operator to the level of the braces and take the expectation over the rewards and the next state, and the same sequence of steps goes through. And again, I didn't show it, but if you have a Markovian system, Markovian dynamics, you can show that Markovian deterministic policies are sufficient for optimality, where optimality means that a policy \\(\\pi\\) is optimal if it's the minimum, essentially, with respect to the component-wise partial order, but the minimization is",
+   "fr": "l'opérateur d'espérance au niveau des accolades et de prendre l'espérance sur les récompenses et l'état suivant, et la même suite d'étapes s'applique. Et encore une fois, je ne l'ai pas montré, mais si vous avez un système markovien, une dynamique markovienne, on peut montrer que les politiques markoviennes déterministes suffisent pour l'optimalité, où l'optimalité veut dire qu'une politique \\(\\pi\\) est optimale si elle est, essentiellement, le minimum au sens de l'ordre partiel composante par composante, mais la minimisation porte",
+   "readable": "outside the braces so that it covers both the reward and the next state, and the same steps go through. Again, I did not prove it, but with Markovian dynamics, Markovian deterministic policies are sufficient for optimality, where a policy is optimal if it is minimal for the component-wise partial order over all"
+  },
+  {
+   "t": 6100800,
+   "text": "over the policies themselves. Okay. What else do I want to say here? There's one setting where history does matter. Does anyone know what that scenario would be? It's when your observations of the states are indirect or imperfect. For now, we assume perfect observations: we can see how our system evolves directly, there's no measurement error, there's no confounding factor. But there's a case we can study where what we receive is not a reading of the true underlying state but an observation derived from it, just like in HMMs, the uncontrolled case. If you've worked with these, an HMM is a probabilistic graphical model where",
+   "fr": "sur les politiques elles-mêmes. Bon. Quoi d'autre ici ? Il y a un cadre où l'historique compte vraiment. Quelqu'un sait-il quel serait ce scénario ? C'est quand les observations des états sont indirectes ou imparfaites. Pour l'instant, on suppose des observations parfaites : on voit directement comment notre système évolue, il n'y a pas d'erreur de mesure, pas de facteur confondant. Mais il y a un cas qu'on peut étudier où ce qu'on reçoit n'est pas une lecture de l'état sous-jacent réel, mais une observation dérivée de celui-ci, comme dans les HMM, le cas non commandé. Si vous avez travaillé avec ça, un HMM est un modèle graphique probabiliste où",
+   "readable": "policies. One setting remains where history does matter: when the state is observed indirectly or imperfectly. So far we have assumed perfect observation, with no measurement error and no confounding factors. When we receive observations derived from the underlying state rather than the state itself, we are in the same situation as a hidden Markov model, which is the uncontrolled case. An HMM is a probabilistic graphical model in which"
+  },
+  {
+   "t": 6162400,
+   "text": "you've got an evolution of states, and from each of these states you've got emission probabilities that output observables. That setting of imperfect observations is called a partially observable MDP, or POMDP, and you can think of a POMDP as essentially the controlled counterpart of an HMM. That being said, in this course we don't cover the theory of POMDPs very much, but for all practical purposes, reality is mostly captured by POMDPs.",
+   "fr": "on a une évolution d'états, et de chacun de ces états on a des probabilités d'émission qui produisent des observables. Ce cadre d'observations imparfaites s'appelle un MDP partiellement observable, ou POMDP, et on peut voir un POMDP comme essentiellement la contrepartie commandée d'un HMM. Cela dit, dans ce cours, on ne couvre pas beaucoup la théorie des POMDP, mais à toutes fins pratiques, la réalité est surtout décrite par des POMDP.",
+   "readable": "states evolve over time and each state emits observations according to emission probabilities. The controlled version, with imperfect observations, is a partially observable MDP, or POMDP; a POMDP is essentially the controlled counterpart of an HMM. This course does not cover POMDP theory in depth, but for practical purposes most real problems are POMDPs."
+  },
+  {
+   "t": 6204320,
+   "text": "They're much more general, but they're also more difficult to work with from a tractability perspective. So we're going to work with perfect observation, pretending it's that way, but we're still going to address partial observability differently: for example, by learning representations that capture sufficient information.",
+   "fr": "Ils sont beaucoup plus généraux, mais aussi plus difficiles à manipuler du point de vue de la traitabilité. Nous allons donc travailler avec des observations parfaites, en faisant comme si c'était le cas, mais nous traiterons quand même l'observabilité partielle autrement : par exemple, en apprenant des représentations qui capturent une information suffisante.",
+   "readable": "POMDPs are much more general but also much harder to solve. We will work as if observations were perfect, and handle partial observability differently, for example by learning representations that capture sufficient information."
+  },
+  {
+   "t": 6236080,
+   "text": "Long story short, when you have neural networks, there's a very, very easy fix for learning policies that depend on history: use a recurrent model. That's a very simple way of doing things. And from the perspective of all the math you do, it's just the same math as working with an MDP, except you're working over a learned latent hidden state. Okay. Nevertheless, it's a very interesting and powerful theory.",
+   "fr": "Bref, quand on a des réseaux de neurones, il y a une solution très, très simple pour apprendre des politiques qui dépendent de l'historique : utiliser un modèle récurrent. C'est une façon très simple de faire les choses. Et du point de vue de toutes les mathématiques qu'on fait, c'est exactement comme travailler avec un MDP, sauf qu'on travaille sur un état latent caché appris. Bon. C'est néanmoins une théorie très intéressante et puissante.",
+   "readable": "With neural networks, there is a simple fix for policies that need history: use a recurrent model. The mathematics is then the same as for an MDP, with a learned latent state in place of the true state. The theory of POMDPs is nevertheless very interesting and powerful."
+  },
+  {
+   "t": 6268000,
+   "text": "With my student [name], who just graduated last month, we made what I think is a very interesting connection. If you've heard about JEPAs and self-supervised learning and so on, we established a link between self-supervised learning in reinforcement learning and the concept of information states in POMDPs. Long story short, you never want to maintain the raw, uncompressed history; it makes sense to compress it. The question is how. You can compress it in many different ways, but when you do control, you want to compress history in a way that preserves optimality.",
+   "fr": "Avec [name], une personne que j'ai dirigée et qui a obtenu son diplôme le mois dernier, nous avons fait ce que je trouve être un lien très intéressant. Si vous avez entendu parler des JEPA, de l'apprentissage auto-supervisé, etc., nous avons établi un lien entre l'apprentissage auto-supervisé en apprentissage par renforcement et le concept d'état d'information dans les POMDP. Bref, on ne veut jamais conserver l'historique brut, non compressé ; il est logique de le compresser. La question est : comment ? On peut le compresser de bien des façons, mais quand on fait de la commande, on veut compresser l'historique d'une façon qui préserve l'optimalité.",
+   "readable": "With my student [name], who graduated last month, we made what I think is an interesting connection between self-supervised learning in reinforcement learning, as in JEPA-style methods, and information states in POMDPs. The raw history should never be kept uncompressed; it should be compressed. The question is how. There are many ways to compress it, but for control the compression must preserve optimality."
+  },
+  {
+   "t": 6319679,
+   "text": "And when we talk about compression, one way to talk about it in statistics (of course you can use information theory, but I don't need that here) is through sufficient statistics. A sufficient statistic is essentially a compression. Long story short, there's this concept in POMDP theory, on which my colleague Aditya Mahajan has also done great work: the information state, a compression of the history that captures everything you need to preserve the optimal policy. So it's a sufficient statistic for control.",
+   "fr": "Et quand on parle de compression, une façon d'en parler en statistique (on peut bien sûr utiliser la théorie de l'information, mais je n'en ai pas besoin ici), c'est par les statistiques exhaustives. Une statistique exhaustive est essentiellement une compression. Bref, il y a ce concept en théorie des POMDP, sur lequel mon collègue Aditya Mahajan a aussi fait d'excellents travaux : l'état d'information, une compression de l'historique qui capture tout ce qu'il faut pour préserver la politique optimale. C'est donc une statistique exhaustive pour la commande.",
+   "readable": "In statistics, one way to describe such compression is through sufficient statistics; information theory is another, which I will not need here. In POMDP theory, the corresponding concept, on which my colleague Aditya Mahajan has done important work, is the information state: a compression of the history that keeps everything needed to preserve the optimal policy, that is, a sufficient statistic for control."
+  },
+  {
+   "t": 6359760,
+   "text": "And what we did with [name] is say: if you take that result on information states, squint, and look at current self-supervised RL methods, they're actually trying to match the conditions for an information state. Anyway, it's something interesting. With that said, we're out of time, so we'll continue next class. I think I'll jump right away into the infinite horizon. We'll talk about fixed points, and we're going to move fast into learning. It's October 26, so we've got to move fast and talk about learning and lots of other topics. All right, see you on Thursday, also for the exam review.",
+   "fr": "Et ce que nous avons fait avec [name], c'est de dire : si on prend ce résultat sur les états d'information, qu'on plisse les yeux et qu'on regarde les méthodes actuelles d'apprentissage par renforcement auto-supervisé, elles essaient en fait de satisfaire les conditions d'un état d'information. Bref, c'est quelque chose d'intéressant. Cela dit, nous manquons de temps, alors on continuera au prochain cours. Je pense que je vais passer directement à l'horizon infini. On parlera de points fixes, et on va avancer rapidement vers l'apprentissage. On est le 26 octobre, alors il faut avancer vite et parler d'apprentissage et de beaucoup d'autres sujets. Très bien, à jeudi, aussi pour la révision de l'examen.",
+   "readable": "Our observation with [name] was that current self-supervised RL methods, seen from the right angle, are trying to satisfy the conditions for an information state. We are out of time, so we will continue next class. I think I will move straight to the infinite horizon and fixed points, and then quickly to learning: it is already October 26, and there is a lot to cover. See you on Thursday, when we will also review the exam."
+  }
+ ]
+}

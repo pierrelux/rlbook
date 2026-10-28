@@ -11,9 +11,11 @@ Inputs (teaching/recordings/):
   clean/<YYYY-MM-DD>.json    Optional edited transcript:
                              {tldr: [{notion, detail, notion_fr, detail_fr, t, exam}],
                               outline: [{t, title, title_fr}],
-                              paras: [{t, text, fr}, ...]}, one entry per caption
-                             paragraph (same t as produced here); "text" is the
-                             edited English, "fr" its French translation.
+                              paras: [{t, text, fr, readable, readable_fr}, ...]}, one
+                             entry per caption paragraph (same t as produced here);
+                             "text" is the edited English, close to what was said,
+                             "fr" its French translation, and the optional
+                             "readable"/"readable_fr" a rewrite in written prose.
                              "[Break]" or "[No speech]" marks paragraphs that
                              are not lecture content; their raw captions are
                              dropped.
@@ -24,7 +26,8 @@ Inputs (teaching/recordings/):
 
 Outputs (interactive/lectures-data/):
   index.json                 One entry per lecture, newest first.
-  <YYYY-MM-DD>.json          {paras: [[t_ms, en_raw, fr_machine, en_edited, fr_edited], ...],
+  <YYYY-MM-DD>.json          {paras: [[t_ms, en_raw, fr_machine, en_edited, fr_edited,
+                                       en_readable, fr_readable], ...],
                               tldr, outline} with "p" = paragraph index.
   <YYYY-MM-DD>.jpg           Thumbnail.
 
@@ -162,9 +165,10 @@ def main() -> None:
                 )
             for p in paras:
                 c = by_t[p[0]]
-                if c["text"] in GAP_MARKERS:
-                    p[1] = p[2] = ""  # break chatter and caption noise are not published
-                p.extend([c["text"], c.get("fr", "")])
+                # Edited lectures publish no raw captions: only the edited text
+                # and, when written, a readable rewrite in plain written English.
+                p[1] = p[2] = ""
+                p.extend([c["text"], c.get("fr", ""), c.get("readable", ""), c.get("readable_fr", "")])
             tldr = [
                 {"notion": {"en": x["notion"], "fr": x.get("notion_fr", "")},
                  "detail": {"en": x["detail"], "fr": x.get("detail_fr", "")},
@@ -177,7 +181,7 @@ def main() -> None:
             ]
         else:
             for p in paras:
-                p.extend(["", ""])
+                p.extend(["", "", "", ""])
 
         written.update({f"{date}.json", f"{date}.jpg"})
         (OUT / f"{date}.json").write_text(
