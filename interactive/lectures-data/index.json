@@ -28,8 +28,97 @@
    "duration_ms": 6410840,
    "thumb": "2026-10-26.jpg",
    "paragraphs": 136,
-   "cleaned": false,
-   "tldr": []
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "Interpolating the cost-to-go",
+      "fr": "Interpoler la fonction de coût à venir"
+     },
+     "p": 33,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Grids and the curse of dimensionality",
+      "fr": "Grilles et malédiction de la dimension"
+     },
+     "p": 37,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Only the ordering matters for the policy",
+      "fr": "Seul l'ordre compte pour la politique"
+     },
+     "p": 41,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "LQR assumptions and its place in a controller stack",
+      "fr": "Hypothèses du LQR et sa place dans une pile de contrôleurs"
+     },
+     "p": 53,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "LQR by backward induction: the Riccati recursion",
+      "fr": "Le LQR par induction arrière : la récurrence de Riccati"
+     },
+     "p": 60,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Noise and the transition kernel",
+      "fr": "Le bruit et le noyau de transition"
+     },
+     "p": 88,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Expectation, policy ordering and risk",
+      "fr": "Espérance, ordre des politiques et risque"
+     },
+     "p": 91,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Policy evaluation versus optimality",
+      "fr": "Évaluation de politique et optimalité"
+     },
+     "p": 98,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Policy classes and Markov sufficiency",
+      "fr": "Classes de politiques et suffisance markovienne"
+     },
+     "p": 110,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Monte Carlo integration for the Bellman expectation",
+      "fr": "Intégration de Monte-Carlo pour l'espérance de Bellman"
+     },
+     "p": 123,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Partial observability and information states",
+      "fr": "Observabilité partielle et états d'information"
+     },
+     "p": 130,
+     "exam": false
+    }
+   ]
   },
   {
    "date": "2026-10-15",

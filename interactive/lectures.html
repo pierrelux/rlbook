@@ -229,7 +229,7 @@
       </span>
       <div class="seg" id="version" role="group" aria-label="Transcript version">
         <button type="button" data-version="clean" aria-pressed="true"></button>
-        <button type="button" data-version="raw" aria-pressed="false"></button>
+        <button type="button" data-version="readable" aria-pressed="false"></button>
       </div>
     </div>
     <p class="mt-note" id="lec-note"></p>
@@ -247,7 +247,7 @@
     en: {
       title: "Lecture recordings",
       lede: "Every recorded session of the course, newest first. Each lecture lists its key notions, a table of contents and a searchable transcript. The lectures are given in English.",
-      captions: "The transcripts are edited from Google Drive's automatic captions: filler words removed, technical terms and notation checked against the <a href=\"../\">course notes</a>, then translated into French. <span class=\"marker\">[?]</span> marks a guessed word and <span class=\"marker\">[inaudible]</span> a passage that could not be recovered; the original captions remain one click away. When a passage matters, check the recording.",
+      captions: "The transcripts are edited from Google Drive's automatic captions: filler words removed, technical terms and notation checked against the <a href=\"../\">course notes</a>, then translated into French. <span class=\"marker\">[?]</span> marks a guessed word and <span class=\"marker\">[inaudible]</span> a passage that could not be recovered. Where available, a readable version rewrites the lecture as written prose. When a passage matters, check the recording.",
       links: "Recordings live in the <a id=\"folder-link\" target=\"_blank\" rel=\"noopener\">course Google Drive folder</a>. Schedule and readings are in the <a href=\"../syllabus\">syllabus</a>.",
       searchAll: "Search all transcripts…",
       findHere: "Find in this transcript…",
@@ -270,9 +270,10 @@
       exam: "Exam",
       examTitle: "Flagged in class as exam material",
       student: "Student",
-      clean: "Edited",
-      raw: "Raw captions",
-      noteClean: "Edited from the automatic captions. [?] marks a guessed word; [inaudible] a passage that could not be recovered. Each timestamp links to its paragraph; the same time locates the passage in the video.",
+      clean: "As spoken",
+      readable: "Readable",
+      noteClean: "Edited from the automatic captions, close to what was said. [?] marks a guessed word; [inaudible] a passage that could not be recovered. Each timestamp links to its paragraph; the same time locates the passage in the video.",
+      noteReadable: "The same lecture rewritten as written prose: repetitions and false starts removed, sentences completed. The content and order follow the recording; switch to \u201cAs spoken\u201d for the wording used in class.",
       noteRaw: "Google's automatic captions, unedited (except a few recurring technical terms).",
       breakLabel: (a, b) => `Break (${a}–${b})`,
       noSpeech: "No speech",
@@ -287,7 +288,7 @@
     fr: {
       title: "Enregistrements des séances",
       lede: "Toutes les séances enregistrées du cours, de la plus récente à la plus ancienne. Chaque séance présente ses notions clés, une table des matières et une transcription où l'on peut chercher. Les séances sont données en anglais.",
-      captions: "Les transcriptions sont révisées à partir des sous-titres automatiques de Google Drive (mots de remplissage retirés, termes techniques et notation vérifiés dans les <a href=\"../\">notes de cours</a>), puis traduites en français. <span class=\"marker\">[?]</span> signale un mot incertain et <span class=\"marker\">[inaudible]</span> un passage irrécupérable; la version d'origine reste accessible en un clic. Pour un passage important, vérifiez l'enregistrement.",
+      captions: "Les transcriptions sont révisées à partir des sous-titres automatiques de Google Drive (mots de remplissage retirés, termes techniques et notation vérifiés dans les <a href=\"../\">notes de cours</a>), puis traduites en français. <span class=\"marker\">[?]</span> signale un mot incertain et <span class=\"marker\">[inaudible]</span> un passage irrécupérable. Lorsqu'elle existe, une version lisible réécrit la séance en prose. Pour un passage important, vérifiez l'enregistrement.",
       links: "Les enregistrements se trouvent dans le <a id=\"folder-link\" target=\"_blank\" rel=\"noopener\">dossier Google Drive du cours</a>. L'horaire et les lectures sont dans le <a href=\"../syllabus\">plan de cours</a>.",
       searchAll: "Rechercher dans les transcriptions…",
       findHere: "Rechercher dans cette transcription…",
@@ -310,10 +311,11 @@
       exam: "Examen",
       examTitle: "Signalé en classe comme matière d'examen",
       student: "Étudiant·e",
-      clean: "Révisée",
-      raw: "Traduction automatique",
+      clean: "Telle que dite",
+      readable: "Lisible",
       noteClean: "Traduction de la transcription anglaise révisée. [?] signale un mot incertain; [inaudible], un passage irrécupérable. Chaque horodatage est un lien vers ce paragraphe; le même temps permet de retrouver le passage dans la vidéo.",
       noteRaw: "Traduction automatique, par Google, des sous-titres anglais bruts, sans révision.",
+      noteReadable: "La même séance réécrite en prose : répétitions et faux départs supprimés, phrases complétées. Le contenu et l'ordre suivent l'enregistrement; choisissez « Telle que dite » pour la formulation employée en classe.",
       breakLabel: (a, b) => `Pause (${a}–${b})`,
       noSpeech: "Aucune parole",
       matches: (n, m) => `${n} résultat${n > 1 ? "s" : ""} dans ${m} séance${m > 1 ? "s" : ""}`,
@@ -346,7 +348,7 @@
   const params = new URLSearchParams(location.search);
   let lang = params.get("lang") || store.get("ift6162-lang") || ((navigator.language || "").startsWith("fr") ? "fr" : "en");
   if (!T[lang]) lang = "en";
-  let version = store.get("ift6162-version") === "raw" ? "raw" : "clean";
+  let version = store.get("ift6162-version") === "readable" ? "readable" : "clean";
 
   let index = null;
   const cache = new Map();
@@ -354,11 +356,14 @@
   let currentData = null;       // its transcript, once loaded
   let findHits = [], findPos = -1;
 
-  // Paragraph layout: [t_ms, en_raw, fr_machine, en_edited, fr_edited]. Which column is shown.
+  // Paragraph layout: [t_ms, en_raw, fr_machine, en_edited, fr_edited, en_readable, fr_readable].
+  // Edited lectures carry no raw captions; the raw columns are a fallback until a lecture is edited.
   const hasEdited = (d, col) => d && d.paras.some(p => p[col]);
-  const column = (d) => lang === "fr"
-    ? (version === "raw" || !hasEdited(d, 4) ? 2 : 4)
-    : (version === "raw" || !hasEdited(d, 3) ? 1 : 3);
+  const column = (d) => {
+    const [raw, edited, readable] = lang === "fr" ? [2, 4, 6] : [1, 3, 5];
+    if (version === "readable" && hasEdited(d, readable)) return readable;
+    return hasEdited(d, edited) ? edited : raw;
+  };
   const pick = v => (v && typeof v === "object") ? (v[lang] || v.en || "") : (v || "");
   const isGap = p => GAP.has(p[3]);
 
@@ -573,8 +578,8 @@
     try { d = await loadLecture(date); } catch { $("transcript").innerHTML = `<li><p class="status">${L.loadError}</p></li>`; return; }
     current = date; currentData = d;
     const col = column(d);
-    $("lec-note").textContent = col >= 3 ? L.noteClean : L.noteRaw;
-    $("version").hidden = !hasEdited(d, lang === "fr" ? 4 : 3);
+    $("lec-note").textContent = col >= 5 ? L.noteReadable : col >= 3 ? L.noteClean : L.noteRaw;
+    $("version").hidden = !hasEdited(d, lang === "fr" ? 6 : 5);
     renderOverview(lec);
     applyFind(target == null && $("find").value.trim().length >= 2);
     if (target != null) {
@@ -611,7 +616,8 @@
   $("lec-download").addEventListener("click", () => {
     const blob = new Blob([transcriptText()], { type: "text/plain;charset=utf-8" });
     const a = document.createElement("a");
-    const suffix = lang + (column(currentData) >= 3 ? "" : "-raw");
+    const col = column(currentData);
+    const suffix = lang + (col >= 5 ? "-readable" : col >= 3 ? "" : "-raw");
     a.href = URL.createObjectURL(blob); a.download = `IFT6162_${current}_${suffix}.txt`;
     document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   });
