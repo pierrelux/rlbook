@@ -1,0 +1,966 @@
+{
+ "date": "2026-10-15",
+ "tldr": [
+  {
+   "notion": "The value function of a parametric program",
+   "t": 110799,
+   "exam": false,
+   "detail": "An OCP whose initial state is a parameter is a parametric program; the map from \\(x_0\\) to the optimal cost is the value function. Dynamic programming computes this object directly, with a recursion instead of a constrained solver, handles deterministic and stochastic problems alike, and yields feedback: what to do in every state, not just one plan.",
+   "notion_fr": "La fonction de valeur d'un programme paramétrique",
+   "detail_fr": "Un OCP dont l'état initial est un paramètre est un programme paramétrique ; la correspondance de \\(x_0\\) vers le coût optimal est la fonction de valeur. La programmation dynamique calcule directement cet objet, par une récurrence plutôt qu'avec un solveur sous contraintes, traite de la même façon les problèmes déterministes et stochastiques, et produit une rétroaction : quoi faire dans chaque état, pas seulement un plan."
+  },
+  {
+   "notion": "Finite horizon means stage-dependent values",
+   "t": 319039,
+   "exam": true,
+   "detail": "With a horizon fixed in advance, the cost-to-go \\(J_k(x_k)\\) depends on both the stage k and the state: it is the forward-looking cumulative cost of acting optimally from stage k in state \\(x_k\\). Readers used to Sutton and Barto should not drop the stage index.",
+   "notion_fr": "Horizon fini : des valeurs qui dépendent de l'étape",
+   "detail_fr": "Avec un horizon fixé d'avance, le coût à venir \\(J_k(x_k)\\) dépend à la fois de l'étape k et de l'état : c'est le coût cumulé, tourné vers l'avant, d'une conduite optimale à partir de l'étape k dans l'état \\(x_k\\). Les habitués de Sutton et Barto ne doivent pas omettre l'indice d'étape."
+  },
+  {
+   "notion": "Backward induction",
+   "t": 612399,
+   "exam": true,
+   "detail": "Algorithm 1 sets \\(J_T^\\star\\) to the terminal cost and sweeps t backwards, storing at each state the min (the value) and the argmin (the policy \\(\\pi_t\\)) of immediate cost plus the next-stage value of \\(f_t(x, u)\\). In the finite-horizon case it is called backward induction, not value iteration, a name reserved for fixed-point iteration. Each step is a one-stage optimization: by enumeration on discrete grids, or, for continuous bounded controls, projected gradient descent.",
+   "notion_fr": "L'induction arrière",
+   "detail_fr": "L'algorithme 1 pose \\(J_T^\\star\\) égal au coût terminal et parcourt t à rebours, en stockant pour chaque état le min (la valeur) et l'argmin (la politique \\(\\pi_t\\)) du coût immédiat plus la valeur, à l'étape suivante, de \\(f_t(x, u)\\). À horizon fini, on parle d'induction arrière, pas d'itération sur la valeur, nom réservé à l'itération de point fixe. Chaque étape est une optimisation à une étape : par énumération sur des grilles discrètes, ou, pour des commandes continues bornées, par descente de gradient projetée."
+  },
+  {
+   "notion": "The cut-and-paste proof",
+   "t": 1245919,
+   "exam": true,
+   "detail": "The proof by induction formalizes Bellman's principle of optimality. Replacing the tail of any sequence by the optimal tail from \\(x_{t+1}\\) cannot increase its cost, and minimizing over the first control lowers it further, so every sequence costs at least \\(J_t^\\star(x)\\) (equation 7). The argmin attains the bound (equation 8), so backward induction is both a certificate of optimality and a construction of \\(\\pi^\\star\\), with no gradients or constrained optimization.",
+   "notion_fr": "La preuve par couper-coller",
+   "detail_fr": "La preuve par induction formalise le principe d'optimalité de Bellman. Remplacer la queue d'une séquence quelconque par la queue optimale à partir de \\(x_{t+1}\\) ne peut pas en augmenter le coût, et minimiser sur la première commande le réduit encore, de sorte que toute séquence coûte au moins \\(J_t^\\star(x)\\) (équation 7). L'argmin atteint la borne (équation 8) : l'induction arrière est donc à la fois un certificat d'optimalité et une construction de \\(\\pi^\\star\\), sans gradient ni optimisation sous contraintes."
+  },
+  {
+   "notion": "Finite-horizon problems as shortest paths",
+   "t": 1632400,
+   "exam": false,
+   "detail": "Unrolling time turns a deterministic finite-horizon problem into a directed acyclic graph whose nodes are (stage, state) pairs, and an optimal solution is a shortest path in it; stochastic shortest-path problems, used for example in transportation, generalize this view.",
+   "notion_fr": "Problèmes à horizon fini et plus courts chemins",
+   "detail_fr": "En déroulant le temps, un problème déterministe à horizon fini devient un graphe orienté acyclique dont les nœuds sont des couples (étape, état), et une solution optimale est un plus court chemin dans ce graphe ; les problèmes de plus court chemin stochastique, utilisés par exemple en transport, généralisent cette vision."
+  },
+  {
+   "notion": "The hydro reservoir model",
+   "t": 2965680,
+   "exam": true,
+   "detail": "Weekly storage \\(x_t\\) evolves as \\(x_{t+1} = \\min\\{x_t + w_t - u_t, \\bar x\\}\\), where the min is the spillway, with the lower bound \\(x_{\\min}\\) as a hard constraint; the revenue is \\(p_t \\kappa h(x) u\\), so releasing more and keeping the head high both pay. The reservoir acts like a battery, and the inflows w are hard-coded but could be modeled as random exogenous variables.",
+   "notion_fr": "Le modèle de réservoir hydroélectrique",
+   "detail_fr": "Le volume hebdomadaire \\(x_t\\) évolue selon \\(x_{t+1} = \\min\\{x_t + w_t - u_t, \\bar x\\}\\), où le min représente l'évacuateur de crues, avec la borne inférieure \\(x_{\\min}\\) comme contrainte dure ; le revenu est \\(p_t \\kappa h(x) u\\), si bien que turbiner davantage et garder une hauteur de chute élevée rapportent tous deux. Le réservoir agit comme une batterie, et les apports w sont codés en dur mais pourraient être modélisés comme des variables exogènes aléatoires."
+  },
+  {
+   "notion": "Grids, infeasible actions and the curse of dimensionality",
+   "t": 3607680,
+   "exam": true,
+   "detail": "The code discretizes storage into 181 levels and release into 23, giving a weeks-by-storage-by-release array; infeasible releases get value minus infinity so the recursion never chooses them. Bellman coined the curse of dimensionality for this setting: grid storage grows exponentially with the state dimension, which motivates approximations with the right inductive biases.",
+   "notion_fr": "Grilles, actions irréalisables et malédiction de la dimension",
+   "detail_fr": "Le code discrétise le volume en 181 niveaux et le débit en 23, ce qui donne un tableau semaines × volumes × débits ; les débits irréalisables reçoivent la valeur moins l'infini pour que la récurrence ne les choisisse jamais. Bellman a forgé l'expression malédiction de la dimension dans ce cadre : la mémoire d'une grille croît exponentiellement avec la dimension de l'état, ce qui motive des approximations dotées des bons biais inductifs."
+  },
+  {
+   "notion": "Bang-bang threshold policy",
+   "t": 3870960,
+   "exam": false,
+   "detail": "The computed policy is all or nothing, turbining nothing or at full capacity, and the release switches when the price exceeds the value of keeping water for later, a threshold structure common in inventory management. In practice, operators often find stochastic DP too costly, and OR practitioners mostly use mixed-integer programming instead.",
+   "notion_fr": "Politique bang-bang à seuil",
+   "detail_fr": "La politique calculée est en tout ou rien, sans turbinage ou à pleine capacité, et le débit bascule quand le prix dépasse la valeur de garder l'eau pour plus tard, une structure à seuil fréquente en gestion des stocks. En pratique, les exploitants jugent souvent la programmation dynamique stochastique trop coûteuse, et les praticiens de la RO utilisent surtout la programmation en nombres entiers mixtes."
+  },
+  {
+   "notion": "Nearest-grid lookup is a zero-order hold",
+   "t": 4706719,
+   "exam": true,
+   "detail": "Rounding the next state to the nearest grid index represents the value function by zero-order polynomial interpolation; interpolating linearly between neighboring grid values, or with splines or radial basis functions, gives smoother representations, as with Matplotlib's interpolation options, but such schemes do not scale to high-dimensional states.",
+   "notion_fr": "La recherche du point de grille le plus proche est un bloqueur d'ordre zéro",
+   "detail_fr": "Arrondir l'état suivant à l'indice de grille le plus proche représente la fonction de valeur par une interpolation polynomiale d'ordre zéro ; interpoler linéairement entre valeurs de grille voisines, ou avec des splines ou des fonctions à base radiale, donne des représentations plus lisses, comme les options d'interpolation de Matplotlib, mais ces schémas ne passent pas à l'échelle pour des états de grande dimension."
+  },
+  {
+   "notion": "Dynamic programming for insight: structural econometrics and bounded rationality",
+   "t": 5098159,
+   "exam": false,
+   "detail": "Economists such as John Rust use dynamic programming to understand behavior rather than to deploy controllers, and value accurate, shape-preserving interpolation. Rust questions whether people behave like Bellman equations; Herbert Simon's bounded rationality instead models agents with limited resources, where quantities like the value of information are usually intractable.",
+   "notion_fr": "La programmation dynamique pour comprendre : économétrie structurelle et rationalité limitée",
+   "detail_fr": "Des économistes comme John Rust utilisent la programmation dynamique pour comprendre des comportements plutôt que pour déployer des contrôleurs, et tiennent à une interpolation précise et à préservation de forme. Rust se demande si les gens se comportent selon l'équation de Bellman ; la rationalité limitée de Herbert Simon modélise plutôt des agents aux ressources limitées, pour lesquels des quantités comme la valeur de l'information sont généralement intraitables."
+  },
+  {
+   "notion": "Next: LQR and the Riccati equation",
+   "t": 5816080,
+   "exam": false,
+   "detail": "With linear dynamics and quadratic costs, backward induction can be carried out exactly with no discretization: the Riccati equation is backward induction specialized to LQR, giving an exact linear feedback law, often used for local stabilization within hybrid controllers. The course will then turn to Galerkin approximations of the Bellman equation, of which TD learning is an instance.",
+   "notion_fr": "À venir : le LQR et l'équation de Riccati",
+   "detail_fr": "Avec une dynamique linéaire et des coûts quadratiques, l'induction arrière se fait exactement, sans discrétisation : l'équation de Riccati est l'induction arrière spécialisée au LQR, qui donne une loi de rétroaction linéaire exacte, souvent utilisée pour la stabilisation locale dans des contrôleurs hybrides. Le cours passera ensuite aux approximations de Galerkin de l'équation de Bellman, dont l'apprentissage TD est une instance."
+  }
+ ],
+ "outline": [
+  {
+   "t": 13599,
+   "title": "Midterm feedback; from parametric programs to the value function",
+   "title_fr": "Retour sur l'examen ; des programmes paramétriques à la fonction de valeur"
+  },
+  {
+   "t": 268080,
+   "title": "Finite-horizon value functions and the stage index",
+   "title_fr": "Fonctions de valeur à horizon fini et indice d'étape"
+  },
+  {
+   "t": 539839,
+   "title": "Backward induction",
+   "title_fr": "L'induction arrière"
+  },
+  {
+   "t": 1001440,
+   "title": "Proof: the principle of optimality by cut and paste",
+   "title_fr": "Preuve : le principe d'optimalité par couper-coller"
+  },
+  {
+   "t": 1589600,
+   "title": "Shortest paths and DAGs",
+   "title_fr": "Plus courts chemins et graphes orientés acycliques"
+  },
+  {
+   "t": 1676640,
+   "title": "Hydro reservoir: problem setup",
+   "title_fr": "Réservoir hydroélectrique : formulation du problème"
+  },
+  {
+   "t": 2209280,
+   "title": "Break",
+   "title_fr": "Pause"
+  },
+  {
+   "t": 2965680,
+   "title": "Reservoir dynamics, revenue and the Bellman equation",
+   "title_fr": "Dynamique du réservoir, revenu et équation de Bellman"
+  },
+  {
+   "t": 3541680,
+   "title": "Grid implementation and the bang-bang policy",
+   "title_fr": "Implémentation sur grille et politique bang-bang"
+  },
+  {
+   "t": 3932960,
+   "title": "Curse of dimensionality and structured policies",
+   "title_fr": "Malédiction de la dimension et politiques structurées"
+  },
+  {
+   "t": 4597520,
+   "title": "Interpolating the value function",
+   "title_fr": "Interpoler la fonction de valeur"
+  },
+  {
+   "t": 5043360,
+   "title": "Dynamic programming in economics; bounded rationality",
+   "title_fr": "La programmation dynamique en économie ; rationalité limitée"
+  },
+  {
+   "t": 5816080,
+   "title": "Next: LQR, the Riccati equation and Galerkin methods",
+   "title_fr": "À venir : LQR, équation de Riccati et méthodes de Galerkin"
+  }
+ ],
+ "paras": [
+  {
+   "t": 13599,
+   "text": "Okay. Hey, hi. I'm going to get back to you with your graded midterm number one on Monday, and we'll look at it together. It's going to give you some feedback, and you'll get to prepare for the second one, which will be coming up soon, I guess at the end of the month or something like that. So hopefully that's going to help you prepare for the second one. Please continue trying to meet with Gabriel.",
+   "fr": "Bon. Salut. Je vais vous rendre lundi votre premier examen de mi-session corrigé, et on le regardera ensemble. Ça vous donnera de la rétroaction, et vous pourrez vous préparer pour le deuxième, qui arrivera bientôt, vers la fin du mois, je suppose. J'espère donc que ça vous aidera à vous préparer pour le deuxième. Continuez d'essayer de rencontrer Gabriel.",
+   "readable": "Hi. I will return your graded first midterm on Monday, and we will go over it together. It will give you feedback and help you prepare for the second one, which comes soon, around the end of the month. Please keep meeting with Gabriel."
+  },
+  {
+   "t": 48000,
+   "text": "That's his job. Since he's not grading assignments, he should be really available for you at all times. That's basically the job description. Okay. So in the last class before the exam, even before the review, I went through this material. In retrospect, maybe it's a bit too technical, I don't know. I just think it's a nice conceptual bridge from trajectory optimization to dynamic programming, going from open-loop control to closed-loop control, and noticing that an OCP, whether in continuous time or discrete time, is actually a special type of mathematical program: the dependence on the initial state makes it a parametric program,",
+   "fr": "C'est son travail. Comme il n'a pas de devoirs à corriger, il devrait être vraiment disponible pour vous en tout temps. C'est essentiellement sa description de tâches. Bon. Au dernier cours avant l'examen, avant même la révision, j'ai présenté cette matière. Avec le recul, c'était peut-être un peu trop technique, je ne sais pas. Je trouve simplement que c'est un beau pont conceptuel entre l'optimisation de trajectoire et la programmation dynamique, entre la commande en boucle ouverte et la commande en boucle fermée, en remarquant qu'un OCP, en temps continu ou en temps discret, est en fait un type particulier de programme mathématique : sa dépendance à l'état initial en fait un programme paramétrique,",
+   "readable": "That is his job: since he has no assignments to grade, he should be available to you at all times. In the last class before the exam, even before the review, I presented some material that, in retrospect, may have been a bit too technical. But I think it is a nice conceptual bridge from trajectory optimization to dynamic programming, from open-loop to closed-loop control. The observation is that an OCP, in continuous or discrete time, is a special kind of mathematical program: its dependence on the initial state makes it a parametric program."
+  },
+  {
+   "t": 110799,
+   "text": "and once you see things through this lens, you realize that there's this object we were calling the value function, which is the function that goes from the parameters, in this case the initial state \\(x_0\\), to the value of the optimal solution, the minimum achievable cost. That mapping is a function. And then we asked: is there any way we could go directly and compute that value function, approximate it or find it explicitly? And does that object, the value function, help us in any way, or does it make things more complicated? The answer to that is dynamic programming, in a sense. The whole point of this method is to leverage this object,",
+   "fr": "et une fois qu'on voit les choses sous cet angle, on réalise qu'il y a cet objet qu'on appelait la fonction de valeur, la fonction qui va des paramètres, ici l'état initial \\(x_0\\), à la valeur de la solution optimale, le coût minimal atteignable. Cette correspondance est une fonction. Puis on s'est demandé : peut-on calculer directement cette fonction de valeur, l'approximer ou la trouver explicitement ? Et cet objet nous aide-t-il, ou complique-t-il les choses ? En un sens, la réponse, c'est la programmation dynamique. Tout l'intérêt de cette méthode est d'exploiter cet objet,",
+   "readable": "Seen this way, there is an object we called the value function, which maps the parameters, here the initial state \\(x_0\\), to the optimal value, the minimum achievable cost. That mapping is a function. We then asked whether we could compute the value function directly, approximate it or find it explicitly, and whether it helps or complicates things. In a sense, dynamic programming is the answer: the whole method is about exploiting this object,"
+  },
+  {
+   "t": 171519,
+   "text": "which, in all honesty, does bring some additional challenges, but unlocks other things. It's going to allow us to solve nonlinear optimal control problems of the form (1) here, and to do it without any special Lagrangian methods or any unconstrained or constrained optimization machinery. Instead, we're just going to write down a simple for loop, a recursion, and that's going to give us the optimal solution to a program of the form (1), which, in the current instantiation, is still a deterministic problem. There's no noise in this thing. Dynamic programming is also nice in the sense that it lets us deal with both deterministic and stochastic optimal control problems with the same language and the same tools, and in doing so it",
+   "fr": "qui, en toute honnêteté, apporte des difficultés supplémentaires, mais ouvre d'autres possibilités. Elle va nous permettre de résoudre des problèmes de commande optimale non linéaires de la forme (1) ici, sans méthodes lagrangiennes particulières ni machinerie d'optimisation avec ou sans contraintes. Nous allons plutôt écrire une simple boucle for, une récurrence, qui nous donnera la solution optimale d'un programme de la forme (1), qui, dans sa forme actuelle, est encore un problème déterministe : il n'y a pas de bruit. La programmation dynamique a aussi l'avantage de traiter les problèmes de commande optimale déterministes et stochastiques avec le même langage et les mêmes outils, et, ce faisant,",
+   "readable": "which brings additional challenges but also opens new possibilities. It will let us solve nonlinear optimal control problems of the form (1) without Lagrangian methods or any constrained or unconstrained optimization machinery: a simple for loop, a recursion, gives the optimal solution of a program of the form (1). For now the problem is still deterministic, with no noise. Dynamic programming also treats deterministic and stochastic optimal control with the same language and tools, and"
+  },
+  {
+   "t": 233120,
+   "text": "also gives us a way to close the loop. Instead of doing MPC, we're essentially going to learn a special magical oracle function, if you will, that tells you what you've got to do in any possible situation. Now, of course, figuring out in advance what to do in every possible situation is going to be expensive, and we'll have to find smart ways of doing it. Fortunately, there is a smart way to do this.",
+   "fr": "elle nous donne aussi un moyen de boucler la boucle. Au lieu de faire de la commande prédictive, nous allons essentiellement apprendre une sorte de fonction oracle magique, si vous voulez, qui vous dit quoi faire dans toute situation possible. Bien sûr, déterminer d'avance quoi faire dans toutes les situations possibles va coûter cher, et il faudra trouver des façons astucieuses de le faire. Heureusement, il en existe une.",
+   "readable": "it gives us a way to close the loop. Instead of doing MPC, we will essentially learn a kind of magical oracle function that tells us what to do in every possible situation. Working out in advance what to do in every situation is expensive, so we will need clever ways of doing it, and fortunately one exists."
+  },
+  {
+   "t": 268080,
+   "text": "All right. The first thing to note is that the structure we have in these programs is special, and we're going to leverage it to establish equation (3). For now it's just stated as a fact, but we're going to go through the argument needed to show that it holds, using induction. What's going on in the step from (1) to (3)? Recall what J is: J is the cost associated with a certain solution. That solution need not be optimal. When it's optimal, we write \\(J^\\star\\). But when we search over candidate sequences, a sequence may not be optimal, right?",
+   "fr": "Très bien. Il faut d'abord remarquer que la structure de ces programmes est particulière, et nous allons l'exploiter pour établir l'équation (3). Pour l'instant, c'est seulement énoncé comme un fait, mais nous allons voir l'argument qui le démontre, par induction. Que se passe-t-il entre (1) et (3) ? Rappelez-vous ce qu'est J : le coût associé à une certaine solution. Cette solution n'est pas nécessairement optimale ; quand elle l'est, on écrit \\(J^\\star\\). Mais quand on cherche parmi des séquences candidates, une séquence peut ne pas être optimale, n'est-ce pas ?",
+   "readable": "First, these programs have a special structure, which we will exploit to establish equation (3). For now it is stated as a fact; we will then prove it by induction. What happens between (1) and (3)? Recall that J is the cost of a given solution, which need not be optimal; for the optimal one we write \\(J^\\star\\). When searching over candidate sequences, a candidate need not be optimal."
+  },
+  {
+   "t": 319039,
+   "text": "So what we're after is the optimal value function, \\(J^\\star\\). And I want to point out another thing, which is important: if you've worked with RL before, if you've read Sutton and Barto and so on, you might look at equation (3) and think, okay, I know what this is, it looks like the usual thing, and you might miss a very important detail. The problems we're facing here are said to be finite-horizon: the horizon is fixed in advance, big N or big T, whatever. It's the number of steps, and the problem always lasts the same duration.",
+   "fr": "Ce que nous cherchons, c'est donc la fonction de valeur optimale, \\(J^\\star\\). Et je veux souligner une autre chose importante : si vous avez déjà fait de l'apprentissage par renforcement, lu Sutton et Barto, etc., vous pourriez regarder l'équation (3) et vous dire : je connais ça, ça ressemble à l'habituel, et passer à côté d'un détail très important. Les problèmes que nous traitons ici sont dits à horizon fini : l'horizon est fixé d'avance, grand N ou grand T, peu importe. C'est le nombre d'étapes, et le problème dure toujours le même temps.",
+   "readable": "What we are after is the optimal value function \\(J^\\star\\). One important point: if you have done RL and read Sutton and Barto, you may look at equation (3), think it is the usual thing, and miss a crucial detail. Our problems are finite-horizon: the horizon, N or T, is fixed in advance, so the problem always lasts the same number of steps."
+  },
+  {
+   "t": 364479,
+   "text": "And because we're in a finite-horizon setting, it's very important to maintain a dependency on the stage. The letter k here refers to the stage. In a way, it's not very surprising, because... Oh, by the way, guys, I used an agent that scanned the database of all the employees at Mila, and with that agent and that map of all the employees, I found out who to email to get these things refilled.",
+   "fr": "Et parce que nous sommes à horizon fini, il est très important de conserver la dépendance à l'étape. La lettre k désigne ici l'étape. D'une certaine façon, ce n'est pas très surprenant, parce que... Oh, au fait, j'ai utilisé un agent qui a parcouru la base de données de tous les employés de Mila, et avec cet agent et cette carte de tous les employés, j'ai trouvé à qui écrire pour faire remplir ces choses.",
+   "readable": "Because the horizon is finite, it is essential to keep the dependence on the stage, denoted k. That is not surprising, because... By the way, I used an agent to scan the directory of all Mila employees, and with that map I found whom to email to get these supplies refilled."
+  },
+  {
+   "t": 402080,
+   "text": "It worked. They said they refilled it; we'll see if it's true.\nStudent: Yeah.\nIf you need it, I can share it. There's a skills file; I created a skills file, with a dispatch rule in it. And do you know how many people work at Mila? The admin people here. Guess how many.\nStudent: 300?\n200 people.",
+   "fr": "Ça a marché. Ils disent qu'ils l'ont rempli ; on verra si c'est vrai.\nStudent: Oui.\nSi vous en avez besoin, je peux le partager. Il y a un fichier de compétences ; j'ai créé un fichier de compétences, avec une règle de répartition. Et savez-vous combien de personnes travaillent à Mila ? Le personnel administratif ici. Devinez combien.\nStudent: 300 ?\n200 personnes.",
+   "readable": "It worked; they say they refilled them, and we will see. If you want it, I can share the skill file I created; it contains a dispatch rule. Do you know how many people work in administration at Mila? Guess.\nStudent: 300?\nAbout 200."
+  },
+  {
+   "t": 433520,
+   "text": "It's a lot of people, but now we have a skill for that. Okay. So I was saying, it's not surprising that there's a dependency on the stage, because before, I would sometimes write \\(u(t)\\), or \\(u[t]\\): that was a control function, a plan, with a dependency on t. What we're doing now is moving from a mapping that goes from t to the optimal control, to something that has two arguments, t and x. And x here is the feedback,",
+   "fr": "C'est beaucoup de monde, mais maintenant on a une compétence pour ça. Bon. Je disais donc qu'il n'est pas surprenant qu'il y ait une dépendance à l'étape, parce qu'avant, j'écrivais parfois \\(u(t)\\), ou \\(u[t]\\) : c'était une fonction de commande, un plan, qui dépendait de t. Ce que nous faisons maintenant, c'est passer d'une correspondance qui va de t à la commande optimale à quelque chose qui a deux arguments, t et x. Et x, ici, c'est la rétroaction,",
+   "readable": "That is a lot of people, but now we have a skill for it. Back to the stage dependence. Before, I wrote \\(u(t)\\) or \\(u[t]\\): a control function, a plan, depending on t. Now we move from a map from t to the optimal control to a function of two arguments, t and x, where x is the feedback"
+  },
+  {
+   "t": 478720,
+   "text": "the feedback that comes from the environment. So the object we're going to be working with will always be of this form: \\(J_k(x_k)\\). What that means is the cumulative cost, looking forward, not backward: the cumulative cost of the optimal solution starting from stage k in the particular state we call \\(x_k\\). Making sense of this requires building an argument based on dynamic programming and induction. Where's the proof? Actually, we have the algorithm before it.",
+   "fr": "la rétroaction qui vient de l'environnement. L'objet avec lequel nous allons travailler aura donc toujours cette forme : \\(J_k(x_k)\\). Ce que ça représente, c'est le coût cumulé, tourné vers l'avant, pas vers l'arrière : le coût cumulé de la solution optimale à partir de l'étape k, dans l'état particulier qu'on appelle \\(x_k\\). Pour lui donner un sens, il faut construire un argument fondé sur la programmation dynamique et l'induction. Où est la preuve ? En fait, l'algorithme vient avant.",
+   "readable": "from the environment. The object we work with always has the form \\(J_k(x_k)\\): the cumulative cost, looking forward rather than backward, of the optimal solution starting from stage k in state \\(x_k\\). Making sense of this requires an argument based on dynamic programming and induction. The algorithm comes before the proof in the notes,"
+  },
+  {
+   "t": 539839,
+   "text": "Let's look at the algorithm first. By the way, this material that I call dynamic programming is exactly the same dynamic programming you've been exposed to in your data structures and algorithms classes. Some of us, like me, were traumatized by those courses, but I now live in peace with the idea of dynamic programming. At least for me, once you start seeing it as optimal control, it makes a lot more sense. I haven't interviewed at Google or places like that for a while, and I'm not planning to anymore in my life.",
+   "fr": "Regardons d'abord l'algorithme. Au passage, cette matière que j'appelle programmation dynamique est exactement la même programmation dynamique que vous avez vue dans vos cours de structures de données et d'algorithmes. Certains d'entre nous, comme moi, ont été traumatisés par ces cours, mais je suis maintenant en paix avec l'idée de programmation dynamique. Du moins pour moi, une fois qu'on la voit comme de la commande optimale, elle a beaucoup plus de sens. Ça fait un moment que je n'ai pas passé d'entrevue chez Google ou ce genre d'endroit, et je ne compte plus le faire de ma vie.",
+   "readable": "so let's look at it first. This dynamic programming is exactly the one you saw in data structures and algorithms courses. Some of us, me included, were traumatized by those courses, but I am now at peace with dynamic programming: for me, it makes much more sense once you see it as optimal control. I have not interviewed at Google or similar companies for a long time and don't plan to,"
+  },
+  {
+   "t": 580399,
+   "text": "But if I were to do it again, I think this is how I would solve those trick questions with dynamic programming. I'd first ask myself: I'm seeing this abstract problem; what are the dynamics, what are the controls, what is the state? Once you map these things out, the algorithm, the recursion, comes for free, because it's always the same. If you can map your abstract problem to a finite-horizon MDP, then you've found the solution to your LeetCode problem, right? Okay.",
+   "fr": "Mais si je devais le refaire, je pense que c'est ainsi que je résoudrais ces questions pièges avec la programmation dynamique. Je me demanderais d'abord : devant ce problème abstrait, quelle est la dynamique, quelles sont les commandes, quel est l'état ? Une fois ces éléments identifiés, l'algorithme, la récurrence, vient tout seul, parce que c'est toujours la même. Si vous pouvez ramener votre problème abstrait à un MDP à horizon fini, vous avez trouvé la solution de votre problème LeetCode. Bon.",
+   "readable": "but if I did, this is how I would solve those trick questions. I would ask: what are the dynamics, the controls and the state of this abstract problem? Once those are identified, the recursion comes for free, because it is always the same. If you can map the problem to a finite-horizon MDP, you have solved your LeetCode problem."
+  },
+  {
+   "t": 612399,
+   "text": "And the recipe is always the same: this algorithm over there, Algorithm 1. Technically speaking, in the finite-horizon case, this algorithm is called backward induction. I know there's an urge to call it value iteration if you've seen that material before, but in the finite-horizon case it's called backward induction, not value iteration, because value iteration has a special connotation with fixed-point iteration, and I don't want to mix these things up. So the way it works is that we work our way backwards in time. We start from the end. We set the optimal value function to be the terminal cost, and there's basically nothing to do there. Imagine you've landed",
+   "fr": "Et la recette est toujours la même : cet algorithme là-bas, l'algorithme 1. Techniquement, à horizon fini, cet algorithme s'appelle l'induction arrière. Je sais qu'on est tenté de l'appeler itération sur la valeur si on a déjà vu cette matière, mais à horizon fini, on parle d'induction arrière, pas d'itération sur la valeur, parce que l'itération sur la valeur a une connotation particulière liée à l'itération de point fixe, et je ne veux pas mélanger ces choses. Le fonctionnement est le suivant : on remonte le temps. On part de la fin. On pose la fonction de valeur optimale égale au coût terminal, et là il n'y a essentiellement rien à faire. Imaginez que vous êtes arrivé",
+   "readable": "The recipe is always Algorithm 1. In the finite-horizon case, it is called backward induction. If you have seen this material before, you may want to call it value iteration, but value iteration connotes fixed-point iteration, and I don't want to mix the two. Backward induction works backwards in time. It starts at the end by setting the optimal value function to the terminal cost, where there is nothing to decide:"
+  },
+  {
+   "t": 673120,
+   "text": "in the last state. What is there to do? You don't even have a choice of action, because the terminal cost has no dependence on the control. So that's the trivial starting point. Then you work your way backwards. There's a t + 1 here, but you're working your way backwards. If you were to do this in Python, you could do for t in reversed(range(T)), index the values in an array, and get the value at the next state. When I plug in \\(f_t(x, u)\\) here, it tells me where I would land: the next state if I apply control u in state x.",
+   "fr": "au dernier état. Que faire ? Vous n'avez même pas d'action à choisir, puisque le coût terminal ne dépend pas de la commande. C'est le point de départ trivial. Ensuite, on remonte. Il y a un t + 1 ici, mais on avance à rebours. En Python, vous écririez for t in reversed(range(T)), vous indexeriez les valeurs dans un tableau et vous iriez chercher la valeur à l'état suivant. Quand j'insère \\(f_t(x, u)\\) ici, ça me dit où j'arriverais : l'état suivant si j'applique la commande u dans l'état x.",
+   "readable": "in the last state you have no action to choose, because the terminal cost does not depend on the control. That is the trivial starting point. Then you work backwards: the value at stage t uses the value at stage t + 1. In Python, you would write for t in reversed(range(T)), store the values in an array, and look up the value of the next state, which \\(f_t(x, u)\\) gives you: where you land if you apply control u in state x."
+  },
+  {
+   "t": 729680,
+   "text": "Now, one important thing that I'm not sweeping under the rug: if your state space is continuous, line 2.1 clearly won't be implementable like this. So one of the first things we'll have to talk about, very soon, is how to deal with continuous state spaces. So far we haven't done anything special about that with NLPs (not natural language processing, nonlinear programs): when we just use constrained solvers, it's actually easier to have continuous values than discrete ones. Here it's the other way around: we have an enumeration, two nested loops, one over the time indices and one over the states. Why? Because we're",
+   "fr": "Maintenant, une chose importante que je ne veux pas balayer sous le tapis : si votre espace d'états est continu, la ligne 2.1 ne peut évidemment pas être implémentée ainsi. L'une des premières choses dont nous devrons parler, très bientôt, c'est donc comment traiter les espaces d'états continus. Jusqu'ici, nous n'avons rien fait de particulier à ce sujet avec les NLP (pas le traitement du langage naturel, les programmes non linéaires) : avec des solveurs sous contraintes, il est en fait plus facile d'avoir des valeurs continues que discrètes. Ici, c'est l'inverse : on a une énumération, deux boucles imbriquées, l'une sur les indices de temps et l'autre sur les états. Pourquoi ? Parce qu'on",
+   "readable": "One important caveat: if the state space is continuous, line 2.1 cannot be implemented as written, so we will soon discuss continuous state spaces. With nonlinear programs (NLPs, not natural language processing) and constrained solvers, continuous values were actually easier than discrete ones. Here it is the reverse: we enumerate, with two nested loops, one over time and one over states, because"
+  },
+  {
+   "t": 791279,
+   "text": "filling in the values for each (t, x). In particular, we're maintaining two things: an estimate of the cost-to-go function, or value function, and what we're now going to call a policy. There's a bit of a switch in notation here, reflecting the different traditions: optimal control is more rooted in engineering, whereas dynamic programming is more rooted in the tradition of operations research, and we're going to use the latter's \\(\\pi\\) here. But it's exactly the same thing I was writing on the board earlier. You see, the difference between 2.1.1 and 2.1.2 is just whether I keep the min or the argmin in memory.",
+   "fr": "remplit les valeurs pour chaque (t, x). En particulier, on maintient deux choses : une estimation de la fonction de coût à venir, ou fonction de valeur, et ce qu'on va maintenant appeler une politique. Il y a un petit changement de notation, qui reflète les différentes traditions : la commande optimale est plus ancrée dans l'ingénierie, alors que la programmation dynamique est plus ancrée dans la tradition de la recherche opérationnelle, dont nous adoptons ici le \\(\\pi\\). Mais c'est exactement ce que j'écrivais au tableau tout à l'heure. Vous voyez, la différence entre 2.1.1 et 2.1.2, c'est simplement de garder en mémoire le min ou l'argmin.",
+   "readable": "we fill in a value for each pair (t, x). We maintain two things: an estimate of the cost-to-go function, or value function, and what we now call a policy. The notation changes slightly to reflect the two traditions: optimal control comes from engineering, dynamic programming from operations research, whose symbol \\(\\pi\\) we adopt. It is the same object I wrote on the board earlier. Steps 2.1.1 and 2.1.2 differ only in storing the min or the argmin."
+  },
+  {
+   "t": 849760,
+   "text": "But 2.1.1 and 2.1.2 are very easy optimization problems. If you give me J, this is just a one-stage optimization problem. Arguably, it could still be tricky: if u is a continuous control, how would you implement this thing?",
+   "fr": "Mais 2.1.1 et 2.1.2 sont des problèmes d'optimisation très faciles. Si vous me donnez J, c'est un simple problème d'optimisation à une étape. On peut dire que ça reste délicat : si u est une commande continue, comment l'implémenteriez-vous ?",
+   "readable": "Steps 2.1.1 and 2.1.2 are easy optimization problems: given J, each is a one-stage optimization. It can still be tricky if u is continuous. How would you implement it then?"
+  },
+  {
+   "t": 885199,
+   "text": "You could do gradient descent, especially if u is unconstrained, which is likely not the case: you've got bound constraints. If you've got bound constraints and all you have is gradient descent, what algorithm do you implement? What's your go-to method? I give you JAX, no library, and a problem where u is continuous. What do you do?",
+   "fr": "Par descente de gradient, surtout si u est sans contrainte, ce qui n'est probablement pas le cas : il y a des bornes. Si vous avez des contraintes de bornes et seulement la descente de gradient, quel algorithme implémentez-vous ? Quelle est votre méthode de prédilection ? Je vous donne JAX, aucune bibliothèque, et un problème où u est continu. Que faites-vous ?",
+   "readable": "Gradient descent, if u were unconstrained, which is unlikely: there are usually bounds. With bound constraints and only gradient descent available, say JAX and no other library, what is your go-to method?"
+  },
+  {
+   "t": 919760,
+   "text": "Yeah?\nStudent: [inaudible]\nSay that louder.\nStudent: Arrow-Hurwicz[?]?\nYou could, but it would be overkill if you only have bound constraints. My go-to algorithm would be projected gradient descent, because then the bound constraint is just clipping: you do the usual gradient descent and you clip when you're out of bounds. But technically, yes, you could use Arrow-Hurwicz. You could even use SLSQP, but it would be overkill. Another thing you could do would be to discretize the action space, or the control space.",
+   "fr": "Oui ?\nStudent: [inaudible]\nPlus fort ?\nStudent: Arrow-Hurwicz[?] ?\nVous pourriez, mais ce serait excessif avec seulement des contraintes de bornes. Ma méthode de prédilection serait la descente de gradient projetée, parce qu'alors la contrainte de bornes se réduit à un écrêtage : on fait la descente de gradient habituelle et on écrête quand on sort des bornes. Mais techniquement, oui, on pourrait utiliser Arrow-Hurwicz. On pourrait même utiliser SLSQP, mais ce serait excessif. Une autre possibilité serait de discrétiser l'espace des actions, ou des commandes.",
+   "readable": "Student: Arrow-Hurwicz[?]?\nYou could, but it would be overkill for bound constraints alone. My go-to method is projected gradient descent: with bound constraints, the projection is just clipping, so you take an ordinary gradient step and clip whatever falls out of bounds. Arrow-Hurwicz or even SLSQP would work, but would be overkill. Another option is to discretize the action space, the control space,"
+  },
+  {
+   "t": 963920,
+   "text": "You could slice the range of possible values into little bins and implement the min by enumerating all the values. That could also be quite costly, though: if you want high resolution, you need to discretize very finely. But for now, let's not worry too much about this; we'll get back to it. The easiest for the moment is to assume, for simplicity, that we already have a discrete state space and a discrete action space, or control space.",
+   "fr": "On pourrait découper l'intervalle des valeurs possibles en petites cases et implémenter le min en énumérant toutes les valeurs. Ça pourrait aussi coûter cher : pour une haute résolution, il faut discrétiser très finement. Mais pour l'instant, ne nous en soucions pas trop ; nous y reviendrons. Le plus simple pour le moment est de supposer que nous avons déjà un espace d'états discret et un espace d'actions, ou de commandes, discret.",
+   "readable": "into small bins and compute the min by enumerating all values. That can be costly too, since high resolution requires a very fine discretization. We will return to this. For now, the simplest assumption is that the state and action spaces are already discrete."
+  },
+  {
+   "t": 1001440,
+   "text": "If that's the case and it's not too large, then this thing is very easy to implement. Okay. Why does it hold? It's interesting to visualize it, so I created this little figure to better visualize the argument. What we want to prove is that if you find an optimal solution to your OCP (again, there's no noise here, but the same argument would hold with noise), then the value function associated with your problem obeys the recursion in line 4.",
+   "fr": "Si c'est le cas et qu'il n'est pas trop grand, c'est très facile à implémenter. Bon. Pourquoi est-ce vrai ? C'est intéressant de le visualiser ; j'ai donc créé cette petite figure pour mieux illustrer l'argument. Ce que nous voulons démontrer, c'est que si vous trouvez une solution optimale à votre OCP (encore une fois, il n'y a pas de bruit ici, mais le même argument tiendrait avec du bruit), la fonction de valeur associée obéit à la récurrence de la ligne 4.",
+   "readable": "If they are not too large, the algorithm is then very easy to implement. Why does it work? I made a small figure to visualize the argument. We want to prove that the value function of an optimal solution of the OCP satisfies the recursion in line 4; there is no noise here, but the same argument holds with noise."
+  },
+  {
+   "t": 1047919,
+   "text": "And not only this: as part of the proof, we'll also construct a solution. So backward induction plays two roles here: it gives us a proof, and also an algorithm for finding a solution. This goes back to Richard Bellman's famous principle of optimality, the one that was probably taught to you in algorithms and data structures classes, in the context of shortest-path problems, right?",
+   "fr": "Et pas seulement ça : au cours de la preuve, nous allons aussi construire une solution. L'induction arrière joue donc deux rôles ici : elle nous donne une preuve, et aussi un algorithme pour trouver une solution. Ça remonte au célèbre principe d'optimalité de Richard Bellman, celui qu'on vous a probablement enseigné en cours d'algorithmes et de structures de données, dans le contexte des problèmes de plus court chemin.",
+   "readable": "Moreover, the proof constructs a solution, so backward induction plays two roles: it is both a proof and an algorithm. It goes back to Richard Bellman's famous principle of optimality, which you probably saw in algorithms courses in the context of shortest-path problems."
+  },
+  {
+   "t": 1086000,
+   "text": "What is the intuition behind dynamic programming? How would you explain it? Can anyone give us their take on dynamic programming, and we'll see if it matches the proof here. Who's really into algorithms and data structures and has a passion for these things? Yeah?\nStudent: [inaudible]",
+   "fr": "Quelle est l'intuition derrière la programmation dynamique ? Comment l'expliqueriez-vous ? Quelqu'un peut-il nous donner sa vision de la programmation dynamique ? On verra si elle correspond à la preuve. Qui est vraiment passionné par les algorithmes et les structures de données ? Oui ?\nStudent: [inaudible]",
+   "readable": "What is the intuition behind dynamic programming? Can someone who loves algorithms and data structures give us their take, so that we can compare it with the proof?\nStudent: [inaudible]"
+  },
+  {
+   "t": 1117520,
+   "text": "That's pretty good. I think I have the quote from Richard Bellman somewhere in the notes. Your name is [name]? [name], yeah, there you go. So, if I paraphrase [name], an optimal solution has the property that if you chunk it up and look at a sub-part of a trajectory, that sub-part ought to be optimal, and if you take that sub-part and put it within a larger part, that thing ought to be optimal too. More concretely, what happens in the proof by induction is essentially a cut-and-paste argument, which is what we're describing here in words. I came up with this visualization. Imagine you start with any sequence, which may not be optimal (we don't know ahead of time), and we're going to do a bit of a grafting procedure, surgery basically, on that",
+   "fr": "C'est très bien. Je crois que j'ai la citation de Richard Bellman quelque part dans les notes. Vous vous appelez [name] ? [name], voilà. Pour paraphraser [name], une solution optimale a la propriété que si on la découpe et qu'on regarde une sous-partie d'une trajectoire, cette sous-partie doit être optimale, et si on place cette sous-partie dans un ensemble plus grand, celui-ci doit aussi être optimal. Plus concrètement, ce qui se passe dans la preuve par induction est essentiellement un argument de couper-coller, ce qu'on décrit ici en mots. J'ai imaginé cette visualisation. Partez d'une séquence quelconque, qui n'est peut-être pas optimale (on ne le sait pas d'avance), et faisons une sorte de greffe, une chirurgie en somme, sur cette",
+   "readable": "That's good; I have Bellman's quote somewhere in the notes. To paraphrase [name]: an optimal solution has the property that any sub-part of the trajectory is itself optimal, and placing that sub-part within a larger whole keeps the whole optimal. The proof by induction makes this precise with a cut-and-paste argument, which this visualization illustrates. Start with any sequence, possibly suboptimal, and perform a kind of surgery, a graft, on it"
+  },
+  {
+   "t": 1178160,
+   "text": "sequence, to try to fix it or make it better. So imagine you start with a sequence; this is the leftmost graph here. It just shows some random evolution of the system in time; it's a conceptual picture. And imagine we already have an optimal solution that applies from the next state, \\(x_{t+1}\\).",
+   "fr": "séquence, pour essayer de la corriger ou de l'améliorer. Imaginez donc que vous partez d'une séquence : c'est le graphique de gauche. Il montre simplement une évolution quelconque du système dans le temps ; c'est une image conceptuelle. Et imaginez que nous avons déjà une solution optimale qui s'applique à partir de l'état suivant, \\(x_{t+1}\\).",
+   "readable": "to improve it. The leftmost graph shows such a sequence, an arbitrary evolution of the system over time; it is a conceptual picture. Suppose we already have an optimal solution starting from the next state, \\(x_{t+1}\\)."
+  },
+  {
+   "t": 1213679,
+   "text": "What can we do to improve our candidate sequence, the one that would continue with the dashed line? We can replace the tail, the continuation of that sequence, with the optimal sequence. And then what happens? For sure, the cost of the new grafted sequence will be lower than the original one,",
+   "fr": "Que peut-on faire pour améliorer notre séquence candidate, celle qui continuerait avec le trait pointillé ? On peut remplacer la queue, la suite de cette séquence, par la séquence optimale. Et que se passe-t-il ? Le coût de la nouvelle séquence greffée sera certainement inférieur à celui de l'originale,",
+   "readable": "How can we improve the candidate sequence, which continues along the dashed line? Replace its tail, its continuation, by the optimal one. The cost of the grafted sequence is then lower than that of the original,"
+  },
+  {
+   "t": 1245919,
+   "text": "or at least no higher. Okay. So we're going to do this recursively. We start with equation (6), where we've just rewritten the cost of an arbitrary sequence. The sequence of \\(x_t\\)'s and \\(u_t\\)'s here need not be optimal; it doesn't matter. All we've done is decompose it a bit more explicitly. Pay attention to the indices in the summation: this is the cost starting from stage k, written in a way that isolates whatever happens from t + 1 on. So this is the cost of my solution from the next stage onwards, the tail. We're going to consider the cost of this thing and lower-bound it. First, we do the thing",
+   "fr": "ou du moins pas supérieur. Bon. Nous allons faire ça de façon récursive. On part de l'équation (6), où l'on a simplement réécrit le coût d'une séquence quelconque. La séquence des \\(x_t\\) et des \\(u_t\\) n'a pas besoin d'être optimale, peu importe. Nous l'avons seulement décomposée un peu plus explicitement. Regardez les indices de la somme : c'est le coût à partir de l'étape k, écrit de façon à isoler ce qui se passe à partir de t + 1. C'est donc le coût de ma solution à partir de l'étape suivante : la queue. Nous allons considérer ce coût et le minorer. D'abord, on fait ce que",
+   "readable": "or at least no higher. We apply this recursively. Equation (6) rewrites the cost of an arbitrary sequence, whose states \\(x_t\\) and controls \\(u_t\\) need not be optimal, decomposing it explicitly: look at the indices of the sum. The cost from stage k is split into the first stage and the tail, the cost from stage t + 1 onwards. We lower-bound this cost in two steps. First,"
+  },
+  {
+   "t": 1306640,
+   "text": "I showed you in the figure: replace that tail, the cost of a sequence that may not be optimal, with the optimal tail, which for the moment we don't care where it comes from. That's the hand-wavy part of induction: assume this is given to you. Then equation (7) is true for sure: the cost of that sequence is greater than or equal to the cost of the one where I've replaced the tail by the optimal value function from \\(x_{t+1}\\) onwards. And then we can do one more thing to bound this expression again.",
+   "fr": "je vous ai montré sur la figure : remplacer cette queue, le coût d'une séquence peut-être non optimale, par la queue optimale, dont, pour l'instant, on ne se soucie pas de la provenance. C'est la partie un peu floue de l'induction : supposons qu'on nous la donne. Alors l'équation (7) est certainement vraie : le coût de cette séquence est supérieur ou égal au coût de celle où j'ai remplacé la queue par la fonction de valeur optimale à partir de \\(x_{t+1}\\). Et on peut faire une chose de plus pour minorer de nouveau cette expression.",
+   "readable": "as in the figure, we replace the tail, the cost of a possibly suboptimal continuation, by the optimal tail. Where it comes from does not matter for now; that is the induction hypothesis, assumed given. Equation (7) then certainly holds: the cost of the sequence is at least the cost with its tail replaced by the optimal value from \\(x_{t+1}\\) onwards. Second, we bound this expression once more."
+  },
+  {
+   "t": 1366400,
+   "text": "In this expression, it's for a given x and a given u, and that \\(u_t\\) from the candidate sequence need not be optimal. So we can improve on it: instead of taking whatever \\(u_t\\) you give me, we pick the minimum.",
+   "fr": "Dans cette expression, x et u sont donnés, et ce \\(u_t\\) de la séquence candidate n'a pas besoin d'être optimal. On peut donc l'améliorer : au lieu de prendre le \\(u_t\\) que vous me donnez, on prend le minimum.",
+   "readable": "It is evaluated for a given x and a given u, and the candidate's first control \\(u_t\\) need not be optimal. So instead of using that \\(u_t\\), we take the minimum over controls,"
+  },
+  {
+   "t": 1399679,
+   "text": "And for sure the cost will then be lower than in the previous inequality. That brings us to the final line in equation (7), and the quantity on the right is what we were calling \\(J_t^\\star\\), the optimal value function. So the cost of any sequence will always be larger than or equal to the optimal cost from that state, for any state x in the state space.",
+   "fr": "Et le coût sera alors certainement inférieur à celui de l'inégalité précédente. Ça nous amène à la dernière ligne de l'équation (7), et la quantité de droite est ce qu'on appelait \\(J_t^\\star\\), la fonction de valeur optimale. Le coût de n'importe quelle séquence sera donc toujours supérieur ou égal au coût optimal à partir de cet état, pour tout état x de l'espace d'états.",
+   "readable": "which can only lower the cost further. This gives the last line of equation (7), whose right-hand side is \\(J_t^\\star\\), the optimal value function. So the cost of any sequence is at least the optimal cost from its starting state, for every state x."
+  },
+  {
+   "t": 1445919,
+   "text": "So this is the gist of what's going on in the induction proof: we establish that this lower bound holds for any x across the state space. Then we do the final step. We establish that this minimum over u can, by definition, be written in terms of \\(\\pi\\), because \\(\\pi\\) is the mapping from state to action. Notice that I wrote \\(\\pi^\\star\\); \\(\\pi^\\star\\) will be called an optimal policy.",
+   "fr": "Voilà l'essentiel de la preuve par induction : on établit que cette borne inférieure tient pour tout x de l'espace d'états. Puis on fait la dernière étape : on établit que ce minimum sur u peut, par définition, s'écrire en fonction de \\(\\pi\\), puisque \\(\\pi\\) est la correspondance de l'état vers l'action. Remarquez que j'ai écrit \\(\\pi^\\star\\) ; \\(\\pi^\\star\\) sera appelée une politique optimale.",
+   "readable": "That is the core of the induction: the lower bound holds for every x in the state space. The final step expresses the minimum over u through \\(\\pi\\), the map from states to actions. Note that I wrote \\(\\pi^\\star\\), which we call an optimal policy."
+  },
+  {
+   "t": 1492320,
+   "text": "So this also builds an optimal policy. How do we build \\(\\pi^\\star\\)? By taking the argmin in equation (7). Once you pick the argmin and substitute it back into (7), you get equation (8), which is the result of interest here, and the reason why the algorithm above gives us the right solution. So this gives us both a certificate of optimality, since we've established a proof by induction, and a construction: it tells us how to construct an optimal policy. It's not just saying that a \\(\\pi^\\star\\) exists somehow; it says yes, one exists, and you can find it this way.",
+   "fr": "Ceci construit donc aussi une politique optimale. Comment construit-on \\(\\pi^\\star\\) ? En prenant l'argmin de l'équation (7). Une fois l'argmin choisi et substitué dans (7), on obtient l'équation (8), qui est le résultat qui nous intéresse, et la raison pour laquelle l'algorithme ci-dessus donne la bonne solution. On obtient donc à la fois un certificat d'optimalité, puisqu'on a établi une preuve par induction, et une construction : elle nous dit comment construire une politique optimale. Elle ne dit pas seulement qu'un \\(\\pi^\\star\\) existe d'une manière ou d'une autre ; elle dit qu'il existe, et qu'on peut le trouver de cette façon.",
+   "readable": "So the proof also builds an optimal policy: \\(\\pi^\\star\\) is the argmin in equation (7). Substituting it back into (7) gives equation (8), the result of interest, which shows why the algorithm returns the right solution. We obtain both a certificate of optimality, through the proof by induction, and a construction: not merely that an optimal policy exists, but how to find it."
+  },
+  {
+   "t": 1550720,
+   "text": "And you see that to find \\(\\pi^\\star\\), you also need to find the value function. These two objects are coupled to one another. Isn't it remarkable? It gives us a way to solve these nasty problems without any sort of constrained optimization: purely by recursion. All you need is a bunch of for loops. You don't even need gradient descent or automatic differentiation.",
+   "fr": "Et vous voyez que pour trouver \\(\\pi^\\star\\), il faut aussi trouver la fonction de valeur. Ces deux objets sont couplés. N'est-ce pas remarquable ? Ça nous donne un moyen de résoudre ces problèmes pénibles sans aucune optimisation sous contraintes : par pure récurrence. Il suffit de quelques boucles for. Pas besoin de descente de gradient ni de différentiation automatique.",
+   "readable": "Note that finding \\(\\pi^\\star\\) requires finding the value function: the two objects are coupled. It is remarkable: these hard problems are solved without any constrained optimization, by pure recursion. A few for loops suffice, with no gradient descent and no automatic differentiation."
+  },
+  {
+   "t": 1589600,
+   "text": "This is what I'm saying here: these finite-horizon problems can be viewed as shortest-path problems, and that's a formalism people sometimes use to analyze finite-horizon problems. There's also such a thing as a stochastic shortest path. I don't really cover these notions in the course, but they're used widely in some domains. My colleague Emma Frejinger, for example, has done a lot of work with stochastic shortest paths.",
+   "fr": "C'est ce que je dis ici : ces problèmes à horizon fini peuvent être vus comme des problèmes de plus court chemin, un formalisme qu'on utilise parfois pour analyser les problèmes à horizon fini. Il existe aussi le plus court chemin stochastique. Je ne couvre pas vraiment ces notions dans le cours, mais elles sont largement utilisées dans certains domaines. Ma collègue Emma Frejinger, par exemple, a beaucoup travaillé sur les plus courts chemins stochastiques.",
+   "readable": "As noted here, finite-horizon problems can be viewed as shortest-path problems, a formalism sometimes used to analyze them. There are also stochastic shortest-path problems, which I don't cover but which are widely used in some fields; my colleague Emma Frejinger, for example, has worked extensively on them."
+  },
+  {
+   "t": 1632400,
+   "text": "I think it makes a lot of sense, for example in transportation, to view the problem explicitly as a shortest path. But maybe the one thing to remember here is that instead of adopting the MDP formalism, you can say it's all about shortest paths: my MDP (the object we're working with is called a Markov decision process) can be viewed as a DAG. You unroll time in space, which gives you a big DAG, a directed acyclic graph, and an optimal solution becomes a path within that DAG.",
+   "fr": "Je pense que c'est très logique, par exemple en transport, de voir explicitement le problème comme un plus court chemin. Mais la chose à retenir est peut-être celle-ci : au lieu d'adopter le formalisme des MDP, on peut dire que tout est affaire de plus courts chemins : mon MDP (l'objet avec lequel nous travaillons s'appelle un processus de décision markovien) peut être vu comme un graphe orienté acyclique. On déroule le temps dans l'espace, ce qui donne un grand graphe orienté acyclique, et une solution optimale devient un chemin dans ce graphe.",
+   "readable": "In transportation, for example, it makes a lot of sense to treat problems explicitly as shortest paths. The key point is that instead of the MDP formalism, you can think in terms of shortest paths: a Markov decision process, unrolled in time, becomes a large directed acyclic graph (DAG), and an optimal solution is a path in that DAG."
+  },
+  {
+   "t": 1676640,
+   "text": "You can also start thinking about value functions in terms of flows and so on, but we're not going to go there. I reworked my demo just before coming to class, and I think it's much better now. It's pretty cool. Let's look at it. It's the first application of dynamic programming to a realistic-ish problem: water management for hydroelectric dams.",
+   "fr": "On peut aussi penser les fonctions de valeur en termes de flots, etc., mais nous n'irons pas là. J'ai retravaillé ma démo juste avant le cours, et je pense qu'elle est bien meilleure maintenant. C'est plutôt chouette. Regardons-la. C'est la première application de la programmation dynamique à un problème à peu près réaliste : la gestion de l'eau pour des barrages hydroélectriques.",
+   "readable": "One can also think of value functions in terms of flows, but we will not go there. I reworked my demo just before class, and I think it is much better now. It is the first application of dynamic programming to a somewhat realistic problem: water management for hydroelectric dams."
+  },
+  {
+   "t": 1710399,
+   "text": "I've worked on these problems for real, and we have a solution that uses reinforcement learning and is running live, as far as I know. Here it's going to be a more stylized version: only a single hydroelectric dam, with a bunch of simplifications. The physics of the turbines is not modeled, and the hydrology is not very complicated,",
+   "fr": "J'ai travaillé sur ces problèmes pour vrai, et nous avons une solution qui utilise l'apprentissage par renforcement et qui tourne en production, à ma connaissance. Ici, ce sera une version plus stylisée : un seul barrage hydroélectrique, avec un tas de simplifications. La physique des turbines n'est pas modélisée, et l'hydrologie n'est pas très compliquée,",
+   "readable": "I have worked on such problems for real, and as far as I know a solution we built with reinforcement learning is running in production. Here it is a stylized version: a single dam, with many simplifications. The turbines' physics is not modeled, and the hydrology is simple,"
+  },
+  {
+   "t": 1746320,
+   "text": "and neither are the inflows. Oh, by the way, you should be able to see this now; I pushed it just as I came in. If you refresh, I think it might have landed; if not, clear your cache and it will appear. So the game in managing hydroelectric power plants is to figure out when you want to turbine water.",
+   "fr": "ni les apports d'eau. Au fait, vous devriez pouvoir voir ceci maintenant ; je l'ai publié en entrant. Si vous rafraîchissez, ça devrait être là ; sinon, videz votre cache et ça apparaîtra. Le jeu, dans la gestion des centrales hydroélectriques, c'est de déterminer quand turbiner l'eau.",
+   "readable": "as are the inflows. You should be able to see the demo now; I pushed it as I came in, so refresh, or clear your cache if it does not appear. The question in managing a hydroelectric plant is when to turbine the water."
+  },
+  {
+   "t": 1789440,
+   "text": "Why would you not turbine water all the time? Does anyone have any insight? Water flows into the river, so why don't you...\nStudent: The potential energy?\nYeah, you keep it. Exactly. Your reservoir behaves like a battery. And there's also a business model built around that. As far as I know, we don't do it in Quebec, maybe not in Canada, I don't know, but in the United States for sure,",
+   "fr": "Pourquoi ne pas turbiner l'eau tout le temps ? Quelqu'un a une idée ? L'eau s'écoule dans la rivière, alors pourquoi ne pas...\nStudent: L'énergie potentielle ?\nOui, on la garde. Exactement. Votre réservoir se comporte comme une batterie. Il existe d'ailleurs tout un modèle d'affaires construit là-dessus. À ma connaissance, on ne le fait pas au Québec, peut-être pas au Canada, je ne sais pas, mais aux États-Unis, certainement,",
+   "readable": "Why not turbine all the time? The water flows into the river anyway.\nStudent: Because of the potential energy?\nExactly: you keep it. The reservoir acts like a battery. There is even a business model built on this. As far as I know it is not done in Quebec, and I don't know about Canada, but it certainly is in the United States,"
+  },
+  {
+   "t": 1828480,
+   "text": "especially private electricity companies: some of them operate dams purely as batteries. It's like the stock market: they try to predict the demand on the grid ahead of time, say the day before, and then they pump water up into their reservoir. It's called pumped hydro storage.",
+   "fr": "surtout chez les producteurs d'électricité privés : certains exploitent des barrages uniquement comme des batteries. C'est comme la Bourse : ils essaient de prévoir la demande sur le réseau à l'avance, disons la veille, puis ils pompent l'eau vers leur réservoir. On appelle ça le stockage par pompage.",
+   "readable": "especially by private electricity companies, some of which operate dams purely as batteries. Like traders, they forecast grid demand, say a day ahead, and pump water up into their reservoir. This is called pumped-storage hydroelectricity."
+  },
+  {
+   "t": 1858880,
+   "text": "It's like charging up your battery: you pump water, and the next day, when people are in trouble because it's too cold and they need a lot of electricity, they sell it back to you, but not cheap. You're going to pay a price for it. They make a profit because they knew in advance that you'd need it, and you're willing to pay whatever it takes because you're freezing; it's January. I make it sound evil, but it's capitalism, it's a business model, people invest in it. There's a company where Mark Carney used to be the CEO, Brookfield; it has a division called Brookfield Renewables.",
+   "fr": "C'est comme charger sa batterie : on pompe de l'eau, et le lendemain, quand les gens sont mal pris parce qu'il fait trop froid et qu'ils ont besoin de beaucoup d'électricité, on la leur revend, mais pas bon marché. Vous allez la payer cher. Ils font du profit parce qu'ils savaient d'avance que vous en auriez besoin, et que vous êtes prêts à payer n'importe quel prix parce que vous gelez ; c'est janvier. Je présente ça comme si c'était diabolique, mais c'est le capitalisme, c'est un modèle d'affaires, les gens y investissent. Il y a une entreprise dont Mark Carney a été le PDG, Brookfield, qui a une division appelée Brookfield Renewables.",
+   "readable": "It is like charging a battery. The next day, when it is very cold and people need a lot of electricity, they sell it back at a high price, because they knew you would need it and you will pay what it takes when you are freezing in January. I make it sound evil, but it is a business model, and people invest in it. Brookfield, a company Mark Carney once led as CEO, has a division called Brookfield Renewables"
+  },
+  {
+   "t": 1905760,
+   "text": "Brookfield is a finance company, and Brookfield Renewables does this, among other things, like wind. So it exists. Any other questions on the problem setup? So you don't want to turbine all the time. There's another important thing.",
+   "fr": "Brookfield est une société financière, et Brookfield Renewables fait ce genre de chose, entre autres, comme l'éolien. Ça existe donc. D'autres questions sur la formulation du problème ? On ne veut donc pas turbiner tout le temps. Il y a une autre chose importante.",
+   "readable": "that does this, among other things such as wind power. Any other questions about the setup? So you don't want to turbine all the time. There is another important factor."
+  },
+  {
+   "t": 1942720,
+   "text": "I'm going to try to draw something. This is the dam, and this is the water level. The height of the reservoir has a very important effect. What happens when the height gets higher? Of course, there's danger, but usually, if the water gets too high, there's a spillway on the side (I can't draw it), like in your bathtub: there's a little hole, so if you forget to turn off the faucet, the water spills through it and hopefully doesn't make a mess in your house. So",
+   "fr": "Je vais essayer de dessiner quelque chose. Voici le barrage, et voici le niveau de l'eau. La hauteur du réservoir a un effet très important. Que se passe-t-il quand la hauteur augmente ? Il y a un danger, bien sûr, mais habituellement, si l'eau monte trop, il y a un évacuateur de crues sur le côté (je n'arrive pas à le dessiner), comme dans votre baignoire : il y a un petit trou, de sorte que si vous oubliez de fermer le robinet, l'eau s'écoule par là, et j'espère qu'elle ne fera pas de dégâts chez vous. Alors",
+   "readable": "Let me draw it. Here is the dam and here is the water level, and the height of the reservoir matters a lot. What happens when the water rises too high? Beyond the danger, there is usually a spillway on the side, like the overflow hole in a bathtub that keeps the water from flooding your bathroom if you forget the faucet. So"
+  },
+  {
+   "t": 2006240,
+   "text": "what's the relationship with H, which is called the head?\nStudent: [inaudible]\nYeah. As the head gets higher, more electricity can be produced from the same water; I presume the turbines also spin faster. So you want to balance this: you want the head as high as possible, but you have to balance that against the opportunity cost. You can let it build up, but if you wait too long, the market may have needed the electricity, and you could have sold it. So you have to manage it smartly and decide when to release and when not to.",
+   "fr": "quelle est la relation avec H, qu'on appelle la hauteur de chute ?\nStudent: [inaudible]\nOui. Plus la hauteur de chute est grande, plus on produit d'électricité avec la même eau ; je présume que les turbines tournent aussi plus vite. Il faut donc trouver un équilibre : on veut la hauteur de chute la plus grande possible, mais il faut la mettre en balance avec le coût d'opportunité. On peut laisser l'eau s'accumuler, mais si on attend trop, le marché aurait peut-être eu besoin de l'électricité, et on aurait pu la vendre. Il faut donc gérer intelligemment et décider quand turbiner et quand ne pas le faire.",
+   "readable": "what is the effect of the height H, called the head?\nStudent: [inaudible]\nYes: the higher the head, the more electricity the same water produces; presumably the turbines also spin faster. So you want the head as high as possible, but balanced against the opportunity cost: if you let water accumulate for too long, you may miss times when the market needed electricity and you could have sold it. Managing the reservoir means deciding cleverly when to release."
+  },
+  {
+   "t": 2059599,
+   "text": "We have a simplified model of this. All the code should be executable, by the way: whatever visualization you see in the notebook has been produced live. It's a reproducible book. If you take the source code of the book and run it, it'll take a while to build, because it runs all the figures. There's no copy-pasting of static images; it's all reproducible.",
+   "fr": "Nous avons un modèle simplifié de ceci. Au passage, tout le code devrait être exécutable : toute visualisation que vous voyez dans le notebook a été produite en direct. C'est un livre reproductible. Si vous prenez le code source du livre et que vous l'exécutez, la compilation prendra du temps, parce qu'elle génère toutes les figures. Il n'y a pas d'images statiques copiées-collées ; tout est reproductible.",
+   "readable": "Our model of this is simplified. All the code is executable: every visualization in the notebook is produced live, so the book is reproducible. Building it from source takes a while, because it regenerates all the figures; there are no copied static images."
+  },
+  {
+   "t": 2093679,
+   "text": "Here we model this relationship in a simplified manner. In real settings, they would use more complicated physics to model the hydrology, the geometry of the dam, the type of turbines, the friction, all of that. But this is just a demo, so we use a simplified model, including a simplified model of the inflows. In a real model, the inflows would come from meteorological forecasts, usually a fairly complicated system that you'd get from a third party. If you don't mind, I'll take a ten-minute break to get water, because I'm losing my voice, and we'll come back to this. I want to go over",
+   "fr": "Ici, nous modélisons cette relation de façon simplifiée. En pratique, on utiliserait une physique plus complexe pour modéliser l'hydrologie, la géométrie du barrage, le type de turbines, le frottement, etc. Mais ce n'est qu'une démo, alors nous utilisons un modèle simplifié, y compris pour les apports d'eau. Dans un vrai modèle, les apports viendraient de prévisions météorologiques, en général un système assez compliqué fourni par un tiers. Si ça ne vous dérange pas, je vais prendre une pause de dix minutes pour aller chercher de l'eau, parce que je perds la voix, et nous y reviendrons. Je veux revoir",
+   "readable": "The relationship is modeled simply here. Real models capture the hydrology, the dam's geometry, the turbine types, friction and so on, but this is a demo, with simplified models, including the inflows. In a real system, inflows come from meteorological forecasts, usually a complicated system provided by a third party. Let me take a ten-minute break to get water, since I am losing my voice. After the break, I want to go over"
+  },
+  {
+   "t": 2155760,
+   "text": "this, and we'll talk about interpolation and soon get into function approximation, which is the topic I really want to spend the most time on, rather than the basics of dynamic programming. That's what's on the menu for today, and on Monday we'll continue with fancier forms of approximation. But now I'm going to grab water. Ten minutes. All right.",
+   "fr": "ceci, puis nous parlerons d'interpolation et aborderons bientôt l'approximation de fonctions, le sujet auquel je veux vraiment consacrer le plus de temps, plutôt qu'aux bases de la programmation dynamique. C'est le menu d'aujourd'hui, et lundi nous continuerons avec des formes d'approximation plus sophistiquées. Mais là, je vais chercher de l'eau. Dix minutes. Très bien.",
+   "readable": "this, then discuss interpolation and soon function approximation, the topic I really want to spend the most time on, rather than the basics of dynamic programming. That is today's plan, and on Monday we will continue with more sophisticated approximations. Ten minutes."
+  },
+  {
+   "t": 2209280,
+   "text": "[Break]",
+   "fr": "[Break]",
+   "readable": "[Break]"
+  },
+  {
+   "t": 2275040,
+   "text": "[Break]",
+   "fr": "[Break]",
+   "readable": "[Break]"
+  },
+  {
+   "t": 2356480,
+   "text": "[Break]",
+   "fr": "[Break]",
+   "readable": "[Break]"
+  },
+  {
+   "t": 2387440,
+   "text": "[Break]",
+   "fr": "[Break]",
+   "readable": "[Break]"
+  },
+  {
+   "t": 2426640,
+   "text": "[Break]",
+   "fr": "[Break]",
+   "readable": "[Break]"
+  },
+  {
+   "t": 2479920,
+   "text": "[Break]",
+   "fr": "[Break]",
+   "readable": "[Break]"
+  },
+  {
+   "t": 2514400,
+   "text": "[Break]",
+   "fr": "[Break]",
+   "readable": "[Break]"
+  },
+  {
+   "t": 2556960,
+   "text": "[Break]",
+   "fr": "[Break]",
+   "readable": "[Break]"
+  },
+  {
+   "t": 2594960,
+   "text": "[Break]",
+   "fr": "[Break]",
+   "readable": "[Break]"
+  },
+  {
+   "t": 2627839,
+   "text": "[Break]",
+   "fr": "[Break]",
+   "readable": "[Break]"
+  },
+  {
+   "t": 2688880,
+   "text": "[Break]",
+   "fr": "[Break]",
+   "readable": "[Break]"
+  },
+  {
+   "t": 2778880,
+   "text": "[Break]",
+   "fr": "[Break]",
+   "readable": "[Break]"
+  },
+  {
+   "t": 2827920,
+   "text": "[Break]",
+   "fr": "[Break]",
+   "readable": "[Break]"
+  },
+  {
+   "t": 2859520,
+   "text": "[Break]",
+   "fr": "[Break]",
+   "readable": "[Break]"
+  },
+  {
+   "t": 2890560,
+   "text": "Okay, I think everybody's back.",
+   "fr": "Bon, je pense que tout le monde est revenu.",
+   "readable": "I think everyone is back."
+  },
+  {
+   "t": 2965680,
+   "text": "Okay. I wanted to show you two important things: the dynamics and the cost structure of this problem. We started talking about the cost structure on the board earlier. I said there's a relationship between the height of the reservoir and the energy produced. Here we model it in a simplified manner, with a linear relationship: the head for a state x yields a number of megawatt-hours per cubic hectometre, given by the product of these three terms. So the higher the head and the higher the release (u here is the release, how much you turbine), the more energy, and \\(\\kappa\\) is a constant meant to give realistic-ish values at the right scale. So",
+   "fr": "Bon. Je voulais vous montrer deux choses importantes : la dynamique et la structure de coût de ce problème. Nous avons commencé à parler de la structure de coût au tableau tout à l'heure. J'ai dit qu'il y a une relation entre la hauteur du réservoir et l'énergie produite. Ici, nous la modélisons de façon simplifiée, par une relation linéaire : la hauteur de chute pour un état x donne un nombre de mégawattheures par hectomètre cube, donné par le produit de ces trois termes. Donc plus la hauteur de chute et le débit turbiné sont grands (u est ici le débit turbiné, la quantité qu'on turbine), plus il y a d'énergie, et \\(\\kappa\\) est une constante qui donne des valeurs à peu près réalistes, à la bonne échelle. Donc",
+   "readable": "I want to show you two important things: the dynamics and the cost structure of this problem. As I said on the board, the energy produced depends on the reservoir's height. We model it simply, with a linear relationship: the energy produced, in megawatt-hours, is the product of three terms: the head \\(h(x)\\) for storage x, the release u (how much water is turbined), and a constant \\(\\kappa\\) chosen to give realistic magnitudes."
+  },
+  {
+   "t": 3027599,
+   "text": "either you release more, or you let the head go higher: these are two ways to increase the energy produced. The dynamics look like equation (11), where w represents the inflows. We could pose this as a stochastic problem, where the inflows are random variables,",
+   "fr": "soit on turbine davantage, soit on laisse monter la hauteur de chute : ce sont deux façons d'augmenter l'énergie produite. La dynamique ressemble à l'équation (11), où w représente les apports d'eau. On pourrait poser ce problème comme un problème stochastique, où les apports seraient des variables aléatoires,",
+   "readable": "So there are two ways to produce more energy: release more water, or let the head rise. The dynamics are equation (11), where w denotes the inflows. One could pose the problem stochastically, treating the inflows as random variables,"
+  },
+  {
+   "t": 3067280,
+   "text": "and it's not a coincidence that we use the letter w: we often use w or \\(\\omega\\) to denote disturbances. My OR colleagues sometimes call them exogenous variables: things outside your control that come out of nowhere and affect your system. Here the exogenous variable w, the inflows, is modeled as deterministic: it's literally hard-coded in the code.",
+   "fr": "et ce n'est pas un hasard si on utilise la lettre w : on utilise souvent w ou \\(\\omega\\) pour désigner des perturbations. Mes collègues en recherche opérationnelle parlent parfois de variables exogènes : des choses hors de votre contrôle qui arrivent de nulle part et affectent votre système. Ici, la variable exogène w, les apports, est modélisée comme déterministe : elle est littéralement codée en dur.",
+   "readable": "and it is no coincidence that we use the letter w: w or \\(\\omega\\) usually denotes disturbances, which my operations research colleagues call exogenous variables, things outside your control that affect your system. Here the inflows w are modeled as deterministic, literally hard-coded."
+  },
+  {
+   "t": 3105920,
+   "text": "It's just a made-up progression of how much water might come into the system. Inflows are a function of precipitation, but in Quebec, a big factor is the snowmelt season. Places like Hydro-Québec or Rio Tinto, or any energy producer, have very detailed hydrological models that take into account",
+   "fr": "C'est simplement une progression inventée de la quantité d'eau qui pourrait entrer dans le système. Les apports dépendent des précipitations, mais au Québec, un facteur important est la fonte des neiges. Des entreprises comme Hydro-Québec ou Rio Tinto, ou tout producteur d'énergie, ont des modèles hydrologiques très détaillés qui tiennent compte",
+   "readable": "They are an invented progression of how much water enters the system. Inflows depend on precipitation, and in Quebec the snowmelt season is a major factor. Producers such as Hydro-Québec and Rio Tinto have very detailed hydrological models that account for"
+  },
+  {
+   "t": 3146400,
+   "text": "the surrounding mountains, the watersheds, and how the snowmelt season turns into water inflows into their reservoirs, which, by the way, can be networked together. Here it's just a single dam, but the more interesting problem is the coupling of all of them: a decision upstream affects what happens downstream.",
+   "fr": "des montagnes environnantes, des bassins versants, et de la façon dont la fonte des neiges se traduit en apports d'eau dans leurs réservoirs, qui, d'ailleurs, peuvent être reliés en réseau. Ici, il n'y a qu'un seul barrage, mais le problème plus intéressant est le couplage de tous les barrages : une décision en amont influe sur ce qui se passe en aval.",
+   "readable": "the surrounding mountains and watersheds and for how snowmelt becomes inflow into their reservoirs, which are often networked. We have a single dam here, but the more interesting problem couples many of them, since decisions upstream affect what happens downstream."
+  },
+  {
+   "t": 3180160,
+   "text": "Did you know that Rio Tinto operates seven hydro dams around Lac Saint-Jean[?], many of them in cascade configurations? They're operated by a private company, and they resell to Hydro-Québec. They have contracts stating that if Hydro-Québec can't produce enough electricity in the winter, say, Rio Tinto has a contractual obligation to sell them electricity, probably at a higher price. It's a very interesting problem structure. But here there are no complicated meteorological forecasts; it's a hard-coded function. We could plot it; it's just made to look believable-ish.",
+   "fr": "Saviez-vous que Rio Tinto exploite sept barrages hydroélectriques autour du lac Saint-Jean[?], dont plusieurs en cascade ? Ils sont exploités par une entreprise privée, qui revend de l'électricité à Hydro-Québec. Leurs contrats prévoient que si Hydro-Québec ne peut pas produire assez d'électricité en hiver, par exemple, Rio Tinto a l'obligation contractuelle de lui en vendre, probablement à un prix plus élevé. C'est une structure de problème très intéressante. Mais ici, il n'y a pas de prévisions météorologiques compliquées ; c'est une fonction codée en dur. On pourrait la tracer ; elle est simplement conçue pour paraître à peu près crédible.",
+   "readable": "Rio Tinto operates seven hydroelectric dams around Lac Saint-Jean[?], many in cascade. As a private company, it resells electricity to Hydro-Québec, and its contracts oblige it to supply Hydro-Québec when Hydro-Québec cannot produce enough in winter, probably at a higher price. That is a very interesting problem structure. Here, though, there are no meteorological forecasts, only a hard-coded function designed to look plausible."
+  },
+  {
+   "t": 3234319,
+   "text": "Nevertheless, we're interested in this relationship here. Let's look at it for a second. What does it mean? x is the storage at the start of week t. Time is in weeks during the year, all in discrete time, so t is a week index, an integer. The control u is how much water you release, how much you turbine.",
+   "fr": "Quoi qu'il en soit, c'est cette relation qui nous intéresse. Regardons-la un instant. Que signifie-t-elle ? x est le volume stocké au début de la semaine t. Le temps est en semaines au cours de l'année, en temps discret, donc t est un indice de semaine, un entier. La commande u est la quantité d'eau qu'on relâche, qu'on turbine.",
+   "readable": "What interests us is this relationship. The state x is the storage at the start of week t, where t is an integer week index within the year, in discrete time. The control u is how much water is released through the turbines."
+  },
+  {
+   "t": 3271200,
+   "text": "w is the inflow forecast. The electricity price may also vary by week; that's p. And you want to be careful about two things. First, you want to make sure the reservoir level doesn't go too low. That's the case at Lac Saint-Jean[?] too, by the way. My sister lives around there, and she was telling me how people get very grumpy when the water is too low, because they can't use their boats on the lake.",
+   "fr": "w est la prévision des apports. Le prix de l'électricité peut aussi varier selon la semaine ; c'est p. Et il faut faire attention à deux choses. D'abord, s'assurer que le niveau du réservoir ne descend pas trop bas. C'est aussi le cas au lac Saint-Jean[?], d'ailleurs. Ma sœur habite dans le coin, et elle me racontait que les gens sont très grognons quand l'eau est trop basse, parce qu'ils ne peuvent pas sortir leur bateau sur le lac.",
+   "readable": "w is the inflow forecast, and p is the electricity price, which may vary by week. Two things require care. First, the reservoir must not fall too low. That is true at Lac Saint-Jean[?] too: my sister lives nearby, and she told me that people get very grumpy when the water is too low to take their boats out on the lake."
+  },
+  {
+   "t": 3310160,
+   "text": "Anyway, these levels are set by government decree or whatever, so they're really hard constraints: \\(x_{\\min}\\), you don't want to go below \\(x_{\\min}\\). But more important, I'd say, is \\(\\bar x\\), the maximum level. Fortunately, in practice (not that it's not a concern), it's taken care of automatically by a spillway.",
+   "fr": "Quoi qu'il en soit, ces niveaux sont fixés par décret gouvernemental ou quelque chose du genre, ce sont donc de vraies contraintes dures : \\(x_{\\min}\\), on ne veut pas descendre sous \\(x_{\\min}\\). Mais plus important encore, je dirais, est \\(\\bar x\\), le niveau maximal. Heureusement, en pratique (ce n'est pas que ce ne soit pas une préoccupation), c'est géré automatiquement par un évacuateur de crues.",
+   "readable": "Such minimum levels are set by government regulation, so they are hard constraints: the storage must not go below \\(x_{\\min}\\). More important, I would say, is the maximum level \\(\\bar x\\). Fortunately, in practice it is enforced automatically by the spillway, though it remains a concern:"
+  },
+  {
+   "t": 3342640,
+   "text": "If the reservoir level is too high, the water just spills, but then you're wasting money. Companies don't want to use the spillway; if they get to the spillway, it's because their dynamic programming failed them. Okay. \\(h(x)\\) is the head, the height, and \\(\\kappa\\) is just a constant. And equation (11) has a very simple interpretation: these are the dynamics of the system.",
+   "fr": "Si le niveau du réservoir est trop haut, l'eau déverse simplement, mais on perd alors de l'argent. Les entreprises ne veulent pas utiliser l'évacuateur ; si elles en arrivent là, c'est que leur programmation dynamique les a laissées tomber. Bon. \\(h(x)\\) est la hauteur de chute, et \\(\\kappa\\) est simplement une constante. Et l'équation (11) a une interprétation très simple : c'est la dynamique du système.",
+   "readable": "when the reservoir is too full, the water spills and the money is wasted. Companies do not want to use the spillway; if they reach it, their dynamic programming has failed them. \\(h(x)\\) is the head, and \\(\\kappa\\) a constant. Equation (11), the dynamics, has a simple interpretation:"
+  },
+  {
+   "t": 3379359,
+   "text": "It says that the storage next week will be the storage in the current week, \\(x_t\\), plus the inflow, how much it rained or how much snow melted, minus how much you took out through your turbines. It's a simple inflow-equals-outflow type of relationship.",
+   "fr": "Elle dit que le volume stocké la semaine prochaine sera le volume de la semaine courante, \\(x_t\\), plus les apports, la pluie ou la neige fondue, moins ce qu'on a turbiné. C'est une simple relation entrées égales sorties.",
+   "readable": "next week's storage is this week's storage \\(x_t\\), plus the inflow from rain and snowmelt, minus the water released through the turbines: inflow minus outflow."
+  },
+  {
+   "t": 3413920,
+   "text": "Water goes into the reservoir, water goes out of the reservoir. And then there's this min operator, which is like a clipping: it's literally the spillway. It says, I'm not going to let my system go above \\(\\bar x\\); if it does, I force it down to \\(\\bar x\\). That's what the min is doing. Subject to this: this is the lower-bound constraint, making sure people on the lake can use their boats.",
+   "fr": "L'eau entre dans le réservoir, l'eau sort du réservoir. Puis il y a cet opérateur min, qui est comme un écrêtage : c'est littéralement l'évacuateur de crues. Il dit : je ne laisserai pas mon système dépasser \\(\\bar x\\) ; si ça arrive, je le ramène à \\(\\bar x\\). C'est ce que fait le min. Sous cette contrainte : c'est la contrainte de borne inférieure, pour que les gens puissent sortir leur bateau sur le lac.",
+   "readable": "The min operator acts as a clipping, and it is literally the spillway: the storage cannot exceed \\(\\bar x\\); anything above is spilled. The constraint below it is the lower bound, which keeps the lake usable for boating."
+  },
+  {
+   "t": 3447839,
+   "text": "That gives us a Bellman equation. By the way, the recursion above is called Bellman's equation. It looks like this: we substitute the cost by the linear relationship we had and the dynamics, and in (12) we use maximization rather than minimization. That changes nothing to the underlying optimization principle. It's very common, as you go from the optimal control tradition in engineering, to go from cost minimization to reward maximization, so very soon you'll hear me switching vocabulary and using the term rewards rather than costs. Here, the better way to talk about it is the reward: how much money you're going to make,",
+   "fr": "Ça nous donne une équation de Bellman. Au passage, la récurrence ci-dessus s'appelle l'équation de Bellman. Elle ressemble à ceci : on remplace le coût par la relation linéaire et la dynamique, et dans (12), on utilise une maximisation plutôt qu'une minimisation. Ça ne change rien au principe d'optimisation sous-jacent. Il est très courant, en quittant la tradition de la commande optimale en ingénierie, de passer de la minimisation des coûts à la maximisation des récompenses ; vous m'entendrez donc bientôt changer de vocabulaire et parler de récompenses plutôt que de coûts. Ici, il vaut mieux parler de récompense : combien d'argent vous allez gagner,",
+   "readable": "This gives a Bellman equation (the recursion above is called Bellman's equation). Substituting the energy relationship and the dynamics gives equation (12), which maximizes rather than minimizes, without changing the underlying principle. Moving from the optimal control tradition in engineering, it is common to switch from minimizing costs to maximizing rewards, and you will soon hear me speak of rewards rather than costs. Here, the reward is the money earned,"
+  },
+  {
+   "t": 3510400,
+   "text": "and you make money by keeping the head higher and turbining more water. We model it this way, which gives us a Bellman equation. We can plug it into the backward induction procedure and produce two arrays: one for the value function, which feeds into the other one, the policy.",
+   "fr": "et on gagne de l'argent en gardant une hauteur de chute élevée et en turbinant plus d'eau. On le modélise ainsi, ce qui nous donne une équation de Bellman. On peut l'insérer dans la procédure d'induction arrière et produire deux tableaux : l'un pour la fonction de valeur, qui alimente l'autre, la politique.",
+   "readable": "which grows with a higher head and with more water turbined. Plugging this Bellman equation into backward induction produces two arrays: the value function, which feeds the second array, the policy."
+  },
+  {
+   "t": 3541680,
+   "text": "The backward induction literally takes place here. As I was saying: reversed range. We start from the very last stage, where we set the value function to the terminal value, and then keep doing this over and over. Now, what is this index function here? Why do we need it? Does anyone have any insight?",
+   "fr": "L'induction arrière se fait littéralement ici. Comme je le disais : une boucle à rebours. On part de la toute dernière étape, où l'on pose la fonction de valeur égale à la valeur terminale, puis on répète encore et encore. Maintenant, à quoi sert cette fonction index ici ? Pourquoi en a-t-on besoin ? Quelqu'un a une idée ?",
+   "readable": "This is where backward induction happens: a loop over a reversed range, starting from the last stage, where the value function is set to the terminal value, and repeating. What is this index function for? Does anyone have an idea?"
+  },
+  {
+   "t": 3576960,
+   "text": "What are we doing with it? In the recursion, I just said \"index the next value in the array\". It's not a trick question, guys. What does the index function do in the code? It indexes.",
+   "fr": "Qu'est-ce qu'on fait avec ? Dans la récurrence, j'ai simplement dit « indexer la valeur suivante dans le tableau ». Ce n'est pas une question piège. Que fait la fonction index dans le code ? Elle indexe.",
+   "readable": "In the recursion, I just said \"look up the next value in the array\". It is not a trick question: the index function indexes."
+  },
+  {
+   "t": 3607680,
+   "text": "And why do we need to index? Because the next state x may not land exactly on a grid point. Here we discretize our spaces, and these values are inherently continuous. When you apply the transition to get the next state, especially with inflows that can take continuous values, you might not land on a grid point. And your grid need not be uniform: you can have finer resolution in some places. In the code, we discretize the storage into 181 levels, and we also discretize",
+   "fr": "Et pourquoi faut-il indexer ? Parce que l'état suivant x peut ne pas tomber exactement sur un point de grille. Ici, on discrétise nos espaces, et ces valeurs sont intrinsèquement continues. Quand on applique la transition pour obtenir l'état suivant, surtout avec des apports qui peuvent prendre des valeurs continues, on peut ne pas tomber sur un point de grille. Et la grille n'a pas besoin d'être uniforme : on peut avoir une résolution plus fine à certains endroits. Dans le code, on discrétise le volume en 181 niveaux, et on discrétise aussi",
+   "readable": "Why do we need it? Because the next state may not fall exactly on a grid point. We discretize spaces whose values are inherently continuous, and with continuous inflows the transition need not land on the grid. The grid also need not be uniform; it can be finer in some places. The code discretizes the storage into 181 levels"
+  },
+  {
+   "t": 3668880,
+   "text": "the control space, the release grid, into 23 levels. That gives us a pretty big table, a multidimensional array really. What's the size of this array? The product of the number of weeks, the number of storage grid points and the number of release grid points: a 3D array, if you want.",
+   "fr": "l'espace des commandes, la grille des débits, en 23 niveaux. Ça donne un assez gros tableau, en fait un tableau multidimensionnel. Quelle est sa taille ? Le produit du nombre de semaines, du nombre de points de la grille de volume et du nombre de points de la grille de débits : un tableau 3D, si vous voulez.",
+   "readable": "and the release into 23 levels, which gives a sizable multidimensional array whose size is the number of weeks times the number of storage levels times the number of release levels: a 3D array."
+  },
+  {
+   "t": 3716400,
+   "text": "And this line over there, I don't know if you can see it, is the recursion of Bellman's equation. We recognize the same structure as always: the value on one side. By the way, I say value function, but in other terminology, mostly on the control side, they'd call it the cost-to-go function, because the value function is always forward-looking,",
+   "fr": "Et cette ligne là-bas, je ne sais pas si vous la voyez, c'est la récurrence de l'équation de Bellman. On reconnaît toujours la même structure : la valeur d'un côté. Au passage, je dis fonction de valeur, mais dans une autre terminologie, surtout du côté de la commande, on parlerait de fonction de coût à venir, parce que la fonction de valeur regarde toujours vers l'avant,",
+   "readable": "This line, if you can see it, is the Bellman recursion, with its familiar structure: the value on one side. I say value function, but control engineers usually say cost-to-go function, because it always looks forward,"
+  },
+  {
+   "t": 3760000,
+   "text": "hence the term cost-to-go. So you've got the immediate reward plus the tail, whatever comes next, and this here is the next state of our system. And then there's this line: if we go below the bounds, we mark it as feasible or infeasible. It's a Boolean, true or false.",
+   "fr": "d'où le terme coût à venir. On a donc la récompense immédiate plus la queue, ce qui vient ensuite, et ceci est l'état suivant de notre système. Puis il y a cette ligne : si on descend sous les bornes, on marque l'état comme réalisable ou non. C'est un booléen, vrai ou faux.",
+   "readable": "hence \"to go\". It is the immediate reward plus the tail, the value at the system's next state. Then this line marks each choice as feasible or infeasible, with a Boolean, depending on whether the storage would fall below its lower bound."
+  },
+  {
+   "t": 3801039,
+   "text": "If it's infeasible, we set the value to minus infinity. We do this to make sure the recursion never selects an action that leads to an infeasible solution down the line. It's really killing that whole path, saying: don't go there, it's impossible.",
+   "fr": "S'il est irréalisable, on fixe la valeur à moins l'infini. On fait ça pour s'assurer que la récurrence ne choisira jamais une action qui mène plus tard à une solution irréalisable. Ça élimine vraiment tout ce chemin, en disant : n'y allez pas, c'est impossible.",
+   "readable": "Infeasible choices get a value of minus infinity, so that the recursion never selects an action that leads to infeasibility later: it eliminates that whole path."
+  },
+  {
+   "t": 3833599,
+   "text": "Okay. That gives us two plots. The first plot shows the structure of the policy. For this model, the policy has a surprising and intricate structure: if you look at the color bar at the bottom, you see that it behaves in an all-or-nothing fashion.",
+   "fr": "Bon. Ça nous donne deux graphiques. Le premier montre la structure de la politique. Pour ce modèle, la politique a une structure surprenante et complexe : si vous regardez l'échelle de couleur en bas, vous voyez qu'elle se comporte en tout ou rien.",
+   "readable": "This produces two plots. The first shows the structure of the policy, which is surprising and intricate: the color bar at the bottom shows that the policy is all or nothing."
+  },
+  {
+   "t": 3870960,
+   "text": "Either it doesn't turbine anything, or it turbines at full capacity. That's why it's either completely dark or completely yellow, one or the other. And it has this shape, which is the result of solving the Bellman optimality equation. The white lines are particular trajectories, depending on where you start: these are initial states, and the policy gives you a path forward that is optimal. So if you start in that state, the right thing to do is to follow the line. The other plot shows the structure of the value function, which need not coincide with the structure of the policy. So this is the output of our recursion, and of course, as we refine the discretization,",
+   "fr": "Soit elle ne turbine rien, soit elle turbine à pleine capacité. C'est pourquoi c'est soit complètement foncé, soit complètement jaune, l'un ou l'autre. Et elle a cette forme, qui résulte de la résolution de l'équation d'optimalité de Bellman. Les lignes blanches sont des trajectoires particulières selon le point de départ : ce sont des états initiaux, et la politique donne un chemin optimal à partir de chacun. Donc si vous partez de cet état, la bonne chose à faire est de suivre la ligne. L'autre graphique montre la structure de la fonction de valeur, qui ne coïncide pas forcément avec celle de la politique. Voilà donc le résultat de notre récurrence, et bien sûr, à mesure qu'on raffine la discrétisation,",
+   "readable": "It either releases nothing or releases at full capacity, which is why the map is either completely dark or completely yellow. Its shape results from solving the Bellman optimality equation. The white curves are trajectories from different initial states: from each one, the policy gives the optimal path forward. The other plot shows the value function, whose structure need not coincide with the policy's. Of course, refining the discretization"
+  },
+  {
+   "t": 3932960,
+   "text": "this thing takes more time, so we want to be careful with our discretization. In fact, Richard Bellman coined two very important terms. One is dynamic programming. What's the second important expression he coined that we still use today in relation to dynamic programming?",
+   "fr": "ça prend plus de temps ; il faut donc être prudent avec la discrétisation. En fait, Richard Bellman a forgé deux termes très importants. L'un est programmation dynamique. Quelle est la deuxième expression importante qu'il a forgée et qu'on utilise encore aujourd'hui en lien avec la programmation dynamique ?",
+   "readable": "increases the computation time, so the discretization must be chosen carefully. Richard Bellman coined two very important terms. One is dynamic programming. What is the other, still used today in connection with dynamic programming?"
+  },
+  {
+   "t": 3964319,
+   "text": "Student: The principle of optimality?\nYou're right, but that's not what I'm looking for. Something I might have taught you if you took my intro to machine learning course. Do you remember how we start that course, at least here? Usually with Parzen windows, nearest neighbors, that sort of thing.",
+   "fr": "Student: Le principe d'optimalité ?\nC'est juste, mais ce n'est pas ce que je cherche. Quelque chose que je vous ai peut-être enseigné si vous avez suivi mon cours d'introduction à l'apprentissage automatique. Vous vous souvenez de la façon dont on commence ce cours, du moins ici ? D'habitude avec les fenêtres de Parzen, les plus proches voisins, ce genre de chose.",
+   "readable": "Student: The principle of optimality?\nTrue, but that is not the one I mean. If you took my intro to machine learning course, recall how it starts: with Parzen windows, nearest neighbors and so on."
+  },
+  {
+   "t": 3994400,
+   "text": "Remember the issue with those?\nStudent: The curse of dimensionality.\nExactly, that's what we call it. Richard Bellman coined the term curse of dimensionality in the context of dynamic programming; that's where it was first used. What is the curse of dimensionality? As the state space grows larger, with more components in the state vector, and you start discretizing your problem, the storage requirement explodes exponentially.",
+   "fr": "Vous vous souvenez du problème avec ces méthodes ?\nStudent: La malédiction de la dimension.\nExactement, c'est comme ça qu'on l'appelle. Richard Bellman a forgé l'expression malédiction de la dimension dans le contexte de la programmation dynamique ; c'est là qu'elle a été utilisée pour la première fois. Qu'est-ce que la malédiction de la dimension ? À mesure que l'espace d'états grandit, avec plus de composantes dans le vecteur d'état, et qu'on discrétise le problème, la mémoire nécessaire explose exponentiellement.",
+   "readable": "What was the problem with them?\nStudent: The curse of dimensionality.\nExactly. Bellman coined the term curse of dimensionality, in the context of dynamic programming, where it was first used. As the state vector gains components and we discretize, the storage required grows exponentially."
+  },
+  {
+   "t": 4037839,
+   "text": "So the main challenge in applying dynamic programming is the curse of dimensionality: doing it in a way that is tractable and doesn't explode in memory and compute. For the moment we did plain discretization, which was quite reasonable here, but we want to be smarter and have an approximation method capable of capturing the regularities of the underlying function, because, as you can see, the value function clearly has structure.",
+   "fr": "Le principal défi pour appliquer la programmation dynamique est donc la malédiction de la dimension : le faire de façon traitable, sans exploser en mémoire et en calcul. Pour l'instant, nous avons fait une discrétisation simple, assez raisonnable ici, mais nous voulons être plus astucieux et avoir une méthode d'approximation capable de capturer les régularités de la fonction sous-jacente, parce que, comme vous le voyez, la fonction de valeur a clairement une structure.",
+   "readable": "That is the main challenge of dynamic programming: keeping memory and computation tractable. Our plain discretization is reasonable here, but we want an approximation method that captures the regularities of the value function, which clearly has structure."
+  },
+  {
+   "t": 4077359,
+   "text": "In machine learning terms, we want to find the right inductive biases, which reflect the inherent structure of our value function. That's going to be the name of the game for the upcoming weeks: figuring out how to approximate this object without costly discretization methods that suffer from the curse of dimensionality.",
+   "fr": "En termes d'apprentissage automatique, nous voulons trouver les bons biais inductifs, qui reflètent la structure intrinsèque de notre fonction de valeur. C'est ce qui nous occupera dans les prochaines semaines : comment approximer cet objet sans méthodes de discrétisation coûteuses, victimes de la malédiction de la dimension.",
+   "readable": "In machine learning terms, we want inductive biases that reflect that structure. Approximating this object without costly discretization methods that suffer from the curse of dimensionality is the topic of the coming weeks."
+  },
+  {
+   "t": 4112880,
+   "text": "This shows a trajectory and highlights the special property of the policy here. I don't want to go into why you end up with this structure, but I can comment that structured policies are widely studied. There are researchers, perhaps more on the OR side, who like to take a problem, model it, and study whether the resulting policy has some structure, because knowing that the optimal policy has structure can sometimes simplify identifying it, compared with doing dynamic programming. For example, you might have a structured policy that only requires identifying a threshold, and once you've got the threshold, the policy is very easy to implement.",
+   "fr": "Ceci montre une trajectoire et met en évidence la propriété particulière de la politique ici. Je ne veux pas expliquer pourquoi on obtient cette structure, mais je peux dire que les politiques structurées sont très étudiées. Des chercheurs, peut-être davantage du côté de la recherche opérationnelle, aiment prendre un problème, le modéliser et étudier si la politique résultante a une structure, parce que savoir que la politique optimale est structurée peut parfois simplifier son identification par rapport à la programmation dynamique. Par exemple, une politique structurée peut ne demander que l'identification d'un seuil, et une fois le seuil connu, la politique est très facile à implémenter.",
+   "readable": "This plot shows a trajectory and highlights the special structure of the policy. I won't explain why it arises, but structured policies are widely studied. Researchers, often in operations research, model a problem and study whether its optimal policy has structure, because known structure can make the policy easier to identify than full dynamic programming. A threshold policy, for example, only requires finding the threshold, after which it is trivial to implement."
+  },
+  {
+   "t": 4171759,
+   "text": "There are many problems like this in inventory management, which is closely related to water management. Very often the resulting policies are threshold policies: you replenish once you cross a certain threshold, and so on. That's what we're seeing here. This shows the release and the behavior as it crosses over, when you compare the price for keeping the water versus releasing it.",
+   "fr": "Il y a beaucoup de problèmes de ce genre en gestion des stocks, qui est étroitement liée à la gestion de l'eau. Très souvent, les politiques qui en résultent sont des politiques à seuil : on réapprovisionne quand on franchit un certain seuil, etc. C'est ce qu'on voit ici. Ceci montre le débit turbiné et le comportement au moment du basculement, quand on compare le prix de garder l'eau à celui de la relâcher.",
+   "readable": "Inventory management, closely related to water management, has many such problems, whose optimal policies are threshold policies: replenish when the stock crosses a threshold. That is what we see here: the release switches when the value of releasing water exceeds the value of keeping it."
+  },
+  {
+   "t": 4211360,
+   "text": "You see that it decides to release once the price becomes higher than the value of keeping the water for later, which makes sense. Oh yeah, and you can play with this. There's not much more for me to say about it, except that you can play with it. It's not showing completely, and it doesn't solve the problem live, but it replays the backward pass.",
+   "fr": "Vous voyez qu'elle décide de turbiner quand le prix dépasse la valeur de garder l'eau pour plus tard, ce qui est logique. Ah oui, et vous pouvez jouer avec ceci. Je n'ai pas grand-chose à en dire, sauf que vous pouvez jouer avec. Ça ne s'affiche pas complètement, et ça ne résout pas le problème en direct, mais ça rejoue la passe arrière.",
+   "readable": "The policy releases water once the price exceeds the value of keeping it for later, which makes sense. You can also play with the interactive page; there is not much to add. It does not display completely here, and it does not solve the problem live, but it replays the backward pass."
+  },
+  {
+   "t": 4248080,
+   "text": "I think the rendering problem on this computer is because I zoomed in. It really shows you the policies found over time. We start at the end, because it's backward induction, and fill in the table from the end back to the beginning of time. You can play with different values of the initial storage, the white lines: different initial states give different trajectories. This term here, \"freshet\", is weird, huh? It's the time of year when the snow melts. You can play with it, because in our model it affects the precipitation, which affects the policy a little: you see it shifts",
+   "fr": "Je pense que le problème d'affichage sur cet ordinateur vient du fait que j'ai zoomé. Ça montre vraiment les politiques trouvées au fil du temps. On part de la fin, parce que c'est une induction arrière, et on remplit le tableau de la fin jusqu'au début. Vous pouvez essayer différentes valeurs du volume initial, les lignes blanches : différents états initiaux donnent différentes trajectoires. Ce terme ici, « crue printanière », c'est le moment de l'année où la neige fond. Vous pouvez jouer avec, parce que dans notre modèle il influe sur les précipitations, ce qui modifie un peu la politique : vous voyez que ça décale",
+   "readable": "The display problem is probably due to my zooming. The page shows the policies computed over time, starting from the end, as backward induction does, and filling the table back to the beginning. You can vary the initial storage, shown by the white curves, to see the resulting trajectories. The \"freshet\" parameter, an unusual word, is the snowmelt season; in our model it affects the inflows, which shifts"
+  },
+  {
+   "t": 4308800,
+   "text": "the response somewhat. And you can play with the values of the different settings and prices. Fun stuff. So it's a pretty simple method, used in practice to some extent. When I worked with an industry partner on this problem, they were actually not using it. Why? They specifically told me: scalability. They also used a stochastic model, which brings even more complications, and they told me, we don't use stochastic dynamic programming because it's too costly.",
+   "fr": "quelque peu la réponse. Et vous pouvez jouer avec les valeurs des différents paramètres et des prix. C'est amusant. C'est donc une méthode assez simple, utilisée en pratique dans une certaine mesure. Quand j'ai travaillé avec un partenaire industriel sur ce problème, ils ne l'utilisaient pas, en fait. Pourquoi ? Ils m'ont précisément parlé du passage à l'échelle. Ils utilisaient aussi un modèle stochastique, ce qui complique encore les choses, et ils m'ont dit : on n'utilise pas la programmation dynamique stochastique parce que c'est trop coûteux.",
+   "readable": "the policy somewhat. You can also vary the other parameters and the prices. It is a fairly simple method, used in practice to some extent. When I worked with an industry partner on this problem, they did not use it, because of scalability. Their model was also stochastic, which adds complexity, and they told me they did not use stochastic dynamic programming because it was too costly."
+  },
+  {
+   "t": 4353280,
+   "text": "That's why a lot of work has gone into finding smart ways of approximating these objects numerically. Either that, or a lot of effort went into analyzing the structure of the optimal solution so that you don't even have to do this exhaustive procedure. The problem with that is that the manual analysis is case by case and requires a lot of insight, but as a researcher you might want to do it. Another thing I have to say, and it sounds weird for me to say it while teaching you a course on dynamic programming: dynamic programming is pretty much a solved thing. There's still research being done on it, but at least as",
+   "fr": "C'est pourquoi beaucoup de travaux ont porté sur des façons astucieuses d'approximer numériquement ces objets. Soit ça, soit beaucoup d'efforts pour analyser la structure de la solution optimale afin de ne même pas avoir à faire cette procédure exhaustive. Le problème, c'est que l'analyse manuelle se fait au cas par cas et demande beaucoup d'intuition, mais comme chercheur, vous pourriez vouloir le faire. Autre chose, et ça semble étrange de le dire alors que je vous enseigne la programmation dynamique : la programmation dynamique est à peu près un sujet réglé. Il y a encore de la recherche là-dessus, mais du moins comme",
+   "readable": "That is why much work has gone into approximating these objects numerically, or into analyzing the structure of optimal solutions to avoid the exhaustive procedure. Such analysis is case by case and requires a lot of insight, though as a researcher you may want to do it. It may sound odd in a course on the topic, but dynamic programming is essentially a solved problem. There is still research on it, but"
+  },
+  {
+   "t": 4415840,
+   "text": "a tool for practitioners and researchers in OR, recherche opérationnelle, operations research: my colleagues in OR always solve their problems with integer programming or mixed-integer programming. That's their workhorse. Why? Probably partly because mixed-integer programming solvers have become really good and fast, and it's easier for them to pose the problem in that language. They can focus on the modeling itself: take a problem, write it so that it becomes a mixed-integer or integer program, and once it's in that format, throw it to Gurobi or whatever solver is out there.",
+   "fr": "outil pour les praticiens et les chercheurs en RO, en recherche opérationnelle : mes collègues en RO résolvent toujours leurs problèmes avec la programmation en nombres entiers ou en nombres entiers mixtes. C'est leur outil principal. Pourquoi ? Probablement en partie parce que les solveurs de programmation en nombres entiers mixtes sont devenus vraiment bons et rapides, et qu'il est plus facile pour eux de poser le problème dans ce langage. Ils peuvent se concentrer sur la modélisation elle-même : prendre un problème, l'écrire pour en faire un programme en nombres entiers mixtes, puis, une fois dans ce format, le confier à Gurobi ou à un autre solveur.",
+   "readable": "as a tool for practitioners and researchers in operations research, my colleagues always solve their problems with integer or mixed-integer programming, their workhorse. Probably because mixed-integer solvers have become very good and fast, it is easier to pose problems in that language and focus on modeling: formulate the problem as a mixed-integer program and hand it to Gurobi or another solver."
+  },
+  {
+   "t": 4468640,
+   "text": "So personally, talking to my colleagues in OR, and in my consulting gig at IVADO Labs, I've never done actual dynamic programming. It's bad for me to tell you this right now. That being said, the basics of dynamic programming are very important for understanding the reinforcement learning methods used nowadays, because they grew out of dynamic programming.",
+   "fr": "Personnellement, en discutant avec mes collègues en RO, et dans mon rôle de conseiller chez IVADO Labs, je n'ai jamais fait de vraie programmation dynamique. C'est gênant de vous dire ça maintenant. Cela dit, les bases de la programmation dynamique sont très importantes pour comprendre les méthodes d'apprentissage par renforcement utilisées aujourd'hui, parce qu'elles en sont issues.",
+   "readable": "Personally, neither with my operations research colleagues nor in my consulting work at IVADO Labs have I ever used dynamic programming in practice, which is awkward to admit right now. Still, the foundations of dynamic programming are essential for understanding today's reinforcement learning methods, which grew out of it."
+  },
+  {
+   "t": 4505360,
+   "text": "Would you tackle the post-training of LLMs with dynamic programming? No. That's not what GRPO is doing. GRPO is not doing that kind of programming. And I'll tell you later in the course that it's better to think of GRPO as doing derivative estimation, which is the boring term for it. Now, I know that in practice people say: I do LLMs, I do SFT, then RL post-training.",
+   "fr": "Aborderiez-vous le post-entraînement des LLM avec la programmation dynamique ? Non. Ce n'est pas ce que fait GRPO. GRPO ne fait pas ce genre de programmation. Je vous dirai plus tard dans le cours qu'il vaut mieux voir GRPO comme de l'estimation de dérivées, le terme ennuyeux pour le décrire. Je sais qu'en pratique les gens disent : je fais des LLM, je fais du SFT, puis du post-entraînement par RL.",
+   "readable": "Would you post-train an LLM with dynamic programming? No. GRPO does nothing of the kind; as we will see later, it is better understood as derivative estimation, to use the boring term. In practice, people describe their pipeline as LLM pretraining, then SFT, then RL post-training,"
+  },
+  {
+   "t": 4543120,
+   "text": "You can view it as an MDP. That being said, RL post-training of LLMs has nothing to do with solving the Bellman equation, at least not explicitly. There's usually no value function you'd want to estimate explicitly, and if one is estimated, it plays a supporting role in finding the right solution. Nevertheless, to appreciate current methods and understand how things developed, I think it's quite important for you to grasp these things, and you'll 100% be tested on them in your exam. And we'll build more complicated things on top of this. It's just that, as a vanilla tool for many of the complex problems you might face now, honestly, it might not be the tool you're going to use.",
+   "fr": "On peut le voir comme un MDP. Cela dit, le post-entraînement par RL des LLM n'a rien à voir avec la résolution de l'équation de Bellman, du moins pas explicitement. Il n'y a généralement pas de fonction de valeur qu'on voudrait estimer explicitement, et s'il y en a une, elle joue un rôle de soutien pour trouver la bonne solution. Néanmoins, pour apprécier les méthodes actuelles et comprendre leur évolution, je pense qu'il est très important que vous maîtrisiez ces notions, et vous serez évalués là-dessus à l'examen, c'est garanti. Et nous bâtirons des choses plus complexes là-dessus. C'est seulement que, comme outil de base pour bien des problèmes complexes que vous pourriez rencontrer aujourd'hui, honnêtement, ce n'est peut-être pas l'outil que vous utiliserez.",
+   "readable": "and the problem can be viewed as an MDP, but RL post-training of LLMs does not solve the Bellman equation, at least not explicitly. Usually no value function is estimated explicitly, and when one is, it only plays a supporting role. Nevertheless, these ideas are important for appreciating current methods and how they developed; you will certainly be tested on them, and we will build more advanced methods on them. Honestly, though, as a plain tool for many complex problems you may face today, dynamic programming may not be the one you use."
+  },
+  {
+   "t": 4597520,
+   "text": "It's elegant, though. It's pretty elegant. Okay. What I was doing in the code above with the index function is literally line 14, this I function. I don't like the notation; I think I'll revisit it.",
+   "fr": "C'est élégant, par contre. Très élégant. Bon. Ce que je faisais dans le code ci-dessus avec la fonction index, c'est littéralement la ligne 14, cette fonction I. Je n'aime pas la notation ; je pense que je vais la revoir.",
+   "readable": "It is elegant, though. The index function in the code above corresponds to line 14 of the pseudocode, the function I, whose notation I don't like and will revise."
+  },
+  {
+   "t": 4630400,
+   "text": "What it's meant to do is take the next state and give you the cell in your array, the closest grid entry in your array, for the predicted next state.",
+   "fr": "Elle est censée prendre l'état suivant et vous donner la case de votre tableau, l'entrée de grille la plus proche, pour l'état suivant prédit.",
+   "readable": "It takes the next state and returns the closest grid cell in the array."
+  },
+  {
+   "t": 4670800,
+   "text": "Now, believe it or not, this rounding to the nearest index can be viewed as polynomial interpolation. Do you remember the term from collocation for the polynomial interpolation that line 14 implements?",
+   "fr": "Croyez-le ou non, cet arrondi à l'indice le plus proche peut être vu comme une interpolation polynomiale. Vous vous souvenez du terme employé en collocation pour l'interpolation polynomiale que réalise la ligne 14 ?",
+   "readable": "Believe it or not, rounding to the nearest index is a form of polynomial interpolation. Do you remember the collocation term for the interpolation that line 14 implements?"
+  },
+  {
+   "t": 4706719,
+   "text": "Try to picture what the graph would look like. Is it going to be smooth or discontinuous?\nStudent: [inaudible] Line 14?\nYou say it's going to be smooth? The indexing makes the value function representation discontinuous. It's equivalent to a zero-order hold, remember? So when I used the term discretization earlier,",
+   "fr": "Essayez d'imaginer à quoi ressemblerait le graphe. Sera-t-il lisse ou discontinu ?\nStudent: [inaudible] La ligne 14 ?\nVous dites qu'il sera lisse ? L'indexation rend la représentation de la fonction de valeur discontinue. C'est l'équivalent d'un bloqueur d'ordre zéro, souvenez-vous. Donc quand j'ai employé le mot discrétisation tout à l'heure,",
+   "readable": "Picture the graph: is it smooth or discontinuous?\nStudent: [inaudible] Line 14?\nYou say smooth? The lookup makes the represented value function discontinuous: it is a zero-order hold. So when I spoke of discretization earlier,"
+  },
+  {
+   "t": 4745440,
+   "text": "what I really meant was zero-order polynomial interpolation. Once you see it this way, you think: instead of snapping to the nearest grid point, I could be smarter and take two grid points and interpolate between them, a linear interpolation. In line 15, I take the value function at two grid points,",
+   "fr": "ce que je voulais vraiment dire, c'est interpolation polynomiale d'ordre zéro. Une fois qu'on voit les choses ainsi, on se dit : au lieu d'aller au point de grille le plus proche, je pourrais être plus astucieux, prendre deux points de grille et interpoler entre eux, une interpolation linéaire. À la ligne 15, je prends la fonction de valeur en deux points de grille,",
+   "readable": "I really meant zero-order polynomial interpolation. Seen this way, an improvement is obvious: instead of snapping to the nearest grid point, interpolate linearly between two grid points. Line 15 takes the value function at two grid points,"
+  },
+  {
+   "t": 4786960,
+   "text": "\\(x_u\\) and \\(x_l\\), on the grid, and I just draw a line between these two points: I represent it as a linear function. You could do it this way, and it gives a smoother representation of the value function. You could use higher-order methods: cubic splines, radial basis functions, all of that. And this is what happens when you call Matplotlib's imshow to display your data as a heat map:",
+   "fr": "\\(x_u\\) et \\(x_l\\), sur la grille, et je trace simplement une droite entre ces deux points : je la représente par une fonction linéaire. On peut faire ainsi, et ça donne une représentation plus lisse de la fonction de valeur. On pourrait utiliser des méthodes d'ordre supérieur : splines cubiques, fonctions à base radiale, tout ça. Et c'est ce qui se passe quand vous appelez imshow de Matplotlib pour afficher vos données sous forme de carte de chaleur :",
+   "readable": "\\(x_u\\) and \\(x_l\\), and draws a line between them, giving a smoother representation of the value function. Higher-order methods are possible too: cubic splines, radial basis functions and so on. This is what happens when you display data as a heat map with Matplotlib's imshow:"
+  },
+  {
+   "t": 4843280,
+   "text": "Matplotlib often applies an interpolation method under the hood. You get to choose between nearest, I think that's what it's called, or bilinear interpolation and so on. That's exactly what I'm talking about here. Now, with imshow and Matplotlib heat maps, you're looking at a 2D image, so bilinear interpolation is not much of a problem: you've got two dimensions. But imagine that x is not only continuous but also a state space of 50 variables, if you do robotics, a humanoid, say.",
+   "fr": "Matplotlib applique souvent une méthode d'interpolation en coulisses. Vous pouvez choisir entre nearest, je crois que c'est le nom, ou l'interpolation bilinéaire, etc. C'est exactement ce dont je parle. Avec imshow et les cartes de chaleur de Matplotlib, on regarde une image 2D, donc l'interpolation bilinéaire n'est pas vraiment un problème : il n'y a que deux dimensions. Mais imaginez que x soit non seulement continu, mais aussi un espace d'états de 50 variables, en robotique, pour un humanoïde, disons.",
+   "readable": "Matplotlib interpolates under the hood, letting you choose nearest-neighbor or bilinear interpolation, among others; it is exactly what we are discussing. For a 2D image, bilinear interpolation is no problem. But if x is a continuous state with 50 variables, as for a humanoid robot,"
+  },
+  {
+   "t": 4896159,
+   "text": "The state is going to be quite large, and these higher-order interpolation schemes, forget it: they explode. They're not applicable. Am I supposed not to be here? No? Okay. So there's such a thing as multilinear interpolation. If you're taking Guillaume Rabusseau's course... Has anyone taken his course on tensor methods?",
+   "fr": "L'état sera assez grand, et ces schémas d'interpolation d'ordre supérieur, oubliez ça : ils explosent. Ils ne sont pas applicables. Je ne suis pas censé être ici ? Non ? Bon. Il existe donc l'interpolation multilinéaire. Si vous suivez le cours de Guillaume Rabusseau... Quelqu'un a suivi son cours sur les méthodes tensorielles ?",
+   "readable": "higher-order interpolation schemes become impossible: their cost explodes. (Am I standing in the way? No.) There is also multilinear interpolation. Has anyone taken Guillaume Rabusseau's course on tensor methods?"
+  },
+  {
+   "t": 4936080,
+   "text": "Is he still teaching tensor methods? No? Anyway, if anybody takes Guillaume Rabusseau's course and has to do a project, maybe you could do a project on this. These multilinear interpolation methods often rely on tensor methods, because you need to work with very complicated n-dimensional arrays, and there are smart ways to do it. I'm not going down that route; it's beyond the scope.",
+   "fr": "Enseigne-t-il encore les méthodes tensorielles ? Non ? De toute façon, si quelqu'un suit le cours de Guillaume Rabusseau et doit faire un projet, vous pourriez peut-être en faire un là-dessus. Ces méthodes d'interpolation multilinéaire reposent souvent sur des méthodes tensorielles, parce qu'il faut manipuler des tableaux à n dimensions très complexes, et il existe des façons astucieuses de le faire. Je ne vais pas m'aventurer là ; c'est hors du cadre du cours.",
+   "readable": "Is he still teaching it? No? If anyone takes his course and needs a project, this could be one. Multilinear interpolation methods often rely on tensor methods, because they work with large n-dimensional arrays, and there are clever ways to do so. That is beyond our scope."
+  },
+  {
+   "t": 4969920,
+   "text": "We're going to use what are, in my opinion, more scalable methods. However, these multilinear interpolation methods often have very interesting properties from the perspective of how well they preserve the underlying structure of the value function.",
+   "fr": "Nous utiliserons des méthodes qui, à mon avis, passent mieux à l'échelle. Cela dit, ces méthodes d'interpolation multilinéaire ont souvent des propriétés très intéressantes quant à leur capacité à préserver la structure sous-jacente de la fonction de valeur.",
+   "readable": "We will use methods that I consider more scalable. Still, multilinear interpolation methods have very interesting properties regarding how well they preserve the structure of the value function."
+  },
+  {
+   "t": 5000800,
+   "text": "In particular, there are classes of interpolation, or multilinear interpolation, methods called shape-preserving interpolation methods. Shape-preserving interpolation makes a lot of sense, for example, when you'd be deriving a structured policy that depends on how your value function is structured. So there are instances where people really go with these methods despite",
+   "fr": "En particulier, il existe des classes de méthodes d'interpolation, ou d'interpolation multilinéaire, dites à préservation de forme. L'interpolation à préservation de forme est très utile, par exemple, quand on veut dériver une politique structurée qui dépend de la structure de la fonction de valeur. Il y a donc des cas où l'on choisit vraiment ces méthodes malgré",
+   "readable": "In particular, some interpolation methods are shape-preserving. They make a lot of sense when you want to derive a structured policy that depends on the shape of the value function, so people sometimes choose them despite"
+  },
+  {
+   "t": 5043360,
+   "text": "the fact that they're more costly. That's one reason. The other is accuracy: if you really care about the value function itself, you really trust your model, and you really want accuracy, then these would be a good choice. If you're going to spend compute, you'll solve for a very accurate value function. I told you that dynamic programming is not really used by OR people. That being said, for people who like to gain insight into a problem and study its structure, I think there's still a lot of value in dynamic programming, and you see this a lot in econometrics and economics.",
+   "fr": "leur coût plus élevé. C'est une raison. L'autre, c'est la précision : si vous tenez vraiment à la fonction de valeur elle-même, que vous faites vraiment confiance à votre modèle et que vous voulez de la précision, ce serait un bon choix. Si vous êtes prêts à dépenser du calcul, vous obtiendrez une fonction de valeur très précise. Je vous ai dit que la programmation dynamique n'est pas vraiment utilisée en RO. Cela dit, pour ceux qui aiment comprendre un problème et étudier sa structure, je pense qu'elle garde beaucoup de valeur, et on le voit beaucoup en économétrie et en économie.",
+   "readable": "their higher cost. Another reason is accuracy: if you care about the value function itself, trust your model and want precision, these methods are a good choice; with enough compute, you get a very accurate value function. I said that operations research rarely uses dynamic programming, but for those who want insight into a problem's structure, it remains very valuable, as you see in econometrics and economics."
+  },
+  {
+   "t": 5098159,
+   "text": "I'm a big fan of one econometrician. It's a bit of a running joke in my group, although I think I've spared my students my praise of him for a while. I'm a big fan of John Rust. He's an econometrician, and in particular he likes to see himself as belonging to the tradition of structural",
+   "fr": "Je suis un grand admirateur d'un économètre. C'est un peu une blague récurrente dans mon groupe, même si je pense avoir épargné mes louanges à mes étudiants depuis un moment. Je suis un grand admirateur de John Rust. C'est un économètre qui, en particulier, aime se voir comme appartenant à la tradition de l'économétrie",
+   "readable": "I am a big fan of one econometrician, John Rust, a running joke in my group, although I have spared my students my praise of him for a while. He sees himself as belonging to the tradition of structural"
+  },
+  {
+   "t": 5151679,
+   "text": "econometrics. In other words, he likes to pose a structure for how he thinks, say, the market behaves or consumers behave, and then prove a bunch of things about it. For them, it's really about understanding a phenomenon. They use dynamic programming to gain insight, not to deploy a controller. In fact, they're probably never going to run their policy,",
+   "fr": "structurelle. Autrement dit, il aime poser une structure décrivant, par exemple, le comportement du marché ou des consommateurs, puis démontrer un tas de choses à son sujet. Pour eux, il s'agit vraiment de comprendre un phénomène. Ils utilisent la programmation dynamique pour mieux comprendre, pas pour déployer un contrôleur. En fait, ils n'exécuteront probablement jamais leur politique,",
+   "readable": "econometrics: he posits a structural model of how, say, markets or consumers behave, and proves results about it. The goal is understanding a phenomenon. Such researchers use dynamic programming for insight, not to deploy a controller; they will probably never run their policy,"
+  },
+  {
+   "t": 5190480,
+   "text": "or if they do, it's to create a plot for their paper. So you can also appreciate dynamic programming as a tool to analyze and study decision making. John Rust also has a very interestingly named paper, which you have to work hard to find, called something like \"Do people behave according to Bellman's principle of optimality?\" He's very honest about this. He says: our entire field makes these assumptions; we model decision makers as Markov decision processes,",
+   "fr": "ou, s'ils le font, ce sera pour produire un graphique dans leur article. On peut donc aussi apprécier la programmation dynamique comme un outil pour analyser et étudier la prise de décision. John Rust a aussi un article au titre très intéressant, qu'il faut chercher longtemps pour le trouver, quelque chose comme « Les gens se comportent-ils selon le principe d'optimalité de Bellman ? ». Il est très honnête à ce sujet. Il dit : tout notre domaine fait ces hypothèses ; nous modélisons les décideurs comme des processus de décision markoviens,",
+   "readable": "except to make a plot for a paper. So dynamic programming is also a tool for analyzing decision making. Rust has a paper with an interesting title, which takes some effort to find, asking whether people behave according to Bellman's principle of optimality. He is very candid: his whole field models decision makers as Markov decision processes,"
+  },
+  {
+   "t": 5252639,
+   "text": "but really, people are not MDPs. They're not rational decision makers, and that's a good thing, in fact. There's even another theoretical framework for talking about decision making that explicitly models the fact that, as human decision makers, we have limited capacity. Even the most intelligent person has limited capacity. We have limited lives. We need food; we need to survive.",
+   "fr": "mais en réalité, les gens ne sont pas des MDP. Ce ne sont pas des décideurs rationnels, et c'est une bonne chose, en fait. Il existe même un autre cadre théorique pour parler de prise de décision qui modélise explicitement le fait qu'en tant que décideurs humains, nous avons une capacité limitée. Même la personne la plus intelligente a une capacité limitée. Notre vie est limitée. Il nous faut de la nourriture ; il nous faut survivre.",
+   "readable": "but people are not MDPs; they are not rational decision makers, which is in fact a good thing. Another theoretical framework explicitly models the fact that human decision makers have limited capacity. Even the most intelligent person has limits: limited lifetimes, the need for food, the need to survive."
+  },
+  {
+   "t": 5296159,
+   "text": "We're bounded agents. That framework is also very interesting; it's called bounded rationality. Has anyone heard about bounded rationality? I really like these ideas. Who wrote about it again? Does anyone know? If you don't, it's good for your general culture, because the person who came up with this",
+   "fr": "Nous sommes des agents bornés. Ce cadre est aussi très intéressant ; on l'appelle la rationalité limitée. Quelqu'un en a entendu parler ? J'aime beaucoup ces idées. Qui a écrit là-dessus, déjà ? Quelqu'un le sait ? Sinon, c'est bon pour votre culture générale, parce que la personne qui a proposé cette idée",
+   "readable": "We are bounded agents, and the framework that studies this, bounded rationality, is very interesting. Has anyone heard of it? I really like these ideas. Who introduced them? If you don't know, it is good general culture, because he"
+  },
+  {
+   "t": 5356639,
+   "text": "happens to be a Nobel Prize winner in economics and also a founding father of artificial intelligence, whose name is Herbert...\nStudent: Herbert Simon.\nYeah, Herbert Simon. I have one of his books in my office; I think it's called The Sciences of the Artificial.",
+   "fr": "a reçu le prix Nobel d'économie et est aussi l'un des pères fondateurs de l'intelligence artificielle : Herbert...\nStudent: Herbert Simon.\nOui, Herbert Simon. J'ai un de ses livres dans mon bureau ; je pense qu'il s'intitule The Sciences of the Artificial.",
+   "readable": "won the Nobel Prize in economics and was one of the founders of artificial intelligence: Herbert...\nStudent: Herbert Simon.\nYes, Herbert Simon. I have one of his books in my office, The Sciences of the Artificial, I think."
+  },
+  {
+   "t": 5396480,
+   "text": "I think it's an interesting idea. Look, this is a tangent into my view of AI. Models work because we put inductive biases into them. These inductive biases help us learn good representations. What is a good representation? A representation is a way to structure and support learning, thinking and reasoning.",
+   "fr": "Je trouve l'idée intéressante. Voici une parenthèse sur ma vision de l'IA. Les modèles fonctionnent parce que nous y mettons des biais inductifs. Ces biais inductifs nous aident à apprendre de bonnes représentations. Qu'est-ce qu'une bonne représentation ? Une représentation est une façon de structurer et de soutenir l'apprentissage, la pensée et le raisonnement.",
+   "readable": "Here is a tangent about my view of AI. Models work because we build inductive biases into them, and these biases help us learn good representations. A representation is a way of structuring and supporting learning, thinking and reasoning,"
+  },
+  {
+   "t": 5434960,
+   "text": "And what defines a good representation is our ability to learn efficiently and act efficiently upon it. Why is efficiency important? Because we live embedded in time. If you had to go back to the wilderness and live on your own, predators might try to eat you alive. If there's a black bear next to you, you have to make a move and decide right away what you're going to do.",
+   "fr": "Et ce qui définit une bonne représentation, c'est notre capacité à apprendre efficacement et à agir efficacement à partir d'elle. Pourquoi l'efficacité est-elle importante ? Parce que nous vivons inscrits dans le temps. Si vous deviez retourner vivre seul dans la nature, des prédateurs pourraient essayer de vous dévorer. S'il y a un ours noir à côté de vous, vous devez réagir et décider tout de suite quoi faire.",
+   "readable": "and a good representation is one that lets us learn and act efficiently. Why does efficiency matter? Because we live in time. If you lived alone in the wilderness, predators might try to eat you, and with a black bear next to you, you must decide immediately what to do."
+  },
+  {
+   "t": 5471760,
+   "text": "If a bear comes next to me, should I scare it or not? I don't know. The point is, I'm going to have to figure it out, and my reaction might not be optimal, but most likely it's going to help me stay alive. It's always about this: having pressures is what yields intelligence.",
+   "fr": "Si un ours s'approche de moi, dois-je lui faire peur ou non ? Je ne sais pas. Le fait est que je vais devoir trouver, et ma réaction ne sera peut-être pas optimale, mais elle m'aidera très probablement à rester en vie. C'est toujours ça : ce sont les contraintes qui produisent l'intelligence.",
+   "readable": "Should I scare it away or not? I don't know, but I must decide, and my reaction, though perhaps not optimal, will most likely keep me alive. That is the point: pressure is what produces intelligence."
+  },
+  {
+   "t": 5511280,
+   "text": "The fact that we have a little brain that runs on 20 watts, but still needs to be fed, forces us to come up with shortcuts that are sometimes not optimal, but in the grand scheme of things are quite optimal, when you think about staying alive and prospering, whatever it means to be alive, for which I don't have an answer. But I think it makes sense. Sorry about the detour. John Rust wrote a lot of interesting things; he knows very well that it's not a perfect model of human decision making, but it's one, and he cares about dynamic programming and has done many other important things. There's a question or a comment? Yeah.",
+   "fr": "Le fait que nous ayons un petit cerveau qui fonctionne avec 20 watts, mais qu'il faut quand même nourrir, nous force à trouver des raccourcis parfois sous-optimaux, mais, à grande échelle, assez optimaux quand on pense à rester en vie et à prospérer, quoi que signifie être vivant, ce à quoi je n'ai pas de réponse. Mais je pense que ça se tient. Désolé pour le détour. John Rust a écrit beaucoup de choses intéressantes ; il sait très bien que ce n'est pas un modèle parfait de la prise de décision humaine, mais c'en est un, et il tient à la programmation dynamique et a fait beaucoup d'autres choses importantes. Il y a une question ou un commentaire ? Oui.",
+   "readable": "Our brain runs on about 20 watts, yet it must be fed, which forces us to use shortcuts that are sometimes suboptimal but, in the grand scheme of staying alive and prospering, quite effective, whatever being alive ultimately means; I have no answer to that. Sorry for the detour. Rust knows very well that the MDP is not a perfect model of human decision making, but it is a model, and he has done much other important work. A question or comment?"
+  },
+  {
+   "t": 5569760,
+   "text": "Student: [inaudible question]\nDo I know the meaning of life? No. To be honest, bounded rationality doesn't really provide a framework like MDPs; it's almost more of a philosophy. That being said, there has been a lot of work trying to formalize many aspects of bounded rationality, and one very important concept that comes out of it is this: here we have the value associated with taking an action,",
+   "fr": "Student: [inaudible question]\nSi je connais le sens de la vie ? Non. Honnêtement, la rationalité limitée ne fournit pas vraiment un cadre comme les MDP ; c'est presque plutôt une philosophie. Cela dit, beaucoup de travaux ont tenté de formaliser divers aspects de la rationalité limitée, et un concept très important qui en ressort est le suivant : ici, nous avons la valeur associée à une action,",
+   "readable": "Student: [inaudible question]\nThe meaning of life? No. Bounded rationality does not really provide a formal framework like MDPs; it is closer to a philosophy. Still, much work has formalized aspects of it. One important concept is this: alongside the value of taking an action,"
+  },
+  {
+   "t": 5629120,
+   "text": "but another very important quantity is the value of information, which often comes into play when you study these frameworks, and it also plays a role in exploration and exploitation. That being said, the value of information, as in many bounded rationality frameworks, is often not tractable, because it involves meta-reasoning.",
+   "fr": "mais une autre quantité très importante est la valeur de l'information, qui intervient souvent quand on étudie ces cadres, et qui joue aussi un rôle dans le compromis entre exploration et exploitation. Cela dit, la valeur de l'information, comme dans beaucoup de cadres de rationalité limitée, est souvent intraitable, parce qu'elle implique du métaraisonnement.",
+   "readable": "there is the value of information, which often appears in these frameworks and plays a role in the exploration-exploitation trade-off. But the value of information, as in many bounded-rationality frameworks, is often intractable, because it involves meta-reasoning:"
+  },
+  {
+   "t": 5662400,
+   "text": "You want to solve a problem about how to learn optimally, let's say. It's a meta-reasoning problem, and it tends to be quite tricky, let's put it that way. There's also a workshop happening right now at NeurIPS in Paris, I think, on resource-aware agents, which looks very interesting and is maybe a more pragmatic take on these concepts, instead of trying to approximate the value of information and so on. I haven't looked at the papers, but I'll post them when they're published.",
+   "fr": "On veut résoudre un problème qui porte sur la façon d'apprendre de manière optimale, disons. C'est un problème de métaraisonnement, et il tend à être assez délicat, disons-le ainsi. Il y a d'ailleurs en ce moment un atelier à NeurIPS, à Paris je crois, sur les agents conscients de leurs ressources, qui semble très intéressant et offre peut-être une approche plus pragmatique de ces concepts, au lieu d'essayer d'approximer la valeur de l'information. Je n'ai pas lu les articles, mais je les publierai quand ils sortiront.",
+   "readable": "for example, reasoning about how to learn optimally, a meta-reasoning problem that tends to be quite hard. There is a workshop right now at NeurIPS, in Paris I think, on resource-aware agents, which looks very interesting and may offer a more pragmatic take than approximating the value of information. I haven't read the papers yet, but I will post them when they are published."
+  },
+  {
+   "t": 5700239,
+   "text": "I think there might be simpler, pragmatic ways of doing things. For example, telling my agent: look, here's a clock; you've got this task and access to the clock to measure how long it takes, so come up with the best solution, but please come up with a solution before I die. I don't know what it would look like, but I'm pretty sure there are ways to do it, either in context or through training, and I think that would be important, because our agents are not very good at having a sense of being embedded in time right now. At least my agent does a pretty good job of making sure it's not busting my compute credits, so it seems cautious about compute usage and aware of its limitations to some extent.",
+   "fr": "Je pense qu'il existe peut-être des façons plus simples et pragmatiques de procéder. Par exemple, dire à mon agent : voici une horloge ; tu as cette tâche et accès à l'horloge pour mesurer le temps que ça prend, alors trouve la meilleure solution, mais trouve-la avant que je meure, s'il te plaît. Je ne sais pas à quoi ça ressemblerait, mais je suis presque certain qu'il y a moyen de le faire, en contexte ou par l'entraînement, et je pense que ce serait important, parce que nos agents ne sont pas très bons pour avoir conscience d'être inscrits dans le temps en ce moment. Du moins, mon agent fait un assez bon travail pour ne pas épuiser mes crédits de calcul ; il semble prudent dans son utilisation du calcul et conscient de ses limites, dans une certaine mesure.",
+   "readable": "Simpler pragmatic approaches may work: for example, giving an agent a clock and saying, \"you have this task and can measure how long it takes; find the best solution, but please before I die\". I don't know exactly what that would look like, but it could likely be done in context or through training, and it matters, because today's agents have little sense of being embedded in time. My own agent does a good job of not exhausting my compute credits; it seems cautious about compute and somewhat aware of its limits."
+  },
+  {
+   "t": 5752800,
+   "text": "But I guess there's a bigger sense in which they should be trained from the ground up to be aware of their resources. That's it.",
+   "fr": "Mais je pense que, plus largement, ils devraient être entraînés dès le départ à être conscients de leurs ressources. Voilà.",
+   "readable": "But more broadly, agents should perhaps be trained from the start to be aware of their resources."
+  },
+  {
+   "t": 5783280,
+   "text": "So: tensor arrays, multilinear interpolation, and so on. This is just pseudocode for backward induction with the grid, the whole procedure. You have it in pseudocode; it's the same thing, except that you snap to the nearest point with this index function.",
+   "fr": "Donc : tableaux tensoriels, interpolation multilinéaire, etc. Ceci n'est que le pseudo-code de l'induction arrière avec la grille, toute la procédure. Vous l'avez en pseudo-code ; c'est la même chose, sauf qu'on va au point le plus proche avec cette fonction index.",
+   "readable": "That covers tensor methods and multilinear interpolation. This is the pseudocode of backward induction on a grid, the whole procedure: the same as before, except that successors are snapped to the nearest grid point by the index function."
+  },
+  {
+   "t": 5816080,
+   "text": "Same example here. All right, I'm not going to start this; we'll continue on Monday. But now that we have the basics of dynamic programming and value functions, we'll consider a specific case where the dynamics are linear and the cost is quadratic. Remarkably, these so-called LQR problems can be solved directly through backward induction, without any discretization.",
+   "fr": "Même exemple ici. Très bien, je ne vais pas commencer ceci ; on continuera lundi. Mais maintenant que nous avons les bases de la programmation dynamique et des fonctions de valeur, nous allons considérer un cas particulier où la dynamique est linéaire et le coût quadratique. Fait remarquable, ces problèmes dits LQR peuvent être résolus directement par induction arrière, sans aucune discrétisation.",
+   "readable": "The same example appears here. I won't start the next part now; we will continue next time. Having laid the foundations of dynamic programming and value functions, we will consider the special case of linear dynamics and quadratic costs. Remarkably, these so-called LQR problems can be solved directly by backward induction, with no discretization."
+  },
+  {
+   "t": 5863040,
+   "text": "It's remarkable, really cool. Believe it or not, we'll derive it by taking backward induction, thinking carefully about leveraging the special structure, and finding a specialized version of backward induction for these problems that gives us the exact solution: the exact policy, which takes any continuous x and gives you a continuous output right away.",
+   "fr": "C'est remarquable, vraiment chouette. Croyez-le ou non, nous allons le dériver en partant de l'induction arrière, en réfléchissant soigneusement à la façon d'exploiter la structure particulière, et en trouvant une version spécialisée de l'induction arrière pour ces problèmes, qui donne la solution exacte : la politique exacte, qui prend n'importe quel x continu et donne immédiatement une sortie continue.",
+   "readable": "We will derive it from backward induction, exploiting the special structure carefully to obtain a specialized version that gives the exact solution: an exact policy that maps any continuous x directly to a continuous control."
+  },
+  {
+   "t": 5900080,
+   "text": "It's remarkable. That specialization of backward induction is called the Riccati equation. It's often described independently, when people talk about optimal control and stabilization, but I want to tell you that for LQR problems, the Riccati equation is just a specialization of backward induction. And it's something else you can add to your toolkit: you can often use LQR as part of a broader system wherever you need stabilization, because locally, even for a nonlinear system, when you linearize it, things tend to behave like an LQR system. So it's something you'll often use as part of a hybrid system with other pieces.",
+   "fr": "C'est remarquable. Cette spécialisation de l'induction arrière s'appelle l'équation de Riccati. On la présente souvent indépendamment, quand on parle de commande optimale et de stabilisation, mais je veux vous dire que pour les problèmes LQR, l'équation de Riccati n'est qu'une spécialisation de l'induction arrière. Et c'est un outil de plus pour votre boîte à outils : on peut souvent utiliser le LQR au sein d'un système plus large partout où il faut stabiliser, parce que localement, même pour un système non linéaire, une fois linéarisé, il tend à se comporter comme un système LQR. C'est donc quelque chose que vous utiliserez souvent dans un système hybride, avec d'autres composantes.",
+   "readable": "This specialization of backward induction is called the Riccati equation. It is often presented on its own in discussions of optimal control and stabilization, but for LQR problems it is simply a special case of backward induction. It is a useful tool: LQR is often embedded in larger systems wherever stabilization is needed, because a nonlinear system, linearized locally, tends to behave like an LQR system. You will often use it as one component of a hybrid system."
+  },
+  {
+   "t": 5954800,
+   "text": "All right. We'll go through this and then quickly talk about better approximation methods for the Bellman equation, using the so-called Galerkin framework. We'll go back to collocation, in fact, and I'll show you that TD learning is an instance of this Galerkin framework, something that's rarely taught anywhere except in my course. Okay. I'll be back on Monday with this, and also with your graded copies, which won't be handed back physically: I'll share a digital copy. I keep the copies digitally for archiving purposes, and I'll send you your copy and your graded comments on StudiUM, in the comment section.",
+   "fr": "Très bien. Nous verrons ça, puis nous parlerons rapidement de meilleures méthodes d'approximation de l'équation de Bellman, avec le cadre dit de Galerkin. Nous reviendrons en fait à la collocation, et je vous montrerai que l'apprentissage TD est une instance de ce cadre de Galerkin, ce qu'on enseigne rarement ailleurs que dans mon cours. Bon. Je reviens lundi avec ça, et aussi avec vos copies corrigées, qui ne seront pas rendues en papier : je vous en partagerai une copie numérique. Je garde les copies numériquement pour l'archivage, et je vous enverrai votre copie et mes commentaires sur StudiUM, dans la section des commentaires.",
+   "readable": "After that, we will quickly discuss better approximation methods for the Bellman equation within the Galerkin framework. We will come back to collocation, and I will show you that TD learning is an instance of this Galerkin framework, something rarely taught anywhere except in this course. Next class I will also return your graded copies digitally: I keep the papers for my records and will send you your copy and comments through StudiUM."
+  },
+  {
+   "t": 6006960,
+   "text": "Student: Isn't Monday supposed to be a...\nOh, yeah, no. I'm not going to see you on Monday, then. I'll do renovations instead. See you afterwards; it will work out anyway. Enjoy your break, if it's really meant to be a break for you; otherwise, enjoy your studying or catching up on things.",
+   "fr": "Student: Lundi, ce n'est pas censé être...\nAh oui, non. Je ne vous verrai pas lundi, alors. Je ferai des rénovations à la place. À la prochaine ; ça va s'arranger de toute façon. Profitez de votre congé, si c'en est vraiment un pour vous ; sinon, bonne étude ou bon rattrapage.",
+   "readable": "Student: Isn't Monday supposed to be a break?\nRight, so I won't see you on Monday; I will do renovations instead, and we will meet afterwards. Enjoy the break, if it really is one for you, or your studying and catching up."
+  }
+ ]
+}
