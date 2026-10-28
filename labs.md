@@ -32,6 +32,19 @@ The Colab button opens the notebook from this repository's `main` branch on GitH
 
 The notebook is self-contained and runs on a CPU in about half a minute, with no downloads, installation cells, or repository imports. Browser kernels can take longer. Open it in Colab or local Jupyter with a Python 3 runtime. In the browser lab, select **Python (XPython)**. Changes in the browser lab are stored in your browser; download the notebook if you want to keep or submit it.
 
+## Playing with the stochastic reservoir
+
+[Notebook 09](lab/notebooks/09_stochastic_reservoir_playground.ipynb) takes the reservoir with random inflows from [Stochastic Dynamic Programming](stochastic-dp.md) and changes one piece of the backward induction at a time:
+
+1. shift, scale or add noise to the cost-to-go, and see which changes the policy;
+2. replace the exact expectation by a Monte Carlo average over $N$ sampled inflows;
+3. replace the expectation by a nested CVaR, and compare the mean and the worst years;
+4. plot the optimal release at a fixed storage, week by week.
+
+Each experiment asks you to predict the outcome before running it, and ends with questions to think about. The notebook uses NumPy, Matplotlib and ipywidgets, and runs in under a minute.
+
+[![Open notebook 09 in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pierrelux/rlbook/blob/main/lab/notebooks/09_stochastic_reservoir_playground.ipynb)
+
 ## Local use
 
 To serve the lab locally after building it, run:
