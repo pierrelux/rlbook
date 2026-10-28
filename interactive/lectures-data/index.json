@@ -137,8 +137,97 @@
    "duration_ms": 6038600,
    "thumb": "2026-10-15.jpg",
    "paragraphs": 134,
-   "cleaned": false,
-   "tldr": []
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "The value function of a parametric program",
+      "fr": "La fonction de valeur d'un programme paramétrique"
+     },
+     "p": 2,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Finite horizon means stage-dependent values",
+      "fr": "Horizon fini : des valeurs qui dépendent de l'étape"
+     },
+     "p": 6,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Backward induction",
+      "fr": "L'induction arrière"
+     },
+     "p": 13,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "The cut-and-paste proof",
+      "fr": "La preuve par couper-coller"
+     },
+     "p": 27,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Finite-horizon problems as shortest paths",
+      "fr": "Problèmes à horizon fini et plus courts chemins"
+     },
+     "p": 35,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "The hydro reservoir model",
+      "fr": "Le modèle de réservoir hydroélectrique"
+     },
+     "p": 63,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Grids, infeasible actions and the curse of dimensionality",
+      "fr": "Grilles, actions irréalisables et malédiction de la dimension"
+     },
+     "p": 79,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Bang-bang threshold policy",
+      "fr": "Politique bang-bang à seuil"
+     },
+     "p": 85,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Nearest-grid lookup is a zero-order hold",
+      "fr": "La recherche du point de grille le plus proche est un bloqueur d'ordre zéro"
+     },
+     "p": 104,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Dynamic programming for insight: structural econometrics and bounded rationality",
+      "fr": "La programmation dynamique pour comprendre : économétrie structurelle et rationalité limitée"
+     },
+     "p": 113,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Next: LQR and the Riccati equation",
+      "fr": "À venir : le LQR et l'équation de Riccati"
+     },
+     "p": 129,
+     "exam": false
+    }
+   ]
   },
   {
    "date": "2026-10-01",
