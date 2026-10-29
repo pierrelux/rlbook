@@ -14,6 +14,7 @@
   .intro, .note { color:var(--muted); font-size:13px; }
   .toolbar { display:flex; align-items:end; flex-wrap:wrap; gap:12px; margin-bottom:15px; }
   label { font-size:12px; color:var(--muted); display:block; }
+  select { font:inherit; color:var(--ink); background:white; border:1px solid #bdccd4; border-radius:5px; padding:7px 10px; min-height:35px; margin-top:4px; }
   button { font:inherit; color:var(--ink); background:white; border:1px solid #bdccd4; border-radius:5px; padding:7px 10px; min-height:35px; cursor:pointer; }
   button.primary { background:var(--ink); color:white; border-color:var(--ink); min-width:74px; }
   button:focus-visible, input:focus-visible { outline:3px solid #e69f00; outline-offset:3px; }
@@ -39,10 +40,11 @@
 <body>
 <main>
   <h1>Pushing the boat off its plan</h1>
-  <p class="intro">Twelve copies of the boat follow the final iLQR docking plan and each receives a different small push at 2 s. On the left they replay the planned thrusts; on the right they apply the local feedback <i>u</i> = <i>ū</i><sub>t</sub> + <i>K</i><sub>t</sub>(<i>x</i> − <i>x̄</i><sub>t</sub>). The shaded band is the tube traced by the feedback runs that return to the plan.</p>
+  <p class="intro">Twelve copies of the boat follow the final iLQR docking plan and each receives a different push at 2 s. On the left they replay the planned thrusts; on the right they apply the local feedback <i>u</i> = <i>ū</i><sub>t</sub> + <i>K</i><sub>t</sub>(<i>x</i> − <i>x̄</i><sub>t</sub>). The shaded band is the tube traced by the feedback runs after the small pushes.</p>
   <p id="load-status" role="status">Loading recorded trajectories…</p>
   <div id="replay" hidden>
     <div class="toolbar">
+      <label for="size">Push size<select id="size"><option value="small">Small (up to 0.3 m/s)</option><option value="large">Larger (up to 0.6 m/s)</option></select></label>
       <button id="play" class="primary" type="button">Play</button>
       <button id="restart" type="button">Restart</button>
       <div class="slider"><label for="time">Simulation time<output id="time-label" for="time"></output></label><input id="time" type="range" min="0" value="0" step="1"></div>
@@ -53,7 +55,7 @@
       <figure class="map"><canvas id="feedback" role="img" aria-label="Pushed boats applying the local feedback law"></canvas>
         <figcaption><strong>Local feedback</strong><span class="count" id="feedback-count"></span></figcaption></figure>
     </div>
-    <p class="note">Recorded deterministic simulations of the simplified boat model; nothing is recomputed in the browser. Feedback thrusts are clipped to the thruster limits. The dashed boat is the one push that the feedback does not absorb: its correction saturates the thrusters and the linear model stops being accurate.</p>
+    <p class="note">Recorded deterministic simulations of the simplified boat model; nothing is recomputed in the browser. Feedback thrusts are clipped to the thruster limits. Boats outside the tube are dashed. With the larger pushes, the feedback asks for more thrust than the thrusters can give and the linear model stops being accurate, so some boats leave the tube: the gains only describe a neighborhood of the plan.</p>
   </div>
 </main>
 <script>
@@ -74,9 +76,14 @@ function hull(x) {
   const c = Math.cos(x[2]), s = Math.sin(x[2]);
   return body.map(([a,b]) => [x[0]+c*a-s*b, x[1]+s*a+c*b]);
 }
-function inside(x, t) {
-  const p = data.plan[t];
-  return Math.hypot(x[0]-p[0], x[1]-p[1]) <= data.radius[t] + 1e-6;
+function inside(x) {
+  // Ray casting against the tube outline.
+  const poly = data.tube; let hit = false;
+  for (let i = 0, j = poly.length-1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i], [xj, yj] = poly[j];
+    if ((yi > x[1]) !== (yj > x[1]) && x[0] < (xj-xi)*(x[1]-yi)/(yj-yi)+xi) hit = !hit;
+  }
+  return hit;
 }
 function draw(id, runs) {
   const [ctx, w, h] = canvas(id), pad = 10;
@@ -90,26 +97,31 @@ function draw(id, runs) {
   ctx.fillStyle = "#c4dcec"; ctx.strokeStyle = "#7fb2d4"; ctx.lineWidth = .8; poly(data.tube, true); ctx.fill(); ctx.stroke();
   ctx.strokeStyle = "#20333f"; ctx.lineWidth = 1.6; poly(data.plan); ctx.stroke();
   const t0 = data.push_step, color = colors[id];
-  let count = 0;
   if (step < t0) {
     ctx.fillStyle = color; poly(hull(data.plan[step]), true); ctx.fill();
-  } else {
-    runs.forEach((path, i) => {
-      const k = step - t0, escaped = data.escaped.includes(i);
-      ctx.strokeStyle = color; ctx.globalAlpha = escaped ? .9 : .45; ctx.lineWidth = escaped ? 1.4 : .9;
-      ctx.setLineDash(escaped ? [5,4] : []); poly(path.slice(0, k+1)); ctx.stroke();
-      ctx.globalAlpha = 1; ctx.lineWidth = escaped ? 1.4 : .9; ctx.fillStyle = "rgba(255,255,255,.55)"; poly(hull(path[k]), true); ctx.fill(); ctx.stroke();
-      ctx.setLineDash([]);
-      if (inside(path[k], step)) count++;
-    });
-    ctx.fillStyle = "#20333f"; ctx.beginPath(); ctx.arc(X(data.plan[t0][0]), Y(data.plan[t0][1]), 3.5, 0, 2*Math.PI); ctx.fill();
+    $(`${id}-count`).textContent = "before the push";
+    return;
   }
-  $(`${id}-count`).textContent = step < t0 ? "before the push" : `${count} of ${runs.length} inside the tube`;
+  const k = step - t0, end = data.plan[data.plan.length-1];
+  let within = 0, docked = 0;
+  runs.forEach(path => {
+    const x = path[k], ok = inside(x);
+    within += ok;
+    docked += Math.hypot(x[0]-end[0], x[1]-end[1]) <= data.docked_radius;
+    ctx.strokeStyle = color; ctx.globalAlpha = .45; ctx.lineWidth = .9;
+    poly(path.slice(0, k+1)); ctx.stroke();
+    ctx.globalAlpha = 1; ctx.setLineDash(ok ? [] : [4,3]); ctx.lineWidth = ok ? .9 : 1.3;
+    ctx.fillStyle = "rgba(255,255,255,.55)"; poly(hull(x), true); ctx.fill(); ctx.stroke();
+    ctx.setLineDash([]);
+  });
+  ctx.fillStyle = "#20333f"; ctx.beginPath(); ctx.arc(X(data.plan[t0][0]), Y(data.plan[t0][1]), 3.5, 0, 2*Math.PI); ctx.fill();
+  $(`${id}-count`).textContent = `${within} of ${runs.length} in the tube · ${docked} at the berth`;
 }
 function render() {
   $("time").value = step;
   $("time-label").textContent = `${(step*data.dt).toFixed(1)} s`;
-  draw("open", data.open_loop); draw("feedback", data.feedback);
+  const set = data.pushes[$("size").value];
+  draw("open", set.open_loop); draw("feedback", set.feedback);
 }
 function tick(now) {
   if (!playing) return;
@@ -129,6 +141,7 @@ fetch("boat-tube-data.json").then(r => r.json()).then(json => {
   $("time").max = data.plan.length-1;
   $("load-status").hidden = true; $("replay").hidden = false;
   $("play").onclick = () => setPlaying(!playing);
+  $("size").onchange = () => { step = 0; render(); setPlaying(true); };
   $("restart").onclick = () => { step = 0; render(); setPlaying(true); };
   $("time").oninput = e => { setPlaying(false); step = +e.target.value; render(); };
   window.addEventListener("resize", render);

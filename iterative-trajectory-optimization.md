@@ -196,26 +196,30 @@ and they say nothing about states far from it.
 
 {numref}`fig-boat-tube` shows what "near the plan" means. The boat follows the
 final docking plan and receives a small push after two seconds. Replaying the
-planned thrusts ignores the push, and the runs miss the berth by about a metre
-on average. Applying the local feedback steers 11 of the 12 pushed runs back
-onto the plan, and they arrive within a few millimetres of it. These runs stay
-inside a thin tube around the planned trajectory. The twelfth push sends the
-boat toward the quay. The correction then asks for more thrust than the
-thrusters can give, and the linear model is no longer accurate, so that run
-leaves the tube. The gains describe a neighborhood of one trajectory, and this
-whole chapter works inside such neighborhoods.
+planned thrusts ignores the push. The boats drift calmly but none reaches the
+berth: they miss it by 0.9 m on average and by up to 2.2 m. Applying the local
+feedback steers all twelve pushed runs back onto the plan, and they arrive
+within a millimetre of it. These runs stay inside a thin tube around the
+planned trajectory.
+
+The tube has a limited width. With pushes twice as large, shown in the
+animation below, several feedback runs leave it and two never reach the
+berth. Their corrections ask for more thrust than the thrusters can give, and
+the boat moves far enough from the plan that the linear model is no longer
+accurate. The gains describe
+a neighborhood of one trajectory, and this whole chapter works inside such
+neighborhoods.
 
 :::{figure} _static/boat_docking/tube.svg
 :label: fig-boat-tube
 :width: 100%
 
-Twelve random pushes at 2 s (velocity changes up to 0.4 m/s in each direction,
+Twelve random pushes at 2 s (velocity changes up to 0.3 m/s in each direction,
 with small heading and spin changes) applied to the final iLQR plan for the
 angled approach. Left: the planned thrusts are replayed unchanged. Right: the
 thrusts follow the local feedback law, clipped to the thruster limits. The
-shaded tube, drawn in both panels, is the envelope of the feedback runs that
-return to the plan. Outlines show the final poses. The dashed run is the one
-push that the feedback does not absorb.
+shaded tube, drawn in both panels, is the envelope of the feedback runs.
+Circles mark the positions at 20 s.
 :::
 
 :::{iframe} ../interactive/boat-tube.html
@@ -223,8 +227,9 @@ push that the feedback does not absorb.
 :title: Pushed boats with and without local feedback
 :class: boat-tube-replay
 
-Play or scrub simulation time to watch the twelve pushed boats. The counters
-report how many boats are inside the tube at the selected time.
+Play or scrub simulation time, and switch to the larger pushes to see boats
+leave the tube. The counters report how many boats are inside the tube and at
+the berth at the selected time.
 :::
 
 We cannot solve this nonlinear problem directly. The previous chapter showed
