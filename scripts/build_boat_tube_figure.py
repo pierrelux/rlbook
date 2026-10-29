@@ -17,16 +17,19 @@ import sys
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
+from matplotlib.patches import Patch
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "code"))
 sys.path.insert(0, str(ROOT / "scripts"))
 from boat_docking import BoatParameters, SCENARIOS, initial_controls, make_problem, step
-from build_boat_docking_artifacts import BLUE, ORANGE, boat, harbor, save
+from build_boat_docking_artifacts import BLUE, ORANGE, harbor, save
 from trajectory_optimization import SolverOptions, solve_trajectory
 
 PUSH_STEP, PUSHES, SEED = 20, 12, 3
+TUBE, TUBE_EDGE = "#cfe3f0", "#7fb2d4"
 
 
 def simulate(x_push, plan_states, plan_controls, gains, feedback):
@@ -49,12 +52,13 @@ def tube_radius(plan, paths, floor=.06):
 
 
 def tube_polygon(plan, radius):
-    tangent = np.gradient(plan[:, :2], axis=0)
-    tangent /= np.maximum(np.linalg.norm(tangent, axis=1, keepdims=True), 1e-9)
-    normal = np.c_[-tangent[:, 1], tangent[:, 0]]
-    upper = plan[:, :2] + radius[:, None] * normal
-    lower = plan[:, :2] - radius[:, None] * normal
-    outline = np.r_[upper, lower[::-1]]
+    """Union of the disks of the given radii along the plan after the push."""
+    from shapely.geometry import MultiPoint, Point
+    from shapely.ops import unary_union
+    disks = [Point(*plan[t, :2]).buffer(radius[t], 32) for t in range(PUSH_STEP, len(plan))]
+    hulls = [MultiPoint(list(a.exterior.coords) + list(b.exterior.coords)).convex_hull
+             for a, b in zip(disks, disks[1:])]
+    outline = np.asarray(unary_union(hulls).simplify(.002).exterior.coords)
     return outline[:, 0], outline[:, 1]
 
 
@@ -87,35 +91,43 @@ def main():
         "axes.linewidth": .65, "lines.linewidth": 1.4, "figure.dpi": 160,
         "legend.frameon": False, "savefig.dpi": 180, "svg.fonttype": "none",
         "svg.hashsalt": "boat-tube", "pdf.fonttype": 42})
-    fig, axs = plt.subplots(1, 2, figsize=(7.2, 3.0), layout="constrained", sharex=True, sharey=True)
+    fig, axs = plt.subplots(1, 2, figsize=(7.2, 3.15), layout="constrained", sharex=True, sharey=True)
     titles = ["Replay the planned thrusts", r"Local feedback $\bar u_t+K_t(x_t-\bar x_t)$"]
     errors = {}
     for ax, feedback, color, title in zip(axs, (False, True), (ORANGE, BLUE), titles):
-        harbor(ax, p, (-9.5, 3., -.8, 6.))
+        harbor(ax, p, (-6.8, 2.2, -.6, 4.4))
+        ax.fill(*tube, facecolor=TUBE, edgecolor=TUBE_EDGE, lw=.6, zorder=1)
+        ax.plot(xs[:PUSH_STEP+1, 0], xs[:PUSH_STEP+1, 1], color=".35", lw=1.1, zorder=2)
         finals = []
-        for i, kick in enumerate(kicks):
+        for i in range(PUSHES):
             path = runs[feedback][i]
             if i in escaped:
-                ax.plot(path[:, 0], path[:, 1], color=color, lw=1., ls="--",
-                        label="Push outside the tube" if i == escaped[0] else None)
+                ax.plot(path[:, 0], path[:, 1], color=color, lw=1.1, ls=(0, (4, 2.5)), zorder=3)
             else:
-                ax.plot(path[:, 0], path[:, 1], color=color, lw=.7, alpha=.55)
+                ax.plot(path[:, 0], path[:, 1], color=color, lw=.75, alpha=.6, zorder=3)
+            ax.plot(*path[-1, :2], "o", ms=2.6, mfc="white", mec=color, mew=.9, zorder=5)
             finals.append(path[-1])
-            boat(ax, path[-1], p, color=color, alpha=.35)
-        ax.fill(*tube, color=BLUE, alpha=.3, lw=0, label="Tube")
-        ax.plot(xs[:, 0], xs[:, 1], color="k", lw=1.6, label="Plan")
-        ax.plot(*xs[PUSH_STEP, :2], "o", color="k", ms=3.5, label="Push at 2 s")
+        ax.plot(xs[PUSH_STEP:, 0], xs[PUSH_STEP:, 1], color="k", lw=1.3, zorder=4)
+        ax.plot(*xs[PUSH_STEP, :2], "o", color="k", ms=4, zorder=6)
+        ax.annotate("push at 2 s", xs[PUSH_STEP, :2], xytext=(6, 6), textcoords="offset points",
+                    fontsize=8, color=".2")
         finals = np.array(finals)
         errors[feedback] = np.linalg.norm(finals[:, :2] - xs[-1, :2], axis=1)
         ax.set_title(title)
-    for ax in axs:
-        ax.legend(loc="upper right")
     axs[1].set_ylabel("")
+    handles = [Line2D([], [], color="k", lw=1.3, label="Plan"),
+               Patch(facecolor=TUBE, edgecolor=TUBE_EDGE, lw=.6, label="Tube"),
+               Line2D([], [], color=".4", lw=.75, label="Pushed runs (orange: replay, blue: feedback)"),
+               Line2D([], [], color=".4", lw=1.1, ls=(0, (4, 2.5)), label="Push outside the tube"),
+               Line2D([], [], ls="", marker="o", ms=2.6, mfc="white", mec=".4", label="Position at 20 s")]
+    fig.legend(handles=handles, loc="outside lower center", ncol=3, columnspacing=1.4,
+               handlelength=2.2)
     save(fig, "tube")
     rounded = lambda a: np.round(np.asarray(a)[:, :3], 4).tolist()
     data = {"dt": p.dt, "push_step": PUSH_STEP, "length": p.length, "width": p.width,
             "berth": [p.berth_x, p.berth_y], "plan": rounded(xs),
             "radius": np.round(radius, 4).tolist(), "escaped": escaped,
+            "tube": np.round(np.column_stack(tube), 4).tolist(),
             "open_loop": [rounded(path) for path in runs[False]],
             "feedback": [rounded(path) for path in runs[True]]}
     (ROOT / "interactive" / "boat-tube-data.json").write_text(
