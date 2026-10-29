@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Radiotherapy fractionation · iLQR and DDP</title>
+<style>
+  :root { color-scheme:light; --ink:#20333f; --muted:#5e707c; --rule:#d8e2e7; --blue:#0072b2; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:#fff; color:var(--ink); font:14px/1.45 system-ui,-apple-system,sans-serif; }
+  main { max-width:1120px; margin:auto; padding:20px; }
+  h1 { font-size:22px; font-weight:650; margin:0 0 5px; letter-spacing:-.3px; }
+  p { margin:0 0 14px; }
+  .intro, .note { color:var(--muted); font-size:13px; }
+  .toolbar { display:flex; align-items:end; flex-wrap:wrap; gap:12px; margin-bottom:12px; }
+  .toolbar + .toolbar { border-top:1px solid var(--rule); padding-top:11px; }
+  label { font-size:12px; color:var(--muted); display:block; }
+  select, button { font:inherit; color:var(--ink); background:white; border:1px solid #bdccd4; border-radius:5px; padding:7px 10px; min-height:35px; }
+  select { margin-top:4px; }
+  button { cursor:pointer; }
+  button.primary { background:var(--ink); color:white; border-color:var(--ink); min-width:74px; }
+  button:disabled { color:#9aa8b0; cursor:default; }
+  button:focus-visible, select:focus-visible, input:focus-visible { outline:3px solid #e69f00; outline-offset:3px; }
+  .slider { flex:1 1 240px; min-width:160px; }
+  .slider label { display:flex; justify-content:space-between; gap:12px; white-space:nowrap; }
+  output { color:var(--ink); font-variant-numeric:tabular-nums; }
+  input[type=range] { width:100%; accent-color:var(--blue); margin:9px 0 2px; }
+  input[type=range]:disabled { accent-color:#9aa8b0; }
+  .check { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted); min-height:35px; }
+  .check input { margin:0; accent-color:var(--blue); }
+  .panels { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.25fr); gap:14px; }
+  .panel { border:1px solid var(--rule); border-radius:7px; background:#fff; overflow:hidden; margin:0; }
+  .panel canvas { width:100%; display:block; }
+  #slice { height:392px; background:#fbfcfc; }
+  #bars, #health { height:186px; }
+  .charts { display:grid; gap:14px; }
+  .panel figcaption { padding:7px 12px; border-top:1px solid var(--rule); font-size:12px; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+  .panel figcaption strong { font-weight:600; }
+  .legend { color:var(--muted); display:flex; gap:4px 12px; flex-wrap:wrap; }
+  .swatch { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:4px; vertical-align:-1px; }
+  .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:16px 0 10px; }
+  .metric span { display:block; color:var(--muted); font-size:11px; }
+  .metric strong { display:block; margin-top:2px; font-size:19px; font-weight:550; font-variant-numeric:tabular-nums; }
+  .metric strong small { font-size:11px; font-weight:400; color:var(--muted); margin-left:4px; }
+  .over { color:#b23a00; }
+  .note { margin:10px 0 0; font-size:12px; }
+  [hidden] { display:none !important; }
+  @media(max-width:760px) {
+    main { padding:14px; }
+    .panels { grid-template-columns:1fr; }
+    #slice { height:320px; }
+    .metrics { grid-template-columns:repeat(2,1fr); }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Planning radiotherapy fractions</h1>
+  <p class="intro">Three beams cross a tumor on a synthetic slice of the chest, and each beam also crosses one organ. A plan sets the three beam intensities for twenty weekday sessions. Choose a recorded iterate of iLQR or DDP, or the uniform plan, and play the treatment course: the organs darken as they are damaged and recover between sessions, most of all over weekends.</p>
+  <p id="load-status" role="status">Loading recorded plans…</p>
+  <div id="replay" hidden>
+    <div class="toolbar">
+      <label for="plan">Plan<select id="plan">
+        <option value="ddp">DDP iterates</option>
+        <option value="ilqr">iLQR iterates</option>
+        <option value="uniform">Uniform 3 Gy per session</option>
+      </select></label>
+      <div class="slider"><label for="update">Accepted update<output id="update-label" for="update"></output></label><input id="update" type="range" min="0" value="0" step="1"></div>
+      <button id="sweep" type="button">Animate updates</button>
+    </div>
+    <div class="toolbar">
+      <button id="play" class="primary" type="button">Play</button>
+      <button id="restart" type="button">Restart</button>
+      <div class="slider"><label for="time">Treatment course<output id="time-label" for="time"></output></label><input id="time" type="range" min="0" max="2000" value="0" step="1"></div>
+      <label class="check"><input id="cumulative" type="checkbox"> Course dose so far</label>
+    </div>
+    <div class="panels">
+      <figure class="panel"><canvas id="slice" role="img" aria-label="Slice with tumor, organs, and the beams of the current session"></canvas>
+        <figcaption><strong id="slice-title">Dose of this session</strong><span class="legend" id="slice-legend"></span></figcaption></figure>
+      <div class="charts">
+        <figure class="panel"><canvas id="bars" role="img" aria-label="Beam intensities for each session"></canvas>
+          <figcaption><strong>Dose to the tumor per session</strong><span class="legend" id="beam-legend"></span></figcaption></figure>
+        <figure class="panel"><canvas id="health" role="img" aria-label="Health of the tumor and organs over the course"></canvas>
+          <figcaption><strong>Health</strong><span class="legend" id="health-legend"></span></figcaption></figure>
+      </div>
+    </div>
+    <div class="metrics" aria-live="polite">
+      <div class="metric"><span>Tumor dose so far</span><strong id="m-dose"></strong></div>
+      <div class="metric"><span>Tumor health</span><strong id="m-tumor"></strong></div>
+      <div class="metric"><span>Lowest organ health so far</span><strong id="m-organ"></strong></div>
+      <div class="metric"><span>Cost of this plan</span><strong id="m-cost"></strong></div>
+    </div>
+    <p class="note">Recorded plans from the chapter's solver; nothing is optimized in the browser. Health 1 is an untreated tumor and 0 a controlled one; organs start at 0, and −1 is their tolerance. Dotted health curves show the uniform plan for comparison. The phantom and the dose-response coefficients are teaching values, not clinical data.</p>
+  </div>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const ORGAN = ["#0072b2", "#e69f00", "#cc79a7", "#009e73"];
+const BEAM = ["#e69f00", "#cc79a7", "#009e73"];
+const STOPS = [[0,[255,255,255,0]],[.15,[253,233,200,.75]],[.45,[246,178,107,.9]],[.75,[213,94,0,.95]],[1,[140,45,4,1]]];
+const FRAMES = 100;              // slider steps per session
+let data, plan, tau = 0, playing = false, sweeping = false, last = 0, doseImage = null, doseKey = "";
+
+function sizeCanvas(id) {
+  const el = $(id), r = el.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  el.width = Math.round(r.width * dpr); el.height = Math.round(r.height * dpr);
+  const ctx = el.getContext("2d"); ctx.scale(dpr, dpr);
+  return [ctx, r.width, r.height];
+}
+function colorAt(v) {
+  v = Math.max(0, Math.min(1, v));
+  for (let i = 1; i < STOPS.length; i++) {
+    const [a, ca] = STOPS[i-1], [b, cb] = STOPS[i];
+    if (v <= b) { const s = (v-a)/(b-a); return ca.map((c, k) => c + s*(cb[k]-c)); }
+  }
+  return STOPS[STOPS.length-1][1];
+}
+function currentPlan() {
+  const kind = $("plan").value;
+  if (kind === "uniform") return { kind, ...data.uniform };
+  const run = data.runs[kind], k = +$("update").value;
+  return { kind, k, n: run.iterates.length - 1, ...run.iterates[k] };
+}
+// tau runs from 0 to the number of sessions; session s occupies [s, s+1).
+function phase() {
+  const T = data.parameters.sessions, s = Math.min(Math.floor(tau), T-1), f = Math.min(tau - s, 1);
+  return { s, f, beam: f < .55 ? Math.sin(Math.PI * f / .55) : 0 };
+}
+function healthAt(states) {
+  const { s, f } = phase();
+  if (tau >= data.parameters.sessions) return states[states.length-1];
+  const w = Math.max(0, Math.min(1, (f - .15) / .8));
+  return states[s].map((h, k) => h + w * (states[s+1][k] - h));
+}
+function doseCanvas(weights, scale) {
+  const key = weights.map(w => w.toFixed(4)).join() + scale;
+  if (key === doseKey) return doseImage;
+  const n = data.dose_grid.size, maps = data.dose_grid.maps;
+  const off = document.createElement("canvas"); off.width = n; off.height = n;
+  const ctx = off.getContext("2d"), img = ctx.createImageData(n, n);
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+    const src = r * n + c; let d = 0;
+    for (let j = 0; j < 3; j++) d += weights[j] * maps[j][src];
+    const [R, G, B, A] = colorAt(d / scale), dst = ((n-1-r) * n + c) * 4;
+    img.data[dst] = R; img.data[dst+1] = G; img.data[dst+2] = B; img.data[dst+3] = 255 * A;
+  }
+  ctx.putImageData(img, 0, 0);
+  doseKey = key; doseImage = off;
+  return off;
+}
+function drawSlice() {
+  const [ctx, w, h] = sizeCanvas("slice"), ph = data.phantom, E = data.dose_grid.extent;
+  // The view spans y from -18 to 14 cm so the beam from below stays in frame.
+  const scale = Math.min(w / 34, h / 32), X = x => w/2 + x*scale, Y = y => h/2 - (y + 2)*scale;
+  const { s, beam } = phase(), cumulative = $("cumulative").checked, done = tau >= data.parameters.sessions;
+  const [a, b] = ph.body_axes;
+  ctx.save(); ctx.beginPath(); ctx.ellipse(X(0), Y(0), a*scale, b*scale, 0, 0, 2*Math.PI);
+  ctx.fillStyle = "#f4f1ec"; ctx.fill(); ctx.clip();
+  // Dose wash: the current session while its beams are on, or the course dose so far.
+  let weights = [0, 0, 0], max = 1;
+  if (cumulative) {
+    const upto = done ? data.parameters.sessions : s + (phase().f > .3 ? 1 : 0);
+    for (let t = 0; t < upto; t++) for (let j = 0; j < 3; j++) weights[j] += plan.controls[t][j];
+    max = 70;
+  } else if (!done) {
+    weights = plan.controls[s].map(u => u * beam); max = 9;
+  }
+  if (weights.some(v => v > 1e-6)) {
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(doseCanvas(weights, max), X(-E), Y(E), 2*E*scale, 2*E*scale);
+  }
+  ctx.restore();
+  ctx.strokeStyle = "#8a979e"; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.ellipse(X(0), Y(0), a*scale, b*scale, 0, 0, 2*Math.PI); ctx.stroke();
+  // Beam arrows from each source, drawn with this session's intensity.
+  ph.beam_sources.forEach((deg, j) => {
+    const t = deg * Math.PI / 180, cx = Math.cos(t), cy = Math.sin(t), u = done ? 0 : plan.controls[s][j];
+    const on = cumulative ? 0 : beam * u / data.parameters.max_beam;
+    const x0 = 16.2*cx, y0 = 16.2*cy, x1 = 11.2*cx, y1 = 11.2*cy;
+    ctx.strokeStyle = BEAM[j]; ctx.fillStyle = BEAM[j];
+    ctx.globalAlpha = .35 + .65 * Math.min(1, on * 2.2);
+    ctx.lineWidth = 1.5 + 5 * on;
+    ctx.beginPath(); ctx.moveTo(X(x0), Y(y0)); ctx.lineTo(X(x1), Y(y1)); ctx.stroke();
+    const px = -cy, py = cx, head = .9;
+    ctx.beginPath(); ctx.moveTo(X(x1 - .6*cx), Y(y1 - .6*cy));
+    ctx.lineTo(X(x1 + head*cx + head*.7*px), Y(y1 + head*cy + head*.7*py));
+    ctx.lineTo(X(x1 + head*cx - head*.7*px), Y(y1 + head*cy - head*.7*py)); ctx.closePath(); ctx.fill();
+    ctx.globalAlpha = 1;
+    if (!done && !cumulative) {
+      ctx.font = "12px system-ui,sans-serif"; ctx.textAlign = "center"; ctx.fillStyle = BEAM[j];
+      // Above the tail for the oblique beams, beside it for the beam from below.
+      const below = cy < -.9;
+      ctx.textAlign = below ? "left" : "center";
+      ctx.fillText(`${u.toFixed(1)} Gy`, X(x0) + (below ? 9 : 0), Y(y0) + (below ? 4 : -8));
+    }
+  });
+  // Structures: fill opacity follows damage (organs) or remaining tumor (tumor).
+  const health = healthAt(plan.states);
+  const shapes = [
+    [0, 0, ph.tumor_radius, ph.tumor_radius], [ph.cord[0], ph.cord[1], ph.cord[2], ph.cord[2]],
+    ph.heart, ph.lung];
+  shapes.forEach(([cx, cy, rx, ry], k) => {
+    const level = k === 0 ? Math.max(0, health[0]) : Math.min(1.6, -health[k]) / 1.6;
+    ctx.beginPath(); ctx.ellipse(X(cx), Y(cy), rx*scale, ry*scale, 0, 0, 2*Math.PI);
+    ctx.globalAlpha = .12 + .6 * level; ctx.fillStyle = ORGAN[k]; ctx.fill(); ctx.globalAlpha = 1;
+    const over = k > 0 && health[k] < -1;
+    ctx.setLineDash(over ? [4, 3] : []); ctx.lineWidth = over ? 2.4 : 1.6; ctx.strokeStyle = over ? "#b23a00" : ORGAN[k]; ctx.stroke();
+    ctx.setLineDash([]);
+  });
+  ctx.font = "12px system-ui,sans-serif"; ctx.textAlign = "center";
+  [["tumor", 0, -3.1], ["spinal cord", 3.9, -9.4], ["heart", -6.06, 6.9], ["lung", 6.5, 7.15]].forEach(([name, x, y], k) => {
+    ctx.fillStyle = ORGAN[k]; ctx.fillText(name, X(x), Y(y));
+  });
+  // Calendar label in the corner.
+  ctx.textAlign = "left"; ctx.fillStyle = "#20333f"; ctx.font = "600 13px system-ui,sans-serif";
+  const weekend = !done && data.gaps_days[s] > 1 && phase().f > .55;
+  const label = done ? "Course complete" : `Week ${Math.floor(s/5)+1} · ${data.weekdays[s%5]}`;
+  ctx.fillText(label, 10, 20);
+  ctx.font = "12px system-ui,sans-serif"; ctx.fillStyle = "#5e707c";
+  ctx.fillText(done ? "" : weekend ? "weekend: three days of repair" : `session ${s+1} of ${data.parameters.sessions}`, 10, 37);
+  $("slice-title").textContent = cumulative ? "Course dose so far" : "Dose of this session";
+}
+function axes(ctx, w, h, ylo, yhi, ticks, label) {
+  const m = { l: 44, r: 10, t: 10, b: 24 };
+  const X = x => m.l + (x - .5) / 20 * (w - m.l - m.r), Y = y => m.t + (yhi - y) / (yhi - ylo) * (h - m.t - m.b);
+  ctx.font = "11px system-ui,sans-serif"; ctx.fillStyle = "#5e707c"; ctx.strokeStyle = "#e6ecef"; ctx.lineWidth = 1;
+  ticks.forEach(v => { ctx.beginPath(); ctx.moveTo(m.l, Y(v)); ctx.lineTo(w - m.r, Y(v)); ctx.stroke();
+    ctx.textAlign = "right"; ctx.fillText(String(v), m.l - 6, Y(v) + 4); });
+  ctx.textAlign = "center";
+  [1, 5, 10, 15, 20].forEach(v => ctx.fillText(String(v), X(v), h - 8));
+  // Weekends: light bands after sessions 5, 10, 15.
+  ctx.fillStyle = "rgba(94,112,124,.07)";
+  [5, 10, 15].forEach(v => ctx.fillRect(X(v + .5) - 3, m.t, 6, h - m.t - m.b));
+  ctx.save(); ctx.translate(12, (m.t + h - m.b) / 2); ctx.rotate(-Math.PI/2); ctx.fillStyle = "#5e707c"; ctx.fillText(label, 0, 0); ctx.restore();
+  return [X, Y];
+}
+function drawBars() {
+  const [ctx, w, h] = sizeCanvas("bars"), [X, Y] = axes(ctx, w, h, 0, 8, [0, 2, 4, 6, 8], "Gy");
+  const { s } = phase(), done = tau >= data.parameters.sessions, bw = (X(2) - X(1)) * .74;
+  plan.controls.forEach((u, t) => {
+    let base = 0;
+    ctx.globalAlpha = done || t === s ? 1 : t < s ? .55 : .25;
+    u.forEach((v, j) => { ctx.fillStyle = BEAM[j]; ctx.fillRect(X(t+1) - bw/2, Y(base + v), bw, Y(base) - Y(base + v)); base += v; });
+  });
+  ctx.globalAlpha = 1;
+  if (plan.kind !== "uniform") {
+    ctx.strokeStyle = "#7b858a"; ctx.setLineDash([5, 4]); ctx.lineWidth = 1.2;
+    const y = Y(data.uniform.controls[0].reduce((a, b) => a + b));
+    ctx.beginPath(); ctx.moveTo(X(.5), y); ctx.lineTo(X(20.5), y); ctx.stroke(); ctx.setLineDash([]);
+  }
+}
+function drawHealth() {
+  const [ctx, w, h] = sizeCanvas("health"), [X, Y] = axes(ctx, w, h, -2.4, 1.1, [-2, -1, 0, 1], "health");
+  ctx.strokeStyle = "#5e707c"; ctx.setLineDash([6, 4]); ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(X(.5), Y(-1)); ctx.lineTo(X(20.5), Y(-1)); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = "#5e707c"; ctx.textAlign = "right"; ctx.fillText("tolerance", X(20.4), Y(-1) + 13);
+  const path = (states, k) => { ctx.beginPath(); states.forEach((x, t) => t ? ctx.lineTo(X(t + .5), Y(x[k])) : ctx.moveTo(X(t + .5), Y(x[k]))); };
+  if (plan.kind !== "uniform") {
+    ctx.setLineDash([1.5, 3]); ctx.lineWidth = 1.2;
+    for (let k = 0; k < 4; k++) { ctx.strokeStyle = ORGAN[k]; path(data.uniform.states, k); ctx.stroke(); }
+    ctx.setLineDash([]);
+  }
+  // Solid up to the current time, faint afterwards.
+  const now = Math.min(tau, data.parameters.sessions) + .5, cut = X(now);
+  for (let k = 0; k < 4; k++) {
+    ctx.strokeStyle = ORGAN[k]; ctx.lineWidth = 2;
+    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, cut, h); ctx.clip(); path(plan.states, k); ctx.stroke(); ctx.restore();
+    ctx.save(); ctx.globalAlpha = .3; ctx.beginPath(); ctx.rect(cut, 0, w, h); ctx.clip(); path(plan.states, k); ctx.stroke(); ctx.restore();
+  }
+  ctx.strokeStyle = "#20333f"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(cut, Y(1.1)); ctx.lineTo(cut, Y(-2.4)); ctx.stroke();
+}
+function metrics() {
+  const { s, f } = phase(), done = tau >= data.parameters.sessions;
+  const given = done ? data.parameters.sessions : s + (f > .3 ? 1 : 0);
+  let dose = 0; for (let t = 0; t < given; t++) dose += plan.controls[t].reduce((a, b) => a + b, 0);
+  const health = healthAt(plan.states), upto = done ? plan.states.length : s + 1;
+  let low = 0, which = 1;
+  for (let t = 0; t <= Math.min(upto, plan.states.length - 1); t++) for (let k = 1; k < 4; k++) {
+    const v = t === upto ? health[k] : plan.states[t][k];
+    if (v < low) { low = v; which = k; }
+  }
+  $("m-dose").innerHTML = `${dose.toFixed(1)}<small>Gy</small>`;
+  $("m-tumor").innerHTML = `${health[0].toFixed(2)}<small>${health[0] <= .005 ? "controlled" : "to go"}</small>`;
+  $("m-organ").innerHTML = `${low.toFixed(2)}<small>${data.structures[which]}</small>`;
+  $("m-organ").className = low < -1 ? "over" : "";
+  $("m-cost").innerHTML = plan.cost.toFixed(plan.cost < 10 ? 3 : 1);
+}
+function render() {
+  plan = currentPlan();
+  const uniform = plan.kind === "uniform";
+  $("update").disabled = uniform; $("sweep").disabled = uniform; $("uniform-key").hidden = uniform;
+  $("update-label").textContent = uniform ? "not an iterate" : `${plan.k} of ${plan.n}${plan.k === 0 ? " (uniform 2.1 Gy start)" : plan.k === plan.n ? " (converged)" : ""}`;
+  $("time").value = Math.round(tau * FRAMES);
+  const { s } = phase(), done = tau >= data.parameters.sessions;
+  $("time-label").textContent = done ? "end of course" : `session ${s + 1}`;
+  drawSlice(); drawBars(); drawHealth(); metrics();
+}
+function tick(now) {
+  if (!playing && !sweeping) return;
+  if (now - last > 30) {
+    last = now;
+    if (playing) {
+      tau = Math.min(data.parameters.sessions, tau + 1 / 45);
+      if (tau >= data.parameters.sessions) setPlaying(false);
+    }
+    if (sweeping && now - sweepLast > 420) {
+      sweepLast = now;
+      const el = $("update");
+      if (+el.value >= +el.max) setSweeping(false); else el.value = +el.value + 1;
+    }
+    render();
+  }
+  requestAnimationFrame(tick);
+}
+let sweepLast = 0;
+function setPlaying(value) {
+  playing = value; $("play").textContent = value ? "Pause" : "Play";
+  if (value) { if (tau >= data.parameters.sessions) tau = 0; requestAnimationFrame(tick); }
+}
+function setSweeping(value) {
+  sweeping = value; $("sweep").textContent = value ? "Stop" : "Animate updates";
+  if (value) { if (+$("update").value >= +$("update").max) $("update").value = 0; sweepLast = 0; requestAnimationFrame(tick); }
+}
+function legends() {
+  $("beam-legend").innerHTML = data.beams.map((b, j) => `<span><i class="swatch" style="background:${BEAM[j]}"></i>beam through ${b}</span>`).join("") + `<span id="uniform-key">– – uniform plan</span>`;
+  $("health-legend").innerHTML = data.structures.map((b, k) => `<span><i class="swatch" style="background:${ORGAN[k]}"></i>${b}</span>`).join("");
+  $("slice-legend").innerHTML = `<span>shading: tumor left · organ damage</span>`;
+}
+function setRun() {
+  const kind = $("plan").value;
+  if (kind !== "uniform") { const n = data.runs[kind].iterates.length - 1; $("update").max = n; $("update").value = n; }
+  setSweeping(false); render();
+}
+fetch("radiotherapy-fractionation-data.json").then(r => r.json()).then(json => {
+  data = json;
+  $("time").max = data.parameters.sessions * FRAMES;
+  $("load-status").hidden = true; $("replay").hidden = false;
+  legends(); setRun();
+  $("plan").onchange = setRun;
+  $("update").oninput = () => { setSweeping(false); render(); };
+  $("sweep").onclick = () => setSweeping(!sweeping);
+  $("play").onclick = () => setPlaying(!playing);
+  $("restart").onclick = () => { tau = 0; render(); setPlaying(true); };
+  $("time").oninput = e => { setPlaying(false); tau = +e.target.value / FRAMES; render(); };
+  $("cumulative").onchange = render;
+  window.addEventListener("resize", render);
+  tau = 0; render();
+}).catch(() => { $("load-status").textContent = "Could not load the recorded plans."; });
+</script>
+</body>
+</html>
