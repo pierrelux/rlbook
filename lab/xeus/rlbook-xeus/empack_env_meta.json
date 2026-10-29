@@ -53,6 +53,19 @@
       "subdir": "noarch"
     },
     {
+      "name": "pyjs-rt",
+      "version": "4.1.0",
+      "build": "py313h06ab7c0_0",
+      "filename_stem": "pyjs-rt-4.1.0-py313h06ab7c0_0",
+      "filename": "pyjs-rt-4.1.0-py313h06ab7c0_0.tar.gz",
+      "channel": "https://prefix.dev/emscripten-forge-4x",
+      "depends": [
+        "emscripten-abi >=4,<5.0a0",
+        "python_abi 3.13.* *_cp313"
+      ],
+      "subdir": "emscripten-wasm32"
+    },
+    {
       "name": "cycler",
       "version": "0.12.1",
       "build": "pyhcf101f3_2",
@@ -63,16 +76,6 @@
         "python >=3.10",
         "python"
       ],
-      "subdir": "noarch"
-    },
-    {
-      "name": "nlohmann_json-abi",
-      "version": "3.12.0",
-      "build": "hc364b38_2",
-      "filename_stem": "nlohmann_json-abi-3.12.0-hc364b38_2",
-      "filename": "nlohmann_json-abi-3.12.0-hc364b38_2.tar.gz",
-      "channel": "https://prefix.dev/conda-forge",
-      "depends": [],
       "subdir": "noarch"
     },
     {
@@ -275,26 +278,20 @@
       "subdir": "emscripten-wasm32"
     },
     {
-      "name": "ipython",
-      "version": "9.13.0",
-      "build": "py313hb2fbb1a_0",
-      "filename_stem": "ipython-9.13.0-py313hb2fbb1a_0",
-      "filename": "ipython-9.13.0-py313hb2fbb1a_0.tar.gz",
+      "name": "xeus-python",
+      "version": "0.19.0",
+      "build": "py313he5686da_4",
+      "filename_stem": "xeus-python-0.19.0-py313he5686da_4",
+      "filename": "xeus-python-0.19.0-py313he5686da_4.tar.gz",
       "channel": "https://prefix.dev/emscripten-forge-4x",
       "depends": [
         "python",
-        "backcall",
-        "decorator",
-        "matplotlib-inline",
-        "pickleshare",
-        "prompt-toolkit >=2.0.0,<3.1.0,!=3.0.0,!=3.0.1",
-        "pygments >=2.4.0",
-        "stack_data",
-        "traitlets >=5",
-        "pexpect",
-        "typing_extensions",
+        "xeus-python-shell-lite >=0.8,<0.9",
+        "pyjs-rt >=4.0.6",
         "emscripten-abi >=4,<5.0a0",
-        "python_abi 3.13.* *_cp313"
+        "nlohmann_json-abi 3.12.0",
+        "python_abi 3.13.* *_cp313",
+        "xeus >=6.0.6,<6.1.0a0"
       ],
       "subdir": "emscripten-wasm32"
     },
@@ -321,6 +318,30 @@
       "channel": "https://prefix.dev/emscripten-forge-4x",
       "depends": [],
       "subdir": "noarch"
+    },
+    {
+      "name": "ipython",
+      "version": "9.14.0",
+      "build": "py313hb2fbb1a_0",
+      "filename_stem": "ipython-9.14.0-py313hb2fbb1a_0",
+      "filename": "ipython-9.14.0-py313hb2fbb1a_0.tar.gz",
+      "channel": "https://prefix.dev/emscripten-forge-4x",
+      "depends": [
+        "python",
+        "backcall",
+        "decorator",
+        "matplotlib-inline",
+        "pickleshare",
+        "prompt-toolkit >=2.0.0,<3.1.0,!=3.0.0,!=3.0.1",
+        "pygments >=2.4.0",
+        "stack_data",
+        "traitlets >=5",
+        "pexpect",
+        "typing_extensions",
+        "emscripten-abi >=4,<5.0a0",
+        "python_abi 3.13.* *_cp313"
+      ],
+      "subdir": "emscripten-wasm32"
     },
     {
       "name": "packaging",
@@ -373,6 +394,16 @@
         "python >=3.11",
         "python"
       ],
+      "subdir": "noarch"
+    },
+    {
+      "name": "nlohmann_json-abi",
+      "version": "3.12.0",
+      "build": "h0f90c79_2",
+      "filename_stem": "nlohmann_json-abi-3.12.0-h0f90c79_2",
+      "filename": "nlohmann_json-abi-3.12.0-h0f90c79_2.tar.gz",
+      "channel": "https://prefix.dev/conda-forge",
+      "depends": [],
       "subdir": "noarch"
     },
     {
@@ -437,19 +468,6 @@
         "python"
       ],
       "subdir": "noarch"
-    },
-    {
-      "name": "pyjs-rt",
-      "version": "4.0.7",
-      "build": "py313h06ab7c0_0",
-      "filename_stem": "pyjs-rt-4.0.7-py313h06ab7c0_0",
-      "filename": "pyjs-rt-4.0.7-py313h06ab7c0_0.tar.gz",
-      "channel": "https://prefix.dev/emscripten-forge-4x",
-      "depends": [
-        "emscripten-abi >=4,<5.0a0",
-        "python_abi 3.13.* *_cp313"
-      ],
-      "subdir": "emscripten-wasm32"
     },
     {
       "name": "xeus-python-shell-lite",
@@ -581,24 +599,6 @@
         "python"
       ],
       "subdir": "noarch"
-    },
-    {
-      "name": "xeus-python",
-      "version": "0.19.0",
-      "build": "py313he5686da_3",
-      "filename_stem": "xeus-python-0.19.0-py313he5686da_3",
-      "filename": "xeus-python-0.19.0-py313he5686da_3.tar.gz",
-      "channel": "https://prefix.dev/emscripten-forge-4x",
-      "depends": [
-        "python",
-        "xeus-python-shell-lite >=0.8,<0.9",
-        "pyjs-rt >=4.0.6",
-        "emscripten-abi >=4,<5.0a0",
-        "xeus >=6.0.5,<6.1.0a0",
-        "python_abi 3.13.* *_cp313",
-        "nlohmann_json-abi 3.12.0"
-      ],
-      "subdir": "emscripten-wasm32"
     },
     {
       "name": "matplotlib-base",

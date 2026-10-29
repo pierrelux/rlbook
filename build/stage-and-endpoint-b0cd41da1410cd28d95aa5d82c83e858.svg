@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650" role="img" aria-labelledby="title description">
+  <title id="title">A stage and an endpoint on the same polynomial piece</title>
+  <desc id="description">Interval k runs from physical time 2 to 4, or local time 0 to 1. The state polynomial is p_k(tau) = 1 + tau + 2 tau squared. Its left state is 1, its midpoint stage state is 2, and its right state is 4. The stage equation integrates slopes from 0 to 1/2, adding 1 to the left state. The endpoint equation integrates slopes from 0 to 1, adding 3 to that same left state. A stage is a point in time, not another segment.</desc>
+  <!-- Exact quadratic: x = 140 + 610 tau; y = 360 - 60 p_k(tau).
+       Regenerate the print companion with:
+       rsvg-convert -f pdf -o _static/collocation/stage-and-endpoint.pdf _static/collocation/stage-and-endpoint.svg -->
+  <defs>
+    <style>
+      text { font-family: "IBM Plex Sans", "Avenir Next", Arial, sans-serif; fill: #20242A; font-size: 18px; }
+      .title { font-size: 24px; font-weight: 600; }
+      .math { font-family: "STIX Two Text", Georgia, serif; font-size: 23px; }
+      .sub { baseline-shift: sub; font-size: 70%; }
+      .sup { baseline-shift: super; font-size: 70%; }
+      .muted { fill: #5B6470; }
+      .blue { fill: #0072B2; }
+      .orange { fill: #B64E00; }
+      .guide { stroke: #CCD3DA; stroke-width: 1.2; stroke-dasharray: 3 5; }
+      .axis { fill: none; stroke: #8A96A0; stroke-width: 1.3; }
+      .curve { fill: none; stroke: #253440; stroke-width: 3.2; stroke-linecap: round; }
+    </style>
+    <marker id="blue-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#0072B2"/></marker>
+    <marker id="orange-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#B64E00"/></marker>
+  </defs>
+  <rect width="900" height="650" fill="white"/>
+  <text class="title" x="36" y="35">One interval k, one state polynomial</text>
+  <path class="axis" d="M140 84 V72 H750 V84"/>
+  <text x="445" y="63" text-anchor="middle" class="muted">whole interval: h<tspan class="sub">k</tspan> = 2</text>
+
+  <line class="guide" x1="140" x2="140" y1="98" y2="398"/>
+  <line class="guide" x1="445" x2="445" y1="260" y2="398"/>
+  <line class="guide" x1="750" x2="750" y1="138" y2="398"/>
+  <text class="math" x="175" y="155">p<tspan class="sub">k</tspan>(τ) = 1 + τ + 2τ<tspan class="sup">2</tspan></text>
+  <text class="muted" x="175" y="184">one piece across the entire interval</text>
+
+  <path class="curve" d="M140 300 Q445 270 750 120"/>
+  <rect x="134" y="294" width="12" height="12" fill="#253440"/>
+  <circle cx="445" cy="240" r="7.5" fill="#0072B2" stroke="white" stroke-width="2"/>
+  <rect x="744" y="114" width="12" height="12" fill="#B64E00"/>
+  <text class="math" x="153" y="286">x<tspan class="sub">k</tspan> = 1</text>
+  <text class="math blue" x="462" y="273">x<tspan class="sub">k,i</tspan> = p<tspan class="sub">k</tspan>(τ<tspan class="sub">i</tspan>) = 2</text>
+  <text class="blue" x="462" y="299">stage i is this point</text>
+  <text class="math orange" x="735" y="106" text-anchor="end">x<tspan class="sub">k+1</tspan> = p<tspan class="sub">k</tspan>(1) = 4</text>
+
+  <path class="axis" d="M140 326 V336 M140 331 H750 M445 326 V336 M750 326 V336"/>
+  <text class="muted" x="36" y="365">local τ</text>
+  <text class="math" x="140" y="365" text-anchor="middle">0</text>
+  <text class="math blue" x="445" y="365" text-anchor="middle">τ<tspan class="sub">i</tspan> = 1/2</text>
+  <text class="math orange" x="750" y="365" text-anchor="middle">1</text>
+  <text class="muted" x="36" y="395">time t</text>
+  <text class="math" x="140" y="395" text-anchor="middle">t<tspan class="sub">k</tspan> = 2</text>
+  <text class="math blue" x="445" y="395" text-anchor="middle">t<tspan class="sub">k</tspan> + h<tspan class="sub">k</tspan>τ<tspan class="sub">i</tspan> = 3</text>
+  <text class="math orange" x="750" y="395" text-anchor="middle">t<tspan class="sub">k+1</tspan> = 4</text>
+
+  <!-- Both accumulation spans start at the left endpoint, tau = 0. -->
+  <path d="M140 426 V444 M140 435 H444" fill="none" stroke="#0072B2" stroke-width="2.5" marker-end="url(#blue-arrow)"/>
+  <text class="blue" x="475" y="441">integrate to stage i</text>
+  <text x="140" y="475" class="math blue">x<tspan class="sub">k,i</tspan> = x<tspan class="sub">k</tspan> + h<tspan class="sub">k</tspan> ∑<tspan class="sub">j</tspan> A<tspan class="sub">ij</tspan> f<tspan class="sub">k,j</tspan> = 1 + 1 = 2</text>
+  <text x="140" y="503" class="muted">Row i of A uses the integration limits 0 to τ<tspan class="sub">i</tspan>.</text>
+
+  <path d="M140 534 V552 M140 543 H749" fill="none" stroke="#B64E00" stroke-width="2.5" marker-end="url(#orange-arrow)"/>
+  <text class="orange" x="750" y="532" text-anchor="end">integrate to the right endpoint</text>
+  <text x="140" y="583" class="math orange">x<tspan class="sub">k+1</tspan> = x<tspan class="sub">k</tspan> + h<tspan class="sub">k</tspan> ∑<tspan class="sub">j</tspan> b<tspan class="sub">j</tspan> f<tspan class="sub">k,j</tspan> = 1 + 3 = 4</text>
+  <text x="140" y="611" class="muted">The weights b use the integration limits 0 to 1.</text>
+</svg>
