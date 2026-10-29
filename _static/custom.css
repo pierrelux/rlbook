@@ -1262,3 +1262,63 @@ iframe {
 @media (max-width: 454px) { .radiotherapy-replay > div > div { height: 1420px; } }
 @media (max-width: 399px) { .radiotherapy-replay > div > div { height: 1580px; } }
 @media (max-width: 364px) { .radiotherapy-replay > div > div { height: 1660px; } }
+
+/* MDP example replays (antibiotic steering, storm-surge barrier, sailing,
+   bridge decks, tamarisk). Heights are the page heights measured at the
+   iframe widths each window band produces, plus a small margin; the pages
+   keep two columns down to a 630px iframe and stack below. */
+.antibiotic-steering-replay > div > div {
+  height: 870px;
+  padding-bottom: 0 !important;
+  width: 100% !important;
+}
+@media (max-width: 767px) { .antibiotic-steering-replay > div > div { height: 930px; } }
+@media (max-width: 644px) { .antibiotic-steering-replay > div > div { height: 1340px; } }
+@media (max-width: 544px) { .antibiotic-steering-replay > div > div { height: 1480px; } }
+@media (max-width: 454px) { .antibiotic-steering-replay > div > div { height: 1520px; } }
+@media (max-width: 399px) { .antibiotic-steering-replay > div > div { height: 1580px; } }
+@media (max-width: 364px) { .antibiotic-steering-replay > div > div { height: 1620px; } }
+.storm-surge-barrier-replay > div > div {
+  height: 910px;
+  padding-bottom: 0 !important;
+  width: 100% !important;
+}
+@media (max-width: 767px) { .storm-surge-barrier-replay > div > div { height: 930px; } }
+@media (max-width: 644px) { .storm-surge-barrier-replay > div > div { height: 1360px; } }
+@media (max-width: 544px) { .storm-surge-barrier-replay > div > div { height: 1490px; } }
+@media (max-width: 454px) { .storm-surge-barrier-replay > div > div { height: 1620px; } }
+@media (max-width: 399px) { .storm-surge-barrier-replay > div > div { height: 1710px; } }
+@media (max-width: 364px) { .storm-surge-barrier-replay > div > div { height: 1720px; } }
+.sailing-wind-shifts-replay > div > div {
+  height: 890px;
+  padding-bottom: 0 !important;
+  width: 100% !important;
+}
+@media (max-width: 767px) { .sailing-wind-shifts-replay > div > div { height: 890px; } }
+@media (max-width: 644px) { .sailing-wind-shifts-replay > div > div { height: 1600px; } }
+@media (max-width: 544px) { .sailing-wind-shifts-replay > div > div { height: 1570px; } }
+@media (max-width: 454px) { .sailing-wind-shifts-replay > div > div { height: 1570px; } }
+@media (max-width: 399px) { .sailing-wind-shifts-replay > div > div { height: 1530px; } }
+@media (max-width: 364px) { .sailing-wind-shifts-replay > div > div { height: 1510px; } }
+.bridge-deck-maintenance-replay > div > div {
+  height: 850px;
+  padding-bottom: 0 !important;
+  width: 100% !important;
+}
+@media (max-width: 767px) { .bridge-deck-maintenance-replay > div > div { height: 850px; } }
+@media (max-width: 644px) { .bridge-deck-maintenance-replay > div > div { height: 1340px; } }
+@media (max-width: 544px) { .bridge-deck-maintenance-replay > div > div { height: 1470px; } }
+@media (max-width: 454px) { .bridge-deck-maintenance-replay > div > div { height: 1520px; } }
+@media (max-width: 399px) { .bridge-deck-maintenance-replay > div > div { height: 1590px; } }
+@media (max-width: 364px) { .bridge-deck-maintenance-replay > div > div { height: 1620px; } }
+.tamarisk-river-replay > div > div {
+  height: 950px;
+  padding-bottom: 0 !important;
+  width: 100% !important;
+}
+@media (max-width: 767px) { .tamarisk-river-replay > div > div { height: 950px; } }
+@media (max-width: 644px) { .tamarisk-river-replay > div > div { height: 1520px; } }
+@media (max-width: 544px) { .tamarisk-river-replay > div > div { height: 1680px; } }
+@media (max-width: 454px) { .tamarisk-river-replay > div > div { height: 1810px; } }
+@media (max-width: 399px) { .tamarisk-river-replay > div > div { height: 1840px; } }
+@media (max-width: 364px) { .tamarisk-river-replay > div > div { height: 1840px; } }

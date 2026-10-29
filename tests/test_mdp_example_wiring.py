@@ -27,3 +27,11 @@ def test_example_is_embedded_with_placeholder_and_citations(chapter, slug):
     for key in re.findall(r"\{cite:[tp]\}`([^`]+)`", text):
         for k in key.split(","):
             assert f"{{{k.strip()}," in bib, k
+
+
+@pytest.mark.parametrize("chapter,slug", EXAMPLES + [("stochastic-dp.md", "antibiotic-steering")])
+def test_replay_iframe_has_a_height_rule(chapter, slug):
+    text = (ROOT / chapter).read_text()
+    css = (ROOT / "_static" / "custom.css").read_text()
+    assert f":class: {slug}-replay" in text
+    assert f".{slug}-replay > div > div {{" in css

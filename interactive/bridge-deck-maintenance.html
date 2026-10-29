@@ -8,12 +8,12 @@
   :root { color-scheme:light; --ink:#20333f; --muted:#5e707c; --rule:#d8e2e7; --blue:#0072b2; --red:#b2182b; }
   * { box-sizing:border-box; }
   body { margin:0; background:#fff; color:var(--ink); font:14px/1.45 system-ui,-apple-system,sans-serif; }
-  main { max-width:1120px; margin:auto; padding:20px; }
+  main { max-width:1120px; margin:auto; padding:14px 20px; }
   h1 { font-size:22px; font-weight:650; margin:0 0 5px; letter-spacing:-.3px; }
   p { margin:0 0 14px; }
   .intro, .note { color:var(--muted); font-size:13px; }
-  .toolbar { display:flex; align-items:end; flex-wrap:wrap; gap:12px; margin-bottom:12px; }
-  .toolbar + .toolbar { border-top:1px solid var(--rule); padding-top:11px; }
+  .toolbar { display:flex; align-items:end; flex-wrap:wrap; gap:12px; margin-bottom:10px; }
+  .toolbar + .toolbar { border-top:1px solid var(--rule); padding-top:9px; }
   label { font-size:12px; color:var(--muted); display:block; }
   select, button { font:inherit; color:var(--ink); background:white; border:1px solid #bdccd4; border-radius:5px; padding:7px 10px; min-height:35px; max-width:100%; }
   select { margin-top:4px; }
@@ -27,9 +27,9 @@
   .panels { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:14px; align-items:start; }
   .panel { border:1px solid var(--rule); border-radius:7px; background:#fff; overflow:hidden; margin:0; }
   .panel canvas { width:100%; display:block; }
-  #bridges { height:440px; background:#fbfcfc; }
-  #cost { height:230px; }
-  #policy { height:170px; }
+  #bridges { height:360px; background:#fbfcfc; }
+  #cost { height:180px; }
+  #policy { height:140px; }
   .charts { display:grid; gap:14px; align-content:start; }
   .panel figcaption { padding:7px 12px; border-top:1px solid var(--rule); font-size:12px; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; }
   .panel figcaption strong { font-weight:600; }
@@ -37,12 +37,12 @@
   .swatch { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:4px; vertical-align:-1px; }
   .ramp { display:inline-block; width:54px; height:9px; border-radius:2px; vertical-align:-1px; margin:0 4px; border:1px solid #c8d2d7;
           background:linear-gradient(90deg,#1a7a4c,#5aae61,#a6d96a,#fee08b,#f4a582,#b2182b); }
-  .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:16px 0 10px; }
+  .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:12px 0 6px; }
   .metric span { display:block; color:var(--muted); font-size:11px; }
   .metric strong { display:block; margin-top:2px; font-size:19px; font-weight:550; font-variant-numeric:tabular-nums; }
   .note { margin:10px 0 0; font-size:12px; }
   [hidden] { display:none !important; }
-  @media(max-width:760px) {
+  @media(max-width:620px) {
     main { padding:14px 16px; }
     .panels { grid-template-columns:1fr; }
     #bridges { height:380px; }
@@ -53,7 +53,7 @@
 <body>
 <main>
   <h1>Maintaining bridge decks for the long run</h1>
-  <p class="intro">Each bridge's deck is colored by its condition rating, from 9 (new) to 4 or below (poor). Every year a deck may get worse, following transition rates counted from US National Bridge Inventory records. The top group of 12 decks is managed by the optimal policy from value and policy iteration, the bottom group by a common rule of thumb. Both groups start in the same state and draw the same random numbers, so any difference comes from the decisions. A crew marker shows the work done that year.</p>
+  <p class="intro">Decks are colored by NBI rating, 9 (new) to 4 or below (poor). The top 12 follow the optimal policy, the bottom 12 a rule of thumb, with the same random draws.</p>
   <p id="load-status" role="status">Loading recorded runs…</p>
   <div id="replay" hidden>
     <div class="toolbar">
@@ -84,7 +84,7 @@
       <div class="metric"><span>Baseline, cost so far</span><strong id="m-base"></strong></div>
       <div class="metric"><span>Poor decks now (optimal / baseline)</span><strong id="m-poor"></strong></div>
     </div>
-    <p class="note">Recorded runs from the chapter's solver; nothing is optimized in the browser. Do-nothing transitions are counted from annual NBI deck ratings (item 58) of 88,596 decks whose rating never went up, 1993 to 2019, as mirrored in the MUSTEM repository of Liu, Nehme and Lu. Action costs (USD per m²) and failure probabilities by rating follow Saifullah et al.; the effect of each repair on the rating is a teaching assumption. Costs are discounted at 3% a year.</p>
+    <p class="note">Recorded runs; nothing is optimized in the browser. Deterioration counted from NBI deck ratings, 1993 to 2019 (MUSTEM mirror); costs from Saifullah et al.; repair effects assumed; 3% discount.</p>
   </div>
 </main>
 <script>

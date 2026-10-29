@@ -8,12 +8,12 @@
   :root { color-scheme:light; --ink:#20333f; --muted:#5e707c; --rule:#d8e2e7; --blue:#0072b2; --orange:#e69f00; --red:#b2182b; --green:#009e73; }
   * { box-sizing:border-box; }
   body { margin:0; background:#fff; color:var(--ink); font:14px/1.45 system-ui,-apple-system,sans-serif; }
-  main { max-width:1120px; margin:auto; padding:20px; }
+  main { max-width:1120px; margin:auto; padding:14px 20px; }
   h1 { font-size:22px; font-weight:650; margin:0 0 5px; letter-spacing:-.3px; }
   p { margin:0 0 14px; }
   .intro, .note { color:var(--muted); font-size:13px; }
-  .toolbar { display:flex; align-items:end; flex-wrap:wrap; gap:12px; margin-bottom:12px; }
-  .toolbar + .toolbar { border-top:1px solid var(--rule); padding-top:11px; }
+  .toolbar { display:flex; align-items:end; flex-wrap:wrap; gap:12px; margin-bottom:10px; }
+  .toolbar + .toolbar { border-top:1px solid var(--rule); padding-top:9px; }
   label { font-size:12px; color:var(--muted); display:block; }
   select, button { font:inherit; color:var(--ink); background:white; border:1px solid #bdccd4; border-radius:5px; padding:7px 10px; min-height:35px; max-width:100%; }
   select { margin-top:4px; }
@@ -28,8 +28,8 @@
   .panel { border:1px solid var(--rule); border-radius:7px; background:#fff; overflow:hidden; margin:0; }
   .panel canvas { width:100%; display:block; }
   #lake { aspect-ratio:1; background:#f4f8fa; }
-  #wind { height:150px; }
-  #chart { height:250px; }
+  #wind { height:120px; }
+  #chart { height:200px; }
   .charts { display:grid; gap:14px; align-content:start; }
   .panel figcaption { padding:7px 12px; border-top:1px solid var(--rule); font-size:12px; display:flex; justify-content:space-between; gap:4px 10px; flex-wrap:wrap; }
   .panel figcaption strong { font-weight:600; }
@@ -37,12 +37,12 @@
   .swatch { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:4px; vertical-align:-1px; }
   .ramp { display:inline-block; width:54px; height:9px; border-radius:2px; vertical-align:-1px; margin:0 4px; border:1px solid #c8d2d7;
           background:linear-gradient(90deg,#f7fbff,#c6dbef,#6baed6,#3787c0); }
-  .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:16px 0 10px; }
+  .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:12px 0 6px; }
   .metric span { display:block; color:var(--muted); font-size:11px; }
   .metric strong { display:block; margin-top:2px; font-size:19px; font-weight:550; font-variant-numeric:tabular-nums; }
   .note { margin:10px 0 0; font-size:12px; }
   [hidden] { display:none !important; }
-  @media(max-width:760px) {
+  @media(max-width:620px) {
     main { padding:14px; }
     .panels { grid-template-columns:1fr; }
     .metrics { grid-template-columns:repeat(2,1fr); }
@@ -54,7 +54,7 @@
 <body>
 <main>
   <h1>Sailing to a windward mark in a shifting wind</h1>
-  <p class="intro">A boat beats from the square to the triangle on a 21 × 21 grid of waypoints. It cannot sail straight into the wind, a close-hauled leg takes 4 minutes (√2 times longer on a diagonal), and every change of tack costs 3 minutes. After each leg the wind may shift by 45°. In <em>Race</em> mode the blue boat follows the value-iteration policy and the orange boat is a layline sailor who tacks only on the laylines of the mean wind; both see the same wind on their k-th leg. In <em>Value iteration</em> mode the sweeps of value iteration fill in the expected time to the mark.</p>
+  <p class="intro">Beat from the square to the triangle while the wind shifts by 45°. <em>Race</em>: the value-iteration boat (blue) against a layline sailor (orange) in the same wind. <em>Value iteration</em>: the sweeps filling in the time to the mark.</p>
   <p id="load-status" role="status">Loading recorded solutions…</p>
   <div id="replay" hidden>
     <div class="toolbar">
@@ -371,9 +371,9 @@ function updateMode() {
   if (vi) $("scenario").value = data.featured;
   const st = scen().stats;
   $("note").textContent = (vi
-    ? `Value iteration on the ${scen().label.toLowerCase()}, from v0 = 0 with no discount. Each sweep adds one more leg of look-ahead, so the region where v_n has settled spreads out from the mark. The residual reaches exactly zero after ${st.value_iteration_sweeps} sweeps; policy iteration from the layline sailor needs ${st.policy_iteration_improvements} improvement steps. `
+    ? `Value iteration on the ${scen().label.toLowerCase()}, from v0 = 0 with no discount. The residual reaches exactly zero after ${st.value_iteration_sweeps} sweeps; policy iteration from the layline sailor needs ${st.policy_iteration_improvements} improvement steps. `
     : `Expected times from the start with the wind from the north: optimal ${st.optimal_minutes.toFixed(1)} min, layline sailor ${st.layline_minutes.toFixed(1)} min. Over ${st.monte_carlo_races} paired races the optimal boat is faster in ${(100*st.share_races_optimal_faster).toFixed(0)}% and tied in ${(100*st.share_races_tied).toFixed(0)}%. `)
-    + "Recorded solutions from the chapter's solver; nothing is optimized in the browser. Leg times (4, 3, 2 and 1 minutes from close-hauled to dead downwind) and the 3-minute tack delay follow Vanderbei's sailing problem and the mdp-engine benchmark code; the lake, the oscillating wind chain and the layline sailor are teaching choices.";
+    + "Recorded solutions; leg times and tack delay from Vanderbei's sailing problem.";
 }
 
 function tick(now) {

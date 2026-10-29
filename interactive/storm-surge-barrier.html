@@ -5,15 +5,17 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Closing a storm-surge barrier · optimal stopping</title>
 <style>
+  .toolbar select { max-width:190px; }
+  .metric strong { font-size:17px !important; }
   :root { color-scheme:light; --ink:#20333f; --muted:#5e707c; --rule:#d8e2e7; --blue:#0072b2; --red:#b2182b; --orange:#e69f00; --verm:#d55e00; }
   * { box-sizing:border-box; }
   body { margin:0; background:#fff; color:var(--ink); font:14px/1.45 system-ui,-apple-system,sans-serif; }
-  main { max-width:1120px; margin:auto; padding:20px; }
+  main { max-width:1120px; margin:auto; padding:14px 20px; }
   h1 { font-size:22px; font-weight:650; margin:0 0 5px; letter-spacing:-.3px; }
   p { margin:0 0 14px; }
   .intro, .note { color:var(--muted); font-size:13px; }
-  .toolbar { display:flex; align-items:end; flex-wrap:wrap; gap:12px; margin-bottom:12px; }
-  .toolbar + .toolbar { border-top:1px solid var(--rule); padding-top:11px; }
+  .toolbar { display:flex; align-items:end; flex-wrap:wrap; gap:12px; margin-bottom:10px; }
+  .toolbar + .toolbar { border-top:1px solid var(--rule); padding-top:9px; }
   label { font-size:12px; color:var(--muted); display:block; }
   select, button { font:inherit; color:var(--ink); background:white; border:1px solid #bdccd4; border-radius:5px; padding:7px 10px; min-height:35px; max-width:100%; }
   select { margin-top:4px; display:block; }
@@ -27,21 +29,21 @@
   .panels { display:grid; grid-template-columns:minmax(0,1.25fr) minmax(0,1fr); gap:14px; }
   .panel { border:1px solid var(--rule); border-radius:7px; background:#fff; overflow:hidden; margin:0; }
   .panel canvas { width:100%; display:block; }
-  #section { height:452px; background:#fbfcfc; }
-  #fan { height:200px; }
-  #map { height:200px; }
+  #section { height:330px; background:#fbfcfc; }
+  #fan { height:160px; }
+  #map { height:160px; }
   .charts { display:grid; gap:14px; align-content:start; }
   .panel figcaption { padding:7px 12px; border-top:1px solid var(--rule); font-size:12px; display:flex; justify-content:space-between; gap:4px 10px; flex-wrap:wrap; }
   .panel figcaption strong { font-weight:600; }
   .legend { color:var(--muted); display:flex; gap:4px 12px; flex-wrap:wrap; align-items:center; }
   .sw { display:inline-block; width:14px; height:10px; margin-right:4px; vertical-align:-1px; border-radius:2px; }
   .ln { display:inline-block; width:16px; height:0; margin-right:4px; vertical-align:3px; border-top:2px dashed var(--orange); }
-  .metrics { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin:16px 0 10px; }
+  .metrics { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin:12px 0 6px; }
   .metric span { display:block; color:var(--muted); font-size:11px; }
   .metric strong { display:block; margin-top:2px; font-size:19px; font-weight:550; font-variant-numeric:tabular-nums; }
   .note { margin:10px 0 0; font-size:12px; }
   [hidden] { display:none !important; }
-  @media(max-width:760px) {
+  @media(max-width:620px) {
     main { padding:14px 16px; }
     .panels { grid-template-columns:1fr; }
     #section { height:270px; }
@@ -54,7 +56,7 @@
 <body>
 <main>
   <h1>When to close a storm-surge barrier</h1>
-  <p class="intro">A storm is forecast to push the water at Rotterdam to a peak in 24 hours. Every hour the forecast of that peak is updated and becomes more accurate. Ordering the closure halts shipping at once, and the gates need at least 6 hours to close, sometimes more. If the barrier is still open when the peak exceeds 300 cm above NAP, the city floods. Compare the backward-induction policy with fixed threshold rules on the same storms.</p>
+  <p class="intro">A surge peaks in 24 hours and its forecast sharpens every hour. Closing halts shipping and takes at least 6 hours; an open barrier floods the city above 300 cm NAP. Compare backward induction with threshold rules on the same storms.</p>
   <p id="load-status" role="status">Loading recorded storms…</p>
   <div id="replay" hidden>
     <div class="toolbar">
@@ -89,7 +91,7 @@
       <div class="metric"><span>Cost so far (hours of halted shipping)</span><strong id="m-cost"></strong></div>
     </div>
     <p class="note" id="summary"></p>
-    <p class="note">Recorded storms and policies from the chapter's solver; nothing is optimized in the browser. The closing criterion (300 cm above NAP at Rotterdam) is the Maeslant barrier's; the forecast errors, closing delays, costs and storm distribution are teaching values. The water curve in the cross-section is drawn for illustration; only its peak comes from the model.</p>
+    <p class="note">Recorded storms and policies; nothing is optimized in the browser. The 300 cm criterion is the Maeslant barrier's; forecast errors, delays, costs and storms are teaching values.</p>
   </div>
 </main>
 <script>

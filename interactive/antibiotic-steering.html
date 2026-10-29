@@ -8,12 +8,12 @@
   :root { color-scheme:light; --ink:#20333f; --muted:#5e707c; --rule:#d8e2e7; --blue:#0072b2; --red:#b2182b; }
   * { box-sizing:border-box; }
   body { margin:0; background:#fff; color:var(--ink); font:14px/1.45 system-ui,-apple-system,sans-serif; }
-  main { max-width:1120px; margin:auto; padding:20px; }
+  main { max-width:1120px; margin:auto; padding:14px 20px; }
   h1 { font-size:22px; font-weight:650; margin:0 0 5px; letter-spacing:-.3px; }
   p { margin:0 0 14px; }
   .intro, .note { color:var(--muted); font-size:13px; }
-  .toolbar { display:flex; align-items:end; flex-wrap:wrap; gap:12px; margin-bottom:12px; }
-  .toolbar + .toolbar { border-top:1px solid var(--rule); padding-top:11px; }
+  .toolbar { display:flex; align-items:end; flex-wrap:wrap; gap:12px; margin-bottom:10px; }
+  .toolbar + .toolbar { border-top:1px solid var(--rule); padding-top:9px; }
   label { font-size:12px; color:var(--muted); display:block; }
   select, button { font:inherit; color:var(--ink); background:white; border:1px solid #bdccd4; border-radius:5px; padding:7px 10px; min-height:35px; }
   select { margin-top:4px; }
@@ -27,9 +27,9 @@
   .panels { display:grid; grid-template-columns:minmax(0,1.45fr) minmax(0,1fr); gap:14px; }
   .panel { border:1px solid var(--rule); border-radius:7px; background:#fff; overflow:hidden; margin:0; }
   .panel canvas { width:100%; display:block; }
-  #cube { height:430px; background:#fbfcfc; }
-  #course { height:150px; }
-  #bars { height:200px; }
+  #cube { height:350px; background:#fbfcfc; }
+  #course { height:118px; }
+  #bars { height:160px; }
   .charts { display:grid; gap:14px; align-content:start; }
   .panel figcaption { padding:7px 12px; border-top:1px solid var(--rule); font-size:12px; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; }
   .panel figcaption strong { font-weight:600; }
@@ -37,12 +37,12 @@
   .swatch { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:4px; vertical-align:-1px; }
   .ramp { display:inline-block; width:54px; height:9px; border-radius:2px; vertical-align:-1px; margin:0 4px; border:1px solid #c8d2d7;
           background:linear-gradient(90deg,#f7fbff,#fde0c5,#f4a261,#d55e00,#7f2704); }
-  .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:16px 0 10px; }
+  .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:12px 0 6px; }
   .metric span { display:block; color:var(--muted); font-size:11px; }
   .metric strong { display:block; margin-top:2px; font-size:19px; font-weight:550; font-variant-numeric:tabular-nums; }
   .note { margin:10px 0 0; font-size:12px; }
   [hidden] { display:none !important; }
-  @media(max-width:760px) {
+  @media(max-width:620px) {
     main { padding:14px; }
     .panels { grid-template-columns:1fr; }
     #cube { height:340px; }
@@ -53,7 +53,7 @@
 <body>
 <main>
   <h1>Steering a bacterial population away from resistance</h1>
-  <p class="intro">Each node is one of the 16 combinations of four resistance mutations; the wild type is on the left and the quadruple mutant on the right. Under a drug, a population climbs to a fitter neighbouring genotype until no neighbour is fitter. Steering drugs are given first, then the final drug, and the goal is to avoid ending at its most resistant genotype (red ring). Compare a fixed drug sequence with the backward-induction policy, which looks at the genotype before choosing each drug.</p>
+  <p class="intro">Steering drugs come first, then the final drug; the goal is to avoid its most resistant genotype (red ring). Compare a fixed drug sequence with the backward-induction policy, which sees the genotype before each drug.</p>
   <p id="load-status" role="status">Loading recorded solutions…</p>
   <div id="replay" hidden>
     <div class="toolbar">
@@ -91,7 +91,7 @@
       <div class="metric"><span>Best fixed sequence</span><strong id="m-fixed"></strong></div>
       <div class="metric"><span>Feedback policy</span><strong id="m-dp"></strong></div>
     </div>
-    <p class="note">Recorded solutions from the chapter's solver; nothing is optimized in the browser. Fitness values are growth rates of E. coli carrying TEM β-lactamase variants measured by Mira et al. (2015); the evolutionary model is the strong-selection, weak-mutation Markov chain of Nichol et al. (2015). The feedback policy assumes the dominant genotype is sequenced before each drug.</p>
+    <p class="note">Recorded solutions; nothing is optimized in the browser. Growth rates from Mira et al. (2015); evolution model from Nichol et al. (2015).</p>
   </div>
 </main>
 <script>
