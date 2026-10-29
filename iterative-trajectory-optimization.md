@@ -212,9 +212,19 @@ whole chapter works inside such neighborhoods.
 Twelve random pushes at 2 s (velocity changes up to 0.4 m/s in each direction,
 with small heading and spin changes) applied to the final iLQR plan for the
 angled approach. Left: the planned thrusts are replayed unchanged. Right: the
-thrusts follow the local feedback law, clipped to the thruster limits. Outlines
-show the final poses. The dashed run is the one push that the feedback does
-not absorb.
+thrusts follow the local feedback law, clipped to the thruster limits. The
+shaded tube, drawn in both panels, is the envelope of the feedback runs that
+return to the plan. Outlines show the final poses. The dashed run is the one
+push that the feedback does not absorb.
+:::
+
+:::{iframe} ../interactive/boat-tube.html
+:width: 100%
+:title: Pushed boats with and without local feedback
+:class: boat-tube-replay
+
+Play or scrub simulation time to watch the twelve pushed boats. The counters
+report how many boats are inside the tube at the selected time.
 :::
 
 We cannot solve this nonlinear problem directly. The previous chapter showed
@@ -1109,7 +1119,7 @@ models and artifact builders:
 - {download}`Shared iLQR and DDP solver <code/trajectory_optimization.py>`
 - {download}`Boat dynamics, costs, and validation <code/boat_docking.py>`
 - {download}`Experiment and figure builder <scripts/build_boat_docking_artifacts.py>`
-- {download}`Tube figure builder <scripts/build_boat_tube_figure.py>`
+- {download}`Tube figure and animation builder <scripts/build_boat_tube_figure.py>`
 - {download}`Numerical diagnostics and source hashes <artifacts/boat_docking/metrics.json>`
 - {download}`Thermoacoustic model and costs <code/thermoacoustic_pulldown.py>`
 - {download}`Thermoacoustic geometry figure <code/thermoacoustic_geometry.py>`

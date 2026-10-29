@@ -4,10 +4,13 @@
 Run from the repository root: uv run python scripts/build_boat_tube_figure.py
 The boat follows the angled-approach plan, receives a small push at 2 s, and
 then either replays the planned thrusts or applies the local feedback law
-u = u_bar + K (x - x_bar), clipped to the thrust bounds.
+u = u_bar + K (x - x_bar), clipped to the thrust bounds. The shaded tube is
+the envelope of the feedback runs that return to the plan. The script writes
+the static figure and the data for interactive/boat-tube.html.
 """
 from __future__ import annotations
 
+import json
 from pathlib import Path
 import sys
 
@@ -36,6 +39,25 @@ def simulate(x_push, plan_states, plan_controls, gains, feedback):
     return np.array(xs)
 
 
+def tube_radius(plan, paths, floor=.06):
+    """Largest distance from the plan at each time step over the given runs."""
+    radius = np.full(len(plan), floor)
+    for path in paths:
+        distance = np.linalg.norm(path[:, :2] - plan[PUSH_STEP:, :2], axis=1)
+        radius[PUSH_STEP:] = np.maximum(radius[PUSH_STEP:], distance)
+    return radius
+
+
+def tube_polygon(plan, radius):
+    tangent = np.gradient(plan[:, :2], axis=0)
+    tangent /= np.maximum(np.linalg.norm(tangent, axis=1, keepdims=True), 1e-9)
+    normal = np.c_[-tangent[:, 1], tangent[:, 0]]
+    upper = plan[:, :2] + radius[:, None] * normal
+    lower = plan[:, :2] - radius[:, None] * normal
+    outline = np.r_[upper, lower[::-1]]
+    return outline[:, 0], outline[:, 1]
+
+
 def main():
     p = BoatParameters()
     result = solve_trajectory(make_problem(p), SCENARIOS["angled"]["initial"],
@@ -53,6 +75,11 @@ def main():
     escaped = [i for i, kick in enumerate(kicks) if np.linalg.norm(
         simulate(xs[PUSH_STEP] + kick, xs, us, K, True)[-1, :2] - xs[-1, :2]) > .5]
 
+    runs = {feedback: [simulate(xs[PUSH_STEP] + kick, xs, us, K, feedback) for kick in kicks]
+            for feedback in (False, True)}
+    radius = tube_radius(xs, [runs[True][i] for i in range(PUSHES) if i not in escaped])
+    tube = tube_polygon(xs, radius)
+
     plt.rcParams.update({"font.family": "serif", "font.serif": ["DejaVu Serif"],
         "mathtext.fontset": "cm", "font.size": 9, "axes.labelsize": 9,
         "axes.titlesize": 9, "xtick.labelsize": 8, "ytick.labelsize": 8,
@@ -67,7 +94,7 @@ def main():
         harbor(ax, p, (-9.5, 3., -.8, 6.))
         finals = []
         for i, kick in enumerate(kicks):
-            path = simulate(xs[PUSH_STEP] + kick, xs, us, K, feedback)
+            path = runs[feedback][i]
             if i in escaped:
                 ax.plot(path[:, 0], path[:, 1], color=color, lw=1., ls="--",
                         label="Push outside the tube" if i == escaped[0] else None)
@@ -75,6 +102,7 @@ def main():
                 ax.plot(path[:, 0], path[:, 1], color=color, lw=.7, alpha=.55)
             finals.append(path[-1])
             boat(ax, path[-1], p, color=color, alpha=.35)
+        ax.fill(*tube, color=BLUE, alpha=.3, lw=0, label="Tube")
         ax.plot(xs[:, 0], xs[:, 1], color="k", lw=1.6, label="Plan")
         ax.plot(*xs[PUSH_STEP, :2], "o", color="k", ms=3.5, label="Push at 2 s")
         finals = np.array(finals)
@@ -84,6 +112,14 @@ def main():
         ax.legend(loc="upper right")
     axs[1].set_ylabel("")
     save(fig, "tube")
+    rounded = lambda a: np.round(np.asarray(a)[:, :3], 4).tolist()
+    data = {"dt": p.dt, "push_step": PUSH_STEP, "length": p.length, "width": p.width,
+            "berth": [p.berth_x, p.berth_y], "plan": rounded(xs),
+            "radius": np.round(radius, 4).tolist(), "escaped": escaped,
+            "open_loop": [rounded(path) for path in runs[False]],
+            "feedback": [rounded(path) for path in runs[True]]}
+    (ROOT / "interactive" / "boat-tube-data.json").write_text(
+        json.dumps(data, separators=(",", ":"), allow_nan=False) + "\n")
     for feedback, name in ((False, "open loop"), (True, "feedback")):
         rest = np.delete(errors[feedback], escaped)
         print(f"{name}: final position error over the {len(rest)} contained pushes "

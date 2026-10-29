@@ -1147,6 +1147,16 @@ iframe {
   .boat-docking-replay > div > div { height: 1340px; }
 }
 
+/* Tube animation: two synchronized panels, stacked on narrow screens. */
+.boat-tube-replay > div > div {
+  height: 560px;
+  padding-bottom: 0 !important;
+  width: 100% !important;
+}
+@media (max-width: 700px) {
+  .boat-tube-replay > div > div { height: 860px; }
+}
+
 /* Truck alley-dock replay: same layout as the docking replay, with a taller
    map. Content heights measured in the page (viewport width -> height):
    808 -> 1153, 760 -> 1153, 680 -> 1171, 600 -> 1467, 375 -> 1675; the
