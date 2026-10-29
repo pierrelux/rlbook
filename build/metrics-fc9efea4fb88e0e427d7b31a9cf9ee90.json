@@ -1,0 +1,2817 @@
+{
+ "schema_version": 1,
+ "model": "SSWM limit chain, r = 0, Mira et al. 2015 landscapes",
+ "results": {
+  "AMP": {
+   "resistant": "1111",
+   "by_start": {
+    "uniform": [
+     {
+      "steps": 0,
+      "fixed": [],
+      "p_fixed": 0.6226851851851851,
+      "p_dp": 0.6226851851851851
+     },
+     {
+      "steps": 1,
+      "fixed": [
+       "CPR"
+      ],
+      "p_fixed": 0.24652777777777773,
+      "p_dp": 0.1141332304526749
+     },
+     {
+      "steps": 2,
+      "fixed": [
+       "AMP",
+       "CPR"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     },
+     {
+      "steps": 3,
+      "fixed": [
+       "AMP",
+       "AMP",
+       "CPR"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     }
+    ],
+    "wild": [
+     {
+      "steps": 0,
+      "fixed": [],
+      "p_fixed": 0.4444444444444444,
+      "p_dp": 0.4444444444444444
+     },
+     {
+      "steps": 1,
+      "fixed": [
+       "CTX"
+      ],
+      "p_fixed": 0.14917695473251028,
+      "p_dp": 0.14917695473251028
+     },
+     {
+      "steps": 2,
+      "fixed": [
+       "AMP",
+       "CPR"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     },
+     {
+      "steps": 3,
+      "fixed": [
+       "AMP",
+       "AMP",
+       "CPR"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     }
+    ]
+   },
+   "dp_policy": {
+    "1": [
+     [
+      "CTX",
+      "CTX",
+      "AMP",
+      "AMP",
+      "CTX",
+      "CTX",
+      "AMP",
+      "CPR",
+      "CPR",
+      "CPR",
+      "CAZ",
+      "CPR",
+      "CTX",
+      "CTX",
+      "CAZ",
+      "CPR"
+     ]
+    ],
+    "2": [
+     [
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP"
+     ],
+     [
+      "CTX",
+      "CTX",
+      "AMP",
+      "AMP",
+      "CTX",
+      "CTX",
+      "AMP",
+      "CPR",
+      "CPR",
+      "CPR",
+      "CAZ",
+      "CPR",
+      "CTX",
+      "CTX",
+      "CAZ",
+      "CPR"
+     ]
+    ],
+    "3": [
+     [
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP"
+     ],
+     [
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP"
+     ],
+     [
+      "CTX",
+      "CTX",
+      "AMP",
+      "AMP",
+      "CTX",
+      "CTX",
+      "AMP",
+      "CPR",
+      "CPR",
+      "CPR",
+      "CAZ",
+      "CPR",
+      "CTX",
+      "CTX",
+      "CAZ",
+      "CPR"
+     ]
+    ]
+   }
+  },
+  "AM": {
+   "resistant": "1101",
+   "by_start": {
+    "uniform": [
+     {
+      "steps": 0,
+      "fixed": [],
+      "p_fixed": 0.7472993827160493,
+      "p_dp": 0.7472993827160493
+     },
+     {
+      "steps": 1,
+      "fixed": [
+       "CTX"
+      ],
+      "p_fixed": 0.6161479766803841,
+      "p_dp": 0.5323966906721536
+     },
+     {
+      "steps": 2,
+      "fixed": [
+       "SAM",
+       "CPR"
+      ],
+      "p_fixed": 0.5061728395061729,
+      "p_dp": 0.4368633465427018
+     },
+     {
+      "steps": 3,
+      "fixed": [
+       "AMP",
+       "SAM",
+       "CPR"
+      ],
+      "p_fixed": 0.5061728395061728,
+      "p_dp": 0.3261758868848153
+     }
+    ],
+    "wild": [
+     {
+      "steps": 0,
+      "fixed": [],
+      "p_fixed": 0.5,
+      "p_dp": 0.5
+     },
+     {
+      "steps": 1,
+      "fixed": [],
+      "p_fixed": 0.5,
+      "p_dp": 0.5
+     },
+     {
+      "steps": 2,
+      "fixed": [],
+      "p_fixed": 0.5,
+      "p_dp": 0.34175668724279834
+     },
+     {
+      "steps": 3,
+      "fixed": [],
+      "p_fixed": 0.5,
+      "p_dp": 0.25270061728395066
+     }
+    ]
+   },
+   "dp_policy": {
+    "1": [
+     [
+      "AM",
+      "CTX",
+      "AM",
+      "AMP",
+      "CTX",
+      "CTX",
+      "AMP",
+      "CPR",
+      "CTX",
+      "CTX",
+      "AM",
+      "CPR",
+      "CTX",
+      "CTX",
+      "CAZ",
+      "CPR"
+     ]
+    ],
+    "2": [
+     [
+      "AM",
+      "CPD",
+      "AM",
+      "AM",
+      "FEP",
+      "CRO",
+      "AM",
+      "SAM",
+      "AM",
+      "CPD",
+      "AM",
+      "CPD",
+      "CRO",
+      "CRO",
+      "CRO",
+      "AMP"
+     ],
+     [
+      "AM",
+      "CTX",
+      "AM",
+      "AMP",
+      "CTX",
+      "CTX",
+      "AMP",
+      "CPR",
+      "CTX",
+      "CTX",
+      "AM",
+      "CPR",
+      "CTX",
+      "CTX",
+      "CAZ",
+      "CPR"
+     ]
+    ],
+    "3": [
+     [
+      "AM",
+      "CTX",
+      "AM",
+      "AM",
+      "CTX",
+      "CTX",
+      "AM",
+      "AM",
+      "AM",
+      "CTX",
+      "AM",
+      "CPR",
+      "CTX",
+      "CTX",
+      "CAZ",
+      "CPR"
+     ],
+     [
+      "AM",
+      "CPD",
+      "AM",
+      "AM",
+      "FEP",
+      "CRO",
+      "AM",
+      "SAM",
+      "AM",
+      "CPD",
+      "AM",
+      "CPD",
+      "CRO",
+      "CRO",
+      "CRO",
+      "AMP"
+     ],
+     [
+      "AM",
+      "CTX",
+      "AM",
+      "AMP",
+      "CTX",
+      "CTX",
+      "AMP",
+      "CPR",
+      "CTX",
+      "CTX",
+      "AM",
+      "CPR",
+      "CTX",
+      "CTX",
+      "CAZ",
+      "CPR"
+     ]
+    ]
+   }
+  },
+  "CEC": {
+   "resistant": "0011",
+   "by_start": {
+    "uniform": [
+     {
+      "steps": 0,
+      "fixed": [],
+      "p_fixed": 0.1875,
+      "p_dp": 0.1875
+     },
+     {
+      "steps": 1,
+      "fixed": [
+       "SAM"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     },
+     {
+      "steps": 2,
+      "fixed": [
+       "AMP",
+       "SAM"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     },
+     {
+      "steps": 3,
+      "fixed": [
+       "AMP",
+       "AMP",
+       "SAM"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     }
+    ],
+    "wild": [
+     {
+      "steps": 0,
+      "fixed": [],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     },
+     {
+      "steps": 1,
+      "fixed": [],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     },
+     {
+      "steps": 2,
+      "fixed": [],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     },
+     {
+      "steps": 3,
+      "fixed": [],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     }
+    ]
+   },
+   "dp_policy": {
+    "1": [
+     [
+      "CEC",
+      "SAM",
+      "SAM",
+      "SAM",
+      "AMP",
+      "AMP",
+      "AMP",
+      "SAM",
+      "CEC",
+      "AMP",
+      "CEC",
+      "SAM",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP"
+     ]
+    ],
+    "2": [
+     [
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP"
+     ],
+     [
+      "CEC",
+      "SAM",
+      "SAM",
+      "SAM",
+      "AMP",
+      "AMP",
+      "AMP",
+      "SAM",
+      "CEC",
+      "AMP",
+      "CEC",
+      "SAM",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP"
+     ]
+    ],
+    "3": [
+     [
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP"
+     ],
+     [
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP"
+     ],
+     [
+      "CEC",
+      "SAM",
+      "SAM",
+      "SAM",
+      "AMP",
+      "AMP",
+      "AMP",
+      "SAM",
+      "CEC",
+      "AMP",
+      "CEC",
+      "SAM",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP"
+     ]
+    ]
+   }
+  },
+  "CTX": {
+   "resistant": "1111",
+   "by_start": {
+    "uniform": [
+     {
+      "steps": 0,
+      "fixed": [],
+      "p_fixed": 0.16666666666666669,
+      "p_dp": 0.16666666666666666
+     },
+     {
+      "steps": 1,
+      "fixed": [
+       "CPR"
+      ],
+      "p_fixed": 0.04108796296296295,
+      "p_dp": 0.011863425925925925
+     },
+     {
+      "steps": 2,
+      "fixed": [
+       "AMP",
+       "CPR"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     },
+     {
+      "steps": 3,
+      "fixed": [
+       "AMP",
+       "AMP",
+       "CPR"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     }
+    ],
+    "wild": [
+     {
+      "steps": 0,
+      "fixed": [],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     },
+     {
+      "steps": 1,
+      "fixed": [],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     },
+     {
+      "steps": 2,
+      "fixed": [],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     },
+     {
+      "steps": 3,
+      "fixed": [],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     }
+    ]
+   },
+   "dp_policy": {
+    "1": [
+     [
+      "CEC",
+      "CEC",
+      "AMP",
+      "AMP",
+      "CEC",
+      "CEC",
+      "AMP",
+      "CPR",
+      "CTX",
+      "CPR",
+      "CTX",
+      "CPR",
+      "CTX",
+      "CPR",
+      "CAZ",
+      "CPR"
+     ]
+    ],
+    "2": [
+     [
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP"
+     ],
+     [
+      "CEC",
+      "CEC",
+      "AMP",
+      "AMP",
+      "CEC",
+      "CEC",
+      "AMP",
+      "CPR",
+      "CTX",
+      "CPR",
+      "CTX",
+      "CPR",
+      "CTX",
+      "CPR",
+      "CAZ",
+      "CPR"
+     ]
+    ],
+    "3": [
+     [
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP"
+     ],
+     [
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP"
+     ],
+     [
+      "CEC",
+      "CEC",
+      "AMP",
+      "AMP",
+      "CEC",
+      "CEC",
+      "AMP",
+      "CPR",
+      "CTX",
+      "CPR",
+      "CTX",
+      "CPR",
+      "CTX",
+      "CPR",
+      "CAZ",
+      "CPR"
+     ]
+    ]
+   }
+  },
+  "ZOX": {
+   "resistant": "0111",
+   "by_start": {
+    "uniform": [
+     {
+      "steps": 0,
+      "fixed": [],
+      "p_fixed": 0.861111111111111,
+      "p_dp": 0.8611111111111112
+     },
+     {
+      "steps": 1,
+      "fixed": [
+       "AM"
+      ],
+      "p_fixed": 0.8131751543209875,
+      "p_dp": 0.7322289737654321
+     },
+     {
+      "steps": 2,
+      "fixed": [
+       "SAM",
+       "AM"
+      ],
+      "p_fixed": 0.75,
+      "p_dp": 0.6513363768861453
+     },
+     {
+      "steps": 3,
+      "fixed": [
+       "AMP",
+       "SAM",
+       "AM"
+      ],
+      "p_fixed": 0.7499999999999999,
+      "p_dp": 0.5682642081582933
+     }
+    ],
+    "wild": [
+     {
+      "steps": 0,
+      "fixed": [],
+      "p_fixed": 0.8888888888888888,
+      "p_dp": 0.8888888888888888
+     },
+     {
+      "steps": 1,
+      "fixed": [
+       "CTT"
+      ],
+      "p_fixed": 0.8611111111111109,
+      "p_dp": 0.8611111111111112
+     },
+     {
+      "steps": 2,
+      "fixed": [
+       "SAM",
+       "AM"
+      ],
+      "p_fixed": 0.75,
+      "p_dp": 0.7126200274348422
+     },
+     {
+      "steps": 3,
+      "fixed": [
+       "AMP",
+       "SAM",
+       "AM"
+      ],
+      "p_fixed": 0.7499999999999999,
+      "p_dp": 0.6581361454046638
+     }
+    ]
+   },
+   "dp_policy": {
+    "1": [
+     [
+      "CTT",
+      "ZOX",
+      "AMC",
+      "AMC",
+      "AM",
+      "AM",
+      "AM",
+      "AM",
+      "ZOX",
+      "ZOX",
+      "AMC",
+      "AM",
+      "AM",
+      "AM",
+      "AMC",
+      "AM"
+     ]
+    ],
+    "2": [
+     [
+      "ZOX",
+      "ZOX",
+      "TZP",
+      "TZP",
+      "SAM",
+      "AMP",
+      "SAM",
+      "TZP",
+      "ZOX",
+      "ZOX",
+      "TZP",
+      "ZOX",
+      "TZP",
+      "ZOX",
+      "TZP",
+      "TZP"
+     ],
+     [
+      "CTT",
+      "ZOX",
+      "AMC",
+      "AMC",
+      "AM",
+      "AM",
+      "AM",
+      "AM",
+      "ZOX",
+      "ZOX",
+      "AMC",
+      "AM",
+      "AM",
+      "AM",
+      "AMC",
+      "AM"
+     ]
+    ],
+    "3": [
+     [
+      "CTT",
+      "ZOX",
+      "AMC",
+      "AMC",
+      "AM",
+      "AM",
+      "AM",
+      "AM",
+      "ZOX",
+      "ZOX",
+      "AMC",
+      "ZOX",
+      "AM",
+      "ZOX",
+      "AMC",
+      "AM"
+     ],
+     [
+      "ZOX",
+      "ZOX",
+      "TZP",
+      "TZP",
+      "SAM",
+      "AMP",
+      "SAM",
+      "TZP",
+      "ZOX",
+      "ZOX",
+      "TZP",
+      "ZOX",
+      "TZP",
+      "ZOX",
+      "TZP",
+      "TZP"
+     ],
+     [
+      "CTT",
+      "ZOX",
+      "AMC",
+      "AMC",
+      "AM",
+      "AM",
+      "AM",
+      "AM",
+      "ZOX",
+      "ZOX",
+      "AMC",
+      "AM",
+      "AM",
+      "AM",
+      "AMC",
+      "AM"
+     ]
+    ]
+   }
+  },
+  "CXM": {
+   "resistant": "0111",
+   "by_start": {
+    "uniform": [
+     {
+      "steps": 0,
+      "fixed": [],
+      "p_fixed": 0.5636574074074074,
+      "p_dp": 0.5636574074074073
+     },
+     {
+      "steps": 1,
+      "fixed": [
+       "AMC"
+      ],
+      "p_fixed": 0.3329716435185185,
+      "p_dp": 0.2878672491212277
+     },
+     {
+      "steps": 2,
+      "fixed": [
+       "CXM",
+       "AMC"
+      ],
+      "p_fixed": 0.194083424425583,
+      "p_dp": 0.15167244700574417
+     },
+     {
+      "steps": 3,
+      "fixed": [
+       "AMC",
+       "CXM",
+       "AMC"
+      ],
+      "p_fixed": 0.11465169438282319,
+      "p_dp": 0.07662007469886967
+     }
+    ],
+    "wild": [
+     {
+      "steps": 0,
+      "fixed": [],
+      "p_fixed": 0.25,
+      "p_dp": 0.25
+     },
+     {
+      "steps": 1,
+      "fixed": [
+       "CEC"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     },
+     {
+      "steps": 2,
+      "fixed": [
+       "CEC",
+       "CEC"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     },
+     {
+      "steps": 3,
+      "fixed": [
+       "CEC",
+       "CEC",
+       "CEC"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     }
+    ]
+   },
+   "dp_policy": {
+    "1": [
+     [
+      "CEC",
+      "AMC",
+      "AMC",
+      "AMC",
+      "CEC",
+      "CEC",
+      "AMC",
+      "AMC",
+      "CEC",
+      "CEC",
+      "TZP",
+      "TZP",
+      "CXM",
+      "CEC",
+      "AMC",
+      "TZP"
+     ]
+    ],
+    "2": [
+     [
+      "CEC",
+      "AMC",
+      "CXM",
+      "TZP",
+      "CEC",
+      "CEC",
+      "CXM",
+      "TZP",
+      "CXM",
+      "CEC",
+      "TZP",
+      "TZP",
+      "CXM",
+      "CXM",
+      "CXM",
+      "TZP"
+     ],
+     [
+      "CEC",
+      "AMC",
+      "AMC",
+      "AMC",
+      "CEC",
+      "CEC",
+      "AMC",
+      "AMC",
+      "CEC",
+      "CEC",
+      "TZP",
+      "TZP",
+      "CXM",
+      "CEC",
+      "AMC",
+      "TZP"
+     ]
+    ],
+    "3": [
+     [
+      "CEC",
+      "AMC",
+      "TZP",
+      "TZP",
+      "CEC",
+      "CEC",
+      "AMC",
+      "TZP",
+      "CXM",
+      "CEC",
+      "TZP",
+      "TZP",
+      "CXM",
+      "CAZ",
+      "TZP",
+      "TZP"
+     ],
+     [
+      "CEC",
+      "AMC",
+      "CXM",
+      "TZP",
+      "CEC",
+      "CEC",
+      "CXM",
+      "TZP",
+      "CXM",
+      "CEC",
+      "TZP",
+      "TZP",
+      "CXM",
+      "CXM",
+      "CXM",
+      "TZP"
+     ],
+     [
+      "CEC",
+      "AMC",
+      "AMC",
+      "AMC",
+      "CEC",
+      "CEC",
+      "AMC",
+      "AMC",
+      "CEC",
+      "CEC",
+      "TZP",
+      "TZP",
+      "CXM",
+      "CEC",
+      "AMC",
+      "TZP"
+     ]
+    ]
+   }
+  },
+  "CRO": {
+   "resistant": "1111",
+   "by_start": {
+    "uniform": [
+     {
+      "steps": 0,
+      "fixed": [],
+      "p_fixed": 0.2757523148148148,
+      "p_dp": 0.2757523148148148
+     },
+     {
+      "steps": 1,
+      "fixed": [
+       "CEC"
+      ],
+      "p_fixed": 0.203125,
+      "p_dp": 0.09370252821180555
+     },
+     {
+      "steps": 2,
+      "fixed": [
+       "TZP",
+       "CEC"
+      ],
+      "p_fixed": 0.04976851851851852,
+      "p_dp": 0.007321707015174896
+     },
+     {
+      "steps": 3,
+      "fixed": [
+       "AMC",
+       "TZP",
+       "CEC"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     }
+    ],
+    "wild": [
+     {
+      "steps": 0,
+      "fixed": [],
+      "p_fixed": 0.041666666666666664,
+      "p_dp": 0.041666666666666664
+     },
+     {
+      "steps": 1,
+      "fixed": [
+       "CEC"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     },
+     {
+      "steps": 2,
+      "fixed": [
+       "CEC",
+       "CEC"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     },
+     {
+      "steps": 3,
+      "fixed": [
+       "CEC",
+       "CEC",
+       "CEC"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     }
+    ]
+   },
+   "dp_policy": {
+    "1": [
+     [
+      "CEC",
+      "CEC",
+      "AM",
+      "AMP",
+      "CEC",
+      "CEC",
+      "CXM",
+      "CEC",
+      "CRO",
+      "CEC",
+      "CTX",
+      "CPR",
+      "CXM",
+      "CXM",
+      "CXM",
+      "CPR"
+     ]
+    ],
+    "2": [
+     [
+      "CEC",
+      "CEC",
+      "TZP",
+      "AMP",
+      "CEC",
+      "CEC",
+      "TZP",
+      "TZP",
+      "CRO",
+      "CAZ",
+      "CTX",
+      "TZP",
+      "CXM",
+      "CAZ",
+      "TZP",
+      "TZP"
+     ],
+     [
+      "CEC",
+      "CEC",
+      "AM",
+      "AMP",
+      "CEC",
+      "CEC",
+      "CXM",
+      "CEC",
+      "CRO",
+      "CEC",
+      "CTX",
+      "CPR",
+      "CXM",
+      "CXM",
+      "CXM",
+      "CPR"
+     ]
+    ],
+    "3": [
+     [
+      "CEC",
+      "AM",
+      "AMP",
+      "AMP",
+      "CEC",
+      "AM",
+      "AMP",
+      "AMC",
+      "CTX",
+      "AM",
+      "CTX",
+      "AM",
+      "CTX",
+      "AM",
+      "AMC",
+      "AM"
+     ],
+     [
+      "CEC",
+      "CEC",
+      "TZP",
+      "AMP",
+      "CEC",
+      "CEC",
+      "TZP",
+      "TZP",
+      "CRO",
+      "CAZ",
+      "CTX",
+      "TZP",
+      "CXM",
+      "CAZ",
+      "TZP",
+      "TZP"
+     ],
+     [
+      "CEC",
+      "CEC",
+      "AM",
+      "AMP",
+      "CEC",
+      "CEC",
+      "CXM",
+      "CEC",
+      "CRO",
+      "CEC",
+      "CTX",
+      "CPR",
+      "CXM",
+      "CXM",
+      "CXM",
+      "CPR"
+     ]
+    ]
+   }
+  },
+  "AMC": {
+   "resistant": "1101",
+   "by_start": {
+    "uniform": [
+     {
+      "steps": 0,
+      "fixed": [],
+      "p_fixed": 0.665943287037037,
+      "p_dp": 0.665943287037037
+     },
+     {
+      "steps": 1,
+      "fixed": [
+       "CXM"
+      ],
+      "p_fixed": 0.388166848851166,
+      "p_dp": 0.32615446030521256
+     },
+     {
+      "steps": 2,
+      "fixed": [
+       "AMC",
+       "CXM"
+      ],
+      "p_fixed": 0.22930338876564638,
+      "p_dp": 0.15672226506435596
+     },
+     {
+      "steps": 3,
+      "fixed": [
+       "CXM",
+       "AMC",
+       "CXM"
+      ],
+      "p_fixed": 0.13365698788567346,
+      "p_dp": 0.08697220248563704
+     }
+    ],
+    "wild": [
+     {
+      "steps": 0,
+      "fixed": [],
+      "p_fixed": 0.25,
+      "p_dp": 0.25
+     },
+     {
+      "steps": 1,
+      "fixed": [
+       "CEC"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     },
+     {
+      "steps": 2,
+      "fixed": [
+       "CEC",
+       "CEC"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     },
+     {
+      "steps": 3,
+      "fixed": [
+       "CEC",
+       "CEC",
+       "CEC"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     }
+    ]
+   },
+   "dp_policy": {
+    "1": [
+     [
+      "CEC",
+      "CXM",
+      "CXM",
+      "TZP",
+      "CEC",
+      "CEC",
+      "CXM",
+      "TZP",
+      "CXM",
+      "CEC",
+      "CXM",
+      "TZP",
+      "CXM",
+      "CXM",
+      "CXM",
+      "CAZ"
+     ]
+    ],
+    "2": [
+     [
+      "CEC",
+      "AMC",
+      "TZP",
+      "TZP",
+      "CEC",
+      "CEC",
+      "AMC",
+      "TZP",
+      "CEC",
+      "TZP",
+      "TZP",
+      "TZP",
+      "CXM",
+      "CAZ",
+      "TZP",
+      "TZP"
+     ],
+     [
+      "CEC",
+      "CXM",
+      "CXM",
+      "TZP",
+      "CEC",
+      "CEC",
+      "CXM",
+      "TZP",
+      "CXM",
+      "CEC",
+      "CXM",
+      "TZP",
+      "CXM",
+      "CXM",
+      "CXM",
+      "CAZ"
+     ]
+    ],
+    "3": [
+     [
+      "CEC",
+      "AMC",
+      "CXM",
+      "TZP",
+      "CEC",
+      "CEC",
+      "AMC",
+      "TZP",
+      "CXM",
+      "CEC",
+      "CXM",
+      "TZP",
+      "CXM",
+      "CXM",
+      "CXM",
+      "TZP"
+     ],
+     [
+      "CEC",
+      "AMC",
+      "TZP",
+      "TZP",
+      "CEC",
+      "CEC",
+      "AMC",
+      "TZP",
+      "CEC",
+      "TZP",
+      "TZP",
+      "TZP",
+      "CXM",
+      "CAZ",
+      "TZP",
+      "TZP"
+     ],
+     [
+      "CEC",
+      "CXM",
+      "CXM",
+      "TZP",
+      "CEC",
+      "CEC",
+      "CXM",
+      "TZP",
+      "CXM",
+      "CEC",
+      "CXM",
+      "TZP",
+      "CXM",
+      "CXM",
+      "CXM",
+      "CAZ"
+     ]
+    ]
+   }
+  },
+  "CAZ": {
+   "resistant": "0110",
+   "by_start": {
+    "uniform": [
+     {
+      "steps": 0,
+      "fixed": [],
+      "p_fixed": 0.3923611111111111,
+      "p_dp": 0.3923611111111111
+     },
+     {
+      "steps": 1,
+      "fixed": [
+       "TZP"
+      ],
+      "p_fixed": 0.0815650720164609,
+      "p_dp": 0.03402295524691358
+     },
+     {
+      "steps": 2,
+      "fixed": [
+       "AMC",
+       "TZP"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     },
+     {
+      "steps": 3,
+      "fixed": [
+       "AMP",
+       "AMC",
+       "TZP"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     }
+    ],
+    "wild": [
+     {
+      "steps": 0,
+      "fixed": [],
+      "p_fixed": 0.25,
+      "p_dp": 0.25
+     },
+     {
+      "steps": 1,
+      "fixed": [
+       "TZP"
+      ],
+      "p_fixed": 0.13657407407407407,
+      "p_dp": 0.13657407407407407
+     },
+     {
+      "steps": 2,
+      "fixed": [
+       "CEC",
+       "TZP"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     },
+     {
+      "steps": 3,
+      "fixed": [
+       "AMP",
+       "AMC",
+       "TZP"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     }
+    ]
+   },
+   "dp_policy": {
+    "1": [
+     [
+      "TZP",
+      "AM",
+      "TZP",
+      "AMP",
+      "TZP",
+      "AM",
+      "TZP",
+      "TZP",
+      "AMC",
+      "AM",
+      "AMC",
+      "AM",
+      "AM",
+      "AM",
+      "AMC",
+      "AM"
+     ]
+    ],
+    "2": [
+     [
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP"
+     ],
+     [
+      "TZP",
+      "AM",
+      "TZP",
+      "AMP",
+      "TZP",
+      "AM",
+      "TZP",
+      "TZP",
+      "AMC",
+      "AM",
+      "AMC",
+      "AM",
+      "AM",
+      "AM",
+      "AMC",
+      "AM"
+     ]
+    ],
+    "3": [
+     [
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP"
+     ],
+     [
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP"
+     ],
+     [
+      "TZP",
+      "AM",
+      "TZP",
+      "AMP",
+      "TZP",
+      "AM",
+      "TZP",
+      "TZP",
+      "AMC",
+      "AM",
+      "AMC",
+      "AM",
+      "AM",
+      "AM",
+      "AMC",
+      "AM"
+     ]
+    ]
+   }
+  },
+  "CTT": {
+   "resistant": "0111",
+   "by_start": {
+    "uniform": [
+     {
+      "steps": 0,
+      "fixed": [],
+      "p_fixed": 0.17592592592592593,
+      "p_dp": 0.17592592592592593
+     },
+     {
+      "steps": 1,
+      "fixed": [
+       "AMC"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     },
+     {
+      "steps": 2,
+      "fixed": [
+       "AMP",
+       "AMC"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     },
+     {
+      "steps": 3,
+      "fixed": [
+       "AMP",
+       "AMP",
+       "AMC"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     }
+    ],
+    "wild": [
+     {
+      "steps": 0,
+      "fixed": [],
+      "p_fixed": 0.05555555555555555,
+      "p_dp": 0.05555555555555555
+     },
+     {
+      "steps": 1,
+      "fixed": [
+       "CEC"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     },
+     {
+      "steps": 2,
+      "fixed": [
+       "AMP",
+       "AMC"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     },
+     {
+      "steps": 3,
+      "fixed": [
+       "AMP",
+       "AMP",
+       "AMC"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     }
+    ]
+   },
+   "dp_policy": {
+    "1": [
+     [
+      "CEC",
+      "AM",
+      "AMC",
+      "AMC",
+      "CEC",
+      "AM",
+      "CEC",
+      "AMC",
+      "CEC",
+      "AM",
+      "CEC",
+      "AM",
+      "CEC",
+      "AM",
+      "CEC",
+      "AM"
+     ]
+    ],
+    "2": [
+     [
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP"
+     ],
+     [
+      "CEC",
+      "AM",
+      "AMC",
+      "AMC",
+      "CEC",
+      "AM",
+      "CEC",
+      "AMC",
+      "CEC",
+      "AM",
+      "CEC",
+      "AM",
+      "CEC",
+      "AM",
+      "CEC",
+      "AM"
+     ]
+    ],
+    "3": [
+     [
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP"
+     ],
+     [
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP"
+     ],
+     [
+      "CEC",
+      "AM",
+      "AMC",
+      "AMC",
+      "CEC",
+      "AM",
+      "CEC",
+      "AMC",
+      "CEC",
+      "AM",
+      "CEC",
+      "AM",
+      "CEC",
+      "AM",
+      "CEC",
+      "AM"
+     ]
+    ]
+   }
+  },
+  "SAM": {
+   "resistant": "1111",
+   "by_start": {
+    "uniform": [
+     {
+      "steps": 0,
+      "fixed": [],
+      "p_fixed": 1.0,
+      "p_dp": 1.0
+     },
+     {
+      "steps": 1,
+      "fixed": [],
+      "p_fixed": 1.0,
+      "p_dp": 0.9999999999999998
+     },
+     {
+      "steps": 2,
+      "fixed": [],
+      "p_fixed": 1.0,
+      "p_dp": 0.9999999999999998
+     },
+     {
+      "steps": 3,
+      "fixed": [],
+      "p_fixed": 1.0,
+      "p_dp": 0.9999999999999996
+     }
+    ],
+    "wild": [
+     {
+      "steps": 0,
+      "fixed": [],
+      "p_fixed": 1.0,
+      "p_dp": 1.0
+     },
+     {
+      "steps": 1,
+      "fixed": [],
+      "p_fixed": 1.0,
+      "p_dp": 0.9999999999999998
+     },
+     {
+      "steps": 2,
+      "fixed": [],
+      "p_fixed": 1.0,
+      "p_dp": 0.9999999999999997
+     },
+     {
+      "steps": 3,
+      "fixed": [],
+      "p_fixed": 1.0,
+      "p_dp": 0.9999999999999996
+     }
+    ]
+   },
+   "dp_policy": {
+    "1": [
+     [
+      "AMP",
+      "FEP",
+      "CRO",
+      "AMP",
+      "AM",
+      "CTX",
+      "AM",
+      "AM",
+      "AMP",
+      "CPR",
+      "AMP",
+      "CTX",
+      "AM",
+      "CPR",
+      "AMC",
+      "AMP"
+     ]
+    ],
+    "2": [
+     [
+      "CTX",
+      "CTX",
+      "AM",
+      "CXM",
+      "AM",
+      "CTX",
+      "AM",
+      "AM",
+      "AM",
+      "CTX",
+      "TZP",
+      "CTT",
+      "AM",
+      "ZOX",
+      "AM",
+      "ZOX"
+     ],
+     [
+      "AMP",
+      "FEP",
+      "CRO",
+      "AMP",
+      "AM",
+      "CTX",
+      "AM",
+      "AM",
+      "AMP",
+      "CPR",
+      "AMP",
+      "CTX",
+      "AM",
+      "CPR",
+      "AMC",
+      "AMP"
+     ]
+    ],
+    "3": [
+     [
+      "ZOX",
+      "CXM",
+      "CEC",
+      "AMP",
+      "AM",
+      "CEC",
+      "ZOX",
+      "AM",
+      "CRO",
+      "CTX",
+      "TZP",
+      "CTX",
+      "AM",
+      "CTX",
+      "ZOX",
+      "ZOX"
+     ],
+     [
+      "CTX",
+      "CTX",
+      "AM",
+      "CXM",
+      "AM",
+      "CTX",
+      "AM",
+      "AM",
+      "AM",
+      "CTX",
+      "TZP",
+      "CTT",
+      "AM",
+      "ZOX",
+      "AM",
+      "ZOX"
+     ],
+     [
+      "AMP",
+      "FEP",
+      "CRO",
+      "AMP",
+      "AM",
+      "CTX",
+      "AM",
+      "AM",
+      "AMP",
+      "CPR",
+      "AMP",
+      "CTX",
+      "AM",
+      "CPR",
+      "AMC",
+      "AMP"
+     ]
+    ]
+   }
+  },
+  "CPR": {
+   "resistant": "0101",
+   "by_start": {
+    "uniform": [
+     {
+      "steps": 0,
+      "fixed": [],
+      "p_fixed": 0.24652777777777773,
+      "p_dp": 0.24652777777777776
+     },
+     {
+      "steps": 1,
+      "fixed": [
+       "AMP"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     },
+     {
+      "steps": 2,
+      "fixed": [
+       "AMP",
+       "AMP"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     },
+     {
+      "steps": 3,
+      "fixed": [
+       "AMP",
+       "AMP",
+       "AMP"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     }
+    ],
+    "wild": [
+     {
+      "steps": 0,
+      "fixed": [],
+      "p_fixed": 0.25,
+      "p_dp": 0.25
+     },
+     {
+      "steps": 1,
+      "fixed": [
+       "AMP"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     },
+     {
+      "steps": 2,
+      "fixed": [
+       "AMP",
+       "AMP"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     },
+     {
+      "steps": 3,
+      "fixed": [
+       "AMP",
+       "AMP",
+       "AMP"
+      ],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     }
+    ]
+   },
+   "dp_policy": {
+    "1": [
+     [
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP"
+     ]
+    ],
+    "2": [
+     [
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP"
+     ],
+     [
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP"
+     ]
+    ],
+    "3": [
+     [
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP"
+     ],
+     [
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP"
+     ],
+     [
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP",
+      "AMP"
+     ]
+    ]
+   }
+  },
+  "CPD": {
+   "resistant": "1111",
+   "by_start": {
+    "uniform": [
+     {
+      "steps": 0,
+      "fixed": [],
+      "p_fixed": 0.8086419753086419,
+      "p_dp": 0.808641975308642
+     },
+     {
+      "steps": 1,
+      "fixed": [
+       "CRO"
+      ],
+      "p_fixed": 0.7392939814814816,
+      "p_dp": 0.661233281893004
+     },
+     {
+      "steps": 2,
+      "fixed": [
+       "CTX",
+       "FEP"
+      ],
+      "p_fixed": 0.5677083333333334,
+      "p_dp": 0.440257773205304
+     },
+     {
+      "steps": 3,
+      "fixed": [
+       "SAM",
+       "CEC",
+       "CRO"
+      ],
+      "p_fixed": 0.5,
+      "p_dp": 0.31468569303936134
+     }
+    ],
+    "wild": [
+     {
+      "steps": 0,
+      "fixed": [],
+      "p_fixed": 0.8333333333333333,
+      "p_dp": 0.8333333333333333
+     },
+     {
+      "steps": 1,
+      "fixed": [
+       "CTX"
+      ],
+      "p_fixed": 0.7222222222222221,
+      "p_dp": 0.7222222222222221
+     },
+     {
+      "steps": 2,
+      "fixed": [
+       "CTX",
+       "FEP"
+      ],
+      "p_fixed": 0.41666666666666663,
+      "p_dp": 0.39929126657521713
+     },
+     {
+      "steps": 3,
+      "fixed": [
+       "CTT",
+       "CTX",
+       "FEP"
+      ],
+      "p_fixed": 0.41435185185185186,
+      "p_dp": 0.27777777777777773
+     }
+    ]
+   },
+   "dp_policy": {
+    "1": [
+     [
+      "CTX",
+      "CTX",
+      "CRO",
+      "CTT",
+      "FEP",
+      "CRO",
+      "FEP",
+      "CEC",
+      "CTX",
+      "CTX",
+      "CTX",
+      "CTX",
+      "CRO",
+      "CEC",
+      "CRO",
+      "CEC"
+     ]
+    ],
+    "2": [
+     [
+      "CTX",
+      "CTX",
+      "CPD",
+      "SAM",
+      "CTX",
+      "CTX",
+      "FEP",
+      "FEP",
+      "CTX",
+      "CTX",
+      "CTX",
+      "CPD",
+      "CTX",
+      "CTX",
+      "CRO",
+      "CEC"
+     ],
+     [
+      "CTX",
+      "CTX",
+      "CRO",
+      "CTT",
+      "FEP",
+      "CRO",
+      "FEP",
+      "CEC",
+      "CTX",
+      "CTX",
+      "CTX",
+      "CTX",
+      "CRO",
+      "CEC",
+      "CRO",
+      "CEC"
+     ]
+    ],
+    "3": [
+     [
+      "CTX",
+      "CTX",
+      "FEP",
+      "CTT",
+      "CTX",
+      "CTX",
+      "FEP",
+      "FEP",
+      "CTX",
+      "CTX",
+      "CTX",
+      "CPD",
+      "CTX",
+      "CTX",
+      "CRO",
+      "CEC"
+     ],
+     [
+      "CTX",
+      "CTX",
+      "CPD",
+      "SAM",
+      "CTX",
+      "CTX",
+      "FEP",
+      "FEP",
+      "CTX",
+      "CTX",
+      "CTX",
+      "CPD",
+      "CTX",
+      "CTX",
+      "CRO",
+      "CEC"
+     ],
+     [
+      "CTX",
+      "CTX",
+      "CRO",
+      "CTT",
+      "FEP",
+      "CRO",
+      "FEP",
+      "CEC",
+      "CTX",
+      "CTX",
+      "CTX",
+      "CTX",
+      "CRO",
+      "CEC",
+      "CRO",
+      "CEC"
+     ]
+    ]
+   }
+  },
+  "TZP": {
+   "resistant": "0101",
+   "by_start": {
+    "uniform": [
+     {
+      "steps": 0,
+      "fixed": [],
+      "p_fixed": 0.8009259259259259,
+      "p_dp": 0.8009259259259259
+     },
+     {
+      "steps": 1,
+      "fixed": [
+       "CTT"
+      ],
+      "p_fixed": 0.7227366255144032,
+      "p_dp": 0.6645407343106995
+     },
+     {
+      "steps": 2,
+      "fixed": [
+       "CTT",
+       "CTT"
+      ],
+      "p_fixed": 0.7227366255144032,
+      "p_dp": 0.572148494432656
+     },
+     {
+      "steps": 3,
+      "fixed": [
+       "CTX",
+       "FEP",
+       "CTT"
+      ],
+      "p_fixed": 0.6752757773205305,
+      "p_dp": 0.49063796194710574
+     }
+    ],
+    "wild": [
+     {
+      "steps": 0,
+      "fixed": [],
+      "p_fixed": 0.6666666666666666,
+      "p_dp": 0.6666666666666666
+     },
+     {
+      "steps": 1,
+      "fixed": [
+       "CTT"
+      ],
+      "p_fixed": 0.5586419753086419,
+      "p_dp": 0.5586419753086419
+     },
+     {
+      "steps": 2,
+      "fixed": [
+       "CTT",
+       "CTT"
+      ],
+      "p_fixed": 0.5586419753086419,
+      "p_dp": 0.4567579732510287
+     },
+     {
+      "steps": 3,
+      "fixed": [
+       "CTT",
+       "TZP",
+       "CTT"
+      ],
+      "p_fixed": 0.5534693644261544,
+      "p_dp": 0.39557858760573833
+     }
+    ]
+   },
+   "dp_policy": {
+    "1": [
+     [
+      "CTT",
+      "CTT",
+      "CTT",
+      "CTT",
+      "FEP",
+      "AMP",
+      "FEP",
+      "FEP",
+      "CTT",
+      "CTT",
+      "CTT",
+      "CTT",
+      "TZP",
+      "CRO",
+      "CRO",
+      "CEC"
+     ]
+    ],
+    "2": [
+     [
+      "CTT",
+      "CTT",
+      "CTT",
+      "CTT",
+      "FEP",
+      "CTX",
+      "FEP",
+      "CEC",
+      "CTT",
+      "CTT",
+      "CTT",
+      "CTT",
+      "CTT",
+      "CTX",
+      "CRO",
+      "CEC"
+     ],
+     [
+      "CTT",
+      "CTT",
+      "CTT",
+      "CTT",
+      "FEP",
+      "AMP",
+      "FEP",
+      "FEP",
+      "CTT",
+      "CTT",
+      "CTT",
+      "CTT",
+      "TZP",
+      "CRO",
+      "CRO",
+      "CEC"
+     ]
+    ],
+    "3": [
+     [
+      "CTT",
+      "CTT",
+      "CTT",
+      "CTT",
+      "FEP",
+      "CTX",
+      "FEP",
+      "CEC",
+      "CTT",
+      "CTT",
+      "CTT",
+      "CTT",
+      "TZP",
+      "CTX",
+      "CRO",
+      "CEC"
+     ],
+     [
+      "CTT",
+      "CTT",
+      "CTT",
+      "CTT",
+      "FEP",
+      "CTX",
+      "FEP",
+      "CEC",
+      "CTT",
+      "CTT",
+      "CTT",
+      "CTT",
+      "CTT",
+      "CTX",
+      "CRO",
+      "CEC"
+     ],
+     [
+      "CTT",
+      "CTT",
+      "CTT",
+      "CTT",
+      "FEP",
+      "AMP",
+      "FEP",
+      "FEP",
+      "CTT",
+      "CTT",
+      "CTT",
+      "CTT",
+      "TZP",
+      "CRO",
+      "CRO",
+      "CEC"
+     ]
+    ]
+   }
+  },
+  "FEP": {
+   "resistant": "1111",
+   "by_start": {
+    "uniform": [
+     {
+      "steps": 0,
+      "fixed": [],
+      "p_fixed": 0.4756944444444444,
+      "p_dp": 0.4756944444444444
+     },
+     {
+      "steps": 1,
+      "fixed": [
+       "CTX"
+      ],
+      "p_fixed": 0.3871527777777778,
+      "p_dp": 0.3140190972222222
+     },
+     {
+      "steps": 2,
+      "fixed": [
+       "CAZ",
+       "CEC"
+      ],
+      "p_fixed": 0.3563910590277778,
+      "p_dp": 0.2060207790798611
+     },
+     {
+      "steps": 3,
+      "fixed": [
+       "CAZ",
+       "CEC",
+       "CTX"
+      ],
+      "p_fixed": 0.3276909722222222,
+      "p_dp": 0.13770548502604169
+     }
+    ],
+    "wild": [
+     {
+      "steps": 0,
+      "fixed": [],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     },
+     {
+      "steps": 1,
+      "fixed": [],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     },
+     {
+      "steps": 2,
+      "fixed": [],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     },
+     {
+      "steps": 3,
+      "fixed": [],
+      "p_fixed": 0.0,
+      "p_dp": 0.0
+     }
+    ]
+   },
+   "dp_policy": {
+    "1": [
+     [
+      "FEP",
+      "CTX",
+      "AM",
+      "AMP",
+      "CTX",
+      "CEC",
+      "AMP",
+      "CEC",
+      "CTX",
+      "CTX",
+      "CTX",
+      "CTX",
+      "CTX",
+      "CEC",
+      "CEC",
+      "CEC"
+     ]
+    ],
+    "2": [
+     [
+      "FEP",
+      "FEP",
+      "FEP",
+      "AMP",
+      "FEP",
+      "ZOX",
+      "FEP",
+      "FEP",
+      "FEP",
+      "CTX",
+      "CTX",
+      "CTX",
+      "ZOX",
+      "ZOX",
+      "CRO",
+      "ZOX"
+     ],
+     [
+      "FEP",
+      "CTX",
+      "AM",
+      "AMP",
+      "CTX",
+      "CEC",
+      "AMP",
+      "CEC",
+      "CTX",
+      "CTX",
+      "CTX",
+      "CTX",
+      "CTX",
+      "CEC",
+      "CEC",
+      "CEC"
+     ]
+    ],
+    "3": [
+     [
+      "FEP",
+      "FEP",
+      "FEP",
+      "AMP",
+      "FEP",
+      "CEC",
+      "FEP",
+      "CEC",
+      "FEP",
+      "CTX",
+      "CTX",
+      "CTX",
+      "CRO",
+      "CEC",
+      "CRO",
+      "CEC"
+     ],
+     [
+      "FEP",
+      "FEP",
+      "FEP",
+      "AMP",
+      "FEP",
+      "ZOX",
+      "FEP",
+      "FEP",
+      "FEP",
+      "CTX",
+      "CTX",
+      "CTX",
+      "ZOX",
+      "ZOX",
+      "CRO",
+      "ZOX"
+     ],
+     [
+      "FEP",
+      "CTX",
+      "AM",
+      "AMP",
+      "CTX",
+      "CEC",
+      "AMP",
+      "CEC",
+      "CTX",
+      "CTX",
+      "CTX",
+      "CTX",
+      "CTX",
+      "CEC",
+      "CEC",
+      "CEC"
+     ]
+    ]
+   }
+  }
+ }
+}
