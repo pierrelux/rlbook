@@ -541,56 +541,112 @@ out one backward pass by hand on a scalar problem.
 (sec-ilqr-rollout)=
 ## Nonlinear Rollouts and iLQR
 
-The backward pass minimizes a quadratic approximation. A large correction
-can make its linearized state prediction inaccurate, so a proposed control
-sequence must be evaluated through the original discrete simulator before it
-is accepted.
+The backward pass returns, at every step, an affine law
+$\delta\mathbf u_t=k_t+K_t\delta\mathbf x_t$ for the local problem. iLQR turns
+it into a new plan and repeats:
 
-Starting from the same initial state, form a nonlinear trial trajectory using
+1. **Roll out.** Simulate the current controls $\bar{\mathbf U}$ through the
+   true dynamics. This gives the current plan $\bar{\mathbf x}_t$,
+   $\bar{\mathbf u}_t$ and its cost.
+2. **Backward pass.** Linearize the dynamics and expand the costs around this
+   plan, then solve the local LQR problem with
+   {prf:ref}`alg-ilqr-backward-pass`. This gives $k_t$ and $K_t$.
+3. **Forward pass.** Run the affine law in closed loop through the true
+   simulator, starting from the same initial state:
+
+   $$
+   \begin{aligned}
+   \mathbf x_1^+&=\mathbf x_{\mathrm{init}},\\
+   \mathbf u_t^+&=\bar{\mathbf u}_t+k_t+K_t(\mathbf x_t^+-\bar{\mathbf x}_t),\\
+   \mathbf x_{t+1}^+&=\mathbf f_t(\mathbf x_t^+,\mathbf u_t^+).
+   \end{aligned}
+   $$
+
+   The new states and controls are the next plan.
+4. **Repeat** until the plan stops changing.
+
+This loop is the **iterative linear-quadratic regulator**, iLQR
+{cite:p}`li2004iterative`: an LQR problem is solved at every iteration, around
+a different trajectory. The control law in step 3 is the local solution
+$\mathbf u=\bar{\mathbf u}+\delta\mathbf u$, with the nudge
+$\delta\mathbf x_t$ measured as the simulated state minus the planned one.
+The feedback term matters because the true simulator does not follow the
+linear model exactly. When the new states drift from the linear prediction,
+$K_t$ adjusts the controls the way the local model says the best control
+changes with the state.
+
+The loop always linearizes around a trajectory that the true dynamics
+produced. The gains from the old linearization generate the new trajectory,
+and that trajectory gives the next linearization. Everything in steps 2 and 3
+follows from the derivation above: $q_t$, $M_t$, $k_t$, $K_t$, $p_t$ and
+$P_t$ all come out of the LQR algebra. Two safeguards are added by hand, a
+step size and a regularization, and the rest of this section explains why
+each is needed.
+
+### Step size and line search
+
+The local model is accurate only near the current plan. Far from the optimum,
+the full step of the forward pass can move the boat well outside that
+neighborhood, and the true cost can then go up instead of down. Nothing in the
+Riccati derivation prevents this.
+
+The usual fix comes from numerical optimization. Treat the LQR solution as a
+search direction, as one would treat a Newton step, and decide separately how
+far to move along it. This is a damped Newton method. The step size $\alpha$
+is not part of the Riccati derivation; it is added afterward and multiplies
+only the feedforward term:
 
 $$
-\begin{aligned}
-\mathbf x_1^+&=\mathbf x_{\mathrm{init}},\\
-\mathbf u_t^+&=\bar{\mathbf u}_t+\alpha k_t
-                  +K_t(\mathbf x_t^+-\bar{\mathbf x}_t),\\
-\mathbf x_{t+1}^+&=\mathbf f_t(\mathbf x_t^+,\mathbf u_t^+).
-\end{aligned}
+\mathbf u_t^+=\bar{\mathbf u}_t+\alpha k_t+K_t(\mathbf x_t^+-\bar{\mathbf x}_t).
 $$
 
-The step size $\alpha$ scales the feedforward change. The feedback term
-responds to the state deviation that actually occurs during this trial. Its
-gain is not multiplied by $\alpha$. At $\alpha=0$, induction through these
-equations recovers the current plan, because each state deviation is
-then zero. For an exact linear-quadratic problem, $\alpha=1$ gives the complete
-solution derived by elimination.
+Putting $\alpha$ on $k_t$ alone is a choice, and the reason is that it gives a
+path between two known trajectories. At $\alpha=0$ every state nudge stays
+zero, by induction through the forward pass, and the old plan comes back. At
+$\alpha=1$ the forward pass takes the full LQR step, which is the exact
+solution when the problem is linear-quadratic. In between, the gains keep
+each trial consistent with the true dynamics.
 
-A line search first tries $\alpha=1$, then successively smaller values. Each
-trial has its own nonlinear states and cost. The implementation uses
-$1,1/2,\ldots,2^{-11}$ and accepts a strictly lower finite cost with a small
-sufficient-decrease check. If
+A **line search** chooses $\alpha$ at every iteration. Try the full step
+$\alpha=1$, simulate, and keep the result if the true cost went down enough.
+Otherwise halve $\alpha$ and simulate again. Each trial is one run through the
+nonlinear simulator. The step size is therefore not a fixed hyperparameter;
+it adapts at every iteration. When the linear model is accurate, as near
+convergence, the full step usually passes at once. The real settings are the
+halving schedule and the meaning of "enough".
+
+The implementation tries $1,1/2,\ldots,2^{-11}$. For "enough", the backward
+pass predicts the reduction of the local model. With
 
 $$
 d_1=\sum_{t=1}^{T-1}q_{u,t}^\top k_t,\qquad
 d_2=\frac12\sum_{t=1}^{T-1}k_t^\top M_{uu,t}k_t,
 $$
 
-the backward pass estimates a reduction
+the predicted reduction is
 $\widehat\Delta J(\alpha)=-\alpha d_1-\alpha^2d_2$.
-Acceptance requires
-$J(\bar{\mathbf U})-J(\mathbf U^+)\geq10^{-4}\max(\widehat\Delta J(\alpha),0)$
-as well as a strict decrease. This estimate guides acceptance; it does not
-replace evaluation of the original objective.
+A trial is accepted when its true cost decreases strictly and by at least a
+small fraction of this prediction,
+$J(\bar{\mathbf U})-J(\mathbf U^+)\geq10^{-4}\max(\widehat\Delta J(\alpha),0)$.
+The prediction guides acceptance; it does not replace evaluation of the
+original objective.
 
-The control curvature may be indefinite or nearly singular. Replace the
-matrix used in the control solve by $M_{uu}+\mu I$, where $\mu>0$. Increasing
-$\mu$ makes the correction more conservative and can make the solve positive
-definite. The code checks a Cholesky factorization, increases $\mu$ after a
-failed backward pass or line search, and decreases it after an accepted step.
-The numerical defaults start at $10^{-4}$, multiply by ten after failure,
-and divide by three after acceptance, with a floor of $10^{-9}$.
+### Regularization
+
+The second problem appears in the backward pass itself. Away from the
+optimum, the control curvature $M_{uu,t}$ may be indefinite or nearly
+singular, and then the control solve fails or proposes a huge change. Replace
+the matrix used in the control solve by $M_{uu}+\mu I$, where $\mu>0$.
+Increasing $\mu$ makes the correction more conservative and can make the solve
+positive definite. The code checks a Cholesky factorization, increases $\mu$
+after a failed backward pass or line search, and decreases it after an
+accepted step. The numerical defaults start at $10^{-4}$, multiply by ten
+after failure, and divide by three after acceptance, with a floor of
+$10^{-9}$.
 
 When regularization changes $k$ and $K$, the formulas for $p_t$ and $P_t$
-above no longer describe substitution into the original quadratic model. The implementation therefore uses the full expressions
+above no longer describe substitution into the original quadratic model. The
+implementation therefore uses the full expressions
 
 $$
 \begin{aligned}
@@ -603,29 +659,30 @@ Here $M_{uu}$ is the original curvature block; regularization was used to
 choose the correction. These expressions also remain applicable when some
 controls are fixed at their bounds.
 
-Alternating local linear-quadratic approximation, backward elimination, and
-nonlinear rollout gives iLQR {cite:p}`li2004iterative`. The iteration uses
-second derivatives of the costs but only first derivatives of the dynamics.
-It is often described as a Gauss--Newton approximation to DDP. That terminology
-should not obscure what is approximated: the omitted terms come from dynamics
-curvature. If a nonlinear cost is itself a sum of squared residuals, replacing
-its Hessian by a residual-Jacobian product would be a further approximation;
-the docking code uses the exact cost Hessian.
+With both safeguards in place, the complete method reads as follows.
 
-````{prf:algorithm} Successive linear-quadratic trajectory optimization
+````{prf:algorithm} iLQR
 :label: alg-trajectory-ilqr
 
 **Input:** Discrete transition, running and terminal costs, initial state, and a feasible initial control sequence.
 
 1. Roll out the current controls and evaluate their nonlinear cost.
 2. Differentiate the transition and costs along this rollout.
-3. Starting from the terminal quadratic expansion, eliminate controls backward to obtain $k_t$ and $K_t$. Increase regularization and retry if a control solve fails.
-4. Test decreasing step sizes using nonlinear forward rollouts with the affine corrections.
-5. Accept a trial only when its actual cost decreases sufficiently. Otherwise increase regularization and retry the backward pass.
-6. Repeat until the control-gradient residual is small or a declared iteration or regularization limit is reached.
+3. Run the backward pass ({prf:ref}`alg-ilqr-backward-pass`) to obtain $k_t$ and $K_t$. Increase the regularization $\mu$ and retry if a control solve fails.
+4. Run forward passes with $\alpha=1,\tfrac12,\tfrac14,\ldots$ through the nonlinear simulator.
+5. Accept the first trial whose true cost decreases sufficiently, and decrease $\mu$. If none does, increase $\mu$ and return to step 3.
+6. Repeat from step 2 until the control-gradient residual is small or a declared iteration or regularization limit is reached.
 
 **Output:** The last accepted trajectory, its controls and local gains, an iteration history, and an explicit termination status.
 ````
+
+The iteration uses second derivatives of the costs but only first derivatives
+of the dynamics. It is often described as a Gauss--Newton approximation to
+DDP. That terminology should not obscure what is approximated: the omitted
+terms come from dynamics curvature, as the next section shows. If a nonlinear
+cost is itself a sum of squared residuals, replacing its Hessian by a
+residual-Jacobian product would be a further approximation; the docking code
+uses the exact cost Hessian.
 
 The returned gains describe a neighborhood of the final plan.
 The docking animation below executes one stored plan. The gains used inside
@@ -634,45 +691,67 @@ the optimizer do not imply that the animation replans as the boat moves.
 (sec-ddp-curvature)=
 ## Dynamics Curvature and DDP
 
-iLQR drops the quadratic remainder in the transition's first-order Taylor
-expansion. For a turning boat, a change in heading changes the direction of
-thrust, so products of state and control changes can affect the next state.
-DDP retains these second-order terms in the backward calculation.
+iLQR drops the quadratic remainder in the transition's Taylor expansion. For
+a turning boat, a change in heading changes the direction of thrust, so
+products of state and control changes can affect the next state. DDP keeps
+these second-order terms in the backward pass. Everything else stays the
+same.
 
-For component $i$ of the transition, Taylor expansion one order further gives
+### The chain rule in one variable
 
-$$
-\delta x_{t+1,i}
-=(F_t\delta\mathbf z_t)_i
-+\frac12\delta\mathbf z_t^\top f^i_{zz,t}\delta\mathbf z_t
-+o(\|\delta\mathbf z_t\|^2).
-$$
-
-Here $f^i_{zz,t}$ is the Hessian of the $i$th component of $\mathbf f_t$ with
-respect to the stacked state and control, evaluated along the current plan.
-Substitute this expression into the same quadratic tail $S_{t+1}$. Its
-linear term $p_{t+1}^\top\delta\mathbf x_{t+1}$ now contributes an additional
-quadratic term. Its quadratic term contributes
-$\tfrac12\delta\mathbf z_t^\top F_t^\top P_{t+1}F_t\delta\mathbf z_t$;
-products involving the second-order part of the transition there are of order
-three or higher and are discarded. Consequently,
+Each backup minimizes a stage cost plus the cost-to-go evaluated at the next
+state. With one variable, write $g$ for the cost-to-go and $f$ for the
+dynamics. The second derivative of the composition has two terms:
 
 $$
-\begin{aligned}
-q_t^{\mathrm{DDP}}&=c_{z,t}+F_t^\top p_{t+1},\\
-M_t^{\mathrm{DDP}}&=c_{zz,t}+F_t^\top P_{t+1}F_t
-                  +\sum_{i=1}^{n_x}p_{t+1,i}f^i_{zz,t}.
-\end{aligned}
+(g\circ f)''=g''\,(f')^2+g'\,f''.
 $$
 
-The extra contraction weights curvature of each next-state component by its
-linear coefficient in the eliminated tail. At a given backward stage, this is
-the second-order chain rule for composing the transition with that tail.
+The first term is the curvature of the cost-to-go times the squared slope of
+the dynamics. The second is the slope of the cost-to-go times the curvature of
+the dynamics. iLQR keeps the first term only. DDP keeps both.
+
+### One backup, expanded to second order
+
+Write the quantity minimized in one backup as a function of the stacked nudge
+$\delta\mathbf z_t=(\delta\mathbf x_t,\delta\mathbf u_t)$:
+
+$$
+c_t(\bar{\mathbf z}_t+\delta\mathbf z_t)
++S_{t+1}\big(\mathbf f_t(\bar{\mathbf z}_t+\delta\mathbf z_t)-\bar{\mathbf x}_{t+1}\big).
+$$
+
+Expand it to second order in $\delta\mathbf z_t$. The next-state nudge has a
+linear part $F_t\delta\mathbf z_t$ and, for component $i$, a quadratic part
+$\tfrac12\delta\mathbf z_t^\top f^i_{zz,t}\delta\mathbf z_t$, where
+$f^i_{zz,t}$ is the Hessian of the $i$th component of $\mathbf f_t$ along the
+current plan. Inserted in the tail, the quadratic part of $S_{t+1}$ sees only
+the linear part; the rest is of order three or higher. The linear part
+$p_{t+1}^\top\delta\mathbf x_{t+1}$ of the tail, however, sees both. The
+linear coefficient is the same $q_t=c_{z,t}+F_t^\top p_{t+1}$ as before, and
+the quadratic coefficient is
+
+$$
+M_t=c_{zz,t}
++\underbrace{F_t^\top P_{t+1}F_t}_{g''(f')^2}
++\underbrace{\sum_{i=1}^{n_x}p_{t+1,i}\,f^i_{zz,t}}_{g'f''}.
+$$
+
+iLQR drops the last term:
+
+$$
+M_t^{\mathrm{iLQR}}=c_{zz,t}+F_t^\top P_{t+1}F_t
++\cancel{\textstyle\sum_i p_{t+1,i}\,f^i_{zz,t}}.
+$$
+
 These are the multiplier-weighted dynamics Hessians that the
 [local problem](#sec-local-quadratic-trajectory) left out. The tail gradient
 $p_{t+1}$ plays the role of the SQP multiplier: it is the costate, the
 sensitivity of the remaining cost to the next state.
-In block form, the differences from iLQR are
+
+### DDP keeps the term
+
+DDP {cite:p}`tassa2014control` keeps the dynamics-curvature term. In blocks,
 
 $$
 \begin{aligned}
@@ -685,12 +764,32 @@ M_{uu,t}^{\mathrm{DDP}}&=c_{uu,t}+B_t^\top P_{t+1}B_t
 \end{aligned}
 $$
 
-Setting those three sums to zero recovers the iLQR construction. Retaining them
-and using the same quadratic elimination and nonlinear line search gives DDP
-{cite:p}`tassa2014control`. The two methods share an algorithmic structure; the
-curvature choice can change both the direction of a step and the amount of
-regularization needed to accept it. This derivation does not require solving
-a subproblem with quadratic dynamics constraints.
+Everything downstream is the same recipe with the new $M_t$: the formulas for
+$k_t$, $K_t$, $p_t$ and $P_t$, the forward pass, the line search and the
+regularization. In {prf:ref}`alg-trajectory-ilqr`, only step 3 changes.
+
+DDP does not build a new local problem with quadratic dynamics and solve it
+with Riccati. With quadratic dynamics the local problem would no longer be
+LQR. DDP instead expands each backup to second order directly, and the extra
+term lands in $M_t$.
+
+````{prf:algorithm} Backward pass for DDP
+:label: alg-ddp-backward-pass
+
+**Input:** Jacobians $A_t,B_t$, transition Hessians $f^i_{zz,t}$ and cost derivatives $c_{z,t},c_{zz,t}$ along the current plan; terminal gradient $p_T$ and Hessian $P_T$.
+
+**Output:** Feedforward terms $k_t$ and gains $K_t$ for $t=1,\ldots,T-1$.
+
+1. For $t=T-1,\ldots,1$:
+   1. Form $q_t=c_{z,t}+F_t^\top p_{t+1}$ and $M_t=c_{zz,t}+F_t^\top P_{t+1}F_t+\sum_{i=1}^{n_x}p_{t+1,i}\,f^i_{zz,t}$.
+   2. Solve $k_t=-M_{uu,t}^{-1}q_{u,t}$ and $K_t=-M_{uu,t}^{-1}M_{ux,t}$.
+   3. Update $p_t=q_{x,t}-M_{ux,t}^\top M_{uu,t}^{-1}q_{u,t}$ and $P_t=M_{xx,t}-M_{ux,t}^\top M_{uu,t}^{-1}M_{ux,t}$.
+2. Return $k_t$ and $K_t$.
+````
+
+The only line that differs from {prf:ref}`alg-ilqr-backward-pass` is the
+formula for $M_t$. The curvature choice can still change both the direction
+of a step and the amount of regularization needed to accept it.
 
 For the boat, even the continuous acceleration contains a state--control
 cross derivative:
