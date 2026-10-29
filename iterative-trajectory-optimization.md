@@ -361,52 +361,17 @@ multiplier, the costate.
 
 ## Backward Elimination
 
-The local problem {eq}`eq-ilqr-local-problem` is solved by eliminating its
-controls one at a time, starting from the last. The last control affects only
-its own stage and the terminal state when its starting state is fixed.
-Eliminating it first leaves a shorter quadratic problem of the same form.
-Repeating that step works backward through the horizon.
+The local problem {eq}`eq-ilqr-local-problem` is a deterministic
+finite-horizon problem with linear dynamics and quadratic costs. It is an LQR
+problem, so the backward induction of the
+[previous chapter](#sec-lqr-dp) solves it. Start from the terminal cost, apply
+one Bellman backup per step from $t=T-1$ down to $t=1$, and then run forward
+from $\delta\mathbf x_1=\mathbf0$ to recover the controls. Each backup
+minimizes over one control and removes it from the problem, which is why the
+backward pass of iLQR is often called backward elimination.
 
-### A two-step calculation
-
-Consider a scalar example with $T=3$, initial state $x_1=0$, dynamics
-$x_{t+1}=x_t+u_t$, and cost
-
-$$
-J=\frac12u_1^2+\frac12u_2^2+\frac12(x_3-1)^2.
-$$
-
-Treat $x_2$ as given while eliminating $u_2$. Substitution of $x_3=x_2+u_2$
-gives
-
-$$
-\frac12u_2^2+\frac12(x_2+u_2-1)^2
-=u_2^2+(x_2-1)u_2+\frac12(x_2-1)^2.
-$$
-
-Differentiating with respect to $u_2$ gives
-$2u_2+x_2-1=0$, so $u_2=(1-x_2)/2$. Substituting this expression back into
-the last two terms of the cost leaves $(x_2-1)^2/4$. Since $x_2=u_1$, the
-remaining problem is
-
-$$
-\min_{u_1}\ \frac12u_1^2+\frac14(u_1-1)^2.
-$$
-
-Its derivative is $u_1+(u_1-1)/2$, giving $u_1=1/3$. Forward substitution then
-gives $x_2=1/3$, $u_2=1/3$, $x_3=2/3$, and $J=1/6$. The final position is short
-of one because the objective trades terminal error against effort; arrival
-was penalized, not imposed as an equality.
-
-The expression $u_2=(1-x_2)/2$ also carries information that a single number
-would discard: if the state reaching the last step changes, the minimizing
-last control changes with it. This dependence becomes the matrix feedback
-correction in the general calculation.
-
-### Eliminating a vector control
-
-Suppose all controls after time $t$ have already been eliminated from the
-local problem. Write the remaining quadratic tail as
+The cost-to-go of the local problem is a quadratic function of the state
+nudge,
 
 $$
 S_{t+1}(\delta\mathbf x_{t+1})
@@ -414,57 +379,49 @@ S_{t+1}(\delta\mathbf x_{t+1})
 +\frac12\delta\mathbf x_{t+1}^\top P_{t+1}\delta\mathbf x_{t+1}.
 $$
 
-At the terminal step, $S_T$ is the quadratic Taylor polynomial of $c_T$, so
-$s_T=c_T(\bar{\mathbf x}_T)$ and its other coefficients are the $p_T,P_T$
-defined above. At earlier steps, $S_{t+1}$ is obtained by elimination from a
-finite optimization problem. This construction does not require a function
-over all states of the nonlinear system.
+At the terminal step, $S_T$ is the quadratic Taylor model of $c_T$, with the
+coefficients $p_T$ and $P_T$ defined above. This tail is the cost-to-go of the
+local problem only. It is accurate near the current plan, and it is not a
+value function of the nonlinear system over its whole state space.
 
-Substitute $\delta\mathbf x_{t+1}=A_t\delta\mathbf x_t+B_t\delta\mathbf u_t$
-into this tail and add the stage cost. With $F_t=[A_t\ B_t]$, the new linear
-and quadratic coefficients are
+As in the previous chapter, a quadratic cost-to-go stays quadratic after one
+backup, and the update of $P_t$ is the **Riccati recursion**. Two features
+differ from the textbook LQR problem.
+
+1. The current plan is generally not optimal, so the local costs have linear
+   terms: the gradients $c_{z,t}$ and $p_T$. They give the cost-to-go its
+   linear coefficient $p_t$, and they produce a feedforward change $k_t$ next
+   to the feedback gain $K_t$. The feedforward term moves the plan even when
+   the state nudge is zero.
+2. The stage cost may contain a state--control cross term $c_{ux,t}$. It adds
+   to the $B_t^\top P_{t+1}A_t$ coupling that the dynamics already create.
+
+The box collects the resulting formulas. With $c_{z,t}=0$, $p_T=0$ and
+$c_{ux,t}=0$, they reduce to the recursion of the previous chapter, written
+there with the opposite sign convention $\mathbf u=-K\mathbf x$.
+
+:::{admonition} One backup of the local LQR problem
+:class: note
+
+Given the tail coefficients $p_{t+1}$ and $P_{t+1}$, and with
+$F_t=[A_t\ B_t]$, form
 
 $$
 q_t=c_{z,t}+F_t^\top p_{t+1},\qquad
-M_t=c_{zz,t}+F_t^\top P_{t+1}F_t.
+M_t=c_{zz,t}+F_t^\top P_{t+1}F_t,
 $$
 
-We use $M_t$ for the local Hessian because $H_t$ denoted the Hamiltonian in
-the Pontryagin chapter. Partition $q_t$ and $M_t$ according to the state and
-control coordinates.
-Apart from a constant, the expression to minimize is
+and split them into state and control blocks $q_x,q_u$ and
+$M_{xx},M_{ux},M_{uu}$. We use $M_t$ for this Hessian because $H_t$ denoted
+the Hamiltonian in the Pontryagin chapter. When $M_{uu}$ is positive definite,
+the minimizing control nudge is
 
 $$
-q_x^\top\delta\mathbf x+q_u^\top\delta\mathbf u
-+\frac12\delta\mathbf x^\top M_{xx}\delta\mathbf x
-+\delta\mathbf u^\top M_{ux}\delta\mathbf x
-+\frac12\delta\mathbf u^\top M_{uu}\delta\mathbf u.
+\delta\mathbf u_t=k_t+K_t\delta\mathbf x_t,\qquad
+k_t=-M_{uu}^{-1}q_u,\qquad K_t=-M_{uu}^{-1}M_{ux},
 $$
 
-The time index is suppressed within this one-step calculation. When $M_{uu}$
-is positive definite, setting the control derivative to zero gives
-
-$$
-M_{uu}\delta\mathbf u+q_u+M_{ux}\delta\mathbf x=0,
-\qquad
-\delta\mathbf u=k+K\delta\mathbf x,
-$$
-
-where
-
-$$
-k=-M_{uu}^{-1}q_u,\qquad K=-M_{uu}^{-1}M_{ux}.
-$$
-
-Restoring the time index gives the affine correction
-$\delta\mathbf u_t=k_t+K_t\delta\mathbf x_t$.
-The vector $k$ changes the planned command even at zero state deviation. The
-matrix $K$ adjusts that change for a different state arriving from the earlier
-steps. In code, these formulas are linear solves with $M_{uu}$; an explicit
-matrix inverse is unnecessary.
-
-Substituting the minimizing control back into the quadratic expression gives
-the coefficients needed by the preceding step:
+and the cost-to-go coefficients for the preceding step are
 
 $$
 \begin{aligned}
@@ -473,19 +430,17 @@ P_t&=M_{xx}-M_{ux}^\top M_{uu}^{-1}M_{ux}.
 \end{aligned}
 $$
 
-The subtracted term in $P_t$ is the Schur complement associated with
-eliminating the control block. Repeat this operation from $T-1$ to one,
-starting with the terminal coefficients. A subsequent forward substitution
-recovers the state and control changes. For fixed state and control dimensions,
-the number of these elimination steps grows linearly with the horizon.
+In code, these formulas are linear solves with $M_{uu}$; an explicit matrix
+inverse is unnecessary.
+:::
 
-For linear dynamics and quadratic costs, this procedure solves the original
-unconstrained problem exactly when its control minimizations are well posed.
-It is the [LQR backward recursion](#sec-lqr-dp) of the previous chapter, with
-the quadratic tail playing the role of the optimal cost-to-go, and the matrix
-recursion for $P_t$ is the same **Riccati recursion**. Along a nonlinear
-trajectory, $A_t$, $B_t$, and the cost derivatives describe only a local
-approximation. They must be recomputed after the trajectory changes.
+The backward pass costs a fixed amount of work per step, so its cost grows
+linearly with the horizon. For linear dynamics and quadratic costs, it solves
+the original problem exactly whenever each $M_{uu}$ is positive definite.
+Along a nonlinear trajectory, $A_t$, $B_t$, and the cost derivatives describe
+only a local approximation. They must be recomputed after the plan changes.
+{ref}`ex-ilqr-two-step` carries out one backward pass by hand on a scalar
+problem.
 
 (sec-ilqr-rollout)=
 ## Nonlinear Rollouts and iLQR
@@ -538,9 +493,8 @@ failed backward pass or line search, and decreases it after an accepted step.
 The numerical defaults start at $10^{-4}$, multiply by ten after failure,
 and divide by three after acceptance, with a floor of $10^{-9}$.
 
-When regularization changes $k$ and $K$, the simplified Schur-complement
-formulas above no longer describe substitution into the original quadratic
-model. The implementation therefore uses the full expressions
+When regularization changes $k$ and $K$, the formulas for $p_t$ and $P_t$ in
+the box no longer describe substitution into the original quadratic model. The implementation therefore uses the full expressions
 
 $$
 \begin{aligned}
@@ -1000,12 +954,25 @@ certifies a global minimum.
 
 ## Exercises
 
-:::{exercise} Change the terminal weight
+:::{exercise} Backward induction by hand
 :label: ex-ilqr-two-step
 
-In the two-step scalar example, replace the terminal cost by
-$\tfrac\beta2(x_3-r)^2$, with $\beta>0$. Eliminate $u_2$ and then $u_1$.
-Find both controls and the terminal state. What happens as $\beta\to\infty$?
+Consider a scalar problem with $T=3$, initial state $x_1=0$, dynamics
+$x_{t+1}=x_t+u_t$, and cost
+
+$$
+J=\frac12u_1^2+\frac12u_2^2+\frac\beta2(x_3-r)^2,\qquad \beta>0.
+$$
+
+1. Treat $x_2$ as given, substitute $x_3=x_2+u_2$, and minimize over $u_2$.
+   Write the minimizing $u_2$ as a function of $x_2$ and compute the
+   remaining cost-to-go.
+2. Use $x_2=u_1$ to minimize over $u_1$. Find both controls and the terminal
+   state.
+3. For $\beta=r=1$, check that $u_1=u_2=1/3$, $x_3=2/3$, and $J=1/6$. Why is
+   the final position short of $r$?
+4. Why is it useful that step 1 returns $u_2$ as a function of $x_2$ rather
+   than as a number? What happens as $\beta\to\infty$?
 :::
 
 :::{solution} ex-ilqr-two-step
@@ -1014,8 +981,15 @@ Find both controls and the terminal state. What happens as $\beta\to\infty$?
 The last control is $u_2=\beta(r-x_2)/(1+\beta)$, and its minimized tail
 is $\beta(x_2-r)^2/[2(1+\beta)]$. With $x_1=0$, minimizing the remaining
 expression gives $u_1=\beta r/(1+2\beta)$, followed by the same value for
-$u_2$. Thus $x_3=2\beta r/(1+2\beta)$. As the terminal weight grows, the
-two controls tend to $r/2$ and the terminal state tends to $r$.
+$u_2$. Thus $x_3=2\beta r/(1+2\beta)$. For $\beta=r=1$ this gives
+$u_1=u_2=1/3$ and $x_3=2/3$, so $J=\tfrac1{18}+\tfrac1{18}+\tfrac1{18}=1/6$.
+The final position falls short because the objective trades terminal error
+against effort; arrival is penalized, not imposed as an equality.
+
+The function $u_2(x_2)$ is a feedback law: if the state reaching the last step
+changes, the minimizing last control changes with it. In the vector case this
+dependence becomes the gain $K_t$. As the terminal weight grows, the two
+controls tend to $r/2$ and the terminal state tends to $r$.
 :::
 
 :::{exercise} The linear-quadratic special case
