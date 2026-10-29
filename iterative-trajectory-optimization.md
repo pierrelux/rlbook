@@ -26,10 +26,16 @@ backward, one time step at a time. The resulting correction is then tested
 through the nonlinear simulator. Repeating these operations gives the
 **iterative linear-quadratic regulator**, or **iLQR**. Keeping additional
 curvature from the dynamics gives **differential dynamic programming**, or
-**DDP**. Both methods compute corrections around a nominal trajectory. The
+**DDP**. Both methods compute corrections around the current plan. The
 local problem is the [linear-quadratic regulator](#sec-lqr-dp) solved by dynamic
 programming in the previous chapter, and its backward recursion can also be
 read as substitution and quadratic minimization.
+
+The chapter is a bridge between the exact dynamic programming of the previous
+chapter and the [stochastic dynamic programming](stochastic-dp.md) of the
+next. iLQR reuses the LQR backward recursion, but only locally: its quadratic
+models and its feedback gains describe a neighborhood of one trajectory, not
+the whole state space.
 
 ## Learning Goals
 
@@ -48,7 +54,7 @@ The chapter uses the [finite-horizon optimal-control formulation](discrete-time-
 [single shooting](numerical-trajectory-optimization.md), the
 [linear-quadratic regulator](#sec-lqr-dp) from finite-horizon dynamic
 programming, and first and second derivatives. The
-[sequential-methods discussion](numerical-trajectory-optimization.md#sequential-methods)
+[SQP section of the nonlinear-programming appendix](#sec-sqp-approach)
 introduces general SQP subproblems, and the [initial-value-problem appendix](appendix_ivps.md) reviews
 numerical integration.
 
@@ -180,23 +186,44 @@ $$
 $$
 
 Here $\mathbf U=(\mathbf u_1,\ldots,\mathbf u_{T-1})$ is the complete control
-sequence. Its rollout determines every later state.
+sequence. Its rollout determines every later state. This is an open-loop
+problem: the decision variable is a sequence of commands fixed in advance, not
+a rule that reacts to the state. iLQR returns such a sequence. The feedback
+gains $K_t$ that appear below are a by-product of the computation. Near the
+returned plan they tell how to adjust each command when the state drifts from
+the planned one, through $\mathbf u=\bar{\mathbf u}+K(\mathbf x-\bar{\mathbf x})$,
+and they say nothing about states far from it.
 
-Set aside the control bounds while deriving the local correction. Roll out a
-nominal control sequence $\bar{\mathbf U}$ to obtain states satisfying
+We cannot solve this nonlinear problem directly. The previous chapter showed
+that a linear-quadratic regulator problem can be solved exactly by a backward
+recursion. The idea of this chapter is to build an LQR problem that resembles
+ours near a current plan, solve it, use its solution to improve the plan, and
+repeat.
+
+Set aside the control bounds while deriving this local problem. The **current
+plan** is a control sequence $\bar{\mathbf U}$ together with the states
+obtained by rolling it out,
 $\bar{\mathbf x}_{t+1}=\mathbf f_t(\bar{\mathbf x}_t,\bar{\mathbf u}_t)$.
-For a nearby trajectory, write
-$\delta\mathbf x_t=\mathbf x_t-\bar{\mathbf x}_t$ and
-$\delta\mathbf u_t=\mathbf u_t-\bar{\mathbf u}_t$, and stack them as
-$\delta\mathbf z_t=(\delta\mathbf x_t,\delta\mathbf u_t)$.
-Taylor expansion of the discrete transition at the nominal state and control
-gives
+For the boat, the first plan is the zero-thrust coast. The plan is our current
+guess, not a reference that the boat must track. To ask what happens if we
+change it, consider nudges $\delta\mathbf x_t=\mathbf x_t-\bar{\mathbf x}_t$
+and $\delta\mathbf u_t=\mathbf u_t-\bar{\mathbf u}_t$, stacked as
+$\delta\mathbf z_t=(\delta\mathbf x_t,\delta\mathbf u_t)$. These are
+hypothetical changes that we are free to choose, not measured errors.
+
+The linear model of the transition follows the usual Taylor steps. A scalar
+function of one variable satisfies $f(a+h)\approx f(a)+f'(a)h$. With two
+inputs the partial derivatives add:
+$f(\bar x+\delta x,\bar u+\delta u)\approx f(\bar x,\bar u)
++\partial_x f\,\delta x+\partial_u f\,\delta u$. The transition $\mathbf f_t$
+has one such expansion for each of its $n_x$ components. Each component gives
+one row, and stacking the rows gives the Jacobian matrices $A_t$ and $B_t$:
 
 $$
 \begin{aligned}
 \mathbf f_t(\bar{\mathbf x}_t+\delta\mathbf x_t,
              \bar{\mathbf u}_t+\delta\mathbf u_t)
-&=\bar{\mathbf x}_{t+1}
+&=\mathbf f_t(\bar{\mathbf x}_t,\bar{\mathbf u}_t)
   +A_t\delta\mathbf x_t+B_t\delta\mathbf u_t
   +O(\|\delta\mathbf z_t\|^2),\\
 A_t&=\left.\frac{\partial\mathbf f_t}{\partial\mathbf x}
@@ -206,15 +233,31 @@ B_t&=\left.\frac{\partial\mathbf f_t}{\partial\mathbf u}
 \end{aligned}
 $$
 
-Subtracting $\bar{\mathbf x}_{t+1}$ and dropping the quadratic remainder
-gives the linearized dynamics
+The left side is the transition evaluated at the nudged state and control,
+which is the new next state $\mathbf x_{t+1}$. Because the current plan is a
+rollout, the first term on the right is
+$\mathbf f_t(\bar{\mathbf x}_t,\bar{\mathbf u}_t)=\bar{\mathbf x}_{t+1}$.
+Subtracting $\bar{\mathbf x}_{t+1}$ from both sides turns the left side into
+$\delta\mathbf x_{t+1}$ and cancels that term on the right. Dropping the
+quadratic remainder gives the linearized dynamics
 $\delta\mathbf x_{t+1}=A_t\delta\mathbf x_t+B_t\delta\mathbf u_t$.
 Both rollouts start from the same state, so $\delta\mathbf x_1=\mathbf0$.
-There is no constant defect because the nominal trajectory satisfies the
-discrete dynamics. Independently chosen state guesses would generally leave
-such a defect. We write $F_t=[A_t\ B_t]$ for the combined Jacobian.
+There is no constant defect because the current plan satisfies the discrete
+dynamics. Independently chosen state guesses would generally leave such a
+defect. We write $F_t=[A_t\ B_t]$ for the combined Jacobian.
 
-Taylor expansion of the running cost to second order gives
+The running cost is expanded by the same steps, one order higher. In one
+variable, $f(a+h)\approx f(a)+f'(a)h+\tfrac12f''(a)h^2$. Applied to the
+stacked vector $\delta\mathbf z_t$, the derivative becomes a gradient and the
+second derivative becomes a Hessian matrix. Splitting $\delta\mathbf z_t$ back
+into its state and control parts cuts the gradient into $c_{x,t}$ and
+$c_{u,t}$, and cuts the Hessian into four blocks: $c_{xx,t}$ for curvature in
+the state, $c_{uu,t}$ for curvature in the control, and the mixed blocks
+$c_{xu,t}$ and $c_{ux,t}=c_{xu,t}^\top$. The quadratic term therefore reads
+$\tfrac12\delta\mathbf x_t^\top c_{xx,t}\delta\mathbf x_t
++\delta\mathbf u_t^\top c_{ux,t}\delta\mathbf x_t
++\tfrac12\delta\mathbf u_t^\top c_{uu,t}\delta\mathbf u_t$, where the two
+mixed blocks have combined into one term. In block-matrix form,
 
 $$
 c_t(\bar{\mathbf x}_t+\delta\mathbf x_t,
@@ -228,12 +271,13 @@ $$
 
 Here $\bar c_t=c_t(\bar{\mathbf x}_t,\bar{\mathbf u}_t)$ and
 $c_{x,t}=\nabla_{\mathbf x}c_t(\bar{\mathbf x}_t,\bar{\mathbf u}_t)$;
-the other gradient and Hessian blocks are evaluated at the same nominal pair.
+the other gradient and Hessian blocks are evaluated at the same pair from the
+current plan.
 We denote the stacked gradient by $c_{z,t}$ and the displayed block Hessian by
 $c_{zz,t}$. Gradients are column vectors, matching the convention of the
 preceding chapters. We retain the linear terms: individual stage gradients
 need not vanish even at an optimal trajectory because the dynamics couple
-stages, and at a non-optimal nominal trajectory they also drive its correction.
+stages, and at a non-optimal plan they also drive its correction.
 The $c_{xu,t}$ block measures how the marginal cost of a control changes with
 the state.
 Even if the running cost has no such cross term, eliminating later controls
@@ -252,19 +296,53 @@ P_T=\nabla^2_{\mathbf x\mathbf x}c_T(\bar{\mathbf x}_T).
 \end{aligned}
 $$
 
-Dropping the remainders in these Taylor expansions yields a quadratic cost
-subject to linearized transitions. The state at one step couples only to its
-neighbors. This is the local problem solved by backward elimination. A
-general SQP method also forms local quadratic subproblems, but its exact
-Lagrangian Hessian includes terms from dynamics curvature. Those terms enter
-below when we develop DDP.
+Dropping the remainders in these three Taylor expansions gives the local
+problem. Up to the constant $\sum_t\bar c_t+c_T(\bar{\mathbf x}_T)$, which does
+not depend on the nudges, it reads
+
+$$
+\begin{aligned}
+\min_{\delta\mathbf u_1,\ldots,\delta\mathbf u_{T-1}}\quad
+&\sum_{t=1}^{T-1}\Big(c_{z,t}^\top\delta\mathbf z_t
+  +\frac12\delta\mathbf z_t^\top c_{zz,t}\,\delta\mathbf z_t\Big)
+ +p_T^\top\delta\mathbf x_T
+ +\frac12\delta\mathbf x_T^\top P_T\,\delta\mathbf x_T,\\
+\text{s.t.}\quad
+&\delta\mathbf x_{t+1}=A_t\delta\mathbf x_t+B_t\delta\mathbf u_t,
+ \quad t=1,\ldots,T-1,\\
+&\delta\mathbf x_1=\mathbf0.
+\end{aligned}
+$$ (eq-ilqr-local-problem)
+
+This is an LQR problem of the kind solved in the previous chapter: linear
+dynamics in the nudges, and a cost that is quadratic in them. Compared with
+the standard LQR problem it has linear cost terms and a state--control cross
+term, which the next section handles. Solving it gives a proposed change to
+the plan.
+
+Notice what is missing from this local problem. Only the costs were expanded
+to second order. The dynamics were expanded to first order, so their
+curvature appears nowhere in {eq}`eq-ilqr-local-problem`. A general
+[SQP method](#sec-sqp-approach) also forms a local quadratic subproblem, but
+not quite this one. SQP takes a quadratic model of the Lagrangian and
+linearizes the constraints. Here the constraints are the dynamics, so the
+Hessian of the Lagrangian is the cost Hessian plus the sum over $i$ of the
+multiplier $\lambda_i$ times the Hessian of the $i$th component of the
+transition. The shooting formulation is unconstrained
+only in the controls, because the simulator enforces the dynamics, but the
+local problem above still has the linearized dynamics as constraints on the
+nudges. iLQR is therefore SQP with the multiplier-weighted dynamics Hessians
+dropped. Those terms return in the [DDP section](#sec-ddp-curvature), where
+the coefficient $p_{t+1}$ of the eliminated tail plays the role of the
+multiplier, the costate.
 
 ## Backward Elimination
 
-The last control affects only its own stage and the terminal state when its
-starting state is fixed. Eliminating it first leaves a shorter quadratic
-problem of the same form. Repeating that step works backward through the
-horizon.
+The local problem {eq}`eq-ilqr-local-problem` is solved by eliminating its
+controls one at a time, starting from the last. The last control affects only
+its own stage and the terminal state when its starting state is fixed.
+Eliminating it first leaves a shorter quadratic problem of the same form.
+Repeating that step works backward through the horizon.
 
 ### A two-step calculation
 
@@ -357,7 +435,7 @@ $$
 
 Restoring the time index gives the affine correction
 $\delta\mathbf u_t=k_t+K_t\delta\mathbf x_t$.
-The vector $k$ changes the nominal command even at zero state deviation. The
+The vector $k$ changes the planned command even at zero state deviation. The
 matrix $K$ adjusts that change for a different state arriving from the earlier
 steps. In code, these formulas are linear solves with $M_{uu}$; an explicit
 matrix inverse is unnecessary.
@@ -408,7 +486,7 @@ $$
 The step size $\alpha$ scales the feedforward change. The feedback term
 responds to the state deviation that actually occurs during this trial. Its
 gain is not multiplied by $\alpha$. At $\alpha=0$, induction through these
-equations recovers the nominal trajectory, because each state deviation is
+equations recovers the current plan, because each state deviation is
 then zero. For an exact linear-quadratic problem, $\alpha=1$ gives the complete
 solution derived by elimination.
 
@@ -476,7 +554,7 @@ the docking code uses the exact cost Hessian.
 **Output:** The last accepted trajectory, its controls and local gains, an iteration history, and an explicit termination status.
 ````
 
-The returned gains describe a neighborhood of the final nominal trajectory.
+The returned gains describe a neighborhood of the final plan.
 The docking animation below executes one stored plan. The gains used inside
 the optimizer do not imply that the animation replans as the boat moves.
 
@@ -498,7 +576,7 @@ $$
 $$
 
 Here $f^i_{zz,t}$ is the Hessian of the $i$th component of $\mathbf f_t$ with
-respect to the stacked state and control, evaluated at the nominal pair.
+respect to the stacked state and control, evaluated along the current plan.
 Substitute this expression into the same quadratic tail $S_{t+1}$. Its
 linear term $p_{t+1}^\top\delta\mathbf x_{t+1}$ now contributes an additional
 quadratic term. Its quadratic term contributes
@@ -517,6 +595,10 @@ $$
 The extra contraction weights curvature of each next-state component by its
 linear coefficient in the eliminated tail. At a given backward stage, this is
 the second-order chain rule for composing the transition with that tail.
+These are the multiplier-weighted dynamics Hessians that the
+[local problem](#sec-local-quadratic-trajectory) left out. The tail gradient
+$p_{t+1}$ plays the role of the SQP multiplier: it is the costate, the
+sensitivity of the remaining cost to the next state.
 In block form, the differences from iLQR are
 
 $$

@@ -788,6 +788,7 @@ plt.tight_layout()
 ```
 
 
+(sec-sqp-approach)=
 ### The SQP Approach: Taylor Expansion and Quadratic Approximation
 
 Sequential Quadratic Programming (SQP) tackles the problem of solving constrained programs by iteratively solving a sequence of simpler subproblems. Specifically, these subproblems are quadratic programs (QPs) that approximate the original problem around the current iterate by using a quadratic model of the objective function and a linear model of the constraints. Suppose we have the following optimization problem with equality constraints:
