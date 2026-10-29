@@ -65,3 +65,10 @@ def test_chapter_embeds_replay_with_static_placeholder():
     for name in ("plan", "iterations"):
         for suffix in ("svg", "pdf", "png"):
             assert (ROOT / "_static" / "radiotherapy_fractionation" / f"{name}.{suffix}").exists()
+
+
+def test_replay_iframe_has_a_height_rule():
+    chapter = (ROOT / "iterative-trajectory-optimization.md").read_text()
+    css = (ROOT / "_static" / "custom.css").read_text()
+    assert ":class: radiotherapy-replay" in chapter
+    assert ".radiotherapy-replay > div > div" in css

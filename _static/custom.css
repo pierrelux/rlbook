@@ -1245,3 +1245,20 @@ iframe {
 @media (max-width: 375px) { .thermal-reactor-replay > div > div { height: 3860px; } }
 @media (max-width: 340px) { .thermal-reactor-replay > div > div { height: 4060px; } }
 
+
+/* Radiotherapy fractionation replay: slice beside two charts, then tiles.
+   Content heights measured in the page (iframe width -> height): 808, 763,
+   713 and 680 -> 785, 640 -> 851 (toolbar wraps), 621 -> 1279 and 600 -> 1298
+   (panels stack below 620px), 520 -> 1367, 430 -> 1388, 375 -> 1547,
+   340 -> 1624. Below a 768px window the iframe is the window minus 24px. */
+.radiotherapy-replay > div > div {
+  height: 810px;
+  padding-bottom: 0 !important;
+  width: 100% !important;
+}
+@media (max-width: 767px) { .radiotherapy-replay > div > div { height: 880px; } }
+@media (max-width: 644px) { .radiotherapy-replay > div > div { height: 1320px; } }
+@media (max-width: 544px) { .radiotherapy-replay > div > div { height: 1400px; } }
+@media (max-width: 454px) { .radiotherapy-replay > div > div { height: 1420px; } }
+@media (max-width: 399px) { .radiotherapy-replay > div > div { height: 1580px; } }
+@media (max-width: 364px) { .radiotherapy-replay > div > div { height: 1660px; } }
