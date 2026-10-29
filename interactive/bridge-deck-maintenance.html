@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bridge deck maintenance · discounted MDP</title>
+<style>
+  :root { color-scheme:light; --ink:#20333f; --muted:#5e707c; --rule:#d8e2e7; --blue:#0072b2; --red:#b2182b; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:#fff; color:var(--ink); font:14px/1.45 system-ui,-apple-system,sans-serif; }
+  main { max-width:1120px; margin:auto; padding:20px; }
+  h1 { font-size:22px; font-weight:650; margin:0 0 5px; letter-spacing:-.3px; }
+  p { margin:0 0 14px; }
+  .intro, .note { color:var(--muted); font-size:13px; }
+  .toolbar { display:flex; align-items:end; flex-wrap:wrap; gap:12px; margin-bottom:12px; }
+  .toolbar + .toolbar { border-top:1px solid var(--rule); padding-top:11px; }
+  label { font-size:12px; color:var(--muted); display:block; }
+  select, button { font:inherit; color:var(--ink); background:white; border:1px solid #bdccd4; border-radius:5px; padding:7px 10px; min-height:35px; max-width:100%; }
+  select { margin-top:4px; }
+  button { cursor:pointer; }
+  button.primary { background:var(--ink); color:white; border-color:var(--ink); min-width:74px; }
+  button:focus-visible, select:focus-visible, input:focus-visible { outline:3px solid #e69f00; outline-offset:3px; }
+  .slider { flex:1 1 240px; min-width:160px; }
+  .slider label { display:flex; justify-content:space-between; gap:12px; white-space:nowrap; }
+  output { color:var(--ink); font-variant-numeric:tabular-nums; }
+  input[type=range] { width:100%; accent-color:var(--blue); margin:9px 0 2px; }
+  .panels { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:14px; align-items:start; }
+  .panel { border:1px solid var(--rule); border-radius:7px; background:#fff; overflow:hidden; margin:0; }
+  .panel canvas { width:100%; display:block; }
+  #bridges { height:440px; background:#fbfcfc; }
+  #cost { height:230px; }
+  #policy { height:170px; }
+  .charts { display:grid; gap:14px; align-content:start; }
+  .panel figcaption { padding:7px 12px; border-top:1px solid var(--rule); font-size:12px; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+  .panel figcaption strong { font-weight:600; }
+  .legend { color:var(--muted); display:flex; gap:4px 12px; flex-wrap:wrap; align-items:center; }
+  .swatch { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:4px; vertical-align:-1px; }
+  .ramp { display:inline-block; width:54px; height:9px; border-radius:2px; vertical-align:-1px; margin:0 4px; border:1px solid #c8d2d7;
+          background:linear-gradient(90deg,#1a7a4c,#5aae61,#a6d96a,#fee08b,#f4a582,#b2182b); }
+  .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:16px 0 10px; }
+  .metric span { display:block; color:var(--muted); font-size:11px; }
+  .metric strong { display:block; margin-top:2px; font-size:19px; font-weight:550; font-variant-numeric:tabular-nums; }
+  .note { margin:10px 0 0; font-size:12px; }
+  [hidden] { display:none !important; }
+  @media(max-width:760px) {
+    main { padding:14px 16px; }
+    .panels { grid-template-columns:1fr; }
+    #bridges { height:380px; }
+    .metrics { grid-template-columns:repeat(2,1fr); }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Maintaining bridge decks for the long run</h1>
+  <p class="intro">Each bridge's deck is colored by its condition rating, from 9 (new) to 4 or below (poor). Every year a deck may get worse, following transition rates counted from US National Bridge Inventory records. The top group of 12 decks is managed by the optimal policy from value and policy iteration, the bottom group by a common rule of thumb. Both groups start in the same state and draw the same random numbers, so any difference comes from the decisions. A crew marker shows the work done that year.</p>
+  <p id="load-status" role="status">Loading recorded runs…</p>
+  <div id="replay" hidden>
+    <div class="toolbar">
+      <label for="risk">Failure cost<select id="risk"></select></label>
+      <label for="baseline">Baseline<select id="baseline">
+        <option value="reactive">Reactive: replace when poor</option>
+        <option value="schedule">Schedule: minor repair every k years</option>
+      </select></label>
+    </div>
+    <div class="toolbar">
+      <button id="play" class="primary" type="button">Play</button>
+      <button id="restart" type="button">Restart</button>
+      <div class="slider"><label for="time">Year<output id="time-label" for="time"></output></label><input id="time" type="range" min="0" max="1000" value="0" step="1"></div>
+    </div>
+    <div class="panels">
+      <figure class="panel"><canvas id="bridges" role="img" aria-label="Two groups of bridges whose decks change color with their condition rating"></canvas>
+        <figcaption><strong>Deck condition</strong><span class="legend"><span>rating 9<span class="ramp"></span>≤4</span><span><span class="swatch" style="background:#56B4E9"></span>minor</span><span><span class="swatch" style="background:#E69F00"></span>major</span><span><span class="swatch" style="background:#CC79A7"></span>replace</span></span></figcaption></figure>
+      <div class="charts">
+        <figure class="panel"><canvas id="cost" role="img" aria-label="Cumulative discounted cost per square meter for both groups"></canvas>
+          <figcaption><strong>Discounted cost so far, USD per m² (mean of 12 decks)</strong><span class="legend">dotted: expected total, infinite horizon</span></figcaption></figure>
+        <figure class="panel"><canvas id="policy" role="img" aria-label="Action taken at each deck rating by each policy"></canvas>
+          <figcaption><strong>Policy by rating</strong><span class="legend">numbers: decks at that rating now</span></figcaption></figure>
+      </div>
+    </div>
+    <div class="metrics" aria-live="polite">
+      <div class="metric"><span>Year</span><strong id="m-year"></strong></div>
+      <div class="metric"><span>Optimal policy, cost so far</span><strong id="m-opt"></strong></div>
+      <div class="metric"><span>Baseline, cost so far</span><strong id="m-base"></strong></div>
+      <div class="metric"><span>Poor decks now (optimal / baseline)</span><strong id="m-poor"></strong></div>
+    </div>
+    <p class="note">Recorded runs from the chapter's solver; nothing is optimized in the browser. Do-nothing transitions are counted from annual NBI deck ratings (item 58) of 88,596 decks whose rating never went up, 1993 to 2019, as mirrored in the MUSTEM repository of Liu, Nehme and Lu. Action costs (USD per m²) and failure probabilities by rating follow Saifullah et al.; the effect of each repair on the rating is a teaching assumption. Costs are discounted at 3% a year.</p>
+  </div>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const RATING_COLORS = ["#1a7a4c", "#5aae61", "#a6d96a", "#fee08b", "#f4a582", "#b2182b"];
+const ACTION_COLORS = ["#d9e1e5", "#56B4E9", "#E69F00", "#CC79A7"];
+const ACTION_SHORT = ["", "m", "M", "R"];
+const LINE = { optimal: "#0072b2", reactive: "#7b858a", schedule: "#009e73" };
+const SPEED = 0.06;               // years per animation tick
+let data, tau = 0, playing = false, last = 0;
+
+function sizeCanvas(id) {
+  const el = $(id), r = el.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  el.width = Math.round(r.width * dpr); el.height = Math.round(r.height * dpr);
+  const ctx = el.getContext("2d"); ctx.scale(dpr, dpr);
+  return [ctx, r.width, r.height];
+}
+const scen = () => data.scenarios[$("risk").value];
+const baseName = () => $("baseline").value;
+function baseLabel(sc) {
+  return baseName() === "reactive" ? "Reactive: replace when poor" : `Minor repair every ${sc.period} yr, replace when poor`;
+}
+// Year index and progress within the year. Work happens in the first part of a year, then the deck may change.
+function clock() {
+  const T = data.years, t = Math.min(Math.floor(tau), T - 1), f = tau >= T ? 1 : tau - t;
+  return { t, f, done: tau >= T };
+}
+function stateAt(run, b, c) { return c.f < 0.6 ? run.states[c.t][b] : run.states[c.t + 1][b]; }
+function cumAt(run, c) {
+  const prev = c.t > 0 ? run.cum[c.t - 1] : 0;
+  return prev + (run.cum[c.t] - prev) * Math.min(1, c.f / 0.6);
+}
+
+function drawBridge(ctx, x, y, w, h, s, a, showCrew, flash) {
+  const deckH = Math.max(12, Math.min(22, h * 0.24)), pierW = Math.max(4, w * 0.07);
+  const deckY = y + h * 0.36, groundY = y + h * 0.86;
+  ctx.fillStyle = "#e7eef2"; ctx.fillRect(x, groundY - 3, w, 3);
+  ctx.fillStyle = "#9aa8b0";
+  for (const px of [x + w * 0.2, x + w * 0.8 - pierW]) ctx.fillRect(px, deckY + deckH, pierW, groundY - deckY - deckH - 3);
+  ctx.fillStyle = RATING_COLORS[s]; ctx.strokeStyle = "#4a5a63"; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.roundRect(x + 2, deckY, w - 4, deckH, 2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = (s === 0 || s === 5) ? "#fff" : "#20333f"; ctx.font = `600 ${Math.max(10, Math.min(13, deckH - 3))}px system-ui,sans-serif`;
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText(data.ratings[s], x + w / 2, deckY + deckH / 2 + .5);
+  if (showCrew && a > 0) {
+    const cx = x + w / 2, cy = deckY - 3, r = Math.min(12, w * 0.2);
+    ctx.globalAlpha = flash;
+    ctx.fillStyle = ACTION_COLORS[a]; ctx.strokeStyle = "#20333f"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(cx - r, cy); ctx.arc(cx, cy, r, Math.PI, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillRect(cx - r * 1.3, cy - 1.5, r * 2.6, 3);
+    ctx.fillStyle = "#20333f"; ctx.font = `700 ${Math.round(r * 0.95)}px system-ui,sans-serif`; ctx.textBaseline = "alphabetic";
+    ctx.fillText(ACTION_SHORT[a], cx, cy - r * 0.18);
+    ctx.globalAlpha = 1;
+  }
+}
+
+function drawBridges(sc, c) {
+  const [ctx, w, h] = sizeCanvas("bridges");
+  const groups = [["optimal", "Optimal policy"], [baseName(), baseLabel(sc)]];
+  const cols = 6, rows = Math.ceil(data.bridges / cols), pad = 10, headH = 24;
+  const gh = (h - 2 * pad) / 2;
+  groups.forEach(([name, label], g) => {
+    const run = sc.runs[name], y0 = pad + g * gh;
+    ctx.fillStyle = LINE[name]; ctx.fillRect(pad, y0 + 6, 4, 13);
+    ctx.fillStyle = "#20333f"; ctx.font = "600 13px system-ui,sans-serif"; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+    ctx.fillText(label, pad + 10, y0 + 13);
+    const cw = (w - 2 * pad) / cols, ch = (gh - headH - 6) / rows;
+    for (let b = 0; b < data.bridges; b++) {
+      const x = pad + (b % cols) * cw, y = y0 + headH + Math.floor(b / cols) * ch;
+      const a = c.done ? 0 : run.actions[c.t][b];
+      const flash = c.f < 0.6 ? 1 : Math.max(0, 1 - (c.f - 0.6) / 0.4);
+      drawBridge(ctx, x + 3, y, cw - 6, ch, stateAt(run, b, c), a, true, flash);
+    }
+    if (g === 0) { ctx.strokeStyle = "#d8e2e7"; ctx.beginPath(); ctx.moveTo(pad, y0 + gh); ctx.lineTo(w - pad, y0 + gh); ctx.stroke(); }
+  });
+}
+
+function drawCost(sc, c) {
+  const [ctx, w, h] = sizeCanvas("cost");
+  const names = ["optimal", baseName()], T = data.years;
+  const runs = names.map(n => sc.runs[n]);
+  const ymax = Math.max(...names.map(n => sc.expected[n]), ...runs.map(r => r.cum[T - 1])) * 1.08;
+  const left = 46, right = 12, top = 14, bottom = 26, pw = w - left - right, ph = h - top - bottom;
+  const X = t => left + pw * t / T, Y = v => top + ph * (1 - v / ymax);
+  ctx.font = "10px system-ui,sans-serif"; ctx.fillStyle = "#5e707c"; ctx.strokeStyle = "#e3e9ec"; ctx.lineWidth = 1;
+  const step = ymax > 8000 ? 4000 : ymax > 4000 ? 1000 : 500;
+  ctx.textAlign = "right"; ctx.textBaseline = "middle";
+  for (let v = 0; v <= ymax; v += step) { ctx.beginPath(); ctx.moveTo(left, Y(v)); ctx.lineTo(w - right, Y(v)); ctx.stroke(); ctx.fillText(v.toLocaleString("en-US"), left - 5, Y(v)); }
+  ctx.textAlign = "center"; ctx.textBaseline = "top";
+  for (let t = 0; t <= T; t += 10) ctx.fillText(t, X(t), h - bottom + 6);
+  names.forEach((n, i) => {
+    const run = runs[i];
+    ctx.strokeStyle = LINE[n]; ctx.setLineDash([2, 3]); ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(left, Y(sc.expected[n])); ctx.lineTo(w - right, Y(sc.expected[n])); ctx.stroke(); ctx.setLineDash([]);
+    ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(X(0), Y(0));
+    for (let t = 0; t < c.t; t++) ctx.lineTo(X(t + 1), Y(run.cum[t]));
+    ctx.lineTo(X(c.t + Math.min(1, c.f)), Y(cumAt(run, c))); ctx.stroke();
+  });
+  ctx.strokeStyle = "#b2182b"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(X(Math.min(tau, T)), top); ctx.lineTo(X(Math.min(tau, T)), h - bottom); ctx.stroke();
+}
+
+function drawPolicy(sc, c) {
+  const [ctx, w, h] = sizeCanvas("policy");
+  const n = data.ratings.length, left = 78, right = 10, top = 22, rowH = (h - top - 12) / 2, cw = (w - left - right) / n;
+  ctx.font = "11px system-ui,sans-serif"; ctx.fillStyle = "#5e707c"; ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+  ctx.textAlign = "left"; ctx.fillText("rating", 13, top - 5); ctx.textAlign = "center";
+  data.ratings.forEach((r, i) => ctx.fillText(r, left + (i + 0.5) * cw, top - 5));
+  const rows = [["optimal", "Optimal"], [baseName(), "Baseline"]];
+  rows.forEach(([name, label], k) => {
+    const y = top + k * rowH, run = sc.runs[name];
+    ctx.fillStyle = LINE[name]; ctx.fillRect(4, y + rowH * .2, 4, rowH * .6);
+    ctx.fillStyle = "#20333f"; ctx.font = "600 12px system-ui,sans-serif"; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+    ctx.fillText(label, 13, y + rowH / 2);
+    const counts = new Array(n).fill(0);
+    for (let b = 0; b < data.bridges; b++) counts[stateAt(run, b, c)]++;
+    for (let s = 0; s < n; s++) {
+      let a, txt;
+      if (name === "optimal") { a = sc.policy[s]; txt = ACTION_SHORT[a]; }
+      else if (name === "reactive") { a = s === n - 1 ? 3 : 0; txt = ACTION_SHORT[a]; }
+      else { a = s === n - 1 ? 3 : 1; txt = s === n - 1 ? "R" : `m/${sc.period}y`; }
+      const x = left + s * cw;
+      ctx.fillStyle = ACTION_COLORS[a];
+      if (name === "schedule" && s < n - 1) { ctx.globalAlpha = .45; }
+      ctx.fillRect(x + 1.5, y + 3, cw - 3, rowH - 6); ctx.globalAlpha = 1;
+      ctx.fillStyle = "#20333f"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.font = "700 12px system-ui,sans-serif"; ctx.fillText(txt, x + cw / 2, y + rowH * .36);
+      ctx.font = "11px system-ui,sans-serif"; ctx.fillStyle = counts[s] ? "#20333f" : "#9aa8b0";
+      ctx.fillText(counts[s] ? `${counts[s]}` : "·", x + cw / 2, y + rowH * .7);
+    }
+  });
+}
+
+function render() {
+  if (!data) return;
+  const sc = scen(), T = data.years;
+  tau = Math.min(tau, T);
+  $("time").value = Math.round(1000 * tau / T);
+  const c = clock();
+  drawBridges(sc, c); drawCost(sc, c); drawPolicy(sc, c);
+  $("time-label").textContent = c.done ? `${T} (end)` : `${c.t} of ${T}`;
+  $("m-year").textContent = c.done ? `${T}` : `${c.t}`;
+  const opt = sc.runs.optimal, base = sc.runs[baseName()];
+  $("m-opt").textContent = `$${Math.round(cumAt(opt, c)).toLocaleString("en-US")}`;
+  $("m-base").textContent = `$${Math.round(cumAt(base, c)).toLocaleString("en-US")}`;
+  const poor = run => { let k = 0; for (let b = 0; b < data.bridges; b++) if (stateAt(run, b, c) === data.ratings.length - 1) k++; return k; };
+  $("m-poor").textContent = `${poor(opt)} / ${poor(base)}`;
+}
+
+function tick(now) {
+  if (!playing) return;
+  if (now - last > 30) {
+    last = now;
+    tau = Math.min(data.years, tau + SPEED);
+    if (tau >= data.years) setPlaying(false);
+    render();
+  }
+  requestAnimationFrame(tick);
+}
+function setPlaying(value) {
+  playing = value; $("play").textContent = value ? "Pause" : "Play";
+  if (value) { if (tau >= data.years) tau = 0; requestAnimationFrame(tick); }
+}
+
+fetch("bridge-deck-maintenance-data.json").then(r => r.json()).then(d => {
+  data = d;
+  for (const m of Object.keys(data.scenarios).sort((a, b) => a - b)) {
+    const o = document.createElement("option"); o.value = m;
+    o.textContent = `${m} × replacement cost` + (+m === data.base ? " (base)" : "");
+    if (+m === data.base) o.selected = true;
+    $("risk").appendChild(o);
+  }
+  $("load-status").hidden = true; $("replay").hidden = false;
+  for (const id of ["risk", "baseline"]) $(id).addEventListener("change", () => { tau = 0; render(); });
+  $("play").addEventListener("click", () => setPlaying(!playing));
+  $("restart").addEventListener("click", () => { tau = 0; render(); });
+  $("time").addEventListener("input", e => { setPlaying(false); tau = data.years * e.target.value / 1000; render(); });
+  window.addEventListener("resize", render);
+  render();
+}).catch(err => { $("load-status").textContent = "Could not load the recorded runs: " + err; });
+</script>
+</body>
+</html>

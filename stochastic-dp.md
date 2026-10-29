@@ -869,6 +869,207 @@ backward induction finds it at a cost that grows linearly with the horizon.
 - {download}`Antibiotic-steering experiment builder <scripts/build_antibiotic_steering_artifacts.py>`
 - {download}`Antibiotic-steering results for every final drug <artifacts/antibiotic_steering/metrics.json>`
 
+(sec-storm-surge-barrier)=
+## Example: Closing a Storm-Surge Barrier
+
+How long should the operator of a storm-surge barrier wait for a better
+forecast before ordering the barrier closed?
+
+The Maeslant barrier (Maeslantkering) protects Rotterdam from storm surges
+coming up the Nieuwe Waterweg, the shipping channel that connects the port to
+the North Sea. It consists of two gates, each 210 m wide, that rest on the banks.
+When the forecast water level at Rotterdam exceeds 300 cm above NAP, the
+Dutch reference level, the gates are moved into the channel, filled with
+water and sunk to the bottom, which takes about two hours
+{cite:p}`RWSMaeslant,TraceKleeberg2025`. While the barrier is closed, the
+main shipping route to the port is blocked. Venice faces the same
+trade-off with its MOSE barriers, where false closures delay ships and missed
+closures let the city flood {cite:p}`Umgiesser2021`. The operator decides on
+the basis of a forecast of the peak water level, and this forecast becomes
+more accurate as the peak approaches: the uncertainty of forecast surge maxima
+grows with the forecast range {cite:p}`Umgiesser2021`. Waiting therefore buys
+information. It also uses up the time that the closing procedure needs. The
+only decision is when to stop waiting, which makes this an *optimal stopping*
+problem, a finite-horizon MDP in which one action ends the decision process.
+
+We build a small model of this decision. Two of its ingredients are
+published: the closing criterion of 300 cm above NAP, which we also use as the
+level above which the city floods, and the failure probability of 1 in 100
+per closure that the Port of Rotterdam gives for the barrier
+{cite:p}`PortRotterdamFloodRisk`. Every other number below is a teaching value.
+
+**Decision epochs.** We count time by the number of hours $h$ left before the
+forecast peak. A storm is announced at $h=H=24$, the operator decides once per
+hour at $h=24,23,\ldots,1$, and the peak occurs at $h=0$.
+
+**States.** The state is $s=(f,b)$. The first component is the current
+forecast $f$ of the peak water level at Rotterdam, in cm above NAP, on a grid
+of 1 cm from 150 cm to 420 cm. The second is the status $b$ of the barrier:
+open; ships warned for 1, 2 or 3 hours; gates moving in the first or second
+hour of the closing operation; delayed by a fault; or closed. This gives 271
+forecasts and 9 statuses.
+
+**Actions.** When the barrier is open, the action set is
+$\mathcal A_{(f,\text{open})}=\{\text{wait},\text{close}\}$. Once the closure is
+ordered it cannot be cancelled, so every other status has the single action
+wait.
+
+**Transitions.** The forecast and the barrier evolve independently,
+$p(j\mid s,a)=K(f'\mid f)\,P(b'\mid b,a)$ for $j=(f',b')$. The forecast moves
+by a Gaussian increment each hour,
+
+$$
+f' = f + w,\qquad w\sim\mathcal N(0,\sigma^2),\qquad \sigma = 4\ \text{cm},
+$$
+
+rounded to the grid, so that $K$ is a $271\times 271$ stochastic matrix. The
+forecast at $h=0$ is the realized peak $L$. Because the increments have mean
+zero, the forecast is a martingale: the best estimate of the peak at lead $h$
+is the current forecast, and the remaining error has standard deviation
+$\sigma\sqrt h$, which is 20 cm a day ahead and 10 cm six hours ahead. The
+status follows a fixed procedure once the closure is ordered. Ships are warned
+and traffic stops; four hours after the order the gates start to move; two
+hours later they are closed with probability $1-q$, and with probability
+$q=0.1$ a fault delays them. A delayed closure is completed with probability
+$r=0.7$ in each following hour. A closure ordered at lead $h$ is therefore
+not complete at the peak with probability
+
+$$
+\rho(h)=\begin{cases}1 & h<6,\\ q\,(1-r)^{h-6} & h\ge 6,\end{cases}
+$$
+
+which is 0.1 for an order 6 hours ahead and 0.009 for an order 8 hours ahead,
+close to the published 1 in 100.
+
+**Costs.** The unit of cost is one hour of halted shipping. Every hour after
+the order costs 1, whether the gates are moving or closed, and shipping stays
+halted for $R=6$ more hours after the peak while the water falls and the gates
+are reopened. If the barrier is not closed when the peak $L$ exceeds 300 cm,
+the city floods at a cost $C$, which we set to 1000 hours of halted shipping.
+The stage and terminal costs are
+
+$$
+c(s,a)=\mathbb 1\{b\ne\text{open or }a=\text{close}\},\qquad
+c_0(f,b)=R\,\mathbb 1\{b\ne\text{open}\}+C\,\mathbb 1\{b\ne\text{closed}\}\,\mathbb 1\{f>300\}.
+$$
+
+**Solution.** Backward induction ({prf:ref}`backward-induction`, with a
+minimum in place of the maximum) starts from the peak and moves away from it:
+
+$$
+v_0(s)=c_0(s),\qquad
+v_h(s)=\min_{a\in\mathcal A_s}\Big\{c(s,a)+\sum_{j}p(j\mid s,a)\,v_{h-1}(j)\Big\},\qquad h=1,\ldots,H .
+$$
+
+The solver applies this recursion to all $271\times 9$ states at each of the
+24 epochs, which takes a fraction of a second. Only the open status involves a
+choice, and there the recursion takes the classical form of optimal stopping.
+After the order, the cost no longer depends on anything the operator does. It
+is $h+R$ hours of halted shipping, plus the flood cost if the closure is late
+and the peak is high. Writing $\pi_h(f)$ for the probability that the peak
+exceeds 300 cm given the forecast $f$ at lead $h$, the cost of stopping and
+the value of the open barrier are
+
+$$
+g_h(f)=h+R+C\,\rho(h)\,\pi_h(f),\qquad
+v_h(f,\text{open})=\min\Big\{g_h(f),\ \sum_{f'}K(f'\mid f)\,v_{h-1}(f',\text{open})\Big\}.
+$$
+
+The policy orders the closure at the first hour at which stopping costs less
+than continuing. The set of states where this happens is the *stopping region*,
+and for this model it has a simple shape at every lead: the closure is ordered
+when the forecast is at or above a level that depends on $h$. We compare the
+policy with two rules of the kind an operating manual might contain. The first
+applies the closing criterion as soon as it is reached: order the closure at
+the first hour, between 24 and 6 hours ahead, at which the forecast is at
+least 300 cm. The second is the best rule of the form "order the closure once
+the forecast reaches a level $\bar f$, between 6 and $\bar h$ hours ahead",
+found by trying every level from 260 cm to 310 cm and every latest lead
+$\bar h$. All policies are evaluated exactly with
+{prf:ref}`backward-policy-evaluation` over storms whose forecast 24 hours ahead
+is normal with mean 280 cm and standard deviation 20 cm; 15.3% of these storms
+exceed 300 cm.
+
+:::{iframe} ../interactive/storm-surge-barrier.html
+:label: fig-storm-surge-barrier
+:width: 100%
+:title: Closing a storm-surge barrier: the optimal stopping region and threshold rules
+:class: storm-surge-barrier-replay
+:placeholder: _static/storm_surge_barrier/stopping_region.svg
+
+Closing a storm-surge barrier with a flood cost of 1000 hours of halted
+shipping. (a) The shaded cells are the stopping region of the
+backward-induction policy: at each lead, the forecasts for which it orders the
+closure. The dashed box is the best threshold rule, which orders the closure
+when the forecast reaches 282 cm between 9 and 6 hours before the peak. The
+dotted line is the 300 cm closing criterion, and the gray band marks the last
+6 hours, when a closure can no longer be completed. Three sampled storms are
+drawn with their forecasts; a dot marks the hour at which the policy orders
+the closure, and a square the realized peak. (b) Probability of a false
+closure against probability of a missed flood, for flood costs from 200 to
+5000 hours of shipping, for the policy and for the best threshold rule at each
+cost. The diamond applies the 300 cm criterion as soon as it is reached. In
+the online book the figure replays sampled storms with a cross-section of the
+channel, the forecast with its narrowing uncertainty, and the current state
+moving across the stopping region.
+:::
+
+The policy never orders the closure more than 10 hours before the peak
+({numref}`fig-storm-surge-barrier`). Ten hours ahead, a closure fails to
+finish in time with probability $\rho(10)=0.0008$, and waiting one more hour
+raises this to $\rho(9)=0.0027$. With a flood cost of 1000, that extra risk is
+worth one hour of shipping only when the flood is more likely than not, and
+the policy indeed closes at 10 hours only when the forecast is at least
+302 cm, where the probability of exceeding 300 cm is 0.55. As the deadline
+approaches, each hour of waiting adds more risk, and the closing level falls:
+290 cm at 9 hours, 285 cm at 8 hours, 282 cm at 7 hours and 279 cm at
+6 hours. Six hours ahead is the last chance. Closing then costs 12 hours of
+shipping and removes 90% of the expected flood cost, so the policy closes as
+soon as the probability of exceeding 300 cm reaches about 1.3%. At 279 cm it
+is 1.4%.
+
+:::{include} artifacts/storm_surge_barrier/results.md
+:::
+
+The closing criterion used as soon as it is reached does badly in this model,
+with an expected cost of 30.9 hours against 9.1 for the optimal policy. It
+closes less often than the optimal policy, but it orders closures up to
+24 hours ahead and so halts shipping for 9.1 hours on average against 7.9.
+It also misses floods. A storm whose forecast first reaches 300 cm in the last
+6 hours comes too late for it, and a closure ordered at the last moment fails
+whenever a fault delays it. Together these misses occur in 2.17% of storms, or
+14% of the storms that exceed 300 cm. The optimal
+policy closes for forecasts well below 300 cm near the deadline, which costs
+false closures in 30.3% of storms but leaves a missed flood in only 0.12%.
+Most of this gain comes from the shape of the rule rather than from the slope
+of the boundary. The best threshold rule, a level of 282 cm applied between
+9 and 6 hours ahead, costs 9.4, about 4% more than the optimum. The flood cost
+sets the balance between the two kinds of error. Raising it from 200 to 5000
+moves the policy from 19.7% false closures and 0.60% missed floods to 38.7%
+and 0.03%, and the stopping region grows: at a flood cost of 5000 the policy
+closes from 11 hours ahead, at 296 cm. In panel (b) the two curves nearly
+coincide: once a rule has the right window and level, letting the level
+change from hour to hour gains little.
+
+The model leaves out much of what matters at the real barrier. The forecast
+error is a Gaussian random walk with a constant variance per hour. Real
+forecast errors are larger for larger surges; the probabilistic model used by
+Rijkswaterstaat for maintenance planning assumes a standard deviation of
+10 cm plus a tenth of the surge above 50 cm {cite:p}`TraceKleeberg2025`. The time of the peak is assumed
+known, the river discharge that the 290 cm criterion at Dordrecht protects
+against is ignored, the closure cannot be cancelled, and the costs, the
+closing delays and the distribution of storms are teaching values rather than
+data. The real barrier closes automatically when the forecast reaches the
+criterion, and it was first closed for a storm in 2007
+{cite:p}`RWSMaeslant`. What the example does show is the
+structure of an optimal stopping problem. Information keeps improving, the
+deadline is fixed, and the right threshold depends on how much time is left.
+Backward induction finds that threshold for every lead at once.
+
+- {download}`Storm-surge-barrier model and solver <code/storm_surge_barrier.py>`
+- {download}`Storm-surge-barrier experiment builder <scripts/build_storm_surge_barrier_artifacts.py>`
+- {download}`Storm-surge-barrier results for every flood cost <artifacts/storm_surge_barrier/metrics.json>`
+
 ## Summary and Outlook
 
 Stochastic dynamic programming separates decision rules by the information and

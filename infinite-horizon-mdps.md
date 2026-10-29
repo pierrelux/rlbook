@@ -1235,6 +1235,593 @@ The policy iteration algorithm for discounted Markov decision problems is as fol
 
 As opposed to value iteration, this algorithm produces a sequence of both deterministic Markovian decision rules $\{\pi_n\}$ and value functions $\{\mathbf{v}^n\}$. We recognize in this algorithm the linearization step of the Newton-Kantorovich procedure, which takes place here in the policy evaluation step 3 where we solve the linear system $(\mathbf{I}-\gamma \mathbf{P}_{\pi_n}) \mathbf{v} = \mathbf{r}_{\pi_n}$. In practice, this linear system could be solved either using direct methods (eg. Gaussian elimination), using simple iterative methods such as the successive approximation method for policy evaluation, or more sophisticated methods such as GMRES.
 
+(sec-sailing-wind-shifts)=
+## Example: Sailing to a Windward Mark in a Shifting Wind
+
+How should a sailor beat to a mark upwind when the wind direction keeps
+changing, and do the rules of thumb that racing sailors learn on the water
+follow from the Bellman equation?
+
+A sailboat cannot sail straight into the wind. To reach a mark that lies
+upwind, it sails at an angle to the wind on one *tack*, with the wind coming
+over one side of the boat, and then turns through the wind onto the other
+tack. The boat is on *starboard* tack when the wind comes over its right side
+and on *port* tack when it comes over its left side. Each change of tack
+costs time. When the wind shifts, one tack points closer to the mark (it is
+*lifted*) and the other points further away (it is *headed*). Racing sailors
+are taught to tack when headed and to avoid sailing out to the *laylines*, the
+lines from which the mark can be reached on a single tack, too early.
+{cite:t}`Vanderbei1996Sailing` posed this problem as a stochastic dynamic
+program on a grid. It later became the "sailing" benchmark for online
+planning in {cite:t}`Peret2004`, {cite:t}`Kocsis2006` and
+{cite:t}`Bonet2012`, where value iteration supplies the exact optimal values
+against which sampled planners are scored.
+
+**States.** The lake is a grid of $21\times 21$ waypoints. The state is
+$s=(x,y,w,\tau)$: the boat's waypoint $(x,y)$, with $x$ pointing east and $y$
+north; the direction $w\in\{\mathrm{N},\mathrm{NE},\ldots,\mathrm{NW}\}$ the
+wind blows from; and the current tack $\tau\in\{\text{port},\text{starboard}\}$.
+The tack must be part of the state because the cost of the next leg depends
+on it. There are $21^2\times 8\times 2=7056$ states. The start is the waypoint
+$(10,2)$ and the mark is $(10,18)$, 16 rows to the north. The mark is an
+absorbing state with zero cost.
+
+**Actions.** Each leg goes to one of the 8 neighbouring waypoints, so the
+action is a heading $a\in\{\mathrm{N},\mathrm{NE},\ldots,\mathrm{NW}\}$.
+Let $\theta(w,a)\in\{0,45,\ldots,180\}$ be the angle in degrees between the
+wind direction and the heading. The heading $\theta=0$ points into the wind
+and is not allowed, and neither is a heading that leaves the lake.
+
+**Costs.** The cost of a leg is its duration in minutes. Following
+{cite:t}`Vanderbei1996Sailing`, a leg between two neighbouring waypoints in a
+straight line takes $t(45)=4$ minutes close-hauled, $t(90)=3$ minutes on a beam
+reach and $t(135)=2$ minutes on a broad reach. Dead downwind takes
+$t(180)=1$ minute, the default of the benchmark code of {cite:t}`Bonet2012`.
+A diagonal leg is $\sqrt 2$ times longer, and we let it take $\sqrt 2$ times
+as long, which reproduces the range of leg costs, 1 to 8.6 minutes, reported
+by {cite:t}`Kocsis2006`. Let $\tau'(w,a,\tau)$ be the tack after the leg:
+starboard if the wind comes from the right of the heading, port if it comes
+from the left, and unchanged when sailing dead downwind. A change of tack
+wastes $\delta=3$ minutes {cite:p}`Vanderbei1996Sailing`. The cost is
+
+$$
+c(s,a)=\ell(a)\,t\big(\theta(w,a)\big)+\delta\,\mathbb 1\{\tau'(w,a,\tau)\neq\tau\},
+$$
+
+where $\ell(a)=1$ for N, E, S, W and $\ell(a)=\sqrt2$ for the diagonals.
+
+**Transitions.** The boat moves deterministically to the neighbouring
+waypoint $(x',y')$ in direction $a$. At the end of the leg the wind keeps its
+direction or shifts by $45^\circ$ according to a Markov chain $q(w'\mid w)$,
+so
+
+$$
+p\big((x',y',w',\tau')\mid s,a\big)=q(w'\mid w).
+$$
+
+We compare three chains. In the *steady* chain the wind never changes. The
+*oscillating* chain uses teaching values for a breeze that swings around
+north: from north it shifts left or right with probability 0.1 each; from any
+other direction it moves back towards north with probability 0.2, further
+away with probability 0.1, and otherwise persists. The *shifty* chain is the
+default matrix of the benchmark code of {cite:t}`Bonet2012`, rotated so that
+the wind it favours blows from the north. It keeps the wind's direction with
+probability 0.2 to 0.4 only.
+
+**Objective.** The goal is the least expected time to the mark,
+
+$$
+v^*(s)=\min_\pi \mathbb E^\pi_s\Big[\sum_{t=0}^{T-1}c(S_t,A_t)\Big],
+$$
+
+where $T$ is the first leg that ends at the mark. This is a *stochastic
+shortest-path* problem: there is no discount, and the horizon is random
+because the race ends when the mark is reached. A discount factor would make
+a minute late in the race cheaper than a minute at the start, which is not
+what a racer wants, so we keep $\gamma=1$. The Bellman operator
+
+$$
+(\Bellman v)(s)=\min_{a\in\mathcal A_s}\Big\{c(s,a)+\sum_{w'}q(w'\mid w)\,v\big(x',y',w',\tau'(w,a,\tau)\big)\Big\}
+$$
+
+is then not a contraction in the sup norm, and the argument of
+{prf:ref}`value-iteration-convergence` does not apply. A different argument
+does. Some policy reaches the mark with probability one (a *proper* policy),
+and every leg costs at least one minute, so a policy that fails to reach the
+mark has infinite expected cost. Under these two conditions
+{cite:t}`Bertsekas1991` show that $v^*$ is the unique fixed point of
+$\Bellman$ and that value iteration converges to it from any starting
+function. We run {prf:ref}`value-iteration` with $\min$ in place of $\max$
+from $v_0=0$ and stop when $\|v_{n+1}-v_n\|_\infty<10^{-9}$ minutes. We also
+run {prf:ref}`policy-iteration-standard` from a baseline policy described
+below.
+
+:::{iframe} ../interactive/sailing-wind-shifts.html
+:label: fig-sailing-wind-shifts
+:width: 100%
+:title: Sailing in a shifting wind: the value-iteration policy, races against a layline sailor, and the value-iteration sweeps
+:class: sailing-wind-shifts-replay
+:placeholder: _static/sailing_wind_shifts/sailing.svg
+
+The optimal policy for the oscillating breeze. (a) Wind from the north, boat
+on starboard tack. Each arrow is the optimal heading from that waypoint; red
+arrows change tack. Contours give the expected minutes to the mark (triangle)
+and the dashed lines are the laylines of the mean wind. (b) The wind has
+backed to the north-west, heading every starboard boat; almost everywhere the
+policy tacks onto port, which now points straight north. (c) One race,
+in which the optimal boat (blue) and the layline sailor (orange) see the same
+wind on each leg; circles mark tacks. This race is a large win for the
+optimal boat, 90.9 against 106.9 minutes, while the expected gap is 2.5
+minutes. (d) Sup-norm error of
+value iteration from $v_0=0$, its residual, and the error of policy iteration
+started from the layline sailor. In the online book the replay races the two
+boats leg by leg with the wind arrow and the arrow field for the current wind,
+shows the distribution of finishing times over 4000 races, and animates the
+value-iteration sweeps.
+:::
+
+The baseline is a *layline sailor* who ignores the shifts when deciding where
+to tack. This sailor stays on starboard tack until reaching the port layline
+of the mean (north) wind, then sails port tack towards the mark, and does the
+mirror image on the right side of the course. On each leg the sailor takes
+the allowed heading on that tack that ends closest to the mark. A second baseline,
+the *certainty-equivalent* planner, replans every leg as if the wind it sees
+now will never change. The table gives the expected time from the start with
+the wind from the north. All values are exact policy evaluations. For the
+optimal policy and the layline sailor, the mean of 4000 simulated races per
+chain agrees with them within four standard errors.
+
+:::{include} artifacts/sailing_wind_shifts/results.md
+:::
+
+In a steady wind the three policies coincide. The best course is one tack,
+16 diagonal legs of $4\sqrt2$ minutes plus one 3-minute tack, or 93.5 minutes,
+and the build script checks that value iteration returns exactly this
+number. Shifts make the race shorter on average for every policy, because a
+lifted boat can sail straight north at 4 minutes per row instead of
+$4\sqrt2\approx5.7$. The optimal policy uses them best. In the oscillating
+breeze it needs 84.1 minutes against 86.6 for the layline sailor; in the
+shifty breeze, 72.4 against 75.2. The gain is about 3% of the race, and it is
+a gain in expectation. Over 4000 paired races in the oscillating breeze, the
+optimal boat finishes first in 62% of them and ties in 8%, so the layline
+sailor still wins about three races in ten. The certainty-equivalent planner
+sits in between, at 85.6 and 74.3 minutes, so reacting to the wind seen now
+captures part of the gain and planning for the wind still to come captures
+the rest.
+
+Two pieces of sailing lore can be read off the policy. The first is *tack on
+the headers*. Take the open water below the mark and at least three columns
+inside both laylines, and look at every state in which the wind has shifted
+$45^\circ$ from north, on either tack. In the oscillating breeze the optimal
+policy ends the next leg on the lifted tack in all 900 such states; in the
+shifty breeze it does so in 93% of them. A $45^\circ$ header leaves the headed
+boat sailing across the course with no progress towards the mark, so paying 3
+minutes to tack is worth it even though the shift may soon reverse. Panel (b)
+of {numref}`fig-sailing-wind-shifts` shows this as a field of red arrows. The
+second is *stay away from the laylines*. In the mean wind a starboard boat
+eight rows below the mark tacks as soon as it is four columns left of the
+mark, halfway to the layline (panel (a)). The reason is the one sailors
+give. On the layline itself, any shift hurts: a header forces an extra tack, and a lift means the boat has sailed
+further than needed. Staying near the middle of the course keeps both options
+open. For a planner that assumes the wind seen now will persist, like the
+certainty-equivalent planner, every tack point inside the laylines is equally
+good, so nothing pushes it away from them. Neither rule is
+written into the model; both come out of the minimization in $\Bellman$.
+
+The two algorithms reach $v^*$ in different ways. Value iteration from
+$v_0=0$ computes, at sweep $n$, the least expected cost of $n$ legs with no
+penalty for where the boat ends. For a boat far from the mark, the cheapest
+$n$ legs are cheap reaching and running legs that do not lead to the mark, so
+$v_n$ stays well below $v^*$ there. The values settle near the mark
+first, and the region within one minute of $v^*$ spreads outwards from the
+mark until it covers the lake at sweep 37. The value-iteration mode of the
+replay shows this. The sup-norm error stays above one minute for the first 36
+sweeps and then collapses. In the oscillating breeze the residual reaches
+exactly zero after 42 sweeps. Under the optimal policy every course reaches
+the mark within 33 legs whatever the wind does, so value iteration ends like
+backward induction with a horizon of a few dozen legs rather than converging
+geometrically. Policy iteration started from the layline sailor needs 6
+improvement steps. Each step evaluates a whole policy, the linear system of
+{prf:ref}`policy-iteration-standard` (solved here by iterating that policy's
+own Bellman operator), and the error falls from 14.4 minutes to zero.
+
+The model is a teaching version of the real problem. Real wind shifts are
+usually much smaller than $45^\circ$, and they happen in time, not at
+waypoints; the boat's speed also depends on wind strength, which is fixed
+here. The leg times and tack delay are the published values of the benchmark,
+not measurements of any boat, and the oscillating chain, the lake and the two
+baselines are our choices. No measured sailing data are used. What carries
+over is the structure: a cost-to-go that depends on the wind as well as the
+position, a value function that is the unique fixed point of the Bellman
+operator without any discount, and sailing rules of thumb recovered as
+properties of the optimal policy.
+
+- {download}`Sailing model and solver <code/sailing_wind_shifts.py>`
+- {download}`Sailing experiment builder <scripts/build_sailing_wind_shifts_artifacts.py>`
+- {download}`Sailing results for the three wind chains <artifacts/sailing_wind_shifts/metrics.json>`
+
+(sec-bridge-deck-maintenance)=
+## Example: Maintaining a Bridge Deck
+
+When should a highway agency repair a concrete bridge deck that has not failed
+yet, and how much does a condition-based rule save over a fixed schedule?
+
+Every highway bridge in the United States is inspected, usually every two
+years, and the inspector gives the deck a condition rating from 9 (excellent)
+to 0 (failed). The ratings are reported each year to the National Bridge
+Inventory (NBI), where the deck rating is item 58. Decks get worse slowly and
+at random, through cracking, corrosion of the reinforcing steel and spalling.
+An agency can do nothing, seal and patch the deck, overlay or rehabilitate
+it, or replace it. Work costs money now; a deck in poor condition costs
+money later, through the risk of a failure that closes the bridge. The
+trade-off repeats every year without a natural end, so we model it as an
+infinite-horizon discounted MDP and solve it with the algorithms of this
+chapter.
+
+**States.** The state is the deck rating, observed once a year. Ratings 9 to 5
+are kept apart and ratings 4 and below are merged into one *poor* state, so
+$\mathcal S=\{9,8,7,6,5,{\le}4\}$. Merging the lowest ratings follows the deck
+model of {cite:t}`Saifullah2024DDMAC`, whose costs we use below.
+
+**Actions.** In every state $\mathcal A_s=\{\text{nothing},\text{minor},\text{major},\text{replace}\}$:
+a minor repair (sealing and patching), a major repair (rehabilitation or an
+overlay), or a new deck.
+
+**Transitions.** The do-nothing kernel $p(j\mid s,\text{nothing})$ is
+estimated from NBI records by counting. We use the deck histories assembled
+by {cite:t}`Liu2023BridgeCNN`, which contain the item-58 rating of 88,596
+decks for every year from 1993 to 2019 and are mirrored in their public code
+repository. No history in that sample ever goes up, so it holds only decks
+that received no rating-raising work. With $n_{sj}$ the number of years in
+which a deck went from rating $s$ to rating $j$, the maximum-likelihood
+estimate is
+
+$$
+\hat p(j\mid s,\text{nothing})=\frac{n_{sj}}{\sum_{k} n_{sk}} ,
+$$
+
+computed from 2,303,496 year-to-year pairs. The diagonal is large: a deck
+stays at rating 9 with probability 0.85 per year, at 8 with 0.92, at 7 with
+0.97, at 6 with 0.97 and at 5 with 0.98. These correspond to mean stays of
+6.5, 12.9, 30.9, 36.4 and 55.7 years. No deck improves without work, so the
+poor state is absorbing under "nothing".
+
+The effects of work are teaching assumptions, in the spirit of the
+component model of {cite:t}`Andriotis2020DRLInspection`. Let $g(s,a)$ be the
+rating right after the work: a minor repair raises the rating by one but
+cannot fix a poor deck, a major repair raises it by two up to at most 8, and
+replacement gives a new deck, $g(s,\text{replace})=9$. The deck then
+deteriorates for the rest of the year as if nothing had been done:
+
+$$
+p(j\mid s,a)=\hat p\big(j\mid g(s,a),\text{nothing}\big).
+$$
+
+**Costs.** Costs are in US dollars per square meter of deck. The work costs
+are $k(\text{nothing})=0$, $k(\text{minor})=400$, $k(\text{major})=1{,}200$
+and $k(\text{replace})=2{,}650$, from Table 7 of {cite:t}`Saifullah2024DDMAC`.
+Their Table 6 gives an annual failure probability $q(s)$ of 0.001 for ratings
+9 and 8, 0.005 for 7, 6 and 5, and 0.01 for the poor state, and they charge
+a failure ten times the rebuilding cost. We take $F=10\times2{,}650=26{,}500$
+and leave out the further cost they accrue while a failed bridge is out of
+service. The one-period cost
+is the work cost plus the expected failure cost of the repaired deck,
+
+$$
+c(s,a)=k(a)+q\big(g(s,a)\big)\,F .
+$$
+
+A deck left alone thus costs 26.5 per year at ratings 9 and 8, 132.5 at
+ratings 7 to 5, and 265 when poor.
+
+**Discount.** We use $\gamma=0.97$, a 3% annual rate, as
+{cite:t}`Saifullah2024DDMAC` do.
+
+The optimal value $v^\star(s)$ is the smallest expected discounted cost from
+rating $s$, and it solves the Bellman equation with a minimum in place of the
+maximum,
+
+$$
+v^\star(s)=\min_{a\in\mathcal A_s}\Big\{c(s,a)+\gamma\sum_{j\in\mathcal S}p(j\mid s,a)\,v^\star(j)\Big\}.
+$$
+
+We solve it twice. Value iteration ({prf:ref}`value-iteration`, with a
+minimum) starts from $v_0=0$ and stops when
+$\lVert v_{n+1}-v_n\rVert_\infty<\varepsilon(1-\gamma)/(2\gamma)$ with
+$\varepsilon=10^{-6}$ dollars per square meter. With $\gamma=0.97$ the error
+shrinks by about 3% per sweep, and the rule is met after 728 sweeps. Policy
+iteration ({prf:ref}`policy-iteration-standard`) starts from "do nothing
+everywhere", solves the $6\times6$ linear system
+$(\mathbf I-\gamma\mathbf P_\pi)\mathbf v=\mathbf c_\pi$ at each step, and
+stops after three evaluations. Its second policy already repairs every deck
+rated 7 or worse; the third changes the action at two ratings and is optimal.
+This is the Newton behavior described above: a handful of linear solves
+instead of hundreds of contractions. The two methods return the same policy,
+and the tests check it against all $4^6=4{,}096$ stationary deterministic
+policies.
+
+We compare the optimal policy with two rules that need no model. The
+*reactive* rule does nothing until the deck is poor and then replaces it. The
+*schedule* applies a minor repair every $k$ years whatever the rating, and
+replaces the deck when it is poor; we report the best $k$ between 1 and 40.
+Because the schedule depends on the year, we evaluate it exactly on the
+Markov chain over the pair (year modulo $k$, rating).
+
+:::{iframe} ../interactive/bridge-deck-maintenance.html
+:label: fig-bridge-deck-maintenance
+:width: 100%
+:title: Bridge-deck maintenance: optimal policy against reactive and scheduled rules
+:class: bridge-deck-maintenance-replay
+:placeholder: _static/bridge_deck_maintenance/policy.svg
+
+(a) Do-nothing transition probabilities between deck ratings, counted from
+NBI records of 88,596 decks, 1993 to 2019; entries below 0.005 are left
+blank. (b) Optimal action at each rating for failure costs from 2 to 40
+times the replacement cost; the framed column is the base case. (c) Expected
+discounted cost from each rating in the base case for the optimal policy, the
+best schedule (a minor repair every 9 years) and the reactive rule. In the
+online book the figure is a replay: two groups of 12 decks start from the
+same ratings and use the same random numbers for 50 years, one under the
+optimal policy and one under a baseline, with crews marking each repair and
+counters of the discounted cost so far.
+:::
+
+In the base case the optimal policy does nothing at ratings 9 and 8, applies
+a minor repair at ratings 7, 6 and 5, and a major repair when the deck is
+poor. It never replaces a deck. The policy is a control limit: work starts
+at the first rating where the failure risk jumps, from 26.5 to 132.5 dollars
+per square meter per year, and the work gets heavier as the deck gets worse.
+A minor repair at rating 7 costs 400 and moves the deck back to 8, which
+saves about 106 per year for as long as it stays there, a mean of 12.9
+years. For a new deck the expected discounted cost is 1,864 dollars per
+square meter, against 2,951 for the best schedule and 3,200 for the reactive
+rule.
+
+:::{include} artifacts/bridge_deck_maintenance/results.md
+:::
+
+The table shows that the answer is driven by the price of failure. When a
+failure costs only twice the replacement cost, the best policy is never to
+touch the deck. The poor state then costs 53 per year, and no repair pays
+for itself at a 3% discount rate. The control limit is not guaranteed
+either. With a failure cost of five times replacement, the optimal policy
+repairs decks rated 7 and 6 but leaves decks rated 5 alone. A minor repair
+moves a deck from 5 to 6, where the failure probability is the same, so it
+only delays the arrival in the poor state. With a failure cost of 40 times
+replacement, a deck rated 6 gets a major repair and a deck rated 5 a minor
+one, for the same reason: a major repair lifts 6 to 8, out of the
+higher-risk band, while from 5 it would only reach 7. Monotone optimal
+policies follow from conditions on the costs and transitions
+{cite:p}`Puterman1994`, and the step-shaped failure table breaks them. In
+every row the optimal policy beats both rules, and the gap grows with the
+failure cost, to 3,720 dollars per square meter against the best schedule
+and 10,344 against the reactive rule at 40 times replacement.
+
+The replay shows the same comparison on sample paths. In the base case,
+after 50 years the 12 decks under the optimal policy have cost 1,863 dollars
+per square meter on average, in discounted terms, against 3,196 under the
+reactive rule and 2,880 under the best schedule. The schedule wastes money
+on decks that are still rated 9 or 8, while the reactive rule lets decks sit
+at ratings 7 to 5, where the yearly risk is five times higher, for decades.
+
+Several parts of this model are real and several are not. The do-nothing
+kernel comes from real inspection records, but it is pooled over all decks
+regardless of age, traffic, climate and material, and it is estimated from
+a sample that excludes every deck whose rating went up. Decks that
+deteriorated fast are the ones most likely to have been repaired, so the
+mean stays above are probably too long. The work costs and failure
+probabilities are published values that their authors call indicative, the
+effects of the repairs are assumptions, and the cost has no term for traffic
+delays or posting a weight limit. Inspections are treated as exact, while
+real ratings are noisy, which turns the problem into the partially
+observed one studied by {cite:t}`Andriotis2020DRLInspection`. Finally, an
+agency manages thousands of decks under one budget, which couples the
+per-deck problems that we solved separately here.
+
+- {download}`Bridge-deck model and solver <code/bridge_deck_maintenance.py>`
+- {download}`Bridge-deck experiment builder <scripts/build_bridge_deck_maintenance_artifacts.py>`
+- {download}`NBI deck-rating transition counts <artifacts/bridge_deck_maintenance/deck_transition_counts.csv>`
+- {download}`Bridge-deck results for every failure cost <artifacts/bridge_deck_maintenance/metrics.json>`
+
+(sec-tamarisk-river)=
+## Example: Controlling an Invasive Plant in a River Network
+
+Which stretch of a river should be treated each year to keep an invasive
+plant in check, and how large can the river get before an exact answer is
+out of reach?
+
+Tamarisk, or saltcedar, is a shrub that has invaded the banks of many rivers
+in the western United States. It crowds out native trees such as willows and
+cottonwoods, and its seeds travel with the water, so an infestation upstream
+reseeds everything below it. Land managers can kill the plants in a stretch of
+river, or kill them and plant natives in their place, but each treatment costs
+money and only part of the network can be treated each year.
+{cite:t}`Hall2012` formulated this problem as an MDP on a river network, and
+{cite:t}`Taleghan2015` used it as a benchmark for planning with a simulator.
+We build a small version of their model, solve it exactly with value
+iteration and policy iteration, and then watch the exact methods run out of
+room as the river grows.
+
+**States.** The river is a binary tree of $n$ reaches, the stretches of
+river between two confluences. Water flows from the leaves toward reach 1,
+the outlet. Each reach has one site for a tree, as in the smallest instances
+of {cite:t}`Taleghan2015`, and the site is empty ($E$), holds a native tree
+($N$) or holds tamarisk ($T$). The state is
+$s=(s_1,\ldots,s_n)\in\{E,N,T\}^n$, so $|\mathcal S|=3^n$.
+
+**Actions.** For each reach $i$ the manager chooses $a_i\in\{0,1,2\}$: do
+nothing, eradicate, or restore. Eradication kills a tamarisk plant with
+probability $\chi=0.85$. Restoration first eradicates and then plants a native
+tree in the empty site, which takes with probability $\beta=0.65$. Without a
+budget the joint action $a=(a_1,\ldots,a_n)$ ranges over $3^n$ choices. With
+the budget of {cite:t}`Taleghan2015`, at most one reach is treated per year,
+
+$$
+\mathcal A=\Big\{a\in\{0,1,2\}^n:\ \textstyle\sum_{i}\mathbf 1\{a_i\neq 0\}\le 1\Big\},
+\qquad |\mathcal A| = 2n+1 .
+$$
+
+**Transitions.** A year has three steps. First the treatment acts on each
+reach independently, with a $3\times 3$ kernel $\alpha_{a_i}(y_i\mid s_i)$.
+Then every plant dies with probability $0.2$, with kernel
+$\delta(z_i\mid y_i)$. Last, the survivors $z$ reseed the empty sites. Each
+surviving plant releases 100 seeds, and a seed from reach $k$ lands in reach
+$i$ with probability
+
+$$
+K_{ki}\ \propto\ 0.5^{\,d(k,i)}\;0.1^{\,u(k,i)},
+$$
+
+where $d(k,i)$ and $u(k,i)$ count the downstream and upstream steps on the
+path from $k$ to $i$, and the weight that remains flows out of the outlet. The
+values 0.5 and 0.1 are the downstream and upstream dispersal parameters of
+{cite:t}`Taleghan2015`; the geometric form is our simplification of the model
+they cite. Each empty reach also receives on average 1 tamarisk seed and 4
+native seeds from outside the network. We treat the seeds that reach $i$ as
+Poisson with means
+
+$$
+\lambda^T_i(z)=1+100\sum_{k:\,z_k=T}K_{ki},\qquad
+\lambda^N_i(z)=4+100\sum_{k:\,z_k=N}K_{ki}.
+$$
+
+An empty site stays empty if no seed arrives. Otherwise one seed takes it,
+and tamarisk wins with probability
+$1.5\lambda^T_i/(1.5\lambda^T_i+\lambda^N_i)$, where 1.5 is one of the
+values of tamarisk's competitive advantage examined by {cite:t}`Hall2012`. An occupied site
+keeps its plant. Call $g_i(j_i\mid z)$ the resulting distribution of reach $i$
+next year. Given the survivors, the reaches fill independently, so
+
+$$
+p(j\mid s,a)=\sum_{y,z}\ \prod_{i=1}^n\alpha_{a_i}(y_i\mid s_i)\
+\prod_{i=1}^n\delta(z_i\mid y_i)\ \prod_{i=1}^n g_i(j_i\mid z),
+\qquad
+\mathbf P_a=\mathbf A_a\,\mathbf D\,\mathbf G ,
+$$
+
+with $\mathbf A_a=\alpha_{a_1}\otimes\cdots\otimes\alpha_{a_n}$ and
+$\mathbf D=\delta\otimes\cdots\otimes\delta$ Kronecker products of $3\times 3$
+matrices, and $\mathbf G$ a dense $3^n\times 3^n$ matrix. The coupling between
+reaches enters only through $\mathbf G$.
+
+**Costs and discount.** Following {cite:t}`Taleghan2015`, each invaded reach
+costs 1.0 for the damage plus 0.1 for the tamarisk site it holds, and the
+treatments cost $\kappa=(0,\,0.5,\,0.9)$ for nothing, eradicate and restore:
+
+$$
+c(s,a)=1.1\sum_{i=1}^n\mathbf 1\{s_i=T\}+\sum_{i=1}^n\kappa(a_i),
+\qquad \gamma=0.9 .
+$$
+
+The costs are in abstract units. The goal is to minimize the expected
+discounted cost $\mathbb E\big[\sum_{t\ge 0}\gamma^t c(S_t,A_t)\big]$.
+
+**Solution.** Value iteration ({prf:ref}`value-iteration`, with a minimum in
+place of the maximum) computes
+
+$$
+v_{k+1}(s)=\min_{a\in\mathcal A}\Big\{c(s,a)+\gamma\sum_{j}p(j\mid s,a)\,v_k(j)\Big\},
+$$
+
+and stops when $\|v_{k+1}-v_k\|_\infty<\varepsilon(1-\gamma)/(2\gamma)$ with
+$\varepsilon=10^{-6}$. The factored form of $\mathbf P_a$ means that no
+transition matrix is ever stored. Each sweep computes $\mathbf w=\mathbf D\mathbf G v_k$
+once and then applies the small factors of $\mathbf A_a$ to $\mathbf w$ for
+every action. Policy iteration ({prf:ref}`policy-iteration-standard`) starts
+from "do nothing", solves $(\mathbf I-\gamma\mathbf P_\pi)v=\mathbf c_\pi$
+exactly at each step, and improves greedily. On the 7-reach river, with
+$3^7=2{,}187$ states and 15 actions, value iteration stops after 148 sweeps
+and policy iteration after 4 improvements. The two value functions agree to
+within $5\times10^{-7}$.
+
+:::{iframe} ../interactive/tamarisk-river.html
+:label: fig-tamarisk-river
+:width: 100%
+:title: Controlling tamarisk in a river network: the optimal policy against a heuristic
+:class: tamarisk-river-replay
+:placeholder: _static/tamarisk_river/river.svg
+
+One simulated episode on a 7-reach river that starts fully invaded. Each
+segment is a reach, colored by what grows there; water flows down to the
+outlet. A ring marks the reach treated that year, R for restore and E for
+eradicate. Top: the optimal policy computed by value iteration. Bottom: the
+heuristic that restores the invaded reach farthest upstream. Both rows use the
+same random numbers, and the titles give the discounted cost accumulated
+before that year. In the online book the replay runs year by year, and the
+reader can change the starting river, the comparison policy and the random
+seed.
+:::
+
+Every policy in the table below is evaluated exactly, by solving its
+policy-evaluation equations, so the numbers are expectations rather than
+averages of simulated episodes.
+
+:::{include} artifacts/tamarisk_river/results.md
+:::
+
+The optimal policy treats some invaded reach in every one of the 2,059
+states that contain tamarisk, yet it agrees with the "most upstream first"
+rule in only 678 of them and with the "most downstream first" rule in 672.
+From a fully invaded river it restores reach 2, which sits between two
+headwater reaches and the outlet, rather than a headwater reach or the outlet
+itself. When a single tamarisk plant stands among natives, it eradicates
+instead of restoring, because the native seed rain will usually refill the
+site and the cheaper treatment suffices. These choices lower the expected cost
+from a fully invaded river from 38.33 under the best heuristic to 36.89, and
+from 14.53 to 13.30 averaged over all starting states. The budget matters
+more than the choice of reach. Restoring every invaded reach each year, which
+the budget forbids, costs 19.83 from a fully invaded river, and the optimal
+policy without a budget costs 18.98.
+
+The same solvers run on rivers of 1 to 8 reaches
+({numref}`fig-tamarisk-river-scaling`). The number of value-iteration sweeps
+barely changes, from 140 to 150, because it depends on $\gamma$ and
+$\varepsilon$ rather than on the size of the model. Policy iteration needs 3
+or 4 improvements at every size. What grows is the work per sweep. The states
+grow as $3^n$, and a dense table of $p(j\mid s,a)$ would hold
+$9^n(2n+1)$ numbers with the budget and $27^n$ without it. For 7 reaches
+without a budget that is about $10^{10}$ numbers, or 84 GB. The factored
+backup avoids this table, but the coupling matrix $\mathbf G$ alone has $9^n$
+entries: 43 million for 8 reaches, and about $3.5\times10^9$, or 28 GB, for
+10. On the machine that built the figures, the 8-reach model took about 10 s to
+build and a few seconds to solve, and the 7-reach model without a budget took
+several times as long to solve as with it. Timings vary from run to
+run; the growth does not. The same blow-up hits the actions. The budget
+keeps the joint action set at $2n+1$, but without it the minimization in each
+backup ranges over $3^n$ joint actions.
+
+:::{figure} _static/tamarisk_river/scaling.svg
+:label: fig-tamarisk-river-scaling
+
+Left: the number of states, the number of joint actions with the
+one-treatment budget, and the number of entries in a dense table of
+$p(j\mid s,a)$ without the budget, against the number of reaches $n$. Right:
+seconds to build the model and solve it on one machine. Times below 0.1 s
+are dominated by overhead.
+:::
+
+The model is a teaching version of the benchmark. The parameter values for
+mortality, seed output, dispersal, treatment success, costs and the discount
+factor come from {cite:t}`Taleghan2015`, and the competitive advantage from
+{cite:t}`Hall2012`, but the river, the one-site reaches, the geometric
+dispersal kernel, the Poisson seed rain and the order of events within a year
+are our choices, and no field data enter the model. Real rivers have hundreds
+of reaches and many sites per reach. {cite:t}`Taleghan2015` describe the full
+dynamics as a dynamic Bayesian network too complex for exact inference, and
+plan from a simulator instead. The example still
+shows the point that the rest of the book builds on. Value iteration and
+policy iteration converge in a number of steps that hardly depends on the
+size of the river, but each step touches every state, and the number of
+states is exponential in the number of reaches. Managing a real river needs
+value functions that are represented compactly and backups that are
+estimated from samples, which is the subject of
+[approximate Bellman equations](approximate-bellman-equations.md) and
+[fitted Q-iteration](fitted-q-iteration.md).
+
+- {download}`Tamarisk river model and solvers <code/tamarisk_river.py>`
+- {download}`Tamarisk river experiment builder <scripts/build_tamarisk_river_artifacts.py>`
+- {download}`Tamarisk river results and timings <artifacts/tamarisk_river/metrics.json>`
+
 ## Summary and Outlook
 
 Discounting converts an infinite stream of rewards into a bounded value and

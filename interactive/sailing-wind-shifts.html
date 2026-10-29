@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sailing in a shifting wind · value iteration</title>
+<style>
+  :root { color-scheme:light; --ink:#20333f; --muted:#5e707c; --rule:#d8e2e7; --blue:#0072b2; --orange:#e69f00; --red:#b2182b; --green:#009e73; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:#fff; color:var(--ink); font:14px/1.45 system-ui,-apple-system,sans-serif; }
+  main { max-width:1120px; margin:auto; padding:20px; }
+  h1 { font-size:22px; font-weight:650; margin:0 0 5px; letter-spacing:-.3px; }
+  p { margin:0 0 14px; }
+  .intro, .note { color:var(--muted); font-size:13px; }
+  .toolbar { display:flex; align-items:end; flex-wrap:wrap; gap:12px; margin-bottom:12px; }
+  .toolbar + .toolbar { border-top:1px solid var(--rule); padding-top:11px; }
+  label { font-size:12px; color:var(--muted); display:block; }
+  select, button { font:inherit; color:var(--ink); background:white; border:1px solid #bdccd4; border-radius:5px; padding:7px 10px; min-height:35px; max-width:100%; }
+  select { margin-top:4px; }
+  button { cursor:pointer; }
+  button.primary { background:var(--ink); color:white; border-color:var(--ink); min-width:74px; }
+  button:focus-visible, select:focus-visible, input:focus-visible { outline:3px solid #e69f00; outline-offset:3px; }
+  .slider { flex:1 1 240px; min-width:160px; }
+  .slider label { display:flex; justify-content:space-between; gap:12px; white-space:nowrap; }
+  output { color:var(--ink); font-variant-numeric:tabular-nums; }
+  input[type=range] { width:100%; accent-color:var(--blue); margin:9px 0 2px; }
+  .panels { display:grid; grid-template-columns:minmax(0,1.25fr) minmax(0,1fr); gap:14px; }
+  .panel { border:1px solid var(--rule); border-radius:7px; background:#fff; overflow:hidden; margin:0; }
+  .panel canvas { width:100%; display:block; }
+  #lake { aspect-ratio:1; background:#f4f8fa; }
+  #wind { height:150px; }
+  #chart { height:250px; }
+  .charts { display:grid; gap:14px; align-content:start; }
+  .panel figcaption { padding:7px 12px; border-top:1px solid var(--rule); font-size:12px; display:flex; justify-content:space-between; gap:4px 10px; flex-wrap:wrap; }
+  .panel figcaption strong { font-weight:600; }
+  .legend { color:var(--muted); display:flex; gap:4px 12px; flex-wrap:wrap; align-items:center; }
+  .swatch { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:4px; vertical-align:-1px; }
+  .ramp { display:inline-block; width:54px; height:9px; border-radius:2px; vertical-align:-1px; margin:0 4px; border:1px solid #c8d2d7;
+          background:linear-gradient(90deg,#f7fbff,#c6dbef,#6baed6,#3787c0); }
+  .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:16px 0 10px; }
+  .metric span { display:block; color:var(--muted); font-size:11px; }
+  .metric strong { display:block; margin-top:2px; font-size:19px; font-weight:550; font-variant-numeric:tabular-nums; }
+  .note { margin:10px 0 0; font-size:12px; }
+  [hidden] { display:none !important; }
+  @media(max-width:760px) {
+    main { padding:14px; }
+    .panels { grid-template-columns:1fr; }
+    .metrics { grid-template-columns:repeat(2,1fr); }
+    .toolbar label { flex:1 1 140px; }
+    .toolbar select { width:100%; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Sailing to a windward mark in a shifting wind</h1>
+  <p class="intro">A boat beats from the square to the triangle on a 21 × 21 grid of waypoints. It cannot sail straight into the wind, a close-hauled leg takes 4 minutes (√2 times longer on a diagonal), and every change of tack costs 3 minutes. After each leg the wind may shift by 45°. In <em>Race</em> mode the blue boat follows the value-iteration policy and the orange boat is a layline sailor who tacks only on the laylines of the mean wind; both see the same wind on their k-th leg. In <em>Value iteration</em> mode the sweeps of value iteration fill in the expected time to the mark.</p>
+  <p id="load-status" role="status">Loading recorded solutions…</p>
+  <div id="replay" hidden>
+    <div class="toolbar">
+      <label for="mode">Mode<select id="mode">
+        <option value="race">Race</option>
+        <option value="vi">Value iteration</option>
+      </select></label>
+      <label for="scenario">Wind<select id="scenario"></select></label>
+      <label for="race" class="race-only">Race<select id="race"></select></label>
+      <label for="arrows" class="race-only">Arrows<select id="arrows">
+        <option value="policy">Optimal policy</option>
+        <option value="naive">Layline sailor</option>
+      </select></label>
+      <label for="vi-wind" class="vi-only">Wind slice<select id="vi-wind"></select></label>
+      <label for="vi-tack" class="vi-only">Tack<select id="vi-tack">
+        <option value="1">Starboard</option><option value="0">Port</option>
+      </select></label>
+    </div>
+    <div class="toolbar">
+      <button id="play" class="primary" type="button">Play</button>
+      <button id="restart" type="button">Restart</button>
+      <div class="slider"><label for="time"><span id="time-name">Leg</span><output id="time-label" for="time"></output></label><input id="time" type="range" min="0" max="1000" value="0" step="1"></div>
+    </div>
+    <div class="panels">
+      <figure class="panel"><canvas id="lake" role="img" aria-label="Lake with the policy arrow field, expected time to the mark, and the boats"></canvas>
+        <figcaption><strong id="lake-title"></strong><span class="legend" id="lake-legend"></span></figcaption></figure>
+      <div class="charts">
+        <figure class="panel"><canvas id="wind" role="img" aria-label="Wind direction and its history"></canvas>
+          <figcaption><strong id="wind-title">Wind</strong><span class="legend" id="wind-legend"></span></figcaption></figure>
+        <figure class="panel"><canvas id="chart" role="img" aria-label="Chart"></canvas>
+          <figcaption><strong id="chart-title"></strong><span class="legend" id="chart-legend"></span></figcaption></figure>
+      </div>
+    </div>
+    <div class="metrics" aria-live="polite">
+      <div class="metric"><span id="m1-l"></span><strong id="m1"></strong></div>
+      <div class="metric"><span id="m2-l"></span><strong id="m2"></strong></div>
+      <div class="metric"><span id="m3-l"></span><strong id="m3"></strong></div>
+      <div class="metric"><span id="m4-l"></span><strong id="m4"></strong></div>
+    </div>
+    <p class="note" id="note"></p>
+  </div>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const DX = [0,1,1,1,0,-1,-1,-1], DY = [1,1,0,-1,-1,-1,0,1];
+const RAMP = [[0,[247,251,255]],[.25,[198,219,239]],[.5,[107,174,214]],[.75,[33,113,181]],[1,[8,48,107]]];
+let data, tau = 0, playing = false, last = 0;
+
+function sizeCanvas(id) {
+  const el = $(id), r = el.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  el.width = Math.round(r.width * dpr); el.height = Math.round(r.height * dpr);
+  const ctx = el.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return [ctx, r.width, r.height];
+}
+function ramp(v) {
+  v = Math.max(0, Math.min(1, v));
+  for (let i = 1; i < RAMP.length; i++) {
+    const [a, ca] = RAMP[i-1], [b, cb] = RAMP[i];
+    if (v <= b) { const s = (v-a)/(b-a); return ca.map((x, k) => Math.round(x + s*(cb[k]-x))); }
+  }
+  return RAMP[RAMP.length-1][1];
+}
+const mode = () => $("mode").value;
+const scen = () => data.scenarios[mode() === "vi" ? data.featured : $("scenario").value];
+const n = () => data.n;
+const idx = (t, w, y, x) => ((t * 8 + w) * data.n + y) * data.n + x;
+function newTack(w, h, t) { const d = ((w - h) % 8 + 8) % 8; return d >= 1 && d <= 3 ? 1 : d >= 5 ? 0 : t; }
+
+// ---------- time axis ----------
+function race() { return scen().races[+$("race").value]; }
+function totalTime() {
+  if (mode() === "vi") return scen().vi_frames.length - 1;
+  const r = race(); return Math.max(r.optimal.length, r.naive.length) - 1;
+}
+function boatAt(path, t) {
+  const k = Math.min(Math.floor(t), path.length - 1), f = Math.min(t - k, 1);
+  const a = path[k], b = path[Math.min(k + 1, path.length - 1)];
+  const done = k >= path.length - 1;
+  return { x: a[0] + (b[0]-a[0]) * (done ? 0 : f), y: a[1] + (b[1]-a[1]) * (done ? 0 : f),
+           w: a[2], tack: a[3], clock: a[4] + (b[4]-a[4]) * (done ? 0 : f), leg: k, done,
+           heading: done ? null : headingOf(a, b), cell: a };
+}
+function headingOf(a, b) { const dx = b[0]-a[0], dy = b[1]-a[1]; for (let h = 0; h < 8; h++) if (DX[h] === dx && DY[h] === dy) return h; return null; }
+
+// ---------- lake ----------
+function geom(w) { const pad = 16, cell = (w - 2*pad) / data.n; return { pad, cell, X: x => pad + (x + .5) * cell, Y: y => pad + (data.n - .5 - y) * cell }; }
+function drawField(ctx, g, values, vmax, settled) {
+  const N = data.n;
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const v = values(x, y), c = ramp(v / vmax);
+    ctx.fillStyle = settled && !settled(x, y) ? "#e6ebee" : `rgb(${c})`;
+    ctx.fillRect(g.pad + x * g.cell, g.pad + (N - 1 - y) * g.cell, g.cell + .5, g.cell + .5);
+  }
+}
+function drawContours(ctx, g, values, step) {
+  // Marching squares on the cell-centre grid.
+  const N = data.n;
+  ctx.strokeStyle = "rgba(32,51,63,.35)"; ctx.lineWidth = 1;
+  for (let lvl = step; lvl < 200; lvl += step) {
+    ctx.beginPath();
+    for (let y = 0; y < N - 1; y++) for (let x = 0; x < N - 1; x++) {
+      const c = [values(x, y), values(x+1, y), values(x+1, y+1), values(x, y+1)];
+      const pts = [];
+      const edges = [[0,1,[x,y],[x+1,y]],[1,2,[x+1,y],[x+1,y+1]],[2,3,[x+1,y+1],[x,y+1]],[3,0,[x,y+1],[x,y]]];
+      for (const [i, j, p, q] of edges) {
+        if ((c[i] < lvl) !== (c[j] < lvl)) { const s = (lvl - c[i]) / (c[j] - c[i]); pts.push([p[0] + s*(q[0]-p[0]), p[1] + s*(q[1]-p[1])]); }
+      }
+      for (let k = 0; k + 1 < pts.length; k += 2) { ctx.moveTo(g.X(pts[k][0]), g.Y(pts[k][1])); ctx.lineTo(g.X(pts[k+1][0]), g.Y(pts[k+1][1])); }
+    }
+    ctx.stroke();
+  }
+}
+function arrow(ctx, x0, y0, x1, y1, color, lw, head) {
+  const a = Math.atan2(y1 - y0, x1 - x0);
+  ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = lw;
+  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1 - head * .6 * Math.cos(a), y1 - head * .6 * Math.sin(a)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x1, y1);
+  ctx.lineTo(x1 - head * Math.cos(a - .45), y1 - head * Math.sin(a - .45));
+  ctx.lineTo(x1 - head * Math.cos(a + .45), y1 - head * Math.sin(a + .45)); ctx.closePath(); ctx.fill();
+}
+function drawArrows(ctx, g, pol, w, t) {
+  const N = data.n, [mx, my] = data.mark, L = g.cell * .36, head = Math.max(3, g.cell * .22);
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    if (x === mx && y === my) continue;
+    const h = pol[idx(t, w, y, x)], tacks = newTack(w, h, t) !== t;
+    const nrm = Math.hypot(DX[h], DY[h]), ux = DX[h] / nrm, uy = -DY[h] / nrm;
+    const cx = g.X(x), cy = g.Y(y);
+    arrow(ctx, cx - L*ux, cy - L*uy, cx + L*ux, cy + L*uy, tacks ? "rgba(178,24,43,.85)" : "rgba(32,51,63,.55)", Math.max(.8, g.cell * .07), head);
+  }
+}
+function drawMarks(ctx, g) {
+  const [mx, my] = data.mark, [sx, sy] = data.start, s = Math.max(6, g.cell * .5);
+  ctx.fillStyle = "#20333f";
+  ctx.beginPath(); ctx.moveTo(g.X(mx), g.Y(my) - s); ctx.lineTo(g.X(mx) + s*.9, g.Y(my) + s*.6); ctx.lineTo(g.X(mx) - s*.9, g.Y(my) + s*.6); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.fillRect(g.X(sx) - s*.45, g.Y(sy) - s*.45, s*.9, s*.9);
+  // Laylines of the mean (north) wind.
+  ctx.setLineDash([4, 4]); ctx.strokeStyle = "rgba(32,51,63,.55)"; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(g.X(mx), g.Y(my)); ctx.lineTo(g.X(mx - my), g.Y(0));
+  ctx.moveTo(g.X(mx), g.Y(my)); ctx.lineTo(g.X(mx + my), g.Y(0)); ctx.stroke(); ctx.setLineDash([]);
+}
+function drawBoat(ctx, g, b, color, path) {
+  ctx.lineJoin = "round";
+  for (const [c, lw] of [["rgba(255,255,255,.9)", 5], [color, 2.4]]) {
+    ctx.strokeStyle = c; ctx.lineWidth = lw;
+    ctx.beginPath(); ctx.moveTo(g.X(path[0][0]), g.Y(path[0][1]));
+    for (let k = 1; k <= b.leg && k < path.length; k++) ctx.lineTo(g.X(path[k][0]), g.Y(path[k][1]));
+    ctx.lineTo(g.X(b.x), g.Y(b.y)); ctx.stroke();
+  }
+  ctx.strokeStyle = color; ctx.lineWidth = 2.2;
+  for (let k = 1; k <= b.leg && k < path.length; k++) if (path[k][3] !== path[k-1][3]) {
+    ctx.beginPath(); ctx.arc(g.X(path[k-1][0]), g.Y(path[k-1][1]), Math.max(4, g.cell*.3), 0, 2*Math.PI); ctx.stroke();
+  }
+  const h = b.heading ?? 0, a = Math.atan2(-DY[h], DX[h]), r = Math.max(7, g.cell * .55);
+  ctx.save(); ctx.translate(g.X(b.x), g.Y(b.y)); ctx.rotate(a);
+  ctx.fillStyle = color; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.2;
+  ctx.beginPath(); ctx.moveTo(r, 0); ctx.quadraticCurveTo(-r*.2, r*.62, -r*.75, r*.42); ctx.lineTo(-r*.75, -r*.42); ctx.quadraticCurveTo(-r*.2, -r*.62, r, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.restore();
+}
+function drawLakeRace(state) {
+  const [ctx, w] = sizeCanvas("lake"), g = geom(w), s = scen();
+  const lead = state.opt.done ? state.nai : state.opt, wind = lead.w;
+  const t = $("arrows").value === "naive" ? state.nai.tack : state.opt.tack;
+  const vmax = 140;
+  const val = (x, y) => s.v[idx(t, wind, y, x)];
+  drawField(ctx, g, val, vmax);
+  drawContours(ctx, g, val, 10);
+  drawArrows(ctx, g, s[$("arrows").value], wind, t);
+  drawMarks(ctx, g);
+  const r = race();
+  drawBoat(ctx, g, state.nai, "#e69f00", r.naive);
+  drawBoat(ctx, g, state.opt, "#0072b2", r.optimal);
+  $("lake-title").textContent = `Wind from ${data.dirs[wind]}, arrows for ${data.tacks[t]} tack`;
+  $("lake-legend").innerHTML = '<span><span class="swatch" style="background:var(--blue)"></span>optimal</span><span><span class="swatch" style="background:var(--orange)"></span>layline sailor</span><span><span class="swatch" style="background:var(--red)"></span>arrow: tack here</span><span>expected minutes<span class="ramp"></span>0 → 140</span>';
+}
+function viFrame(k) {
+  const s = scen(), wi = s.vi_winds.indexOf(+$("vi-wind").value), t = +$("vi-tack").value, N = data.n;
+  const f = s.vi_frames[k];
+  return (x, y) => f[((t * s.vi_winds.length + wi) * N + y) * N + x];
+}
+function drawLakeVI(k) {
+  const [ctx, w] = sizeCanvas("lake"), g = geom(w), s = scen();
+  const wind = +$("vi-wind").value, t = +$("vi-tack").value;
+  const vk = viFrame(k), vstar = (x, y) => s.v[idx(t, wind, y, x)];
+  const settled = (x, y) => Math.abs(vk(x, y) - vstar(x, y)) < 1;
+  drawField(ctx, g, vk, 140, settled);
+  drawMarks(ctx, g);
+  // Value printed in each cell that has not settled yet: it grows by about a minute per sweep.
+  if (g.cell > 17) {
+    ctx.fillStyle = "#5e707c"; ctx.font = `${Math.min(11, g.cell * .4)}px system-ui,sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    for (let y = 0; y < data.n; y++) for (let x = 0; x < data.n; x++) if (!settled(x, y) && (x + y) % 2 === 0) ctx.fillText(Math.round(vk(x, y)), g.X(x), g.Y(y));
+  }
+  let count = 0; for (let y = 0; y < data.n; y++) for (let x = 0; x < data.n; x++) count += settled(x, y);
+  $("lake-title").textContent = `v_${k} for wind from ${data.dirs[wind]}, ${data.tacks[t]} tack`;
+  $("lake-legend").innerHTML = '<span>settled, minutes<span class="ramp"></span>0 → 140</span><span><span class="swatch" style="background:#e6ebee;border-radius:2px"></span>more than 1 min below v* (numbers: v<sub>n</sub>)</span>';
+  return count;
+}
+
+// ---------- wind panel ----------
+function drawWind(windNow, history, k) {
+  const [ctx, w, h] = sizeCanvas("wind");
+  const R = Math.min(52, h/2 - 16), cx = 18 + R, cy = h/2;
+  ctx.strokeStyle = "#d8e2e7"; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 2*Math.PI); ctx.stroke();
+  ctx.fillStyle = "#5e707c"; ctx.font = "10px system-ui,sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  [["N",0],["E",2],["S",4],["W",6]].forEach(([l, d]) => { const a = d * Math.PI/4; ctx.fillText(l, cx + (R+9)*Math.sin(a), cy - (R+9)*Math.cos(a)); });
+  const a = windNow * Math.PI/4, ux = Math.sin(a), uy = -Math.cos(a);
+  arrow(ctx, cx + R*.85*ux, cy + R*.85*uy, cx - R*.75*ux, cy - R*.75*uy, "#20333f", 3, 12);
+  const left = cx + R + 26, right = w - 10;
+  if (!history) {
+    ctx.fillStyle = "#20333f"; ctx.font = "600 15px system-ui,sans-serif"; ctx.textAlign = "left";
+    ctx.fillText(`from ${data.dirs[windNow]}`, left, cy); return;
+  }
+  // History strip: wind on each leg.
+  const N = history.length, cw = Math.min(26, (right - left) / Math.max(N, 1)), rows = 1;
+  ctx.textAlign = "left"; ctx.fillStyle = "#5e707c"; ctx.font = "11px system-ui,sans-serif"; ctx.fillText("wind on each leg", left, 18);
+  const cols = Math.max(1, Math.floor((right - left) / 22)), cell = (right - left) / cols;
+  history.forEach((wd, i) => {
+    const r = Math.floor(i / cols), c = i % cols, x = left + c * cell + cell/2, y = 44 + r * 30;
+    if (y > h - 10) return;
+    const active = i === k;
+    ctx.fillStyle = active ? "#eef5fa" : "#fff"; ctx.strokeStyle = active ? "#0072b2" : "#e3e9ec"; ctx.lineWidth = active ? 2 : 1;
+    ctx.beginPath(); ctx.arc(x, y, cell * .42, 0, 2*Math.PI); ctx.fill(); ctx.stroke();
+    const b = wd * Math.PI/4, vx = Math.sin(b), vy = -Math.cos(b), L = cell * .28;
+    arrow(ctx, x + L*vx, y + L*vy, x - L*vx, y - L*vy, wd === 0 ? "#5e707c" : "#b2182b", 1.4, 5);
+  });
+}
+
+// ---------- chart ----------
+function drawHist(state) {
+  const [ctx, w, h] = sizeCanvas("chart"), s = scen(), H = s.hist, e = H.edges;
+  const left = 34, right = 12, top = 14, bottom = 30;
+  const ymax = Math.max(...H.optimal, ...H.naive);
+  const X = v => left + (v - e[0]) / (e[e.length-1] - e[0]) * (w - left - right), Y = c => h - bottom - c / ymax * (h - top - bottom);
+  ctx.strokeStyle = "#e3e9ec"; ctx.fillStyle = "#5e707c"; ctx.font = "10px system-ui,sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "top";
+  for (let v = Math.ceil(e[0]/10)*10; v <= e[e.length-1]; v += 10) { ctx.beginPath(); ctx.moveTo(X(v), top); ctx.lineTo(X(v), h - bottom); ctx.stroke(); ctx.fillText(v, X(v), h - bottom + 4); }
+  ctx.fillText("minutes to the mark", (left + w - right)/2, h - 13);
+  for (const [key, col] of [["naive", "230,159,0"], ["optimal", "0,114,178"]]) {
+    ctx.fillStyle = `rgba(${col},.28)`; ctx.strokeStyle = `rgb(${col})`; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(X(e[0]), Y(0));
+    H[key].forEach((c, i) => { ctx.lineTo(X(e[i]), Y(c)); ctx.lineTo(X(e[i+1]), Y(c)); });
+    ctx.lineTo(X(e[e.length-1]), Y(0)); ctx.closePath(); ctx.fill(); ctx.stroke();
+  }
+  const st = s.stats;
+  for (const [v, col] of [[st.optimal_minutes, "#0072b2"], [st.layline_minutes, "#e69f00"]]) {
+    ctx.setLineDash([5, 3]); ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X(v), top); ctx.lineTo(X(v), h - bottom); ctx.stroke(); ctx.setLineDash([]);
+  }
+  const r = race();
+  for (const [p, col] of [[r.optimal, "#0072b2"], [r.naive, "#e69f00"]]) {
+    const v = p[p.length-1][4], x = X(v);
+    ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x, top - 2); ctx.lineTo(x - 6, top - 12 + 2); ctx.lineTo(x + 6, top - 12 + 2); ctx.closePath(); ctx.fill();
+  }
+  $("chart-title").textContent = `Finishing times, ${s.stats.monte_carlo_races} simulated races`;
+  $("chart-legend").innerHTML = '<span>dashed: expected time</span><span>▼ this race</span>';
+}
+function drawConv(k) {
+  const [ctx, w, h] = sizeCanvas("chart"), s = scen();
+  const left = 46, right = 12, top = 12, bottom = 32, lo = -9, hi = 2.5;
+  const nmax = s.residuals.length;
+  const X = i => left + i / nmax * (w - left - right), Y = v => { const l = Math.log10(Math.max(v, 1e-9)); return top + (hi - l) / (hi - lo) * (h - top - bottom); };
+  ctx.font = "10px system-ui,sans-serif"; ctx.fillStyle = "#5e707c"; ctx.strokeStyle = "#e3e9ec"; ctx.lineWidth = 1;
+  ctx.textAlign = "right"; ctx.textBaseline = "middle";
+  for (let l = -8; l <= 2; l += 2) { ctx.beginPath(); ctx.moveTo(left, Y(10**l)); ctx.lineTo(w - right, Y(10**l)); ctx.stroke(); ctx.fillText(`1e${l}`, left - 4, Y(10**l)); }
+  ctx.textAlign = "center"; ctx.textBaseline = "top";
+  for (let i = 0; i <= nmax; i += 10) ctx.fillText(i, X(i), h - bottom + 4);
+  ctx.fillText("sweep n  (policy iteration: step k)", (left + w - right)/2, h - 14);
+  const line = (pts, col, dash, lw) => { ctx.setLineDash(dash); ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.beginPath(); pts.forEach(([i, v], j) => j ? ctx.lineTo(X(i), Y(v)) : ctx.moveTo(X(i), Y(v))); ctx.stroke(); ctx.setLineDash([]); };
+  line(s.vi_errors.map((v, i) => [i, v]), "#0072b2", [], 2);
+  line(s.residuals.map((v, i) => [i + 1, v]), "#0072b2", [3, 3], 1.4);
+  line(s.pi_errors.map((v, i) => [i, v]), "#009e73", [], 2);
+  s.pi_errors.forEach((v, i) => { ctx.fillStyle = "#009e73"; ctx.beginPath(); ctx.arc(X(i), Y(v), 3.5, 0, 2*Math.PI); ctx.fill(); });
+  ctx.strokeStyle = "#b2182b"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X(k), top); ctx.lineTo(X(k), h - bottom); ctx.stroke();
+  ctx.fillStyle = "#0072b2"; ctx.beginPath(); ctx.arc(X(k), Y(s.vi_errors[k]), 4.5, 0, 2*Math.PI); ctx.fill();
+  $("chart-title").textContent = "Sup-norm error and residual (log scale)";
+  $("chart-legend").innerHTML = '<span><span class="swatch" style="background:var(--blue)"></span>VI error ‖v<sub>n</sub>−v*‖ (dotted: residual)</span><span><span class="swatch" style="background:var(--green)"></span>PI error</span>';
+}
+
+// ---------- render ----------
+function render() {
+  if (!data) return;
+  const T = totalTime(); tau = Math.min(tau, T);
+  $("time").value = Math.round(1000 * tau / Math.max(T, 1e-9));
+  const s = scen(), st = s.stats;
+  if (mode() === "race") {
+    const r = race(), state = { opt: boatAt(r.optimal, tau), nai: boatAt(r.naive, tau) };
+    drawLakeRace(state);
+    const hist = r.optimal.length >= r.naive.length ? r.optimal : r.naive;
+    const winds = hist.slice(0, -1).map(p => p[2]);
+    drawWind(state.opt.done ? state.nai.w : state.opt.w, winds, Math.min(Math.floor(tau), winds.length - 1));
+    drawHist(state);
+    $("time-name").textContent = "Leg"; $("time-label").textContent = `${Math.min(Math.floor(tau) + 1, T)} of ${T}`;
+    $("wind-title").textContent = `Wind from ${data.dirs[(state.opt.done ? state.nai : state.opt).w]}`;
+    $("wind-legend").textContent = "red: shifted from north";
+    $("m1-l").textContent = "Optimal boat"; $("m1").textContent = `${state.opt.clock.toFixed(1)} min`;
+    $("m2-l").textContent = "Layline sailor"; $("m2").textContent = `${state.nai.clock.toFixed(1)} min`;
+    $("m3-l").textContent = "Expected, optimal"; $("m3").textContent = `${st.optimal_minutes.toFixed(1)} min`;
+    $("m4-l").textContent = "Expected, layline sailor"; $("m4").textContent = `${st.layline_minutes.toFixed(1)} min`;
+  } else {
+    const k = Math.round(tau), count = drawLakeVI(k);
+    drawWind(+$("vi-wind").value, null, 0);
+    drawConv(k);
+    $("time-name").textContent = "Sweep n"; $("time-label").textContent = `${k} of ${T}`;
+    $("wind-title").textContent = "Wind slice shown"; $("wind-legend").textContent = "";
+    $("m1-l").textContent = "Sweep n"; $("m1").textContent = k;
+    $("m2-l").textContent = "Residual ‖v_n − v_{n−1}‖"; $("m2").textContent = k ? s.residuals[k-1].toExponential(1) : "–";
+    $("m3-l").textContent = "Error ‖v_n − v*‖"; $("m3").textContent = s.vi_errors[k] === 0 ? "0" : s.vi_errors[k].toExponential(1);
+    $("m4-l").textContent = "Cells within 1 min of v*"; $("m4").textContent = `${count} / ${data.n * data.n}`;
+  }
+}
+function updateMode() {
+  const vi = mode() === "vi";
+  document.querySelectorAll(".race-only").forEach(e => e.hidden = vi);
+  document.querySelectorAll(".vi-only").forEach(e => e.hidden = !vi);
+  $("scenario").disabled = vi;
+  if (vi) $("scenario").value = data.featured;
+  const st = scen().stats;
+  $("note").textContent = (vi
+    ? `Value iteration on the ${scen().label.toLowerCase()}, from v0 = 0 with no discount. Each sweep adds one more leg of look-ahead, so the region where v_n has settled spreads out from the mark. The residual reaches exactly zero after ${st.value_iteration_sweeps} sweeps; policy iteration from the layline sailor needs ${st.policy_iteration_improvements} improvement steps. `
+    : `Expected times from the start with the wind from the north: optimal ${st.optimal_minutes.toFixed(1)} min, layline sailor ${st.layline_minutes.toFixed(1)} min. Over ${st.monte_carlo_races} paired races the optimal boat is faster in ${(100*st.share_races_optimal_faster).toFixed(0)}% and tied in ${(100*st.share_races_tied).toFixed(0)}%. `)
+    + "Recorded solutions from the chapter's solver; nothing is optimized in the browser. Leg times (4, 3, 2 and 1 minutes from close-hauled to dead downwind) and the 3-minute tack delay follow Vanderbei's sailing problem and the mdp-engine benchmark code; the lake, the oscillating wind chain and the layline sailor are teaching choices.";
+}
+
+function tick(now) {
+  if (!playing) return;
+  if (now - last > 30) {
+    last = now;
+    const T = totalTime();
+    tau = Math.min(T, tau + (mode() === "vi" ? .12 : .05));
+    if (tau >= T) setPlaying(false);
+    render();
+  }
+  requestAnimationFrame(tick);
+}
+function setPlaying(value) {
+  playing = value; $("play").textContent = value ? "Pause" : "Play";
+  if (value) { if (tau >= totalTime()) tau = 0; requestAnimationFrame(tick); }
+}
+
+fetch("sailing-wind-shifts-data.json").then(r => r.json()).then(d => {
+  data = d;
+  for (const [key, s] of Object.entries(data.scenarios)) {
+    const o = document.createElement("option"); o.value = key; o.textContent = s.label; if (key === data.featured) o.selected = true; $("scenario").appendChild(o);
+  }
+  data.scenarios[data.featured].races.forEach((_, i) => { const o = document.createElement("option"); o.value = i; o.textContent = `Race ${i + 1}`; $("race").appendChild(o); });
+  data.scenarios[data.featured].vi_winds.forEach(w => { const o = document.createElement("option"); o.value = w; o.textContent = `From ${data.dirs[w]}`; if (w === 0) o.selected = true; $("vi-wind").appendChild(o); });
+  $("load-status").hidden = true; $("replay").hidden = false;
+  for (const id of ["mode", "scenario", "race"]) $(id).addEventListener("change", () => { tau = 0; updateMode(); render(); });
+  for (const id of ["arrows", "vi-wind", "vi-tack"]) $(id).addEventListener("change", render);
+  $("play").addEventListener("click", () => setPlaying(!playing));
+  $("restart").addEventListener("click", () => { tau = 0; render(); });
+  $("time").addEventListener("input", e => { setPlaying(false); tau = totalTime() * e.target.value / 1000; render(); });
+  window.addEventListener("resize", render);
+  updateMode(); render();
+}).catch(err => { $("load-status").textContent = "Could not load the recorded solutions: " + err; });
+</script>
+</body>
+</html>

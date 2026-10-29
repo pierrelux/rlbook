@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Closing a storm-surge barrier · optimal stopping</title>
+<style>
+  :root { color-scheme:light; --ink:#20333f; --muted:#5e707c; --rule:#d8e2e7; --blue:#0072b2; --red:#b2182b; --orange:#e69f00; --verm:#d55e00; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:#fff; color:var(--ink); font:14px/1.45 system-ui,-apple-system,sans-serif; }
+  main { max-width:1120px; margin:auto; padding:20px; }
+  h1 { font-size:22px; font-weight:650; margin:0 0 5px; letter-spacing:-.3px; }
+  p { margin:0 0 14px; }
+  .intro, .note { color:var(--muted); font-size:13px; }
+  .toolbar { display:flex; align-items:end; flex-wrap:wrap; gap:12px; margin-bottom:12px; }
+  .toolbar + .toolbar { border-top:1px solid var(--rule); padding-top:11px; }
+  label { font-size:12px; color:var(--muted); display:block; }
+  select, button { font:inherit; color:var(--ink); background:white; border:1px solid #bdccd4; border-radius:5px; padding:7px 10px; min-height:35px; max-width:100%; }
+  select { margin-top:4px; display:block; }
+  button { cursor:pointer; }
+  button.primary { background:var(--ink); color:white; border-color:var(--ink); min-width:74px; }
+  button:focus-visible, select:focus-visible, input:focus-visible { outline:3px solid #e69f00; outline-offset:3px; }
+  .slider { flex:1 1 240px; min-width:160px; }
+  .slider label { display:flex; justify-content:space-between; gap:12px; white-space:nowrap; }
+  output { color:var(--ink); font-variant-numeric:tabular-nums; }
+  input[type=range] { width:100%; accent-color:var(--blue); margin:9px 0 2px; }
+  .panels { display:grid; grid-template-columns:minmax(0,1.25fr) minmax(0,1fr); gap:14px; }
+  .panel { border:1px solid var(--rule); border-radius:7px; background:#fff; overflow:hidden; margin:0; }
+  .panel canvas { width:100%; display:block; }
+  #section { height:452px; background:#fbfcfc; }
+  #fan { height:200px; }
+  #map { height:200px; }
+  .charts { display:grid; gap:14px; align-content:start; }
+  .panel figcaption { padding:7px 12px; border-top:1px solid var(--rule); font-size:12px; display:flex; justify-content:space-between; gap:4px 10px; flex-wrap:wrap; }
+  .panel figcaption strong { font-weight:600; }
+  .legend { color:var(--muted); display:flex; gap:4px 12px; flex-wrap:wrap; align-items:center; }
+  .sw { display:inline-block; width:14px; height:10px; margin-right:4px; vertical-align:-1px; border-radius:2px; }
+  .ln { display:inline-block; width:16px; height:0; margin-right:4px; vertical-align:3px; border-top:2px dashed var(--orange); }
+  .metrics { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin:16px 0 10px; }
+  .metric span { display:block; color:var(--muted); font-size:11px; }
+  .metric strong { display:block; margin-top:2px; font-size:19px; font-weight:550; font-variant-numeric:tabular-nums; }
+  .note { margin:10px 0 0; font-size:12px; }
+  [hidden] { display:none !important; }
+  @media(max-width:760px) {
+    main { padding:14px 16px; }
+    .panels { grid-template-columns:1fr; }
+    #section { height:270px; }
+    .metrics { grid-template-columns:repeat(2,1fr); }
+    .toolbar > label { flex:1 1 150px; }
+    .toolbar select { width:100%; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>When to close a storm-surge barrier</h1>
+  <p class="intro">A storm is forecast to push the water at Rotterdam to a peak in 24 hours. Every hour the forecast of that peak is updated and becomes more accurate. Ordering the closure halts shipping at once, and the gates need at least 6 hours to close, sometimes more. If the barrier is still open when the peak exceeds 300 cm above NAP, the city floods. Compare the backward-induction policy with fixed threshold rules on the same storms.</p>
+  <p id="load-status" role="status">Loading recorded storms…</p>
+  <div id="replay" hidden>
+    <div class="toolbar">
+      <label for="storm">Storm<select id="storm"></select></label>
+      <label for="policy">Policy<select id="policy">
+        <option value="dp">Backward induction</option>
+        <option value="tuned">Best threshold rule</option>
+        <option value="literal">Close once the forecast reaches 300 cm</option>
+      </select></label>
+      <label for="cost">Flood damage<select id="cost"></select></label>
+    </div>
+    <div class="toolbar">
+      <button id="play" class="primary" type="button">Play</button>
+      <button id="restart" type="button">Restart</button>
+      <div class="slider"><label for="time">Time<output id="time-label" for="time"></output></label><input id="time" type="range" min="0" max="1000" value="0" step="1"></div>
+    </div>
+    <div class="panels">
+      <figure class="panel"><canvas id="section" role="img" aria-label="Cross-section of the sea, the barrier and the harbour"></canvas>
+        <figcaption><strong id="section-title">Nieuwe Waterweg, schematic cross-section</strong><span class="legend"><span><span class="sw" style="background:#9cc7e4"></span>water</span><span>quay at 300 cm above NAP</span></span></figcaption></figure>
+      <div class="charts">
+        <figure class="panel"><canvas id="fan" role="img" aria-label="Forecast of the peak water level with its uncertainty"></canvas>
+          <figcaption><strong>Forecast of the peak</strong><span class="legend"><span><span class="sw" style="background:rgba(0,114,178,.35)"></span>50% and 90% range of the peak</span></span></figcaption></figure>
+        <figure class="panel"><canvas id="map" role="img" aria-label="Closing region of the policy and the current state"></canvas>
+          <figcaption><strong>Closing region</strong><span class="legend"><span><span class="sw" style="background:rgba(0,114,178,.28)"></span>backward induction</span><span><span class="ln"></span>threshold rule</span></span></figcaption></figure>
+      </div>
+    </div>
+    <div class="metrics" aria-live="polite">
+      <div class="metric"><span>Hours before the peak</span><strong id="m-lead"></strong></div>
+      <div class="metric"><span>Forecast of the peak</span><strong id="m-forecast"></strong></div>
+      <div class="metric"><span>P(peak above 300 cm)</span><strong id="m-prob"></strong></div>
+      <div class="metric"><span>Barrier</span><strong id="m-status"></strong></div>
+      <div class="metric"><span>Cost so far (hours of halted shipping)</span><strong id="m-cost"></strong></div>
+    </div>
+    <p class="note" id="summary"></p>
+    <p class="note">Recorded storms and policies from the chapter's solver; nothing is optimized in the browser. The closing criterion (300 cm above NAP at Rotterdam) is the Maeslant barrier's; the forecast errors, closing delays, costs and storm distribution are teaching values. The water curve in the cross-section is drawn for illustration; only its peak comes from the model.</p>
+  </div>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const POST = 5;                  // hours shown after the peak
+const SPEED = 0.06;              // hours per animation tick
+const STATUS_LABEL = { open: "open", warn1: "ships warned", warn2: "ships warned", warn3: "ships warned",
+  closing1: "closing", closing2: "closing", delayed: "fault, delayed", closed: "closed" };
+let data, P, tau = 0, playing = false, last = 0;
+
+function sizeCanvas(id) {
+  const el = $(id), r = el.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  el.width = Math.round(r.width * dpr); el.height = Math.round(r.height * dpr);
+  const ctx = el.getContext("2d"); ctx.scale(dpr, dpr);
+  return [ctx, r.width, r.height];
+}
+function storm() { return data.storms[+$("storm").value]; }
+function run() { return storm().runs[$("cost").value][$("policy").value]; }
+function total() { return P.horizon + POST; }
+function statusName(i) { const st = run().status; return data.status_names[st[Math.max(0, Math.min(st.length - 1, i))]]; }
+function forecastAt(t) {
+  const f = storm().forecast, i = Math.min(Math.floor(t), P.horizon), j = Math.min(i + 1, P.horizon), s = Math.min(t, P.horizon) - i;
+  return f[i] + (f[j] - f[i]) * s;
+}
+// Illustrative water level outside the barrier: a tide plus a surge that peaks at the modelled peak.
+function seaLevel(lead, peak) {
+  return 20 + 80 * Math.cos(2 * Math.PI * lead / 12.42) + (peak - 100) * Math.exp(-((lead / 9) ** 2));
+}
+function closedAt() {           // epoch index at which the barrier first counts as closed
+  const st = run().status, c = data.status_names.indexOf("closed");
+  const i = st.indexOf(c); return i < 0 ? null : i;
+}
+function insideLevel(t, peak) {
+  const lead = P.horizon - t, ci = closedAt();
+  if (ci !== null && t >= ci) return Math.min(seaLevel(P.horizon - ci, peak), 300);
+  return seaLevel(lead, peak);
+}
+function costSoFar(t) {
+  const st = run().status; let c = 0;
+  for (let i = 0; i < P.horizon && i < Math.floor(t); i++) c += st[i + 1] !== 0 ? P.ship_cost : 0;
+  if (t >= P.horizon) {
+    if (run().order_lead !== null) c += P.reopen_hours * P.ship_cost;
+    if (run().flooded) c += +$("cost").value;
+  }
+  return c;
+}
+function gateDepth(t) {          // 0 = parked above the water, 1 = on the bed
+  const i = Math.floor(Math.min(t, P.horizon)), frac = Math.min(t, P.horizon) - i;
+  const name = statusName(i), next = statusName(i + 1);
+  const pos = n => n === "closed" ? 1 : n === "closing1" ? .1 : n === "closing2" ? .5 : n === "delayed" ? .82 : 0;
+  if (t >= P.horizon) return pos(statusName(P.horizon));
+  return pos(name) + (pos(next) - pos(name)) * frac;
+}
+
+function drawSection(t) {
+  const [ctx, w, h] = sizeCanvas("section");
+  const s = storm(), peak = s.forecast[P.horizon], lead = P.horizon - t;
+  const yMin = -150, yMax = 480, top = 26, bot = h - 18, narrow = w < 500;
+  const Y = v => bot - (v - yMin) / (yMax - yMin) * (bot - top);
+  const xB = w * .44, xQ = w * .8, gateW = Math.max(10, w * .02);
+  const sea = seaLevel(lead, peak), inside = insideLevel(t, peak);
+  const flooded = run().flooded && (t >= P.horizon || (t >= P.horizon - 1 && inside > 300));
+  // sky and bed
+  ctx.fillStyle = "#f4f7f9"; ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = "#d9cdb6"; ctx.fillRect(0, Y(-110), w, h - Y(-110));
+  // reference lines
+  ctx.font = "11px system-ui,sans-serif"; ctx.textBaseline = "bottom";
+  for (const v of narrow ? [0, 300] : [0, 100, 200, 300, 400]) {
+    ctx.strokeStyle = v === 300 ? "rgba(213,94,0,.6)" : "#e3e9ec"; ctx.lineWidth = 1; ctx.setLineDash(v === 300 ? [4, 3] : []);
+    ctx.beginPath(); ctx.moveTo(0, Y(v)); ctx.lineTo(w, Y(v)); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = "#7b858a"; ctx.textAlign = "right"; ctx.fillText(`${v} cm`, xQ - 4, Y(v) - 1);
+  }
+  // sea water
+  ctx.fillStyle = "#9cc7e4"; ctx.fillRect(0, Y(sea), xB, Y(-110) - Y(sea));
+  // harbour water
+  ctx.fillStyle = "#b5d6ec"; ctx.fillRect(xB, Y(inside), xQ - xB, Y(-110) - Y(inside));
+  // quay and city
+  ctx.fillStyle = "#c9cfd3"; ctx.fillRect(xQ, Y(300), w - xQ, Y(-110) - Y(300));
+  ctx.fillStyle = "#8e9aa1";
+  const bw = (w - xQ) / 5;
+  [[.3, 45], [1.5, 70], [2.7, 35], [3.8, 55]].forEach(([k, ht]) => ctx.fillRect(xQ + k * bw, Y(300 + ht), bw * .8, Y(300) - Y(300 + ht)));
+  if (flooded) {
+    const flood = Math.max(inside, 315);
+    ctx.fillStyle = "rgba(156,199,228,.85)"; ctx.fillRect(xQ, Y(flood), w - xQ, Y(300) - Y(flood) + 1);
+    ctx.fillStyle = "#b2182b"; ctx.font = "600 13px system-ui,sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+    ctx.fillText("city floods", (xQ + w) / 2, Y(375));
+  }
+  // barrier: the gate floats in from its dock and is sunk onto a sill on the bed
+  const depth = gateDepth(t), name = statusName(Math.floor(Math.min(t, P.horizon)));
+  const gateTop = Y(400), bed = Y(-110);
+  if (depth <= 0) {
+    ctx.strokeStyle = name === "open" ? "#9aa8b0" : "#e69f00"; ctx.lineWidth = 1.5; ctx.setLineDash([4, 3]);
+    ctx.strokeRect(xB - gateW / 2, gateTop, gateW, bed - gateTop); ctx.setLineDash([]);
+  } else {
+    const lift = (1 - depth) * (bed - Y(sea)) * .6;
+    ctx.fillStyle = name === "delayed" ? "#b2182b" : name === "closed" ? "#20333f" : "#4a5a63";
+    ctx.fillRect(xB - gateW / 2, gateTop - lift, gateW, bed - gateTop);
+  }
+  ctx.fillStyle = "#5e707c"; ctx.font = "10px system-ui,sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "top";
+  ctx.fillText(depth <= 0 ? "gate in dock" : name === "delayed" ? "fault" : name === "closed" ? "closed" : "sinking", xB, bed + 3);
+  // shipping
+  const halted = name !== "open";
+  const shipX = halted ? xB * .45 : ((t * 0.9) % 1) * (xQ - 20);
+  const shipLevel = shipX < xB ? sea : inside;
+  ctx.fillStyle = halted ? "#d55e00" : "#33434c";
+  ctx.beginPath(); ctx.moveTo(shipX - 16, Y(shipLevel) - 8); ctx.lineTo(shipX + 16, Y(shipLevel) - 8); ctx.lineTo(shipX + 11, Y(shipLevel) + 2); ctx.lineTo(shipX - 11, Y(shipLevel) + 2); ctx.closePath(); ctx.fill();
+  ctx.fillRect(shipX - 6, Y(shipLevel) - 16, 9, 8);
+  // labels
+  ctx.fillStyle = "#20333f"; ctx.font = "600 12px system-ui,sans-serif"; ctx.textBaseline = "top"; ctx.textAlign = "left";
+  ctx.fillText("North Sea", narrow ? 8 : 50, top + 2);
+  ctx.textAlign = "center"; ctx.fillText("Barrier", xB, top + 2);
+  ctx.fillText("Harbour", (xB + xQ) / 2 + 10, top + 2);
+  ctx.textAlign = "right"; ctx.fillText("Rotterdam", w - 6, top + 2);
+  ctx.font = "11px system-ui,sans-serif"; ctx.fillStyle = "#5e707c"; ctx.textAlign = "left";
+  ctx.fillText(`sea ${Math.round(sea)} cm`, narrow ? 8 : 50, top + 18);
+  ctx.textAlign = "center"; ctx.fillText(`inside ${Math.round(inside)} cm`, (xB + xQ) / 2 + 10, top + 18);
+  if (halted && !narrow) { ctx.fillStyle = "#d55e00"; ctx.textAlign = "left"; ctx.fillText("shipping halted", 50, top + 34); }
+}
+
+function axes(ctx, w, h, yLo, yHi, pad) {
+  const X = lead => pad.l + (P.horizon - lead) / P.horizon * (w - pad.l - pad.r);
+  const Y = v => h - pad.b - (v - yLo) / (yHi - yLo) * (h - pad.t - pad.b);
+  ctx.font = "10px system-ui,sans-serif"; ctx.fillStyle = "#5e707c";
+  ctx.fillStyle = "rgba(123,133,138,.13)"; ctx.fillRect(X(6 - .5), pad.t, X(-.5) - X(6 - .5), h - pad.t - pad.b);
+  ctx.strokeStyle = "#e3e9ec"; ctx.lineWidth = 1;
+  for (let v = Math.ceil(yLo / 20) * 20; v <= yHi; v += 20) {
+    ctx.beginPath(); ctx.moveTo(pad.l, Y(v)); ctx.lineTo(w - pad.r, Y(v)); ctx.stroke();
+    ctx.fillStyle = "#5e707c"; ctx.textAlign = "right"; ctx.textBaseline = "middle"; ctx.fillText(v, pad.l - 4, Y(v));
+  }
+  ctx.textAlign = "center"; ctx.textBaseline = "top";
+  for (const L of [24, 18, 12, 6, 0]) ctx.fillText(L === 0 ? "peak" : `${L} h`, X(L), h - pad.b + 3);
+  ctx.strokeStyle = "rgba(213,94,0,.8)"; ctx.setLineDash([4, 3]); ctx.beginPath(); ctx.moveTo(pad.l, Y(300)); ctx.lineTo(w - pad.r, Y(300)); ctx.stroke(); ctx.setLineDash([]);
+  return [X, Y];
+}
+
+function drawFan(t) {
+  const [ctx, w, h] = sizeCanvas("fan");
+  const pad = { l: 34, r: 12, t: 10, b: 18 }, [X, Y] = axes(ctx, w, h, 220, 370, pad);
+  const s = storm(), tt = Math.min(t, P.horizon), lead = P.horizon - tt, f = forecastAt(tt);
+  // fan from now to the peak
+  if (lead > 0) {
+    for (const [z, a] of [[1.645, .16], [0.674, .22]]) {
+      ctx.fillStyle = `rgba(0,114,178,${a})`; ctx.beginPath();
+      for (let L = lead; L >= 0; L -= .25) ctx.lineTo(X(L), Y(f + z * P.sigma_step * Math.sqrt(lead - L)));
+      for (let L = 0; L <= lead; L += .25) ctx.lineTo(X(L), Y(f - z * P.sigma_step * Math.sqrt(lead - L)));
+      ctx.closePath(); ctx.fill();
+    }
+  }
+  // past forecasts
+  ctx.strokeStyle = "#20333f"; ctx.lineWidth = 1.6; ctx.beginPath();
+  for (let u = 0; u <= tt + 1e-9; u += .25) { const x = X(P.horizon - u), y = Y(forecastAt(u)); u === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
+  ctx.stroke();
+  ctx.fillStyle = "#20333f"; ctx.beginPath(); ctx.arc(X(lead), Y(f), 3.5, 0, 2 * Math.PI); ctx.fill();
+  const o = run().order_lead;
+  if (o !== null && P.horizon - o <= tt) {
+    ctx.strokeStyle = "#0072b2"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(X(o), pad.t); ctx.lineTo(X(o), h - pad.b); ctx.stroke();
+    ctx.fillStyle = "#0072b2"; ctx.font = "600 10px system-ui,sans-serif"; ctx.textAlign = "left"; ctx.textBaseline = "top";
+    ctx.fillText("closure ordered", X(o) + 3, pad.t + 1);
+  }
+  if (t >= P.horizon) {
+    const pk = s.forecast[P.horizon];
+    ctx.fillStyle = pk > 300 ? "#d55e00" : "#20333f"; ctx.fillRect(X(0) - 4, Y(pk) - 4, 8, 8);
+  }
+}
+
+function drawMap(t) {
+  const [ctx, w, h] = sizeCanvas("map");
+  const pad = { l: 34, r: 12, t: 10, b: 18 }, [X, Y] = axes(ctx, w, h, 245, 345, pad);
+  const c = data.costs[$("cost").value], pol = $("policy").value;
+  c.dp_threshold.forEach((f, L) => {
+    if (f === null) return;
+    ctx.fillStyle = `rgba(0,114,178,${pol === "dp" ? .32 : .14})`;
+    ctx.fillRect(X(L + .5), Y(345), X(L - .5) - X(L + .5), Y(Math.max(f - .5, 245)) - Y(345));
+  });
+  const ruleBox = (f, lo, hi, dash, alpha) => {
+    ctx.strokeStyle = `rgba(230,159,0,${alpha})`; ctx.lineWidth = 2; ctx.setLineDash(dash);
+    ctx.beginPath(); ctx.moveTo(X(lo - .5), Y(345)); ctx.lineTo(X(lo - .5), Y(f)); ctx.lineTo(X(hi + .5), Y(f)); ctx.lineTo(X(hi + .5), Y(345)); ctx.stroke(); ctx.setLineDash([]);
+  };
+  if (pol === "tuned") ruleBox(300 - c.rule.margin, 6, c.rule.latest_lead, [5, 3], 1);
+  else if (pol === "literal") ruleBox(300, 6, P.horizon, [5, 3], 1);
+  else ruleBox(300 - c.rule.margin, 6, c.rule.latest_lead, [5, 3], .45);
+  // trail and current state
+  const tt = Math.min(t, P.horizon);
+  ctx.strokeStyle = "rgba(32,51,63,.6)"; ctx.lineWidth = 1.2; ctx.beginPath();
+  for (let u = 0; u <= tt + 1e-9; u += .25) { const x = X(P.horizon - u), y = Y(Math.max(245, Math.min(345, forecastAt(u)))); u === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
+  ctx.stroke();
+  const o = run().order_lead;
+  if (o !== null && P.horizon - o <= tt) {
+    ctx.fillStyle = "#0072b2"; ctx.beginPath(); ctx.arc(X(o), Y(Math.max(245, Math.min(345, storm().forecast[P.horizon - o]))), 5, 0, 2 * Math.PI); ctx.fill();
+  }
+  const open = statusName(Math.floor(tt)) === "open";
+  ctx.fillStyle = open ? "#20333f" : "#0072b2"; ctx.strokeStyle = "white"; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(X(P.horizon - tt), Y(Math.max(245, Math.min(345, forecastAt(tt)))), 4.5, 0, 2 * Math.PI); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = "#5e707c"; ctx.font = "10px system-ui,sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "top";
+  ctx.fillText("too late", X(3), pad.t + 2);
+}
+
+function render() {
+  if (!data) return;
+  tau = Math.max(0, Math.min(tau, total()));
+  $("time").value = Math.round(1000 * tau / total());
+  const s = storm(), r = run(), i = Math.min(Math.floor(tau), P.horizon), lead = P.horizon - tau;
+  drawSection(tau); drawFan(tau); drawMap(tau);
+  $("time-label").textContent = lead > 0 ? `${lead.toFixed(1)} h before the peak` : lead === 0 ? "peak" : `${(-lead).toFixed(1)} h after the peak`;
+  $("m-lead").textContent = Math.max(0, P.horizon - i);
+  const remaining = P.sigma_step * Math.sqrt(P.horizon - i);
+  $("m-forecast").textContent = i < P.horizon ? `${s.forecast[i]} ± ${remaining.toFixed(0)} cm` : `${s.forecast[P.horizon]} cm (actual)`;
+  $("m-prob").textContent = i < P.horizon ? s.p_exceed[i].toFixed(3) : (s.forecast[P.horizon] > 300 ? "exceeded" : "not exceeded");
+  const st = statusName(i) === "open" && r.order_lead === P.horizon - i ? "closure ordered" : STATUS_LABEL[statusName(i)];
+  $("m-status").textContent = tau >= P.horizon && r.flooded ? "open: flood" : st;
+  $("m-status").style.color = tau >= P.horizon && r.flooded ? "#b2182b" : "";
+  $("m-cost").textContent = costSoFar(tau).toFixed(0);
+  const m = data.costs[$("cost").value].metrics[$("policy").value];
+  const pk = s.forecast[P.horizon];
+  const outcome = r.order_lead === null ? (r.flooded ? "never closed the barrier, and the city flooded" : "never closed the barrier")
+    : `ordered the closure ${r.order_lead} h before the peak` + (r.flooded ? ", too late: the city flooded" : (pk > 300 ? ", and the barrier held back the peak" : ", a false closure"));
+  $("summary").textContent = `This storm peaks at ${pk} cm above NAP. The policy ${outcome}; cost ${r.cost.toFixed(0)}. Over all storms, this policy's expected cost is ${m.cost.toFixed(1)}, with false closures in ${(100 * m.p_false).toFixed(1)}% of storms and missed floods in ${(100 * m.p_miss).toFixed(2)}%.`;
+}
+
+function tick(now) {
+  if (!playing) return;
+  if (now - last > 30) {
+    last = now; tau = Math.min(total(), tau + SPEED);
+    if (tau >= total()) setPlaying(false);
+    render();
+  }
+  requestAnimationFrame(tick);
+}
+function setPlaying(value) {
+  playing = value; $("play").textContent = value ? "Pause" : "Play";
+  if (value) { if (tau >= total()) tau = 0; requestAnimationFrame(tick); }
+}
+
+fetch("storm-surge-barrier-data.json").then(r => r.json()).then(d => {
+  data = d; P = d.params;
+  d.storms.forEach((s, i) => { const o = document.createElement("option"); o.value = i; o.textContent = s.name; $("storm").appendChild(o); });
+  for (const c of Object.keys(d.costs)) {
+    const o = document.createElement("option"); o.value = c; o.textContent = `${c} hours of shipping`;
+    if (+c === d.default_cost) o.selected = true; $("cost").appendChild(o);
+  }
+  $("load-status").hidden = true; $("replay").hidden = false;
+  $("storm").addEventListener("change", () => { tau = 0; render(); });
+  for (const id of ["policy", "cost"]) $(id).addEventListener("change", render);
+  $("play").addEventListener("click", () => setPlaying(!playing));
+  $("restart").addEventListener("click", () => { tau = 0; render(); });
+  $("time").addEventListener("input", e => { setPlaying(false); tau = total() * e.target.value / 1000; render(); });
+  window.addEventListener("resize", render);
+  render();
+}).catch(err => { $("load-status").textContent = "Could not load the recorded storms: " + err; });
+</script>
+</body>
+</html>

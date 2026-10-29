@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tamarisk in a river network · value iteration</title>
+<style>
+  :root { color-scheme:light; --ink:#20333f; --muted:#5e707c; --rule:#d8e2e7; --blue:#0072b2; --tam:#d55e00; --nat:#009e73; --empty:#d9dee2; --pink:#cc79a7; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:#fff; color:var(--ink); font:14px/1.45 system-ui,-apple-system,sans-serif; }
+  main { max-width:1120px; margin:auto; padding:20px; }
+  h1 { font-size:22px; font-weight:650; margin:0 0 5px; letter-spacing:-.3px; }
+  p { margin:0 0 14px; }
+  .intro, .note { color:var(--muted); font-size:13px; }
+  .toolbar { display:flex; align-items:end; flex-wrap:wrap; gap:12px; margin-bottom:12px; }
+  .toolbar + .toolbar { border-top:1px solid var(--rule); padding-top:11px; }
+  label { font-size:12px; color:var(--muted); display:block; }
+  select, button { font:inherit; color:var(--ink); background:white; border:1px solid #bdccd4; border-radius:5px; padding:7px 10px; min-height:35px; max-width:100%; }
+  select { margin-top:4px; display:block; }
+  button { cursor:pointer; }
+  button.primary { background:var(--ink); color:white; border-color:var(--ink); min-width:74px; }
+  button:focus-visible, select:focus-visible, input:focus-visible { outline:3px solid #e69f00; outline-offset:3px; }
+  .slider { flex:1 1 240px; min-width:160px; }
+  .slider label { display:flex; justify-content:space-between; gap:12px; white-space:nowrap; }
+  output { color:var(--ink); font-variant-numeric:tabular-nums; }
+  input[type=range] { width:100%; accent-color:var(--blue); margin:9px 0 2px; }
+  .panels { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; }
+  .panel { border:1px solid var(--rule); border-radius:7px; background:#fff; overflow:hidden; margin:0; }
+  .panel canvas { width:100%; display:block; }
+  .river { height:300px; background:#fbfcfc; }
+  #cost { height:210px; }
+  #scale { height:210px; }
+  .charts { display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1fr); gap:14px; margin-top:14px; }
+  .panel figcaption { padding:7px 12px; border-top:1px solid var(--rule); font-size:12px; display:flex; justify-content:space-between; gap:4px 10px; flex-wrap:wrap; }
+  .panel figcaption strong { font-weight:600; }
+  .legend { color:var(--muted); display:flex; gap:4px 12px; flex-wrap:wrap; align-items:center; }
+  .bar { display:inline-block; width:16px; height:5px; border-radius:2px; margin-right:4px; vertical-align:2px; }
+  .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:16px 0 10px; }
+  .metric span { display:block; color:var(--muted); font-size:11px; }
+  .metric strong { display:block; margin-top:2px; font-size:19px; font-weight:550; font-variant-numeric:tabular-nums; }
+  .note { margin:10px 0 0; font-size:12px; }
+  [hidden] { display:none !important; }
+  @media(max-width:760px) {
+    main { padding:14px 16px; }
+    .panels, .charts { grid-template-columns:1fr; }
+    .river { height:250px; }
+    .metrics { grid-template-columns:repeat(2,1fr); }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Controlling tamarisk in a river network</h1>
+  <p class="intro">Each line segment is a reach of a river that flows down to the outlet. A reach holds tamarisk (orange), a native tree (green) or nothing (gray). Each year plants die, survivors seed the river mostly downstream, and seeds compete for empty reaches. The manager may treat one reach per year. Both panels replay the same random years, so differences come from the decisions alone.</p>
+  <p id="load-status" role="status">Loading recorded episodes…</p>
+  <div id="replay" hidden>
+    <div class="toolbar">
+      <label for="start">Starting river<select id="start"></select></label>
+      <label for="rival">Compare the optimal policy with<select id="rival"></select></label>
+      <label for="episode">Random seed<select id="episode"></select></label>
+    </div>
+    <div class="toolbar">
+      <button id="play" class="primary" type="button">Play</button>
+      <button id="restart" type="button">Restart</button>
+      <div class="slider"><label for="time">Year<output id="time-label" for="time"></output></label><input id="time" type="range" min="0" max="40" value="0" step="1"></div>
+    </div>
+    <div class="panels">
+      <figure class="panel"><canvas id="river-a" class="river" role="img" aria-label="River under the optimal policy"></canvas>
+        <figcaption><strong>Optimal policy (value iteration)</strong><span id="act-a" class="legend"></span></figcaption></figure>
+      <figure class="panel"><canvas id="river-b" class="river" role="img" aria-label="River under the comparison policy"></canvas>
+        <figcaption><strong id="name-b"></strong><span id="act-b" class="legend"></span></figcaption></figure>
+    </div>
+    <div class="metrics" aria-live="polite">
+      <div class="metric"><span>Year</span><strong id="m-year"></strong></div>
+      <div class="metric"><span>Optimal: discounted cost so far</span><strong id="m-a"></strong></div>
+      <div class="metric"><span id="m-b-label">Comparison: discounted cost so far</span><strong id="m-b"></strong></div>
+      <div class="metric"><span>Exact expected cost, optimal vs comparison</span><strong id="m-exp"></strong></div>
+    </div>
+    <div class="charts">
+      <figure class="panel"><canvas id="cost" role="img" aria-label="Cumulative discounted cost of both policies"></canvas>
+        <figcaption><strong>Cumulative discounted cost on this seed</strong><span class="legend"><span><span class="bar" style="background:var(--blue)"></span>optimal</span><span><span class="bar" style="background:#e69f00"></span>comparison</span><span>dashed: exact expectation</span></span></figcaption></figure>
+      <figure class="panel"><canvas id="scale" role="img" aria-label="Model size against the number of reaches"></canvas>
+        <figcaption><strong>Why exact DP stops here</strong><span class="legend"><span><span class="bar" style="background:var(--blue)"></span>states 3ⁿ</span><span><span class="bar" style="background:#e69f00"></span>actions, budget</span><span><span class="bar" style="background:var(--pink)"></span>entries of p(j|s,a), no budget</span></span></figcaption></figure>
+    </div>
+    <p class="note">Recorded episodes from the chapter's solver; nothing is optimized in the browser. Mortality, seed output, dispersal parameters, treatment success rates, costs and the discount factor 0.9 follow Taleghan et al. (2015); the competitive advantage of tamarisk (1.5) is an example value from Hall et al. (2012). The river, the one-slot reaches and the geometric dispersal kernel are a teaching simplification, not a survey of a real river.</p>
+  </div>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const FILL = ["#d9dee2", "#009e73", "#d55e00"];
+const SPEED = 1 / 28;            // years per animation tick
+let data, tau = 0, playing = false, last = 0;
+
+function sizeCanvas(id) {
+  const el = $(id), r = el.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  el.width = Math.round(r.width * dpr); el.height = Math.round(r.height * dpr);
+  const ctx = el.getContext("2d"); ctx.scale(dpr, dpr);
+  return [ctx, r.width, r.height];
+}
+function hex(c) { return [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16)); }
+function mix(a, b, f) { const A = hex(a), B = hex(b); return `rgb(${A.map((x, k) => Math.round(x + (B[k] - x) * f))})`; }
+function episode() { return data.starts[$("start").value].episodes[+$("episode").value]; }
+function discounted(costs, t) { let s = 0; for (let k = 0; k < Math.min(t, costs.length); k++) s += Math.pow(data.gamma, k) * costs[k]; return s; }
+const ACTION_WORD = ["", "eradicate", "restore"];
+
+function drawRiver(id, run, t) {
+  const [ctx, w, h] = sizeCanvas(id);
+  const k = Math.min(Math.floor(t), data.years), f = t - k;
+  const cur = run.states[k], nxt = run.states[Math.min(k + 1, data.years)];
+  const act = k < data.years ? run.actions[k] : new Array(data.n).fill(0);
+  const blend = f < .55 ? 0 : (f - .55) / .45;          // treatment shown first, then the year's dynamics
+  const maxD = Math.max(...data.junctions.map(p => p[1]));
+  const padX = 30, top = 40, bottom = 34;
+  const X = x => padX + x * (w - 2 * padX), Y = y => h - bottom - y * (h - top - bottom) / maxD;
+  const lw = Math.max(7, Math.min(13, w / 34));
+  ctx.lineCap = "round";
+  const seg = j => { const [x1, y1] = data.junctions[j]; const [x0, y0] = j > 0 ? data.junctions[data.parents[j]] : data.outlet; return [X(x0), Y(y0), X(x1), Y(y1)]; };
+  for (let j = 0; j < data.n; j++) {
+    const [x0, y0, x1, y1] = seg(j);
+    ctx.strokeStyle = blend > 0 ? mix(FILL[cur[j]], FILL[nxt[j]], blend) : FILL[cur[j]];
+    ctx.lineWidth = lw; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+  }
+  ctx.font = "11px system-ui,sans-serif"; ctx.fillStyle = "#5e707c"; ctx.textBaseline = "middle";
+  for (let j = 0; j < data.n; j++) {
+    const [x0, y0, x1, y1] = seg(j), mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
+    // Offset the label along the segment's normal, on the side facing right.
+    const len = Math.hypot(x1 - x0, y1 - y0); let nx = (y1 - y0) / len, ny = -(x1 - x0) / len;
+    if (nx < 0 || (nx === 0 && ny > 0)) { nx = -nx; ny = -ny; }
+    ctx.textAlign = "center";
+    ctx.fillText(j + 1, mx + nx * (lw / 2 + 9), my + ny * (lw / 2 + 9));
+  }
+  const [ox, oy] = [X(data.outlet[0]), Y(data.outlet[1])];
+  ctx.strokeStyle = "#7b858a"; ctx.fillStyle = "#7b858a"; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(ox, oy + lw / 2 + 2); ctx.lineTo(ox, oy + 20); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ox - 4, oy + 16); ctx.lineTo(ox + 4, oy + 16); ctx.lineTo(ox, oy + 23); ctx.fill();
+  ctx.font = "11px system-ui,sans-serif"; ctx.textAlign = "left"; ctx.textBaseline = "middle"; ctx.fillStyle = "#5e707c";
+  ctx.fillText("outlet", ox + 8, oy + 17);
+  if (k < data.years) {
+    const alpha = blend > 0 ? 1 - blend : 1;
+    for (let j = 0; j < data.n; j++) {
+      if (!act[j]) continue;
+      const [x0, y0, x1, y1] = seg(j), mx = (x0 + x1) / 2, my = (y0 + y1) / 2, R = lw * 1.25;
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = "#fff"; ctx.strokeStyle = "#20333f"; ctx.lineWidth = 2;
+      ctx.setLineDash(act[j] === 1 ? [4, 3] : []);
+      ctx.beginPath(); ctx.arc(mx, my, R, 0, 2 * Math.PI); ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = "#20333f"; ctx.font = `700 ${Math.round(R * 1.05)}px system-ui,sans-serif`; ctx.textAlign = "center";
+      ctx.fillText(act[j] === 2 ? "R" : "E", mx, my + 1);
+      ctx.globalAlpha = 1;
+    }
+  }
+  const invaded = (blend > .5 ? nxt : cur).filter(c => c === 2).length;
+  ctx.fillStyle = "#20333f"; ctx.font = "600 12px system-ui,sans-serif"; ctx.textAlign = "left"; ctx.textBaseline = "top";
+  ctx.fillText(`${invaded} of ${data.n} reaches invaded`, 10, 8);
+  return act;
+}
+
+function actText(act) {
+  const parts = act.map((a, j) => a ? `${ACTION_WORD[a]} reach ${j + 1}` : null).filter(Boolean);
+  return parts.length ? parts.join(", ") : "no treatment";
+}
+
+function drawCost(ep, rival, t, expected) {
+  const [ctx, w, h] = sizeCanvas("cost");
+  const runs = [[ep.optimal.costs, "#0072b2", expected.optimal], [ep[rival].costs, "#e69f00", expected[rival]]];
+  const cum = runs.map(([c]) => { const out = [0]; for (let k = 0; k < c.length; k++) out.push(out[k] + Math.pow(data.gamma, k) * c[k]); return out; });
+  const ymax = Math.max(...cum.flat(), expected.optimal, expected[rival]) * 1.08;
+  const L = 42, R = 12, T = 12, B = 26, X = y => L + y / data.years * (w - L - R), Y = v => h - B - v / ymax * (h - T - B);
+  ctx.strokeStyle = "#e3e9ec"; ctx.fillStyle = "#5e707c"; ctx.font = "10px system-ui,sans-serif"; ctx.lineWidth = 1;
+  const step = ymax > 40 ? 20 : ymax > 16 ? 5 : ymax > 6 ? 2 : 1;
+  ctx.textAlign = "right"; ctx.textBaseline = "middle";
+  for (let v = 0; v <= ymax; v += step) { ctx.beginPath(); ctx.moveTo(L, Y(v)); ctx.lineTo(w - R, Y(v)); ctx.stroke(); ctx.fillText(v, L - 6, Y(v)); }
+  ctx.textAlign = "center"; ctx.textBaseline = "top";
+  for (let y = 0; y <= data.years; y += 10) ctx.fillText(y === 0 ? "year 0" : y, X(y), h - B + 6);
+  runs.forEach(([, color, ex], i) => {
+    ctx.setLineDash([5, 4]); ctx.strokeStyle = color; ctx.globalAlpha = .7; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(L, Y(ex)); ctx.lineTo(w - R, Y(ex)); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1;
+    ctx.lineWidth = 2.2; ctx.beginPath();
+    const c = cum[i], k = Math.floor(t);
+    c.slice(0, k + 1).forEach((v, y) => y ? ctx.lineTo(X(y), Y(v)) : ctx.moveTo(X(0), Y(0)));
+    if (k < data.years) ctx.lineTo(X(t), Y(c[k] + (c[k + 1] - c[k]) * (t - k)));
+    ctx.stroke();
+    ctx.globalAlpha = .18; ctx.beginPath(); cum[i].forEach((v, y) => y === 0 ? ctx.moveTo(X(0), Y(0)) : ctx.lineTo(X(y), Y(v))); ctx.stroke(); ctx.globalAlpha = 1;
+  });
+}
+
+function drawScale() {
+  const [ctx, w, h] = sizeCanvas("scale");
+  const rows = data.scaling, L = 44, R = 12, T = 12, B = 26, maxE = 12;
+  const X = n => L + (n - 1) / (rows.length - 1) * (w - L - R), Y = v => h - B - Math.log10(v) / maxE * (h - T - B);
+  ctx.strokeStyle = "#e3e9ec"; ctx.fillStyle = "#5e707c"; ctx.font = "10px system-ui,sans-serif"; ctx.lineWidth = 1;
+  ctx.textAlign = "right"; ctx.textBaseline = "middle";
+  for (let e = 0; e <= maxE; e += 3) { ctx.beginPath(); ctx.moveTo(L, Y(10 ** e)); ctx.lineTo(w - R, Y(10 ** e)); ctx.stroke(); ctx.fillText("10" + [..."" + e].map(c => "⁰¹²³⁴⁵⁶⁷⁸⁹"[+c]).join(""), L - 6, Y(10 ** e)); }
+  ctx.textAlign = "center"; ctx.textBaseline = "top";
+  rows.forEach(r => ctx.fillText(r.n === 1 ? "n = 1" : r.n, X(r.n), h - B + 6));
+  const series = [["states", "#0072b2"], ["budget_actions", "#e69f00"], ["dense_entries_free", "#cc79a7"]];
+  for (const [key, color] of series) {
+    ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 2; ctx.beginPath();
+    rows.forEach((r, i) => i ? ctx.lineTo(X(r.n), Y(Math.min(r[key], 10 ** maxE))) : ctx.moveTo(X(r.n), Y(r[key]))); ctx.stroke();
+    rows.forEach(r => { if (r[key] <= 10 ** maxE) { ctx.beginPath(); ctx.arc(X(r.n), Y(r[key]), 3, 0, 2 * Math.PI); ctx.fill(); } });
+  }
+  // Mark the featured river.
+  ctx.strokeStyle = "#20333f"; ctx.setLineDash([3, 3]); ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(X(data.n), T); ctx.lineTo(X(data.n), h - B); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = "#20333f"; ctx.textAlign = "right"; ctx.textBaseline = "top"; ctx.font = "600 10px system-ui,sans-serif";
+  ctx.fillText("this river", X(data.n) - 4, T + 2);
+}
+
+function render() {
+  if (!data) return;
+  const st = data.starts[$("start").value], ep = episode(), rival = $("rival").value;
+  tau = Math.min(tau, data.years);
+  $("time").value = Math.floor(tau);
+  const actA = drawRiver("river-a", ep.optimal, tau), actB = drawRiver("river-b", ep[rival], tau);
+  const k = Math.min(Math.floor(tau), data.years);
+  $("time-label").textContent = `${k} of ${data.years}`;
+  $("act-a").textContent = k < data.years ? `this year: ${actText(actA)}` : "";
+  $("act-b").textContent = k < data.years ? `this year: ${actText(actB)}` : "";
+  $("name-b").textContent = data.policies[rival];
+  $("m-year").textContent = k;
+  $("m-a").textContent = discounted(ep.optimal.costs, k).toFixed(1);
+  $("m-b").textContent = discounted(ep[rival].costs, k).toFixed(1);
+  $("m-exp").textContent = `${st.expected.optimal.toFixed(1)} vs ${st.expected[rival].toFixed(1)}`;
+  drawCost(ep, rival, tau, st.expected);
+  drawScale();
+}
+
+function tick(now) {
+  if (!playing) return;
+  if (now - last > 30) {
+    last = now;
+    tau = Math.min(data.years, tau + SPEED);
+    if (tau >= data.years) setPlaying(false);
+    render();
+  }
+  requestAnimationFrame(tick);
+}
+function setPlaying(value) {
+  playing = value; $("play").textContent = value ? "Pause" : "Play";
+  if (value) { if (tau >= data.years) tau = 0; requestAnimationFrame(tick); }
+}
+
+fetch("tamarisk-river-data.json").then(r => r.json()).then(d => {
+  data = d;
+  for (const [key, s] of Object.entries(data.starts)) {
+    const o = document.createElement("option"); o.value = key; o.textContent = s.name; $("start").appendChild(o);
+  }
+  for (const [key, name] of Object.entries(data.policies)) {
+    if (key === "optimal") continue;
+    const o = document.createElement("option"); o.value = key; o.textContent = name; $("rival").appendChild(o);
+  }
+  const n = data.starts[$("start").value].episodes.length;
+  for (let i = 0; i < n; i++) { const o = document.createElement("option"); o.value = i; o.textContent = `Seed ${i + 1}`; $("episode").appendChild(o); }
+  $("load-status").hidden = true; $("replay").hidden = false;
+  for (const id of ["start", "rival", "episode"]) $(id).addEventListener("change", () => { tau = 0; render(); });
+  $("play").addEventListener("click", () => setPlaying(!playing));
+  $("restart").addEventListener("click", () => { tau = 0; render(); });
+  $("time").addEventListener("input", e => { setPlaying(false); tau = +e.target.value; render(); });
+  window.addEventListener("resize", render);
+  render();
+}).catch(err => { $("load-status").textContent = "Could not load the recorded episodes: " + err; });
+</script>
+</body>
+</html>

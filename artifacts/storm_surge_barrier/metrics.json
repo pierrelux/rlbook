@@ -1,0 +1,310 @@
+{
+ "schema_version": 1,
+ "model": "finite-horizon optimal stopping; Gaussian martingale forecast on a 1 cm grid; teaching values",
+ "params": {
+  "threshold_cm": 300,
+  "horizon_h": 24,
+  "sigma_step_cm_per_sqrt_h": 4.0,
+  "warn_hours": 4,
+  "closing_hours": 2,
+  "q_fault": 0.1,
+  "r_repair": 0.7,
+  "reopen_hours": 6,
+  "prior_mean_cm": 280.0,
+  "prior_sd_cm": 20.0,
+  "p_not_closed_by_order_lead": {
+   "6": 0.1,
+   "7": 0.030000000000000006,
+   "8": 0.009000000000000003,
+   "9": 0.0027000000000000014,
+   "10": 0.0008100000000000005
+  }
+ },
+ "results": {
+  "200": {
+   "dp": {
+    "cost": 7.095519175641538,
+    "p_false": 0.19677744251059714,
+    "p_miss": 0.0060145257009430655,
+    "p_exceed": 0.15268159383739477,
+    "hours_halted": 5.892614035452917,
+    "p_close": 0.42540944226800453
+   },
+   "best_threshold_rule": {
+    "cost": 7.237558318501856,
+    "p_false": 0.19841251053817655,
+    "p_miss": 0.006628680560088255,
+    "p_exceed": 0.15268159383739477,
+    "hours_halted": 5.911822206484187,
+    "p_close": 0.42647623197381757,
+    "margin": 12,
+    "latest_lead": 8
+   },
+   "criterion_as_soon_as_reached": {
+    "cost": 13.48189379941713,
+    "p_false": 0.14229665940615321,
+    "p_miss": 0.021714280946909144,
+    "p_exceed": 0.15268159383739477,
+    "hours_halted": 9.139037610035274,
+    "p_close": 0.35343507584715805
+   },
+   "dp_threshold_cm_by_lead": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    286,
+    289,
+    294,
+    311,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  },
+  "500": {
+   "dp": {
+    "cost": 8.240034412916339,
+    "p_false": 0.25707805793139427,
+    "p_miss": 0.0025768451430934606,
+    "p_exceed": 0.15268159383739477,
+    "hours_halted": 6.951611841369602,
+    "p_close": 0.4880946143902896
+   },
+   "best_threshold_rule": {
+    "cost": 8.515299615299474,
+    "p_false": 0.2558249824169784,
+    "p_miss": 0.002647217162330345,
+    "p_exceed": 0.15268159383739477,
+    "hours_halted": 7.191691034134298,
+    "p_close": 0.4863170312343108,
+    "margin": 15,
+    "latest_lead": 9
+   },
+   "criterion_as_soon_as_reached": {
+    "cost": 19.996178083489887,
+    "p_false": 0.14229665940615321,
+    "p_miss": 0.021714280946909144,
+    "p_exceed": 0.15268159383739477,
+    "hours_halted": 9.139037610035274,
+    "p_close": 0.35343507584715805
+   },
+   "dp_threshold_cm_by_lead": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    282,
+    285,
+    288,
+    296,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  },
+  "1000": {
+   "dp": {
+    "cost": 9.092350276494406,
+    "p_false": 0.3026180177852732,
+    "p_miss": 0.0012118171811556755,
+    "p_exceed": 0.15268159383739477,
+    "hours_halted": 7.88053309533873,
+    "p_close": 0.534395174482409
+   },
+   "best_threshold_rule": {
+    "cost": 9.437833538283268,
+    "p_false": 0.3014187778527507,
+    "p_miss": 0.0015460610687381211,
+    "p_exceed": 0.15268159383739477,
+    "hours_halted": 7.891772469545144,
+    "p_close": 0.5329327550481011,
+    "margin": 18,
+    "latest_lead": 9
+   },
+   "criterion_as_soon_as_reached": {
+    "cost": 30.853318556944462,
+    "p_false": 0.14229665940615321,
+    "p_miss": 0.021714280946909144,
+    "p_exceed": 0.15268159383739477,
+    "hours_halted": 9.139037610035274,
+    "p_close": 0.35343507584715805
+   },
+   "dp_threshold_cm_by_lead": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    279,
+    282,
+    285,
+    290,
+    302,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  },
+  "2000": {
+   "dp": {
+    "cost": 9.947714168438432,
+    "p_false": 0.3407129833151741,
+    "p_miss": 0.00061564507436271,
+    "p_exceed": 0.15268159383739477,
+    "hours_halted": 8.716424019713006,
+    "p_close": 0.5727729342829835
+   },
+   "best_threshold_rule": {
+    "cost": 10.384797766779933,
+    "p_false": 0.3445507555473798,
+    "p_miss": 0.0006554293975141556,
+    "p_exceed": 0.15268159383739477,
+    "hours_halted": 9.073938971751613,
+    "p_close": 0.5764745952356737,
+    "margin": 20,
+    "latest_lead": 10
+   },
+   "criterion_as_soon_as_reached": {
+    "cost": 52.56759950385359,
+    "p_false": 0.14229665940615321,
+    "p_miss": 0.021714280946909144,
+    "p_exceed": 0.15268159383739477,
+    "hours_halted": 9.139037610035274,
+    "p_close": 0.35343507584715805
+   },
+   "dp_threshold_cm_by_lead": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    277,
+    279,
+    281,
+    285,
+    293,
+    317,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  },
+  "5000": {
+   "dp": {
+    "cost": 11.05547751002586,
+    "p_false": 0.38665615117943786,
+    "p_miss": 0.0002643342956958468,
+    "p_exceed": 0.15268159383739477,
+    "hours_halted": 9.733806031546624,
+    "p_close": 0.6188874923440904
+   },
+   "best_threshold_rule": {
+    "cost": 11.657631877548038,
+    "p_false": 0.4046746179894798,
+    "p_miss": 0.00032191730941826804,
+    "p_exceed": 0.15268159383739477,
+    "hours_halted": 10.048045330456699,
+    "p_close": 0.6368918404549246,
+    "margin": 24,
+    "latest_lead": 10
+   },
+   "criterion_as_soon_as_reached": {
+    "cost": 117.71044234458105,
+    "p_false": 0.14229665940615321,
+    "p_miss": 0.021714280946909144,
+    "p_exceed": 0.15268159383739477,
+    "hours_halted": 9.139037610035274,
+    "p_close": 0.35343507584715805
+   },
+   "dp_threshold_cm_by_lead": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    274,
+    276,
+    278,
+    281,
+    286,
+    296,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ "replay_storms": [
+  "Severe surge",
+  "Late rise",
+  "Early scare",
+  "Near miss, closed anyway",
+  "Closing fault",
+  "Quiet storm",
+  "Narrow exceedance",
+  "Threshold rule waits too long"
+ ]
+}
