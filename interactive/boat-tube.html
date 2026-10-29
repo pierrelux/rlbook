@@ -60,9 +60,11 @@
 </main>
 <script>
 const $ = id => document.getElementById(id);
-const limits = [-6.8, 2.2, -0.6, 4.4];
+const limits = [-7.6, 2.2, -0.6, 4.8];
 const colors = { open: "#d55e00", feedback: "#0072b2" };
-let data, step = 0, playing = false, last = 0;
+// Start shortly before the push, where the boat is already in view.
+const first = 17;
+let data, step = first, playing = false, last = 0;
 
 function canvas(id) {
   const element = $(id), rect = element.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
@@ -134,15 +136,15 @@ function tick(now) {
 }
 function setPlaying(value) {
   playing = value; $("play").textContent = value ? "Pause" : "Play";
-  if (value) { if (step >= data.plan.length-1) step = 0; requestAnimationFrame(tick); }
+  if (value) { if (step >= data.plan.length-1) step = first; requestAnimationFrame(tick); }
 }
 fetch("boat-tube-data.json").then(r => r.json()).then(json => {
   data = json;
-  $("time").max = data.plan.length-1;
+  $("time").min = first; $("time").max = data.plan.length-1; $("time").value = first;
   $("load-status").hidden = true; $("replay").hidden = false;
   $("play").onclick = () => setPlaying(!playing);
-  $("size").onchange = () => { step = 0; render(); setPlaying(true); };
-  $("restart").onclick = () => { step = 0; render(); setPlaying(true); };
+  $("size").onchange = () => { step = first; render(); setPlaying(true); };
+  $("restart").onclick = () => { step = first; render(); setPlaying(true); };
   $("time").oninput = e => { setPlaying(false); step = +e.target.value; render(); };
   window.addEventListener("resize", render);
   render();
