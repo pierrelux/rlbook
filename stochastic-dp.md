@@ -667,26 +667,28 @@ This equality significantly simplifies the computational complexity of our algor
 
 **Input:** State space $S$, Action space $A$, Transition probabilities $p_t$, Reward function $r_t$, Time horizon $N$
 
-**Output:** Optimal value functions $v^*$
+**Output:** Optimal value functions $v^*$ and optimal action sets $A^*_{s,t}$
 
 1. Initialize:
    - Set $t = N$
-   - For all $s_N \in S$:
+   - For all $s \in S$:
 
-     $$v^*(s_N, N) = r_N(s_N)$$
+     $$v^*(s, N) = r_N(s)$$
 
 2. For $t = N-1$ to $1$:
-   - For each $s_t \in S$:
+   - For each $s \in S$:
      a. Compute the optimal value function:
 
-        $$v^*(s_t, t) = \max_{a \in A_{s_t}} \left\{r_t(s_t, a) + \sum_{j \in S} p_t(j | s_t, a) v^*(j, t+1)\right\}$$
+        $$v^*(s, t) = \max_{a \in A_s} \left\{r_t(s, a) + \mathbb{E}_{s' \sim p_t(\cdot | s, a)}\left[v^*(s', t+1)\right]\right\}$$
      
      b. Determine the set of optimal actions:
 
-        $$A_{s_t,t}^* = \arg\max_{a \in A_{s_t}} \left\{r_t(s_t, a) + \sum_{j \in S} p_t(j | s_t, a) v^*(j, t+1)\right\}$$
+        $$A_{s,t}^* = \arg\max_{a \in A_s} \left\{r_t(s, a) + \mathbb{E}_{s' \sim p_t(\cdot | s, a)}\left[v^*(s', t+1)\right]\right\}$$
 
-3. Return the optimal value functions $u_t^*$ and optimal action sets $A_{s_t,t}^*$ for all $t$ and $s_t$
+3. Return the optimal value functions $v^*(s, t)$ and optimal action sets $A_{s,t}^*$ for all $t$ and $s$
 ````
+
+When $S$ is finite, the expectation is the sum $\sum_{s' \in S} p_t(s' | s, a)\, v^*(s', t+1)$. Writing it as an expectation makes the connection with the stochastic dynamic program from earlier in this chapter explicit: $\mathbb{E}_{s' \sim p_t(\cdot|s,a)}$ plays the role of $\mathbb{E}_{\mathbf{w}_t}$, with the noise absorbed into the transition kernel.
 
 Note that the same procedure can also be used for finding the value of a policy with minor changes; 
 
@@ -705,17 +707,17 @@ Note that the same procedure can also be used for finding the value of a policy 
 
 1. Initialize:
    - Set $t = N$
-   - For all $s_N \in S$:
+   - For all $s \in S$:
 
-     $$v^{\boldsymbol{\pi}}(s_N, N) = r_N(s_N)$$
+     $$v^{\boldsymbol{\pi}}(s, N) = r_N(s)$$
 
 2. For $t = N-1$ to $1$:
-   - For each $s_t \in S$:
+   - For each $s \in S$:
      a. Compute the value function for the given policy:
 
-        $$v^{\boldsymbol{\pi}}(s_t, t) = r_t(s_t, \pi_t(s_t)) + \sum_{j \in S} p_t(j | s_t, \pi_t(s_t)) v^{\boldsymbol{\pi}}(j, t+1)$$
+        $$v^{\boldsymbol{\pi}}(s, t) = r_t(s, \pi_t(s)) + \mathbb{E}_{s' \sim p_t(\cdot | s, \pi_t(s))}\left[v^{\boldsymbol{\pi}}(s', t+1)\right]$$
 
-3. Return the value function $v^{\boldsymbol{\pi}}(s_t, t)$ for all $t$ and $s_t$
+3. Return the value function $v^{\boldsymbol{\pi}}(s, t)$ for all $t$ and $s$
 ````
 
 This code could also finally be adapted to support randomized policies using:
