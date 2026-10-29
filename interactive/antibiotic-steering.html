@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Steering antibiotic resistance · backward induction</title>
+<style>
+  :root { color-scheme:light; --ink:#20333f; --muted:#5e707c; --rule:#d8e2e7; --blue:#0072b2; --red:#b2182b; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:#fff; color:var(--ink); font:14px/1.45 system-ui,-apple-system,sans-serif; }
+  main { max-width:1120px; margin:auto; padding:20px; }
+  h1 { font-size:22px; font-weight:650; margin:0 0 5px; letter-spacing:-.3px; }
+  p { margin:0 0 14px; }
+  .intro, .note { color:var(--muted); font-size:13px; }
+  .toolbar { display:flex; align-items:end; flex-wrap:wrap; gap:12px; margin-bottom:12px; }
+  .toolbar + .toolbar { border-top:1px solid var(--rule); padding-top:11px; }
+  label { font-size:12px; color:var(--muted); display:block; }
+  select, button { font:inherit; color:var(--ink); background:white; border:1px solid #bdccd4; border-radius:5px; padding:7px 10px; min-height:35px; }
+  select { margin-top:4px; }
+  button { cursor:pointer; }
+  button.primary { background:var(--ink); color:white; border-color:var(--ink); min-width:74px; }
+  button:focus-visible, select:focus-visible, input:focus-visible { outline:3px solid #e69f00; outline-offset:3px; }
+  .slider { flex:1 1 240px; min-width:160px; }
+  .slider label { display:flex; justify-content:space-between; gap:12px; white-space:nowrap; }
+  output { color:var(--ink); font-variant-numeric:tabular-nums; }
+  input[type=range] { width:100%; accent-color:var(--blue); margin:9px 0 2px; }
+  .panels { display:grid; grid-template-columns:minmax(0,1.45fr) minmax(0,1fr); gap:14px; }
+  .panel { border:1px solid var(--rule); border-radius:7px; background:#fff; overflow:hidden; margin:0; }
+  .panel canvas { width:100%; display:block; }
+  #cube { height:430px; background:#fbfcfc; }
+  #course { height:150px; }
+  #bars { height:200px; }
+  .charts { display:grid; gap:14px; align-content:start; }
+  .panel figcaption { padding:7px 12px; border-top:1px solid var(--rule); font-size:12px; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+  .panel figcaption strong { font-weight:600; }
+  .legend { color:var(--muted); display:flex; gap:4px 12px; flex-wrap:wrap; align-items:center; }
+  .swatch { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:4px; vertical-align:-1px; }
+  .ramp { display:inline-block; width:54px; height:9px; border-radius:2px; vertical-align:-1px; margin:0 4px; border:1px solid #c8d2d7;
+          background:linear-gradient(90deg,#f7fbff,#fde0c5,#f4a261,#d55e00,#7f2704); }
+  .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:16px 0 10px; }
+  .metric span { display:block; color:var(--muted); font-size:11px; }
+  .metric strong { display:block; margin-top:2px; font-size:19px; font-weight:550; font-variant-numeric:tabular-nums; }
+  .note { margin:10px 0 0; font-size:12px; }
+  [hidden] { display:none !important; }
+  @media(max-width:760px) {
+    main { padding:14px; }
+    .panels { grid-template-columns:1fr; }
+    #cube { height:340px; }
+    .metrics { grid-template-columns:repeat(2,1fr); }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Steering a bacterial population away from resistance</h1>
+  <p class="intro">Each node is one of the 16 combinations of four resistance mutations; the wild type is on the left and the quadruple mutant on the right. Under a drug, a population climbs to a fitter neighbouring genotype until no neighbour is fitter. Steering drugs are given first, then the final drug, and the goal is to avoid ending at its most resistant genotype (red ring). Compare a fixed drug sequence with the backward-induction policy, which looks at the genotype before choosing each drug.</p>
+  <p id="load-status" role="status">Loading recorded solutions…</p>
+  <div id="replay" hidden>
+    <div class="toolbar">
+      <label for="final">Final drug<select id="final"></select></label>
+      <label for="steps">Steering drugs<select id="steps">
+        <option value="0">None</option><option value="1" selected>1</option><option value="2">2</option><option value="3">3</option>
+      </select></label>
+      <label for="start">Starting population<select id="start">
+        <option value="uniform">Any genotype, equally likely</option>
+        <option value="wild">Wild type (0000)</option>
+      </select></label>
+      <label for="strategy">Strategy<select id="strategy">
+        <option value="dp">Feedback (backward induction)</option>
+        <option value="fixed">Best fixed sequence</option>
+      </select></label>
+    </div>
+    <div class="toolbar">
+      <button id="play" class="primary" type="button">Play</button>
+      <button id="restart" type="button">Restart</button>
+      <div class="slider"><label for="time">Treatment<output id="time-label" for="time"></output></label><input id="time" type="range" min="0" max="1000" value="0" step="1"></div>
+    </div>
+    <div class="panels">
+      <figure class="panel"><canvas id="cube" role="img" aria-label="Genotype hypercube with the probability of each genotype"></canvas>
+        <figcaption><strong id="cube-title"></strong><span class="legend"><span><span class="swatch" style="background:var(--blue)"></span>probability (disc area)</span><span>fitness under the drug acting<span class="ramp"></span>low → high</span></span></figcaption></figure>
+      <div class="charts">
+        <figure class="panel"><canvas id="course" role="img" aria-label="Drug given at each stage"></canvas>
+          <figcaption><strong>Treatment plan</strong><span class="legend" id="course-legend"></span></figcaption></figure>
+        <figure class="panel"><canvas id="bars" role="img" aria-label="Probability of ending at the resistant genotype"></canvas>
+          <figcaption><strong>Probability of ending at the resistant genotype</strong></figcaption></figure>
+      </div>
+    </div>
+    <div class="metrics" aria-live="polite">
+      <div class="metric"><span>Stage</span><strong id="m-stage"></strong></div>
+      <div class="metric"><span>At the resistant genotype now</span><strong id="m-now"></strong></div>
+      <div class="metric"><span>Best fixed sequence</span><strong id="m-fixed"></strong></div>
+      <div class="metric"><span>Feedback policy</span><strong id="m-dp"></strong></div>
+    </div>
+    <p class="note">Recorded solutions from the chapter's solver; nothing is optimized in the browser. Fitness values are growth rates of E. coli carrying TEM β-lactamase variants measured by Mira et al. (2015); the evolutionary model is the strong-selection, weak-mutation Markov chain of Nichol et al. (2015). The feedback policy assumes the dominant genotype is sequenced before each drug.</p>
+  </div>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const STOPS = [[0,[247,251,255]],[.25,[253,224,197]],[.5,[244,162,97]],[.75,[213,94,0]],[1,[127,39,4]]];
+const SPEED = 1 / 55;            // stage units per animation tick
+let data, tau = 0, playing = false, last = 0, drugIndex = {};
+
+function sizeCanvas(id) {
+  const el = $(id), r = el.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  el.width = Math.round(r.width * dpr); el.height = Math.round(r.height * dpr);
+  const ctx = el.getContext("2d"); ctx.scale(dpr, dpr);
+  return [ctx, r.width, r.height];
+}
+function fitColor(v) {
+  v = Math.max(0, Math.min(1, v));
+  for (let i = 1; i < STOPS.length; i++) {
+    const [a, ca] = STOPS[i-1], [b, cb] = STOPS[i];
+    if (v <= b) { const s = (v-a)/(b-a); const c = ca.map((x, k) => Math.round(x + s*(cb[k]-x))); return `rgb(${c})`; }
+  }
+  return "rgb(127,39,4)";
+}
+function scenario() {
+  const s = data.scenarios[$("final").value];
+  return { s, row: s.starts[$("start").value][+$("steps").value] };
+}
+function run() { const { row } = scenario(); return row[$("strategy").value]; }
+
+// Each stage: one unit to switch drugs, then one unit per substitution step.
+function timeline(stages) {
+  let t = 0;
+  return stages.map(st => { const moves = Math.max(st.flows.length, 1); const seg = { start: t, moves }; t += 1 + moves; return seg; });
+}
+function totalTime(stages) { const tl = timeline(stages); const lastSeg = tl[tl.length-1]; return lastSeg.start + 1 + lastSeg.moves; }
+function stateAt(stages, t) {
+  const tl = timeline(stages);
+  let k = tl.length - 1;
+  while (k > 0 && t < tl[k].start) k--;
+  const st = stages[k], local = t - tl[k].start;
+  if (local < 1) return { k, dist: st.frames[0], flow: null, frac: 0, switching: true, local };
+  const u = Math.min(local - 1, tl[k].moves), i = Math.min(Math.floor(u), st.frames.length - 1);
+  if (i >= st.flows.length) return { k, dist: st.frames[st.frames.length-1], flow: null, frac: 0, switching: false, local };
+  const frac = u - i, a = st.frames[i], b = st.frames[i+1];
+  return { k, dist: a.map((x, j) => x + (b[j]-x)*frac), flow: st.flows[i], frac, switching: false, local };
+}
+function positions(w, h) {
+  const pos = [], pad = 46;
+  for (let lvl = 0; lvl <= 4; lvl++) {
+    const members = [...Array(16).keys()].filter(g => g.toString(2).split("1").length - 1 === lvl);
+    members.forEach((g, i) => {
+      pos[g] = [pad + lvl * (w - 2*pad) / 4, h/2 + (i - (members.length - 1)/2) * Math.min(62, (h - 70) / 5.4)];
+    });
+  }
+  return pos;
+}
+
+function drawCube(stages, state, target) {
+  const [ctx, w, h] = sizeCanvas("cube");
+  const pos = positions(w, h), R = Math.min(19, h / 22);
+  const drugs = stages[state.k].drugs;
+  ctx.lineCap = "round";
+  for (const [g, hh] of data.edges) {
+    ctx.strokeStyle = "#d3dce0"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(...pos[g]); ctx.lineTo(...pos[hh]); ctx.stroke();
+  }
+  if (state.flow) {
+    for (const [g, hh, m] of state.flow) {
+      const [x0, y0] = pos[g], [x1, y1] = pos[hh];
+      ctx.strokeStyle = "rgba(0,114,178,.45)"; ctx.lineWidth = 1.5 + 14 * Math.sqrt(m);
+      ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+      const f = state.frac, x = x0 + (x1-x0)*f, y = y0 + (y1-y0)*f;
+      ctx.fillStyle = "#0072b2"; ctx.beginPath(); ctx.arc(x, y, 2 + 9 * Math.sqrt(m), 0, 2*Math.PI); ctx.fill();
+    }
+  }
+  const multi = new Set(drugs).size > 1;
+  for (let g = 0; g < 16; g++) {
+    const [x, y] = pos[g], f = data.drugs[drugIndex[drugs[g]]].fitness, fmax = Math.max(...f);
+    ctx.fillStyle = fitColor(f[g] / fmax); ctx.strokeStyle = "#4a5a63"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(x, y, R, 0, 2*Math.PI); ctx.fill(); ctx.stroke();
+    const p = state.dist[g];
+    if (p > 1e-4) { ctx.fillStyle = "#0072b2"; ctx.beginPath(); ctx.arc(x, y, R * 0.92 * Math.sqrt(p), 0, 2*Math.PI); ctx.fill(); }
+    if (g === target) { ctx.strokeStyle = "#b2182b"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, R + 5, 0, 2*Math.PI); ctx.stroke(); }
+    ctx.fillStyle = "#33434c"; ctx.font = "11px ui-monospace,Menlo,monospace"; ctx.textAlign = "center"; ctx.textBaseline = "top";
+    ctx.fillText(data.labels[g], x, y + R + (g === target ? 7 : 3));
+    if (multi) {
+      ctx.fillStyle = "#7f2704"; ctx.font = "600 11px system-ui,sans-serif"; ctx.textAlign = "left"; ctx.textBaseline = "bottom";
+      ctx.fillText(drugs[g], x + R * .75, y - R * .55);
+    }
+  }
+  if (state.switching) {
+    ctx.fillStyle = `rgba(32,51,63,${0.85 * (1 - state.local)})`; ctx.font = "600 15px system-ui,sans-serif"; ctx.textAlign = "left"; ctx.textBaseline = "top";
+    ctx.fillText(multi ? "Drug chosen from the genotype" : `Apply ${drugs[0]}`, 12, 10);
+  }
+}
+
+function drawCourse(stages, state) {
+  const [ctx, w, h] = sizeCanvas("course");
+  const n = stages.length, pad = 12, bw = (w - 2*pad) / n;
+  ctx.textAlign = "center";
+  stages.forEach((st, k) => {
+    const x = pad + k * bw, active = k === state.k, final = k === n - 1;
+    ctx.fillStyle = active ? "#eef5fa" : "#fff"; ctx.strokeStyle = active ? "#0072b2" : "#d8e2e7"; ctx.lineWidth = active ? 2 : 1;
+    ctx.beginPath(); ctx.roundRect(x + 4, 14, bw - 8, h - 28, 6); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#5e707c"; ctx.font = "11px system-ui,sans-serif"; ctx.textBaseline = "top";
+    ctx.fillText(final ? "Final drug" : `Steering ${k + 1}`, x + bw/2, 22);
+    const uniq = [...new Set(st.drugs)];
+    ctx.fillStyle = "#20333f";
+    if (uniq.length === 1) {
+      ctx.font = "600 20px system-ui,sans-serif"; ctx.textBaseline = "middle";
+      ctx.fillText(uniq[0], x + bw/2, h/2 + 6);
+      ctx.font = "11px system-ui,sans-serif"; ctx.fillStyle = "#5e707c";
+      ctx.fillText(data.drugs[drugIndex[uniq[0]]].name, x + bw/2, h/2 + 28);
+    } else {
+      ctx.font = "600 13px system-ui,sans-serif"; ctx.textBaseline = "middle";
+      ctx.fillText("by genotype", x + bw/2, h/2 + 2);
+      ctx.font = "11px system-ui,sans-serif"; ctx.fillStyle = "#5e707c";
+      ctx.fillText(uniq.join(" · "), x + bw/2, h/2 + 22);
+    }
+  });
+  $("course-legend").textContent = stages.length > 1 ? "" : "no steering";
+}
+
+function drawBars(state, nowP) {
+  const [ctx, w, h] = sizeCanvas("bars");
+  const { s, row } = scenario(), none = s.starts[$("start").value][0].fixed.p;
+  const items = [["No steering", none, "#9aa8b0"], ["Best fixed sequence", row.fixed.p, "#e69f00"], ["Feedback policy", row.dp.p, "#0072b2"]];
+  const left = 132, right = 46, top = 16, rowH = (h - top - 22) / items.length;
+  ctx.strokeStyle = "#e3e9ec"; ctx.fillStyle = "#5e707c"; ctx.font = "10px system-ui,sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "top";
+  for (const v of [0, .25, .5, .75, 1]) {
+    const x = left + v * (w - left - right);
+    ctx.beginPath(); ctx.moveTo(x, top - 4); ctx.lineTo(x, h - 22); ctx.stroke(); ctx.fillText(v.toFixed(2), x, h - 18);
+  }
+  const strat = $("strategy").value;
+  items.forEach(([name, p, color], i) => {
+    const y = top + i * rowH + rowH * .22, bh = rowH * .56, bw = p * (w - left - right);
+    ctx.fillStyle = color; ctx.fillRect(left, y, Math.max(bw, 1.5), bh);
+    ctx.fillStyle = "#20333f"; ctx.textAlign = "right"; ctx.textBaseline = "middle"; ctx.font = (i === (strat === "dp" ? 2 : 1) ? "600 " : "") + "12px system-ui,sans-serif";
+    ctx.fillText(name, left - 8, y + bh/2);
+    ctx.textAlign = "left"; ctx.font = "12px system-ui,sans-serif"; ctx.fillText(p.toFixed(2), left + bw + 6, y + bh/2);
+  });
+  // Live marker: probability mass at the resistant genotype for the selected strategy.
+  const i = strat === "dp" ? 2 : 1, y = top + i * rowH + rowH * .1, x = left + nowP * (w - left - right);
+  ctx.strokeStyle = "#b2182b"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + rowH * .8); ctx.stroke();
+}
+
+function render() {
+  if (!data) return;
+  const { s } = scenario(), r = run(), stages = r.stages, T = totalTime(stages);
+  tau = Math.min(tau, T);
+  $("time").value = Math.round(1000 * tau / T);
+  const state = stateAt(stages, tau);
+  const nowP = state.dist[s.resistant];
+  drawCube(stages, state, s.resistant);
+  drawCourse(stages, state);
+  drawBars(state, nowP);
+  const n = stages.length, k = state.k;
+  $("time-label").textContent = k === n - 1 ? "final drug" : `steering drug ${k + 1} of ${n - 1}`;
+  $("m-stage").textContent = `${k + 1} / ${n}`;
+  $("m-now").textContent = nowP.toFixed(2);
+  const { row } = scenario();
+  $("m-fixed").textContent = row.fixed.p.toFixed(2) + (row.fixed.sequence.length ? `  (${row.fixed.sequence.join(" → ")})` : "");
+  $("m-fixed").style.fontSize = row.fixed.sequence.length > 1 ? "15px" : "";
+  $("m-dp").textContent = row.dp.p.toFixed(2);
+  const drugs = stages[k].drugs, uniq = [...new Set(drugs)];
+  $("cube-title").textContent = uniq.length === 1 ? `Under ${data.drugs[drugIndex[uniq[0]]].name} (${uniq[0]})` : "Each genotype gets its own drug";
+}
+
+function tick(now) {
+  if (!playing) return;
+  if (now - last > 30) {
+    last = now;
+    const T = totalTime(run().stages);
+    tau = Math.min(T, tau + SPEED * T / 4);
+    if (tau >= T) setPlaying(false);
+    render();
+  }
+  requestAnimationFrame(tick);
+}
+function setPlaying(value) {
+  playing = value; $("play").textContent = value ? "Pause" : "Play";
+  if (value) { if (tau >= totalTime(run().stages)) tau = 0; requestAnimationFrame(tick); }
+}
+
+fetch("antibiotic-steering-data.json").then(r => r.json()).then(d => {
+  data = d;
+  data.drugs.forEach((x, i) => { drugIndex[x.code] = i; });
+  for (const x of data.drugs) {
+    const o = document.createElement("option"); o.value = x.code; o.textContent = `${x.name} (${x.code})`;
+    if (x.code === data.featured) o.selected = true;
+    $("final").appendChild(o);
+  }
+  $("load-status").hidden = true; $("replay").hidden = false;
+  for (const id of ["final", "steps", "start", "strategy"]) $(id).addEventListener("change", () => { tau = 0; render(); });
+  $("play").addEventListener("click", () => setPlaying(!playing));
+  $("restart").addEventListener("click", () => { tau = 0; render(); });
+  $("time").addEventListener("input", e => { setPlaying(false); tau = totalTime(run().stages) * e.target.value / 1000; render(); });
+  window.addEventListener("resize", render);
+  render();
+}).catch(err => { $("load-status").textContent = "Could not load the recorded solutions: " + err; });
+</script>
+</body>
+</html>

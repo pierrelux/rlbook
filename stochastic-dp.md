@@ -724,6 +724,151 @@ This code could also finally be adapted to support randomized policies using:
 
 $$v^{\boldsymbol{\pi}}(s_t, t) = \sum_{a_t \in \mathcal{A}_{s_t}} \pi_t(a_t \mid s_t) \left( r_t(s_t, a_t) + \sum_{j \in S} p_t(j | s_t, a_t) v^{\boldsymbol{\pi}}(j, t+1) \right)$$
 
+(sec-antibiotic-steering)=
+## Example: Steering Antibiotic Resistance
+
+Can a sequence of drugs push a bacterial population away from its most
+resistant form, and how much does it help to look at the population before
+choosing each drug?
+
+Many bacteria resist penicillin-like drugs (the β-lactams) by producing an
+enzyme, β-lactamase, that breaks the drug down. A few point mutations in the
+enzyme's gene change which drugs it can break down.
+{cite:t}`Mira2015` built all 16 combinations of four such mutations
+(M69L, E104K, G238S and N276D) in the TEM enzyme of *E. coli* and measured the
+growth rate of each strain under 15 β-lactams. Each drug therefore defines a
+*fitness landscape*: a growth rate for every genotype. The landscapes disagree.
+A genotype that grows fastest under one drug can be among the slowest under
+another, so a drug given now changes where evolution goes under the next one.
+{cite:t}`Nichol2015` used this to *steer* evolution: give one to three
+steering drugs before the final treatment, chosen so that the population is
+unlikely to end at the final drug's most resistant genotype. The problem is a
+finite-horizon MDP small enough to solve exactly by backward induction.
+
+**States.** A genotype is a string $s\in\{0,1\}^4$, where a 1 marks the
+presence of a mutation, so $|\mathcal S|=16$. The wild type is $0000$. The
+model assumes that the population is dominated by a single genotype at all
+times, which is the usual regime when mutations are rare and selection is
+strong.
+
+**Actions.** At each of the steering epochs $t=1,\ldots,N-1$ the action is
+one of the 15 drugs. Epoch $N$ applies a fixed final drug $d^\star$.
+
+**Transitions.** Let $f_a(s)$ be the measured growth rate of genotype $s$
+under drug $a$, and let $U_a(s)$ be the set of genotypes that differ from $s$
+in one mutation and grow faster. Under drug $a$, a single fitter mutant takes
+over the population with each substitution, and every fitter neighbour is
+equally likely to be the one that does:
+
+$$
+M_a(j\mid s)=
+\begin{cases}
+1/|U_a(s)| & j\in U_a(s),\\
+1 & j=s \text{ and } U_a(s)=\emptyset,\\
+0 & \text{otherwise.}
+\end{cases}
+$$
+
+A genotype with no fitter neighbour is a local peak of the landscape and
+absorbs the chain. Because each substitution strictly increases the growth
+rate, every path reaches a peak within 15 substitutions. A drug is given long
+enough for this to happen, so the transition kernel of one decision epoch is
+the limit of the chain,
+$p(j\mid s,a)=\big[\lim_{m\to\infty}M_a^m\big]_{sj}=[M_a^{16}]_{sj}$.
+
+**Objective.** Let $s^\star$ be the genotype with the highest growth rate
+under $d^\star$. There is no stage cost. The terminal cost is the probability
+that the final drug carries genotype $s$ to $s^\star$,
+$c_N(s)=p(s^\star\mid s,d^\star)$, and the goal is to minimize its expected
+value. Backward induction ({prf:ref}`backward-induction`, with a minimum in
+place of the maximum) reads
+
+$$
+v_N(s)=c_N(s),\qquad
+v_t(s)=\min_{a}\sum_{j}p(j\mid s,a)\,v_{t+1}(j),\qquad t=N-1,\ldots,1 .
+$$
+
+The resulting policy is Markov deterministic: one drug for each pair of epoch
+and genotype. Using it assumes that the dominant genotype is sequenced before
+each drug. {cite:t}`Nichol2015` assume instead that nothing is observed and
+that the initial genotype is uniformly distributed, the worst case in which
+any resistant strain may already be present. Their decision rules ignore the
+state, so a policy reduces to a fixed sequence of drugs. Both are policies in
+the sense of the [decision rules section](#decision-rules-and-policies), and
+since a fixed sequence is a Markov policy that happens to be constant in $s$,
+backward induction can only do as well or better. The two classes also differ
+in cost. The best fixed sequence of $k$ steering drugs is found by checking
+all $15^k$ sequences, while backward induction costs $k$ products of 15
+transition matrices with a 16-vector.
+
+:::{iframe} ../interactive/antibiotic-steering.html
+:label: fig-antibiotic-steering
+:width: 100%
+:title: Steering antibiotic resistance: fixed sequences and the backward-induction policy
+:class: antibiotic-steering-replay
+:placeholder: _static/antibiotic_steering/steering.svg
+
+Steering evolution before a final course of ampicillin (AMP), with one
+steering drug and every starting genotype equally likely. Nodes are the 16
+genotypes, from the wild type on the left to the quadruple mutant on the
+right, and edges join genotypes one mutation apart. Node color is the growth
+rate under the drug acting on that genotype, and the blue disc has area
+proportional to the probability of the genotype. The red ring marks $1111$,
+the most resistant genotype under ampicillin. Top: the best fixed steering
+drug, cefprozil (CPR). Bottom: the backward-induction policy, which gives each
+genotype the drug written next to it. In the online book the figure replays
+each substitution, and the reader can change the final drug, the number of
+steering drugs, the starting population and the strategy.
+:::
+
+Without steering, ampicillin carries 62% of the starting genotypes to $1111$.
+The best single steering drug, cefprozil, reduces this to 25%, the value
+reported by {cite:t}`Nichol2015`. If the genotype is observed first, the
+backward-induction policy reaches 11% with the same number of drugs
+({numref}`fig-antibiotic-steering`). It uses four different drugs, depending
+on the genotype. Cefprozil can leave a population at $0101$, one of its
+peaks, from which ampicillin climbs straight to $1111$. Most genotypes from
+which that can happen receive cefotaxime (CTX) or ceftazidime (CAZ) instead.
+
+With two steering drugs, the fixed sequence "ampicillin, then cefprozil"
+already reaches zero, and feedback has nothing left to add. Giving the final
+drug first sends every genotype to one of ampicillin's three peaks, $0011$,
+$0110$ and $1111$. Cefprozil then moves $1111$ to $0110$ and leaves the other
+two in place. When ampicillin is given again, the population sits on one of
+its two lower peaks and stays there. The first drug has made the state
+predictable without measuring it, which is why a sequence that ignores the
+state can do as well as one that observes it. The table below shows that this
+is the exception. For most final drugs a gap remains after three steering
+drugs; for cefepime (FEP) the best fixed sequence leaves a probability of
+0.33 and the feedback policy 0.14.
+
+:::{include} artifacts/antibiotic_steering/results.md
+:::
+
+Two rows show the limits of steering. Ampicillin with sulbactam (SAM) has a
+single peak at $1111$, so every population ends there whatever comes before.
+For ceftizoxime (ZOX) and piperacillin with tazobactam (TZP), three steering
+drugs remove only a fraction of the risk, with or without feedback. Another difference between the two classes does not
+show in the table. The backward-induction policy is computed once and applies
+to every starting distribution, while the best fixed sequence must be searched
+again whenever the prior over the starting genotype changes. Choosing the wild
+type as the starting population in the replay makes cefotaxime the best single
+steering drug. With one steering drug and a known starting genotype, there is
+nothing to observe before the only decision, so the fixed sequence and the
+policy give the same probability, 0.15.
+
+The model is a deliberate idealization. Real populations hold several
+genotypes at once, drugs are given for fixed durations rather than until
+evolution stops, and growth rate in a laboratory culture is only a proxy for
+fitness in a patient. The transition matrices and the measured landscapes are
+nevertheless real data, and the example shows the two features that matter
+for the rest of the chapter: the optimal decision depends on the state, and
+backward induction finds it at a cost that grows linearly with the horizon.
+
+- {download}`Antibiotic-steering model and solver <code/antibiotic_steering.py>`
+- {download}`Antibiotic-steering experiment builder <scripts/build_antibiotic_steering_artifacts.py>`
+- {download}`Antibiotic-steering results for every final drug <artifacts/antibiotic_steering/metrics.json>`
+
 ## Summary and Outlook
 
 Stochastic dynamic programming separates decision rules by the information and
