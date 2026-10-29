@@ -58,7 +58,7 @@
 </main>
 <script>
 const $ = id => document.getElementById(id);
-const limits = [-9.5, 3, -0.8, 6];
+const limits = [-6.8, 2.2, -0.6, 4.4];
 const colors = { open: "#d55e00", feedback: "#0072b2" };
 let data, step = 0, playing = false, last = 0;
 
@@ -74,16 +74,6 @@ function hull(x) {
   const c = Math.cos(x[2]), s = Math.sin(x[2]);
   return body.map(([a,b]) => [x[0]+c*a-s*b, x[1]+s*a+c*b]);
 }
-function tube() {
-  const plan = data.plan, n = plan.length, up = [], down = [];
-  for (let t = 0; t < n; t++) {
-    const a = plan[Math.max(t-1,0)], b = plan[Math.min(t+1,n-1)];
-    let dx = b[0]-a[0], dy = b[1]-a[1]; const norm = Math.hypot(dx,dy) || 1; dx /= norm; dy /= norm;
-    const r = data.radius[t];
-    up.push([plan[t][0]-dy*r, plan[t][1]+dx*r]); down.push([plan[t][0]+dy*r, plan[t][1]-dx*r]);
-  }
-  return up.concat(down.reverse());
-}
 function inside(x, t) {
   const p = data.plan[t];
   return Math.hypot(x[0]-p[0], x[1]-p[1]) <= data.radius[t] + 1e-6;
@@ -97,8 +87,8 @@ function draw(id, runs) {
   ctx.fillStyle = "#e5e2db"; ctx.fillRect(X(limits[0]), Y(0), scale*(limits[1]-limits[0]), -limits[2]*scale);
   ctx.strokeStyle = "#8a979e"; ctx.lineWidth = 1; poly([[limits[0],0],[limits[1],0]]); ctx.stroke();
   ctx.setLineDash([2,3]); ctx.strokeStyle = "#5e707c"; poly(hull([data.berth[0],data.berth[1],0]), true); ctx.stroke(); ctx.setLineDash([]);
-  ctx.fillStyle = "rgba(0,114,178,.22)"; poly(tube(), true); ctx.fill();
-  ctx.strokeStyle = "#20333f"; ctx.lineWidth = 2; poly(data.plan); ctx.stroke();
+  ctx.fillStyle = "#c4dcec"; ctx.strokeStyle = "#7fb2d4"; ctx.lineWidth = .8; poly(data.tube, true); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle = "#20333f"; ctx.lineWidth = 1.6; poly(data.plan); ctx.stroke();
   const t0 = data.push_step, color = colors[id];
   let count = 0;
   if (step < t0) {
@@ -106,9 +96,9 @@ function draw(id, runs) {
   } else {
     runs.forEach((path, i) => {
       const k = step - t0, escaped = data.escaped.includes(i);
-      ctx.strokeStyle = color; ctx.globalAlpha = escaped ? .9 : .5; ctx.lineWidth = escaped ? 1.4 : 1;
+      ctx.strokeStyle = color; ctx.globalAlpha = escaped ? .9 : .45; ctx.lineWidth = escaped ? 1.4 : .9;
       ctx.setLineDash(escaped ? [5,4] : []); poly(path.slice(0, k+1)); ctx.stroke();
-      ctx.globalAlpha = 1; poly(hull(path[k]), true); ctx.stroke();
+      ctx.globalAlpha = 1; ctx.lineWidth = escaped ? 1.4 : .9; ctx.fillStyle = "rgba(255,255,255,.55)"; poly(hull(path[k]), true); ctx.fill(); ctx.stroke();
       ctx.setLineDash([]);
       if (inside(path[k], step)) count++;
     });
