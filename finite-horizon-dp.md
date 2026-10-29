@@ -1160,16 +1160,32 @@ $$
 u=\text{horizontal cart acceleration},
 $$
 
-with $\theta=0$ at upright. Linearizing the discrete RK4 update $F_h$ at $(\mathbf{x}^\star,u^\star)=(0,0)$ gives
+with $\theta=0$ at upright. One step of fourth-order Runge--Kutta integration with step size $h$ defines the discrete map $\mathbf{x}_{k+1}=F_h(\mathbf{x}_k,u_k)$, as in the trajectory-optimization chapter. The upright configuration with zero input is a fixed point of this map: $F_h(\mathbf{x}^\star,u^\star)=\mathbf{x}^\star$ with $(\mathbf{x}^\star,u^\star)=(0,0)$.
+
+Write the state and input as deviations from this point, $\mathbf{x}_k=\mathbf{x}^\star+\delta\mathbf{x}_k$ and $u_k=u^\star+\delta u_k$. A first-order Taylor expansion of $F_h$ around $(\mathbf{x}^\star,u^\star)$ gives
 
 $$
-\delta\mathbf{x}_{k+1}
-\approx A\,\delta\mathbf{x}_k+B\,\delta u_k,
-\qquad
-A=\left.\frac{\partial F_h}{\partial\mathbf{x}}\right|_{(0,0)},
-\quad
-B=\left.\frac{\partial F_h}{\partial u}\right|_{(0,0)}.
+F_h(\mathbf{x}^\star+\delta\mathbf{x}_k,\,u^\star+\delta u_k)
+= F_h(\mathbf{x}^\star,u^\star)
++ A\,\delta\mathbf{x}_k + B\,\delta u_k
++ O\!\left(\|\delta\mathbf{x}_k\|^2+|\delta u_k|^2\right),
 $$
+
+where $A$ and $B$ are the Jacobians of the discrete map at the equilibrium:
+
+$$
+A=\left.\frac{\partial F_h}{\partial\mathbf{x}}\right|_{(\mathbf{x}^\star,u^\star)}\in\mathbb{R}^{4\times4},
+\qquad
+B=\left.\frac{\partial F_h}{\partial u}\right|_{(\mathbf{x}^\star,u^\star)}\in\mathbb{R}^{4\times1}.
+$$
+
+Because $F_h(\mathbf{x}^\star,u^\star)=\mathbf{x}^\star$, subtracting $\mathbf{x}^\star$ from both sides and dropping the second-order remainder leaves the linear deviation dynamics
+
+$$
+\delta\mathbf{x}_{k+1}\approx A\,\delta\mathbf{x}_k+B\,\delta u_k .
+$$
+
+The approximation is good only while $\delta\mathbf{x}_k$ and $\delta u_k$ stay small, which is what the third rollout below tests. We differentiate the RK4 step itself, not the continuous-time vector field, so $A$ and $B$ already account for the sampling at step size $h$ and need no separate discretization. The code computes both Jacobians with central finite differences of `rk4_step`.
 
 The experiment uses $h=0.02$ s, $Q=\operatorname{diag}(2,0.2,80,3)$, and $R=0.15$. For this time-invariant infinite-horizon case, the Riccati recursion converges to a fixed matrix $P$ that satisfies the discrete algebraic Riccati equation. The corresponding policy is $u_k=-K\delta\mathbf{x}_k$.
 
