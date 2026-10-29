@@ -47,6 +47,7 @@ After working through the derivations and examples, you should be able to:
 - Identify the dynamics-curvature terms that distinguish DDP from iLQR.
 - Assess a docking plan using its cost, arrival velocity, and hull clearance.
 - Explain how thermal load and nonlinear power loss shape a bounded cooling schedule.
+- Relate the shape of a radiotherapy schedule to organ repair and the curvature that DDP retains.
 
 ## Prerequisites
 
@@ -1147,6 +1148,152 @@ depend on the initial sequence. Starting the baseline from constant
 amplitudes $0.1$ and $0.9$ leads to other local plans, so neither result
 certifies a global minimum.
 
+(sec-radiotherapy-fractionation)=
+## Scheduling Radiotherapy Fractions
+
+Radiotherapy rarely delivers its dose in one sitting. A course is split into
+fractions, typically one per weekday over several weeks, because healthy
+tissue repairs part of its radiation damage between sessions while many
+tumors repair less. Every beam that reaches the tumor also crosses healthy
+organs on its way in and out, so a treatment plan must decide both how hard
+to irradiate on each day and from which directions. With one control vector
+per session and a state that summarizes the damage accumulated so far, this
+is again a finite-horizon optimal-control problem, and iLQR applies to it
+directly.
+
+The example below is a synthetic slice of the chest with a tumor at the
+center and three organs around it: the spinal cord, the heart, and a lung.
+Three beams aim at the tumor, and each one crosses exactly one organ before
+reaching it ({numref}`fig-radiotherapy-replay`). The control $\mathbf u_t\in\mathbb
+R^3$ holds the three beam intensities of session $t$, each between $0$ and
+$3\ \mathrm{Gy}$. The beams are scaled so that intensity $u_{t,j}$ adds
+$u_{t,j}$ gray to the tumor's mean dose. The mean dose received by structure $k$
+is $d_{t,k}=\mathbf a_k^\top\mathbf u_t$, where the dose matrix with rows
+$\mathbf a_k$ is computed once from the beam geometry. The tumor row is
+$(1,1,1)$, and each organ row has a single large entry, between $1.28$ and $1.50$, for the beam
+that crosses it. That beam enters through the organ before it has lost
+intensity in the tissue, so the organ receives more than the tumor does.
+
+:::{iframe} ../interactive/radiotherapy-fractionation.html
+:label: fig-radiotherapy-replay
+:width: 100%
+:title: Radiotherapy fractionation: recorded iLQR and DDP plans
+:class: radiotherapy-replay
+:placeholder: _static/radiotherapy_fractionation/plan.svg
+
+The fractionation problem and its optimized plan. Left: the synthetic slice,
+with the course dose of the final DDP plan. Arrows mark where the three beams
+enter. Top right: the dose that each session delivers to the tumor, split by
+beam, against the uniform 3 Gy plan (dashed). Bottom right: health of the
+tumor and the three organs under the optimized plan (solid) and the uniform
+plan (dotted). In the online book the figure replays the recorded plans
+session by session and lets the reader scrub through the accepted iLQR and
+DDP iterates.
+:::
+
+The state is a health score for each structure, following the convention of
+the clinical planning work this example is adapted from
+{cite:p}`fu2019convex`. The tumor starts at $h_{1,\text{tumor}}=1$ and is controlled
+when its health reaches $0$. Each organ starts at $0$, and its health becomes
+negative as damage accumulates; $-1$ is its tolerance. A session damages
+structure $k$ according to the linear-quadratic model of radiobiology
+{cite:p}`fowler1989linear`, and the days until the next session then let the
+organs repair and the tumor regrow:
+
+$$
+h_{t+1,k}=\Big(h_{t,k}-\frac{\alpha_kd_{t,k}+\beta_kd_{t,k}^2}{E_k}\Big)\rho_k(t),
+\qquad
+\rho_k(t)=\begin{cases}e^{\lambda g_t},&k=\text{tumor},\\ e^{-r_kg_t},&k\ \text{an organ}.\end{cases}
+$$
+
+Here $g_t$ is the number of days until the next session: one from Monday to
+Thursday and three on Friday. The scale $E_k$ is the accumulated effect that
+moves a structure by one unit of health, from untreated to controlled for the
+tumor and from intact to tolerance for an organ. The quadratic term $\beta_kd^2$ makes one large
+fraction more damaging than two half-size fractions with the same total dose.
+Late-responding healthy tissue has a larger $\beta$ relative to $\alpha$ than
+most tumors, and that difference makes splitting the course worthwhile. The
+coefficients below are synthetic teaching values with plausible ratios, not
+clinical parameters.
+
+| Structure | $\alpha_k$ (1/Gy) | $\beta_k$ (1/Gy²) | Effect scale $E_k$ | Daily repair $r_k$ or regrowth $\lambda$ |
+| :--- | ---: | ---: | ---: | ---: |
+| Tumor | 0.30 | 0.030 | 22 | regrowth 0.005 |
+| Spinal cord | 0.10 | 0.050 | 2 | 0.01 |
+| Heart | 0.10 | 0.030 | 2 | 0.04 |
+| Lung | 0.10 | 0.020 | 2 | 0.10 |
+
+The cost charges a small amount for beam intensity, penalizes organ health
+below tolerance at every session, requires the tumor to reach zero at the end
+of the course, and rewards organ health left at the end:
+
+$$
+\begin{aligned}
+c_t(\mathbf h,\mathbf u)&=\tfrac{0.01}{2}\|\mathbf u\|^2+50\sum_{k\ne\text{tumor}}s(-h_k-1),\\
+c_T(\mathbf h)&=200\,s(h_{\text{tumor}})^2+50\sum_{k\ne\text{tumor}}s(-h_k-1)-\sum_{k\ne\text{tumor}}h_k,
+\end{aligned}
+$$
+
+where $s(z)=\log(1+e^{25z})/25$ is a smooth version of $\max(z,0)$, as in the
+docking costs. The course has $T-1=20$ sessions over four weeks. Both
+solvers start from equal beams of $0.7\ \mathrm{Gy}$, a uniform plan of
+$2.1\ \mathrm{Gy}$ per session that leaves the tumor uncontrolled, and use
+the same box-constrained backward pass as the docking problem.
+
+:::{include} artifacts/radiotherapy_fractionation/results.md
+:::
+
+The simplest curative alternative gives every session equal beams, raised
+until the tumor just reaches zero. That takes $3\ \mathrm{Gy}$ per session and
+$60\ \mathrm{Gy}$ in total, and it drives the spinal cord to a health of
+$-2.26$, more than twice its tolerance; the heart also ends just past its
+limit. The optimized plan controls the tumor with $56\ \mathrm{Gy}$ and keeps
+every organ within tolerance. Three features of the schedule in
+{numref}`fig-radiotherapy-replay` follow from the model. The beam through the
+lung carries more than half of the dose, and the beam through the cord the
+least, because the lung repairs fastest and has the smallest $\beta$ while
+the cord repairs slowest and has the largest. The doses are front-loaded:
+early damage to an organ has more days to be repaired before the end of the
+course, and early tumor kill leaves less tumor to regrow. Fridays receive
+extra dose because three days of repair follow them. The organ health curves
+level off after the first week, where each session's new damage is roughly
+balanced by repair. Clinical courses are not front-loaded this way; the
+pattern reflects the first-order repair model and the absence of acute
+toxicity limits, which a clinical planning model would include.
+
+:::{figure} _static/radiotherapy_fractionation/iterations.svg
+:label: fig-radiotherapy-iterations
+:width: 100%
+
+Left: actual nonlinear cost after each accepted update for iLQR and DDP from
+the same uniform 2.1 Gy plan, on a logarithmic axis. Right: the dose that
+selected DDP iterates deliver to the tumor in each session. The first update
+pushes dose to the last sessions, where it is most directly tied to the
+terminal tumor cost; later updates move it to the start of the course and to
+the Fridays.
+:::
+
+Both methods reach the same plan, but DDP needs 11 accepted updates and iLQR
+53. The transition explains the difference. It is linear in the health
+state and quadratic in the beams, so the only second-order transition term
+that DDP adds to the [backward recursion](#sec-ddp-curvature) is
+
+$$
+\sum_kp_{t+1,k}\,\frac{\partial^2h_{t+1,k}}{\partial\mathbf u_t^2}
+=-2\sum_kp_{t+1,k}\,\frac{\beta_k\rho_k(t)}{E_k}\,\mathbf a_k\mathbf a_k^\top,
+$$
+
+where $p_{t+1,k}$ is the derivative of the cost-to-go with respect to
+$h_{t+1,k}$. Along the final plan this derivative is positive for the tumor,
+whose remaining health costs, and negative for each organ, whose health is
+rewarded. The organ terms therefore add positive curvature: they tell the
+backward pass that pushing a beam harder damages its organ more than in
+proportion. The tumor term subtracts curvature, because a larger fraction
+also kills the tumor more than in proportion. iLQR drops both terms and
+treats the effect of each extra gray as fixed around the current plan, so it
+needs more updates to discover the advantage of spreading dose over the
+sessions and beams.
+
 ## Exercises
 
 :::{exercise} Backward induction by hand
@@ -1311,6 +1458,9 @@ models and artifact builders:
 - {download}`Thermoacoustic experiment builder <scripts/build_thermoacoustic_pulldown_artifacts.py>`
 - {download}`Thermoacoustic diagnostics <artifacts/thermoacoustic_pulldown/metrics.json>`
 - {download}`Thermoacoustic replay data <interactive/thermoacoustic-refrigerator-data.json>`
+- {download}`Radiotherapy phantom, dynamics, and costs <code/radiotherapy_fractionation.py>`
+- {download}`Radiotherapy experiment builder <scripts/build_radiotherapy_fractionation_artifacts.py>`
+- {download}`Radiotherapy diagnostics <artifacts/radiotherapy_fractionation/metrics.json>`
 
 Run `uv run python scripts/build_boat_docking_artifacts.py` from the repository
 root to reproduce the solves, figures, results table, and browser data. Normal
@@ -1320,7 +1470,12 @@ backward elimination and a dense quadratic solve.
 
 Run `uv run python scripts/build_thermoacoustic_pulldown_artifacts.py` to
 regenerate the refrigerator results table, figures, diagnostics, and the
-browser replay data.
+browser replay data. Run
+`uv run python scripts/build_radiotherapy_fractionation_artifacts.py` for the
+radiotherapy solves, figures, table, and replay data. That example is adapted
+from the [ddp-fractionation](https://github.com/pierrelux/ddp-fractionation)
+repository, which applies box-constrained iLQR to a clinical phantom with a
+thousand beamlets.
 
 ## Summary and Outlook
 
@@ -1332,7 +1487,10 @@ second-order chain-rule terms from the transition. Nonlinear rollouts,
 regularization, and acceptance tests connect these local calculations to a
 decreasing sequence of actual trajectory costs.
 The refrigerator applies the same calculation to a bounded driver amplitude,
-with energy use and terminal temperature competing in the objective.
+with energy use and terminal temperature competing in the objective. The
+radiotherapy course applies it to three bounded beams over twenty sessions,
+where organ repair between sessions shapes the schedule and the quadratic
+dose response gives DDP curvature that iLQR ignores.
 
 The quadratic tail produced by elimination is a local model of the cost-to-go
 along one trajectory. For linear-quadratic problems it is the
