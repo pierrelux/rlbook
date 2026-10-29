@@ -373,84 +373,165 @@ multiplier, the costate.
 
 The local problem {eq}`eq-ilqr-local-problem` is a deterministic
 finite-horizon problem with linear dynamics and quadratic costs. It is an LQR
-problem, so the backward induction of the
-[previous chapter](#sec-lqr-dp) solves it. Start from the terminal cost, apply
-one Bellman backup per step from $t=T-1$ down to $t=1$, and then run forward
-from $\delta\mathbf x_1=\mathbf0$ to recover the controls. Each backup
-minimizes over one control and removes it from the problem, which is why the
-backward pass of iLQR is often called backward elimination.
+problem, so the backward induction of the previous chapter solves it. This
+section recalls that algorithm, specializes it to LQR, and then applies the
+same specialization to the local problem. Each backup minimizes over one
+control and removes it from the problem, which is why the backward pass of
+iLQR is often called backward elimination.
 
-The cost-to-go of the local problem is a quadratic function of the state
-nudge,
+### Backward induction
 
-$$
-S_{t+1}(\delta\mathbf x_{t+1})
-=s_{t+1}+p_{t+1}^\top\delta\mathbf x_{t+1}
-+\frac12\delta\mathbf x_{t+1}^\top P_{t+1}\delta\mathbf x_{t+1}.
-$$
-
-At the terminal step, $S_T$ is the quadratic Taylor model of $c_T$, with the
-coefficients $p_T$ and $P_T$ defined above. This tail is the cost-to-go of the
-local problem only. It is accurate near the current plan, and it is not a
-value function of the nonlinear system over its whole state space.
-
-As in the previous chapter, a quadratic cost-to-go stays quadratic after one
-backup, and the update of $P_t$ is the **Riccati recursion**. Two features
-differ from the textbook LQR problem.
-
-1. The current plan is generally not optimal, so the local costs have linear
-   terms: the gradients $c_{z,t}$ and $p_T$. They give the cost-to-go its
-   linear coefficient $p_t$, and they produce a feedforward change $k_t$ next
-   to the feedback gain $K_t$. The feedforward term moves the plan even when
-   the state nudge is zero.
-2. The stage cost may contain a state--control cross term $c_{ux,t}$. It adds
-   to the $B_t^\top P_{t+1}A_t$ coupling that the dynamics already create.
-
-The box collects the resulting formulas. With $c_{z,t}=0$, $p_T=0$ and
-$c_{ux,t}=0$, they reduce to the recursion of the previous chapter, written
-there with the opposite sign convention $\mathbf u=-K\mathbf x$.
-
-:::{admonition} One backup of the local LQR problem
-:class: note
-
-Given the tail coefficients $p_{t+1}$ and $P_{t+1}$, and with
-$F_t=[A_t\ B_t]$, form
-
-$$
-q_t=c_{z,t}+F_t^\top p_{t+1},\qquad
-M_t=c_{zz,t}+F_t^\top P_{t+1}F_t,
-$$
-
-and split them into state and control blocks $q_x,q_u$ and
-$M_{xx},M_{ux},M_{uu}$. We use $M_t$ for this Hessian because $H_t$ denoted
-the Hamiltonian in the Pontryagin chapter. When $M_{uu}$ is positive definite,
-the minimizing control nudge is
-
-$$
-\delta\mathbf u_t=k_t+K_t\delta\mathbf x_t,\qquad
-k_t=-M_{uu}^{-1}q_u,\qquad K_t=-M_{uu}^{-1}M_{ux},
-$$
-
-and the cost-to-go coefficients for the preceding step are
+For a deterministic problem with dynamics $\mathbf x_{t+1}=\mathbf f_t(\mathbf x_t,\mathbf u_t)$,
+stage costs $c_t$ and terminal cost $c_T$,
+{prf:ref}`backward-recursion-deterministic` computes the optimal cost-to-go
+$J_t^\star$ backward in time:
 
 $$
 \begin{aligned}
-p_t&=q_x-M_{ux}^\top M_{uu}^{-1}q_u,\\
-P_t&=M_{xx}-M_{ux}^\top M_{uu}^{-1}M_{ux}.
+J_T^\star(\mathbf x)&=c_T(\mathbf x),\\
+J_t^\star(\mathbf x)&=\min_{\mathbf u}\Big[c_t(\mathbf x,\mathbf u)
+  +J_{t+1}^\star\big(\mathbf f_t(\mathbf x,\mathbf u)\big)\Big],
+  \qquad t=T-1,\ldots,1.
 \end{aligned}
 $$
 
-In code, these formulas are linear solves with $M_{uu}$; an explicit matrix
-inverse is unnecessary.
-:::
+The minimizer at each state defines the policy $\pi_t^\star(\mathbf x)$. A
+forward pass from the initial state then applies $\mathbf u_t=\pi_t^\star(\mathbf x_t)$
+and recovers the optimal trajectory. In general $J_t^\star$ is a function on
+the whole state space, which the previous chapter stored on a grid.
 
-The backward pass costs a fixed amount of work per step, so its cost grows
-linearly with the horizon. For linear dynamics and quadratic costs, it solves
-the original problem exactly whenever each $M_{uu}$ is positive definite.
-Along a nonlinear trajectory, $A_t$, $B_t$, and the cost derivatives describe
-only a local approximation. They must be recomputed after the plan changes.
-{ref}`ex-ilqr-two-step` carries out one backward pass by hand on a scalar
-problem.
+### The LQR case: the Riccati recursion
+
+With linear dynamics $\mathbf x_{t+1}=A_t\mathbf x_t+B_t\mathbf u_t$, stage
+cost $\tfrac12\mathbf x^\top Q_t\mathbf x+\tfrac12\mathbf u^\top R_t\mathbf u$
+and terminal cost $\tfrac12\mathbf x^\top Q_T\mathbf x$, every cost-to-go is
+quadratic, $J_t^\star(\mathbf x)=\tfrac12\mathbf x^\top P_t\mathbf x$, so the
+backup only has to update a matrix. Substituting the dynamics into
+$J_{t+1}^\star$ makes the bracket a quadratic function of the stacked state and
+control,
+
+$$
+\frac12
+\begin{bmatrix}\mathbf x\\\mathbf u\end{bmatrix}^{\!\top}
+\begin{bmatrix}
+Q_t+A_t^\top P_{t+1}A_t & A_t^\top P_{t+1}B_t\\
+B_t^\top P_{t+1}A_t & R_t+B_t^\top P_{t+1}B_t
+\end{bmatrix}
+\begin{bmatrix}\mathbf x\\\mathbf u\end{bmatrix}.
+$$
+
+Setting its control gradient to zero gives the linear feedback
+$\mathbf u_t^\star=-K_t\mathbf x$, and substituting it back gives the
+**Riccati recursion** of {prf:ref}`backward-recursion-lqr`:
+
+$$
+\begin{aligned}
+K_t&=(R_t+B_t^\top P_{t+1}B_t)^{-1}B_t^\top P_{t+1}A_t,\\
+P_t&=Q_t+A_t^\top P_{t+1}A_t
+ -A_t^\top P_{t+1}B_t(R_t+B_t^\top P_{t+1}B_t)^{-1}B_t^\top P_{t+1}A_t,
+\end{aligned}
+$$
+
+starting from $P_T=Q_T$.
+
+### Riccati for the local problem
+
+The local problem has the same structure, with the nudges
+$\delta\mathbf x_t,\delta\mathbf u_t$ as state and control. Its terminal
+cost-to-go is the terminal Taylor model, and its backup is
+
+$$
+S_t(\delta\mathbf x)=\min_{\delta\mathbf u}\Big[
+c_{z,t}^\top\delta\mathbf z+\frac12\delta\mathbf z^\top c_{zz,t}\,\delta\mathbf z
++S_{t+1}(A_t\delta\mathbf x+B_t\delta\mathbf u)\Big],
+\qquad \delta\mathbf z=(\delta\mathbf x,\delta\mathbf u).
+$$
+
+Two features differ from textbook LQR. The current plan is generally not
+optimal, so the local costs have linear terms, the gradients $c_{z,t}$ and
+$p_T$. The stage cost may also contain a state--control cross term
+$c_{ux,t}$. Because of the linear terms, the cost-to-go needs a linear part as
+well:
+
+$$
+S_{t+1}(\delta\mathbf x)=s_{t+1}+p_{t+1}^\top\delta\mathbf x
++\frac12\delta\mathbf x^\top P_{t+1}\delta\mathbf x,
+$$
+
+with $p_T$ and $P_T$ the gradient and Hessian of $c_T$ at the end of the
+plan. Substituting the linear dynamics into $S_{t+1}$ makes the bracket a
+quadratic in $\delta\mathbf z$ with linear coefficient $q_t$ and Hessian
+$M_t$. Written in blocks, next to the LQR matrix above,
+
+$$
+\begin{aligned}
+q_{x,t}&=c_{x,t}+A_t^\top p_{t+1}, &
+M_{xx,t}&=c_{xx,t}+A_t^\top P_{t+1}A_t,\\
+q_{u,t}&=c_{u,t}+B_t^\top p_{t+1}, &
+M_{ux,t}&=c_{ux,t}+B_t^\top P_{t+1}A_t,\\
+& & M_{uu,t}&=c_{uu,t}+B_t^\top P_{t+1}B_t.
+\end{aligned}
+$$
+
+The Hessian blocks are the LQR blocks with $Q_t$ replaced by $c_{xx,t}$,
+$R_t$ by $c_{uu,t}$, and the cross term $c_{ux,t}$ added. The vector $q_t$ is
+new. In stacked form, with $F_t=[A_t\ B_t]$, these are
+$q_t=c_{z,t}+F_t^\top p_{t+1}$ and $M_t=c_{zz,t}+F_t^\top P_{t+1}F_t$. We use
+$M_t$ for this Hessian because $H_t$ denoted the Hamiltonian in the
+Pontryagin chapter.
+
+Setting the control gradient to zero, $M_{uu,t}\delta\mathbf u+M_{ux,t}\delta\mathbf x+q_{u,t}=0$,
+gives an affine law instead of a linear one:
+
+$$
+\delta\mathbf u_t=k_t+K_t\delta\mathbf x_t,\qquad
+k_t=-M_{uu,t}^{-1}q_{u,t},\qquad K_t=-M_{uu,t}^{-1}M_{ux,t}.
+$$
+
+The feedback gain $K_t$ plays the role of the LQR gain, written here with the
+sign included. The feedforward term $k_t$ comes from the linear terms: it
+changes the plan even when the state nudge is zero. Substituting the control
+back gives the coefficients for the preceding step,
+
+$$
+\begin{aligned}
+p_t&=q_{x,t}-M_{ux,t}^\top M_{uu,t}^{-1}q_{u,t},\\
+P_t&=M_{xx,t}-M_{ux,t}^\top M_{uu,t}^{-1}M_{ux,t}.
+\end{aligned}
+$$
+
+The update of $P_t$ is the Riccati recursion. Written out, it reads
+$P_t=c_{xx,t}+A_t^\top P_{t+1}A_t-(c_{ux,t}+B_t^\top P_{t+1}A_t)^\top
+(c_{uu,t}+B_t^\top P_{t+1}B_t)^{-1}(c_{ux,t}+B_t^\top P_{t+1}A_t)$, which is
+the LQR formula when $c_{ux,t}=0$. The update of $p_t$ is the new part. It
+carries the cost gradients backward, and with zero gradients it stays zero
+and $k_t$ vanishes. In code, these formulas are linear solves with
+$M_{uu,t}$; an explicit matrix inverse is unnecessary.
+
+````{prf:algorithm} Backward pass for the local problem
+:label: alg-ilqr-backward-pass
+
+**Input:** Jacobians $A_t,B_t$ and cost derivatives $c_{z,t},c_{zz,t}$ along the current plan; terminal gradient $p_T$ and Hessian $P_T$.
+
+**Output:** Feedforward terms $k_t$ and gains $K_t$ for $t=1,\ldots,T-1$.
+
+1. For $t=T-1,\ldots,1$:
+   1. Form $q_t=c_{z,t}+F_t^\top p_{t+1}$ and $M_t=c_{zz,t}+F_t^\top P_{t+1}F_t$.
+   2. Solve $k_t=-M_{uu,t}^{-1}q_{u,t}$ and $K_t=-M_{uu,t}^{-1}M_{ux,t}$.
+   3. Update $p_t=q_{x,t}-M_{ux,t}^\top M_{uu,t}^{-1}q_{u,t}$ and $P_t=M_{xx,t}-M_{ux,t}^\top M_{uu,t}^{-1}M_{ux,t}$.
+2. Return $k_t$ and $K_t$. A forward pass from $\delta\mathbf x_1=\mathbf0$ with $\delta\mathbf u_t=k_t+K_t\delta\mathbf x_t$ and $\delta\mathbf x_{t+1}=A_t\delta\mathbf x_t+B_t\delta\mathbf u_t$ solves the local problem.
+````
+
+The tail $S_t$ is the cost-to-go of the local problem only. It is accurate
+near the current plan, and it is not a value function of the nonlinear
+system over its whole state space. Unlike the grid of the previous chapter, it
+is stored as a vector and a matrix per step, so the backward pass costs a
+fixed amount of work per step and grows linearly with the horizon. For linear
+dynamics and quadratic costs it solves the original problem exactly whenever
+each $M_{uu,t}$ is positive definite. Along a nonlinear trajectory, $A_t$,
+$B_t$, and the cost derivatives describe only a local approximation. They
+must be recomputed after the plan changes. {ref}`ex-ilqr-two-step` carries
+out one backward pass by hand on a scalar problem.
 
 (sec-ilqr-rollout)=
 ## Nonlinear Rollouts and iLQR
@@ -503,8 +584,8 @@ failed backward pass or line search, and decreases it after an accepted step.
 The numerical defaults start at $10^{-4}$, multiply by ten after failure,
 and divide by three after acceptance, with a floor of $10^{-9}$.
 
-When regularization changes $k$ and $K$, the formulas for $p_t$ and $P_t$ in
-the box no longer describe substitution into the original quadratic model. The implementation therefore uses the full expressions
+When regularization changes $k$ and $K$, the formulas for $p_t$ and $P_t$
+above no longer describe substitution into the original quadratic model. The implementation therefore uses the full expressions
 
 $$
 \begin{aligned}
