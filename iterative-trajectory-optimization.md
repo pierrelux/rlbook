@@ -194,6 +194,29 @@ returned plan they tell how to adjust each command when the state drifts from
 the planned one, through $\mathbf u=\bar{\mathbf u}+K(\mathbf x-\bar{\mathbf x})$,
 and they say nothing about states far from it.
 
+{numref}`fig-boat-tube` shows what "near the plan" means. The boat follows the
+final docking plan and receives a small push after two seconds. Replaying the
+planned thrusts ignores the push, and the runs miss the berth by about a metre
+on average. Applying the local feedback steers 11 of the 12 pushed runs back
+onto the plan, and they arrive within a few millimetres of it. These runs stay
+inside a thin tube around the planned trajectory. The twelfth push sends the
+boat toward the quay. The correction then asks for more thrust than the
+thrusters can give, and the linear model is no longer accurate, so that run
+leaves the tube. The gains describe a neighborhood of one trajectory, and this
+whole chapter works inside such neighborhoods.
+
+:::{figure} _static/boat_docking/tube.svg
+:label: fig-boat-tube
+:width: 100%
+
+Twelve random pushes at 2 s (velocity changes up to 0.4 m/s in each direction,
+with small heading and spin changes) applied to the final iLQR plan for the
+angled approach. Left: the planned thrusts are replayed unchanged. Right: the
+thrusts follow the local feedback law, clipped to the thruster limits. Outlines
+show the final poses. The dashed run is the one push that the feedback does
+not absorb.
+:::
+
 We cannot solve this nonlinear problem directly. The previous chapter showed
 that a linear-quadratic regulator problem can be solved exactly by a backward
 recursion. The idea of this chapter is to build an LQR problem that resembles
@@ -1112,6 +1135,7 @@ models and artifact builders:
 - {download}`Shared iLQR and DDP solver <code/trajectory_optimization.py>`
 - {download}`Boat dynamics, costs, and validation <code/boat_docking.py>`
 - {download}`Experiment and figure builder <scripts/build_boat_docking_artifacts.py>`
+- {download}`Tube figure builder <scripts/build_boat_tube_figure.py>`
 - {download}`Numerical diagnostics and source hashes <artifacts/boat_docking/metrics.json>`
 - {download}`Thermoacoustic model and costs <code/thermoacoustic_pulldown.py>`
 - {download}`Thermoacoustic geometry figure <code/thermoacoustic_geometry.py>`
