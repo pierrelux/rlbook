@@ -5,8 +5,141 @@
   "fr": "Automne 2026"
  },
  "folder_url": "https://drive.google.com/drive/folders/1iwN-j6IJP9l8EOkXrcxy4DpWRNcTixr8",
- "updated": "2026-10-27",
+ "updated": "2026-10-30",
  "lectures": [
+  {
+   "date": "2026-10-29",
+   "week": 8,
+   "title": {
+    "en": "iLQR and DDP; from stochastic dynamic programming to MDPs; infinite-horizon discounting as a random horizon",
+    "fr": "iLQR et DDP ; de la programmation dynamique stochastique aux MDP ; l'actualisation à horizon infini comme horizon aléatoire"
+   },
+   "chapters": [
+    {
+     "slug": "iterative-trajectory-optimization",
+     "title": "iLQR and Differential Dynamic Programming"
+    },
+    {
+     "slug": "stochastic-dp",
+     "title": "Stochastic Dynamic Programming and Markov Decision Processes"
+    },
+    {
+     "slug": "infinite-horizon-mdps",
+     "title": "Infinite-Horizon Markov Decision Processes"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/1ZwaLu8StP6SBwgx9JIGwpFEQFGSVpvmu/view",
+   "duration_ms": 4493599,
+   "thumb": "2026-10-29.jpg",
+   "paragraphs": 113,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "LQR by backward induction",
+      "fr": "LQR par induction arrière"
+     },
+     "p": 7,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Where LQR alone falls short",
+      "fr": "Les limites du LQR seul"
+     },
+     "p": 14,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "iLQR: linearize, solve, repeat",
+      "fr": "iLQR : linéariser, résoudre, recommencer"
+     },
+     "p": 25,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "iLQR gives a local feedback controller, not MPC",
+      "fr": "iLQR donne un contrôleur rétroactif local, pas du MPC"
+     },
+     "p": 27,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Newton-like steps and line search",
+      "fr": "Pas de type Newton et recherche linéaire"
+     },
+     "p": 43,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "DDP versus iLQR",
+      "fr": "DDP et iLQR"
+     },
+     "p": 50,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Stochastic DP and the transition kernel",
+      "fr": "PD stochastique et noyau de transition"
+     },
+     "p": 61,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Finite horizon: stage-dependent policies",
+      "fr": "Horizon fini : politiques dépendantes de l'étape"
+     },
+     "p": 76,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Discounting and bounded values",
+      "fr": "Actualisation et valeurs bornées"
+     },
+     "p": 83,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Discounting as a random horizon",
+      "fr": "L'actualisation comme horizon aléatoire"
+     },
+     "p": 90,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Other infinite-horizon criteria",
+      "fr": "Autres critères à horizon infini"
+     },
+     "p": 98,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Geometric horizon equals discounting",
+      "fr": "Horizon géométrique et actualisation"
+     },
+     "p": 103,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Discount factor: model or knob",
+      "fr": "Facteur d'actualisation : modèle ou réglage"
+     },
+     "p": 109,
+     "exam": false
+    }
+   ]
+  },
   {
    "date": "2026-10-26",
    "week": 8,

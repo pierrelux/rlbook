@@ -159,6 +159,18 @@
         "Aner",
         "tang"
       ]
+    },
+    "2026-10-29": {
+      "title": {
+        "en": "iLQR and DDP; from stochastic dynamic programming to MDPs; infinite-horizon discounting as a random horizon",
+        "fr": "iLQR et DDP ; de la programmation dynamique stochastique aux MDP ; l'actualisation à horizon infini comme horizon aléatoire"
+      },
+      "chapters": [
+        "iterative-trajectory-optimization",
+        "stochastic-dp",
+        "infinite-horizon-mdps"
+      ],
+      "redact": []
     }
   },
   "corrections": {
