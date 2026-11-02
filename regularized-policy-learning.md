@@ -19,7 +19,7 @@ programming specifies the stochastic policy they should approach. Can these
 pieces avoid both the continuous-action integral in the soft Bellman equation
 and the repeated optimization of a hard maximum?
 
-The [smoothing chapter](regularized-dp.md) presents an alternative: entropy-regularized MDPs, where the agent maximizes expected return plus a bonus for policy randomness. This yields stochastic policies with exploration built into the objective itself. The smooth Bellman operator replaces the hard max with a soft-max:
+[Entropy-regularized dynamic programming](regularized-dp.md) presents an alternative: MDPs where the agent maximizes expected return plus a bonus for policy randomness. This yields stochastic policies with exploration built into the objective itself. The smooth Bellman operator replaces the hard max with a soft-max:
 
 $$
 v^*(s) = \frac{1}{\beta} \log \sum_{a \in \mathcal{A}} \exp\left(\beta \cdot q^*(s,a)\right)
@@ -133,7 +133,7 @@ Path Consistency Learning (PCL) {cite:p}`Nachum2017` solves the Bellman equation
 
 ### The Path Consistency Property
 
-Consider the entropy-regularized Q-function Bellman equation from the [smoothing chapter](regularized-dp.md). Under general stochastic dynamics, it involves an expectation over next states:
+Consider the Q-function Bellman equation from [entropy-regularized dynamic programming](regularized-dp.md). Under general stochastic dynamics, it involves an expectation over next states:
 
 $$
 q^*(s,a) = r(s,a) + \gamma \mathbb{E}_{s'}[v^*(s')]

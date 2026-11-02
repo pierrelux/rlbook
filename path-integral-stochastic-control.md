@@ -15,6 +15,15 @@ compute an optimal current feedback action. A particle moving through two
 competing passages then shows how physical uncertainty can change the
 preferred route.
 
+The optimal cost obtained this way is a soft minimum,
+$V=-\lambda\log\mathbb E[e^{-S/\lambda}]$, where $S$ is the cost of a trajectory
+and the expectation follows the uncontrolled dynamics. It has the form of the
+log-sum-exp in [entropy-regularized dynamic programming](regularized-dp.md),
+taken over whole trajectories instead of actions, and the quadratic control
+effort plays the role of a relative-entropy penalty against the uncontrolled
+dynamics. Time is continuous here and the horizon is finite, whereas that chapter
+treats discrete discounted problems.
+
 ## Learning Goals
 
 After working through the derivation and experiments, you should be able to:
@@ -37,7 +46,9 @@ This chapter uses the Bellman recursion and state-dependent policies from
 [Stochastic Dynamic Programming](stochastic-dp.md). Gaussian increments are
 reviewed from [Stochastic Dynamics and Partial Observation](stochastic-dynamics-observation.md).
 The comparison with MPPI uses the Gaussian mean fit and importance-sampling
-correction in @sec-mppi-distribution. The continuous-time value equation
+correction in @sec-mppi-distribution. The comparison with entropy
+regularization refers to [Entropy-Regularized Dynamic Programming](regularized-dp.md),
+but no derivation here depends on it. The continuous-time value equation
 and its transformation are derived below.
 
 (sec-path-integral-control)=

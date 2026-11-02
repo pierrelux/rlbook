@@ -11,7 +11,7 @@ kernelspec:
   name: python3
 ---
 
-# Smooth and Regularized Dynamic Programming
+# Entropy-Regularized Dynamic Programming
 
 Infinite-horizon dynamic programming selects actions with a hard maximum. That
 operator is nondifferentiable at ties and produces a deterministic greedy
@@ -763,6 +763,12 @@ Entropy regularization replaces hard action selection with a smooth conjugate
 operator and produces a stochastic optimal policy. Gumbel perturbations,
 log-sum-exp Bellman updates, and regularized policy iteration describe the same
 construction from probabilistic, variational, and algorithmic viewpoints.
+
+The same log-sum-exp form appears over whole trajectories in continuous time.
+[Path-integral stochastic control](path-integral-stochastic-control.md) examines
+systems driven by Gaussian disturbances whose Hamilton--Jacobi--Bellman equation
+becomes linear under a logarithmic transformation, so that optimal feedback can
+be estimated from weighted trajectories.
 
 Smoothness changes the operator but does not remove the need to represent its
 unknown value function. How can an infinite-dimensional functional equation be

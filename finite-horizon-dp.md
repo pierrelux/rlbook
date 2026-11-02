@@ -1144,7 +1144,7 @@ The resulting backward recursion is:
 **Optimal cost-to-go:** $J_t^\star(\mathbf{x}_t) = \frac{1}{2}\mathbf{x}_t^\top P_t \mathbf{x}_t$
 ````
 
-The [next chapter](iterative-trajectory-optimization.md) applies this
+The [iLQR and DDP chapter](iterative-trajectory-optimization.md) applies this
 recursion to nonlinear problems. Linearizing the dynamics and quadratically
 approximating the costs along a nominal trajectory gives a local
 linear-quadratic problem, whose Riccati recursion yields a correction to the

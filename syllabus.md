@@ -199,7 +199,7 @@ Pacing is indicative and will be adjusted as the term goes on.
 | 7 · Oct 12 – 15 | From trajectory optimization to dynamic programming: backward induction; the hydro reservoir (Thursday) | [Finite-Horizon Dynamic Programming](finite-horizon-dp.md) |
 | 8 · Oct 26 – 29 | Continuous states and interpolation; the linear quadratic regulator; stochastic dynamic programming and policy classes; midterm 1 return | [Finite-Horizon Dynamic Programming](finite-horizon-dp.md), [Stochastic DP](stochastic-dp.md) |
 | 9 · Nov 2 – 5 | Infinite-horizon MDPs: discounting, Bellman operators and fixed points; value and policy iteration | [Infinite-Horizon MDPs](infinite-horizon-mdps.md) |
-| 10 · Nov 9 – 12 | Regularized MDPs; weighted residuals and Galerkin methods | [Regularized DP](regularized-dp.md), [Weighted Residuals](weighted-residual-methods.md) |
+| 10 · Nov 9 – 12 | Regularized MDPs; weighted residuals and Galerkin methods | [Entropy-Regularized DP](regularized-dp.md), [Weighted Residuals](weighted-residual-methods.md) |
 | 11 · Nov 16 – 19 | Approximate Bellman equations (Monday). Midterm 2: Thursday, November 19, 13:30–15:30 | [Approximate Bellman Equations](approximate-bellman-equations.md) |
 | 12 · Nov 23 – 26 | Monte Carlo methods and overestimation bias; fitted Q iteration, NFQ, DQN | [Monte Carlo](monte-carlo-bellman-estimation.md), [FQI](fitted-q-iteration.md) |
 | 13 · Nov 30 – Dec 3 | Amortized action optimization; stochastic gradient estimators (Monday). Final project poster session: Thursday, December 3, 13:30–15:30 at Mila | [Amortized Action Optimization](amortized-action-optimization.md), [Gradient Estimation](gradient-estimation.md) |
@@ -458,7 +458,7 @@ du trimestre.
 | 7 · 12 – 15 oct. | De l'optimisation de trajectoire à la programmation dynamique : induction arrière ; le réservoir hydroélectrique (jeudi) | [Finite-Horizon Dynamic Programming](finite-horizon-dp.md) |
 | 8 · 26 – 29 oct. | Espaces d'états continus et interpolation ; régulateur linéaire quadratique ; programmation dynamique stochastique et classes de politiques ; retour sur le premier examen | [Finite-Horizon Dynamic Programming](finite-horizon-dp.md), [Stochastic DP](stochastic-dp.md) |
 | 9 · 2 – 5 nov. | MDP à horizon infini : actualisation, opérateurs de Bellman et points fixes ; itérations sur la valeur et la politique | [Infinite-Horizon MDPs](infinite-horizon-mdps.md) |
-| 10 · 9 – 12 nov. | MDP régularisés ; résidus pondérés et méthodes de Galerkin | [Regularized DP](regularized-dp.md), [Weighted Residuals](weighted-residual-methods.md) |
+| 10 · 9 – 12 nov. | MDP régularisés ; résidus pondérés et méthodes de Galerkin | [Entropy-Regularized DP](regularized-dp.md), [Weighted Residuals](weighted-residual-methods.md) |
 | 11 · 16 – 19 nov. | Équations de Bellman approchées (lundi). Deuxième examen de mi-session : jeudi 19 novembre, de 13 h 30 à 15 h 30 | [Approximate Bellman Equations](approximate-bellman-equations.md) |
 | 12 · 23 – 26 nov. | Méthodes de Monte-Carlo et biais de surestimation ; itération sur $Q$ ajustée, NFQ, DQN | [Monte Carlo](monte-carlo-bellman-estimation.md), [FQI](fitted-q-iteration.md) |
 | 13 · 30 nov. – 3 déc. | Optimisation amortie des actions ; estimateurs de gradient stochastique (lundi). Séance de présentation des affiches du projet final : jeudi 3 décembre, de 13 h 30 à 15 h 30, à Mila | [Amortized Action Optimization](amortized-action-optimization.md), [Gradient Estimation](gradient-estimation.md) |

@@ -1833,7 +1833,7 @@ still affect future completions.
 
 The hard maximum in the Bellman operator selects one action and is
 nondifferentiable at ties. Can the decision rule remain stochastic while the
-operator becomes smooth? [Smooth and regularized dynamic programming](regularized-dp.md)
+operator becomes smooth? [Entropy-regularized dynamic programming](regularized-dp.md)
 answers by placing a convex regularizer on the action distribution.
 
 ## Self-checks

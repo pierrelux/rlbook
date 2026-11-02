@@ -1685,7 +1685,7 @@ planner uses derivatives or sampled trajectories.
 
 The method's name also reflects a connection to expectations over entire
 stochastic paths. [Path-integral stochastic control](path-integral-stochastic-control.md),
-after stochastic dynamic programming, develops that connection and states
+after entropy-regularized dynamic programming, develops that connection and states
 the additional assumptions under which path weighting yields an optimal
 current feedback action.
 
