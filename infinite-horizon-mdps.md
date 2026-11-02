@@ -344,6 +344,19 @@ Operator equations can take several forms, each with its own characteristics and
 4. **Variational Inequality**: Find $x^* \in K$ such that $\langle \mathrm{T}(x^*), x - x^* \rangle \geq 0$ for all $x \in K$.
    Here, $K$ is a closed convex subset of $X$, and $\mathrm{T}: K \rightarrow X^*$ (the dual space of $X$). These problems often arise in optimization, game theory, and partial differential equations.
 
+:::{iframe} ../interactive/fixed-point-lab.html
+:label: fig-fixed-point-lab
+:width: 100%
+:title: Fixed-point lab
+:class: fixed-point-lab-replay
+
+The same iteration on four unknowns: a number, a pendulum trajectory, the value
+of a one-state MDP and the water value function of the reservoir. Each method
+draws a line through $(x, \mathrm{T}(x))$ with some slope $s$ and jumps to where
+that line meets $y = x$. Slope zero gives successive approximation and value
+iteration. The slope of $\mathrm{T}$ gives Newton's method and policy iteration.
+:::
+
 ### Successive Approximation Method
 
 For equations in fixed point form, a common numerical solution method is successive approximation, also known as fixed-point iteration:
@@ -1189,13 +1202,13 @@ This theoretical result explains an empirical observation that has long been not
 
 The semismooth Newton framework also suggests a spectrum of methods interpolating between value iteration and policy iteration. Value iteration can be interpreted as a Newton-like method where we choose $J_k = I$ at every iteration, ignoring the dependence of $\Bellman$ on $v$ entirely. This choice guarantees global convergence through the contraction property but sacrifices the quadratic local convergence rate. Policy iteration, at the other extreme, uses the full generalized Jacobian $J_k = I - \gamma P_{\pi_k}$, achieving quadratic convergence but at the cost of solving a linear system at each iteration.
 
-Between these extremes lie methods that use approximate Jacobians. One natural variant is to choose $J_k = \alpha I$ for some scalar $\alpha > 1$. This leads to the update
+Between these extremes lie methods that use approximate Jacobians. One natural variant is to choose $J_k = \alpha I$ for some scalar $\alpha > 0$. This leads to the update
 
 $$
 v_{k+1} = \frac{\alpha - 1}{\alpha} v_k + \frac{1}{\alpha} \Bellman v_k.
 $$
 
-This is known as $\alpha$-value iteration or successive over-relaxation when $\alpha > 1$. For appropriate choices of $\alpha$, this method retains global convergence while achieving better local rates than standard value iteration, and it requires only pointwise operations rather than solving a linear system. The Newton perspective thus unifies existing algorithms and generates new ones by systematically exploring different approximations to the generalized Jacobian.
+This is relaxed value iteration with step size $1/\alpha$. Taking $\alpha > 1$ damps the step: the update remains a global contraction, but with the larger modulus $1 - (1-\gamma)/\alpha$, so it is slower than standard value iteration. Taking $\alpha < 1$ lengthens the step, which is over-relaxation. The sup-norm argument then gives a contraction only for $\alpha > (1+\gamma)/2$, with modulus $(1+\gamma)/\alpha - 1$, which exceeds $\gamma$. Near the solution, however, the rate is set by the eigenvalues of $\gamma P_{\pi^*}$. The constant mode now contracts at $1 - (1-\gamma)/\alpha < \gamma$, so over-relaxation is faster whenever $P_{\pi^*}$ has no eigenvalues close to $-1$. For every $\alpha$, the update requires only pointwise operations rather than solving a linear system. The Newton perspective thus unifies existing algorithms and generates new ones by systematically exploring different approximations to the generalized Jacobian.
 
 The connection to semismooth Newton methods places policy iteration within a broader mathematical framework that extends far beyond dynamic programming. Semismooth Newton methods are used in optimization (for complementarity problems and variational inequalities), in PDE-constrained optimization (for problems with control constraints), and in economics (for equilibrium problems). The Bellman equation, viewed through this lens, is simply one instance of a piecewise smooth equation, and the tools developed for such equations apply directly.
 

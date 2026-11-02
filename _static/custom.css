@@ -1206,6 +1206,15 @@ iframe {
 @media (max-width: 375px) { .thermoacoustic-replay > div > div { height: 2550px; } }
 @media (max-width: 340px) { .thermoacoustic-replay > div > div { height: 2620px; } }
 
+/* Fixed-point lab: the reservoir tab is the tallest, and the panels stack below 760px. */
+.fixed-point-lab-replay > div > div {
+  height: 1240px;
+  padding-bottom: 0 !important;
+  width: 100% !important;
+}
+@media (max-width: 800px) { .fixed-point-lab-replay > div > div { height: 1800px; } }
+@media (max-width: 480px) { .fixed-point-lab-replay > div > div { height: 2240px; } }
+
 /* Hydro reservoir DP: controls, map with side column, strips and metrics.
    Content heights measured in the page (iframe width -> height): 808 -> 1014,
    680 -> 1014, 600 -> 1493 (side column stacks below 620px), 375 -> 1749. */
