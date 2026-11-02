@@ -1,0 +1,196 @@
+{
+ "schema_version": 1,
+ "model": "7-reach binary river tree, one slot per reach, Taleghan et al. 2015 parameters",
+ "parameters": {
+  "death": 0.2,
+  "seeds_per_plant": 100,
+  "dispersal_down": 0.5,
+  "dispersal_up": 0.1,
+  "eradicate_success": 0.85,
+  "restore_planting_success": 0.65,
+  "action_cost": [
+   0.0,
+   0.5,
+   0.9
+  ],
+  "invaded_reach_cost": 1.0,
+  "tamarisk_slot_cost": 0.1,
+  "exogenous_tamarisk_mean": 1.0,
+  "exogenous_native_mean": 4.0,
+  "competitive_advantage": 1.5,
+  "gamma": 0.9,
+  "budget": 1
+ },
+ "featured": {
+  "value_iteration_iterations": 148,
+  "policy_iteration_iterations": 4,
+  "max_abs_vi_minus_pi": 4.944719371735573e-07,
+  "states_where_policy_treats": 2064,
+  "optimal_action_all_invaded": [
+   0,
+   2,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "expected_cost": {
+   "optimal": {
+    "full": 36.887823654442116,
+    "upstream": 8.674681411408805,
+    "outlet": 4.285708085010302,
+    "uniform": 13.303351619545968
+   },
+   "upstream": {
+    "full": 38.3304125939803,
+    "upstream": 9.235861783230073,
+    "outlet": 5.0304216431064805,
+    "uniform": 14.525023666371487
+   },
+   "downstream": {
+    "full": 40.334216222235256,
+    "upstream": 9.229470929252628,
+    "outlet": 5.0429629064169115,
+    "uniform": 14.927711424621005
+   },
+   "nothing": {
+    "full": 61.71335436757177,
+    "upstream": 25.02688703764731,
+    "outlet": 15.296831015936892,
+    "uniform": 34.17665574108912
+   },
+   "all": {
+    "full": 19.830752827866306,
+    "upstream": 7.342360235070686,
+    "outlet": 4.811493483229781,
+    "uniform": 9.054140818819146
+   },
+   "free_optimal": {
+    "full": 18.978166993972476,
+    "upstream": 6.447439948409854,
+    "outlet": 4.019995859752505,
+    "uniform": 8.184422349042343
+   }
+  },
+  "n_states": 2187
+ },
+ "scaling": [
+  {
+   "n": 1,
+   "states": 3,
+   "joint_actions": 3,
+   "budget_actions": 3,
+   "dense_entries_budget": 27,
+   "dense_entries_free": 27,
+   "build_s": 0.0005425219999324327,
+   "vi_iterations": 141,
+   "vi_s": 0.004781293999940317,
+   "pi_iterations": 3,
+   "pi_s": 0.0003231939999750466,
+   "free_vi_s": 0.0024255970001831884,
+   "free_vi_iterations": 141
+  },
+  {
+   "n": 2,
+   "states": 9,
+   "joint_actions": 9,
+   "budget_actions": 5,
+   "dense_entries_budget": 405,
+   "dense_entries_free": 729,
+   "build_s": 0.0005844719999004155,
+   "vi_iterations": 140,
+   "vi_s": 0.008327719999897454,
+   "pi_iterations": 4,
+   "pi_s": 0.0012250499999026943,
+   "free_vi_s": 0.003453175999766245,
+   "free_vi_iterations": 139
+  },
+  {
+   "n": 3,
+   "states": 27,
+   "joint_actions": 27,
+   "budget_actions": 7,
+   "dense_entries_budget": 5103,
+   "dense_entries_free": 19683,
+   "build_s": 0.000326733999827411,
+   "vi_iterations": 142,
+   "vi_s": 0.013034972000014022,
+   "pi_iterations": 4,
+   "pi_s": 0.004213868000078946,
+   "free_vi_s": 0.006094140000186599,
+   "free_vi_iterations": 141
+  },
+  {
+   "n": 4,
+   "states": 81,
+   "joint_actions": 81,
+   "budget_actions": 9,
+   "dense_entries_budget": 59049,
+   "dense_entries_free": 531441,
+   "build_s": 0.0006753860000117129,
+   "vi_iterations": 143,
+   "vi_s": 0.01888415200005511,
+   "pi_iterations": 4,
+   "pi_s": 0.018155725000042366,
+   "free_vi_s": 0.012286004000088724,
+   "free_vi_iterations": 143
+  },
+  {
+   "n": 5,
+   "states": 243,
+   "joint_actions": 243,
+   "budget_actions": 11,
+   "dense_entries_budget": 649539,
+   "dense_entries_free": 14348907,
+   "build_s": 0.007662173999960942,
+   "vi_iterations": 145,
+   "vi_s": 0.033570139999937965,
+   "pi_iterations": 4,
+   "pi_s": 0.09204607200013015,
+   "free_vi_s": 0.08371319699995183,
+   "free_vi_iterations": 144
+  },
+  {
+   "n": 6,
+   "states": 729,
+   "joint_actions": 729,
+   "budget_actions": 13,
+   "dense_entries_budget": 6908733,
+   "dense_entries_free": 387420489,
+   "build_s": 0.07223014100009095,
+   "vi_iterations": 147,
+   "vi_s": 0.7110535119998076,
+   "pi_iterations": 4,
+   "pi_s": 0.4838203550000344,
+   "free_vi_s": 1.6865218690002166,
+   "free_vi_iterations": 146
+  },
+  {
+   "n": 7,
+   "states": 2187,
+   "joint_actions": 2187,
+   "budget_actions": 15,
+   "dense_entries_budget": 71744535,
+   "dense_entries_free": 10460353203,
+   "build_s": 1.2799050720000196,
+   "vi_iterations": 148,
+   "vi_s": 1.4956850910000412,
+   "pi_iterations": 4,
+   "pi_s": 4.806044189999966,
+   "free_vi_s": 19.395595130999936,
+   "free_vi_iterations": 147
+  },
+  {
+   "n": 8,
+   "states": 6561,
+   "joint_actions": 6561,
+   "budget_actions": 17,
+   "dense_entries_budget": 731794257,
+   "dense_entries_free": 282429536481,
+   "build_s": 10.22466114399981,
+   "vi_iterations": 150,
+   "vi_s": 3.799187970000048
+  }
+ ]
+}
