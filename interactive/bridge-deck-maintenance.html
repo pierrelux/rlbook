@@ -217,6 +217,24 @@ function drawPolicy(sc, c) {
   });
 }
 
+// The book sizes this iframe to the window. Shrink the canvases until the
+// whole page fits; below 620px the panels stack and the page scrolls instead.
+const FIT = [["bridges", "height"], ["cost", "height"], ["policy", "height"]];
+function fitToWindow() {
+  const before = FIT.map(([id, p]) => $(id).style[p]).join();
+  for (const [id, p] of FIT) $(id).style[p] = "";
+  const main = document.querySelector("main"), full = FIT.map(([id, p]) => $(id).getBoundingClientRect()[p]);
+  const set = k => FIT.forEach(([id, p], i) => { $(id).style[p] = (full[i] * k).toFixed(1) + "px"; });
+  const h = main.offsetHeight;
+  if (innerWidth > 620 && h > innerHeight) {
+    set(0.8);
+    const slope = Math.max(1, (h - main.offsetHeight) / 0.2);
+    let k = Math.max(0.35, 1 - (h - innerHeight) / slope), over;
+    set(k);
+    for (let i = 0; i < 3 && (over = main.offsetHeight - innerHeight) > 0 && k > 0.35; i++) set(k = Math.max(0.35, k - over / slope));
+  }
+  return FIT.map(([id, p]) => $(id).style[p]).join() !== before;
+}
 function render() {
   if (!data) return;
   const sc = scen(), T = data.years;
@@ -231,6 +249,7 @@ function render() {
   $("m-base").textContent = `$${Math.round(cumAt(base, c)).toLocaleString("en-US")}`;
   const poor = run => { let k = 0; for (let b = 0; b < data.bridges; b++) if (stateAt(run, b, c) === data.ratings.length - 1) k++; return k; };
   $("m-poor").textContent = `${poor(opt)} / ${poor(base)}`;
+  if (!playing && fitToWindow()) render();
 }
 
 function tick(now) {
