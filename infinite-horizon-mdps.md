@@ -130,6 +130,8 @@ $$
 ````
 
 
+Under this geometric horizon the expected length is $\mathbb{E}[\nu] = 1/(1-\gamma)$, often called the **effective horizon** of the discounted problem: $\gamma = 0.99$ corresponds to planning about 100 steps ahead on average. The construction can be simulated directly. After collecting each reward, flip a coin that comes up heads with probability $\gamma$: continue on heads and end the episode on tails. The undiscounted return of such an episode is an unbiased estimate of $v_\gamma^{\boldsymbol{\pi}}(s)$.
+
 ## Vector Representation in Markov Decision Processes
 
 How do transition kernels, rewards, and policies become matrices and vectors
@@ -172,26 +174,25 @@ $$
 \mathbf{v}_\gamma^{\boldsymbol{\pi}}(s)=\mathbb{E}\left[\sum_{t=1}^{\infty} \gamma^{t-1} r\left(S_t, A_t\right) \,\middle|\, S_1 = s\right].
 $$
 
-Using vector notation, this can be expressed as:
+Using vector notation, and writing $\mathbf{P}_{\boldsymbol{\pi}}^{t-1} \equiv \mathbf{P}_{\pi_1} \mathbf{P}_{\pi_2} \cdots \mathbf{P}_{\pi_{t-1}}$ for the $(t-1)$-step transition matrix of the nonstationary policy (with $\mathbf{P}_{\boldsymbol{\pi}}^{0} \equiv \mathbf{I}$), this can be expressed as:
 
 $$
 \begin{aligned}
-\mathbf{v}_\gamma^{\boldsymbol{\pi}} &= \sum_{t=1}^{\infty} \gamma^{t-1} \mathbf{P}_{\boldsymbol{\pi}}^{t-1} \mathbf{r}_{\pi_1} \\
+\mathbf{v}_\gamma^{\boldsymbol{\pi}} &= \sum_{t=1}^{\infty} \gamma^{t-1} \mathbf{P}_{\boldsymbol{\pi}}^{t-1} \mathbf{r}_{\pi_t} \\
 &= \mathbf{r}_{\pi_1} + \gamma \mathbf{P}_{\pi_1} \mathbf{r}_{\pi_2} + \gamma^2 \mathbf{P}_{\pi_1} \mathbf{P}_{\pi_2} \mathbf{r}_{\pi_3} + \cdots \\
 &= \mathbf{r}_{\pi_1} + \gamma \mathbf{P}_{\pi_1} \left( \mathbf{r}_{\pi_2} + \gamma \mathbf{P}_{\pi_2} \mathbf{r}_{\pi_3} + \gamma^2 \mathbf{P}_{\pi_2} \mathbf{P}_{\pi_3} \mathbf{r}_{\pi_4} + \cdots \right).
 \end{aligned}
 $$
 
-This formulation leads to a recursive relationship:
+Each term has a direct reading: $[\mathbf{P}_{\boldsymbol{\pi}}^{t-1}]_{s,j}$ is the probability of being in state $j$ at time $t$ when starting from $s$, so $\gamma^{t-1}\mathbf{P}_{\boldsymbol{\pi}}^{t-1}\mathbf{r}_{\pi_t}$ is the expected discounted reward collected $t-1$ steps ahead. The matrix products average over every path the system can take under the policy, which is what a Monte Carlo estimate would approximate by simulation.
+
+Factoring $\gamma \mathbf{P}_{\pi_1}$ out of every term after the first gives a recursive relationship:
 
 $$
-\begin{align*}
-\mathbf{v}_\gamma^{\boldsymbol{\pi}} &= \mathbf{r}_{\pi_1} + \gamma \mathbf{P}_{\pi_1} \mathbf{v}_\gamma^{\boldsymbol{\pi}^{\prime}}\\
-&=\sum_{t=1}^{\infty} \gamma^{t-1} \mathbf{P}_{\boldsymbol{\pi}}^{t-1} \mathbf{r}_{\pi_t}
-\end{align*}
+\mathbf{v}_\gamma^{\boldsymbol{\pi}} = \mathbf{r}_{\pi_1} + \gamma \mathbf{P}_{\pi_1} \mathbf{v}_\gamma^{\boldsymbol{\pi}^{\prime}},
 $$
 
-where $\boldsymbol{\pi}^{\prime} = (\pi_2, \pi_3, \ldots)$.
+where $\boldsymbol{\pi}^{\prime} = (\pi_2, \pi_3, \ldots)$ is the policy shifted by one step. Unrolling this recursion recovers the series above, so the series is the solution of the recursion.
 
 
 For a stationary policy $\boldsymbol{\pi} = \mathrm{const}(\pi)$ with constant decision rule $\pi$, the total expected reward simplifies to:
@@ -271,6 +272,8 @@ Therefore, the Neumann series expansion converges and yields:
 $$
 \mathbf{v}_\gamma^{\pi} = (\mathbf{I} - \gamma \mathbf{P}_\pi)^{-1} \mathbf{r}_\pi = \sum_{t=0}^{\infty} (\gamma \mathbf{P}_\pi)^t \mathbf{r}_\pi = \sum_{t=1}^{\infty} \gamma^{t-1} \mathbf{P}_\pi^{t-1} \mathbf{r}_\pi.
 $$
+
+The middle sum is indexed from $t=0$ to match the statement of {prf:ref}`neumann-series`, while the last one keeps the convention $S_1 = s$ used for the value function. They are the same series, shifted by one index.
 
 Consequently, for a stationary policy, $\mathbf{v}_\gamma^{\pi}$ can be determined as the solution to the linear equation:
 
@@ -359,13 +362,37 @@ iteration. The slope of $\mathrm{T}$ gives Newton's method and policy iteration.
 
 ### Successive Approximation Method
 
-For equations in fixed point form, a common numerical solution method is successive approximation, also known as fixed-point iteration:
+For equations in fixed-point form, the basic tool is successive approximation, also called fixed-point iteration: start from any guess and apply the operator repeatedly. Whether this works depends on the operator, and the standard sufficient condition is that it be a contraction.
+
+````{prf:definition} Contraction mapping
+:label: def-contraction-mapping
+
+Let $(X, \|\cdot\|)$ be a normed space. An operator $\mathrm{T}: X \rightarrow X$ is a **contraction** with respect to $\|\cdot\|$ if there exists a constant $q \in [0,1)$, the **contraction factor**, such that for all $x, y \in X$:
+
+$$
+\|\mathrm{T}(x) - \mathrm{T}(y)\| \leq q \, \|x - y\|.
+$$
+````
+
+In other words, a contraction is a Lipschitz map whose Lipschitz constant is strictly less than one. The property is attached to a norm: an operator can be a contraction in one norm and fail to be one in another. For MDPs the norm that works is the sup-norm $\|\cdot\|_\infty$, and from here on $\|\cdot\|$ without a subscript means the sup-norm. When we later say that $\mathrm{L}_\pi$ or $\Bellman$ is a contraction, the precise statement is that it is a **sup-norm contraction**. Results proved in the sup-norm do not carry over to other norms for free; that a Bellman operator composed with a projection need not be a contraction in a weighted $\ell_2$ norm is one of the technical roots of the instability that Sutton calls the deadly triad.
+
+````{prf:theorem} Banach fixed-point theorem
+:label: banach-fixed-point
+
+Let $(X, \|\cdot\|)$ be a Banach space (a complete normed space) and let $\mathrm{T}: X \rightarrow X$ be a contraction with factor $q \in [0,1)$. Then:
+
+1. $\mathrm{T}$ has a **unique** fixed point $x^* = \mathrm{T}(x^*)$.
+2. For any $x_0 \in X$, the sequence $x_{n+1} = \mathrm{T}(x_n)$ converges to $x^*$.
+3. The error satisfies the a priori bound $\|x_n - x^*\| \leq \frac{q^n}{1-q}\|x_1 - x_0\|$ and the a posteriori bound $\|x_{n+1} - x^*\| \leq \frac{q}{1-q}\|x_{n+1} - x_n\|$.
+````
+
+The theorem is an existence and uniqueness statement, and its proof is constructive: the sequence used to show that a fixed point exists is the algorithm that computes it. Uniqueness matters, because nothing about an equation $x = \mathrm{T}(x)$ alone rules out many solutions. The theorem gives a sufficient condition only. An operator that is not a contraction may still have a fixed point, and other fixed-point theorems cover some of those cases.
 
 ````{prf:algorithm} Successive Approximation
 :label: successive-approximation
 
 **Input:** An operator $\mathrm{T}: X \rightarrow X$, an initial guess $x_0 \in X$, and a tolerance $\epsilon > 0$  
-**Output:** An approximate fixed point $x^*$ such that $\|x^* - \mathrm{T}(x^*)\| < \epsilon$
+**Output:** An iterate $x_{n+1}$ whose last step satisfies $\|x_{n+1} - x_n\| < \epsilon$
 
 1. Initialize $n = 0$  
 2. **repeat**  
@@ -376,129 +403,15 @@ For equations in fixed point form, a common numerical solution method is success
 
 ````
 
-The convergence of successive approximation depends on the properties of the operator $\mathrm{T}$. In the simplest and most common setting, we assume $\mathrm{T}$ is a contraction mapping. The Banach Fixed-Point Theorem then guarantees that $\mathrm{T}$ has a unique fixed point, and the successive approximation method will converge to this fixed point from any starting point. Specifically, $\mathrm{T}$ is a contraction if there exists a constant $q \in [0,1)$ such that for all $x,y \in X$:
-
-$$
-d(\mathrm{T}(x), \mathrm{T}(y)) \leq q \cdot d(x,y)
-$$
-
-where $d$ is the metric on $X$. In this case, the rate of convergence is linear, with error bound:
-
-$$
-d(x_n, x^*) \leq \frac{q^n}{1-q} d(x_1, x_0)
-$$
+The stopping test only measures the size of the last step, a quantity computed from the iterates themselves. On its own it says nothing about the distance to the fixed point. Turning it into such a guarantee takes extra work, and this is what the a posteriori bound in {prf:ref}`banach-fixed-point` provides for a contraction: stopping when $\|x_{n+1} - x_n\| < \epsilon$ guarantees $\|x_{n+1} - x^*\| < \frac{q}{1-q}\epsilon$. When $q$ is close to one, a small step can still leave the iterate far from $x^*$. For MDPs we will choose the tolerance with this in mind, so that value iteration returns an $\varepsilon$-optimal policy ({prf:ref}`value-iteration-convergence`). Since the error shrinks by at least a factor $q$ per step, the convergence rate is linear.
 
 However, the contraction mapping condition is not the only one that can lead to convergence. For instance, if $\mathrm{T}$ is nonexpansive (i.e., Lipschitz continuous with Lipschitz constant 1) and $X$ is a Banach space with certain geometrical properties (e.g., uniformly convex), then under additional conditions (e.g., $\mathrm{T}$ has at least one fixed point), the successive approximation method can still converge, albeit potentially more slowly than in the contraction case.
 
 In practice, when dealing with specific problems like MDPs or differential equations, the properties of the operator often naturally align with one of these convergence conditions. For example, in discounted MDPs, the Bellman operator is a contraction in the supremum norm, which guarantees the convergence of value iteration.
 
-### Newton-Kantorovich Method
+For policy evaluation, successive approximation replaces the linear solve with the loop $\mathbf{v}_{k+1} = \mathbf{r}_\pi + \gamma \mathbf{P}_\pi \mathbf{v}_k$. A direct solve of $(\mathbf{I} - \gamma \mathbf{P}_\pi)\mathbf{v} = \mathbf{r}_\pi$ costs on the order of $|S|^3$ operations, while each iteration costs one matrix-vector product, and the loop never needs to form or factor a matrix. Here $\mathrm{L}_\pi$ is a contraction with factor $\gamma$, by the same norm argument we used for the Neumann series.
 
-The Newton-Kantorovich method is a generalization of Newton's method from finite dimensional vector spaces to infinite dimensional function spaces: rather than iterating in the space of vectors, we are iterating in the space of functions. 
-
-Newton's method is often written as the familiar update:
-
-$$
-x_{k+1} = x_k - [DF(x_k)]^{-1} F(x_k),
-$$
-which makes it look as though the essence of the method is "take a derivative and invert it." But the real workhorse behind Newton's method (both in finite and infinite dimensions) is **linearization**.
-
-At each step, the idea is to replace the nonlinear operator $F:X \to Y$ by a local surrogate model of the form
-
-$$
-F(x+h) \approx F(x) + Lh,
-$$
-where $L$ is a linear map capturing how small perturbations in the input propagate to changes in the output. This is a Taylor-like expansion in Banach spaces: the role of the derivative is precisely to provide the correct notion of such a linear operator.
-
-To find a root of $F$, we impose the condition that the surrogate vanishes at the next iterate:
-
-$$
-0 = F(x+h) \approx F(x) + Lh.
-$$
-Solving this linear equation gives the increment $h$. In finite dimensions, $L$ is the Jacobian matrix; in Banach spaces, it must be the **Fréchet derivative**.
-
-But what exactly is a Fréchet derivative in infinite dimensions? To understand this, we need to generalize the concept of derivative from finite-dimensional calculus. In infinite-dimensional spaces, there are several notions of differentiability, each with different strengths and requirements:
-
-**1. Gâteaux (Directional) Derivative**
-
-We say that the Gâteaux derivative of $F$ at $x$ in a specific direction $h$ is:
-
-$$
-F'(x; h) = \lim_{t \to 0} \frac{F(x + th) - F(x)}{t}
-$$
-
-This quantity measures how the function $F$ changes along the ray $x + th$. While this limit may exist for each direction $h$ separately, it doesn't guarantee that the derivative is linear in $h$. This is a key limitation: the Gâteaux derivative can exist in all directions but still fail to provide a good linear approximation.
-
-**2. Hadamard Directional Derivative**
-
-Rather than considering a single direction of perturbation, we now consider a bundle of perturbations around $h$. We ask how the function changes as we approach the target direction from nearby directions. We say that $F$ has a Hadamard directional derivative if:
-
-$$
-F'(x; h) = \lim_{\substack{t \downarrow 0 \\ h' \to h}} \frac{F(x + t h') - F(x)}{t}
-$$
-
-This is a stronger condition than Gâteaux differentiability because it requires the limit to be uniform over nearby directions. However, it still doesn't guarantee linearity in $h$.
-
-**3. Fréchet Derivative**
-
-The strongest and most natural notion: $F$ is Fréchet differentiable at $x$ if there exists a bounded linear operator $L$ such that:
-
-$$
-\lim_{h \to 0} \frac{\|F(x + h) - F(x) - Lh\|}{\|h\|} = 0
-$$
-
-This definition directly addresses the inadequacy of the previous notions. Unlike Gâteaux and Hadamard derivatives, the Fréchet derivative explicitly requires the existence of a linear operator $L$ that provides a good approximation. Key properties:
-
-- $L$ must be **linear** in $h$ (unlike the directional derivatives above)
-- The approximation error is $o(\|h\|)$, uniform in all directions
-- This is the "true" derivative: it generalizes the Jacobian matrix to infinite dimensions
-- Notation: $L = F'(x)$ or $DF(x)$
-
-**Relationship:**
-
-$$
-\text{Fréchet differentiable} \Rightarrow \text{Hadamard directionally diff.} \Rightarrow \text{Gâteaux directionally diff.}
-$$
-
-In the context of the Newton-Kantorovich method, we work with an operator $F: X \to Y$ where both $X$ and $Y$ are Banach spaces. The Fréchet derivative $F'(x)$ is the best linear approximation of $F$ near $x$, and it's exactly this linear operator $L$ that we use in our linearization $F(x+h) \approx F(x) + F'(x)h$.
-
-Now apart from those mathematical technicalities, Newton-Kantorovich has in essence the same structure as that of the original Newton's method. That is, it applies the following sequence of steps:
-
-1. **Linearize the Operator**:
-   Given an approximation $ x_n $, we consider the Fréchet derivative of $ F $, denoted by $ F'(x_n) $. This derivative is a linear operator that provides a local approximation of $ F $ near $ x_n $.
-
-2. **Set Up the Newton Step**:
-   The method then solves the linearized equation for a correction $ h_n $:
-
-   $$
-   F'(x_n) h_n = -F(x_n).
-   $$
-   This equation represents a linear system where $ h_n $ is chosen so that the linearized operator $ F(x_n) + F'(x_n)h_n $ equals zero.
-
-3. **Update the Solution**:
-   The new approximation $ x_{n+1} $ is then given by:
-
-   $$
-   x_{n+1} = x_n + h_n.
-   $$
-   This correction step refines $ x_n $, bringing it closer to the true solution.
-
-4. **Repeat Until Convergence**:
-   We repeat the linearization and update steps until the solution $ x_n $ converges to the desired tolerance, which can be verified by checking that $ \|F(x_n)\| $ is sufficiently small, or by monitoring the norm $ \|x_{n+1} - x_n\| $.
-
-The convergence of Newton-Kantorovich does not hinge on $ F $ being a contraction over the entire domain (as it could be the case for successive approximation). The convergence properties of the Newton-Kantorovich method are as follows:
-
-1. **Local Convergence**: Under mild conditions (e.g., $F$ is Fréchet differentiable and $F'(x)$ is invertible near the solution), the method converges locally. This means that if the initial guess is sufficiently close to the true solution, the method will converge.
-
-2. **Global Convergence**: Global convergence is not guaranteed in general. However, under stronger conditions (e.g., $F$ is analytic and satisfies certain bounds), the method can converge globally.
-
-3. **Rate of Convergence**: When the method converges, it typically exhibits quadratic convergence. This means that the error at each step is proportional to the square of the error at the previous step:
-
-   $$
-   \|x_{n+1} - x^*\| \leq C\|x_n - x^*\|^2
-   $$
-
-   where $x^*$ is the true solution and $C$ is some constant. This quadratic convergence is significantly faster than the linear convergence typically seen in methods like successive approximation.
+The second general tool for operator equations is the Newton-Kantorovich method, which extends Newton's method to function spaces. We postpone it to {ref}`sec-newton-kantorovich-pi`: applied to the Bellman optimality equation it yields policy iteration, just as successive approximation applied to the same equation yields value iteration.
 
 ## Optimality Equations for Infinite-Horizon MDPs
 
@@ -541,17 +454,7 @@ $$
 (\Bellman \mathbf{v})(s) = \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right\}
 $$
 
-For convenience, we define the **greedy selector** $\mathrm{Greedy}(v) \in \Pi^{MD}$ that extracts an optimal decision rule from a value function:
-
-$$
-\mathrm{Greedy}(v)(s) \in \arg\max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right\}
-$$
-
-In Puterman's terminology, such a greedy selector is called **$v$-improving** (or **conserving** when it achieves the maximum). This operator will be useful for expressing algorithms succinctly:
-- **Value iteration:** $v_{k+1} = \Bellman v_k$, then extract $\pi = \mathrm{Greedy}(v^*)$
-- **Policy iteration:** $\pi_{k+1} = \mathrm{Greedy}(v^{\pi_k})$ with $v^{\pi_k}$ solving $v = \mathrm{L}_{\pi_k}v$
-
-The equivalence between these two forms can be shown mathematically, as demonstrated in the following proposition and proof.
+The two forms of $\Bellman$, a maximum over decision rules and a maximum over actions in each state, are equal. The following proposition makes this precise.
 
 ```{prf:proposition}
 The operator $\Bellman$ defined as a maximization over Markov deterministic decision rules:
@@ -591,12 +494,59 @@ $$
 so $\max_{\pi}(\BellmanPi v)(s)\ge \max_{a}Q_v(s,a)$. Combining both inequalities yields equality.
 ```
 
+For convenience, we define the **greedy selector** $\mathrm{Greedy}(v) \in \Pi^{MD}$ that extracts a decision rule from a value function:
+
+$$
+\mathrm{Greedy}(v)(s) \in \arg\max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j)\right\}
+$$
+
+Equivalently, $\pi = \mathrm{Greedy}(v)$ is any decision rule with $\BellmanPi v = \Bellman v$. Puterman calls such a rule **$v$-improving**. A $v^*_\gamma$-improving rule, one that is greedy with respect to the optimal value function, is called **conserving**. In the RL literature both are simply called **greedy** policies: given $v$, the policy can act myopically because $v$ already summarizes the future. This selector will be useful for expressing algorithms succinctly:
+- **Value iteration:** iterate $v_{k+1} = \Bellman v_k$, then extract $\pi = \mathrm{Greedy}(v_k)$ at termination
+- **Policy iteration:** $\pi_{k+1} = \mathrm{Greedy}(v^{\pi_k})$ with $v^{\pi_k}$ solving $v = \mathrm{L}_{\pi_k}v$
+
+### Optimality of Deterministic Stationary Policies
+
+The definition of optimality at the start of the chapter compares $\boldsymbol{\pi}^*$ with every policy in $\Pi^{\mathrm{HR}}$: history-dependent, nonstationary and randomized. The comparison is componentwise, so $\boldsymbol{\pi}^*$ must be at least as good as every other policy in every starting state. Searching that class directly is hopeless. A history-dependent rule $\pi_t(a \mid h_t)$ with $h_t = (s_1, a_1, \ldots, a_{t-1}, s_t)$ depends on a history that grows with $t$, and a nonstationary policy needs one rule per stage, which for an infinite horizon means infinitely many. Even restricted to deterministic Markov policies, enumerating every policy and evaluating each one is out of reach. The next result shows that nothing is lost by searching a much smaller set.
+
+````{prf:theorem} Optimality equation and stationary optimal policies
+:label: thm-stationary-optimal
+
+Suppose $0 \leq \gamma < 1$, rewards are bounded, and $S$ and every $\mathcal{A}_s$ are finite. Then:
+
+1. $\Bellman$ is a sup-norm contraction with factor $\gamma$, so by {prf:ref}`banach-fixed-point` the optimality equation $v = \Bellman v$ has a unique solution, and this solution is the optimal value function $v^*_\gamma$.
+2. Any conserving decision rule $\pi^* \in \mathrm{Greedy}(v^*_\gamma)$ defines a deterministic stationary policy $\mathrm{const}(\pi^*)$ that is optimal over all of $\Pi^{\mathrm{HR}}$:
+
+$$
+v_\gamma^{\pi^*} = v^*_\gamma = \sup_{\boldsymbol{\pi} \in \Pi^{\mathrm{HR}}} v_\gamma^{\boldsymbol{\pi}}.
+$$
+````
+
+See {cite}`Puterman1994`, Section 6.2, for the proof. The contraction property is shown in the proof of {prf:ref}`value-iteration-convergence` below. Two consequences are worth stating. First, the supremum over $\Pi^{\mathrm{HR}}$ is attained, by a deterministic stationary policy, so we may restrict the search to the set $\Pi^{MD}$ of deterministic Markov decision rules applied at every stage. Second, the optimal value function is unique but the optimal policy need not be: when several actions attain the maximum in some state, each choice gives an optimal policy. Note also that the theorem is specific to the discounted infinite-horizon case. In a finite-horizon problem the optimal policy depends on the stage in general.
+
+### Q-Functions
+
+The optimality equations can also be written in terms of a function of a state and an action. The **optimal Q-function** (called *Q-factors* in the operations research literature) is the unique solution of
+
+$$
+q(s,a) = r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j \mid s,a) \max_{a' \in \mathcal{A}_j} q(j,a').
+$$
+
+As with $v$, the right-hand side defines an operator on functions of $(s,a)$, and later chapters write it with the same symbol, $q^* = \Bellman q^*$. It is a sup-norm contraction with factor $\gamma$ when $\gamma < 1$, so $q^*$ exists and is unique. The two optimal functions determine each other:
+
+$$
+v^*_\gamma(s) = \max_{a \in \mathcal{A}_s} q^*(s,a), \qquad q^*(s,a) = r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j \mid s,a)\, v^*_\gamma(j),
+$$
+
+and a conserving rule can be read off directly as $\pi^*(s) \in \arg\max_{a \in \mathcal{A}_s} q^*(s,a)$. Probabilistically, $q^*$ conditions on both the state and the first action, while $v^*_\gamma$ averages the action out. Optimality is still defined through $v$, because that is how policies are ordered.
+
+When $\mathbf{P}$ and $r$ are known, as in the examples of this chapter, there is no reason to prefer $q$: computing $v$ is cheaper and the greedy rule follows from it. The Q-function matters in model-free RL, where we observe sampled transitions and rewards but not the transition probabilities. Extracting a greedy action from $v$ requires the expectation $\sum_j p(j \mid s,a)\, v(j)$, which needs the model. Extracting it from $q$ only requires a maximum over the action argument, which works for a learned $q$, a neural network for instance, without knowing $p$. This is why the Q-function form is the starting point of the [simulation-based chapters](monte-carlo-bellman-estimation.md).
+
 ## Algorithms for Solving the Optimality Equations
 
 What computational trade-off separates value iteration, policy evaluation,
 and policy improvement?
 
-The optimality equations are operator equations. Therefore, we can apply general numerical methods to solve them. Applying the successive approximation method to the Bellman optimality equation yields a method known as "value iteration" in dynamic programming. A direct application of the blueprint for successive approximation yields the following algorithm:
+The optimality equations are operator equations. Therefore, we can apply general numerical methods to solve them. Applying the successive approximation method to the Bellman optimality equation yields a method known as "value iteration" in dynamic programming. Following Puterman and the older operations research literature, we reserve this name for the iteration with the max. The same iteration applied to the affine operator $\mathrm{L}_\pi$ is iterative policy evaluation, although RL texts often call any iteration of this form value iteration. A direct application of the blueprint for successive approximation yields the following algorithm:
 
 ````{prf:algorithm} Value Iteration
 :label: value-iteration
@@ -1005,6 +955,119 @@ model-audit tool, not part of the optimality proof.
 
 {download}`Download the complete inference-control implementation <code/inference_control.py>`
 :::
+
+(sec-newton-kantorovich-pi)=
+## Newton-Kantorovich and Policy Iteration
+
+Value iteration is successive approximation applied to the Bellman optimality equation. This section develops the other general tool for operator equations, the Newton-Kantorovich method, and shows that applying it to the same equation gives policy iteration.
+
+### Newton-Kantorovich Method
+
+The Newton-Kantorovich method is a generalization of Newton's method from finite dimensional vector spaces to infinite dimensional function spaces: rather than iterating in the space of vectors, we are iterating in the space of functions. 
+
+Newton's method is often written as the familiar update:
+
+$$
+x_{k+1} = x_k - [DF(x_k)]^{-1} F(x_k),
+$$
+which makes it look as though the essence of the method is "take a derivative and invert it." But the real workhorse behind Newton's method (both in finite and infinite dimensions) is **linearization**.
+
+At each step, the idea is to replace the nonlinear operator $F:X \to Y$ by a local surrogate model of the form
+
+$$
+F(x+h) \approx F(x) + Lh,
+$$
+where $L$ is a linear map capturing how small perturbations in the input propagate to changes in the output. This is a Taylor-like expansion in Banach spaces: the role of the derivative is precisely to provide the correct notion of such a linear operator.
+
+To find a root of $F$, we impose the condition that the surrogate vanishes at the next iterate:
+
+$$
+0 = F(x+h) \approx F(x) + Lh.
+$$
+Solving this linear equation gives the increment $h$. In finite dimensions, $L$ is the Jacobian matrix; in Banach spaces, it must be the **Fréchet derivative**.
+
+But what exactly is a Fréchet derivative in infinite dimensions? To understand this, we need to generalize the concept of derivative from finite-dimensional calculus. In infinite-dimensional spaces, there are several notions of differentiability, each with different strengths and requirements:
+
+**1. Gâteaux (Directional) Derivative**
+
+We say that the Gâteaux derivative of $F$ at $x$ in a specific direction $h$ is:
+
+$$
+F'(x; h) = \lim_{t \to 0} \frac{F(x + th) - F(x)}{t}
+$$
+
+This quantity measures how the function $F$ changes along the ray $x + th$. While this limit may exist for each direction $h$ separately, it doesn't guarantee that the derivative is linear in $h$. This is a key limitation: the Gâteaux derivative can exist in all directions but still fail to provide a good linear approximation.
+
+**2. Hadamard Directional Derivative**
+
+Rather than considering a single direction of perturbation, we now consider a bundle of perturbations around $h$. We ask how the function changes as we approach the target direction from nearby directions. We say that $F$ has a Hadamard directional derivative if:
+
+$$
+F'(x; h) = \lim_{\substack{t \downarrow 0 \\ h' \to h}} \frac{F(x + t h') - F(x)}{t}
+$$
+
+This is a stronger condition than Gâteaux differentiability because it requires the limit to be uniform over nearby directions. However, it still doesn't guarantee linearity in $h$.
+
+**3. Fréchet Derivative**
+
+The strongest and most natural notion: $F$ is Fréchet differentiable at $x$ if there exists a bounded linear operator $L$ such that:
+
+$$
+\lim_{h \to 0} \frac{\|F(x + h) - F(x) - Lh\|}{\|h\|} = 0
+$$
+
+This definition directly addresses the inadequacy of the previous notions. Unlike Gâteaux and Hadamard derivatives, the Fréchet derivative explicitly requires the existence of a linear operator $L$ that provides a good approximation. Key properties:
+
+- $L$ must be **linear** in $h$ (unlike the directional derivatives above)
+- The approximation error is $o(\|h\|)$, uniform in all directions
+- This is the "true" derivative: it generalizes the Jacobian matrix to infinite dimensions
+- Notation: $L = F'(x)$ or $DF(x)$
+
+**Relationship:**
+
+$$
+\text{Fréchet differentiable} \Rightarrow \text{Hadamard directionally diff.} \Rightarrow \text{Gâteaux directionally diff.}
+$$
+
+In the context of the Newton-Kantorovich method, we work with an operator $F: X \to Y$ where both $X$ and $Y$ are Banach spaces. The Fréchet derivative $F'(x)$ is the best linear approximation of $F$ near $x$, and it's exactly this linear operator $L$ that we use in our linearization $F(x+h) \approx F(x) + F'(x)h$.
+
+Now apart from those mathematical technicalities, Newton-Kantorovich has in essence the same structure as that of the original Newton's method. That is, it applies the following sequence of steps:
+
+1. **Linearize the Operator**:
+   Given an approximation $ x_n $, we consider the Fréchet derivative of $ F $, denoted by $ F'(x_n) $. This derivative is a linear operator that provides a local approximation of $ F $ near $ x_n $.
+
+2. **Set Up the Newton Step**:
+   The method then solves the linearized equation for a correction $ h_n $:
+
+   $$
+   F'(x_n) h_n = -F(x_n).
+   $$
+   This equation represents a linear system where $ h_n $ is chosen so that the linearized operator $ F(x_n) + F'(x_n)h_n $ equals zero.
+
+3. **Update the Solution**:
+   The new approximation $ x_{n+1} $ is then given by:
+
+   $$
+   x_{n+1} = x_n + h_n.
+   $$
+   This correction step refines $ x_n $, bringing it closer to the true solution.
+
+4. **Repeat Until Convergence**:
+   We repeat the linearization and update steps until the solution $ x_n $ converges to the desired tolerance, which can be verified by checking that $ \|F(x_n)\| $ is sufficiently small, or by monitoring the norm $ \|x_{n+1} - x_n\| $.
+
+The convergence of Newton-Kantorovich does not hinge on $ F $ being a contraction over the entire domain (as it could be the case for successive approximation). The convergence properties of the Newton-Kantorovich method are as follows:
+
+1. **Local Convergence**: Under mild conditions (e.g., $F$ is Fréchet differentiable and $F'(x)$ is invertible near the solution), the method converges locally. This means that if the initial guess is sufficiently close to the true solution, the method will converge.
+
+2. **Global Convergence**: Global convergence is not guaranteed in general. However, under stronger conditions (e.g., $F$ is analytic and satisfies certain bounds), the method can converge globally.
+
+3. **Rate of Convergence**: When the method converges, it typically exhibits quadratic convergence. This means that the error at each step is proportional to the square of the error at the previous step:
+
+   $$
+   \|x_{n+1} - x^*\| \leq C\|x_n - x^*\|^2
+   $$
+
+   where $x^*$ is the true solution and $C$ is some constant. This quadratic convergence is significantly faster than the linear convergence typically seen in methods like successive approximation.
 
 ### Newton-Kantorovich Applied to Bellman Optimality
 
