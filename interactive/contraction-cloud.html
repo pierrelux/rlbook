@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Contraction cloud</title>
+<style>
+  :root { color-scheme:light; --ink:#20333f; --muted:#5e707c; --rule:#d8e2e7; --blue:#0072b2;
+          --orange:#d55e00; --gold:#e69f00; --green:#009e73; --bg:#ffffff; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 system-ui,-apple-system,sans-serif; }
+  main { max-width:1100px; margin:auto; padding:14px 16px; }
+  h1 { font-size:19px; font-weight:650; margin:0 0 6px; letter-spacing:-.2px; }
+  h2 { font-size:13px; font-weight:600; color:var(--muted); margin:0 0 4px; }
+  p.lead { margin:0 0 10px; color:var(--muted); font-size:14px; }
+  button { font:inherit; font-size:14px; color:var(--ink); background:#fff; border:1px solid #bdccd4; border-radius:5px;
+           padding:6px 11px; min-height:36px; cursor:pointer; }
+  button.primary { background:var(--ink); color:#fff; border-color:var(--ink); }
+  button:focus-visible, input:focus-visible { outline:3px solid var(--gold); outline-offset:2px; }
+  .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:0 0 10px; }
+  .slider { min-width:180px; flex:1 1 180px; max-width:280px; }
+  .slider label { display:flex; justify-content:space-between; gap:8px; font-size:13px; color:var(--muted); }
+  output { color:var(--ink); font-variant-numeric:tabular-nums; }
+  input[type=range] { width:100%; accent-color:var(--blue); margin:6px 0 0; }
+  .two { display:grid; grid-template-columns:minmax(0,1.25fr) minmax(0,1fr); gap:12px; }
+  .panel { border:1px solid var(--rule); border-radius:7px; background:#fbfdfe; padding:8px 10px; }
+  canvas { display:block; width:100%; }
+  .legend { display:flex; flex-wrap:wrap; gap:4px 14px; font-size:13px; color:var(--muted); margin:6px 2px 0; }
+  .swatch { display:inline-block; width:15px; height:3px; vertical-align:middle; margin-right:5px; }
+  .dot { display:inline-block; width:9px; height:9px; border-radius:50%; vertical-align:middle; margin-right:5px; }
+  .metrics { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px 12px; margin:10px 0 4px; }
+  .metric span { display:block; color:var(--muted); font-size:12px; line-height:1.3; }
+  .metric strong { display:block; font-size:20px; font-weight:560; font-variant-numeric:tabular-nums; }
+  .read { margin:8px 0 0; font-size:14px; border-left:3px solid var(--rule); padding:4px 10px; min-height:44px; }
+  @media (max-width:620px) { .two { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Applying T to every value function at once</h1>
+  <p class="lead">Each dot is one value function <i>v</i> = (<i>v</i>(1), <i>v</i>(2)) of a two-state MDP. One press applies the Bellman
+    optimality operator T to all of them. The dashed box is the smallest square holding the cloud: its side is the cloud's
+    diameter in the sup norm.</p>
+  <div class="row">
+    <button id="step" class="primary">Apply T ▶</button>
+    <button id="play">Play</button>
+    <button id="reset">Reset</button>
+    <div class="slider"><label for="g">Discount γ <output id="g-out"></output></label>
+      <input id="g" type="range" min="0.5" max="0.95" step="0.05" value="0.8"></div>
+  </div>
+  <div class="two">
+    <div class="panel">
+      <h2 id="plane-title">Value-function plane, iteration k = 0</h2>
+      <canvas id="plane" aria-label="Cloud of value functions in the plane, shrinking under repeated application of T"></canvas>
+      <div class="legend">
+        <span><i class="dot" style="background:var(--blue)"></i>u</span>
+        <span><i class="dot" style="background:var(--orange)"></i>w</span>
+        <span>★ fixed point v*</span>
+        <span>faint dots: previous iterate</span>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Distances after k applications (log scale)</h2>
+      <canvas id="dist" aria-label="Sup-norm diameter of the cloud and distance between u and w against iteration"></canvas>
+      <div class="legend">
+        <span><i class="swatch" style="background:var(--ink)"></i>cloud diameter</span>
+        <span><i class="swatch" style="background:var(--green)"></i>‖u − w‖∞</span>
+        <span><i class="swatch" style="background:#9aa9b2;height:0;border-top:2px dashed #9aa9b2"></i>γ<sup>k</sup> × start</span>
+      </div>
+      <div class="metrics">
+        <div class="metric"><span>Cloud diameter, now / start</span><strong id="m-diam">1.000</strong></div>
+        <div class="metric"><span>γ<sup>k</sup></span><strong id="m-gk">1.000</strong></div>
+        <div class="metric"><span>‖u − w‖∞</span><strong id="m-pair">–</strong></div>
+        <div class="metric"><span>‖u − v*‖∞</span><strong id="m-err">–</strong></div>
+      </div>
+      <p class="read" id="read"></p>
+    </div>
+  </div>
+</main>
+<script>
+(() => {
+  // Two states, two actions. P[s][a] = probability of landing in state 1.
+  const R = [[1, -6], [2, -6]];
+  const P = [[0.97, 0.15], [0.03, 0.85]];
+  const ACT = [["stay", "move"], ["stay", "move"]];
+  let gamma = 0.8;
+
+  const T = (v) => {
+    const out = [0, 0];
+    for (let s = 0; s < 2; s++) {
+      let best = -Infinity;
+      for (let a = 0; a < 2; a++) {
+        const q = R[s][a] + gamma * (P[s][a] * v[0] + (1 - P[s][a]) * v[1]);
+        if (q > best) best = q;
+      }
+      out[s] = best;
+    }
+    return out;
+  };
+  const sup = (a, b) => Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]));
+
+  let vstar, pts, prev, k, hist, view, anim = null, playing = false, timer = null;
+  const HALF = 12, N = 17;
+
+  function solve() {
+    let v = [0, 0];
+    for (let i = 0; i < 2000; i++) v = T(v);
+    return v;
+  }
+  function colorFor(i, j) {
+    const h = 200 + 160 * (i / (N - 1));
+    const l = 38 + 30 * (j / (N - 1));
+    return `hsl(${h % 360} 55% ${l}%)`;
+  }
+  function reset() {
+    stop();
+    vstar = solve();
+    const c = [vstar[0] - 0.25 * HALF, vstar[1] + 0.2 * HALF];
+    pts = [];
+    for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
+      pts.push({ v: [c[0] - HALF + 2 * HALF * i / (N - 1), c[1] - HALF + 2 * HALF * j / (N - 1)], col: colorFor(i, j) });
+    }
+    // two tagged value functions, far apart
+    pts.push({ v: [c[0] - 0.85 * HALF, c[1] - 0.2 * HALF], col: "#0072b2", tag: "u" });
+    pts.push({ v: [c[0] + 0.9 * HALF, c[1] + 0.8 * HALF], col: "#d55e00", tag: "w" });
+    prev = null; k = 0;
+    // Square view centred on v*: T never moves a point farther from v* in the sup norm,
+    // so the whole animation stays inside it.
+    const r = Math.max(...pts.map(p => sup(p.v, vstar))) * 1.06;
+    view = { x0: vstar[0] - r, y0: vstar[1] - r, span: 2 * r };
+    hist = [measure(pts.map(p => p.v))];
+    draw(1);
+  }
+  function measure(vs) {
+    let xmin = Infinity, xmax = -Infinity, ymin = Infinity, ymax = -Infinity;
+    for (const v of vs) { xmin = Math.min(xmin, v[0]); xmax = Math.max(xmax, v[0]); ymin = Math.min(ymin, v[1]); ymax = Math.max(ymax, v[1]); }
+    const u = vs[vs.length - 2], w = vs[vs.length - 1];
+    return { diam: Math.max(xmax - xmin, ymax - ymin), box: [xmin, xmax, ymin, ymax], pair: sup(u, w), err: sup(u, vstar) };
+  }
+
+  function step() {
+    if (anim) return;
+    const from = pts.map(p => p.v.slice());
+    const to = pts.map(p => T(p.v));
+    const t0 = performance.now(), dur = 650;
+    anim = (now) => {
+      const t = Math.min(1, (now - t0) / dur), e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      pts.forEach((p, i) => { p.v = [from[i][0] + e * (to[i][0] - from[i][0]), from[i][1] + e * (to[i][1] - from[i][1])]; });
+      prev = from;
+      if (t < 1) { draw(e); requestAnimationFrame(anim); }
+      else { pts.forEach((p, i) => { p.v = to[i]; }); k++; hist.push(measure(to)); anim = null; draw(1);
+             if (playing) timer = setTimeout(() => { if (playing) step(); }, 350); }
+    };
+    requestAnimationFrame(anim);
+  }
+  function stop() { playing = false; clearTimeout(timer); document.getElementById("play").textContent = "Play"; }
+
+  // ---------- drawing
+  const plane = document.getElementById("plane"), dist = document.getElementById("dist");
+  function fit(cv, aspect) {
+    const dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = Math.round(w * aspect);
+    cv.style.height = h + "px"; cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    const ctx = cv.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); return [ctx, w, h];
+  }
+  function draw(e) {
+    drawPlane(e); drawDist(); readout();
+  }
+  function drawPlane(e) {
+    const [ctx, W, H] = fit(plane, 0.92);
+    const pad = { l: 40, r: 10, t: 8, b: 32 };
+    const pw = W - pad.l - pad.r, ph = H - pad.t - pad.b, s = Math.min(pw, ph);
+    const ox = pad.l + (pw - s) / 2, oy = pad.t + (ph - s) / 2;
+    const X = x => ox + (x - view.x0) / view.span * s, Y = y => oy + s - (y - view.y0) / view.span * s;
+    ctx.clearRect(0, 0, W, H);
+    // grid and ticks
+    ctx.strokeStyle = "#e9eff2"; ctx.lineWidth = 1; ctx.fillStyle = "#5e707c"; ctx.font = "11px system-ui";
+    const tick = view.span > 30 ? 10 : 5;
+    ctx.textAlign = "center";
+    for (let x = Math.ceil(view.x0 / tick) * tick; x <= view.x0 + view.span; x += tick) {
+      ctx.beginPath(); ctx.moveTo(X(x), oy); ctx.lineTo(X(x), oy + s); ctx.stroke(); ctx.fillText(x, X(x), oy + s + 14);
+    }
+    ctx.textAlign = "right";
+    for (let y = Math.ceil(view.y0 / tick) * tick; y <= view.y0 + view.span; y += tick) {
+      ctx.beginPath(); ctx.moveTo(ox, Y(y)); ctx.lineTo(ox + s, Y(y)); ctx.stroke(); ctx.fillText(y, ox - 5, Y(y) + 4);
+    }
+    ctx.textAlign = "center"; ctx.fillStyle = "#20333f"; ctx.font = "12px system-ui";
+    ctx.fillText("v(1)", ox + s / 2, oy + s + 28);
+    ctx.save(); ctx.translate(12, oy + s / 2); ctx.rotate(-Math.PI / 2); ctx.fillText("v(2)", 0, 0); ctx.restore();
+    // previous iterate, faint
+    if (prev && k >= 0) {
+      ctx.globalAlpha = 0.18 * (1 - 0.5 * e);
+      prev.forEach((v, i) => { ctx.fillStyle = pts[i].col; ctx.beginPath(); ctx.arc(X(v[0]), Y(v[1]), 2.6, 0, 7); ctx.fill(); });
+      ctx.globalAlpha = 1;
+    }
+    // bounding sup-norm square of the current cloud, centred on the cloud's bounding box
+    const m = measure(pts.map(p => p.v));
+    const cx = (m.box[0] + m.box[1]) / 2, cy = (m.box[2] + m.box[3]) / 2, h = m.diam / 2;
+    ctx.setLineDash([5, 4]); ctx.strokeStyle = "#20333f"; ctx.lineWidth = 1.2;
+    ctx.strokeRect(X(cx - h), Y(cy + h), X(cx + h) - X(cx - h), Y(cy - h) - Y(cy + h));
+    ctx.setLineDash([]);
+    // pair segment
+    const u = pts[pts.length - 2].v, w = pts[pts.length - 1].v;
+    ctx.strokeStyle = "#009e73"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(X(u[0]), Y(u[1])); ctx.lineTo(X(w[0]), Y(w[1])); ctx.stroke();
+    // cloud
+    for (let i = 0; i < pts.length - 2; i++) {
+      const p = pts[i]; ctx.fillStyle = p.col; ctx.beginPath(); ctx.arc(X(p.v[0]), Y(p.v[1]), 2.8, 0, 7); ctx.fill();
+    }
+    for (const p of pts.slice(-2)) {
+      ctx.fillStyle = p.col; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(X(p.v[0]), Y(p.v[1]), 6, 0, 7); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = p.col; ctx.font = "600 13px system-ui"; ctx.textAlign = "left";
+      ctx.fillText(p.tag, X(p.v[0]) + 8, Y(p.v[1]) - 7);
+    }
+    // fixed point
+    star(ctx, X(vstar[0]), Y(vstar[1]), 9);
+    ctx.fillStyle = "#20333f"; ctx.font = "600 13px system-ui"; ctx.textAlign = "left";
+    ctx.fillText("v*", X(vstar[0]) + 10, Y(vstar[1]) + 16);
+    document.getElementById("plane-title").textContent = `Value-function plane, iteration k = ${k}`;
+  }
+  function star(ctx, x, y, r) {
+    ctx.beginPath();
+    for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.45 : r; ctx.lineTo(x + rr * Math.cos(a), y + rr * Math.sin(a)); }
+    ctx.closePath(); ctx.fillStyle = "#e69f00"; ctx.fill(); ctx.strokeStyle = "#20333f"; ctx.lineWidth = 1.2; ctx.stroke();
+  }
+  function drawDist() {
+    const [ctx, W, H] = fit(dist, 0.62);
+    const pad = { l: 44, r: 10, t: 8, b: 26 };
+    const kmax = Math.max(12, Math.ceil(Math.log(1e-3) / Math.log(gamma)));
+    const d0 = hist[0].diam, lmin = Math.log10(1e-3 * d0) , lmax = Math.log10(d0 * 1.3);
+    const X = i => pad.l + i / kmax * (W - pad.l - pad.r);
+    const Y = d => pad.t + (lmax - Math.log10(Math.max(d, 1e-12))) / (lmax - lmin) * (H - pad.t - pad.b);
+    ctx.clearRect(0, 0, W, H);
+    ctx.font = "11px system-ui"; ctx.fillStyle = "#5e707c"; ctx.strokeStyle = "#e9eff2"; ctx.lineWidth = 1;
+    ctx.textAlign = "right";
+    for (let e = Math.ceil(lmin); e <= lmax; e++) {
+      ctx.beginPath(); ctx.moveTo(pad.l, Y(10 ** e)); ctx.lineTo(W - pad.r, Y(10 ** e)); ctx.stroke();
+      ctx.fillText(e === 0 ? "1" : "1e" + e, pad.l - 5, Y(10 ** e) + 4);
+    }
+    ctx.textAlign = "center";
+    const kt = kmax > 30 ? 10 : 5;
+    for (let i = 0; i <= kmax - 2; i += kt) ctx.fillText(i, X(i), H - pad.b + 14);
+    ctx.textAlign = "left"; ctx.fillText("iteration k", pad.l + 4, H - pad.b - 6);
+    ctx.save(); ctx.beginPath(); ctx.rect(pad.l, pad.t, W - pad.l - pad.r, H - pad.t - pad.b); ctx.clip();
+    // bound
+    ctx.setLineDash([5, 4]); ctx.strokeStyle = "#9aa9b2"; ctx.lineWidth = 1.5;
+    for (const base of [d0, hist[0].pair]) {
+      ctx.beginPath(); for (let i = 0; i <= kmax; i++) ctx.lineTo(X(i), Y(base * gamma ** i)); ctx.stroke();
+    }
+    ctx.setLineDash([]);
+    const line = (key, col) => {
+      ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 2;
+      ctx.beginPath(); hist.forEach((h, i) => ctx.lineTo(X(i), Y(h[key]))); ctx.stroke();
+      hist.forEach((h, i) => { ctx.beginPath(); ctx.arc(X(i), Y(h[key]), 2.6, 0, 7); ctx.fill(); });
+    };
+    line("diam", "#20333f"); line("pair", "#009e73");
+    ctx.restore();
+  }
+  function readout() {
+    const h = hist[hist.length - 1], h0 = hist[0];
+    document.getElementById("m-diam").textContent = (h.diam / h0.diam).toFixed(3);
+    document.getElementById("m-gk").textContent = (gamma ** k).toFixed(3);
+    document.getElementById("m-pair").textContent = h.pair.toFixed(3);
+    document.getElementById("m-err").textContent = h.err.toFixed(3);
+    const pol = [0, 1].map(s => {
+      const q = [0, 1].map(a => R[s][a] + gamma * (P[s][a] * vstar[0] + (1 - P[s][a]) * vstar[1]));
+      return ACT[s][q[1] > q[0] ? 1 : 0];
+    });
+    let msg;
+    if (k === 0) msg = `Press Apply T. Every pair of dots ends up at most γ = ${gamma.toFixed(2)} times as far apart in the sup norm, so the box can only shrink.`;
+    else if (h.diam / h0.diam > 1e-3) msg = `After ${k} applications the cloud's diameter is ${(h.diam / h0.diam).toFixed(3)} of its start, never above γ<sup>k</sup> = ${(gamma ** k).toFixed(3)}. It does not shrink to just any point: it shrinks onto v*, the one value function that T leaves in place.`;
+    else msg = `Every starting value function has landed on v* = (${vstar[0].toFixed(2)}, ${vstar[1].toFixed(2)}), the unique fixed point. Its greedy policy: ${pol[0]} in state 1, ${pol[1]} in state 2.`;
+    document.getElementById("read").innerHTML = msg;
+  }
+
+  // ---------- controls
+  document.getElementById("step").onclick = () => { stop(); step(); };
+  document.getElementById("play").onclick = (ev) => {
+    if (playing) { stop(); return; }
+    playing = true; ev.target.textContent = "Pause"; step();
+  };
+  document.getElementById("reset").onclick = reset;
+  const g = document.getElementById("g"), gout = document.getElementById("g-out");
+  g.oninput = () => { gamma = +g.value; gout.textContent = gamma.toFixed(2); reset(); };
+  gout.textContent = gamma.toFixed(2);
+  window.addEventListener("resize", () => { if (!anim) draw(1); });
+  document.addEventListener("keydown", (ev) => {
+    if (ev.key === " " || ev.key === "ArrowRight") { ev.preventDefault(); stop(); step(); }
+    else if (ev.key === "r" || ev.key === "R") reset();
+  });
+  reset();
+})();
+</script>
+</body>
+</html>
