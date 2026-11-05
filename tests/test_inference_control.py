@@ -22,6 +22,8 @@ from inference_control import (  # noqa: E402
     _reduced_policy_trajectory,
     _select_frequency_experiment_window,
     build_textbook_results,
+    decode_batch_efficiency_from_tpot,
+    decode_priority_policy,
     estimate_decode_remaining_tokens,
     evaluate_scheduling_policy,
     fit_fqi,
@@ -30,6 +32,8 @@ from inference_control import (  # noqa: E402
     mpc_latency_proxies,
     optimize_open_loop,
     open_loop_clock_controller,
+    policy_value,
+    prefill_priority_policy,
     run_mpc,
     shift_largest_burst,
     solve_scheduling_mdp,
@@ -333,27 +337,69 @@ def test_reduced_mdp_probabilities_masks_and_bellman_certificate() -> None:
     assert not mdp.valid_actions[empty, 0]
     assert not mdp.valid_actions[empty, 1]
     assert mdp.valid_actions[empty, 2]
-    full_decode_with_prefill = (1 * 7 + 6) * 5
+    full_decode_with_prefill = 1 * 7 + 6
     assert not mdp.valid_actions[full_decode_with_prefill, 0]
     assert solution.bellman_residual < 1e-8
-    assert np.all(mdp.valid_actions[np.arange(245), solution.policy])
+    assert mdp.states.shape == (49, 2)
+    assert np.all(mdp.valid_actions[np.arange(49), solution.policy])
     assert "not an exact reproduction of vLLM" in mdp.description
     assert 0.0 < mdp.prefill_completion_probability < 1.0
-    prefill_state = (1 * 7 + 0) * 5
+    prefill_state = 1 * 7 + 0
     prefill_next_support = np.flatnonzero(mdp.transitions[prefill_state, 0] > 0.0)
     assert prefill_next_support.size >= 2
 
 
-def test_decode_transition_respects_one_gpu_aggregate_capacity() -> None:
-    mdp = make_scheduling_mdp(decode_completion_probability=0.42)
+def test_decode_batch_finishes_more_jobs_per_step_as_measured() -> None:
+    efficiency = decode_batch_efficiency_from_tpot({1: 0.057, 4: 0.0595, 8: 0.0608})
+    mdp = make_scheduling_mdp(
+        decode_completion_probability=0.06,
+        decode_batch_efficiency=efficiency,
+    )
 
+    assert efficiency[1] == pytest.approx(1.0)
+    assert np.all(np.diff(efficiency[1:]) <= 0.0)
+    completions = []
     for decode_jobs in range(1, 7):
-        state = (0 * 7 + decode_jobs) * 5
+        state = 0 * 7 + decode_jobs
         next_decode = mdp.states[:, 1]
-        expected_completions = np.sum(
-            (decode_jobs - next_decode) * mdp.transitions[state, 1]
+        expected = np.sum((decode_jobs - next_decode) * mdp.transitions[state, 1])
+        per_job = 1.0 - (1.0 - 0.06) ** efficiency[decode_jobs]
+        assert expected == pytest.approx(decode_jobs * per_job)
+        completions.append(expected)
+    assert np.all(np.diff(completions) > 0.0)
+
+
+def test_value_iteration_beats_both_heuristics_in_every_state() -> None:
+    efficiency = decode_batch_efficiency_from_tpot({1: 0.057, 4: 0.0595, 8: 0.0608})
+    mdp = make_scheduling_mdp(decode_batch_efficiency=efficiency)
+    solution = solve_scheduling_mdp(mdp)
+    exact_value = policy_value(mdp, solution.policy)
+
+    assert np.max(np.abs(exact_value - solution.value)) < 1e-6
+    for heuristic in (prefill_priority_policy(mdp), decode_priority_policy(mdp)):
+        assert np.all(policy_value(mdp, heuristic) >= solution.value - 1e-6)
+    assert not np.array_equal(solution.policy, decode_priority_policy(mdp))
+
+
+def test_policy_replays_share_the_same_arrivals() -> None:
+    mdp = make_scheduling_mdp()
+    totals = []
+    for policy in (prefill_priority_policy(mdp), decode_priority_policy(mdp)):
+        trajectory = _reduced_policy_trajectory(
+            mdp,
+            policy,
+            label="test",
+            fixed_requested_clock_mhz=1125.0,
+            steps=400,
+            random_seed=7,
         )
-        assert expected_completions == pytest.approx(0.42)
+        totals.append(
+            trajectory["completed_requests"][-1]
+            + trajectory["dropped_requests"][-1]
+            + trajectory["prefill_queue"][-1]
+            + trajectory["decode_active"][-1]
+        )
+    assert totals[0] == totals[1]
 
 
 def test_trace_calibration_uses_median_clock_phase_power(plant: ServingPlant) -> None:
@@ -437,7 +483,7 @@ def test_fqi_is_deterministic_and_reports_the_coverage_failure_mode() -> None:
 
 
 def test_coverage_slices_count_only_the_displayed_state_action_pair() -> None:
-    state = (2 * 7 + 3) * 5 + 4
+    state = 2 * 7 + 3
     dataset = TransitionDataset(
         state=np.array([state, state, state]),
         action=np.array([0, 0, 1]),
@@ -447,14 +493,14 @@ def test_coverage_slices_count_only_the_displayed_state_action_pair() -> None:
         coverage_fraction=0.0,
         random_seed=0,
     )
-    policy = np.full(245, 2, dtype=int)
+    policy = np.full(49, 2, dtype=int)
     policy[state] = 1
     slices = _policy_action_coverage_slices(dataset, policy)
 
-    assert slices["4"][2][3] == 1
+    assert slices[2][3] == 1
     policy[state] = 0
     slices = _policy_action_coverage_slices(dataset, policy)
-    assert slices["4"][2][3] == 2
+    assert slices[2][3] == 2
 
 
 def test_matched_ttft_keeps_empty_and_censored_subsets_explicit() -> None:
@@ -588,13 +634,16 @@ def test_small_artifact_suite_matches_the_locked_view_schema(
     assert calibration["trajectory_semantics"] == {
         "source": "one_seeded_sample_path_from_reduced_mdp_not_event_simulator",
         "random_seed": 29,
-        "horizon_steps": 120,
+        "horizon_steps": 600,
         "requested_clock_mhz": "fixed_profile_level_used_for_mdp_calibration",
         "realized_clock_mhz": (
             "batch_balanced_profile_median_repeated_when_available"
         ),
         "power_w": "action_energy_j[action] / decision_period_s",
         "energy_j": "cumulative_sum_of_action_energy_j[action]",
+        "dropped_requests": (
+            "cumulative_arrivals_sampled_as_dropped_at_the_prefill_cap"
+        ),
         "temperature_c": "omitted_not_a_reduced_mdp_state",
     }
     for view in ("scheduling", "fqi"):
@@ -606,7 +655,14 @@ def test_small_artifact_suite_matches_the_locked_view_schema(
                     float(expected_realized)
                 }
     assert "mean_waiting_time_s" in results["fqi"]["metrics"]["exact_dp"]
-    assert set(results["scheduling"]["policy_slices"]) == {"0", "1", "2", "3", "4"}
+    assert set(results["scheduling"]["policy_slices"]) == {
+        "exact_dp",
+        "prefill_priority",
+        "decode_priority",
+    }
+    checks = results["scheduling"]["policy_checks"]
+    for name in ("prefill_priority", "decode_priority"):
+        assert checks[name]["minimum_gap"] >= -1e-6
     for payload in results["open_loop"]["controllers"].values():
         assert payload["plan_dt_s"] == pytest.approx(1.0)
         first_plan = next(plan for plan in payload["planned_clock_mhz"] if plan)

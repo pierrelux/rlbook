@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, replace
+from pathlib import Path
 from time import perf_counter
 from typing import Literal
 
@@ -35,8 +36,9 @@ from inference_serving import (
 
 
 SCHEDULING_ACTIONS = ("prefill", "decode", "idle")
+SCHEDULING_QUEUE_CAP = 6
 SchedulingActionName = Literal["prefill", "decode", "idle"]
-_REDUCED_REPLAY_STEPS = 120
+_REDUCED_REPLAY_STEPS = 600
 _REDUCED_REPLAY_RANDOM_SEED = 29
 
 
@@ -179,7 +181,14 @@ class OpenLoopPlan:
 
 @dataclass(frozen=True)
 class SchedulingMDP:
-    """Finite queueing abstraction used for exact DP and offline RL."""
+    """Finite queueing abstraction used for exact DP and offline RL.
+
+    The state is ``(p, d)``: waiting prefill jobs and active decode jobs, each
+    capped at :data:`SCHEDULING_QUEUE_CAP`.  ``decode_completion_probability``
+    is the per-step completion probability of a single decode stream running
+    alone; ``decode_job_completion_probability[d]`` is the per-job probability
+    when ``d`` streams share the batch.
+    """
 
     states: np.ndarray
     transitions: np.ndarray
@@ -193,14 +202,22 @@ class SchedulingMDP:
     gamma: float
     decision_period_s: float
     description: str
+    decode_batch_efficiency: np.ndarray
+    decode_job_completion_probability: np.ndarray
+    drop_transitions: np.ndarray
+    drop_penalty: float
+    energy_weight: float
 
     def validate(self) -> None:
         number_states = self.states.shape[0]
         number_actions = len(SCHEDULING_ACTIONS)
-        if self.states.shape != (245, 3):
-            raise ValueError("the approved reduced model must have 245 states")
+        side = SCHEDULING_QUEUE_CAP + 1
+        if self.states.shape != (side * side, 2):
+            raise ValueError("the reduced model must have one state per (p, d) pair")
         if self.transitions.shape != (number_states, number_actions, number_states):
             raise ValueError("transition tensor has an incompatible shape")
+        if self.drop_transitions.shape != self.transitions.shape:
+            raise ValueError("drop_transitions has an incompatible shape")
         if self.stage_cost.shape != (number_states, number_actions):
             raise ValueError("stage_cost has an incompatible shape")
         if self.valid_actions.shape != self.stage_cost.shape:
@@ -210,6 +227,8 @@ class SchedulingMDP:
             raise ValueError("valid transition rows must sum to one")
         if np.any(self.transitions < -1e-14):
             raise ValueError("transition probabilities must be nonnegative")
+        if np.any(self.drop_transitions > self.transitions + 1e-14):
+            raise ValueError("drop mass cannot exceed transition mass")
         if not 0.0 < self.gamma < 1.0:
             raise ValueError("gamma must lie strictly between zero and one")
         if self.decision_period_s <= 0.0:
@@ -991,39 +1010,31 @@ def _select_frequency_experiment_window(
     return rebased, metadata
 
 
-def _state_index(p: int, d: int, age: int) -> int:
-    return (p * 7 + d) * 5 + age
+def _state_index(p: int, d: int) -> int:
+    return p * (SCHEDULING_QUEUE_CAP + 1) + d
 
 
 def _policy_action_coverage_slices(
     dataset: TransitionDataset,
     displayed_policy: np.ndarray,
-) -> dict[str, list[list[int]]]:
-    """Count visits to the action displayed in each policy cell."""
+) -> list[list[int]]:
+    """Count logged visits to the action displayed in each policy cell."""
 
+    side = SCHEDULING_QUEUE_CAP + 1
+    number_states = side * side
     policy = np.asarray(displayed_policy, dtype=int)
-    if policy.shape != (245,) or np.any((policy < 0) | (policy > 2)):
+    if policy.shape != (number_states,) or np.any((policy < 0) | (policy > 2)):
         raise ValueError("displayed_policy must contain one valid action per MDP state")
     pair_counts = np.bincount(
         dataset.state * 3 + dataset.action,
-        minlength=245 * 3,
-    ).reshape(245, 3)
-    return {
-        str(age): np.array(
-            [
-                [
-                    pair_counts[
-                        _state_index(p, d, age),
-                        int(policy[_state_index(p, d, age)]),
-                    ]
-                    for d in range(7)
-                ]
-                for p in range(7)
-            ],
-            dtype=int,
-        ).tolist()
-        for age in range(5)
-    }
+        minlength=number_states * 3,
+    ).reshape(number_states, 3)
+    return (
+        pair_counts[np.arange(number_states), policy]
+        .reshape(side, side)
+        .astype(int)
+        .tolist()
+    )
 
 
 def _binomial_probabilities(number: int, probability: float) -> np.ndarray:
@@ -1040,17 +1051,78 @@ def _binomial_probabilities(number: int, probability: float) -> np.ndarray:
     )
 
 
+def decode_batch_efficiency_from_tpot(
+    tpot_by_concurrency: Mapping[int, float],
+) -> np.ndarray:
+    """Per-stream decode speed at batch size ``d`` relative to a lone stream.
+
+    ``tpot_by_concurrency`` maps measured concurrency levels to the median
+    time per output token of each stream.  Efficiency is ``tpot(1) / tpot(d)``,
+    linearly interpolated between measured levels and held constant outside
+    them.  Entry zero is unused and set to one.
+    """
+
+    levels = np.array(sorted(int(level) for level in tpot_by_concurrency), dtype=float)
+    if levels.size == 0 or levels[0] != 1.0:
+        raise ValueError("decode TPOT must be measured at concurrency one")
+    tpot = np.array([float(tpot_by_concurrency[int(level)]) for level in levels])
+    if np.any(~np.isfinite(tpot)) or np.any(tpot <= 0.0):
+        raise ValueError("decode TPOT values must be finite and positive")
+    relative = tpot[0] / tpot
+    batch = np.arange(SCHEDULING_QUEUE_CAP + 1, dtype=float)
+    efficiency = np.interp(np.maximum(batch, 1.0), levels, relative)
+    efficiency[0] = 1.0
+    return efficiency
+
+
+def measured_decode_tpot_by_concurrency(
+    raw_profile_csv: str | Path,
+    requested_clock_mhz: float,
+) -> dict[int, float]:
+    """Median per-stream decode TPOT at each measured concurrency and clock."""
+
+    import csv
+
+    values: dict[int, list[float]] = {}
+    with Path(raw_profile_csv).open(newline="", encoding="utf-8") as handle:
+        for row in csv.DictReader(handle):
+            if row.get("phase") != "decode":
+                continue
+            if not np.isclose(float(row["requested_clock_mhz"]), requested_clock_mhz):
+                continue
+            tpot = float(row["tpot_s"])
+            if np.isfinite(tpot) and tpot > 0.0:
+                values.setdefault(int(row["concurrency"]), []).append(tpot)
+    if 1 not in values:
+        raise ValueError(
+            f"no single-stream decode rows at {requested_clock_mhz} MHz in {raw_profile_csv}"
+        )
+    return {level: float(np.median(samples)) for level, samples in sorted(values.items())}
+
+
 def make_scheduling_mdp(
     *,
-    arrival_probability: float = 0.35,
-    prefill_completion_probability: float = 0.22,
-    decode_completion_probability: float = 0.28,
+    arrival_probability: float = 0.07,
+    prefill_completion_probability: float = 0.14,
+    decode_completion_probability: float = 0.06,
+    decode_batch_efficiency: Sequence[float] | None = None,
     gamma: float = 0.99,
     decision_period_s: float = 0.1,
     action_energy: Sequence[float] = (0.85, 1.0, 0.25),
+    drop_penalty: float = 100.0,
+    energy_weight: float = 0.1,
 ) -> SchedulingMDP:
-    """Construct the approved 245-state queueing abstraction."""
+    """Construct the 49-state prefill/decode scheduling abstraction.
 
+    ``decode_completion_probability`` is the probability that a decode stream
+    running alone finishes its response during one decision period.  With
+    ``d`` active streams each one finishes independently with probability
+    ``1 - (1 - q) ** efficiency[d]``, so a decode step completes about
+    ``d * efficiency[d]`` times as many jobs as a lone stream.
+    """
+
+    cap = SCHEDULING_QUEUE_CAP
+    side = cap + 1
     if not 0.0 <= arrival_probability <= 1.0:
         raise ValueError("arrival_probability must lie in [0, 1]")
     if not 0.0 <= prefill_completion_probability <= 1.0:
@@ -1061,96 +1133,76 @@ def make_scheduling_mdp(
         raise ValueError("gamma must lie strictly between zero and one")
     if decision_period_s <= 0.0:
         raise ValueError("decision_period_s must be positive")
+    if drop_penalty < 0.0 or energy_weight < 0.0:
+        raise ValueError("drop_penalty and energy_weight must be nonnegative")
     energy = np.asarray(action_energy, dtype=float)
     if energy.shape != (3,) or np.any(energy < 0.0):
         raise ValueError("action_energy must contain three nonnegative values")
-
-    states = np.array(
-        [(p, d, age) for p in range(7) for d in range(7) for age in range(5)],
-        dtype=int,
+    efficiency = (
+        np.ones(side, dtype=float)
+        if decode_batch_efficiency is None
+        else np.asarray(decode_batch_efficiency, dtype=float)
     )
+    if efficiency.shape != (side,) or np.any(efficiency <= 0.0):
+        raise ValueError("decode_batch_efficiency must hold one positive value per batch size")
+    job_probability = 1.0 - (1.0 - decode_completion_probability) ** efficiency
+    job_probability[0] = 0.0
+
+    states = np.array([(p, d) for p in range(side) for d in range(side)], dtype=int)
     number_states = states.shape[0]
     transitions = np.zeros((number_states, 3, number_states), dtype=float)
+    drop_transitions = np.zeros_like(transitions)
     costs = np.full((number_states, 3), np.inf, dtype=float)
     valid = np.zeros((number_states, 3), dtype=bool)
     drops = np.zeros((number_states, 3), dtype=float)
     maximum_energy = max(float(np.max(energy)), 1e-12)
 
-    for state_index, (p_value, d_value, age_value) in enumerate(states):
+    for state_index, (p_value, d_value) in enumerate(states):
+        p_initial = int(p_value)
+        d_initial = int(d_value)
         for action in range(3):
             is_valid = (
                 action == 2
-                or (action == 0 and p_value > 0 and d_value < 6)
-                or (action == 1 and d_value > 0)
+                or (action == 0 and p_initial > 0 and d_initial < cap)
+                or (action == 1 and d_initial > 0)
             )
             if not is_valid:
                 continue
             valid[state_index, action] = True
-            p_initial = int(p_value)
-            d_initial = int(d_value)
             if action == 0:
                 service_outcomes = (
-                    (
-                        p_initial - 1,
-                        d_initial + 1,
-                        prefill_completion_probability,
-                        True,
-                    ),
-                    (
-                        p_initial,
-                        d_initial,
-                        1.0 - prefill_completion_probability,
-                        False,
-                    ),
+                    (p_initial - 1, d_initial + 1, prefill_completion_probability),
+                    (p_initial, d_initial, 1.0 - prefill_completion_probability),
                 )
             elif action == 1:
-                # ``decode_completion_probability`` is the aggregate expected
-                # completion capacity of one GPU step.  Sharing it across the
-                # active jobs prevents the reduced model from manufacturing
-                # d times more throughput merely because d jobs are present.
-                per_job_probability = min(
-                    1.0,
-                    decode_completion_probability / max(d_initial, 1),
-                )
                 service_outcomes = tuple(
-                    (
-                        p_initial,
-                        d_initial - completed,
-                        probability,
-                        completed > 0,
-                    )
+                    (p_initial, d_initial - completed, probability)
                     for completed, probability in enumerate(
                         _binomial_probabilities(
-                            d_initial, per_job_probability
+                            d_initial, float(job_probability[d_initial])
                         )
                     )
                 )
             else:
-                service_outcomes = ((p_initial, d_initial, 1.0, False),)
-            for p_base, d_after, service_probability, service_completed in service_outcomes:
+                service_outcomes = ((p_initial, d_initial, 1.0),)
+            for p_base, d_after, service_probability in service_outcomes:
                 for arrival, arrival_prob in (
                     (0, 1.0 - arrival_probability),
                     (1, arrival_probability),
                 ):
-                    dropped = int(arrival == 1 and p_base >= 6)
-                    p_after = min(6, p_base + arrival)
-                    if p_after == 0:
-                        age_after = 0
-                    elif action == 0 and service_completed:
-                        age_after = max(0, int(age_value) - 1)
-                    else:
-                        age_after = min(4, int(age_value) + 1)
-                    next_index = _state_index(p_after, d_after, age_after)
+                    dropped = arrival == 1 and p_base >= cap
+                    p_after = min(cap, p_base + arrival)
+                    next_index = _state_index(p_after, d_after)
                     probability = service_probability * arrival_prob
                     transitions[state_index, action, next_index] += probability
-                    drops[state_index, action] += probability * dropped
+                    if dropped:
+                        drop_transitions[state_index, action, next_index] += probability
+                        drops[state_index, action] += probability
             costs[state_index, action] = (
-                p_value
-                + d_value
-                + 4.0 * (age_value == 4)
-                + 2.0 * d_value * (action != 1)
-                + 10.0 * drops[state_index, action]
-                + 0.1 * energy[action] / maximum_energy
+                p_initial
+                + d_initial
+                + drop_penalty * drops[state_index, action]
+                + energy_weight * energy[action] / maximum_energy
             )
 
     mdp = SchedulingMDP(
@@ -1167,9 +1219,15 @@ def make_scheduling_mdp(
         decision_period_s=float(decision_period_s),
         description=(
             "Exactly solved reduced abstraction with capped prefill and decode counts; "
-            "empirical phase completions and an aggregate decode-capacity budget "
-            "shared across active jobs; it is not an exact reproduction of vLLM."
+            "measured single-stream decode speed and measured batch scaling, so a "
+            "larger decode batch finishes more jobs per step; it is not an exact "
+            "reproduction of vLLM."
         ),
+        decode_batch_efficiency=efficiency,
+        decode_job_completion_probability=job_probability,
+        drop_transitions=drop_transitions,
+        drop_penalty=float(drop_penalty),
+        energy_weight=float(energy_weight),
     )
     mdp.validate()
     return mdp
@@ -1215,10 +1273,15 @@ def scheduling_mdp_from_trace(
     workload: Sequence[Request],
     profile: PerformanceProfile,
     *,
+    decode_tpot_by_concurrency: Mapping[int, float] | None = None,
     decision_period_s: float = 0.1,
     gamma: float = 0.99,
 ) -> SchedulingMDP:
-    """Estimate the transition probabilities used by the reduced MDP."""
+    """Estimate the transition probabilities used by the reduced MDP.
+
+    Without ``decode_tpot_by_concurrency`` the single-stream decode speed is
+    the profile's baseline TPOT and batching has unit efficiency.
+    """
 
     if not workload:
         raise ValueError("workload must contain at least one request")
@@ -1229,11 +1292,19 @@ def scheduling_mdp_from_trace(
     mean_prompt = float(np.mean([request.prompt_tokens for request in workload]))
     mean_output = float(np.mean([request.output_tokens for request in workload]))
     prefill_completion_rate = profile.rate("prefill", median_clock) / max(mean_prompt, 1.0)
-    completion_rate = profile.rate("decode", median_clock) / max(mean_output, 1.0)
     prefill_completion_probability = 1.0 - np.exp(
         -prefill_completion_rate * decision_period_s
     )
-    completion_probability = 1.0 - np.exp(-completion_rate * decision_period_s)
+    if decode_tpot_by_concurrency is None:
+        single_stream_tpot = float(profile.baseline_tpot_s)
+        efficiency = None
+    else:
+        single_stream_tpot = float(decode_tpot_by_concurrency[1])
+        efficiency = decode_batch_efficiency_from_tpot(decode_tpot_by_concurrency)
+    single_stream_completion_rate = 1.0 / (single_stream_tpot * max(mean_output, 1.0))
+    decode_completion_probability = 1.0 - np.exp(
+        -single_stream_completion_rate * decision_period_s
+    )
     action_energy = np.array(
         [
             profile.power("prefill", median_clock),
@@ -1246,7 +1317,10 @@ def scheduling_mdp_from_trace(
         prefill_completion_probability=float(
             np.clip(prefill_completion_probability, 0.01, 0.95)
         ),
-        decode_completion_probability=float(np.clip(completion_probability, 0.01, 0.95)),
+        decode_completion_probability=float(
+            np.clip(decode_completion_probability, 0.005, 0.95)
+        ),
+        decode_batch_efficiency=efficiency,
         gamma=gamma,
         decision_period_s=decision_period_s,
         action_energy=action_energy,
@@ -1296,6 +1370,39 @@ def solve_scheduling_mdp(
     )
 
 
+def decode_priority_policy(mdp: SchedulingMDP) -> np.ndarray:
+    """Decode whenever a decode job is active, else prefill, else idle."""
+
+    p_value, d_value = mdp.states[:, 0], mdp.states[:, 1]
+    return np.where(d_value > 0, 1, np.where(p_value > 0, 0, 2)).astype(int)
+
+
+def prefill_priority_policy(mdp: SchedulingMDP) -> np.ndarray:
+    """Prefill whenever the batch has room and a prompt waits, else decode."""
+
+    p_value, d_value = mdp.states[:, 0], mdp.states[:, 1]
+    return np.where(
+        (p_value > 0) & (d_value < SCHEDULING_QUEUE_CAP),
+        0,
+        np.where(d_value > 0, 1, 2),
+    ).astype(int)
+
+
+def policy_value(mdp: SchedulingMDP, policy: Sequence[int]) -> np.ndarray:
+    """Exact discounted cost-to-go of a stationary policy by a linear solve."""
+
+    policy_array = np.asarray(policy, dtype=int)
+    number_states = mdp.states.shape[0]
+    if policy_array.shape != (number_states,):
+        raise ValueError("policy has an incompatible shape")
+    rows = np.arange(number_states)
+    if np.any(~mdp.valid_actions[rows, policy_array]):
+        raise ValueError("policy selects an invalid action")
+    transition = mdp.transitions[rows, policy_array]
+    cost = mdp.stage_cost[rows, policy_array]
+    return np.linalg.solve(np.eye(number_states) - mdp.gamma * transition, cost)
+
+
 def _sample_next_state(
     probabilities: np.ndarray,
     random: np.random.Generator,
@@ -1323,7 +1430,7 @@ def generate_transition_dataset(
     actions = np.empty(number_transitions, dtype=int)
     costs = np.empty(number_transitions, dtype=float)
     next_states = np.empty(number_transitions, dtype=int)
-    state = _state_index(0, 0, 0)
+    state = _state_index(0, 0)
     for index in range(number_transitions):
         if behavior == "uniform":
             state = int(random.integers(mdp.states.shape[0]))
@@ -1331,12 +1438,12 @@ def generate_transition_dataset(
             action = int(random.choice(choices))
         elif behavior == "decode_priority":
             if index % 300 == 0:
-                state = _state_index(0, 0, 0)
+                state = _state_index(0, 0)
             choices = np.flatnonzero(mdp.valid_actions[state])
             if random.random() < exploration_probability:
                 action = int(random.choice(choices))
             else:
-                p_value, d_value, _ = mdp.states[state]
+                p_value, d_value = mdp.states[state]
                 if d_value > 0:
                     action = 1
                 elif p_value > 0 and mdp.valid_actions[state, 0]:
@@ -1366,9 +1473,7 @@ def generate_transition_dataset(
 
 def _features(mdp: SchedulingMDP, states: np.ndarray, actions: np.ndarray) -> np.ndarray:
     state_values = mdp.states[np.asarray(states, dtype=int)].astype(float)
-    state_values[:, 0] /= 6.0
-    state_values[:, 1] /= 6.0
-    state_values[:, 2] /= 4.0
+    state_values /= float(SCHEDULING_QUEUE_CAP)
     one_hot = np.eye(3, dtype=float)[np.asarray(actions, dtype=int)]
     return np.column_stack([state_values, one_hot])
 
@@ -1382,7 +1487,7 @@ def fit_fqi(
     sweeps: int = 50,
     number_trees: int = 200,
     maximum_depth: int = 12,
-    minimum_leaf_size: int = 2,
+    minimum_leaf_size: int = 1,
     exploration_probability: float = 0.05,
     random_seed: int = 0,
     reference_policy: np.ndarray | None = None,
@@ -1468,34 +1573,59 @@ def _reduced_policy_trajectory(
         raise ValueError(
             "batch_balanced_realized_clock_mhz must be finite and positive"
         )
+    # Common random numbers: every policy sees the same arrival stream and the
+    # same per-slot service draws, so differences between replays come from
+    # the decisions rather than from luck.
     random = np.random.default_rng(random_seed)
+    arrival_draws = random.random(steps)
+    service_draws = random.random((steps, SCHEDULING_QUEUE_CAP + 1))
     policy_array = np.asarray(policy, dtype=int)
-    state = _state_index(0, 0, 0)
+    cap = SCHEDULING_QUEUE_CAP
+    state = _state_index(0, 0)
     completed = 0
+    dropped = 0
     energy = 0.0
     action_power_w = mdp.action_energy / mdp.decision_period_s
     time_values: list[float] = []
     prefill_values: list[int] = []
     decode_values: list[int] = []
     completed_values: list[int] = []
+    dropped_values: list[int] = []
     power_values: list[float] = []
     energy_values: list[float] = []
     phase_values: list[str] = []
     for step in range(steps):
         action = int(policy_array[state])
-        p_value, d_value, _ = mdp.states[state]
-        next_state = _sample_next_state(mdp.transitions[state, action], random)
-        _, next_decode, _ = mdp.states[next_state]
-        if action == 1:
-            completed += max(0, int(d_value) - int(next_decode))
+        p_value, d_value = (int(value) for value in mdp.states[state])
+        if action == 0:
+            if service_draws[step, 0] < mdp.prefill_completion_probability:
+                p_value, d_value = p_value - 1, d_value + 1
+        elif action == 1:
+            finished = int(
+                np.sum(
+                    service_draws[step, :d_value]
+                    < mdp.decode_job_completion_probability[d_value]
+                )
+            )
+            completed += finished
+            d_value -= finished
+        if arrival_draws[step] < mdp.arrival_probability:
+            if p_value >= cap:
+                dropped += 1
+            else:
+                p_value += 1
+        next_state = _state_index(p_value, d_value)
+        if mdp.transitions[state, action, next_state] <= 0.0:
+            raise RuntimeError("replay sampled a transition outside the MDP support")
+        next_prefill, next_decode = p_value, d_value
         step_energy = float(mdp.action_energy[action])
         power = float(action_power_w[action])
         energy += step_energy
-        next_prefill, next_decode, _ = mdp.states[next_state]
         time_values.append((step + 1) * mdp.decision_period_s)
         prefill_values.append(int(next_prefill))
         decode_values.append(int(next_decode))
         completed_values.append(completed)
+        dropped_values.append(dropped)
         power_values.append(power)
         energy_values.append(energy)
         phase_values.append(SCHEDULING_ACTIONS[action])
@@ -1507,6 +1637,7 @@ def _reduced_policy_trajectory(
         "prefill_queue": prefill_values,
         "decode_active": decode_values,
         "completed_requests": completed_values,
+        "dropped_requests": dropped_values,
         "kv_tokens": [value * 2_048 for value in decode_values],
         "power_w": power_values,
         "requested_clock_mhz": [float(fixed_requested_clock_mhz)] * steps,
@@ -1521,12 +1652,243 @@ def _reduced_policy_trajectory(
     return trajectory
 
 
+def _policy_check(
+    mdp: SchedulingMDP,
+    policy: np.ndarray,
+    optimal_value: np.ndarray,
+    optimal_policy: np.ndarray,
+) -> dict[str, float | int]:
+    """Exact comparison of one policy against the value-iteration solution."""
+
+    value = policy_value(mdp, policy)
+    gap = value - optimal_value
+    return {
+        "cost_from_empty": float(value[_state_index(0, 0)]),
+        "minimum_gap": float(np.min(gap)),
+        "maximum_gap": float(np.max(gap)),
+        "states_where_action_differs": int(np.sum(policy != optimal_policy)),
+    }
+
+
+def build_scheduling_results(
+    evaluation_workload: Sequence[Request],
+    profile: PerformanceProfile,
+    *,
+    decode_tpot_by_concurrency: Mapping[int, float] | None = None,
+    fqi_transitions: int = 50_000,
+    fqi_sweeps: int = 50,
+    fqi_trees: int = 200,
+    evaluation_episodes: int = 2_000,
+    evaluation_horizon_steps: int = 300,
+) -> dict[str, object]:
+    """Solve the scheduling MDP, check it, and fit FQI on two logged data sets."""
+
+    mdp = scheduling_mdp_from_trace(
+        evaluation_workload,
+        profile,
+        decode_tpot_by_concurrency=decode_tpot_by_concurrency,
+    )
+    (
+        fixed_requested_clock_mhz,
+        batch_balanced_realized_clock_mhz,
+    ) = _scheduling_clock_calibration(profile)
+    exact = solve_scheduling_mdp(mdp)
+    heuristics = {
+        "prefill_priority": prefill_priority_policy(mdp),
+        "decode_priority": decode_priority_policy(mdp),
+    }
+    exact_value = policy_value(mdp, exact.policy)
+    policy_checks = {
+        "exact_dp": _policy_check(mdp, exact.policy, exact.value, exact.policy),
+        **{
+            name: _policy_check(mdp, policy, exact.value, exact.policy)
+            for name, policy in heuristics.items()
+        },
+    }
+    broad = fit_fqi(
+        mdp,
+        behavior="uniform",
+        number_transitions=fqi_transitions,
+        sweeps=fqi_sweeps,
+        number_trees=fqi_trees,
+        random_seed=0,
+        reference_policy=exact.policy,
+    )
+    narrow = fit_fqi(
+        mdp,
+        behavior="decode_priority",
+        number_transitions=fqi_transitions,
+        sweeps=fqi_sweeps,
+        number_trees=fqi_trees,
+        exploration_probability=0.05,
+        random_seed=0,
+        reference_policy=exact.policy,
+    )
+
+    def evaluate(policy: np.ndarray) -> dict[str, float | int]:
+        return evaluate_scheduling_policy(
+            mdp,
+            policy,
+            episodes=evaluation_episodes,
+            horizon_steps=evaluation_horizon_steps,
+        ).as_dict()
+
+    def trajectory(policy: np.ndarray, label: str) -> dict[str, object]:
+        return _reduced_policy_trajectory(
+            mdp,
+            policy,
+            label=label,
+            fixed_requested_clock_mhz=fixed_requested_clock_mhz,
+            batch_balanced_realized_clock_mhz=batch_balanced_realized_clock_mhz,
+        )
+
+    exact_evaluation = evaluate(exact.policy)
+    exact_trajectory = trajectory(exact.policy, "Exact DP")
+    labels = {
+        "prefill_priority": "Prefill-priority heuristic",
+        "decode_priority": "Decode-priority heuristic",
+    }
+    return {
+        "scheduling": {
+            "controllers": {
+                "exact_dp": exact_trajectory,
+                **{
+                    name: trajectory(policy, labels[name])
+                    for name, policy in heuristics.items()
+                },
+            },
+            "bellman_residual": exact.bellman_residual,
+            "iterations": exact.iterations,
+            "exact_policy_evaluation": exact_evaluation,
+            "heuristic_evaluation": {
+                name: evaluate(policy) for name, policy in heuristics.items()
+            },
+            "policy_checks": policy_checks,
+            "policy_evaluation_residual": float(
+                np.max(np.abs(exact_value - exact.value))
+            ),
+            "policy_slices": {
+                "exact_dp": policy_slice(exact.policy).tolist(),
+                **{
+                    name: policy_slice(policy).tolist()
+                    for name, policy in heuristics.items()
+                },
+            },
+            "value_function": exact.value.reshape(
+                SCHEDULING_QUEUE_CAP + 1, SCHEDULING_QUEUE_CAP + 1
+            ).tolist(),
+            "description": mdp.description,
+            "calibration": {
+                "arrival_probability": mdp.arrival_probability,
+                "prefill_completion_probability": mdp.prefill_completion_probability,
+                "decode_completion_probability": mdp.decode_completion_probability,
+                "decode_batch_efficiency": mdp.decode_batch_efficiency.tolist(),
+                "decode_job_completion_probability": (
+                    mdp.decode_job_completion_probability.tolist()
+                ),
+                "decode_expected_completions": (
+                    np.arange(SCHEDULING_QUEUE_CAP + 1)
+                    * mdp.decode_job_completion_probability
+                ).tolist(),
+                "decode_tpot_by_concurrency_s": (
+                    None
+                    if decode_tpot_by_concurrency is None
+                    else {
+                        str(level): float(value)
+                        for level, value in sorted(decode_tpot_by_concurrency.items())
+                    }
+                ),
+                "drop_penalty": mdp.drop_penalty,
+                "energy_weight": mdp.energy_weight,
+                "gamma": mdp.gamma,
+                "action_energy_j": mdp.action_energy.tolist(),
+                "decision_period_s": mdp.decision_period_s,
+                "fixed_requested_clock_mhz": fixed_requested_clock_mhz,
+                "batch_balanced_realized_clock_mhz": (
+                    batch_balanced_realized_clock_mhz
+                ),
+                "trajectory_semantics": {
+                    "source": (
+                        "one_seeded_sample_path_from_reduced_mdp_not_event_simulator"
+                    ),
+                    "random_seed": _REDUCED_REPLAY_RANDOM_SEED,
+                    "horizon_steps": _REDUCED_REPLAY_STEPS,
+                    "requested_clock_mhz": (
+                        "fixed_profile_level_used_for_mdp_calibration"
+                    ),
+                    "realized_clock_mhz": (
+                        "batch_balanced_profile_median_repeated_when_available"
+                    ),
+                    "power_w": (
+                        "action_energy_j[action] / decision_period_s"
+                    ),
+                    "energy_j": "cumulative_sum_of_action_energy_j[action]",
+                    "dropped_requests": (
+                        "cumulative_arrivals_sampled_as_dropped_at_the_prefill_cap"
+                    ),
+                    "temperature_c": "omitted_not_a_reduced_mdp_state",
+                },
+            },
+        },
+        "fqi": {
+            "controllers": {
+                "exact_dp": exact_trajectory,
+                "broad_fqi": trajectory(broad.policy, "FQI, broad coverage"),
+                "narrow_fqi": trajectory(narrow.policy, "FQI, narrow log"),
+            },
+            "metrics": {
+                "exact_dp": exact_evaluation,
+                "broad_fqi": {
+                    **evaluate(broad.policy),
+                    "coverage_fraction": broad.dataset.coverage_fraction,
+                    "policy_disagreement_fraction": broad.policy_disagreement_fraction,
+                    "cost_from_empty": float(
+                        policy_value(mdp, broad.policy)[_state_index(0, 0)]
+                    ),
+                },
+                "narrow_fqi": {
+                    **evaluate(narrow.policy),
+                    "coverage_fraction": narrow.dataset.coverage_fraction,
+                    "policy_disagreement_fraction": narrow.policy_disagreement_fraction,
+                    "cost_from_empty": float(
+                        policy_value(mdp, narrow.policy)[_state_index(0, 0)]
+                    ),
+                },
+            },
+            "policy_slices": {
+                "exact_dp": policy_slice(exact.policy).tolist(),
+                "broad_fqi": policy_slice(broad.policy).tolist(),
+                "narrow_fqi": policy_slice(narrow.policy).tolist(),
+            },
+            "coverage_slices": {
+                "broad_fqi": _policy_action_coverage_slices(
+                    broad.dataset, broad.policy
+                ),
+                "narrow_fqi": _policy_action_coverage_slices(
+                    narrow.dataset, narrow.policy
+                ),
+            },
+            "protocol": {
+                "transitions_per_dataset": fqi_transitions,
+                "sweeps": fqi_sweeps,
+                "trees": fqi_trees,
+                "maximum_depth": 12,
+                "minimum_leaf_size": 1,
+                "random_seed": 0,
+                "evaluation_episodes": evaluation_episodes,
+                "evaluation_horizon_steps": evaluation_horizon_steps,
+            },
+        },
+    }
+
+
 def build_textbook_results(
     animation_workload: Sequence[Request],
     evaluation_workload: Sequence[Request],
     plant: ServingPlant,
     *,
     load_dilation: float = 1.0,
+    decode_tpot_by_concurrency: Mapping[int, float] | None = None,
     fqi_transitions: int = 50_000,
     fqi_sweeps: int = 50,
     fqi_trees: int = 200,
@@ -1612,48 +1974,15 @@ def build_textbook_results(
     )
     mpc_result = run_mpc(shifted_workload, plant)
 
-    mdp = scheduling_mdp_from_trace(evaluation_workload, plant.profile)
-    (
-        fixed_requested_clock_mhz,
-        batch_balanced_realized_clock_mhz,
-    ) = _scheduling_clock_calibration(plant.profile)
-    exact = solve_scheduling_mdp(mdp)
-    broad = fit_fqi(
-        mdp,
-        behavior="uniform",
-        number_transitions=fqi_transitions,
-        sweeps=fqi_sweeps,
-        number_trees=fqi_trees,
-        random_seed=0,
-        reference_policy=exact.policy,
-    )
-    narrow = fit_fqi(
-        mdp,
-        behavior="decode_priority",
-        number_transitions=fqi_transitions,
-        sweeps=fqi_sweeps,
-        number_trees=fqi_trees,
-        exploration_probability=0.05,
-        random_seed=0,
-        reference_policy=exact.policy,
-    )
-    exact_evaluation = evaluate_scheduling_policy(
-        mdp,
-        exact.policy,
-        episodes=evaluation_episodes,
-        horizon_steps=evaluation_horizon_steps,
-    )
-    broad_evaluation = evaluate_scheduling_policy(
-        mdp,
-        broad.policy,
-        episodes=evaluation_episodes,
-        horizon_steps=evaluation_horizon_steps,
-    )
-    narrow_evaluation = evaluate_scheduling_policy(
-        mdp,
-        narrow.policy,
-        episodes=evaluation_episodes,
-        horizon_steps=evaluation_horizon_steps,
+    scheduling_results = build_scheduling_results(
+        evaluation_workload,
+        plant.profile,
+        decode_tpot_by_concurrency=decode_tpot_by_concurrency,
+        fqi_transitions=fqi_transitions,
+        fqi_sweeps=fqi_sweeps,
+        fqi_trees=fqi_trees,
+        evaluation_episodes=evaluation_episodes,
+        evaluation_horizon_steps=evaluation_horizon_steps,
     )
     stride = max(1, int(round(0.5 / plant.time_step_s)))
     def queued_at(result: ServingResult, time_s: float) -> float:
@@ -1688,18 +2017,6 @@ def build_textbook_results(
             "queued_requests_at_30_s": queued_at(open_loop_shifted, 30.0),
         }
     )
-    exact_slices = {
-        str(age): policy_slice(exact.policy, oldest_age_bin=age).tolist()
-        for age in range(5)
-    }
-    broad_slices = {
-        str(age): policy_slice(broad.policy, oldest_age_bin=age).tolist()
-        for age in range(5)
-    }
-    narrow_slices = {
-        str(age): policy_slice(narrow.policy, oldest_age_bin=age).tolist()
-        for age in range(5)
-    }
     (
         warning,
         thermal_fit_r_squared,
@@ -1792,135 +2109,7 @@ def build_textbook_results(
                 "mpc": mpc_result.as_dict(stride=stride),
             }
         },
-        "scheduling": {
-            "controllers": {
-                "exact_dp": _reduced_policy_trajectory(
-                    mdp,
-                    exact.policy,
-                    label="Exact DP",
-                    fixed_requested_clock_mhz=fixed_requested_clock_mhz,
-                    batch_balanced_realized_clock_mhz=(
-                        batch_balanced_realized_clock_mhz
-                    ),
-                ),
-                "decode_priority": _reduced_policy_trajectory(
-                    mdp,
-                    np.array(
-                        [
-                            1 if d > 0 else (0 if p > 0 and d < 6 else 2)
-                            for p, d, _ in mdp.states
-                        ]
-                    ),
-                    label="Decode-priority heuristic",
-                    fixed_requested_clock_mhz=fixed_requested_clock_mhz,
-                    batch_balanced_realized_clock_mhz=(
-                        batch_balanced_realized_clock_mhz
-                    ),
-                ),
-            },
-            "bellman_residual": exact.bellman_residual,
-            "iterations": exact.iterations,
-            "exact_policy_evaluation": exact_evaluation.as_dict(),
-            "policy_slice_age_4": policy_slice(exact.policy, oldest_age_bin=4).tolist(),
-            "policy_slices": exact_slices,
-            "description": mdp.description,
-            "calibration": {
-                "arrival_probability": mdp.arrival_probability,
-                "prefill_completion_probability": mdp.prefill_completion_probability,
-                "decode_completion_probability": mdp.decode_completion_probability,
-                "action_energy_j": mdp.action_energy.tolist(),
-                "decision_period_s": mdp.decision_period_s,
-                "fixed_requested_clock_mhz": fixed_requested_clock_mhz,
-                "batch_balanced_realized_clock_mhz": (
-                    batch_balanced_realized_clock_mhz
-                ),
-                "trajectory_semantics": {
-                    "source": (
-                        "one_seeded_sample_path_from_reduced_mdp_not_event_simulator"
-                    ),
-                    "random_seed": _REDUCED_REPLAY_RANDOM_SEED,
-                    "horizon_steps": _REDUCED_REPLAY_STEPS,
-                    "requested_clock_mhz": (
-                        "fixed_profile_level_used_for_mdp_calibration"
-                    ),
-                    "realized_clock_mhz": (
-                        "batch_balanced_profile_median_repeated_when_available"
-                    ),
-                    "power_w": (
-                        "action_energy_j[action] / decision_period_s"
-                    ),
-                    "energy_j": "cumulative_sum_of_action_energy_j[action]",
-                    "temperature_c": "omitted_not_a_reduced_mdp_state",
-                },
-            },
-        },
-        "fqi": {
-            "controllers": {
-                "exact_dp": _reduced_policy_trajectory(
-                    mdp,
-                    exact.policy,
-                    label="Exact DP",
-                    fixed_requested_clock_mhz=fixed_requested_clock_mhz,
-                    batch_balanced_realized_clock_mhz=(
-                        batch_balanced_realized_clock_mhz
-                    ),
-                ),
-                "broad_fqi": _reduced_policy_trajectory(
-                    mdp,
-                    broad.policy,
-                    label="FQI, broad coverage",
-                    fixed_requested_clock_mhz=fixed_requested_clock_mhz,
-                    batch_balanced_realized_clock_mhz=(
-                        batch_balanced_realized_clock_mhz
-                    ),
-                ),
-                "narrow_fqi": _reduced_policy_trajectory(
-                    mdp,
-                    narrow.policy,
-                    label="FQI, narrow log",
-                    fixed_requested_clock_mhz=fixed_requested_clock_mhz,
-                    batch_balanced_realized_clock_mhz=(
-                        batch_balanced_realized_clock_mhz
-                    ),
-                ),
-            },
-            "metrics": {
-                "exact_dp": exact_evaluation.as_dict(),
-                "broad_fqi": {
-                    **broad_evaluation.as_dict(),
-                    "coverage_fraction": broad.dataset.coverage_fraction,
-                    "policy_disagreement_fraction": broad.policy_disagreement_fraction,
-                },
-                "narrow_fqi": {
-                    **narrow_evaluation.as_dict(),
-                    "coverage_fraction": narrow.dataset.coverage_fraction,
-                    "policy_disagreement_fraction": narrow.policy_disagreement_fraction,
-                },
-            },
-            "policy_slices": {
-                "exact_dp": exact_slices,
-                "broad_fqi": broad_slices,
-                "narrow_fqi": narrow_slices,
-            },
-            "coverage_slices": {
-                "broad_fqi": _policy_action_coverage_slices(
-                    broad.dataset, broad.policy
-                ),
-                "narrow_fqi": _policy_action_coverage_slices(
-                    narrow.dataset, narrow.policy
-                ),
-            },
-            "protocol": {
-                "transitions_per_dataset": fqi_transitions,
-                "sweeps": fqi_sweeps,
-                "trees": fqi_trees,
-                "maximum_depth": 12,
-                "minimum_leaf_size": 2,
-                "random_seed": 0,
-                "evaluation_episodes": evaluation_episodes,
-                "evaluation_horizon_steps": evaluation_horizon_steps,
-            },
-        },
+        **scheduling_results,
     }
 
 
@@ -1948,11 +2137,11 @@ def evaluate_scheduling_policy(
     drop_totals = np.zeros(episodes, dtype=float)
     completion_totals = np.zeros(episodes, dtype=float)
     for episode in range(episodes):
-        state = _state_index(0, 0, 0)
+        state = _state_index(0, 0)
         discount = 1.0
         for _ in range(horizon_steps):
             action = int(policy_array[state])
-            p_value, d_value, _ = mdp.states[state]
+            p_value, d_value = mdp.states[state]
             discounted_returns[episode] -= discount * mdp.stage_cost[state, action]
             queue_totals[episode] += p_value + d_value
             stall_totals[episode] += float(d_value > 0 and action != 1)
@@ -1977,23 +2166,14 @@ def evaluate_scheduling_policy(
     )
 
 
-def policy_slice(
-    policy: Sequence[int],
-    *,
-    oldest_age_bin: int,
-) -> np.ndarray:
-    """Return a 7 by 7 action table for a fixed oldest-request age."""
+def policy_slice(policy: Sequence[int]) -> np.ndarray:
+    """Return the policy as a (p, d) action table."""
 
-    if not 0 <= oldest_age_bin <= 4:
-        raise ValueError("oldest_age_bin must lie in [0, 4]")
+    side = SCHEDULING_QUEUE_CAP + 1
     policy_array = np.asarray(policy, dtype=int)
-    return np.array(
-        [
-            [policy_array[_state_index(p, d, oldest_age_bin)] for d in range(7)]
-            for p in range(7)
-        ],
-        dtype=int,
-    )
+    if policy_array.shape != (side * side,):
+        raise ValueError("policy has an incompatible shape")
+    return policy_array.reshape(side, side).copy()
 
 
 __all__ = [
@@ -2003,18 +2183,25 @@ __all__ = [
     "OpenLoopPlan",
     "PolicyEvaluation",
     "SCHEDULING_ACTIONS",
+    "SCHEDULING_QUEUE_CAP",
     "SchedulingMDP",
     "TransitionDataset",
+    "build_scheduling_results",
     "build_textbook_results",
+    "decode_batch_efficiency_from_tpot",
+    "decode_priority_policy",
     "evaluate_scheduling_policy",
     "estimate_decode_remaining_tokens",
     "fit_fqi",
     "generate_transition_dataset",
     "make_scheduling_mdp",
+    "measured_decode_tpot_by_concurrency",
     "mpc_latency_proxies",
     "open_loop_clock_controller",
     "optimize_open_loop",
     "policy_slice",
+    "policy_value",
+    "prefill_priority_policy",
     "run_mpc",
     "scheduling_mdp_from_trace",
     "shift_largest_burst",

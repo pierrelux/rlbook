@@ -25,7 +25,12 @@ ROOT = Path(__file__).resolve().parents[1]
 CODE = ROOT / "code"
 sys.path.insert(0, str(CODE))
 
-from inference_control import build_textbook_results  # noqa: E402
+from inference_control import (  # noqa: E402
+    _scheduling_clock_calibration,
+    build_scheduling_results,
+    build_textbook_results,
+    measured_decode_tpot_by_concurrency,
+)
 from inference_replay import render_static_figure  # noqa: E402
 from inference_serving import (  # noqa: E402
     PerformanceProfile,
@@ -164,6 +169,115 @@ def plant_from_profile_manifest(
     return plant
 
 
+def _decode_tpot(profile: PerformanceProfile) -> dict[int, float] | None:
+    """Measured per-stream decode TPOT by concurrency at the scheduling clock."""
+
+    raw = DATA / "l4_profile_raw.csv"
+    if not raw.exists():
+        return None
+    clock, _ = _scheduling_clock_calibration(profile)
+    return measured_decode_tpot_by_concurrency(raw, clock)
+
+
+def _write_scheduling_outputs(clean: dict[str, Any], profile: PerformanceProfile) -> None:
+    scheduling = clean["scheduling"]
+    fqi = clean["fqi"]
+    assert isinstance(scheduling, dict)
+    assert isinstance(fqi, dict)
+    _write_metrics(
+        ARTIFACTS / "metrics_dp.csv",
+        [
+            {
+                "bellman_residual": scheduling["bellman_residual"],
+                "iterations": scheduling["iterations"],
+                "profile_status": profile.profile_status,
+                "arrival_probability": scheduling["calibration"][
+                    "arrival_probability"
+                ],
+                "prefill_completion_probability": scheduling["calibration"][
+                    "prefill_completion_probability"
+                ],
+                "decode_completion_probability": scheduling["calibration"][
+                    "decode_completion_probability"
+                ],
+                "prefill_energy_j": scheduling["calibration"]["action_energy_j"][0],
+                "decode_energy_j": scheduling["calibration"]["action_energy_j"][1],
+                "idle_energy_j": scheduling["calibration"]["action_energy_j"][2],
+                "decode_batch_efficiency_at_cap": scheduling["calibration"][
+                    "decode_batch_efficiency"
+                ][-1],
+                "drop_penalty": scheduling["calibration"]["drop_penalty"],
+                **{
+                    f"{name}_cost_from_empty": check["cost_from_empty"]
+                    for name, check in scheduling["policy_checks"].items()
+                },
+                **{
+                    f"{name}_minimum_gap": check["minimum_gap"]
+                    for name, check in scheduling["policy_checks"].items()
+                    if name != "exact_dp"
+                },
+            }
+        ],
+    )
+    fqi_metrics = fqi["metrics"]
+    assert isinstance(fqi_metrics, dict)
+    _write_metrics(
+        ARTIFACTS / "metrics_fqi.csv",
+        [
+            {"controller": name, **values}
+            for name, values in fqi_metrics.items()
+            if isinstance(values, dict)
+        ],
+    )
+
+
+def build_scheduling_artifacts(*, quick: bool = False) -> dict[str, object]:
+    """Rebuild only the scheduling and FQI views inside textbook_results.json."""
+
+    profile = load_profile(DATA / "l4_profile.csv")
+    evaluation_raw = load_workload(DATA / "azure_code_evaluation.csv")
+    evaluation, _ = normalize_offered_load(evaluation_raw, profile)
+    protocol = (
+        {
+            "fqi_transitions": 2_000,
+            "fqi_sweeps": 5,
+            "fqi_trees": 25,
+            "evaluation_episodes": 100,
+            "evaluation_horizon_steps": 100,
+        }
+        if quick
+        else {
+            "fqi_transitions": 50_000,
+            "fqi_sweeps": 50,
+            "fqi_trees": 200,
+            "evaluation_episodes": 2_000,
+            "evaluation_horizon_steps": 300,
+        }
+    )
+    results_path = ARTIFACTS / "textbook_results.json"
+    clean = json.loads(results_path.read_text(encoding="utf-8"))
+    clean.update(
+        _finite_json(
+            build_scheduling_results(
+                evaluation,
+                profile,
+                decode_tpot_by_concurrency=_decode_tpot(profile),
+                **protocol,
+            )
+        )
+    )
+    results_path.write_text(
+        json.dumps(clean, indent=2, sort_keys=True, allow_nan=False) + "\n",
+        encoding="utf-8",
+    )
+    _write_scheduling_outputs(clean, profile)
+    static_directory = ROOT / "_static" / "inference_serving"
+    for view, filename in (("scheduling", "scheduling.svg"), ("fqi", "fqi.svg")):
+        figure = render_static_figure(results_path, static_directory / filename, view=view)
+        plt.close(figure)
+    return clean
+
+
 def build_artifacts(*, quick: bool = False) -> dict[str, object]:
     profile = load_profile(DATA / "l4_profile.csv")
     animation_raw = load_workload(DATA / "azure_code_animation.csv")
@@ -201,6 +315,7 @@ def build_artifacts(*, quick: bool = False) -> dict[str, object]:
         evaluation,
         plant,
         load_dilation=dilation,
+        decode_tpot_by_concurrency=_decode_tpot(profile),
         **protocol,
     )
     results["metadata"].update(
@@ -231,38 +346,7 @@ def build_artifacts(*, quick: bool = False) -> dict[str, object]:
     assert isinstance(fqi, dict)
     _write_metrics(ARTIFACTS / "metrics_open_loop.csv", _metric_rows(open_loop))
     _write_metrics(ARTIFACTS / "metrics_mpc.csv", _metric_rows(mpc))
-    _write_metrics(
-        ARTIFACTS / "metrics_dp.csv",
-        [
-            {
-                "bellman_residual": scheduling["bellman_residual"],
-                "iterations": scheduling["iterations"],
-                "profile_status": profile.profile_status,
-                "arrival_probability": scheduling["calibration"][
-                    "arrival_probability"
-                ],
-                "prefill_completion_probability": scheduling["calibration"][
-                    "prefill_completion_probability"
-                ],
-                "decode_completion_probability": scheduling["calibration"][
-                    "decode_completion_probability"
-                ],
-                "prefill_energy_j": scheduling["calibration"]["action_energy_j"][0],
-                "decode_energy_j": scheduling["calibration"]["action_energy_j"][1],
-                "idle_energy_j": scheduling["calibration"]["action_energy_j"][2],
-            }
-        ],
-    )
-    fqi_metrics = fqi["metrics"]
-    assert isinstance(fqi_metrics, dict)
-    _write_metrics(
-        ARTIFACTS / "metrics_fqi.csv",
-        [
-            {"controller": name, **values}
-            for name, values in fqi_metrics.items()
-            if isinstance(values, dict)
-        ],
-    )
+    _write_scheduling_outputs(clean, profile)
     static_directory = ROOT / "_static" / "inference_serving"
     static_directory.mkdir(parents=True, exist_ok=True)
     for view, filename in (
@@ -294,6 +378,11 @@ def parse_args() -> argparse.Namespace:
         help="create the two attributed trace subsets without running experiments",
     )
     parser.add_argument(
+        "--scheduling-only",
+        action="store_true",
+        help="rebuild only the scheduling and FQI views of the committed artifact",
+    )
+    parser.add_argument(
         "--quick",
         action="store_true",
         help="build a small smoke artifact that is not suitable for publication",
@@ -317,7 +406,10 @@ def main() -> None:
         raise SystemExit(
             "trace subsets are missing; pass --azure-source with the official download"
         )
-    build_artifacts(quick=args.quick)
+    if args.scheduling_only:
+        build_scheduling_artifacts(quick=args.quick)
+    else:
+        build_artifacts(quick=args.quick)
 
 
 if __name__ == "__main__":

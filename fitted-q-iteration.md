@@ -224,7 +224,7 @@ where $c(s, a, s')$ is the immediate cost. Goal states have zero future cost (no
 The reduced inference-scheduling MDP in [Infinite-Horizon MDPs](infinite-horizon-mdps.md#exact-scheduling-mdp-for-inference-serving)
 has an exact value-iteration solution because its transition matrix is known.
 Suppose instead that only a fixed table of transitions is retained. Each row
-contains a reduced state $(p,d,a)$, a scheduling action, the cost $c$, and the
+contains a reduced state $(p,d)$, a scheduling action, the cost $c$, and the
 next reduced state. The generic reward-maximizing form above becomes a
 cost-minimizing form after a sign change. FQI can reuse those rows, but it
 receives no direct evidence for a state-action region that the behavior policy
@@ -256,19 +256,27 @@ trees with maximum depth 12 and minimum leaf size 2. The random seed is 0;
 successive tree fits use the deterministic seeds 0 through 49 across 50
 fitted-Q sweeps. The three scheduling actions enter as a one-hot input,
 matching the joint state-action representation in the generic batch algorithm
-above.
+above. Before each fit, rows with the same state and action are merged into one
+point whose target is their average and whose weight is their count. The
+minimum leaf size of 1 therefore counts distinct state-action pairs, not rows:
+a larger value would force every leaf to average the targets of at least two
+different pairs, which blurs the small differences between actions in the same
+state.
 
 Changing only the sampling distribution tests how coverage affects an
 otherwise identical FQI procedure. The exact dynamic-programming policy and
 both fitted policies are evaluated on the same 2,000 seeded episodes, each 300
 steps long. Return and policy disagreement measure agreement with the reduced
-MDP objective and its exact solution. Mean waiting time, decode stalls, dropped
-arrivals, and observed state-action coverage locate operational differences.
+MDP objective and its exact solution. Mean waiting time, dropped arrivals, and
+observed state-action coverage locate operational differences. Decode stalls
+count periods in which decode jobs were active but the policy did something
+else. In this model they are not errors: the exact policy stalls decode on
+purpose while it prefills to grow the batch.
 
 ```{code-cell} python
 :tags: [remove-input]
 :label: fig-inference-scheduling-fqi
-:caption: Extra-Trees FQI on two fixed 50,000-transition data sets sampled from the same measured-L4-calibrated scheduling MDP. These are model transitions, not vLLM logs. The broad data set samples states and feasible actions uniformly; the narrow data set follows decode priority with 5 percent random actions. Policy slices compare each fitted policy with the exact value-iteration policy and mark whether the displayed action occurs in its training buffer.
+:caption: Extra-Trees FQI on two fixed 50,000-transition data sets sampled from the same measured-L4-calibrated scheduling MDP. These are model transitions, not vLLM logs. The broad data set samples states and feasible actions uniformly; the narrow data set follows decode priority with 5 percent random actions. Each policy table covers all 49 states and marks whether the displayed action occurs in that policy's training buffer.
 
 from pathlib import Path
 import sys
@@ -292,11 +300,11 @@ display(HTML(render_serving_replay(
 :class: pdf-fallback
 :alt: Static comparison of exact value iteration with fitted Q policies learned from broad and narrow transition data.
 
-Static policy slices for oldest-age bin four. At each displayed state, a white
-circle marks that the buffer contains visits to the action selected by the
-displayed policy. The interactive version adds age selection, playback,
-stepping, and scrubbing through a queue trajectory sampled from the reduced
-transition model rather than observed directly from vLLM.
+Policy tables over all 49 states. At each state, a white circle marks that the
+buffer contains visits to the action selected by the displayed policy. The
+interactive version adds playback, stepping, and scrubbing through a queue
+trajectory sampled from the reduced transition model rather than observed
+directly from vLLM.
 :::
 
 Exact dynamic programming and the two fitted-Q policies use the same 2,000
@@ -326,32 +334,37 @@ fqi_metrics[
 
 {download}`Download every fitted-Q metric (CSV) <artifacts/inference_serving/metrics_fqi.csv>`
 
-The broad buffer covers every feasible state-action pair, yet its fitted policy
-disagrees with the exact policy on 13.88 percent of states. Its mean discounted
-return is $-375.20$, compared with $-317.34$ for the exact policy. Mean waiting
-time rises from 3.023 to 3.751 seconds.
+The broad buffer covers every feasible state-action pair, and its fitted policy
+disagrees with the exact policy in 6 of the 49 states (12.24 percent). All six
+lie next to the switching curve, where the exact policy prefills and the fitted
+policy decodes. Each of these state-action pairs appears about 340 times in the
+buffer, so the errors do not come from missing data. In those states the exact
+action values of prefill and decode differ by at most 1.24, while the values
+themselves range from 254 to 891. A regressor that is accurate to a fraction of
+a percent can still rank two actions this close in the wrong order. The broad
+policy's mean discounted return is $-242.25$, compared with $-230.04$ for the
+exact policy, and its mean waiting time is 5.76 seconds rather than 5.24.
 
-The narrow buffer covers 13.86 percent of feasible pairs and disagrees with the
-exact policy on 68.16 percent of states. Its mean discounted return is
-$-1096.71$, and its mean waiting time is 21.200 seconds. Return is the negative
-of discounted cost, so higher values are better.
-
-The exact policy incurs no decode stalls in these finite evaluations. Broad FQI
-averages 79.30 stalls per episode, while narrow FQI averages 216.81. Broad FQI
-has a lower mean expected dropped-arrival count than the exact policy, 0.452
-versus 0.555, because the discounted stage cost also penalizes queue length,
-age, decode stalls, and energy. The narrow policy's mean expected count is
-2.781.
+The narrow buffer covers 41.73 percent of feasible pairs and disagrees with the
+exact policy in 19 states (38.78 percent). In 15 of those states the buffer
+contains no visit to the action the fitted policy selects. The log follows
+decode priority, which never prefills while a request is decoding, so the
+regressor has no data on the batching decisions that the exact policy makes.
+Its choices there are extrapolations: it idles in several states with six
+requests decoding, and it prefills past the point where the exact policy
+decodes. Its mean discounted return is $-286.08$, its mean waiting time is
+11.20 seconds, and it drops 1.40 arrivals per episode against 0.20 for the
+exact policy. Return is the negative of discounted cost, so higher values are
+better.
 
 The two data sets have equal size, so the difference between their policies
-cannot be attributed to the number of transition rows. Coverage, finite-sample
-noise, and the piecewise-constant Extra-Trees approximation can all contribute.
-Full coverage is not sufficient to recover the exact policy with finite data
-and this regressor, while the narrow buffer leaves most Bellman targets
-unsupported.
+cannot be attributed to the number of transition rows. The broad buffer's
+errors come from approximation where the action gap is small; the narrow
+buffer's errors come from coverage, where the behavior policy never took the
+action in question.
 
 The hardware calibration is measured, while training and evaluation remain
-inside the stated 245-state MDP. These results concern offline coverage under
+inside the stated 49-state MDP. These results concern offline coverage under
 that abstraction. They are not a benchmark of vLLM scheduling or of NVIDIA L4
 hardware across deployments.
 
@@ -974,9 +987,9 @@ The empirical distribution $\hat{P}_{\mathcal{B}_t}$ unifies offline and online 
 
 The inference-scheduling experiment held the MDP, regressor, data-set size,
 seeds, and evaluation episodes fixed while changing the behavior distribution.
-The broad buffer covered every feasible state-action pair and stayed closer to
-the exact policy; the narrow buffer omitted most pairs and performed worse
-under the reduced MDP's objective. Coverage is therefore a property of the
+The broad buffer covered every feasible state-action pair and erred only where
+two actions were nearly tied; the narrow buffer omitted the batching decisions
+and performed worse under the reduced MDP's objective. Coverage is therefore a property of the
 empirical distribution $\hat{P}_{\mathcal B}$ with direct consequences for the
 Bellman targets available to FQI.
 

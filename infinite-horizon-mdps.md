@@ -814,56 +814,80 @@ predictive distinctions disappear in that reduction?
 
 The inference examples have so far treated the scheduling rule as fixed and the
 GPU clock as the action. In a different decision interface, the clock is fixed
-and the action is the phase that receives the next unit of service. Prefill admits new
-requests into decode and consumes cache; decode advances requests already
-producing output tokens. Serving either phase delays the other.
+and the action is the phase that receives the next unit of service. Prefill
+processes a waiting prompt and moves its request into the decode batch. Decode
+advances every request in that batch by one step of token generation. Serving
+either phase delays the other.
+
+The trade-off comes from batching. A decode step costs about the same time and
+power whether it advances one request or six, because generating a token is
+limited by reading the model weights from memory, not by arithmetic. On the
+measured NVIDIA L4 run used below, one decode stream produces a token every
+57.0 ms; with four concurrent streams each stream still produces a token every
+59.5 ms, and with eight every 60.8 ms. Six streams therefore finish requests
+almost six times as fast as one. A scheduler that decodes as soon as one
+request is ready keeps the batch small and wastes that capacity. A scheduler
+that keeps prefilling to grow the batch leaves the requests already in it
+waiting. The MDP decides where to switch.
 
 An exact request-level Markov state would contain every prompt length, generated
 token count, cache allocation, and waiting time. For computation, these
 quantities are aggregated into the finite state
 
 $$
-s=(p,d,a)\in\{0,\ldots,6\}^2\times\{0,\ldots,4\},
+s=(p,d)\in\{0,\ldots,6\}^2,
 $$
 
-where $p$ counts waiting prefill jobs, $d$ counts active decode jobs, and $a$
-is the oldest prefill-age bin. The actions are
+where $p$ counts waiting prefill jobs and $d$ counts active decode jobs. The
+actions are
 
 $$
 \mathcal A=\{\text{prefill},\text{decode},\text{idle}\}.
 $$
 
 An action is masked when its phase is empty. Prefill is also masked at $d=6$,
-which represents the cache limit in this abstraction. A Bernoulli arrival
-probability for each 0.1-second decision period is calibrated from the
-load-normalized version of the same five-minute Azure trace used in the
-modeling chapter.
+which represents the cache limit in this abstraction. The whole policy is
+therefore one $7\times 7$ table, which the figure below draws in full.
 
-The phase rates and powers come from one measured NVIDIA L4 run of
-Qwen/Qwen2.5-7B-Instruct served by vLLM 0.28.0. The reduced MDP uses the
-1,125 MHz requested clock level; its batch-balanced median realized graphics
-clock was 939.375 MHz. The measured prefill rate and the trace's mean prompt
-length determine the Bernoulli probability that a prefill action completes one
-aggregate prompt. A successful completion moves that job into decode. The
-measured decode rate and mean output length similarly determine one aggregate
-expected completion budget per decode action. That budget is shared
-symmetrically across the active jobs, so adding jobs does not multiply the
-model's expected completion capacity. Queue counts are capped at six, and
-arrivals beyond that cap are recorded as drops. These choices define a complete
-transition matrix $P_{ss'}^u$ on 245 states.
+Time advances in decision periods of 0.1 seconds. A Bernoulli arrival with
+probability $\lambda$ per period is calibrated from the load-normalized version
+of the same five-minute Azure trace used in the modeling chapter. The phase
+rates and powers come from one measured NVIDIA L4 run of
+Qwen/Qwen2.5-7B-Instruct served by vLLM 0.28.0, at the 1,125 MHz requested
+clock level; its batch-balanced median realized graphics clock was 939.375 MHz.
 
-The one-step cost assigns separate penalties to congestion, old prompt work,
-decode stalls, dropped requests, and energy:
+- **Prefill.** The measured prefill rate and the trace's mean prompt length
+  give the probability $q_{\mathrm p}$ that one prefill action completes a
+  prompt. A completed prompt moves from $p$ to $d$.
+- **Decode.** The single-stream time per output token and the trace's mean
+  output length give the probability $q_1$ that a lone decode stream finishes
+  its response in one period. With $d$ active streams, each stream finishes
+  independently with probability $1-(1-q_1)^{\eta_d}$, where
+  $\eta_d=\mathrm{TPOT}(1)/\mathrm{TPOT}(d)$ is the measured slowdown of one
+  stream in a batch of $d$, interpolated between the measured batch sizes 1, 4,
+  and 8. The number of completions is binomial, so its mean grows almost
+  linearly in $d$.
+- **Arrivals and drops.** After service, an arrival joins the prefill queue. An
+  arrival that finds $p=6$ is dropped.
+
+These choices define a complete transition matrix $P_{ss'}^u$ on 49 states.
+
+The one-step cost counts the requests in the system, dropped arrivals, and
+energy:
 
 $$
-c(s,u)=p+d+4\mathbf 1\{a=4\}
-+2d\mathbf 1\{u\ne\text{decode}\}
-+10\mathbb E[N_{\mathrm{drop}}\mid s,u]
+c(s,u)=p+d
++100\,\mathbb E[N_{\mathrm{drop}}\mid s,u]
 +0.1\frac{E(u)}{E_{\max}}.
 $$
 
-For prefill, decode, and idle, respectively, the measured profile gives
-$E(u)=(6.427,6.274,2.339)$ joules per decision period. Each value is the
+By Little's law, the long-run average of $p+d$ divided by the arrival rate is
+the mean time a request spends in the system, so the first term is a latency
+cost. A dropped request costs as much as holding one request for 100 periods,
+or 10 seconds. That is about twice the mean time a request spends in the system
+under the optimal policy, so dropping a request is never a cheap way to shorten
+the queue. For prefill, decode, and idle, respectively, the measured profile
+gives $E(u)=(6.427,6.274,2.339)$ joules per decision period. Each value is the
 measured phase-power summary at the requested 1,125 MHz level multiplied by
 0.1 seconds, rather than a direct request-level energy measurement. Only the
 ratio $E(u)/E_{\max}$ enters the stage cost.
@@ -880,14 +904,17 @@ $$
 Iteration stops when $\lVert V_{n+1}-V_n\rVert_\infty<10^{-10}$. The final
 Bellman residual is checked independently and must be below $10^{-8}$.
 
-Policy slices compare the optimal phase decision across the two queue lengths
-and the age of the oldest prompt. A replay applies the resulting policy to
-fixed evaluation episodes and compares it with the decode-priority rule.
+The figure compares the value-iteration policy with two transparent rules.
+**Prefill priority** prefills whenever a prompt waits and the batch has room.
+**Decode priority** decodes whenever a decode job is active. Each replay
+applies one policy for 60 seconds from an empty system. All three replays use
+the same random numbers for arrivals and service, so they see the same
+requests, and every difference between them comes from the decisions.
 
 ```{code-cell} python
 :tags: [remove-input]
 :label: fig-inference-scheduling-dp
-:caption: Exact value iteration on the measured-L4-calibrated inference-scheduling MDP. All five age slices yield the same rule: serve decode when a decode job is active, otherwise serve prefill, and idle only when the system is empty. The replay samples queue transitions from the reduced model at its fixed measured-profile clock; these trajectories are simulated, not direct vLLM observations.
+:caption: Exact value iteration on the measured-L4-calibrated inference-scheduling MDP, compared with prefill priority and decode priority. Each policy is drawn over all 49 states. The panel beside it reports the policy's exact discounted cost from the empty system and its smallest gap $V^\pi(s)-V^*(s)$ over all states. The replay samples queue transitions from the reduced model at its fixed measured-profile clock; these trajectories are simulated, not direct vLLM observations.
 
 from pathlib import Path
 import sys
@@ -909,22 +936,87 @@ display(HTML(render_serving_replay(
 :::{figure} _static/inference_serving/scheduling.svg
 :label: fig-inference-scheduling-dp-fallback
 :class: pdf-fallback
-:alt: Static policy slices for prefill, decode, and idle actions in the reduced scheduling MDP.
+:alt: Policy tables for exact value iteration, prefill priority, and decode priority in the 49-state scheduling MDP.
 
-Policy slices at oldest-age bins zero, two, and four. The interactive version
-adds an age selector and controls for playing, stepping through, and scrubbing
-a fixed episode sampled from the reduced transition model. The queue trajectory
-is simulated rather than observed directly from vLLM.
+The exact policy, prefill priority, and decode priority over all 49 states,
+with each policy's exact discounted cost from the empty system. The
+interactive version adds controls for playing, stepping through, and scrubbing
+an episode sampled from the reduced transition model under each policy. The
+queue trajectory is simulated rather than observed directly from vLLM.
 :::
 
-The reduced scheduling MDP has the following transition parameters and
-value-iteration certificate. The Bellman residual applies only to this finite
-model.
+The optimal policy is a switching curve. When one or two prompts wait, it
+prefills until four requests are decoding and then decodes. When three or more
+wait, it fills the batch to five before decoding. It decodes whenever no prompt
+waits, and idles only in the empty state. Decode priority is the opposite
+extreme. It prefills only when the batch is empty, so it never runs more than
+one stream, and a lone stream finishes fewer requests per period (0.059) than
+arrive (0.071). Its prompt queue
+therefore fills, and arrivals are dropped.
+
+How can a reader check that value iteration returned the optimal policy rather
+than a plausible one? For a fixed policy $\pi$, the policy evaluation equation
+$V^\pi=c_\pi+\gamma P_\pi V^\pi$ is a linear system with 49 unknowns, and
+solving it gives the exact discounted cost of $\pi$ in every state. An optimal
+policy satisfies $V^*(s)\le V^\pi(s)$ in every state for every stationary
+policy $\pi$, so each heuristic must lose everywhere, not only on average.
 
 ```{code-cell} python
 :tags: [remove-input]
 
+import json
+
 import pandas as pd
+
+scheduling = json.loads(
+    Path("artifacts/inference_serving/textbook_results.json").read_text()
+)["scheduling"]
+names = {
+    "exact_dp": "exact DP",
+    "prefill_priority": "prefill priority",
+    "decode_priority": "decode priority",
+}
+evaluations = {
+    "exact_dp": scheduling["exact_policy_evaluation"],
+    **scheduling["heuristic_evaluation"],
+}
+pd.DataFrame(
+    {
+        names[name]: {
+            "cost from empty, exact": f"{check['cost_from_empty']:.2f}",
+            "smallest gap V^π − V* over 49 states": f"{max(check['minimum_gap'], 0.0):.2f}",
+            "largest gap V^π − V* over 49 states": f"{max(check['maximum_gap'], 0.0):.2f}",
+            "states where the action differs": check["states_where_action_differs"],
+            "mean time in system (s), simulated": f"{evaluations[name]['mean_waiting_time_s']:.2f}",
+            "dropped arrivals per episode, simulated": f"{evaluations[name]['mean_dropped_arrivals']:.2f}",
+        }
+        for name, check in (
+            (name, scheduling["policy_checks"][name]) for name in names
+        )
+    }
+).rename_axis("quantity")
+```
+
+The exact rows come from the linear solves. The simulated rows average 2,000
+seeded episodes of 300 periods from the empty system. Value iteration
+required 2,435 sweeps on this high-discount problem. Its independently
+recomputed Bellman residual is $9.851\times10^{-11}$, and evaluating its policy
+by a linear solve reproduces its value function to within $10^{-8}$ in every
+state. Prefill priority is worse than the optimal policy by at least 3.02 in
+every state and disagrees with it in 8 states, all on the switching curve,
+where prefill priority keeps filling the batch to six. Decode priority is worse
+by at least 131.82 in every state. In the simulated episodes it drops 4.35
+arrivals per episode and roughly doubles the time a request spends in the
+system. Prefill priority drops slightly fewer arrivals than the optimal policy,
+0.14 against 0.20 per episode. The optimal policy minimizes the total
+discounted cost, not each term of it, and accepts a few more drops for less
+time spent waiting in the batch.
+
+The reduced scheduling MDP has the following transition parameters and
+value-iteration certificate.
+
+```{code-cell} python
+:tags: [remove-input]
 
 dp_row = pd.read_csv("artifacts/inference_serving/metrics_dp.csv").iloc[0]
 pd.DataFrame(
@@ -936,6 +1028,7 @@ pd.DataFrame(
             f"{dp_row['arrival_probability']:.6f}",
             f"{dp_row['prefill_completion_probability']:.6f}",
             f"{dp_row['decode_completion_probability']:.6f}",
+            f"{dp_row['decode_batch_efficiency_at_cap']:.3f}",
             f"{dp_row['prefill_energy_j']:.3f}",
             f"{dp_row['decode_energy_j']:.3f}",
             f"{dp_row['idle_energy_j']:.3f}",
@@ -945,9 +1038,10 @@ pd.DataFrame(
         "Bellman residual",
         "value-iteration sweeps",
         "profile provenance",
-        "arrival probability",
-        "prefill completion probability",
-        "aggregate decode completion budget",
+        "arrival probability λ",
+        "prefill completion probability q_p",
+        "single-stream decode completion probability q_1",
+        "per-stream decode speed at d = 6, relative to d = 1",
         "prefill energy (J)",
         "decode energy (J)",
         "idle energy (J)",
@@ -957,27 +1051,26 @@ pd.DataFrame(
 
 {download}`Download the dynamic-programming certificate (CSV) <artifacts/inference_serving/metrics_dp.csv>`
 
-Value iteration required 2,454 sweeps on this high-discount problem. Its
-independently recomputed Bellman residual is $9.823\times10^{-11}$, below both
-the $10^{-8}$ acceptance threshold and the $10^{-10}$ stopping tolerance. The
-certificate concerns the supplied 245-state transition matrix. The optimal
-policy serves decode whenever $d>0$, serves prefill when $d=0$ and $p>0$, and
-idles only in the empty state. The same rule appears in all five age slices.
-For this calibration, the decode-stall penalty and aggregate completion budget
-make the transparent decode-priority heuristic exactly optimal within the
-reduced model. A richer state or a different cost can produce a switching
-boundary instead.
+The certificate concerns the supplied 49-state transition matrix. The result
+is exact for the stated finite MDP, not for vLLM. Aggregating request ages and
+lengths removes distinctions that can affect head-of-line waiting and cache
+release; all prompts and responses are treated as having the trace's mean
+length. The calibrated transition kernel is stationary, the clock is fixed,
+temperature is absent from the state, the batch is capped at six, and the
+action set excludes mixed prefill-decode batches. Measurements from one L4
+deployment calibrate the phase rates, batch slowdown, and powers; they do not
+establish scheduling performance across L4 systems. The request-level replay
+from the earlier chapters remains a model-audit tool, not part of the
+optimality proof.
 
-The result is exact for the stated finite MDP, not for vLLM. Aggregating request
-ages and lengths removes distinctions that can affect head-of-line waiting and
-cache release. The calibrated transition kernel is stationary, the clock is
-fixed, temperature is absent from the state, and the action set excludes mixed
-prefill-decode batches. Measurements from one L4 deployment calibrate the phase
-rates and powers; they do not establish scheduling performance across L4
-systems. The request-level replay from the earlier chapters remains a
-model-audit tool, not part of the optimality proof.
+:::{dropdown} Inspect the scheduling MDP, value iteration, and the policy check
+```{literalinclude} code/inference_control.py
+:language: python
+:start-at: def make_scheduling_mdp
+:end-before: def _scheduling_clock_calibration
+:linenos:
+```
 
-:::{dropdown} Inspect the scheduling MDP and value iteration
 ```{literalinclude} code/inference_control.py
 :language: python
 :start-at: def solve_scheduling_mdp
@@ -1935,9 +2028,10 @@ estimated from samples, which is the subject of
 Discounting converts an infinite stream of rewards into a bounded value and
 makes the Bellman maps contractions in the sup norm. Value iteration applies
 successive approximation; policy iteration alternates a fixed-policy linear
-solve with greedy improvement. The inference-scheduling example also shows the
-price of state reduction: a smaller MDP averages over distinctions that can
-still affect future completions.
+solve with greedy improvement. The inference-scheduling example used that
+linear solve as a check: no heuristic policy beat the value-iteration policy in
+any of the 49 states. It also showed the price of state reduction: a smaller
+MDP averages over distinctions that can still affect future completions.
 
 The hard maximum in the Bellman operator selects one action and is
 nondifferentiable at ties. Can the decision rule remain stochastic while the
@@ -1986,14 +2080,13 @@ Policy evaluation solves $(I-\gamma P_\pi)v=r_\pi$. Policy improvement computes 
 :label: ex-dp-check-4
 
 Name one pair of request-level serving states that map to the same reduced
-state $(p,d,a)$ but can have different future completion distributions.
+state $(p,d)$ but can have different future completion distributions.
 :::
 
 :::{solution} ex-dp-check-4
 :class: dropdown
 
-Two states can have the same numbers of waiting and decoding requests and the
-same oldest prefill-age bin while their active requests have different
-remaining output lengths. The reduced state discards those lengths, so its
+Two states can have the same numbers of waiting and decoding requests while
+their active requests have different remaining output lengths. The reduced state discards those lengths, so its
 transition kernel averages over them.
 :::

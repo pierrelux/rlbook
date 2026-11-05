@@ -130,30 +130,34 @@ DEMOS = (
         "view": "scheduling",
         "label": "Exact scheduling",
         "stage": "04 · Compute a policy",
-        "question": "Can prefill and decode decisions be computed for every reduced queue state?",
+        "question": "When should the GPU stop admitting prompts and start decoding the batch?",
         "approach": (
-            "The clock is fixed and scheduling becomes the action. Queue lengths and the oldest "
-            "prefill-age bin form a 245-state Markov decision process. A measured L4 profile "
-            "calibrates completion probabilities and energy; value iteration solves the finite model."
+            "The clock is fixed and scheduling becomes the action. The state is the number of "
+            "waiting prompts and active decode streams, 49 states in all. Measured L4 runs give "
+            "the speed of one decode stream and how little each stream slows down in a batch, so "
+            "a bigger batch finishes more requests per step. Value iteration solves the finite model."
         ),
         "equation": (
             r"\(\displaystyle V_{n+1}(s)=\min_{u\in\mathcal A(s)}\left["
             r"c(s,u)+0.99\sum_{s'}P^u_{ss'}V_n(s')\right]\)"
         ),
         "watch": (
-            "Move through the five age slices and inspect the action map over prefill and decode "
-            "queue lengths. In this reduced model every slice yields the same rule: serve decode "
-            "when active, otherwise prefill, and idle only when empty."
+            "Compare the exact policy with the two heuristics in the controller menu. The exact "
+            "policy keeps prefilling until four or five streams are decoding, then decodes. "
+            "Decode priority runs one stream at a time; it decodes more slowly than requests "
+            "arrive, so its prompt queue fills and requests are dropped."
         ),
         "expect": (
-            "Value iteration takes 2,454 sweeps and finishes with a Bellman residual of 9.82×10⁻¹¹. "
-            "That is a numerical certificate for the 245-state abstraction, not for the original "
-            "request-level server whose identities, lengths, and exact ages were compressed away."
+            "Value iteration takes 2,435 sweeps and ends with a Bellman residual of 9.85×10⁻¹¹. "
+            "Solving each heuristic's linear system gives its exact cost in every state: prefill "
+            "priority is worse than the exact policy by at least 3.0 in every state, decode "
+            "priority by at least 131.8. These checks hold for the 49-state abstraction, not for "
+            "vLLM itself."
         ),
         "try": (
-            "Choose a crowded state and change the oldest-age slice. If the selected action does "
-            "not change, ask whether that invariance comes from the problem itself or from the "
-            "state and cost chosen for this abstraction."
+            "Play the three replays. They see the same arrivals, so any difference in completed "
+            "and dropped requests comes from the decisions. Find the cells where the exact policy "
+            "and prefill priority disagree."
         ),
     },
     {
@@ -176,14 +180,15 @@ DEMOS = (
             "identify decisions supported mainly by the regressor's extrapolation."
         ),
         "expect": (
-            "Broad sampling covers every feasible state-action pair but still disagrees with the "
-            "exact policy on 13.88% of states. Narrow sampling covers 13.86%, disagrees on 68.16%, "
-            "and raises mean waiting time from 3.02 to 21.20 seconds in the reduced-model evaluation."
+            "Broad sampling covers every feasible state-action pair and disagrees with the exact "
+            "policy on 12.2% of states, mostly near the switching boundary where the action gap is "
+            "small. The narrow decode-priority log covers 41.7% of pairs, disagrees on 38.8%, and "
+            "raises mean waiting time from 5.24 to 11.20 seconds in the reduced-model evaluation."
         ),
         "try": (
-            "Switch between broad and narrow buffers at the same age slice. Find a state where the "
-            "policy changes and inspect its coverage marker. This turns an abstract distribution-shift "
-            "warning into a concrete scheduling decision."
+            "Switch between broad and narrow buffers. Find a state where the narrow policy idles "
+            "or prefills against the exact policy and inspect its coverage marker. This turns an "
+            "abstract distribution-shift warning into a concrete scheduling decision."
         ),
     },
 )

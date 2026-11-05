@@ -266,12 +266,11 @@ class InferenceReplayTests(unittest.TestCase):
                 "narrow_fqi": base,
             },
             "policy_slices": {
-                name: {str(age): matrix for age in range(5)}
-                for name in ("exact_dp", "broad_fqi", "narrow_fqi")
+                name: matrix for name in ("exact_dp", "broad_fqi", "narrow_fqi")
             },
             "coverage_slices": {
-                "broad_fqi": {str(age): coverage for age in range(5)},
-                "narrow_fqi": {str(age): coverage for age in range(5)},
+                "broad_fqi": coverage,
+                "narrow_fqi": coverage,
             },
             "metrics": {
                 "broad_fqi": {"coverage_fraction": 1.0},
@@ -280,7 +279,7 @@ class InferenceReplayTests(unittest.TestCase):
         }
         rendered = render_serving_replay(artifact, view="fqi")
         self.assertIn("data-policy-view", rendered)
-        self.assertIn("data-age-field", rendered)
+        self.assertNotIn("data-age-field", rendered)
         self.assertIn("logged visits", rendered)
         self.assertIn('"coverage_fraction":{"broad_fqi":1.0', rendered)
 
@@ -289,12 +288,40 @@ class InferenceReplayTests(unittest.TestCase):
             figure = render_static_figure(artifact, output, view="fqi")
             plt.close(figure)
             svg = output.read_text(encoding="utf-8")
-        self.assertIn("Oldest", rendered)
+        self.assertNotIn("Oldest", rendered)
         self.assertIn("[hidden] { display: none !important; }", rendered)
         self.assertIn('policyView.removeAttribute("hidden")', rendered)
         self.assertIn('policyEmpty.toggleAttribute("hidden"', rendered)
-        self.assertIn("broad fqi", svg)
+        self.assertIn("broad FQI", svg)
         self.assertIn("logged visits", svg)
+
+    def test_scheduling_view_shows_each_policy_and_its_exact_check(self) -> None:
+        artifact = sample_artifact()
+        base = artifact["modeling"]["controllers"]["chunked prefill"]
+        matrix = [[(p + d) % 3 for d in range(7)] for p in range(7)]
+        names = ("exact_dp", "prefill_priority", "decode_priority")
+        artifact["scheduling"] = {
+            "controllers": {name: base for name in names},
+            "policy_slices": {name: matrix for name in names},
+            "policy_checks": {
+                "exact_dp": {"cost_from_empty": 250.0, "minimum_gap": 0.0, "maximum_gap": 0.0},
+                "prefill_priority": {"cost_from_empty": 256.0, "minimum_gap": 3.0, "maximum_gap": 13.0},
+                "decode_priority": {"cost_from_empty": 385.0, "minimum_gap": 131.0, "maximum_gap": 283.0},
+            },
+        }
+        rendered = render_serving_replay(artifact, view="scheduling")
+        self.assertIn('"checks":{"exact_dp":{"cost_from_empty":250.0', rendered)
+        self.assertIn(">exact DP</option>", rendered)
+        self.assertIn(">prefill priority</option>", rendered)
+        self.assertIn("in all 49 states", rendered)
+        self.assertIn("data-coverage-legend", rendered)
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "scheduling.svg"
+            figure = render_static_figure(artifact, output, view="scheduling")
+            plt.close(figure)
+            svg = output.read_text(encoding="utf-8")
+        self.assertIn("decode priority", svg)
+        self.assertIn("cost from empty 385.0", svg)
 
     def test_missing_time_has_a_useful_error(self) -> None:
         with self.assertRaisesRegex(ReplayDataError, "time_s"):

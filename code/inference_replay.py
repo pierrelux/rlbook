@@ -67,13 +67,14 @@ _ALIASES: dict[str, tuple[str, ...]] = {
         "gpu_clock_mhz",
     ),
     "energy_j": ("energy_j", "cumulative_energy_j"),
+    "dropped_requests": ("dropped_requests", "dropped"),
 }
 
 _VIEW_TITLES = {
     "modeling": "Requests, work, and the GPU state",
     "open_loop": "Open-loop frequency schedule under trace replay",
     "mpc": "Receding-horizon control under trace replay",
-    "scheduling": "Reduced-model prefill and decode scheduling",
+    "scheduling": "Exact prefill and decode scheduling policy",
     "fqi": "Reduced-model scheduling policy comparison",
 }
 
@@ -417,43 +418,32 @@ def _policy_matrix(value: Any, *, coverage: bool) -> list[list[float | int]]:
     return rounded.tolist()
 
 
-def _age_slices(value: Any, *, coverage: bool) -> dict[str, list[list[float | int]]]:
+def _controller_matrices(value: Any, *, coverage: bool) -> dict[str, list[list[float | int]]]:
     if not isinstance(value, Mapping):
         return {}
-    normalized: dict[str, list[list[float | int]]] = {}
-    for age, matrix in value.items():
-        try:
-            age_value = int(age)
-        except (TypeError, ValueError):
-            continue
-        if 0 <= age_value <= 4:
-            normalized[str(age_value)] = _policy_matrix(matrix, coverage=coverage)
-    return dict(sorted(normalized.items(), key=lambda item: int(item[0])))
+    return {
+        str(controller): _policy_matrix(matrix, coverage=coverage)
+        for controller, matrix in value.items()
+    }
+
+
+_POLICY_ORDER = (
+    "exact_dp",
+    "prefill_priority",
+    "decode_priority",
+    "broad_fqi",
+    "narrow_fqi",
+)
 
 
 def _normalize_policy_data(
     view_data: Mapping[str, Any], normalized_view: str
 ) -> dict[str, Any]:
-    actions: dict[str, dict[str, list[list[float | int]]]] = {}
-    coverage: dict[str, dict[str, list[list[float | int]]]] = {}
-    raw_actions = view_data.get("policy_slices")
-    if normalized_view == "scheduling":
-        exact = _age_slices(raw_actions, coverage=False)
-        if not exact and "policy_slice_age_4" in view_data:
-            exact = {"4": _policy_matrix(view_data["policy_slice_age_4"], coverage=False)}
-        if exact:
-            actions["exact_dp"] = exact
-    elif normalized_view == "fqi" and isinstance(raw_actions, Mapping):
-        for controller, slices in raw_actions.items():
-            normalized = _age_slices(slices, coverage=False)
-            if normalized:
-                actions[str(controller)] = normalized
-        raw_coverage = view_data.get("coverage_slices", {})
-        if isinstance(raw_coverage, Mapping):
-            for controller, slices in raw_coverage.items():
-                normalized = _age_slices(slices, coverage=True)
-                if normalized:
-                    coverage[str(controller)] = normalized
+    actions: dict[str, list[list[float | int]]] = {}
+    coverage: dict[str, list[list[float | int]]] = {}
+    if normalized_view in {"scheduling", "fqi"}:
+        actions = _controller_matrices(view_data.get("policy_slices"), coverage=False)
+        coverage = _controller_matrices(view_data.get("coverage_slices"), coverage=True)
     metrics = view_data.get("metrics", {})
     coverage_fraction: dict[str, float] = {}
     if isinstance(metrics, Mapping):
@@ -462,10 +452,21 @@ def _normalize_policy_data(
                 fraction = float(values["coverage_fraction"])
                 if np.isfinite(fraction):
                     coverage_fraction[str(controller)] = fraction
+    checks: dict[str, dict[str, float]] = {}
+    raw_checks = view_data.get("policy_checks", {})
+    if isinstance(raw_checks, Mapping):
+        for controller, values in raw_checks.items():
+            if isinstance(values, Mapping):
+                checks[str(controller)] = {
+                    key: float(values[key])
+                    for key in ("cost_from_empty", "minimum_gap", "maximum_gap")
+                    if key in values and np.isfinite(float(values[key]))
+                }
     return {
         "actions": actions,
         "coverage": coverage,
         "coverage_fraction": coverage_fraction,
+        "checks": checks,
         "action_labels": {"0": "prefill", "1": "decode", "2": "idle"},
     }
 
@@ -787,7 +788,7 @@ def render_serving_replay(
     options = "".join(
         f'<option value="{html.escape(name, quote=True)}"'
         + (" selected" if name == data["default_controller"] else "")
-        + f">{html.escape(name.replace('_', ' '))}</option>"
+        + f">{html.escape(_controller_label(name))}</option>"
         for name in data["controllers"]
     )
     disabled = " disabled" if len(data["controllers"]) == 1 else ""
@@ -876,9 +877,6 @@ def render_serving_replay(
     <label class="field controller" for="__CONTROLLER__">Controller
       <select id="__CONTROLLER__" data-controller__DISABLED__>__OPTIONS__</select>
     </label>
-    <label class="field" data-age-field hidden>Oldest prefill-age bin
-      <select data-age aria-label="Oldest prefill-age bin"></select>
-    </label>
     <button type="button" data-action="play" aria-pressed="false">Play</button>
     <button type="button" data-action="step">Step</button>
     <button type="button" data-action="reset">Reset</button>
@@ -900,9 +898,11 @@ def render_serving_replay(
         <rect class="policy-cell" data-action="0" x="382" y="55" width="15" height="15"></rect><text class="annotation" x="402" y="67">prefill (P)</text>
         <rect class="policy-cell" data-action="1" x="382" y="82" width="15" height="15"></rect><text class="annotation" x="402" y="94">decode (D)</text>
         <rect class="policy-cell" data-action="2" x="382" y="109" width="15" height="15"></rect><text class="annotation" x="402" y="121">idle (I)</text>
-        <circle class="coverage-dot" cx="390" cy="143" r="5"></circle><text class="annotation" x="402" y="147">logged visits to shown action</text>
+        <g data-coverage-legend><circle class="coverage-dot" cx="390" cy="143" r="5"></circle><text class="annotation" x="402" y="147">logged visits to shown action</text></g>
       </g>
       <text class="annotation" data-coverage-label x="382" y="177">coverage not recorded</text>
+      <text class="annotation" data-check-label="0" x="382" y="201"></text>
+      <text class="annotation" data-check-label="1" x="382" y="217"></text>
       <text class="annotation" data-policy-empty x="260" y="138" text-anchor="middle" hidden>No stored policy slice for this controller.</text>
     </svg>
     <svg data-scene viewBox="0 0 520 270" role="img" aria-labelledby="__ROOT__-scene-title __ROOT__-scene-description">
@@ -982,8 +982,7 @@ def render_serving_replay(
   const policyHeading = root.querySelector("[data-policy-heading]");
   const policyEmpty = root.querySelector("[data-policy-empty]");
   const coverageLabel = root.querySelector("[data-coverage-label]");
-  const ageField = root.querySelector("[data-age-field]");
-  const ageSelect = root.querySelector("[data-age]");
+  const checkLabels = [root.querySelector('[data-check-label="0"]'), root.querySelector('[data-check-label="1"]')];
   const svgNS = "http://www.w3.org/2000/svg";
   let frameIndex = 0;
   let timer = null;
@@ -992,31 +991,19 @@ def render_serving_replay(
   const finite = (value) => typeof value === "number" && Number.isFinite(value);
   const format = (value, digits) => finite(value) ? value.toFixed(digits) : "not recorded";
   const hasPolicies = replay.policy && Object.keys(replay.policy.actions || {}).length > 0;
-  const updateAgeOptions = () => {
-    if (!hasPolicies) return;
-    const slices = replay.policy.actions[controller.value] || {};
-    const previous = ageSelect.value;
-    ageSelect.replaceChildren();
-    Object.keys(slices).sort((a, b) => Number(a) - Number(b)).forEach((age) => {
-      const option = document.createElement("option");
-      option.value = age; option.textContent = age;
-      ageSelect.appendChild(option);
-    });
-    if ([...ageSelect.options].some((option) => option.value === previous)) ageSelect.value = previous;
-    else if ([...ageSelect.options].some((option) => option.value === "4")) ageSelect.value = "4";
-    ageSelect.disabled = ageSelect.options.length === 0;
-  };
   const renderPolicy = () => {
     if (!hasPolicies) return;
     policyGrid.replaceChildren();
-    const slices = replay.policy.actions[controller.value] || {};
-    const matrix = slices[ageSelect.value];
+    const matrix = replay.policy.actions[controller.value];
     policyEmpty.toggleAttribute("hidden", Boolean(matrix));
-    coverageLabel.textContent = "coverage not recorded";
-    policyHeading.textContent = controller.options[controller.selectedIndex].text + " · age bin " + (ageSelect.value || "not stored");
+    coverageLabel.textContent = replay.view === "fqi" ? "coverage not recorded" : "";
+    root.querySelector("[data-coverage-legend]").toggleAttribute("hidden", replay.view !== "fqi");
+    policyHeading.textContent = controller.options[controller.selectedIndex].text + " policy";
+    const check = (replay.policy.checks || {})[controller.value];
+    checkLabels[0].textContent = check && finite(check.cost_from_empty) ? "cost from empty " + check.cost_from_empty.toFixed(1) : "";
+    checkLabels[1].textContent = check && finite(check.minimum_gap) ? (check.maximum_gap < 1e-6 ? "V\u03c0 \u2212 V* = 0 in all 49 states" : "V\u03c0 \u2212 V* \u2265 " + check.minimum_gap.toFixed(1) + " in all states") : "";
     if (!matrix) return;
-    const coverageSlices = (replay.policy.coverage || {})[controller.value] || {};
-    const coverage = coverageSlices[ageSelect.value];
+    const coverage = (replay.policy.coverage || {})[controller.value];
     const maximumCoverage = coverage ? Math.max(1, ...coverage.flat()) : 1;
     const letters = ["P", "D", "I"];
     for (let p = 0; p < 7; p += 1) {
@@ -1081,6 +1068,7 @@ def render_serving_replay(
     ];
   };
   const extent = (frames, key) => {
+    if ((replay.view === "scheduling" || replay.view === "fqi") && (key === "prefill_queue" || key === "decode_active")) return [-0.3, 6.5];
     const values = frames.map((frame) => frame[key]).filter(finite);
     if (!values.length) return [0, 1];
     let low = Math.min(...values), high = Math.max(...values);
@@ -1196,6 +1184,8 @@ def render_serving_replay(
 
     const pieces = ["frame " + (frameIndex + 1) + " of " + frames.length];
     if (finite(frame.backlog)) pieces.push(format(frame.backlog, 0) + " unfinished requests");
+    if (finite(frame.completed_requests) && (replay.view === "scheduling" || replay.view === "fqi")) pieces.push(format(frame.completed_requests, 0) + " completed");
+    if (finite(frame.dropped_requests)) pieces.push(format(frame.dropped_requests, 0) + " dropped");
     if (finite(frame.energy_j)) pieces.push(format(frame.energy_j, 0) + " J cumulative energy");
     status.textContent = pieces.join(" · ");
     if (announce) announcer.textContent = controller.value + ", " + format(frame.time_s, 2) + " seconds, " + pieces.slice(1).join(", ");
@@ -1226,8 +1216,7 @@ def render_serving_replay(
   resetButton.addEventListener("click", () => { stop(); frameIndex = 0; renderFrame(true); });
   scrubber.addEventListener("input", () => { stop(); frameIndex = Number(scrubber.value); renderFrame(false); });
   scrubber.addEventListener("change", () => renderFrame(true));
-  controller.addEventListener("change", () => { stop(); frameIndex = 0; updateAgeOptions(); renderFrame(true); });
-  ageSelect.addEventListener("change", () => { renderPolicy(); announcer.textContent = "Oldest prefill-age bin " + ageSelect.value + "."; });
+  controller.addEventListener("change", () => { stop(); frameIndex = 0; renderFrame(true); });
 
   const applyTheme = () => {
     let dark = false;
@@ -1259,8 +1248,6 @@ def render_serving_replay(
   if (hasPolicies) {
     sceneView.setAttribute("hidden", "");
     policyView.removeAttribute("hidden");
-    ageField.hidden = false;
-    updateAgeOptions();
   }
   renderFrame(false);
   const fallbackIds = {
@@ -1316,6 +1303,13 @@ def render_serving_replay(
             "The replay exceeds 1 MB after downsampling. Reduce maximum_frames or request detail."
         )
     return fragment
+
+
+def _controller_label(name: str) -> str:
+    words = name.replace("_", " ").split()
+    return " ".join(
+        word.upper() if word in {"dp", "fqi", "mpc"} else word for word in words
+    )
 
 
 def render_static_figure(
@@ -1416,33 +1410,25 @@ def _render_policy_static(
     """Render policy slices, and logged coverage when available, as small multiples."""
 
     policy = replay["policy"]
-    if replay["view"] == "scheduling":
-        slices = policy["actions"]["exact_dp"]
-        selected_ages = [age for age in ("0", "2", "4") if age in slices]
-        if not selected_ages:
-            selected_ages = list(slices)[:3]
-        panels = [
-            (f"oldest age bin {age}", slices[age], None) for age in selected_ages
-        ]
-    else:
-        preferred = ["exact_dp", "broad_fqi", "narrow_fqi"]
-        controllers = [name for name in preferred if name in policy["actions"]]
-        controllers.extend(
-            name for name in policy["actions"] if name not in controllers
+    controllers = [name for name in _POLICY_ORDER if name in policy["actions"]]
+    controllers.extend(name for name in policy["actions"] if name not in controllers)
+    panels = []
+    for controller in controllers[:3]:
+        title = _controller_label(controller)
+        check = policy.get("checks", {}).get(controller, {})
+        if "cost_from_empty" in check:
+            title += f"\ncost from empty {check['cost_from_empty']:.1f}"
+        panels.append(
+            (title, policy["actions"][controller], policy["coverage"].get(controller))
         )
-        panels = []
-        for controller in controllers[:3]:
-            slices = policy["actions"][controller]
-            age = "4" if "4" in slices else next(iter(slices))
-            coverage = policy["coverage"].get(controller, {}).get(age)
-            panels.append((controller.replace("_", " "), slices[age], coverage))
 
     color_map = ListedColormap([TEAL, INK, MUTED])
     with mpl.rc_context(_FIGURE_STYLE):
+        two_line_titles = any("\n" in title for title, _, _ in panels)
         figure, axes = plt.subplots(
             1,
             len(panels),
-            figsize=(7.2, 3.05),
+            figsize=(7.2, 3.45 if two_line_titles else 3.05),
             squeeze=False,
         )
         axes_row = list(axes[0])
@@ -1536,7 +1522,13 @@ def _render_policy_static(
             fontsize=8,
             frameon=False,
         )
-        figure.subplots_adjust(left=0.07, right=0.99, bottom=0.19, top=0.82, wspace=0.28)
+        figure.subplots_adjust(
+            left=0.07,
+            right=0.99,
+            bottom=0.17 if two_line_titles else 0.19,
+            top=0.74 if two_line_titles else 0.82,
+            wspace=0.28,
+        )
 
         if output is not None:
             path = Path(output)
